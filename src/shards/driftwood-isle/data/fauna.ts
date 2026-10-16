@@ -1,3 +1,6 @@
+/** Author ranges shared by the offline enemy compiler and registered spawn catalogue. */
+export const ENEMY_COUNTS = { tidepool: [3, 5] as const, grove: [3, 4] as const };
+
 /** Existing beach boar variants, in the original placement draw order. */
 export const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];
 

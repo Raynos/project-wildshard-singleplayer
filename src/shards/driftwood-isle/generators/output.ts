@@ -1,3 +1,6 @@
+import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
+import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import { enemyPlacements } from './enemyPlacement';
 import { emitDefinedSections, type EmittedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../data/output';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../data/clientSections';
@@ -12,6 +15,7 @@ function joined(a: EmittedSections, b: EmittedSections): EmittedSections {
 }
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...DRIFTWOOD_OUTPUT, custom: joined(DRIFTWOOD_OUTPUT.custom, emitDefinedSections(DRIFTWOOD_CLIENT_SECTIONS)) };
+const placements = emitNamedBlobs([nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(enemyPlacements())))]);
+export const output = { ...DRIFTWOOD_OUTPUT, namedFiles: placements.files, assets: placements.assets, custom: joined(DRIFTWOOD_OUTPUT.custom, emitDefinedSections(DRIFTWOOD_CLIENT_SECTIONS)) };
 /** Strict output copies prove the same constants the source mirror fixture checks. */
 export const mirrors = [...RUNTIME_MIRRORS];

@@ -3,7 +3,7 @@ import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRunti
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
 import { waveHeight } from '@wildshard/engine/world/waves';
-import { driftwoodBake, driftwoodSpecs } from './baked';
+import { driftwoodBake, driftwoodSpecs, readEnemyPlacements } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captainEncounter';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from '../runtime/director';
@@ -34,7 +34,8 @@ export const DRIFTWOOD_DAY_START = 0.2 * (20 / 24), DRIFTWOOD_CYCLE_S = 48 * 60;
  * the puzzle barrel the player pushes onto the second tide plate (the kit's body and never-jam rule), and the open sluice.
  * The declared entry walk: every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
  */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, product }) => {
+  const placement = readEnemyPlacements(JSON.parse(new TextDecoder().decode(await product.file('sim/enemy-placement.json'))));
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
   const createDirector = await prepareDriftwoodDirector();
@@ -50,7 +51,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     // Install before restore too: a saved swim cannot attach to a dry host. Never borrow the renderer's global wave clock.
     host.useWater({ surfaceAt: DRIFTWOOD_SEA.restAt, bob: (x, z) => waveHeight(x, z, host.clock.now) });
     if (!context.restoring) installNativeCollision(host, bake, { resolution: 256 });
-    const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
+    const island = installIsland(host, { placement, bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     const captain = installCaptain(host, bake, island);
     const reward = { started: false, completed: false };
     const finale = createDriftwoodFinale(host.scope, createDirector(), { flags: host.flags, player: host.player.position, rewardAt: spots.reward, reward,

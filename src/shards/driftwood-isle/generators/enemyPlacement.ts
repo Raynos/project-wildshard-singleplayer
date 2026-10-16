@@ -1,6 +1,10 @@
+import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+import physics from '../data/physics.generated.json' with { type: 'json' };
+import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/engine/core/rng';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
-import { enemyCount } from '../creatures/tables';
+import { ENEMY_COUNTS } from '../data/fauna';
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
  *  spelled here because the manifest imports views; test/shards/driftwood-isle/physics-bake.test.ts holds them equal. */
@@ -52,7 +56,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
   const spawn=inputs.spawn??TROOP_SPAWN, troops=inputs.troops??TROOPS;
   if(!Number.isSafeInteger(troops)||troops<0||troops>MAX_GROUP)throw new Error('Driftwood troop count exceeds its bound');
   for (let k = 0; k < Math.min(inputs.crabSites.length, MAX_SITES); k++) {
-    const s = inputs.crabSites[k], n = enemyCount('tidepool', () => rng.next()), herd = herds++;
+    const s = inputs.crabSites[k], n = rng.int(...ENEMY_COUNTS.tidepool), herd = herds++;
     if (s === undefined || n > MAX_GROUP) throw new Error('Driftwood crab group exceeds its bound');
     at.push({ x: s.x, z: s.z });kinds.push('crab');
     out.push(...sampleCreatureGroup({ kind: 'crab', count: n, herd, variant: 'small', firstVariant: 'big',
@@ -68,7 +72,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
   for (let k = 0; k < Math.min(centres.length, troops, MAX_GROUP); k++) {
     const c = centres[k]; if (c === undefined) continue;
     const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);
-    const n = Math.min(grove.length, enemyCount('grove', () => rng.next())), herd = herds++;
+    const n = Math.min(grove.length, rng.int(...ENEMY_COUNTS.grove)), herd = herds++;
     at.push({ x: c.x, z: c.z });kinds.push('monkey');
     out.push(...sampleCreatureGroup({ kind: 'monkey', count: n, herd, variant: null, source: { kind: 'indexed', points: grove } }, rng));
   }
@@ -82,4 +86,25 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
 export function holdCentre(): { x: number; z: number } {
   const h = WRECK_SITE.heading;
   return { x: WRECK_SITE.x + 3.2 * Math.sin(h), z: WRECK_SITE.z + 3.2 * Math.cos(h) };
+}
+
+/** Offline policy execution only; play consumes rows and the post-placement RNG continuation. */
+type ColdPlacement = Omit<ReturnType<typeof placeEnemies>, 'stream'> & { stream: ReturnType<Rng['snapshot']> };
+export function enemyPlacements(): { seed: number; practice: typeof PRACTICE_AT; hold: ReturnType<typeof holdCentre>; page: Record<'phone' | 'desktop', ColdPlacement>; native: ColdPlacement } {
+  const seed = foliage.seed, waterLevel = 0;
+  const pack = (inputs: EnemyPlacementInputs) => {
+    const { stream, ...rows } = placeEnemies(inputs);
+    return { ...rows, stream: stream.snapshot() };
+  };
+  const extra = physics.habitat.perchBases.slice(foliage.tiers.phone.palms.specs.length);
+  if (extra.length !== 24) throw new Error('Enemy placement requires the authored Blender palms');
+  const heightAt = driftwoodGroundSampler();
+  const page = (tier: 'phone' | 'desktop') => pack({ seed, waterLevel, heightAt,
+    crabSites: physics.habitat.crabSites, palms: [...foliage.tiers[tier].palms.specs, ...extra] });
+  const bytes = Uint8Array.from(atob(physics.ground.heights), byte => byte.codePointAt(0) ?? 0);
+  const heights = new Float32Array(bytes.buffer);
+  const nativeHeight = (x: number, z: number): number => terrainTileHeight({ resolution: 256, x: -250, z: -250, size: 500, heights }, x, z,
+    { layout: 'column-major', boundary: 'clamp' });
+  return { seed, practice: PRACTICE_AT, hold: holdCentre(), page: { phone: page('phone'), desktop: page('desktop') },
+    native: pack({ seed, waterLevel, heightAt: nativeHeight, crabSites: physics.habitat.crabSites, palms: physics.habitat.perchBases }) };
 }

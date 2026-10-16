@@ -13,7 +13,10 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { PalmSpec } from '../world/Palms';
-import { placeEnemies, holdCentre, type EnemyPlacement } from '../runtime/placement';
+import * as v from 'valibot';
+import { EnemyPlacementsSchema, type EnemyPlacements } from '../runtime/sections';
+import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
+import { TIER } from '@wildshard/engine/core/tier';
 import { DRIFTWOOD_PRACTICE } from './tables';
 import { COCONUT_R, COCONUTS, Coconuts } from '../combat/coconuts';
 import { preloadSailorHead } from '../species/sailor';
@@ -49,10 +52,6 @@ export interface EnemiesOpts {
   palms?: PalmSpec[];
   wreck?: { floorHeightAt: (x: number, z: number) => number | undefined } | null;
   crabSites?: { x: number; z: number }[];
-  /** the player spawn to keep troops away from (default the pier landing) */
-  spawn?: { x: number; z: number };
-  /** monkey troops to place (default 3) */
-  troops?: number;
   /** E308: where the lone practice crab lives — one small reef crab on the path at the pier's foot, the first enemy a new
    *  player meets; it comes back PRACTICE_BACK s after it dies, once you are PRACTICE_AWAY m off */
   practice?: { x: number; z: number };
@@ -154,9 +153,9 @@ export class Enemies {
     }
     // the baked bodies first (AnimalFactory builds each model once, at its first spawn; the adventure's install already
     // waited on the same ~45 KB file behind the loading screen), then the placements in their order
-    void preloadSailorHead().then(() => {
+    void Promise.all([preloadSailorHead(), readDriftwoodBlob('sim/enemy-placement.json')]).then(([, bytes]) => {
       if (this.disposed) return null;
-      this.placeAuthoredEnemies();
+      this.placeAuthoredEnemies(v.parse(EnemyPlacementsSchema, JSON.parse(new TextDecoder().decode(bytes))));
       return null;
     });
     opts.scene.add(this.group);
@@ -165,17 +164,15 @@ export class Enemies {
 
   // ── placement ──────────────────────────────────────────────────────────────────────────
 
-  private placeAuthoredEnemies(): void {
-    const rows=placeEnemies({seed:SEED,crabSites:this.opts.crabSites??[],palms:this.opts.palms??[],
-      heightAt,waterLevel:waterLevel(),practice:this.opts.practice??null,
-      ...(this.opts.spawn===undefined?{}:{spawn:this.opts.spawn}),...(this.opts.troops===undefined?{}:{troops:this.opts.troops}),
-      sailor:this.opts.wreck!==null&&this.opts.wreck!==undefined});
-    this.rng.restore(rows.stream.snapshot());
+  private placeAuthoredEnemies(placement: EnemyPlacements): void {
+    if (SEED !== placement.seed) throw new Error('Enemy placements require their authored seed');
+    const rows = placement.page[TIER];
+    this.rng.restore(rows.stream);
     this.creatures.place(rows.centres, rows.kinds, rows.enemies, (actor, row) => {
       if(row.practice===true){this.practiceCrab=actor;this.practiceDead=0;}
       if(row.kind==='crab')this.placed.crabs++;else this.placed.monkeys++;
     }, (kind, i) => { if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++; });
-    const sailor=rows.enemies.find(row=>row.kind==='sailor');if(sailor!==undefined)this.placeSailor(sailor);
+    const sailor=rows.enemies.find(row=>row.kind==='sailor');if(sailor!==undefined)this.placeSailor(sailor, placement.hold);
   }
 
   /** the lone small crab on the path at the pier's foot (E308): a herd of one, so no big crab's death scatters it */
@@ -198,10 +195,9 @@ export class Enemies {
     this.placePracticeCrab();
   }
 
-  private placeSailor(spot:EnemyPlacement): void {
+  private placeSailor(spot: EnemyPlacements['native']['enemies'][number], centre: EnemyPlacements['hold']): void {
     const wreck = this.opts.wreck;
     if (wreck === null || wreck === undefined) return;
-    const centre=holdCentre();
     this.animals.habitat.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
     const a = this.creatures.spawn('sailor', spot.x, spot.z, spot.yaw, 'sailor');
     a.herd = -1;

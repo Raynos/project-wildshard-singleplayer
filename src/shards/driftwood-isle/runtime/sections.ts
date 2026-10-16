@@ -78,3 +78,16 @@ export const SECTIONS = {
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
   'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) }),
 } as const;
+
+const placement = v.strictObject({
+  enemies: v.pipe(v.array(v.strictObject({ kind: v.picklist(['crab', 'monkey', 'sailor']), variant: v.nullable(text),
+    x: number, z: number, yaw: number, herd: number, practice: v.exactOptional(v.literal(true)) })), v.maxLength(64)),
+  herds: natural, centres: v.pipe(v.array(v.strictObject({ x: number, z: number })), v.maxLength(16)),
+  kinds: v.pipe(v.array(v.picklist(['crab', 'monkey'])), v.maxLength(16)),
+  stream: v.strictObject({ version: v.literal(1), state: natural, initial: natural, scrambledFork: v.boolean() }),
+});
+/** Named offline spawn rows; all sampling runs only in the author compiler. */
+export const EnemyPlacementsSchema = v.strictObject({ seed: natural,
+  practice: v.strictObject({ x: number, z: number }), hold: v.strictObject({ x: number, z: number }),
+  page: v.strictObject({ phone: placement, desktop: placement }), native: placement });
+export type EnemyPlacements = v.InferOutput<typeof EnemyPlacementsSchema>;

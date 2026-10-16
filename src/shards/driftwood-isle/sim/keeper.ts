@@ -24,9 +24,8 @@ import { SAILOR } from '../species/sailor';
 import { MONKEY_VARIANTS } from '../species/monkeyVariants';
 import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { COCONUTS, Coconuts } from '../combat/coconuts';
-import { placeEnemies, PRACTICE_AT } from '../runtime/placement';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
-import type { DriftwoodBake } from './baked';
+import type { DriftwoodBake, NativeEnemyPlacements } from './baked';
 import { RespawnQueue } from '../runtime/ecology';
 import { RESPAWN } from '../data/ecology';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
@@ -59,6 +58,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
+  readonly placement: NativeEnemyPlacements;
   readonly bake: DriftwoodBake;
   /** every (kind.variant)'s baked native spec */
   readonly specs: ReadonlyMap<string, AnimalSimSpec>;
@@ -166,7 +166,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   };
   const { hunt, reach } = createNativeHunt(host, DRIFTWOOD_NATIVE_HUNT, { rng, ground, nav: ports.nav, species: FAUNA_SPECIES });
   const habitat = bake.habitat;
-  const placed = placeEnemies({ seed: ports.seed, crabSites: habitat.crabSites, palms: habitat.perchBases, heightAt, waterLevel: ports.waterLevel });
+  if (ports.seed !== ports.placement.seed) throw new Error('Enemy placements require their authored seed');
+  const PRACTICE_AT = ports.placement.practice, stream = new Rng(0); stream.restore(ports.placement.native.stream);
+  const placed = { ...ports.placement.native, stream };
   // the coconuts (combat/coconuts.ts, as Enemies.ts throws them): bodies in the host's world, spun from the placement
   // stream past placement, floating on the sea's swell at the host's clock; a hit is the thrower's blow on the player
   let service = new Bodies(host.physics, player);

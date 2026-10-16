@@ -85,3 +85,14 @@ export function driftwoodSpecs(bake: DriftwoodBake): ReadonlyMap<string, AnimalS
   specs.set('captain.captain', bake.captain.spec);
   return specs;
 }
+
+const enemyRow = v.strictObject({ kind: v.picklist(['crab', 'monkey', 'sailor']), variant: v.nullable(v.string()),
+  x: finite, z: finite, yaw: finite, herd: finite, practice: v.exactOptional(v.literal(true)) });
+const EnemyPlacements = v.object({ seed: finite, practice: xz, native: v.strictObject({
+  enemies: v.pipe(v.array(enemyRow), v.maxLength(64)), herds: finite, centres: v.pipe(v.array(xz), v.maxLength(16)),
+  kinds: v.pipe(v.array(v.picklist(['crab', 'monkey'])), v.maxLength(16)),
+  stream: v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() }),
+}) });
+/** Native intake admits only the authored spawn rows it consumes, without importing a client module. */
+export type NativeEnemyPlacements = v.InferOutput<typeof EnemyPlacements>;
+export function readEnemyPlacements(input: unknown): NativeEnemyPlacements { return v.parse(EnemyPlacements, input); }
