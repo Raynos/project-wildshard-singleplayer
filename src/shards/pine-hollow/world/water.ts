@@ -28,15 +28,26 @@ export function waterReflect(view: WaterView): void {
 export function pineWater(look: WaterLook): THREE.Material { return pineLook(WATER_LOOKS[look]); }
 export function setWaterFade(look: WaterLook, fade: number): void { setPineLookParam(WATER_LOOKS[look], 'fade', fade); }
 
+function lendWaterRipples(ripples: THREE.Texture): void {
+  for (const id of LOOKS) { setPineLookTexture(id, 'ripples', ripples); setPineLookParam(id, 'rain', rain); }
+}
+
 /**
  * After the looks are lent, the pond the session built (engine/world/pond.ts: the mesh `pond`, its skyline probe in userData)
  * wears the pond look instead of the engine's classic water, and every look borrows that water's ripple map.
+ * A regional scene has no standalone pond: lend the same shared ripples for its streams without dressing a page-owned pond.
+ * The standalone page and any present pond still require their real surface, probe and normal map.
  */
-export function dressPineWater(game: Pick<Game, 'rootScene'>): void {
-  const mesh = game.rootScene.getObjectByName('pond'), old: unknown = mesh instanceof THREE.Mesh ? mesh.material : null;
+export async function dressPineWater(game: Pick<Game, 'scene' | 'rootScene'>): Promise<void> {
+  const mesh = game.scene.getObjectByName('pond');
+  if (mesh === undefined && game.scene !== game.rootScene) {
+    const { waterTexture } = await import('@wildshard/engine/world/waterSurface');
+    lendWaterRipples(waterTexture()); return;
+  }
+  const old: unknown = mesh instanceof THREE.Mesh ? mesh.material : null;
   const skyline: unknown = mesh?.userData['waterSkyline'], ripples: unknown = old instanceof THREE.MeshPhysicalMaterial ? old.normalMap : null;
   if (!(mesh instanceof THREE.Mesh) || !isTexture(skyline) || !isTexture(ripples)) throw new Error('[pine-hollow] the pond, its skyline probe or its ripples are missing');
-  for (const id of LOOKS) { setPineLookTexture(id, 'ripples', ripples); setPineLookParam(id, 'rain', rain); }
+  lendWaterRipples(ripples);
   setPineLookTexture(WATER_LOOKS.pond, 'skyline', skyline);
   setPineLookParam(WATER_LOOKS.pond, 'skyC', [POND.x, POND.z, waterLevel(), 1]);
   mesh.material = pineWater('pond');

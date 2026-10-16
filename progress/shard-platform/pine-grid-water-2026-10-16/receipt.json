@@ -1,0 +1,297 @@
+{
+  "sourceBase": "86fc4d2bdeafde4e6fbaaded393b6b569934c7d7",
+  "appCandidate": "170f1f30095169fb98b20d10965cb6aed88e98f0",
+  "finalCandidate": "55e8d9387467c3097539427985b8306c1fdbf3fa",
+  "candidateDifference": "Two explicit void return annotations in test callbacks only; app source identical.",
+  "firstBad": "de1b7286f1882ecee7ac67d4693c758107b88177",
+  "controls": [
+    {
+      "control": "before-layout-deletion",
+      "build": {
+        "build": "ba7a70b-mvah8hzd",
+        "time": "2026-10-16T04:37:58.217Z"
+      },
+      "pass": false,
+      "issue": "[pine-hollow] the pond, its skyline probe or its ripples are missing",
+      "pageErrors": [],
+      "pond": {
+        "boundScene": "",
+        "sameAsRoot": true,
+        "exists": false,
+        "skyline": false
+      }
+    },
+    {
+      "control": "before-pond-grid-deletion",
+      "build": {
+        "build": "f62a2b6-mvah5n82",
+        "time": "2026-10-16T04:35:45.715Z"
+      },
+      "pass": false,
+      "issue": "[pine-hollow] the pond, its skyline probe or its ripples are missing",
+      "pageErrors": [],
+      "pond": {
+        "boundScene": "",
+        "sameAsRoot": true,
+        "exists": false,
+        "skyline": false
+      }
+    },
+    {
+      "control": "before-water-graphs",
+      "build": {
+        "build": "b2c5634-mvahc2cs",
+        "time": "2026-10-16T04:40:44.643Z"
+      },
+      "pass": true,
+      "issue": null,
+      "pageErrors": [],
+      "pond": {
+        "boundScene": "region-scene:pine-hollow",
+        "sameAsRoot": false,
+        "exists": false,
+        "skyline": false
+      }
+    },
+    {
+      "control": "water-graphs",
+      "build": {
+        "build": "de1b728-mvahf84b",
+        "time": "2026-10-16T04:43:12.028Z"
+      },
+      "pass": false,
+      "issue": "[pine-hollow] the pond, its skyline probe or its ripples are missing",
+      "pageErrors": [],
+      "pond": {
+        "boundScene": "",
+        "sameAsRoot": true,
+        "exists": false,
+        "skyline": false
+      }
+    }
+  ],
+  "entry": {
+    "version": {
+      "build": "170f1f3-mvahrfk8",
+      "time": "2026-10-16T04:52:41.427Z"
+    },
+    "elapsedMs": 41032,
+    "pass": true,
+    "issue": null,
+    "errors": [],
+    "reports": [],
+    "pond": {
+      "boundScene": "region-scene:pine-hollow",
+      "sameAsRoot": false,
+      "exists": false,
+      "skyline": false
+    },
+    "capture": {
+      "inside": "pine-hollow",
+      "current": "pine-hollow",
+      "frame": 776
+    }
+  },
+  "consoleWarnings": [
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/wooden_crate_02/textures/wooden_crate_02_diff_1k-4fc90793.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/gpu/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.phone-03f3ca76.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k-41e03197.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/wine_barrel_01/textures/wine_barrel_01_diff_1k-6183a4d5.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/gpu/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.phone-e1d40069.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k-834e0726.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k-555ca626.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/gpu/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.phone-586e1b1c.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k-9b56b384.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/hatchet/textures/hatchet_diff_1k-28f0a5e3.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/gpu/models/hatchet/textures/hatchet_arm_1k.phone-f064fee3.ktx2"
+    },
+    {
+      "level": "error",
+      "text": "THREE.GLTFLoader: Couldn't load texture /assets/pine-hollow/astc6/models/hatchet/textures/hatchet_nor_gl_1k-3e558017.ktx2"
+    }
+  ],
+  "walk": {
+    "build": "170f1f3-mvahrfk8",
+    "tier": "phone",
+    "walkCpu": 1,
+    "pageErrors": [],
+    "legs": [
+      {
+        "shard": "pine-hollow",
+        "name": "cabin-porch",
+        "frames": 1329,
+        "seconds": 44.3,
+        "end": {
+          "x": -10.24,
+          "y": 3.833,
+          "z": -34.382
+        },
+        "expectY": 3.815,
+        "maxY": 4.25,
+        "groundSpeedP50": 4.24,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "pond",
+        "frames": 1348,
+        "seconds": 44.9,
+        "end": {
+          "x": -63.882,
+          "y": -2.005,
+          "z": 109.25
+        },
+        "expectY": -2.01,
+        "maxY": 3.82,
+        "groundSpeedP50": 4.27,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lookout-climb",
+        "frames": 356,
+        "seconds": 11.9,
+        "end": {
+          "x": 34.809,
+          "y": 57.477,
+          "z": 211.344
+        },
+        "expectY": 57.46,
+        "maxY": 57.48,
+        "groundSpeedP50": 1.83,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "zip-landing",
+        "frames": 66,
+        "seconds": 2.2,
+        "end": {
+          "x": 3.242,
+          "y": 3.304,
+          "z": 20.128
+        },
+        "expectY": 3.29,
+        "maxY": 3.31,
+        "groundSpeedP50": 3.9,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "creek-bridge",
+        "frames": 225,
+        "seconds": 7.5,
+        "end": {
+          "x": -135.967,
+          "y": 1.488,
+          "z": -5.3
+        },
+        "expectY": 1.42,
+        "maxY": 1.53,
+        "groundSpeedP50": 4.26,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lodge-porch",
+        "frames": 46,
+        "seconds": 1.5,
+        "end": {
+          "x": -165.198,
+          "y": -0.16,
+          "z": -114.231
+        },
+        "expectY": -0.18,
+        "maxY": -0.16,
+        "groundSpeedP50": 4.21,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "den-cave",
+        "frames": 341,
+        "seconds": 11.4,
+        "end": {
+          "x": 218.91,
+          "y": 8.036,
+          "z": 217.581
+        },
+        "expectY": 8.01,
+        "maxY": 9.07,
+        "groundSpeedP50": 4.33,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      }
+    ]
+  },
+  "checks": {
+    "headless": 17,
+    "waterOwnership": 4,
+    "changedTypes": "pass",
+    "typedLint": "pass"
+  },
+  "map": {
+    "version": 1,
+    "tilesHash": "d1c1ba377d6a42355b14689fc75bf0914a28bbc6cc0a57bf9cdcf5990a066082",
+    "pixelHash": "3de16e715def8ab70809c383466ef318055abe803c58d652d560fc863ccbe805",
+    "image": "/assets/pine-hollow/map/top.webp",
+    "size": 1000,
+    "metres": 500,
+    "north": "+z",
+    "east": "-x",
+    "style": "stylized:ground",
+    "bytes": 94816
+  }
+}

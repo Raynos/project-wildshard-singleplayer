@@ -102,7 +102,7 @@ export class PineHollow extends ShardPlugin {
     ctx.app.registerTrample(trample, ctx.scope);
     // the look.materials graphs the spray, the water, the cabins' hearth particles and the cave's shaft wear (data/graphLooks.ts), owned by this scope
     lendPineLooks(await runtimeLookMaterials(ctx, source, true, Object.keys(PINE_GRAPHS)));
-    dressPineWater(game);
+    await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
     lendPineWildlifeLook(await runtimeLookMaterials(ctx, source, true, [WILDLIFE_LOOK]));
     const streams = await new PineStreams(sky).build();
