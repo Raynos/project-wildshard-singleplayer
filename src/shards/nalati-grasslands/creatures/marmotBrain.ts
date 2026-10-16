@@ -18,7 +18,7 @@ export const MarmotContinuation = v.strictObject({
   bands: v.strictObject({ rates: uint, time: positive, frame: integer, frameDt: positive,
     rows: v.pipe(v.array(v.strictObject({ id: v.string(), rate: v.literal('fx'), brain: clock, body: clock })), v.maxLength(MAX)) }),
 });
-type MarmotState = v.InferOutput<typeof row>;
+export type MarmotState = v.InferOutput<typeof row>;
 export type MarmotSnapshot = v.InferOutput<typeof MarmotContinuation>;
 export interface MarmotGround { heightAt: (x: number, z: number) => number; normalY: (x: number, z: number) => number }
 interface Point { readonly x: number; readonly y: number; readonly z: number }
