@@ -14546,7 +14546,8 @@
         "public/assets/pine-hollow/creatures/elk-bull.phone.rigged.glb",
         "public/assets/pine-hollow/creatures/elk-bull.rigged.glb",
         "public/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb",
-        "public/assets/pine-hollow/creatures/elk-cow.rigged.glb"
+        "public/assets/pine-hollow/creatures/elk-cow.rigged.glb",
+        "src/shards/pine-hollow/generators/glbParts.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/rig-blobs/00f515577a3cd20f522e8e8ee006a9107d1edf6ece4c653e2e727601909a2f8c",
@@ -14686,6 +14687,59 @@
       "buildTimeOutputs": [
         "src/shards/_template/behaviour/boss.json",
         "src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60"
+      ]
+    },
+    {
+      "id": "pine-bird-blob-inputs",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/birdBlobs.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/birdBlobs.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk",
+        "src/format",
+        "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake-ktx2.cache.json",
+        "scripts/ktx2-settings.mjs",
+        "scripts/bake-ktx2.mjs",
+        "src/shards/pine-hollow/generators/birdBlobs.mjs",
+        "src/shards/pine-hollow/generators/glbParts.mjs",
+        "src/shards/pine-hollow/data/ambientBirds.generated.json",
+        "public/assets/pine-hollow/life/birds.glb",
+        "public/assets/pine-hollow/life/birds.phone.glb",
+        "public/assets/gpu/pine-hollow/life/birds-481030e6.glb",
+        "public/assets/gpu/pine-hollow/life/birds.phone-3c606615.glb",
+        "public/assets/pine-hollow/life/birds-rest-40ce24a5c35abe5ff6bf415c75548df28c167c70025760972e2b6e90822553b4.glb",
+        "public/assets/pine-hollow/life/birds-rest-40ce24a5c35abe5ff6bf415c75548df28c167c70025760972e2b6e90822553b4.phone.glb"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/assets/bird-blobs/4fa3f2b5d6988dc85c60620a0486f19a0c698fc3ce9e94d041405d36b159d833",
+        "src/shards/pine-hollow/assets/bird-blobs/09495edc5071c7b3f760c9cde94bed83f8e0adb783a0a6c0d3b63e88132fec3d",
+        "src/shards/pine-hollow/assets/bird-blobs/1fcb08c7cd2ba13aea9e5309c88a4bde7c192fb615374820e187057bb31e8553",
+        "src/shards/pine-hollow/assets/bird-blobs/fd488e8443a5e06e4b68eac55c67a12c475ebca188b194579f9fc1930c82a73a",
+        "src/shards/pine-hollow/assets/bird-blobs/9aac6e04d6e498a42ea3fde80907dc1e3c04a46a8b70c931f38f4a6526d134fb",
+        "src/shards/pine-hollow/assets/bird-blobs/877e5b80603d3d045dd0c60045dfe52837b28929d6fac84cf1e39153b82e8add",
+        "src/shards/pine-hollow/data/birdBlobs.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/assets/bird-blobs/4fa3f2b5d6988dc85c60620a0486f19a0c698fc3ce9e94d041405d36b159d833",
+        "src/shards/pine-hollow/assets/bird-blobs/09495edc5071c7b3f760c9cde94bed83f8e0adb783a0a6c0d3b63e88132fec3d",
+        "src/shards/pine-hollow/assets/bird-blobs/1fcb08c7cd2ba13aea9e5309c88a4bde7c192fb615374820e187057bb31e8553",
+        "src/shards/pine-hollow/assets/bird-blobs/fd488e8443a5e06e4b68eac55c67a12c475ebca188b194579f9fc1930c82a73a",
+        "src/shards/pine-hollow/assets/bird-blobs/9aac6e04d6e498a42ea3fde80907dc1e3c04a46a8b70c931f38f4a6526d134fb",
+        "src/shards/pine-hollow/assets/bird-blobs/877e5b80603d3d045dd0c60045dfe52837b28929d6fac84cf1e39153b82e8add",
+        "src/shards/pine-hollow/data/birdBlobs.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "pine-ambient-birds"
       ]
     }
   ]
