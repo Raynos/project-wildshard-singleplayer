@@ -40,7 +40,7 @@ import { loadUnderShapes } from './world/undergrowthKit';
 import { loadUnderPlacements } from './world/timberSites';
 import { pineModels } from './world/context';
 import { Undergrowth } from '../world/undergrowth';
-import { Props } from './world/props';
+import { placePineProps } from './world/props';
 import { PineStreams } from './world/streams';
 import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
 import { placeCabins } from './world/cabins';
@@ -149,11 +149,7 @@ export class PineHollow extends ShardPlugin {
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;
     });
-    const props = await step('props', async () => {
-      const placed = new Props(sky, forest, game);
-      await placed.build(registry, macrotask);
-      return placed;
-    });
+    const props = await step('props', () => placePineProps(sky, forest, game, registry, macrotask));
     await placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry }, slicer(30).due);
     Object.assign(rt.objects, { cabins: this.cabins, props, streams, ...carpet });
     rt.hooks.worldUpdate = (dt, t) => {

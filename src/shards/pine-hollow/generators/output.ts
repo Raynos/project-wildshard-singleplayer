@@ -6,6 +6,7 @@ import { HEARTH_LOOKS } from '../data/hearthLook';
 import { WEAPON_FINISHES } from '../data/weaponFinishes';
 import { TIMBER_DRAWS, TIMBER_GLASS } from '../data/timberDraws';
 import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
+import props from '../data/props.json' with { type: 'json' };
 import { PINE_OUTPUT } from '../data/output';
 import { RUNTIME_MIRRORS } from '../data/runtimeMirrors';
 
@@ -16,7 +17,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const clientJson=emitNamedBlobs([nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
  CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,
-}))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
+}))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 export const output = { ...PINE_OUTPUT, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
