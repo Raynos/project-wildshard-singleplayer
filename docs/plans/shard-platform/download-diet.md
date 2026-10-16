@@ -176,3 +176,12 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   match. The registered cheap producer passes cold comparison and
   verified warm restoration. No generated binary enters Git; reader
   migration follows separately.
+
+- 2026-10-16 Pine rig split: 16 tiered image-free GLBs plus 32 separate
+  declared KTX2 base/normal maps. Every one of 112 geometry/skin
+  accessors matches; all 32 texture payloads are byte-identical to
+  the existing bake-ktx2 GPU stand-ins. Combined raw bytes are
+  23,003,420 → 22,994,699 (-8,721 B); per-file gzip-9 totals are
+  22,570,720 → 22,567,746 (-2,974 B). Both tiers retain distinct
+  logical names. This author-output prerequisite keeps readers for
+  the coordinated o280 integration; generated binaries stay cached.

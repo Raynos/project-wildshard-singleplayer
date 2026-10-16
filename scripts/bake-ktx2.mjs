@@ -40,6 +40,7 @@
 // terrain splat, the bark) are baked a second time unflipped (`<url>#layer`): loadPBRArray keeps the file's orientation.
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-ktx2.mjs [--dry] [--force] [--only=<substr>] [--jobs=4] [--tiers=phone,desktop] [--desktop-max=16384]
+import { COMMON, CLASS, glbKtx2Key } from './ktx2-settings.mjs';
 import { writeKtx2Tables } from './ktx2-tables.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
@@ -114,13 +115,6 @@ const ARRAY_ONLY = new Set(['bark_willow_02', 'birch_bark', 'fir_bark', 'metaseq
 const arrayOnly = (file) => { const id = layerSetOf(file); return id !== null && ARRAY_ONLY.has(id) && LAYER_SETS.has(id); };
 
 const ENCODER = /v[\d.]+/.exec(execFileSync('basisu', ['-version']).toString())?.[0] ?? '?';
-const COMMON = ['-ktx2', '-mipmap', '-mip_filter', 'box', '-max_threads', '4'];
-const CLASS = {
-  color: ['-uastc', '-uastc_level', '2', '-srgb', '-ktx2_zstandard_level', '20'],
-  normal: ['-uastc', '-uastc_level', '2', '-normal_map', '-ktx2_zstandard_level', '20'],
-  linear: ['-uastc', '-uastc_level', '2', '-linear', '-ktx2_zstandard_level', '20'],
-  data: ['-etc1s', '-q', '255', '-linear'],
-};
 /** texture class from a file / image name */
 function classOf(name) {
   const n = basename(name).toLowerCase();
@@ -377,7 +371,7 @@ function imageClasses(json) {
 const glbDone = new Map();
 async function glbOut(file, served) {
   const src = readFileSync(file);
-  const key = sha(`${sha(src)}|glb2|${ENCODER}|${JSON.stringify(CLASS)}|${COMMON.join(' ')}`);
+  const key = glbKtx2Key(src, ENCODER);
   usedKeys.add(key);
   const hit = cache[key];
   if (!FORCE && hit && (hit === 'none' || existsSync(abs(hit)))) { reused++; return hit === 'none' ? null : hit; }

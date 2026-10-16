@@ -23,6 +23,7 @@ import night from '../behaviour/night.generated.json' with {type:'json'};
 import director from '../behaviour/director.json' with {type:'json'};
 import king from './kingBlobs.generated.json' with {type:'json'};
 import creatures from './creatureBlobs.generated.json' with {type:'json'};
+import rigs from './rigBlobs.generated.json' with {type:'json'};
 import kingKit from './kingKit.generated.json' with {type:'json'};
 
 const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl};
@@ -60,7 +61,7 @@ function withGeometryCosts(row:(typeof client.blobs)[number]){
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT={
- blobs:[...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,
+ blobs:[...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.module}`,options:{script:{abi:0 as const}}},
  {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
  custom:emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{

@@ -1867,3 +1867,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Cached named creature inputs (pine-creature-blob-inputs).
 /src/shards/pine-hollow/assets/creature-blobs/
 /src/shards/pine-hollow/data/creatureBlobs.generated.json
+
+# Cached split rig geometry and existing KTX2 blocks (pine-rig-blob-inputs).
+/src/shards/pine-hollow/assets/rig-blobs/
+/src/shards/pine-hollow/data/rigBlobs.generated.json
