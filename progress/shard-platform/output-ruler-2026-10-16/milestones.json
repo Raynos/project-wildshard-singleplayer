@@ -1,0 +1,455 @@
+{
+  "candidate": "b89707dc1136354cfef5d585c6ec944bbeb6572b",
+  "proof": ".git/proofs/20261016T095104-sp-x7-g458-census-29831.json",
+  "progress": {
+    "m3": {
+      "fraction": 0.1740768228110987,
+      "cut": 13956,
+      "mustGo": 80171.5,
+      "shards": 6
+    },
+    "m2": {
+      "lower": 0,
+      "upper": 1,
+      "ready": 0,
+      "unknown": 6,
+      "total": 6
+    },
+    "plan": {
+      "lower": 0.10444609368665922,
+      "upper": 0.5044460936866593
+    }
+  },
+  "shards": {
+    "_template": {
+      "status": "closed",
+      "outputCustomPercent": null,
+      "m3": null,
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "pass",
+            "evidence": "80 admitted render tiles"
+          },
+          "edgeProfile": {
+            "verdict": "pass",
+            "evidence": "Defining edge schema and semantic validation pass"
+          },
+          "fourEntryways": {
+            "verdict": "pass",
+            "evidence": "Defining entryway schema: four unique 8m midpoint entries and road-height openings"
+          },
+          "memory": {
+            "verdict": "pass",
+            "evidence": "Validated model 774044765/854044765 bytes; playing/loading caps 1200/1800 MB"
+          },
+          "hudAccent": {
+            "verdict": "pass",
+            "evidence": "Validated accent sand"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "No exact-output one-frame look witness in the build receipt"
+          }
+        }
+      }
+    },
+    "blender-template": {
+      "status": "closed",
+      "outputCustomPercent": null,
+      "m3": null,
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "pass",
+            "evidence": "80 admitted render tiles"
+          },
+          "edgeProfile": {
+            "verdict": "pass",
+            "evidence": "Defining edge schema and semantic validation pass"
+          },
+          "fourEntryways": {
+            "verdict": "pass",
+            "evidence": "Defining entryway schema: four unique 8m midpoint entries and road-height openings"
+          },
+          "memory": {
+            "verdict": "pass",
+            "evidence": "Validated model 762693064/842693064 bytes; playing/loading caps 1200/1800 MB"
+          },
+          "hudAccent": {
+            "verdict": "pass",
+            "evidence": "Validated accent teal"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "No exact-output one-frame look witness in the build receipt"
+          }
+        }
+      }
+    },
+    "driftwood-isle": {
+      "status": "unclosed",
+      "outputCustomPercent": null,
+      "m3": {
+        "basis": "source",
+        "customLines": 13778,
+        "legacyLines": 17167,
+        "assemblyScriptLines": 40,
+        "assemblyScriptBudget": {
+          "ceiling": 1716,
+          "share": 0.0023300518436535213,
+          "passed": true,
+          "enforcement": "report-only"
+        },
+        "target": 0.2,
+        "mustGo": 13733.6,
+        "cut": 3389,
+        "fraction": 0.24676705306693072
+      },
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "edgeProfile": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "fourEntryways": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "memory": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "hudAccent": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          }
+        }
+      }
+    },
+    "far-reach": {
+      "status": "unclosed",
+      "outputCustomPercent": null,
+      "m3": {
+        "basis": "source",
+        "customLines": 6066,
+        "legacyLines": 6777,
+        "assemblyScriptLines": 18,
+        "assemblyScriptBudget": {
+          "ceiling": 677,
+          "share": 0.0026560424966799467,
+          "passed": true,
+          "enforcement": "report-only"
+        },
+        "target": 0.1,
+        "mustGo": 6099.3,
+        "cut": 711,
+        "fraction": 0.11657075402095322
+      },
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "edgeProfile": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "fourEntryways": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "memory": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "hudAccent": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          }
+        }
+      }
+    },
+    "ink-cel-valley": {
+      "status": "closed",
+      "outputCustomPercent": null,
+      "m3": null,
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "pass",
+            "evidence": "80 admitted render tiles"
+          },
+          "edgeProfile": {
+            "verdict": "pass",
+            "evidence": "Defining edge schema and semantic validation pass"
+          },
+          "fourEntryways": {
+            "verdict": "pass",
+            "evidence": "Defining entryway schema: four unique 8m midpoint entries and road-height openings"
+          },
+          "memory": {
+            "verdict": "pass",
+            "evidence": "Validated model 774081306/854081306 bytes; playing/loading caps 1200/1800 MB"
+          },
+          "hudAccent": {
+            "verdict": "pass",
+            "evidence": "Validated accent ember"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "No exact-output one-frame look witness in the build receipt"
+          }
+        }
+      }
+    },
+    "nalati-grasslands": {
+      "status": "unclosed",
+      "outputCustomPercent": null,
+      "m3": {
+        "basis": "source",
+        "customLines": 29644,
+        "legacyLines": 28370,
+        "assemblyScriptLines": 162,
+        "assemblyScriptBudget": {
+          "ceiling": 2837,
+          "share": 0.005710257314064152,
+          "passed": true,
+          "enforcement": "report-only"
+        },
+        "target": 0.2,
+        "mustGo": 22696,
+        "cut": 0,
+        "fraction": 0
+      },
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "edgeProfile": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "fourEntryways": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "memory": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "hudAccent": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          }
+        }
+      }
+    },
+    "nine-dragon-stack": {
+      "status": "unclosed",
+      "outputCustomPercent": null,
+      "m3": {
+        "basis": "source",
+        "customLines": 16256,
+        "legacyLines": 21111,
+        "assemblyScriptLines": 0,
+        "assemblyScriptBudget": {
+          "ceiling": 2111,
+          "share": 0,
+          "passed": true,
+          "enforcement": "report-only"
+        },
+        "target": 0.2,
+        "mustGo": 16888.8,
+        "cut": 4855,
+        "fraction": 0.28746861825588554
+      },
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "edgeProfile": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "fourEntryways": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "memory": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "hudAccent": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          }
+        }
+      }
+    },
+    "pastel-plain": {
+      "status": "closed",
+      "outputCustomPercent": null,
+      "m3": null,
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "pass",
+            "evidence": "80 admitted render tiles"
+          },
+          "edgeProfile": {
+            "verdict": "pass",
+            "evidence": "Defining edge schema and semantic validation pass"
+          },
+          "fourEntryways": {
+            "verdict": "pass",
+            "evidence": "Defining entryway schema: four unique 8m midpoint entries and road-height openings"
+          },
+          "memory": {
+            "verdict": "pass",
+            "evidence": "Validated model 774051611/854051611 bytes; playing/loading caps 1200/1800 MB"
+          },
+          "hudAccent": {
+            "verdict": "pass",
+            "evidence": "Validated accent lime"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "No exact-output one-frame look witness in the build receipt"
+          }
+        }
+      }
+    },
+    "pine-hollow": {
+      "status": "unclosed",
+      "outputCustomPercent": null,
+      "m3": {
+        "basis": "source",
+        "customLines": 18630,
+        "legacyLines": 21305,
+        "assemblyScriptLines": 270,
+        "assemblyScriptBudget": {
+          "ceiling": 2130,
+          "share": 0.012673081436282563,
+          "passed": true,
+          "enforcement": "report-only"
+        },
+        "target": 0.2,
+        "mustGo": 17044,
+        "cut": 2675,
+        "fraction": 0.15694672612062896
+      },
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "edgeProfile": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "fourEntryways": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "memory": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "hudAccent": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          }
+        }
+      }
+    },
+    "sunscar-dunes": {
+      "status": "unclosed",
+      "outputCustomPercent": null,
+      "m3": {
+        "basis": "source",
+        "customLines": 1796,
+        "legacyLines": 4122,
+        "assemblyScriptLines": 67,
+        "assemblyScriptBudget": {
+          "ceiling": 412,
+          "share": 0.016254245511887432,
+          "passed": true,
+          "enforcement": "report-only"
+        },
+        "target": 0.1,
+        "mustGo": 3709.8,
+        "cut": 2326,
+        "fraction": 0.62698797778856
+      },
+      "gridReady": {
+        "verdict": "unknown",
+        "criteria": {
+          "bakedTiles": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "edgeProfile": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "fourEntryways": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "memory": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "hudAccent": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          },
+          "oneFrameLooks": {
+            "verdict": "unknown",
+            "evidence": "Runtime unclosed; no current verified output"
+          }
+        }
+      }
+    }
+  }
+}

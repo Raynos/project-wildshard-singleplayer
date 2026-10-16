@@ -551,8 +551,8 @@ const SHELL_UI_CONTROL = new Set([
 const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
   || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
-/** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs */
-function countOutput(root, includeSources, products, slugs) {
+/** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress */
+function countOutput(root, includeSources, products, slugs, sourceProgress = false) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
@@ -574,7 +574,14 @@ function countOutput(root, includeSources, products, slugs) {
     if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
     return texts.get(path);
   };
-  const ignored = path => !path.startsWith(`${relative(root, products).replaceAll('\\', '/')}/`) && generated.has(path);
+  // G458 alone retains the predecessor source-progress reading. It is never an
+  // output percentage or a source fallback, and is not available to port badges.
+  const sourceData = path => {
+    const match=/^src\/shards\/([^/]+)\/data\/.*\.tsx?$/u.exec(path);
+    return match!==null&&!Object.hasOwn(frozen.shards,match[1]);
+  };
+  const ignored = path => sourceProgress ? generated.has(path)&&!sourceData(path)
+    : !path.startsWith(`${relative(root, products).replaceAll('\\', '/')}/`) && generated.has(path);
   const parseCache = process.env.WS_SHARD_PARSE_CACHE;
   const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
@@ -639,7 +646,9 @@ function countOutput(root, includeSources, products, slugs) {
       for (const edge of graph(path)) if (edge.to !== null) queue.push(edge.to);
     }
   }
-  const outputs = Object.fromEntries(slugs.map(slug => [slug, outputRuntime(root, slug, products)]));
+  const outputs = Object.fromEntries(slugs.map(slug => [slug, sourceProgress
+    ? {runtime:authoredFiles[slug],sections:[],customSectionBytes:0,customSections:[]}
+    : outputRuntime(root, slug, products)]));
   const prefixOf = slug => `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
   const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
   const hostFiles = new Map();
@@ -784,14 +793,17 @@ function countOutput(root, includeSources, products, slugs) {
       const lines = count(path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
-      if (RULES.typescript.test(path) && !RULES.tests.test(local)) {
+      const sourceOnlyData = sourceProgress && (top==='generators'
+        || local==='manifest.ts'&&declarationOnlyManifest(text(path),path)
+        || local==='shard.config.ts'&&declarationOnlyConfig(text(path),path));
+      if (RULES.typescript.test(path) && !RULES.tests.test(local) && !sourceOnlyData) {
         shardRuntimeLines += lines;
         if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines,
           ownerPath:`src/shards/${slug}/${local}`});
       }
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
-      if (!RULES.typescript.test(path)) {
+      if (!RULES.typescript.test(path) || sourceOnlyData) {
         additionalGlslLines += shaderLines;
         if (collectSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
       }
@@ -856,6 +868,15 @@ export function outputShardLines(root = ROOT, includeSources = false, products =
  * runtimeClosures supplies their explicit work queue to reports. */
 export function shardLines(root = ROOT, includeSources = false) {
   return outputShardLines(root, includeSources);
+}
+/** G458 progress only. The canonical custom percentage remains unavailable for
+ * unclosed shards. Preserve the predecessor's source/G294 law for this labelled
+ * estimate rather than disguising the output/source unit change as a cut. */
+export function sourceProgressLines(root = ROOT) {
+  const rows=countOutput(root,false,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true);
+  return Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{basis:'source',
+    customLines:row.conversion.customRuntimeLines,legacyLines:row.conversion.legacyLines,
+    assemblyScriptLines:row.assemblyScriptLines,assemblyScriptBudget:row.assemblyScriptBudget}]));
 }
 /** Headless availability is reported separately from the custom/frozen measure. */
 export function milestoneFlags(_slug, _row, root = ROOT) {

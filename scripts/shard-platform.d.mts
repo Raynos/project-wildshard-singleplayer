@@ -33,6 +33,8 @@ export function codeLines(source: string, path?: string): number;
 export function shardLines(root?: string, includeSources?: boolean): Record<string, ShardLines>;
 /** Strict output-only P4 measure; never falls back to an authoring closure. */
 export function outputShardLines(root?:string,includeSources?:boolean,products?:string,only?:string[]|null):Record<string,ShardLines>;
+/** G458 labelled source estimate only; never supplies output % or badges. */
+export function sourceProgressLines(root?:string):Record<string,{basis:'source';customLines:number;legacyLines:number|null;assemblyScriptLines:number;assemblyScriptBudget:ShardLines['assemblyScriptBudget']}>;
 export function milestoneFlags(slug: string, row: ShardLines, root?: string): MilestoneFlags;
 export function checkShares(recorded: ShardPlatformList, lines: Record<string, ShardLines>): string[];
 

@@ -27,21 +27,29 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     let report;
     try {report=await outputReport(ROOT,{build,products});}
     finally {console.log=log;console.info=info;}
-    const {rows,measures,failures}=report;
+    const {rows,measures,failures,progress}=report;
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',closed:Object.keys(measures).length,total:Object.keys(rows).length,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
     else {
-      console.log('shard                  closure    custom / frozen   escapes  custom sections / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
+      console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  custom sections / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
+        const m3=row.m3===null?'native':`${(100*row.m3.fraction).toFixed(1)}% ${row.m3.basis}`;
+        const ready=Object.entries(row.gridReady.criteria).map(([name,value])=>`${name}:${value.verdict}`).join(', ');
         if (row.status==='unclosed') {
-          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}`);
+          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}  M3 ${m3}; grid ${row.gridReady.verdict}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}`);
+          console.log(`  grid-ready ${ready}`);
           for (const file of row.files.slice(0,5)) console.log(`  ${file.path}: ${file.count} escapes; ${file.messages.join('; ')}`);
           if (row.refusal) console.log(`  strict copy: ${row.refusal}`);
           continue;
         }
         const pct=row.customPercent===null?'native':`${row.customPercent.toFixed(2)} %`;
-        console.log(`${slug.padEnd(22)} closed     ${pct.padEnd(17)} 0        ${row.customSections?.length}/${row.customSectionBytes}  AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}  bin ${row.content?.privateBinaryBytes}  build ${row.oneUserBuildTools?.lines}`);
+        console.log(`${slug.padEnd(22)} closed     ${pct.padEnd(17)} 0        M3 ${m3}; grid ${row.gridReady.verdict}; ${row.customSections?.length}/${row.customSectionBytes}  AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}  bin ${row.content?.privateBinaryBytes}  build ${row.oneUserBuildTools?.lines}`);
+        console.log(`  grid-ready ${ready}`);
       }
+      const percent=value=>`${(100*value).toFixed(1)} %`;
+      console.log(`M3 six-shard total: ${progress.m3.fraction===null?'unknown':percent(progress.m3.fraction)}; ${progress.m3.cut}/${progress.m3.mustGo} must-go lines cut`);
+      console.log(`M2 grid-ready: ${progress.m2.ready}/6 pass, ${progress.m2.unknown}/6 unknown`);
+      console.log(`Plan (60% M3 + 40% M2): ${progress.plan===null?'unknown':progress.plan.lower===progress.plan.upper?percent(progress.plan.lower):`${percent(progress.plan.lower)}–${percent(progress.plan.upper)} (M2 evidence incomplete)`}`);
     }
     if (process.argv.includes('--check')) {
       const recorded=JSON.parse(readFileSync(resolve(ROOT,LIST),'utf8'));

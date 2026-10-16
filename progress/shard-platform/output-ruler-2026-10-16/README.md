@@ -58,3 +58,45 @@ legacy denominators and historical no-copy baseline policies are unchanged.
 Validation: 31 focused behaviours, root types and typed lint pass. The real
 per-shard command completed in 77 seconds, including official generation and
 strict native/template products. No browser or rendering change is involved.
+
+## G458: outcome progress and grid evidence
+
+The report adds M3 per shard and a line-weighted six-shard total. M3 is
+`max(0, frozen legacy - custom) / (frozen legacy * (1 - target))`, with a
+10% custom target for Sky/Signal and 20% for the other ported shards.
+Closed shards use the output numerator. Unclosed shards show the preceding
+source/G294 estimate, explicitly labelled `source`; this supplies no output
+percentage or port badge. AssemblyScript remains a separate visibility unit.
+
+Grid readiness lists baked tiles, edge profile, the four midpoint entries,
+memory, HUD accent and one-frame looks individually as pass/fail/unknown.
+The defining format validator and a byte-bound output receipt supply the
+structural evidence and declared memory model; that model is not a physical
+phone measurement. Unclosed runtimes have no current verified output, so
+their grid evidence stays unknown. A one-frame look witness is not present
+in current build receipts and is never inferred from metadata or a boot.
+
+The plan line is `60% * M3 + 40% * M2`, with M2 the six grid-ready verdicts.
+When grid evidence is incomplete it reports a lower/upper range, counting
+unknown shards only in the upper bound. No unknown criterion is guessed to
+pass. The JSON summary carries the cuts, must-go lines, basis and criterion
+evidence so an hourly report can distinguish conversion from closure.
+
+The [G458 census](milestones.json) uses candidate
+`b89707dc1136354cfef5d585c6ec944bbeb6572b`. All six ported runtimes remain
+unclosed. Their **source estimates** give M3 17.41% (13,956 / 80,171.5
+must-go lines). Grid-ready is unknown for all six; therefore the provisional
+plan range is **10.44–50.44%**, not a completed-grid claim.
+
+| Shard | M3 | Basis | Grid-ready |
+|---|---:|---|---|
+| Sky | 11.66% | source | unknown |
+| Signal | 62.70% | source | unknown |
+| Pine | 15.69% | source | unknown |
+| Driftwood | 24.68% | source | unknown |
+| Nalati | 0.00% | source | unknown |
+| Nine | 28.75% | source | unknown |
+
+Validation: six focused behaviours, root types, typed lint and the real
+per-shard census pass. This is a reporting change, with no rendering or
+simulation changes.
