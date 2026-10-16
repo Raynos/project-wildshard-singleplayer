@@ -9,8 +9,8 @@
  *
  *   placePineHollowSets(registry);   // main.ts, once the quest has placed its props
  */
-import { copiesNear, placedGroups, type Placed } from '@wildshard/engine/models/place';
-import { placeSet } from '@wildshard/engine/models/sets';
+import { placedGroups } from '@wildshard/engine/models/place';
+import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { PINE_HOLLOW_POIS } from '../data/layout';
 
@@ -43,15 +43,11 @@ const PLACE_SETS = [
 
 /** Register a Set for every named place (the hamlet's comes from ./cabins.ts); returns how many. */
 export function placePineHollowSets(registry: WorldRegistry): number {
-  const groups = placedGroups();
   const where = new Map<string, { name: string; x: number; z: number; r: number }>([
     ...PINE_HOLLOW_POIS.map((p) => [p.id, { name: p.name, x: p.x, z: p.z, r: p.r }] as const),
     ...PINE_HOLLOW_QUEST_PLACES.map((p) => [p.id, { name: p.label, x: p.x, z: p.z, r: p.r }] as const),
   ]);
-  const sets = PLACE_SETS.flatMap((s) => { const p = where.get(s.at); return p === undefined ? [] : [{ ...s, ...p }]; });
-  // each place call's copies sorted into the places in one pass over them (~24 000 copies × 18 circles)
-  const members: Placed[][] = sets.map(() => []);
-  for (const g of groups) copiesNear(g, sets).forEach((m, k) => { if (m !== null) members[k]?.push(m); });
-  sets.forEach((s, k) => { placeSet({ id: s.place, name: s.name, file: 'src/shards/pine-hollow/world/places.ts', members: members[k] ?? [], place: s.place, registry }); });
-  return sets.length;
+  const sets = PLACE_SETS.flatMap((s) => { const p = where.get(s.at); return p === undefined ? [] : [{ ...s, ...p, id: s.place }]; });
+  return registerPlaceSets(sets, { file: 'src/shards/pine-hollow/world/places.ts', registry,
+    centres: { placed: placedGroups(), point: row => row } });
 }

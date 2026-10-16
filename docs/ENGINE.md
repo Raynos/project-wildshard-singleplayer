@@ -6076,6 +6076,8 @@ object and boxes and own no colliders. Bounds views retain the original registra
 follow the source promise. `registerPlaceSets(rows, {file, registry?, skipEmpty?, members})` registers rows
 in order, combining borrowed `whole` placements with optional `near` views. Each row may override `file`;
 empty sets register unless `skipEmpty` is true. Content resolution and any inter-row pacing stay with the caller.
+Optional `centres: {placed, point(row)}` batches centre-selected views in one pass over each source, preserving
+source/copy order, nearest-by-centre, borrowed objects and the existing no-op cull of `copiesNear` views.
 
 **Declared panel lifetime (W2 C5).** `@wildshard/sdk/panels` defines
 `DeclaredPanel` and `DeclaredPanelPolicy`. Persistent panels mount once and
