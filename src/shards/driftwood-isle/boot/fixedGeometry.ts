@@ -60,6 +60,8 @@ export const CARGO_GEOMETRY = {
 export const SHRINE_FIREFLIES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shrineFireflies, { _afly: 'aFly' });
 /** The herring gull (generators/gull.ts, gull-local); the flock's graph turns each vertex's `aPart`. */
 export const GULL_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.gull, { _apart: 'aPart' });
+/** The castaway's campfire smoke quads (generators/smoke.ts, the fire's frame); the graph poses each by its `aPuff`. */
+export const CASTAWAY_SMOKE_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.castawaySmoke, { _apuff: 'aPuff' });
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

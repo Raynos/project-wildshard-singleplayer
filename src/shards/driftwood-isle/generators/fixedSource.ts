@@ -19,6 +19,8 @@ import { originalPiers } from './driftwoodPiers';
 import { cargoSpecimens } from './cargo';
 import { fireflyCloud } from './fireflies';
 import { gullGeometry } from './gull';
+import { smokeColumnGeometry } from './smoke';
+import { CASTAWAY_SMOKE } from '../data/castawayLook';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
 export function driftwoodFixedSource(): {
@@ -78,5 +80,7 @@ export function driftwoodFixedSource(): {
   geometries.set('shrine-fireflies', fireflyCloud());
   // the herring gull the flock draws (generators/gull.ts), last so the earlier templates keep their keys
   geometries.set('gull', gullGeometry());
+  // the castaway's campfire smoke quads (generators/smoke.ts), last so the earlier templates keep their keys
+  geometries.set('castaway-smoke', smokeColumnGeometry(CASTAWAY_SMOKE));
   return { geometries, world, rows };
 }

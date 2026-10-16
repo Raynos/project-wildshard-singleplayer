@@ -3120,8 +3120,10 @@
         "public/assets/driftwood-isle/baked/fixed-models/shrine-fireflies.glb",
         "src/shards/driftwood-isle/assets/f7447c66e0d94b6fb00e7ae4191df7c44d365f9b1e44c0a169f124e4765313c4",
         "public/assets/driftwood-isle/baked/fixed-models/gull.glb",
-        "src/shards/driftwood-isle/assets/38f2f60d6ce16587440ab8792ee9b8f0b8ba8fdce6a3245ce5ba413754076d3b",
-        "src/shards/driftwood-isle/assets/53eb14ce16046d23c05898f0725a4fdcc7950bbaaba796a4c6f360b283b72b49"
+        "src/shards/driftwood-isle/assets/53eb14ce16046d23c05898f0725a4fdcc7950bbaaba796a4c6f360b283b72b49",
+        "public/assets/driftwood-isle/baked/fixed-models/castaway-smoke.glb",
+        "src/shards/driftwood-isle/assets/284f678c11832d4bc71a58e1d01d167b791740d778a9d72559ab15362f7b5b92",
+        "src/shards/driftwood-isle/assets/899ef8d8b0311739b6a384ba749a049166d6a8370b7450aa7309cae01a74fe19"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -3240,8 +3242,10 @@
         "public/assets/driftwood-isle/baked/fixed-models/shrine-fireflies.glb",
         "src/shards/driftwood-isle/assets/f7447c66e0d94b6fb00e7ae4191df7c44d365f9b1e44c0a169f124e4765313c4",
         "public/assets/driftwood-isle/baked/fixed-models/gull.glb",
-        "src/shards/driftwood-isle/assets/38f2f60d6ce16587440ab8792ee9b8f0b8ba8fdce6a3245ce5ba413754076d3b",
-        "src/shards/driftwood-isle/assets/53eb14ce16046d23c05898f0725a4fdcc7950bbaaba796a4c6f360b283b72b49"
+        "src/shards/driftwood-isle/assets/53eb14ce16046d23c05898f0725a4fdcc7950bbaaba796a4c6f360b283b72b49",
+        "public/assets/driftwood-isle/baked/fixed-models/castaway-smoke.glb",
+        "src/shards/driftwood-isle/assets/284f678c11832d4bc71a58e1d01d167b791740d778a9d72559ab15362f7b5b92",
+        "src/shards/driftwood-isle/assets/899ef8d8b0311739b6a384ba749a049166d6a8370b7450aa7309cae01a74fe19"
       ]
     },
     {
