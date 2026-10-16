@@ -2404,12 +2404,12 @@ export type WorldSceneBoundParts<K extends Readonly<Record<string,WorldSceneBind
   K[P] extends 'vector' ? Vector3 : K[P] extends 'number' ? number : ColliderDesc[];
 } : never;
 /** Bind a typed native contract without cloning owned scene parts, changing poses or registering collision. */
-export function bindWorldSceneParts<K extends Readonly<Record<string,WorldSceneBindingKind>>>(made:WorldScene,kinds:K,input:unknown):WorldSceneBoundParts<K> {
+export function bindWorldSceneParts<K extends Readonly<Record<string,WorldSceneBindingKind>>>(made:ClientScene & Partial<Pick<WorldScene,'baked'>>,kinds:K,input:unknown):WorldSceneBoundParts<K> {
   const rows=parseWorldSceneBindings(input), out:Record<string,Object3D|MeshStandardMaterial|Vector3|number|ColliderDesc[]>={};
   if(Object.keys(kinds).length!==Object.keys(rows).length)throw new Error('World scene binding contract differs');
   for(const [key,row] of Object.entries(rows)) {
     if(!Object.hasOwn(kinds,key)||kinds[key]!==row.kind)throw new Error(`World scene binding kind differs: ${key}`);
-    const value=row.kind==='vector'?new Vector3(...row.value):row.kind==='number'?row.value:row.kind==='colliders'?made.baked.get(row.part)?.colliders:
+    const value=row.kind==='vector'?new Vector3(...row.value):row.kind==='number'?row.value:row.kind==='colliders'?made.baked?.get(row.part)?.colliders:
       row.kind==='standard-material'?made.standardMaterial(row.part):row.kind==='group'?made.group(row.part):row.kind==='mesh'?made.mesh(row.part):made.parts.get(row.part);
     if(value===null||value===undefined||(row.kind==='point-light'&&!(value instanceof PointLight)))throw new Error(`Missing world scene binding: ${key}`);
     out[key]=value;

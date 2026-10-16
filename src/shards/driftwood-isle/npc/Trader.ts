@@ -25,17 +25,15 @@
  */
 import * as THREE from 'three';
 import { playClips, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
+import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS, TRADER_MESHES } from '../data/npcScenes';
 import { TRADER_POSE } from '../data/npcPose';
 import { TRADER_HEAD_FOCUS } from '../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
-import { TRADER_BODY, TRADER_FORE, TRADER_HEAD, TRADER_UPPER } from '../data/traderLook';
 
-const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-
-const NECK = 1.48, SHOULDER = V(-0.19, 1.4, 0);   // right shoulder (the model faces +Z; her right is −X)
-const ELBOW_Y = -0.27;                             // the elbow below the shoulder pivot
+const NECK = 1.48;
 export const TRADER_NEAR_R = 85;   // past this she (and her counter) are not drawn: a few pixels at that range
 const FACE_R = 6;          // m (feet to feet): inside this she turns to face you
 const GREET_R = 11;        // m: coming inside this she beckons you over (once, until you go past REARM_R)
@@ -49,11 +47,11 @@ const GESTURE_S: Record<Gesture, number> = { none: 0, beckon: 2.4, tidy: 2.6, of
 export class Trader {
   readonly group = new THREE.Group();
   /** body + head + arm: turns about her feet to face you (E129) */
-  private readonly figure = new THREE.Group();
-  private body = new THREE.Mesh();
-  private head = new THREE.Mesh();
-  private upper = new THREE.Mesh();
-  private fore = new THREE.Mesh();
+  private figure = new THREE.Group();
+  private body: THREE.Object3D = new THREE.Mesh();
+  private head: THREE.Object3D = new THREE.Mesh();
+  private upper: THREE.Object3D = new THREE.Mesh();
+  private fore: THREE.Object3D = new THREE.Mesh();
   private readonly pose: ClipCtx = { bones: {}, t: 0, phase: 0, speed: 0, alive: true, deathT: 0, attack: -1, mem: {} };
   private turn = 0;
   private readonly focus: NpcHeadFocusInput = { distance: 0, relativeYaw: 0, playerY: 0, headY: 0 };
@@ -71,23 +69,12 @@ export class Trader {
 
   build(): this {
     const mat = lowPolyLookMaterial(this.sky);
-    this.group.name = 'trader';
-
-    // ── body (turns with the figure), head (pivot at the neck), the right arm's upper arm (pivot at the shoulder, hanging
-    // along −Y) and forearm (pivot at the elbow): data/traderLook.ts ──
-    this.body = new THREE.Mesh(buildKitMesh(TRADER_BODY), mat);
-    this.body.castShadow = true; this.body.receiveShadow = true;
-    this.head = new THREE.Mesh(buildKitMesh(TRADER_HEAD), mat);
-    this.head.position.set(0, NECK, 0.01);
-    this.upper = new THREE.Mesh(buildKitMesh(TRADER_UPPER), mat);
-    this.upper.position.copy(SHOULDER);
-    this.fore = new THREE.Mesh(buildKitMesh(TRADER_FORE), mat);
-    this.fore.position.set(-0.03, ELBOW_Y, 0.02);
-    this.upper.add(this.fore);
-
+    const geometry = new Map<string, THREE.BufferGeometry>(TRADER_MESHES.map(([id, row]) => [id, buildKitMesh(row)]));
+    const made = createClientScene(TRADER_SCENE, { geometry: id => geometry.get(id),
+      materials: new Map([['coat', mat]]) });
+    Object.assign(this, bindWorldSceneParts(made, TRADER_PARTS, TRADER_BINDINGS));
+    this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { figure: this.figure, head: this.head, upper: this.upper, fore: this.fore };
-    this.figure.add(this.body, this.head, this.upper);
-    this.group.add(this.figure);
     return this;
   }
 

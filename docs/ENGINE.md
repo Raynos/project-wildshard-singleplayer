@@ -4888,6 +4888,8 @@ native groups, meshes, point lights, materials and baked collider arrays.
 Vector and scalar rows copy bounded authored anchors; scene parts remain
 borrowed identities. `format/clientChannels.parseWorldSceneBindings` admits
 the finite field rows. Missing parts or a mismatched typed contract refuse.
+Plain `ClientScene` hierarchies need no baked metadata; collider bindings
+still require an actual baked map and refuse when it is absent.
 
 ### Declared saved page quests
 

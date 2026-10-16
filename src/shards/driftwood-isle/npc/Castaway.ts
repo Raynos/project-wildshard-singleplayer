@@ -26,6 +26,8 @@
  */
 import * as THREE from 'three';
 import { playClips, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
+import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS, CASTAWAY_MESHES } from '../data/npcScenes';
 import { CASTAWAY_POSE } from '../data/npcPose';
 import { CASTAWAY_HEAD_FOCUS } from '../data/npcFocus';
 import { WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
@@ -34,11 +36,11 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
 import { SmokeColumn } from '../runtime/looks/smokeColumn';
-import { CASTAWAY_ARM, CASTAWAY_BODY, CASTAWAY_CAMP, CASTAWAY_FLAMES, CASTAWAY_HEAD, CASTAWAY_SMOKE } from '../data/castawayLook';
+import { CASTAWAY_FLAMES, CASTAWAY_SMOKE } from '../data/castawayLook';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-const NECK = 1.52, SHOULDER = V(-0.21, 1.4, 0);   // right shoulder (the model faces +Z; its right is −X)
+const NECK = 1.52;
 const NEAR_R = 85;
 const FACE_R = 6;          // m (feet to feet): inside this, or while talking, he turns his body to face you
 const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
@@ -56,14 +58,14 @@ export class Castaway {
   readonly group = new THREE.Group();
   readonly collider: Collider;
   talking = false;
-  private body = new THREE.Mesh();
-  private camp = new THREE.Mesh();
+  private body: THREE.Object3D = new THREE.Mesh();
+  private camp: THREE.Object3D = new THREE.Mesh();
   /** body + head + arm: turns about his feet to face you (E129); the campfire is not in it */
-  private readonly figure = new THREE.Group();
+  private figure = new THREE.Group();
   private readonly pose: ClipCtx = { bones: {}, t: 0, phase: 0, speed: 0, alive: true, deathT: 0, attack: -1, mem: {} };
   private turn = 0;   // the figure's yaw off his idle facing (rad)
-  private head = new THREE.Mesh();
-  private arm = new THREE.Mesh();
+  private head: THREE.Object3D = new THREE.Mesh();
+  private arm: THREE.Object3D = new THREE.Mesh();
   private flames = new THREE.Mesh();
   private readonly focus: NpcHeadFocusInput = { distance: 0, relativeYaw: 0, playerY: 0, headY: 0 };
   private readonly gaze = { headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: .15 };
@@ -84,26 +86,10 @@ export class Castaway {
   }
 
   build(): this {
-    const mat = lowPolyLookMaterial(this.sky, 'still'); // nothing of his sways: the kit's still material
+    const mat = lowPolyLookMaterial(this.sky, 'still'), f = this.fireLocal;
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
     this.group.rotation.y = this.bodyYaw;
-    this.group.name = 'castaway';
-
-    // ── body (turns with the figure), campfire (fire-local, stays put while he turns), head, arm, flames: data/castawayLook.ts ──
-    this.body = new THREE.Mesh(buildKitMesh(CASTAWAY_BODY), mat);
-    this.body.castShadow = true; this.body.receiveShadow = true;
-    const f = this.fireLocal;
-    this.camp = new THREE.Mesh(buildKitMesh(CASTAWAY_CAMP, f), mat);
-    this.camp.castShadow = true; this.camp.receiveShadow = true;
-
-    // the code head (pivot at the neck)
-    this.head = new THREE.Mesh(buildKitMesh(CASTAWAY_HEAD), mat);
-    this.head.position.set(0, NECK, 0.01);
-    // E343: the original Hunyuan head is fitted offline; the rig replaces this entry's temporary head with its library copy.
-    // the right arm (pivot at the shoulder, hanging along −Y)
-    this.arm = new THREE.Mesh(buildKitMesh(CASTAWAY_ARM), mat);
-    this.arm.position.copy(SHOULDER);
-
+    const geometry = new Map<string, THREE.BufferGeometry>(CASTAWAY_MESHES.map(([id, row, relative]) => [id, buildKitMesh(row, relative ? f : null)]));
     // flames (unlit, bloom)
     const flameMat = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(1.8, 1.8, 1.8) });
     flameMat.name = 'castaway-flame';
@@ -113,14 +99,15 @@ export class Castaway {
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
     const smoke = new SmokeColumn(CASTAWAY_SMOKE, f);
 
+    const made = createClientScene(CASTAWAY_SCENE, { geometry: id => geometry.get(id), materials: new Map([['coat', mat]]),
+      objects: new Map<string, THREE.Object3D>([['flames', this.flames], ['smoke', smoke.mesh]]) });
+    Object.assign(this, bindWorldSceneParts(made, CASTAWAY_PARTS, CASTAWAY_BINDINGS));
+    this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { head: this.head, arm: this.arm, flames: this.flames };
-    this.figure.add(this.body, this.head, this.arm);
-    this.group.name = 'npc-castaway';   // E304: the face capture finds him by name
-    this.group.add(this.figure, this.camp, this.flames, smoke.mesh);
     return this;
   }
 
-  get faceMesh(): THREE.Mesh { return this.head; }
+  get faceMesh(): THREE.Mesh { if (!(this.head instanceof THREE.Mesh)) throw new Error('Castaway requires its face mesh'); return this.head; }
 
   /** the head's world position (the talk prompt / the name tag) */
   headWorld(out: THREE.Vector3): THREE.Vector3 { return out.set(0, NECK + 0.15, 0).applyMatrix4(this.group.matrixWorld); }
