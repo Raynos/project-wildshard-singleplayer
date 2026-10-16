@@ -40,9 +40,12 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
   producers: v.record(producerPath, v.array(producerPath)) });
 // G291/G294's classification table. Audit findings adjust these rules explicitly, never hidden import heuristics.
 // Unit on BOTH sides: nonblank physical lines after parser comment removal, in .ts/.tsx only;
-// .as, .d.ts and tests do not enter the G291 ratio. Declared generator outputs are excluded
-// on BOTH sides, including their frozen copies. Names and headers never grant an exemption. Authored data/ and
-// generators/ ARE included in the frozen denominator, but excluded from current runtime.
+// .as, .d.ts and tests do not enter the G291 ratio. G445: TypeScript in data/
+// is custom, including registered generated TS; only non-code formats are data.
+// generators/ stays excluded from current runtime and included in the frozen denominator.
+// Registered generated outputs outside data/ remain excluded. The sealed legacy
+// denominator keeps its original producer exclusions; G445 changes current code,
+// never the historical yardstick. Names and headers never grant an exemption.
 // G294 adds one-user platform modules to the numerator; relocating a helper into engine/game/SDK cannot reduce it.
 // G294 per export (sp-o53): users are counted per top-level declaration, not only per file, so a one-shard export moved
 // into an already shared file still counts. A file one shard reaches counts whole (unchanged, dead code included). In a
@@ -60,7 +63,7 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 // The frozen denominator attributes no platform code (only the sealed legacy files), so no per-export rule applies there.
 const RULES = {
   typescript: /\.tsx?$/u,
-  runtimeExcludedFolders: new Set(['generators', 'data']),
+  runtimeExcludedFolders: new Set(['generators']),
   tests: /(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.tsx?$/u,
   attributedLayers: /^src\/(?:engine|game|sdk)\//u,
   publicUserCount: 2,
@@ -569,7 +572,13 @@ export function shardLines(root = ROOT, includeSources = false) {
     if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
     return texts.get(path);
   };
-  const ignored = (path) => generated.has(path);
+  // G445 includes generated TS data in every primary shard. Registered frozen
+  // copies retain the historical denominator's original producer exclusions.
+  const primaryDataTs = path => {
+    const folder = /^src\/shards\/([^/]+)\/data\/.*\.tsx?$/u.exec(path)?.[1];
+    return folder !== undefined && !Object.hasOwn(frozen.shards, folder);
+  };
+  const ignored = (path) => generated.has(path) && !primaryDataTs(path);
   const parseCache = process.env.WS_SHARD_PARSE_CACHE;
   const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
