@@ -128,6 +128,18 @@
         "bytes": 202842
       },
       "why": "G465: emit authored cave layout and floor tuning in the existing fixed layout section, deleting their live authoring reach"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 6,
+        "bytes": 202842
+      },
+      "to": {
+        "count": 6,
+        "bytes": 204699
+      },
+      "why": "G465: resolve 33 foliage and ground labels through the existing admitted asset index, deleting four copied runtime file tables"
     }
   ]
 }

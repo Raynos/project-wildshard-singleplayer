@@ -10,7 +10,6 @@ import { REEF, type ReefParams } from '../src/shards/driftwood-isle/runtime/mode
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
 import { decodeReefWorld } from '../src/shards/driftwood-isle/runtime/boot/reefGeometry';
-import { REEF_FILES } from '../src/shards/driftwood-isle/runtime/const';
 import { REEF_SPECIMENS } from '../src/shards/driftwood-isle/data/reefSpecimenRows';
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
@@ -38,9 +37,9 @@ it('loads all authored reef cards with the borrowed material and refuses undecla
   const emitted = new Map<string, Uint8Array>(), expected = new Map<string, { attributes: Record<string, number[]>; index: number[] | null }[]>();
   for (const kind of ['coral', 'weed', 'star'] as const) {
     const shapes: { attributes: Record<string, number[]>; index: number[] | null }[] = []; expected.set(kind, shapes);
-    const row = REEF_SPECIMENS[kind], urls: Readonly<Record<string, string>> = REEF_FILES[kind];
+    const row = REEF_SPECIMENS[kind];
     for (const variant of [{id: 'default', params: row.defaults}, ...row.variants.map(v => ({id: v.id, params: {...row.defaults, ...v.params}}))]) {
-      const url = urls[variant.id]; if (url === undefined) throw new Error('Missing authored card URL');
+      const url = `draw:reef:${kind}:${variant.id}`;
       const geometry = reefGeometry(kind, variant.params, new Rng(seedOf(REEF[kind])));
       shapes.push({ attributes: Object.fromEntries(Object.entries(geometry.attributes).map(([name, channel]) => [name, Array.from(channel.array)])), index: geometry.index === null ? null : Array.from(geometry.index.array) });
       emitted.set(url, staticGlb([{geometry, material, customAttributes: {_SWAY: 'aSway'}, compactIndex: true}], `reef-${kind}`)); geometry.dispose();

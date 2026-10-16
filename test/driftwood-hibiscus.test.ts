@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { MeshStandardMaterial } from 'three';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, initializeTier } from '@wildshard/engine/core/tier';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { namedModelProduct } from './fixtures/namedModelProduct';
@@ -8,7 +8,6 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { seedOf } from '@wildshard/engine/models/model';
 import { leafClump } from '../src/shards/driftwood-isle/generators/hibiscus';
 import { hibiscusBush } from '../src/shards/driftwood-isle/runtime/models/hibiscusBush';
-import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/runtime/const';
 import { loadHibiscusVariants, copyHibiscusVariant, decodeHibiscusWorld } from '../src/shards/driftwood-isle/runtime/boot/hibiscusGeometry';
 
 const phone = (): Uint8Array => {
@@ -40,13 +39,14 @@ describe('the owned hibiscus world bake', () => {
 });
 
 it('loads the three Explorer bakes through the native intake with their wind channels', async () => {
-  const files = HIBISCUS_FILES[TIER === 'phone' ? 'phone' : 'desktop'], emitted = new Map<string, Uint8Array>();
+  const tier = TIER, emitted = new Map<string, Uint8Array>();
   for (const variant of hibiscusBush.variants ?? []) {
     if (variant.id !== 'flowering' && variant.id !== 'leaf' && variant.id !== 'small') throw new Error('Unexpected specimen');
     const geometry = leafClump({ ...hibiscusBush.defaults, ...variant.params }, new Rng(seedOf(hibiscusBush)));
-    emitted.set(files[variant.id], staticGlb([{ geometry, material: new MeshStandardMaterial(), customAttributes: { _SWAY: 'aSway' }, compactIndex: true }])); geometry.dispose();
+    emitted.set(`draw:hibiscus:${tier}:${variant.id}`, staticGlb([{ geometry, material: new MeshStandardMaterial(), customAttributes: { _SWAY: 'aSway' }, compactIndex: true }])); geometry.dispose();
   }
   const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
+  initializeTier(tier === 'phone' ? 'desktop' : 'phone');
   try {
     await loadHibiscusVariants();
     for (const variant of hibiscusBush.variants ?? []) {
@@ -55,5 +55,5 @@ it('loads the three Explorer bakes through the native intake with their wind cha
       expect(geometry.getAttribute('position').count).toBeGreaterThan(0); geometry.dispose();
     }
     expect(() => copyHibiscusVariant({ r: 8, flowers: true, phase: 0 })).toThrow('no authored bake');
-  } finally { mocked.mockRestore(); }
+  } finally { initializeTier(tier); mocked.mockRestore(); }
 });

@@ -1,3 +1,7 @@
+import { GROUND_FILES } from './groundFiles';
+import { PALM_FILES } from './palmFiles';
+import { HIBISCUS_FILES } from './hibiscusFiles';
+import { REEF_FILES } from './reefFiles';
 import { FIXED_MODEL_FILES } from './modelFiles';
 import * as v from 'valibot';
 import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
@@ -32,6 +36,17 @@ export const DRIFTWOOD_FIXED_SOURCES = Object.fromEntries(Object.entries(FIXED_M
   return [slot, name];
 }));
 for (const [slot, name] of Object.entries(DRIFTWOOD_FIXED_SOURCES)) byUrl[`fixed:${slot}`] = name;
+/** Stable draw labels resolve only through the admitted asset index, including deduplicated variants. */
+function registerDraws(label: string, value: unknown): void {
+  if (typeof value === 'string') {
+    const name = byUrl[value];
+    if (name === undefined) throw new Error(`Missing authored draw: ${label}`);
+    byUrl[label] = name;
+  } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    for (const [key, child] of Object.entries(value)) registerDraws(`${label}:${key}`, child);
+  } else throw new Error('Draw file labels require named source leaves');
+}
+for (const [family, files] of Object.entries({ ground: GROUND_FILES, palms: PALM_FILES, hibiscus: HIBISCUS_FILES, reef: REEF_FILES })) registerDraws(`draw:${family}`, files);
 const AssetsSchema = v.strictObject({
   byUrl: v.record(v.pipe(v.string(), v.maxLength(512)), v.pipe(v.string(), v.maxLength(240))),
 });

@@ -11,7 +11,6 @@ import { palm } from '../src/shards/driftwood-isle/runtime/models/palm';
 import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
 import { decodePalmWorld } from '../src/shards/driftwood-isle/runtime/boot/palmGeometry';
-import { PALM_FILES } from '../src/shards/driftwood-isle/runtime/const';
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 
@@ -39,11 +38,11 @@ it('owns compacted palm channels independently while retaining full picking boun
 it('loads each authored Explorer palm with its swaying kit material', async () => {
   const material = new MeshStandardMaterial(), ctx = modelContext(null);
   ctx.once('driftwood-isle/palm:material', () => material);
-  const emitted = new Map<string, Uint8Array>(), files = PALM_FILES[TIER === 'phone' ? 'phone' : 'desktop'];
+  const emitted = new Map<string, Uint8Array>();
   for (const variant of palm.variants ?? []) {
     if (variant.id !== 'tall' && variant.id !== 'young' && variant.id !== 'leaning') throw new Error('Unexpected palm');
     const geometry = palmGeometry({...palm.defaults, ...variant.params}, new Rng(seedOf(palm)));
-    emitted.set(files[variant.id], staticGlb([{geometry, material, customAttributes: {_SWAY: 'sway'}, compactIndex: true}])); geometry.dispose();
+    emitted.set(`draw:palms:${TIER === 'phone' ? 'phone' : 'desktop'}:${variant.id}`, staticGlb([{geometry, material, customAttributes: {_SWAY: 'sway'}, compactIndex: true}])); geometry.dispose();
   }
   const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
   try {

@@ -210,67 +210,12 @@ export const CAPTURE_PROBES = [
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
 
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
-export const GROUND_FILES = {
-  "ground": "world/ground/ground.glb",
-  "slab": "world/ground/slab.glb"
-} as const;
 
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
-export const HIBISCUS_FILES = {
-  "phone": {
-    "world": "world/hibiscus/phone.bin",
-    "flowering": "models/hibiscus/phone/flowering.glb",
-    "leaf": "models/hibiscus/phone/leaf.glb",
-    "small": "models/hibiscus/phone/small.glb"
-  },
-  "desktop": {
-    "world": "world/hibiscus/desktop.bin",
-    "flowering": "models/hibiscus/desktop/flowering.glb",
-    "leaf": "models/hibiscus/desktop/leaf.glb",
-    "small": "models/hibiscus/desktop/small.glb"
-  }
-} as const;
 
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
-export const PALM_FILES = {
-  "phone": {
-    "world": "world/palms/phone.bin",
-    "tall": "models/palms/phone/tall.glb",
-    "young": "models/palms/phone/young.glb",
-    "leaning": "models/palms/phone/leaning.glb"
-  },
-  "desktop": {
-    "world": "world/palms/desktop.bin",
-    "tall": "models/palms/desktop/tall.glb",
-    "young": "models/palms/desktop/young.glb",
-    "leaning": "models/palms/desktop/leaning.glb"
-  }
-} as const;
 
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
-export const REEF_FILES = {
-  "coral": {
-    "default": "models/reef/coral/default.glb",
-    "brain": "models/reef/coral/default.glb",
-    "staghorn": "models/reef/coral/staghorn.glb",
-    "fan": "models/reef/coral/fan.glb",
-    "tube": "models/reef/coral/tube.glb"
-  },
-  "weed": {
-    "default": "models/reef/weed/default.glb",
-    "tint-0": "models/reef/weed/default.glb",
-    "tint-1": "models/reef/weed/tint-1.glb",
-    "tint-2": "models/reef/weed/tint-2.glb",
-    "tint-3": "models/reef/weed/tint-3.glb"
-  },
-  "star": {
-    "default": "models/reef/star/default.glb",
-    "tint-0": "models/reef/star/default.glb",
-    "tint-1": "models/reef/star/tint-1.glb",
-    "tint-2": "models/reef/star/tint-2.glb"
-  },
-  "world": "world/reef.bin"
-} as const;
 
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
 export const DRIFTWOOD_BOOT_FILES = {
