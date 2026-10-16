@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
-import { PINE_LANTERN_PAGE } from '../data/questPageInteractions';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from '../data/questConsequences';
 import { PINE_QUEST_TRANSACTIONS } from '../data/questTransactions';
 import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
@@ -130,6 +130,7 @@ async function loadQuest() {
   return { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+  const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
   await Promise.all([(deps.preload ?? preloadNpcModels)(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
   const { DialogueBox, presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
@@ -203,7 +204,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const syncLanterns = (): void => { if (lm) for (const f of LANTERN_FLAGS) lm.setLit(lanternId(f), flags.has(f) || flags.has(QUEST_DONE)); };
   syncLanterns();
   const points = Object.fromEntries((['pond', 'ridge', 'den'] as const).map(id => [id, new THREE.Vector3(WS[id].x, floorAt(WS[id].x, WS[id].z) + 1.2, WS[id].z)]));
-  const lanternPage = bindQuestPageInteractions(PINE_LANTERN_PAGE, { flags, interactions: lanternRules, timer: ui,
+  const lanternPage = bindQuestPageInteractions(lanternRows, { flags, interactions: lanternRules, timer: ui,
     promptIds: ['pond', 'ridge', 'den'], interactables: h.interactables, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['points', points], ['lamps', lm], ['sound', { shot }], ['sfx', kitSfx]]) });
   const lanternPrompts = { pond: lanternPage.prompt('pond'), ridge: lanternPage.prompt('ridge'), den: lanternPage.prompt('den') };

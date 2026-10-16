@@ -2,7 +2,7 @@
 import { Scope } from '../src/engine/app/scope';
 import type { Interactable } from '../src/engine/world/interact/types';
 import { parseInteractionRows } from '../src/format/questInteractions';
-import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/data/questPageInteractions';
+import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/generators/questPageInteractions';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/data/interactions';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/data/traderPage';
 import { InteractionRules } from '../src/game/quest/interactionRows';
