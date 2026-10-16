@@ -60,7 +60,7 @@ function reader(root) {
     if(node.type==='ArrayExpression')return node.elements.flatMap(p=>{if(p?.type==='SpreadElement'){const extra=valueOf(p.argument,mod,env);return Array.isArray(extra)?extra:[];}return [valueOf(p,mod,env)];});
     if(node.type==='MemberExpression'){
       const object=valueOf(node.object,mod,env), name=node.computed?valueOf(node.property,mod,env):key(node.property);
-      if(object===UNKNOWN || object===null)return UNKNOWN;return object[name] ?? UNKNOWN;
+      if(object===UNKNOWN || object===null || object===undefined)return UNKNOWN;return object[name] ?? UNKNOWN;
     }
     if(node.type==='TemplateLiteral'){let out='';for(let i=0;i<node.quasis.length;i++){out+=node.quasis[i].value.cooked;const expression=node.expressions[i];if(expression){const part=valueOf(expression,mod,env);if(part===UNKNOWN)return UNKNOWN;out+=String(part);}}return out;}
     if(node.type==='UnaryExpression' && node.operator==='-'){const arg=valueOf(node.argument,mod,env);return typeof arg==='number'?-arg:UNKNOWN;}

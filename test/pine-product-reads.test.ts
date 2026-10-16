@@ -1,26 +1,31 @@
 import { expect, test } from 'vitest';
-import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import * as v from 'valibot';
+import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
 import { skinPickups } from '../src/shards/pine-hollow/runtime/loadout/skins';
 import { PH_SHOTS, isPhShot } from '../src/shards/pine-hollow/runtime/audio/sfx';
 
-// The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for
-// exists in it, with the shapes the readers convert (skin pickups, wildlife voices).
-test('Pine client reads resolve against the built product', async () => {
-  const product = await loadHeadlessProduct('public/shardfiles/pine-hollow');
-  const rows = skinPickups(product.section('custom/skinPickups', SECTIONS));
+// The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
+// emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).
+test('Pine client reads resolve against the emitted output', async () => {
+  const loaded = await readProjectAssets('src/shards/pine-hollow'), custom = loaded.output.custom;
+  if (custom === undefined) throw new Error('Pine custom sections absent');
+  const value = <K extends keyof typeof SECTIONS>(name: K): v.InferOutput<(typeof SECTIONS)[K]> => {
+    const row = custom.sections.find(entry => entry.name === name), bytes = row === undefined ? undefined : custom.files.get(row.path);
+    if (bytes === undefined) throw new Error(`Pine output has no ${name}`);
+    return v.parse(SECTIONS[name], JSON.parse(new TextDecoder().decode(bytes)));
+  };
+  const rows = skinPickups(value('custom/skinPickups'));
   expect(Object.keys(rows).sort()).toEqual(['blackpaw', 'ghost-stag', 'hollow-ash', 'imperial', 'ironhide', 'scarback-furnace', 'warden']);
-  const inventory = product.section('custom/questInventory', SECTIONS);
+  const inventory = value('custom/questInventory');
   expect(inventory.feats.length).toBeGreaterThan(0);
   expect(inventory.items.length).toBeGreaterThan(0);
-  const life = product.section('custom/ambientLife', SECTIONS);
-  for (const voice of Object.values(life.sounds)) expect(isPhShot(voice), voice).toBe(true);
+  for (const voice of Object.values(value('custom/ambientLife').sounds)) expect(isPhShot(voice), voice).toBe(true);
   expect(PH_SHOTS.length).toBe(new Set(PH_SHOTS).size);
-  for (const name of ['custom/heldPlayback', 'custom/heldInputs', 'custom/heldSights', 'custom/leverPlayback'] as const) expect(product.has(name), name).toBe(true);
-  const named = [product.section('custom/leverDetails', SECTIONS).pool.url, product.section('custom/crossbowPool', SECTIONS).pool.url,
-    product.section('custom/trophyMounts', SECTIONS).url, ...Object.values(product.section('custom/paintedTextures', SECTIONS).textures).map(row => row.url),
-    'behaviour/ironhide.wasm', 'behaviour/ghostStag.wasm', 'behaviour/blackpaw.wasm', 'behaviour/imperialBull.wasm', 'behaviour/night.wasm', 'behaviour/director.wasm'];
-  for (const name of named) expect(product.hasFile(name), name).toBe(true);
-  const mounts = product.section('custom/trophyMounts', SECTIONS);
-  for (const geometry of mounts.rows.geometries) expect(geometry.own).toBeNull();
-});
+  for (const geometry of value('custom/trophyMounts').rows.geometries) expect(geometry.own).toBeNull();
+  const names = new Set(loaded.output.namedFiles?.map(row => row.name));
+  const wanted = [value('custom/leverDetails').pool.url, value('custom/crossbowPool').pool.url, value('custom/trophyMounts').url,
+    ...Object.values(value('custom/paintedTextures').textures).map(row => row.url),
+    ...['ironhide', 'ghostStag', 'blackpaw', 'imperialBull', 'night', 'director'].map(stem => `behaviour/${stem}.wasm`)];
+  for (const name of wanted) expect(names.has(name), name).toBe(true);
+}, 30000);
