@@ -1,0 +1,75 @@
+import type * as v from 'valibot';
+import type { Shardfile } from './shardSchema';
+import type { CreatureStrikeSchema } from './creatures';
+
+type Rows = Shardfile['rows'];
+type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
+
+/**
+ * The platform sections of a built shard (shardfile format 2, `out/<slug>/sections/<name>.json`) and the value each file
+ * holds: the type contract shared by the output writer (P1, `OUTPUT_SECTIONS`), the loader and the runtime data API
+ * (`ShardProduct.section`, `@wildshard/game/shardfile/shardProduct`; spec progress/shard-platform/p2a-runtime-data-api/).
+ *
+ * A section that slices today's `Shardfile` is a root-key envelope (`{ quests: … }`, `{ rows: { strikes: … } }`), so an
+ * optional field keeps its absence and the loader reassembles the unchanged `Shardfile` for every host. A section added
+ * after format 2 (marked "new") is a plain value and is not part of `Shardfile`: the runtime reads it with `section()` and
+ * hands it to its host as an argument. A section file holds its schema's output, validated at build time; the runtime
+ * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
+ */
+export interface PlatformSections {
+  'world/tiles': Pick<Shardfile, 'tiles' | 'far' | 'near'>;
+  'world/terrain': Pick<Shardfile, 'terrain' | 'nativeGround'>;
+  'world/edge': Pick<Shardfile, 'edge' | 'entryways'>;
+  'world/collision': Pick<Shardfile, 'meshCollision'>;
+  'world/navigation': Pick<Shardfile, 'navigation'>;
+  'world/props': Pick<Shardfile, 'props'>;
+  'world/water': Pick<Shardfile, 'water'>;
+  'world/movers': Pick<Shardfile, 'movers'>;
+  'world/traversal': Pick<Shardfile, 'traversal'>;
+  'world/spawn': Pick<Shardfile, 'spawn'>;
+  'world/days': { readonly rows: Pick<Rows, 'days'> };
+  'world/weather': { readonly rows: Pick<Rows, 'weather'> };
+  'look/look': Pick<Shardfile, 'look' | 'presentation'>;
+  'look/map': Pick<Shardfile, 'map'>;
+  'look/materials': { readonly rows: Pick<Rows, 'looks'> };
+  'actors/creatures': Pick<Shardfile, 'creatures'>;
+  'actors/crowds': Pick<Shardfile, 'crowds'>;
+  'actors/npcs': Pick<Shardfile, 'questNpcs'>;
+  'actors/species': { readonly rows: Pick<Rows, 'species'> };
+  'actors/spawns': { readonly runtime: { readonly spawns: Spawns } };
+  /** new (P2b): the creature strike table species programs name by id (Sky's Roc rows), `CreatureStrikeSchema` rows */
+  'actors/strikes': readonly v.InferOutput<typeof CreatureStrikeSchema>[];
+  'combat/items': Pick<Shardfile, 'items'>;
+  'combat/encounters': Pick<Shardfile, 'encounters'>;
+  'combat/strikes': { readonly rows: Pick<Rows, 'strikes'> };
+  'quests/quests': Pick<Shardfile, 'quests'>;
+  'quests/host': Pick<Shardfile, 'questHost'>;
+  'quests/directors': Pick<Shardfile, 'directors'>;
+  'economy/ledger': Pick<Shardfile, 'ledger'>;
+  'economy/loot': { readonly rows: Pick<Rows, 'loot'> };
+  'state/state': Pick<Shardfile, 'state'>;
+  'state/migrations': Pick<Shardfile, 'migrations'>;
+  'state/modes': Pick<Shardfile, 'modes'>;
+  'sim/sim': Pick<Shardfile, 'sim'>;
+  'sim/hooks': Pick<Shardfile, 'hooks'>;
+  'sim/client-scripts': Pick<Shardfile, 'clientScripts'>;
+  'sim/client-channels': Pick<Shardfile, 'clientChannels'>;
+  'sim/plumbing': Pick<Shardfile, 'plumbing'>;
+  'audio/audio': Pick<Shardfile, 'audio'>;
+  'ui/card': Pick<Shardfile, 'accent' | 'manifest'>;
+  'ui/ui': Pick<Shardfile, 'ui' | 'targets'>;
+  'ui/compendium': { readonly rows: Pick<Rows, 'compendiums'> };
+  /** new (P2b): the shard's player-facing strings, key → text, read through `ShardProduct.strings(keys)` */
+  'ui/strings': Readonly<Record<string, string>>;
+}
+
+/** A platform section's name, as the index lists it (`<group>/<name>`). */
+export type PlatformSectionName = keyof PlatformSections;
+/** A shard-private section's name (`sections/custom/<name>.json`, schema in `schemas/custom/<name>.schema.json`). */
+export type CustomSectionName = `custom/${string}`;
+/** Any section name an index may list. */
+export type SectionName = PlatformSectionName | CustomSectionName;
+/** When the loader fetches a section: with admission (`boot`), on entering the shard (`enter`), or as the player moves. */
+export type SectionLoad = 'boot' | 'enter' | 'stream';
+/** Who reads a section: the headless simulation, the client, or both. */
+export type SectionAudience = 'sim' | 'client' | 'both';

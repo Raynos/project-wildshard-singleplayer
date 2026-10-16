@@ -135,7 +135,7 @@ export function hybridInstallation(base: ShardContext, scope: Scope, runtime: Sh
     }
     return facade;
   } });
-  return { ...installation, context: shardContext(installation.context, base.manifest, { ...base.game, runtime: captured }) };
+  return { ...installation, context: shardContext(installation.context, base.manifest, { ...base.game, runtime: captured }, base.product) };
 }
 
 /** Interior events for one catalogue resident; another cell never activates its trusted hooks. */

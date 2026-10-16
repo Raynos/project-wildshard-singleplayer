@@ -63,6 +63,7 @@
     "./shardfile/bakedKinds": "./shardfile/bakedKinds.ts",
     "./shardfile/homeKeeper": "./shardfile/homeKeeper.ts",
     "./shardfile/runtimeProduct": "./shardfile/runtimeProduct.ts",
+    "./shardfile/shardProduct": "./shardfile/shardProduct.ts",
     "./shardfile/props": "./shardfile/props.ts",
     "./shardfile/hybrid": "./shardfile/hybrid.ts",
     "./shardfile/movers": "./shardfile/movers.ts",

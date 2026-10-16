@@ -66,6 +66,7 @@
     "./skins": "./skins.ts",
     "./skinData": "./skinData.ts",
     "./shardSections": "./shardSections.ts",
+    "./sections": "./sections.ts",
     "./directorStages": "./directorStages.ts",
     "./directorWhen": "./directorWhen.ts",
     "./moverMotion": "./moverMotion.ts",

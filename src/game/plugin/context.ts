@@ -18,6 +18,7 @@ import { parseShardSlug } from '../shard/slug';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { stillImageUrl } from '../shardfile/stillImage';
 import { presentationCard } from '../shardfile/presentation';
+import { absentShardProduct, type ShardProduct } from '../shardfile/shardProduct';
 
 
 /** The page's chosen entry mode. */
@@ -127,13 +128,18 @@ export interface ShardContext extends LevelContext {
    * dressing (a skirt, backdrop props); the platform already drops the level's horizon rings and cloud sea in the grid.
    */
   readonly cube: ShardCube | null;
+  /**
+   * The shard's built output as its runtime reads it (SHARD-PLATFORM P2a): `section()`, `strings()`, `file()`. The loader
+   * passes the admitted product; an entry with no built output gets one whose every read refuses (`absentShardProduct`).
+   */
+  readonly product: ShardProduct;
 }
 /** A grid cell's extent in shard-local metres (G99): the cube's half width, its centre at the shard's origin. */
 export interface ShardCube { readonly half: number }
 const GRID_CUBE: ShardCube = Object.freeze({ half: CHUNK_HALF });
 
 /** Construct the owned game context without installing services at import time. */
-export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: GameServices): ShardContext {
+export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: GameServices, product: ShardProduct = absentShardProduct(manifest.slug)): ShardContext {
   const live = (): void => { if (ctx.scope.disposed) throw new Error('The shard scope is disposed'); };
   const add = <K extends keyof GameRowMap>(kind: K, values: GameRowMap[K] | readonly GameRowMap[K][]): void => {
     ctx.app.levelRegistrations.assertKit(ctx.scope);
@@ -152,7 +158,7 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
   };
   // Retain progress as a getter: its stage changes while the same context serves all hooks.
   return {
-    ...ctx, get progress() { return ctx.progress; }, manifest, game, cube: pageMode() === 'grid' ? GRID_CUBE : null,
+    ...ctx, get progress() { return ctx.progress; }, manifest, game, product, cube: pageMode() === 'grid' ? GRID_CUBE : null,
     bag: {
       tab: (spec) => { live(); ctx.scope.onDispose(game.bag.tab(spec)); },
       fragment: (tab, fragment) => { live(); ctx.scope.onDispose(game.bag.fragment(tab, fragment)); },
