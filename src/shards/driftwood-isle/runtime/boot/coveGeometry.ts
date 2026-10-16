@@ -2,7 +2,7 @@ import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { FIXED_MODEL_FILES } from '../../data/modelFiles';
+import { FIXED_MODEL_FILES } from '../const';
 import { driftwoodRows } from './rows';
 import { coveSpecKey, type CoveSpec } from '../../world/coveLayout';
 

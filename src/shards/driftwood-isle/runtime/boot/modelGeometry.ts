@@ -1,7 +1,7 @@
 import { driftwoodBlobName, loadDriftwoodProduct } from './blobAssets';
 import type { BufferGeometry } from 'three';
 import type { readWholeGeometry } from '@wildshard/game/plugin/geometry';
-import { FIXED_MODEL_FILES } from '../../data/modelFiles';
+import { FIXED_MODEL_FILES } from '../const';
 
 /** Decode the admitted scene's subsets through the shared assembler; original materials and placements stay local. */
 export type ProductGeometryOwner = Parameters<typeof readWholeGeometry>[0];

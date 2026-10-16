@@ -27,6 +27,8 @@ for (const manifest of manifests) for (const [url, declared] of Object.entries(m
 const AssetsSchema = v.strictObject({
   byUrl: v.record(v.pipe(v.string(), v.maxLength(512)), v.pipe(v.string(), v.maxLength(240))),
 });
+/** Build-only mapping for the runtime's checked logical-name mirrors. */
+export const DRIFTWOOD_ASSET_NAMES = byUrl;
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */
 export const DRIFTWOOD_OUTPUT = {
   blobs: [...canonical.values()].map(row => {

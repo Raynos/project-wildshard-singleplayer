@@ -1,6 +1,6 @@
 import type { BufferGeometry } from 'three';
 import { createOwnedGeometryBatch } from '@wildshard/engine/models/ownedGeometry';
-import { FIXED_MODEL_FILES } from '../../data/modelFiles';
+import { FIXED_MODEL_FILES } from '../const';
 
 const preload = createOwnedGeometryBatch();
 const modelGeometry = preload.geometry;

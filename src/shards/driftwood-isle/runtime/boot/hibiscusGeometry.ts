@@ -3,7 +3,7 @@ import { decodeFoliageWorld } from './foliageGeometry';
 import { readDriftwoodBlob } from './blobAssets';
 import { TIER } from '@wildshard/engine/core/tier';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { HIBISCUS_FILES } from '../../data/hibiscusFiles';
+import { HIBISCUS_FILES } from '../const';
 import type { HibiscusBushParams } from '../models/hibiscusBush';
 
 const files = HIBISCUS_FILES[TIER === 'phone' ? 'phone' : 'desktop'];

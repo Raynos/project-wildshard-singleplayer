@@ -4,7 +4,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { decodeFoliageWorld } from './foliageGeometry';
 import { readDriftwoodBlob } from './blobAssets';
-import { PALM_FILES } from '../../data/palmFiles';
+import { PALM_FILES } from '../const';
 import type { PalmParams } from '../models/palm';
 
 const files = PALM_FILES[TIER === 'phone' ? 'phone' : 'desktop'];

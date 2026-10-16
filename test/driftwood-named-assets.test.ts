@@ -14,17 +14,19 @@ test('Driftwood aliases resolve only listed named product bytes, with no public 
     sections: new Map([['custom/assets', { byUrl: { '/old/body.glb': 'models/body.glb', '/alias/body.glb': 'models/body.glb', '/missing.glb': 'models/absent.glb' } }]]),
     files: new Map([['models/body.glb', { hash: 'checked-hash', url: '/shardfiles/driftwood-isle/blobs/glb/checked-hash.glb' }]]), read, check: true });
   expect(driftwoodBlobName(product, '/old/body.glb')).toBe('models/body.glb');
+  expect(await readDriftwoodBlob('models/body.glb', product)).toBe(bytes);
   expect(await readDriftwoodBlob('/alias/body.glb', product)).toBe(bytes);
   expect(read).toHaveBeenCalledWith('checked-hash');
   await expect(readDriftwoodBlob('/unlisted.glb', product)).rejects.toThrow('missing its named asset');
   await expect(readDriftwoodBlob('/missing.glb', product)).rejects.toThrow('missing its named asset');
+  await expect(readDriftwoodBlob('models/absent.glb', product)).rejects.toThrow('missing its named asset');
 });
 
 test('only the five migrated public prefetch groups retire; remaining boot content stays selected', () => {
-  for (const tier of ['phone', 'desktop'] as const) {
-    const previous = resolveBootFiles(DRIFTWOOD_BOOT_FILES, 'late', tier, 'img', GPU_FILES);
-    const migrated = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, 'img', GPU_FILES)));
-    const remaining = lateReads(tier);
+  for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
+    const previous = resolveBootFiles(DRIFTWOOD_BOOT_FILES, 'late', tier, mode, GPU_FILES);
+    const migrated = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
+    const remaining = lateReads(tier, mode);
     expect(remaining).toEqual(previous.filter(url => !migrated.has(url)));
     expect(remaining).toContain('/assets/lut/driftwood-isle.bin');
     expect(remaining.every(url => !migrated.has(url))).toBe(true);

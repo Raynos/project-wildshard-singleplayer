@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry } from 'three';
-import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/data/modelFiles';
+import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/runtime/const';
 import { loadFixedGeometry, fixedGeometryReady, WENDELL_HEAD_GEOMETRY, HAT_GEOMETRY, DUNE_LOGS_GEOMETRY, PIER_GEOMETRIES } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
 import { copyCoverGeometry } from '../src/shards/driftwood-isle/runtime/boot/coverGeometry';
 

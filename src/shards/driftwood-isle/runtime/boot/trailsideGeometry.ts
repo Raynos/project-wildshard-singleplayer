@@ -1,6 +1,6 @@
 import type { BufferGeometry } from 'three';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { FIXED_MODEL_FILES } from '../../data/modelFiles';
+import { FIXED_MODEL_FILES } from '../const';
 import { driftwoodRows } from './rows';
 import { trailsideSpecKey, type TrailsideSpec } from '../../world/trailsideLayout';
 

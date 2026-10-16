@@ -208,3 +208,368 @@ export const CAPTURE_PROBES = [
   { name: 'beach', x: -10, z: -150, yaw: 4.3, pitch: 0 },
   { name: 'wreck', x: 105, z: 0, yaw: -1.5707963267948966, pitch: 0 },
 ] as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const FIXED_MODEL_FILES = {
+  "wendellHead": "models/fixed/wendell-head.glb",
+  "pierWorld0Deck": "models/fixed/pier-world-0-deck.glb",
+  "pierWorld0Cloth": "models/fixed/pier-world-0-cloth.glb",
+  "pierWorld1Deck": "models/fixed/pier-world-1-deck.glb",
+  "pierWorld1Cloth": "models/fixed/pier-world-1-cloth.glb",
+  "pierWorld2Deck": "models/fixed/pier-world-2-deck.glb",
+  "pierWorld3Deck": "models/fixed/pier-world-3-deck.glb",
+  "pierWorld3Cloth": "models/fixed/pier-world-3-cloth.glb",
+  "pierSpecimenJettyDeck": "models/fixed/pier-specimen-jetty-deck.glb",
+  "pierSpecimenLongDeck": "models/fixed/pier-specimen-long-deck.glb",
+  "pierSpecimenLandingDeck": "models/fixed/pier-specimen-landing-deck.glb",
+  "pierSpecimenLandingCloth": "models/fixed/pier-specimen-landing-cloth.glb",
+  "shrineKit": "models/fixed/shrine-kit.glb",
+  "shrineWater": "models/fixed/shrine-water.glb",
+  "shrineGlyphs": "models/fixed/shrine-glyphs.glb",
+  "shrineSpecimenKit": "models/fixed/shrine-specimen-kit.glb",
+  "shrineSpecimenWater": "models/fixed/shrine-specimen-water.glb",
+  "shrineSpecimenGlyphs": "models/fixed/shrine-specimen-glyphs.glb",
+  "trailside": "models/fixed/trailside.glb",
+  "coveStructure": "models/fixed/cove-structure.glb",
+  "coveRocks": "models/fixed/cove-rocks.glb",
+  "coveGlow": "models/fixed/cove-glow.glb",
+  "covePools": "models/fixed/cove-pools.glb",
+  "ironSwordBlade": "models/fixed/iron-sword-blade.glb",
+  "ironSwordFittings": "models/fixed/iron-sword-fittings.glb",
+  "hat": "models/fixed/captain-hat.glb",
+  "cape": "models/fixed/sailcloth-cape.glb",
+  "boatHull": "models/fixed/boat-hull.glb",
+  "boatSail": "models/fixed/boat-sail.glb",
+  "boatGear": "models/fixed/boat-gear.glb",
+  "tradeCounter": "models/fixed/trade-counter.glb",
+  "trophyPlaques": "models/fixed/trophy-plaques.glb",
+  "trophyDrop": "models/fixed/trophy-drop.glb",
+  "chime": "models/fixed/sea-glass-chime.glb",
+  "coverTuft": "models/fixed/cover-tuft.glb",
+  "coverFern": "models/fixed/cover-fern.glb",
+  "coverHibiscus": "models/fixed/cover-hibiscus.glb",
+  "coverDaisy": "models/fixed/cover-daisy.glb",
+  "coverPebble": "models/fixed/cover-pebble.glb",
+  "coverShells": "models/fixed/cover-shells.glb",
+  "coverStarfish": "models/fixed/cover-starfish.glb",
+  "coverBush": "models/fixed/cover-bush.glb",
+  "coverTuftFar": "models/fixed/cover-tuftFar.glb",
+  "coverFernFar": "models/fixed/cover-fernFar.glb",
+  "coverHibiscusFar": "models/fixed/cover-hibiscusFar.glb",
+  "coverDaisyFar": "models/fixed/cover-daisyFar.glb",
+  "coverBushFar": "models/fixed/cover-bushFar.glb",
+  "hutKit": "models/fixed/hut-kit.glb",
+  "hutFlames": "models/fixed/hut-flames.glb",
+  "lookout": "models/fixed/lookout.glb",
+  "wreckKit": "models/fixed/wreck-kit.glb",
+  "wreckGlow": "models/fixed/wreck-glow.glb",
+  "wreckRocks": "models/fixed/wreck-rocks.glb",
+  "shipwreckKit": "models/fixed/shipwreck-kit.glb",
+  "shipwreckGlow": "models/fixed/shipwreck-glow.glb",
+  "duneLogs": "models/fixed/cover-driftwood.glb",
+  "bridgePosts": "models/fixed/bridge-posts.glb",
+  "bridgeSpecimenPosts": "models/fixed/bridge-specimen-posts.glb",
+  "waterfallSheet": "models/fixed/waterfall-sheet.glb",
+  "waterfallRings": "models/fixed/waterfall-rings.glb",
+  "waterfallPuffs": "models/fixed/waterfall-puffs.glb",
+  "cargoBarrel": "models/fixed/cargo-barrel.glb",
+  "cargoBarrelLying": "models/fixed/cargo-barrel-lying.glb",
+  "cargoCrate": "models/fixed/cargo-crate.glb",
+  "cargoCrateBroken": "models/fixed/cargo-crate-broken.glb",
+  "cargoCoil": "models/fixed/cargo-coil.glb",
+  "shrineFireflies": "models/fixed/shrine-fireflies.glb",
+  "gull": "models/fixed/gull.glb",
+  "castawaySmoke": "models/fixed/castaway-smoke.glb",
+  "driftLogLong": "models/fixed/drift-log-long.glb",
+  "driftLogShort": "models/fixed/drift-log-short.glb",
+  "driftLogPale": "models/fixed/drift-log-pale.glb",
+  "reefFish": "models/fixed/reef-fish.glb",
+  "mooringLines": "models/fixed/mooring-lines.glb",
+  "npcTraderBody": "models/fixed/npc-trader-body.glb",
+  "npcTraderHead": "models/fixed/npc-trader-head.glb",
+  "npcTraderUpper": "models/fixed/npc-trader-upper.glb",
+  "npcTraderFore": "models/fixed/npc-trader-fore.glb",
+  "npcCastawayBody": "models/fixed/npc-castaway-body.glb",
+  "npcCastawayCamp": "models/fixed/npc-castaway-camp.glb",
+  "npcCastawayHead": "models/fixed/npc-castaway-head.glb",
+  "npcCastawayArm": "models/fixed/npc-castaway-arm.glb",
+  "npcCastawayFlames": "models/fixed/npc-castaway-flames.glb"
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const GROUND_FILES = {
+  "ground": "world/ground/ground.glb",
+  "slab": "world/ground/slab.glb"
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const HIBISCUS_FILES = {
+  "phone": {
+    "world": "world/hibiscus/phone.bin",
+    "flowering": "models/hibiscus/phone/flowering.glb",
+    "leaf": "models/hibiscus/phone/leaf.glb",
+    "small": "models/hibiscus/phone/small.glb"
+  },
+  "desktop": {
+    "world": "world/hibiscus/desktop.bin",
+    "flowering": "models/hibiscus/desktop/flowering.glb",
+    "leaf": "models/hibiscus/desktop/leaf.glb",
+    "small": "models/hibiscus/desktop/small.glb"
+  }
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const PALM_FILES = {
+  "phone": {
+    "world": "world/palms/phone.bin",
+    "tall": "models/palms/phone/tall.glb",
+    "young": "models/palms/phone/young.glb",
+    "leaning": "models/palms/phone/leaning.glb"
+  },
+  "desktop": {
+    "world": "world/palms/desktop.bin",
+    "tall": "models/palms/desktop/tall.glb",
+    "young": "models/palms/desktop/young.glb",
+    "leaning": "models/palms/desktop/leaning.glb"
+  }
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const REEF_FILES = {
+  "coral": {
+    "default": "models/reef/coral/default.glb",
+    "brain": "models/reef/coral/default.glb",
+    "staghorn": "models/reef/coral/staghorn.glb",
+    "fan": "models/reef/coral/fan.glb",
+    "tube": "models/reef/coral/tube.glb"
+  },
+  "weed": {
+    "default": "models/reef/weed/default.glb",
+    "tint-0": "models/reef/weed/default.glb",
+    "tint-1": "models/reef/weed/tint-1.glb",
+    "tint-2": "models/reef/weed/tint-2.glb",
+    "tint-3": "models/reef/weed/tint-3.glb"
+  },
+  "star": {
+    "default": "models/reef/star/default.glb",
+    "tint-0": "models/reef/star/default.glb",
+    "tint-1": "models/reef/star/tint-1.glb",
+    "tint-2": "models/reef/star/tint-2.glb"
+  },
+  "world": "world/reef.bin"
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const DRIFTWOOD_BOOT_FILES = {
+  "empty": {
+    "source": {
+      "urls": []
+    }
+  },
+  "baked": {
+    "source": {
+      "publicPrefix": "/assets/baked/driftwood-isle/tex/"
+    },
+    "excludeParts": [
+      ".phone."
+    ],
+    "map": [
+      "gpu"
+    ]
+  },
+  "physics": {
+    "source": {
+      "urls": [
+        "/assets/physics/rapier.wasm"
+      ]
+    }
+  },
+  "lut": {
+    "source": {
+      "urls": [
+        "/assets/lut/driftwood-isle.bin"
+      ]
+    }
+  },
+  "horizon": {
+    "source": {
+      "urls": [
+        "/assets/horizon/driftwood-isle-day.webp",
+        "/assets/horizon/driftwood-isle-night.webp"
+      ]
+    },
+    "map": [
+      "gpu"
+    ]
+  },
+  "island": {
+    "source": {
+      "urls": [
+        "/assets/models/driftwood-blender/island.glb"
+      ]
+    },
+    "map": [
+      "gpu"
+    ]
+  },
+  "records": {
+    "source": {
+      "urls": {
+        "phone": [
+          "/assets/models/driftwood-blender/island.json",
+          "/assets/models/driftwood-blender/placements.bin",
+          "/assets/driftwood-isle/baked/island-plan-bbe7282cde6bf8a130140dd7c952b4b3c86159c59daf1b5f56f93fb04ddf8bee.json"
+        ],
+        "desktop": [
+          "/assets/models/driftwood-blender/island.json",
+          "/assets/models/driftwood-blender/placements.bin",
+          "/assets/driftwood-isle/baked/island-plan-cbf54035425a3adeaffdb5648b055437c27453980f670e8dda8234ef874b8bba.json"
+        ]
+      }
+    }
+  },
+  "lights": {
+    "source": {
+      "urls": {
+        "phone": [
+          "/assets/models/driftwood-blender/lm-ao.phone.webp",
+          "/assets/models/driftwood-blender/lm-bounce.phone.webp"
+        ],
+        "desktop": [
+          "/assets/models/driftwood-blender/lm-ao.webp",
+          "/assets/models/driftwood-blender/lm-bounce.webp"
+        ]
+      }
+    },
+    "map": [
+      "gpu"
+    ]
+  },
+  "reef": {
+    "source": {
+      "urls": [
+        "/assets/driftwood-isle/baked/reef-2485e39982beb460e69e164562f178b6214cc080bedfa8e17281d8bd86a9f8f6.bin"
+      ]
+    }
+  },
+  "ground": {
+    "source": {
+      "urls": [
+        "/assets/driftwood-isle/baked/ground-239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6.glb",
+        "/assets/driftwood-isle/baked/ground-c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92.glb"
+      ]
+    }
+  },
+  "ocean": {
+    "source": {
+      "urls": {
+        "phone": [
+          "/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb",
+          "/assets/driftwood-isle/baked/ocean-4594171dad0831c9522dd54adc6c3c5f306ada75dec05bdfaea40699eb934ad8.bin"
+        ],
+        "desktop": [
+          "/assets/driftwood-isle/baked/ocean-93422f68838c3c52f063ad95964c770570ff11f395e78e71a111077558378022.glb",
+          "/assets/driftwood-isle/baked/ocean-4594171dad0831c9522dd54adc6c3c5f306ada75dec05bdfaea40699eb934ad8.bin"
+        ]
+      }
+    }
+  },
+  "palms": {
+    "source": {
+      "urls": {
+        "phone": [
+          "/assets/driftwood-isle/baked/palm-b215817e315b21685f4860a94a6e706466ffaf53ac9edc4d1c29fec3aa6f2392.bin"
+        ],
+        "desktop": [
+          "/assets/driftwood-isle/baked/palm-4a6d31124c14498f867d244c61c244b9855701711a051781f938e0a1df1a4e88.bin"
+        ]
+      }
+    }
+  },
+  "hibiscus": {
+    "source": {
+      "urls": {
+        "phone": [
+          "/assets/driftwood-isle/baked/hibiscus-3e1779a84ad4aaf5d2814319d916ca58a30a6c63aca6c0ebf83ef0ec14f6bae6.bin"
+        ],
+        "desktop": [
+          "/assets/driftwood-isle/baked/hibiscus-38a4f8b6ba5c423dfa20a693ea244abf4f153305d869d71f22e2c2b2742af22d.bin"
+        ]
+      }
+    }
+  },
+  "cover": {
+    "source": {
+      "urls": {
+        "phone": [
+          "/assets/driftwood-isle/baked/island-cover-742619371bf3887692480c2595c8762c150fea4061608e96954a08ed0cc02edf.bin"
+        ],
+        "desktop": [
+          "/assets/driftwood-isle/baked/island-cover-c28f6393f7d4293a4140b2d20b2460d2cd2f7204e134324e735bdff69e3f549d.bin"
+        ]
+      }
+    }
+  },
+  "captain": {
+    "source": {
+      "urls": [
+        "/assets/models/driftwood-hero/captain/captain.glb"
+      ]
+    },
+    "map": [
+      "gpu"
+    ]
+  },
+  "late": {
+    "source": {
+      "concat": [
+        "lut",
+        "horizon",
+        "island",
+        "records",
+        "lights",
+        "cover",
+        "hibiscus",
+        "palms",
+        "reef",
+        "ground",
+        "captain"
+      ]
+    },
+    "present": true
+  }
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const DRIFTWOOD_BOOT_SOURCES = {
+  "sky": "empty",
+  "baked": "baked",
+  "terrain": "empty",
+  "trees": "empty",
+  "physics": "physics",
+  "cabins": "empty",
+  "props": "empty",
+  "art": "empty",
+  "music": "empty",
+  "sfx": "empty"
+} as const;
+
+/** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
+export const GPU_FILES = {
+  "phone": {
+    "/assets/baked/driftwood-isle/tex/giant.phone.webp": "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
+    "/assets/horizon/driftwood-isle-day.webp": "/assets/gpu/horizon/driftwood-isle-day-2ca8c3a2.ktx2",
+    "/assets/horizon/driftwood-isle-night.webp": "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2",
+    "/assets/models/driftwood-blender/lm-ao.phone.webp": "/assets/gpu/models/driftwood-blender/lm-ao.phone-9f6766dc.ktx2",
+    "/assets/models/driftwood-blender/lm-bounce.phone.webp": "/assets/gpu/models/driftwood-blender/lm-bounce.phone-582c92be.ktx2",
+    "/assets/models/driftwood-hero/captain/captain.glb": "/assets/gpu/models/driftwood-hero/captain/captain-51fb1b40.glb"
+  },
+  "desktop": {
+    "/assets/baked/driftwood-isle/tex/giant.jpg": "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
+    "/assets/horizon/driftwood-isle-day.webp": "/assets/gpu/horizon/driftwood-isle-day-2ca8c3a2.ktx2",
+    "/assets/horizon/driftwood-isle-night.webp": "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2",
+    "/assets/models/driftwood-blender/lm-ao.webp": "/assets/gpu/models/driftwood-blender/lm-ao-880aa796.ktx2",
+    "/assets/models/driftwood-blender/lm-bounce.webp": "/assets/gpu/models/driftwood-blender/lm-bounce-c187e3f8.ktx2",
+    "/assets/models/driftwood-hero/captain/captain.glb": "/assets/gpu/models/driftwood-hero/captain/captain-51fb1b40.glb"
+  }
+} as const;

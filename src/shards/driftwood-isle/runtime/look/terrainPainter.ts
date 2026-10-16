@@ -9,8 +9,7 @@ import { facetedGroundPainter, prepareFacetedGround } from '../looks/facetedGrou
 import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { followToon } from './toon';
-import { GROUND_FILES } from '../../data/groundFiles';
-import { GROUND_LOOK, KIT_LENDS } from '../const';
+import { GROUND_FILES, GROUND_LOOK, KIT_LENDS } from '../const';
 
 /** The ground's and the kit's graph materials, from the island's built output, compiled under the world's scope before it
  *  builds (the look's `prepareWorld`). */

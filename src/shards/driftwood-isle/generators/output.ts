@@ -1,6 +1,7 @@
 import { emitDefinedSections, type EmittedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../data/output';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../data/clientSections';
+import { RUNTIME_MIRRORS } from '../data/runtimeMirrors';
 
 /** One sorted custom inventory from the asset registry and the client rows; a name both declare refuses. */
 function joined(a: EmittedSections, b: EmittedSections): EmittedSections {
@@ -12,3 +13,5 @@ function joined(a: EmittedSections, b: EmittedSections): EmittedSections {
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 export const output = { ...DRIFTWOOD_OUTPUT, custom: joined(DRIFTWOOD_OUTPUT.custom, emitDefinedSections(DRIFTWOOD_CLIENT_SECTIONS)) };
+/** Strict output copies prove the same constants the source mirror fixture checks. */
+export const mirrors = [...RUNTIME_MIRRORS];

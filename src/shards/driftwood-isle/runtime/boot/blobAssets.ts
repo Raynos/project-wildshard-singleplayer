@@ -6,6 +6,7 @@ import { admitDriftwoodRows } from './rows';
 
 /** Legacy labels identify existing authored parts; only the product decides their named bytes and URLs. */
 export function driftwoodBlobName(product: ShardProduct, label: string): string {
+  if (product.hasFile(label)) return label;
   const name = product.section('custom/assets', SECTIONS).byUrl[label];
   if (name === undefined || !product.hasFile(name)) throw new Error(`Driftwood product is missing its named asset: ${label}`);
   return name;

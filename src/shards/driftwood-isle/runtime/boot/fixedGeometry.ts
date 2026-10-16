@@ -4,7 +4,7 @@ import { loadCoveGeometry } from './coveGeometry';
 import { createOwnedGeometryBatch, type OwnedGeometry as ModelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readProductGeometry, readNamedFixedGeometry } from './modelGeometry';
 import type { BufferGeometry } from 'three';
-import { FIXED_MODEL_FILES } from '../../data/modelFiles';
+import { FIXED_MODEL_FILES } from '../const';
 
 const preload = createOwnedGeometryBatch();
 const modelGeometry = preload.geometry;

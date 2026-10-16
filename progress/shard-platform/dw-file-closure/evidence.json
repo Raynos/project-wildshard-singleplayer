@@ -1,0 +1,114 @@
+{
+  "beforeRevision": "ca76355142258eeb014b63acd9fd49ade5c5a992",
+  "qualifiedProductionCommit": "9e2a46c7e95d07f8b4f08d3a8410a32194411988",
+  "escapes": {
+    "before": 56,
+    "after": 43
+  },
+  "simInRuntime": {
+    "before": 5,
+    "after": 5,
+    "files": [
+      "src/shards/driftwood-isle/runtime/director.ts",
+      "src/shards/driftwood-isle/runtime/ecology.ts",
+      "src/shards/driftwood-isle/runtime/placement.ts",
+      "src/shards/driftwood-isle/runtime/quest.ts",
+      "src/shards/driftwood-isle/runtime/speciesBrains.ts"
+    ]
+  },
+  "remainingEscapes": [
+    {
+      "path": "src/shards/driftwood-isle/runtime/index.ts",
+      "count": 8
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/hybrid.ts",
+      "count": 5
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+      "count": 4
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/models/pier.ts",
+      "count": 4
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/quest.ts",
+      "count": 4
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/director.ts",
+      "count": 3
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/finalePresentation.ts",
+      "count": 3
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/models/ropeBridge.ts",
+      "count": 2
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/boot/coveGeometry.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/boot/poses.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/ecology.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/look/backdrop.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/models/reefRock.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/models/shoreBoulder.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/models/smallRock.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/placement.ts",
+      "count": 1
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/speciesBrains.ts",
+      "count": 1
+    }
+  ],
+  "boot": {
+    "shard": "driftwood-isle",
+    "ready": true,
+    "entered": true,
+    "appState": "play",
+    "gameplayFrames": {
+      "initial": 2,
+      "final": 14
+    },
+    "fatal": [],
+    "faults": [],
+    "reports": []
+  },
+  "checks": {
+    "nativeHeadless": 17,
+    "focused": 7,
+    "finalMirrorChecks": 4,
+    "rootTypes": true,
+    "typedLint": true,
+    "simRatchet": true
+  }
+}
