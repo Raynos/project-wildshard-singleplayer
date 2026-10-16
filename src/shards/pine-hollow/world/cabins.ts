@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { floorAtRects } from '@wildshard/engine/physics/box';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { finishWeld, place, weld, type Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
@@ -43,16 +44,6 @@ type Model = ModelDef<Record<string, never>>;
 const HAMLET: Readonly<Record<string, Model>> = { 'hunting-lodge': huntingLodge, 'trader-stall': traderStall, 'millers-house': millersHouse, watermill, 'hamlet-shed': hamletShed };
 const PROPS: Readonly<Record<CabinPropKind, Model>> = { crate: woodenCrate, barrel: wineBarrel, bucket: woodenBucket, hatchet };
 
-/** the highest deck rectangle over (x, z) of these floors (Cabins.floorHeightAt's test, per building) */
-function floorIn(floors: CabinBuilding['floors'], x: number, z: number): number | undefined {
-  for (const f of floors) {
-    const c = Math.cos(f.rot), s = Math.sin(f.rot);
-    const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
-    if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) return f.y;
-  }
-  return undefined;
-}
-
 const at = (m: THREE.Matrix4, host?: number): Placement<Record<string, never>> => { const e = m.elements; return { x: e[12], y: e[13], z: e[14], matrix: m, ...(host === undefined ? {} : { host }) }; };
 
 export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegistry; scope: Scope }): Promise<void> {
@@ -74,7 +65,7 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
     if (hostOf.size > 0) await macrotask(); // one building's merge per task (the phone's ~30 ms budget)
     hostOf.set(b, w.size);
     const pl = { x: b.x, y: b.y, z: b.z, yaw: b.rot };
-    const piece = { solidFloor: true, floor: (x: number, z: number): number | undefined => floorIn(b.floors, x, z) };
+    const piece = { solidFloor: true, floor: (x: number, z: number): number | undefined => floorAtRects(b.floors, x, z, 'first') };
     const hm = HAMLET[b.id];
     if (hm) hamlet.push(place(hm, [pl], { ctx, draw: 'merged', registry, weld: w, piece: { ...piece, id: `pine-hollow/${b.id}` } }));
     else {

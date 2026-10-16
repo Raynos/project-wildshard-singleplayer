@@ -15,3 +15,21 @@ export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = '
   const rotation = inverse.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -box.rot));
   return { ...d, x: centre.x, y: centre.y, z: centre.z, rot: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w } };
 }
+
+/** A horizontal deck rectangle; rot uses the same negative-Y convention as BoxSpec. */
+export interface FloorRect { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly y: number; readonly rot?: number }
+
+/** Query inclusive deck bounds without building collision. First preserves authored priority; highest chooses the
+ * uppermost matching floor. The scalar inverse turn retains the original floor arithmetic and input order. */
+export function floorAtRects(floors: readonly FloorRect[], x: number, z: number, policy: 'first' | 'highest'): number | undefined {
+  let best: number | undefined;
+  for (const f of floors) {
+    const c = Math.cos(f.rot ?? 0), s = Math.sin(f.rot ?? 0);
+    const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
+    if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) {
+      if (policy === 'first') return f.y;
+      if (best === undefined || f.y > best) best = f.y;
+    }
+  }
+  return best;
+}

@@ -6213,3 +6213,10 @@ subscriptions. Driftwood's existing player and weapon effect binding
 uses authored owned/worn rows; highest upgrades and grant order remain
 content facts. G441's W3 match is Nalati's worn-skin grant selection in
 `weapons/nalatiSkins.ts#NalatiSkinLocker.syncEffects`.
+
+**Declared deck floors.** `src/engine/physics/box.ts#floorAtRects(floors, x, z, policy)` queries inclusive
+rectangles with x/z centre, half extents hw/hd, height y and optional rot (zero when absent). Rotation uses the
+BoxSpec negative-Y convention and the existing scalar inverse transform. `first` preserves authored priority;
+`highest` returns the uppermost matching floor; no match returns undefined. It creates no collision or clock.
+Pine keeps its floor rows and registration owners; Nine `world/floorRows.ts#entryDeckFloor` is the G441 W3
+adoption of its inclusive entry-slab loop, with first-match policy and the existing zero deck height.

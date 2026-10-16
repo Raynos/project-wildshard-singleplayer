@@ -28,6 +28,7 @@ import * as THREE from 'three';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { floorAtRects } from '@wildshard/engine/physics/box';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
@@ -60,17 +61,6 @@ import { CRAG_ROWS } from './cragBake';
 
 // ───────────────────────────── the creek footbridge (the E road over the gully) ─────────────────────────────
 
-
-/** the highest deck rectangle over (x, z) */
-function floorIn(floors: readonly Floor[], x: number, z: number): number | undefined {
-  let best: number | undefined;
-  for (const f of floors) {
-    const c = Math.cos(f.rot), s = Math.sin(f.rot);
-    const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
-    if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd && (best === undefined || f.y > best)) best = f.y;
-  }
-  return best;
-}
 
 // ───────────────────────────── the image-to-3D hero props ─────────────────────────────
 
@@ -123,7 +113,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     const batch = new ModelPlacementBatch({ ctx, registry, fallbackParent: this.group, colliders: this.timberColliders });
     const placeTimber = async <P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, params: P | undefined, id: keyof typeof authored.landmarks.timberFloors): Promise<void> => {
       const mine: readonly Floor[] = authored.landmarks.timberFloors[id];
-      await batch.frames(model, [frame], params, { draw: 'single', piece: { id, solidFloor: true, floor: (x, z) => floorIn(mine, x, z) } });
+      await batch.frames(model, [frame], params, { draw: 'single', piece: { id, solidFloor: true, floor: (x, z) => floorAtRects(mine, x, z, 'highest') } });
       this.floors.push(...mine);
     };
     // the timber landmarks (models), one task each, at the frames their world-space builders used
@@ -222,7 +212,7 @@ export class PineLandmarks implements PineLandmarksHandle {
   }
   isLit(id: WaystoneId): boolean { return this.lit[id]; }
 
-  floorHeightAt(x: number, z: number): number | undefined { return floorIn(this.floors, x, z); }
+  floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'highest'); }
 
   update(t: number): void {
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmp);

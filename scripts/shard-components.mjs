@@ -116,6 +116,7 @@ const reviewedW2Owners = new Map([
   ['src/engine/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
   ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],
   ['src/sdk/kit/mergedPrimitives.ts', 'C1'],
+  ['src/engine/physics/box.ts#FloorRect', 'C1'],
   ['src/shards/driftwood-isle/assets/contracts/pier.ts', 'C1'],
   ['src/shards/driftwood-isle/assets/contracts/shrine.ts', 'C1'],
   ['src/shards/driftwood-isle/assets/contracts/wreck.ts', 'C1'],
