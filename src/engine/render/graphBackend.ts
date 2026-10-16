@@ -7,6 +7,7 @@
  */
 import { Texture, Material, Vector2 } from 'three';
 import type { Scope } from '../app/scope';
+import { onSettingChange, setting } from '../ui/Settings';
 import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
@@ -20,6 +21,9 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
   const loading = import('./nodes/engineNodesHandler').then(({ EngineNodesHandler: Handler }) => {
     const handler = new Handler();
     renderer.setNodesHandler(handler);
+    // Debug ▸ Performance ▸ Inline graph reads (sp-o285, default off): live, the handler lives as long as the page
+    handler.inlineReads = setting('graphInlineReads') === 'on';
+    onSettingChange('graphInlineReads', (value) => { handler.inlineReads = value === 'on'; });
     return handler;
   });
   installed.set(renderer, loading);
