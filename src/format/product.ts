@@ -149,13 +149,12 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
         for (let i = 0; i < a.n; i++) {
           let norm = 0;
           for (let c = 0; c < dimension; c++) {
-            const n = view.getFloat32(28 + length + a.offset + i * a.stride + c * 4, true);
+            const n = read(a, i, c);
             if (!Number.isFinite(n) || (key === 'SCALE' && (n <= 0 || n > 1000)) || (key === '_COLOR_0' && (n < 0 || n > 1))) throw new Error('invalid GLB instance transform');
             norm += n * n;
           }
           if (key === '_MATRIX') {
-            const at = 28 + length + a.offset + i * a.stride;
-            const m = (c: number): number => view.getFloat32(at + c * 4, true);
+            const m = (c: number): number => read(a, i, c);
             if (m(3) !== 0 || m(7) !== 0 || m(11) !== 0 || m(15) !== 1) throw new Error('invalid GLB affine instance matrix');
             for (const c of [0, 4, 8]) if (m(c) * m(c) + m(c + 1) * m(c + 1) + m(c + 2) * m(c + 2) > 1_000_000.25) throw new Error('invalid GLB instance matrix scale');
             const determinant = m(0) * (m(5) * m(10) - m(6) * m(9)) - m(4) * (m(1) * m(10) - m(2) * m(9)) + m(8) * (m(1) * m(6) - m(2) * m(5));

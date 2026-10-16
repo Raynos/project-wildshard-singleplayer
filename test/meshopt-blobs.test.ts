@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { BoxGeometry, BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial, Matrix4 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
@@ -79,4 +79,36 @@ test('meshopt admission refuses corrupt ranges, virtual views, expansion and dec
   physical.set(bin); physical.set(bad, bin.length); c['byteOffset'] = bin.length; c['byteLength'] = bad.length;
   const buffers = doc['buffers']; if (!Array.isArray(buffers)) throw new Error('Fixture buffers absent'); record(buffers[0])['byteLength'] = physical.length;
   expect(() => parseGlb(join(doc, physical))).toThrow('nonfinite GLB position');
+});
+
+test('compressed instance transforms retain placements and refuse corrupt decoded transforms', () => {
+  const geometry = new BoxGeometry(1, 2, 3), material = new MeshStandardMaterial();
+  try {
+    for (const exactInstances of [false, true]) {
+      const raw = staticGlb([{ geometry, material, exactInstances, instances: [new Matrix4().makeTranslation(4, 2, 1), new Matrix4().makeTranslation(-3, 0, 7)] }]);
+      const packed = compressGlb(raw), a: unknown[] = [], b: unknown[] = [];
+      visitGlbTriangles(raw, triangle => { a.push(triangle); });
+      visitGlbTriangles(packed, triangle => { b.push(triangle); });
+      expect(b).toEqual(a);
+      const { doc, bin } = split(packed), { doc: original, bin: originalBin } = split(raw);
+      const nodes = doc['nodes'], accessors = doc['accessors'], views = doc['bufferViews'], oldViews = original['bufferViews'];
+      if (!Array.isArray(nodes) || !Array.isArray(accessors) || !Array.isArray(views) || !Array.isArray(oldViews)) throw new Error('Fixture instance tables missing');
+      const attributes = record(record(record(nodes[0])['extensions'])['EXT_mesh_gpu_instancing'])['attributes'];
+      const id = record(attributes)[exactInstances ? '_MATRIX' : 'TRANSLATION'];
+      if (typeof id !== 'number') throw new Error('Fixture transform absent');
+      const accessor = record(accessors[id]), viewId = accessor['bufferView'];
+      if (typeof viewId !== 'number') throw new Error('Fixture view absent');
+      const view = record(views[viewId]), oldView = record(oldViews[viewId]);
+      const offset = oldView['byteOffset'] ?? 0, length = oldView['byteLength'];
+      if (typeof offset !== 'number' || typeof length !== 'number') throw new Error('Fixture view range absent');
+      const bytes = Uint8Array.from(originalBin.subarray(offset, offset + length));
+      new DataView(bytes.buffer).setFloat32(exactInstances ? 15 * 4 : 0, exactInstances ? 0 : Number.NaN, true);
+      const codec = record(record(view['extensions'])['EXT_meshopt_compression']), count = codec['count'], stride = codec['byteStride'];
+      if (typeof count !== 'number' || typeof stride !== 'number') throw new Error('Fixture instance codec absent');
+      const encoded = MeshoptEncoder.encodeGltfBuffer(bytes, count, stride, 'ATTRIBUTES'), physical = new Uint8Array(bin.length + Math.ceil(encoded.length / 4) * 4);
+      physical.set(bin); physical.set(encoded, bin.length); codec['byteOffset'] = bin.length; codec['byteLength'] = encoded.length;
+      const buffers = doc['buffers']; if (!Array.isArray(buffers)) throw new Error('Fixture buffers absent'); record(buffers[0])['byteLength'] = physical.length;
+      expect(() => parseGlb(join(doc, physical))).toThrow(exactInstances ? 'affine instance matrix' : 'instance transform');
+    }
+  } finally { geometry.dispose(); material.dispose(); }
 });
