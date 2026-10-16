@@ -30,9 +30,31 @@
       "src/engine/ui/perfHud.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfLap.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
-    }
+    },
+    "shardfile/custom-sections": {}
   },
-  "budgets": {},
+  "budgets": {
+    "custom-sections/_template/count": 0,
+    "custom-sections/_template/bytes": 0,
+    "custom-sections/blender-template/count": 0,
+    "custom-sections/blender-template/bytes": 0,
+    "custom-sections/driftwood-isle/count": 0,
+    "custom-sections/driftwood-isle/bytes": 0,
+    "custom-sections/far-reach/count": 0,
+    "custom-sections/far-reach/bytes": 0,
+    "custom-sections/ink-cel-valley/count": 0,
+    "custom-sections/ink-cel-valley/bytes": 0,
+    "custom-sections/nalati-grasslands/count": 0,
+    "custom-sections/nalati-grasslands/bytes": 0,
+    "custom-sections/nine-dragon-stack/count": 0,
+    "custom-sections/nine-dragon-stack/bytes": 0,
+    "custom-sections/pastel-plain/count": 0,
+    "custom-sections/pastel-plain/bytes": 0,
+    "custom-sections/pine-hollow/count": 0,
+    "custom-sections/pine-hollow/bytes": 0,
+    "custom-sections/sunscar-dunes/count": 0,
+    "custom-sections/sunscar-dunes/bytes": 0
+  },
   "debugRows": {
     "max": 3,
     "raisedBy": [
