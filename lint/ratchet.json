@@ -874,7 +874,7 @@
     "src/shards/pine-hollow/runtime/facts.ts": 2,
     "src/shards/pine-hollow/runtime/headless.ts": 9,
     "src/shards/pine-hollow/runtime/herds.ts": 3,
-    "src/shards/pine-hollow/runtime/index.ts": 51,
+    "src/shards/pine-hollow/runtime/index.ts": 49,
     "src/shards/pine-hollow/runtime/items/boltCrossbow.ts": 4,
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts": 4,
     "src/shards/pine-hollow/runtime/king.ts": 6,
@@ -906,7 +906,8 @@
     "src/shards/sunscar-dunes/runtime/headless.ts": 2,
     "src/shards/sunscar-dunes/runtime/index.ts": 1,
     "src/shards/sunscar-dunes/runtime/items/heldWhip.ts": 2,
-    "src/shards/sunscar-dunes/runtime/source.ts": 1
+    "src/shards/sunscar-dunes/runtime/source.ts": 1,
+    "src/shards/pine-hollow/runtime/compendium/install.ts": 1
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/bag.ts": 1,
@@ -1739,8 +1740,6 @@
     "src/shards/pine-hollow/combat/install.ts": 6,
     "src/shards/pine-hollow/combat/kingFight.ts": 1,
     "src/shards/pine-hollow/compendium.ts": 1,
-    "src/shards/pine-hollow/compendium/install.ts": 1,
-    "src/shards/pine-hollow/debug/options.ts": 1,
     "src/shards/pine-hollow/dev/perfLap.ts": 1,
     "src/shards/pine-hollow/items.ts": 1,
     "src/shards/pine-hollow/life/index.ts": 3,
@@ -1901,8 +1900,8 @@
     "src/shards/pine-hollow/combat/install.ts": 6,
     "src/shards/pine-hollow/combat/kingFight.ts": 1,
     "src/shards/pine-hollow/compendium.ts": 1,
-    "src/shards/pine-hollow/compendium/install.ts": 1,
-    "src/shards/pine-hollow/debug/options.ts": 1,
+    "src/shards/pine-hollow/runtime/compendium/install.ts": 1,
+    "src/shards/pine-hollow/runtime/debug/options.ts": 1,
     "src/shards/pine-hollow/dev/perfLap.ts": 1,
     "src/shards/pine-hollow/items.ts": 1,
     "src/shards/pine-hollow/life/index.ts": 3,

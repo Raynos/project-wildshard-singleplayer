@@ -32,7 +32,7 @@
  */
 import * as THREE from 'three';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import { pineSetCap } from '../debug/options';
+import { pineSetCap } from '../runtime/debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';

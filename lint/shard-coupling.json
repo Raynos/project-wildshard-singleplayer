@@ -1028,8 +1028,8 @@
           "src/shards/pine-hollow/combat/elites.ts:269:1"
         ],
         "context.debugRow": [
-          "src/shards/pine-hollow/debug/options.ts:19:3",
-          "src/shards/pine-hollow/debug/options.ts:23:3",
+          "src/shards/pine-hollow/runtime/debug/options.ts:19:3",
+          "src/shards/pine-hollow/runtime/debug/options.ts:23:3",
           "src/shards/pine-hollow/plugin.ts:159:47"
         ],
         "context.scope": [

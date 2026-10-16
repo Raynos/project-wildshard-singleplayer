@@ -9,7 +9,7 @@ import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld
 import { BuildingLife } from '../runtime/props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineSetCap } from '../debug/options';
+import { pineSetCap } from '../runtime/debug/options';
 import { loadPainted } from '../runtime/looks/paintedTextures';
 import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';

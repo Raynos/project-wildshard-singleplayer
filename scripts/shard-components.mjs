@@ -158,7 +158,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/onboarding/firstMinutes.ts', 'C5'],
   ['src/shards/driftwood-isle/runtime/finalePresentation.ts', 'C5'],
   ['src/shards/pine-hollow/compendium.ts', 'C5'],
-  ['src/shards/pine-hollow/compendium/install.ts', 'C5'],
+  ['src/shards/pine-hollow/runtime/compendium/install.ts', 'C5'],
   ['src/shards/pine-hollow/runtime/compendium/trophyWall.ts', 'C1'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/combat/ammo.ts', 'C6'],
@@ -240,7 +240,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/runtime/baked.ts', 'C9'],
   ['src/shards/driftwood-isle/strings.ts', 'C9'],
   ['src/shards/driftwood-isle/tiers.ts', 'C9'],
-  ['src/shards/pine-hollow/debug/options.ts', 'C9'],
+  ['src/shards/pine-hollow/runtime/debug/options.ts', 'C9'],
   ['src/shards/pine-hollow/dev/perfLap.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/baked.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/landmarkLifetime.ts', 'C9'],

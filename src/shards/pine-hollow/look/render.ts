@@ -1,7 +1,7 @@
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { keyedSkyBackdrop } from '../runtime/looks/keyedSky';
 import { PINE_KEYED_DAY } from './dayKeys';
-import { pineMemoryTrim } from '../debug/options';
+import { pineMemoryTrim } from '../runtime/debug/options';
 import { SKY_LOOKS } from '../data/skyLook';
 import source from '../shard.config';
 
