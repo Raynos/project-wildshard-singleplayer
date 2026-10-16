@@ -20,6 +20,8 @@ export interface ShardLines {
   components?:ComponentInventory;
   customSources?:CustomSource[];
   runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; conversion: ConversionMeasure;
+  /** G454 visibility only: AS must trend to <=10% of frozen TS, without a gate yet. */
+  assemblyScriptBudget:{ceiling:number|null;share:number|null;passed:boolean|null;enforcement:'report-only'};
 }
 export interface ShardPlatformList { baseline: Record<string, number>; enforced: Record<string, number> }
 export interface MilestoneFlags { headless: boolean }

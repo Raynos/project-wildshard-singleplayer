@@ -1,0 +1,527 @@
+{
+  "basis": "a46e09c182b2b49ec2c3d0b215b5ec6ff9abc2c9",
+  "method": "same immutable source and policy; only G456 H2 filter disabled for before",
+  "rows": [
+    {
+      "shard": "_template",
+      "before": 725,
+      "after": 725,
+      "delta": 0,
+      "customPercent": null,
+      "assemblyScriptLines": 94,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "removed": [],
+      "bodylessForager": []
+    },
+    {
+      "shard": "blender-template",
+      "before": 116,
+      "after": 116,
+      "delta": 0,
+      "customPercent": null,
+      "assemblyScriptLines": 23,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "removed": [],
+      "bodylessForager": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "before": 13263,
+      "after": 13263,
+      "delta": 0,
+      "customPercent": 77.25869400594163,
+      "assemblyScriptLines": 40,
+      "assemblyScriptBudget": {
+        "ceiling": 1716,
+        "share": 0.0023300518436535213,
+        "passed": true,
+        "enforcement": "report-only"
+      },
+      "removed": [],
+      "bodylessForager": []
+    },
+    {
+      "shard": "far-reach",
+      "before": 6075,
+      "after": 6064,
+      "delta": -11,
+      "customPercent": 89.47912055481777,
+      "assemblyScriptLines": 18,
+      "assemblyScriptBudget": {
+        "ceiling": 677,
+        "share": 0.0026560424966799467,
+        "passed": true,
+        "enforcement": "report-only"
+      },
+      "removed": [
+        {
+          "path": "src/sdk/bake/texture.ts",
+          "name": "bakeColourTexture",
+          "exported": true,
+          "lines": 11
+        }
+      ],
+      "bodylessForager": []
+    },
+    {
+      "shard": "ink-cel-valley",
+      "before": 1917,
+      "after": 930,
+      "delta": -987,
+      "customPercent": null,
+      "assemblyScriptLines": 94,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "removed": [
+        {
+          "path": "src/sdk/bake/authoredWorld.ts",
+          "lines": 134
+        },
+        {
+          "path": "src/sdk/bake/nearPlaceholder.ts",
+          "lines": 138
+        },
+        {
+          "path": "src/sdk/bake/placeholders.ts",
+          "lines": 355
+        },
+        {
+          "path": "src/sdk/bake/textureWasm.ts",
+          "lines": 55
+        },
+        {
+          "path": "src/sdk/bake/worldCollision.ts",
+          "lines": 115
+        },
+        {
+          "path": "src/sdk/bake/worldGeometry.ts",
+          "lines": 66
+        },
+        {
+          "path": "src/sdk/project.ts",
+          "lines": 124
+        }
+      ],
+      "bodylessForager": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "before": 30045,
+      "after": 29645,
+      "delta": -400,
+      "customPercent": 104.49418399718012,
+      "assemblyScriptLines": 162,
+      "assemblyScriptBudget": {
+        "ceiling": 2837,
+        "share": 0.005710257314064152,
+        "passed": true,
+        "enforcement": "report-only"
+      },
+      "removed": [
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "NativeLatticeAttribute",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "NativeLatticeSource",
+          "exported": true,
+          "lines": 6
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "NativeLatticeTile",
+          "exported": true,
+          "lines": 6
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "Vertex",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "Chunk",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "HALF",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "nativeResolution",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "tileLod",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "channels",
+          "exported": false,
+          "lines": 13
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "vertex",
+          "exported": false,
+          "lines": 5
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "component",
+          "exported": false,
+          "lines": 5
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "intersection",
+          "exported": false,
+          "lines": 9
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "clip",
+          "exported": false,
+          "lines": 12
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "areaSquared",
+          "exported": false,
+          "lines": 5
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "add",
+          "exported": false,
+          "lines": 14
+        },
+        {
+          "path": "src/sdk/bake/nativeLattice.ts",
+          "name": "sliceNativeLattice",
+          "exported": true,
+          "lines": 34
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "slots",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "Slot",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "Bindings",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "BoundMaterial",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "nameOk",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "colourSlot",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "wrap",
+          "exported": false,
+          "lines": 4
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "minFilter",
+          "exported": false,
+          "lines": 4
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "magFilter",
+          "exported": false,
+          "lines": 4
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "checkSource",
+          "exported": false,
+          "lines": 5
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "StaticTextureResolver",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "StaticMaterialCatalogue",
+          "exported": true,
+          "lines": 80
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "staticMaterialNames",
+          "exported": true,
+          "lines": 11
+        },
+        {
+          "path": "src/sdk/bake/staticMaterials.ts",
+          "name": "checkStaticMaterialDependencies",
+          "exported": true,
+          "lines": 9
+        },
+        {
+          "path": "src/sdk/bake/terrain.ts",
+          "name": "QueryTerrainBakeOptions",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/terrain.ts",
+          "name": "BakedQueryTerrain",
+          "exported": true,
+          "lines": 3
+        },
+        {
+          "path": "src/sdk/bake/terrain.ts",
+          "name": "bakeQueryTerrain",
+          "exported": true,
+          "lines": 13
+        },
+        {
+          "path": "src/sdk/bake/world.ts",
+          "name": "WorldTexture",
+          "exported": true,
+          "lines": 6
+        },
+        {
+          "path": "src/sdk/bake/world.ts",
+          "name": "WorldMaterial",
+          "exported": true,
+          "lines": 5
+        },
+        {
+          "path": "src/sdk/bake/worldLod.ts",
+          "name": "NativeLatticeLod",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldLod.ts",
+          "name": "simplifyNativeLatticeTile",
+          "exported": true,
+          "lines": 54
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "FileRow",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "TileRow",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "WorldTileEntry",
+          "exported": true,
+          "lines": 4
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "WorldGroundEntry",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "BakedWorldRows",
+          "exported": true,
+          "lines": 4
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "order",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "copyFile",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "copyTile",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/bake/worldRows.ts",
+          "name": "WorldBakeRows",
+          "exported": true,
+          "lines": 64
+        }
+      ],
+      "bodylessForager": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "before": 16258,
+      "after": 16258,
+      "delta": 0,
+      "customPercent": 77.01198427360144,
+      "assemblyScriptLines": 0,
+      "assemblyScriptBudget": {
+        "ceiling": 2111,
+        "share": 0,
+        "passed": true,
+        "enforcement": "report-only"
+      },
+      "removed": [],
+      "bodylessForager": []
+    },
+    {
+      "shard": "pastel-plain",
+      "before": 736,
+      "after": 736,
+      "delta": 0,
+      "customPercent": null,
+      "assemblyScriptLines": 94,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "removed": [],
+      "bodylessForager": []
+    },
+    {
+      "shard": "pine-hollow",
+      "before": 18308,
+      "after": 18225,
+      "delta": -83,
+      "customPercent": 85.54329969490729,
+      "assemblyScriptLines": 270,
+      "assemblyScriptBudget": {
+        "ceiling": 2130,
+        "share": 0.012673081436282563,
+        "passed": true,
+        "enforcement": "report-only"
+      },
+      "removed": [
+        {
+          "path": "src/sdk/bake/rig.ts",
+          "lines": 83
+        }
+      ],
+      "bodylessForager": [
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "BodylessForagerState",
+          "exported": true,
+          "lines": 5
+        },
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "ForagerMotion",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "ForagerRandom",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "ForagerGround",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "TAU",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "wrap",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/game/systems/life/bodylessForager.ts",
+          "name": "BodylessForager",
+          "exported": true,
+          "lines": 69
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "before": 1794,
+      "after": 1794,
+      "delta": 0,
+      "customPercent": 43.522561863173216,
+      "assemblyScriptLines": 67,
+      "assemblyScriptBudget": {
+        "ceiling": 412,
+        "share": 0.016254245511887432,
+        "passed": true,
+        "enforcement": "report-only"
+      },
+      "removed": [],
+      "bodylessForager": []
+    }
+  ]
+}

@@ -47,6 +47,8 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 // denominator keeps its original producer exclusions; G445 changes current code,
 // never the historical yardstick. Names and headers never grant an exemption.
 // G294 adds one-user platform modules to the numerator; relocating a helper into engine/game/SDK cannot reduce it.
+// G456 H2: SDK bake modules and project validation are build tools, never shard runtime debt.
+// This exact path exception does not exempt SDK runtime modules or their dependencies.
 // G294 per export (sp-o53): users are counted per top-level declaration, not only per file, so a one-shard export moved
 // into an already shared file still counts. A file one shard reaches counts whole (unchanged, dead code included). In a
 // file two or more shards reach, each top-level declaration (export or helper; type declarations too) that exactly one
@@ -66,6 +68,7 @@ const RULES = {
   runtimeExcludedFolders: new Set(['generators']),
   tests: /(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.tsx?$/u,
   attributedLayers: /^src\/(?:engine|game|sdk)\//u,
+  buildOnlySdk: /^src\/sdk\/(?:bake\/|project\.ts$)/u,
   publicUserCount: 2,
   template: '_template',
   enforcement: 'report-only',
@@ -647,7 +650,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   }
   const privateModules = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
-    if (users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
+    if (RULES.buildOnlySdk.test(path) || users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
     if (lines > 0) privateModules.get([...users][0]).push({ path, lines });
   }
@@ -721,7 +724,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   }
   const privateExports = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
-    if (users.size < RULES.publicUserCount || !parsedTs(path) || ignored(path)) continue;
+    if (RULES.buildOnlySdk.test(path) || users.size < RULES.publicUserCount || !parsedTs(path) || ignored(path)) continue;
     const sym = symbolsOf(path), claimed = new Set();
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code, lineOf } = masks.get(path), exportedLocals = new Set([...sym.exports.values()].flatMap(row => row.local ?? []));
@@ -788,6 +791,10 @@ export function shardLines(root = ROOT, includeSources = false) {
     const {modules,exports,pending} = partitionPendingPlatformUsers(slug,privateModules.get(slug),privateExports.get(slug),pendingUsers);
     const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;
+    const asCeiling=legacyLines===null?null:Math.floor(legacyLines/10);
+    // G454: a visibility column only; AS does not enter the TS numerator or gate.
+    row.assemblyScriptBudget={ceiling:asCeiling,share:legacyLines===null?null:row.assemblyScriptLines/legacyLines,
+      passed:asCeiling===null?null:row.assemblyScriptLines<=asCeiling,enforcement:'report-only'};
     row.conversion = {
       metric: pair === undefined ? 'native' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
       legacyLines, legacyFolder: pair?.[0] ?? null, legacyRevision: pair?.[1].source ?? null,
@@ -840,11 +847,11 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       for(const [key,row] of Object.entries(wave.components))console.log(`  ${key}: ${wave.shards.map(slug=>`${wave.names[slug]} ${row.lines[slug]??'unavailable'}`).join(', ')}; ${row.closed?'closed':'open'}`);
       for(const slug of wave.shards)console.log(`  ${wave.names[slug]} unknown ownership: ${wave.unknown[slug]?.join(', ')??'inventory unavailable'}`);
     }
-    console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       enforcement');
+    console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       enforcement    AS lines / 10% legacy');
     for (const [slug, row] of Object.entries(lines)) {
             const measure = row.conversion, ratio = measure.runtimeShare === null ? 'native (no frozen legacy)' : `${(measure.runtimeShare * 100).toFixed(1)} %`;
       const passed = measure.passed;
-      console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed === null ? 'NATIVE' : passed ? 'PASS' : 'FAIL').padEnd(10)} ${RULES.enforcement}`);
+      console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed === null ? 'NATIVE' : passed ? 'PASS' : 'FAIL').padEnd(10)} ${RULES.enforcement}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget.ceiling??'no frozen denominator'} (${row.assemblyScriptBudget.passed===null?'NATIVE':row.assemblyScriptBudget.passed?'within':'over'}; report-only)`);
       console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
       const sole = measure.gameSystemAttribution, byModule = new Map();
       for(const pending of sole.pendingSecondUser??[]) console.log(`  pending second user ${pending.path}${pending.name?`#${pending.name}`:''}: ${pending.lines} lines; ${pending.users.map(user=>`${user.shard} / ${user.plan.row}; rechecked ${user['rechecked-by']}`).join(', ')}`);
@@ -853,7 +860,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       const listed = (rows, separator) => rows.length > 0 ? rows.join(separator) : 'none';
       console.log(`  G294 sole whole modules ${wholeLines} lines (${listed(sole.modules.map(module => `${module.path} ${module.lines}`), ', ')}); sole exports ${sole.lines - wholeLines} lines (${listed([...byModule].map(([path, entries]) =>
         `${path} ${entries.reduce((total, entry) => total + entry.lines, 0)}: ${entries.map(entry => `${entry.exported ? '' : '~'}${entry.name} ${entry.lines}`).join(' ')}`), '; ')})`);
-      console.log(`  raw GLSL ${measure.rawGlslLines} lines (${measure.additionalGlslLines} additional to runtime TS); AssemblyScript ${row.assemblyScriptLines} lines (report-only, no cap); content ${JSON.stringify(shardContent(slug, ROOT, products))}`);
+      console.log(`  raw GLSL ${measure.rawGlslLines} lines (${measure.additionalGlslLines} additional to runtime TS); AssemblyScript ${row.assemblyScriptLines} lines (10% legacy budget, report-only); content ${JSON.stringify(shardContent(slug, ROOT, products))}`);
     }
   }
   if (process.argv.includes('--check')) {
