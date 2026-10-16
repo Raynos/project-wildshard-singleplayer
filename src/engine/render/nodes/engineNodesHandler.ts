@@ -486,10 +486,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   get directBlockWrites(): boolean { return this.blocks?.directWrites ?? false; }
   set directBlockWrites(on: boolean) { if (this.blocks !== null) this.blocks.directWrites = on; }
 
-  /** read stock references in place on every graph draw (`TextureUpdates.inlineReads`; Debug ▸ Performance ▸ Inline graph reads) */
-  get inlineReads(): boolean { return this.textureUpdates.inlineReads; }
-  set inlineReads(on: boolean) { this.textureUpdates.inlineReads = on; }
-
   override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }
 
   /** Clone-safe optional attributes use the renderer's existing constant-value binding. */

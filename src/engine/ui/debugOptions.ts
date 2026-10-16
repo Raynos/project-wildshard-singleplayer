@@ -180,7 +180,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('fixedShadowSamples', 'perf', engineString('s_fixed_shadow_samples'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_fixed_shadow_samples_note') }),
-  opt('graphInlineReads', 'perf', engineString('s_graph_inline_reads'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_inline_reads_note') }),
   opt('graphSplitKeys', 'perf', engineString('s_graph_split_keys'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_split_keys_note') }),
   opt('graphBlockWrites', 'perf', engineString('s_graph_block_writes'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_block_writes_note') }),
   opt('compileShadowHold', 'perf', engineString('s_compile_shadow_hold'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_compile_shadow_hold_note') }),

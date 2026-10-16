@@ -37,35 +37,3 @@ test('stock reference sources and live same-frame material edits remain current;
   let callbacks = 0; reference.update = () => { callbacks++; };
   updates.update(nodes); updates.update(nodes); expect(callbacks).toBe(2); updates.endRender(); material.dispose();
 });
-
-test('inline graph reads keep same-pass edits, custom readers and object-relative holders live', () => {
-  const frame = new NodeFrame(), updates = new TextureUpdates(frame), material = new MeshBasicMaterial(); frame.material = material;
-  updates.inlineReads = true;
-  const owner = { value: 2 }, reference = new ReferenceNode('value', 'float', owner), materialRead = new MaterialReferenceNode('opacity', 'float');
-  const objectRead = new ReferenceNode('weight', 'float'), first = { weight: 1 }, second = { weight: 5 };
-  const initialize = (node: object, target: object): void => {
-    Reflect.set(node, 'reference', target); const update: unknown = Reflect.get(node, 'updateValue');
-    if (typeof update !== 'function') throw new Error('Missing stock reference updater'); Reflect.apply(update, node, []);
-  };
-  initialize(reference, owner); initialize(materialRead, material); initialize(objectRead, first);
-  const value = (node: object): unknown => {
-    const inner: unknown = Reflect.get(node, 'node');
-    return typeof inner === 'object' && inner !== null ? Reflect.get(inner, 'value') : undefined;
-  };
-  const custom = uniform(0).onObjectUpdate(() => { owner.value++; return owner.value; });
-  updates.beginRender(); const nodes = [reference, materialRead, objectRead];
-  Reflect.set(frame, 'object', first); updates.update(nodes);
-  expect([value(reference), value(materialRead), value(objectRead)]).toEqual([2, 1, 1]);
-  expect(updates.inlinedReads).toBe(3);
-  owner.value = 7; material.opacity = 0.3; Reflect.set(frame, 'object', second); updates.update(nodes);
-  expect([value(reference), value(materialRead), value(objectRead)]).toEqual([7, 0.3, 5]); expect(objectRead.reference).toBe(second);
-  // a custom object callback earlier in the same list writes the holder the reference then reads
-  updates.update([custom, reference]); expect(value(reference)).toBe(8);
-  // a reader replaced after its plan was made goes back to the stock dispatch
-  let callbacks = 0; reference.update = () => { callbacks++; };
-  updates.update(nodes); expect(callbacks).toBe(1);
-  // the row off remakes the plan: every read dispatches through NodeFrame again
-  const before = updates.inlinedReads; updates.inlineReads = false; owner.value = 9; Reflect.deleteProperty(reference, 'update');
-  updates.update(nodes); expect(updates.inlinedReads).toBe(before); expect(value(reference)).toBe(9);
-  updates.endRender(); material.dispose();
-});

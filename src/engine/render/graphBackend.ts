@@ -21,9 +21,6 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
   const loading = import('./nodes/engineNodesHandler').then(({ EngineNodesHandler: Handler }) => {
     const handler = new Handler();
     renderer.setNodesHandler(handler);
-    // Debug ▸ Performance ▸ Inline graph reads (sp-o285, default off): live, the handler lives as long as the page
-    handler.inlineReads = setting('graphInlineReads') === 'on';
-    onSettingChange('graphInlineReads', (value) => { handler.inlineReads = value === 'on'; });
     // Debug ▸ Performance ▸ Split program keys (sp-o286, default off): live
     handler.splitKeys = setting('graphSplitKeys') === 'on';
     onSettingChange('graphSplitKeys', (value) => { handler.splitKeys = value === 'on'; });
