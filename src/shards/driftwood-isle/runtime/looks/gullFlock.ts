@@ -19,8 +19,9 @@
  * borrowed from far away fly a loose V from behind you, over you at ~10 m (one call), on toward (tx, tz) and up, then
  * drift back to their flocks.
  *
- * Cost: ≤ 40 instances × ~80 tris, one InstancedMesh; the wings, head and legs are animated in the
- * vertex shader from a per-instance vec4 (flap, head yaw, wing fold, leg tuck). No per-frame allocations.
+ * Cost: ≤ 40 instances × ~80 tris, one InstancedMesh (the SDK's `PosedInstances`, as Pine's wildlife); the wings, head
+ * and legs are animated in the vertex shader from a per-instance vec4 `aAnim` (flap, head yaw, wing fold, leg tuck). No
+ * per-frame allocations.
  */
 import * as THREE from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
@@ -28,6 +29,7 @@ import { ambientTick } from '@wildshard/engine/core/harnessTap';
 import { Rng } from '@wildshard/engine/core/rng';
 import { waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { PosedInstances } from '@wildshard/sdk/looks/posedInstances';
 import { GULL_RIG } from '../../data/gullGraphLook';
 
 /** a gull's colours as CSS colour strings */
@@ -93,12 +95,13 @@ const GULL_SCALE = 1.3, FOOT = 0.17 * GULL_SCALE;
 /** the guide (E309 B): m/s along the pass; a gull is borrowed only from this far from the player (it pops out of its flock
  *  unseen); the V: wingmen this far behind the leader and to its sides (m) */
 const GUIDE_SPEED = 12, GUIDE_BORROW_M = 60, V_BACK = 3.5, V_SIDE = 3;
-const _p = new THREE.Vector3(), _q = new THREE.Vector3(), _m = new THREE.Matrix4(), _quat = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(GULL_SCALE, GULL_SCALE, GULL_SCALE);
+const _p = new THREE.Vector3(), _q = new THREE.Vector3();
 
 /** An instanced flock of flapping gulls flying a shard's corridors in its palette. */
 export class GullFlock {
   group = new THREE.Group();
-  mesh!: THREE.InstancedMesh;
+  /** the one posed draw (after `build`) */
+  private posed: PosedInstances | null = null;
   count = 0;
   /** a gull squawked at `pos` — wire to `IslandSfx.gullCallAt(pos, player.position, player.yaw)` */
   onCall?: (pos: THREE.Vector3) => void;
@@ -107,7 +110,6 @@ export class GullFlock {
   private perches: THREE.Vector3[] = [];
   private perchYaw: number[] = [];
   private occupied: Int8Array = new Int8Array(0);
-  private anim!: THREE.InstancedBufferAttribute;
   private rng = new Rng(0x9011);
   private time = 0;
   private callTimer = 6;
@@ -181,8 +183,7 @@ export class GullFlock {
     }
 
     this.buildMesh(n);
-    for (let i = 0; i < 40; i++) {if(i>=n)break;this.writeInstance(i);}
-    this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true;
+    this.draw();
     return this;
   }
 
@@ -253,22 +254,20 @@ export class GullFlock {
       tri([x - 0.03, -0.17, 0.05], [x + 0.03, -0.17, 0.05], [x, -0.17, -0.02], C.leg, p, 0.03);
     }
 
-    const geo = new THREE.InstancedBufferGeometry();
+    const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     geo.setAttribute('aPart', new THREE.Float32BufferAttribute(part, 1));
-    this.anim = new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4);
-    this.anim.setUsage(THREE.DynamicDrawUsage);
-    geo.setAttribute('aAnim', this.anim);
-    // the whole area (the bounding sphere is only used for culling the one mesh; the flocks roam ~100 m)
-    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 20, 0), 400);
+    const posed = new PosedInstances(n, '', this.look.material, () => geo, ['aAnim']);
+    posed.mesh.castShadow = true; posed.mesh.receiveShadow = false;
+    this.posed = posed;
+    this.group.add(posed.mesh);
+  }
 
-    this.mesh = new THREE.InstancedMesh(geo, this.look.material, n);
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.frustumCulled = false;
-    this.mesh.castShadow = true;
-    this.mesh.receiveShadow = false;
-    this.group.add(this.mesh);
+  /** The one instanced draw (after `build`). */
+  get mesh(): THREE.InstancedMesh {
+    if (this.posed === null) throw new Error('GullFlock: not built');
+    return this.posed.mesh;
   }
 
   // ─────────────── behaviour ───────────────
@@ -448,9 +447,8 @@ export class GullFlock {
         }
         default: break;
       }
-      this.writeInstance(i);
     }
-    this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true;
+    this.draw();
     // the odd squawk: a wheeling gull if any, else a perched one
     this.callTimer -= dt;
     if (this.callTimer <= 0) {
@@ -527,15 +525,16 @@ export class GullFlock {
     g.timer = this.rng.range(20, 40); g.call = false;
   }
 
-  private writeInstance(i: number) {
-    const g = this.gulls[i];
-    if (g === undefined) return;
-    _e.set(-g.pitch, g.yaw, g.roll, 'YXZ');
-    _quat.setFromEuler(_e);
-    _p.set(g.x, g.y, g.z);
-    _m.compose(_p, _quat, _s);
-    this.mesh.setMatrixAt(i, _m);
-    const a = this.anim.array as Float32Array;
-    a[i * 4] = g.flap; a[i * 4 + 1] = g.head; a[i * 4 + 2] = g.fold; a[i * 4 + 3] = g.legs;
+  /** every gull's pose and its rig channel (flap, head yaw, wing fold, leg tuck) into the posed draw */
+  private draw(): void {
+    const posed = this.posed;
+    if (posed === null) return;
+    posed.begin();
+    for (let i = 0; i < 40; i++) { // a flock is at most 40 gulls (build)
+      const g = this.gulls[i];
+      if (g === undefined) break;
+      posed.add(g.x, g.y, g.z, g.pitch, g.yaw, g.roll, GULL_SCALE, g.flap, g.head, g.fold, g.legs);
+    }
+    posed.commit();
   }
 }
