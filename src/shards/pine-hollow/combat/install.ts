@@ -41,7 +41,7 @@ import { PINE_PHASES } from '../look/dayKeys';
 import { pineScore } from '../runtime/audio/score';
 import { kingTick } from './kingFight';
 
-import { registerPineLap } from '../dev/perfLap';
+import { registerPineLap } from '../runtime/dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 

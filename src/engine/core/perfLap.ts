@@ -2,7 +2,7 @@
  * The PERF LAP's gate and its host (E350 F-J1, Jake: "Automate it" — one tap in the fps panel stands you at each of the
  * shard's spots in turn, records the frames while the view turns a slow 360°, brings you back, and prints a summary to
  * copy). src/engine/ui/perfLap.ts runs the lap; the shard that can be lapped registers a host here (Pine Hollow:
- * src/shards/pine-hollow/dev/perfLap.ts).
+ * src/shards/pine-hollow/runtime/dev/perfLap.ts).
  *
  * `perfLap.active` is true for the whole lap. A teleport must not play the game: every check that reads the player's
  * x / z and saves something (a place discovered, the journal, an elite's lair found, the King's clearing, the stag, the

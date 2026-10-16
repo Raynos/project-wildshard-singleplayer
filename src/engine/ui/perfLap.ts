@@ -6,7 +6,7 @@ import { saveStorage } from '../saves/slots';
  * The PERF LAP (E350 F-J1, Jake picked "Automate it": the iPhone reading of Pine Hollow's locked 30 fps at the gate, the
  * cabin, the pond, the hamlet, the lookout and the King's clearing, without doing it by hand). One tap on PERF LAP in the
  * fps panel (src/engine/ui/Perf.ts) and, on a shard that registered a host (src/engine/core/perfLap.ts; Pine Hollow's is
- * src/shards/pine-hollow/dev/perfLap.ts):
+ * src/shards/pine-hollow/runtime/dev/perfLap.ts):
  *
  *   for each spot   stand there (a teleport), SETTLE_MS still to let the streaming / LODs land, then REC_MS of frames
  *                   (frameCost's split, the renderer's counts) while the view turns one slow 360° — the whole spot, not one

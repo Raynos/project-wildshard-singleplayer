@@ -7,7 +7,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { Elites } from '@wildshard/game/Elite';
-import type { AntlerKing } from '../runtime/antlerKing';
+import type { AntlerKing } from '../antlerKing';
 
 /**
  * Pine Hollow's PERF LAP host (E350 F-J1; src/engine/core/perfLap.ts, src/engine/ui/perfLap.ts): the six spots of PINE-HOLLOW-FOLLOWUPS
@@ -31,6 +31,9 @@ export const PINE_LAP_SPOTS: readonly LapSpot[] = [
 
 /** animals within this of the player in a chase / attack state = a fight is on (main.ts's perf COUNTS `chase`) */
 const FIGHT_R = 80;
+/** the most animals the fight check reads: Pine's 168 fauna (data/fauna.generated.ts) plus the elites, the King and
+ *  his night thralls stay well under it */
+const MAX_ANIMALS = 512;
 
 export function registerPineLap(o: { game: Game; player: Player; animals: AnimalManager; music: Music; hud: HUD; elites: Elites; king: AntlerKing }, scope: Scope = o.game.levelScope): void {
   const { game, player, animals, music, hud, elites, king } = o;
@@ -45,8 +48,10 @@ export function registerPineLap(o: { game: Game; player: Player; animals: Animal
       if (elites.focus?.state === 'engaged') return 'not mid-fight (an elite)';
       if (music.state.mode === 'combat') return 'not mid-fight';
       const p = player.position;
-      for (const a of animals.animals) {
-        if (!a.alive || a.hidden) continue;
+      const herd = animals.animals;
+      for (let i = 0; i < Math.min(herd.length, MAX_ANIMALS); i++) {
+        const a = herd[i];
+        if (a === undefined || !a.alive || a.hidden) continue;
         if ((a.state === 'charge' || a.state === 'stalk' || a.state === 'attack') && a.position.distanceTo(p) < FIGHT_R) return 'not mid-fight (something is charging you)';
       }
       if (player.ride !== null || player.hover || player.carried) return 'not while riding / held';
