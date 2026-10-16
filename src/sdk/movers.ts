@@ -113,6 +113,7 @@ const finite = v.pipe(v.number(), v.finite());
 const bounded = (low: number, high: number) => v.pipe(finite, v.minValue(low), v.maxValue(high));
 const RideProfile = v.strictObject({ anchors: v.literal('direct'), start: bounded(0, 10), release: bounded(0, 10),
   landing: v.strictObject({ back: bounded(0, 10), deck: bounded(0, 2), velocity: bounded(0, 16) }) });
+const Landing = v.strictObject({ x: finite, y: finite, z: finite });
 const Saved = v.strictObject({ riding: v.boolean(), s: v.pipe(finite, v.minValue(0)), v: bounded(0, 32) });
 /** One cable's gravity/drag law and carry/release pose. Uses the caller's update phase and clock. */
 export class ZiplineDriver {
@@ -124,25 +125,30 @@ export class ZiplineDriver {
   private readonly row: ZiplineMode;
   private readonly profile: v.InferOutput<typeof RideProfile> | undefined;
   private readonly onRide: (on: boolean) => void;
+  private readonly landing: ZiplineMode['bottom'];
+  /** A direct-anchor profile may lend a separate landing deck; otherwise release uses the declared bottom endpoint. */
   constructor(row: ZiplineMode, onRide: (on: boolean) => void,
-    profile?: v.InferOutput<typeof RideProfile>) {
+    profile?: v.InferOutput<typeof RideProfile>, landing?: ZiplineMode['bottom']) {
     this.onRide = onRide;
     // Author geometry lends real vectors; admit their numeric coordinates without prototype markers.
     const point = (value: ZiplineMode['top']) => value instanceof Vector3 ? { x: value.x, y: value.y, z: value.z } : value;
     this.row = v.parse(ZiplineModeSchema, { ...row, top: point(row.top), bottom: point(row.bottom) });
     this.profile = profile === undefined ? undefined : v.parse(RideProfile, profile);
+    this.landing = landing === undefined ? this.row.bottom : v.parse(Landing, point(landing));
     this.layout = new CableLayout({ top: new Vector3(row.top.x, row.top.y, row.top.z),
       bottom: new Vector3(row.bottom.x, row.bottom.y, row.bottom.z), sag: row.sag }, this.profile !== undefined);
   }
   get isRiding(): boolean { return this.riding; }
   get distance(): number { return this.motion.s; }
+  /** Current source-clock cable speed; presentation borrows it without owning ride state. */
+  get speed(): number { return this.motion.v; }
   get len(): number { return this.layout.len; }
   /** Direct anchors release along the level wire heading; deck rides keep the cable's full direction. */
   get dir(): Vector3 { return this.profile === undefined ? this.layout.dir : this.layout.flat; }
   at(s: number, out: Vector3): Vector3 { return this.layout.at(s, out); }
   start(): void {
     if (this.riding) return;
-    this.riding = true; this.motion.s = this.profile?.start ?? 0.4; this.motion.v = 2.5;
+    this.riding = true; this.motion.s = this.profile?.start ?? 0.4; this.motion.v = this.profile?.landing.velocity ?? 2.5;
     this.onRide(true);
   }
   /** Advance the same bounded law in a native caller's existing continuation, without commands or clock ownership. */
@@ -160,8 +166,9 @@ export class ZiplineDriver {
     out.set(landing.x - this.dir.x * row.back, Math.max(y, landing.y + row.deck), landing.z - this.dir.z * row.back);
     velocity.set(this.dir.x * row.velocity, 0, this.dir.z * row.velocity);
   }
-  update(dt: number, player: { position: Vector3; velocity: Vector3 }): void {
-    if (!this.riding) return;
+  /** Update the borrowed rider and report whether the cable still carries them. */
+  update(dt: number, player: { position: Vector3; velocity: Vector3 }): boolean {
+    if (!this.riding) return false;
     const holding = this.step(this.motion, dt);
     this.rider(this.motion.s, player.position); player.velocity.set(0, 0, 0);
     if (!holding) {
@@ -170,9 +177,10 @@ export class ZiplineDriver {
         const dir = this.layout.dir;
         player.velocity.set(dir.x * Math.min(6, this.motion.v * 0.4), 1.5, dir.z * Math.min(6, this.motion.v * 0.4));
         this.layout.park(this.point);
-      } else this.dismount(this.layout.spec.bottom, player.position.y, player.position, player.velocity);
+      } else this.dismount(this.landing, player.position.y, player.position, player.velocity);
       this.onRide(false);
     }
+    return this.riding;
   }
   snapshot(): v.InferOutput<typeof Saved> { return { riding: this.riding, s: this.motion.s, v: this.motion.v }; }
   /** Refusal is atomic; restore never starts a ride, moves a body or publishes a callback. */

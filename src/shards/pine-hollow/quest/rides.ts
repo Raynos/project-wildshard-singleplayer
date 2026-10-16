@@ -1,4 +1,4 @@
-import { ZiplineDriver, ZiplineTrolley, type ZiplineRideState } from '@wildshard/sdk/movers';
+import { ZiplineDriver, ZiplineTrolley } from '@wildshard/sdk/movers';
 import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 /**
  * Pine Hollow's two rides (PINE-HOLLOW-REMASTER PH-C1 beat 3, PH-C8 the canoe secret), on the landmarks PH-B3 built:
@@ -26,44 +26,37 @@ export class ZipRide {
   readonly prompt: Interactable;
   readonly trolley: THREE.Mesh;
   onRide?: (on: boolean) => void;
-  private riding = false;
-  private readonly ride: ZiplineRideState = { s: 0, v: 0 };
   private readonly wire: ZiplineDriver;
   private readonly carriage: ZiplineTrolley;
   private roll = 0;
 
-  constructor(sky: Sky, top: THREE.Vector3, bottom: THREE.Vector3, launch: THREE.Vector3, private readonly landing: THREE.Vector3) {
-    this.wire = new ZiplineDriver({ ...ZIPLINE, top, bottom }, () => undefined, ZIP_RIDE);
+  constructor(sky: Sky, top: THREE.Vector3, bottom: THREE.Vector3, launch: THREE.Vector3, landing: THREE.Vector3) {
+    this.wire = new ZiplineDriver({ ...ZIPLINE, top, bottom }, () => undefined, ZIP_RIDE, landing);
     this.trolley = new THREE.Mesh(codePart('zip-trolley'), npcMaterial(sky)); // baked offline (../generators/codeParts.ts)
     this.trolley.castShadow = true;
     this.trolley.name = 'zip-trolley';
-    this.carriage = new ZiplineTrolley(this.wire, ZIP_RIDE.start, this.trolley, { position: new THREE.Vector3(launch.x, launch.y + 1.1, launch.z), radius: 2.3, label: 'Ride the zipline' }, () => this.riding, () => { this.start(); });
+    this.carriage = new ZiplineTrolley(this.wire, ZIP_RIDE.start, this.trolley, { position: new THREE.Vector3(launch.x, launch.y + 1.1, launch.z), radius: 2.3, label: 'Ride the zipline' }, () => this.wire.isRiding, () => { this.start(); });
     this.prompt = this.carriage.prompt;
   }
 
-  get isRiding(): boolean { return this.riding; }
+  get isRiding(): boolean { return this.wire.isRiding; }
 
   start(): void {
-    if (this.riding) return;
-    this.riding = true; this.ride.s = ZIP_RIDE.start; this.ride.v = ZIP_RIDE.landing.velocity; this.roll = 0;
+    if (this.wire.isRiding) return;
+    this.wire.start(); this.roll = 0;
     this.onRide?.(true);
   }
 
   /** per frame, after the player's own update: while riding the cable owns the position */
   update(dt: number, p: Rider, camera: THREE.Camera): void {
-    if (!this.riding) return;
-    const ride = this.ride, holding = this.wire.step(ride, dt);
-    this.carriage.follow(ride.s);
-    p.carried = true;
-    this.wire.rider(ride.s, p.position);
-    p.velocity.set(0, 0, 0);
+    if (!this.wire.isRiding) return;
+    const holding = this.wire.update(dt, p);
+    this.carriage.follow(this.wire.distance);
+    p.carried = holding;
     // the wind on the wire: a slow roll that grows with the speed
     this.roll += dt;
-    camera.rotation.z += Math.sin(this.roll * 1.3) * 0.012 * (ride.v / ZIPLINE.maxSpeed);
+    camera.rotation.z += Math.sin(this.roll * 1.3) * 0.012 * (this.wire.speed / ZIPLINE.maxSpeed);
     if (!holding) {
-      this.riding = false;
-      p.carried = false;
-      this.wire.dismount(this.landing, p.position.y, p.position, p.velocity);
       this.carriage.park();
       this.onRide?.(false);
     }
