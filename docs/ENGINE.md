@@ -5722,6 +5722,27 @@ The optional contact port also borrows the current step's player pose (or
 null). A specialized volley may extend this owner directly and keep only its
 launch/contact policy, inheriting disposal and native continuation unchanged.
 
+### Graph shadow-depth warm-up and the compile shadow hold (E435)
+
+A graph material that moves its vertices (`graphShadowDepth`) draws its
+shadow casters with the node handler's own depth variant
+(`EngineNodesHandler.shadowDepthOf`), swapped in inside the shadow
+draw. The handler registers that substitution on its renderer
+(`render/shadowDepthVariants.ts`), and precompile's `shadowJobs` compile
+the same configured variant, one job per source material, configured
+just before its compile (`CompileJob.prepare`), so the first shadow
+draw finds its program issued and linked (sp-o289: Pine Hollow's road
+entry built and queried them inside 107-164 ms travel frames).
+
+With a node handler installed, three's `compile()` redraws every
+shadow map of the target scene before it builds. `holdShadowRedraw`
+(the Developer Debug row **Hold compile shadow redraw**, Performance,
+`compileShadowHold`, live, default off) holds the renderer's shadow
+update for one warm-up compile when every caster light it gathers
+already has its map, and restores both flags after; a light without a
+map keeps the redraw, so its map is made as before.
+`test/precompile-variants.test.ts`.
+
 ### Conditional quest page prompts
 
 `createQuestPagePrompts` and `bindQuestPageInteractions` accept admitted
