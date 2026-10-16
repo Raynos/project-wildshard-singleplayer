@@ -126,5 +126,14 @@ lane) unless the platform `combat/encounters` section carries them.
 | `59d229350` | models: rock palettes, boat, counter, island rows | 173 -> 167 | -6 |
 | `4dd9fcce7` | Castaway scene, pose, focus, smoke | 167 -> 163 | -4 |
 | `acc832f84` | reef look id, wreck sites | 163 -> 161 | -2 |
+| `9d91ba79f` | runtime/looks/rows.ts: the looks' own row types; FACETED_DAY_PRESET mirror | 161 -> 156 | -5 |
+| `b3514ee54` | finale: Captain id, arena radius, bar name | 156 -> 155 | -1 |
 
 (Counts between rows moved as other lanes moved files into runtime/.)
+
+Proof at `b3514ee54`: cold `pnpm gen`, `tsc -b tsconfig.layers.json`
+clean, 37 focused files / 84 tests (mirror test, 17 shard-headless,
+every `driftwood-*` and NPC test) in the build mirror; standalone
+Driftwood boot (iPhone portrait, muted) 0 page errors, view unchanged
+from `0705c51b0` (values are identical by the mirror test, so no
+before/after pair). sim-in-runtime DW stays 12.
