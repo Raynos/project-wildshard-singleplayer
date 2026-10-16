@@ -43,9 +43,7 @@ import { heroModel } from '../models/waystone';
 import { caveArch, openCaveArch } from '../models/caveArch';
 import { loadTimber, type Floor } from './timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
-import { fireLookout } from '../models/fireLookout';
-import { ziplineLanding } from '../models/ziplineLanding';
-import { creekFootbridge } from '../models/creekFootbridge';
+import { timberLandmark } from '../models/fireLookout';
 import { zipCable } from '../models/zipCable';
 import { loadCodeParts } from './codeParts';
 import { PineCrags } from './crags';
@@ -110,10 +108,10 @@ export class PineLandmarks {
     };
     // the timber landmarks (models), one task each, at the frames their world-space builders used
     const lookoutAt = lookoutSite();
-    await placeTimber(fireLookout, lookoutAt, undefined, 'pine-lookout');
+    await placeTimber(timberLandmark('fire-lookout'), lookoutAt, undefined, 'pine-lookout');
     await macrotask();
     const landingAt = landingSite().at, atSite = { site: 'world' } as const;
-    await placeTimber(ziplineLanding, landingAt, atSite, 'pine-zip-landing');
+    await placeTimber(timberLandmark('zipline-landing'), landingAt, atSite, 'pine-zip-landing');
     const zip=authored.landmarks.zip;
     this.zip={top:new THREE.Vector3(...zip.top),bottom:new THREE.Vector3(...zip.bottom),launch:new THREE.Vector3(...zip.launch),landing:new THREE.Vector3(...zip.landing)};
     // the steel cable between the two gantries (baked between the same anchors, ../generators/codeParts.ts)
@@ -121,7 +119,7 @@ export class PineLandmarks {
     await batch.place(zipCable, [{ x: top.x, y: top.y, z: top.z }], { draw: 'single', piece: { id: 'pine-zip-cable' } });
     await macrotask();
     const bridge = bridgeSite();
-    await placeTimber(creekFootbridge, bridge.at, atSite, 'pine-footbridge');
+    await placeTimber(timberLandmark('creek-footbridge'), bridge.at, atSite, 'pine-footbridge');
     await macrotask();
     this.crags = await crags;
     await this.buildProps(cabins, registry);
