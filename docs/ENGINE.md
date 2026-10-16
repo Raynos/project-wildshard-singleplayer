@@ -5641,6 +5641,28 @@ Users: Driftwood's gulls (`custom/gullFlock`, data/gullsLook.ts GULL_FLOCK,
 perched on the pier, boat, rocks and sand) and Pine Hollow's breadcrumb
 ravens (`custom/ambientLife` `guide.flock`, hidden until a guide pass).
 
+Two more modes are row sections (`null` when unused). `scavenge`:
+`flock.gather(x, z, width, n)` borrows up to `n` hidden birds to a site (a
+kill `width` m across) and returns its id; they come in high from
+`arrive.far`, circle low, land on a ring round it and feed (peck bouts, look
+round, hops, squabble calls), lift and circle high when the player is within
+`flush` (walking, `fast`), re-land once they are past `feed.reland`, and leave
+when fed (`feed.time`), timed out (`feed.leave`) or `release(id, player)`d.
+`siteVisit(id)` reads 1 overhead, 2 feeding, 3 gone. `visit`: one bird comes
+to a perch `near` the player while `player.light` is inside `enter`, arriving
+`behind` the view or from `beyond` the perch, stares (`stare`) or looks about,
+calls (`call`), does its `acts` (hitch up, call, drum roll), relocates within
+`relocate` when flushed (toward `player.toward` with `aim`) and leaves when
+`light` leaves `stay` or the player is past `leave`. A perch with `r` is a
+trunk section: the bird clings to the bark on the side toward the player;
+`w` weighs the pick. `visitAt(x, z, reach, player)` and `visitSoon()` serve
+captures. The voices land in `flock.calls` with their cue id and gain; the
+SDK draw plays them as cues, a caller that draws into its own mesh plays them
+itself. `update(dt, player)` reads the optional `fast`, `light`, `fx` / `fz`
+(the view's forward) and `toward` off the player. Pine Hollow's ravens at a
+kill (`scavenger.flock`), owl on snag tops (`sentinel.flock`) and woodpecker
+on bark (`trunkForager.flock`) are these rows, drawn into its wildlife draw.
+
 ### Ambient foragers (G466 H6)
 
 `@wildshard/engine/ai/ambientForager` is the ground sibling of the flock:

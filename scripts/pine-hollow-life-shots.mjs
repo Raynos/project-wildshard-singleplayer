@@ -62,10 +62,10 @@ async function open(tod) {
     const H = window.__hf;
     /** the close-ups' subjects, by name: (life, world) → a world point or null */
     window.__lsT = {
-      ravens: (L) => { const ps = L.ravens.filter((r) => r.mode === 'ground').map((r) => r.pose); if (ps.length === 0) return null; const x = ps.reduce((a, p) => a + p.x, 0) / ps.length, z = ps.reduce((a, p) => a + p.z, 0) / ps.length; return { x, y: H.heightAt(x, z) + 0.2, z }; },
+      ravens: (L) => { const ps = L.ravens.filter((r) => r.state === 9); if (ps.length === 0) return null; const x = ps.reduce((a, p) => a + p.x, 0) / ps.length, z = ps.reduce((a, p) => a + p.z, 0) / ps.length; return { x, y: H.heightAt(x, z) + 0.2, z }; },
       hare: (L, W) => { const p = W.player.position, h = L.hares.slice().sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0]; return h && h.x < 1e4 ? { x: h.x, y: H.heightAt(h.x, h.z) + 0.18, z: h.z } : null; },
-      wood: (L) => ({ x: L.wood.pose.x, y: L.wood.pose.y, z: L.wood.pose.z }),
-      owl: (L) => ({ x: L.owl.pose.x, y: L.owl.pose.y + 0.1, z: L.owl.pose.z }),
+      wood: (L) => ({ x: L.wood.x, y: L.wood.y, z: L.wood.z }),
+      owl: (L) => ({ x: L.owl.x, y: L.owl.y + 0.1, z: L.owl.z }),
     };
     w.game.onLate(() => {
       const p = window.__ls.pose, cam = w.game.camera;
@@ -154,7 +154,7 @@ try {
     if (want('ravens')) {
       await page.evaluate(() => window.__pineLife.ravensTo());
       const t0 = Date.now();
-      await page.waitForFunction(() => window.__pineLife.ravens.filter((r) => r.mode === 'ground').length >= 2, undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  ravens: not down in 60 s'));
+      await page.waitForFunction(() => window.__pineLife.ravens.filter((r) => r.state === 9).length >= 2, undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  ravens: not down in 60 s'));
       console.error(`  ravens down after ${((Date.now() - t0) / 1000).toFixed(0)} s`);
       await sleep(2500);
       await closeUp(page, 'ravens', 3.0, 2.4, 55);
@@ -166,7 +166,7 @@ try {
     }
     if (want('wood')) {
       await page.evaluate(() => window.__pineLife.woodNow());
-      await page.waitForFunction(() => window.__pineLife.wood.mode === 'perch', undefined, { timeout: 40_000, polling: 500 }).catch(() => console.error('  woodpecker: not perched'));
+      await page.waitForFunction(() => window.__pineLife.wood.state === 10, undefined, { timeout: 40_000, polling: 500 }).catch(() => console.error('  woodpecker: not perched'));
       await sleep(1500);
       await closeUp(page, 'wood', 2.2, 0.1, 40);
       save('woodpecker', await page.screenshot({ type: 'png' }));
@@ -218,7 +218,7 @@ try {
     console.error(`  snag ${JSON.stringify(snag)}`);
     await sleep(1500);
     await page.evaluate((s) => (s ? window.__pineLife.owlNow(s.x, s.z) : window.__pineLife.owlNow()), snag);
-    await page.waitForFunction(() => window.__pineLife.owl.mode === 'perch', undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  owl: not perched'));
+    await page.waitForFunction(() => window.__pineLife.owl.state === 10, undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  owl: not perched'));
     await sleep(2000);
     await closeUp(page, 'owl', 4.5, -1.6, 40);
     save('owl', await page.screenshot({ type: 'png' }));

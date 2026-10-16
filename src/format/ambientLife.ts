@@ -23,7 +23,8 @@ export const ForagerPolicySchema=v.strictObject({
 export type ForagerPolicyRows=v.InferOutput<typeof ForagerPolicySchema>;
 const share=v.pipe(finite,v.minValue(0),v.maxValue(1));
 const offset=v.tuple([finite,finite,finite]);
-const channel=v.union([v.picklist(['flap','fold','head','legs']),finite]);
+const channel=v.union([v.picklist(['flap','fold','head','legs','peck','body']),finite]);
+const depart=v.strictObject({distance:finite,up:range,speed:positive,lift:finite,spread:finite});
 /** One ambient flock (G466 H6): perched, wheeling, flushed and guiding flyers as rows; the platform owns the frame. */
 export const AmbientFlockSchema=v.strictObject({
   seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),count,scale:positive,foot:finite,wingbeat:id,
@@ -38,6 +39,23 @@ export const AmbientFlockSchema=v.strictObject({
     /** null: the pass ends hidden; else on along the heading and up, back into a loop */
     after:v.nullable(v.strictObject({ahead:finite,up:finite,speed:positive}))})),
   call:v.nullable(v.strictObject({cue:id,every:range,first:finite})),
+  /** null: no sites. `gather` borrows hidden birds to a kill: they arrive, circle, land round it and feed, lift when flushed, leave fed */
+  scavenge:v.nullable(v.strictObject({arrive:v.strictObject({far:range,up:range,near:finite,height:finite,speed:positive,lift:finite}),
+    circle:v.strictObject({radius:range,low:range,high:range,speed:range,timer:range,beat:finite,call:finite}),
+    land:v.strictObject({speed:positive,lift:finite,ring:range,stand:finite,pause:range,pitch:finite}),
+    feed:v.strictObject({pecks:v.tuple([count,count]),pause:range,hop:share,squabble:share,rate:positive,time:range,leave:positive,reland:finite,look:v.tuple([finite,finite]),wings:v.tuple([finite,finite]),peck:v.tuple([finite,finite,finite]),hopTime:positive,hopHeight:finite}),
+    /** flush radius walking, fast; the lift back up to circling */
+    flush:v.tuple([positive,positive]),lift:v.strictObject({up:range,side:finite,speed:positive,lift:finite}),depart,
+    voices:v.strictObject({call:id,pair:id,flap:id,gain:finite,flapGain:finite,gap:range,flapGap:finite})})),
+  /** null: no visitor. One bird to a perch near the player while `light` is in `enter`, until it leaves `stay` */
+  visit:v.nullable(v.strictObject({enter:range,stay:range,every:positive,near:range,
+    from:v.variant('kind',[v.strictObject({kind:v.literal('behind'),back:finite,up:finite}),v.strictObject({kind:v.literal('beyond'),back:finite,up:finite})]),
+    speed:positive,lift:finite,approach:v.tuple([finite,finite]),cling:finite,sag:finite,
+    pose:v.strictObject({pitch:finite,body:finite,legs:finite,stand:finite,peck:finite}),sway:finite,stare:finite,stareTurn:finite,look:v.tuple([finite,finite]),
+    within:finite,callCue:v.nullable(id),flushCall:v.boolean(),gain:finite,call:v.nullable(v.strictObject({cue:id,every:range,first:range,within:finite})),
+    acts:v.nullable(v.strictObject({first:range,every:range,hitch:v.tuple([share,finite]),call:share,
+      drum:v.nullable(v.strictObject({cue:id,length:range,voiced:positive,within:finite,rate:positive,peck:v.tuple([finite,finite])}))})),
+    flush:finite,flushLegs:finite,relocate:range,aim:v.boolean(),leave:finite,leaveWait:finite,depart})),
   /** the posed draw's per-instance channels: a pose name or a constant, four per vec4 */
   channels:v.tuple([v.tuple([channel,channel,channel,channel]),v.nullable(v.tuple([channel,channel,channel,channel]))]),
   attributes:v.tuple([id,v.nullable(id)]),
@@ -47,17 +65,17 @@ export type AmbientFlockData=v.InferOutput<typeof AmbientFlockSchema>;
 export function parseAmbientFlock(value:unknown):AmbientFlockData {return v.parse(AmbientFlockSchema,value);}
 /** Ambient populations borrow actual models and world owners. No resources or callbacks are encoded in rows. */
 export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-community'),seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),
-  scavenger:v.strictObject({model,count,scale:positive,stand:finite,flush:positive,flushRun:positive,reland:positive,arrival:range,visitors:v.record(id,count),defaultVisitors:count,bodyWidths:v.record(id,positive),giveUp:positive}),
+  /** the kill's ravens: a scavenge flock; visitors per species, the body's half width, when they come, how far you may be */
+  scavenger:v.strictObject({flock:AmbientFlockSchema,arrival:range,visitors:v.record(id,count),defaultVisitors:count,bodyWidths:v.record(id,positive),giveUp:positive,reach:positive}),
   perches:v.pipe(v.strictObject({step:positive,spines:v.pipe(v.array(v.pipe(v.array(v.strictObject({y:finite,cx:finite,cz:finite,r:positive})),v.maxLength(256))),v.minLength(1),v.maxLength(32))}),v.check(row=>row.spines.every(spine=>spine.every((knot,index)=>knot.y===(index+1)*row.step)),'ordered equal-step perch knots')),
-  sentinel:v.strictObject({model,scale:positive,stand:finite}),trunkForager:v.strictObject({model}),forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive,policy:ForagerPolicySchema}),
+  /** visit flocks: the night sentinel on snag tops, the day trunk forager on bark (a perch height range and species weights) */
+  sentinel:v.strictObject({flock:AmbientFlockSchema,species:id}),trunkForager:v.strictObject({flock:AmbientFlockSchema,height:range,weights:v.record(id,positive)}),
+  forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive,policy:ForagerPolicySchema}),
   guide:v.strictObject({flock:AmbientFlockSchema,policy:v.strictObject({distance:v.literal('centre'),min:positive,max:positive,schedule:v.strictObject({kind:v.literal('periodic'),initial:finite,period:range})})}),
-  flight:v.strictObject({wave:finite,amplitude:finite,pitch:finite,pitchRate:positive,bank:finite,bankLimit:positive,bankRate:positive}),
-  wingbeats:v.pipe(v.record(id,burst),v.check(rows=>Object.keys(rows).length<=16)),
   harvest:v.strictObject({len:positive,kneelIn:positive,cuts:v.pipe(v.array(positive),v.maxLength(8)),rise:positive}),
   system:v.strictObject({id,ambient:id,after:v.pipe(v.array(id),v.maxLength(16)),before:v.pipe(v.array(id),v.maxLength(16))}),
-  debug:v.strictObject({id,window:id}),sounds:v.strictObject({pair:id,call:id,flap:id,hoot:id,foragerCall:id,drum:id,cutA:id,cutB:id}),taps:v.strictObject({knock:id,drum:id,perch:id})}),
-  v.check(row=>[row.scavenger.model,row.sentinel.model,row.trunkForager.model].every(key=>Object.hasOwn(row.wingbeats,key)),'declared wingbeats for every flyer'),
-  v.check(row=>row.scavenger.count+row.forager.count+2<=512,'bounded ambient population'),
+  debug:v.strictObject({id,window:id}),sounds:v.strictObject({pair:id,call:id,flap:id,hoot:id,foragerCall:id,drum:id,cutA:id,cutB:id})}),
+  v.check(row=>row.scavenger.flock.count+row.forager.count+2<=512,'bounded ambient population'),
   v.check(row=>row.harvest.kneelIn<row.harvest.rise&&row.harvest.rise<row.harvest.len&&row.harvest.cuts.every((value,index)=>value<row.harvest.len&&(index===0||value>(row.harvest.cuts[index-1]??0))),'ordered harvest timeline'));
 export type AmbientLifeData=v.InferOutput<typeof ForestLifeSchema>;
 export function parseAmbientLife(value:unknown):AmbientLifeData {return v.parse(ForestLifeSchema,value);}

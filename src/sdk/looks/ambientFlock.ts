@@ -46,8 +46,7 @@ export class AmbientFlockDraw {
   /** one frame: the motion, the squawks, the draw */
   update(dt: number, player: Point): void {
     this.flock.update(dt, player);
-    const cue = this.row.call?.cue;
-    if (cue !== undefined) for (const p of this.flock.calls) app.audio?.cue(cue, { point: this.point.set(p.x, p.y, p.z) });
+    for (const p of this.flock.calls) app.audio?.cue(p.cue, { point: this.point.set(p.x, p.y, p.z) });
     this.draw();
   }
   /** a guide pass toward (tx, tz) past `player` (false: none free) */

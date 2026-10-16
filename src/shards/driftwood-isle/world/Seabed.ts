@@ -8,9 +8,9 @@
  *
  *   const seabed = await buildSeabed(sky);   // the baked layout: where the water is 1.5–8 m deep
  *   scene.add(seabed.mesh);
- *   game.onUpdate((dt) => seabed.update(dt));                           // the sway clock, the school
+ *   game.onUpdate((dt) => seabed.tick(dt));                             // the sway clock, the school
  *
- * `seabed.fish`: the school — the reef fish placed instanced (one more draw call), circling a lissajous path over the
+ * `seabed.fish`: the school — the reef fish placed instanced (one more draw call), swum on an ambient flock wheel over the
  * reef; built when the baked layout has a `school`.
  */
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

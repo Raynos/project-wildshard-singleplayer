@@ -3,7 +3,7 @@
  * a small faceted fish — a flattened diamond body (8 tris) and a tail fin (2), nose along −z, ~0.35 m long, baked offline
  * (generators/reefFish.ts, the fixed-model template `reef-fish`) — on the kit's
  * still material, its colour per copy (instanceColor). The lagoon places a school of them instanced (one draw) over
- * its densest reef and swims them round a lissajous loop every frame (src/shards/driftwood-isle/world/Seabed.ts).
+ * its densest reef and swims them on an ambient flock wheel every frame (src/shards/driftwood-isle/world/Seabed.ts).
  */
 import { defineModel, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';

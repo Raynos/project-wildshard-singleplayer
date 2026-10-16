@@ -2,28 +2,27 @@ import * as THREE from 'three';
 import { modelContext, type ModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { AmbientFlock } from '@wildshard/engine/ai/ambientFlock';
+import type { AmbientFlockData } from '@wildshard/format/ambientLife';
 
 /**
  * A sea floor's reef as rows (SHARD-PLATFORM M3, look-family rows; W2 C2 baked its scatter): a baked layout of reefs, beds
  * and a scatter (generators/reefScatter.ts, data/reefLayout.generated.json) welded into ONE flat-shaded mesh (one draw
  * call; the weld is baked too), each kind placed `drawnInto` that mesh (`ReefBed.build`); and a school of fish placed
- * instanced over the densest reef, swum round a lissajous loop every frame. Nothing collides. Nothing here knows a shard:
+ * instanced over the densest reef, swum on an ambient flock's wheel (the row's `swim`, centred on the baked school). Nothing collides. Nothing here knows a shard:
  * its numbers are a row in its `data/`, its models, material and layout are its own.
  *
  *   const bed = new ReefBed(sky, row, models, params).build(layout, heightAt, batch);
  *   scene.add(bed.mesh);
- *   game.onUpdate((dt) => bed.update(dt));
+ *   game.onUpdate((dt) => bed.tick(dt));
  */
 
 /** One copy's numbers: size, turn about +Y and which tint (0..1). */
 export interface ReefBedParams { readonly s: number; readonly rot: number; readonly v: number }
 /** One baked copy: its kind (the row's names) and where. */
 export interface ReefBedSpec { readonly kind: string; readonly x: number; readonly z: number; readonly s: number; readonly rot: number; readonly v: number }
-/** The baked school: centre, radius, count and each fish's tint and swim seeds. */
-export interface ReefSchool {
-  readonly x: number; readonly z: number; readonly y: number; readonly r: number; readonly n: number;
-  readonly fish: readonly { readonly colour: number; readonly ph: number; readonly spd: number; readonly off: number }[];
-}
+/** The baked school: centre, depth, radius, count and each fish's tint. */
+export interface ReefSchool { readonly x: number; readonly z: number; readonly y: number; readonly r: number; readonly n: number; readonly fish: readonly { readonly colour: number }[] }
 /** A baked layout: its copies and the school over the densest reef. */
 export interface ReefBedLayout { readonly items: readonly ReefBedSpec[]; readonly school: ReefSchool | null }
 
@@ -37,8 +36,9 @@ export interface ReefBedModels<P extends ReefBedParams> {
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
 /** A welded reef and its school (see the module comment). */
-/** what the bed reads off its row (data/seabedLook.ts SEABED; the scatter is baked): the weld's and the school's names */
-export interface ReefBedRow { readonly mesh: string; readonly piecePrefix: string; readonly fishMesh: string; readonly fishPiece: string }
+/** what the bed reads off its row (data/seabedLook.ts SEABED; the scatter is baked): the weld's and the school's names, and
+ *  the school's swim (an ambient flock row whose wheel the baked school centres) */
+export interface ReefBedRow { readonly mesh: string; readonly piecePrefix: string; readonly fishMesh: string; readonly fishPiece: string; readonly swim: AmbientFlockData }
 
 export class ReefBed<P extends ReefBedParams> {
   /** its placements (the named places' sets read them) */
@@ -56,8 +56,9 @@ export class ReefBed<P extends ReefBedParams> {
   private uniforms: { uTime: THREE.IUniform<number> } | null = null;
   /** the material's own once-a-frame step, when it has one */
   private step: (() => void) | null = null;
-  private school?: ReefSchool;
-  private readonly tmp = { m: new THREE.Matrix4(), p: new THREE.Vector3(), q: new THREE.Quaternion(), e: new THREE.Euler(), s: new THREE.Vector3(), f: new THREE.Vector3() };
+  private swim?: AmbientFlock;
+  private readonly centre = { x: 0, y: 0, z: 0 };
+  private readonly tmp = { m: new THREE.Matrix4(), p: new THREE.Vector3(), q: new THREE.Quaternion(), e: new THREE.Euler(), s: new THREE.Vector3() };
 
   /** The weld (after `build`). */
   get mesh(): THREE.Mesh {
@@ -107,7 +108,7 @@ export class ReefBed<P extends ReefBedParams> {
     return this;
   }
 
-  /** the school: the fish placed instanced (their baked colours per copy), swum round a lissajous loop over the reef */
+  /** the school: the fish placed instanced (their baked colours per copy), swum on the row's wheel over the reef */
   private buildSchool(ctx: ModelContext, s: ReefSchool): void {
     if (s.fish.length !== s.n || s.n > 64) throw new Error('[reefBed] a school is its baked fish, at most 64');
     const pls: Placement<Record<string, never>>[] = s.fish.map((f) => ({ x: s.x, y: s.y, z: s.z, color: f.colour }));
@@ -119,33 +120,27 @@ export class ReefBed<P extends ReefBedParams> {
     mesh.frustumCulled = false;
     mesh.name = this.row.fishMesh;
     this.fish = mesh;
-    this.school = s;
-    this.update(0);
+    const swim = this.row.swim, wheel = swim.wheeling;
+    if (wheel === null) throw new Error('[reefBed] a school swims on a wheel');
+    this.centre.x = s.x; this.centre.y = s.y; this.centre.z = s.z;
+    this.swim = new AmbientFlock({ ...swim, count: s.n, wheeling: { ...wheel, centre: { x: s.x, z: s.z }, radius: s.r, altitude: [s.y, s.y] } });
+    this.tick(0);
   }
 
-  /** The sway clock and the school's poses. */
-  update(dt: number): void {
+  /** The sway clock and the school's poses (the model faces -z: the flock's heading turned round). */
+  tick(dt: number): void {
     const clock = this.uniforms;
     if (clock) clock.uTime.value += dt;
     this.step?.();
-    const s = this.school, mesh = this.fish;
-    if (!s || !mesh) return;
-    const t = (clock?.uTime.value ?? 0) * 0.35, { m, p, q, e, s: sc, f } = this.tmp;
+    const swim = this.swim, mesh = this.fish;
+    if (!swim || !mesh) return;
+    swim.update(dt, this.centre);
+    const { m, p, q, e, s: sc } = this.tmp;
     for (let i = 0; i < 64; i++) { // a school is at most 64 fish (buildSchool)
-      const fish = s.fish[i];
+      const fish = swim.birds[i];
       if (fish === undefined) break;
-      const { ph, spd, off } = fish;
-      const u = t * spd + ph;
-      // lissajous loop around the school centre, each fish on its own offset ring; a little bob
-      const x = s.x + Math.sin(u) * s.r * (1 + off * 0.25) + Math.cos(u * 2.3 + ph) * 0.6;
-      const z = s.z + Math.sin(u * 0.5 + 1.2) * s.r * 0.8 + Math.sin(u * 1.7 + ph) * 0.5;
-      const y = s.y + Math.sin(u * 1.3 + ph) * 0.5 + off * 0.4;
-      // heading = the path tangent (finite difference)
-      const du = 0.05;
-      f.set(Math.sin(u + du) * s.r * (1 + off * 0.25) + Math.cos((u + du) * 2.3 + ph) * 0.6 - (x - s.x), Math.sin((u + du) * 1.3 + ph) * 0.5 + off * 0.4 - (y - s.y), Math.sin((u + du) * 0.5 + 1.2) * s.r * 0.8 + Math.sin((u + du) * 1.7 + ph) * 0.5 - (z - s.z));
-      const yaw = Math.atan2(-f.x, -f.z), pitch = Math.atan2(f.y, Math.hypot(f.x, f.z));
-      e.set(pitch, yaw, Math.sin(u * 9 + ph) * 0.15, 'YXZ');
-      q.setFromEuler(e); p.set(x, y, z); sc.setScalar(0.8 + spd * 0.5);
+      e.set(fish.pitch, fish.yaw + Math.PI, fish.roll, 'YXZ');
+      q.setFromEuler(e); p.set(fish.x, fish.y, fish.z); sc.setScalar(0.65 + fish.scale * 0.6);
       mesh.setMatrixAt(i, m.compose(p, q, sc));
     }
     mesh.instanceMatrix.needsUpdate = true;

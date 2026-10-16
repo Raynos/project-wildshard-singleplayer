@@ -7,7 +7,7 @@ const BEFORE = ['main.world'];
 interface Ticks { update: (dt: number) => void }
 /** what the systems tick: the world build's parts (./build.ts DriftwoodWorld), or none of one */
 export interface IslandParts<Deck extends { readonly awake: boolean }> {
-  ocean: Ticks | null; boat: (Ticks & { readonly group: Object3D }) | null; palms: Ticks | null; seabed: Ticks | null; cove: Ticks | null; shrine: Ticks | null;
+  ocean: Ticks | null; boat: (Ticks & { readonly group: Object3D }) | null; palms: Ticks | null; seabed: { tick: (dt: number) => void } | null; cove: Ticks | null; shrine: Ticks | null;
   bridge: { setPoses: (deck: Deck, alpha: number) => void } | null; bridgeDeck: Deck | null;
 }
 /** what they read off the bootstrapped world each frame: the player's position, the fixed step's interpolation */
@@ -25,7 +25,7 @@ export function islandSystems<Deck extends { readonly awake: boolean }>(ctx: Sha
   if (boat && boat.group.userData['declaredMotion'] !== true) ctx.system({ id: 'shard.driftwood.boat', phase: 'update', before: BEFORE, run: (dt) => { boat.update(dt); } });
   if (palms) ctx.system({ id: 'shard.driftwood.palms', phase: 'update', before: BEFORE, run: (dt) => { palms.update(dt); } });
   if (bridge && bridgeDeck) ctx.system({ id: 'shard.driftwood.bridge.pose', phase: 'update', before: BEFORE, run: () => { if (bridgeDeck.awake) bridge.setPoses(bridgeDeck, view.game.alpha); } });
-  if (seabed) ctx.system({ id: 'shard.driftwood.seabed', phase: 'update', before: BEFORE, run: (dt) => { seabed.update(dt); } });
+  if (seabed) ctx.system({ id: 'shard.driftwood.seabed', phase: 'update', before: BEFORE, run: (dt) => { seabed.tick(dt); } });
   if (cove) ctx.system({ id: 'shard.driftwood.cove', phase: 'update', before: BEFORE, run: (dt) => { cove.update(dt); } });
   if (shrine) ctx.system({ id: 'shard.driftwood.shrine', phase: 'update', before: BEFORE, run: (dt) => { shrine.update(dt); } });
 }

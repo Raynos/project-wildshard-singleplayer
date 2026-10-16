@@ -4,8 +4,6 @@ import { app } from '@wildshard/engine/app/runtime';
 import { TickScheduler } from '@wildshard/engine/app/scheduler';
 import { PlaceGuide } from '@wildshard/engine/quest/view';
 import { audioRandom } from '@wildshard/engine/audio/util';
-import { ownAudioSource } from '@wildshard/engine/audio/ownership';
-import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -19,15 +17,13 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
-import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { AmbientForager, foragerState, type ForagerState, type ForagerMotion } from '@wildshard/engine/ai/ambientForager';
+import { AmbientFlock, type AmbientFlockBird, type AmbientFlockPlayer, type AmbientPerch } from '@wildshard/engine/ai/ambientFlock';
 import { TrunkProbe } from './trunkProbe';
 import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
 import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
 
-type WildKind=number;
 interface PlaceSpot {id:string;x:number;z:number;r:number}
-type RavenVisit='waiting'|'overhead'|'feeding'|'gone';
 export interface WildPose {kind:number;x:number;y:number;z:number;yaw:number;pitch:number;roll:number;scale:number;a0:number;a1:number;a2:number;a3:number;b1:number;b2:number}
 const newPose=(kind:number):WildPose=>({kind,x:0,y:-999,z:0,yaw:0,pitch:0,roll:0,scale:1,a0:0,a1:0,a2:0,a3:0,b1:0,b2:0});
 export interface AmbientLifeView {mesh:THREE.InstancedMesh;glow:{value:number};look:AmbientFlockLook;begin:()=>void;add:(pose:WildPose)=>void;commit:()=>void}
@@ -59,200 +55,75 @@ export interface AmbientLife {
   readonly busy: boolean;
 }
 
-type Mode = 'off' | 'fly' | 'circle' | 'ground' | 'perch';
-interface Bird {
-  slot: number; pose: WildPose; mode: Mode;
-  /** flight: a quadratic bezier a → b → c over dur seconds */
-  ax: number; ay: number; az: number; bx: number; by: number; bz: number; cx: number; cy: number; cz: number; t: number; dur: number;
-  after: (() => void) | null;
-  /** the wingbeat machine */
-  flapT: number; burst: number; glide: number;
-  /** circling: centre, radius, altitude, angular speed, phase */
-  ox: number; oz: number; orad: number; oalt: number; ow: number; oph: number;
-  /** a free timer per mode, the peck / look machine */
-  timer: number; peck: number; peckT: number; headTo: number; headPitchTo: number;
-  /** where it stands / perches (ground or branch height) */
-  gy: number;
-}
 interface Hare extends ForagerState { slot: number; pose: WildPose; motion: ForagerMotion; retry: number }
-
-interface Carcass { a: Animal; killT: number; comeT: number; harvestT: number; visit: RavenVisit; ravens: Bird[]; feedLeft: number; leaveT: number; dimmed: boolean }
-
+/** a kill: when the ravens come, the skinning, its scavenge site (-1 waiting, -2 they came and went unseen) */
+interface Carcass { a: Animal; killT: number; comeT: number; harvestT: number; site: number; dimmed: boolean }
 const TAU = Math.PI * 2;
-/** still out (a step may have sent it off) */
-const flying = (b: { mode: string }): boolean => b.mode !== 'off';
-const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
 export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHost<Birds>): AmbientLife | null {
   if (h.trimShadows) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (ambient memory trim)
   const { game, sky, player, animals } = h;
-  const KIND={raven:data.scavenger.model,owl:data.sentinel.model,woodpecker:data.trunkForager.model,hare:data.forager.model};
-  const N_RAVEN=data.scavenger.count,N_HARE=data.forager.count;
-  const SLOT={raven:0,owl:N_RAVEN,wood:N_RAVEN+1,hare:N_RAVEN+2};
-  const RAVEN_FLUSH=data.scavenger.flush,RAVEN_FLUSH_RUN=data.scavenger.flushRun,RAVEN_RELAND=data.scavenger.reland;
-  const BODY=data.scavenger.bodyWidths,RAVEN_STAND=data.scavenger.stand,OWL_STAND=data.sentinel.stand;
-  const BEAT=data.harvest;
-  const ravenDelay=(u:number):number=>data.scavenger.arrival[0]+Math.max(0,Math.min(1,u))*(data.scavenger.arrival[1]-data.scavenger.arrival[0]);
-  const ravenCount=(kind:string):number=>data.scavenger.visitors[kind]??data.scavenger.defaultVisitors;
-  const carcassMayGo=(visit:RavenVisit,since:number):boolean=>visit==='gone'||since>data.scavenger.giveUp;
-  const hareMayDraw=(distance:number,inView:boolean):boolean=>distance<=data.forager.range&&(distance<=data.forager.visibleRange||inView);
-  const flight=new CirclingFlyer(data.flight,undefined,data.wingbeats);
+  const sc = data.scavenger;
   const retained = retainsRuntimeServices(h.ctx);
   let lifeTime = app.clock.now;
   const now = (): number => retained ? lifeTime : app.clock.now;
-
   const rng = new Rng(data.seed);
   const wild = h.view;
   game.scene.add(wild.mesh);
   if(h.birds===null)throw new Error('Missing required ambient models');
   h.swapBirds(h.birds,game.renderer);h.birds=null;
   const cam = game.camera;
-  const trunks = new TrunkProbe(data.perches);
-
-  // ── the trees, by 16 m cell: trunks the hares keep off, snags / ambients the birds perch on ──
-  const CELL = 16, cells = new Map<number, TreeInstance[]>();
-  const key = (cx: number, cz: number): number => (cx + 512) * 1024 + (cz + 512);
-  for (const t of h.trees) {
-    const k = key(Math.floor(t.x / CELL), Math.floor(t.z / CELL));
-    const list = cells.get(k);
-    if (list) list.push(t); else cells.set(k, [t]);
-  }
-  const treesNear = (x: number, z: number, r: number, out: TreeInstance[]): TreeInstance[] => {
-    out.length = 0;
-    const x0 = Math.floor((x - r) / CELL), x1 = Math.floor((x + r) / CELL), z0 = Math.floor((z - r) / CELL), z1 = Math.floor((z + r) / CELL);
-    for (let cx = x0; cx <= x1; cx++) for (let cz = z0; cz <= z1; cz++) for (const t of cells.get(key(cx, cz)) ?? []) if ((t.x - x) ** 2 + (t.z - z) ** 2 < r * r) out.push(t);
-    return out;
-  };
-  const scratch: TreeInstance[] = [];
-  /** a perch tree near (x, z) between rMin and rMax metres: `pick` scores a candidate (higher is better; ≤ 0 = no) */
-  const perchTree = (x: number, z: number, rMin: number, rMax: number, pick: (t: TreeInstance, d: number) => number): TreeInstance | null => {
-    let best: TreeInstance | null = null, bs = 0;
-    for (const t of treesNear(x, z, rMax, scratch)) {
-      const d = Math.hypot(t.x - x, t.z - z);
-      if (d < rMin) continue;
-      const s = pick(t, d) * (0.6 + rng.next() * 0.8);
-      if (s > bs) { bs = s; best = t; }
-    }
-    return best;
-  };
-  /** the eye's forward on the ground plane, and whether a point is inside the view (roughly) */
   const fwd = new THREE.Vector3();
   const inView = (x: number, z: number, cos = 0.45): boolean => {
     const dx = x - cam.position.x, dz = z - cam.position.z, d = Math.hypot(dx, dz) || 1;
     return (dx * fwd.x + dz * fwd.z) / d > cos;
   };
 
-  // ── the birds ──
-  const bird = (slot: number, kind: WildKind): Bird => ({
-    slot, pose: newPose(kind), mode: 'off', ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, cx: 0, cy: 0, cz: 0, t: 0, dur: 1, after: null,
-    flapT: 0, burst: 0, glide: 0, ox: 0, oz: 0, orad: 8, oalt: 12, ow: 0.5, oph: 0, timer: 0, peck: 0, peckT: 0, headTo: 0, headPitchTo: 0, gy: 0,
-  });
-  const ravens = Array.from({ length: N_RAVEN }, (_, i) => bird(SLOT.raven + i, KIND.raven));
-  const owl = bird(SLOT.owl, KIND.owl);
-  const wood = bird(SLOT.wood, KIND.woodpecker);
-  const fliers = [...ravens, owl, wood];
-  for (let i = 0; i < 258; i++) { const b = fliers[i]; if (b === undefined) break; b.pose.scale = b.pose.kind === KIND.raven ? data.scavenger.scale : data.sentinel.scale; }
-
-  const place = (b: Bird, x: number, y: number, z: number): void => { b.pose.x = x; b.pose.y = y; b.pose.z = z; };
-  /** fly from where it is to (x, y, z) at `speed` m/s, the path bowing along its heading (and up by `lift`) */
-  const flyTo = (b: Bird, x: number, y: number, z: number, speed: number, lift: number, after: (() => void) | null): void => {
-    const p = b.pose, d = Math.hypot(x - p.x, y - p.y, z - p.z);
-    b.ax = p.x; b.ay = p.y; b.az = p.z;
-    const hx = Math.sin(p.yaw), hz = Math.cos(p.yaw), lead = b.mode === 'fly' || b.mode === 'circle' ? d * 0.35 : d * 0.12;
-    b.bx = (p.x + x) / 2 * 0.5 + (p.x + hx * lead) * 0.5; b.bz = (p.z + z) / 2 * 0.5 + (p.z + hz * lead) * 0.5; b.by = Math.max(p.y, y) + lift;
-    b.cx = x; b.cy = y; b.cz = z; b.t = 0; b.dur = Math.max(0.8, d / speed); b.after = after;
-    b.mode = 'fly';
-  };
-  /** a bird appears at (x, y, z) already flying, heading toward (tx, tz) */
-  const spawnAt = (b: Bird, x: number, y: number, z: number, tx: number, tz: number): void => {
-    place(b, x, y, z); b.pose.yaw = Math.atan2(tx - x, tz - z); b.pose.pitch = 0; b.pose.roll = 0;
-    b.pose.a1 = 0; b.pose.b1 = 1; b.pose.b2 = 0; b.pose.a2 = 0; b.pose.a3 = 0; b.mode = 'fly'; b.burst = 4; b.flapT = 0;
-  };
-  const off = (b: Bird): void => { b.mode = 'off'; b.after = null; };
-  // ── the voices (ambientSfx one-shots, placed at the bird) ──
-  const voice = (family: string, at: { x: number; y: number; z: number } | undefined, gain = 1): boolean => h.sfx?.shot(family, { at, gain }) ?? false;
-  let ravenVoiceT = 0, flapT = 0;
-  /** a raven's croak from `r` (two ravens trading croaks when `pair`): one at a time across the flock, a few seconds apart */
-  const caw = (r: Bird, pair = false): void => {
-    const t = now(); // the game clock: seeded runs repeat (E357 F2)
-    if (t < ravenVoiceT) return;
-    ravenVoiceT = t + rng.range(3, 6);
-    voice(pair ? data.sounds.pair : data.sounds.call, r.pose, 0.9);
-  };
-  /** a raven's wings as it lifts off (one clatter for a flock going up together) */
-  const flap = (r: Bird): void => {
-    const t = now(); // the game clock: seeded runs repeat (E357 F2)
-    if (t < flapT) return;
-    flapT = t + 0.6;
-    voice(data.sounds.flap, r.pose, 0.8);
-  };
-  /** the wingbeat: bursts of beats, then a glide; the woodpecker bounds (beats, then wings shut) */
-  const wings = (b: Bird, dt: number): void => {
-    [b.pose.a0,b.pose.a1]=flight.burst(b,dt,b.pose.a0,b.pose.a1,b.pose.kind,rng);
-  };
-  /** turn to face a motion (dx, dy, dz): heading, pitch into it, bank into the turn */
-  const face=(b:Bird,dx:number,dy:number,dz:number,dt:number):void=>{flight.face(b.pose,dx,dy,dz,dt);};
-  const _p = new THREE.Vector3();
-  const bez = (b: Bird, u: number, out: THREE.Vector3): THREE.Vector3 => {
-    const v = 1 - u, w0 = v * v, w1 = 2 * v * u, w2 = u * u;
-    return out.set(b.ax * w0 + b.bx * w1 + b.cx * w2, b.ay * w0 + b.by * w1 + b.cy * w2, b.az * w0 + b.bz * w1 + b.cz * w2);
-  };
-  /** a head that looks about: a new yaw every so often, eased there */
-  const lookAbout = (b: Bird, dt: number, range: number, rate: number): void => {
-    if (rng.next() < dt * rate) b.headTo = rng.range(-range, range);
-    b.pose.a2 += (b.headTo - b.pose.a2) * Math.min(1, dt * 7);
-  };
-
-  /** fly-state step: along the bezier; at its end the `after` hook (or off) */
-  const stepFly = (b: Bird, dt: number): void => {
-    b.t += dt;
-    const u = Math.min(1, b.t / b.dur), e = u * u * (3 - 2 * u) * 0.3 + u * 0.7;
-    bez(b, e, _p);
-    const p = b.pose;
-    // the bounding flight: a little sag in each glide
-    if (p.kind === KIND.woodpecker && b.burst === 0) _p.y -= 0.25 * Math.sin(Math.min(1, 1 - b.glide / 0.3) * Math.PI);
-    face(b, _p.x - p.x, _p.y - p.y, _p.z - p.z, dt);
-    place(b, _p.x, _p.y, _p.z);
-    p.b1 += (1 - p.b1) * Math.min(1, dt * 3);
-    wings(b, dt);
-    if (u >= 1) { const after = b.after; b.after = null; if (after) after(); else off(b); }
+  // ── the birds: three ambient flock rows (the ravens at a kill, the owl on a snag top, the woodpecker on the bark) ──
+  const trunks = new TrunkProbe(data.perches), tf = data.trunkForager;
+  const snagTops: AmbientPerch[] = [], bark: AmbientPerch[] = [];
+  for (let i = 0; i < 131072; i++) { // every planted tree (a forest is far fewer)
+    const t = h.trees[i];
+    if (t === undefined) break;
+    const top = t.species === data.sentinel.species ? trunks.top(t) : null;
+    if (top !== null) snagTops.push(top);
+    const w = t.species === undefined ? undefined : tf.weights[t.species];
+    if (w === undefined) continue;
+    const y = t.y + rng.range(...tf.height), sec = trunks.section(t, y);
+    if (sec !== null) bark.push({ x: sec.x, y, z: sec.z, r: sec.r, w });
+  }
+  const ravens = new AmbientFlock(sc.flock), owl = new AmbientFlock(data.sentinel.flock, snagTops), wood = new AmbientFlock(tf.flock, bark);
+  const flocks = [ravens, owl, wood], pose = newPose(0);
+  const lane = (b: AmbientFlockBird, l: AmbientFlock['row']['channels'][0][number]): number => typeof l === 'number' ? l : b[l];
+  /** each flock's live birds into the wildlife draw, and its voices through the ambience's one-shots */
+  const shot: { at: { x: number; y: number; z: number } | undefined; gain: number } = { at: undefined, gain: 1 };
+  const drawFlock = (f: AmbientFlock): void => {
+    const [a, b] = f.row.channels;
+    for (let i = 0; i < 8; i++) { const c = f.calls[i]; if (c === undefined) break; shot.at = c; shot.gain = c.gain; h.sfx?.shot(c.cue, shot); }
+    for (let i = 0; i < 256; i++) { // a flock row is at most 256 birds
+      const bird = f.birds[i];
+      if (bird === undefined) break;
+      if (bird.state === 0) continue;
+      pose.x = bird.x; pose.y = bird.y; pose.z = bird.z; pose.yaw = bird.yaw; pose.pitch = bird.pitch; pose.roll = bird.roll; pose.scale = f.row.scale;
+      pose.a0 = lane(bird, a[0]); pose.a1 = lane(bird, a[1]); pose.a2 = lane(bird, a[2]); pose.a3 = lane(bird, a[3]);
+      pose.kind = b === null ? 0 : lane(bird, b[0]); pose.b1 = b === null ? 0 : lane(bird, b[1]); pose.b2 = b === null ? 0 : lane(bird, b[2]);
+      wild.add(pose);
+    }
   };
 
   // ── the ravens at a carcass ──
   const carcasses: Carcass[] = [];
   const harvestColors = new WeakMap<Carcass, { original: THREE.Color; dimmed: THREE.Color }>();
+  const ravenDelay = (u: number): number => sc.arrival[0] + Math.max(0, Math.min(1, u)) * (sc.arrival[1] - sc.arrival[0]);
+  /** the ravens came and went (or never will) */
+  const left = (c: Carcass): boolean => c.site === -2 || (c.site >= 0 && ravens.siteVisit(c.site) === 3);
   // a kill, through the combat pipeline's event (no chained onKill: E357 AG19)
   h.ctx.on('actor.died', ({ actor }) => {
     const a = animals.animals.find((x) => x.combatActor() === actor);
-    if (a === undefined || !Object.hasOwn(data.scavenger.visitors,a.kind)) return;
+    if (a === undefined || !Object.hasOwn(sc.visitors, a.kind)) return;
     const t = now();
-    carcasses.push({ a, killT: t, comeT: t + ravenDelay(rng.next()), harvestT: -1, visit: 'waiting', ravens: [], feedLeft: rng.range(45, 80), leaveT: 0, dimmed: false });
+    carcasses.push({ a, killT: t, comeT: t + ravenDelay(rng.next()), harvestT: -1, site: -1, dimmed: false });
   });
-  const freeRavens = (): Bird[] => ravens.filter((r) => r.mode === 'off');
-  const groundSpot = (c: Carcass, i: number, n: number): [number, number] => {
-    const a = c.a.position, ang = (i / n) * TAU + rng.range(-0.5, 0.5), r = (BODY[c.a.kind] ?? 0.8) + rng.range(0.25, 0.7);
-    return [a.x + Math.cos(ang) * r, a.z + Math.sin(ang) * r];
-  };
-  const circleOver = (r: Bird, c: Carcass, high: boolean): void => {
-    r.mode = 'circle';
-    r.ox = c.a.position.x; r.oz = c.a.position.z; r.orad = rng.range(7, 11); r.oalt = heightAt(r.ox, r.oz) + (high ? rng.range(17, 24) : rng.range(10, 15));
-    r.ow = rng.range(0.45, 0.6) * (rng.next() < 0.5 ? -1 : 1); r.oph = Math.atan2(r.pose.z - r.oz, r.pose.x - r.ox);
-    r.timer = rng.range(5, 9);
-  };
-  const landBy = (r: Bird, c: Carcass, i: number): void => {
-    const [x, z] = groundSpot(c, i, Math.max(1, c.ravens.length));
-    const y = heightAt(x, z);
-    r.gy = y;
-    flyTo(r, x, y + RAVEN_STAND, z, 7, 1.5, () => { r.mode = 'ground'; r.timer = rng.range(1.5, 4); r.peck = 0; r.pose.pitch = 0.12; r.pose.roll = 0; r.pose.b1 = 0; });
-  };
-  const departureEnds = new WeakMap<Bird, number>();
-  const flyOff = (r: Bird): void => {
-    const p = player.position, dx = r.pose.x - p.x, dz = r.pose.z - p.z, d = Math.hypot(dx, dz) || 1;
-    const ang = Math.atan2(dz / d, dx / d) + rng.range(-0.6, 0.6);
-    if (r.mode === 'ground') { r.pose.b1 = 0; r.burst = 6; flap(r); }
-    flyTo(r, r.pose.x + Math.cos(ang) * 140, r.pose.y + rng.range(35, 50), r.pose.z + Math.sin(ang) * 140, 11, 4, null);
-    departureEnds.set(r, now() + r.dur);
-  };
   const dim = (c: Carcass): void => {
     // the hide is off: the body dims a little (its own fur material only; a shared one is never touched)
     if (c.dimmed) return;
@@ -267,236 +138,24 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
       if (original !== undefined) harvestColors.set(c, { original, dimmed: fur.color.clone() });
     }
   };
-
-  const updateCarcasses = (t: number, dt: number): void => {
+  const updateCarcasses = (t: number): void => {
     const pp = player.position;
-    for (let i = carcasses.length - 1; i >= 0; i--) {
+    for (let k = 0; k < 256; k++) { // newest first; a few kills at a time
+      const i = carcasses.length - 1 - k;
+      if (i < 0) break;
       const c = carcasses[i];
       if (c === undefined) continue;
       const a = c.a;
-      const gone = a.hidden || !animals.animals.includes(a);
-      if (gone) { for (const r of c.ravens) if (r.mode !== 'off') flyOff(r); c.ravens.length = 0; carcasses.splice(i, 1); continue; }
-      const dist = Math.hypot(a.position.x - pp.x, a.position.z - pp.z);
-      if (c.visit === 'waiting' && t >= c.comeT) {
-        const free = freeRavens(), n = Math.min(ravenCount(a.kind), free.length);
-        if (n === 0 || dist > 170) { c.visit = 'gone'; } // the flock is at another kill / you are far off: they came and went unseen
-        else {
-          c.visit = 'overhead'; c.leaveT = t + 150;
-          for (let k = 0; k < n; k++) {
-            const r = free[k];
-            if (r === undefined) continue;
-            c.ravens.push(r);
-            const ang = rng.range(0, TAU), far = rng.range(80, 110);
-            spawnAt(r, a.position.x + Math.cos(ang) * far, heightAt(a.position.x, a.position.z) + rng.range(30, 40), a.position.z + Math.sin(ang) * far, a.position.x, a.position.z);
-            flyTo(r, a.position.x + Math.cos(ang) * 9, heightAt(a.position.x, a.position.z) + 14, a.position.z + Math.sin(ang) * 9, 10, 2, () => { circleOver(r, c, false); });
-          }
-          const lead = c.ravens[0];
-          if (lead) caw(lead, c.ravens.length > 1); // they announce themselves coming in
-        }
-      }
-      if (c.visit === 'overhead' || c.visit === 'feeding') {
-        const near = Math.min(...c.ravens.map((r) => Math.hypot(r.pose.x - pp.x, r.pose.z - pp.z)));
-        const flushAt = player.sprinting ? RAVEN_FLUSH_RUN : RAVEN_FLUSH;
-        let feeding = false;
-        for (let k = 0; k < c.ravens.length; k++) {
-          const r = c.ravens[k];
-          if (r === undefined) continue;
-          if (r.mode === 'ground') {
-            feeding = true;
-            if (near < flushAt) { r.pose.b1 = 0; r.burst = 7; flyTo(r, r.pose.x + rng.range(-4, 4), r.pose.y + rng.range(9, 13), r.pose.z + rng.range(-4, 4), 6, 3, () => { circleOver(r, c, true); }); flap(r); caw(r); }
-          } else if (r.mode === 'circle' && dist > RAVEN_RELAND && r.timer <= 0 && t < c.leaveT) landBy(r, c, k);
-        }
-        c.visit = feeding ? 'feeding' : 'overhead';
-        if (feeding) c.feedLeft -= dt;
-        if (c.feedLeft <= 0 || t > c.leaveT) { for (const r of c.ravens) flyOff(r); c.ravens.length = 0; c.visit = 'gone'; }
+      if (a.hidden || !animals.animals.includes(a)) { if (c.site >= 0) ravens.release(c.site, pp); carcasses.splice(i, 1); continue; }
+      if (c.site === -1 && t >= c.comeT) { // the flock is at another kill / you are far off: they came and went unseen
+        const far = Math.hypot(a.position.x - pp.x, a.position.z - pp.z) > sc.reach;
+        c.site = far ? -2 : ravens.gather(a.position.x, a.position.z, sc.bodyWidths[a.kind] ?? 0.8, sc.visitors[a.kind] ?? sc.defaultVisitors);
+        if (c.site < 0) c.site = -2;
       }
       if (c.harvestT >= 0) {
         dim(c);
-        if (carcassMayGo(c.visit, t - c.harvestT)) { a.fadeOut(); carcasses.splice(i, 1); }
-      } else if (c.visit === 'gone' && t - c.killT > 900) carcasses.splice(i, 1); // an old unharvested kill: nothing more to track
-    }
-  };
-
-  const updateRaven = (r: Bird, dt: number): void => {
-    const p = r.pose;
-    switch (r.mode) {
-      case 'fly': stepFly(r, dt); break;
-      case 'circle': {
-        flight.step(p,r,dt);r.timer-=dt;
-        p.b1 = 1;
-        // soaring: mostly held wings, the odd few beats
-        if (r.burst > 0 || rng.next() < dt * 0.25) wings(r, dt); else { p.a0 += (0.1 - p.a0) * Math.min(1, dt * 4); p.a1 += (0 - p.a1) * Math.min(1, dt * 4); }
-        if (rng.next() < dt * 0.1) caw(r, rng.next() < 0.35); // a croak from overhead now and then
-        break;
-      }
-      case 'ground': {
-        // feeding: bouts of pecks at the carcass, a look round between, now and then a hop to a new spot
-        const c = carcasses.find((k) => k.ravens.includes(r));
-        const tx = c ? c.a.position.x : p.x, tz = c ? c.a.position.z : p.z;
-        const want = Math.atan2(tx - p.x, tz - p.z);
-        p.yaw += wrap(want - p.yaw) * Math.min(1, dt * 3);
-        p.a0 += (-0.08 - p.a0) * Math.min(1, dt * 6); p.a1 += (1 - p.a1) * Math.min(1, dt * 6);
-        p.b1 += (0 - p.b1) * Math.min(1, dt * 8);
-        r.timer -= dt;
-        if (r.peck > 0) {
-          r.peckT += dt * 5.5;
-          p.a3 = 0.35 + 0.75 * Math.max(0, Math.sin(r.peckT * Math.PI));
-          p.a2 += (0 - p.a2) * Math.min(1, dt * 6);
-          if (r.peckT >= 1) { r.peckT = 0; r.peck--; }
-        } else {
-          p.a3 += (-0.15 - p.a3) * Math.min(1, dt * 5);
-          lookAbout(r, dt, 1.1, 1.4);
-          if (r.timer <= 0) {
-            r.timer = rng.range(1.2, 3.5);
-            if (rng.next() < 0.12) caw(r, true); // squabbling over the kill
-            if (rng.next() < 0.22 && c) { // a hop (a flick of the wings)
-              const [x, z] = groundSpot(c, rng.int(0, 5), 6); r.gy = heightAt(x, z); r.ax = p.x; r.az = p.z; r.cx = x; r.cz = z; r.t = 0; r.dur = 0.35; r.burst = 1;
-            } else { r.peck = rng.int(2, 5); r.peckT = 0; }
-          }
-        }
-        if (r.t < r.dur && r.dur <= 0.4) { // the hop in progress
-          r.t += dt;
-          const u = Math.min(1, r.t / r.dur);
-          place(r, r.ax + (r.cx - r.ax) * u, r.gy + RAVEN_STAND + Math.sin(u * Math.PI) * 0.18, r.az + (r.cz - r.az) * u);
-          if (r.burst > 0) { p.a1 = 0.3; p.a0 = Math.sin(u * TAU) * 0.6; }
-          if (u >= 1) { r.burst = 0; r.dur = 1; r.t = 1; }
-        } else place(r, p.x, heightAt(p.x, p.z) + RAVEN_STAND, p.z);
-        break;
-      }
-      case 'off': case 'perch': break;
-      default: break;
-    }
-  };
-
-  /** the nearest place the journal has not seen (the breadcrumbs' and the owl's heading) */
-  const guide = new PlaceGuide(data.guide.policy, { points: () => h.places?.() ?? [], discovered: h.visited,
-    position: () => player.position, fly: flyCrumbs, time: now, random: (lo: number, hi: number) => rng.range(lo, hi) });
-
-  // ── the owl (night) ──
-  let owlNextT = 0, owlHootT = 0;
-  const owlPerch = (near: THREE.Vector3, rMin: number, rMax: number, toward: PlaceSpot | null): { x: number; y: number; z: number } | null => {
-    // a snag's broken top (the bark's own top, not the placement's height), the nearer / the more toward `toward` the better
-    const tree = perchTree(near.x, near.z, rMin, rMax, (t, d) => {
-      if (t.species !== 'snag') return 0;
-      return toward ? Math.max(0.1, ((t.x - near.x) * (toward.x - near.x) + (t.z - near.z) * (toward.z - near.z)) / (d * Math.hypot(toward.x - near.x, toward.z - near.z) || 1) + 1) : 1;
-    });
-    return tree ? trunks.top(tree) : null;
-  };
-  const owlSettle = (spot: { x: number; y: number; z: number }): void => {
-    owl.gy = spot.y;
-    flyTo(owl, spot.x, spot.y + OWL_STAND, spot.z, 7.5, 2.5, () => { owl.mode = 'perch'; owl.pose.pitch = 1.1; owl.pose.roll = 0; owl.pose.b1 = 0; owl.pose.b2 = 1.1; owl.timer = rng.range(2, 5); owlHootT = now() + rng.range(1.5, 4); });
-  };
-  const updateOwl = (dt: number, night: number): void => {
-    const p = owl.pose, pp = player.position;
-    wild.glow.value = smoothstep(0, 1, (night - 0.45) / 0.3);
-    if (owl.mode === 'off') {
-      if (night < 0.6 || now() < owlNextT) return;
-      const spot = owlPerch(pp, 28, 70, null);
-      owlNextT = now() + 20;
-      if (!spot) return;
-      // it arrives unseen: from behind you, low through the trees
-      const bx = pp.x - fwd.x * 60, bz = pp.z - fwd.z * 60;
-      spawnAt(owl, bx, heightAt(bx, bz) + 12, bz, spot.x, spot.z);
-      owlSettle(spot);
-      return;
-    }
-    if (owl.mode === 'fly') { stepFly(owl, dt); return; }
-    if (owl.mode !== 'perch') return;
-    const d = Math.hypot(p.x - pp.x, p.z - pp.z);
-    // the stare: the head follows you (owls turn it most of the way round), the body faces off
-    const toYou = Math.atan2(pp.x - p.x, pp.z - p.z), rel = THREE.MathUtils.clamp(wrap(toYou - p.yaw), -2.3, 2.3);
-    owl.headTo = d < 45 ? rel : owl.headTo;
-    if (d >= 45) lookAbout(owl, dt, 1.6, 0.35); else p.a2 += (owl.headTo - p.a2) * Math.min(1, dt * 2.5);
-    p.a3 = 1.1 + Math.sin(now() * 0.7) * 0.05; p.a0 += (-0.05 - p.a0) * Math.min(1, dt * 5); p.a1 += (1 - p.a1) * Math.min(1, dt * 5);
-    place(owl, p.x, owl.gy + OWL_STAND, p.z);
-    if (now() >= owlHootT) { owlHootT = now() + rng.range(14, 28); if (d < 150) voice(data.sounds.hoot, p, 0.9); }
-    if (night < 0.4) { p.b2 = 0; p.pitch = 0; owl.burst = 4; flyOff(owl); return; } // dawn: it leaves
-    if (d < 14 || d > 120) {
-      // flushed (or left far behind): a silent glide on — toward the nearest place the journal has not seen, if any
-      p.b2 = 0; p.pitch = 0; owl.burst = 3; p.b1 = 0;
-      const target = guide.target();
-      const spot = d > 120 ? null : owlPerch(new THREE.Vector3(p.x, 0, p.z), 30, 65, target);
-      if (spot) owlSettle(spot); else { flyOff(owl); owlNextT = now() + 25; }
-    }
-  };
-
-  // ── the woodpecker (day) ──
-  let woodNextT = 0, drumT = 0, drumOn = 0, drumVoiced = false;
-  const trunkSpot = (near: { x: number; z: number }, rMin: number, rMax: number): { x: number; y: number; z: number; yaw: number } | null => {
-    const tree = perchTree(near.x, near.z, rMin, rMax, (t) => (t.species === 'snag' ? 3 : t.species === 'birch' ? 1.5 : t.species === 'ambient' ? 1 : 0));
-    if (!tree) return null;
-    const y = tree.y + rng.range(3.2, 5.5), sec = trunks.section(tree, y);
-    if (!sec) return null;
-    // on the bark (the model's own trunk section at that height), on the side toward you, give or take
-    const pp = player.position, ang = Math.atan2(pp.z - sec.z, pp.x - sec.x) + rng.range(-1.1, 1.1), rad = sec.r + 0.05;
-    return { x: sec.x + Math.cos(ang) * rad, y, z: sec.z + Math.sin(ang) * rad, yaw: Math.atan2(-Math.cos(ang), -Math.sin(ang)) };
-  };
-  const woodSettle = (s: { x: number; y: number; z: number; yaw: number }): void => {
-    wood.gy = s.y;
-    flyTo(wood, s.x - Math.sin(s.yaw) * 0.6, s.y - 0.4, s.z - Math.cos(s.yaw) * 0.6, 8, 1.2, () => {
-      wood.mode = 'perch'; place(wood, s.x, s.y, s.z); wood.pose.yaw = s.yaw; wood.pose.pitch = 1.3; wood.pose.roll = 0; wood.pose.b1 = 0.3; wood.pose.b2 = 1.3;
-      wood.timer = rng.range(1, 3); drumOn = 0;
-    });
-  };
-  let noiseBuf: AudioBuffer | null = null;
-  /** one knock of the drum roll: a short bandpassed noise tick, placed by distance / side */
-  const knock = (gain: number, pan: number): void => {
-    const au = h.audio;
-    if (!au.ready) return;
-    const c = au.ctx;
-    if (noiseBuf === null) { noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.03), c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (audioRandom() * 2 - 1) * (1 - i / d.length) ** 3; }
-    tap.sound?.(data.taps.knock);
-    const s = ownAudioSource(c.createBufferSource()); s.buffer = noiseBuf;
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 850 + audioRandom() * 120; bp.Q.value = 2.2;
-    const g = c.createGain(); g.gain.value = gain;
-    let node: AudioNode = s.connect(bp).connect(g);
-    if ('createStereoPanner' in c) { const pn = c.createStereoPanner(); pn.pan.value = pan; node = node.connect(pn); }
-    node.connect(au.sfx);
-    s.start();
-  };
-  const updateWood = (dt: number, night: number): void => {
-    const p = wood.pose, pp = player.position;
-    if (wood.mode === 'off') {
-      if (night > 0.35 || now() < woodNextT) return;
-      woodNextT = now() + 15;
-      const s = trunkSpot(pp, 20, 55);
-      if (!s) return;
-      const bx = s.x + (s.x - pp.x) * 0.8, bz = s.z + (s.z - pp.z) * 0.8;
-      spawnAt(wood, bx, s.y + 4, bz, s.x, s.z);
-      woodSettle(s);
-      return;
-    }
-    if (wood.mode === 'fly') { stepFly(wood, dt); return; }
-    if (wood.mode !== 'perch') return;
-    const d = Math.hypot(p.x - pp.x, p.z - pp.z);
-    p.a0 += (-0.05 - p.a0) * Math.min(1, dt * 6); p.a1 += (1 - p.a1) * Math.min(1, dt * 6);
-    wood.timer -= dt;
-    if (drumOn > 0) {
-      // the drum roll: ~16 knocks a second for ~1.2 s, the head a blur against the trunk
-      drumOn -= dt; drumT += dt * 16;
-      p.a3 = 0.75 + 0.35 * Math.abs(Math.sin(drumT * Math.PI));
-      if (drumT >= 1) { ambientTick(data.taps.drum, () => { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60 && !drumVoiced) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8);  }); }
-    } else {
-      p.a3 += (0.35 - p.a3) * Math.min(1, dt * 6);
-      lookAbout(wood, dt, 0.7, 0.8);
-      if (wood.timer <= 0) {
-        // the perch's countdown is a scheduler: its plays are ambient (E357 F2, 03 §2.3)
-        ambientTick(data.taps.perch, () => {
-          wood.timer = rng.range(3.5, 8);
-          const r = rng.next();
-          if (r < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
-          else if (r < 0.42 && d < 110) voice(data.sounds.foragerCall, p, 0.8);
-          // the drum: the set's burst (the synth roll when the set is not there)
-          else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice(data.sounds.drum, p, 0.8); if (drumVoiced) drumOn = 1.9; } // the set's bursts run ~2 s
-        });
-      }
-    }
-    if (night > 0.45 || d > 110) { p.b2 = 0; p.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30; return; }
-    if (d < 9) {
-      p.b2 = 0; p.pitch = 0; wood.burst = 3; p.b1 = 1;
-      voice(data.sounds.foragerCall, p, 0.8); // flushed: it calls as it goes
-      const s = trunkSpot({ x: p.x, z: p.z }, 22, 45);
-      if (s) woodSettle(s); else flyOff(wood);
+        if (left(c) || t - c.harvestT > sc.giveUp) { a.fadeOut(); if (c.site >= 0) ravens.release(c.site, pp); carcasses.splice(i, 1); }
+      } else if (left(c) && t - c.killT > 900) carcasses.splice(i, 1); // an old unharvested kill: nothing more to track
     }
   };
 
@@ -504,14 +163,22 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   const crumbs = createAmbientFlock(data.guide.flock, wild.look);
   wild.mesh.add(crumbs.group); // the guide flock draws beside the wildlife (both at the origin)
   installAmbientFlock(h.ctx, crumbs, player);
+  const guide = new PlaceGuide(data.guide.policy, { points: () => h.places?.() ?? [], discovered: h.visited,
+    position: () => player.position, fly: flyCrumbs, time: now, random: (lo: number, hi: number) => rng.range(lo, hi) });
   function flyCrumbs(target: PlaceSpot): boolean {
     if (!crumbs.guide(player.position, target.x, target.z)) return false;
-    ravenVoiceT = now() + rng.range(3, 6); voice(data.sounds.pair, crumbs.flock.birds[0], 0.9); // croaking as they pass over: look up
+    const lead = crumbs.flock.birds[0];
+    if (lead) h.sfx?.shot(data.sounds.pair, { at: lead, gain: 0.9 }); // croaking as they pass over: look up
     return true;
   }
+  /** the player as the flocks read it: sprinting, the night, the view's forward, the nearest unseen place (the owl's heading) */
+  let night = 0;
+  const reader: AmbientFlockPlayer = { get x() { return player.position.x; }, get y() { return player.position.y; }, get z() { return player.position.z; },
+    get fast() { return player.sprinting; }, get light() { return night; }, get fx() { return fwd.x; }, get fz() { return fwd.z; }, get toward() { return guide.target(); } };
 
+  const hareMayDraw=(distance:number,seen:boolean):boolean=>distance<=data.forager.range&&(distance<=data.forager.visibleRange||seen);
   // ── the hares ──
-  const hares: Hare[] = Array.from({ length: N_HARE }, (_, i) => ({ ...foragerState(0, 0, 0), slot: SLOT.hare + i, pose: newPose(KIND.hare), retry: 0, motion: { y: -999, hind: 0, fore: 0, pitch: 0 } }));
+  const hares: Hare[] = Array.from({ length: data.forager.count }, (_, i) => ({ ...foragerState(0, 0, 0), slot: i, pose: newPose(data.forager.model), retry: 0, motion: { y: -999, hind: 0, fore: 0, pitch: 0 } }));
   for (const hr of hares) hr.pose.scale = data.forager.scale;
   const forager = new AmbientForager(data.forager.policy, rng, h.trees);
   const seatHare = (hr: Hare, rMin: number, rMax: number, hidden: boolean): boolean => {
@@ -547,7 +214,10 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     wild.add(p);
   };
 
+
   // ── the skinning beat (F2) ──
+  const BEAT = data.harvest;
+  const voice = (family: string, gain: number): boolean => { shot.at = undefined; shot.gain = gain; return h.sfx?.shot(family, shot) ?? false; };
   let beatCancel: (() => void) | undefined;
   let beatT = -1, beatCarcass: Animal | null = null, beatGive: (() => void) | null = null, cutsDone = 0;
   let addPitch = 0, addY = 0, lastRx = Number.NaN, lastPy = Number.NaN;
@@ -565,7 +235,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     h.audio.footstep(false, 'litter'); // kneeling in the needles
     const c = carcasses.find((k) => k.a === carcass);
     if (c) c.harvestT = now();
-    else carcasses.push({ a: carcass, killT: now() - 60, comeT: now() + ravenDelay(rng.next()) * 0.5, harvestT: now(), visit: 'waiting', ravens: [], feedLeft: rng.range(40, 70), leaveT: 0, dimmed: false });
+    else carcasses.push({ a: carcass, killT: now() - 60, comeT: now() + ravenDelay(rng.next()) * 0.5, harvestT: now(), site: -1, dimmed: false });
   };
   const updateBeat = (dt: number): void => {
     // take last frame's offset back when nothing rewrote the camera since (Player.update rewrites it every frame)
@@ -586,7 +256,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     const cut = BEAT.cuts[cutsDone];
     if (cut !== undefined && beatT >= cut) {
       cutsDone++;
-      if (!voice(cutsDone % 2 === 1 ? data.sounds.cutA : data.sounds.cutB, undefined, 0.85)) sharedWeaponVoices(h.audio).swordHit('flesh', (audioRandom() - 0.5) * 0.3, 0.42);
+      if (!voice(cutsDone % 2 === 1 ? data.sounds.cutA : data.sounds.cutB, 0.85)) sharedWeaponVoices(h.audio).swordHit('flesh', (audioRandom() - 0.5) * 0.3, 0.42);
       fx.kick(-1.1, cutsDone % 2 === 0 ? 0.8 : -0.8);
     }
     if (beatT >= BEAT.len) {
@@ -624,7 +294,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   });
 
   // ── the frame ──
-
   const scheduler = new TickScheduler();
   const ambient = { id:data.system.ambient, phase: 'update' as const, tick: 'fx', run: (): void => undefined };
   h.ctx.system({ id:data.system.id, phase: 'update', after:data.system.after, before:data.system.before, run: (dt) => {
@@ -633,31 +302,11 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     wild.begin();
     updateBeat(dt);
     cam.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
-    const night = sky.dayNight?.night ?? 0, t = now();
+    night = sky.dayNight?.night ?? 0;
+    wild.glow.value = smoothstep(0, 1, (night - 0.45) / 0.3);
     const ambientDt = scheduler.systemDt(ambient, dt);
-    if (ambientDt > 0) { updateCarcasses(t, ambientDt); guide.update(ambientDt, 0, () => night < 0.5 && !h.inCombat()); }
-    // Departure/placement is visibility work: a held brain must not retain a finished fly-off forever.
-    if (wood.mode === 'perch' && Math.hypot(wood.pose.x - player.position.x, wood.pose.z - player.position.z) > 110) {
-      wood.pose.b2 = 0; wood.pose.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30;
-    }
-    for (let i = 0; i < 258; i++) {
-      const subject = fliers[i];
-      if (subject === undefined) break;
-      const end = departureEnds.get(subject);
-      if (subject.mode === 'fly' && subject.after === null && end !== undefined && now() >= end) { off(subject); departureEnds.delete(subject); }
-    }
-    for (const r of ravens) {
-      if (r.mode === 'off') { scheduler.forget(r); continue; }
-      const tickDt = scheduler.takeBrainDtAt('fx', r, r.pose);
-      if (tickDt > 0) updateRaven(r, tickDt);
-      if (flying(r)) wild.add(r.pose);
-    }
-    const owlDt = scheduler.takeBrainDtAt('fx', owl, owl.mode === 'off' ? player.position : owl.pose);
-    if (owlDt > 0) updateOwl(owlDt, night);
-    if (owl.mode !== 'off') wild.add(owl.pose);
-    const woodDt = scheduler.takeBrainDtAt('fx', wood, wood.mode === 'off' ? player.position : wood.pose);
-    if (woodDt > 0) updateWood(woodDt, night);
-    if (wood.mode !== 'off') wild.add(wood.pose);
+    if (ambientDt > 0) { updateCarcasses(now()); guide.update(ambientDt, 0, () => night < 0.5 && !h.inCombat()); }
+    for (let i = 0; i < 3; i++) { const f = flocks[i]; if (f === undefined) break; f.update(ambientDt, reader); drawFlock(f); }
     for (const hr of hares) {
       if (!prepareHare(hr, dt)) { scheduler.forget(hr); continue; }
       const tickDt = scheduler.takeBrainDtAt('fx', hr, hr.x === 1e5 ? player.position : { x: hr.x, y: hr.pose.y, z: hr.z });
@@ -673,29 +322,22 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
 
   const life: AmbientLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
   const probe = {
-    wild, ravens, owl, wood, guides: crumbs.flock.birds, hares, carcasses, 
+    wild, ravens: ravens.birds, owl: owl.birds[0], wood: wood.birds[0], guides: crumbs.flock.birds, hares, carcasses,
     /** a breadcrumb flock now (captures); the place it heads for */
     crumbs: () => guide.attempt(true),
-    /** the owl onto a perch near you now (captures; set the clock to night first) — or onto the snag nearest (x, z) */
-    owlNow: (x?: number, z?: number) => {
-      if (x === undefined || z === undefined) { off(owl); owlNextT = 0; return true; }
-      const spot = owlPerch(new THREE.Vector3(x, 0, z), 0, 20, null);
-      if (!spot) return false;
-      const pp = player.position;
-      spawnAt(owl, pp.x - fwd.x * 40, spot.y + 6, pp.z - fwd.z * 40, spot.x, spot.z); owlSettle(spot);
-      return true;
-    },
+    /** the owl onto a perch near you now (captures; set the clock to night first), or onto the snag nearest (x, z) */
+    owlNow: (x?: number, z?: number) => { if (x === undefined || z === undefined) { owl.visitSoon(); return true; } return owl.visitAt(x, z, 20, reader); },
     /** the woodpecker onto a trunk near you now */
-    woodNow: () => { wood.mode = 'off'; woodNextT = 0; },
+    woodNow: () => { wood.visitSoon(); },
     /** ravens to the nearest carcass now (or the one at x, z) */
     ravensTo: (x?: number, z?: number) => {
       const pp = player.position, qx = x ?? pp.x, qz = z ?? pp.z;
       let best: Carcass | undefined, bd = Infinity;
       for (const c of carcasses) { const d = Math.hypot(c.a.position.x - qx, c.a.position.z - qz); if (d < bd) { bd = d; best = c; } }
-      if (best?.visit === 'waiting') best.comeT = now();
+      if (best?.site === -1) best.comeT = now();
       return best !== undefined;
     },
-    /** the skinning beat's clock (−1 idle) */
+    /** the skinning beat's clock (-1 idle) */
     beat: () => beatT,
   };
   h.ctx.debug.expose(data.debug.id,probe);

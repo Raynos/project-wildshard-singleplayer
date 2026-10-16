@@ -104,10 +104,10 @@ try {
     const { ctx, page } = await open(PHONE, `chunk=pine-hollow&tier=phone&touch&tod=0.33${flag('birdq', '') ? `&${flag('birdq', '')}` : ''}`);
     await page.evaluate(() => {
       const w = window.__wildshard?.world; w.animals.calm = true; window.__ls = { pose: null };
-      const L = () => window.__pineLife, at = (b) => (b ? { x: b.pose.x, y: b.pose.y, z: b.pose.z, yaw: b.pose.yaw } : null);
+      const L = () => window.__pineLife, at = (b) => (b ? { x: b.x, y: b.y, z: b.z, yaw: b.yaw } : null);
       window.__lsT = {
-        raven: () => at(L().ravens.find((b) => b.mode === 'ground')),
-        guide: () => at(L().guides.find((b) => b.mode !== 'off')),
+        raven: () => at(L().ravens.find((b) => b.state === 9)),
+        guide: () => at(L().guides.find((b) => b.state !== 0)),
         wood: () => at(L().wood),
       };
       w.game.onLate(() => {
@@ -154,7 +154,7 @@ try {
     };
     if (want('birds')) {
       await page.evaluate(() => window.__pineLife.ravensTo());
-      await page.waitForFunction(() => window.__pineLife.ravens.filter((r) => r.mode === 'ground').length >= 2, undefined, { timeout: 70_000, polling: 500 }).catch(() => console.error('  ravens: not down'));
+      await page.waitForFunction(() => window.__pineLife.ravens.filter((r) => r.state === 9).length >= 2, undefined, { timeout: 70_000, polling: 500 }).catch(() => console.error('  ravens: not down'));
       await sleep(2500);
       await closeUp('birds-ravens', 'raven', [1.0, 0.5, 0.35], 42);
       // the flight pose: a breadcrumb flock overtaking, tracked from beside
@@ -162,7 +162,7 @@ try {
       await sleep(2500);
       await closeUp('birds-flying', 'guide', [1.2, 0.8, -1.4], 45);
       await page.evaluate(() => { window.__ls.pose = null; window.__wildshard.world.freeCamera = false; window.__pineLife.woodNow(); });
-      await page.waitForFunction(() => window.__pineLife.wood.mode === 'perch', undefined, { timeout: 40_000, polling: 500 }).catch(() => console.error('  woodpecker: not perched'));
+      await page.waitForFunction(() => window.__pineLife.wood.state === 10, undefined, { timeout: 40_000, polling: 500 }).catch(() => console.error('  woodpecker: not perched'));
       await sleep(1500);
       await closeUp('birds-woodpecker', 'wood', [0.75, 0.05, -0.45], 40);
     }
@@ -196,7 +196,7 @@ try {
         const p = window.__ls.pose, cam = w.game.camera;
         if (!p) return;
         // from where the player stands (the owl's head follows the player): its face
-        const o = window.__pineLife.owl.pose, pl = w.player.position, d = Math.hypot(pl.x - o.x, pl.z - o.z) || 1;
+        const o = window.__pineLife.owl, pl = w.player.position, d = Math.hypot(pl.x - o.x, pl.z - o.z) || 1;
         const fx = (pl.x - o.x) / d, fz = (pl.z - o.z) / d;
         cam.position.set(o.x - fz * p.off[0] + fx * p.off[2], o.y + p.off[1], o.z + fx * p.off[0] + fz * p.off[2]); cam.up.set(0, 1, 0); cam.lookAt(o.x, o.y + 0.1, o.z);
         for (const ch of cam.children) ch.visible = false;
@@ -205,7 +205,7 @@ try {
       });
       window.__pineLife.owlNow();
     });
-    await page.waitForFunction(() => window.__pineLife.owl.mode === 'perch', undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  owl: not perched'));
+    await page.waitForFunction(() => window.__pineLife.owl.state === 10, undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  owl: not perched'));
     await sleep(1500);
     await page.evaluate(() => { window.__wildshard.world.freeCamera = true; window.__ls.pose = { off: [0.4, -0.2, 1.6], fov: 40 }; });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });

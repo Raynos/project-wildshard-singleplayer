@@ -82,8 +82,8 @@ try {
   // ── the woodpecker (day): onto a trunk near you, a while to drum / call, then flushed ──
   await step('woodpecker: settles, drums / calls (22 s)', () => page.evaluate(() => { window.__pineLife.woodNow(); }), 22000);
   await step('woodpecker: flushed (walk up to it)', () => page.evaluate(() => {
-    const b = window.__pineLife.wood; if (b.mode === 'off') return 'not out';
-    window.__wildshard.world.player.spawn(b.pose.x + 3, b.pose.z + 3, 0); return b.mode;
+    const b = window.__pineLife.wood; if (b.state === 0) return 'not out';
+    window.__wildshard.world.player.spawn(b.x + 3, b.z + 3, 0); return b.state;
   }), 3000);
 
   // ── the ravens' breadcrumbs ──
@@ -109,7 +109,7 @@ try {
   await step('ravens: walk up, they lift off', () => page.evaluate(() => {
     const a = window.__gapDeer; if (!a) return 'no animal';
     window.__wildshard.world.player.spawn(a.position.x + 3, a.position.z, 0);
-    return window.__pineLife.ravens.map((r) => r.mode);
+    return window.__pineLife.ravens.map((r) => r.state);
   }), 4000);
   await step('skinning beat (two strokes)', () => page.evaluate(() => {
     const a = window.__gapDeer; if (!a) return 'no animal';

@@ -3,6 +3,7 @@
 // scatter (runtime/looks/reefBed.ts), the faceted ground (runtime/looks/facetedGround.ts), the mooring lines
 // (runtime/props/mooringLines.ts) and the streamed ground cover (runtime/looks/streamedCover.ts). The rows themselves are
 // data/{smoke,seabed,ground,boat,cover}Look.ts.
+import type { AmbientFlockData } from '@wildshard/format/ambientLife';
 
 /** A smoke column's numbers as data. */
 export interface SmokeColumnRow {
@@ -75,6 +76,8 @@ export interface ReefBedRow {
   readonly piecePrefix: string;
   readonly fishMesh: string;
   readonly fishPiece: string;
+  /** the school's swim: an ambient flock wheel row (the baked school sets its centre, radius, depth and count) */
+  readonly swim: AmbientFlockData;
 }
 
 /** A faceted ground's numbers as data. */

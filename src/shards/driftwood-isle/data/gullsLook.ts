@@ -22,7 +22,7 @@ export const GULL_FLOCK={seed:0xcfb0,count:36,scale:1.3,foot:0.221,wingbeat:'gul
   perch:{share:0.6,flush:4,flushJitter:[0.8,1.25],settle:0.6,clear:10,idle:[1.5,5],every:[3,9],hop:{chance:0.5,duration:0.36,height:0.14,turn:0.9},head:{rate:0.9,range:1.1,duration:[0.25,0.5]},
     takeoff:{duration:2.6,out:5,up:3.5,beats:8,bank:0.35},landing:{speed:9,minimum:2.5,rise:4,flare:0.82,bank:0.5}},
   guide:{speed:12,borrow:60,start:[30,3,14],pass:[6,4,10],end:{min:40,max:120,up:20},formation:[[0,0,0],[3.5,-3,-0.6],[3.5,3,-0.6]],stagger:0,call:0.4,bank:0.5,after:{ahead:60,up:14,speed:10}},
-  call:{cue:'cue.ambient.gull',every:[5,12],first:6},
+  call:{cue:'cue.ambient.gull',every:[5,12],first:6},scavenge:null,visit:null,
   channels:[['flap','head','fold','legs'],null],attributes:['aAnim',null],
   system:{id:'shard.driftwood.gulls',after:[],before:['main.world']},
 };
