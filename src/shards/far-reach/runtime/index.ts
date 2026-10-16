@@ -7,7 +7,6 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
-import { CROWN, DAIS, ROC } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
 import { effectField } from '@wildshard/sdk/looks/effectField';
@@ -36,13 +35,8 @@ declare module '@wildshard/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'far-fan': true }
 }
 
-/** Every runtime collection is a finite authored roster; refuse overflow instead of silently dropping content. */
+// The authored catalogue bounds both view rosters; each contains fewer than 64 rows.
 const MAX_RUNTIME_ROWS = 64;
-function boundedRows<T>(rows: readonly T[]): readonly T[] {
-  if (rows.length > MAX_RUNTIME_ROWS) throw new RangeError('Sky runtime roster exceeds its finite row bound');
-  return rows;
-}
-
 const GALE_WALL = ROC_STRIKES[1];
 
 export class SkyReachPlugin extends HybridRuntimePlugin {
@@ -105,8 +99,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     rt.interactables.push(...channels.interactables);
 
     await worldBuildYield(ctx, 4);
-    const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vane.flag }));
-    const eye = new Vector3();
+        const eye = new Vector3();
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
@@ -114,8 +107,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
-        const row = vanes[i]; if (row === undefined) break;
-        row.vane.rotor.rotation.y += dt * (flags.has(row.flag) ? 6 : 0.25);
+        const vane = built.vanes[i]; if (vane === undefined) break;
+        vane.rotor.rotation.y += dt * (flags.has(vane.flag) ? 6 : 0.25);
       }
     } });
 
@@ -140,7 +133,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     await this.populate(ctx, source, {}, () => worldBuildYield(ctx, 4));
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.actors('rays').map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
-    boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
       // each wake in the level's own frame (it stands at the root): inside a grid cell the root is at the cell's render offset
@@ -164,27 +156,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       // a faint veil that thickens over the windup (loop 5: at 0.42 a wall you stand in filled the frame with white)
       wall.rotation.y = body.aim; wall.material.opacity = 0.06 + 0.16 * k;
     } });
-  }
-  /**
-   * Fight state for a capture (E399, shard-progress `stage`, through `__wildshard.shard.farReach`): only what a player
-   * reaches in play. 'roc-stalk': the Storm Roc, first phase, at a point ON its 13 m circle over the dais (the far side,
-   * 3 m west), turning in on a stalk toward a player at the arena's entrance (mockup D): its circle's height, a spot every
-   * lap passes and every stalk from there starts at. 'quest-crown':
-   * the quest as a player has it in the arena (finished, the bridge raised, its reward paid; council round 1's should-fix),
-   * staged on the shot before so its toasts are long gone.
-   */
-  override stage(name: string): void {
-    super.stage(name);
-    const body = this.populationControl;
-    // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
-    // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 1.5 s
-    // settle (steady circling, a steady bank) it is on the lap's north-east quarter, turning in toward the arena view and banking along it (tried at
-    // -1.2 / -1.45 / -1.7 / -1.85 / -2.07: east of this it leaves the frame, west of it it crosses side-on)
-    // ('roc-lap@<radians>' places it at another point of the same lap)
-    if (name.startsWith('roc-lap')) { this.built?.storm.strike(0.5); if (body !== null) body.stageLap(Number(name.split('@')[1] ?? -2.64)); }
-    if (name === 'roc-opening') { this.built?.storm.strike(1.0); if (body !== null) body.stageOpening(); }
-    if (name === 'roc-stalk') this.built?.storm.strike(0.15);
-    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   /** Borrowed capture command on the actual bridge owner. */

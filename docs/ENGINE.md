@@ -7575,3 +7575,24 @@ and save owners stay there. `sdk/headlessRuntime.prepareNativeRuntime`
 selects this section when no explicit legacy entry is supplied. A missing
 section refuses rather than selecting source code. The resident and worker
 reuse their existing tick, effect and snapshot boundaries.
+
+### Borrowed decision bodies (KS1)
+
+A species brain `{archetype:'decision', data}` selects one verified
+`sim/scripts` binding and its actual `runtime.spawns` actor. The internal
+`borrowedDecisionAuthority` in `game/shardfile/borrowedDecisions.ts` lends
+that same body to `ShardDecisions`, through the existing page/native fixed
+step and contact ports. It allocates no body, encounter or simulation host.
+BossBrain still owns fight/phase/retry/victory; the guest owns decisions,
+timers and move selection. The existing policy save slot contains logical
+guest/move and strike continuation; restoring it invokes no Wasm or rewards.
+Rebinding a retired actor releases its prior scope before registering again.
+The data row names the perch, presentation memory fields and strike impulse
+recipes; it supplies no TypeScript callbacks. The old raptor controller and
+its capture-only staging API are removed. Shared credit for this borrowed
+adapter requires the real Matriarch adoption as well as the Roc.
+
+`actors/moves` may declare `orbit.angularSpeed` independently of its travel
+speed. A dive may follow `targetAltitude:true` (the target plus aimHeight)
+and `contactCompletes:false` when its existing strike owner supplies the end
+edge. Defaults retain the original geometric altitude and contact completion.

@@ -5,7 +5,7 @@ import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';
 import { readStrikeState } from './strikeState';
-import { orbitSteering, stalkSteering, diveSteering, takeoffSteering, riseSteering } from './moves';
+import { orbitSteering, diveSteering, riseSteering } from './moves';
 
 /** Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s. */
 export interface OrbitDiverSpec {
@@ -136,74 +136,20 @@ export function readWindDiverSpec(input: unknown): WindDiverSpec { return v.pars
 const windFinite = v.pipe(v.number(), v.finite()), windTriple = v.tuple([windFinite, windFinite, windFinite]);
 const WindDiverSaved = v.strictObject({ st: v.picklist(['soar', 'tell', 'stoop', 'ground', 'climb']), stT: windFinite, stoopT: windFinite,
   ang: windFinite, centre: windTriple, tgt: windTriple, overYou: v.boolean() });
-const raptorKey = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
-const raptorField = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9._:-]*$/u), v.maxLength(128));
-const raptorRadius = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(600)), raptorPositive = v.pipe(raptorRadius, v.minValue(Number.MIN_VALUE));
-const raptorSpeed = v.pipe(raptorRadius, v.maxValue(30)), raptorTurn = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(20));
-const raptorAt = v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000)), raptorSeconds = v.pipe(raptorRadius, v.maxValue(60));
-const RaptorPhaseSchema = v.strictObject({
-  strike: raptorKey, altitude: raptorAt, aimHeight: v.pipe(v.number(), v.finite(), v.minValue(-10), v.maxValue(10)),
-  orbit: v.strictObject({ x: raptorAt, z: raptorAt, r: raptorPositive, speed: raptorSpeed }),
-  stalk: v.strictObject({ standOff: raptorRadius, retreat: v.boolean(), speed: v.nullable(raptorSpeed), above: v.nullable(v.pipe(v.number(), v.finite(), v.minValue(-100), v.maxValue(100))),
-    ready: v.variant('kind', [v.strictObject({ kind: v.literal('over'), radius: raptorPositive, height: raptorPositive }),
-      v.strictObject({ kind: v.literal('band'), tolerance: raptorPositive }), v.strictObject({ kind: v.literal('range') })]) }),
-  dive: v.boolean(), shove: v.nullable(v.strictObject({ speed: raptorSpeed, lift: raptorSpeed })), rest: raptorSeconds,
-});
-/**
- * A raptor's declaration (SHARD-PLATFORM SF27, a phased boss bird): on a perch it takes off as its fight begins, laps
- * `lap` between strikes and, per phase, closes in its own way (hang over the player, hold off and back away, or walk up)
- * to make that phase's strike (an id in its strike rows), a dive or a held strike that may shove the player. Its
- * encounter sets the phase and the fight; `perch` comes from the place it lands.
- */
-export const RaptorDiverSchema = v.strictObject({
-  id: raptorKey, kind: v.literal('phased-raptor'),
-  perch: v.strictObject({ x: raptorAt, y: raptorAt, z: raptorAt, yaw: v.pipe(v.number(), v.finite(), v.minValue(-2 * Math.PI), v.maxValue(2 * Math.PI)) }),
-  lap: v.strictObject({ x: raptorAt, z: raptorAt, r: raptorPositive, y: raptorAt }),
-  speeds: v.strictObject({ circle: raptorSpeed, stalk: raptorSpeed, dive: raptorSpeed }),
-  takeoff: v.strictObject({ seconds: raptorPositive, speed: raptorSpeed, turn: raptorTurn, bank: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(Math.PI / 2)) }),
-  firstRest: raptorSeconds,
-  turns: v.strictObject({ perch: raptorTurn, circle: raptorTurn, stalk: raptorTurn, strike: raptorTurn }),
-  fields: v.strictObject({ lean: raptorField, bank: raptorField }),
-  phases: v.pipe(v.array(RaptorPhaseSchema), v.minLength(1), v.maxLength(8)),
-});
-/** An admitted raptor declaration. */
-export type RaptorDiverSpec = v.InferOutput<typeof RaptorDiverSchema>;
-/** Refuse an invalid raptor declaration before any policy or callback exists. */
-export function readRaptorDiverSpec(data: unknown): RaptorDiverSpec { return v.parse(RaptorDiverSchema, data); }
-type RaptorPhase = RaptorDiverSpec['phases'][number];
-/** The trusted ports a raptor acts through: the player, calm, attack tokens, reach, contact and native flight. Its
- *  observation carries no pattern tag (the page's ThinkCtx and the headless ports feed it as they are). */
-export interface RaptorDiverPorts<A extends AnimalSim> {
-  dt: number; player: Vector3; calm: boolean;
-  reach: (actor: A) => boolean; claim: (actor: A) => boolean; hurt: (damage: number) => void;
-  flight: { steer: (actor: A, yaw: number, speed: number, altitude: number, turn?: number) => void };
-}
-const raptorFinite = v.pipe(v.number(), v.finite());
-const raptorContinuation = (phases: number) => v.strictObject({ version: v.literal(1), actor: v.string(), state: v.picklist(['circle', 'stalk', 'strike', 'rest']),
-  phase: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(phases - 1)), fighting: v.boolean(), current: v.nullable(v.string()),
-  windup: raptorFinite, angle: raptorFinite, rest: raptorFinite, chest: v.tuple([raptorFinite, raptorFinite, raptorFinite]), takeoff: raptorFinite,
-  wasFighting: v.boolean(), aim: raptorFinite, strikes: v.unknown() });
-interface RaptorPlan { readonly spec: RaptorDiverSpec; readonly catalogue: readonly StrikeSpec[]; readonly specs: readonly StrikeSpec[];
-  readonly shoves: ReadonlyMap<string, { readonly speed: number; readonly lift: number }>; readonly continuation: ReturnType<typeof raptorContinuation>;
-  readonly shove: (yaw: number, speed: number, lift: number) => void }
-
 /** One admitted flight pattern, immutable home and ordered attack contract. */
 export type DiverProfile<A extends AnimalSim = AnimalSim> =
   | { pattern: 'wind'; spec: WindDiverSpec; ports: WindDiverPorts<A> }
   | { pattern: 'orbit'; spec: OrbitDiverSpec; home: OrbitDiverHome; strike: StrikeSpec }
   | { pattern: 'patrol'; spec: PatrolDiverSpec; home: { x: number; z: number }; strike: StrikeSpec }
   | { pattern: 'burst'; spec: BurstFlyerSpec; home: OrbitDiverHome; strike: StrikeSpec }
-  | { pattern: 'phased'; spec: PhasedDiverSpec; dive: readonly StrikeSpec[]; grounded: readonly StrikeSpec[]; state?: PhasedDiverStatePort }
-  /** `strikes` holds every phase's strike; `shove` pushes the player (yaw in the creature convention, m/s, m/s up). */
-  | { pattern: 'raptor'; spec: RaptorDiverSpec; strikes: readonly StrikeSpec[]; shove: (yaw: number, speed: number, lift: number) => void };
+  | { pattern: 'phased'; spec: PhasedDiverSpec; dive: readonly StrikeSpec[]; grounded: readonly StrikeSpec[]; state?: PhasedDiverStatePort };
 /** Pattern-specific body authority; a mismatched observation refuses before changing state. */
 export type DiverObservation<A extends AnimalSim> =
   | (OrbitDiverPorts<A> & { pattern: 'orbit' })
   | (PatrolDiverPorts<A> & { pattern: 'patrol' })
   | (BurstFlyerPorts<A> & { pattern: 'burst' })
   | (PhasedDiverPorts<A> & { pattern: 'phased' })
-  | { pattern: 'wind'; actor: A; player: Vector3 }
-  | RaptorDiverPorts<A>;
+  | { pattern: 'wind'; actor: A; player: Vector3 };
 /** Flight policy phases; strike windup/contact/recovery are owned by the shared strike runner. */
 export type DiverState = 'circle' | 'stalk' | 'dive' | 'rise' | 'glide' | 'climb' | 'drift' | 'dart' | 'grounded' | 'soar' | 'tell' | 'stoop' | 'ground' | 'strike' | 'rest';
 const finite = v.pipe(v.number(), v.finite());
@@ -219,7 +165,6 @@ function admitProfile<A extends AnimalSim>(profile: DiverProfile<A>): DiverProfi
   if (profile.pattern === 'wind') return { ...profile, spec: readWindDiverSpec(profile.spec) };
   // The phased host already admits these rows. Retain its reference/copy semantics and strike order.
   if (profile.pattern === 'phased') return { ...profile, dive: [...profile.dive], grounded: [...profile.grounded] };
-  if (profile.pattern === 'raptor') return { ...profile, strikes: [...profile.strikes] };
   if (profile.pattern === 'orbit') {
     const { spec, home, strike } = profile;
     const values = [spec.circleSpeed, spec.hangAltitude, spec.stalkSpeed, spec.diveSpeed, spec.restSeconds, spec.noticeRadius,
@@ -257,21 +202,8 @@ function admitProfile<A extends AnimalSim>(profile: DiverProfile<A>): DiverProfi
   return { pattern: profile.pattern, spec: { ...profile.spec }, home: { ...profile.home }, strike };
 }
 
-/** Parametric orbit/patrol/burst/phased/wind/raptor policy with one contact runner and exact preset save contracts. */
+/** Parametric orbit/patrol/burst/phased/wind policy with one contact runner and exact preset save contracts. */
 export class DiverBrain<A extends AnimalSim> {
-  /** Raptor: the phase its encounter set (an index into its phases). */
-  phase = 0;
-  /** Raptor: whether its encounter's fight is on. */
-  fighting = false;
-  /** Raptor: the strike in flight (a gale wall's visual reads it). */
-  current: StrikeSpec | null = null;
-  /** Raptor: seconds into the strike in flight. */
-  windup = 0;
-  /** Raptor: the committed strike heading (a lane strike's line). */
-  aim = 0;
-  private readonly raptorPlan: RaptorPlan | null = null;
-  private takeoff = 0;
-  private wasFighting = false;
   private readonly boundActor: A | null;
   private get actor(): A { if (this.boundActor === null) throw new Error('Missing diver actor authority'); return this.boundActor; }
   private readonly profile: DiverProfile<A>;
@@ -300,15 +232,7 @@ export class DiverBrain<A extends AnimalSim> {
       this.phasedContact = null; this.contract = ''; return;
     }
     if (actor === null) throw new Error('Missing diver actor authority');
-    if (p.pattern === 'raptor') {
-      const specs = p.spec.phases.map(phase => {
-        const found = p.strikes.find(strike => strike.id === phase.strike); if (found === undefined) throw new Error(`Raptor names an undeclared strike ${phase.strike}`); return found;
-      });
-      this.raptorPlan = { spec: p.spec, catalogue: p.strikes, specs, continuation: raptorContinuation(specs.length), shove: p.shove,
-        shoves: new Map(p.spec.phases.flatMap(phase => phase.shove === null ? [] : [[phase.strike, phase.shove] as const])) };
-      this.rest = p.spec.firstRest;
-    }
-    this.phaseValue = p.pattern === 'orbit' || p.pattern === 'phased' || p.pattern === 'raptor' ? 'circle' : p.pattern === 'patrol' ? 'glide' : 'drift';
+    this.phaseValue = p.pattern === 'orbit' || p.pattern === 'phased' ? 'circle' : p.pattern === 'patrol' ? 'glide' : 'drift';
     this.phasedContact = p.pattern === 'phased' ? { actor, target: actor.position,
       canReach: () => this.phasedObservation?.reach(actor) === true,
       hit: value => { this.struck = true; this.phasedObservation?.hurt(value.damage); } } : null;
@@ -317,7 +241,7 @@ export class DiverBrain<A extends AnimalSim> {
       this.rest = p.spec.initialRestSeconds;
     } else if (p.pattern === 'patrol') this.rest = p.spec.restSeconds;
     if (p.pattern === 'phased') this.wait = p.spec.initialRestSeconds;
-    this.contract = p.pattern === 'phased' || p.pattern === 'raptor' ? '' : JSON.stringify({ version: 1, actor: actor.entityId, spec: p.spec, home: p.home, strike: p.strike });
+    this.contract = p.pattern === 'phased' ? '' : JSON.stringify({ version: 1, actor: actor.entityId, spec: p.spec, home: p.home, strike: p.strike });
     inspectBrain(actor, () => ({ state: this.state, picks: [], brainHz: 20, pinned: false }));
   }
   /** Current pattern phase, separately scheduled from perception and body execution. */
@@ -335,9 +259,6 @@ export class DiverBrain<A extends AnimalSim> {
   /** Exact legacy clock/strike continuation, including each preset's JSON field order. */
   snapshot(): SimValue {
     if (this.profile.pattern === 'wind') return this.windSnapshot();
-    if (this.profile.pattern === 'raptor') return JSON.stringify({ version: 1, actor: this.actor.entityId, state: this.mode, phase: this.phase, fighting: this.fighting,
-      current: this.current?.id ?? null, windup: this.windup, angle: this.angle, rest: this.rest, chest: this.chest.toArray(),
-      takeoff: this.takeoff, wasFighting: this.wasFighting, aim: this.aim, strikes: this.strikes.snapshot() });
     if (this.profile.pattern === 'phased') return JSON.stringify({ version: 1, actor: this.actor.entityId, state: this.state,
       clock: this.clock, wait: this.wait, struck: this.struck, strikes: this.strikes.snapshot() });
     if (this.profile.pattern === 'orbit') return JSON.stringify({ contract: this.contract, state: this.mode,
@@ -349,7 +270,6 @@ export class DiverBrain<A extends AnimalSim> {
   /** Validate all clocks and immutable references before mutation; restoration publishes no body effects. */
   restore(saved: unknown): void {
     if (this.profile.pattern === 'wind') { this.restoreWind(saved); return; }
-    if (this.profile.pattern === 'raptor') { this.restoreRaptor(saved); return; }
     const p = this.profile, name = p.pattern === 'burst' ? 'burst flyer' : p.pattern === 'phased' ? 'phased flyer' : `${p.pattern} diver`;
     if (typeof saved !== 'string') throw new Error(`Invalid ${name} continuation`);
     const parsed: unknown = JSON.parse(saved);
@@ -377,7 +297,7 @@ export class DiverBrain<A extends AnimalSim> {
       this.strikes.restore(strikes, [p.strike]); this.mode = value.state; this.angle = value.angle; this.dart = value.dart;
     }
   }
-  private context(c: OrbitDiverPorts<A> | PatrolDiverPorts<A> | BurstFlyerPorts<A>, p: Exclude<DiverProfile<A>, { pattern: 'wind' | 'raptor' }>): StrikeContext {
+  private context(c: OrbitDiverPorts<A> | PatrolDiverPorts<A> | BurstFlyerPorts<A>, p: Exclude<DiverProfile<A>, { pattern: 'wind' }>): StrikeContext {
     this.chest.copy(c.player); this.chest.y += p.spec.targetHeight;
     return { actor: this.actor, target: this.chest, canReach: () => c.reach(this.actor), hit: value => {
       if (p.pattern === 'patrol') this.struck = true;
@@ -387,7 +307,7 @@ export class DiverBrain<A extends AnimalSim> {
     } };
   }
   // Zero is an interrupt's second wake in the same frame, not an invalid simulation step.
-  private step(c: Exclude<DiverObservation<A>, RaptorDiverPorts<A>>): void {
+  private step(c: DiverObservation<A>): void {
     if (c.pattern !== this.profile.pattern) throw new Error('Incompatible diver observation');
     if (c.pattern !== 'phased' && c.pattern !== 'wind' && (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1)) {
       throw new Error(`Invalid ${c.pattern === 'burst' ? 'burst flyer' : `${c.pattern} diver`} step`);
@@ -395,7 +315,6 @@ export class DiverBrain<A extends AnimalSim> {
   }
   /** Observe using the preset's original distance, calm reset, token and held-field laws. */
   think(c: DiverObservation<A>): void {
-    if (!('pattern' in c)) { this.thinkRaptor(c, this.raptor()); return; }
     this.step(c); const p = this.profile;
     if (p.pattern === 'orbit' && c.pattern === 'orbit') this.thinkOrbit(c, p);
     else if (p.pattern === 'patrol' && c.pattern === 'patrol') this.thinkPatrol(c, p);
@@ -405,108 +324,12 @@ export class DiverBrain<A extends AnimalSim> {
   }
   /** Advance one body tick; the host retains flight, reach, damage and impulse authority. */
   act(c: DiverObservation<A>): void {
-    if (!('pattern' in c)) { this.actRaptor(c, this.raptor()); return; }
     this.step(c); const p = this.profile;
     if (p.pattern === 'orbit' && c.pattern === 'orbit') this.actOrbit(c, p);
     else if (p.pattern === 'patrol' && c.pattern === 'patrol') this.actPatrol(c, p);
     else if (p.pattern === 'burst' && c.pattern === 'burst') this.actBurst(c, p);
     else if (p.pattern === 'phased' && c.pattern === 'phased') this.actPhased(c, p);
     else if (p.pattern === 'wind') throw new Error('Wind motion uses the explicit encounter frame');
-  }
-  private raptor(): RaptorPlan { if (this.raptorPlan === null) throw new Error('Incompatible raptor pattern'); return this.raptorPlan; }
-  private restoreRaptor(saved: unknown): void {
-    const plan = this.raptor();
-    if (typeof saved !== 'string') throw new Error('Invalid raptor continuation');
-    const value = v.parse(plan.continuation, JSON.parse(saved));
-    if (value.actor !== this.actor.entityId) throw new Error('Incompatible raptor continuation');
-    const strikes = readStrikeState(value.strikes, plan.catalogue);
-    const current = value.current === null ? null : plan.catalogue.find(spec => spec.id === value.current);
-    if (current === undefined) throw new Error('Invalid raptor strike identity');
-    this.strikes.restore(strikes, plan.catalogue); this.mode = value.state; this.phase = value.phase; this.fighting = value.fighting;
-    this.current = current; this.windup = value.windup; this.angle = value.angle; this.rest = value.rest;
-    this.chest.fromArray(value.chest); this.takeoff = value.takeoff; this.wasFighting = value.wasFighting; this.aim = value.aim;
-  }
-  private raptorRow(plan: RaptorPlan): RaptorPhase { const phases = plan.spec.phases, row = phases[this.phase] ?? phases[phases.length - 1]; if (row === undefined) throw new Error('A raptor needs at least one phase'); return row; }
-  private raptorStrike(plan: RaptorPlan): StrikeSpec { const spec = plan.specs[this.phase] ?? plan.specs[plan.specs.length - 1]; if (spec === undefined) throw new Error('A raptor needs at least one phase'); return spec; }
-  private raptorContext(ctx: RaptorDiverPorts<A>, plan: RaptorPlan): StrikeContext { const a = this.actor; this.chest.copy(ctx.player); this.chest.y += this.raptorRow(plan).aimHeight;
-    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); const push = plan.shoves.get(spec.id); if (push !== undefined) plan.shove(this.aim, push.speed, push.lift); } }; }
-  /** Raptor: the height it holds over the player in a stalk and a strike's windup (`stalk.above`), else its phase's altitude. */
-  private raptorHold(plan: RaptorPlan, p: Vector3): number { const above = this.raptorRow(plan).stalk.above; return above === null ? this.raptorRow(plan).altitude : p.y + above; }
-  /** Raptor: stage a lap (captures): the rest after a strike, placed on the lap at `theta` and flying along it. Real flight state only. */
-  stageLap(theta: number): void {
-    const a = this.actor, lap = this.raptor().spec.lap; if (!this.fighting || this.phase !== 0) return;
-    this.strikes.cancel(); a.cancelAttack(); this.current = null; this.angle = theta; this.rest = 2.4; this.mode = 'rest';
-    a.place(lap.x + Math.cos(theta) * lap.r, lap.z + Math.sin(theta) * lap.r, 0, lap.y);
-    a.yaw = this.yawTo(lap.x + Math.cos(theta + 0.3) * lap.r, lap.z + Math.sin(theta + 0.3) * lap.r);
-  }
-  /** Raptor: a fight restart (a retry or checkpoint): back on its perch at rest, facing its perch heading; the first rest and the take-off run again. */
-  restart(): void {
-    const { spec } = this.raptor(), perch = spec.perch, lap = spec.lap;
-    this.strikes.cancel(); this.actor.cancelAttack(); this.current = null; this.rest = spec.firstRest; this.takeoff = 0; this.wasFighting = false; this.mode = 'circle';
-    this.angle = Math.atan2(perch.z - lap.z, perch.x - lap.x);
-    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = perch.yaw; this.actor.speed = 0; this.actor.mem[spec.fields.bank] = 0;
-  }
-  /** Raptor: stage the fight's opening (captures): on its perch as the fight begins, its take-off about to run. */
-  stageOpening(): void {
-    const a = this.actor, { spec } = this.raptor(), perch = spec.perch, lap = spec.lap, takeoff = spec.takeoff; if (!this.fighting || this.phase !== 0) return;
-    this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = spec.firstRest; this.mode = 'circle';
-    this.angle = Math.atan2(perch.z - lap.z, perch.x - lap.x);
-    a.place(perch.x, perch.z, 0, perch.y); a.yaw = perch.yaw; a.speed = 0; a.mem[spec.fields.bank] = 0; this.takeoff = takeoff.seconds; this.rest = takeoff.seconds + 0.5; this.wasFighting = true;
-  }
-  /** Raptor: stage a first-phase stalk under way (captures): at `at` at the lap's height, flying in at `face`. */
-  stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
-    const a = this.actor, lap = this.raptor().spec.lap; if (!this.fighting || this.phase !== 0) return;
-    this.rest = 0; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.mode = 'stalk';
-    a.place(at.x, at.z, 0, lap.y); a.yaw = this.yawTo(face.x, face.z);
-  }
-  /** Raptor: the take-off as a fight begins, calm standing it down, and the rests that end in a stalk. */
-  private thinkRaptor(ctx: RaptorDiverPorts<A>, plan: RaptorPlan): void {
-    const a = this.actor, takeoff = plan.spec.takeoff; if (!a.alive) return;
-    if (this.fighting && !this.wasFighting && this.phase === 0) { this.takeoff = takeoff.seconds; this.rest = Math.max(this.rest, takeoff.seconds + 0.5); }
-    this.wasFighting = this.fighting;
-    if (!this.fighting || ctx.calm) { if (this.mode !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.current = null; this.mode = 'circle'; } return; }
-    this.rest -= ctx.dt;
-    if (this.mode === 'circle' && this.rest <= 0) this.mode = 'stalk';
-    if (this.mode === 'rest' && this.rest <= 0) this.mode = 'stalk';
-  }
-  /** Raptor: steer and strike: to its perch out of a fight, the take-off, the lap, the stalk, then the strike in flight. */
-  private actRaptor(ctx: RaptorDiverPorts<A>, plan: RaptorPlan): void {
-    const a = this.actor; if (!a.alive) return;
-    const s = this.raptorContext(ctx, plan), spec = this.raptorStrike(plan), row = this.raptorRow(plan), p = ctx.player, { perch, lap, speeds, takeoff, turns, fields } = plan.spec;
-    if (this.mode === 'circle' && !this.fighting) {
-      const d = Math.hypot(perch.x - a.position.x, perch.z - a.position.z);
-      ctx.flight.steer(a, d > 0.6 ? this.yawTo(perch.x, perch.z) : perch.yaw, d > 0.6 ? Math.min(speeds.circle, d * 1.2) : 0, perch.y, turns.perch);
-      a.mem[fields.lean] = 0;
-      return;
-    }
-    if (this.mode === 'circle' && this.takeoff > 0) {
-      // a slow rise off the perch, swinging round onto the player and leaning into the swing (eased in as it drops off)
-      this.takeoff = Math.max(0, this.takeoff - ctx.dt);
-      const move = takeoffSteering({ altitude: row.altitude, bank: takeoff.bank, speed: takeoff.speed, turn: takeoff.turn, ground: false }, a, p, perch.y, 1 - this.takeoff / takeoff.seconds);
-      a.mem[fields.lean] = move.bank;
-      const m = move.steering; ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
-      return;
-    }
-    a.mem[fields.lean] = 0;
-    if (this.mode === 'circle' || this.mode === 'rest') {
-      this.angle += (ctx.dt * speeds.circle) / lap.r;
-      const o = row.orbit;
-      const m = orbitSteering({ center: [o.x, o.z], r: o.r, y: row.altitude, speed: o.speed, turn: turns.circle, ground: false }, a, this.angle);
-      ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
-      return;
-    }
-    if (this.mode === 'stalk') {
-      const stalk = row.stalk, move = stalkSteering({ standOff: stalk.standOff, retreat: stalk.retreat, ready: stalk.ready,
-        constantSpeed: stalk.speed !== null, speed: stalk.speed ?? speeds.stalk, altitude: this.raptorHold(plan, p), turn: turns.stalk, ground: false }, a, p, spec.range);
-      const m = move.steering, ready = move.ready; ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
-      if (ready && ctx.reach(a) && ctx.claim(a)) { this.aim = this.yawTo(p.x, p.z); this.strikes.start(spec, a, this.chest); this.current = spec; this.windup = 0; this.mode = 'strike'; }
-      return;
-    }
-    this.windup += ctx.dt;
-    if (row.dive && this.windup >= spec.windup) ctx.flight.steer(a, this.yawTo(this.chest.x, this.chest.z), speeds.dive, this.chest.y, turns.strike);
-    else ctx.flight.steer(a, this.aim, 0, this.raptorHold(plan, p), turns.strike);
-    this.strikes.update(ctx.dt, s);
-    if (!this.strikes.busy) { this.current = null; this.rest = row.rest; this.mode = 'rest'; }
   }
   private thinkOrbit(c: OrbitDiverPorts<A>, profile: Extract<DiverProfile, { pattern: 'orbit' }>): void {
     const a = this.actor; if (!a.alive) return;

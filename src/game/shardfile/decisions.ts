@@ -38,6 +38,8 @@ export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'fla
    * Public numeric fields for these actors are their existing AnimalSim.mem entries, named by state.shared.
    */
   readonly borrowedActors?: ReadonlySet<string>;
+  /** Existing encounter state of borrowed bodies, read without creating an encounter. */
+  readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly leanField: string }>;
   onStep: (id: string, run: () => void, adapter?: SimStateAdapter, phase?: 'beforeBodies' | 'afterBodies') => () => void;
 }
 /** Existing encounter authority; a retained encounter can lend its real BossBrain without a replacement encounter. */
@@ -86,7 +88,7 @@ export class ShardDecisions {
   private readonly zones = new Set<string>();
   private readonly phases = new Map<string, number>();
   private readonly encounters: ReadonlyMap<string, DecisionEncounter>;
-  private readonly quest: DeclaredQuests;
+  private readonly quest: DeclaredQuests | undefined;
   private readonly movers: MoverRuntime | undefined;
   private readonly fact: QuestDataPorts['fact'];
   private readonly navigation: Pick<Navmesh, 'closestWalkable' | 'findPath'> | undefined;
@@ -94,7 +96,7 @@ export class ShardDecisions {
   private events: DecisionPublication['events'][number][] = [];
   private readonly strikes;
   constructor(sim: DecisionRuntime, source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections: ReadonlyMap<string, unknown>,
-    encounters: ReadonlyMap<string, DecisionEncounter>, quest: DeclaredQuests, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
+    encounters: ReadonlyMap<string, DecisionEncounter>, quest: DeclaredQuests | undefined, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
     navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled']) {
     this.sim = sim; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
     this.rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
@@ -130,7 +132,7 @@ export class ShardDecisions {
       if (row.commands.some(name => name === 'grant' || name === 'reward') && facts === undefined) throw new Error('Decision grant requires the authoritative ledger fact port');
       const binding = row.binding;
       const encounter = 'encounter' in binding ? requireValue(source.encounters.find(value => value.id === binding.encounter), 'encounter binding') : undefined;
-      if ('quest' in binding && !quest.quests.some(value => value.def.id === binding.quest)) throw new Error('Decision quest binding missing');
+      if ('quest' in binding && !quest?.quests.some(value => value.def.id === binding.quest)) throw new Error('Decision quest binding missing');
       if ('zone' in binding && !this.registries.zones?.has(binding.zone)) throw new Error('Decision zone binding missing');
       const self = encounter === undefined ? 0 : requireValue(this.names.get(encounter.entity), 'encounter actor');
       if (self > 0 && !actorIds.includes(self)) throw new Error('Decision encounter does not own its actor');
@@ -292,7 +294,7 @@ export class ShardDecisions {
           this.name('strikes', a); if (b === 0) throw new Error('Decision strike requires a target');
           apply.push(() => { if (this.sim.startDeclaredStrike(name, requireValue(this.actors.get(b), 'strike target'), this.name('strikes', a))) {
             this.striking.set(target, { strike: a, target: b, binding: context.binding.id, hit: false }); this.events.push({ kind: 'strike', actor: target, id: a, target: b });
-          } });
+          } else this.host.enqueue(context.binding.id, [11, target, a, 0, 0, 0]); });
         }
       } else if (op === 7) {
         const flag = this.name('flags', a); if (b !== 0 && b !== 1) throw new Error('Decision flag bounds');
@@ -328,9 +330,10 @@ export class ShardDecisions {
   private lifecycle(): void {
     for (const [index, row] of this.rows.entries()) {
       const binding = row.binding;
-      const active = 'shard' in binding || ('encounter' in binding ? this.encounters.get(binding.encounter)?.boss.state === 'fight'
-        : 'quest' in binding ? this.quest.quests.some(value => value.def.id === binding.quest && value.isStarted && !value.isComplete)
-        : this.inside(binding.zone, DECISION_PLAYER_HANDLE));
+      const control = this.sim.borrowedControls?.get(row.id);
+      const active = control === undefined ? 'shard' in binding || ('encounter' in binding ? this.encounters.get(binding.encounter)?.boss.state === 'fight'
+        : 'quest' in binding ? (this.quest?.quests.some(value => value.def.id === binding.quest && value.isStarted && !value.isComplete) ?? false)
+        : this.inside(binding.zone, DECISION_PLAYER_HANDLE)) : control.fighting;
       const id = index + 1;
       if ((this.enabled.get(id) ?? false) === active) continue;
       this.enabled.set(id, active); this.host.setEnabled(id, active);
@@ -351,6 +354,8 @@ export class ShardDecisions {
       const result = motion.runner.step({ body: actor, ...(perch === undefined ? {} : { perch }), ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
         ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }) });
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
+      const control = this.sim.borrowedControls?.get(requireValue(this.rows[motion.binding - 1], 'move binding').id);
+      if (control !== undefined) actor.mem[control.leanField] = result.bank ?? 0;
       if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.writeField(handle, id, result.field.value); }
       if (result.strike !== undefined && motion.target > 0) this.sim.startDeclaredStrike(requireValue(this.actors.get(handle), 'move strike actor'), requireValue(this.actors.get(motion.target), 'move strike target'), result.strike);
       if (result.done !== undefined) { actor.setMotion(actor.yaw, 0); this.motions.delete(handle); this.host.enqueue(motion.binding, [10, handle, motion.move, Number(result.done), 0, 0]); }
@@ -370,6 +375,13 @@ export class ShardDecisions {
         if (inside) this.zones.add(key); else this.zones.delete(key);
         this.publish([inside ? 4 : 5, zone, actor, 0, 0, 0]);
       }
+    }
+    for (const [index, row] of this.rows.entries()) {
+      const control = this.sim.borrowedControls?.get(row.id);
+      if (control === undefined) continue;
+      const before = this.phases.get(row.id) ?? 0; this.phases.set(row.id, control.phase);
+      if (control.phase !== before) for (const name of Object.values(row.actors))
+        this.host.enqueue(index + 1, [8, requireValue(this.names.get(name), 'threshold actor'), control.phase, 0, 0, 0]);
     }
     for (const [id, encounter] of this.encounters) {
       const before = this.phases.get(id) ?? 0, phase = encounter.boss.phase;
@@ -437,8 +449,9 @@ export class ShardDecisions {
     const zoneKeys = new Set([...this.registries.zones?.values() ?? []].flatMap(zone => [...this.names.values()].map(actor => `${zone}:${actor}`)));
     if (saved.zones.some(key => !zoneKeys.has(key))) throw new Error('Invalid decision zone observation');
     for (const [id, phase] of saved.phases) {
-      const encounter = requireValue(this.source.encounters.find(row => row.id === id), 'saved encounter');
-      if (phase >= encounter.phases.length) throw new Error('Invalid decision phase observation');
+      const borrowed = this.sim.borrowedControls?.has(id) === true;
+      const encounter = this.source.encounters.find(row => row.id === id);
+      if (borrowed ? phase > 255 : encounter === undefined || phase >= encounter.phases.length) throw new Error('Invalid decision phase observation');
     }
     const motions = new Map<number, Motion>();
     for (const motion of saved.moves) { const actor = requireValue(this.actor(motion.actor), 'move actor'), row = requireValue(this.moves.find(value => value.id === this.name('moves', motion.move)), 'move');

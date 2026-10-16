@@ -282,3 +282,14 @@ test('multi-strike readiness uses its named strike and takeoff resolves the admi
   try { for (let i = 0; i < 13; i++) flying.host.step(); expect(flying.decisions?.host.metrics()[0]).toMatchObject({ refusals: 0 }); }
   finally { flying.dispose(); }
 });
+
+
+test('a refused asynchronous strike acknowledges completion instead of stranding its guest', async () => {
+  const f = fixture(), sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
+  try {
+    vi.spyOn(sim.host, 'startDeclaredStrike').mockReturnValue(false);
+    for (let tick = 0; tick < 7; tick++) sim.host.step();
+    expect(sim.decisions?.host.snapshot().bindings[0]?.pending).toContainEqual([11, 1, 1, 0, 0, 0]);
+    expect(sim.host.strikes.get('actor.a')?.busy).toBe(false);
+  } finally { sim.dispose(); }
+});

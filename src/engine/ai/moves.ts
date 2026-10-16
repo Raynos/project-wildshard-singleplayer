@@ -48,10 +48,10 @@ export function stalkSteering(row: Pick<Of<'stalk'>, 'standOff' | 'above' | 'alt
       : row.ready.kind === 'band' ? Math.abs(d - row.standOff) < row.ready.tolerance : range !== undefined && d < range };
 }
 /** Dive steering leaves reach, attack tokens and the strike runner with the existing combat authority. */
-export function diveSteering(row: Pick<Of<'dive'>, 'slope' | 'skim' | 'altitude' | 'aimHeight'> & Motion, body: MoveBody, target: MovePoint): MoveSteering {
+export function diveSteering(row: Pick<Of<'dive'>, 'slope' | 'skim' | 'altitude' | 'aimHeight'> & Partial<Pick<Of<'dive'>, 'targetAltitude'>> & Motion, body: MoveBody, target: MovePoint): MoveSteering {
   const dy = target.y + row.aimHeight - body.position.y;
   const d = Math.hypot(target.x - body.position.x, dy, target.z - body.position.z);
-  return { yaw: yawTo(body, target), speed: row.speed, altitude: Math.max(row.skim, Math.min(row.altitude, d * row.slope)), turn: row.turn, ground: row.ground };
+  return { yaw: yawTo(body, target), speed: row.speed, altitude: row.targetAltitude === true ? target.y + row.aimHeight : Math.max(row.skim, Math.min(row.altitude, d * row.slope)), turn: row.turn, ground: row.ground };
 }
 /** Timed departure and banking; the existing flight motor owns actual vertical motion and collisions. */
 export function takeoffSteering(row: Pick<Of<'takeoff'>, 'altitude' | 'bank'> & Motion, body: MoveBody, target: MovePoint, from: number, progress: number): { steering: MoveSteering; bank: number } {
@@ -103,7 +103,7 @@ export class ActorMoveRunner {
     if (row.kind === 'stalk' && row.ready.kind === 'range' && (observation.range === undefined || !Number.isFinite(observation.range) || observation.range < 0)) throw new Error('Move requires the admitted strike range');
     this.elapsed += 1 / 60;
     switch (row.kind) {
-      case 'orbit': this.angle += row.speed / (60 * row.r); return { steering: orbitSteering(row, body, this.angle) };
+      case 'orbit': this.angle += (row.angularSpeed ?? row.speed / row.r) / 60; return { steering: orbitSteering(row, body, this.angle) };
       case 'stalk': {
         if (target === undefined) throw new Error('Missing move target');
         const result = stalkSteering(row, body, target, observation.range);
@@ -111,7 +111,7 @@ export class ActorMoveRunner {
       }
       case 'dive': {
         if (target === undefined) throw new Error('Missing move target');
-        return { steering: diveSteering(row, body, target), ...(observation.reach === true
+        return { steering: diveSteering(row, body, target), ...(observation.reach === true && row.contactCompletes
           ? { ...this.finish(true), ...(row.strike === undefined ? {} : { strike: row.strike }) }
           : this.elapsed >= row.maxSeconds ? this.finish(false) : {}) };
       }

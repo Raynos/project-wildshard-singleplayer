@@ -1,3 +1,6 @@
+import { floorBelow } from '@wildshard/engine/physics/query';
+import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
+import { outputDescriptor } from '../shardfile/outputDescriptor';
 import type { HeldMeleeRecipe, createDeclaredHeldMelee } from './weaponFamily';
 import type { startMeleeSecondary } from './simulation';
 import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindDeclaredFight, bindBorrowedPageQuestStages, bindClientChannels } from './ui';
@@ -7,7 +10,7 @@ import type { SaveSlot, SaveStore } from '@wildshard/engine/saves/store';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
 import { bossesSave } from '../saves';
 import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags, type BossViewRows, type installBossOwnerRow } from '../shardfile/bossRow';
-import { admitSpeciesProgram, type SpeciesProgramRows, type SpeciesBrains, type SpeciesPageCatalogue, type SpeciesCataloguePorts } from "./brain";
+import { admitSpeciesProgram, type SpeciesProgramRows, type SpeciesBrains, type SpeciesPageCatalogue, type SpeciesCataloguePorts, type SpeciesDecisionAuthority } from "./brain";
 import type { Progress } from "../Progress";
 import { Vector3, type Object3D } from 'three';
 import { shardContentIdentity, legacyContentIdentity } from "../shard/list";
@@ -706,6 +709,8 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected populationBrains: SpeciesBrains | null = null;
   protected populationCatalogue: SpeciesPageCatalogue | null = null;
   protected populationControl: ReturnType<SpeciesBrains['held']> = null;
+  private decisionAuthority: SpeciesDecisionAuthority | null = null;
+  private readonly decisionAssets = new Map<string, Uint8Array>();
   private populationPush: ((yaw: number, speed: number, lift: number) => void) | null = null;
   private populationHomes: RuntimeHomes | null = null;
   private aliasesBound = false;
@@ -877,6 +882,13 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       const source = ctx.product.shardfile, rows = this.rows(ctx.product);
       this.rowState = { product: ctx.product, source, rows };
     } else if (this.rowState.product !== ctx.product) throw new Error('Hybrid rows belong to another product');
+    const index = outputDescriptor(ctx.product.shardfile)?.index;
+    if (ctx.product.has('sim/scripts')) await Promise.all(ctx.product.section('sim/scripts').filter(row => row.side === 'sim').map(async row => {
+      const hash = row.module.slice('blobs/wasm/'.length, -'.wasm'.length), file = index?.files.find(value => value.hash === hash);
+      if (file?.name === undefined) throw new Error('Decision module needs its admitted logical name');
+      this.decisionAssets.set(hash, await ctx.product.file(file.name));
+    }));
+    ctx.scope.onDispose(() => { this.decisionAssets.clear(); this.decisionAuthority = null; });
     ctx.strings(this.runtimeRows.strings); await this.build(ctx);
     if (this.runtimeRows.melee !== undefined) {
       // Keep presentation out of renderer-free imports and use the existing phase/contact owner.
@@ -914,7 +926,19 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     else {
       const program = rows.species, brains = admitSpeciesProgram(program.program);
       this.populationBrains = brains;
-      const catalogue = brains.catalogue(program.page, { ...(program.homes === undefined ? {} : { homes: program.homes }),
+      const catalogue = brains.catalogue(program.page, { decisions: { bind: (actor, row) => {
+        const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player;
+        if (world === null || world === undefined || physics === null || health === null) throw new Error('Decision body requires its actual page world');
+        this.decisionAuthority ??= borrowedDecisionAuthority(this.runtimeSource, this.decisionAssets, outputDescriptor(this.runtimeSource)?.sections ?? new Map(), {
+          scope: ctx.scope, events: ctx.app.events, flags: this.pageQuest.flags, physics,
+          player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, health, motor: world.player.motor },
+          groundHeightAt: (x, z) => { const hit = floorBelow(physics, x, z, world.player.position.y + 500, 1000);
+            if (hit === undefined) throw new Error('Decision ground query has no floor'); return hit; },
+          live: body => ctx.game.runtime?.play?.animals.animals.some(value => value === body) === true,
+          fixed: (id, run, scope) => { ctx.app.addSystem({ id, phase: 'fixed.post', when: () => !scope.disposed && ctx.app.state === 'play', run }, scope); },
+        });
+        return this.decisionAuthority.bind(actor, row);
+      } }, ...(program.homes === undefined ? {} : { homes: program.homes }),
         ...(program.shove === true ? { held: { shove: (yaw, speed, lift) => { this.populationPush?.(yaw, speed, lift); } } } : {}) });
       this.populationCatalogue = catalogue; species = { rows: catalogue.rows, looks: program.looks ?? (program.library === undefined ? [] : rigLibrary(program.library).looks), witness: brains.witness };
     }

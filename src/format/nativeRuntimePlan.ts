@@ -7,6 +7,7 @@ import { DiverSchema, PatrolDiverSchema } from './flyers';
 import { PhasedDiverSchema, PhasedFlyerSchema } from './phasedFlyers';
 import { ScriptSpeciesSchema } from './speciesScripts';
 import { StalkerSchema, SkirmisherSchema, GuardianSchema, GuardianPatternsSchema, PerchHunterSchema } from './brains';
+import { BorrowedDecisionSchema } from './decisionScripts';
 import { ScriptBindingsSchema } from './scripts';
 import { StateSchema } from './state';
 
@@ -21,7 +22,7 @@ const brain = v.union([
   v.strictObject({ archetype: v.literal('grazer'), data: GrazerSchema.options[0] }),
   v.strictObject({ archetype: v.literal('grazer'), data: GrazerSchema.options[1], phaseSlots: count }),
   v.strictObject({ archetype: v.literal('diver'), data: v.union([DiverSchema, PhasedDiverSchema]) }),
-  v.strictObject({ archetype: v.literal('raptor'), data: v.unknown() }),
+  v.strictObject({ archetype: v.literal('decision'), data: BorrowedDecisionSchema }),
   v.strictObject({ archetype: v.literal('challenge-grazer'), data: ChallengeGrazerSchema, phaseSlots: count }),
   v.strictObject({ archetype: v.literal('patrol-diver'), data: PatrolDiverSchema }),
   v.strictObject({ archetype: v.literal('phased-flyer'), data: PhasedFlyerSchema }),

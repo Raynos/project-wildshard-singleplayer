@@ -8,7 +8,7 @@ import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, 
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows } from '../plugin/brain';
+import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
 export interface BossRowFlagNames { readonly defeated: string; readonly paid: string }
@@ -197,11 +197,12 @@ export interface NativePopulationRows {
  * in the caller's phase. No actor, RNG draw or step runs during preparation. */
 export function prepareNativePopulation(rows: NativePopulationRows, baked: Parameters<typeof bakedSpecs>[0], owner: unknown): {
   readonly specs: ReturnType<typeof bakedSpecs>;
-  readonly install: (host: SimHost, ports: Omit<BossOwnerPorts, 'body'>, saved?: Parameters<typeof installSpeciesHomes>[2]) => ReturnType<typeof installSpeciesEncounter>;
+  readonly install: (host: SimHost, ports: Omit<BossOwnerPorts, 'body'>, saved?: Parameters<typeof installSpeciesHomes>[2], decisions?: SpeciesDecisionAuthority) => ReturnType<typeof installSpeciesEncounter>;
 } {
   const specs = bakedSpecs(baked), brains = rows.admission === 'prepare' ? admitSpeciesProgram(rows.program) : null;
   const homes = rows.homes.map(row => ({ ...row, late: row.late === 'ground' ? specs.get(row.kind)?.flight === undefined : row.late ?? false }));
-  return { specs, install: (host, ports, saved) => installSpeciesEncounter(host, {
+  return { specs, install: (host, ports, saved, decisions) => installSpeciesEncounter(host, {
+    ...(decisions === undefined ? {} : { decisions }),
     step: rows.step, seed: rows.seed, homes, specs, species: rows.program.species, brains: brains ?? admitSpeciesProgram(rows.program),
     attackers: rows.attackers ?? Infinity, think: rows.think === 'legacy' ? { bands: { rate: () => 'legacy' } } : rows.think,
     ...(rows.boss === undefined ? {} : { boss: rows.boss }), ...(rows.killY === undefined ? {} : { killY: rows.killY }),

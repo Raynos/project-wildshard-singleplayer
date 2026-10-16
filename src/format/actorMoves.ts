@@ -19,12 +19,12 @@ const ready = v.variant('kind', [
 ]);
 /** Data-only fixed-step motion. Decisions, strike selection, rewards and phase transitions are not moves. */
 export const ActorMoveSchema = v.variant('kind', [
-  v.strictObject({ id, kind: v.literal('orbit'), ...motion, center: v.tuple([at, at]), r: positive, y: at, lead: v.exactOptional(angle) }),
+  v.strictObject({ id, kind: v.literal('orbit'), ...motion, center: v.tuple([at, at]), r: positive, y: at, lead: v.exactOptional(angle), angularSpeed: v.exactOptional(turn) }),
   v.pipe(v.strictObject({ id, kind: v.literal('stalk'), ...motion, standOff: radius, above: v.exactOptional(at), altitude: v.exactOptional(at),
     retreat: v.optional(v.boolean(), false), constantSpeed: v.optional(v.boolean(), false), ready, giveUp: v.exactOptional(seconds) }),
     v.check(row => (row.above === undefined) !== (row.altitude === undefined), 'one stalk altitude source')),
   v.strictObject({ id, kind: v.literal('dive'), ...motion, slope: radius, skim: at, altitude: at, aimHeight: at,
-    maxSeconds: seconds, strike: v.exactOptional(id) }),
+    targetAltitude: v.optional(v.boolean(), false), contactCompletes: v.optional(v.boolean(), true), maxSeconds: seconds, strike: v.exactOptional(id) }),
   v.pipe(v.strictObject({ id, kind: v.literal('climb'), ...motion, seconds, speedBonus: v.optional(speed, 0), altitude: at }),
     v.check(row => row.speed + row.speedBonus <= 40, 'bounded combined climb speed')),
   v.strictObject({ id, kind: v.literal('takeoff'), ...motion, perch: id, altitude: at, seconds, bank: v.pipe(radius, v.maxValue(Math.PI / 2)) }),

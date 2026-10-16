@@ -1,3 +1,4 @@
+import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
 import { ShardDecisions } from '../shardfile/decisions';
 import { WorldTargetHost } from '../shardfile/worldTargets';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
@@ -144,7 +145,7 @@ interface RuntimeWorldRecipe {
   };
 }
 /** Shared native world preparation: declarations select static collision, spawn and optional scripted motion on the same host. */
-export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: RuntimeWorldRecipe): Promise<{
+export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: RuntimeWorldRecipe, sections: ReadonlyMap<string, unknown> = outputDescriptor(shard)?.sections ?? new Map()): Promise<{
   level: SimLevel; ports: { ground: false; heightAt: (x: number, z: number) => number };
   install: (host: SimHost, context: { restoring: boolean; emit: Parameters<typeof ledgerPorts>[0]; snapshot?: Parameters<ReturnType<typeof prepareNativePopulation>['install']>[2] }) => ReturnType<ReturnType<typeof prepareNativePopulation>['install']> & { ledger: ReturnType<typeof ledgerPorts>; hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
     hookTick: () => number; observations: ReadonlyMap<string, () => boolean>; actions: ReadonlyMap<string, () => void> };
@@ -186,7 +187,10 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
       return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
     })();
     const ledger = ledgerPorts(context.emit);
-    return { ...environment, ledger, ...population.install(host, ledger, context.snapshot) };
+    return { ...environment, ledger, ...population.install(host, ledger, context.snapshot, borrowedDecisionAuthority(shard, assets, sections, {
+      scope: host.scope, events: host.events, flags: host.flags, physics: host.physics, player: host.player, groundHeightAt: host.groundHeightAt.bind(host),
+      live: actor => host.entities.get(actor.entityId) === actor, fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run)); },
+    })) };
   } };
 }
 export interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
@@ -216,7 +220,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
   const targets = sections.has('world/targets') ? parseWorldTargets(sections.get('world/targets')) : undefined;
   if (targets !== undefined) { const errors=worldTargetRules(targets,shard);if(errors.length>0)throw new Error(errors.join('; ')); }
   const ownsTargets = targets?.targets.some(target=>target.weapon===weapon.id) === true;
-  const world = await prepareRuntimeWorld(shard, assets, baked, recipe);
+  const world = await prepareRuntimeWorld(shard, assets, baked, recipe, sections);
   const quest = shard.questHost;
   if (quest === undefined || quest === null) throw new Error('Missing admitted native quest host');
   const metadata = row.quest.spots === 'metadata' ? readRuntimeWorldMetadata(baked, true) : undefined;
