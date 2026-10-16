@@ -29,7 +29,7 @@ export const ShardCatalogCardSchema = v.strictObject({
 /** Build inputs and emitted entries share the exact grid placement contract. */
 export const ShardCatalogPlacementSchema = v.strictObject({ instance: v.pipe(text, v.regex(/^[a-zA-Z0-9_-]+$/u)),
   grid: v.tuple([integer, integer]), size: v.tuple([v.literal(500), v.literal(500), v.literal(500)]) });
-export const ShardCatalogPlacementsSchema = v.pipe(v.array(v.strictObject({ slug, placement: ShardCatalogPlacementSchema })), v.maxLength(256));
+export const ShardCatalogPlacementsSchema = v.pipe(v.array(v.strictObject({ slug, placement: ShardCatalogPlacementSchema, runtime: v.exactOptional(v.literal('source')) })), v.maxLength(256));
 
 /** Index and image paths are relative to out/catalog.json (served as shardfiles/catalog.json). */
 export const ShardCatalogEntrySchema = v.pipe(v.strictObject({
@@ -38,7 +38,7 @@ export const ShardCatalogEntrySchema = v.pipe(v.strictObject({
   index: v.strictObject({ path: text, hash: ShardHashSchema }),
   card: ShardCatalogCardSchema,
   placement: ShardCatalogPlacementSchema,
-  runtime: v.nullable(v.strictObject({ entry: v.literal('runtime/index.ts'), filesHash: ShardHashSchema })),
+  runtime: v.nullable(v.union([v.literal('source'), v.strictObject({ entry: v.literal('runtime/index.ts'), filesHash: ShardHashSchema })])),
 }), v.check(row => row.index.path === `${row.slug}/shard.json`, 'Catalog index must belong to its shard'),
   v.check(row => [row.card.thumb, row.card.portrait, row.card.landscape].every(path => path.startsWith('data:image/')
     || new RegExp(`^${row.slug}/blobs/image/[a-f0-9]{64}\\.(?:webp|jpg|png)$`, 'u').test(path)), 'Catalog images must name shard image blobs'));

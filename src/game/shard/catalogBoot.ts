@@ -47,6 +47,7 @@ export async function compileCatalogRegistry(modules: Readonly<Record<string, ()
  * Index-byte integrity belongs to readProductDescriptor's descriptorHash door. */
 export async function loadCatalogRuntime(entry: ShardCatalogEntry, product: RuntimeProductIdentity,
   registry: ReadonlyMap<string, CompiledCatalogRuntime>, hash: CatalogHash): Promise<CatalogRuntimeModule | null> {
+  if (entry.runtime === 'source') throw new Error('Source-mode runtime requires its explicit app binding');
   const { slug: expectedIdentity, revision: expectedRevision } = entry.identity;
   const { slug: productIdentity, revision: productRevision } = product.identity;
   if (expectedIdentity !== productIdentity || expectedRevision !== productRevision) throw new Error(`Catalog product identity mismatch: ${entry.slug}`);

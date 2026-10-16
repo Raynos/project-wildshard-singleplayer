@@ -61,9 +61,9 @@ it('builds both copied runtimes before one complete output-only catalog and publ
     const source = readFileSync(resolve(root, 'src/shards', entry.slug, 'runtime/index.ts'));
     expect(readFileSync(resolve(output, entry.slug, 'runtime/index.ts'))).toEqual(source);
     expect(entry.index.hash).toBe(hashImmutableBytes(Uint8Array.from(readFileSync(resolve(output, entry.index.path)))));
-    expect(entry.runtime?.filesHash).toBe(hashImmutableBytes(runtimeInventoryBytes([{ path: 'runtime/index.ts', hash: hashImmutableBytes(Uint8Array.from(source)), bytes: source.length, lines: 1 }])));
+    expect(typeof entry.runtime === 'object' ? entry.runtime?.filesHash : undefined).toBe(hashImmutableBytes(runtimeInventoryBytes([{ path: 'runtime/index.ts', hash: hashImmutableBytes(Uint8Array.from(source)), bytes: source.length, lines: 1 }])));
   }
-  expect(readdirSync(output).sort()).toEqual(['alpha', 'beta', 'catalog.json']);
+  expect(readdirSync(output).sort()).toEqual(['alpha', 'beta', 'catalog-report.json', 'catalog.json']);
   put(root, 'main.js', 'export const ready = true;\n');
   put(output, 'alpha/.build-key', 'not shipped');
   await viteBuild({ root, configFile: false, publicDir: false, logLevel: 'silent', plugins: [outputProductsPlugin()], build: {
@@ -93,4 +93,15 @@ it('keeps the previous catalog on a failed full pass and never publishes one fro
   expect(calls[0]).toContain('--copy-runtime');
   expect(existsSync(resolve(root, 'out/alpha/runtime/index.ts'))).toBe(true);
   expect(existsSync(path)).toBe(false);
+});
+
+it('marks an escaping runtime as source without copied-runtime credit', async () => {
+  const root = await fixture(), calls: string[][] = [];
+  put(root, 'src/shards/beta/runtime/index.ts', "import '../data/native';\n");
+  await buildShardfiles(root, { strict: true, catalog: true, build: builder(calls) });
+  expect(calls.filter(call => call[0] === 'build').map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
+  const output = resolve(root, 'out'), catalog = parseShardCatalog(JSON.parse(readFileSync(resolve(output, 'catalog.json'), 'utf8')));
+  expect(catalog.shards.find(row => row.slug === 'beta')?.runtime).toBe('source');
+  expect(existsSync(resolve(output, 'beta/runtime/index.ts'))).toBe(false);
+  expect(readFileSync(resolve(output, 'catalog-report.json'), 'utf8')).toContain('../data/native');
 });
