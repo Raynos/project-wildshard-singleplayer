@@ -280,6 +280,7 @@ export interface CellScreenPorts {
 export interface CellScreensState { readonly shown: readonly { readonly instance: string; readonly status: CellScreenStatus }[]; readonly draws: number }
 
 interface Slot {
+  ready: boolean; preparing: boolean;
   readonly mesh: Mesh; readonly material: MeshBasicMaterial; readonly canvas: HTMLCanvasElement; readonly context: CanvasRenderingContext2D | null; readonly texture: CanvasTexture;
   /** `clock`: only SCREEN_CLOCK changed since the last upload; `full`: anything else (or both) */
   readonly ordinal: number; readonly dispose: () => void; readonly upload: (kind: 'full' | 'clock') => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
@@ -305,6 +306,8 @@ const UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243, GL_NONE = 0, BROWSER_DEFAULT_
 export function installCellScreens(input: {
   readonly cells: readonly CellScreenCell[]; readonly wall: number; readonly ports: CellScreenPorts; readonly scene: Object3D;
   readonly admission: PlatformRenderAdmission; readonly time: () => number; readonly build: string; readonly tier: string; readonly slots?: number;
+  /** Resolve programs and uploads before the first visible draw; the slot owner fences every wait. */
+  readonly prepare?: (root: Object3D, current: () => boolean) => Promise<void>;
   /** Reupload changed canvases after paint under the existing shared build budget; absent, retain the ordinary draw upload.
    * With `copyTextureToTexture` and `state`, a clock-only change uploads just SCREEN_CLOCK (sp-o105). */
   readonly renderer?: Pick<Renderer, 'initTexture'> & { readonly copyTextureToTexture?: Renderer['copyTextureToTexture']; readonly state?: Pick<Renderer['state'], 'pixelStorei'> } & { readonly getContext: () => Pick<WebGL2RenderingContext, 'isContextLost'> };
@@ -363,7 +366,7 @@ export function installCellScreens(input: {
           pending = kind === 'full' || pending === 'full' ? 'full' : 'clock';
           if (!queued) later();
         };
-        return { ordinal, dispose: () => { slotOwner.dispose(); }, upload, mesh, material, canvas, context: canvas.getContext('2d'), texture,
+        return { ready: input.prepare === undefined, preparing: false, ordinal, dispose: () => { slotOwner.dispose(); }, upload, mesh, material, canvas, context: canvas.getContext('2d'), texture,
           instance: null, key: '', clock: '', along: 0, sliding: false, status: null, since: 0, inputs: null };
       });
     };
@@ -430,7 +433,7 @@ export function installCellScreens(input: {
         const picture = image(cell);
         place(s, cell, feet);
         const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
-        s.mesh.visible = true;
+        s.mesh.visible = s.ready;
         const last = s.inputs;
         if (last?.state === state && last.elapsedS === frame.elapsedS && last.near === near && last.art === (picture !== null)) continue;
         s.inputs = { state, elapsedS: frame.elapsedS, near, art: picture !== null };
@@ -439,6 +442,15 @@ export function installCellScreens(input: {
         if (s.context === null) continue;
         if (key !== s.key) { s.key = key; s.clock = screen.clock; drawCellScreen(s.context, screen, picture, near); s.upload('full'); draws++; }
         else if (!near && screen.clock !== s.clock) { s.clock = screen.clock; s.upload(drawCellScreenClock(s.context, screen, picture) ? 'clock' : 'full'); draws++; }
+        if (!s.ready && !s.preparing && input.prepare !== undefined) {
+          s.preparing = true;
+          const pending = s, current = (): boolean => !owner.disposed && pending.mesh.parent === group;
+          const warm = async (): Promise<void> => {
+            try { await input.prepare?.(pending.mesh, current); if (current()) pending.ready = true; }
+            catch (error) { if (current()) console.warn('[grid] cell screen preparation failed:', error); }
+          };
+          void warm();
+        }
       }
       const liveArt = new Set(slots.flatMap(s => {
         const url = s.instance === null ? null : byInstance.get(s.instance)?.art;

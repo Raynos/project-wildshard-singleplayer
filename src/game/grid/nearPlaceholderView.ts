@@ -35,8 +35,10 @@ export interface NearPlaceholderHost {
   /** frame / horizon hooks, as the far proxy gets them; returns the undo */
   adopt?: (view: FarProxyView, prepared: FarPrepared) => () => void;
   decorate?: (material: Material) => void;
+  /** Link and upload the admitted view while hidden; cancellation leaves the far proxy visible. */
+  prepare?: (view: FarProxyView, current: () => boolean) => Promise<void>;
 }
-interface Slot { readonly instance: string; generation: number; view: FarProxyView | null; lease: ResidencyLease | null; undo: (() => void) | null; owns: boolean }
+interface Slot { readonly instance: string; generation: number; view: FarProxyView | null; lease: ResidencyLease | null; undo: (() => void) | null; owns: boolean; ready: boolean }
 /** A readout for the cell screen and captures. */
 export interface NearPlaceholderState {
   /** the eye the plan last ranked from (grid metres) */
@@ -75,23 +77,26 @@ export class NearPlaceholders {
   /** Mirror the rings' refinement onto a cell's near view (the regions its L1 / L0 tiles now draw). */
   remask(instance: string): void {
     const view = this.slots.get(instance)?.view;
-    if (view !== null && view !== undefined) view.mask(this.host.mask(instance));
+    if (view !== null && view !== undefined) {
+      view.mask(this.host.mask(instance));
+      if (this.slots.get(instance)?.ready !== true) view.mesh.visible = false;
+    }
   }
 
   /** True while the cell's near view is drawn (its far proxy is covered). */
-  shows(instance: string): boolean { return (this.slots.get(instance)?.view ?? null) !== null; }
+  shows(instance: string): boolean { return this.slots.get(instance)?.ready === true; }
 
   /** True while the cell's near view is installed and its mesh is visible (not wholly masked by the cell's ring tiles). */
   visible(instance: string): boolean { return this.slots.get(instance)?.view?.mesh.visible === true; }
 
   /** True while the cell's near view is drawn and owns the cell (round 3: the rings stop refining it to its L1 / L0 tiles). */
-  owns(instance: string): boolean { const slot = this.slots.get(instance); return slot?.view !== null && slot?.view !== undefined && slot.owns; }
+  owns(instance: string): boolean { const slot = this.slots.get(instance); return slot?.ready === true && slot.owns; }
 
   state(): NearPlaceholderState {
     let bytes = 0;
     const cells: NearPlaceholderState['cells'][number][] = [...this.slots.values()].map(s => {
       if (s.view !== null) bytes += this.bytes.get(s.instance) ?? 0;
-      const row: NearPlaceholderState['cells'][number] = { instance: s.instance, shows: s.view !== null ? 'near' : 'loading' };
+      const row: NearPlaceholderState['cells'][number] = { instance: s.instance, shows: s.ready ? 'near' : 'loading' };
       const distance = this.distances.get(s.instance);
       if (distance !== undefined) row.distance = distance;
       return row;
@@ -109,7 +114,7 @@ export class NearPlaceholders {
   private readonly bytes = new Map<string, number>();
 
   private start(instance: string, distance: number): void {
-    const slot: Slot = { instance, generation: ++this.generation, view: null, lease: null, undo: null, owns: false };
+    const slot: Slot = { instance, generation: ++this.generation, view: null, lease: null, undo: null, owns: false, ready: false };
     this.slots.set(instance, slot);
     const generation = slot.generation;
     const run = async (): Promise<void> => {
@@ -129,6 +134,15 @@ export class NearPlaceholders {
       view.mesh.name = 'near-placeholder';
       slot.view = view; slot.lease = lease; slot.undo = this.host.adopt?.(view, prepared) ?? null; slot.owns = owns;
       this.bytes.set(instance, bytes);
+      view.mesh.visible = false;
+      const current = (): boolean => !this.disposed && this.slots.get(instance) === slot;
+      try { await this.host.prepare?.(view, current); }
+      catch (error) {
+        if (current()) { this.drop(slot); this.missing.add(instance); console.warn('[grid] near view preparation failed:', error); }
+        return;
+      }
+      if (!current()) return;
+      slot.ready = true;
       view.mask(this.host.mask(instance));
       this.host.cover(instance, true);
     };
@@ -138,7 +152,7 @@ export class NearPlaceholders {
   private drop(slot: Slot, release = true): void {
     this.slots.delete(slot.instance);
     slot.generation = -1;
-    if (slot.view !== null) { this.host.cover(slot.instance, false); slot.undo?.(); slot.view.dispose(); }
+    if (slot.view !== null) { if (slot.ready) this.host.cover(slot.instance, false); slot.undo?.(); slot.view.dispose(); }
     if (release) slot.lease?.release();
     slot.view = null; slot.lease = null; slot.undo = null;
     this.bytes.delete(slot.instance);

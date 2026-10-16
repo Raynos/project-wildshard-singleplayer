@@ -114,8 +114,8 @@ export interface GridSessionHost {
   readonly frame?: GridFrameHost & { readonly onLate: (fn: (dt: number) => void) => void };
   /** the page's renderer: shardfile neighbours' ring tiles compile their materials on it (absent: neighbours stay far proxies) */
   readonly renderer?: Renderer;
-  /** Prepare an admitted far view while hidden, before its budgeted visible upload. */
-  readonly prepareFar?: (view: FarProxyView) => Promise<void>;
+  /** Prepare a streamed view while hidden; its current fence cancels work before retirement. */
+  readonly prepareView?: (root: Object3D, current: () => boolean) => Promise<void>;
   /** Prepare an admitted, detached ring tile before its budgeted visible upload. */
   readonly prepareTile?: (tile: PreparedRingTile) => Promise<void>;
   /** G371: the drawn camera's horizontal offset from the feet, in the feet's frame (absent: the eye at the feet). The near
@@ -390,6 +390,7 @@ export class GridSession {
     try {
       this.screens = installCellScreens({ scene: host.scene, admission, time: () => app.clock.real, wall: CHUNK_HALF + 6,
         build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER, ...(host.renderer === undefined ? {} : { renderer: host.renderer }),
+        ...(host.prepareView === undefined ? {} : { prepare: host.prepareView }),
         cells: this.neighbours.map((cell) => ({ instance: cell.instance, x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, art: findShard(cell.slug)?.card.thumb ?? null })),
         ports: { read: () => this.screenInputs(), ready: id => this.screenReady(id),
           feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
@@ -440,7 +441,7 @@ export class GridSession {
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
     host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
     const far = farRingPorts({
-      ...(host.prepareFar === undefined ? {} : { prepare: host.prepareFar }), decorate: horizon.patch,
+      ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView) => host.prepareView?.(view.mesh, () => !host.scope.disposed && view.mesh.parent !== null) ?? Promise.resolve() }), decorate: horizon.patch,
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
         let loaded: Awaited<ReturnType<typeof loadFar>>;
@@ -467,7 +468,8 @@ export class GridSession {
       load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
       mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
-      adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch });
+      adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch,
+      ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView, current: () => boolean) => host.prepareView?.(view.mesh, current) ?? Promise.resolve() }) });
     this.near = near;
     host.scope.onDispose(() => { near.dispose(); });
     const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {

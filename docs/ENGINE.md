@@ -838,6 +838,11 @@ callback for sampler changes before publication (including baked cards). Final r
 allocation, complete sampler/storage key and source version; disposed textures or empty unresident clones refuse
 with a descriptive error rather than attempting an upload from released pixels.
 
+The grid's `GridSessionHost.prepareView(root, current)` uses `Game.warmSceneRoots` for far/near placeholders
+and cell screens before exposure. Near views retain their far fallback while linking and uploading; cancellation,
+eviction or preparation failure retires the pending view without covering its far proxy. A screen's slot likewise
+stays hidden until its first painted canvas and material are prepared. The existing page draw barrier paces this work.
+
 `Game.warmEnteredFrame(owner, futureRoot?)` captures the installing content scene before yielding. Regional callers
 pass their whole view root so authored sibling lights outside the native scene are included. Only that root's parked
 visibility is ignored; hidden descendants remain hidden. The bound native scene supplies the PMREM independently.
