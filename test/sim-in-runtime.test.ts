@@ -17,8 +17,8 @@ it('tracks value reach through other shard folders, lazy edges and cycles, exclu
   put('runtime/quest.ts','export const quest=1;');
   put('runtime/client.ts','export interface Client { id:string }');
   put('runtime/view.ts',"export const draw=() => 'client-only';");
-  expect(simRuntimeInventory(root).demo).toEqual({entries:['src/shards/demo/runtime/headless.ts'],files:['src/shards/demo/runtime/combat.ts','src/shards/demo/runtime/headless.ts','src/shards/demo/runtime/quest.ts']});
-  const inventory=simRuntimeInventory(root),files=inventory.demo?.files??[];
+  expect(simRuntimeInventory(root)['demo']).toEqual({entries:['src/shards/demo/runtime/headless.ts'],files:['src/shards/demo/runtime/combat.ts','src/shards/demo/runtime/headless.ts','src/shards/demo/runtime/quest.ts']});
+  const inventory=simRuntimeInventory(root),files=inventory['demo']?.files??[];
   const policy={budgets:{'sim-in-runtime/demo':3},allow:{'shardfile/sim-in-runtime':Object.fromEntries(files.map(path=>[path,'G453 baseline']))}};
   expect(simRuntimeFailures(policy,inventory)).toEqual([]);
   put('runtime/quest.ts',"export const quest=() => import('./newSim');");put('runtime/newSim.ts','export const rule=1;');
@@ -34,7 +34,7 @@ it('recognizes a renamed exported entry and refuses computed or unresolved value
  try{
   put('sim/server.ts',"export const prepareHeadlessRuntime=() => import('../runtime/rule');");
   put('runtime/rule.ts','export const rule=1;');
-  expect(simRuntimeInventory(root).demo?.files).toEqual(['src/shards/demo/runtime/rule.ts']);
+  expect(simRuntimeInventory(root)['demo']?.files).toEqual(['src/shards/demo/runtime/rule.ts']);
   put('runtime/rule.ts','export const rule=(path:string) => import(path);');
   expect(()=>simRuntimeInventory(root)).toThrow('computed import');
   put('runtime/rule.ts',"import './missing'; export const rule=1;");
