@@ -1,4 +1,4 @@
-/** Portable ABI-v0 AssemblyScript compiler and structural Binaryen metering, pinned by SDK dependencies. */
+/** Portable AssemblyScript compiler and structural Binaryen metering, pinned by SDK dependencies. */
 import binaryen from 'binaryen';
 import { loadAssemblyScriptCompiler } from './assemblyscriptCompiler.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the authoring file bake reads and emits local modules.
@@ -96,9 +96,10 @@ export function instrumentScript(bytes: Uint8Array): Uint8Array {
 }
 /** Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json.
  */
-export async function compileScript(source: string, options: { maximumPages?: number; sources?: Readonly<Record<string, string>> } = {}): Promise<Uint8Array> {
-  const maximumPages = options.maximumPages ?? 64;
-  if (!Number.isSafeInteger(maximumPages) || maximumPages < 1 || maximumPages > 64) throw new Error('Script maximumPages must be 1..64');
+export async function compileScript(source: string, options: { abi?: 0 | 1; maximumPages?: number; sources?: Readonly<Record<string, string>> } = {}): Promise<Uint8Array> {
+  const maximumPages = options.maximumPages ?? (options.abi === 1 ? 1 : 64);
+  const ceiling = options.abi === 1 ? 4 : 64;
+  if (!Number.isSafeInteger(maximumPages) || maximumPages < 1 || maximumPages > ceiling) throw new Error(`Script maximumPages must be 1..${ceiling}`);
   const sources = new Map(Object.entries(options.sources ?? {}));
   if (sources.size > 64 || [...sources].some(([name, text]) => name === 'main.ts' || !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u.test(name) || typeof text !== 'string')) throw new Error('Invalid virtual AssemblyScript sources');
   // asc's declaration bundle globally changes Array.at to return T, unsound in host JS.
@@ -106,7 +107,7 @@ export async function compileScript(source: string, options: { maximumPages?: nu
   const compiler = await loadAssemblyScriptCompiler();
   if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
   let bytes: Uint8Array = new Uint8Array();
-  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
+  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', String(options.abi === 1 ? maximumPages : 1), '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
     readFile: (name) => name === 'main.ts' ? source : sources.get(name) ?? null,
     writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
   });

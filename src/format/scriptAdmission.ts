@@ -1,4 +1,5 @@
 import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from './scriptAbi';
+import { SCRIPT_V1_EXPORTS, SCRIPT_V1_IMPORTS, SCRIPT_V1_LAYOUT } from './scriptAbiV1';
 
 class Reader {
   pos = 0;
@@ -54,7 +55,9 @@ function charge(code: readonly Instruction[], at: number, fuel: number, bytes: n
   const i = code[at]; return i?.op === 0x41 && (i.arg ?? 0) >= bytes && isCall(code[at + 1], fuel);
 }
 /** Validate bytes and metering without instantiating or executing any module code. Tables are capped at zero in v0. */
-export function admitScript(bytes: Uint8Array): ScriptAdmission {
+export function admitScript(bytes: Uint8Array, abi: 0 | 1 = 0): ScriptAdmission {
+  const required = abi === 1 ? SCRIPT_V1_EXPORTS : SCRIPT_EXPORTS;
+  const allowed = abi === 1 ? SCRIPT_V1_IMPORTS : SCRIPT_IMPORTS;
   if (bytes.length > SCRIPT_ABI.maxBytes || !WebAssembly.validate(new Uint8Array(bytes))) throw new Error('Invalid or oversized module');
   const r = new Reader(bytes); r.take(8);
   const types: Signature[] = [], functions: number[] = [], imports = new Map<string, number>();
@@ -73,12 +76,13 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
       for (let i = 0; i < count; i++) {
         const mod = s.name(), name = s.name(), kind = s.byte(); if (mod !== 'env' || imports.has(name)) throw new Error('Import outside ABI');
         if (kind === 0) {
-          const t = s.uint(), expected = SCRIPT_IMPORTS[name], actual = types[t];
+          const t = s.uint(), expected = allowed[name], actual = types[t];
           if (!expected || !actual || !equal(signature(actual), expected)) throw new Error('Import signature outside ABI');
           imports.set(name, imported++); functions.push(t);
         } else if (kind === 2 && name === 'memory' && initialPages === 0) {
           if (s.uint() !== 1) throw new Error('Memory must be capped and unshared'); initialPages = s.uint(); maximumPages = s.uint();
           if (initialPages < 1 || maximumPages < initialPages || maximumPages > SCRIPT_ABI.memoryPages) throw new Error('Memory cap'); imports.set(name, -1);
+          if (abi === 1 && (maximumPages !== initialPages || maximumPages > SCRIPT_V1_LAYOUT.maximumPages)) throw new Error('Decision memory must be fixed at 1..4 pages');
         } else throw new Error('Import outside ABI');
       }
     } else if (id === 3) { const count = s.uint(); if (count + imported > SCRIPT_ABI.maxFunctions) throw new Error('Function cap'); for (let i = 0; i < count; i++) functions.push(s.uint()); }
@@ -119,6 +123,7 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
     if (!implementations.has(index) || !charge(body.code, 0, fuel, body.bytes)) throw new Error('Missing function fuel instrumentation');
     for (let j = 0; j < body.code.length; j++) {
       const instr = body.code[j]; if (!instr) throw new Error('Missing instruction');
+      if (abi === 1 && instr.op === 0x40) throw new Error('Decision memory.grow is forbidden');
       if (instr.op === 0x03 && !charge(body.code, j + 1, fuel, body.bytes)) throw new Error('Missing loop fuel instrumentation');
       if (isCall(instr, fuel) && !charge(body.code, j - 1, fuel, body.bytes)) throw new Error('Invalid fuel charge');
       const float32 = instr.op === 0x2a || instr.op === 0x43 || (instr.op >= 0x8b && instr.op <= 0x98) || (instr.op >= 0xb2 && instr.op <= 0xb6) || instr.op === 0xbe;
@@ -128,7 +133,7 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
     }
   }
   if (wrappers.size === 0 || bodies.length !== functions.length - imported) throw new Error('Missing instrumented functions');
-  for (const [name, contract] of Object.entries(SCRIPT_EXPORTS)) {
+  for (const [name, contract] of Object.entries(required)) {
     const exp = exports.get(name), type = types[functions[exp?.index ?? -1] ?? -1];
     const expected = contract.length === 0 ? [0] : contract;
     if (exp?.kind !== 0 || !wrappers.has(exp.index) || !type || !equal(signature(type), expected)) throw new Error(`Missing or wrong ABI export: ${name}`);

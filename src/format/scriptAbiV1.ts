@@ -40,3 +40,14 @@ export function scriptV1Layout(states: number, params: number): { state: number;
   const outbox = inbox + SCRIPT_V1_LAYOUT.events * SCRIPT_V1_LAYOUT.eventWidth;
   return { state, params: parameters, inbox, outbox, bytes: (outbox + SCRIPT_V1_LAYOUT.commands * SCRIPT_V1_LAYOUT.commandWidth) * SCRIPT_V1_LAYOUT.slotBytes };
 }
+
+/** Required decision entry points: arguments followed by the result, zero for void. */
+export const SCRIPT_V1_EXPORTS: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  ws_abi: [0x7f], ws_init: [0x7f, 0x7f, 0], ws_io: [0x7f], ws_handle: [0x7f],
+});
+/** Only deterministic reads plus the existing compiler guards may enter a decision module. */
+export const SCRIPT_V1_IMPORTS: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  enter: [0], leave: [0], fuel: [0x7f, 0], abort: [0x7f, 0x7f, 0x7f, 0x7f, 0],
+  finite32: [0x7d, 0x7d], finite64: [0x7c, 0x7c],
+  ws_read: [0x7f, 0x7c, 0x7c, 0x7c], ws_list: [0x7f, 0x7c, 0x7c, 0x7f, 0x7f, 0x7f],
+});

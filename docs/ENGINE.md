@@ -7167,3 +7167,10 @@ exception is this defining module importing the already-pinned
 `meshoptimizer/decoder` (1.2.0): server-safe pure Wasm needed for decoded-byte
 admission, not a schema bypass. Its initialization is awaited once; each
 view is decoded once per admission and reused by all subsequent checks.
+
+`admitScript(bytes, 1)` checks the v1 signatures and the same structural
+fuel/depth/finite guards as v0, with fixed memory of 1–4 pages and no
+`memory.grow`. `compileScript(source, { abi: 1 })` defaults to one fixed
+page; `maximumPages` selects another fixed size up to four. Omitting `abi`
+preserves v0's one-page initial memory and 64-page maximum. Both versions
+use the pinned coarse G457 function/loop fuel instrumentation.
