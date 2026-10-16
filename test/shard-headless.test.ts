@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Headless behaviour runs the real authored product bytes.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native fixtures require the official format-2 outputs before workers start.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the official writer with the same Node binary as the test worker.
@@ -40,7 +40,7 @@ for (const [slug, input, trusted] of cases) it(`${slug}: boots and advances a li
   const assets = new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/${slug}/assets/${file.hash}`))]));
   for (const hash of source.requires.commons) assets.set(`commons:${hash}`, Uint8Array.from(readFileSync(`public/commons/${hash}`)));
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
-    ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : `src/shards/${slug}/runtime/headless.ts`)).href } } : {}) });
+    ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : (existsSync(`src/shards/${slug}/sim/headless.ts`) ? `src/shards/${slug}/sim/headless.ts` : `src/shards/${slug}/runtime/headless.ts`))).href } } : {}) });
   try {
     const first = decodeSimSnapshot((await sim.step()).snapshot);
     for (let tick = 0; tick < 24; tick++) await sim.step([{ source: 'player', commands: [{ kind: 'player', moveX: 0.2, moveZ: 0.2, yaw: 0 }] }]);

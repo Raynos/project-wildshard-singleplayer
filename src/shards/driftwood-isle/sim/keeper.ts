@@ -22,14 +22,14 @@ import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { CRAB } from '../species/crab';
 import { SAILOR } from '../species/sailor';
 import { MONKEY_VARIANTS } from '../species/monkeyVariants';
-import { DRIFTWOOD_PRACTICE } from './tables';
+import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { placeEnemies, PRACTICE_AT } from '../runtime/placement';
-import { enemyBrain, type EnemyBrain } from '../species/enemyBrains';
-import type { DriftwoodBake } from '../world/baked';
+import { enemyBrain, type EnemyBrain } from './enemyBrains';
+import type { DriftwoodBake } from './baked';
 import { RespawnQueue } from '../runtime/ecology';
 import { RESPAWN } from '../data/ecology';
-import { ISLAND_BOAR, ISLAND_BEAR } from './species';
+import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
 import { FAUNA_SPECIES } from './fauna';
 import { DRIFTWOOD_NATIVE_FAUNA } from '../data/nativeFauna';
 

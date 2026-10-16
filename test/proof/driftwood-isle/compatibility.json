@@ -1,6 +1,6 @@
 {
   "slug": "driftwood-isle",
-  "entry": "runtime/headless.ts",
+  "entry": "sim/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring, reef and spawn-to-zipline journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
   "inputs": "46258fc46080b1fa40214f8b7474068293ae0da100eac88c52c2cd7cd657de44",

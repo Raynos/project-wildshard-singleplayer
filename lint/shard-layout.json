@@ -46,6 +46,7 @@
       "entries": [
         "loot/",
         "onboarding/",
+        "sim/",
         "tiers.ts"
       ]
     },

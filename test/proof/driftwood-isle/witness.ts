@@ -7,7 +7,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
-import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/combat/captainEncounter';
+import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/sim/captainEncounter';
 import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -23,7 +23,7 @@ import { playDriftwood } from './tape';
 
 const { actions: DRIFTWOOD_ACT, actor: DRIFTWOOD_INTERACT, step: QUEST_STEP } = policy;
 
-export const ENTRY = 'runtime/headless.ts';
+export const ENTRY = 'sim/headless.ts';
 const ROOT = new URL('../../../', import.meta.url), MODULE = new URL(`src/shards/driftwood-isle/${ENTRY}`, ROOT).href;
 const WORKER = new URL('worker.ts', import.meta.url).href;
 let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);

@@ -16,7 +16,7 @@ const { captureNumberPathProbe } = await import('../../../scripts/number-path-pr
 const { installPortableMath } = await import('../../fake/portableMath.ts'); installPortableMath();
 const { installAppIdentity } = await import('../../../src/engine/app/identity.ts');
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts'); installAppIdentity(WILDSHARD_IDENTITY);
-await import('../../../src/shards/driftwood-isle/runtime/headless.ts');
+await import('../../../src/shards/driftwood-isle/sim/headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
 const { default: source } = await import('../../../src/shards/driftwood-isle/shard.config.ts');

@@ -4,10 +4,10 @@ import type { EnemyWorld } from '@wildshard/engine/entities/species/registry';
 import { createMemoryActionBrain, createNativeSpeciesContext } from '@wildshard/game/plugin/brain';
 import type { SimValue } from '@wildshard/engine/sim';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
-import { strikeCrab } from './crab';
-import { strikeSailor } from './sailor';
-import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from './monkeyPolicy';
-import { createCaptainBrain } from './captainPolicy';
+import { strikeCrab } from '../species/crab';
+import { strikeSailor } from '../species/sailor';
+import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from '../species/monkeyPolicy';
+import { createCaptainBrain } from '../species/captainPolicy';
 import { CRAB_ACTIONS, SAILOR_ACTIONS, MONKEY_ACTIONS } from '../data/speciesActions';
 
 /** One live enemy's shipping policy, observing through ports allocated once at its spawn. */

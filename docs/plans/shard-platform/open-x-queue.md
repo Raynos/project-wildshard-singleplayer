@@ -269,3 +269,14 @@ that replaces it, and grants no extra section or byte headroom.
 | W2 Driftwood fixedLayouts section exit | `custom/fixedLayouts` | Move chime slots and hut / lookout colliders, anchors and floors into platform model-library and collider rows. | W2b client rewire |
 | W2 Driftwood questRows section exit | `custom/questRows` | Register bag items, feats, perks and trader goods from the platform item / achievement / effect / shop sections. | W2b client rewire |
 | W2 Driftwood trailside section exit | `custom/trailside` | Move the trail weld's placements and native colliders into platform model-library placement and collider rows. | W2b client rewire |
+
+## W2b Driftwood sim/ exit (G453)
+
+`src/shards/driftwood-isle/sim/` (sp-o287) is the transitional home of the
+shard's native simulation TS: the headless entry and the six modules only it
+reaches. It is a Driftwood-only `lint/shard-layout.json` legacy entry, still
+counted as custom code, and shrink-only: no other shard may add one.
+
+| Exit row | Current home | Retirement | Owner |
+|---|---|---|---|
+| W2 Driftwood sim folder exit | `sim/headless.ts`, `keeper`, `fauna`, `enemyBrains`, `captainEncounter`, `kills`, `baked` | Creatures, brains, the captain and kills become platform spawn / brain rows and KS `.as` scripts (KA5/KA6); the entry becomes the W1 script entry; delete the folder and its legacy entry once it is empty. | W3 |
