@@ -18,8 +18,28 @@ v.check((b) => b.stopDistance <= b.awareRadius && b.awareRadius <= b.leashRadius
 export const CreatureHomeSchema = v.strictObject({ x: coord, y: coord, z: coord, r: v.pipe(radius, v.minValue(Number.MIN_VALUE)) });
 /** Bounded per-spawn home overriding a flyer's catalogue home or supplying its ram boundary. */
 export type ShardCreatureHome = v.InferOutput<typeof CreatureHomeSchema>;
+const memoryKey = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9._-]{0,63}$/u),
+  v.check(key => !['constructor', 'prototype', '__proto__'].includes(key), 'safe memory key'));
+const memoryTest = v.picklist(['truthy', 'falsy']);
+/** Ordered actor-memory contact gates; the owning body retains its attack phase and save fields. */
+export const CreatureMemoryActionsSchema = v.strictObject({ stateKey: memoryKey,
+  states: v.pipe(v.array(memoryKey), v.minLength(1), v.maxLength(32)),
+  actions: v.pipe(v.array(v.strictObject({ state: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(31)),
+    phase: v.pipe(finite, v.minValue(0), v.maxValue(1)), strike: id,
+    once: v.strictObject({ key: memoryKey, value: finite, test: v.picklist(['falsy', 'not-value']) }),
+    when: v.exactOptional(v.strictObject({ key: memoryKey, test: memoryTest })),
+    damage: v.exactOptional(v.literal('charge')),
+    radiusScale: v.exactOptional(v.strictObject({ minimum: radius, factor: v.pipe(finite, v.minValue(0), v.maxValue(10)) })),
+    sound: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(128))) })), v.maxLength(16)),
+});
+/** Immutable contact/action recipe, resolved against the admitted strike catalogue. */
+type MemoryActions = v.InferOutput<typeof CreatureMemoryActionsSchema>;
+export type CreatureMemoryActions = Omit<MemoryActions, 'states' | 'actions'> & {
+  readonly states: readonly string[]; readonly actions: readonly MemoryActions['actions'][number][] };
+
 /** Explicit native body authority; decisions never infer flight, contact origin or an attack grant. */
 export const CreatureBodyRecipeSchema = v.strictObject({
+  actions: v.exactOptional(CreatureMemoryActionsSchema),
   kind: v.literal('animal'), motion: v.picklist(['ground', 'flight']),
   attack: v.picklist(['keeper', 'unlimited']), stunned: v.picklist(['none', 'look-hold']),
   contact: v.variant('kind', [
@@ -28,7 +48,7 @@ export const CreatureBodyRecipeSchema = v.strictObject({
   ]),
 });
 /** Serializable selection of the native motor and the exact existing creature-contact protocol. */
-export type CreatureBodyRecipe = v.InferOutput<typeof CreatureBodyRecipeSchema>;
+export type CreatureBodyRecipe = Omit<v.InferOutput<typeof CreatureBodyRecipeSchema>, 'actions'> & { readonly actions?: CreatureMemoryActions };
 const phase = v.pipe(finite, v.minValue(-2 * Math.PI), v.maxValue(2 * Math.PI));
 const spawn = v.strictObject({ phaseOffset: v.optional(phase), home: v.optional(CreatureHomeSchema), id, species: id, variant: id, brain: v.nullable(id), strike: v.nullable(id), seed: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff)), scale: v.pipe(finite, v.minValue(0.1), v.maxValue(10)), at: v.tuple([coord, coord, coord]), yaw: finite });
 /** Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. */

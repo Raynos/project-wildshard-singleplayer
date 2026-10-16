@@ -4,11 +4,9 @@ import type { EnemyWorld } from '@wildshard/engine/entities/species/registry';
 import { createMemoryActionBrain, createNativeSpeciesContext } from '@wildshard/game/plugin/brain';
 import type { SimValue } from '@wildshard/engine/sim';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
-import { strikeCrab } from '../species/crab';
-import { strikeSailor } from '../species/sailor';
 import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from '../species/monkeyPolicy';
 import { createCaptainBrain } from '../species/captainPolicy';
-import { CRAB_ACTIONS, SAILOR_ACTIONS, MONKEY_ACTIONS } from '../data/speciesActions';
+import { MONKEY_ACTIONS } from '../data/speciesActions';
 
 /** One live enemy's shipping policy, observing through ports allocated once at its spawn. */
 export interface EnemyBrain { decide: (dt: number) => void; move: (dt: number) => void; snapshot: () => SimValue; restore: (value: SimValue) => void }
@@ -26,6 +24,8 @@ type EnemyBrainPorts = Parameters<typeof createNativeSpeciesContext<EnemyWorld<H
  */
 export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: readonly HuntBody[] | null, shared: EnemyBrainPorts): EnemyBrain {
   const context = createNativeSpeciesContext(shared, actor, herd, label);
+  const actions = driftwoodSpeciesBrains.actions(kind, actor);
+  if (actions !== null) return context.bind(context.observation, actions, actions);
   const ports = Object.assign(context.observation, {
     pickPerch: (a: HuntBody, min: number, max: number, away?: Vector3): number => pickPerch(a, ports, min, max, away),
     setPerch: (a: HuntBody, index: number): void => { setPerch(a, ports, index); },
@@ -35,10 +35,8 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
   if (driftwoodSpeciesBrains.kinds.has(kind)) {
     const decision = driftwoodSpeciesBrains.decision(kind, actor), policy = decision.policy;
     switch (decision.archetype) {
-      case 'skirmisher': return wrap(createMemoryActionBrain<HuntBody, Ports>(actor, CRAB_ACTIONS, { decide: (_a, c) => { decision.policy.think(c); }, effects: new Map([['snap', strikeCrab]]) }), policy);
-      case 'guardian': return wrap(createMemoryActionBrain<HuntBody, Ports>(actor, SAILOR_ACTIONS, { decide: (_a, c) => { decision.policy.think(c); }, effects: new Map([['swing', strikeSailor]]) }), policy);
       case 'perch-hunter': return wrap(createMemoryActionBrain<HuntBody, Ports>(actor, MONKEY_ACTIONS, { decide: (_a, c) => { decision.policy.think(c); }, effects: new Map([['bite', biteMonkey], ['throw', throwMonkeyCoconut]]) }), policy);
-      case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': throw new Error('Unknown admitted Driftwood enemy decision');
+      case 'skirmisher': case 'guardian': case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': throw new Error('Unknown admitted Driftwood enemy decision');
         default: throw new Error('Unknown admitted Driftwood enemy decision');
     }
   }

@@ -13,9 +13,11 @@ import { CRAB, CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
 import { SAILOR, SAILOR_LOOK } from '../src/shards/driftwood-isle/species/sailor';
 import { MONKEY, MONKEY_LOOK } from '../src/shards/driftwood-isle/species/monkey';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/data/brains';
+import { DRIFTWOOD_STRIKE_ROWS } from '../src/shards/driftwood-isle/data/strikes';
+import { SKITTERER_DATA, BITE_DATA } from '../src/shards/sunscar-dunes/data/species/skitterer';
 import { DUNE_RAY } from '../src/shards/sunscar-dunes/data/species/duneRay';
 
-function body(row: SpeciesRow, look: SpeciesLook): { actor: Animal; dispose: () => void } {
+function body(row: SpeciesRow, look: SpeciesLook, scale = 1): { actor: Animal; dispose: () => void } {
   const variant = row.variants[0];
   if (variant === undefined) throw new Error('Test body needs a variant');
   const geometry = new BufferGeometry(), material = new MeshStandardMaterial(), mesh = new SkinnedMesh(geometry, material);
@@ -26,11 +28,11 @@ function body(row: SpeciesRow, look: SpeciesLook): { actor: Animal; dispose: () 
     geometry, bones: [], dims: { bodyY: 1, bodyHalfLen: .5, bodyRadius: .3, headRadius: .2, legLen: 1, feet: [], halfWidth: .3 },
     fur: material, hard: material, eye: material, shells: [],
   };
-  const actor = new Animal({ mesh, bones: { body: root, head }, materials: [material] }, model, .5);
+  const actor = new Animal({ mesh, bones: { body: root, head }, materials: [material] }, model, .5, scale);
   actor.bindSimulation(new AnimalSim({ kind: row.kind, label: actor.label, variant: variant.id, rarity: variant.rarity,
     hp: actor.maxHp, aggressive: actor.aggressive, dims: model.dims, mods: actor.mods,
     ...(row.flight === undefined ? {} : { flight: row.flight }),
-  }, .5, 1, actor.entityId, { heightAt: () => 0, random: () => .5 }));
+  }, .5, scale, actor.entityId, { heightAt: () => 0, random: () => .5 }));
   return { actor, dispose: () => { geometry.dispose(); material.dispose(); } };
 }
 function context(): ThinkCtx {
@@ -45,7 +47,7 @@ function context(): ThinkCtx {
 }
 
 test('the species host constructs once on the first act and keeps subsequent contexts live', () => {
-  const made = body(CRAB, CRAB_LOOK), catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, []);
+  const made = body(CRAB, CRAB_LOOK), catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS));
   const first = context(), later = context(), constructions: ThinkCtx[] = [], calls: ThinkCtx[] = [];
   const bound = catalogue.bind('crab', (_actor, _decision, initial) => {
     if (initial === undefined) throw new Error('Missing first context');
@@ -114,4 +116,56 @@ test('the declared patrol species uses the same lazy callback owner through its 
     expect(Number.isFinite(made.actor.yaw)).toBe(true); expect(Number.isFinite(made.actor.speed)).toBe(true);
     expect(catalogue.witness(made.actor)).toBe('patrol-diver');
   } finally { made.dispose(); }
+});
+
+test('declared contacts retain scale, damage, sound and cover through both body paths', () => {
+  const catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS));
+  const made = body(CRAB, CRAB_LOOK, 2), ctx = context(), hits: number[] = [], sounds: string[] = [];
+  ctx.hurt = amount => { hits.push(amount); }; ctx.sound = name => { sounds.push(name); };
+  const native = catalogue.actions('crab', made.actor);
+  if (native === null) throw new Error('Missing declared native actions');
+  try {
+    made.actor.mem['st'] = 2; made.actor.mem['hit'] = 0; made.actor.mods.chargeDamage = 23;
+    made.actor.startAttack(.9); made.actor.step(.7); ctx.player.set(0, 0, 2.5);
+    const saved = made.actor.snapshot(), contract = catalogue.decision('crab', made.actor).policy.snapshot();
+    expect(native.snapshot()).toEqual(contract);
+    ctx.reach = () => false; native.act(ctx);
+    expect(hits).toEqual([]); expect(sounds).toEqual([]); expect(made.actor.mem['hit']).toBe(1);
+    made.actor.restore(saved); native.restore(contract); ctx.reach = () => true;
+    expect([made.actor.scale, made.actor.position.x, made.actor.position.z, made.actor.mem['st'], made.actor.mem['hit']]).toEqual([2, 0, 0, 2, 0]);
+    native.act(ctx); expect(hits).toEqual([23]); expect(sounds).toEqual(['crab_snap']);
+    made.actor.restore(saved); hits.length = 0; sounds.length = 0;
+    CRAB.act?.(made.actor, ctx); expect(hits).toEqual([23]); expect(sounds).toEqual(['crab_snap']);
+    made.actor.restore(saved); hits.length = 0; ctx.player.z = 2.57;
+    native.act(ctx); expect(hits).toEqual([]);
+  } finally { made.dispose(); }
+});
+
+test('contact rows refuse an unresolved strike before a body or decision exists', () => {
+  const crab = DRIFTWOOD_ENEMY_SPECIES.find(row => row.kind === 'crab');
+  if (crab?.body?.actions === undefined) throw new Error('Missing declared crab actions');
+  const actions = [];
+  for (const action of crab.body.actions.actions) actions.push({ ...action, strike: 'strike.missing' });
+  const invalid = { ...crab, body: { ...crab.body, actions: { ...crab.body.actions, actions } } };
+  expect(() => speciesBrains([invalid], Object.values(DRIFTWOOD_STRIKE_ROWS))).toThrow('undeclared strike strike.missing');
+});
+
+test('the existing script species borrows the same live contact authority', () => {
+  for (const clear of [false, true]) {
+    const made = body(SKITTERER_DATA, CRAB_LOOK), ctx = context(), hits: number[] = [];
+    const bound = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES).bind(SKITTERER_DATA.kind);
+    let checks = 0;
+    ctx.player.set(0, 0, .5); ctx.reach = () => { checks++; return clear; };
+    ctx.hurt = damage => { hits.push(damage); };
+    try {
+      for (let tick = 0; tick < 180; tick++) {
+        ctx.t = tick / 60; ctx.dt = 1 / 60;
+        if (tick % 6 === 0) bound.think(made.actor, ctx);
+        bound.act(made.actor, ctx); made.actor.step(ctx.dt);
+      }
+      expect(checks).toBeGreaterThan(0);
+      if (clear) { expect(hits.length).toBeGreaterThan(0); expect(hits.every(damage => damage === BITE_DATA.damage)).toBe(true); }
+      else expect(hits).toEqual([]);
+    } finally { made.dispose(); }
+  }
 });

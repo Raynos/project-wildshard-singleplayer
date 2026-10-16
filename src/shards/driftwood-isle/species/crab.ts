@@ -1,16 +1,11 @@
 import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateCrab } from './crabPose';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
-import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
-import { CRAB_ACTIONS } from '../data/speciesActions';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
 import type * as THREE from 'three';
 
 /**
@@ -36,7 +31,6 @@ import type * as THREE from 'three';
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
-const SNAP_R = 1.6;
 
 /** the shell: a blow from within 60° of the crab's heading does half damage */
 function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): number {
@@ -45,16 +39,7 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
   return dot < -0.5 ? 0.5 : 1;
 }
 
-/** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
-export interface CrabStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
-export function strikeCrab<A extends AnimalSim>(a: A, c: CrabStrikePorts<A>): void {
-  if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.snap, damage: a.mods.chargeDamage, shape: { kind: 'point', radius: SNAP_R * Math.max(1, a.scale * 0.8) } })) c.sound('crab_snap');
-}
-
-const callbacks = driftwoodSpeciesBrains.bind('crab', (actor, decision) => {
-  if (decision.archetype !== 'skirmisher') throw new Error('Driftwood crab requires its authored skirmisher row');
-  return createMemoryActionBrain<Animal, ThinkCtx>(actor, CRAB_ACTIONS, { decide: (_actor, ctx) => { decision.policy.think(ctx); }, effects: new Map([['snap', strikeCrab]]) });
-});
+const callbacks = driftwoodSpeciesBrains.bind('crab');
 
 export const CRAB: SpeciesRow = { ...ENEMY_SPECIES_METADATA.crab, ...callbacks };
 

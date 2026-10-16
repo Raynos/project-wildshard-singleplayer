@@ -1,4 +1,6 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
+import { DRIFTWOOD_STRIKE_ROWS } from './strikes';
+import { CRAB_ACTIONS, SAILOR_ACTIONS } from './speciesActions';
 import { MONKEY_VARIANTS } from '../species/monkeyVariants';
 import { CRAB_BRAIN_PROFILE, SAILOR_BRAIN_PROFILE, MONKEY_BRAIN_PROFILE } from './brains';
 
@@ -34,7 +36,10 @@ export const ENEMY_SPECIES_METADATA: Record<'crab' | 'monkey' | 'sailor' | 'capt
 
 /** The same three admitted decision families; the captain retains its existing fight owner. */
 export const DRIFTWOOD_ENEMY_SPECIES: BrainedSpecies[] = [
-  { ...ENEMY_SPECIES_METADATA.crab, brain: { archetype: 'stalker', data: CRAB_BRAIN_PROFILE } },
+  { ...ENEMY_SPECIES_METADATA.crab, body: { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'environment', halfArc: 70 * Math.PI / 180 }, actions: CRAB_ACTIONS }, brain: { archetype: 'stalker', data: CRAB_BRAIN_PROFILE } },
   { ...ENEMY_SPECIES_METADATA.monkey, brain: { archetype: 'guardian', data: MONKEY_BRAIN_PROFILE } },
-  { ...ENEMY_SPECIES_METADATA.sailor, brain: { archetype: 'guardian', data: SAILOR_BRAIN_PROFILE } },
+  { ...ENEMY_SPECIES_METADATA.sailor, body: { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'environment', halfArc: 70 * Math.PI / 180 }, actions: SAILOR_ACTIONS }, brain: { archetype: 'guardian', data: SAILOR_BRAIN_PROFILE } },
 ];
+
+/** The canonical contact rows resolved while this existing catalogue is admitted. */
+export const DRIFTWOOD_ENEMY_STRIKES = Object.values(DRIFTWOOD_STRIKE_ROWS);

@@ -20,8 +20,8 @@ import type { EliteActor } from "@wildshard/engine/ai/EliteBrain";
 import type { SpeciesRow } from "@wildshard/engine/ai/species";
 import type { Animal } from "@wildshard/engine/entities/AnimalView";
 import type { ThinkCtx } from "@wildshard/engine/entities/species/registry";
-import { SkirmisherBrain } from "@wildshard/engine/ai/skirmisher";
-import { GuardianBrain } from "@wildshard/engine/ai/guardian";
+import { SkirmisherBrain, type SkirmisherPorts } from "@wildshard/engine/ai/skirmisher";
+import { GuardianBrain, type GuardianPorts } from "@wildshard/engine/ai/guardian";
 import { PerchHunterBrain } from "@wildshard/engine/ai/perchHunter";
 import { strikeFromData, type StrikeData } from "@wildshard/engine/ai/strikeRows";
 import { RamGrazerBrain } from "@wildshard/engine/ai/ramGrazer";
@@ -29,7 +29,7 @@ import { OrbitDiverBrain } from "@wildshard/engine/ai/orbitDiver";
 import { BurstFlyerBrain } from "@wildshard/engine/ai/burstFlyer";
 import { ChallengeGrazerBrain } from "@wildshard/engine/ai/challengeGrazer";
 import { PatrolDiverBrain } from "@wildshard/engine/ai/patrolDiver";
-import { CreatureBodyRecipeSchema, CreatureHomeSchema, CreatureStrikeSchema, type CreatureBodyRecipe } from "@wildshard/format/creatures";
+import { CreatureBodyRecipeSchema, CreatureHomeSchema, CreatureStrikeSchema, type CreatureBodyRecipe, type CreatureMemoryActions } from "@wildshard/format/creatures";
 import { canReach } from "@wildshard/engine/ai/reach";
 import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
 import { parseGrazer, grazerPreset, type GrazerSchema, parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer, type ShardRamGrazer } from "@wildshard/format/grazers";
@@ -415,6 +415,23 @@ export interface ScriptSpeciesPorts<A extends AnimalSim> {
 
 const speciesScriptsSaved = v.strictObject({ version: v.literal(1), actor: v.string(), slots: v.array(v.pipe(v.number(), v.finite())), strikes: v.unknown() });
 
+/** Existing player contact authority; no callback is authored by a species row. */
+export interface SpeciesContactPorts<A extends AnimalSim> {
+  readonly player: A['position']; reach: (actor: A) => boolean; hurt: (damage: number) => void;
+}
+/** Cached actual-body contact packet shared by script and memory-action policies. */
+class SpeciesContact<A extends AnimalSim> {
+  private ports: SpeciesContactPorts<A> | null = null;
+  private readonly packet: { actor: A; target: A['position']; canReach: () => boolean; hit: (spec: StrikeSpec) => void };
+  constructor(actor: A) {
+    this.packet = { actor, target: actor.position, canReach: () => this.ports?.reach(actor) === true,
+      hit: spec => { this.ports?.hurt(spec.damage); } };
+  }
+  context(ports: SpeciesContactPorts<A>): StrikeContext {
+    this.ports = ports; this.packet.target = ports.player; return this.packet;
+  }
+}
+
 /** One body's script policy: its slots, its strike clock and the shared admitted lane. */
 export class ScriptSpeciesPolicy<A extends AnimalSim> {
   private readonly actor: A;
@@ -423,17 +440,16 @@ export class ScriptSpeciesPolicy<A extends AnimalSim> {
   private readonly strikes = new StrikeRunner();
   private readonly slots: number[];
   private readonly input: number[];
-  private observation: ScriptSpeciesPorts<A> | null = null;
-  private readonly contact: { actor: A; target: A['position']; canReach: () => boolean; hit: (spec: StrikeSpec) => void };
+  private readonly contact: SpeciesContact<A>;
   constructor(actor: A, lane: SpeciesScriptLane, catalogue: readonly StrikeSpec[]) {
     this.actor = actor; this.lane = lane; this.catalogue = catalogue;
     this.slots = [...lane.data.slots]; this.input = Array.from({ length: INPUT_SLOTS + this.slots.length + lane.data.memory.length }, () => 0);
     for (const row of lane.data.memory) actor.mem[row.field] = row.initial;
-    this.contact = { actor, target: actor.position, canReach: () => this.observation?.reach(actor) === true, hit: spec => { this.observation?.hurt(spec.damage); } };
+    this.contact = new SpeciesContact(actor);
   }
   /** The policy's current slot values (a witness; the continuation is `snapshot`). */
   get state(): readonly number[] { return this.slots; }
-  private context(ports: ScriptSpeciesPorts<A>): StrikeContext { this.observation = ports; this.contact.target = ports.player; return this.contact; }
+  private context(ports: ScriptSpeciesPorts<A>): StrikeContext { return this.contact.context(ports); }
   private call(phase: number, ports: ScriptSpeciesPorts<A>): void {
     const a = this.actor, input = this.input, dx = ports.player.x - a.position.x, dz = ports.player.z - a.position.z;
     input[1] = ports.dt; input[2] = phase; input[4] = a.alive ? 1 : 0; input[5] = ports.calm ? 1 : 0; input[6] = ports.t;
@@ -719,6 +735,31 @@ export type SpeciesBrain =
 /** A species' gameplay data with an optional declared brain; a row without one keeps its runtime's own policy. */
 export type BrainedSpecies = Omit<SpeciesRow, 'parent' | 'think' | 'act'> & { readonly brain?: SpeciesBrain; readonly body?: CreatureBodyRecipe };
 
+/** Existing grounded observations lent by the page or native species owner. */
+export type SpeciesActionPorts<A extends AnimalSim> = SkirmisherPorts<A> & GuardianPorts<A> & SpeciesContactPorts<A>;
+const actionContact = new StrikeRunner();
+function speciesActions<A extends AnimalSim>(actor: A, brain: Admitted, rows: CreatureMemoryActions,
+  strikes: ReadonlyMap<string, StrikeSpec>, existing?: SkirmisherBrain<A> | GuardianBrain<A>): SpeciesPolicy<SpeciesActionPorts<A>> {
+  const policy = existing ?? (brain.archetype === 'skirmisher' ? new SkirmisherBrain(actor, brain.data)
+    : brain.archetype === 'guardian' ? new GuardianBrain(actor, brain.data) : null);
+  if (policy === null) throw new Error('Memory actions require a grounded declared policy');
+  const contact = new SpeciesContact(actor);
+  const actions = rows.actions.map((row, index) => ({ ...row, effect: String(index) }));
+  const effects = new Map(actions.map(row => {
+    const base = strikeOf(strikes, row.strike, actor.kind), spec = { ...base, shape: { ...base.shape } };
+    return [row.effect, (_body: A, ports: SpeciesActionPorts<A>): void => {
+      if (row.damage === 'charge') spec.damage = actor.mods.chargeDamage;
+      if (row.radiusScale !== undefined && spec.shape.kind === 'point' && base.shape.kind === 'point')
+        spec.shape.radius = base.shape.radius * Math.max(row.radiusScale.minimum, actor.scale * row.radiusScale.factor);
+      if (actionContact.contact(spec, contact.context(ports)) && row.sound !== undefined) ports.sound(row.sound);
+    }] as const;
+  }));
+  const bound = createMemoryActionBrain<A, SpeciesActionPorts<A>>(actor, { stateKey: rows.stateKey, states: rows.states, actions },
+    { decide: (_body, ports) => { policy.think(ports); }, effects });
+  return { think: ports => { bound.think(ports); }, act: ports => { bound.act(ports); },
+    snapshot: () => policy.snapshot(), restore: saved => { policy.restore(saved); } };
+}
+
 /** A finite circular home supplied by the actual owning body before its policy initializes. */
 export interface SpeciesBodyHome { readonly x: number; readonly z: number; readonly r: number; readonly y: number }
 /** Resolve each browser body's existing home; this callback never allocates a body or draws random numbers. */
@@ -790,6 +831,8 @@ export interface SpeciesBrains {
   home: (kind: string, actor: Animal, at: SpeciesBodyHome) => void;
   /** The controller prepared by this catalogue's body binding; lookup never advances perception, movement or RNG. */
   held: (kind: string, actor: AnimalSim) => HeldSpeciesControl | null;
+  /** Interpret declared body action rows on the actor's existing grounded observations. */
+  actions: <A extends AnimalSim>(kind: string, actor: A) => SpeciesPolicy<SpeciesActionPorts<A>> | null;
   /** Construct a decision-only family for a trusted native body adapter; refuses self-contained policy kinds. */
   decision: <A extends AnimalSim>(kind: string, actor: A, home?: SpeciesBodyHome) => SpeciesDecision<A>;
   /** The archetype a live browser animal runs (null when it runs none of these rows' brains). */
@@ -1036,8 +1079,18 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
   const bodies = new Map(species.flatMap(row => row.body === undefined ? [] : [[row.kind, v.parse(CreatureBodyRecipeSchema, row.body)] as const]));
   for (const kind of bodies.keys()) {
     const brain = admitted.get(kind);
-    if (brain === undefined || brain.archetype === 'skirmisher' || brain.archetype === 'guardian' || brain.archetype === 'perch-hunter')
+    if (brain === undefined || brain.archetype === 'perch-hunter'
+      || ((brain.archetype === 'skirmisher' || brain.archetype === 'guardian') && bodies.get(kind)?.actions === undefined))
       throw new Error(`Species ${kind} has no admitted native body protocol`);
+  }
+  for (const [kind, body] of bodies) if (body.actions !== undefined) {
+    const brain = admitted.get(kind), rows = body.actions;
+    if (brain?.archetype !== 'skirmisher' && brain?.archetype !== 'guardian') throw new Error('Unsupported memory-action policy');
+    if (new Set(rows.states).size !== rows.states.length || rows.actions.some(row => row.state >= rows.states.length)) throw new Error('Invalid memory-action state');
+    for (const row of rows.actions) {
+      const strike = strikeOf(strikes, row.strike, kind);
+      if (row.radiusScale !== undefined && strike.shape.kind !== 'point') throw new Error('Scaled contact requires a point strike');
+    }
   }
   const witnesses: { archetype: string; live: (actor: Animal) => boolean }[] = [];
   const bodyHomes = new WeakMap<Animal, SpeciesBodyHome>();
@@ -1050,7 +1103,12 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       const brain = admitted.get(kind);
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
       const resolveHome = homes === undefined ? undefined : (actor: Animal): SpeciesBodyHome => bodyHomes.get(actor) ?? homes(actor);
-      const bound = browserCallbacks(brain, native, resolveHome, { ...held, kind,
+      const actions = bodies.get(kind)?.actions;
+      const adapter: SpeciesNativeFactory | undefined = native ?? (actions === undefined ? undefined : (actor, decision) => {
+        if (decision.archetype !== 'skirmisher' && decision.archetype !== 'guardian') throw new Error('Memory actions require their grounded policy');
+        return speciesActions(actor, brain, actions, strikes, decision.policy);
+      });
+      const bound = browserCallbacks(brain, adapter, resolveHome, { ...held, kind,
         occupied: actor => heldControls.has(actor),
         register: (actor, controller) => { registerHeld(kind, actor, controller); } }, decisions);
       witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
@@ -1066,7 +1124,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
         if (brain.archetype === 'decision' && ports.decisions === undefined) throw new Error('Held species requires its trusted body authority');
         if ((brain.archetype === 'ram-grazer' || brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer')
           && (home === undefined || (brain.archetype === 'burst-flyer' && ports.held === undefined))) throw new Error('Species requires its trusted home and body authority');
-        if (brain.archetype === 'skirmisher' || brain.archetype === 'guardian' || brain.archetype === 'perch-hunter') throw new Error('Species catalogue requires declared body authority');
+        if ((brain.archetype === 'skirmisher' || brain.archetype === 'guardian' || brain.archetype === 'perch-hunter') && bodies.get(row.kind)?.actions === undefined) throw new Error('Species catalogue requires declared body authority');
       }
       const bindings = new Map<string, SpeciesBinding>();
       const bound = rows.map(row => {
@@ -1087,6 +1145,12 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
     held: (kind, actor) => {
       if (actor.kind !== kind) throw new Error('Held species requires its declared live body');
       const registered = heldControls.get(actor); return registered?.kind === kind ? registered.controller : null;
+    },
+    actions: (kind, actor) => {
+      const rows = bodies.get(kind)?.actions, brain = admitted.get(kind);
+      if (rows === undefined) return null;
+      if (brain === undefined || actor.kind !== kind) throw new Error('Memory actions require their actual declared body');
+      return speciesActions(actor, brain, rows, strikes);
     },
     decision: (kind, actor, home) => {
       const brain = admitted.get(kind);

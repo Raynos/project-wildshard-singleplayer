@@ -2698,6 +2698,19 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
+**Declared body contacts (X-C4).** `CreatureBodyRecipe.actions` selects bounded,
+ordered actor-memory gates on the existing skirmisher or guardian policy.
+Each gate names a state index, minimum attack phase, once field, admitted
+strike and optional memory condition. Optional charge damage, point-radius
+scaling and contact sound read the live body at contact. A miss still spends
+the once field; sound runs only after a successful contact. Catalogue
+admission resolves every strike before any body or policy is constructed.
+`SpeciesBrains.bind(kind)` runs these rows on the page; `actions(kind, actor)`
+lends the same policy to the native species observation. Both retain the
+existing actor memory and policy snapshot, attack owner and decision clock.
+The contact packet is shared with `ScriptSpeciesPolicy`; Driftwood's crab
+and sailor and Signal's scripted species use the same reach/damage authority.
+
 **Parametric stalker (SF82 BR-1).** `StalkerBrain({pattern: 'pack', members, home, spec, ports})` also owns
 the circling-pack pattern over its actual ordered roster. `CirclingPackSpec`, `CirclingPackContext`,
 `CirclingPackPorts` and `CirclingPackPrey` define the native ports and parameters. `initialize` performs

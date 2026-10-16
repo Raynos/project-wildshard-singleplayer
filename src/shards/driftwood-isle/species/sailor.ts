@@ -1,16 +1,10 @@
 import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateSailor } from './sailorPose';
 import { creatureBody, preloadCreatureBodies } from './bodies';
-import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
-import { SAILOR_ACTIONS } from '../data/speciesActions';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
 
 /**
  * Drowned Sailor — the wreck's guardian (art/driftwood-isle/round-3-enemies/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
@@ -50,18 +44,8 @@ export function preloadSailorHead(): Promise<void> { return preloadCreatureBodie
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
-const HIT_R = 1.9;
 
-/** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
-export interface SailorStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
-export function strikeSailor<A extends AnimalSim>(a: A, c: SailorStrikePorts<A>): void {
-  if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.sailor, shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash');
-}
-
-const callbacks = driftwoodSpeciesBrains.bind('sailor', (actor, decision) => {
-  if (decision.archetype !== 'guardian') throw new Error('Driftwood sailor requires its authored guardian row');
-  return createMemoryActionBrain<Animal, ThinkCtx>(actor, SAILOR_ACTIONS, { decide: (_actor, ctx) => { decision.policy.think(ctx); }, effects: new Map([['swing', strikeSailor]]) });
-});
+const callbacks = driftwoodSpeciesBrains.bind('sailor');
 
 export const SAILOR: SpeciesRow = { ...ENEMY_SPECIES_METADATA.sailor, ...callbacks };
 
