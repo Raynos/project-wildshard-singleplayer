@@ -42,21 +42,21 @@ export class BowShape {
   private readonly ringU: readonly number[]; private readonly ringSign: readonly number[];
   private readonly pos: Float32Array; private readonly nrm: Float32Array;
   private lastP = -1; private lastNock = -1;
-  private readonly row: {
+  private readonly row: ConstructorParameters<typeof BowShape>[0];
+  private readonly ports: ConstructorParameters<typeof BowShape>[1];
+  constructor(row: {
     readonly ringU: readonly number[]; readonly ringSign: readonly number[];
     readonly radial: number; readonly limbVerts: number; readonly dynVerts: number;
     readonly backScale: number; readonly tipArc: number; readonly tipOffset: number;
     readonly nockX: number; readonly nockY: number; readonly drawZ: number;
     readonly stringRadial: number; readonly stringRadius: number; readonly serving: number;
-  };
-  private readonly ports: {
+  }, ports: {
     readonly position: THREE.BufferAttribute; readonly normal: THREE.BufferAttribute;
     readonly tipTop: THREE.Vector3; readonly tipBot: THREE.Vector3; readonly nock: THREE.Vector3;
     readonly limbAt: (u: number, sign: number, draw: number, at: THREE.Vector3, tangent: THREE.Vector3) => void;
     readonly section: (u: number) => readonly [number, number];
     readonly ridge: (u: number, angle: number, sign: number) => number;
-  };
-  constructor(row: BowShape['row'], ports: BowShape['ports']) {
+  }) {
     this.row=row;this.ports=ports;
     const {ringU,ringSign,radial,stringRadial,limbVerts,dynVerts}=row;
     if(ringU.length<2||ringU.length>1024||ringU.length!==ringSign.length
