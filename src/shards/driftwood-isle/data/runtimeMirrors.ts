@@ -16,6 +16,7 @@ import { GULL_BURSTS, GULL_CORRIDORS, GULL_FLIGHT, GULL_WHEEL } from './gullsLoo
 import ironSwordScene from './ironSwordScene.json' with { type: 'json' };
 import spots from './spots.generated.json' with { type: 'json' };
 import ziplineRows from './zipline.generated.json' with { type: 'json' };
+import manifest from '../manifest.json' with { type: 'json' };
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK } from './islandRows';
 import { KIT_LENDS } from './kitLook';
@@ -105,4 +106,5 @@ export const RUNTIME_MIRRORS = [
   defineMirror('TRAIL_SPECIMEN_ROWS', TRAIL_SPECIMEN_ROWS),
   defineMirror('TRAIL_SPECIMENS', TRAIL_SPECIMENS),
   defineMirror('ZIPLINE_ROWS', ziplineRows),
+  defineMirror('CAPTURE_PROBES', manifest.captureProbes),
 ];

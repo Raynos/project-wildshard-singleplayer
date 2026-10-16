@@ -4,12 +4,21 @@ import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
-import type { ShrineAnchor, ShrineParams, ShrineSite } from '../../assets/contracts/shrine';
 import { driftwoodRows } from '../boot/rows';
 import { SHRINE_POOL_LOOK, SHRINE_SITES } from '../const';
 import { fixedGeometryReady, loadFixedGeometry,
   SHRINE_KIT_GEOMETRY,SHRINE_WATER_GEOMETRY,SHRINE_GLYPHS_GEOMETRY,
   SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
+
+/** the runtime copies of assets/contracts/shrine.ts (test/driftwood-runtime-contracts.test.ts holds them equal) */
+/** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
+export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }
+export interface ShrineAnchor { x: number; y: number; z: number; yaw: number }
+export interface ShrineParams {
+  readonly site: ShrineSite;
+  /** the ground under a world (x, z) at the site: its y */
+  readonly ground: (x: number, z: number) => number;
+}
 
 /** the two sites' baked layouts, from the admitted product (`custom/fixedLayouts`, from data/shrineBake.json) */
 const bake = () => driftwoodRows('custom/fixedLayouts').shrine;
