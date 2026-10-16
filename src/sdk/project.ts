@@ -25,7 +25,7 @@ import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
-import { outputDecisionScripts, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
+import { outputDecisionScripts, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
 import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './outputRuntime';
@@ -141,7 +141,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', scripts: readonly DecisionScripts[number][]) => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
   const loaded = await readProjectAssets(project, options.map, options.manifest, options), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
@@ -149,7 +149,8 @@ export async function buildProject(project: string, output?: string, options: { 
   // a static import: the author CLI must bundle to one module (scripts/wildshard.mjs); the bakers' closure stays
   // renderer-free (the Node sim proofs import this module under the renderer-denying loader)
   const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project, outputDecisionScripts(loaded.output.platform));
-  await options.admit?.(shard, assets, projectPerformancePolicy(project, shard), outputDecisionScripts(loaded.output.platform));
+  // The decision rows travel with the moves they bind, so a headless admission resolves the same registries as the build.
+  await options.admit?.(shard, assets, projectPerformancePolicy(project, shard), outputPlatformPayloads(loaded.output.platform));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   if (options.copyRuntime === true) {
     const root = realpathSync(project), target = resolve(destination);

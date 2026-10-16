@@ -19,7 +19,6 @@ import { buildBehaviourProject } from './buildBehaviour';
 import { synthProject } from './synth';
 import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
 import { decisionModuleContracts } from '@wildshard/format/scriptContract';
-import type { DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import { outputDecisionScripts, validateOutputProduct } from './outputProduct';
 import type { RuntimeCopyOptions } from './outputRuntime';
 import type { ProjectManifestSource } from './projectManifest';
@@ -33,10 +32,9 @@ function printReport(shard: Shardfile, observed: PerformanceObservations, policy
   if (observed.scripts.samples > 0) console.info('script CPU estimate: 60 warm-up ticks; minimum p95 of three 60-tick windows; raw maxima and all fuel retained');
   if (!report.pass) throw new Error('Performance report refused this shard');
 }
-async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', scripts: readonly DecisionScriptRow[]): Promise<void> {
+async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>): Promise<void> {
   // Native hybrids need their trusted recipes for a meaningful proof; never invent a fake native measurement.
   if (shard.runtime !== null) { printReport(shard, unmeasured, policy); return; }
-  const sections = new Map<string, unknown>([['sim/scripts', scripts]]);
   printReport(shard, await measureSimulation(shard, assets, (source, bytes) => HeadlessSimulation.create(source, bytes, undefined, { deadline: 'advisory', sections })), policy);
 }
 /** Run the author CLI; returns only after validation/build completes. */

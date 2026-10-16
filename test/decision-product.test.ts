@@ -21,7 +21,8 @@ import { HeadlessSimulation } from '../src/sdk/headless';
 let bytes: Uint8Array = new Uint8Array();
 const directories: string[] = [];
 function directory(): string { mkdirSync('tmp', { recursive: true }); const path = mkdtempSync(resolve('tmp/decision-product-')); directories.push(path); return path; }
-function rows(hash: string, pages = 2) { return parseDecisionScripts([{ id: 'sample', abi: '1.0', side: 'sim', module: `blobs/wasm/${hash}.wasm`, source: 'behaviour/sample.as', binding: { shard: true }, pages, onFail: 'hold', on: ['start'], reads: [], commands: [], stateVersion: 1, state: [], params: {} }]); }
+function rows(hash: string, pages = 2, moves: Readonly<Record<string, string>> = {}) { return parseDecisionScripts([{ id: 'sample', abi: '1.0', side: 'sim', module: `blobs/wasm/${hash}.wasm`, source: 'behaviour/sample.as', binding: { shard: true }, pages, onFail: 'hold', on: ['start'], reads: [], commands: [], moves, stateVersion: 1, state: [], params: {} }]); }
+const MOVES = [{ id: 'sample.approach', kind: 'stalk', speed: 1, turn: 4, ground: true, above: 0, standOff: 0, ready: { kind: 'range' } }];
 function fixture() {
   const blob = nameBlob('behaviour/sample.wasm', 'wasm', bytes, { script: { abi: 1, pages: 2 }, critical: true });
   const source = emptyShardfile({ slug: 'decision-test', name: 'Decision', author: 'Test', revision: 1, seed: 2 });
@@ -84,21 +85,32 @@ test('writer, disk validator and untrusted browser use the exact verified sim/sc
 });
 
 
-test('project build carries source declaration contracts through its real writer', async () => {
+test('project build carries source declaration contracts and their bound moves through its real writer', async () => {
   const root = directory(), source = emptyShardfile({ slug: 'decision-project', name: 'Decision', author: 'Test', revision: 1, seed: 2 });
   source.budgets.sim.resident = 1_000_000;
-  writeFileSync(resolve(root, 'sample.wasm'), bytes);
+  // The author compiler builds the row's module from its declared AssemblyScript source.
+  mkdirSync(resolve(root, 'behaviour')); writeFileSync(resolve(root, 'behaviour/sample.as'), 'export function onStart():void {}');
   writeFileSync(resolve(root, 'shard.config.ts'), `
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 export default ${JSON.stringify(source)};
+export const buildOptions = { asLineCeiling: 1 };
 export const output = {
- blobs: [{ name: 'behaviour/sample.wasm', kind: 'wasm', source: 'sample.wasm', options: { critical: true, script: { abi: 1, pages: 2 } } }],
- platform: emitPlatformSections(new Map([['sim/scripts', ${JSON.stringify(rows(hashImmutableBytes(bytes)))}]]))
+ platform: emitPlatformSections(new Map([['sim/scripts', ${JSON.stringify(rows(hashImmutableBytes(bytes), 2, { approach: 'sample.approach' }))}], ['actors/moves', ${JSON.stringify(MOVES)}]]))
 };`);
-  let declared = 0;
+  let declared = 0, ticked = 0;
   const destination = resolve(root, 'out');
-  await buildProject(root, destination, { client: null, admit: (_source, _assets, _policy, scripts) => { declared = scripts.length; return Promise.resolve(); } });
+  // The CLI's admission starts a native worker from these sections; a row binding a move must find it there.
+  await buildProject(root, destination, { client: null, admit: async (shard, assets, _policy, sections) => {
+    declared = decisionScriptsFromSections(sections).length;
+    const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections });
+    try { ticked = (await sim.step()).tick; } finally { await sim.dispose(); }
+  } });
   expect(declared).toBe(1);
+  expect(ticked).toBe(1);
+  // An unknown binding still refuses: the same row without its moves section.
+  const { shard, assets } = fixture();
+  const unbound = new Map<string, unknown>([['sim/scripts', rows(hashImmutableBytes(bytes), 2, { approach: 'sample.approach' })]]);
+  await expect(HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections: unbound })).rejects.toThrow('Missing moves registry target for approach');
   expect(validateOutputProduct(destination).index.files[0]?.kind).toBe('wasm');
   // A platform row can also refer to an existing root declaration, without a named-blob overlay.
   await expect(prepareProjectOutput(root, { platform: fixture().platform })).resolves.toMatchObject({ blobs: [] });

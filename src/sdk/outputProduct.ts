@@ -63,17 +63,23 @@ export interface OutputProductOptions {
   readonly namedFiles?: readonly OutputFile[];
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
-/** Read the canonical platform decision payload only after checking its emitted hash and size. */
-export function outputDecisionScripts(platform?: EmittedSections): DecisionScripts {
+/** The platform sections a decision row resolves against: its rows and the moves they bind. */
+export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/moves'] as const;
+/** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
+export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = DECISION_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
   const payloads = new Map<string, unknown>();
   for (const entry of platform?.sections ?? []) {
-    if (entry.name !== 'sim/scripts') continue;
-    if (payloads.has(entry.name)) throw new Error('Duplicate decision script section');
+    if (!names.includes(entry.name)) continue;
+    if (payloads.has(entry.name)) throw new Error(`Duplicate ${entry.name} section`);
     const bytes = platform?.files.get(entry.path);
-    if (bytes === undefined || bytes.length !== entry.bytes || hashImmutableBytes(bytes) !== entry.hash) throw new Error('Decision script section hash or size mismatch');
+    if (bytes === undefined || bytes.length !== entry.bytes || hashImmutableBytes(bytes) !== entry.hash) throw new Error(`${entry.name} section hash or size mismatch`);
     payloads.set(entry.name, readJson(bytes));
   }
-  return decisionScriptsFromSections(payloads);
+  return payloads;
+}
+/** Read the canonical platform decision payload only after checking its emitted hash and size. */
+export function outputDecisionScripts(platform?: EmittedSections): DecisionScripts {
+  return decisionScriptsFromSections(outputPlatformPayloads(platform, ['sim/scripts']));
 }
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
