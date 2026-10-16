@@ -13027,6 +13027,7 @@
         "src/sdk",
         "src/shards/far-reach/generators/routeScene.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/generators/palette.ts",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/isletDesign.ts",
