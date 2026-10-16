@@ -14,7 +14,7 @@ test('night emits retain population effects, quiet save adoption and completion-
   const ports = {
     night: () => night, errand: () => errand,
     onErrandDone: () => { effects.push('done'); errand = false; },
-    next: () => { draws++; return 0.25; }, height: () => 10,
+    stream: { next: () => { draws++; return 0.25; } }, ground: { heightAt: () => 10 },
     spawn: (_kind: string, x: number, z: number, _yaw: number): Actor => {
       const id = String(actors.length);
       const actor: Actor = { id, position: { x, y: 10, z }, alive: true, hp: 10, maxHp: 10, lookWeight: 1,

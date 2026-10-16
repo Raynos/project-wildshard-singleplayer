@@ -58,7 +58,7 @@ export class NightThralls {
     const spawner = thrallSpawner(h.animals, (kind, x, z, yaw) => spawnThrall(h.animals, kind, x, z, yaw));
     this.puffs = new Puffs(h.scene, new THREE.Color(0.55, 0.7, 0.62), 3);
     this.brain = new PineNightDirector<Animal>(lane, {
-      night: h.night, errand: h.errand, onErrandDone: h.onErrandDone, next: Math.random, height: heightAt,
+      night: h.night, errand: h.errand, onErrandDone: h.onErrandDone, stream: { next: Math.random }, ground: { heightAt },
       shot: (name, actor) => { h.shot(name, actor.position); },
       spawn: (kind, x, z, yaw) => spawnThrallFrom(spawner, kind === 'elk' ? 'elk' : 'boar', x, z, yaw,
         () => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw)), own, release,

@@ -56,7 +56,7 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
     if (s === undefined || n > MAX_GROUP) throw new Error('Driftwood crab group exceeds its bound');
     at.push({ x: s.x, z: s.z });kinds.push('crab');
     out.push(...sampleCreatureGroup({ kind: 'crab', count: n, herd, variant: 'small', firstVariant: 'big',
-      source: { kind: 'radial', centre: s, radius: [1.2, 2.8], firstAtCentre: true } }, rng, (x, z) => !(inputs.heightAt(x, z) < inputs.waterLevel + .15)));
+      source: { kind: 'radial', centre: s, radius: [1.2, 2.8], firstAtCentre: true }, accept: { minHeight: inputs.waterLevel + .15 } }, rng, { heightAt: inputs.heightAt }));
   }
   if(practice!==null){out.push({ kind: 'crab', variant: 'small', x: practice.x, z: practice.z, yaw: 0, herd: herds++, practice: true });
   at.push({ x: practice.x, z: practice.z });kinds.push('crab');}

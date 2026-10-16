@@ -28,7 +28,7 @@ export function installPineNight(host: SimHost, lane: DirectorLane, ports: PineN
   const initial = rng.snapshot().initial;
   const brain = new PineNightDirector<PineHuntBody>(lane, { night: ports.night,
     errand: () => host.flags.has('errand:asked') && !host.flags.has('errand:done'),
-    onErrandDone: () => { host.flags.set('errand:done'); }, next: () => rng.next(), height: ports.heightAt,
+    onErrandDone: () => { host.flags.set('errand:done'); }, stream: { next: () => rng.next() }, ground: { heightAt: ports.heightAt },
     spawn: (kind, x, z, yaw) => ports.spawn(kind, x, z, yaw, 'thrall'), retire: ports.retire,
     own: actor => { actor.herd = -1; actor.state = 'sidestep'; actor.scripted = true; },
     release: actor => { actor.scripted = false; if (actor.alive && actor.state === 'sidestep') actor.state = 'alert'; },

@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { DirectorScriptStageLane, prepareDirectorModule, type DirectorLane } from '@wildshard/game/plugin/director';
 import { parseDirector } from '@wildshard/format/director';
+import { sampleCreatureGroup, type CreatureGroupGround, type CreatureGroupStream } from '@wildshard/game/plugin/brain';
 import declaration from '../data/nightDirector.json' with { type: 'json' };
 import rows from '../data/nightStages.json' with { type: 'json' };
 import module from '../behaviour/night.generated.json' with { type: 'json' };
@@ -28,8 +29,9 @@ export interface NightSpec {
 }
 /** Ordered native population effects, including the original placement RNG authority. */
 export interface NightPorts<T extends NightActor> {
-  night: () => number; errand: () => boolean; onErrandDone: () => void; next: () => number;
-  height: (x: number, z: number) => number;
+  night: () => number; errand: () => boolean; onErrandDone: () => void;
+  /** the placement stream and the ground the roamer draw reads (sampleCreatureGroup's engine services) */
+  readonly stream: CreatureGroupStream; readonly ground: CreatureGroupGround;
   shot: (name: 'thrall_call' | 'thrall_groan' | 'thrall_move', actor: T) => void;
   spawn: (kind: string, x: number, z: number, yaw: number) => T;
   own: (actor: T) => void; release: (actor: T) => void; retire: (actor: T) => void; burst: (actor: T) => void;
@@ -59,7 +61,7 @@ export class PineNightDirector<T extends NightActor> {
   private racer: Racer<T> | null = null;
   private point: BrainPoint = { x: 0, y: 0, z: 0 };
   constructor(lane: DirectorLane, h: NightPorts<T>, spec: NightSpec) {
-    if ((spec.max !== 3 && spec.max !== 4) || spec.race.length > 8) throw new RangeError('Invalid Pine night roster bounds');
+    if ((spec.max !== 3 && spec.max !== 4) || spec.race.length > 8 || spec.roamKinds.length === 0) throw new RangeError('Invalid Pine night roster bounds');
     this.h = h; this.spec = spec; this.contract = JSON.stringify(spec);
     const roamer = (): Roamer<T> => { if (this.roamer === null) throw new Error('Missing Pine roamer'); return this.roamer; };
     const racer = (): Racer<T> => { if (this.racer === null) throw new Error('Missing Pine racer'); return this.racer; };
@@ -133,22 +135,19 @@ export class PineNightDirector<T extends NightActor> {
     this.roam.length = live;
   }
 
+  /** One roamer in the old growth (sampleCreatureGroup rows): an elliptical area draw on compass bearings, 12 tries, kept
+   *  inside a band around the player, off the King's clearing, within the map and above the water line, facing the player. */
   private callRoamer(p: BrainPoint, anywhere: boolean): void {
-    for (let tries = 0; tries < 12; tries++) {
-      const ang = this.h.next() * Math.PI * 2, rr = Math.sqrt(this.h.next()) * 0.8;
-      const x = this.spec.region.x + Math.sin(ang) * this.spec.region.ax * rr, z = this.spec.region.z + Math.cos(ang) * this.spec.region.az * rr;
-      const dp = Math.hypot(x - p.x, z - p.z);
-      if (!anywhere && (dp < 45 || dp > 150)) continue;
-      if (anywhere && (dp < 18 || dp > 60)) continue;
-      if (Math.hypot(x - this.spec.exclude.x, z - this.spec.exclude.z) < this.spec.exclude.blend + 8) continue;
-      if (Math.abs(x) > 235 || Math.abs(z) > 235 || this.h.height(x, z) < this.spec.water + 0.6) continue;
-      const kind = this.spec.roamKinds[this.roam.length % this.spec.roamKinds.length];
-      if (kind === undefined) return;
-      const a = this.h.spawn(kind, x, z, headingTo(x, z, p.x, p.z));
-      this.roam.push({ a, flee: 0 });
-      this.h.shot('thrall_call', a);
-      return;
-    }
+    const { region, exclude } = this.spec, kind = this.spec.roamKinds[this.roam.length % this.spec.roamKinds.length];
+    if (kind === undefined) return;
+    const at = sampleCreatureGroup({ kind, count: 1, herd: -1, variant: null, face: p,
+      source: { kind: 'radial', centre: region, axes: [region.ax, region.az], bearing: 'compass', radius: [0, 0.8], radiusLaw: 'area', attempts: 12 },
+      accept: { band: { x: p.x, z: p.z, min: anywhere ? 18 : 45, max: anywhere ? 60 : 150 }, clear: [{ x: exclude.x, z: exclude.z, r: exclude.blend + 8 }],
+        bound: 235, minHeight: this.spec.water + 0.6 } }, this.h.stream, this.h.ground)[0];
+    if (at === undefined) return;
+    const a = this.h.spawn(kind, at.x, at.z, at.yaw);
+    this.roam.push({ a, flee: 0 });
+    this.h.shot('thrall_call', a);
   }
 
   private callRace(): void {
