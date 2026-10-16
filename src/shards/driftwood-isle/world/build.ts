@@ -31,7 +31,7 @@ import { Gulls } from './Gulls';
 import { Trailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';
-import { Palms, type PalmSpec } from './Palms';
+import { placeIslandPalms, type PalmSpec } from './Palms';
 import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
@@ -53,7 +53,7 @@ export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Awaited<ReturnType<typeof placeShoreBoulders>> | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
   gulls: Gulls | null; trailside: Trailside | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
-  palmSpecs: PalmSpec[]; cove: Cove | null; palms: Palms | null; cover: GroundCover | null;
+  palmSpecs: PalmSpec[]; cove: Cove | null; palms: Awaited<ReturnType<typeof placeIslandPalms>> | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
 
@@ -183,7 +183,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('Cove');
-  const palms = await new Palms(sky).placeSliced(foliage.palms, registry, slice.due);
+  const palms = await placeIslandPalms(sky, foliage.palms, registry, slice.due);
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
