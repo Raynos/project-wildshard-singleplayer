@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
-import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
+import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
@@ -191,22 +191,13 @@ const KING_KIT = 'pine-hollow/antler-king:kit';
  * the antler lanterns, the amber ribcage). The fight (src/shards/pine-hollow/combat/antlerKing.ts) spawns,
  * dresses and drives the one copy at night in the King's clearing; nothing here draws him in the world.
  *
- * His fields are `creature(KING_KIND)`'s spelled out from his one coat (`KING_VARIANT`), not `creature()` itself: his
- * species is registered by the fight at boot (the elk's fields on his own rig, with the fight's damage hook), and this module
- * can load before that — importing the fight from here would be a cycle (it imports this file for his look). The specimen
- * (`build`) is one rig from the shard's creature factory, dressed as the fight dresses him — the lanterns and the ribcage
- * at full glow — at the rig's own scale like every species model.
+ * His fields are the engine's `creature(KING_KIND)` read from his one coat (`KING_VARIANT`, its `species` rows): his species
+ * is registered by the fight at boot (the elk's fields on his own rig, with the fight's damage hook), and this module can
+ * load before that — importing the fight from here would be a cycle (it imports this file for his look). Its `dress` is
+ * the fight's — the lanterns and the ribcage at full glow — on the live copy and on the specimen alike.
  */
 export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>({
-  id: 'pine-hollow/antler-king', name: KING_VARIANT.label, category: 'creatures', pipeline: ['hunyuan', 'code'], file: 'src/shards/pine-hollow/models/antlerKing.ts', surface: 'wood',
-  defaults: { variant: KING_VARIANT.id },
-  variants: [{ id: KING_VARIANT.id, label: KING_VARIANT.label, params: { variant: KING_VARIANT.id } }],
-  rig: { clips: CREATURE_CLIPS, species: KING_KIND, dress: (a, ctx) => { dressAntlerKing(a, ctx.once(KING_KIT, () => makeKingKit(ctx.sky))); } },
-  build: (ctx, p) => {
-    const f = creatureFactory(ctx);
-    const model = f.model(KING_KIND, p.variant);
-    const a = new Animal(f.instantiate(model, 0.5), model, 7, 1);
-    dressAntlerKing(a, ctx.once(KING_KIT, () => makeKingKit(ctx.sky)));
-    return a.mesh;
-  },
+  id: 'pine-hollow/antler-king', pipeline: ['hunyuan', 'code'], file: 'src/shards/pine-hollow/models/antlerKing.ts',
+  ...creature(KING_KIND, { species: { label: KING_VARIANT.label, variants: [KING_VARIANT] },
+    dress: (a, ctx) => { dressAntlerKing(a, ctx.once(KING_KIT, () => makeKingKit(ctx.sky))); } }), surface: 'wood',
 });

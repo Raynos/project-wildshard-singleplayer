@@ -13,6 +13,7 @@
  * shard lists them (`listRoster`, ./live.ts) with the count alive of their species.
  */
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
+import { Animal } from '../entities/AnimalView';
 import { speciesDef, type SpeciesDef } from '../entities/species/registry';
 import type { SkyRig as Sky } from '../world/skyRig';
 import type { ModelCategory } from '../world/registry';
@@ -41,18 +42,25 @@ export function creatureContext(sky: Sky, style: AnimalStyle, renderer: Renderer
 }
 
 /** The fields of the model of one species (all but its id, file and pipeline). `species`: the rows its name and coats are
- *  read from when the kind is a level's own (registered with the level, not at import); else the registered kind's. */
-export function creature(kind: string, o: { name?: string; category?: ModelCategory; spawnOnly?: boolean; species?: Pick<SpeciesDef, 'label' | 'variants' | 'spawnOnly'> } = {}): Omit<ModelDef<CreatureParams>, 'id' | 'file' | 'pipeline'> {
+ *  read from when the kind is a level's own (registered with the level, not at import); else the registered kind's.
+ *  `dress`: what the shard bolts onto a fresh body (a boss's lanterns, a rider): run on the live copies (the rig's
+ *  `dress`) and on the specimen `build` makes, which is then an Animal on that rig, so a card looks like the copy. */
+export function creature(kind: string, o: { name?: string; category?: ModelCategory; spawnOnly?: boolean; species?: Pick<SpeciesDef, 'label' | 'variants' | 'spawnOnly'>;
+  dress?: (animal: Animal, ctx: ModelContext) => void } = {}): Omit<ModelDef<CreatureParams>, 'id' | 'file' | 'pipeline'> {
+  const dress = o.dress;
   const sp = o.species ?? speciesDef(kind);
   const coats = [...sp.variants, ...(o.spawnOnly === true ? sp.spawnOnly ?? [] : [])];
   return {
     name: o.name ?? sp.label, category: o.category ?? 'creatures', surface: 'flesh',
     defaults: { variant: coats[0]?.id ?? '' },
     variants: coats.map((v) => ({ id: v.id, label: v.label, params: { variant: v.id } })),
-    rig: { clips: CREATURE_CLIPS, species: kind },
+    rig: { clips: CREATURE_CLIPS, species: kind, ...(dress === undefined ? {} : { dress }) },
     build: (ctx, p) => {
-      const f = creatureFactory(ctx);
-      return f.instantiate(f.model(kind, p.variant), 0.5).mesh;
+      const f = creatureFactory(ctx), model = f.model(kind, p.variant), rig = f.instantiate(model, 0.5);
+      if (dress === undefined) return rig.mesh;
+      const a = new Animal(rig, model, 7, 1);
+      dress(a, ctx);
+      return a.mesh;
     },
   };
 }
