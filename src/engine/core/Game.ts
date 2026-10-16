@@ -1,4 +1,5 @@
 import { app } from '../app/runtime';
+import { engineString } from '../strings';
 import { Scope } from '../app/scope';
 import { installBrowserScopeEnvironment } from '../app/view/scopeEnvironment';
 import { SceneOwnership, sceneResourceOwner } from '../app/sceneOwnership';
@@ -745,6 +746,41 @@ export class Game {
       setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
   }
 
+  private postPreparation: Promise<void> = Promise.resolve();
+  /** Link an added display transform before publishing its revised live shader. Initial boot uses its ordinary
+   * shader stage. Live additions serialize; entered-frame readiness awaits the latest preparation or its error. */
+  preparePostPass(pass: EffectPass): Promise<void> {
+    const composer = this._composer;
+    if (composer === null || this.frameCount === 0) { pass.recompile(); return Promise.resolve(); }
+    const current = (): boolean => !this.levelScope.disposed && this._composer === composer;
+    const previous = this.postPreparation;
+    const prepare = async (): Promise<void> => {
+      try { await previous; } catch { /* A later addition retries the current effect list. */ }
+      if (!current()) return;
+      const [{ prepareEffectPass, postTriangle }, { runPrecompile, waitForDrawnFrame }] = await Promise.all([
+        import('../render/postPreparation'), import('../render/precompile')]);
+      const geometry = postTriangle(), mesh = new THREE.Mesh(geometry, pass.fullscreenMaterial), scene = new THREE.Scene();
+      const target = pass.renderToScreen ? null : composer.inputBuffer;
+      try {
+        let published = false;
+        while (current() && !published) published = await prepareEffectPass(pass, async material => {
+          mesh.material = material;
+          await runPrecompile(this.renderer, this.camera, [{ label: engineString('s_178612197e2b'), root: mesh, target: scene, rt: target }], 1,
+            undefined, undefined, current, false, () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current));
+        }, material => {
+          mesh.material = material;
+          const prior = this.renderer.getRenderTarget(), face = this.renderer.getActiveCubeFace(), mip = this.renderer.getActiveMipmapLevel();
+          this.renderer.setRenderTarget(target);
+          try { this.renderer.compile(mesh, this.camera, scene); }
+          finally { this.renderer.setRenderTarget(prior, face, mip); }
+        }, current);
+      } finally { geometry.dispose(); }
+    };
+    const work = prepare();
+    this.postPreparation = work;
+    return work;
+  }
+
   private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number }[] } | null = null;
   /** Last entered-frame preparation's scalar timings. Painted waits are included; no content resources are retained. */
   get entryPreparation(): Readonly<NonNullable<Game['_entryPreparation']>> | null { return this._entryPreparation; }
@@ -756,6 +792,11 @@ export class Game {
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
+    for (;;) {
+      const pending = this.postPreparation;
+      await pending;
+      if (this.postPreparation === pending) break;
+    }
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
     const trace = { root: futureLighting.uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number }[] };

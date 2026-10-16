@@ -152,7 +152,7 @@ export interface FarPrepared { readonly geometry: BufferGeometry; readonly look:
  * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look. Optional `prepare` borrows
  * the admitted view while hidden; `upload` exposes that same view after preparation, and `discard` retires it.
  */
-export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared>; prepare?: (view: FarProxyView) => Promise<void>; decorate?: (material: Material) => void }): {
+export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared>; prepare?: (view: FarProxyView, data: FarPrepared) => Promise<void>; decorate?: (material: Material) => void }): {
   fetch: (tile: { instance: string }, done: (result: FarPrepared | Error) => void) => void;
   upload: (tile: { instance: string }, data: FarPrepared) => FarProxyView;
   discard: (tile: { instance: string }, data: FarPrepared) => void;
@@ -169,7 +169,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
             try {
               view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate);
               view.mesh.visible = false;
-              await options.prepare(view);
+              await options.prepare(view, data);
               staged.set(data, view);
             } catch (error) {
               if (view === undefined) data.geometry.dispose(); else view.dispose();

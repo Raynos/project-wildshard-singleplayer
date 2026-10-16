@@ -106,7 +106,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     prepareView: (root, current) => game.warmSceneRoots([root], () => !game.levelScope.disposed && current()),
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
-    frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices,
+    frame: { prepareDisplay: pass => game.preparePostPass(pass), scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices,
       // G321: the frame blends the camera's field of view by owner; the shadow cascades follow it
       refit: () => { game.sky.csm.updateFrustums(); },
       // G343: an eye lifted far above the player (a free camera) hands the horizon back to the grid

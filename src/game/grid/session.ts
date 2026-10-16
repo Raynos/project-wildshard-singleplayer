@@ -440,8 +440,20 @@ export class GridSession {
     }
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
     host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
+    const preparedBands = new WeakMap<FarProxyView, Object3D>();
     const far = farRingPorts({
-      ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView) => host.prepareView?.(view.mesh, () => !host.scope.disposed && view.mesh.parent !== null) ?? Promise.resolve() }), decorate: horizon.patch,
+      ...(host.prepareView === undefined ? {} : { prepare: async (view: FarProxyView, data: FarPrepared) => {
+        const root = view.mesh.parent;
+        if (root === null) throw new Error('Far view left before preparation');
+        if (frame !== null && data.look.band !== undefined) {
+          const unband = installHazeBand(root, data.look.band, CHUNK_HALF), dispose = view.dispose;
+          view.dispose = () => { unband(); dispose(); };
+          const haze = root.getObjectByName('haze-band');
+          if (haze === undefined) throw new Error('Far haze band was not installed');
+          horizon.patch(haze); haze.visible = false; preparedBands.set(view, haze);
+        }
+        await host.prepareView?.(root, () => !host.scope.disposed && view.mesh.parent === root);
+      } }), decorate: horizon.patch,
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
         let loaded: Awaited<ReturnType<typeof loadFar>>;
@@ -454,8 +466,10 @@ export class GridSession {
     const framedPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
       const band = data.look.band, view = far.upload(tile, data), untag = frame.proxy(view), dispose = view.dispose;
       // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
-      const root = roots.get(tile.instance), unband = band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
-      const haze = root?.getObjectByName('haze-band'); if (haze !== undefined) horizon.patch(haze);
+      const prepared = preparedBands.get(view);
+      const root = roots.get(tile.instance), unband = prepared !== undefined || band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
+      if (prepared !== undefined) prepared.visible = true;
+      else { const haze = root?.getObjectByName('haze-band'); if (haze !== undefined) horizon.patch(haze); }
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };

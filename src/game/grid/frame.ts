@@ -71,6 +71,8 @@ export interface GridFrameHost {
   readonly refit?: () => void;
   /** G343: how far the eye stands above the player's feet, metres (absent: 0, the eye at the player) */
   readonly lift?: () => number;
+  /** Prepare a revised colour shader before its next live draw (absent: ordinary synchronous boot). */
+  readonly prepareDisplay?: (pass: EffectPass) => Promise<void>;
 }
 
 /**
@@ -650,7 +652,14 @@ export class GridFrame {
     const colour = this.colour;
     if (colour === null || colour.effects.includes(display)) return;
     colour.effects.splice(colour.effects.indexOf(colour.tone) + 1, 0, display);
-    if (recompile) colour.pass.recompile();
+    if (recompile) void this.prepareDisplay(colour.pass);
+  }
+
+  private async prepareDisplay(pass: EffectPass): Promise<void> {
+    try {
+      if (this.host.prepareDisplay === undefined) pass.recompile();
+      else await this.host.prepareDisplay(pass);
+    } catch (error) { console.warn('[grid] display preparation failed', error); }
   }
 
   /**

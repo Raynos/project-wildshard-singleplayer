@@ -3001,6 +3001,15 @@ The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.
 
+`Game.preparePostPass(pass)` serializes additions to a live compound display
+shader. It links a temporary material while the original keeps drawing, then
+publishes the prepared sources onto that same original material and acquires
+its cached program before retiring the temporary holder. Entry readiness awaits
+the preparation; failure or a concurrent recompile never publishes stale sources.
+The readback shader used by streamed texture samplers is retained by a single
+private white texel per preparation owner, released with that owner. Far haze
+bands are patched and prepared while hidden alongside their far view.
+
 The grid's `prepareTile(tile)` port prepares newly decoded neighbour terrain and
 props before the ring publishes them. Horizon shader patches run first. The
 detached tile keeps its original mesh/material identities and residency lease;

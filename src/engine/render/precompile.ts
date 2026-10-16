@@ -18,6 +18,8 @@ import { linkStandIn } from '../app/sceneOwnership';
 import { offscreenPreparations } from './offscreenPreparation';
 import { waitMaterialPreparations } from './materialPreparation';
 import { prepareSceneResources } from './scenePreparation';
+import { readbackPreparation } from './readbackPreparation';
+import { postTriangle } from './postPreparation';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -489,9 +491,7 @@ export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.Web
     for (const val of Array.isArray(v) ? v : Object.values(o)) walk(val, toScreen, depth + 1);
   };
   for (const pass of composer.passes) walk(pass, pass.renderToScreen, 0);
-  const tri = new THREE.BufferGeometry();
-  tri.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
-  tri.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2]), 2));
+  const tri = postTriangle();
   const jobs: CompileJob[] = [];
   const empty = new THREE.Scene();
   const groups = { buffer: new THREE.Group(), screen: new THREE.Group() };
@@ -922,6 +922,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     jobs.push(...previousShadows);
     if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per)));
     const owner = options.owner ?? resourceScope();
+    if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
