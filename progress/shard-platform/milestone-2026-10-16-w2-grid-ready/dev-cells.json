@@ -1,0 +1,1436 @@
+{
+  "schema": 3,
+  "sha": "437c479df5c8fba97c136502d847aacd75b48d5e",
+  "surface": "portrait iPhone Simulator Safari",
+  "layout": "dev",
+  "leg": "cells",
+  "policy": {
+    "seconds": 1800,
+    "samplerSeconds": 2500,
+    "leaseMinutes": 45,
+    "dryRun": false
+  },
+  "purpose": "QUALIFYING: prepared conversions, continuous route",
+  "functionalPass": false,
+  "failure": "Error: Wrong dev catalogue: pine-hollow,template-2,sunscar-dunes,driftwood-isle,nalati-grasslands,far-reach,blender-template-1,pastel-plain-1,nine-dragon-stack\n    at worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:164:80)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:382:40",
+  "errors": [
+    "Error: Wrong dev catalogue: pine-hollow,template-2,sunscar-dunes,driftwood-isle,nalati-grasslands,far-reach,blender-template-1,pastel-plain-1,nine-dragon-stack\n    at worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:164:80)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:382:40"
+  ],
+  "entries": [],
+  "crossroads": [],
+  "evictions": [
+    {
+      "at": 1792168134.138,
+      "cycle": null,
+      "instance": "driftwood-isle",
+      "residents": []
+    }
+  ],
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 0,
+    "loadingPeakBytes": 860671865,
+    "phoneEstimateBytes": 0,
+    "baselines": [],
+    "baselineDeltaBytes": [],
+    "loops": [],
+    "recovery": false,
+    "calibration": false,
+    "ratios": [],
+    "missingGlSamples": 0,
+    "sampling": false,
+    "leakZero": true,
+    "admitted": [],
+    "refused": [
+      "pine-hollow",
+      "template-2",
+      "sunscar-dunes",
+      "driftwood-isle",
+      "nalati-grasslands",
+      "far-reach",
+      "blender-template-1",
+      "pastel-plain-1",
+      "nine-dragon-stack"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 0,
+    "rehearsal": false,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46\u201348."
+  },
+  "perLap": [],
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-16T16:28:59.379036+00:00",
+    "phases": {
+      "loading": {
+        "samples": 64,
+        "seconds": 63.4,
+        "gamePid": 89882,
+        "gameHighGB": 0.753,
+        "gameSampledGB": 0.742,
+        "allWebContentGB": 0.767,
+        "gpuProcessGB": 0.167
+      },
+      "unloaded": {
+        "samples": 6,
+        "seconds": 5,
+        "gamePid": 89882,
+        "gameHighGB": 0.625,
+        "gameSampledGB": 0.625,
+        "allWebContentGB": 0.639,
+        "gpuProcessGB": 0.144
+      }
+    },
+    "lost": [
+      {
+        "pid": 90060,
+        "phase": "loading",
+        "elapsed": 2
+      },
+      {
+        "pid": 89999,
+        "phase": "loading",
+        "elapsed": 4
+      },
+      {
+        "pid": 90116,
+        "phase": "loading",
+        "elapsed": 4
+      },
+      {
+        "pid": 90129,
+        "phase": "loading",
+        "elapsed": 5
+      },
+      {
+        "pid": 90132,
+        "phase": "loading",
+        "elapsed": 5
+      },
+      {
+        "pid": 89998,
+        "phase": "loading",
+        "elapsed": 6
+      },
+      {
+        "pid": 90169,
+        "phase": "loading",
+        "elapsed": 7.1
+      },
+      {
+        "pid": 90061,
+        "phase": "loading",
+        "elapsed": 8.1
+      },
+      {
+        "pid": 90176,
+        "phase": "loading",
+        "elapsed": 8.1
+      },
+      {
+        "pid": 90114,
+        "phase": "loading",
+        "elapsed": 13.1
+      },
+      {
+        "pid": 90139,
+        "phase": "loading",
+        "elapsed": 13.1
+      }
+    ],
+    "qos": "user-interactive",
+    "load": {
+      "min": 47.97,
+      "max": 88.6,
+      "mean": 72.22
+    },
+    "slowestRead": {
+      "readMs": 17.6,
+      "listMs": 17.6,
+      "elapsed": 34.19,
+      "phase": "loading"
+    }
+  },
+  "glSampling": {
+    "journal": 64,
+    "observed": 6,
+    "missing": 0,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "sampleCount": 70,
+  "glSamples": 56,
+  "leak": {
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "disposalErrors": [],
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "stacks": {
+      "listeners": [
+        "addEventListener@http://127.0.0.1:4404/sf57-safari.html:178:104\ninstallSoakDiagnostics@http://127.0.0.1:4404/sf57-safari.html:234:26\nglobal code@http://127.0.0.1:4404/sf57-safari.html:244:3",
+        "addEventListener@http://127.0.0.1:4404/sf57-safari.html:178:104\ninstallSoakDiagnostics@http://127.0.0.1:4404/sf57-safari.html:240:26\nglobal code@http://127.0.0.1:4404/sf57-safari.html:244:3",
+        "addEventListener@http://127.0.0.1:4404/sf57-safari.html:178:104\nglobal code@http://127.0.0.1:4404/sf57-safari.html:244:29",
+        "addEventListener@http://127.0.0.1:4404/sf57-safari.html:178:104\nglobal code@http://127.0.0.1:4404/sf57-safari.html:244:109",
+        "addEventListener@http://127.0.0.1:4404/sf57-safari.html:178:104\ninstallLoadingGlJournal@http://127.0.0.1:4404/sf57-safari.html:304:26\nglobal code@http://127.0.0.1:4404/sf57-safari.html:312:3"
+      ],
+      "timers": [
+        "@http://127.0.0.1:4404/sf57-safari.html:194:110\ninstallSoakGl@http://127.0.0.1:4404/sf57-safari.html:335:37\nglobal code@http://127.0.0.1:4404/sf57-safari.html:337:3",
+        "@http://127.0.0.1:4404/sf57-safari.html:194:110\ninterval@http://127.0.0.1:4404/assets/scope-DlRdNARb.js:1:5601\n@http://127.0.0.1:4404/assets/lastEnd-B-MKwHzU.js:1:1125\nmodule code@http://127.0.0.1:4404/assets/lastEnd-B-MKwHzU.js:1:4009",
+        "@http://127.0.0.1:4404/sf57-safari.html:194:110\ninterval@http://127.0.0.1:4404/assets/scope-DlRdNARb.js:1:5601\nS@http://127.0.0.1:4404/assets/runtime-DCgNqUnV.js:1:3082\nK@http://127.0.0.1:4404/assets/pageServices-DoxpEQxb.js:1:347635\nmodule code@http://127.0.0.1:4404/assets/entry-CNqj3XiI.js:9:1362",
+        "@http://127.0.0.1:4404/sf57-safari.html:194:110\ninterval@http://127.0.0.1:4404/assets/scope-DlRdNARb.js:1:5601\nS@http://127.0.0.1:4404/assets/runtime-DCgNqUnV.js:1:3182\nK@http://127.0.0.1:4404/assets/pageServices-DoxpEQxb.js:1:347635\nmodule code@http://127.0.0.1:4404/assets/entry-CNqj3XiI.js:9:1362",
+        "@http://127.0.0.1:4404/sf57-safari.html:194:110\ninterval@http://127.0.0.1:4404/assets/scope-DlRdNARb.js:1:5601\nS@http://127.0.0.1:4404/assets/runtime-DCgNqUnV.js:1:3291\nK@http://127.0.0.1:4404/assets/pageServices-DoxpEQxb.js:1:347635\nmodule code@http://127.0.0.1:4404/assets/entry-CNqj3XiI.js:9:1362"
+      ]
+    },
+    "retained": [
+      {
+        "key": "renderer:shadow:094c1cdc-a6e8-462d-8d78-1f45e55be469",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:object:1",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:c4c5ea5c-aad8-4166-8df8-3fec73bc915d",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:2",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:6cb6beea-2a1f-4454-a53f-c9a111aa48f5",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:c15b1b17-4ddf-469e-9003-7268f9ae2915",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:37e8d19d-9f1f-43de-8416-2267017dbf59",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:3",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:781bd64a-f83a-41ae-9ed0-5204601164ca",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:7ac74b4e-c233-4996-bea9-6783e025ab0f",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:404ce7ed-f488-4abd-a953-e9afbb1f8757",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:1fc61e96-7a74-4903-8211-f25b134b6a96",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:a85d5f32-1073-4c0e-abf3-ce26aec033a0",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:a5163aa2-118e-4168-a500-cf33d32ddae1",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:4ad32595-1b21-4c98-93d0-e78dc8c1bb85",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:93fbdc7b-63bb-4cb4-a054-af00d320b19a",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:801601b3-b198-4b74-afb7-dd808e8ef8af",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:d752f80e-6f5f-416e-917d-93545919ac9c",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:4",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:cc3ec0ff-ea13-46c9-aa1e-3de692280a29",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:cfc10278-225f-4c13-ae62-947311627bb2",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:5",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:c44f12ac-f4ba-47bd-88fb-682edf03d0f2",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:6",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:7",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:721453a6-8a91-42b6-a347-91f8c7dc738f",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:521b4c5d-0306-4ec0-96d0-ecbb8f50daf9",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:8",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:342e0613-8662-4229-88ff-732f08573f49",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:9",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:a8861df0-fe34-4ca5-8d31-158b273e8864",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:a65ea2ad-8ec2-49a3-93e0-b4eb5e9d1390",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:2f83713a-2668-4e7a-a05c-d3a769215b17",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:f29e4a24-f5d0-43fa-801a-016e25258ff7",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:4bce7191-a6dd-4db0-bc1e-9359d6422d76",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:10",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:d2fd71d8-d8f7-47b0-8e92-82d07e9d8515",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:11",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:dcbd4da3-f48f-4a6a-a165-15b85dc87460",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:12",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:3e9fcd49-aec6-4892-baff-6ae6681a27ac",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:9be95a6a-8745-44f7-b37a-e8bb256e937a",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:297661a8-177e-4a3b-bea1-5e6588d2ca3e",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:b946628b-0b54-4fee-83c1-850641504904",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:13",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:988624ba-4222-478e-9761-cb26b14b7bb8",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:91c14c11-5bb0-4b52-9797-f865273de2f5",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:c762982d-a37b-4b01-9775-0b6f212cb0bb",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:4d4ad756-10b5-408d-a341-780d3e3711f4",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:14",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:15",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:16",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:253b7e95-132e-4ddc-a1b0-87b69e0edce1",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:17",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:20f229b1-d1c5-4ed5-951e-9314c617278a",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:18",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:953d29fd-912a-46c1-af98-be77acb7247f",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:19",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:20",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:ab9eed01-5917-483e-9ddc-bdef101b8547",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:85df9b1f-a3f5-4032-8b95-17d39d2b4c6d",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:21",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:ef0f3eda-5820-4cf5-b9d4-6643568dc41b",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:c16c21ea-1720-4ea8-99c5-3461cf679dae",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:ea3ac020-5189-459b-ad74-4bce4c4caa6c",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:6f541437-6d96-4776-935a-e77705797237",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:22",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:object:23",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:c883b0ef-49d4-4d85-a1c1-b7ba2c1eb38f",
+        "refs": 1,
+        "retained": false
+      },
+      {
+        "key": "scene:69c3cabe-df22-452a-add3-7dde7b956b82",
+        "refs": 1,
+        "retained": false
+      }
+    ],
+    "gpu": {
+      "total": {
+        "geometries": 1,
+        "textures": 10,
+        "programs": 15
+      },
+      "orphans": {
+        "live": 0,
+        "collected": 0
+      },
+      "retained": {
+        "geometries": 1,
+        "textures": 10,
+        "programs": 15
+      },
+      "resources": [
+        {
+          "type": "Vu",
+          "uuid": "094c1cdc-a6e8-462d-8d78-1f45e55be469",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            3,
+            7,
+            8,
+            10,
+            13,
+            125
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "c4c5ea5c-aad8-4166-8df8-3fec73bc915d",
+          "name": "EffectComposer.Buffer",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "4678455c-5c19-46ac-b127-f30a628f10ac",
+          "image": {
+            "width": 804,
+            "height": 1428,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "6cb6beea-2a1f-4454-a53f-c9a111aa48f5",
+          "name": "EffectComposer.Buffer",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "828c538e-f29f-42db-baa9-c70be1fc0138",
+          "image": {
+            "width": 804,
+            "height": 1428,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "781bd64a-f83a-41ae-9ed0-5204601164ca",
+          "name": "CopyPass.Target",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "be4bd048-a54e-4899-8b52-78af89e2aade",
+          "image": {
+            "width": 1,
+            "height": 1,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "jc",
+          "uuid": "521b4c5d-0306-4ec0-96d0-ecbb8f50daf9",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "e8e2042a-5aa7-4fe6-88e0-3e27e09309f0",
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "d2fd71d8-d8f7-47b0-8e92-82d07e9d8515",
+          "name": "Bloom.Target",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "6956da05-16f3-42a5-8fa2-41dced8e929f",
+          "image": {
+            "width": 402,
+            "height": 714,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "dcbd4da3-f48f-4a6a-a165-15b85dc87460",
+          "name": "Blur.Target.A",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "4a426995-83ee-449f-9e6a-042500cf71b7",
+          "image": {
+            "width": 402,
+            "height": 714,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "3e9fcd49-aec6-4892-baff-6ae6681a27ac",
+          "name": "Blur.Target.B",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "c66e9588-92db-434d-bf5a-1fea482777d1",
+          "image": {
+            "width": 402,
+            "height": 714,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "988624ba-4222-478e-9761-cb26b14b7bb8",
+          "name": "LuminancePass.Target",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "6aacdcc9-ee60-43f4-abfb-acff4f270494",
+          "image": {
+            "width": 804,
+            "height": 1428,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "a85d5f32-1073-4c0e-abf3-ce26aec033a0",
+          "name": "Upsampling.Mipmap0",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "dc66289e-d479-4777-ba5e-d568f3cb3b1c",
+          "image": {
+            "width": 402,
+            "height": 714,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "4d4ad756-10b5-408d-a341-780d3e3711f4",
+          "name": "Downsampling.Mipmap0",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "224c42ce-53b9-469f-9122-2de60c5a2164",
+          "image": {
+            "width": 402,
+            "height": 714,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "253b7e95-132e-4ddc-a1b0-87b69e0edce1",
+          "name": "Downsampling.Mipmap1",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "32c60d98-2dcc-420c-95e2-314d9104ef6b",
+          "image": {
+            "width": 201,
+            "height": 357,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "20f229b1-d1c5-4ed5-951e-9314c617278a",
+          "name": "Downsampling.Mipmap2",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "0a8dafc0-5b35-41ec-b1ac-fab2298a7f5b",
+          "image": {
+            "width": 101,
+            "height": 179,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "953d29fd-912a-46c1-af98-be77acb7247f",
+          "name": "Downsampling.Mipmap3",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "3c126a61-3fcb-4f05-a0f9-9780899bf3dc",
+          "image": {
+            "width": 51,
+            "height": 90,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "c762982d-a37b-4b01-9775-0b6f212cb0bb",
+          "name": "Upsampling.Mipmap1",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "cd998b59-090f-4358-b5af-60275243385b",
+          "image": {
+            "width": 201,
+            "height": 357,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "ab9eed01-5917-483e-9ddc-bdef101b8547",
+          "name": "Upsampling.Mipmap2",
+          "owner": null,
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "4962be57-b59b-4ca6-914f-edfad777936c",
+          "image": {
+            "width": 101,
+            "height": 179,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "ef0f3eda-5820-4cf5-b9d4-6643568dc41b",
+          "name": "Luminance",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "cb9055c6-b6b1-41a7-888c-fe3df0a9e03d",
+          "image": {
+            "width": 256,
+            "height": 256,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "6f541437-6d96-4776-935a-e77705797237",
+          "name": "Luminance.Previous",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "b49b0c85-7140-4e30-804a-5dcd4a1468e8",
+          "image": {
+            "width": 1,
+            "height": 1,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "a5163aa2-118e-4168-a500-cf33d32ddae1",
+          "name": "Luminance.Adapted",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "3fce95c6-300d-4f1a-9ccf-9e761598a8b5",
+          "image": {
+            "width": 1,
+            "height": 1,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "yi",
+          "uuid": null,
+          "name": null,
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "Nu",
+          "uuid": "7ac74b4e-c233-4996-bea9-6783e025ab0f",
+          "name": "ViewmodelDepthMerge",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            127
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "ce",
+          "uuid": "37e8d19d-9f1f-43de-8416-2267017dbf59",
+          "name": "CopyMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            128
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "X",
+          "uuid": "1fc61e96-7a74-4903-8211-f25b134b6a96",
+          "name": "EffectMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            129
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "Se",
+          "uuid": "9be95a6a-8745-44f7-b37a-e8bb256e937a",
+          "name": "KawaseBlurMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            133
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "ce",
+          "uuid": "297661a8-177e-4a3b-bea1-5e6588d2ca3e",
+          "name": "CopyMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            134
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "Te",
+          "uuid": "b946628b-0b54-4fee-83c1-850641504904",
+          "name": "LuminanceMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            135
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "ke",
+          "uuid": "85df9b1f-a3f5-4032-8b95-17d39d2b4c6d",
+          "name": "DownsamplingMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            136
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "Me",
+          "uuid": "91c14c11-5bb0-4b52-9797-f865273de2f5",
+          "name": "UpsamplingMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            137
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "X",
+          "uuid": "69c3cabe-df22-452a-add3-7dde7b956b82",
+          "name": "EffectMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            138
+          ],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "jc",
+          "uuid": "d752f80e-6f5f-416e-917d-93545919ac9c",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "47b1c3a0-5c06-4c5b-90b5-6395da029e2c",
+          "image": {
+            "width": 1,
+            "height": 1,
+            "src": null
+          },
+          "allocation": null
+        },
+        {
+          "type": "e",
+          "uuid": "c15b1b17-4ddf-469e-9003-7268f9ae2915",
+          "name": "",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": null,
+          "image": {
+            "width": null,
+            "height": null,
+            "src": null
+          },
+          "allocation": null
+        }
+      ]
+    }
+  },
+  "rawSha256": "be0fc5abb6e58246fa652f8f774b37ca7d57a07c2d372088d67f29b694a74a86",
+  "rawBytes": 435057
+}

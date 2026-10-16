@@ -1,0 +1,30 @@
+{
+  "source": "437c479df5c8fba97c136502d847aacd75b48d5e",
+  "caps": {
+    "explorerMB": 1200,
+    "loadingMB": 1800
+  },
+  "memoryLimitation": "Production catalogue guard refused the DEVSERVER soak before driving; no qualifying memory witness.",
+  "shards": {
+    "pine-hollow": {
+      "oneFrameLooks": {
+        "verdict": "fail",
+        "evidence": "progress/shard-platform/milestone-2026-10-16-w2-grid-ready/receipt.json sha256:c47833f6a23bfe9cc04adffddc3c25b82612925b146c3107ba09d1f51d1f61c9 at 437c479df5c8fba97c136502d847aacd75b48d5e: completed Safari grid entry and 3 plain milestone look/travel windows for pine-hollow"
+      },
+      "memory": {
+        "verdict": "unknown",
+        "evidence": "No qualifying exact-SHA memory witness"
+      }
+    },
+    "driftwood-isle": {
+      "oneFrameLooks": {
+        "verdict": "fail",
+        "evidence": "progress/shard-platform/milestone-2026-10-16-w2-grid-ready/receipt.json sha256:c47833f6a23bfe9cc04adffddc3c25b82612925b146c3107ba09d1f51d1f61c9 at 437c479df5c8fba97c136502d847aacd75b48d5e: completed Safari grid entry and 3 plain milestone look/travel windows for driftwood-isle"
+      },
+      "memory": {
+        "verdict": "unknown",
+        "evidence": "No qualifying exact-SHA memory witness"
+      }
+    }
+  }
+}
