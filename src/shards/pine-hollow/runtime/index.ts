@@ -68,9 +68,8 @@ import { WILDLIFE_LOOK } from '../data/wildlifeLook';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { installWeather, loadPineRain } from '../world/weather';
-import { LeverRifle, preloadLeverModel, prepareLeverHands } from './weapons/LeverRifle';
+import { LeverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
-import { prepareLongbowHands } from '../weapons/longbowView';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS } from '../loadout/effects';
 import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from '../loadout/finishes';
@@ -174,8 +173,8 @@ export class PineHollow extends ShardPlugin {
     await preloadLeverModel();
     rt.buildEquipment = runtimeEquipment([
       { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock }) },
-      { slot: 'rifle', prepare: prepareLeverHands, create: (targets, nolock) => new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock }) },
-      { slot: 'secondary', prepare: prepareLongbowHands, create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
+      { slot: 'rifle', create: (targets, nolock) => new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock }) },
+      { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
       if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');
       bindRuntimeEquipment(ctx, source, [

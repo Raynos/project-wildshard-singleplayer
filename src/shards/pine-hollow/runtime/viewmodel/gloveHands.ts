@@ -90,13 +90,6 @@ export function handGeometry(look: GloveHandsLook, spec: HandSpec, free = false)
   return { geometry: handsPart(row.geometry), sleeve: row.sleeve === null ? null : handsPart(row.sleeve), wrist: new THREE.Vector3().fromArray(row.wrist), dir: new THREE.Vector3().fromArray(row.dir) };
 }
 
-/** Both hands of a weapon's holds, as `WeaponHands` will ask for them: a missing bake refuses here, before the weapon is
- *  built. The hands are borrowed from the preloaded pool, so there is nothing left to slice (`due` is kept for callers). */
-export function prepareWeaponHands(look: GloveHandsLook, left: HandHold, right: HandHold, due?: () => Promise<void> | null): Promise<readonly [HandGeometry, HandGeometry]> {
-  void due;
-  return Promise.resolve([handGeometry(look, { ...left.spec, mirror: true }, left.spec.elbow !== undefined), handGeometry(look, { ...right.spec, mirror: false }, right.spec.elbow !== undefined)]);
-}
-
 /** Where a fist closes on a weapon, in its model space: the grip's centre, the grip's direction toward the index / thumb
  *  end of the finger stack, and the palm's facing (from the back of the hand toward the grip). */
 export interface GripPose { at: THREE.Vector3; axis: THREE.Vector3; palm: THREE.Vector3 }

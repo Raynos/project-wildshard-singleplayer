@@ -3,7 +3,7 @@ import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, weaponDisplay
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { WeaponHands, gripPose, holdDef, prepareWeaponHands } from '../viewmodel/gloveHands';
+import { WeaponHands, gripPose, holdDef } from '../viewmodel/gloveHands';
 import { HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
 import { LEVER_MATERIALS } from '../../data/heldLook';
 import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
@@ -135,10 +135,6 @@ function cartridgeGeometry(live: boolean): THREE.BufferGeometry { return detailG
  * right on the wrist with its fingers through the loop (it rides the lever through a cycle); `gate` = the right hand
  * thumbing a cartridge, relative to the round's base. A dev knob: edit, then the rifle's `rebuildHands()`.
  */
-/** The rifle's two hands built ahead of `new LeverRifle` (SF67), a task apart (`due`): the geometry its constructor would build. */
-export async function prepareLeverHands(due: () => Promise<void> | null): Promise<void> {
-  await prepareWeaponHands(HUNTER_HANDS, LEVER_HAND_HOLDS.left, LEVER_HAND_HOLDS.right, due);
-}
 /** The hands: the glove material once per rifle, a fresh pair from the holds on every build. */
 const LEVER_HANDS: LeverFirearmHandsKit = {
   make: (sky) => {

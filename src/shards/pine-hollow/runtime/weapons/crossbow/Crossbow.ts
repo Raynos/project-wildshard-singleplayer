@@ -4,7 +4,7 @@ import rows from '../../../data/crossbowPool.generated.json' with {type:'json'};
 import { viewmodelTexSet, makeCord, makeBoltAtlas, viewmodelMaterial, viewmodelRowMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbow as BoltCrossbowWeapon } from '../../items/boltCrossbow';
-import { WeaponHands, coatSet, holdDef, loadCoatTextures, prepareWeaponHands, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
+import { WeaponHands, coatSet, holdDef, loadCoatTextures, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
 import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from '../../../data/handsLook';
 import { CROSSBOW_MATERIALS, CROSSBOW_TILING } from '../../../data/heldLook';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
@@ -107,12 +107,10 @@ function crossbowHands(sky: Sky): (model: THREE.Group) => WeaponHandsView {
   };
 }
 
-/** The crossbow's hands and their coat's canvas built ahead of `new Crossbow` (SF67), a task apart (`due`): the same
- *  geometry and textures its constructor would build in one stretch. */
+/** Load the coat's baked canvas before constructing the hands; geometry comes from the preloaded held pool. */
 export async function prepareCrossbowHands(due: () => Promise<void> | null): Promise<void> {
   await loadCoatTextures();
   const wait = due(); if (wait !== null) await wait;
-  await prepareWeaponHands(HUNTER_HANDS, CROSSBOW_HAND_HOLDS.left, CROSSBOW_HAND_HOLDS.right, due);
 }
 
 /** Pine's crossbow: the row bound to the platform's bolt crossbow (`new Crossbow(world, targets, { row })`). */

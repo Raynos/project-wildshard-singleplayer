@@ -140,15 +140,6 @@ export function staveBowView(look: StaveBowLook, mat: THREE.Material): BowView {
   return { mat, mesh, nocked, rHand, lSleeve, rSleeve, lWrist: v(b.lWrist), rWrist: v(b.rWrist), rHook: v(b.rHook), rWristDir, roll };
 }
 
-/** The Longbow's baked parts are borrowed from the preloaded pool: a missing bake refuses here, before the view is built
- *  (`due` is kept for callers; there is nothing left to slice). */
-export function prepareStaveBowHands(look: StaveBowLook, due?: () => Promise<void> | null): Promise<void> {
-  void due;
-  bakedBow(look);
-  for (const part of ['bow-stave', 'bow-arrow-nocked', 'bow-right-fist', 'bow-left-sleeve', 'bow-right-sleeve']) handsPart(part);
-  return Promise.resolve();
-}
-
 /** A look's grip poses (triples) as the platform bow's GripPose, keys kept. */
 export function bowPoses<K extends string>(rows: Readonly<Record<K, GripPoseRow>>): Record<K, GripPose> {
   const out = {} as Record<K, GripPose>;
