@@ -1,5 +1,4 @@
-import type { AnimalManager, Herd } from '@wildshard/engine/entities/AnimalManager';
-import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
+import * as v from 'valibot';
 
 /**
  * Grazing herds that shelter from the rain (SHARD-PLATFORM M3, a weather rule as data): through the rain every grazing
@@ -31,25 +30,38 @@ export interface HerdShelterLook {
 }
 
 interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number } | null; hold: number }
+interface Herd {
+  kind: string; cx: number; cz: number;
+  readonly members: readonly { alive: boolean; position: { x: number; z: number } }[];
+}
+interface Tree { x: number; z: number; r: number; height: number }
+const finite = v.pipe(v.number(), v.finite());
+const point = v.strictObject({ x: finite, z: finite });
+const saved = v.strictObject({ version: v.literal(1), shelters: v.array(v.nullable(v.strictObject({
+  home: point, spot: v.nullable(point), hold: v.pipe(finite, v.minValue(0))
+}))) });
 
 /** The herds' shelters through a shower (see the module's comment). */
-export class HerdShelter {
+export class HerdShelter<T extends Tree> {
   private readonly kinds: ReadonlySet<string>;
-  private readonly big: readonly TreeInstance[];
-  private readonly shelters = new Map<Herd, Shelter>();
+  private readonly big: readonly T[];
+  private shelters = new Map<Herd, Shelter>();
 
   /** `animals` the herds, `trees` the forest, `coverAt` the crown cover 0..1 at (x, z), `look` the rule's numbers. */
-  constructor(private readonly animals: AnimalManager, trees: readonly TreeInstance[], private readonly coverAt: (x: number, z: number) => number, private readonly look: HerdShelterLook) {
+  constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly coverAt: (x: number, z: number, tree: T) => number, private readonly look: HerdShelterLook) {
+    if (trees.length > 16384) throw new Error('Pine shelter tree bound exceeded');
     this.kinds = new Set(look.kinds);
     this.big = trees.filter((t) => t.height >= look.bigTree);
   }
 
   private pick(hd: Herd): { x: number; z: number } | null {
-    let best: TreeInstance | null = null, score = Infinity;
-    for (const t of this.big) {
+    let best: T | null = null, score = Infinity;
+    for (let index = 0; index < 16384; index++) {
+      const t = this.big[index];
+      if (t === undefined) break;
       const d = Math.hypot(t.x - hd.cx, t.z - hd.cz);
       if (d > this.look.reach) continue;
-      const s = d - 0.8 * t.height - 12 * this.coverAt(t.x, t.z);
+      const s = d - 0.8 * t.height - 12 * this.coverAt(t.x, t.z, t);
       if (s < score) { score = s; best = t; }
     }
     if (best === null) return null;
@@ -84,6 +96,27 @@ export class HerdShelter {
     return { x: s.home.x, z: s.home.z, r: this.look.homeR };   // the rain is over: back out to graze
   }
 
+  /** Native v1 continuation in herd order; points never alias live state. */
+  snapshot(): v.InferOutput<typeof saved> {
+    return { version: 1, shelters: this.animals.herds.map(herd => {
+      const shelter = this.shelters.get(herd);
+      return shelter === undefined ? null : { home: { ...shelter.home }, spot: shelter.spot === null ? null : { ...shelter.spot }, hold: shelter.hold };
+    }) };
+  }
+
+  /** Admit every legacy slot before replacing state, without moving a herd. */
+  restore(value: unknown): void {
+    const parsed = v.parse(saved, value), herds = this.animals.herds, next = new Map<Herd, Shelter>();
+    if (parsed.shelters.length !== herds.length) throw new Error('Incompatible Pine rain-herd continuation');
+    parsed.shelters.forEach((shelter, index) => {
+      if (shelter === null) return;
+      const herd = herds[index];
+      if (herd === undefined || !this.kinds.has(herd.kind) || shelter.hold > this.look.homeHold) throw new Error('Incompatible Pine shelter continuation');
+      next.set(herd, shelter);
+    });
+    this.shelters = next;
+  }
+
   /** Dev evidence: every sheltering kind's member's distance to the nearest big tree — the mean, how many stand within 6 m. */
   stats(): { n: number; mean: number; under6: number; sheltering: number } {
     const d: number[] = [];
@@ -92,6 +125,6 @@ export class HerdShelter {
       for (const t of this.big) best = Math.min(best, Math.hypot(t.x - m.position.x, t.z - m.position.z));
       d.push(best);
     }
-    return { n: d.length, mean: Math.round(d.reduce((a, b) => a + b, 0) / Math.max(1, d.length) * 10) / 10, under6: d.filter((v) => v < 6).length, sheltering: [...this.shelters.values()].filter((s) => s.spot !== null).length };
+    return { n: d.length, mean: Math.round(d.reduce((a, b) => a + b, 0) / Math.max(1, d.length) * 10) / 10, under6: d.filter((distance) => distance < 6).length, sheltering: [...this.shelters.values()].filter((s) => s.spot !== null).length };
   }
 }
