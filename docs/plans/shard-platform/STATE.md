@@ -1,7 +1,7 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**04:40Z `6c4e5a3c0` (G445 source ruler): Pine 88.45 %, DW 80.93 %, Sky 92.12 %, Signal 43.52 %** W2 adoption is saturated at the -10 floor; lanes moved to G437 engine perf.
-Pine/DW: C1 3704/3661 · C2 2462/2352 · C3 148/0 · C4 3724/1679 · C5 1945/1311 · C6 2424/898 · C7 13/503 · C8 983/1739 · C9 3366/1750.
+**05:39Z `b203929fb` (G445 source ruler): Pine 89.92 %, DW 80.93 %, Sky 92.12 %, Signal 43.52 %.** Pine +1.47 pt = f542 water fix now imports engine waterSurface (303) directly; x7 checking route.
+Pine/DW: C1 3832/3661 · C2 2645/2352 · C3 148/0 · C4 3724/1679 · C5 1945/1311 · C6 2424/898 · C7 13/503 · C8 983/1739 · C9 3366/1750.
 G437 wins since 03:45Z: DW first frame 183 → 16.7 ms (`b5fab36ec`); late shader links 0 on Pine, Signal, hub (`6c4e5a3c0`); UBO uploads 24 → 13/frame (`d78199cea`); Fixed shadow samples row −0.40 ms DW graph CPU (`a88e5e415`, default-off). Pine grid entry broke at de1b7286f, fixed `f542a4cfb`; milestone rerun on it.
 
 **Lanes (G432 Opus; Claude weekly 20 %; Codex 5 + pusher):**
