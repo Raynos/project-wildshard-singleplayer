@@ -2,16 +2,12 @@ import { createNativeTargetQueries } from '@wildshard/game/plugin/simulation';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { castSegment, sweepBall, type Hit } from '@wildshard/engine/physics/query';
-import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { rangedVolumes } from '../rangedVolumes';
 
 /** The page Player's eye over its feet (player/Player.ts EYE): every aim line starts there. */
 export const EYE = 1.68;
 /** A body's hit along a ray: the body, head or not, the distance along the ray, the point (the result is reused). */
 export interface BodyHit { body: AnimalSim | null; head: boolean; distance: number; point: Vector3 }
-const SQRT_CONE = { radius: 'sqrt', axisScale: 1 } as const;
-const LINEAR_CONE = { radius: 'linear', axisScale: 1 } as const;
 
 type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
 const hasRibs = (body: AnimalSim): body is RibBody => 'ribsWorld' in body && typeof body.ribsWorld === 'function';
@@ -25,18 +21,6 @@ const _a = new Vector3(), _b = new Vector3();
  */
 export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, dir: Vector3, max: number): BodyHit | null {
   return targetQueries.ray(bodies, origin, dir, max);
-}
-
-/** The page's `worldHit` (combat/view/ranged.ts): a ball of `radius` (a ray at 0) swept from a to b through the host's world,
- *  passing the ground's edge strips. */
-export function worldHit(host: SimHost, a: Vector3, b: Vector3, radius: number): Hit | null {
-  let from: { x: number; y: number; z: number } = a, skip: Hit['collider'] | undefined, travelled = 0;
-  for (let pass = 0; pass < 4; pass++) {
-    const hit = radius > 0 ? sweepBall(host.physics, from, b, radius, undefined, skip) : castSegment(host.physics, from, b, undefined, skip);
-    if (hit?.material !== 'edge') { if (hit) hit.distance += travelled; return hit; }
-    travelled += hit.distance; from = hit.point; skip = hit.collider;
-  }
-  return null;
 }
 
 /** The `script` command that says where on the body the tick's shots are aimed: its value is the share along the target's
@@ -60,10 +44,4 @@ export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vecto
   else if (along === AIM_MIDDLE) fwd.addVectors(_a, _b).multiplyScalar(0.5);
   else fwd.copy(_a).lerp(_b, along);
   fwd.sub(eye).normalize();
-}
-
-/** The page's cone of fire (hitscan.ts, Bow.ts loose): a random axis across `dir` (three draws), turned by a random share of
- *  `spread` rad (a fourth draw; √ of it when `sqrt`), in place. */
-export function spreadInto(dir: Vector3, spread: number, random: () => number, sqrt: boolean, across: Vector3): void {
-  shotSpread(dir, spread, random, sqrt ? SQRT_CONE : LINEAR_CONE, across);
 }

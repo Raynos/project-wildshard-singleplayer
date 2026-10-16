@@ -1,13 +1,14 @@
+import { worldHit } from '@wildshard/engine/physics/query';
 import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
-import { instantSpreadDegrees } from '@wildshard/engine/combat/shotSpread';
+import { instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { LeverAction, parseLeverProfile, type LeverHooks } from '../../weapons/leverAction';
-import { aimAt, bodyHit, spreadInto, worldHit } from './headlessRanged';
+import { aimAt, bodyHit } from './headlessRanged';
 
 /** The lever-action's fixed-step id; its continuation is the action, the reserve and the dry pull's clock. */
 export const LEVER_STEP = 'pine.lever';
@@ -53,6 +54,7 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
   reloadProgress: finite, reserve: count, sinceEmpty: finite });
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
   const store = { reserve: profile.reserve }, act = new LeverAction(store, profile);
+  const cone = { radius: profile.spreadRadius, axisScale: 1 } as const;
   let sinceEmpty = 99;
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), end = new Vector3();
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.lever', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir, headshot: false };
@@ -61,8 +63,8 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
     const a = smoothstep(0, 1, ports.adsBlend?.() ?? 0);
     const spread = instantSpreadDegrees(profile.spreadAds, profile.spreadHip, a, 0,
       ports.speedFactor?.() ?? 0, profile.movingSpread, profile.movingAimReduction) * (Math.PI / 180);
-    spreadInto(dir, spread, random, profile.spreadRadius === 'sqrt', across);
-    const wall = worldHit(host, eye, end.copy(eye).addScaledVector(dir, profile.range), 0);
+    shotSpread(dir, spread, random, cone, across);
+    const wall = worldHit(host.physics, eye, end.copy(eye).addScaledVector(dir, profile.range), 0);
     const hit = bodyHit(ports.bodies(), eye, dir, wall ? wall.distance : profile.range), body = hit?.body ?? null;
     if (hit === null || body === null) return;
     req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.distance) * profile.damageScale;

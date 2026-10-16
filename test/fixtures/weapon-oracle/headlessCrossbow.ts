@@ -1,3 +1,4 @@
+import { worldHit } from '../../../src/engine/physics/query';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '../../../src/engine/sim';
@@ -8,7 +9,7 @@ import { smoothstep } from '../../../src/engine/core/noise';
 import { sticksIn } from '../../../src/engine/physics/query';
 import { CROSSBOW_PROFILE } from '../../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { boltFlightStep, PLAIN_FLIGHT, type BoltFlight } from '../../../src/shards/pine-hollow/weapons/crossbow/flight';
-import { aimAt, bodyHit, worldHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { aimAt, bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { boltDamage, type BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
 
 /** The crossbow's fixed-step id; its continuation is the bow's state and every bolt in flight. */
@@ -91,7 +92,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     const len = seg.length();
     if (len < 1e-6) return false;
     seg.multiplyScalar(1 / len);
-    const wall = worldHit(host, prev, b.pos, p.radius);
+    const wall = worldHit(host.physics, prev, b.pos, p.radius);
     const hit = bodyHit(ports.bodies(), prev, seg, wall ? wall.distance : len), body = hit?.body ?? null;
     if (hit !== null && body !== null) {
       // the pipeline copies the contact frame (its scratch vectors are reused)

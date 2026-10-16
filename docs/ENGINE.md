@@ -6169,6 +6169,17 @@ interval, reload duration, auto-reload delay and its shot/empty-trigger clock.
 before caller-owned effects; `reload` composes `RangedReload`. `advance` uses
 the caller's frame delta and optional reload scale/active policy, observes
 progress before the original end callback, and never advances physics or pose.
+The port borrows only ammunition state and dry/reload hooks. `trigger()`
+without a callback returns admission for a native caller's existing fire
+phase; passing a callback retains the page path. `snapshot()` owns only
+`reloadT`, `cooldown` and `sinceFire`; `restore(envelope)` validates all three
+finite clocks before a silent commit and ignores other owner-envelope fields.
+Ammunition, save version and flight stay with the caller. `RangedReload`
+also snapshots/restores its elapsed source-clock seconds independently.
+`engine/physics/query.ts#worldHit(physics, from, to, radius)` is the shared
+page/native ranged query: a segment at radius zero or a ball sweep otherwise,
+passing up to four invisible edge strips in order and accumulating distance
+from the original start. The page wrapper alone allows missing physics.
 The string spring remains caller-owned. W3's real matching consumer is
 `src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`; its bloom,
 muzzle flash, shot callbacks and active-only automatic reload stay ordered.

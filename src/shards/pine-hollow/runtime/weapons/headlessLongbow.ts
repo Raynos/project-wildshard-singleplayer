@@ -9,8 +9,8 @@ import { BowDraw } from '@wildshard/engine/combat/bowDraw';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
-import { floorBelow } from '@wildshard/engine/physics/query';
-import { EYE, aimAt, bodyHit, worldHit, type BodyHit } from './headlessRanged';
+import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
+import { EYE, aimAt, bodyHit, type BodyHit } from './headlessRanged';
 
 /** The longbow's fixed-step id; its continuation is the draw, the quiver, the aim and every arrow in flight. */
 export const LONGBOW_STEP = 'pine.longbow';
@@ -81,7 +81,7 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
   const contacts = new ProjectileContact<Arrow, BodyHit>({
     glance: GLANCE, spentRest: 'any', impactAfterLift: false, impactOnRepeatedGlance: false,
   }, {
-    world: (from, to, radius) => worldHit(host, from, to, radius),
+    world: (from, to, radius) => worldHit(host.physics, from, to, radius),
     target: (from, direction, distance) => { const hit = bodyHit(ports.bodies(), from, direction, distance); return hit?.body === null ? null : hit; },
     hit: (arrow, hit, direction) => {
       const body = hit.body; if (body === null) return;

@@ -8,7 +8,7 @@ import type { Player } from '../../player/Player';
 import type { Forest } from '../../world/forest/Forest';
 import type { EquipmentRow } from '../Equipment';
 import type { ImpactSurface } from '../Weapon';
-import { castSegment, sweepBall, type Hit } from '../../physics/query';
+import { worldHit as queryWorldHit, type Hit } from '../../physics/query';
 import { attachFogUniforms } from '../../world/Atmosphere';
 import type { Material } from '../../physics/surface';
 import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, viewmodelBakeUrl, type Pixels, type SetName, type Ctx2D } from '../../player/viewmodelTextures';
@@ -39,13 +39,7 @@ interface Vec3 { x: number; y: number; z: number }
 export function worldHit(a: Vec3, b: Vec3, radius: number): Hit | null {
   const physics = app.physics;
   if (!physics) return null;
-  let from = a, skip: Hit['collider'] | undefined, travelled = 0;
-  for (let pass = 0; pass < 4; pass++) {
-    const hit = radius > 0 ? sweepBall(physics, from, b, radius, undefined, skip) : castSegment(physics, from, b, undefined, skip);
-    if (hit?.material !== 'edge') { if (hit) hit.distance += travelled; return hit; }
-    travelled += hit.distance; from = hit.point; skip = hit.collider;
-  }
-  return null;
+  return queryWorldHit(physics, a, b, radius);
 }
 export const FOV_HIP = 72, FOV_ADS = 58; // ADS zooms 1.3× (tan 36° / 1.3 → 29.1° half-angle); the pose solve re-runs per FOV so the sight stays centred
 /** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the

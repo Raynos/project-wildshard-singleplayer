@@ -11,6 +11,18 @@ import { tagOf, type Material } from './surface';
 
 interface Vec3 { x: number; y: number; z: number }
 
+/** First world contact through at most four invisible edge strips. Radius zero casts a segment; positive radius sweeps a ball.
+ * Distance stays relative to the original start. The caller supplies the actual physics owner. */
+export function worldHit(physics: Physics, a: Vec3, b: Vec3, radius: number): Hit | null {
+  let from = a, skip: Hit['collider'] | undefined, travelled = 0;
+  for (let pass = 0; pass < 4; pass++) {
+    const hit = radius > 0 ? sweepBall(physics, from, b, radius, undefined, skip) : castSegment(physics, from, b, undefined, skip);
+    if (hit?.material !== 'edge') { if (hit) hit.distance += travelled; return hit; }
+    travelled += hit.distance; from = hit.point; skip = hit.collider;
+  }
+  return null;
+}
+
 export interface Hit {
   point: Vec3;
   normal: Vec3;

@@ -1,3 +1,5 @@
+import { RangedAction } from '@wildshard/engine/combat/Firearm';
+import { worldHit } from '@wildshard/engine/physics/query';
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -10,7 +12,7 @@ import { ProjectileContact } from '@wildshard/engine/combat/projectileContact';
 import { crossbowProfile } from '../../weapons/crossbow/profiles';
 import { CROSSBOW_WEAPON_PROFILE } from '../../data/crossbowProfile';
 import { boltFlightStep, PLAIN_FLIGHT, type BoltFlight } from '../../weapons/crossbow/flight';
-import { aimAt, bodyHit, worldHit, type BodyHit } from './headlessRanged';
+import { aimAt, bodyHit, type BodyHit } from './headlessRanged';
 import { boltDamage, type BoltKind } from '../../loadout/ammo';
 
 /** The crossbow's fixed-step id; its continuation is the bow's state and every bolt in flight. */
@@ -64,9 +66,10 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   bolts: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: v.tuple([finite, finite, finite]), vel: v.tuple([finite, finite, finite]), age: finite, glanced: v.boolean(), ammo: v.optional(v.picklist(['iron', 'pitch', 'broadhead']), 'iron') })),
     v.length(p.maxFlying)) });
   const cone = { radius: p.spreadRadius, axisScale: p.spreadAxisScale };
-  const state = { loaded: true, quiver: p.quiver, reloading: false, reloadT: 0, cooldown: 0, sinceFire: 99 };
+  const state = { loaded: true, quiver: p.quiver, reloading: false, reloadProgress: 0, ammo: undefined, reserve: 0,
+    get bolts() { return this.quiver; }, set bolts(value: number) { this.quiver = value; } };
+  const action = new RangedAction({ state }, { mode: 'quiver', maximum: p.quiver, interval: p.cooldown, reload: p.reload, autoReload: p.autoReload, autoFrom: 'shot' });
 
-  const reload = (): void => { if (!state.reloading && !state.loaded && state.quiver > 0) { state.reloading = true; state.reloadT = 0; } };
   const eye = new Vector3(), fwd = new Vector3(), side = new Vector3(), dir = new Vector3(), seg = new Vector3();
   // one request, refilled per hit (the pipeline copies the contact frame and the tags)
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.crossbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
@@ -74,7 +77,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     glance: { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX },
     spentRest: 'upward', impactAfterLift: false, impactOnRepeatedGlance: false,
   }, {
-    world: (from, to, radius) => worldHit(host, from, to, radius),
+    world: (from, to, radius) => worldHit(host.physics, from, to, radius),
     target: (from, direction, distance) => { const hit = bodyHit(ports.bodies(), from, direction, distance); return hit?.body === null ? null : hit; },
     hit: (bolt, hit, direction) => {
       const body = hit.body; if (body === null) return;
@@ -92,7 +95,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   });
   const bolts = pool.slots;
   const fire = (target: AnimalSim): void => {
-    state.loaded = false; state.quiver = Math.max(0, state.quiver - 1); state.cooldown = p.cooldown; state.sinceFire = 0;
+    action.shot();
     aimAt(host, target, eye, fwd, ports.aim?.());
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
     const spread = (p.spreadAds + (1 - smoothstep(0, 1, ports.adsBlend?.() ?? 0)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
@@ -107,19 +110,15 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
       const id = shots[i];
       if (id === undefined) break;
       const target = host.entities.get(id);
-      if (target === undefined || state.reloading || state.cooldown > 0) continue;
-      if (!state.loaded) { reload(); continue; }
-      fire(target);
+      if (target !== undefined && action.trigger()) fire(target);
     }
-    state.cooldown = Math.max(0, state.cooldown - dt); state.sinceFire += dt;
-    if (!state.loaded && !state.reloading && state.quiver > 0 && state.sinceFire > p.autoReload) reload();
-    if (state.reloading) { state.reloadT += dt; if (state.reloadT >= p.reload) { state.reloading = false; state.loaded = true; } }
+    action.advance(dt);
     pool.step(dt);
   }, {
-    snapshot: () => ({ ...state, bolts: bolts.map(b => ({ active: b.active, pos: [b.pos.x, b.pos.y, b.pos.z], vel: [b.vel.x, b.vel.y, b.vel.z], age: b.age, glanced: b.glanced, ...(b.ammo === 'iron' ? {} : { ammo: b.ammo }) })) }),
+    snapshot: () => ({ loaded: state.loaded, quiver: state.quiver, reloading: state.reloading, ...action.snapshot(), bolts: bolts.map(b => ({ active: b.active, pos: [b.pos.x, b.pos.y, b.pos.z], vel: [b.vel.x, b.vel.y, b.vel.z], age: b.age, glanced: b.glanced, ...(b.ammo === 'iron' ? {} : { ammo: b.ammo }) })) }),
     restore: value => {
       const saved = v.parse(Saved, value);
-      Object.assign(state, { loaded: saved.loaded, quiver: saved.quiver, reloading: saved.reloading, reloadT: saved.reloadT, cooldown: saved.cooldown, sinceFire: saved.sinceFire });
+      Object.assign(state, { loaded: saved.loaded, quiver: saved.quiver, reloading: saved.reloading }); action.restore(saved);
       saved.bolts.forEach((s, i) => { const b = bolts[i]; if (b !== undefined) { b.active = s.active; b.pos.set(...s.pos); b.vel.set(...s.vel); b.age = s.age; b.glanced = s.glanced; b.ammo = s.ammo; } });
     },
   }, 'afterBodies');
