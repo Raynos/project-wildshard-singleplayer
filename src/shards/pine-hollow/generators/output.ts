@@ -1,3 +1,5 @@
+import { KNIFE_LOOK } from './knifeLook';
+import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
 import { tradeCatalogue } from './trades';
@@ -45,7 +47,7 @@ nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJ
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=PINE_OUTPUT.custom[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:PINE_OUTPUT.custom[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 }));

@@ -1,7 +1,5 @@
 // Pine Hollow's skinning knife as data (SHARD-PLATFORM M3, the kit system's held tool: @wildshard/sdk/kit/heldTool;
 // models/skinningKnife.ts holds it through the skinning beat).
-import type { HeldToolRow } from '../runtime/kit/heldTool';
-import HELD_TOOL_PLAYBACK from './heldToolPlayback.json';
 
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish): a gloved right hand holding a drop-point
@@ -13,10 +11,9 @@ import HELD_TOOL_PLAYBACK from './heldToolPlayback.json';
  * to the left), the second pulls back toward you along the leg. The stand-in: a steel drop-point blade, a brass guard, a
  * walnut handle, a tan leather fist with its thumb along the top, the wrist and a dark cuff (grip at 0, blade −z, edge −y).
  */
-export const KNIFE_LOOK: Omit<HeldToolRow, 'url'> = {
+export const KNIFE_LOOK = {
   name: 'skin-knife',
   standIn: { roughness: 0.55, metalness: 0.25 }, envMapIntensity: 0.9, anisotropy: 8, loadDelayMs: 600, renderOrder: 1000,
-  playback: HELD_TOOL_PLAYBACK.pose,
   parts: [
     {
       kind: 'extrude', args: [], paint: '#c9ccd0',
@@ -31,4 +28,4 @@ export const KNIFE_LOOK: Omit<HeldToolRow, 'url'> = {
     { kind: 'cylinder', args: [0.028, 0.032, 0.07, 12], ops: [['rotateX', 1.2207963267948965], ['translate', 0.01, -0.02, 0.07]], paint: '#7d5c3d' },
     { kind: 'cylinder', args: [0.042, 0.046, 0.12, 14, 1, 1], ops: [['rotateX', 1.2207963267948965], ['translate', 0.014, -0.042, 0.15]], paint: '#2b2f33' },
   ],
-};
+} as const;

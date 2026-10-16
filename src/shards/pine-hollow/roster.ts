@@ -15,6 +15,8 @@ import { antlerKing } from './runtime/models/antlerKing';
 import { WILD_MODELS as WILD } from './runtime/models/birds';
 import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
 import { GEAR } from './runtime/models/gear';
+import { prepareKnifeRows } from './runtime/models/skinningKnife';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** the small wildlife's copies (src/shards/pine-hollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
@@ -37,3 +39,6 @@ export const ROSTER: readonly RosterEntry[] = [
   ...GEAR,
   live(swimHands, { copies: 1 }),
 ];
+
+/** Admit the knife recipe before the Explorer can synchronously build its card. */
+export async function preparedRoster(product?: ShardProduct): Promise<readonly RosterEntry[]> { await prepareKnifeRows(product); return ROSTER; }

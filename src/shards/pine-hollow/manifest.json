@@ -752,8 +752,8 @@
     },
     "roster": {
       "module": "./roster",
-      "export": "ROSTER",
-      "call": false
+      "export": "preparedRoster",
+      "call": true
     },
     "posesLoader": {
       "module": "./runtime/boot/poses",

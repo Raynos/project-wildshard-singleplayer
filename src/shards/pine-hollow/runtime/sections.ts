@@ -62,6 +62,14 @@ const crossbowRows = v.strictObject({
   }),
 });
 
+const primitiveOp = v.union([v.tuple([v.picklist(['translate','scale']),number,number,number]),v.tuple([v.picklist(['rotateX','rotateY','rotateZ']),number])]);
+const shapeStep = v.union([v.tuple([v.picklist(['moveTo','lineTo']),number,number]),v.tuple([v.literal('quadraticCurveTo'),number,number,number,number])]);
+const knifePart = v.strictObject({kind:v.picklist(['extrude','box','cylinder','sphere','capsule']),args:v.pipe(v.array(number),v.maxLength(16)),paint:text,
+  ops:opt(v.pipe(v.array(primitiveOp),v.maxLength(32))),shape:opt(v.pipe(v.array(shapeStep),v.maxLength(128))),
+  extrude:opt(v.strictObject({depth:number,bevelEnabled:flag,bevelThickness:number,bevelSize:number,bevelSegments:natural,curveSegments:natural}))});
+const knifeLook = v.strictObject({name:text,standIn:v.strictObject({roughness:number,metalness:number}),envMapIntensity:number,anisotropy:natural,
+  loadDelayMs:natural,renderOrder:number,parts:v.pipe(v.array(knifePart),v.minLength(1),v.maxLength(32))});
+
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
 export const SECTIONS = {
   'custom/skinPickups':v.strictObject({ 'ghost-stag':skinPickup, 'hollow-ash':skinPickup, ironhide:skinPickup,
@@ -74,7 +82,7 @@ export const SECTIONS = {
   'custom/leverPlayback':v.strictObject({handAt:Channels,handAxis:Channels,handPalm:Channels,sight:Channels,cycle:Channels,partInputs:inputs,partReads:strings,
     bindings:v.pipe(v.array(v.strictObject({group:text,target:text,inputs,outputs})),v.maxLength(16))}),
   'custom/leverDetails':v.strictObject({pool,rows:leverRows}),
-  'custom/heldToolPlayback':v.strictObject({description:text,nodeNames:v.record(text,text),pose:Channels}),
+  'custom/heldToolPlayback':v.strictObject({description:text,nodeNames:v.record(text,text),pose:Channels,look:knifeLook}),
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk}),
   'custom/trophyMounts':mountPack,
   'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema,rows:crossbowRows}),

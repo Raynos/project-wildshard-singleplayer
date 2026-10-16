@@ -6,7 +6,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
  * one baked atlas: albedo / normal / ARM) on the viewmodels' shared lit program (Crossbow.viewmodelMaterial: no program of
  * its own, lit with the scene: the sun, the CSM shadows, the fog). Debug ▸ Skinning knife = Stand-in — or a failed load — draws a procedural
  * stand-in (a steel blade, a walnut handle, a leather fist) on the same program. The SDK's held tool
- * (@wildshard/sdk/kit/heldTool) over the row ../data/skinningKnifeLook.ts `KNIFE_LOOK`.
+ * (@wildshard/sdk/kit/heldTool) over the admitted custom/heldToolPlayback recipe.
  *
  *   const knife = new SkinKnife(game, sky, ctx);   // parented to the camera, hidden; fetches the GLB after the level loads
  *   knife.update(beatT);                           // every frame: −1 = hidden; 0 … the harvest beat's len (custom/ambientLife `harvest`)
@@ -19,23 +19,32 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { HeldTool, heldToolSpecimen, type HeldToolRow } from '../kit/heldTool';
-import { KNIFE_LOOK } from '../const';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { SECTIONS } from '../sections';
 
 /** the Blender knife's file */
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
-/** the knife's row with its file */
-const KNIFE: HeldToolRow = { ...KNIFE_LOOK, url: KNIFE_MODEL_URL };
+/** The page and cold Explorer read the same admitted recipe and playback. */
+export function knifeRows(product: ShardProduct): HeldToolRow {
+  const row = product.section('custom/heldToolPlayback', SECTIONS);
+  return { ...row.look, url: KNIFE_MODEL_URL, playback: row.pose };
+}
+let prepared: HeldToolRow | null = null;
+/** The manifest's existing async roster door prepares rows before listing models. */
+export async function prepareKnifeRows(product?: ShardProduct): Promise<void> { prepared = knifeRows(product ?? await loadFirstPartyProduct('pine-hollow')); }
+function preparedKnife(): HeldToolRow { if (prepared === null) throw new Error('Pine knife rows are not admitted'); return prepared; }
 
 /** The knife the skinning beat raises (one copy, src/shards/pine-hollow/life/index.ts). */
 export class SkinKnife extends HeldTool {
   /** parented to `game`'s camera, hidden; fetches the GLB `loadDelayMs` of game time after the level has loaded */
   constructor(game: Game, sky: Sky, ctx: ShardContext) {
-    super(game, sky, ctx, KNIFE, ctx.product.section('custom/ambientLife', SECTIONS).harvest, (load) => {
-      // fetched KNIFE.loadDelayMs of game time after the level loads (off the load's requests and bytes), on the level's
+    const row = knifeRows(ctx.product);
+    super(game, sky, ctx, row, ctx.product.section('custom/ambientLife', SECTIONS).harvest, (load) => {
+      // fetched row.loadDelayMs of game time after the level loads (off the load's requests and bytes), on the level's
       // own update system instead of a wall-clock timer
       let left = -1; // seconds to the fetch: −1 not scheduled yet, 0 fetched
-      ctx.on('level.loaded', ({ id }) => { if (id === ctx.manifest.slug && left === -1) left = Math.max(KNIFE.loadDelayMs / 1000, 1e-6); });
+      ctx.on('level.loaded', ({ id }) => { if (id === ctx.manifest.slug && left === -1) left = Math.max(row.loadDelayMs / 1000, 1e-6); });
       ctx.system({ id: 'shard.pine.knife.load', phase: 'update', run: (dt) => { if (left <= 0) return; left = Math.max(0, left - dt); if (left === 0) load(); } });
     });
   }
@@ -52,5 +61,5 @@ export class SkinKnife extends HeldTool {
 export const skinningKnife: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/skinning-knife', name: 'Skinning knife', category: 'gear', pipeline: ['blender', 'code'], file: 'src/shards/pine-hollow/models/skinningKnife.ts',
   defaults: {},
-  build: (ctx) => heldToolSpecimen(ctx, skinningKnife.id, KNIFE, 'gear:skinning-knife'),
+  build: (ctx) => heldToolSpecimen(ctx, skinningKnife.id, preparedKnife(), 'gear:skinning-knife'),
 });

@@ -10,13 +10,11 @@ import people from './questNpcs.generated.json' with { type: 'json' };
 
 import { FINISH_CARDS } from './finishCards';
 
-import { KNIFE_LOOK } from './skinningKnifeLook';
 import SPRAY_PUFFS from './sprayPuffs.json' with { type: 'json' };
 
 
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
-  defineMirror('KNIFE_LOOK', KNIFE_LOOK),
   defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),
   defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
