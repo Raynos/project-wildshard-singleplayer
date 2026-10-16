@@ -1,6 +1,3 @@
-import { CASTAWAY_BODY, CASTAWAY_CAMP, CASTAWAY_HEAD, CASTAWAY_ARM } from './castawayLook';
-import { TRADER_BODY, TRADER_HEAD, TRADER_UPPER, TRADER_FORE } from './traderLook';
-
 /** Existing NPC rest hierarchies. All meshes borrow their original geometry and look ports. */
 export const TRADER_SCENE = {
   version: 1, root: 'root', materials: [{ id: 'coat', kind: 'port', source: 'coat' }],
@@ -37,7 +34,3 @@ export const CASTAWAY_BINDINGS = {
   figure: { kind: 'group', part: 'figure' }, body: { kind: 'object', part: 'body' }, camp: { kind: 'object', part: 'camp' },
   head: { kind: 'object', part: 'head' }, arm: { kind: 'object', part: 'arm' },
 } as const;
-
-/** Mesh intake order and the existing optional camp origin. */
-export const TRADER_MESHES = [['body', TRADER_BODY], ['head', TRADER_HEAD], ['upper', TRADER_UPPER], ['fore', TRADER_FORE]] as const;
-export const CASTAWAY_MESHES = [['body', CASTAWAY_BODY, false], ['camp', CASTAWAY_CAMP, true], ['head', CASTAWAY_HEAD, false], ['arm', CASTAWAY_ARM, false]] as const;

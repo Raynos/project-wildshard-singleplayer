@@ -1,7 +1,7 @@
 /**
  * Trader — Driftwood Isle's travelling trader (E314, Jake's pick on board 9: "a trader at Wendell's hut"): the second
  * NPC, who keeps the shop at the hut while Wendell (./Castaway.ts) stays the quest giver. Built exactly as Wendell is —
- * the low-poly kit (her meshes are rows, data/traderLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyLookMaterial), flat-shaded vertex colour, his
+ * the low-poly kit (her meshes are rows, generators/traderLook.ts, baked offline by generators/npcKits.ts; the shared lowPolyLookMaterial), flat-shaded vertex colour, his
  * proportions and scale — a sea-weathered woman in a teal headscarf knotted at the nape (gold trim, two tails that lift
  * in the wind), gold hoop earrings, a sleeveless orange tunic over a cream shirt with short puffed sleeves, a red sash knotted at the hip, a
  * leather satchel on a strap across her chest, brown trousers tucked into travel boots, one fist on her hip.

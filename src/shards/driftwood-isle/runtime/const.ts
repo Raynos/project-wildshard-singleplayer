@@ -154,7 +154,7 @@ export const TRADER_POSE = [{ bone: 'figure', channel: 'rotation.y', cases: [{ s
 /** the trader's head focus and body facing (data/npcFocus.ts) */
 export const TRADER_HEAD_FOCUS = { range: 11, yawLimit: 0.9, pitchLimit: 0.4, pitchScale: 1, eyeHeight: 1.6, minimumDistance: 0.5, response: 'linear', rate: 5, clampAfterOffset: true, idle: { cadence: { kind: 'sine', base: 2, frequency: 1.9, span: 1.8 }, yaw: [0.41, 0.75], pitch: { frequency: 0.7, threshold: 0.4, above: 0.35, below: 0.05 } } } as const;
 export const TRADER_FACING = { range: 6, rate: 3, maxSpeed: 2.2, wrapTarget: true, wrapOutput: true } as const;
-/** the castaway's campfire smoke column (data/castawayLook.ts) */
+/** the castaway's campfire smoke column (data/smokeLook.ts) */
 export const CASTAWAY_SMOKE = { count: 42, rise: 21, life: 13, rate: [0.85, 0.3], seedSpread: 10, reseed: 1.37, seed: 24076, ease: 0.9, linear: 0.1, base: 1.2, lean: 5, wind: [0.8, 0.55], wanderX: [8, 5, 0.2, 1.1], wanderZ: [6.3, 3, 0.2, 0.9], size: [0.9, 4.4], fadeIn: 0.08, fadeOut: 0.45, fadePow: 1.3, thin: [0.45, 0.55, 7.7], color: [0.8, 0.79, 0.77], opacity: [0.12, 0.46], opacityFrom: 8, opacityTo: 30, bounds: { offset: [2, 9, 1.5], radius: 14 }, renderOrder: 4, name: 'castaway-smoke' } as const;
 /** the two authored shipwreck sites, Wreck Cove (lowered with the world) and the Explorer's specimen (data/wreckSites.ts) */
 export const WRECK_SITES = {

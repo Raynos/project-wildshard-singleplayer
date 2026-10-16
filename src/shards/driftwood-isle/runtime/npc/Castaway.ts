@@ -1,6 +1,6 @@
 /**
  * Castaway — Wendell, the marooned sailor who gives Driftwood Isle's quest (A1, D5). Built with the low-poly kit
- * (his meshes are rows, data/castawayLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyLookMaterial): a lanky old salt in a torn blue-and-white striped
+ * (his meshes are rows, generators/castawayLook.ts, baked offline by generators/npcKits.ts; the shared lowPolyLookMaterial): a lanky old salt in a torn blue-and-white striped
  * shirt, rolled canvas trousers, bare feet, a rope belt, a frayed straw hat over a big grey beard, leaning on a
  * driftwood staff — and his campfire beside him (stone ring, logs, flames, a smoke column you can see from the pier:
  * the breadcrumb the intro objective points at).
@@ -19,7 +19,7 @@
  *
  * Draw calls: body, campfire (two merged meshes, the shadow casters), head, waving arm (each its own pivot), flames
  * (unlit), smoke (puff quads); past 85 m only the smoke. The smoke is a thin, broken wisp (runtime/looks/smokeColumn.ts, its
- * material graph data/smokeLook.ts from data/castawayLook.ts's row, all on the GPU): each puff grows as it climbs, fades in over the fire and out
+ * material graph data/smokeLook.ts from generators/castawayLook.ts's row, all on the GPU): each puff grows as it climbs, fades in over the fire and out
  * toward the top, wanders on its own turbulence and leans downwind — so from the pier it reads as smoke, not a straight
  * bright streak.
  * No lights; the flames are unlit colour that blooms.
