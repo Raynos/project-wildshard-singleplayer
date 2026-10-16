@@ -1,7 +1,8 @@
 /**
  * The forest floor's painted textures as canvas rows (@wildshard/sdk/looks/canvasAtlas, SHARD-PLATFORM M3): the steps the
- * old painters in world/undergrowth.ts made, call for call and draw for draw from the level's seed (`SEED`). Each kind's
- * canvas goes to the SDK ground cover (./undergrowthLook.ts) as its texture.
+ * old painters in world/undergrowth.ts made, call for call and draw for draw from the level's seed (`SEED`). Build-time
+ * only: ./undergrowthPaintPage.ts paints each row in headless Chromium for ./bake-pine-painted.mjs, and the runtime's ground
+ * cover reads the baked file (runtime/looks/groundCover.ts, `custom/paintedTextures`).
  */
 import type { CanvasAtlasRow, CanvasStep } from '@wildshard/sdk/looks/canvasAtlas';
 

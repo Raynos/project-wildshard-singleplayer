@@ -15,9 +15,19 @@
       "srgb": true,
       "repeat": false
     },
+    "ferns": {
+      "url": "/assets/pine-hollow/painted/ferns-91945e857c8806d68723477781748bb8c82bba48ef4e36cc8b519bfe0fb62d2f.webp",
+      "srgb": true,
+      "repeat": false
+    },
     "glow": {
       "url": "/assets/pine-hollow/painted/glow-cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59.png",
       "srgb": false,
+      "repeat": false
+    },
+    "litter": {
+      "url": "/assets/pine-hollow/painted/litter-59b757158f450a07f47fa261ea770ae5aef9f8150e90843434ed59248cb41b5c.webp",
+      "srgb": true,
       "repeat": false
     },
     "coatMap": {
@@ -25,19 +35,45 @@
       "srgb": true,
       "repeat": true
     },
+    "moss": {
+      "url": "/assets/pine-hollow/painted/moss-566ee5e13976a67e0374ae56cbb7fd77819ada8537a1bf9153d350781a33163f.webp",
+      "srgb": true,
+      "repeat": false
+    },
     "coatNormal": {
       "url": "/assets/pine-hollow/painted/coatNormal-57869c6dae002e2a57e29720fcfc994b5b9d260f55fbb878195ff1280ada1a80.png",
       "srgb": false,
       "repeat": true
+    },
+    "reeds": {
+      "url": "/assets/pine-hollow/painted/reeds-177ea9a3f7ff1a1e08adf2802e48fa1878470901156acb391307852da37c705a.webp",
+      "srgb": true,
+      "repeat": false
+    },
+    "shrubs": {
+      "url": "/assets/pine-hollow/painted/shrubs-2d507885c1b2ad5775e11fe3b09f9a972e1f269bdab1dcdc2836fecf35b049ab.webp",
+      "srgb": true,
+      "repeat": false
+    },
+    "stones": {
+      "url": "/assets/pine-hollow/painted/stones-11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a.webp",
+      "srgb": true,
+      "repeat": false
     }
   },
   "urls": [
     "/assets/pine-hollow/painted/coatArm-b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d.png",
     "/assets/pine-hollow/painted/chalk-63cc5fc846ddcdd7930d069a1caafe6074d09f8cf4e305cc5e4c27e77b2c64bf.webp",
     "/assets/pine-hollow/painted/endGrain-e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1.webp",
+    "/assets/pine-hollow/painted/ferns-91945e857c8806d68723477781748bb8c82bba48ef4e36cc8b519bfe0fb62d2f.webp",
     "/assets/pine-hollow/painted/glow-cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59.png",
+    "/assets/pine-hollow/painted/litter-59b757158f450a07f47fa261ea770ae5aef9f8150e90843434ed59248cb41b5c.webp",
     "/assets/pine-hollow/painted/coatMap-324cb6219661fc884b0e90a9ab61f3e144e4ae053571d4edd08cba9227e6b4ae.png",
-    "/assets/pine-hollow/painted/coatNormal-57869c6dae002e2a57e29720fcfc994b5b9d260f55fbb878195ff1280ada1a80.png"
+    "/assets/pine-hollow/painted/moss-566ee5e13976a67e0374ae56cbb7fd77819ada8537a1bf9153d350781a33163f.webp",
+    "/assets/pine-hollow/painted/coatNormal-57869c6dae002e2a57e29720fcfc994b5b9d260f55fbb878195ff1280ada1a80.png",
+    "/assets/pine-hollow/painted/reeds-177ea9a3f7ff1a1e08adf2802e48fa1878470901156acb391307852da37c705a.webp",
+    "/assets/pine-hollow/painted/shrubs-2d507885c1b2ad5775e11fe3b09f9a972e1f269bdab1dcdc2836fecf35b049ab.webp",
+    "/assets/pine-hollow/painted/stones-11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a.webp"
   ],
   "chalk": {
     "size": [

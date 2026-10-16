@@ -1,19 +1,19 @@
 import * as THREE from 'three';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineMappedLook, setPineLookParam } from './graphLooks';
+import { loadPainted } from './paintedTextures';
 
 /**
  * A forest floor's ground cover as rows (SHARD-PLATFORM M3): authored undergrowth placements (ferns, shrubs, litter,
  * stones, moss and reeds) drawn in SF59
  * material graphs (data/undergrowthLook.ts: the distance fade, the wind, the foliage light, the cut shadow) that each
- * kind wears over its own painted texture. The shard gives each kind's look as data (its wind, alpha cut, roughness,
- * whether it lies flat or casts a shadow), its shapes and its texture painters (a canvas each).
+ * kind wears over its own texture, baked at build time (generators/bake-pine-painted.mjs: the product's
+ * `custom/paintedTextures`, keyed by kind). The shard gives each kind's look as data (its wind, alpha cut, roughness,
+ * whether it lies flat or casts a shadow) and its shapes.
  *
- *   const cover = new GroundCover({ sky, forest, look, shapes, placements, paint }).buildAsync(pause);
+ *   const cover = new GroundCover({ sky, forest, look, shapes, placements }).buildAsync(pause);
  *   cover.update(dt, playerPos);   // feeds the graph the viewer and the sun
  *
  * Kinds that name the same graph share its lit program: a kind's wind is the `aWind` its geometry carries; its alpha
@@ -71,8 +71,6 @@ export interface GroundCoverOptions {
   placements: UnderPlacements;
   look: GroundCoverLook;
   shapes: Readonly<Record<GroundCoverKind, GroundCoverShape>>;
-  /** each kind's texture, painted on a canvas */
-  paint: Readonly<Record<GroundCoverKind, () => HTMLCanvasElement>>;
 }
 
 /** how a field's copies are culled: 32 m cells, a copy reaches 2.5 m, gone 2 m past the tier's fade (read when asked: this
@@ -95,7 +93,7 @@ export class GroundCover {
   /** the graphs the kinds wear, each once */
   private readonly graphs: readonly string[];
 
-  /** `o`: the sky, the forest, the look as data, the shapes and the painters. */
+  /** `o`: the sky, the forest, the look as data and the shapes. */
   constructor(private readonly o: GroundCoverOptions) { this.graphs = [...new Set(o.look.kinds.map(([, row]) => row.graph))]; }
 
   /** the view the copies are culled from: the forest's padded frustum, refilled when it moves or turns */
@@ -108,7 +106,8 @@ export class GroundCover {
   async buildAsync(pause: () => Promise<void>): Promise<this> {
     const far = TIER_CONFIG.undergrowthFar, fade = [far, Math.min(25, far * 0.3)]; // the tier's, read at the build
     this.graphs.forEach((id) => { setPineLookParam(id, 'fade', fade); });
-    const made = new Map(this.o.look.kinds.map(([kind, row]) => [kind, { mat: this.makeMaterial(canvasTexture(this.o.paint[kind]()), row), row }]));
+    const maps = await Promise.all(this.o.look.kinds.map(([kind]) => loadPainted(kind)));
+    const made = new Map(this.o.look.kinds.map(([kind, row], i) => [kind, { mat: this.makeMaterial(maps[i] ?? null, row), row }]));
     await pause();
     const draw = (kind: GroundCoverKind): GroundCoverDraw => {
       const m = made.get(kind);
@@ -143,7 +142,8 @@ export class GroundCover {
 
   /** the graph worn over a kind's texture, with the kind's own cut, roughness and depth bias; throws when the graph did
    *  not compile (no silent fallback to another look) */
-  private makeMaterial(tex: THREE.Texture, row: GroundCoverKindRow): GroundCoverMaterial {
+  private makeMaterial(tex: THREE.Texture | null, row: GroundCoverKindRow): GroundCoverMaterial {
+    if (tex === null) throw new Error(`[ground cover] no texture for ${row.key}`);
     const mat = pineMappedLook(row.graph, tex);
     if (!isCoverMaterial(mat) || mat.map !== tex) throw new Error(`[ground cover] ${row.graph} is not a compiled mapped graph`);
     mat.name = `${this.o.look.namePrefix}${row.key}`;
@@ -159,15 +159,4 @@ export class GroundCover {
 function isCoverMaterial(m: THREE.Material): m is GroundCoverMaterial {
   const map: unknown = Reflect.get(m, 'map');
   return (map === null || map instanceof THREE.Texture) && typeof Reflect.get(m, 'roughness') === 'number';
-}
-
-function canvasTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-  tex.anisotropy = 8;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
-  // Per-build immutable pixels; the lit and shadow-depth passes share this exact texture, with no CPU readers.
-  if (memorySaverOn()) gpuOnlyTexture(tex, 'undergrowth/canvas');
-  return tex;
 }

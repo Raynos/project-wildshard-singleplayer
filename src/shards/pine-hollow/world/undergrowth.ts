@@ -1,11 +1,8 @@
-import { SEED } from '@wildshard/engine/core/config';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { paintCanvas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import { GroundCover, type GroundCoverDraw, type GroundCoverKind, type UnderPlacements } from '../runtime/looks/groundCover';
 import type { UnderShapes } from '../runtime/world/undergrowthKit';
 import { UNDER_LOOK } from '../data/undergrowthLook';
-import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from '../data/undergrowthPaint';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
@@ -29,8 +26,8 @@ import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PA
  * in the graph's vertex stage so distant ones cost nothing in the fragment stage.
  *
  * The field is the shard's ground cover (runtime/looks/groundCover.ts): one graph program for every kind, the distance
- * fade and the wind; its look and graph are data/undergrowthLook.ts; its textures are data/undergrowthPaint.ts
- * (@wildshard/sdk/looks/canvasAtlas rows, painted from the level seed when the field builds).
+ * fade and the wind; its look and graph are data/undergrowthLook.ts; its textures are baked at build time from
+ * generators/undergrowthPaint.ts (canvas rows painted from the level seed by generators/bake-pine-painted.mjs).
  *
  * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `view`.
  */
@@ -40,16 +37,10 @@ export type UnderKindDraw = GroundCoverDraw;
 /** one of the field's six kinds */
 export type UnderKind = GroundCoverKind;
 
-/** a kind's painter: its row painted from the level's seed when the field builds */
-const paint = (row: CanvasAtlasRow) => (): HTMLCanvasElement => paintCanvas(row, { SEED });
-
-/** Pine Hollow's forest floor: the ground cover with its look, shapes and painted textures. */
+/** Pine Hollow's forest floor: the ground cover with its look, shapes and baked textures. */
 export class Undergrowth extends GroundCover {
   /** the field over `forest`, lit by `sky` */
   constructor(sky: Sky, forest: Forest, shapes: UnderShapes, placements: UnderPlacements) {
-    super({
-      sky, forest, look: UNDER_LOOK, shapes, placements,
-      paint: { ferns: paint(FERN_PAINT), shrubs: paint(SHRUB_PAINT), litter: paint(LITTER_PAINT), stones: paint(STONE_PAINT), moss: paint(MOSS_PAINT), reeds: paint(REED_PAINT) },
-    });
+    super({ sky, forest, look: UNDER_LOOK, shapes, placements });
   }
 }

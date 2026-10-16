@@ -3,7 +3,8 @@
 // The coat's waxed canvas (./coatCanvas.ts) is computed here and written as lossless PNGs, rows flipped so a plain image
 // texture reads them the way the old DataTexture did. The log ends' grain, the lamps' glow and the trophy wall's chalk
 // atlas need a 2D canvas and the hand font: ./paintedPage.ts is bundled and run on a blank page in headless Chromium
-// (muted, as the iPhone 16 Pro). Every file is named by its SHA-256 under public/assets/pine-hollow/painted/, and
+// (muted, as the iPhone 16 Pro). The forest floor's six ground-cover textures (./undergrowthPaint.ts rows) are painted
+// on the same page by ./undergrowthPaintPage.ts. Every file is named by its SHA-256 under public/assets/pine-hollow/painted/, and
 // ../data/paintedTextures.generated.json holds their URLs, colour spaces and wraps, and the chalk atlas's layout.
 //
 //   scripts/browser-lane.sh node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs \
@@ -31,13 +32,19 @@ async function coat() {
   return out;
 }
 
-async function page() {
+/** one bake page's module, bundled on its own */
+async function bundlePage(file) {
   const bundle = await build({
     configFile: false, logLevel: 'silent', publicDir: false, root: ROOT,
-    build: { write: false, target: 'esnext', minify: false, lib: { entry: resolve(ROOT, 'src/shards/pine-hollow/generators/paintedPage.ts'), formats: ['es'], fileName: 'pinePaintedPage' }, rolldownOptions: { output: { codeSplitting: false } } },
+    build: { write: false, target: 'esnext', minify: false, lib: { entry: resolve(ROOT, 'src/shards/pine-hollow/generators', file), formats: ['es'], fileName: 'pinePaintedPage' }, rolldownOptions: { output: { codeSplitting: false } } },
   });
   const code = (Array.isArray(bundle) ? bundle : [bundle]).flatMap((b) => ('output' in b ? b.output : [])).find((c) => c.type === 'chunk')?.code;
-  if (code === undefined) throw new Error('bake-pine-painted: the bake page did not bundle');
+  if (code === undefined) throw new Error(`bake-pine-painted: ${file} did not bundle`);
+  return code;
+}
+
+async function page() {
+  const code = await bundlePage('paintedPage.ts'), underCode = await bundlePage('undergrowthPaintPage.ts');
   const { chromium, devices } = await import('playwright');
   const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
   try {
@@ -46,12 +53,14 @@ async function page() {
     tab.on('pageerror', (e) => { errors.push(e.message); });
     await tab.setContent('<!doctype html><meta charset="utf-8"><title>pine painted bake</title>');
     await tab.addScriptTag({ content: code, type: 'module' });
-    await tab.waitForFunction(() => 'bakePinePainted' in window, undefined, { timeout: 60000 });
+    await tab.addScriptTag({ content: underCode, type: 'module' });
+    await tab.waitForFunction(() => 'bakePinePainted' in window && 'bakePineUndergrowth' in window, undefined, { timeout: 60000 });
     const made = await tab.evaluate(([seed, atlas, font]) => window.bakePinePainted(seed, atlas, font),
       [manifest.seed, dataUrl('public/assets/pine-hollow/journal/chalk.webp', 'image/webp'), dataUrl('public/fonts/caveat-600-latin.woff2', 'font/woff2')]);
+    const under = await tab.evaluate((seed) => window.bakePineUndergrowth(seed), manifest.seed);
     if (errors.length > 0) throw new Error(`bake-pine-painted: page errors: ${errors.join('; ')}`);
     const textures = {};
-    for (const [key, { dataUrl: url }] of Object.entries(made.textures)) textures[key] = { bytes: Buffer.from(url.split(',')[1] ?? '', 'base64'), ext: url.startsWith('data:image/webp') ? 'webp' : 'png' };
+    for (const [key, { dataUrl: url }] of Object.entries({ ...made.textures, ...under })) textures[key] = { bytes: Buffer.from(url.split(',')[1] ?? '', 'base64'), ext: url.startsWith('data:image/webp') ? 'webp' : 'png' };
     return { textures, chalk: made.chalk };
   } finally { await browser.close(); }
 }
@@ -60,6 +69,7 @@ async function page() {
 const LOOK = {
   endGrain: { srgb: true, repeat: false }, glow: { srgb: false, repeat: false }, chalk: { srgb: true, repeat: false },
   map: { srgb: true, repeat: true }, normalMap: { srgb: false, repeat: true }, arm: { srgb: false, repeat: true },
+  ...Object.fromEntries(['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'].map((kind) => [kind, { srgb: true, repeat: false }])),
 };
 const NAME = { map: 'coatMap', normalMap: 'coatNormal', arm: 'coatArm' };
 
