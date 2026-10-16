@@ -41,7 +41,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { islandTrophies, type TrophyDropId } from './tables';
 import { seaGlassChime, SeaGlassChime } from '../runtime/models/seaGlassChime';
-import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
+import { buildTrophy, trophyPlaques, TrophyPlaques } from '../runtime/models/trophyPlaques';
 import { buildCaptainHat } from '../runtime/models/captainHat';
 import { buildSailclothCape } from '../runtime/models/sailclothCape';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';

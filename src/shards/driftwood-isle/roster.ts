@@ -7,10 +7,10 @@
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './runtime/models/creatures';
-import { castaway } from './models/people';
+import { castaway } from './runtime/models/people';
 import { GEAR } from './runtime/models/gear';
 import { seaGlassChime } from './runtime/models/seaGlassChime';
-import { trophyPlaques } from './models/trophyPlaques';
+import { trophyPlaques } from './runtime/models/trophyPlaques';
 import { captainHat } from './runtime/models/captainHat';
 import { sailclothCape } from './runtime/models/sailclothCape';
 

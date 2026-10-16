@@ -40,7 +40,7 @@ import { ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRe
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { onDeck } from './entryDeck';
 import { ENTRY_DECKS } from '../data/entryDecks';
-import { entryDeck } from '../models/entryDeck';
+import { entryDeck } from '../runtime/models/entryDeck';
 import { loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
@@ -108,7 +108,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const ocean = new Ocean(sky).build(await loadOcean(), sea.level, decks, lowered.edgeInset);
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
-  // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
+  // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts `cut` in (past the entry socket) and ramps up from road height
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp }).place(registry, 'pier');
   // G170: the four asphalt road decks over the water (./entryDeck.ts): the platform's socket floor carried on over the

@@ -16,15 +16,20 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { SlotGeometry } from '../runtime/models/slots';
+import { SlotGeometry } from '../models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
-import bakedSlots from '../data/trophySlots.json' with { type: 'json' };
-import { TROPHY_LAYOUT } from '../data/trophyLayout';
+import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import bakedSlots from '../../data/trophySlots.json' with { type: 'json' };
+import { TROPHY_LAYOUT } from '../../data/trophyLayout';
 
 export type TrophyId = 'bear' | 'boar';
 export const TROPHIES: readonly TrophyId[] = TROPHY_LAYOUT.ids;
+
+/** the most trophies the wall carries (today two: the bear's and the boar's) */
+const MAX_TROPHIES = 8;
+/** the most vertices one plaque or trophy range spans (the boards 780, the largest trophy 750); a larger range is refused */
+const MAX_RANGE_VERTICES = 4096;
 
 /** the plaques' default spacing, centre to centre (m) */
 export const PLAQUE_GAP = TROPHY_LAYOUT.gap;
@@ -39,11 +44,16 @@ function plaquesGeometry(gap: number): { slots: SlotGeometry; empty: Record<Trop
   const geometry = (gap === 0 ? TROPHY_DROP_GEOMETRY : TROPHY_PLAQUES_GEOMETRY).copy();
   if (gap !== 0 && gap !== PLAQUE_GAP) {
     const position = geometry.getAttribute('position');
-    for (const [i, id] of TROPHIES.entries()) {
+    for (let i = 0; i < Math.min(TROPHIES.length, MAX_TROPHIES); i++) {
+      const id = TROPHIES[i];
+      if (id === undefined) continue;
       const shift = (gap - PLAQUE_GAP) * (id === 'bear' ? -0.5 : 0.5);
-      for (const range of [bakedSlots.boards[i], bakedSlots.ranges[bakedSlots.empty[id]], bakedSlots.ranges[bakedSlots.full[id]]]) {
+      const ranges = [bakedSlots.boards[i], bakedSlots.ranges[bakedSlots.empty[id]], bakedSlots.ranges[bakedSlots.full[id]]];
+      for (let r = 0; r < 3; r++) {
+        const range = ranges[r];
         if (range === undefined) throw new Error(`Missing trophy geometry range: ${id}`);
-        for (let v = range.start; v < range.start + range.count; v++) position.setX(v, position.getX(v) + shift);
+        if (range.count > MAX_RANGE_VERTICES) throw new Error(`Trophy geometry range too large: ${id}`);
+        for (let k = 0; k < Math.min(range.count, MAX_RANGE_VERTICES); k++) { const v = range.start + k; position.setX(v, position.getX(v) + shift); }
       }
     }
     geometry.computeBoundingBox(); geometry.computeBoundingSphere();
@@ -63,7 +73,7 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
     this.name = 'trophy-plaques';
     this.castShadow = true;
     this.receiveShadow = true;
-    for (const id of TROPHIES) this.setFilled(id, filled[id] ?? false);
+    for (let i = 0; i < Math.min(TROPHIES.length, MAX_TROPHIES); i++) { const id = TROPHIES[i]; if (id !== undefined) this.setFilled(id, filled[id] ?? false); }
   }
   /** is this trophy hung */
   filled(id: TrophyId): boolean { return this.slots.shown(this.full[id]); }
@@ -75,7 +85,7 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
   /** the trophy alone, no plaques or prints (the loose drop a kill leaves, src/shards/driftwood-isle/loot/keepsakes.ts) */
   trophyOnly(id: TrophyId): void {
     this.slots.set(0, false);
-    for (const t of TROPHIES) { this.slots.set(this.empty[t], false); this.slots.set(this.full[t], t === id); }
+    for (let i = 0; i < Math.min(TROPHIES.length, MAX_TROPHIES); i++) { const t = TROPHIES[i]; if (t !== undefined) { this.slots.set(this.empty[t], false); this.slots.set(this.full[t], t === id); } }
   }
 }
 
@@ -107,7 +117,7 @@ export interface TrophyPlaquesParams {
 
 export const trophyPlaques = defineModel<TrophyPlaquesParams>({
   id: 'driftwood-isle/trophy-plaques', name: 'Trophy plaques', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/trophyPlaques.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/trophyPlaques.ts', surface: 'wood',
   defaults: { bear: true, boar: true, gap: PLAQUE_GAP },
   variants: [
     { id: 'both', label: 'Both', params: {} },

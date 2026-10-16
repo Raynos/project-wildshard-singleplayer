@@ -1,6 +1,6 @@
 /**
  * Shrine — where the Ring Shrine stands, and what moves round it (E306 / E315 M1: the shrine itself is the model
- * src/shards/driftwood-isle/models/shrine.ts; this is the world side). It places the shrine on its knoll in the
+ * src/shards/driftwood-isle/runtime/models/shrine.ts; this is the world side). It places the shrine on its knoll in the
  * north-west jungle, turned by SHRINE.rot so its back points at the planet, and runs its effects: the glyphs' pulse,
  * the pool's ripples and the firefly cloud drifting round the platform.
  *
@@ -23,7 +23,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin } from '../models/shrine';
+import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin } from '../runtime/models/shrine';
 import type { ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
 import { FIREFLY_LOOK } from '../data/fireflyLook';
 import { SHRINE_FIREFLIES_GEOMETRY } from '../runtime/boot/fixedGeometry';

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { ShrineBuilder } from '../src/shards/driftwood-isle/generators/shrine';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
-import { shrineLayout, shrineOrigin, shrineSiteKind } from '../src/shards/driftwood-isle/models/shrine';
+import { shrineLayout, shrineOrigin, shrineSiteKind } from '../src/shards/driftwood-isle/runtime/models/shrine';
 import { SHRINE_SITES } from '../src/shards/driftwood-isle/data/shrineSites';
 
 it('admits the authored knoll and flat Explorer shrine, refusing other sites', () => {

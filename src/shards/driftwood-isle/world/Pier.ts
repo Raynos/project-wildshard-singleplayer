@@ -1,6 +1,6 @@
 /**
  * Pier — where Driftwood Isle's wooden piers stand (E306 / E315 M1: the pier itself is the model
- * src/shards/driftwood-isle/models/pier.ts; this is the world side): the south entry pier with its landing on the
+ * src/shards/driftwood-isle/runtime/models/pier.ts; this is the world side): the south entry pier with its landing on the
  * crescent beach, and the three jetties at the other entry roads — four placements of one model, each its own merged
  * mesh (one draw), each its own registry piece (`pier`, `jetty-0..2`).
  *
@@ -21,7 +21,7 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import {pier,pierWorldParams} from '../models/pier';
+import {pier,pierWorldParams} from '../runtime/models/pier';
 import {pierBoxes,pierDeckAt,pierHalfWidthAt,pierPosts} from './pierLayout';
 import type {PierSpec,PierParams} from '../assets/contracts/pier';
 

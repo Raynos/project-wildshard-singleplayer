@@ -3,11 +3,11 @@ import {defineModel} from '@wildshard/engine/models/model';
 import {libraryModel} from '@wildshard/game/models/libraryModel';
 import {lowPolyLookMaterial} from '@wildshard/engine/world/lowpolyKit';
 import {boxDesc,type ColliderDesc} from '@wildshard/engine/world/registry';
-import {pierBoxes} from '../world/pierLayout';
-import {pierParamsKey,pierSpecKey,type PierParams,type PierSpec} from '../assets/contracts/pier';
-import {PIER_DEFAULTS,PIER_VARIANTS} from '../data/pierRows';
-import rows from '../data/piers.generated.json' with {type:'json'};
-import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../runtime/boot/fixedGeometry';
+import {pierBoxes} from '../../world/pierLayout';
+import {pierParamsKey,pierSpecKey,type PierParams,type PierSpec} from '../../assets/contracts/pier';
+import {PIER_DEFAULTS,PIER_VARIANTS} from '../../data/pierRows';
+import rows from '../../data/piers.generated.json' with {type:'json'};
+import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../boot/fixedGeometry';
 
 const pair=(v:readonly number[]):[number,number]=>{const [a,b]=v;if(a===undefined||b===undefined||v.length!==2)throw new Error('Pier row requires a pair');return [a,b];};
 /** Read the canonical measured parameters; tuples are admitted before lending them to native code. */
@@ -44,8 +44,10 @@ export function pierColliders(p: PierParams): ColliderDesc[] {
     // flare wide at the sea end narrowing to half the deck at the top (each + 0.25, as the deck's slab), 0.2 m thick; plus
     // 0.2 m of flat sand-level deck before it, the flare's width
     const wide = sea.flare / 2 + 0.25, hy = 0.2, points: number[] = [];
-    for (const [along, half, top] of [[0, wide, sea.landY], [sea.run, halfW, 0]] as const) {
-      for (const s of [-1, 1]) for (const dy of [0, -hy]) points.push(s * half, top + dy, along);
+    // the two ends: the sea end (flare wide, at landY) then the top (deck wide, at 0); each end's four corners
+    for (let end = 0; end < 2; end++) {
+      const along = end === 0 ? 0 : sea.run, half = end === 0 ? wide : halfW, top = end === 0 ? sea.landY : 0;
+      for (const s of [-1, 1]) for (let k = 0; k < 2; k++) { const dy = k === 0 ? 0 : -hy; points.push(s * half, top + dy, along); }
     }
     out.push({ kind: 'hull', x: 0, y: 0, z: 0, points: new Float32Array(points) });
     out.push(slab(-0.2, 0, sea.landY, 0.1, wide));
@@ -66,7 +68,7 @@ export function pierColliders(p: PierParams): ColliderDesc[] {
 
 /** The deck on the kit's still look; the pennant flutters in its graph, its shadow too (data/kitLook.ts). */
 export const pier=defineModel<PierParams>({
- id:'driftwood-isle/pier',name:'Pier',category:'buildings',pipeline:'code',file:'src/shards/driftwood-isle/models/pier.ts',surface:'planks',
+ id:'driftwood-isle/pier',name:'Pier',category:'buildings',pipeline:'code',file:'src/shards/driftwood-isle/runtime/models/pier.ts',surface:'planks',
  defaults:PIER_DEFAULTS,variants:PIER_VARIANTS,seed:SEED^0x9e37,
  ...libraryModel<PierParams,'still'|'pennant'>({
   draws:p=>{const key=pierGeometryKey(p);return [{draw:`${key}/deck`,material:'still',castShadow:true,receiveShadow:true},

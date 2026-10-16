@@ -1,7 +1,7 @@
 import { beforeAll, expect, it } from 'vitest';
 import { Mesh, type Object3D } from 'three';
 import { admitBridgeFacts } from '../src/shards/driftwood-isle/boot/bridgeFacts';
-import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/models/ropeBridge';
+import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/runtime/models/ropeBridge';
 import { fakeWorld } from './fake/world';
 import { BRIDGE_SPECIMEN_POSTS_GEOMETRY } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
 import { bridgePosts } from '../src/shards/driftwood-isle/generators/ropeBridge';

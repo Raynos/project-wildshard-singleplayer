@@ -4,13 +4,13 @@ import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
-import type { ShrineAnchor, ShrineParams, ShrineSite } from '../assets/contracts/shrine';
-import { SHRINE_SITES } from '../data/shrineSites';
-import bake from '../data/shrineBake.json' with {type:'json'};
-import { SHRINE_POOL_LOOK } from '../data/poolLook';
+import type { ShrineAnchor, ShrineParams, ShrineSite } from '../../assets/contracts/shrine';
+import { SHRINE_SITES } from '../../data/shrineSites';
+import bake from '../../data/shrineBake.json' with {type:'json'};
+import { SHRINE_POOL_LOOK } from '../../data/poolLook';
 import { fixedGeometryReady, loadFixedGeometry,
   SHRINE_KIT_GEOMETRY,SHRINE_WATER_GEOMETRY,SHRINE_GLYPHS_GEOMETRY,
-  SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../runtime/boot/fixedGeometry';
+  SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
 
 const TIERS = [
   { hw: 6.5, z0: -7.5, z1: 4.0, top: 1.0 },
@@ -42,7 +42,7 @@ export function shrineLayout(p:ShrineParams):ShrineLayout {
     floorHeightAt:(x,z)=>{
     const lx=x*cs-z*sn,lz=x*sn+z*cs,b=row.baseY;
     if (Math.abs(lx) < STAIR.hw && lz >= STAIR.z0 && lz <= STAIR.z1) return b + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0));
-    for (let i = TIERS.length - 1; i >= 0; i--) {
+    for (let i = 2; i >= 0; i--) { // the three terraces, top first
       const t = TIERS[i as 0 | 1 | 2];
       if (Math.abs(lx) <= t.hw && lz >= t.z0 && lz <= t.z1) return b + t.top;
     }
@@ -74,7 +74,7 @@ const DRAWS={'world-kit':SHRINE_KIT_GEOMETRY,'world-water':SHRINE_WATER_GEOMETRY
   'specimen-kit':SHRINE_SPECIMEN_KIT_GEOMETRY,'specimen-water':SHRINE_SPECIMEN_WATER_GEOMETRY,'specimen-glyphs':SHRINE_SPECIMEN_GLYPHS_GEOMETRY};
 export const shrine=defineModel<ShrineParams>({
   id:'driftwood-isle/shrine',name:'Ring shrine',category:'buildings',pipeline:'code',
-  file:'src/shards/driftwood-isle/models/shrine.ts',surface:'stone',
+  file:'src/shards/driftwood-isle/runtime/models/shrine.ts',surface:'stone',
   defaults:{site:SHRINE_SITES.specimen,ground:()=>0},
   ...libraryModel<ShrineParams,'kit'|'water'|'glyphs',keyof typeof DRAWS>({
     draws:p=>{const kind=shrineSiteKind(p.site);return [{draw:`${kind}-kit`,material:'kit',castShadow:true,receiveShadow:true},

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { pierGeometryKey, pierWorldParams, pierColliders } from '../src/shards/driftwood-isle/models/pier';
+import { pierGeometryKey, pierWorldParams, pierColliders } from '../src/shards/driftwood-isle/runtime/models/pier';
 import { pierDeckAt, pierHalfWidthAt } from '../src/shards/driftwood-isle/world/pierLayout';
 import { worldPierSites } from '../src/shards/driftwood-isle/generators/pierSites';
 import { PIER_DEFAULTS, PIER_VARIANTS } from '../src/shards/driftwood-isle/data/pierRows';

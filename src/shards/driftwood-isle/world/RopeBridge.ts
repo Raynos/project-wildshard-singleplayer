@@ -1,6 +1,6 @@
 /**
  * RopeBridge — where the gully's rope bridge hangs (E306 / E315 M1: the bridge is the model
- * src/shards/driftwood-isle/models/ropeBridge.ts; this is the world side). It places the bridge on its span: the model
+ * src/shards/driftwood-isle/runtime/models/ropeBridge.ts; this is the world side). It places the bridge on its span: the model
  * is built for its ends (the terrain under them) and handed over in its own space, placed `single` back at end a; this
  * side hands its deck to the physics chain and poses the drawn deck from it.
  *
@@ -14,7 +14,7 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ropeBridge, ropeBridgeLayout, type RopeBridgeLayout, type RopeBridgeSpec } from '../models/ropeBridge';
+import { ropeBridge, ropeBridgeLayout, type RopeBridgeLayout, type RopeBridgeSpec } from '../runtime/models/ropeBridge';
 
 
 /** Place the model and lend its original chain, pose and live floor owners. */

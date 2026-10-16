@@ -1,5 +1,5 @@
 import bake from '../data/bridgeBake.json' with { type: 'json' };
-import type { RopeBridgeSpec } from '../models/ropeBridge';
+import type { RopeBridgeSpec } from '../runtime/models/ropeBridge';
 
 /** A span's bake key (its ends, width and sag). */
 export function bridgeKey(spec:RopeBridgeSpec): string { return JSON.stringify([spec.a,spec.b,spec.width??1.4,spec.sag??1]); }

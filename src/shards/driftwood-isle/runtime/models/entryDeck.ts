@@ -11,7 +11,7 @@
  * is the shardfile's declared landing (world/sea.ts), installed as declared by the world build.
  */
 import * as THREE from 'three';
-import { DECK_SLAB } from '../data/entryRows';
+import { DECK_SLAB } from '../../data/entryRows';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { defineModel } from '@wildshard/engine/models/model';
@@ -24,6 +24,10 @@ export interface EntryDeckParams {
   readonly bed: number;
 }
 
+/** a non-indexed box's vertices (6 faces x 2 triangles x 3) */
+const BOX_VERTICES = 36;
+/** the deck's parts: the slab, 3 fascia lips, 2 edge lines and 3 bents of a cap and 2 columns */
+const DECK_PARTS = 15;
 const CAP_DEPTH = 0.45, CAP_RUN = 0.7, COLUMN = 0.6, COLUMN_ACROSS = 2.7, FASCIA = 0.12, LIP = 0.05;
 /** the road look's colours (roadLook.ts ASPHALT / KERB / WHITE), the columns a shade darker */
 const ASPHALT = new THREE.Color(0x3a3c40), CONCRETE = new THREE.Color(0x9a9c98), COLUMN_GREY = new THREE.Color(0x7c7e7b), LINE = new THREE.Color(0xe9ebe6);
@@ -33,7 +37,7 @@ function box(x0: number, x1: number, y0: number, y1: number, z0: number, z1: num
   const g = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0).toNonIndexed();
   g.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
   const normals = g.getAttribute('normal'), colours = new Float32Array(normals.count * 3);
-  for (let i = 0; i < normals.count; i++) {
+  for (let i = 0; i < Math.min(normals.count, BOX_VERTICES); i++) {
     const c = normals.getY(i) > 0.5 ? top : sides;
     colours[i * 3] = c.r; colours[i * 3 + 1] = c.g; colours[i * 3 + 2] = c.b;
   }
@@ -54,18 +58,19 @@ export function entryDeckGeometry(p: EntryDeckParams): THREE.BufferGeometry {
   for (const s of [-1, 1]) parts.push(box(Math.min(s * (half - 0.35), s * (half - 0.2)), Math.max(s * (half - 0.35), s * (half - 0.2)), -0.01, 0.004, 0.3, run - 0.3, LINE, LINE));
   // three bents: a cap beam under the slab on two square columns down to the seabed
   const capFoot = -DECK_SLAB - CAP_DEPTH, bed = Math.min(capFoot - 0.5, p.bed);
-  for (const a of [1.4, run / 2, run - 1.4]) {
+  for (let k = 0; k < 3; k++) {
+    const a = k === 0 ? 1.4 : k === 1 ? run / 2 : run - 1.4;
     parts.push(box(-half - 0.25, half + 0.25, capFoot, -DECK_SLAB, a - CAP_RUN / 2, a + CAP_RUN / 2, CONCRETE, CONCRETE));
     for (const s of [-1, 1]) parts.push(box(s * COLUMN_ACROSS - COLUMN / 2, s * COLUMN_ACROSS + COLUMN / 2, bed, capFoot, a - COLUMN / 2, a + COLUMN / 2, COLUMN_GREY, COLUMN_GREY));
   }
   const geometry = mergeGeometries(parts, false);
-  for (const g of parts) g.dispose();
+  for (let i = 0; i < Math.min(parts.length, DECK_PARTS); i++) parts[i]?.dispose();
   return geometry;
 }
 
 export const entryDeck = defineModel<EntryDeckParams>({
   id: 'driftwood-isle/entry-deck', name: 'Entry road deck', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/entryDeck.ts', surface: 'stone',
+  file: 'src/shards/driftwood-isle/runtime/models/entryDeck.ts', surface: 'stone',
   defaults: { run: 16.5, bed: -6 },
   variants: [
     { id: 'deep', label: 'Over deep water', params: {} },

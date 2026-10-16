@@ -15,9 +15,9 @@
  * group's space as they are drawn. `ropeBridgeLayout(params)` is a placement's builder, shared with its build.
  */
 import * as THREE from 'three';
-import { BRIDGE_SPANS } from '../data/bridgeRows';
-import { admitBridgeFacts, bridgeKey } from '../boot/bridgeFacts';
-import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import { BRIDGE_SPANS } from '../../data/bridgeRows';
+import { admitBridgeFacts, bridgeKey } from '../../boot/bridgeFacts';
+import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';
@@ -39,6 +39,12 @@ const ROPE = new THREE.Color('#d2bd85');
 const white = (g: THREE.BufferGeometry): THREE.BufferGeometry => g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */
 const SEG_HY = 0.05, SEG_KG = 14;
+/** the most deck segments a baked span carries (the island span 25, the specimen 13); a longer bake is refused */
+const MAX_SEGS = 64;
+/** the most rope pieces: 2 sides x (2 per segment + a stay every other segment) at MAX_SEGS */
+const MAX_ROPES = 320;
+/** the most own-space collider descriptors (posts, rails and end treads: 14 today); more are refused */
+const MAX_DESCS = 64;
 
 
 const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
@@ -69,7 +75,8 @@ class RopeBridgeBuilder {
     // own-space colliders for the model (the world's are these placed back at the origin); the rest plan alone, no drawing
     const o = this.o;
     this.descs = this.colliderDescs(); // fresh objects each call
-    for (const d of this.descs) if (d.kind !== 'treads') { d.x -= o.x; d.y -= o.y; d.z -= o.z; }
+    if (this.facts.segments.length > MAX_SEGS || this.descs.length > MAX_DESCS) throw new Error('Rope bridge bake exceeds its segment or collider bound');
+    for (let i = 0; i < Math.min(this.descs.length, MAX_DESCS); i++) { const d = this.descs[i]; if (d !== undefined && d.kind !== 'treads') { d.x -= o.x; d.y -= o.y; d.z -= o.z; } }
   }
 
   build(): this {
@@ -86,7 +93,7 @@ class RopeBridgeBuilder {
 
     // ── the deck at rest: one segment per chord of the sag, its top face on the catenary ──
     this.segs=structuredClone(facts.segments);
-    for(let i=0;i<this.segs.length;i++){const h=new THREE.Object3D();h.matrixAutoUpdate=false;this.mesh.add(h);this.holders.push(h);}
+    for(let i=0;i<Math.min(this.segs.length,MAX_SEGS);i++){const h=new THREE.Object3D();h.matrixAutoUpdate=false;this.mesh.add(h);this.holders.push(h);}
     const n=this.segs.length;
     this.live = new Float32Array(n + 1);
     this.plankSpecs=structuredClone(facts.planks);
@@ -96,13 +103,14 @@ class RopeBridgeBuilder {
     const col = new THREE.Color();
     facts.colours.forEach((c,i)=>{this.planks.setColorAt(i,col.setRGB(c.r,c.g,c.b));});
     this.ropes = new THREE.InstancedMesh(white(new THREE.CylinderGeometry(1, 1, 1, 4, 1, true).translate(0, 0.5, 0)), still, 2 * (2 * n + Math.ceil(n / 2)));
-    for (let i = 0; i < this.ropes.count; i++) this.ropes.setColorAt(i, ROPE);
-    for (const m of [this.planks, this.ropes]) {
+    for (let i = 0; i < Math.min(this.ropes.count, MAX_ROPES); i++) this.ropes.setColorAt(i, ROPE);
+    const live = (m: THREE.InstancedMesh): void => {
       m.castShadow = true; m.receiveShadow = true;
       m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       m.frustumCulled = false; // it moves, and its instances span the gully
       this.mesh.add(m);
-    }
+    };
+    live(this.planks); live(this.ropes);
 
     this.colliders=structuredClone(facts.colliders);
     this.setPoses(null, 1);
@@ -139,7 +147,7 @@ class RopeBridgeBuilder {
       if (!sg || !h) return out.set(0, 0, 0);
       return out.set(x, y, k < n ? -sg.hz : sg.hz).applyMatrix4(h.matrix);
     };
-    for (let k = 0; k <= n; k++) this.live[k] = joint(k, 0, SEG_HY, _a).y;
+    for (let k = 0; k <= Math.min(n, MAX_SEGS); k++) this.live[k] = joint(k, 0, SEG_HY, _a).y;
     let r = 0;
     const rope = (from: THREE.Vector3, to: THREE.Vector3, radius: number): void => {
       const d = _d.subVectors(to, from), l = d.length();
@@ -147,11 +155,12 @@ class RopeBridgeBuilder {
       this.ropes.setMatrixAt(r++, _m.compose(from, _q2, _s.set(radius, l, radius)));
     };
     for (const s of [-1, 1]) {
-      for (let k = 0; k < n; k++) {
+      for (let k = 0; k < Math.min(n, MAX_SEGS); k++) {
         rope(joint(k, s * (hw + 0.05), SEG_HY - 0.07, _a), joint(k + 1, s * (hw + 0.05), SEG_HY - 0.07, _b), 0.035); // the load rope under the plank ends
         rope(joint(k, s * (hw + 0.12), SEG_HY + 0.97, _a), joint(k + 1, s * (hw + 0.12), SEG_HY + 0.97, _b), 0.035); // the handrail
       }
-      for (let k = 1; k < n; k += 2) rope(joint(k, s * (hw + 0.1), SEG_HY - 0.05, _a), joint(k, s * (hw + 0.12), SEG_HY + 0.97, _b), 0.025); // stays
+      // stays at the odd joints 1, 3, … below n
+      for (let j = 0; j < Math.min(n >> 1, MAX_SEGS); j++) { const k = 2 * j + 1; rope(joint(k, s * (hw + 0.1), SEG_HY - 0.05, _a), joint(k, s * (hw + 0.12), SEG_HY + 0.97, _b), 0.025); }
     }
     this.ropes.count = r;
     this.ropes.instanceMatrix.needsUpdate = true;
@@ -203,7 +212,7 @@ export function ropeBridgeLayout(sky: Sky, p: RopeBridgeParams): RopeBridgeLayou
 
 export const ropeBridge = defineModel<RopeBridgeParams>({
   id: 'driftwood-isle/rope-bridge', name: 'Rope bridge', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/ropeBridge.ts', surface: 'planks',
+  file: 'src/shards/driftwood-isle/runtime/models/ropeBridge.ts', surface: 'planks',
   defaults: { span: ORIGIN, ground: FLAT },
   // the world's copy: the builder its layout made (it drives that group's deck); a specimen: a fresh one
   // (the Explorer may open it before the island's world hook loaded the baked posts: it waits for them, never draws without)
