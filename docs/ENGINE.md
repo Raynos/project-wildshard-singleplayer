@@ -1458,7 +1458,7 @@ state and scalar rows in order, preserving the native playback chain.
 fallback surface. `Audio.surfaceMap(recipe, names, ports)` binds those rows
 to actual floors, terrain, weather and optional points. Floors use the
 specified feet tolerance; height and slope are queried only when reached,
-and the first matching rule wins. Pine and Driftwood use the same host.
+and the first matching rule wins. Pine and Driftwood use the same host. `GROUND_SURFACES` exports the ordered seven terrain/deck names; ambience appends its existing five extra surfaces.
 
 `audio.emitters` declares sample-first loop graphs, native output routing,
 fade curves, stop/disconnect timing and optional proximity ducking.

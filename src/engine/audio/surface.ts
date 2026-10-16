@@ -7,7 +7,9 @@ import type { AudioSurfaceRecipe } from '@wildshard/format/audioProfiles';
  * `player.stepSurface` answer): the ground ones plus 'litter' (forest floor, the mixer's default), mud (a pond's edge),
  * wet (rain), gravel (roads) and metal.
  */
-export type GroundSurface = 'sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone' | 'water';
+/** Ordered terrain/deck surface vocabulary; ambience appends its weather and material surfaces. */
+export const GROUND_SURFACES = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'] as const;
+export type GroundSurface = typeof GROUND_SURFACES[number];
 export type StepSurface = GroundSurface | 'litter' | 'gravel' | 'mud' | 'wet' | 'metal';
 
 /** The unanswered request retains the caller's default surface. */

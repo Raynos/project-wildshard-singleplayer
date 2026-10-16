@@ -47,9 +47,6 @@ export const FP_ARMS_LOOK = {
   swim: { tilt: 1.1, handsZ: -0.5, waterY: -0.16, startD: -0.16 },
   materials: FP_ARMS_MATERIALS,
 } as const;
-/** the step surfaces the island's audio maps (data/audioSurfaces.ts) */
-export const ISLAND_SURFACES = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'] as const;
-export type Surface = typeof ISLAND_SURFACES[number];
 /** the faceted ground's materials, build band, cliff lip and slab walls (data/groundLook.ts GROUND_LOOK) */
 export const GROUND_LOOK = {
   materials: { ground: 'driftwood-ground', slab: 'driftwood-ground-slab' },

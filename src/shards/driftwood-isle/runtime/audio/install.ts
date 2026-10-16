@@ -7,7 +7,8 @@ import { swordEvents } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../../world/build';
 import { islandCoveSpec } from '../boot/coveGeometry';
 import {installDeclaredAudio} from '@wildshard/engine/audio/declared';
-import { ISLAND_SURFACES, SHRINE_SITES } from '../const';
+import { GROUND_SURFACES } from '@wildshard/engine/audio/surface';
+import { SHRINE_SITES } from '../const';
 import { createIslandAmbience } from './ambience';
 
 /** Runs in level.play after the shell supplies its host. Constructors make no cosmetic draws. */
@@ -24,7 +25,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const shrineHum = built.shrine === null ? null : audio.loopEmitter(requireAudioProfile(audioRows.emitters?.['shrine'],'shrine emitter'),requireAudioProfile(audioRows.loopGraphs,'audio loop graphs'),{position:{x:SHRINE.x,y:heightAt(SHRINE.x,SHRINE.z)+2.5,z:SHRINE.z},duck:gain=>{music.duck(gain);}});
   const islandSfx = installDeclaredAudio(declared,{audio,scope:ctx.scope},'voices');
   const sea = declaredSea.level; // SF46 (G164): the lowered sea at road height
-  const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
+  const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),GROUND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
   const ambience = createIslandAmbience(audio, { sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: islandCoveSpec() }, audioRows);
   const cues = createCueRouter(audioRows.routing.filter(route => route.bus === 'audio'), {
     voices: new Map(), bindings: declared.voiceBindings, owners: new Map<string, object>([['sfx', islandSfx],['playback',islandSfx.playback], ['listener', player]]),

@@ -1,5 +1,4 @@
 import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
-import { ISLAND_SURFACES } from './audioSurfaces';
 import { COVER_LOOKS } from './coverLook';
 import { BOAT_LAYOUT } from './boatLayout';
 import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from './captainEncounter';
@@ -51,7 +50,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('ISLAND_LOOKS', ISLAND_LOOKS),
   defineMirror('FP_ARMS_MATERIALS', FP_ARMS_MATERIALS),
   defineMirror('FP_ARMS_LOOK', FP_ARMS_LOOK),
-  defineMirror('ISLAND_SURFACES', ISLAND_SURFACES),
   defineMirror('GROUND_LOOK', GROUND_LOOK),
   defineMirror('KIT_LENDS', KIT_LENDS),
   defineMirror('SKY_DOME_LOOK', SKY_DOME_LOOK),

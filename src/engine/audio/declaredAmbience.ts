@@ -7,7 +7,7 @@ import { AmbienceMix, type AmbienceMixPorts } from './ambience';
 import { audioMixValue, requireAudioProfile, type AudioZoneProfile } from './audioProfiles';
 import { DeclaredSoundBank } from './declaredBank';
 import { audioLog } from './audioLog';
-import { AudioSurfaceMap, type StepSurface } from './surface';
+import { AudioSurfaceMap, GROUND_SURFACES, type StepSurface } from './surface';
 import { terrainHeight } from '../world/terrainHeight';
 import { floorAtRects, type FloorRect } from '../physics/box';
 import { audioRandom } from './util';
@@ -24,7 +24,7 @@ export interface DeclaredAmbiencePorts extends Pick<AmbienceMixPorts,'sea'|'site
 }
 /** Immutable spatial facts; live gain reads use declared native owner bindings. */
 export interface DeclaredAudioSpot {zone:string;x:number;z:number;r:number;fade?:number;open?:boolean}
-const SURFACES:readonly StepSurface[]=['sand','wetSand','grass','rock','planks','stone','water','litter','gravel','mud','wet','metal'];
+const SURFACES:readonly StepSurface[]=[...GROUND_SURFACES,'litter','gravel','mud','wet','metal'];
 function pointsOf(value:unknown):readonly {x:number;z:number}[]{
  if(value===undefined)return [];if(!Array.isArray(value)||value.length>2048)throw new Error('Invalid ambience point list');
  const points:readonly unknown[]=value;
