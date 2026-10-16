@@ -8,7 +8,7 @@ import { triAreas, type CoverTri } from './coverTris';
 import { AuthorCoverGrid, baseCoverGrid } from './coverGrid';
 import { area } from '../world/blenderArea';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with {type:'json'};
-import { coveFamilyOf, type CoveFamily } from '../models/cove';
+import { coveFamilyOf, type CoveFamily } from '../runtime/models/cove';
 import { WORLD_DROP } from '../world/sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { droppedPlacements, protosFromMeshes, usedPlacements, type IslandProto } from '../runtime/looks/bakedIsland';

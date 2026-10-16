@@ -28,7 +28,7 @@ import { copyCoverGeometry } from '../runtime/boot/coverGeometry';
 import { GROUND_COVER } from '../data/coverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, coverSample, coverJitter } from './coverTint';
-import { driftLog } from '../models/driftLog';
+import { driftLog } from '../runtime/models/driftLog';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
@@ -152,7 +152,7 @@ export class GroundCover extends StreamedCover<Site> {
     mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)
     mesh.castShadow = true; mesh.receiveShadow = true;
     this.group.add(mesh);
-    // E315 M1: each is the drift log model (src/shards/driftwood-isle/models/driftLog.ts), placed drawnInto this mesh
+    // E315 M1: each is the drift log model (src/shards/driftwood-isle/runtime/models/driftLog.ts), placed drawnInto this mesh
     if (duneLogs.placements.length > 0) this.placed.push(place(driftLog, duneLogs.placements, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(duneLogs.boxes) }, piece: { id: 'cover-drift-logs' } }));
   }
 }

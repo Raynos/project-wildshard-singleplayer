@@ -1,6 +1,6 @@
 /**
  * Bushes — where Driftwood Isle's hibiscus shrubs stand (E306 / E315 M1: the bush itself is the model
- * src/shards/driftwood-isle/models/hibiscusBush.ts, the user's E116 leaf clump; this is the world side). A quarter of
+ * src/shards/driftwood-isle/runtime/models/hibiscusBush.ts, the user's E116 leaf clump; this is the world side). A quarter of
  * them are in flower. `placeIslandBushes()` registers them into one flat-shaded vertex-coloured mesh on the shared lowPolyLookMaterial
  * through src/engine/models/place.ts — one registry piece, `bushes`, with no colliders (you walk through them).
  *
@@ -13,7 +13,7 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { islandKnobs } from '../tiers';
-import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
+import { hibiscusBush, type HibiscusBushParams } from '../runtime/models/hibiscusBush';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { loadHibiscusWorld } from '../runtime/boot/hibiscusGeometry';
 

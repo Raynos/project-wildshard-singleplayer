@@ -19,8 +19,8 @@ import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import bake from '../data/lookoutBake.json' with { type: 'json' };
-import { LOOKOUT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import bake from '../../data/lookoutBake.json' with { type: 'json' };
+import { LOOKOUT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 /** Where a lookout stands: its centre (world xz) and which side its stair descends toward (rot, radians). */
 export interface LookoutSite { readonly x: number; readonly z: number; readonly rot: number }

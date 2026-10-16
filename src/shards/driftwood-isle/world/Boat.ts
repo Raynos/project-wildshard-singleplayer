@@ -1,6 +1,6 @@
 /**
  * Boat — where the sailboat you arrived in is moored, and how it rides (E306 / E315 M1: the boat itself is the model
- * src/shards/driftwood-isle/models/boat.ts; this is the world side). It places the dinghy beside the pier, runs its
+ * src/shards/driftwood-isle/runtime/models/boat.ts; this is the world side). It places the dinghy beside the pier, runs its
  * mooring lines to the pier's bollards (world geometry between two placed models: a separate static mesh, so they don't
  * bob; baked offline with the pier's post choice, generators/mooringLines.ts, the fixed-model template `mooring-lines`) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
  *
@@ -23,7 +23,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
 import { MOORING_LINES_GEOMETRY } from '../runtime/boot/fixedGeometry';
-import { BEAM, BOAT_FLOOR, LENGTH, boat } from '../models/boat';
+import { BEAM, BOAT_FLOOR, LENGTH, boat } from '../runtime/models/boat';
 
 export interface BoatSpec {
   x: number; z: number;

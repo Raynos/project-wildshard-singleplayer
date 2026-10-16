@@ -12,7 +12,7 @@
  *
  * E306 / E315 M1 (second pass): the cove is WORLD — the sea cave is welded into the crag (its floor cuts the physics
  * terrain, `terrainCuts`), the pools and the cascade are water. Its loose outdoor rocks (the tidepool rims, the plunge
- * pool's ring, the cascade's banks) are the reef-rock model (src/shards/driftwood-isle/models/reefRock.ts), placed
+ * pool's ring, the cascade's banks) are the reef-rock model (src/shards/driftwood-isle/runtime/models/reefRock.ts), placed
  * `drawnInto` the smooth-rock mesh they are welded in. `place` registers the cove's own piece (`cove`: drawn, its
  * colliders and floors; no card); the Wreck cove set (src/shards/driftwood-isle/world/places.ts) lists these rocks.
  *
@@ -34,7 +34,7 @@ import { copyCoveGeometry, coveColliderDescs } from '../runtime/boot/coveGeometr
 import { coveFloorAt, coveHalfWidth, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from './coveLayout';
 import { waterfall } from './Waterfall';
 import { rockMaterial } from './rockKit';
-import { reefRock } from '../models/reefRock';
+import { reefRock } from '../runtime/models/reefRock';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';

@@ -5,7 +5,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { palm } from '../src/shards/driftwood-isle/models/palm';
+import { palm } from '../src/shards/driftwood-isle/runtime/models/palm';
 import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
 import { decodePalmWorld } from '../src/shards/driftwood-isle/runtime/boot/palmGeometry';

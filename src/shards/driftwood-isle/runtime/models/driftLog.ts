@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { DRIFT_LOG_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import { DRIFT_LOG_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 export interface DriftLogParams {
   /** length, metres */

@@ -154,7 +154,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     if (row?.kind !== 'zipline') throw new Error('Driftwood requires its admitted zipline row');
     const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }, row).build();
     // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
-    // E315 M1: the zipline model (src/shards/driftwood-isle/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
+    // E315 M1: the zipline model (src/shards/driftwood-isle/runtime/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
     // SF57: the piece, its deck colliders and the group belong to this entry (after an await the ambient owner is the page's,
     // and a re-entered borrowed home runs this install again)
     const registry = w.registry;

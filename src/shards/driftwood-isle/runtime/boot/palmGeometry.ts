@@ -4,7 +4,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { decodeFoliageWorld, readFoliageWorld } from '../../boot/foliageGeometry';
 import { PALM_FILES } from '../../data/palmFiles';
-import type { PalmParams } from '../../models/palm';
+import type { PalmParams } from '../models/palm';
 
 const files = PALM_FILES[TIER === 'phone' ? 'phone' : 'desktop'];
 const layout = { magic: 0x314d4c50, channels: [['position', 3], ['color', 3], ['aSway', 2]] } as const;

@@ -12,7 +12,7 @@
 import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { trailSpecimen } from '../runtime/boot/trailSpecimens';
+import { trailSpecimen } from '../boot/trailSpecimens';
 
 /** the trail's one material (the dressing and the trail's own geometry share it: one draw) */
 export function trailMaterial(ctx: ModelContext): THREE.Material { return ctx.once('driftwood-isle/trail:material', () => lowPolyLookMaterial(ctx.sky, 'still')); }

@@ -31,7 +31,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const { buildTrailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
   const { islandTrailsideSpec } = await imp('src/shards/driftwood-isle/world/trailsideLayout.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
-  const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/models/hut.ts');
+  const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/runtime/models/hut.ts');
   const { modelContext } = await imp('src/engine/models/model.ts');
   const { placeModelSite } = await imp('src/engine/models/place.ts');
   const { HUT } = island;

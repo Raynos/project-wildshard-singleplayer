@@ -4,7 +4,7 @@ import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { REEF, type ReefParams } from '../src/shards/driftwood-isle/models/reef';
+import { REEF, type ReefParams } from '../src/shards/driftwood-isle/runtime/models/reef';
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
 import { decodeReefWorld } from '../src/shards/driftwood-isle/runtime/boot/reefGeometry';

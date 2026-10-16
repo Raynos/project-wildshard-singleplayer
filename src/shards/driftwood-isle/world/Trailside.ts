@@ -5,7 +5,7 @@
  * decoration on the walkable slope.
  *
  * E306 / E315 M1: the fence post, the signpost and the plank step are models
- * (src/shards/driftwood-isle/models/trailside.ts). The trail builds them in its layout's order from one stream, between
+ * (src/shards/driftwood-isle/runtime/models/trailside.ts). The trail builds them in its layout's order from one stream, between
  * what is its own — the ropes sagging between the posts, the steps' side rails, the trestle stairs. The offline
  * generator welds these into one baked mesh; this builder admits it and places each model `drawnInto` it
  * (its copies, its card, its colliders: pieces `trail-*`). The trail's
@@ -25,7 +25,7 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { fencePost, plankStep, signpost, trailMaterial } from '../models/trailside';
+import { fencePost, plankStep, signpost, trailMaterial } from '../runtime/models/trailside';
 
 import { copyTrailsideGeometry } from '../runtime/boot/trailsideGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';

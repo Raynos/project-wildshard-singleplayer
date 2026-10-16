@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { ShipwreckBuilder } from '../src/shards/driftwood-isle/generators/shipwreck';
-import { wreckSiteKind } from '../src/shards/driftwood-isle/models/shipwreck';
+import { wreckSiteKind } from '../src/shards/driftwood-isle/runtime/models/shipwreck';
 import { wreckFloorHeight } from '../src/shards/driftwood-isle/world/wreckFloor';
 import { WRECK_SITES } from '../src/shards/driftwood-isle/data/wreckSites';
 import bake from '../src/shards/driftwood-isle/data/wreckBake.json' with { type: 'json' };

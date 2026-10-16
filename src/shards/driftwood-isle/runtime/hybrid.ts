@@ -12,7 +12,7 @@ import { CASCADE_LOOKS, SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_P
 import { setWaterfallLooks } from '../world/Waterfall';
 import { setSmokeLook } from './looks/smokeColumn';
 import { setFireflyLook } from '../world/Shrine';
-import { setReefLook } from '../models/reef';
+import { setReefLook } from './models/reef';
 import { followToon } from './look/toon';
 import { setShrinePoolLook } from '../models/shrine';
 import { setPoolLook } from '../world/Cove';

@@ -7,7 +7,7 @@
  * leather satchel on a strap across her chest, brown trousers tucked into travel boots, one fist on her hip.
  *
  *   const t = new Trader(sky).build();   // own space: feet at the origin, facing +Z
- *   t.group.position / rotation          // where she stands (the model is placed: src/shards/driftwood-isle/models/trader.ts)
+ *   t.group.position / rotation          // where she stands (the model is placed: src/shards/driftwood-isle/runtime/models/trader.ts)
  *   game.onUpdate((dt, t) => trader.update(dt, t, player.position));
  *
  * Her idle (the whole figure, one pivot at her feet, then head, shoulder and elbow pivots):

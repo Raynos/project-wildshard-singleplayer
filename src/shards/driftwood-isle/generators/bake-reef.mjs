@@ -13,7 +13,7 @@ import { WRECK } from '../world/sites';
 import manifest from '../discovery.generated';
 import {SEABED} from '../data/seabedLook.ts';
 import {REEF_SPECIMENS} from '../data/reefSpecimenRows.ts';
-import {REEF} from '../models/reef.ts';
+import {REEF} from '../runtime/models/reef.ts';
 import {reefLayoutJson,scatterLagoon} from './reefScatter.ts';
 import {reefGeometry} from './reef.ts';
 import {driftwoodGroundBytes} from './groundRows.ts';

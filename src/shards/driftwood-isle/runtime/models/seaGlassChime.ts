@@ -17,11 +17,11 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { SlotGeometry } from '../runtime/models/slots';
+import { SlotGeometry } from './slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
-import bakedSlots from '../data/chimeSlots.json' with { type: 'json' };
+import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import bakedSlots from '../../data/chimeSlots.json' with { type: 'json' };
 
 /** Maximum collectible pieces; slot 0 is always the cord and bar. */
 export const CHIME_PIECES = 15;

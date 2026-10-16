@@ -3,7 +3,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { TRAIL_SPECIMENS } from '../../data/trailSpecimens';
 import { TRAIL_SPECIMEN_ROWS } from '../../data/trailSpecimenRows';
-import type { PlankStepParams, SignpostParams } from '../../models/trailside';
+import type { PlankStepParams, SignpostParams } from '../models/trailside';
 
 const key = (params: object): string => JSON.stringify(Object.entries(params).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
 /** Admit the six original Explorer shapes. World placements borrow their existing fixed weld. */

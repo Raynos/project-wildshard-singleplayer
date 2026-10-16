@@ -19,8 +19,8 @@ import { ReefBed } from '../runtime/looks/reefBed';
 import { loadReefWorld } from '../runtime/boot/reefGeometry';
 import { SEABED } from '../data/seabedLook';
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
-import { REEF, reefMaterial, type ReefParams } from '../models/reef';
-import { reefFish } from '../models/reefFish';
+import { REEF, reefMaterial, type ReefParams } from '../runtime/models/reef';
+import { reefFish } from '../runtime/models/reefFish';
 
 /** The built reef owner itself supplies placements, draws, counts and its school clock. */
 export type Seabed = ReefBed<ReefParams>;

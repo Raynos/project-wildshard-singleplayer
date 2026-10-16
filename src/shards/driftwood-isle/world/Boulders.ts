@@ -1,6 +1,6 @@
 /**
  * Boulders — where Driftwood Isle's shore boulders stand (E306 M0b: the rock itself is the model
- * src/shards/driftwood-isle/models/shoreBoulder.ts; this is the world side). `scatterShoreBoulders()` reads the authored beach rule:
+ * src/shards/driftwood-isle/runtime/models/shoreBoulder.ts; this is the world side). `scatterShoreBoulders()` reads the authored beach rule:
  * rocks along the water line and a few out in the surf, away from the pier corridor. `shoreBoulderPlacements()` turns the specs
  * into the model's placements (yawed, leaned with the slope, half sunk), and `placeShoreBoulders()` draws them merged into one
  * mesh through src/engine/models/place.ts — one registry piece, `rocks`, with each big rock's hull.
@@ -16,7 +16,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import SHORE from '../data/shoreBoulders.generated.json' with { type: 'json' };
-import { shoreBoulder, type ShoreBoulderParams } from '../models/shoreBoulder';
+import { shoreBoulder, type ShoreBoulderParams } from '../runtime/models/shoreBoulder';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 

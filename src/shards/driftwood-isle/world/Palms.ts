@@ -1,6 +1,6 @@
 /**
  * Palms — where Driftwood Isle's coconut palms stand (E306 / E315 M1: the palm itself is the model
- * src/shards/driftwood-isle/models/palm.ts; this is the world side). the authored island rows own its sites; `placeIslandPalms()` admits
+ * src/shards/driftwood-isle/runtime/models/palm.ts; this is the world side). the authored island rows own its sites; `placeIslandPalms()` admits
  * one palm on each spec, its foot 0.2 m into the sand, merged into one mesh through src/engine/models/place.ts — one registry
  * piece, `palms`, with every trunk's three capsules. `update()` advances the shared wind the fronds sway in.
  *
@@ -16,7 +16,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { loadPalmWorld } from '../runtime/boot/palmGeometry';
-import { palm, palmMaterial, type PalmParams } from '../models/palm';
+import { palm, palmMaterial, type PalmParams } from '../runtime/models/palm';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 

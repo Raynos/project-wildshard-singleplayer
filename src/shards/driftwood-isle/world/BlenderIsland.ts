@@ -17,7 +17,7 @@ import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
  *   alpha is their Cycles-baked AO; meshopt-compressed.
  * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + island.json (colliders, extra palms, bake notes):
  *   each prototype is uploaded once and its copies placed instanced through the engine (`place`, one model per family,
- *   src/shards/driftwood-isle/models/cove.ts; G144 / G173, E435: the merged tiles held a world-space copy of every vertex,
+ *   src/shards/driftwood-isle/runtime/models/cove.ts; G144 / G173, E435: the merged tiles held a world-space copy of every vertex,
  *   ~104 MB). The phone builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is a
  *   prefix). The scattered small rocks are the small-rock model (rockKit), placed merged (src/engine/models/place.ts).
  * - lm-ao / lm-bounce (.phone).webp: the terrain's baked GI — sky AO (5 m) and the sun's one-to-three-bounce indirect light.
@@ -41,8 +41,8 @@ import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json
 import { area, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
-import { smallRock } from '../models/smallRock';
-import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../models/cove';
+import { smallRock } from '../runtime/models/smallRock';
+import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
 import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain } from './coverTint';
@@ -236,7 +236,7 @@ export class BlenderIsland {
   }
 
   /**
-   * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/models/cove.ts), and each family is
+   * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/runtime/models/cove.ts), and each family is
    * placed instanced under this group (G144: one InstancedMesh per prototype and level): each copy its placement's matrix
    * and tint (the engine's per-copy colour). The casters are drawn where the camera or a shadow cascade sees them (the
    * palms swap to their far copy at `ISLAND_LOOK.lod`); the cover is culled by cells and drawn within the tier's reach (its

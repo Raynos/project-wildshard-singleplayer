@@ -241,7 +241,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/strings.ts', 'C9'],
   ['src/shards/driftwood-isle/tiers.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/debug/options.ts', 'C9'],
-  ['src/shards/pine-hollow/dev/perfLap.ts', 'C9'],
+  ['src/shards/pine-hollow/runtime/dev/perfLap.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/baked.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/landmarkLifetime.ts', 'C9'],
   ['src/shards/pine-hollow/strings.ts', 'C9'],
@@ -305,7 +305,7 @@ function runtimeTags(source, path, fallback) {
       // Shared cable construction is quest binding or static rest geometry, not a private mover law.
       const cable = ['ZiplineDriver', 'CableLayout', 'ZiplineSpec', 'ZiplineRideState'].includes(spec.local.name)
         && node.source.value === '@wildshard/sdk/movers';
-      const bindingOwner = path === 'src/shards/driftwood-isle/models/zipline.ts' ? 'C1'
+      const bindingOwner = path === 'src/shards/driftwood-isle/runtime/models/zipline.ts' ? 'C1'
         : ['src/shards/pine-hollow/quest/rides.ts', 'src/shards/pine-hollow/runtime/quest.ts',
           'src/shards/driftwood-isle/runtime/quest.ts', 'src/shards/driftwood-isle/world/Zipline.ts'].includes(path) ? 'C5' : null;
       const admittedBoot = path === 'src/shards/driftwood-isle/shard.config.ts' && node.source.value === './data/movers';

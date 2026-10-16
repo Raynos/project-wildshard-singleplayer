@@ -5,9 +5,9 @@ import { pathToFileURL } from 'node:url';
 import { Rng } from '../src/engine/core/rng.ts';
 import { seedOf, paramsOf } from '../src/engine/models/model.ts';
 import { recordGeometryBake, encodeGeometryBake, addGeometryBake, geometryBakeStats } from '../src/engine/world/geometryBake.ts';
-import { shoreBoulder } from '../src/shards/driftwood-isle/models/shoreBoulder.ts';
-import { smallRock } from '../src/shards/driftwood-isle/models/smallRock.ts';
-import { reefRock } from '../src/shards/driftwood-isle/models/reefRock.ts';
+import { shoreBoulder } from '../src/shards/driftwood-isle/runtime/models/shoreBoulder.ts';
+import { smallRock } from '../src/shards/driftwood-isle/runtime/models/smallRock.ts';
+import { reefRock } from '../src/shards/driftwood-isle/runtime/models/reefRock.ts';
 import { byteWriter } from './bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '..');

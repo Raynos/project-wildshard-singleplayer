@@ -19,12 +19,12 @@ import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/mo
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Trader } from '../npc/Trader';
-import { traderRig } from '../quest/people';
+import type { Trader } from '../../npc/Trader';
+import { traderRig } from '../../quest/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 
-import { COUNTER_TOP as TOP } from '../data/counterLayout';
-import { COUNTER_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import { COUNTER_TOP as TOP } from '../../data/counterLayout';
+import { COUNTER_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 

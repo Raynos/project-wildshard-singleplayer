@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { ReefParams } from '../models/reef';
+import type { ReefParams } from '../runtime/models/reef';
 
 const CORAL = [
   new THREE.Color('#ff6f91'), new THREE.Color('#ff8c42'), new THREE.Color('#c86bff'), new THREE.Color('#fff0c8'),

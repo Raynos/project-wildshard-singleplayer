@@ -11,7 +11,7 @@ import { bindDriftwoodEffects } from '../loot/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
 import { installFirstMinutes } from '../onboarding/firstMinutes';
 import { ironSwordDrop } from '../loadout/rows';
-import { loadZiplineGeometry } from '../models/zipline';
+import { loadZiplineGeometry } from '../runtime/models/zipline';
 import { preloadCaptainMesh } from '../species/captainMesh';
 import { preloadSailorHead } from '../species/sailor';
 

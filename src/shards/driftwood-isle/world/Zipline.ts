@@ -4,7 +4,7 @@
  * Cove beach beside the sea cave, and a pulley trolley with a T-bar you hang from. "[E] Ride the zipline" and you
  * go: gravity along the cable minus drag (12–16 m/s at the bottom), the trolley sings along the wire, you let go
  * on the sand with the last of the speed. Two draws: the rig (deck + posts + cable + landing, one merged mesh) and
- * the trolley — the zipline model's geometry (E306 / E315 M1: src/shards/driftwood-isle/models/zipline.ts), built
+ * the trolley — the zipline model's geometry (E306 / E315 M1: src/shards/driftwood-isle/runtime/models/zipline.ts), built
  * where it stands; this is the ride, and `place` puts the model's card on what it draws (drawnInto, piece `zipline`).
  *
  *   const zip = new Zipline(sky, { top, bottom }).build();       // top = the deck's outer edge (floor), bottom = the landing (floor)
@@ -24,7 +24,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { zipline, ziplineGeometry } from '../models/zipline';
+import { zipline, ziplineGeometry } from '../runtime/models/zipline';
 import { ZiplineDriver, CableLayout, ZiplineTrolley, type ZiplineSpec } from '@wildshard/sdk/movers';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 

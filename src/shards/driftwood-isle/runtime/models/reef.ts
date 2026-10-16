@@ -12,9 +12,9 @@
  */
 import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { reefSpecimen } from '../runtime/boot/reefGeometry';
-import { REEF_SPECIMENS, type ReefKind } from '../data/reefSpecimenRows';
-import { REEF_LOOK } from '../data/reefLook';
+import { reefSpecimen } from '../boot/reefGeometry';
+import { REEF_SPECIMENS, type ReefKind } from '../../data/reefSpecimenRows';
+import { REEF_LOOK } from '../../data/reefLook';
 
 let reefLook: { material: THREE.Material; follow: () => void } | null = null;
 /** hand the reef its compiled graph (look.materials, data/reefLook.ts) and its toon look's once-a-frame follow */

@@ -6,7 +6,7 @@ import type { MoverData } from '@wildshard/format/movers';
 import { BOAT_MOOR, BRIDGE } from '../world/sites';
 import { LOWERED_SEA, WORLD_DROP } from '../world/sea';
 import { driftwoodGroundField } from './groundRows';
-import { boatColliders } from '../models/boat';
+import { boatColliders } from '../runtime/models/boat';
 import { ropeBridgeSegments } from './ropeBridge';
 
 /** Movers run only in SF46's hybrid world, lowered as one by WORLD_DROP (G164): the boat rides the lowered sea at its

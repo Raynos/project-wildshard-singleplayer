@@ -8,11 +8,11 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { rockMaterial } from './rockKit';
-import { shipwreck, wreckSiteKind } from '../models/shipwreck';
+import { shipwreck, wreckSiteKind } from '../runtime/models/shipwreck';
 import type { WreckAnchor, HoldBounds, WreckSpec } from '../assets/contracts/wreck';
-import { barrel as barrelModel, crate as crateModel, ropeCoil } from '../models/cargo';
-import { driftLog } from '../models/driftLog';
-import { reefRock } from '../models/reefRock';
+import { barrel as barrelModel, crate as crateModel, ropeCoil } from '../runtime/models/cargo';
+import { driftLog } from '../runtime/models/driftLog';
+import { reefRock } from '../runtime/models/reefRock';
 import { WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY, WRECK_ROCKS_GEOMETRY } from '../runtime/boot/fixedGeometry';
 import bake from '../data/wreckBake.json' with { type: 'json' };
 import { wreckFloorHeight } from './wreckFloor';

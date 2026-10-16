@@ -1,6 +1,6 @@
 /**
  * The trader's stall at Wendell's hut (E314, Jake's pick 2026-09-30: "a trader at Wendell's hut"; project/archive/
- * 2026-09-30-driftwood-loot.md): the second NPC (src/shards/driftwood-isle/models/trader.ts) stands west of the hut's front steps,
+ * 2026-09-30-driftwood-loot.md): the second NPC (src/shards/driftwood-isle/runtime/models/trader.ts) stands west of the hut's front steps,
  * across the path from Wendell and his campfire, behind her counter of goods; the counter faces down the path, so you
  * see what is for sale from the campfire. Both are placed models (registered: colliders, the Model Explorer).
  *
@@ -16,7 +16,7 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import { bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 import { TRADER_PAGE } from '../data/traderPage';
-import { trader, tradeCounter, traderOf, traderRigOf } from '../models/trader';
+import { trader, tradeCounter, traderOf, traderRigOf } from '../runtime/models/trader';
 import type { Trader } from '../npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 import { ownEnteredTree } from './Spine';

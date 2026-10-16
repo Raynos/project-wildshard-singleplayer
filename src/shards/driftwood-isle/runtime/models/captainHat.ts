@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { HAT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import { HAT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 /** A fresh copy of the admitted offline hat; scaling never changes the shared template. */
 export function captainHatGeometry(): THREE.BufferGeometry { return HAT_GEOMETRY.copy(); }

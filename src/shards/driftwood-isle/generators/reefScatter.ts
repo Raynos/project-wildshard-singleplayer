@@ -13,7 +13,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { ReefBedRow } from '../data/lookRows';
 import { SEABED } from '../data/seabedLook';
 import { OCEAN } from '../world/sites';
-import { REEF_FISH_COLOURS } from '../models/reefFish';
+import { REEF_FISH_COLOURS } from '../runtime/models/reefFish';
 
 /** One scattered copy: its kind (the row's names), where, size, turn about +Y and which tint (0‥1). */
 export interface ReefCopy { kind: string; x: number; z: number; s: number; rot: number; v: number }
