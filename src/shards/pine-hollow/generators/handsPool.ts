@@ -7,6 +7,7 @@ import { ARM_PAL, gloveFist, riderArm } from '@wildshard/engine/player/nalatiArm
 import type { ArmPaletteKey, ArmPaletteRow, GloveHandsLook, HandSpec } from '../runtime/viewmodel/gloveHands';
 import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from './longbowLook';
 import { BUCKSKIN, HUNTER_HANDS } from '../data/handsLook';
+import { CROSSBOW_HAND_HOLDS } from './crossbowRows';
 
 /**
  * Pine Hollow's first-person hands, baked (SHARD-PLATFORM, sp-o190): every gloved hand a weapon holds (the crossbow's and
@@ -362,11 +363,11 @@ function decimate(g: Geo, verts: number): Geo {
 
 // ───────────────────────────── the pool ─────────────────────────────
 
-/** Every hand a weapon holds: its part name, its HandHold spec (Crossbow.ts CROSSBOW_HAND_HOLDS, LeverRifle.ts
+/** Every hand a weapon holds: its part name, its HandHold spec (./crossbowRows.ts CROSSBOW_HAND_HOLDS, LeverRifle.ts
  *  LEVER_HAND_HOLDS, verbatim and in their key order: the bake key is their JSON) and whether it is the left (mirrored). */
 const HAND_SPECS: readonly (readonly [string, HandSpec, boolean])[] = [
-  ['crossbow-left', { R: 0.025, curl: 0.7, thumbCurl: 0.9, armLen: 1, tint: 2.2, gloveTint: BUCKSKIN, coat: true, elbow: [-0.35, -0.45, -0.45] }, true],
-  ['crossbow-right', { R: 0.03, curl: 0.6, thumbCurl: 0.9, bend: [0.8, -1.2], armLen: 0.6, tint: 2.2, gloveTint: BUCKSKIN, coat: true }, false],
+  ['crossbow-left', CROSSBOW_HAND_HOLDS.left.spec, true],
+  ['crossbow-right', CROSSBOW_HAND_HOLDS.right.spec, false],
   ['lever-left', { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, true],
   ['lever-right', { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, false],
 ];

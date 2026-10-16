@@ -5,7 +5,7 @@ import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
 import { HUNTER_HANDS } from '../src/shards/pine-hollow/data/handsLook';
 import { LONGBOW_LOOK, StaveBowLookSchema } from '../src/shards/pine-hollow/generators/longbowLook';
 import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/items/leverPresentation';
-import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
+import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/generators/crossbowRows';
 
 // The hands are baked (src/shards/pine-hollow/generators/handsPool.ts) and reach the client as custom/handsPool: a weapon
 // hold the bake does not carry refuses at kit build. Editing a hold means re-running bake-hands-pool.mjs with the
@@ -22,6 +22,12 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
       expect(hands[JSON.stringify([HUNTER_HANDS, spec, spec.elbow !== undefined])], side).toBeDefined();
     }
   }
+  // the crossbow's section hand rows name baked hands (runtime Crossbow.ts borrows them by part)
+  const xbow = custom?.sections.find(entry => entry.name === 'custom/crossbowPool'), xbowBytes = xbow === undefined ? undefined : custom?.files.get(xbow.path);
+  if (xbowBytes === undefined) throw new Error('Pine output has no custom/crossbowPool');
+  const rows = v.parse(SECTIONS['custom/crossbowPool'], JSON.parse(new TextDecoder().decode(xbowBytes))).rows, parts = Object.values(pool.hands).map(hand => hand.geometry);
+  expect(parts).toEqual(expect.arrayContaining([`hand-${rows.hands.left.part}`, `hand-${rows.hands.right.part}`]));
+  expect(rows.hands.left.elbow).toEqual(CROSSBOW_HAND_HOLDS.left.spec.elbow);
   // the held bow draw (heldLauncher heldBowProfile) reads the bake's serialised look and arrow
   expect(pool.bow.look).toBe(JSON.stringify(LONGBOW_LOOK));
   expect(v.parse(StaveBowLookSchema, JSON.parse(pool.bow.look))).toEqual(LONGBOW_LOOK);

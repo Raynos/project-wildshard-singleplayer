@@ -14240,6 +14240,9 @@
         "src/format",
         "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs",
         "src/shards/pine-hollow/generators/crossbowPool.ts",
+        "src/shards/pine-hollow/generators/crossbowRows.ts",
+        "src/shards/pine-hollow/data/handsLook.ts",
+        "src/shards/pine-hollow/data/crossbowDisplay.json",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs"
       ],
@@ -14274,6 +14277,8 @@
         "src/format",
         "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
         "src/shards/pine-hollow/generators/handsPool.ts",
+        "src/shards/pine-hollow/generators/crossbowRows.ts",
+        "src/shards/pine-hollow/data/crossbowDisplay.json",
         "src/shards/pine-hollow/data/handsLook.ts",
         "src/shards/pine-hollow/generators/longbowLook.ts",
         "src/shards/pine-hollow/runtime/viewmodel",

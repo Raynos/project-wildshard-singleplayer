@@ -5,15 +5,17 @@ import { SECTIONS } from '../sections';
 
 /** The crossbow's private scene: its part hierarchy over the held pool (`custom/crossbowPool`). */
 export type CrossbowHierarchy = InferOutput<(typeof SECTIONS)['custom/crossbowPool']>['hierarchy'];
+/** The crossbow's view, hands and held-launcher rows (`custom/crossbowPool` `rows`, generators/crossbowRows.ts). */
+export type CrossbowRows = InferOutput<(typeof SECTIONS)['custom/crossbowPool']>['rows'];
 /** The hunter's baked hands and the Longbow's rows (`custom/handsPool`, generators/handsPool.ts). */
 export type BakedHandRows = InferOutput<(typeof SECTIONS)['custom/handsPool']>;
 
 /** Immutable templates; weapon meshes borrow these without cloning or changing their channels: the crossbow's parts (the
  *  product's `custom/crossbowPool`, a named blob) and the hunter's baked hands with the Longbow's (`custom/handsPool`, read by
  *  boot/handsGeometry.ts). */
-function heldPool(product: ShardProduct): { readonly library: ModelLibrary<never, never>; readonly hierarchy: CrossbowHierarchy; readonly hands: BakedHandRows } {
-  const { pool, hierarchy } = product.section('custom/crossbowPool', SECTIONS), hands = product.section('custom/handsPool', SECTIONS);
-  return { hierarchy, hands, library: createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {},
+function heldPool(product: ShardProduct): { readonly library: ModelLibrary<never, never>; readonly hierarchy: CrossbowHierarchy; readonly rows: CrossbowRows; readonly hands: BakedHandRows } {
+  const { pool, hierarchy, rows } = product.section('custom/crossbowPool', SECTIONS), hands = product.section('custom/handsPool', SECTIONS);
+  return { hierarchy, rows, hands, library: createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {},
     geometryPools: [{ url: product.url(pool.url), parts: pool.parts }, { url: product.url(hands.pool.url), parts: hands.pool.parts }] }, '[pine-hollow held pool]') };
 }
 /** Made once from the first admitted product. */
@@ -34,5 +36,7 @@ function held(): ReturnType<typeof heldPool> {
 export function heldGeometry(): ReturnType<typeof heldPool>['library'] { return held().library; }
 /** The crossbow's admitted part hierarchy; refuses before `preloadHeldGeometry`. */
 export function crossbowHierarchy(): CrossbowHierarchy { return held().hierarchy; }
+/** The crossbow's admitted rows; refuses before `preloadHeldGeometry`. */
+export function crossbowData(): CrossbowRows { return held().rows; }
 /** The admitted hand and Longbow bake rows; refuses before `preloadHeldGeometry`. */
 export function bakedHandRows(): BakedHandRows { return held().hands; }

@@ -32,6 +32,27 @@ const numbers = v.pipe(v.array(number), v.maxLength(16384));
 const bakedHand = v.strictObject({ geometry: text, sleeve: v.nullable(text), wrist: triple, dir: triple });
 const bakedBow = v.strictObject({ sectionSamples: v.strictObject({ widths: numbers, ridges: numbers }), look: long, arrow: long,
   ringU: numbers, ringSign: numbers, limbVerts: natural, dynVerts: natural, lWrist: triple, rWrist: triple, rHook: triple, rWristDir: triple });
+const pair = v.tuple([number, number]), opt = v.exactOptional, flag = v.boolean();
+const look = v.strictObject({ set:opt(text), normalScale:opt(pair), color:opt(triple), roughness:number, metalness:number, envMapIntensity:opt(number), specularIntensity:opt(number),
+  anisotropy:opt(number), anisotropyRotation:opt(number), emissive:opt(number), emissiveIntensity:opt(number), alphaTest:opt(number), vertexColors:opt(flag), forceSinglePass:opt(flag), side:opt(v.picklist([0,1,2])) });
+const heldHand = v.strictObject({ part:text, at:triple, axis:triple, palm:triple, coat:flag, elbow:opt(triple) });
+/** The crossbow's rows on the held-launcher host (generators/crossbowRows.ts, written by the crossbow pool bake). */
+const crossbowRows = v.strictObject({
+  view: v.strictObject({ hip:v.strictObject({px:number,py:number,pz:number,rx:number,ry:number,rz:number,scale:number}), ads:v.strictObject({eyeAboveRail:number,nearMargin:number,pitch:number}), peep:v.strictObject({z:number,radius:number,worldRadius:number}) }),
+  hands: v.strictObject({ left:heldHand, right:heldHand }),
+  launcher: v.strictObject({
+    materials: v.record(text, v.union([v.strictObject({name:text,look}), v.strictObject({name:text,basic:v.strictObject({color:number,opacity:number})})])),
+    textures: v.record(text, v.strictObject({ set:v.picklist(['walnut','brushed-steel','leather','cord','bolt']), repeat:opt(pair) })),
+    objects: v.strictObject({sight:text,sightRing:text}), fade: strings, nodes: v.strictObject({stringLeft:text,stringRight:text,serving:text,round:text,sightPost:text}),
+    anchors: v.strictObject({tipL:triple,tipR:triple,nockRest:triple,nockDrawn:triple}), string: v.strictObject({spring:pair,reloadSpring:pair,release:number,reload:pair}),
+    glance: v.strictObject({lift:number,keep:number,bounce:number,maxSpeed:number}),
+    frame: v.strictObject({ clock:v.picklist(['frame','world']), fovWhen:v.picklist(['always','active']), recoil:v.strictObject({decay:number,attack:number,recovery:number}),
+      lag:v.strictObject({gain:number,clampYaw:number,clampPitch:number,k:number,c:number}), clampAfter:flag, readout:v.strictObject({range:number,mask:number,held:flag,posed:flag}) }),
+    tracer: v.strictObject({ row:v.strictObject({mode:v.picklist(['segment','trail']),roster:natural,points:natural,width:number,color:triple,order:number,lifetime:number,fade:number,markerScale:number}),
+      spin:number, glow:v.strictObject({flight:number,stuck:number,impact:number,ring:pair}) }),
+    displayRest: v.pipe(v.array(v.strictObject({part:text,child:natural,material:text,position:triple,quaternion:v.tuple([number,number,number,number]),scale:triple})),v.maxLength(16)),
+  }),
+});
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
 export const SECTIONS = {
@@ -48,7 +69,7 @@ export const SECTIONS = {
   'custom/heldToolPlayback':v.strictObject({description:text,nodeNames:v.record(text,text),pose:Channels}),
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk}),
   'custom/trophyMounts':mountPack,
-  'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema}),
+  'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema,rows:crossbowRows}),
   'custom/handsPool':v.strictObject({pool,hands:v.record(long,bakedHand),bow:bakedBow}),
   'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;
