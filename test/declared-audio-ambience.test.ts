@@ -56,8 +56,9 @@ it('uses the native catalogue and retains entered sample/timer teardown without 
 it('keeps the island wind handoff, standalone scope and borrowed live uniform reads',()=>{
  const audio=new Audio(),scope=new Scope('island.parent'),wind={uTime:{value:4},uWindStrength:{value:.7}};
  const installed=vi.spyOn(audio,'installSynthBed'),windBed=vi.spyOn(audio,'windBed');
- const ambience=new DeclaredAmbience(island,{audio,scope,heightAt:()=>0,sea:0,owners:{wind}},ObservedMix),mix=ports();
+ const ambience=new DeclaredAmbience(island,{audio,scope,heightAt:()=>0,sea:0,owners:{wind,cove:{fall:{foot:[127.5,18]},cave:{x:16,z:22,yaw:.7,depth:9}}}},ObservedMix),mix=ports();
  try{
+  expect(mix.points?.['fall']).toEqual({x:127.5,y:1,z:18});expect(mix.points?.['cave']).toEqual({x:16-Math.sin(.7)*9*.5,z:22-Math.cos(.7)*9*.5});
   expect(mix.random).toBe(Math.random);expect(mix.zoneScope).toBeUndefined();expect(ambience.scope).not.toBe(scope);
   expect(windBed).toHaveBeenCalledExactlyOnceWith(island.ambience);expect(installed).toHaveBeenCalledOnce();
   expect(mix.inputs?.['windTime']?.()).toBe(4);wind.uTime.value=9;expect(mix.inputs?.['windTime']?.()).toBe(9);

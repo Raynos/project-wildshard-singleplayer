@@ -1,3 +1,4 @@
+import { declaredGameplay, type DeclaredGameplayPorts } from './declaredGameplay';
 import { DeclaredAmbience, type DeclaredAmbiencePorts } from './declaredAmbience';
 import { CatalogueScore } from './SetScore';
 import type { Music } from './Music';
@@ -12,6 +13,7 @@ import type { AudioMusicProfile, AudioSampleProfile, AudioZoneProfile } from './
 /** Catalogue cue ids plus bounded wind recipes and a score mode, supplied as validated level data. */
 export interface DeclaredAudioData {
   cues: readonly { id: string; voice: string }[];
+  gameplay?:NonNullable<AudioData['gameplay']>;observations?:NonNullable<AudioData['observations']>;
   bank?: NonNullable<AudioData['bank']>; playback?: NonNullable<AudioData['playback']>; pcm?: NonNullable<AudioData['pcm']>; synth?: NonNullable<AudioData['synth']>;
   /** Extended profiles resolve only through trusted platform catalogue installers. */
   music?: AudioMusicProfile | undefined; samples?: AudioSampleProfile | undefined; zones?: AudioZoneProfile | undefined;
@@ -37,9 +39,11 @@ export interface DeclaredAudioPorts {
 }
 /** Native score owners supplied by the mixer; the declaration supplies all content policy. */
 export interface DeclaredScorePorts {audio:Pick<Audio,'onLevelBank'>;music:Music;scope:Scope;beforeBind?:()=>void}
-function scorePorts(ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts):ports is DeclaredScorePorts {
+function scorePorts(ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts|DeclaredGameplayPorts):ports is DeclaredScorePorts {
   return 'music' in ports&&'residentBank' in ports.music&&'onLevelBank' in ports.audio;
 }
+/** Gameplay phase binds native owners to declared observations and entry policy. */
+export function installDeclaredAudio(data:AudioData,ports:DeclaredGameplayPorts,phase:'gameplay'):ReturnType<typeof declaredGameplay>;
 /** Zoned ambience uses the existing native mix and declared ownership policy. */
 export function installDeclaredAudio(data:AudioData,ports:DeclaredAmbiencePorts,phase:'ambience'):DeclaredAmbience;
 /** Score-only phase uses the existing catalogue and keeps native bank and entered lifetimes separate. */
@@ -48,7 +52,8 @@ export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredScoreP
 export function installDeclaredAudio(data:AudioData,ports:{audio:DeclaredBankAudio;scope:Scope},phase:'voices'):DeclaredSoundBank;
 export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts):void;
 /** Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. */
-export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts,phase?:'voices'|'score'|'ambience'):void|DeclaredSoundBank|CatalogueScore|DeclaredAmbience {
+export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts|DeclaredGameplayPorts,phase?:'voices'|'score'|'ambience'|'gameplay'):void|DeclaredSoundBank|CatalogueScore|DeclaredAmbience|ReturnType<typeof declaredGameplay> {
+  if(phase==='gameplay'){if(!('owners' in ports)||!('music' in ports)||!('ambience' in ports)||!('camera' in ports))throw new Error('Missing gameplay ports');return declaredGameplay(data,ports);}
   if(ports.scope?.disposed)throw new Error('Audio scope is disposed');
   if(phase==='ambience'){if(!('sea' in ports))throw new Error('Missing ambience ports');return new DeclaredAmbience(data,ports);}
   if(phase==='score'){

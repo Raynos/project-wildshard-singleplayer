@@ -71,6 +71,10 @@ export class DeclaredAmbience {
       for(const field of row.path){if(typeof value!=='object'||value===null)throw new Error('Missing ambience numeric path');value=Reflect.get(value,field);}
       if(typeof value!=='number'||!Number.isFinite(value))throw new Error('Invalid ambience numeric input');return value;
     };
+    const points={...ports.points,...Object.fromEntries(Object.entries(policy.points??{}).map(([id,row])=>{
+      const x=audioMixValue(row.x,read),z=audioMixValue(row.z,read);
+      return [id,{x,z,...(row.height===undefined?{}:{y:heightAt(x,z)+audioMixValue(row.height,read)})}];
+    }))};
     const circles:NonNullable<AmbienceMixPorts['circles']>=Object.fromEntries(Object.entries(policy.circles).map(([id,reference])=>[id,()=>{
       const point=owner(reference);if(point===undefined)return undefined;
       if(typeof point!=='object'||point===null||!('x' in point)||!('z' in point)||!('r' in point)||typeof point.x!=='number'||typeof point.z!=='number'||typeof point.r!=='number')throw new Error('Invalid ambience circle');
@@ -87,7 +91,7 @@ export class DeclaredAmbience {
     const floors=Object.fromEntries(Object.entries(ports.floorRows??{}).map(([id,rects])=>[id,{floorHeightAt:(x:number,z:number)=>floorAtRects(rects,x,z,'first')}]));
     this.surfaces=policy.surfaces?new AudioSurfaceMap(requireAudioProfile(rows.surfaces,'ambience surfaces'),SURFACES,{heightAt,sea:ports.sea,floors:Object.fromEntries(Object.entries(floors).map(([id,floor])=>[id,[floor]])),values:Object.fromEntries(Object.keys(this.inputs).map(id=>[id,()=>this.inputs[id]??0])),circles}):undefined;
     this.routing=new Mix(ports.audio,profile,{
-      ...ports,heightAt,floors,circles,pointLists,spots:{spots:()=>spots},random:policy.random==='audio'?audioRandom:Math.random,scope:this.scope,...(policy.ownedZones&&ports.scope!==undefined?{zoneScope:this.scope}:{}),inputs:reads,
+      ...ports,points,heightAt,floors,circles,pointLists,spots:{spots:()=>spots},random:policy.random==='audio'?audioRandom:Math.random,scope:this.scope,...(policy.ownedZones&&ports.scope!==undefined?{zoneScope:this.scope}:{}),inputs:reads,
       ...(bank===undefined?{}:{sample:{available:()=>bank.catalogue.available,load:id=>bank.catalogue.bed(id),drop:id=>{bank.catalogue.dropBed(id);}},
         sampleLive:ids=>{this.diag['beds']=ids;},listener:(x,y,z,yaw)=>{bank.playback.listener(x,y,z,yaw);},shot:(family,options)=>bank.shot(family,options)}),
       diagnostic:(id,value)=>{this.diag[id]=value;},roomWeight:(id,value)=>{sends[id]=value;},

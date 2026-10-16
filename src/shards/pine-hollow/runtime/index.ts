@@ -3,10 +3,9 @@ import { SECTIONS } from './sections';
 import { preloadHeldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { runtimeAudio, installRuntimeScore } from '@wildshard/game/plugin/audio';
+import { runtimeAudio, installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
 import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
-import { installEnteredPineVoices } from './audio/entered';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks } from '../species/looks';
 import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
@@ -54,7 +53,6 @@ import * as v from 'valibot';
 import { installPineAudio } from './audio/wiring';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import * as audioTerrain from '@wildshard/engine/world/Heightfield';
-import { isPhShot } from './audio/sfx';
 import { installWeather, loadPineRain } from '../world/weather';
 import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
@@ -163,7 +161,7 @@ export class PineHollow extends ShardPlugin {
   override async kit(ctx: ShardContext): Promise<void> {
     const audio = ctx.app.audio;
     if (audio === null) throw new Error('Pine synth bed needs its mixer');
-    installEnteredPineVoices(ctx, audio);
+    installRuntimeAudioEntry(ctx,'kit',{audio});
     registerKing();
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks());
@@ -210,7 +208,7 @@ export class PineHollow extends ShardPlugin {
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;
     const { animals, weapons, inventory, owned, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
-    installRuntimeScore(ctx, audio, music);
+    installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof HeldLauncher)) throw new Error('Pine ranged kit was not built');
@@ -272,14 +270,14 @@ export class PineHollow extends ShardPlugin {
     placePineHollowSets(registry);
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabins?.audioState.floors ?? [] }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: cabins?.audioState }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
-    installPineAudio({ context: ctx, game, audio, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
+    await installPineAudio({context:ctx,game,audio,sky,music,ambience,animals,cabins,elites:fights.elites});
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
     const wildlife=new WildlifeMesh(sky,lifeRows.scavenger.flock.count+lifeRows.forager.count+2);
-    const life = installAmbientLife(lifeRows,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!isPhShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
+    const life = installAmbientLife(lifeRows,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });

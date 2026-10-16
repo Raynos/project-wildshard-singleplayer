@@ -1,7 +1,6 @@
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { absentShardProduct, createShardProduct } from '../src/game/shardfile/shardProduct';
-import { pineAudioProfile } from '../src/shards/pine-hollow/runtime/audio/profile';
 import {productAudioCatalogue} from '../src/game/shardfile/audioCatalogue';
 import AUDIO from '../src/shards/pine-hollow/data/audio.generated.json' with { type: 'json' };
 import { parseAudioData } from '@wildshard/format/audio';
@@ -20,13 +19,8 @@ test('Pine samples and fallback wind belong to the admitted entry, with required
   if (samples === undefined || ambience === null) throw new Error('Shipping Pine audio profiles missing');
   const changed = { ...PINE_AUDIO, samples: { ...samples, bed: 'entry-bed', loopGains: { creek: 0.37 } },
     ambience: { ...ambience, bed: 'entry-wind' } };
-  const result = pineAudioProfile(product(changed));
-  expect(result.bed).toBe('entry-bed');
-  expect(result.samples.loopGains).toEqual({ creek: 0.37 });
-  expect(result.wind).toBe(changed.ambience);
-  expect(() => pineAudioProfile(product({ ...PINE_AUDIO, samples: undefined }))).toThrow('pine.samples');
-  expect(() => pineAudioProfile(product({ ...PINE_AUDIO, ambience: null }))).toThrow('ambience.pine.wind');
-  expect(() => pineAudioProfile(absentShardProduct('pine-audio-test'))).toThrow('no built shard');
+  expect(product(changed).section('audio/audio').audio.samples?.bed).toBe('entry-bed');
+  expect(product(changed).section('audio/audio').audio.ambience).toBe(changed.ambience);
   await expect(productAudioCatalogue('pine-audio-test',absentShardProduct('pine-audio-test'))).rejects.toThrow('no built shard');
 });
 

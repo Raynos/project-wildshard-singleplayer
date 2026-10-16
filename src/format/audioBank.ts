@@ -7,6 +7,7 @@ const family=v.strictObject({n:v.pipe(v.number(),v.integer(),v.minValue(1),v.max
  source:v.variant('kind',[v.strictObject({kind:v.literal('pcm'),id}),v.strictObject({kind:v.literal('impact'),material:v.picklist(['flesh','shell','wood','stone'])})])});
 /** Native sample/procedural bank policies. Programs and recordings remain in their existing audio sections. */
 export const AudioBankSchema=v.strictObject({
+ shots:v.exactOptional(v.pipe(v.array(id),v.maxLength(256),v.check(rows=>new Set(rows).size===rows.length))),
  families:v.optional(v.pipe(v.record(id,family),v.check(rows=>Object.keys(rows).length<=64)),{}),
  catalogue:v.exactOptional(v.strictObject({set:id,tolerance:v.pipe(finite,v.minValue(0),v.maxValue(1)),arrayFamilies:v.boolean(),familyGain:v.boolean(),loopGain:v.pipe(finite,v.minValue(0),v.maxValue(8))})),
  barks:v.exactOptional(v.strictObject({prefix:id,gain:v.pipe(finite,v.minValue(0),v.maxValue(8))})),

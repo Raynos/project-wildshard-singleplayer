@@ -1,14 +1,20 @@
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { GROUND_SURFACES, type AudioSurfaceMap, type GroundSurface, type AudioSurfacePorts } from '@wildshard/engine/audio/surface';
+import type { DeclaredAmbiencePorts } from '@wildshard/engine/audio/declaredAmbience';
+import { swordEvents } from '../weapons/Sword';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import type { DeclaredGameplayPorts } from '@wildshard/engine/audio/declaredGameplay';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import type { Music } from '@wildshard/engine/audio/Music';
-import { createAudioObserver, type AudioObservationPorts } from '@wildshard/engine/audio/audioProfiles';
+import { createAudioObserver, requireAudioProfile, type AudioObservationPorts } from '@wildshard/engine/audio/audioProfiles';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/combat/cues';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { AudioData } from '@wildshard/format/audio';
 import type { GameServices, ShardContext } from './context';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
+import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import { installSilentScore } from '../systems/audio/silentScore';
 import { crossbowFire, dryFire, boltImpact, reload } from "../systems/audio/crossbowSounds";
 import { rifleFire, rifleReload } from "../systems/audio/firearmSounds";
@@ -130,4 +136,94 @@ export function installRuntimeScore(context:ShardContext,audio:Audio,music:Music
     if(retained){const bank=music.residentBank();if(bank!==undefined)score.useStyleBank(bank);}
   };
   if(profile.lifecycle.persistent)installEnteredRuntimeService(context,install);else install(context.scope);
+}
+
+/** Native scene loans to the declared installer, never shard TS event adapters. */
+export type RuntimeGameplayAudioPorts=Omit<DeclaredGameplayPorts,'ambience'>&{
+  audio:Audio;ambience?:DeclaredGameplayPorts['ambience'];bank?:DeclaredSoundBank;
+  listener?:object;objects?:Record<string,unknown>;
+};
+function audioOwner(owners:Readonly<Record<string,object|null|undefined>>,ref:{owner:string;path:readonly string[]}):unknown {
+  if(!Object.hasOwn(owners,ref.owner))throw new Error(`Missing audio owner: ${ref.owner}`);
+  let value:unknown=owners[ref.owner];for(const key of ref.path){if(value===null||value===undefined)return undefined;if(typeof value!=='object')throw new Error('Invalid audio owner path');value=Reflect.get(value,key);}return value;
+}
+function audioFloor(value:unknown):value is NonNullable<AudioSurfacePorts['floors'][string][number]> {return typeof value==='object'&&value!==null&&'floorHeightAt' in value&&typeof value.floorHeightAt==='function';}
+function audioDusk(value:unknown):value is NonNullable<DeclaredGameplayPorts['dusk']>{return typeof value==='object'&&value!==null&&'setDusk' in value&&typeof value.setDusk==='function';}
+function audioPoints(value:unknown):value is readonly {x:number;z:number}[]{return Array.isArray(value)&&value.length<=2048&&value.every((point:unknown)=>typeof point==='object'&&point!==null&&'x' in point&&typeof point.x==='number'&&'z' in point&&typeof point.z==='number');}
+/** Install admitted gameplay bindings using native owner loans, with no shard callbacks. */
+export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:RuntimeGameplayAudioPorts):Promise<void> {
+  const rows=runtimeAudio(context,context.product.shardfile.audio),policy=rows.gameplay;
+  if(policy===undefined)throw new Error('Missing audio gameplay bindings');
+  const environment=policy.environment;
+  let ambience=borrowed.ambience,bank=borrowed.bank,dusk=borrowed.dusk,emitters=borrowed.emitters;
+  let surfaces:AudioSurfaceMap<GroundSurface>|undefined,releaseEnvironment:(()=>void)|undefined;
+  if(environment!==undefined){
+    const {trailDistance}=await import('@wildshard/engine/world/Heightfield');
+    const sea=context.product.shardfile.water.find(body=>body.kind==='sea');if(sea?.kind!=='sea')throw new Error('Missing audio sea');
+    const read=(ref:{owner:string;path:readonly string[]}):unknown=>audioOwner(borrowed.owners,ref);
+    const nativeDusk=read(environment.dusk);if(nativeDusk!==undefined&&nativeDusk!==null&&!audioDusk(nativeDusk))throw new Error('Invalid audio dusk owner');
+    dusk=nativeDusk??null;
+    const point=read(environment.emitter.point);let hum:ReturnType<Audio['loopEmitter']>|null=null;
+    if(point!==undefined&&point!==null){
+      if(typeof point!=='object'||!('x' in point)||!('z' in point)||typeof point.x!=='number'||typeof point.z!=='number')throw new Error('Invalid audio emitter point');
+      hum=borrowed.audio.loopEmitter(requireAudioProfile(rows.emitters?.[environment.emitter.profile],'audio emitter'),requireAudioProfile(rows.loopGraphs,'audio graphs'),{position:{x:point.x,y:terrainHeight(point.x,point.z)+environment.emitter.height,z:point.z},duck:gain=>{borrowed.music.duck(gain);}});
+    }
+    emitters={[environment.emitter.id]:hum};
+    bank=installDeclaredAudio(context.product.shardfile.audio,{audio:borrowed.audio,scope:context.scope},'voices');
+    const floors=Object.fromEntries(Object.entries(environment.floors).map(([id,refs])=>[id,refs.flatMap(ref=>{const raw=read(ref),values:readonly unknown[]=Array.isArray(raw)?raw:[raw];if(values.length>512||!values.every(value=>value===null||value===undefined||audioFloor(value)))throw new Error('Invalid audio floor owners');return values;})]));
+    surfaces=borrowed.audio.surfaceMap(requireAudioProfile(rows.surfaces,'audio surfaces'),GROUND_SURFACES,{sea:sea.level,heightAt:terrainHeight,values:{trail:trailDistance},floors});
+    const objects=Object.fromEntries(Object.entries(environment.objects).map(([id,ref])=>{const object=read(ref);if(object!==null&&object!==undefined&&typeof object!=='object')throw new Error('Invalid ambience object');return [id,object];}));
+    const near:DeclaredAmbiencePorts['near']=Object.fromEntries(Object.entries(environment.near).map(([id,ref])=>{const points=read(ref);if(points!==undefined&&!audioPoints(points))throw new Error('Invalid ambience points');return [id,points];}));
+    const active=installDeclaredAudio(rows,{audio:borrowed.audio,sea:sea.level,objects,near,owners:borrowed.owners},'ambience');ambience=active;
+    context.answer('player.stepSurface',request=>({...request,surface:surfaces?.surfaceAt(request.x,request.z,request.y)??request.surface}));
+    releaseEnvironment=()=>{hum?.dispose();active.dispose();};
+  }
+  if(ambience===undefined)throw new Error('Missing gameplay ambience');
+  const ports={...borrowed,ambience,...(dusk===undefined?{}:{dusk}),...(emitters===undefined?{}:{emitters})};
+  const controller=installDeclaredAudio(rows,ports,'gameplay'),retained=policy.entered&&retainsRuntimeServices(context);
+  const events=policy.cues;let restoreEvents:(()=>void)|undefined;
+  if(events!==undefined){
+    const listener=ports.listener;if(bank===undefined||listener===undefined)throw new Error('Missing gameplay cue owners');
+    const cue=createCueRouter(rows.routing.filter(row=>row.bus==='audio'),{voices:new Map(),bindings:rows.voiceBindings,owners:new Map<string,object>([['sfx',bank],['playback',bank.playback],['listener',listener]])});
+    ports.audio.installCues(cue,context.scope);
+    const previous={onSwing:swordEvents.onSwing,onStrike:swordEvents.onStrike,onClang:swordEvents.onClang},melee=events.melee;
+    swordEvents.onSwing=(speed,heavy,dir)=>{cue(melee.fire,{speed,heavy,dir});};
+    swordEvents.onStrike=(kind,point,strength,killed)=>{cue(melee.hitPrefix+(melee.materials[kind]??melee.fallback),{point,strength});if(killed)cue(melee.death,{kind,point,gain:melee.deathGain});};
+    swordEvents.onClang=(point,strength,kind)=>{cue(melee.clangPrefix+kind,{point,strength});};
+    const water=ports.audio.setUnderwater.bind(ports.audio);
+    if(events.underwater)ports.audio.setUnderwater=on=>{water(on);ports.ambience.setUnderwater(on);};
+    restoreEvents=()=>{swordEvents.onSwing=previous.onSwing;swordEvents.onStrike=previous.onStrike;swordEvents.onClang=previous.onClang;if(events.underwater)ports.audio.setUnderwater=water;};
+  }
+  const diagnostic=policy.diagnostic;
+  if(!policy.entered){for(const system of controller.systems)context.system(system);controller.enter(context.scope,false);}
+  else {
+    if(retained&&diagnostic!==undefined)installEnteredRuntimeObserver(context,diagnostic.name,controller.diagnostic);
+    const install=(scope:Scope):void=>{for(const system of controller.systems)context.app.addSystem(system,scope);controller.enter(scope,retained);if(!retained&&diagnostic!==undefined&&typeof window!=='undefined')scope.expose(window,diagnostic.name,controller.diagnostic);};
+    if(retained)installEnteredRuntimeService(context,install);else {const scope=context.app.levelScope;if(scope===null)throw new Error('Missing gameplay level scope');install(scope);}
+  }
+  let handles:Record<string,unknown>|undefined;
+  const objects=ports.objects;
+  if(environment!==undefined){
+    if(objects===undefined)throw new Error('Missing gameplay object registry');
+    const owners={...ports.owners,bank,surfaces,ambience,emitters};
+    handles=Object.fromEntries(Object.entries(environment.publish.values).map(([id,ref])=>[id,audioOwner(owners,ref)]));
+    Object.assign(objects,handles);context.debug.expose(environment.publish.id,handles);
+  }
+  context.scope.onDispose(()=>{restoreEvents?.();releaseEnvironment?.();if(objects!==undefined)for(const [key,value] of Object.entries(handles??{}))if(objects[key]===value)delete objects[key];});
+}
+
+/** Select an admitted entry stage; wind and score keep their native scopes and restoration laws. */
+export function installRuntimeAudioEntry(context:ShardContext,stage:string,ports:{audio:Audio;music?:Music}):void {
+  const authored=context.product.section('audio/audio').audio,entry=authored.entry?.[stage];
+  if(entry===undefined)throw new Error('Missing declared audio entry stage');
+  if(entry.score){if(ports.music===undefined)throw new Error('Missing audio entry music');installRuntimeScore(context,ports.audio,ports.music);}
+  if(entry.wind){
+    const samples=authored.samples;if(samples===undefined)throw new Error('Missing audio entry samples');
+    const wind=runtimeAudio(context,authored).ambience;if(wind===null)throw new Error('Missing audio entry wind');
+    if(!retainsRuntimeServices(context)){ports.audio.windBed(wind,context.scope);return;}
+    installEnteredRuntimeService(context,scope=>{
+      const previous=ports.audio.bedId;ports.audio.windBed(wind,scope);ports.audio.setAmbient(samples.bed);
+      scope.onDispose(()=>{if(ports.audio.bedId===samples.bed)ports.audio.setAmbient(previous);});
+    });
+  }
 }

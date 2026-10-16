@@ -8172,3 +8172,34 @@ that data without a fallback. Callers keep their original save envelopes and
 use `nativeInventorySchema(policy)` before restoration; the shared stacking
 and trade laws remain the sole inventory state owner. Missing policy, repeated
 kinds, invalid slot bounds and reversed count bounds refuse before allocation.
+
+### Declared gameplay audio bindings
+
+`audio/audio.gameplay` binds the existing `installDeclaredAudio(...,
+'gameplay')` phase to bounded native owner paths, typed observation commands,
+and door/entry policy. `installRuntimeGameplayAudio` in
+`@wildshard/game/plugin/audio` supplies the resident/entered registration
+adapter. Pine and Driftwood both consume this phase. Observation and cue
+policy are DATA; small existing entry files retain the native door, floor
+and dusk loans until those providers themselves become declared data. Reads
+borrow live native owners and rosters,
+never copies. The native observer retains cadence, hysteresis and transition
+history while the original entry scope owns subscriptions and shade restore.
+
+`audio/audio.entry` selects at most four named wind/score stages through
+`installRuntimeAudioEntry`. Existing score-bank and wind-bed installers remain
+the resource owners. Retained wind waits for entry, restores only the bed it
+still owns, and re-registers on re-entry; ordinary wind keeps the kit scope.
+A missing stage, owner, required profile or nonnumeric write refuses rather
+than selecting a shard-specific fallback. No service starts on import.
+
+The optional gameplay environment binds existing floor owners, emitter points,
+near lists and object loans; it never generates colliders or renderer state.
+Declared ambience points use its existing mix algebra and numeric owner reads.
+The platform owns native melee/underwater cue subscriptions, original callback
+order, emitter/ambience disposal and identity-checked published handle removal.
+Voice-bank `shots` is the admitted one-shot identity list; `acceptsShot` checks
+membership independently of sample readiness. Pine no longer ships a TS copy.
+
+The retained native-method crossings stay visible to the G454 inventory and
+within their original per-file ceilings; no cast or guard increase hides them.

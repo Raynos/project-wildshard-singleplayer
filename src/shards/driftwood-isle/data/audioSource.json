@@ -6162,13 +6162,104 @@
               "uWindStrength",
               "value"
             ]
+          },
+          {
+            "kind": "read",
+            "id": "fall.x",
+            "owner": "cove",
+            "path": [
+              "fall",
+              "foot",
+              "0"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "fall.z",
+            "owner": "cove",
+            "path": [
+              "fall",
+              "foot",
+              "1"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "cave.x",
+            "owner": "cove",
+            "path": [
+              "cave",
+              "x"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "cave.z",
+            "owner": "cove",
+            "path": [
+              "cave",
+              "z"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "cave.yaw",
+            "owner": "cove",
+            "path": [
+              "cave",
+              "yaw"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "cave.depth",
+            "owner": "cove",
+            "path": [
+              "cave",
+              "depth"
+            ]
           }
         ],
         "surfaces": false,
         "spots": false,
         "circles": {},
         "pointLists": {},
-        "spotBindings": {}
+        "spotBindings": {},
+        "points": {
+          "fall": {
+            "x": "fall.x",
+            "z": "fall.z",
+            "height": 1
+          },
+          "cave": {
+            "x": [
+              "-",
+              "cave.x",
+              [
+                "*",
+                [
+                  "sin",
+                  "cave.yaw"
+                ],
+                "cave.depth",
+                0.5
+              ]
+            ],
+            "z": [
+              "-",
+              "cave.z",
+              [
+                "*",
+                [
+                  "cos",
+                  "cave.yaw"
+                ],
+                "cave.depth",
+                0.5
+              ]
+            ]
+          }
+        }
       }
     },
     "bank": {
@@ -6256,6 +6347,177 @@
           "startTap": "gullCallAt",
           "tap": "gullCall"
         }
+      }
+    },
+    "gameplay": {
+      "entered": false,
+      "score": false,
+      "activate": false,
+      "restoreShade": false,
+      "inputs": {
+        "clock": {
+          "owner": "sky",
+          "path": [
+            "dayNight"
+          ]
+        }
+      },
+      "writers": {
+        "shrine.dusk": {
+          "kind": "dusk"
+        },
+        "ambience.night": {
+          "kind": "night"
+        }
+      },
+      "entities": {},
+      "commands": {
+        "hum": {
+          "kind": "emitter",
+          "id": "hum"
+        },
+        "ambience": {
+          "kind": "frame"
+        }
+      },
+      "cues": {
+        "underwater": true,
+        "melee": {
+          "fire": "cue.weapon.fire",
+          "hitPrefix": "cue.hit.",
+          "materials": {
+            "crab": "shell",
+            "sailor": "wood"
+          },
+          "fallback": "flesh",
+          "death": "cue.creature.death",
+          "deathGain": 1.3,
+          "clangPrefix": "cue.weapon.clang."
+        }
+      },
+      "environment": {
+        "objects": {
+          "wreck": {
+            "owner": "world",
+            "path": [
+              "wreck"
+            ]
+          },
+          "cove": {
+            "owner": "cove",
+            "path": []
+          }
+        },
+        "near": {
+          "palms": {
+            "owner": "world",
+            "path": [
+              "palmSpecs"
+            ]
+          }
+        },
+        "floors": {
+          "decks": [
+            {
+              "owner": "world",
+              "path": [
+                "pier"
+              ]
+            },
+            {
+              "owner": "world",
+              "path": [
+                "jetties"
+              ]
+            },
+            {
+              "owner": "world",
+              "path": [
+                "boat"
+              ]
+            },
+            {
+              "owner": "world",
+              "path": [
+                "hut"
+              ]
+            },
+            {
+              "owner": "world",
+              "path": [
+                "lookout"
+              ]
+            },
+            {
+              "owner": "world",
+              "path": [
+                "bridge"
+              ]
+            },
+            {
+              "owner": "world",
+              "path": [
+                "wreck"
+              ]
+            }
+          ],
+          "stone": [
+            {
+              "owner": "world",
+              "path": [
+                "shrine"
+              ]
+            }
+          ]
+        },
+        "dusk": {
+          "owner": "world",
+          "path": [
+            "shrine"
+          ]
+        },
+        "emitter": {
+          "id": "hum",
+          "profile": "shrine",
+          "point": {
+            "owner": "world",
+            "path": [
+              "shrine",
+              "group",
+              "position"
+            ]
+          },
+          "height": 2.5
+        },
+        "publish": {
+          "id": "driftwood.audio",
+          "values": {
+            "shrineHum": {
+              "owner": "emitters",
+              "path": [
+                "hum"
+              ]
+            },
+            "islandSfx": {
+              "owner": "bank",
+              "path": []
+            },
+            "surfaces": {
+              "owner": "surfaces",
+              "path": []
+            },
+            "ambience": {
+              "owner": "ambience",
+              "path": []
+            }
+          }
+        }
+      }
+    },
+    "entry": {
+      "play": {
+        "wind": false,
+        "score": true
       }
     }
   }

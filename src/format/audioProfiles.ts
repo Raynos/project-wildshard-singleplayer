@@ -197,6 +197,7 @@ export const AudioAmbienceLifecycleSchema = v.strictObject({
   bank:v.boolean(),wind:v.boolean(),logZone:v.boolean(),random:v.picklist(['audio','global']),
   values:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=32)),
   surfaces:v.boolean(),spots:v.boolean(),
+  points:v.exactOptional(v.pipe(v.record(id,v.strictObject({x:mixExpr,z:mixExpr,height:v.exactOptional(mixExpr)})),v.check(rows=>Object.keys(rows).length<=16))),
   circles:v.pipe(v.record(id,ambienceReference),v.check(rows=>Object.keys(rows).length<=16)),
   pointLists:v.pipe(v.record(id,ambienceReference),v.check(rows=>Object.keys(rows).length<=16)),
   spotBindings:v.pipe(v.record(id,v.strictObject({zone:id,gain:ambienceReference,above:finite})),v.check(rows=>Object.keys(rows).length<=16)),

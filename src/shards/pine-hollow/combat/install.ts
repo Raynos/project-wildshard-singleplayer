@@ -72,6 +72,7 @@ export interface PineCombatHost {
 }
 
 export interface PineCombat {
+  readonly elites:Elites;
   /** Sealed room fog override, answered by the active plugin scope. */
   weatherHold: () => number;
   /** a death in the King's fight is his (back at the phase checkpoint): true = do not respawn at the gate */
@@ -80,7 +81,7 @@ export interface PineCombat {
   isElite: (a: Animal) => boolean;
   /** Pine Hollow's one-shots (ForestAmbience.sfx), once the ambience exists */
   useSfx: (sfx: PineHollowSfx) => void;
-  /** a named elite's fight is on (its bar pinned): the music holds combat (src/shards/pine-hollow/runtime/audio/wiring.ts) */
+  /** a named elite's fight is on (its bar pinned): the declared gameplay audio holds combat */
   eliteEngaged: () => boolean;
 }
 
@@ -225,6 +226,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   else installEnteredRuntimeService(entered, (scope) => { registerPineLap(lap, scope); });
 
   return {
+    elites,
     weatherHold: () => king.fight.sealK,
     onPlayerDeath: () => { const target = app.player; if (target !== null) app.effects?.remove(target, 'effect.stun'); introLock = false; legs(); return king.onPlayerDeath(); },
     isElite: isPineElite,

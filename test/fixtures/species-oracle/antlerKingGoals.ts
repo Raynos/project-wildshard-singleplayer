@@ -3,7 +3,8 @@ import type { Vector3 } from 'three';
 import type { BrainPoint } from '@wildshard/engine/ai/strikes';
 import { clipHitReached } from '../../../src/game/combat/clipTiming';
 import type { Lane, LaneBody } from '../../../src/shards/pine-hollow/combat/lane';
-import type { PhShot } from '../../../src/shards/pine-hollow/runtime/audio/sfx';
+// Original sound identity union retained after the shipping runtime table was deleted.
+type PhShot = 'boltImpact-rock' | 'deer_snort' | 'leverCycle' | 'leverShot' | 'leverEcho' | 'longbowDraw' | 'longbowLoose' | 'thrall_call' | 'thrall_groan' | 'thrall_move' | 'king_bells' | 'king_stomp' | 'king_roar' | 'doorOpen' | 'doorClose' | 'lanternLight' | 'lanternCreak' | 'zipline' | 's dry click + a round thumbed through its gate; the life' | 'leverDry' | 'leverRoundIn' | 'raven_caw' | 'raven_pair' | 'raven_flap' | 'owl_hoot' | 'woodpecker_drum' | 'woodpecker_call' | 'skinCut-a' | 'skinCut-b';
 import { headingTo } from '../../../src/shards/pine-hollow/combat/combatMath';
 import { pineContact, PINE_STRIKES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { KING_ATTACK_TIMING } from '../../../src/shards/pine-hollow/combat/kingTiming';

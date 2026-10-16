@@ -52,6 +52,8 @@ export class DeclaredSoundBank {
   this.playback=audio.voices.playback(playback,catalogue===undefined?undefined:{available:()=>catalogue.available,samples:{clips:id=>catalogue.clips(id),load:id=>{catalogue.load(id);}}});
   audio.voices.register(table,scope);
  }
+ /** Membership is authored independently of whether the selected sample set is decoded. */
+ acceptsShot(id:string):boolean{return this.bank.shots?.includes(id)===true;}
  get catalogue():CueCatalogue {if(this.samples===undefined)throw new Error('Sound bank has no sample catalogue');return this.samples;}
  prewarm(families:readonly string[]):void {if(this.samples===undefined)this.audio.voices.prewarm(families);else this.samples.prewarm(families);}
  shot(family:string,options:PlayOpts={}):boolean {const ok=this.playback.play('shot',{family},options);audioLog('sfx',family,ok);return ok;}

@@ -498,9 +498,13 @@
           },
           {
             "id": "engaged",
-            "op": "truth",
-            "path": [],
-            "source": "engaged"
+            "op": "equals",
+            "path": [
+              "focus",
+              "state"
+            ],
+            "source": "engaged",
+            "value": "engaged"
           },
           {
             "id": "listener.x",
@@ -2416,6 +2420,139 @@
       "barks": {
         "prefix": "bark-",
         "gain": 0.8
+      },
+      "shots": [
+        "boltImpact-rock",
+        "deer_snort",
+        "leverCycle",
+        "leverShot",
+        "leverEcho",
+        "longbowDraw",
+        "longbowLoose",
+        "thrall_call",
+        "thrall_groan",
+        "thrall_move",
+        "king_bells",
+        "king_stomp",
+        "king_roar",
+        "doorOpen",
+        "doorClose",
+        "lanternLight",
+        "lanternCreak",
+        "zipline",
+        "s dry click + a round thumbed through its gate; the life",
+        "leverDry",
+        "leverRoundIn",
+        "raven_caw",
+        "raven_pair",
+        "raven_flap",
+        "owl_hoot",
+        "woodpecker_drum",
+        "woodpecker_call",
+        "skinCut-a",
+        "skinCut-b"
+      ]
+    },
+    "gameplay": {
+      "entered": true,
+      "score": true,
+      "activate": true,
+      "restoreShade": true,
+      "inputs": {
+        "clock": {
+          "owner": "sky",
+          "path": [
+            "dayNight"
+          ]
+        },
+        "pinned": {
+          "owner": "pin",
+          "path": [
+            "value"
+          ]
+        },
+        "score": {
+          "owner": "score",
+          "path": []
+        },
+        "engaged": {
+          "owner": "elites",
+          "path": []
+        },
+        "listener": {
+          "owner": "camera",
+          "path": [
+            "position"
+          ]
+        }
+      },
+      "writers": {
+        "ambience.night": {
+          "kind": "night"
+        }
+      },
+      "entities": {
+        "animals": {
+          "owner": "animals",
+          "path": [
+            "animals"
+          ]
+        }
+      },
+      "commands": {
+        "clock.change": {
+          "kind": "log",
+          "on": "clock:night",
+          "off": "clock:day",
+          "ok": true,
+          "detail": {
+            "owner": "sky",
+            "path": [
+              "dayNight",
+              "night"
+            ]
+          },
+          "precision": 2
+        },
+        "score.scene": {
+          "kind": "scene",
+          "system": "audio",
+          "state": "night",
+          "on": "night",
+          "off": "day"
+        },
+        "elite.change": {
+          "kind": "log",
+          "on": "elite:engaged",
+          "off": "elite:clear"
+        },
+        "combat": {
+          "kind": "combat",
+          "gain": 0.8
+        },
+        "deer.snort": {
+          "kind": "shot",
+          "family": "deer_snort"
+        }
+      },
+      "doors": {
+        "open": "doorOpen",
+        "close": "doorClose"
+      },
+      "diagnostic": {
+        "name": "__pineAudio",
+        "system": "audio",
+        "state": "night"
+      }
+    },
+    "entry": {
+      "play": {
+        "wind": false,
+        "score": true
+      },
+      "kit": {
+        "wind": true,
+        "score": false
       }
     }
   }

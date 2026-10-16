@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import { GroundTell } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { SkinId } from '../runtime/loadout/skins';
-import type { PhShot } from '../runtime/audio/sfx';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Lane } from './lane';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -33,7 +33,7 @@ export interface PineCtx {
   /** an animal voice at a point (AnimalManager.onSound: bear_roar, elk_bugle …) */
   sound: (name: string, at: THREE.Vector3) => void;
   /** a Pine Hollow one-shot (PineHollowSfx: king_roar, king_stomp, king_bells, thrall_call …); silently nothing before it decodes */
-  shot: (name: PhShot, at: THREE.Vector3) => void;
+  shot: (name: Parameters<DeclaredSoundBank['shot']>[0], at: THREE.Vector3) => void;
   toast: (text: string) => void;
   feed: (text: string) => void;
   addItem: (id: ItemId, n?: number) => void;

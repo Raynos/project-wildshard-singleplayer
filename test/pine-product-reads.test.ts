@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
-import { PH_SHOTS, isPhShot } from '../src/shards/pine-hollow/runtime/audio/sfx';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
 // emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).
@@ -19,8 +18,10 @@ test('Pine client reads resolve against the emitted output', async () => {
   const inventory = value('custom/questInventory');
   expect(inventory.feats.length).toBeGreaterThan(0);
   expect(inventory.items.length).toBeGreaterThan(0);
-  for (const voice of Object.values(value('custom/ambientLife').sounds)) expect(isPhShot(voice), voice).toBe(true);
-  expect(PH_SHOTS.length).toBe(new Set(PH_SHOTS).size);
+  const shots = loaded.shard.audio.bank?.shots;
+  if(shots===undefined)throw new Error('Pine admitted voice identities absent');
+  for (const voice of Object.values(value('custom/ambientLife').sounds)) expect(shots.includes(voice), voice).toBe(true);
+  expect(shots.length).toBe(new Set(shots).size);
   for (const geometry of value('custom/trophyMounts').rows.geometries) expect(geometry.own).toBeNull();
   const names = new Set(loaded.output.namedFiles?.map(row => row.name));
   const wanted = [value('custom/leverDetails').pool.url, value('custom/crossbowPool').pool.url, value('custom/trophyMounts').url,
