@@ -1,4 +1,3 @@
-import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import { SKY_RUNTIME_ROWS } from '../data/runtimeRows';
 import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
@@ -24,7 +23,6 @@ import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
 import { bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
-import { FLAGS } from '../quests/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
 
@@ -86,13 +84,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
     this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_WORLD.motion.nativeOwners, bindings: [built.islets], observed: (_id, observation) => {
-      const previouslyRaised = built.state.raised, flags = this.pageQuest.flags;
       if (observation.value === undefined || observation.turn === undefined) throw new Error('Missing winch channel observations');
       built.state.raised = observation.value !== 0; built.state.raising = observation.turn === 1;
-      if (!previouslyRaised && built.state.raised) {
-        built.winch.label = STRINGS.raised;
-        if (!flags.has(FLAGS.raised)) { this.bindPageStages(ctx).advance('far.quest.raised'); ctx.game.runtime?.play?.hud.toast(STRINGS.raised); }
-      }
+      built.winch.label = built.state.raised ? STRINGS.raised : STRINGS.turnWinch;
     } }));
   }
   protected override async install(ctx: ShardContext): Promise<void> {
@@ -109,13 +103,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     await worldBuildYield(ctx, 4);
     const host = motion.scriptHost; this.bindHeldActions(ctx, channels.hooks, () => host.currentTick);
-    if (flags.has(FLAGS.raised)) motion.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     rt.interactables.push(...channels.interactables);
-    // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
-    // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
-    bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).columns(source.modes?.traverse ?? [], () => position, this.board,
-      (id, run) => { ctx.system({ id, phase: 'fixed.pre', run }); });
 
     await worldBuildYield(ctx, 4);
     const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vane.flag }));

@@ -271,6 +271,8 @@ export class MoverRuntime {
       this.publish(m.id, call.ok);
     }
   }
+  /** Read the admitted committed endpoint without consulting a render pose. */
+  atEnd(id: string): boolean { return this.lifecycle.atEnd(id); }
   /** KA6 consumes these bounded fixed-step edges as named signals, distinct from actor move.done. */
   drainEndEvents(): readonly MoverEndEvent[] { return this.lifecycle.drain(); }
   /** Capture chain poses after the world step, then let the existing bridge renderer interpolate them. */

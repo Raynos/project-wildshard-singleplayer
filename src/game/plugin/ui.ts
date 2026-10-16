@@ -1446,20 +1446,31 @@ export function bindPageQuestStages(ctx: Pick<ShardContext, 'system'>, source: P
 /** Bounded borrowed stage observations, existing actions and event callback fields. */
 export interface QuestPageStageBindings {
   readonly observations?: readonly (BorrowedOwnerPath & { readonly id: string })[];
+  /** Admitted mover endpoints feed the existing quest stages, without view callbacks. */
+  readonly movers?: readonly { readonly id: string; readonly mover: string; readonly stage: string; readonly toast?: string }[];
   readonly actions?: readonly (BorrowedOwnerPath & { readonly id: string; readonly action: DirectorActionBinding['action'] })[];
   readonly events?: readonly (BorrowedOwnerPath & { readonly id: string })[];
 }
 /** Bind the admitted page lane at its existing install point; all owners preflight before quiet seeding. */
 export function bindBorrowedPageQuestStages(ctx:Pick<ShardContext,'system'>,source:Pick<Shardfile,'questHost'>,
   flags:Pick<Flags,'has'|'set'>,rows:QuestPageStageBindings,owners:ReadonlyMap<string,unknown>,
-  actor:(id:string)=>{readonly alive:boolean}|null):PageQuestStages {
+  actor:(id:string)=>{readonly alive:boolean}|null,
+  published?:{readonly motion?:Pick<MoverRuntime,'atEnd'|'drainEndEvents'|'data'>;readonly toast?:(text:string)=>void}):PageQuestStages {
   const host=source.questHost;if(host===undefined||host===null)throw new Error('Missing admitted page quest host');
   const ids=new Set(host.stages.map(stage=>stage.row.id));
-  for(const list of [rows.observations??[],rows.actions??[],rows.events??[]])if(list.length>64)throw new Error('Unbounded page stage bindings');
+  for(const list of [rows.observations??[],rows.actions??[],rows.events??[],rows.movers??[]])if(list.length>64)throw new Error('Unbounded page stage bindings');
   const observations=new Map((rows.observations??[]).map(row=>{
     const field=readBorrowedOwner(owners,row);if(field===null||typeof field.value!=='boolean')throw new Error('Missing page stage observation');
     return [row.id,()=>{const value=field.receiver[field.key];if(typeof value!=='boolean')throw new Error('Page stage observation changed type');return value;}] as const;
   }));
+  const moverRows=rows.movers??[],motion=published?.motion;
+  if(new Set(moverRows.map(row=>row.mover)).size!==moverRows.length||new Set(moverRows.map(row=>row.id)).size!==moverRows.length)throw new Error('Duplicate quest mover endpoint');
+  for(const row of moverRows){
+    if(motion===undefined||!ids.has(row.stage)||observations.has(row.id))throw new Error('Unbound quest mover endpoint');
+    motion.atEnd(row.mover);
+    if(row.toast!==undefined&&(published?.toast===undefined||row.toast.length>4096))throw new Error('Missing or invalid mover endpoint toast owner');
+    observations.set(row.id,()=>motion.atEnd(row.mover));
+  }
   const bindings=new Map<string,DirectorActionBinding[]>();
   for(const row of rows.actions??[]){
     if(!ids.has(row.id))throw new Error('Undeclared page stage action');
@@ -1472,6 +1483,15 @@ export function bindBorrowedPageQuestStages(ctx:Pick<ShardContext,'system'>,sour
     return {field,id:row.id};
   });
   const stages=bindPageQuestStages(ctx,source,{flags,actor,observations,bindings});
+  if(moverRows.length>0&&motion!==undefined)ctx.system({id:`${host.graph.step}.mover-endpoints`,phase:'fixed.post',run:()=>{
+    for(const event of motion.drainEndEvents()){
+      const row=moverRows.find(entry=>entry.mover===event.mover);if(row===undefined||!event.atEnd)continue;
+      const savedFlag=motion.data.find(entry=>entry.id===row.mover)?.restoreFrom?.flag;
+      const already=savedFlag!==undefined&&flags.has(savedFlag);
+      stages.advance(row.stage);
+      if(!already&&row.toast!==undefined)published?.toast?.(row.toast);
+    }
+  }});
   for(const {field,id} of events)field.receiver[field.key]=()=>{stages.advance(id);};
   return stages;
 }

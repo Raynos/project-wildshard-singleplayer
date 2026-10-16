@@ -2190,6 +2190,14 @@ export const MOVERS: MoverData = [
     "id": "far.winch.bridge",
     "entity": 8010,
     "kind": "platform",
+    "atEnd": {
+      "field": 5,
+      "equals": 1
+    },
+    "restoreFrom": {
+      "flag": "far.bridge",
+      "action": "end"
+    },
     "at": {
       "x": -55.8279416565877,
       "y": 44,

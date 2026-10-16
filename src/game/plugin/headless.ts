@@ -800,7 +800,8 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     if(rows===undefined||factory===null)throw new Error('Missing page stage rows');
     const owners=new Map<string,unknown>([...Object.entries(this.runtimeRows.owners??{}),['plugin',this],...Object.entries(extra)]);
     if(owners.size>64||Object.hasOwn(extra,'plugin'))throw new Error('Invalid page stage owners');
-    return factory(ctx,source,this.pageQuest.flags,rows,owners,this.actor.bind(this));
+    return factory(ctx,source,this.pageQuest.flags,rows,owners,this.actor.bind(this),{
+      ...(this.clientMotion===null?{}:{motion:this.clientMotion}),toast:text=>{ctx.game.runtime?.play?.hud.toast(text);}});
   }
   private questCapture: ((name: string) => void) | null = null;
   /** Stage a declared quest through its live flags and callbacks; unknown capture names do nothing. */
@@ -983,6 +984,12 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       const { runtimeProduct } = await import('../shardfile/runtimeProduct');
       this.clientMotion = await channels.installMovers(ctx, rt.world, source, motion, this.pageQuest.flags, runtimeProduct(source).assets);
       if (ctx.scope.disposed) { this.clientMotion = null; throw new Error('Page motion scope ended during installation'); }
+    }
+    // Install only the mode section assigned to this runtime owner.
+    if (this.runtimeSource.runtime?.binds?.includes('modes') === true) {
+      bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).columns(this.runtimeSource.modes?.traverse ?? [],
+        () => rt?.world?.player.position ?? this.player, () => ctx.app.player?.mode === 'board',
+        (id, run) => { ctx.system({ id, phase: 'fixed.pre', run }); });
     }
     await this.install(ctx, loot);
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.runtimeRows.complete] : [];

@@ -306,6 +306,20 @@ function play(session: Session, tape: SkyTape, until: (host: SimHost) => boolean
   throw new Error(`The tape did not finish within ${String(LIMIT)} ticks: ${JSON.stringify(tape.log.at(-1))}`);
 }
 
+/** Current gameplay-only quest witness: walk, fight, gust and ride the updraft to raise the bridge. */
+export async function questProof(rapier: Rapier): Promise<{ complete: boolean; raised: boolean; ticks: number; updraftTicks: number }> {
+  const session = boot(await skyPlan(rapier), rapier), tape = new SkyTape(); let updraftTicks = 0;
+  try {
+    play(session, tape, host => {
+      if (host.playerBoard.on && host.playerImpulse.y > 0) updraftTicks++;
+      return host.flags.has(FLAGS.complete);
+    });
+    const complete = session.host.flags.has(FLAGS.complete), raised = session.host.flags.has(FLAGS.raised);
+    if (!complete || !raised || updraftTicks === 0) throw new Error('Sky quest did not complete through its native movers and updraft');
+    return { complete, raised, ticks: session.host.state.tick, updraftTicks };
+  } finally { session.host.dispose(); }
+}
+
 export async function headlessProof(rapier: Rapier): Promise<object> {
   const plan = await skyPlan(rapier), session = boot(plan, rapier), tape = new SkyTape();
   let boardTicks = 0, lifted = 0, peak = -Infinity;

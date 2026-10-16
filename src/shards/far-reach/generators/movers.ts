@@ -2,11 +2,11 @@ import { AnimationClip, Euler, Group, Quaternion, QuaternionKeyframeTrack, Vecto
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
 import { Mover } from '@wildshard/sdk/movers';
-import { SPANS, FALLEN_BRIDGE } from '../data/layout';
+import { SPANS, FALLEN_BRIDGE, APOTHEM } from '../data/layout';
 import { FALLEN_ANGLE } from '../data/moverBindings';
+import { FLAGS } from '../quests/flags';
 import { deckCollider, saggedColliders, railColliders } from './bridgeColliders';
 import { isletId, gateId, RISING_ISLETS } from './risingIslets';
-import { apothem, spanYaw } from '../layout';
 import type { MoverBox } from '@wildshard/engine/physics/mover';
 import { ISLET, ISLET_ISLE } from '../data/isletDesign';
 
@@ -18,7 +18,7 @@ RotationStops.prototype.TimeBufferType = Float64Array; RotationStops.prototype.V
 const zero = { x: 0, y: 0, z: 0 };
 /** The islet's deck: six strips 30° apart over its 12-gon (world/build.ts islandColliders), as local mover boxes. */
 export function isletBoxes(): MoverBox[] {
-  const half = apothem(ISLET_ISLE), width = ISLET_ISLE.r * 0.26;
+  const half = ISLET_ISLE.r * APOTHEM, width = ISLET_ISLE.r * 0.26;
   return [0, 1, 2, 3, 4, 5].map((i) => {
     const a = (i * Math.PI) / 6, q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -a);
     return { x: 0, y: -1, z: 0, hx: half, hy: 1, hz: width, rot: { x: q.x, y: q.y, z: q.z, w: q.w } };
@@ -39,11 +39,11 @@ export function captureSkyMovers(module: string, isletModule: string): MoverData
     return { x: p.x, y: p.y, z: p.z, hx: d.hx, hy: d.hy, hz: d.hz, rot: { x: rot.x, y: rot.y, z: rot.z, w: rot.w } };
   });
   const spans = SPANS.filter((s) => s.kind === 'rope').map((span, i) => new Mover(body(span.id), { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: span.id, entity: 8001 + i, kind: 'static', at: zero, euler: zero, enabled: true, boxes: boxes(saggedColliders(span), zero) }));
-  const at = { x: FALLEN_BRIDGE.x0, y: FALLEN_BRIDGE.y, z: FALLEN_BRIDGE.z0 }, yaw = spanYaw(FALLEN_BRIDGE), id = 'far.winch.bridge', speed = 0.55, duration = -FALLEN_ANGLE / speed;
+  const at = { x: FALLEN_BRIDGE.x0, y: FALLEN_BRIDGE.y, z: FALLEN_BRIDGE.z0 }, yaw = Math.atan2(-(FALLEN_BRIDGE.x1 - FALLEN_BRIDGE.x0), -(FALLEN_BRIDGE.z1 - FALLEN_BRIDGE.z0)), id = 'far.winch.bridge', speed = 0.55, duration = -FALLEN_ANGLE / speed;
   const object = body(id); object.rotation.set(FALLEN_ANGLE, yaw, 0, 'YXZ');
   // The hinge's local pitch animation is independent of its fixed world yaw.
   const turn = new RotationStops(`${id}.quaternion`, [0, duration], [Math.sin(FALLEN_ANGLE / 2), 0, 0, Math.cos(FALLEN_ANGLE / 2), 0, 0, 0, 1]);
-  const winch = new Mover(object, { clip: new AnimationClip('raise', duration, [turn]), trigger: { kind: 'interact', permission: 3 }, driver: { kind: 'winch', mode: 'hinge', speed } }).toMoverData({ id, entity: 8010, kind: 'platform', at, euler: { x: FALLEN_ANGLE, y: yaw, z: 0 }, enabled: false, boxes: boxes([deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], at, yaw) });
+  const winch = new Mover(object, { clip: new AnimationClip('raise', duration, [turn]), trigger: { kind: 'interact', permission: 3 }, driver: { kind: 'winch', mode: 'hinge', speed } }).toMoverData({ id, entity: 8010, kind: 'platform', atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: FLAGS.raised, action: 'end' }, at, euler: { x: FALLEN_ANGLE, y: yaw, z: 0 }, enabled: false, boxes: boxes([deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], at, yaw) });
   const islets = RISING_ISLETS.map((entry, i) => ride(isletId(entry), entry.rest, entry.dock, entry.travel, false).toMoverData({ id: isletId(entry), entity: 8020 + i, kind: 'platform', at: { ...entry.rest }, euler: zero, enabled: true, boxes: isletBoxes() }));
   const gates = RISING_ISLETS.map((entry, i) => {
     const g = entry.gateBar, gateAt = { x: g.x, y: g.y, z: g.z }, gate = gateId(entry);

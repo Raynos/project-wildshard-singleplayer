@@ -7484,3 +7484,18 @@ the official root CLI supplies sealed legacy counts instead. The ruler and
 root adapter share `scripts/decision-legacy-lines.mjs`, including exact generated
 producer exclusions. Template's handlers use this same compiler and no private
 ABI glue. Generated bindings are virtual `behaviour/generated/<camelId>.ts`.
+
+### Quest mover endpoint bindings (KS2)
+
+`MoverRuntime.atEnd(id)` reads the admitted lifecycle latch, including silent
+load/restore seeding. It refuses undeclared endpoints. Native motion observation
+rows select it with `atEnd: true`; old observations keep their enabled-pose law.
+Page quest stage bindings use `movers: [{id, mover, stage, toast?}]` to read the
+same endpoint and dispatch its existing stage on the fixed-step edge. The
+platform drains edges and emits an optional toast once; restored endpoints
+never replay that toast. Hinge endpoint restore retains the fixed yaw/roll.
+
+Hybrid page play installs its runtime-bound updraft rows on the existing
+impulse owner in `fixed.pre`, with the actual player position and board state.
+The runtime presents the wind and winch; their force and completion bindings
+live in the platform. Gust target scanning remains a separate KS2 adoption.

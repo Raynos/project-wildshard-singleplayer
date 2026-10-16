@@ -6,7 +6,7 @@ import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import { compileMoverDriver } from '@wildshard/sdk/compileMovers';
 import { createMoverHost, MoverRuntime } from '../src/game/plugin/mover';
 
-const rest = { at: { x: 0, y: 3, z: 2 }, euler: { x: -1, y: 0, z: 0 } };
+const rest = { at: { x: 0, y: 3, z: 2 }, euler: { x: -1, y: -Math.PI / 4, z: 0 } };
 function hinge() {
   const motion = { driver: { kind: 'winch', mode: 'hinge', speed: 0.5 }, trigger: { kind: 'interact', permission: 3 },
     track: { clip: 'raise', duration: 2, loop: 'once', speed: 1, times: [0, 2], quaternion: [[Math.sin(-0.5), 0, 0, Math.cos(-0.5)], [0, 0, 0, 1]] } };
@@ -36,7 +36,7 @@ async function runtime(input: unknown, flags: ReadonlySet<string>) {
 
 it('admits only real one-shot endpoint restoration and collision-free tracks', () => {
   const admitted = parseMovers([hinge()])[0]; if (admitted === undefined) throw new Error('Missing hinge fixture');
-  expect(moverEndState(admitted)).toMatchObject({ position: [0, 3, 2], fields: { 1: 0, 4: 1, 5: 1, 6: 0 } });
+  expect(moverEndState(admitted)).toMatchObject({ position: [0, 3, 2], fields: { 1: 0, 2: -Math.PI / 4, 3: 0, 4: 1, 5: 1, 6: 0 } });
   const raw = channel();
   for (const change of [{ boxes: hinge().boxes }, { driver: { kind: 'pendulum', axis: 'x', amplitude: 0.1, period: 1 } },
     { atEnd: { field: 5, equals: 2 } }, { atEnd: { field: 5, equals: 0 } }, { restoreFrom: { flag: 'quest.oil', action: 3 } },
@@ -46,6 +46,7 @@ it('admits only real one-shot endpoint restoration and collision-free tracks', (
 it('preserves endpoint latches and undelivered events without replay on restore', () => {
   const rows = [{ id: 'bridge', atEnd: { field: 5, equals: 1 } }], events = new MoverLifecycle(rows);
   events.observe('bridge', { 5: 0 }); events.observe('bridge', { 5: 1 }); events.observe('bridge', { 5: 1 });
+  expect(events.atEnd('bridge')).toBe(true); expect(()=>events.atEnd('missing')).toThrow();
   const saved = events.snapshot(), restored = new MoverLifecycle(rows); restored.restore(saved);
   expect(restored.drain()).toEqual([{ mover: 'bridge', atEnd: true }]); expect(restored.drain()).toEqual([]);
   restored.observe('bridge', { 5: 1 }); expect(restored.drain()).toEqual([]);
@@ -64,6 +65,7 @@ it('observes a real headless hinge trace and restores its endpoint without a gue
     for (let tick = 1; tick <= 125; tick++) { live.host.beginTick(tick); live.mover.step(tick, new Map([[live.row.id, 3]])); }
     expect(live.host.failureCount).toBe(0);
     expect(live.mover.pose(live.row.id).euler.x).toBeCloseTo(0, 10);
+    expect(live.mover.atEnd(live.row.id)).toBe(true);
     expect(live.mover.drainEndEvents()).toEqual([{ mover: live.row.id, atEnd: true }]);
     live.host.beginTick(126); live.mover.step(126); expect(live.mover.drainEndEvents()).toEqual([]);
     const loaded = await runtime(hinge(), new Set(['quest.raised']));

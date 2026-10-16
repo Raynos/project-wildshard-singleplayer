@@ -11,6 +11,6 @@ export const SKY_NATIVE_WORLD = { runtime: { weapon: { id: FAN_ID, stowOnBoard: 
   player: { at: [SPAWN.x, DECK, SPAWN.z], yaw: SPAWN.yaw, speed: 5 }, motion: {
     ...SKY_CLIENT_MOTION, skipPrefix: SKY_MOVER_BINDING.staticPrefix, nativeOwners: SKY_NATIVE_MOVER_OWNERS, viewSystemId: 'far.mover-views', socketLiftPrompts: true,
     composition: SKY_NATIVE_MOVER_COMPOSITION.content, rules: SKY_NATIVE_MOVER_COMPOSITION.rules,
-    observations: [{ name: 'winch-up', mover: SKY_MOVER_BINDING.winch }],
+    observations: [{ name: 'winch-up', mover: SKY_MOVER_BINDING.winch, atEnd: true }],
     actions: [{ name: 'winch', mover: SKY_MOVER_BINDING.winch, command: 1 }],
   } } as const;

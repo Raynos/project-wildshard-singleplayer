@@ -38,6 +38,10 @@ export class MoverLifecycle {
     const value = fields[row.atEnd.field]; if (value === undefined || !Number.isFinite(value)) throw new Error('Missing mover endpoint field');
     this.ends.set(id, value === row.atEnd.equals);
   }
+  /** The committed endpoint latch, including silent load/restore seeding. */
+  atEnd(id: string): boolean {
+    const value = this.ends.get(id); if (value === undefined) throw new Error('Mover has no declared endpoint'); return value;
+  }
   drain(): readonly MoverEndEvent[] { const events = this.pending; this.pending = []; return events; }
   snapshot(): MoverLifecycleState { return { contract: this.contract, ends: [...this.ends].map(([mover, atEnd]) => ({ mover, atEnd })), pending: this.pending.map(row => ({ mover: row.mover, atEnd: row.atEnd })) }; }
   restore(input: unknown): void {
@@ -53,7 +57,8 @@ export function moverEndState(row: MoverData[number]): { position: readonly [num
   if (row.restoreFrom === undefined || row.atEnd === undefined || track?.loop !== 'once'
     || !(driver?.kind === 'track' || driver?.kind === 'winch' && driver.mode === 'hinge')) throw new Error('Mover has no admitted endpoint');
   const position: readonly [number, number, number] = track.position?.at(-1) ?? [row.at.x, row.at.y, row.at.z];
-  const q = track.quaternion?.at(-1), angles = q === undefined ? row.euler : new Euler().setFromQuaternion(new Quaternion(...q), 'YXZ');
+  const q = track.quaternion?.at(-1), angles = driver.kind === 'winch' ? { ...row.euler, x: 0 }
+    : q === undefined ? row.euler : new Euler().setFromQuaternion(new Quaternion(...q), 'YXZ');
   const fields = { 1: angles.x + 0, 2: angles.y + 0, 3: angles.z + 0, 4: Number(driver.kind === 'winch' || row.enabled), 5: 1, 6: 0 };
   if (fields[row.atEnd.field] !== row.atEnd.equals) throw new Error('Restored mover does not satisfy its declared endpoint');
   return { position: [position[0], position[1], position[2]], fields };

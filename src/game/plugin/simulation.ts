@@ -136,7 +136,7 @@ interface RuntimeWorldRecipe {
     readonly composition: Omit<DeclaredMoverComposition['content'], 'identity'>; readonly rules: ShardScriptPorts['rules'];
     readonly itemRole?: NonNullable<DeclaredMoverComposition['declarations']>[number]['row'];
     readonly permissions: readonly { readonly mover: string; readonly flags: readonly { readonly name: string; readonly bit: number }[] }[];
-    readonly observations: readonly { readonly name: string; readonly mover: string }[];
+    readonly observations: readonly { readonly name: string; readonly mover: string; readonly atEnd?: boolean }[];
     readonly actions: readonly { readonly name: string; readonly mover: string; readonly command: 1 | 2 | 3 }[];
   };
 }
@@ -174,7 +174,11 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
       const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
         declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
       { id: row.systemId, restoring, restoreFlags: new Set(host.flags.all), drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
-      for (const binding of row.observations) observations.set(binding.name, () => motion.pose(binding.mover).enabled);
+      for (const binding of row.observations) {
+        if (binding.atEnd === true) motion.atEnd(binding.mover); // Preflight the admitted endpoint.
+        observations.set(binding.name, () => binding.atEnd === true ? motion.atEnd(binding.mover) : motion.pose(binding.mover).enabled);
+      }
+      if (row.observations.some(binding => binding.atEnd === true)) host.onStep(`${row.systemId}.endpoints`, () => { motion.drainEndEvents(); });
       for (const binding of row.actions) actions.set(binding.name, () => { motion.command(binding.mover, binding.command); });
       return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
     })();
