@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { pageScope } from '../app/resources';
 import { recordBootCheckpoint } from '../boot/bootTrace';
+import { presenting } from '../core/framePacing';
 import type { Renderer } from './renderer';
 import { retainCompressedMipmaps, finalizeCompressedMipmaps, assertCompressedMipmapsUnchanged, compressedTextureKey } from './compressedMipmaps';
 
@@ -59,7 +60,7 @@ function installDrawRetirement(renderer: UploadTarget, state: UploadState): void
 /** Once initial warm-up starts, late compressed consumers use the same renderer-wide queue. */
 export function compressedUploadsActive(renderer: UploadTarget): boolean { return states.has(renderer); }
 
-/** Upload one compressed 2D/array texture outside a draw, with a real paint and error round trip on each side.
+/** Upload one compressed 2D/array texture outside a draw, with a real paint on each side and, while loading, an error round trip.
  * Concurrent warm-up and late-load callers share one queue. A consumer may bind the texture only after this resolves.
  * Already resident versions reuse the result; cancellation and graphics faults never publish readiness.
  * Loader fences retain mips through final sampler configuration and the first successful real draw. */
@@ -108,7 +109,11 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
     recordBootCheckpoint('texture:upload', { id: texture.id, version, name: texture.name, format: texture.format,
       mips: texture.mipmaps.length, width: texture.mipmaps[0]?.width ?? 0, height: texture.mipmaps[0]?.height ?? 0 });
     renderer.initTexture(texture);
-    const gl = renderer.getContext(), error = gl.getError();
+    // The error round trip is synchronous: on WebKit `getError` waits for the GPU process to drain every queued command,
+    // the upload and the frame before it (sp-o291: 16 Pine road-entry uploads waited 247 ms on the Simulator, one 54 ms
+    // stall inside a travel frame). Loading keeps the check; a live upload between drawn frames skips the wait (the
+    // format was already vetted by the KTX2 probe).
+    const gl = renderer.getContext(), error = presenting() ? gl.NO_ERROR : gl.getError();
     if (error !== gl.NO_ERROR) {
       const fault = new Error(`Graphics error ${error} after compressed texture ${texture.name || texture.format}`);
       queue.failed.set(texture, { allocation: allocation(), error: fault });
