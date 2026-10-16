@@ -61,9 +61,25 @@ export class PineNightDirector<T extends NightActor> {
   constructor(lane: DirectorLane, h: NightPorts<T>, spec: NightSpec) {
     if ((spec.max !== 3 && spec.max !== 4) || spec.race.length > 8) throw new RangeError('Invalid Pine night roster bounds');
     this.h = h; this.spec = spec; this.contract = JSON.stringify(spec);
-    this.stages = new DirectorScriptStageLane(rows, lane, { observe: () => this.observe(), publish: (action, source) => {
-      if (!('emit' in action) || source === undefined || action.emit !== source.key || action.value !== 0) throw new Error('Invalid Pine night stage action');
-      this.publish(source.key, source.value);
+    const roamer = (): Roamer<T> => { if (this.roamer === null) throw new Error('Missing Pine roamer'); return this.roamer; };
+    const racer = (): Racer<T> => { if (this.racer === null) throw new Error('Missing Pine racer'); return this.racer; };
+    this.stages = new DirectorScriptStageLane(rows, lane, { observe: () => this.observe(), emits: {
+      source: 'matching', actions: new Map<string, (value: number) => void>([
+        ['roam.move', value => { const r = roamer(); r.flee = value; r.a.setMotion(headingTo(this.point.x, this.point.z, r.a.position.x, r.a.position.z), 8, 3); }],
+        ['roam.dawn', () => { const r = roamer(); this.h.own(r.a); r.flee = 0.01; this.h.shot('thrall_move', r.a); }],
+        ['roam.retire', () => { const r = roamer(); this.h.burst(r.a); this.h.retire(r.a); r.flee = -1; }],
+        ['race.listen', () => {
+          const r = racer(); r.a.setMotion(headingTo(r.a.position.x, r.a.position.z, this.spec.face.x, this.spec.face.z), 0, 1.5);
+          r.a.lookWeight = 0;
+        }],
+        ['race.wake', () => { const r = racer(); r.woke = true; this.h.release(r.a); this.h.shot('thrall_groan', r.a); }],
+        ['population.clock', value => { this.acc = value; }],
+        ['population.due', () => { this.due = true; }],
+        ['race.finish', () => { this.race = []; this.h.onErrandDone(); }],
+        ['race.spawn', () => { this.callRace(); }],
+        ['roam.far', () => { const r = roamer(); this.h.retire(r.a); r.flee = -1; }],
+        ['roam.spawn', () => { this.callRoamer(this.point, false); }],
+      ]),
     } });
   }
 
@@ -77,37 +93,6 @@ export class PineNightDirector<T extends NightActor> {
       'near-mill': Number(Math.hypot(p.x - this.spec.mill.x, p.z - this.spec.mill.z) < 75),
       'near-growth': Number(((p.x - region.x) / (region.ax * 1.6)) ** 2 + ((p.z - region.z) / (region.az * 1.6)) ** 2 < 1),
       'roam-count': this.roam.length, maximum: this.spec.max };
-  }
-
-  private publish(key: string, value: number): void {
-    const r = this.roamer, race = this.racer, p = this.point;
-    switch (key) {
-      case 'roam.move':
-        if (r === null) throw new Error('Missing Pine roamer');
-        r.flee = value; r.a.setMotion(headingTo(p.x, p.z, r.a.position.x, r.a.position.z), 8, 3); break;
-      case 'roam.dawn':
-        if (r === null) throw new Error('Missing Pine roamer');
-        this.h.own(r.a); r.flee = 0.01; this.h.shot('thrall_move', r.a); break;
-      case 'roam.retire':
-        if (r === null) throw new Error('Missing Pine roamer');
-        this.h.burst(r.a); this.h.retire(r.a); r.flee = -1; break;
-      case 'race.listen':
-        if (race === null) throw new Error('Missing Pine racer');
-        race.a.setMotion(headingTo(race.a.position.x, race.a.position.z, this.spec.face.x, this.spec.face.z), 0, 1.5);
-        race.a.lookWeight = 0; break;
-      case 'race.wake':
-        if (race === null) throw new Error('Missing Pine racer');
-        race.woke = true; this.h.release(race.a); this.h.shot('thrall_groan', race.a); break;
-      case 'population.clock': this.acc = value; break;
-      case 'population.due': this.due = true; break;
-      case 'race.finish': this.race = []; this.h.onErrandDone(); break;
-      case 'race.spawn': this.callRace(); break;
-      case 'roam.far':
-        if (r === null) throw new Error('Missing Pine roamer');
-        this.h.retire(r.a); r.flee = -1; break;
-      case 'roam.spawn': this.callRoamer(p, false); break;
-      default: throw new Error('Unknown Pine night event');
-    }
   }
 
   private deliver(phase: number): void { this.phase = phase; this.stages.changed(); }
