@@ -11,9 +11,6 @@ export interface LaneBody extends StrikeActor {
 /** A lane's saved state: its tell length and its strike runner's. */
 export interface LaneState { tellT: number; runner: ReturnType<StrikeRunner['snapshot']> }
 
-/** The authored lane's legacy options (the tuning table's rows), or a lane StrikeSpec (strikes.ts PINE_LANES). */
-export interface LaneOptions { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number }
-
 /**
  * A telegraphed LANE CHARGE's rules, renderer-free (SF72): the lane is locked from the animal through where you stand (+ an
  * overshoot) for `tell` s while it paws (the body's wind-up), then it runs the lane flat out on the body clock and hits once
@@ -26,19 +23,9 @@ export class Lane<B extends LaneBody = LaneBody> {
   protected tellT = 1;
   /** the lane's full width (m): the decal paints it */
   readonly width: number;
-  private readonly reach: (actor: B, target: BrainPoint) => boolean;
-  constructor(row: LaneOptions | StrikeSpec, reach: (actor: B, target: BrainPoint) => boolean = () => true) {
-    this.reach = reach;
-    if ('shape' in row) {
-      if (row.shape.kind !== 'lane') throw new Error('Lane view requires a lane strike');
-      this.spec = row; this.width = row.shape.width;
-    } else {
-      this.width = row.width;
-      this.spec = { id: 'strike.lane', shape: { kind: 'lane', length: 0, width: row.width },
-        windup: 1, active: 0, recover: row.skid, cooldown: 0, range: row.reach, damage: row.dmg,
-        tags: ['creature.charge'], weight: () => 1,
-        motion: { speed: row.speed, track: 'lead', overshoot: row.overshoot, skid: row.skid } };
-    }
+  constructor(row: StrikeSpec, private readonly reach: (actor: B, target: BrainPoint) => boolean = () => true) {
+    if (row.shape.kind !== 'lane') throw new Error('Lane view requires a lane strike');
+    this.spec = row; this.width = row.shape.width;
   }
   get state(): 'none' | 'tell' | 'run' | 'skid' {
     return this.runner.state === 'windup' ? 'tell' : this.runner.state === 'active' ? 'run' : this.runner.state === 'recover' ? 'skid' : 'none';

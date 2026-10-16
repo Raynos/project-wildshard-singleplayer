@@ -4,7 +4,7 @@ import type { ItemId } from '@wildshard/game/Inventory';
 import type { SkinId } from '../loadout/skins';
 import type { PhShot } from '../runtime/audio/sfx';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { Lane, type LaneOptions } from './lane';
+import { Lane } from './lane';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -77,7 +77,7 @@ export function voice(animals: AnimalManager, name: string, at: THREE.Vector3): 
  */
 export class LaneCharge extends Lane<Animal> {
   readonly tellDecal: GroundTell;
-  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: LaneOptions | StrikeSpec, reach: PineCtx['reach'] = () => true) {
+  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: StrikeSpec, reach: PineCtx['reach'] = () => true) {
     super(row, reach);
     this.tellDecal = new GroundTell(scene, 'lane', color);
   }
