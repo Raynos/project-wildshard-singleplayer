@@ -24,7 +24,7 @@
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
@@ -85,7 +85,6 @@ export class ShrineBuilder {
 
   /** local (lx, lz) → world (x, z) */
   private W(lx: number, lz: number): [number, number] { return [this.at.x + lx * this.cs + lz * this.sn, this.at.z - lx * this.sn + lz * this.cs]; }
-  private L(x: number, z: number): [number, number] { const dx = x - this.at.x, dz = z - this.at.z; return [dx * this.cs - dz * this.sn, dx * this.sn + dz * this.cs]; }
   /** local point (y absolute) → a world matrix, `yaw` local */
   private M(lx: number, y: number, lz: number, yaw = 0, rx = 0, rz = 0, s = 1): THREE.Matrix4 {
     const [x, z] = this.W(lx, lz);
@@ -398,7 +397,7 @@ export class ShrineBuilder {
 
   /**
    * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
-   * `floorHeightAt` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
+   * `floors` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
    *
    * The pedestals, monolith, glyph pillars, standing stones and the stair's cheek walls are the legacy boxes; the three
    * tiers are boxes topped exactly at their terraces (1 / 2 / 3 m); the stair is the ten treads the mesh draws (0.3 m
@@ -439,16 +438,12 @@ export class ShrineBuilder {
     return out;
   }
 
-  /** the walkable stone under own (x, z) (once built): the stair (a ramp), the three terraces, the causeway across the pool */
-  floorHeightAt(x: number, z: number): number | undefined {
-    const [lx, lz] = this.L(x, z), b = this.baseY;
-    if (Math.abs(lx) < STAIR.hw && lz >= STAIR.z0 && lz <= STAIR.z1) return b + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0));
-    for (let i = TIERS.length - 1; i >= 0; i--) {
-      const t = TIERS[i as 0 | 1 | 2];
-      if (Math.abs(lx) <= t.hw && lz >= t.z0 && lz <= t.z1) return b + t.top;
-    }
-    if (Math.abs(lx) < POOL.causeway && Math.abs(lz - POOL.z) < POOL.rz + 0.5) return this.waterY + 0.1;
-    return undefined;
+  /** the walkable stone (own space, once built), first match wins: the stair (a ramp), the three terraces top first, the causeway */
+  floors(): FloorRect[] {
+    const r = this.spec.rot, b = this.baseY, top = TIERS[2].top, run = STAIR.z1 - STAIR.z0;
+    return [siteFloor(r, (STAIR.z0 + STAIR.z1) / 2, STAIR.hw, run / 2, b + top / 2, -top / run),
+      ...[...TIERS].reverse().map(t => siteFloor(r, (t.z0 + t.z1) / 2, t.hw, (t.z1 - t.z0) / 2, b + t.top)),
+      siteFloor(r, POOL.z, POOL.causeway, POOL.rz + 0.5, this.waterY + 0.1)];
   }
 }
 

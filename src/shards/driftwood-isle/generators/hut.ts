@@ -8,11 +8,11 @@
  * The builder runs where the hut stands: its site (x, z, which way the door faces) and the native terrain under its
  * stilts, braces and step stringers (the baked AO reads it too). It hands over the geometry in own space (the site's
  * origin subtracted) and the layout the page reads back from `data/hutBake.json`: the legacy boxes, the physics
- * descriptors, the anchors and the floor (deck, steps, floor y). src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs writes both.
+ * descriptors, the anchors and the floor rectangles (deck, steps). src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs writes both.
  */
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { log, plank, rope, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
@@ -329,15 +329,8 @@ class HutBuilder {
 export interface HutBake {
   readonly kit: THREE.BufferGeometry;
   readonly flames: THREE.BufferGeometry;
-  readonly layout: {
-    readonly site: HutSite;
-    readonly origin: { x: number; y: number; z: number };
-    readonly floorY: number;
-    readonly colliders: Collider[];
-    readonly descs: ColliderDesc[];
-    readonly anchors: Record<string, HutAnchor>;
-    readonly floor: { readonly cos: number; readonly sin: number; readonly lift: number; readonly deck: { w: number; d: number; z: number }; readonly steps: { z0: number; len: number; w: number } };
-  };
+  readonly layout: { readonly site: HutSite; readonly origin: { x: number; y: number; z: number }; readonly colliders: Collider[];
+    readonly descs: ColliderDesc[]; readonly anchors: Record<string, HutAnchor>; readonly floors: FloorRect[] };
 }
 
 /** Builds the hut on its site over the native terrain (`ground`, world xz → y). */
@@ -349,7 +342,7 @@ export function hutBake(site: HutSite, ground: (x: number, z: number) => number)
   const { z0, len, w } = b.steps;
   return {
     kit: g.kit, flames: g.flames,
-    layout: { site, origin, floorY: b.floorY, colliders: b.colliders, descs: b.colliderDescs(), anchors: b.anchors,
-      floor: { cos: b.cos, sin: b.sin, lift: LIFT, deck: b.deck, steps: { z0, len, w } } },
+    layout: { site, origin, colliders: b.colliders, descs: b.colliderDescs(), anchors: b.anchors, floors: [
+      siteFloor(site.rot, b.deck.z, b.deck.w / 2, b.deck.d / 2, b.floorY), siteFloor(site.rot, z0 - len / 2, w / 2, len / 2, b.floorY - LIFT / 2, LIFT / len)] },
   };
 }

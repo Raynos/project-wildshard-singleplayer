@@ -2174,7 +2174,6 @@
     "src/shards/driftwood-isle/runtime/models/entryDeck.ts": 1,
     "src/shards/driftwood-isle/runtime/models/gear.ts": 4,
     "src/shards/driftwood-isle/runtime/models/hibiscusBush.ts": 3,
-    "src/shards/driftwood-isle/runtime/models/hut.ts": 8,
     "src/shards/driftwood-isle/runtime/models/lookout.ts": 7,
     "src/shards/driftwood-isle/runtime/models/palm.ts": 3,
     "src/shards/driftwood-isle/runtime/models/people.ts": 2,
@@ -2184,9 +2183,7 @@
     "src/shards/driftwood-isle/runtime/models/reefRock.ts": 2,
     "src/shards/driftwood-isle/runtime/models/ropeBridge.ts": 4,
     "src/shards/driftwood-isle/runtime/models/seaGlassChime.ts": 2,
-    "src/shards/driftwood-isle/runtime/models/shipwreck.ts": 8,
     "src/shards/driftwood-isle/runtime/models/shoreBoulder.ts": 3,
-    "src/shards/driftwood-isle/runtime/models/shrine.ts": 9,
     "src/shards/driftwood-isle/runtime/models/smallRock.ts": 2,
     "src/shards/driftwood-isle/runtime/models/trader.ts": 6,
     "src/shards/driftwood-isle/runtime/models/trailside.ts": 6,
@@ -2504,6 +2501,7 @@
     "src/shards/pine-hollow/runtime/world/cragKit.ts": 4,
     "src/shards/pine-hollow/runtime/life/ambientLife.ts": 43,
     "src/shards/driftwood-isle/runtime/world/systems.ts": 8,
-    "src/shards/driftwood-isle/runtime/world/Shrine.ts": 3
+    "src/shards/driftwood-isle/runtime/world/Shrine.ts": 3,
+    "src/shards/driftwood-isle/runtime/models/fixedSites.ts": 10
   }
 }

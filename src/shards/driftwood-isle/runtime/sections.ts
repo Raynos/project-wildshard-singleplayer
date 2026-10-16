@@ -19,7 +19,10 @@ const surfaced = v.variant('kind', [
   v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number, surface: text }),
   v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural, surface: text }),
 ]);
-const shrineSite = v.strictObject({ origin: point, colliders: boxes, descs: v.pipe(v.array(surfaced), v.maxLength(128)), anchors: v.record(text, anchor), baseY: number, waterY: number, terrace: number });
+/** a fixed site's walkable floor: engine/physics/box FloorRect rows in own space, the first match wins */
+const floors = v.pipe(v.array(v.strictObject({ x: number, z: number, hw: number, hd: number, y: number, rot: number, slope: v.exactOptional(number) })), v.maxLength(16));
+const fixedSite = { site, origin: point, colliders: boxes, anchors: v.record(text, anchor), floors };
+const shrineSite = v.strictObject({ ...fixedSite, descs: v.pipe(v.array(surfaced), v.maxLength(128)), baseY: number, terrace: number });
 const trophySlots = v.strictObject({ ranges: runs, boards: runs, empty: v.strictObject({ bear: natural, boar: natural }), full: v.strictObject({ bear: natural, boar: natural }) });
 const trailPoint = { x: number, y: number, z: number };
 const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
@@ -55,7 +58,7 @@ export const SECTIONS = {
   'custom/cumulusPuffs': v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024)),
   /** the native terrain's retained index runs around the baked island (generators/islandClips.ts) */
   'custom/islandClips': v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs }),
-  /** the fixed models' baked layouts: the chime's draw slots, the hut's and the lookout's colliders, anchors and floors */
+  /** the fixed models' baked layouts: the chime's draw slots, the hut's, lookout's and shrine's colliders, anchors and floors */
   'custom/fixedLayouts': v.strictObject({
     chimeSlots: runs,
     gullPerches: v.pipe(v.array(point), v.maxLength(10)),
@@ -65,10 +68,8 @@ export const SECTIONS = {
     shrine: v.strictObject({ world: shrineSite, specimen: shrineSite }),
     /** the trophy plaques' board, empty and full vertex ranges */
     trophySlots,
-    hut: v.strictObject({ site, origin: point, floorY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
-      floor: v.strictObject({ cos: number, sin: number, lift: number, deck: v.strictObject({ w: number, d: number, z: number }), steps: v.strictObject({ z0: number, len: number, w: number }) }) }),
-    lookout: v.strictObject({ site, zipTo: v.strictObject({ x: number, z: number }), origin: point, platformY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
-      floor: v.strictObject({ cos: number, sin: number, plat: number, h: number, stair: v.strictObject({ x0: number, len: number, w: number }) }) }),
+    hut: v.strictObject({ ...fixedSite, descs }),
+    lookout: v.strictObject({ ...fixedSite, descs, zipTo: v.strictObject({ x: number, z: number }) }),
   }),
   /** the trail weld's spec key, post / sign / plank placements, legacy boxes and native colliders (data/trailsideBake.json) */
   'custom/trailside': v.strictObject({

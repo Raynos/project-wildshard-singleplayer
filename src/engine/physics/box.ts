@@ -16,8 +16,13 @@ export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = '
   return { ...d, x: centre.x, y: centre.y, z: centre.z, rot: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w } };
 }
 
-/** A horizontal deck rectangle; rot uses the same negative-Y convention as BoxSpec. */
-export interface FloorRect { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly y: number; readonly rot?: number }
+/** A horizontal deck rectangle, or a ramp rising `slope` metres per metre along its local +z (`y` at its centre); rot uses
+ * the same negative-Y convention as BoxSpec. */
+export interface FloorRect { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly y: number; readonly rot?: number; readonly slope?: number }
+
+/** A floor on a turned site's local z axis (own space): centred at local `lz`, a ramp rising `slope` along local +z. */
+export const siteFloor = (rot: number, lz: number, hw: number, hd: number, y: number, slope?: number): FloorRect =>
+  ({ x: lz * Math.sin(rot), z: lz * Math.cos(rot), hw, hd, y, rot, ...(slope === undefined ? {} : { slope }) });
 
 /** Query inclusive deck bounds without building collision. First preserves authored priority; highest chooses the
  * uppermost matching floor. The scalar inverse turn retains the original floor arithmetic and input order. */
@@ -27,8 +32,9 @@ export function floorAtRects(floors: readonly FloorRect[], x: number, z: number,
     const c = Math.cos(f.rot ?? 0), s = Math.sin(f.rot ?? 0);
     const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
     if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) {
-      if (policy === 'first') return f.y;
-      if (best === undefined || f.y > best) best = f.y;
+      const y = f.slope === undefined ? f.y : f.y + f.slope * lz;
+      if (policy === 'first') return y;
+      if (best === undefined || y > best) best = y;
     }
   }
   return best;

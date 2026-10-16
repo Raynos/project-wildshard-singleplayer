@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import type { CableLayout } from '@wildshard/sdk/movers';
 import { SEED } from '@wildshard/engine/core/config';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { log, beam, plank, rope, rock, sagLine, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
@@ -339,11 +339,10 @@ export interface LookoutBake {
     readonly site: LookoutSite;
     readonly zipTo: { readonly x: number; readonly z: number };
     readonly origin: { x: number; y: number; z: number };
-    readonly platformY: number;
     readonly colliders: Collider[];
     readonly descs: ColliderDesc[];
     readonly anchors: Record<string, LookoutAnchor>;
-    readonly floor: { readonly cos: number; readonly sin: number; readonly plat: number; readonly h: number; readonly stair: { x0: number; len: number; w: number } };
+    readonly floors: FloorRect[];
   };
 }
 
@@ -352,11 +351,11 @@ export function lookoutBake(site: LookoutSite, ground: (x: number, z: number) =>
   const origin = { x: site.x, y: Math.fround(ground(site.x, site.z)), z: site.z };
   const b = new LookoutBuilder(site, ground, zipTo, origin).build();
   if (b.geometry === null) throw new Error('lookout: no geometry');
-  const { x0, len, w } = b.stair;
+  const { x0, len, w } = b.stair, half = PLAT / 2 + 0.1, py = b.platformY;
   return {
     geometry: b.geometry,
-    layout: { site, zipTo, origin, platformY: b.platformY, colliders: b.colliders, descs: b.colliderDescs(), anchors: b.anchors,
-      floor: { cos: b.cos, sin: b.sin, plat: PLAT, h: H, stair: { x0, len, w } } },
+    layout: { site, zipTo, origin, colliders: b.colliders, descs: b.colliderDescs(), anchors: b.anchors,
+      floors: [siteFloor(site.rot, 0, half, half, py), siteFloor(site.rot, x0 - len / 2, w / 2 + 0.1, len / 2, py - H / 2, H / len)] },
   };
 }
 

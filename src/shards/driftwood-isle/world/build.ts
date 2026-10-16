@@ -23,9 +23,9 @@ import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
 import { placeShoreBoulders, scatterShoreBoulders } from './Boulders';
-import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/models/hut';
+import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/models/fixedSites';
 import { Wreck } from './Wreck';
-import { Shrine } from '../runtime/world/Shrine';
+import { placeShrine, type Shrine } from '../runtime/world/Shrine';
 import { placeIslandBushes } from './Bushes';
 import { Gulls } from '../runtime/world/Gulls';
 import { buildTrailside } from './Trailside';
@@ -138,11 +138,11 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
   const lookoutSite = { site: LOOKOUT, zipTo: { x: Cove.forIsland().cave.x, z: Cove.forIsland().cave.z } };
   const lookout = await stages.build('Lookout', () => { const s = bakedSite('lookout', lookoutSite); return placeModelSite(lookoutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'lookout' } }); }, { values: value => value.colliders });
-  // E315 M1: the shipwreck model (../models/shipwreck.ts) with the cove's cargo, drift logs and reef
+  // E315 M1: the shipwreck model (../runtime/models/fixedSites.ts) with the cove's cargo, drift logs and reef
   // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
   const wreck = await stages.build('Wreck', () => new Wreck(sky, WRECK).place(registry), { objects: value => [value.group], values: value => value.colliders });
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
-  const shrine = await stages.build('Shrine', () => new Shrine(sky, SHRINE).place(registry), { values: value => value.colliders });
+  const shrine = await stages.build('Shrine', () => placeShrine(sky, SHRINE, registry), { values: value => value.colliders });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
   for (const [i, j] of JETTIES.entries()) {
