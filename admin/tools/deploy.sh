@@ -35,15 +35,11 @@ if git cat-file -e "$full:progress/loading/sf67" 2>/dev/null; then reports+=(pro
 for part in docs/plans/shard-platform/rows.md docs/plans/shard-platform/decisions.md; do
   if git cat-file -e "$full:$part" 2>/dev/null; then reports+=("$part"); fi
 done
-# the Progress card: every committed effort recount folder (the newest is read), and what the share script measures
-# (scripts/admin-data.mjs SHARE_INPUTS: it runs `node scripts/shard-platform.mjs --json` inside this export)
-while IFS= read -r folder; do reports+=("$folder"); done < <(git ls-tree -d --name-only "$full" -- progress/shard-platform/ | grep '^progress/shard-platform/effort-recount-' || true)
-share=(AGENTS.md src scripts vite budgets lint public pnpm-lock.yaml pnpm-workspace.yaml test)
-# Retired content roots may be absent; include them only from the resolved commit.
-for optional in music sfx; do
-  if git cat-file -e "$full:$optional" 2>/dev/null; then share+=("$optional"); fi
-done
-git archive "$full" admin tsconfig.json package.json "${share[@]}" "${reports[@]}" | tar -x -C "$work"
+# the Plan card (G458): the committed ruler file and its chart (scripts/admin-data/ruler.mjs refreshes them); the build
+# runs no ruler, so the export needs only the pipeline (scripts), the workspace sources node_modules links to, and these
+reports+=(progress/shard-platform/ruler)
+code=(scripts src pnpm-lock.yaml pnpm-workspace.yaml)
+git archive "$full" admin tsconfig.json package.json "${code[@]}" "${reports[@]}" | tar -x -C "$work"
 node scripts/link-node-modules.mjs "$repo" "$work"
 
 echo "deploy-admin: building $sha"

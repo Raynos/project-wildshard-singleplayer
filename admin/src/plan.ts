@@ -1,8 +1,8 @@
-// The plan dashboard (SF68 tool 4): the Progress card first (each shard's measured share, proofs and runtime from
-// scripts/shard-platform.mjs at this build's revision, next to the newest effort recount), then State's own effort %,
-// the milestones, what's waiting for Jake, the rows by status, and every G decision (searchable).
-import type { Effort, PlanData, PlanRow, ProgressData, ProgressEffort, ProgressShard, ProgressTotal, RowStatus } from './bundle.ts';
-import { h, rich, s } from './dom.ts';
+// The plan dashboard (SF68 tool 4): the SHARD-PLATFORM card first (G458, outcome-only: the whole-plan %, M3 and M2, the
+// current wave, each shard's custom % of legacy and the custom-vs-hours chart, all from the committed ruler file), then
+// what's waiting for Jake, the milestones, the rows by status, and every G decision (searchable).
+import type { PlanData, PlanRow, ProgressData, RowStatus, RulerShardView } from './bundle.ts';
+import { h, rich } from './dom.ts';
 import { openMedia } from './playtests.ts';
 
 type RowFilter = 'open' | 'closed' | 'all';
@@ -10,22 +10,6 @@ type RowFilter = 'open' | 'closed' | 'all';
 const state = { filter: 'open' as RowFilter, query: '', decisions: 20, rows: 40 };
 
 const ST_CLASS: Record<RowStatus, string> = { done: 'done', open: 'open', 'needs pick': 'pick', 'in flight': 'flight', dropped: 'dropped' };
-
-function ring(pct: number, label: string): SVGSVGElement {
-  const r = 40;
-  const c = 2 * Math.PI * r;
-  return s('svg', { class: 'ring', viewBox: '0 0 96 96', role: 'img', 'aria-label': `${label} ${pct} %` },
-    s('circle', { cx: 48, cy: 48, r, fill: 'none', stroke: 'var(--panel-2)', 'stroke-width': 9 }),
-    s('circle', { cx: 48, cy: 48, r, fill: 'none', stroke: 'var(--accent)', 'stroke-width': 9, 'stroke-linecap': 'round',
-      'stroke-dasharray': `${(pct / 100) * c} ${c}`, transform: 'rotate(-90 48 48)' }),
-    s('text', { x: 48, y: 52, 'text-anchor': 'middle' }, `${pct}%`),
-    s('text', { class: 'rs', x: 48, y: 66, 'text-anchor': 'middle' }, label.toUpperCase()));
-}
-
-function bars(items: Effort[]): HTMLElement {
-  return h('div', { class: 'bars' }, ...items.map((e) => h('div', { class: `bar ${e.pct >= 80 ? 'hi' : e.pct < 40 ? 'lo' : ''}` },
-    h('span', {}, e.label), h('b', {}, `${e.pct} %`), h('span', { class: 'track' }, h('i', { style: `width:${e.pct}%` })))));
-}
 
 function rowEl(r: PlanRow): HTMLElement {
   return h('details', { class: 'row' },
@@ -36,94 +20,82 @@ function rowEl(r: PlanRow): HTMLElement {
 }
 
 const num = (n: number): string => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function hoursText(e: { spent: number | null; left: number | null; approx?: boolean; range?: number[] | null }): string {
-  const parts: string[] = [];
-  if (e.spent !== null) parts.push(`${num(e.spent)} h spent`);
-  if (e.left !== null) {
-    const range = e.range?.length === 2 ? ` (${e.range.map(num).join('–')})` : '';
-    parts.push(e.left === 0 ? 'none left' : `${e.approx === false ? '' : '~'}${num(e.left)} h left${range}`);
-  }
-  return parts.join(' · ');
+/** An ISO time in Cancun (UTC−5, no DST: where Jake is): "Fri Oct 16, 11:51". */
+function cancun(iso: string): string {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return iso;
+  const d = new Date(t - 5 * 3600_000);
+  const hh = String(d.getUTCHours()).padStart(2, '0'), mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${DAYS[d.getUTCDay()] ?? ''} ${MONTHS[d.getUTCMonth()] ?? ''} ${d.getUTCDate()}, ${hh}:${mm}`;
 }
 
-/** "2026-10-12T18:00:00Z" → "Oct 12, 18:00 UTC" (the recount's own UTC times, never local-shifted). */
-function utc(iso: string): string {
-  const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(iso);
-  if (!m) return iso;
-  const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m[2]) - 1] ?? m[2];
-  return `${month} ${Number(m[3])}${m[4] ? `, ${m[4]}:${m[5] ?? '00'} UTC` : ''}`;
+/** The custom % scale runs to 110 % so Nalati (above its legacy) still fits; 100 % is the legacy shard. */
+const SCALE = 110;
+const at = (pct: number): string => `${(Math.min(pct, SCALE) / SCALE) * 100}%`;
+
+function deltaEl(d: number | null): HTMLElement | null {
+  if (d === null) return null;
+  const cls = d < 0 ? 'pdown' : d > 0 ? 'pup' : 'pflat';
+  return h('span', { class: `pdelta ${cls}`, title: 'points since the previous measured commit' }, d === 0 ? '±0' : `${d > 0 ? '+' : '−'}${num(Math.abs(d))}`);
 }
 
-const PACE: Record<string, string> = { todayPace: 'at today’s pace', allLanes: 'with every lane on the plan' };
+const GRID: Record<RulerShardView['grid'], string> = { pass: 'grid ready', fail: 'grid fails', unknown: 'grid unknown' };
 
-function shareBar(sharePct: number, effortPct: number | null, target: number): HTMLElement {
-  return h('div', { class: 'pbars', 'aria-hidden': 'true' },
-    h('span', { class: 'ptrack share' }, h('i', { style: `width:${Math.min(100, sharePct)}%` }), h('em', { style: `left:${target}%` })),
-    effortPct === null ? null : h('span', { class: 'ptrack effort' }, h('i', { style: `width:${Math.min(100, effortPct)}%` })));
-}
-
-function shardRow(r: ProgressShard, target: number): HTMLElement {
-  const over = r.runtime > r.ceiling;
-  return h('li', { class: `pshard${r.at8020 ? ' met' : ''}` },
+function shardRow(r: RulerShardView): HTMLElement {
+  const met = r.pct <= r.goal;
+  return h('li', { class: `pshard${met ? ' met' : ''}` },
     h('div', { class: 'phead' },
       h('b', {}, r.name),
-      r.at8020 ? h('span', { class: 'pmet' }, '80/20 ✓') : null,
-      h('span', { class: 'pnum' }, h('span', { class: 'pshare' }, r.portPct === undefined ? r.sharePct === null ? 'native (no frozen legacy)' : `${num(r.sharePct)} %` : r.portPct === null ? 'PORT unavailable' : `${num(r.portPct)} % PORT`),
-        r.effort ? h('span', { class: 'peffort' }, ` · ${num(r.effort.pct)} %`) : null)),
-    shareBar(r.portPct ?? r.sharePct ?? 0, r.effort?.pct ?? null, target),
+      h('span', { class: 'pchip' }, r.wave),
+      h('span', { class: 'pnum' }, deltaEl(r.delta), h('span', { class: 'pshare' }, `${num(r.pct)} %`))),
+    h('span', { class: 'ptrack', 'aria-hidden': 'true' },
+      h('i', { style: `width:${at(r.pct)}` }),
+      h('em', { class: 'pgoal', style: `left:${at(r.goal)}` }),
+      h('em', { class: 'plegacy', style: `left:${at(100)}` })),
     h('div', { class: 'pmeta' },
-      h('span', {}, `headless ${r.proofs > 0 ? 'available' : 'unavailable'}`),
-      r.world ? h('span', {}, `world ${r.world}`) : null,
-      r.generators ? h('span', {}, `generators ${r.generators.ported} ported / ${r.generators.left} left · ${r.generators.portedLines} / ${r.generators.leftLines} lines`) : null,
-      h('span', { class: over ? 'pover' : '' }, `runtime ${num(r.runtime)} / ${num(r.ceiling)}`),
-      r.effort ? h('span', {}, hoursText(r.effort)) : h('span', {}, 'no recount row')));
+      h('span', {}, `${num(r.custom)} / ${num(r.legacy)} lines · goal ${r.goal} %`),
+      h('span', { class: `pgrid ${r.grid}` }, GRID[r.grid]),
+      r.gridOpen.length > 0 ? h('span', {}, r.gridOpen.join(', ')) : null));
 }
 
-function totalTile(t: ProgressTotal): HTMLElement {
-  return h('div', { class: 'ptile' },
-    h('div', { class: 'plabel' }, `${t.label} by effort`),
-    h('div', { class: 'pbig' }, `${num(t.pct)} %`),
-    h('div', { class: 'small' }, hoursText(t)));
-}
-
-function extraRow(e: ProgressEffort): HTMLElement {
-  return h('li', { class: 'pshard' },
-    h('div', { class: 'phead' }, h('b', {}, e.name), h('span', { class: 'pnum' }, h('span', { class: 'peffort' }, `${num(e.pct)} %`))),
-    h('div', { class: 'pbars', 'aria-hidden': 'true' }, h('span', { class: 'ptrack effort' }, h('i', { style: `width:${Math.min(100, e.pct)}%` }))),
-    h('div', { class: 'pmeta' }, h('span', {}, hoursText(e))));
-}
-
-/** The Progress card: the hard count, M3 / Part A effort, every shard's share next to its effort, and the chart. */
-function progressCard(p: ProgressData, stateCount: PlanData['hardCount']): HTMLElement {
-  const r = p.recount;
-  const finish = r.finish.at(0);
-  return h('section', { class: 'card progress', 'aria-label': 'Progress' },
-    h('div', { class: 'ptop' }, h('h2', {}, 'Progress'), h('span', { class: 'small mono' }, `share @ ${p.revision}`)),
-    p.portAverage === undefined ? null : h('div', { class: 'phard' }, h('span', { class: 'hard-count' }, p.portAverage === null ? 'Unavailable' : `${num(p.portAverage)} %`), h('span', {}, 'PORT · seven-shard average')),
-    h('div', { class: 'phard' },
-      h('span', { class: 'hard-count' }, `${p.hardCount.done} of ${p.hardCount.total}`),
-      h('span', {}, 'shipping shards at 80/20', h('br'),
-        h('span', { class: 'small' }, `public share ≥ ${p.targetPct} % and runtime ≤ its ceiling`))),
-    stateCount && (stateCount.done !== p.hardCount.done || stateCount.total !== p.hardCount.total)
-      ? h('p', { class: 'small' }, `The plan's State still says ${stateCount.done} of ${stateCount.total}.`) : null,
-    h('div', { class: 'ptiles' }, ...r.totals.map(totalTile)),
-    finish ? h('p', { class: 'small pfinish' }, `Part A finish, projected ${PACE[finish.label] ?? finish.label}: ${utc(finish.central)} (${utc(finish.from)} – ${utc(finish.to)}), before Jake’s gates.`) : null,
+/** The SHARD-PLATFORM card: whole-plan %, M3, M2, the current wave, the six shards and the chart. Lower custom % is better. */
+function progressCard(p: ProgressData): HTMLElement {
+  const range = p.plan.lower === p.plan.upper ? `${num(p.plan.lower)} %` : `${num(p.plan.lower)}–${num(p.plan.upper)} %`;
+  const m2 = [p.m2.unknown > 0 ? `${p.m2.unknown} unknown` : '', p.m2.fail > 0 ? `${p.m2.fail} failing` : ''].filter(Boolean).join(', ');
+  const rebase = p.events.findLast((e) => e.label.startsWith('P4 re-base'));
+  return h('section', { class: 'card progress', 'aria-label': 'SHARD-PLATFORM progress' },
+    h('div', { class: 'ptop' }, h('h2', {}, 'Progress'), h('span', { class: 'small mono' }, `ruler @ ${p.revision}`)),
+    h('div', { class: 'phero' },
+      h('div', { class: 'plabel' }, 'Whole plan · 60 % M3 + 40 % M2'),
+      h('div', { class: 'pbig' }, range),
+      p.plan.lower === p.plan.upper ? null : h('div', { class: 'small' }, 'A range until every grid-ready check has a reading.')),
+    h('div', { class: 'ptiles' },
+      h('div', { class: 'ptile' }, h('div', { class: 'plabel' }, 'M3 custom code cut'), h('div', { class: 'pmid' }, `${num(p.m3.pct)} %`),
+        h('div', { class: 'small' }, `${num(p.m3.cut)} of ${num(Math.round(p.m3.mustGo))} must-go lines`)),
+      h('div', { class: 'ptile' }, h('div', { class: 'plabel' }, 'M2 grid-ready'), h('div', { class: 'pmid' }, `${p.m2.ready} of ${p.m2.total}`),
+        h('div', { class: 'small' }, m2 || 'every check has a reading'))),
+    h('div', { class: 'pwave' },
+      h('div', { class: 'phead' }, h('span', { class: 'pchip now' }, p.wave.id), h('b', {}, p.wave.label.replace(/^[^·]*·\s*/, '')),
+        h('span', { class: 'pnum' }, `${num(p.wave.pct)} %`)),
+      h('span', { class: 'ptrack wave', 'aria-hidden': 'true' }, h('i', { style: `width:${Math.min(100, p.wave.pct)}%` })),
+      h('div', { class: 'small' }, p.wave.until ? `closes ${cancun(p.wave.until)} Cancun, wherever its shards stand` : 'closes when its shards reach their goal')),
     h('div', { class: 'legend' },
-      h('span', {}, h('i', { class: 'sw', style: 'background:var(--accent)' }), 'PORT: 80 points for custom reduction + 20 for tiles and no private binaries'),
-      h('span', {}, h('i', { class: 'sw', style: 'background:var(--warn)' }), 'effort done (projected)'),
-      h('span', {}, h('i', { class: 'sw ptick' }), `${p.targetPct} % target`)),
-    h('ul', { class: 'pshards' }, ...p.shipping.map((x) => shardRow(x, p.targetPct)), ...p.extra.map(extraRow)),
-    p.others.length > 0 ? h('details', { class: 'disc pothers' },
-      h('summary', {}, `Templates and style shards (${p.others.length})`),
-      h('ul', { class: 'pshards' }, ...p.others.map((x) => shardRow(x, p.targetPct)))) : null,
-    r.chart ? h('button', { class: 'pchart', type: 'button', 'aria-label': 'Open the share vs hours chart',
-      onclick: () => { if (r.chart) openMedia({ kind: 'image', name: 'Share vs agent-hours', src: r.chart, poster: null }); } },
-    h('img', { src: `/${r.chart}`, alt: 'Public SDK share against agent-hours spent, per shard', loading: 'lazy', decoding: 'async' })) : null,
+      h('span', {}, h('i', { class: 'sw', style: 'background:var(--accent)' }), 'custom % of legacy, lower is better'),
+      h('span', {}, h('i', { class: 'sw ptick' }), 'goal'),
+      h('span', {}, h('i', { class: 'sw ptick legacy' }), '100 % = the legacy shard')),
+    h('ul', { class: 'pshards' }, ...p.shards.map(shardRow)),
+    h('p', { class: 'small pfoot' }, `${p.native.join(', ')}: native shards with no legacy to compare against, so not in the six.`),
+    p.chart ? h('button', { class: 'pchart', type: 'button', 'aria-label': 'Open the custom code vs agent-hours chart',
+      onclick: () => { if (p.chart) openMedia({ kind: 'image', name: 'Custom code vs agent-hours', src: p.chart, poster: null }); } },
+    h('img', { src: `/${p.chart}`, alt: 'Custom code as a % of legacy against port agent-hours, per shard', loading: 'lazy', decoding: 'async' })) : null,
     h('p', { class: 'small pnote' },
-      h('b', {}, 'Measured: '), `G417 custom/frozen runtime, headless and custom lines (scripts/shard-platform.mjs on ${p.revision}, this build) and hours spent (session logs, recount ${utc(r.asOf)}). `,
-      h('b', {}, 'Projected: '), 'hours left, so effort % (spent ÷ (spent + left)) and the finish. ',
-      `Recount confidence: ${r.confidence}. `, h('code', {}, r.source)));
+      h('b', {}, 'Measured: '), `${p.basis} ruler (scripts/shard-platform.mjs) on ${p.revision}, committed ${cancun(p.committedAt)} Cancun, read ${cancun(p.measuredAt)}. `,
+      p.previous ? `Changes are since ${p.previous.revision} (${cancun(p.previous.at)}). ` : '',
+      rebase ? `Re-based ${cancun(rebase.at)}: ${rebase.label}. ` : 'P4 has not landed: the ruler still reads the shard source, and re-bases on out/<slug>/runtime when it does. ',
+      'No effort, hours or projections count (G458). ', h('code', {}, p.source)));
 }
 
 function clip(text: string, n: number): string {
@@ -132,25 +104,14 @@ function clip(text: string, n: number): string {
 
 export function planView(root: HTMLElement, p: PlanData): void {
   const rerender = () => planView(root, p);
-  const whole = p.effort.find((e) => e.label === 'Whole plan');
-  const milestones = p.effort.filter((e) => e !== whole && !e.label.endsWith('(M3)'));
-  const shards = p.effort.filter((e) => e.label.endsWith('(M3)')).map((e) => ({ label: e.label.replace(/ \(M3\)$/, ''), pct: e.pct }));
   const parts: HTMLElement[] = [
     h('h1', {}, p.slug),
     h('p', { class: 'sub' }, p.title.replace(new RegExp(`^${p.slug}\\s*—\\s*`), '')),
-    progressCard(p.progress, p.hardCount),
+    progressCard(p.progress),
     h('h2', {}, 'Ready to share'),
     h('section', { class: 'card' }, p.readiness
       ? h('p', { class: 'statelead', style: 'margin:0' }, rich(p.readiness))
       : h('p', { class: 'small' }, 'No current checklist reported in State.')),
-    h('h2', {}, 'State’s own estimate'),
-    h('section', { class: 'card' },
-      h('details', { class: 'disc', style: 'border-top:0' },
-        h('summary', {}, `Effort % as State reports it${p.effortWhen ? ` (${p.effortWhen})` : ''}`),
-        h('div', { class: 'hero' }, whole ? ring(whole.pct, 'by effort') : h('span', {}), bars(milestones)),
-        shards.length > 0 ? h('h3', {}, 'M3: effort toward 80/20') : null,
-        shards.length > 0 ? bars(shards) : null),
-      h('p', { class: 'small', style: 'margin:10px 0 0' }, 'Hand-written in the plan; the Progress card above is the measured, current one.')),
   ];
 
   parts.push(h('h2', {}, `Waiting for Jake (${p.waiting.length})`));

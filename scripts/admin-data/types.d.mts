@@ -1,5 +1,4 @@
-import type { ConversionMeasure, PortHeadline } from '../shard-platform.mjs';
-import type { GeneratorTotal } from '../generator-inventory.mjs';
+import type { Ruler } from './ruler.mjs';
 import type { MemoryReport } from '../memory-report-data.mjs';
 
 export interface Source { path:string; sha256:string; bytes:number }
@@ -41,33 +40,8 @@ export interface LoadingRun {
   longTasks:{startMs:number;durationMs:number;owner:string}[];
 }
 export interface LoadingReport {schema:'loading-benchmark/1';pin:string;device:string;runs:LoadingRun[];missing:string[]}
-/** One shard's row of `node scripts/shard-platform.mjs --json`, run on the collected revision (measured, verbatim). */
-export interface ShareProofs { headless:boolean }
-export interface ShardShare {
-  slug:string; runtimeLines:number; trustedRuntimeLines:number;
-  /** G291 frozen-runtime comparison, including explicit unavailable fields and the audit hook. */
-  conversion?:ConversionMeasure;
-  port?:PortHeadline;
-  generators?:GeneratorTotal;
-  baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
-  /** Headless behaviour harness availability. */
-  proofsPassing:number;
-}
-export interface ShareReport { command:string; target:number; portAverage?:number|null; shards:ShardShare[] }
-/** A row of the newest measured effort recount (progress/shard-platform/effort-recount-*): hours spent are measured,
- * hours remaining are the recount's projection (approximate where it writes `~`). */
-export interface EffortShard { slug:string|null; name:string; spentHours:number; remainingHours:number|null; approximate:boolean; effortPercent:number; line:number }
-export interface EffortTotal { label:string; spentHours:number|null; remainingHours:number|null; remainingRange:number[]|null; effortPercent:number }
-/** A projected finish (UTC timestamps as the recount writes them), per pace. */
-export interface EffortFinish { label:string; central:string; from:string; to:string }
-export interface EffortRecount {
-  folder:string; date:string;
-  /** The recount's own timestamp (effort.json `date`), or the folder date for a README-only recount. */
-  asOf:string; confidence:string; format:'json'|'readme'; source:Source;
-  /** The recount's share-vs-hours chart, a media path. */
-  chart:string; shards:EffortShard[]; totals:EffortTotal[]; finish:EffortFinish[];
-}
-export interface Progress { share:ShareReport; effort:EffortRecount }
+/** The Plan card's data (G458): the committed ruler file and its custom-vs-hours chart (a media path). */
+export interface Progress { ruler:Ruler; chart:string; source:Source }
 export interface AdminBundle {
   schema:'wildshard-admin/1';revision:string;
   memory:MemoryEntry[];

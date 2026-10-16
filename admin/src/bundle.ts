@@ -2,7 +2,7 @@
 // `wildshard-admin/1` data bundle (scripts/admin-data.mjs, committed reports only) in tools/view.ts. The page reads only
 // this file; it never talks to the game.
 
-export const BUNDLE_SCHEMA = 'wildshard-admin-view/1';
+export const BUNDLE_SCHEMA = 'wildshard-admin-view/2';
 
 export interface Bundle {
   schema: typeof BUNDLE_SCHEMA;
@@ -138,11 +138,6 @@ export interface Decision {
   answer: string;
 }
 
-export interface Effort {
-  label: string;
-  pct: number;
-}
-
 export interface WaitingItem {
   id: string;
   what: string;
@@ -155,64 +150,41 @@ export interface Milestone {
   lines: string[];
 }
 
-/** One shard on the Progress card: the share script's measured numbers, and the recount's effort when it has a row. */
-export interface ProgressShard {
+/** One legacy shard on the ruler card (G458): custom lines as a % of its frozen legacy, lower is better. */
+export interface RulerShardView {
   slug: string;
   name: string;
-  /** G417 runtime reduction from frozen TS; native shards have no ratio. */
-  measure?: 'runtime-vs-legacy' | 'native';
-  sharePct: number | null;
-  portPct?: number | null;
-  world?: 'yes' | 'partial' | 'no' | 'unavailable';
-  generators?: {ported:number;left:number;portedLines:number;leftLines:number};
-  /** Authored runtime TS / 20 % frozen TS ceiling; old measure when no frozen copy exists. */
-  runtime: number;
-  ceiling: number;
-  /** G291 passes at ≤20 % retained runtime; no-copy rows keep the old measure. */
-  at8020: boolean;
-  /** Headless behaviour harness availability. */
-  proofs: number;
-  effort: ProgressEffort | null;
-}
-
-/** A recount row: hours spent are measured; hours left (and so effort %) are the recount's projection. */
-export interface ProgressEffort {
-  name: string;
+  wave: string;
+  /** Goal %: 20, or 10 for Sky Reach and Signal Dunes. */
+  goal: number;
   pct: number;
-  spent: number;
-  left: number | null;
-  approx: boolean;
+  custom: number;
+  legacy: number;
+  /** Points since the previous measured commit (negative = custom code cut), or null without one. */
+  delta: number | null;
+  grid: 'pass' | 'fail' | 'unknown';
+  /** The grid-ready checks not passing, as "memory unknown". */
+  gridOpen: string[];
 }
 
-export interface ProgressTotal {
-  label: string;
-  pct: number;
-  spent: number | null;
-  left: number | null;
-  range: number[] | null;
-}
-
+/** The SHARD-PLATFORM card: outcome-only (G458), from the committed ruler file. No effort, hours or projections. */
 export interface ProgressData {
-  /** The revision the share script measured (this build's). */
   revision: string;
-  targetPct: number;
-  portAverage?: number | null;
-  hardCount: { done: number; total: number };
-  /** The shipping seven, highest share first. */
-  shipping: ProgressShard[];
-  /** Templates and style shards. */
-  others: ProgressShard[];
-  /** Recount rows that are not a shard (shared systems). */
-  extra: ProgressEffort[];
-  recount: {
-    date: string;
-    asOf: string;
-    confidence: string;
-    source: string;
-    totals: ProgressTotal[];
-    finish: { label: string; central: string; from: string; to: string }[];
-    chart: string | null;
-  };
+  committedAt: string;
+  measuredAt: string;
+  /** "source" until P4 moves the ruler to out/<slug>/runtime. */
+  basis: string;
+  /** Whole plan = 60 % M3 + 40 % M2, in %; lower ≠ upper while M2 has unknown checks. */
+  plan: { lower: number; upper: number };
+  m3: { pct: number; cut: number; mustGo: number };
+  m2: { ready: number; fail: number; unknown: number; total: number };
+  wave: { id: string; label: string; pct: number; until: string | null };
+  shards: RulerShardView[];
+  native: string[];
+  previous: { revision: string; at: string } | null;
+  events: { at: string; label: string }[];
+  chart: string | null;
+  source: string;
 }
 
 export interface PlanData {
@@ -221,14 +193,8 @@ export interface PlanData {
   title: string;
   state: string;
   source: string;
-  /** G256: State's literal hard count, unavailable when State does not report it. */
-  hardCount: { done: number; total: number } | null;
   /** The first, current checklist in State; dated handoffs are not current status. */
   readiness: string | null;
-  /** State's own reported percentages, verbatim (never inferred). */
-  effort: Effort[];
-  /** Who / when State says those percentages are from ("coordinator, 2026-10-08 evening"), or null. */
-  effortWhen: string | null;
   milestones: Milestone[];
   rows: PlanRow[];
   decisions: Decision[];

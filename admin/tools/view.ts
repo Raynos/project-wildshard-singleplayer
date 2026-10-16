@@ -2,13 +2,13 @@
 // A pure mapping: no file reads, no inference. The memory rulers stay as the reports wrote them (measured / estimated /
 // unattributed); the plan's percentages are State's own; loading stays unavailable until SF67 commits a report.
 import type {
-  AdminBundle, EffortShard, ItemizedReport, Media, Plan, Playtest as AdminPlaytest, Progress, ShardShare,
+  AdminBundle, ItemizedReport, Media, Plan, Playtest as AdminPlaytest, Progress,
 } from '../../scripts/admin-data/types.mjs';
 import type { MemoryReport } from '../../scripts/memory-report-data.mjs';
 import {
   BUNDLE_SCHEMA, type Bundle, type Confidence, type Decision, type LoadingData, type MemBlock, type MemReport,
   type MemSituation, type Milestone, type PlanData, type PlanRow, type Playtest, type PlaytestItem, type PlaytestMedia,
-  type ProgressData, type ProgressEffort, type ProgressShard, type RowStatus,
+  type ProgressData, type RowStatus,
 } from '../src/bundle.ts';
 
 const CAP_BYTES = 1_000_000_000;
@@ -203,77 +203,43 @@ function playtest(p: AdminPlaytest, media: Map<string, Media>, posters: Readonly
 
 // ── plan ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-const EFFORT_LABELS: Record<string, string> = { 'whole plan': 'Whole plan', M1: 'M1 the package', M2: 'M2 the grid', M3: 'M3 the seven' };
-const SHARD_LABELS = ['template', 'Signal Dunes', 'Sky Reach', 'Driftwood', 'Pine', 'Nalati', 'Nine Dragon'];
+/** The native shards (no frozen legacy, so no custom %): the card's footnote. */
+const NATIVE_NAMES: Record<string, string> = { _template: 'Template', 'blender-template': 'Blender Template', 'ink-cel-valley': 'Ink-Cel', 'pastel-plain': 'Pastel' };
 
-/** The seven shards M3 ships at 80/20 (§6), with the names a recount README may use for them. */
-export const SHIPPING: readonly { slug: string; name: string; aliases: readonly string[] }[] = [
-  { slug: 'driftwood-isle', name: 'Driftwood', aliases: ['driftwood', 'driftwood isle'] },
-  { slug: 'pine-hollow', name: 'Pine Hollow', aliases: ['pine', 'pine hollow'] },
-  { slug: 'nalati-grasslands', name: 'Nalati', aliases: ['nalati', 'nalati grasslands'] },
-  { slug: 'far-reach', name: 'Sky Reach', aliases: ['sky reach', 'far reach'] },
-  { slug: 'sunscar-dunes', name: 'Signal Dunes', aliases: ['signal dunes', 'sunscar dunes'] },
-  { slug: 'nine-dragon-stack', name: 'Nine Dragon', aliases: ['nine dragon', 'nine dragon stack'] },
-  { slug: '_template', name: 'Template', aliases: ['template', 'template 1'] },
-];
+/** The ruler's grid-ready check names, as STATE words them. */
+const GRID_CHECKS: Record<string, string> = {
+  bakedTiles: 'baked tiles', edgeProfile: 'edge profile', fourEntryways: 'four entryways', memory: 'memory', hudAccent: 'HUD accent', oneFrameLooks: 'look/travel',
+};
 
-function shardName(slug: string): string {
-  return slug.replace(/^_/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
+const round1 = (x: number): number => Math.round(x * 10) / 10;
 
-/** The share script's rows + the newest recount → the Progress card. A shipping shard missing from the script fails. */
-export function progress(p: Progress, revision: string, media: Map<string, Media>): ProgressData {
-  const target = p.share.target;
-  const known = (slug: string) => SHIPPING.find((s) => s.slug === slug);
-  const used = new Set<EffortShard>();
-  const effortFor = (slug: string): ProgressEffort | null => {
-    const names = new Set([slug, shardName(slug).toLowerCase(), ...(known(slug)?.aliases ?? [])]);
-    const row = p.effort.shards.find((e) => e.slug === slug) ?? p.effort.shards.find((e) => e.slug === null && names.has(e.name.toLowerCase()));
-    if (!row) return null;
-    used.add(row);
-    return { name: row.name, pct: row.effortPercent, spent: row.spentHours, left: row.remainingHours, approx: row.approximate };
-  };
-  const toShard = (row: ShardShare): ProgressShard => {
-    const runtimeShare = row.conversion?.runtimeShare ?? null, legacyLines = row.conversion?.legacyLines ?? null;
-    return {
-    slug: row.slug,
-    ...(row.port === undefined ? {} : {portPct:row.port.percent,world:row.port.world}),
-    ...(row.generators === undefined ? {} : {generators:row.generators}),
-    name: known(row.slug)?.name ?? shardName(row.slug),
-    measure: row.conversion?.metric ?? 'native',
-    sharePct: runtimeShare === null ? null : Math.round(Math.max(0, 1 - runtimeShare) * 1000) / 10,
-    runtime: legacyLines === null ? row.runtimeLines : (row.conversion?.customRuntimeLines ?? row.runtimeLines),
-    ceiling: legacyLines === null ? row.ceiling : Math.floor(legacyLines * 0.2),
-    at8020: row.conversion?.passed === true,
-    proofs: row.proofsPassing,
-    effort: effortFor(row.slug),
-    };
-  };
-  const shipping = SHIPPING.map(({ slug }) => {
-    const row = p.share.shards.find((s) => s.slug === slug);
-    if (!row) throw new Error(`Progress: ${p.share.command} has no row for the shipping shard ${slug}`);
-    return toShard(row);
-  }).sort((a, b) => (b.sharePct ?? -1) - (a.sharePct ?? -1));
-  const others = p.share.shards.filter((s) => !known(s.slug)).map(toShard);
-  const extra = p.effort.shards.filter((e) => !used.has(e)).map((e): ProgressEffort =>
-    ({ name: e.name, pct: e.effortPercent, spent: e.spentHours, left: e.remainingHours, approx: e.approximate }));
+/** The committed ruler file (G458) → the SHARD-PLATFORM card. Each shard's change is against the previous measured commit. */
+export function progress(p: Progress, media: Map<string, Media>): ProgressData {
+  const r = p.ruler;
+  const prev = [...r.history].reverse().find((h) => h.revision !== r.revision) ?? null;
   return {
-    revision: revision.slice(0, 9),
-    targetPct: Math.round(target * 100),
-    ...(p.share.portAverage === undefined ? {} : {portAverage:p.share.portAverage}),
-    hardCount: { done: shipping.filter((s) => s.at8020).length, total: shipping.length },
-    shipping,
-    others,
-    extra,
-    recount: {
-      date: p.effort.date,
-      asOf: p.effort.asOf,
-      confidence: p.effort.confidence,
-      source: p.effort.source.path,
-      totals: p.effort.totals.map((t) => ({ label: t.label, pct: t.effortPercent, spent: t.spentHours, left: t.remainingHours, range: t.remainingRange })),
-      finish: p.effort.finish,
-      chart: media.get(p.effort.chart)?.url ?? null,
-    },
+    revision: r.revision.slice(0, 9),
+    committedAt: r.committedAt,
+    measuredAt: r.measuredAt,
+    basis: r.basis,
+    plan: { lower: round1(r.plan.lower * 100), upper: round1(r.plan.upper * 100) },
+    m3: { pct: round1(r.m3.fraction * 100), cut: r.m3.cut, mustGo: r.m3.mustGo },
+    m2: r.m2,
+    wave: { id: r.wave.id, label: r.wave.label, pct: r.wave.pct, until: r.wave.until },
+    shards: r.shards.map((s) => {
+      const before = prev?.shards[s.slug];
+      return {
+        slug: s.slug, name: s.name, wave: s.wave, goal: s.goal, pct: s.pct, custom: s.custom, legacy: s.legacy,
+        delta: before === undefined ? null : round1(s.pct - before),
+        grid: s.grid,
+        gridOpen: Object.entries(s.criteria).filter(([, v]) => v !== 'pass').map(([k, v]) => `${GRID_CHECKS[k] ?? k} ${v}`),
+      };
+    }),
+    native: r.native.map((slug) => NATIVE_NAMES[slug] ?? slug),
+    previous: prev ? { revision: prev.revision.slice(0, 9), at: prev.at } : null,
+    events: r.events,
+    chart: media.get(p.chart)?.url ?? null,
+    source: p.source.path,
   };
 }
 
@@ -288,30 +254,18 @@ function plan(p: Plan, prog: ProgressData): PlanData {
   const decisions = p.decisions.map((d): Decision => ({ id: d.id, topic: plain(d.cells[1] ?? ''), answer: plain(d.cells.slice(2).join(' · ')) }));
   const milestones = p.milestones.map((m): Milestone => ({ title: plain(m.title.replace(/^\d+\.\s*/, '')),
     lines: sectionLines(m.markdown) }));
-  // State reports each shard's M3 share in prose; read them verbatim, as State's own numbers.
-  const shardEffort = SHARD_LABELS.flatMap((label) => {
-    const m = new RegExp(`${label} ≈ (\\d+) %`).exec(p.state);
-    return m ? [{ label: `${label === 'template' ? 'Template' : label} (M3)`, pct: Number(m[1]) }] : [];
-  });
   const source = p.source.path;
   const state = plain(p.state.replace(/^\*\*State:\*\*\s*/, ''));
-  const count = /shards at 80\/20:\s*(\d+) of (\d+)/iu.exec(state);
-  const done = Number(count?.[1]), total = Number(count?.[2]);
-  const hardCount = count && Number.isSafeInteger(done) && Number.isSafeInteger(total) && total > 0 && done <= total ? { done, total } : null;
   const readiness = /Ready-to-share checklist:\s*(.*?)(?:Then effort\b|$)/iu.exec(state)?.[1]?.trim() ?? null;
-  const effortWhen = /\beffort \(([^)]*\d{4}-\d{2}-\d{2}[^)]*)\)/u.exec(state)?.[1] ?? null;
   const ids = decisions.map((d) => Number(/^G(\d+)$/.exec(d.id)?.[1])).filter((n) => Number.isSafeInteger(n));
   const decisionRange = ids.length === 0 ? 'decisions' : `G${Math.min(...ids)}–G${Math.max(...ids)}`;
   return {
     progress: prog,
-    effortWhen,
     slug: source.slice(source.lastIndexOf('/') + 1).replace(/\.md$/, ''),
     title: plain(p.title.replace(/^Plan:\s*/, '')),
     state,
     source,
-    hardCount,
     readiness,
-    effort: [...p.reportedPercent.map((e) => ({ label: EFFORT_LABELS[e.label] ?? e.label, pct: e.percent })), ...shardEffort],
     milestones,
     rows,
     decisions,
@@ -359,6 +313,6 @@ export function toView(admin: AdminBundle, builtAt: string, posters: ReadonlySet
     memory: { capBytes: CAP_BYTES, reports },
     loading,
     playtests: admin.playtests.map((p) => playtest(p, media, posters)).sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true })),
-    plans: plan(admin.plan, progress(admin.progress, admin.revision, media)),
+    plans: plan(admin.plan, progress(admin.progress, media)),
   };
 }

@@ -1,0 +1,536 @@
+{
+ "schema": "shard-platform-ruler/1",
+ "command": "node scripts/shard-platform.mjs --json",
+ "revision": "f23a82d975a482901895cfc4c606d35d867787c4",
+ "committedAt": "2026-10-16T16:46:25.000Z",
+ "measuredAt": "2026-10-16T16:51:28.179Z",
+ "basis": "source",
+ "plan": {
+  "lower": 0.10287446287022195,
+  "upper": 0.4362077962035553
+ },
+ "m3": {
+  "cut": 13746,
+  "mustGo": 80171.5,
+  "fraction": 0.1714574381170366
+ },
+ "m2": {
+  "ready": 0,
+  "fail": 1,
+  "unknown": 5,
+  "total": 6
+ },
+ "shards": [
+  {
+   "slug": "pine-hollow",
+   "name": "Pine Hollow",
+   "wave": "W2",
+   "goal": 20,
+   "custom": 18734,
+   "legacy": 21305,
+   "pct": 87.9,
+   "grid": "unknown",
+   "criteria": {
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
+    "memory": "unknown",
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
+   }
+  },
+  {
+   "slug": "driftwood-isle",
+   "name": "Driftwood",
+   "wave": "W2",
+   "goal": 20,
+   "custom": 13895,
+   "legacy": 17167,
+   "pct": 80.9,
+   "grid": "unknown",
+   "criteria": {
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
+    "memory": "unknown",
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
+   }
+  },
+  {
+   "slug": "far-reach",
+   "name": "Sky Reach",
+   "wave": "W1",
+   "goal": 10,
+   "custom": 6061,
+   "legacy": 6777,
+   "pct": 89.4,
+   "grid": "unknown",
+   "criteria": {
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
+    "memory": "unknown",
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
+   }
+  },
+  {
+   "slug": "sunscar-dunes",
+   "name": "Signal Dunes",
+   "wave": "W1",
+   "goal": 10,
+   "custom": 1790,
+   "legacy": 4122,
+   "pct": 43.4,
+   "grid": "unknown",
+   "criteria": {
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
+    "memory": "unknown",
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
+   }
+  },
+  {
+   "slug": "nalati-grasslands",
+   "name": "Nalati",
+   "wave": "W3",
+   "goal": 20,
+   "custom": 29644,
+   "legacy": 28370,
+   "pct": 104.5,
+   "grid": "fail",
+   "criteria": {
+    "bakedTiles": "fail",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
+    "memory": "unknown",
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
+   }
+  },
+  {
+   "slug": "nine-dragon-stack",
+   "name": "Nine Dragon",
+   "wave": "W3",
+   "goal": 20,
+   "custom": 16256,
+   "legacy": 21111,
+   "pct": 77,
+   "grid": "unknown",
+   "criteria": {
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
+    "memory": "unknown",
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
+   }
+  }
+ ],
+ "native": [
+  "_template",
+  "blender-template",
+  "ink-cel-valley",
+  "pastel-plain"
+ ],
+ "wave": {
+  "id": "W2",
+  "label": "W2 · Pine + Driftwood, with the format rewire",
+  "until": "2026-10-17T05:00:00Z",
+  "goal": 20,
+  "shards": [
+   "pine-hollow",
+   "driftwood-isle"
+  ],
+  "pct": 25.1
+ },
+ "waves": [
+  {
+   "id": "W2",
+   "startedAt": "2026-10-14T04:19:00Z",
+   "start": {
+    "pine-hollow": 107.6,
+    "driftwood-isle": 104.2
+   },
+   "endedAt": null
+  }
+ ],
+ "history": [
+  {
+   "revision": "495eae41e7655dabac859db26bced65f91351498",
+   "at": "2026-10-04T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 86.3,
+    "driftwood-isle": 86.6,
+    "far-reach": 76.3,
+    "sunscar-dunes": 89.2,
+    "nalati-grasslands": 92.6,
+    "nine-dragon-stack": 95.4
+   }
+  },
+  {
+   "revision": "a12b825396f03085e48b4921cd811263ee55b496",
+   "at": "2026-10-05T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 91,
+    "driftwood-isle": 95.7,
+    "far-reach": 114.7,
+    "sunscar-dunes": 93,
+    "nalati-grasslands": 93.4,
+    "nine-dragon-stack": 96.9
+   }
+  },
+  {
+   "revision": "3f90740922dd9bb5baadad6e150344dde5b80f05",
+   "at": "2026-10-06T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 97,
+    "driftwood-isle": 95.1,
+    "far-reach": 114.5,
+    "sunscar-dunes": 91.5,
+    "nalati-grasslands": 95,
+    "nine-dragon-stack": 96.9
+   }
+  },
+  {
+   "revision": "b96229a4c1a661cbe39d528b4370ac45059bb7ea",
+   "at": "2026-10-08T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 97.6,
+    "driftwood-isle": 95.8,
+    "far-reach": 129,
+    "sunscar-dunes": 88.4,
+    "nalati-grasslands": 96.5,
+    "nine-dragon-stack": 100.2
+   }
+  },
+  {
+   "revision": "7ce6398f2ead71ef5b3dd02e8900a8284761c860",
+   "at": "2026-10-09T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 98.1,
+    "driftwood-isle": 102.7,
+    "far-reach": 135.3,
+    "sunscar-dunes": 96.6,
+    "nalati-grasslands": 97.9,
+    "nine-dragon-stack": 98.8
+   }
+  },
+  {
+   "revision": "64e07b6ceaf654513be5b79a67db01f8ddd6d351",
+   "at": "2026-10-09T12:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 113.7,
+    "driftwood-isle": 105.7,
+    "far-reach": 140.1,
+    "sunscar-dunes": 100,
+    "nalati-grasslands": 101.5,
+    "nine-dragon-stack": 102
+   }
+  },
+  {
+   "revision": "4351b5776d5eda5d44199cf6476390e9eee09778",
+   "at": "2026-10-09T18:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 115.9,
+    "driftwood-isle": 106.9,
+    "far-reach": 140.1,
+    "sunscar-dunes": 108.7,
+    "nalati-grasslands": 103.8,
+    "nine-dragon-stack": 102
+   }
+  },
+  {
+   "revision": "7e005b3d3126bfb80cd3453c84ae905fa6f9c773",
+   "at": "2026-10-09T23:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 113.1,
+    "driftwood-isle": 108.7,
+    "far-reach": 133.8,
+    "sunscar-dunes": 107.5,
+    "nalati-grasslands": 107.2,
+    "nine-dragon-stack": 104.1
+   }
+  },
+  {
+   "revision": "b4f73dea75cbd19bc23c0c0ea462e557b49cdb12",
+   "at": "2026-10-10T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 113.9,
+    "driftwood-isle": 107.6,
+    "far-reach": 134,
+    "sunscar-dunes": 111.2,
+    "nalati-grasslands": 107.5,
+    "nine-dragon-stack": 81.1
+   }
+  },
+  {
+   "revision": "87f5757232bc1bda2582d634723b265849d9c9c2",
+   "at": "2026-10-10T06:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 113.6,
+    "driftwood-isle": 110.8,
+    "far-reach": 135,
+    "sunscar-dunes": 106.1,
+    "nalati-grasslands": 104.8,
+    "nine-dragon-stack": 73.2
+   }
+  },
+  {
+   "revision": "34f50a5bb1b1b65f34f6bd4a65c2babaaebb1fd6",
+   "at": "2026-10-10T12:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 118.5,
+    "driftwood-isle": 112.4,
+    "far-reach": 137,
+    "sunscar-dunes": 109.1,
+    "nalati-grasslands": 104.1,
+    "nine-dragon-stack": 75.3
+   }
+  },
+  {
+   "revision": "f8d0c96ea9b93f0267182a95228db2cce917269d",
+   "at": "2026-10-13T06:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 114.3,
+    "driftwood-isle": 111.7,
+    "far-reach": 119,
+    "sunscar-dunes": 69.1,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 74.9
+   }
+  },
+  {
+   "revision": "5510337a039c41865547ce7e248c6a2c1d9f0fc7",
+   "at": "2026-10-13T12:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 114.4,
+    "driftwood-isle": 111.8,
+    "far-reach": 116.7,
+    "sunscar-dunes": 66.7,
+    "nalati-grasslands": 104.7,
+    "nine-dragon-stack": 75.9
+   }
+  },
+  {
+   "revision": "79e14c64c0c2e6106ecc79782fab5aa90cd6edcf",
+   "at": "2026-10-13T18:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 114.4,
+    "driftwood-isle": 111.8,
+    "far-reach": 113.3,
+    "sunscar-dunes": 64.3,
+    "nalati-grasslands": 104.6,
+    "nine-dragon-stack": 76.1
+   }
+  },
+  {
+   "revision": "ad942b634fa5fd662cad74f5d56ceb01905b9c1b",
+   "at": "2026-10-14T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 114.4,
+    "driftwood-isle": 111.8,
+    "far-reach": 105.5,
+    "sunscar-dunes": 58.7,
+    "nalati-grasslands": 104.6,
+    "nine-dragon-stack": 76.1
+   }
+  },
+  {
+   "revision": "31f7fe4d0d7cc1d8e07f4cd811753b1d1f2dbc89",
+   "at": "2026-10-14T06:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 111,
+    "driftwood-isle": 103.9,
+    "far-reach": 93.7,
+    "sunscar-dunes": 45.9,
+    "nalati-grasslands": 104.8,
+    "nine-dragon-stack": 77.2
+   }
+  },
+  {
+   "revision": "72113e232ef7faf123442d8f2771fb8bc166943e",
+   "at": "2026-10-14T12:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 105.9,
+    "driftwood-isle": 102.3,
+    "far-reach": 93.6,
+    "sunscar-dunes": 45.9,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "393de57ca49248751e36b8172cf2b8d220c2387e",
+   "at": "2026-10-14T18:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 104.5,
+    "driftwood-isle": 101.3,
+    "far-reach": 93.6,
+    "sunscar-dunes": 45.9,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "a5e53cc7d7e9d88498b1ca0f0d0eebe4d94cf7fc",
+   "at": "2026-10-15T18:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 101.4,
+    "driftwood-isle": 98.7,
+    "far-reach": 92,
+    "sunscar-dunes": 43.5,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "c61fbc4dfb6b37b02ebae0b900e5bbd98a0728f8",
+   "at": "2026-10-16T00:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 91.5,
+    "driftwood-isle": 86.5,
+    "far-reach": 92,
+    "sunscar-dunes": 43.5,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "c2090c3ec2d4f097c55457384c213f347cc7341f",
+   "at": "2026-10-16T04:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 87.8,
+    "driftwood-isle": 80.9,
+    "far-reach": 92,
+    "sunscar-dunes": 43.5,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "af0cc073134ce55fc8d11719e4e0e688afb99ec8",
+   "at": "2026-10-16T08:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 89.2,
+    "driftwood-isle": 80.9,
+    "far-reach": 92,
+    "sunscar-dunes": 43.5,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "85c777932cbc321e3876168a47dca3484b976187",
+   "at": "2026-10-16T11:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 89.2,
+    "driftwood-isle": 80.9,
+    "far-reach": 92,
+    "sunscar-dunes": 43.5,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "b3514ee541e222e869a4fb95f2c91cdb053e8fef",
+   "at": "2026-10-16T13:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 85.6,
+    "driftwood-isle": 78.7,
+    "far-reach": 89.5,
+    "sunscar-dunes": 43.6,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "ce73fbeb5208568ace59489c13ccc9a0391a50f9",
+   "at": "2026-10-16T15:00:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 87.7,
+    "driftwood-isle": 80.3,
+    "far-reach": 89.5,
+    "sunscar-dunes": 43.6,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "46669f4d39e5f5cdf85474f111def0f3c8c50c49",
+   "at": "2026-10-16T16:43:00Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 87.9,
+    "driftwood-isle": 80.9,
+    "far-reach": 89.4,
+    "sunscar-dunes": 43.4,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "f23a82d975a482901895cfc4c606d35d867787c4",
+   "at": "2026-10-16T16:46:25.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 87.9,
+    "driftwood-isle": 80.9,
+    "far-reach": 89.4,
+    "sunscar-dunes": 43.4,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 77
+   }
+  }
+ ],
+ "events": [
+  {
+   "at": "2026-10-09T21:05:00Z",
+   "label": "G285 bake lanes"
+  },
+  {
+   "at": "2026-10-14T04:19:00Z",
+   "label": "W1 at the 10 % line, W2 starts"
+  },
+  {
+   "at": "2026-10-14T13:14:00Z",
+   "label": "W1 closes on the G420 grid check"
+  },
+  {
+   "at": "2026-10-16T02:20:00Z",
+   "label": "G447 shardfile redesign; the overnight stall (to ~12:00 UTC)"
+  },
+  {
+   "at": "2026-10-16T12:00:00Z",
+   "label": "G451: the format rewire starts"
+  }
+ ]
+}

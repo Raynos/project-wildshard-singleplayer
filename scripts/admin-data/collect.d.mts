@@ -1,7 +1,6 @@
 import type { AdminBundle } from './types.mjs';
 
-/** `platform` runs `node scripts/shard-platform.mjs --json` on exactly this revision and returns its parsed output. */
-export interface CommittedTree {revision:string;paths:readonly string[];read:(path:string)=>Uint8Array;platform:()=>unknown}
+export interface CommittedTree {revision:string;paths:readonly string[];read:(path:string)=>Uint8Array}
 export const PLAN:string;
 /** The plan folder files that hold the plan's SF rows and G decisions (SHARD-PLATFORM G375). */
 export const PLAN_PARTS:readonly string[];

@@ -14,11 +14,8 @@ on:
       - 'docs/plans/SHARD-PLATFORM.md'
       - 'docs/plans/shard-platform/rows.md'
       - 'docs/plans/shard-platform/decisions.md'
-      # the plan page's Progress card: the effort recounts and the share script (with its ceilings)
-      - 'progress/shard-platform/effort-recount-*/**'
-      - 'scripts/shard-platform.mjs'
-      - 'scripts/shard-platform-content.mjs'
-      - 'lint/shard-platform.json'
+      # the plan page's ruler card (G458): the committed ruler file and chart, refreshed hourly
+      - 'progress/shard-platform/ruler/**'
       - '.github/workflows/admin-deploy.yml'
   workflow_dispatch:
 
