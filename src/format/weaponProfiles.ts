@@ -165,3 +165,36 @@ export function parseNativeFirearmProfile(input: unknown, mode: 'bolt' | 'lever'
     || row.projectile.flight.gravity !== 0 || row.projectile.flight.drag !== 0 || row.projectile.flight.windCoupling !== 0) throw new Error('Unsupported native per-round profile');
   return { ...row, lever: row.lever };
 }
+
+// A held firearm's view rows as JSON (game/plugin/heldFirearm HeldModelRows and HeldFirearmRows `presentation`), admitted
+// before the host builds anything; shards keep them in data (Nalati's heldRifle.json, Pine's custom/leverDetails rows).
+const real = v.pipe(v.number(), v.finite()), vec3 = v.tuple([real, real, real]), rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
+const primitive = v.strictObject({ kind: v.picklist(['box', 'cylinder', 'cone', 'sphere', 'torus', 'icosahedron', 'capsule']), args: v.pipe(v.array(real), v.maxLength(8)),
+  ops: v.exactOptional(v.array(v.union([v.tuple([v.picklist(['translate', 'scale']), real, real, real]), v.tuple([v.picklist(['rotateX', 'rotateY', 'rotateZ']), real])]))) });
+const look = v.strictObject({ set: v.exactOptional(rowId), normalScale: v.exactOptional(v.tuple([real, real])), color: v.exactOptional(vec3),
+  roughness: v.exactOptional(real), metalness: v.exactOptional(real), envMapIntensity: v.exactOptional(real), specularIntensity: v.exactOptional(real) });
+/** A held model's rows (materials, procedural sets, primitive geometry, parts, anchors, glow, brass, root scale). */
+export const HeldModelRowsSchema = v.object({
+  materials: v.record(rowId, v.union([v.strictObject({ name: rowId, look }), v.strictObject({ name: rowId, basic: v.strictObject({ color: real, opacity: real }) })])),
+  textures: v.exactOptional(v.record(rowId, v.strictObject({ set: v.picklist(['gunmetal', 'anodised', 'polymer', 'walnut', 'brushed-steel', 'leather', 'cord', 'bolt']), repeat: v.exactOptional(v.tuple([real, real])) }))),
+  primitives: v.exactOptional(v.record(rowId, v.pipe(v.array(primitive), v.maxLength(512)))),
+  parts: v.pipe(v.array(v.strictObject({ id: rowId, geometry: rowId, material: rowId, at: v.exactOptional(v.union([rowId, vec3])), rot: v.exactOptional(vec3),
+    sighted: v.exactOptional(v.boolean()), hidden: v.exactOptional(v.boolean()), display: v.exactOptional(v.union([v.boolean(), v.strictObject({ rot: vec3 })])) })), v.maxLength(64)),
+  anchors: v.record(rowId, vec3),
+  glow: v.exactOptional(v.strictObject({ part: rowId, opacity: real })), brass: v.exactOptional(v.strictObject({ geometry: rowId, material: rowId })), scaleRoot: v.exactOptional(v.boolean()),
+});
+const kick = v.tuple([v.picklist(['right', 'up', 'forward']), real, real]);
+/** A held firearm's presentation: the held camera's timing, the muzzle flash, the ejected case, the tracer, the hit muzzle. */
+export const HeldPresentationSchema = v.strictObject({
+  frame: v.strictObject({ clock: v.picklist(['frame', 'world']), fovWhen: v.picklist(['always', 'active']), recoil: v.strictObject({ decay: real, attack: real, recovery: real }),
+    lag: v.strictObject({ gain: real, clampYaw: real, clampPitch: real, k: real, c: real }), clampAfter: v.boolean(),
+    readout: v.strictObject({ range: real, mask: real, held: v.boolean(), posed: v.boolean() }) }),
+  flash: v.strictObject({ shape: v.strictObject({ size: v.exactOptional(real), y: real, z: real, secondaryZ: real, secondaryScale: vec3, lightY: real, lightZ: real }), colour: real }),
+  ejection: v.strictObject({ velocity: v.tuple([kick, kick, kick]), spin: v.tuple([vec3, vec3, vec3]), rotation: v.tuple([real, real, real, real]), floorOffset: real }),
+  tracer: v.strictObject({ mode: v.picklist(['segment', 'trail']), points: real, width: real, color: vec3, order: real, lifetime: real, fade: real, markerScale: real }),
+  hitMuzzle: vec3,
+});
+/** Admit a held model's JSON rows before building anything. */
+export function parseHeldModelRows(input: unknown): v.InferOutput<typeof HeldModelRowsSchema> { return v.parse(HeldModelRowsSchema, input); }
+/** Admit a held firearm's presentation rows before building anything. */
+export function parseHeldPresentation(input: unknown): v.InferOutput<typeof HeldPresentationSchema> { return v.parse(HeldPresentationSchema, input); }

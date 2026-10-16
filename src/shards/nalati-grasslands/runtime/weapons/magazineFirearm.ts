@@ -1,9 +1,9 @@
 import type { RangedOptions, RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { HeldFirearm, heldFirearmDisplay, parseHeldModelRows, type HeldFirearmRows } from '@wildshard/game/plugin/heldFirearm';
+import { HeldFirearm, heldFirearmDisplay, type HeldFirearmRows } from '@wildshard/game/plugin/heldFirearm';
+import { parseHeldModelRows, parseHeldPresentation } from '@wildshard/format/weaponProfiles';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { AR15 } from '../../data/firearmProfile';
-import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
 import model from '../../data/heldRifle.json' with { type: 'json' };
 
 /**
@@ -25,7 +25,7 @@ const RIFLE_VIEW = {
   flash: { frames: 2, lightTime: 0.05, light: 30, size: 0.22 }, brass: AR15.brass, tracer: { count: AR15.tracer.count, time: 0.09 },
 } as const;
 
-/** The AR-15's rows: the model, the frame, pose, reload and sight programmes, the effects. */
+/** The AR-15's rows: the model, the frame, pose, reload and sight programmes, the presentation (heldRifle.json). */
 const MODEL = parseHeldModelRows(model);
 export const RIFLE_ROWS: HeldFirearmRows = {
   ...MODEL, mount: 'shared', brass: { geometry: 'case', material: 'brass' },
@@ -35,7 +35,7 @@ export const RIFLE_ROWS: HeldFirearmRows = {
     outputs: [{ group: 'frame', rows: model.frameOutputs, target: 'frame' }, { group: 'sight', rows: model.sightOutputs, target: 'sight' }],
     schedule: { frame: 'frame', sight: 'sight', pose: 'pose', action: ['parts'], grip: [] },
   },
-  presentation: { frame: RANGED_FRAME.magazine, flash: { shape: RANGED_FLASH.magazine, colour: 0xffb060 }, ejection: RANGED_BRASS.magazine, tracer: RANGED_TRACE.segment, hitMuzzle: RANGED_HIT.magazine.muzzle },
+  presentation: parseHeldPresentation(model.presentation),
 };
 
 /** The Model Explorer's card (models/gear.ts): the displayed parts on their own materials, no glow, flash or depth clear. */

@@ -3684,7 +3684,9 @@ host records (`frame`, `sight`, `values`, `grip`) and a `schedule` (action group
 `hands` are two baked fists on `HeldHandParts`, the right posed by the grip groups. Rows read owner paths on `weapon`
 (`time`, `player`, `feel`, `holster`, `hip`, `view`, `profile`, `act`, `partValues`, `poseFrame`, `adsPose`, `grips`,
 `handFrame`, `gate`, `anchors.<id>`, `round`, `inspect`, `game`): a data contract, so a rename moves the JSON paths.
-`parseHeldModelRows` admits a model's JSON rows. Users: Pine's lever-action (GLB parts, the hunter's hands) and Nalati's
+`parseHeldModelRows` and `parseHeldPresentation` (`@wildshard/format/weaponProfiles`) admit a model's and its
+presentation's JSON rows (frame, flash, ejection, tracer, hit muzzle). Users: Pine's lever-action (GLB parts, the
+hunter's hands) and Nalati's
 AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`). A texture row may name any engine
 viewmodel set (`walnut`, `brushed-steel`, `leather`, `cord`, `bolt` beside the modern three); its `repeat` is optional.
 

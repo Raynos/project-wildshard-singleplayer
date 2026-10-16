@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm, RangedAction, RangedReload, type RangedCycleEvent } from '@wildshard/engine/combat/Firearm';
@@ -105,23 +104,6 @@ export interface HeldFirearmRows extends HeldModelRows {
 }
 /** The engine's procedural viewmodel sets a texture row may name. */
 export type HeldTextureSet = 'gunmetal' | 'anodised' | 'polymer' | 'walnut' | 'brushed-steel' | 'leather' | 'cord' | 'bolt';
-const num = v.pipe(v.number(), v.finite()), triple = v.tuple([num, num, num]), rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
-const primitive = v.strictObject({ kind: v.picklist(['box', 'cylinder', 'cone', 'sphere', 'torus', 'icosahedron', 'capsule']), args: v.pipe(v.array(num), v.maxLength(8)),
-  ops: v.exactOptional(v.array(v.union([v.tuple([v.picklist(['translate', 'scale']), num, num, num]), v.tuple([v.picklist(['rotateX', 'rotateY', 'rotateZ']), num])]))) });
-const look = v.strictObject({ set: v.exactOptional(rowId), normalScale: v.exactOptional(v.tuple([num, num])), color: v.exactOptional(triple),
-  roughness: v.exactOptional(num), metalness: v.exactOptional(num), envMapIntensity: v.exactOptional(num), specularIntensity: v.exactOptional(num) });
-/** A held model's rows as JSON (materials, procedural sets, primitive geometry, parts, anchors, glow, brass, root scale). */
-export const HeldModelRowsSchema = v.object({
-  materials: v.record(rowId, v.union([v.strictObject({ name: rowId, look }), v.strictObject({ name: rowId, basic: v.strictObject({ color: num, opacity: num }) })])),
-  textures: v.exactOptional(v.record(rowId, v.strictObject({ set: v.picklist(['gunmetal', 'anodised', 'polymer', 'walnut', 'brushed-steel', 'leather', 'cord', 'bolt']), repeat: v.exactOptional(v.tuple([num, num])) }))),
-  primitives: v.exactOptional(v.record(rowId, v.pipe(v.array(primitive), v.maxLength(512)))),
-  parts: v.pipe(v.array(v.strictObject({ id: rowId, geometry: rowId, material: rowId, at: v.exactOptional(v.union([rowId, triple])), rot: v.exactOptional(triple),
-    sighted: v.exactOptional(v.boolean()), hidden: v.exactOptional(v.boolean()), display: v.exactOptional(v.union([v.boolean(), v.strictObject({ rot: triple })])) })), v.maxLength(64)),
-  anchors: v.record(rowId, triple),
-  glow: v.exactOptional(v.strictObject({ part: rowId, opacity: num })), brass: v.exactOptional(v.strictObject({ geometry: rowId, material: rowId })), scaleRoot: v.exactOptional(v.boolean()),
-});
-/** Admit a held model's JSON rows before building anything. */
-export function parseHeldModelRows(input: unknown): v.InferOutput<typeof HeldModelRowsSchema> { return v.parse(HeldModelRowsSchema, input); }
 
 /** Borrowed model data: geometry by id (a GLB's parts) and texture sets by id (a GLB's atlases). */
 export interface HeldFirearmModel {
