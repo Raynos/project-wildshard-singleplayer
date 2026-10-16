@@ -1,6 +1,7 @@
 import type * as v from 'valibot';
 import type { Shardfile } from './shardSchema';
 import type { CreatureStrikeSchema } from './creatures';
+import type { WorldPhysics } from './worldPhysics';
 
 type Rows = Shardfile['rows'];
 type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
@@ -27,6 +28,8 @@ export interface PlatformSections {
   'world/movers': Pick<Shardfile, 'movers'>;
   'world/traversal': Pick<Shardfile, 'traversal'>;
   'world/spawn': Pick<Shardfile, 'spawn'>;
+  /** new (P2b): common raw native physics, read alongside owner metadata */
+  'world/physics': WorldPhysics;
   'world/days': { readonly rows: Pick<Rows, 'days'> };
   'world/weather': { readonly rows: Pick<Rows, 'weather'> };
   'look/look': Pick<Shardfile, 'look' | 'presentation'>;

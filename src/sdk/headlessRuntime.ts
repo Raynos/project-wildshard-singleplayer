@@ -1,3 +1,4 @@
+import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import { ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -170,15 +171,7 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeP
 /** Strict body recipes shared by trusted native bake readers. The declared rig
  * shape retains each producer's field admission; no renderer or body is built. */
 export function nativeBodySpecSchema(rig: 'segments' | 'axis'): v.GenericSchema<unknown, AnimalSimSpec> {
-  const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
-  const schema = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
-    hp: finite, aggressive: v.boolean(), lockable: v.exactOptional(v.boolean()),
-    dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite,
-      capsuleAxis: v.exactOptional(v.picklist(['z', 'y'])), headAt: v.exactOptional(triple), bodyAt: v.exactOptional(triple), bodyPitch: v.exactOptional(finite),
-      fore: v.exactOptional(v.strictObject({ bone: v.string(), at: triple, halfLen: finite, radius: finite })) }),
-    mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }) });
-  return v.pipe(schema, v.check(row => rig === 'segments' ? !Object.hasOwn(row.dims, 'capsuleAxis')
-    : !['headAt','bodyAt','bodyPitch','fore'].some(key => Object.hasOwn(row.dims, key)), 'Unsupported native body rig field'));
+  return nativeBodySchema(rig);
 }
 /** Decode an owned copy of one native base64 buffer; typed views never share
  * caller storage. Malformed data is refused by atob or its typed-array reader. */
@@ -199,9 +192,7 @@ export interface NativeGroundRecord {
 }
 /** Admit the original native lattice metadata without renderer allocation. */
 export function nativeGroundSchema(resolution: number): v.GenericSchema<unknown, NativeGroundRecord> {
-  const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite });
-  return v.strictObject({ rows: v.literal(resolution - 1), cols: v.literal(resolution - 1), scale: xyz, at: xyz,
-    friction: finite, groups: finite, heights: v.string() });
+  return nativeGroundRecordSchema(resolution);
 }
 /** Decode an owned native heightfield, refusing a different lattice or world scale. */
 export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string): NativeCollisionBake['ground'] {
@@ -221,16 +212,7 @@ export function nativeBakeActors<T extends { readonly id: string; readonly kind:
 /** Strict raw Rapier bake records. The owner declaration chooses the original
  * provenance namespace and exact admitted collider shapes before decoding. */
 export function nativeColliderSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(shapes: S, owner: 'piece' | 'tagged'): v.GenericSchema<unknown, NativeColliderRecord<S[number]>> {
-  const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
-  const materials: Readonly<Record<Material, true>> = { sand:true,wetSand:true,grass:true,rock:true,planks:true,stone:true,water:true,
-    wood:true,metal:true,flesh:true,shell:true,ground:true,edge:true,felt:true,earth:true };
-  const material = v.custom<Material>(input => typeof input === 'string' && Object.hasOwn(materials,input), 'Unknown native collider material');
-  const schema = v.strictObject({ shape:v.picklist(shapes), groups:finite,friction:finite,at:triple,rot:v.tuple([finite,finite,finite,finite]),
-    body:v.exactOptional(v.nullable(finite)),material:v.exactOptional(material),owner:v.exactOptional(v.string()),
-    ownerId:v.exactOptional(v.pipe(v.string(),v.regex(/^(?:piece|declared):[^\r\n]{1,256}$/u))),
-    half:v.exactOptional(triple),halfHeight:v.exactOptional(finite),radius:v.exactOptional(finite),vertices:v.exactOptional(v.string()),indices:v.exactOptional(v.string()) });
-  return v.pipe(schema,v.check(row => owner === 'piece' ? Object.hasOwn(row,'body') && !Object.hasOwn(row,'owner')
-    : !['body','ownerId','indices'].some(key => Object.hasOwn(row,key)), 'Unsupported native collider provenance'));
+  return nativeColliderRecordSchema(shapes, owner);
 }
 
 /** Native collision payload after strict admission and owned typed-buffer decode. */

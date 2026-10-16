@@ -4,19 +4,11 @@ import Ajv from 'ajv';
 import { isJsonData } from '@wildshard/format/json';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 
-/** When a section is consumed, and which hosts may read it. */
-export interface SectionOptions {
-  readonly audience?: 'sim' | 'client' | 'both';
-  readonly load?: 'boot' | 'enter' | 'stream';
-}
-
 /** Build-only custom content. Neither the Valibot parser nor author code enters the emitted product. */
 export interface DefinedSection<T = unknown> {
   readonly name: string;
   readonly value: T;
   readonly jsonSchema: JsonSchema;
-  readonly audience: 'sim' | 'client' | 'both';
-  readonly load: 'boot' | 'enter' | 'stream';
 }
 
 /** An index entry whose schema names a separately emitted custom JSON Schema. */
@@ -26,8 +18,6 @@ export interface DefinedSectionEntry {
   readonly schema: string;
   readonly hash: string;
   readonly bytes: number;
-  readonly audience: 'sim' | 'client' | 'both';
-  readonly load: 'boot' | 'enter' | 'stream';
 }
 
 /** Relative product paths and their canonical bytes, ready for the product writer. */
@@ -61,13 +51,13 @@ export function validateDefinedSection(schemaBytes: Uint8Array, value: unknown):
 
 /** Declare a private section in data/. Values are parsed by Valibot and then checked against the emitted
  * schema. Unsupported predicates and transforms refuse conversion instead of weakening disk admission. */
-export function defineSection<S extends v.GenericSchema>(name: string, schema: S, value: v.InferInput<S>, options: SectionOptions = {}): DefinedSection<v.InferOutput<S>> {
+export function defineSection<S extends v.GenericSchema>(name: string, schema: S, value: v.InferInput<S>): DefinedSection<v.InferOutput<S>> {
   assertName(name);
   if (!isJsonData(value)) throw new Error('Custom section value must be plain JSON');
   const parsed = v.parse(schema, value);
   const jsonSchema = toJsonSchema(schema, { target: 'draft-07', errorMode: 'throw', typeMode: 'ignore' });
   validateDefinedSection(new TextEncoder().encode(encodeCanonicalJson(jsonSchema)), parsed);
-  return { name, value: parsed, jsonSchema, audience: options.audience ?? 'both', load: options.load ?? 'enter' };
+  return { name, value: parsed, jsonSchema };
 }
 
 /** Preflight every definition before returning any output. Duplicate names and path escapes refuse;
@@ -79,14 +69,13 @@ export function emitDefinedSections(definitions: readonly DefinedSection[]): Emi
     assertName(definition.name);
     if (names.has(definition.name)) throw new Error(`Duplicate custom section: ${definition.name}`);
     names.add(definition.name);
-    if (!['sim', 'client', 'both'].includes(definition.audience) || !['boot', 'enter', 'stream'].includes(definition.load)) throw new Error('Invalid custom section load policy');
     const schema = `schemas/${definition.name}.schema.json`, path = `sections/${definition.name}.json`;
     if (!isJsonData(definition.jsonSchema)) throw new Error('Custom section schema must be plain JSON');
     const schemaBytes = new TextEncoder().encode(encodeCanonicalJson(definition.jsonSchema));
     validateDefinedSection(schemaBytes, definition.value);
     const bytes = new TextEncoder().encode(encodeCanonicalJson(definition.value));
     files.set(schema, schemaBytes); files.set(path, bytes);
-    sections.push({ name: definition.name, path, schema, hash: hashImmutableBytes(bytes), bytes: bytes.length, audience: definition.audience, load: definition.load });
+    sections.push({ name: definition.name, path, schema, hash: hashImmutableBytes(bytes), bytes: bytes.length });
   }
   sections.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
   return { sections, files: new Map([...files].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };

@@ -6,11 +6,11 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 const schema = v.strictObject({ label: v.string(), enabled: v.optional(v.boolean(), false), rows: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))) });
 const bytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));
 
-test('custom sections emit independently validated canonical files and load policy', () => {
-  const section = defineSection('custom/example', schema, { label: 'Camp', rows: [2, 3] }, { audience: 'client', load: 'boot' });
+test('custom sections emit independently validated canonical files', () => {
+  const section = defineSection('custom/example', schema, { label: 'Camp', rows: [2, 3] });
   const emitted = emitDefinedSections([section]);
   const entry = emitted.sections.find(row => row.name === 'custom/example');
-  expect(entry).toMatchObject({ name: 'custom/example', path: 'sections/custom/example.json', schema: 'schemas/custom/example.schema.json', audience: 'client', load: 'boot' });
+  expect(entry).toMatchObject({ name: 'custom/example', path: 'sections/custom/example.json', schema: 'schemas/custom/example.schema.json' });
   if (entry === undefined) throw new Error('Missing emitted section');
   const valueBytes = emitted.files.get(entry.path), schemaBytes = emitted.files.get(entry.schema);
   if (valueBytes === undefined || schemaBytes === undefined) throw new Error('Missing emitted files');

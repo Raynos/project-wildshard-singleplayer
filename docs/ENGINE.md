@@ -6689,8 +6689,8 @@ pose/carry and page sound/caption effects remain with their existing owners.
 ### Authored custom shardfile sections (P2b)
 
 Build-time `@wildshard/sdk/sections` defines a private table with
-`defineSection('custom/name', valibotSchema, value, {audience, load})`.
-The optional policy defaults to `both` / `enter`. Values must be plain JSON;
+`defineSection('custom/name', valibotSchema, value)`.
+Values must be plain JSON;
 Valibot supplies defaults before emission. Predicates or transformations
 that cannot be represented by JSON Schema refuse instead of being dropped.
 
@@ -6757,3 +6757,25 @@ without adding fields to the host model. Offline products retain the v2 index
 plus hash-checked section bytes in the existing content cache. Publication
 requires all section and asset bytes; missing or corrupt sections refuse
 before a host is built. Existing v1 caches keep their version-reader policy.
+
+### Independently authored platform sections (P2b)
+
+`@wildshard/format/platformDataSections` registers new plain-value sections
+separately from the older v1 root-key envelopes. `ui/strings` uses
+`UiStringsSchema`: a bounded flat key-to-text table with no code or unsafe
+property keys. `world/physics` uses `WorldPhysicsSchema`: raw native ground,
+colliders, actors, optional parked actors and herds, with explicit contact
+rig and collider provenance. It preserves actor order and encoded buffers.
+
+Build-time `@wildshard/sdk/platformSections.worldPhysicsSection(bake,
+{rig, provenance})` extracts those common fields from an unchanged producer
+output. Owner-specific encounter, habitat, shelter and hit-volume metadata
+must use custom sections and retain their existing owner validation. The
+platform section does not replace these checks or decode native buffers.
+`emitPlatformSections(map)` validates values and returns canonical bytes
+and descriptors with schema ids `wildshard:<name>@1` for the product writer.
+
+The original SDK `nativeBodySpecSchema`, `nativeGroundSchema` and
+`nativeColliderSchema` now delegate to defining parsers in
+`@wildshard/format/nativePhysics`. Their admission and decoded return APIs
+stay unchanged; buffer decoding and native installation stay in the SDK.

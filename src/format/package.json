@@ -122,7 +122,11 @@
     "./questGraph": "./questGraph.ts",
     "./questInteractions": "./questInteractions.ts",
     "./questHost": "./questHost.ts",
-    "./ambientLife": "./ambientLife.ts"
+    "./ambientLife": "./ambientLife.ts",
+    "./uiStrings": "./uiStrings.ts",
+    "./nativePhysics": "./nativePhysics.ts",
+    "./worldPhysics": "./worldPhysics.ts",
+    "./platformDataSections": "./platformDataSections.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
