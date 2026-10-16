@@ -30,6 +30,8 @@ if [ "${1:-}" != "--locked" ]; then
   exit "$rc"
 fi
 
+node scripts/index-hygiene.mjs || exit $?
+
 tipfile="$(git rev-parse --path-format=absolute --git-common-dir)/push-main.tip"
 # SF74 W14: one JSON line per loop (regeneration seconds, gate + upload seconds) in .git/push-timings.jsonl.
 timings="$(git rev-parse --path-format=absolute --git-common-dir)/push-timings.jsonl"
