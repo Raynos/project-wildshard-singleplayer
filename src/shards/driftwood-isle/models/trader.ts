@@ -36,7 +36,12 @@ export function traderRigOf(o: THREE.Object3D): NpcRig<Trader, Sky> | null { ret
 export const trader: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/models/trader.ts', surface: 'flesh',
   defaults: {},
-  build: (ctx) => { const rig = traderRig(ctx.sky); byGroup.set(rig.model.group, rig); return rig.model.group; },
+  // her kit meshes are baked (generators/npcKits.ts): a loading box until the island's templates are in
+  build: (ctx) => {
+    const one = (): THREE.Object3D => { const rig = traderRig(ctx.sky); byGroup.set(rig.model.group, rig); return rig.model.group; };
+    if (fixedGeometryReady()) return one();
+    return loadingSpecimen('driftwood-isle/trader', [0.7, 1.8, 0.7], async () => { await loadFixedGeometry(); return one(); });
+  },
   colliders: () => [{ kind: 'capsule', x: 0, y: 0.9, z: 0, halfHeight: 0.62, radius: 0.26 }],
 });
 

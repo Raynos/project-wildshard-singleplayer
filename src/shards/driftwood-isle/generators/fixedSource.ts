@@ -24,6 +24,7 @@ import { driftLogSpecimens } from './driftLogs';
 import { reefFishGeometry } from './reefFish';
 import { mooringLinesGeometry } from './mooringLines';
 import { worldPierSites } from './pierSites';
+import { npcKitGeometry } from './npcKits';
 import { CASTAWAY_SMOKE } from '../data/castawayLook';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
@@ -94,5 +95,7 @@ export function driftwoodFixedSource(): {
   const southPier = worldPierSites()[0], southParams = piers.rows.find(row => row.id === 'world-0')?.params;
   if (southPier === undefined || southParams === undefined) throw new Error('Driftwood fixed source: the south pier is missing');
   geometries.set('mooring-lines', mooringLinesGeometry(southPier, southParams));
+  // the trader's and the castaway's kit meshes (generators/npcKits.ts), last so the earlier templates keep their keys
+  for (const [name, geometry] of npcKitGeometry()) geometries.set(name, geometry);
   return { geometries, world, rows };
 }

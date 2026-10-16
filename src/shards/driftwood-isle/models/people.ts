@@ -7,16 +7,23 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { castawayRig } from '../quest/people';
+import { fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 export const castaway: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/models/people.ts', surface: 'flesh',
   defaults: {},
+  // his kit meshes are baked (generators/npcKits.ts): a loading box until the island's templates are in
   build: (ctx) => {
-    const g = castawayRig(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).model.group;
-    const smoke: THREE.Object3D[] = [];
-    g.traverse((o) => { if (o instanceof THREE.Points) smoke.push(o); });
-    for (const o of smoke) o.removeFromParent();
-    return g;
+    const one = (): THREE.Object3D => {
+      const g = castawayRig(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).model.group;
+      const smoke: THREE.Object3D[] = [];
+      g.traverse((o) => { if (o instanceof THREE.Points) smoke.push(o); });
+      for (const o of smoke) o.removeFromParent();
+      return g;
+    };
+    if (fixedGeometryReady()) return one();
+    return loadingSpecimen('driftwood-isle/castaway', [2.2, 1.9, 2.0], async () => { await loadFixedGeometry(); return one(); });
   },
 });

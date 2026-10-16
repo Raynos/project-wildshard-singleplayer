@@ -26,12 +26,12 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS, TRADER_MESHES } from '../data/npcScenes';
+import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS } from '../data/npcScenes';
+import { NPC_KIT_GEOMETRY } from '../boot/fixedGeometry';
 import { TRADER_POSE } from '../data/npcPose';
 import { TRADER_HEAD_FOCUS, TRADER_FACING } from '../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { buildKitMesh } from '../runtime/kit/kitParts';
 
 const NECK = 1.48;
 export const TRADER_NEAR_R = 85;   // past this she (and her counter) are not drawn: a few pixels at that range
@@ -66,7 +66,9 @@ export class Trader {
 
   build(): this {
     const mat = lowPolyLookMaterial(this.sky);
-    const geometry = new Map<string, THREE.BufferGeometry>(TRADER_MESHES.map(([id, row]) => [id, buildKitMesh(row)]));
+    // her kit meshes are baked offline (generators/npcKits.ts)
+    const kit = NPC_KIT_GEOMETRY.trader;
+    const geometry = new Map<string, THREE.BufferGeometry>([['body', kit.body.copy()], ['head', kit.head.copy()], ['upper', kit.upper.copy()], ['fore', kit.fore.copy()]]);
     const made = createClientScene(TRADER_SCENE, { geometry: id => geometry.get(id),
       materials: new Map([['coat', mat]]) });
     Object.assign(this, bindWorldSceneParts(made, TRADER_PARTS, TRADER_BINDINGS));

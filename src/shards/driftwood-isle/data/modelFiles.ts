@@ -76,4 +76,13 @@ export const FIXED_MODEL_FILES = {
   driftLogPale: '/assets/driftwood-isle/baked/fixed-models/drift-log-pale.glb',
   reefFish: '/assets/driftwood-isle/baked/fixed-models/reef-fish.glb',
   mooringLines: '/assets/driftwood-isle/baked/fixed-models/mooring-lines.glb',
+  npcTraderBody: '/assets/driftwood-isle/baked/fixed-models/npc-trader-body.glb',
+  npcTraderHead: '/assets/driftwood-isle/baked/fixed-models/npc-trader-head.glb',
+  npcTraderUpper: '/assets/driftwood-isle/baked/fixed-models/npc-trader-upper.glb',
+  npcTraderFore: '/assets/driftwood-isle/baked/fixed-models/npc-trader-fore.glb',
+  npcCastawayBody: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-body.glb',
+  npcCastawayCamp: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-camp.glb',
+  npcCastawayHead: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-head.glb',
+  npcCastawayArm: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-arm.glb',
+  npcCastawayFlames: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-flames.glb',
 } as const;

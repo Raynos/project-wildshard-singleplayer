@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { log, plank, rock, rope } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import type { KitMeshRow, KitPartRow } from '../../data/lookRows';
+import type { KitMeshRow, KitPartRow } from '../data/lookRows';
 
 /**
  * A low-poly kit mesh as rows (SHARD-PLATFORM M3, look-family rows): one flat-shaded, vertex-coloured geometry built by

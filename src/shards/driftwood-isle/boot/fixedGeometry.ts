@@ -71,6 +71,18 @@ export const DRIFT_LOG_GEOMETRY = {
 export const REEF_FISH_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.reefFish);
 /** The sailboat's mooring lines (generators/mooringLines.ts, world space); the Boat lifts each cleat end by its `aMoor`. */
 export const MOORING_LINES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.mooringLines, { _amoor: 'aMoor' });
+/** The trader's and the castaway's kit meshes (generators/npcKits.ts, own space; the camp about its fire). */
+export const NPC_KIT_GEOMETRY = {
+  trader: {
+    body: modelGeometry(FIXED_MODEL_FILES.npcTraderBody, { _sway: 'aSway' }), head: modelGeometry(FIXED_MODEL_FILES.npcTraderHead, { _sway: 'aSway' }),
+    upper: modelGeometry(FIXED_MODEL_FILES.npcTraderUpper), fore: modelGeometry(FIXED_MODEL_FILES.npcTraderFore),
+  },
+  castaway: {
+    body: modelGeometry(FIXED_MODEL_FILES.npcCastawayBody), camp: modelGeometry(FIXED_MODEL_FILES.npcCastawayCamp),
+    head: modelGeometry(FIXED_MODEL_FILES.npcCastawayHead), arm: modelGeometry(FIXED_MODEL_FILES.npcCastawayArm),
+    flames: modelGeometry(FIXED_MODEL_FILES.npcCastawayFlames),
+  },
+} as const;
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

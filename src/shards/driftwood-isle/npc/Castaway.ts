@@ -27,16 +27,15 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS, CASTAWAY_MESHES } from '../data/npcScenes';
+import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS } from '../data/npcScenes';
 import { CASTAWAY_POSE } from '../data/npcPose';
 import { CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING } from '../data/npcFocus';
-import { WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
+import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { buildKitMesh } from '../runtime/kit/kitParts';
 import { SmokeColumn } from '../runtime/looks/smokeColumn';
-import { CASTAWAY_FLAMES, CASTAWAY_SMOKE } from '../data/castawayLook';
+import { CASTAWAY_SMOKE } from '../data/castawayLook';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -86,11 +85,13 @@ export class Castaway {
     const mat = lowPolyLookMaterial(this.sky, 'still'), f = this.fireLocal;
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
     this.group.rotation.y = this.bodyYaw;
-    const geometry = new Map<string, THREE.BufferGeometry>(CASTAWAY_MESHES.map(([id, row, relative]) => [id, buildKitMesh(row, relative ? f : null)]));
+    // his kit meshes are baked offline (generators/npcKits.ts); the camp, built about its fire, moves to where it burns
+    const kit = NPC_KIT_GEOMETRY.castaway;
+    const geometry = new Map<string, THREE.BufferGeometry>([['body', kit.body.copy()], ['camp', kit.camp.copy().translate(f.x, f.y, f.z)], ['head', kit.head.copy()], ['arm', kit.arm.copy()]]);
     // flames (unlit, bloom)
     const flameMat = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(1.8, 1.8, 1.8) });
     flameMat.name = 'castaway-flame';
-    this.flames = new THREE.Mesh(buildKitMesh(CASTAWAY_FLAMES), flameMat);
+    this.flames = new THREE.Mesh(kit.flames.copy(), flameMat);
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
