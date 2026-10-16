@@ -6,6 +6,7 @@ import chimeSlots from './chimeSlots.json' with { type: 'json' };
 import coveBake from './coveBake.json' with { type: 'json' };
 import hut from './hutBake.json' with { type: 'json' };
 import lookout from './lookoutBake.json' with { type: 'json' };
+import trailside from './trailsideBake.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from './economy';
 
@@ -30,6 +31,8 @@ const surfaced = v.variant('kind', [
   v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number, surface: text }),
   v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural, surface: text }),
 ]);
+const trailPoint = { x: number, y: number, z: number };
+const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
 const cove = v.strictObject({
   specKey: v.pipe(v.string(), v.maxLength(4096)),
   native: v.strictObject({ colliders: boxes, anchors: v.record(text, anchor), descs: v.pipe(v.array(surfaced), v.maxLength(128)),
@@ -57,6 +60,19 @@ const FixedLayouts = v.strictObject({
     floor: v.strictObject({ cos: number, sin: number, plat: number, h: number, stair: v.strictObject({ x0: number, len: number, w: number }) }) }),
 });
 
+const Trailside = v.strictObject({
+  specKey: v.pipe(v.string(), v.maxLength(4096)),
+  posts: trailGroup(v.strictObject(trailPoint)),
+  signs: trailGroup(v.strictObject({ ...trailPoint, params: v.strictObject({ arrows: v.pipe(v.array(number), v.maxLength(8)), labels: v.pipe(v.array(text), v.maxLength(8)) }) })),
+  planks: trailGroup(v.strictObject({ ...trailPoint, params: v.strictObject({ w: number, roll: number, yaw: number, dark: v.boolean() }) })),
+  colliders: v.pipe(v.array(box), v.maxLength(1024)),
+  worldColliders: v.pipe(v.array(v.union([
+    v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number }),
+    v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, rot: v.strictObject({ x: number, y: number, z: number, w: number }) }),
+    v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural }),
+  ])), v.maxLength(1024)),
+});
+
 /** Driftwood's client rows (W2b, G449), build-only: the runtime reads them from the product, never from data/. */
 const QuestRows = v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) });
 
@@ -65,5 +81,6 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly DefinedSection[] = [
   section('custom/cumulusPuffs', CumulusPuffs, cumulusPuffs),
   section('custom/islandClips', IslandClips, islandClips),
   section('custom/fixedLayouts', FixedLayouts, { chimeSlots, cove: coveBake, hut, lookout }),
+  section('custom/trailside', Trailside, trailside),
   section('custom/questRows', QuestRows, { feats: DRIFTWOOD_FEATS, items: DRIFTWOOD_ITEMS, effects: DRIFTWOOD_EFFECTS, goods: GOODS }),
 ];

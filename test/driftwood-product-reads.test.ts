@@ -25,6 +25,8 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   expect(layouts.cove.native.descs.some(row => row.kind === 'treads')).toBe(true);
   for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(layouts.hut.anchors[key], key).toBeDefined();
   for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
+  const trail = value('custom/trailside');
+  expect(trail.worldColliders.some(row => row.kind === 'treads')).toBe(true); expect(trail.posts.pls.length * 6).toBe(trail.posts.boxes.length);
   const quest = value('custom/questRows');
   expect(quest.items).toEqual(DRIFTWOOD_ITEMS); expect(quest.feats).toEqual(DRIFTWOOD_FEATS); expect(quest.goods).toEqual(GOODS);
   expect(driftwoodEffects(quest.effects)).toEqual(DRIFTWOOD_EFFECTS);

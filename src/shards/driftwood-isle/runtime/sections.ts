@@ -19,6 +19,8 @@ const surfaced = v.variant('kind', [
   v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number, surface: text }),
   v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural, surface: text }),
 ]);
+const trailPoint = { x: number, y: number, z: number };
+const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
 const cove = v.strictObject({
   specKey: v.pipe(v.string(), v.maxLength(4096)),
   native: v.strictObject({ colliders: boxes, anchors: v.record(text, anchor), descs: v.pipe(v.array(surfaced), v.maxLength(128)),
@@ -53,6 +55,19 @@ export const SECTIONS = {
       floor: v.strictObject({ cos: number, sin: number, lift: number, deck: v.strictObject({ w: number, d: number, z: number }), steps: v.strictObject({ z0: number, len: number, w: number }) }) }),
     lookout: v.strictObject({ site, zipTo: v.strictObject({ x: number, z: number }), origin: point, platformY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
       floor: v.strictObject({ cos: number, sin: number, plat: number, h: number, stair: v.strictObject({ x0: number, len: number, w: number }) }) }),
+  }),
+  /** the trail weld's spec key, post / sign / plank placements, legacy boxes and native colliders (data/trailsideBake.json) */
+  'custom/trailside': v.strictObject({
+    specKey: v.pipe(v.string(), v.maxLength(4096)),
+    posts: trailGroup(v.strictObject(trailPoint)),
+    signs: trailGroup(v.strictObject({ ...trailPoint, params: v.strictObject({ arrows: v.pipe(v.array(number), v.maxLength(8)), labels: v.pipe(v.array(text), v.maxLength(8)) }) })),
+    planks: trailGroup(v.strictObject({ ...trailPoint, params: v.strictObject({ w: number, roll: number, yaw: number, dark: v.boolean() }) })),
+    colliders: v.pipe(v.array(box), v.maxLength(1024)),
+    worldColliders: v.pipe(v.array(v.union([
+      v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number }),
+      v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, rot: v.strictObject({ x: number, y: number, z: number, w: number }) }),
+      v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural }),
+    ])), v.maxLength(1024)),
   }),
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
   'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) }),

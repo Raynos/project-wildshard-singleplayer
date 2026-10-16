@@ -80,6 +80,18 @@
         "bytes": 54357
       },
       "why": "W2b sp-o283: custom/fixedLayouts gains the cove's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue the client read from data/coveBake.json"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 5,
+        "bytes": 54357
+      },
+      "to": {
+        "count": 6,
+        "bytes": 184994
+      },
+      "why": "W2b sp-o283: custom/trailside, the trail weld's spec key, post / sign / plank placements, legacy boxes and native colliders the client read from data/trailsideBake.json"
     }
   ]
 }

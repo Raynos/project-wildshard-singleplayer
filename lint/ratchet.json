@@ -50,7 +50,8 @@
       "driftwood-isle/custom/cumulusPuffs": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood cumulusPuffs section exit",
       "driftwood-isle/custom/islandClips": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood islandClips section exit",
       "driftwood-isle/custom/fixedLayouts": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood fixedLayouts section exit",
-      "driftwood-isle/custom/questRows": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood questRows section exit"
+      "driftwood-isle/custom/questRows": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood questRows section exit",
+      "driftwood-isle/custom/trailside": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood trailside section exit"
     },
     "shardfile/sim-in-runtime": {
       "src/shards/driftwood-isle/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -136,8 +137,8 @@
     "custom-sections/_template/bytes": 0,
     "custom-sections/blender-template/count": 0,
     "custom-sections/blender-template/bytes": 0,
-    "custom-sections/driftwood-isle/count": 5,
-    "custom-sections/driftwood-isle/bytes": 54357,
+    "custom-sections/driftwood-isle/count": 6,
+    "custom-sections/driftwood-isle/bytes": 184994,
     "custom-sections/far-reach/count": 0,
     "custom-sections/far-reach/bytes": 0,
     "custom-sections/ink-cel-valley/count": 0,
@@ -311,7 +312,7 @@
     "src/shards/driftwood-isle/runtime/boot/palmGeometry.ts": 1,
     "src/shards/driftwood-isle/runtime/boot/reefGeometry.ts": 1,
     "src/shards/driftwood-isle/runtime/boot/sources.ts": 1,
-    "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts": 2,
+    "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts": 1,
     "src/shards/driftwood-isle/budgets.ts": 1,
     "src/shards/driftwood-isle/combat/captain.ts": 1,
     "src/shards/driftwood-isle/combat/strikes.ts": 1,
@@ -988,7 +989,7 @@
     "src/shards/driftwood-isle/runtime/boot/hibiscusGeometry.ts": 1,
     "src/shards/driftwood-isle/runtime/boot/palmGeometry.ts": 1,
     "src/shards/driftwood-isle/runtime/boot/reefGeometry.ts": 1,
-    "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts": 3,
+    "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts": 2,
     "src/shards/driftwood-isle/runtime/boot/sources.ts": 2,
     "src/shards/driftwood-isle/runtime/boot/lateReads.ts": 2,
     "src/shards/driftwood-isle/runtime/boot/poses.ts": 2,

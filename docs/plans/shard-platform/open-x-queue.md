@@ -268,3 +268,4 @@ that replaces it, and grants no extra section or byte headroom.
 | W2 Driftwood islandClips section exit | `custom/islandClips` | Emit the terrain clip runs with the platform terrain / baked-island section. | W2b client rewire |
 | W2 Driftwood fixedLayouts section exit | `custom/fixedLayouts` | Move chime slots and hut / lookout colliders, anchors and floors into platform model-library and collider rows. | W2b client rewire |
 | W2 Driftwood questRows section exit | `custom/questRows` | Register bag items, feats, perks and trader goods from the platform item / achievement / effect / shop sections. | W2b client rewire |
+| W2 Driftwood trailside section exit | `custom/trailside` | Move the trail weld's placements and native colliders into platform model-library placement and collider rows. | W2b client rewire |
