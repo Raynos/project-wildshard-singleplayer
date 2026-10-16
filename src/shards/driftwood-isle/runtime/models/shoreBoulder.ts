@@ -6,7 +6,7 @@
  * 0.9 m collides as the convex hull of what it draws; the small ones stay walk-through.
  */
 import { rockGeometry, rockMaterial, rockSpecimen } from '../../world/rockKit';
-import { SHORE_ROCK } from '../../data/rockProfiles';
+import { SHORE_ROCK } from '../const';
 import { islandKnobs } from '../../tiers';
 import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 

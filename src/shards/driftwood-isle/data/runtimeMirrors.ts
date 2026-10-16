@@ -2,6 +2,8 @@ import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
 import { ISLAND_FAMILIES } from './audioPlayback';
 import { ISLAND_SURFACES } from './audioSurfaces';
 import { COVER_LOOKS } from './coverLook';
+import { BOAT_LAYOUT } from './boatLayout';
+import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
 import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
 import { GROUND_LOOK } from './groundLook';
@@ -9,11 +11,13 @@ import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
 import ironSwordScene from './ironSwordScene.json' with { type: 'json' };
 import { ISLAND_LOOKS } from './islandLook';
+import { ISLAND_LOOK } from './islandRows';
 import { KIT_LENDS } from './kitLook';
 import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE } from './meleeProfile';
 import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
 import { REEF_LOOK } from './reefLook';
+import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from './skyLook';
 import { MIDDAY_SKY_ROWS } from './skyPalette';
 import { SMOKE_LOOK } from './smokeLook';
@@ -50,4 +54,9 @@ export const RUNTIME_MIRRORS = [
   defineMirror('DRIFTWOOD_MELEE_PROFILE', DRIFTWOOD_MELEE_PROFILE),
   defineMirror('DRIFTWOOD_IRON_PROFILE', DRIFTWOOD_IRON_PROFILE),
   defineMirror('IRON_SWORD_SCENE', ironSwordScene),
+  defineMirror('SHORE_ROCK', SHORE_ROCK),
+  defineMirror('REEF_ROCK', REEF_ROCK),
+  defineMirror('BOAT_LAYOUT', BOAT_LAYOUT),
+  defineMirror('COUNTER_TOP', COUNTER_TOP),
+  defineMirror('ISLAND_LOOK', ISLAND_LOOK),
 ];

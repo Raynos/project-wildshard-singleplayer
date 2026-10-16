@@ -122,3 +122,27 @@ export const IRON_SWORD_SCENE = {
     { kind: 'port', id: 'fittings', source: 'fittings' },
   ],
 } as const;
+/** the shore boulders' granite and the reef rocks' weedier basalt (data/rockProfiles.ts) */
+export const SHORE_ROCK = {
+  foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',
+  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#40602b', wet: '#2e3a36',
+} as const;
+export const REEF_ROCK = {
+  foot: '#3a3836', dark: '#535050', mid: '#726e69', light: '#958f87', edge: '#a8a198', warm: '#8a7f72', cool: '#63666a', crease: '#35333a',
+  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#3d5d2a', wet: '#34403b',
+} as const;
+/** the boat's hull stations (data/boatLayout.ts) */
+export const BOAT_LAYOUT = { length: 6.4, beam: 2.2, floor: 0.32, deckThickness: 0.105 } as const;
+/** the trader's counter top (data/counterLayout.ts) */
+export const COUNTER_TOP = { w: 1.36, d: 0.64, y: 0.86 } as const;
+/** the baked island's LOD, cover file and mesh-name rows (data/islandRows.ts ISLAND_LOOK) */
+export const ISLAND_LOOK = {
+  lod: 110,
+  far: { ratio: 0.25, error: 0.01 },
+  coverDepth: 0.6,
+  coverFile: { magic: 0x43495357, version: 2 },
+  names: { casterKinds: ['palm', 'rock', 'prop'], skip: '^rockb?\\d+$', apart: '^smallrock\\d+$', big: '^(bush|flowerbush|hibiscus|fern)\\d+$' },
+  protoPrefix: 'proto_',
+  meshPrefix: 'island-',
+  palmCell: 8,
+} as const;

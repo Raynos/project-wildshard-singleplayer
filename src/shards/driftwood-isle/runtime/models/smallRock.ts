@@ -7,7 +7,7 @@
  * loop's, so the move is exact). No colliders: you step over them.
  */
 import { rockGeometry, rockMaterial, rockSpecimen } from '../../world/rockKit';
-import { SHORE_ROCK } from '../../data/rockProfiles';
+import { SHORE_ROCK } from '../const';
 import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 
 export interface SmallRockParams {
