@@ -28,6 +28,8 @@ export class MoverMechanic {
   private readonly fixed: NativeMoverMotion | undefined;
   private readonly transit: MoverTransit | undefined;
   private readonly parameters: readonly number[];
+  /** Former fixed-driver identity; no bytes are needed to execute the admitted row. */
+  readonly module: string | undefined;
   constructor(input: NativeMoverMotion | MoverTransit) {
     if ('kind' in input) { this.transit = v.parse(MoverTransitSchema, input); this.parameters = []; }
     else {
@@ -35,7 +37,7 @@ export class MoverMechanic {
       if (Object.values(input.at).some(value => !Number.isFinite(value) || Math.abs(value) > 250)
         || Object.values(input.euler).some(value => !Number.isFinite(value) || Math.abs(value) > Math.PI)) throw new Error('Invalid mover rest pose');
       this.fixed = { ...motion, at: { ...input.at }, euler: { ...input.euler } };
-      this.parameters = lowerMoverMotion(motion, input).input;
+      const lowered = lowerMoverMotion(motion, input); this.parameters = lowered.input; this.module = lowered.module;
     }
   }
   /** Door progress and angle share the track phase law; no object or authored update closure enters the mechanic. */

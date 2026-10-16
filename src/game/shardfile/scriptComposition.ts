@@ -2,6 +2,7 @@ import { ScriptComposition, type ScriptRole, type ScriptSchedule } from '@wildsh
 import { ScriptDriver, type ScriptLanePort } from '@wildshard/engine/script/lane';
 import { ScriptBrainDriver, type ScriptBrainOptions } from '@wildshard/engine/ai/scriptBrain';
 import { parseScriptBrain, type ShardScriptBrain } from '@wildshard/format/brains';
+import type { NativeMoverMotion } from '@wildshard/engine/sim/moverMotion';
 import { prepareShardfileScriptOptions, type ShardScriptContent, type ShardScriptPorts } from './scripts';
 
 /** Session-owned alias handles keep brain motion fields separate from the same actor's numeric declared fields. */
@@ -14,7 +15,7 @@ export interface DeclaredScriptRole extends Omit<ShardScriptContent, 'identity'>
 export interface DeclaredScriptRoleBinding { row: DeclaredScriptRole; entities: ShardScriptPorts['entities']; actors: ShardScriptPorts['actors'] }
 /** One authoritative module union and allowance set for numeric state, items, directors and custom creature decisions. */
 export function createShardfileComposedLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts, brains?: DeclaredScriptBrainPorts,
-  extra?: { roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[]; transientModules?: readonly string[]; declarations?: readonly DeclaredScriptRoleBinding[] }): ScriptLanePort {
+  extra?: { roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[]; transientModules?: readonly string[]; nativeMotions?: readonly NativeMoverMotion[]; declarations?: readonly DeclaredScriptRoleBinding[] }): ScriptLanePort {
   const options = prepareShardfileScriptOptions(content, assets, ports);
   const rows = brains?.bindings.map(row => ({ ...row, brain: parseScriptBrain(row.brain) })) ?? [];
   if (rows.some(row => !content.sim.scripts.includes(row.brain.module))) throw new Error('Brain module must be declared in sim.scripts');
@@ -38,6 +39,7 @@ export function createShardfileComposedLane(content: ShardScriptContent, assets:
     roles: [numeric.role('numeric'), ...(brain === undefined ? [] : [brain.role('brain')]), ...(extra?.roles ?? []), ...roles],
     schedules: [numeric.schedule('numeric', 'numeric', () => commands), ...(brain === undefined ? [] : [brain.schedule('brain', 'brain')]), ...(extra?.schedules ?? [])],
     maxEntities: ports.rules.maxEntities,
+    ...(extra?.nativeMotions === undefined ? {} : { nativeMotions: extra.nativeMotions }),
     ...(extra?.transientModules === undefined ? {} : { transientModules: extra.transientModules }),
     ...(ports.limits === undefined ? {} : { limits: ports.limits }),
     ...(ports.development === undefined ? {} : { development: ports.development }),

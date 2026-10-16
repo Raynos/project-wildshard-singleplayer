@@ -7935,11 +7935,14 @@ The existing mover host validates and commits those effects before publishing
 colliders, views and endpoint events. It owns no physics, timer or save adapter.
 
 A `world/movers` row may select `execution: 'native'`; its declared motion must
-still lower to the exact admitted module/input contract. Sky's twelve movers
-and Driftwood's boat/bridge use this path. Existing module bytes remain admitted
-for continuation compatibility; no Wasm executes for these motion bindings.
+still lower to its historical module/input identity. Sky's twelve movers
+and Driftwood's boat/bridge use this path. Native rows admit no guest asset
+or memory. Their baker emits rows without compiling the retired guests.
 The composed scheduler preserves execution order, entity fields, role ownership
-and the old continuation envelope. Unmarked rows retain their guest execution.
+and the entity continuation. Loading an old composition removes only retired
+native module inventories (including typed numeric/brain role contracts); every
+remaining contract field is checked unchanged. Unmarked rows retain their guest
+execution. The native row itself proves each retired module identity.
 
 The same mechanic admits a bounded reversible surface track: endpoints, landing
 points, duration, bank blend, seated offset and clock-driven surface waves.

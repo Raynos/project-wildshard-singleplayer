@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Trusted SF30 compiler: immutable admitted modules, never dynamic git operations.
-// G348: the shards it bakes and what each compiles come from their own data (`src/shards/<slug>/data/moverBake.ts`,
+// G348: the shards it bakes and what each compiles come from their own data (`src/shards/<slug>/generators/moverBake.ts`,
 // `MOVER_BAKE`, schema `@wildshard/format/movers` `MoverBakeSchema`), never a table here.
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake/movers.mjs [--shards=<slug>,…]
 import { compileMoverDriver } from '../../src/sdk/compileMovers.ts';
+import { MOVER_DRIVER_MODULES } from '../../src/format/moverMotion.ts';
 import { moverBake } from '../../src/format/movers.ts';
 import { existsSync, mkdirSync, readdirSync, writeFileSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -16,7 +17,7 @@ const repo = resolve(import.meta.dirname, '../..');
 /** Every shard folder declaring a mover bake, sorted by folder name. */
 const declared = [];
 for (const slug of readdirSync(join(repo, 'src/shards')).sort()) {
-  const file = join(repo, 'src/shards', slug, 'data/moverBake.ts');
+  const file = join(repo, 'src/shards', slug, 'generators/moverBake.ts');
   if (existsSync(file)) declared.push({ slug, bake: moverBake(slug, (await import(pathToFileURL(file).href)).MOVER_BAKE) });
 }
 const selected = process.argv.find(arg => arg.startsWith('--shards='))?.slice('--shards='.length).split(',') ?? declared.map(row => row.slug);
@@ -24,6 +25,11 @@ if (selected.some(slug => !declared.map(row => row.slug).includes(slug))) throw 
 const shards = declared.filter(row => selected.includes(row.slug));
 const hashes = new Map();
 for (const { slug, bake } of shards) for (const module of bake.modules) {
+  if (bake.execution === 'native') {
+    if (module.emit !== undefined) throw new Error('Native mover does not emit a guest module');
+    const hash = MOVER_DRIVER_MODULES[module.driver]; hashes.set(`${slug}/${module.file}`, hash);
+    process.stdout.write(`${slug}/${module.file} native ${hash}\n`); continue;
+  }
   const bytes = await compileMoverDriver(module.driver);
   const hash = createHash('sha256').update(bytes).digest('hex'), directory = join(repo, 'src/shards', slug, 'assets');
   mkdirSync(directory, { recursive: true }); writeFileSync(join(directory, hash), bytes);

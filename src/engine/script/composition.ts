@@ -6,6 +6,7 @@ import type { ScriptModule } from './lane';
 
 /** A trusted role owns its entity handles, effect validation, query provenance and complete world continuation. */
 export interface ScriptRole {
+  moduleContract?: true;
   id: string; world: ScriptWorld; query: ScriptHostOptions['query']; events: 'deliver' | 'consume';
   snapshot: () => string; restore: (saved: string) => void;
 }
@@ -22,6 +23,8 @@ export interface ScriptCompositionOptions extends Omit<ScriptHostOptions, 'world
   modules: readonly ScriptModule[]; roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[]; maxEntities: number;
   /** Dedicated consuming-role modules restart from admitted initialization on a fresh load; their memory is never saved. */
   transientModules?: readonly string[];
+  /** Verified native rows identify obsolete guest continuations without retaining their bytes. */
+  nativeMotions?: readonly NativeMoverMotion[];
 }
 class RoleWorld extends ScriptWorld {
   private readonly roles: readonly ScriptRole[];
@@ -75,24 +78,32 @@ export class ScriptComposition {
   private readonly contract: string;
   private readonly transientModules: ReadonlySet<string>;
   private readonly mechanics = new Map<string, MoverMechanic>();
+  private readonly retiredModules: ReadonlySet<string>;
   constructor(options: ScriptCompositionOptions) {
     if (options.roles.length > 128 || options.schedules.length > 10000 || new Set(options.roles.map(role => role.id)).size !== options.roles.length
       || new Set(options.roles.map(role => role.world)).size !== options.roles.length || options.roles.some(role => role.id.length === 0)) throw new Error('Invalid script role identities');
     this.roles = options.roles.map(role => ({ ...role })).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     this.world = new RoleWorld(this.roles, options.maxEntities);
     const modules = new Set(options.modules.map(module => module.name)), keys = new Set<string>();
+    if ((options.nativeMotions?.length ?? 0) > 32) throw new Error('Native mover allowance');
+    const nativeModules = new Set((options.nativeMotions ?? []).map(row => new MoverMechanic(row).module));
     if (new Set(options.schedules.map(schedule => schedule.id)).size !== options.schedules.length) throw new Error('Duplicate script scheduler');
     this.schedules = options.schedules.map(schedule => ({ ...schedule, bindings: schedule.bindings.map(binding => ({ ...binding }))
       .sort((a, b) => a.entity - b.entity || (a.module < b.module ? -1 : a.module > b.module ? 1 : 0)) }))
       .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     for (const schedule of this.schedules) for (const binding of schedule.bindings) {
       const key = `${binding.module}:${binding.entity}`;
-      if (keys.has(key) || !modules.has(binding.module) || this.world.role(binding.entity)?.id !== schedule.role
+      if (keys.has(key) || (binding.motion === undefined && !modules.has(binding.module)) || this.world.role(binding.entity)?.id !== schedule.role
         || !Number.isInteger(binding.divisor) || binding.divisor < 1 || 60 % binding.divisor !== 0) throw new Error('Invalid composed script binding');
       keys.add(key);
-      if (binding.motion !== undefined) this.mechanics.set(key, new MoverMechanic(binding.motion));
+      if (binding.motion !== undefined) {
+        const mechanic = new MoverMechanic(binding.motion);
+        if (mechanic.module !== binding.module) throw new Error('Native mover identity drift');
+        this.mechanics.set(key, mechanic); nativeModules.add(binding.module);
+      }
       if (keys.size > 10000) throw new Error('Script binding count allowance');
     }
+    this.retiredModules = new Set([...nativeModules].filter((name): name is string => name !== undefined && !modules.has(name)));
     const transient = options.transientModules ?? [];
     if (new Set(transient).size !== transient.length) throw new Error('Duplicate transient script module');
     this.transientModules = new Set(transient);
@@ -149,20 +160,41 @@ export class ScriptComposition {
     return JSON.stringify({ contract: this.contract, roles: this.roles.map(role => ({ id: role.id, state: role.snapshot() })),
       host: { ...host, modules: host.modules.filter(module => !this.transientModules.has(module.name)) } });
   }
+  /** Remove only module inventories named by verified native rows. Every other contract byte stays fenced. */
+  private migratedContract(text: string): string {
+    if (this.retiredModules.size === 0) return text;
+    const value = v.parse(v.record(v.string(), v.unknown()), JSON.parse(text));
+    const modules = v.parse(v.array(v.record(v.string(), v.unknown())), value['modules']);
+    value['modules'] = modules.filter(row => !this.retiredModules.has(v.parse(v.string(), row['name'])));
+    if (value['transientModules'] !== undefined) {
+      const names = v.parse(v.array(v.string()), value['transientModules']).filter(name => !this.retiredModules.has(name));
+      if (names.length === 0) delete value['transientModules']; else value['transientModules'] = names;
+    }
+    return JSON.stringify(value);
+  }
+  private migratedRole(text: string): string {
+    const value = v.parse(v.record(v.string(), v.unknown()), JSON.parse(text));
+    value['contract'] = this.migratedContract(v.parse(v.string(), value['contract']));
+    return JSON.stringify(value);
+  }
   /** Restore all roles atomically; no input, committed request, author initialization or decision is executed. */
   restore(text: string): void {
     const saved = v.parse(savedSchema, JSON.parse(text));
-    if (saved.contract !== this.contract || saved.roles.length !== this.roles.length || new Set(saved.roles.map(role => role.id)).size !== saved.roles.length
+    if (this.migratedContract(saved.contract) !== this.contract || saved.roles.length !== this.roles.length || new Set(saved.roles.map(role => role.id)).size !== saved.roles.length
       || saved.roles.some(role => !this.roles.some(current => current.id === role.id))) throw new Error('Incompatible composed continuation');
     if (this.transientModules.size > 0 && this.host.currentTick !== -1) throw new Error('Transient continuation requires a fresh admitted host');
+    const savedModules = saved.host.modules.filter(module => !this.retiredModules.has(module.name));
     const previous = this.roles.map(role => ({ role, state: role.snapshot() })), host = this.host.checkpoint();
     const persistent = host.modules.filter(module => !this.transientModules.has(module.name));
-    if (saved.host.modules.length !== persistent.length || new Set(saved.host.modules.map(module => module.name)).size !== persistent.length
-      || saved.host.modules.some(module => !persistent.some(current => current.name === module.name))) throw new Error('Incompatible composed module continuation');
+    if (savedModules.length !== persistent.length || new Set(savedModules.map(module => module.name)).size !== persistent.length
+      || savedModules.some(module => !persistent.some(current => current.name === module.name))) throw new Error('Incompatible composed module continuation');
     // Use the fresh host's initialized memories transiently, never retain another guest memory pool.
-    const continuation = { ...saved.host, modules: [...saved.host.modules, ...host.modules.filter(module => this.transientModules.has(module.name))] };
+    const continuation = { ...saved.host, modules: [...savedModules, ...host.modules.filter(module => this.transientModules.has(module.name))] };
     try {
-      for (const entry of saved.roles) this.roles.find(role => role.id === entry.id)?.restore(entry.state);
+      for (const entry of saved.roles) {
+        const role = this.roles.find(current => current.id === entry.id);
+        role?.restore(role.moduleContract === true && this.retiredModules.size > 0 ? this.migratedRole(entry.state) : entry.state);
+      }
       this.world.refresh();
       for (const schedule of this.schedules) for (const binding of schedule.bindings) if (this.world.role(binding.entity)?.id !== schedule.role) throw new Error('Restored script role binding drift');
       for (const event of saved.host.pending) this.world.prepare([{ op: SCRIPT_OP.event, a: event.type, b: event.target, c: event.value, d: 0 }], event.target, 0, 1);

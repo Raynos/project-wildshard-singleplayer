@@ -5,9 +5,9 @@
  * declares both modules as admitted files (SF8c socketLift / SF72), so their hashes are emitted as data constants too.
  */
 export const MOVER_BAKE = {
-  capture: 'captureSkyMovers', output: 'json',
+  capture: 'captureSkyMovers', output: 'json', execution: 'native',
   modules: [
-    { file: 'bridges.as', driver: 'hinge', emit: { file: 'data/bridgeModule.ts', name: 'BRIDGE_MODULE', note: "the winch and rope bridges' admitted module (fixed hinge driver)" } },
-    { file: 'islet.as', driver: 'ride', emit: { file: 'data/liftModule.ts', name: 'LIFT_MODULE', note: "the Rising Islet's admitted module (fixed ride driver)" } },
+    { file: 'bridges.as', driver: 'hinge' },
+    { file: 'islet.as', driver: 'ride' },
   ],
 } as const;

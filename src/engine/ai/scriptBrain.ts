@@ -102,7 +102,7 @@ export class ScriptBrainDriver {
       modules: options.modules.map(m => ({ ...m, bytes: Array.from(m.bytes) })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0) });
   }
   /** Trusted entity roles select brain-only effect validation, never a general numeric-state translator. */
-  role(roleId: string): ScriptRole { return { id: roleId, world: this.world, query: this.query, events: 'consume', snapshot: () => this.snapshot(), restore: saved => { this.restore(saved); } }; }
+  role(roleId: string): ScriptRole { return { id: roleId, moduleContract: true, world: this.world, query: this.query, events: 'consume', snapshot: () => this.snapshot(), restore: saved => { this.restore(saved); } }; }
   /** Independent per-actor decisions submit to a composed host without resetting any allowance. */
   schedule(scheduleId: string, role: string): ScriptSchedule {
     return { id: scheduleId, role, bindings: this.bindings.map(binding => ({ module: binding.module, entity: binding.entity, divisor: this.divisors.get(binding.entity) ?? 1 })),

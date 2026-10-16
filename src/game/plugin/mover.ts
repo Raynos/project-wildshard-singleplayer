@@ -391,7 +391,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
   let tick = 0, host = options.shared?.host, composition: ReturnType<typeof createShardfileComposedLane> | undefined;
   if (host === undefined) {
     const assets = new Map<string, Uint8Array>();
-    for (const hash of new Set(options.data.map((row) => row.module))) {
+    for (const hash of new Set(options.data.filter(row => row.execution !== 'native').map(row => row.module))) {
       const present = options.admitted?.get(hash); if (present !== undefined) { assets.set(hash, present); continue; }
       if (options.read !== undefined) { assets.set(hash, await options.read(hash)); continue; }
       const url = options.modules.get(hash); if (url === undefined) throw new Error('Missing mover module URL');
@@ -424,6 +424,7 @@ export interface DeclaredMoverComposition { content: Omit<ShardScriptContent, 's
 export class MoverScriptDriver {
   readonly data: MoverData;
   readonly world: ScriptWorld;
+  readonly nativeMotions: readonly NativeMoverMotion[];
   private readonly contract: string;
   private readonly query: ScriptQuery;
   private readonly resetIds: ReadonlySet<string>;
@@ -436,7 +437,8 @@ export class MoverScriptDriver {
     this.data = parseMovers(input); this.query = moverQueries(this.data, query);
     this.resetIds = new Set(resetIds);
     if (this.resetIds.size !== resetIds.length || resetIds.some(id => !this.data.some(row => row.id === id))) throw new Error('Invalid transient mover identity');
-    this.transientModules = [...new Set(this.data.filter(row => this.resetIds.has(row.id)).map(row => row.module))].sort();
+    this.nativeMotions = this.data.filter(row => row.execution === 'native').map(nativeMotion);
+    this.transientModules = [...new Set(this.data.filter(row => row.execution !== 'native' && this.resetIds.has(row.id)).map(row => row.module))].sort();
     if (this.data.some(row => !this.resetIds.has(row.id) && this.transientModules.includes(row.module))) throw new Error('Lift module cannot own persistent movers');
     const savedRows = continuationRows(this.data);
     this.contract = JSON.stringify(resetIds.length === 0 ? savedRows : { data: savedRows, resetIds: [...resetIds].sort() });
@@ -463,7 +465,7 @@ export class MoverScriptDriver {
   compose(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts,
     brains?: DeclaredScriptBrainPorts, permissions: () => ReadonlyMap<string, number> = () => new Map(),
     extra?: { roles: readonly ScriptRole[]; declarations?: readonly DeclaredScriptRoleBinding[]; schedules?: readonly ScriptSchedule[] }): ReturnType<typeof createShardfileComposedLane> {
-    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role(), ...(extra?.roles ?? [])], transientModules: this.transientModules, ...(extra?.declarations === undefined ? {} : { declarations: extra.declarations }),
+    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role(), ...(extra?.roles ?? [])], transientModules: this.transientModules, nativeMotions: this.nativeMotions, ...(extra?.declarations === undefined ? {} : { declarations: extra.declarations }),
       schedules: [this.schedule(() => { if (this.runtime === undefined) throw new Error('Missing mover runtime'); return this.runtime; }, permissions), ...(extra?.schedules ?? [])] });
   }
   /** Attach native handles to the same host; an explicit drive owns one fixed tick, never another script host. */
@@ -510,12 +512,12 @@ export async function createComposedMoverHost(data: MoverData, assets: ReadonlyM
   for (const [hash, bytes] of await verifiedScriptModules(extra.modules, [...extra.modules.keys()])) modules.set(hash, bytes);
   return createShardfileComposedLane({ identity: { seed: extra.seed }, sim: { scripts: [...modules.keys()], bindings: [], scriptTickDivisor: 1 },
     state: { shared: [], player: [] } }, modules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] },
-  undefined, { roles: [driver.role(), ...extra.roles], schedules: extra.schedules ?? [], transientModules: driver.transientModules, ...(extra.declarations === undefined ? {} : { declarations: extra.declarations }) });
+  undefined, { roles: [driver.role(), ...extra.roles], schedules: extra.schedules ?? [], transientModules: driver.transientModules, nativeMotions: driver.nativeMotions, ...(extra.declarations === undefined ? {} : { declarations: extra.declarations }) });
 }
 
 /** Copy and SHA-256-check each declared module before constructing a headless host. */
 export function verifiedMoverModules(assets: ReadonlyMap<string, Uint8Array>, rows: MoverData): Promise<ReadonlyMap<string, Uint8Array>> {
-  return verifiedScriptModules(assets, parseMovers(rows).map(row => row.module));
+  return verifiedScriptModules(assets, parseMovers(rows).filter(row => row.execution !== 'native').map(row => row.module));
 }
 
 /**

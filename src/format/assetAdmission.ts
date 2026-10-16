@@ -83,7 +83,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
   const contracts = decisionModuleContracts(scripts, s.files);
-  const legacyModules = new Set([...s.sim.scripts, ...s.clientScripts.bindings.map(row => row.module), ...s.movers.map(row => row.module)]);
+  const legacyModules = new Set([...s.sim.scripts, ...s.clientScripts.bindings.map(row => row.module), ...s.movers.filter(row => row.execution !== 'native').map(row => row.module)]);
   if ([...contracts.keys()].some(hash => legacyModules.has(hash))) throw new Error('Decision module cannot also use a legacy script host');
   preflightAssetGraph(s);
   const declared = preflightDeclaredCosts(s, memory).commons;

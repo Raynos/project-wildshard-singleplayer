@@ -51,7 +51,7 @@ export class ScriptDriver {
     this.contract = JSON.stringify({ divisor: this.divisor, bindings: this.bindings, state: this.world.declaration, modules: options.modules.map(m => ({ name: m.name, bytes: Array.from(m.bytes), seedLo: m.seedLo, seedHi: m.seedHi })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0) });
   }
   /** Only this role may publish its declared shared/player fields; actor provenance stays host-bound. */
-  role(id: string): ScriptRole { return { id, world: this.world, query: this.query, events: 'deliver', snapshot: () => this.snapshot(), restore: text => { this.restore(text); } }; }
+  role(id: string): ScriptRole { return { id, moduleContract: true, world: this.world, query: this.query, events: 'deliver', snapshot: () => this.snapshot(), restore: text => { this.restore(text); } }; }
   /** Prepare numeric inputs for due bindings; the owning composition starts the one global fixed tick. */
   schedule(id: string, role: string, commands: () => ReadonlyMap<string, number> = () => new Map()): ScriptSchedule {
     return { id, role, bindings: this.bindings.map(binding => ({ module: binding.module, entity: binding.entity, divisor: this.divisor })),

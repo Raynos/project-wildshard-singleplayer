@@ -5,6 +5,6 @@
  */
 export const MOVER_BAKE = {
   capture: 'captureDriftwoodMovers',
-  output: 'json',
+  output: 'json', execution: 'native',
   modules: [{ file: 'boat.as', driver: 'waves' }, { file: 'bridge.as', driver: 'hinge' }],
 } as const;
