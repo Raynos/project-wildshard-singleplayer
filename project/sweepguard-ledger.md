@@ -104,3 +104,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 10:53 · wT:p1 · `cd /Users/raynos/projects/games/wildshard-singleplayer; S=/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/sp-o289; GIT_INDEX`
 - 2026-10-16 15:00 · wT:p1 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE=$PWD/tmp/sp-o3c/index git commit -F tmp/sp-o3c/msg.txt > tmp/sp-o3c/commit.log 2>&1; echo exit $?; tail -15 tmp/sp-o3c/commit.log`
 - 2026-10-16 15:00 · wT:p1 · `bash tmp/sp-o3c/mkindex.sh >/dev/null && B=$(git rev-parse HEAD) && P=$(GIT_INDEX_FILE=$PWD/tmp/sp-o3c/index git diff --cached --name-only HEAD | python3 -c "import sys,json;print(json.dumps([l.strip(`
+- 2026-10-16 15:02 · wT:p1 · `cat > tmp/sp-o3c/blobs.py <<'PYEOF' import subprocess def head(p): return subprocess.run(['git','show','HEAD:'+p],capture_output=True,text=True,check=True).stdout def ed(p, reps, src=None):     s=head`
