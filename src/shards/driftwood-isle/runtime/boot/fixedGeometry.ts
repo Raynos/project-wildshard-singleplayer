@@ -83,6 +83,11 @@ export const NPC_KIT_GEOMETRY = {
     flames: modelGeometry(FIXED_MODEL_FILES.npcCastawayFlames),
   },
 } as const;
+/** The entry road decks (generators/entryDeckGeometry.ts, own frame): the world's four entries share one; the Explorer's seabeds. */
+export const ENTRY_DECK_GEOMETRY = {
+  world: modelGeometry(FIXED_MODEL_FILES.entryDeckWorld), deep: modelGeometry(FIXED_MODEL_FILES.entryDeckDeep),
+  shallow: modelGeometry(FIXED_MODEL_FILES.entryDeckShallow),
+} as const;
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);
@@ -113,7 +118,7 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
   const admitted = product?.templates ?? bytes ?? await readNamedFixedGeometry();
   try {
   const urls = Object.values(FIXED_MODEL_FILES);
-  for (let i = 0; i < 83; i++) {
+  for (let i = 0; i < 86; i++) {
     const url = urls[i]; if (url === undefined || !admitted.has(url)) throw new Error('Missing Driftwood source draw');
   }
   await Promise.all([

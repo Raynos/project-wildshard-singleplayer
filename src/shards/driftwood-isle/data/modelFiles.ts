@@ -85,4 +85,7 @@ export const FIXED_MODEL_FILES = {
   npcCastawayHead: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-head.glb',
   npcCastawayArm: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-arm.glb',
   npcCastawayFlames: '/assets/driftwood-isle/baked/fixed-models/npc-castaway-flames.glb',
+  entryDeckWorld: '/assets/driftwood-isle/baked/fixed-models/entry-deck-world.glb',
+  entryDeckDeep: '/assets/driftwood-isle/baked/fixed-models/entry-deck-deep.glb',
+  entryDeckShallow: '/assets/driftwood-isle/baked/fixed-models/entry-deck-shallow.glb',
 } as const;

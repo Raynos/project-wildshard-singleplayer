@@ -186,8 +186,6 @@ export const FACETED_DAY_PRESET = {
 export const CAPTAIN_ID = 'boss.captain';
 export const CAPTAIN_ARENA_R = 22;
 export const CAPTAIN_NAME = 'The Drowned Captain';
-/** the entry road deck's slab depth (data/entryRows.ts) */
-export const DECK_SLAB = 0.55;
 /** the trophy wall's ids and plaque layout (data/trophyLayout.ts) */
 export const TROPHY_LAYOUT = { ids: ['bear', 'boar'], gap: 0.8, width: 0.34, height: 0.43, thickness: 0.03, mountY: 0.235, panelOffset: 0.018 } as const;
 /** the ring shrine's two authored sites, the island's and the Explorer specimen's (data/shrineSites.ts) */
@@ -293,7 +291,10 @@ export const FIXED_MODEL_FILES = {
   "npcCastawayCamp": "models/fixed/npc-castaway-camp.glb",
   "npcCastawayHead": "models/fixed/npc-castaway-head.glb",
   "npcCastawayArm": "models/fixed/npc-castaway-arm.glb",
-  "npcCastawayFlames": "models/fixed/npc-castaway-flames.glb"
+  "npcCastawayFlames": "models/fixed/npc-castaway-flames.glb",
+  "entryDeckWorld": "models/fixed/entry-deck-world.glb",
+  "entryDeckDeep": "models/fixed/entry-deck-deep.glb",
+  "entryDeckShallow": "models/fixed/entry-deck-shallow.glb"
 } as const;
 
 /** Checked build-time file mirror (data/runtimeFiles.ts); private draws use named blobs. */
