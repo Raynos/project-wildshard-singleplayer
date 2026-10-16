@@ -20,6 +20,22 @@ export interface ScriptScenarioInput extends ScenarioWorldInput {
 }
 export interface ScenarioSnapshot { host: DecisionSnapshot; world: ScenarioWorldInput }
 export type ScenarioCommand = readonly (string | number)[];
+/** Disk fixtures name actor aliases or real platform ids; numeric handles must already be registered. */
+export interface DiskScenarioOptions extends Omit<ScenarioWorldInput, 'actors'> {
+  seed: number;
+  /** Published output root, defaulting to out/ in the caller's working directory. */
+  products?: string;
+  actors?: readonly (Omit<ScenarioActor, 'id' | 'fieldBounds'> & { id: string | number })[];
+}
+export type DiskScriptScenario = ScriptScenario & { readonly product: {
+  readonly slug: string; readonly script: string; readonly sectionHash: string; readonly indexHash: string;
+} };
+/** Load a published format-2 product and run its declared Wasm on the real DecisionHost.
+ * Missing output refuses: the harness never builds, compiles, or imports author/runtime modules. */
+export async function scenario(slug: string, id: string, options: DiskScenarioOptions): Promise<DiskScriptScenario> {
+  const { readDiskScriptScenario } = await import('./diskScriptScenario');
+  return readDiskScriptScenario(slug, id, options);
+}
 function finite(values: readonly number[]): void { if (!values.every(Number.isFinite)) throw new Error('Non-finite scenario value'); }
 function actorCopy(actor: ScenarioActor): ScenarioActor {
   for (const [key, bound] of Object.entries(actor.fieldBounds ?? {})) {

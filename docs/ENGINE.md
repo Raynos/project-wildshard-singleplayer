@@ -7211,9 +7211,18 @@ belong to the host. Native movement completion is an explicit test event,
 not another movement implementation. Logical saves include host and fixture
 observations; restore rolls observations back if host validation refuses.
 The constructor port takes the real host, never a substitute Wasm runner.
-The disk `scenario(slug,id,options)` wrapper and built-Wasm sample follow
-KA2 and the v1 script-row admission schema; this core makes no claim that
-those pending integrations have passed.
+`scenario(folder,id,{seed,products?,actors?,players?})` reads only a published
+format-2 output (default root `out/`). It hash-verifies sections and the selected Wasm,
+uses the defining actor/move/spot binding registry and runs the actual
+DecisionHost. Missing output or bytes refuse; it never builds, compiles or
+imports author/runtime modules. Actors default to declared three-dimensional
+spawn poses. Retained actors with only XZ metadata require explicit XYZ
+fixtures, named by the script alias or the actual actor id. Public field
+bounds come from the product and cannot be widened by a fixture.
+`product.sectionHash` and `product.indexHash` bind observations to disk bytes.
+The gate builds published outputs once before selected disk scenarios; the
+Template save/restore sample consumes these outputs inside its two-second
+scenario budget. Standalone test setup builds outside the timed scenario.
 
 ### Lossless named GLB compression
 

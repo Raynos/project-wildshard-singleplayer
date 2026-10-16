@@ -1,50 +1,26 @@
-import { expect, test } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the producer's small immutable Wasm, never compile in the gate scenario.
-import { readFileSync,writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Optional proof receipt destination belongs to this test runner.
-import {env} from 'node:process';
-import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
-import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
-import { decisionScriptRules } from '@wildshard/format/decisionScripts';
-import { admitScriptContract } from '@wildshard/format/scriptContract';
-import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
-import { outputDecisionScripts } from '@wildshard/sdk/outputProduct';
-import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { BOSS_MOVES, BOSS_REGISTRIES, bossBindingMap } from '../../src/shards/_template/data/bossDecision';
-import { output } from '../../src/shards/_template/generators/output';
-import product from '../../src/shards/_template/generators/product';
-import module from '../../src/shards/_template/behaviour/boss.json';
-import {scenarioHostHash,scriptScenarioReceipt} from '../../scripts/script-scenario-metrics.mjs';
+import { beforeAll, expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Optional scenario receipt belongs to this test runner.
+import { writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone test runs prepare official outputs outside the timed scenario.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Reuse only an exact gate build, never a loose ready flag.
+import { env, execPath } from 'node:process';
+import { scenario as diskScenario } from '@wildshard/sdk/scriptScenario';
+import { scenarioHostHash, scriptScenarioReceipt } from '../../scripts/script-scenario-metrics.mjs';
 
-test('Template boss runs admitted Wasm decisions and resumes a logical save', () => {
-  const row = outputDecisionScripts(output.platform)[0];
-  if (row === undefined) throw new Error('Template output has no decision script');
-  const bytes = new Uint8Array(readFileSync(`src/shards/_template/assets/${module.hash}`));
-  expect(hashImmutableBytes(bytes)).toBe(module.hash);
-  expect(admitScriptContract(bytes, { abi: 1, pages: 1 }).initialPages).toBe(1);
-  expect(row.binding).toEqual({ encounter: 'template.boss' });
-  expect(product.runtime).toBeNull();
-  expect(BOSS_REGISTRIES.actors).toEqual(buildDecisionRegistries(product, BOSS_MOVES).actors);
-  expect(BOSS_REGISTRIES.strikes).toEqual(buildDecisionRegistries(product, BOSS_MOVES).strikes);
-  expect(product.sim.scripts).not.toContain(module.hash); // Separate from the legacy v0 host.
-  expect(decisionScriptRules([row], {
-    modules: new Map([[row.module, { abi: 1, pages: 1 }]]),
-    ids: { actors: new Set(product.creatures.spawns.map(actor => actor.id)),
-      strikes: new Set(product.rows.strikes.map(strike => strike.id)), moves: new Set(BOSS_MOVES.map(move => move.id)) },
-    bindings: { encounters: new Set(product.encounters.map(encounter => encounter.id)), quests: new Set(), zones: new Set() }, migrations: [],
-  })).toEqual([]);
-  const map = bossBindingMap(row.module);
-  const script: DecisionScript = { ...row, ids: map.ids, reads: ['nearestPlayer'], lists: [], state: row.state.map(slot => {
-    if (slot.scope === 'local') throw new Error('Template simulation has no local-only state');
-    return { ...slot, scope: slot.scope };
-  }) };
-  const boss = BOSS_REGISTRIES.actors?.get('big-blob');
-  if (boss === undefined) throw new Error('Missing bound boss');
-  const create = () => createScriptScenario(DecisionHost, { script, bytes, seed: 437,
-    binding: { id: 1, script: row.id, self: boss, actors: [boss], instance: 0 },
-    actors: [{ id: boss, at: [-15, 0, -20] }], players: [{ id: 101, at: [-15, 0, -18] }],
+beforeAll(() => {
+  const built = env['WS_TEST_PRODUCTS_SHA'];
+  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
+    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
+  }
+}, 120_000);
+
+test('Template boss runs published Wasm decisions and resumes a logical save', async () => {
+  const create = () => diskScenario('_template', 'template.boss.decision', { seed: 437,
+    players: [{ id: 101, at: [-15, 0, -18] }],
   });
-  const scenario = create();
+  const scenario = await create();
+  expect(scenario.product.sectionHash).toMatch(/^[a-f0-9]{64}$/u);
   scenario.send('start');
   expect(scenario.commands()).toEqual([['encounter', 'phase', 0], ['move', 'boss', 'approach', 101], ['timer', 'beat', 1]]);
   scenario.send('start'); expect(scenario.commands()).toEqual([]); // No restart while active.
@@ -61,7 +37,7 @@ test('Template boss runs admitted Wasm decisions and resumes a logical save', ()
   const commands = scenario.commands(), state = scenario.state();
   expect(commands).toEqual([['strike', 'boss', 'bump', 101], ['timer', 'beat', 0.5]]);
   // A fresh host restores slots, queued commands and timer remainder, never a Wasm heap image.
-  const resumed = create(); resumed.restore(structuredClone(saved));
+  const resumed = await create(); resumed.restore(structuredClone(saved));
   resumed.advance(0.5); expect(resumed.commands()).toEqual(commands); expect(resumed.state()).toEqual(state);
   expect(resumed.save()).toEqual(scenario.save());
   resumed.send('death', 'boss');
@@ -78,9 +54,8 @@ test('Template boss runs admitted Wasm decisions and resumes a logical save', ()
   expect(resumed.maxFuel()).toBeLessThan(400_000);
   const receiptPath=env['WS_SCRIPT_SCENARIO_RECEIPT'];
   if(receiptPath!==undefined) {
-    const section=output.platform.sections.find(value=>value.name==='sim/scripts');
     const hostHash=scenarioHostHash('.');
-    if(section===undefined||hostHash===null)throw new Error('Missing scenario byte binding');
-    writeFileSync(receiptPath,`${JSON.stringify(scriptScenarioReceipt({slug:'_template',script:row.id,scenario:'boss logical save continuation',sectionHash:section.hash,hostHash,trace:[...scenario.trace(),...resumed.trace()]}),null,2)}\n`);
+    if(hostHash===null)throw new Error('Missing scenario host binding');
+    writeFileSync(receiptPath,`${JSON.stringify(scriptScenarioReceipt({slug:scenario.product.slug,script:scenario.product.script,scenario:'boss logical save continuation',sectionHash:scenario.product.sectionHash,hostHash,trace:[...scenario.trace(),...resumed.trace()]}),null,2)}\n`);
   }
 }, 2_000);
