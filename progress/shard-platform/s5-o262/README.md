@@ -54,4 +54,36 @@ graphs (S4), not from `world/`.
 
 ## Landed (this lane)
 
-See the commits listed at the end of this file once they land.
+- `3d40d964b` refactor(sky): declare route materials at build (+ the coordinator's `ef1b80191`, the missed
+  `sky-route-scene` input root for `generators/palette.ts`). Rope rails, hover glass and the Explorer kit deck are
+  declared `standard` materials in the route scenes; `world/materials.ts` → `generators/palette.ts`; the private-scene
+  format gains `emissiveIntensity`; dead `heroStoneDiscs` deleted. **Sky `world/` 307 → 291 (-16)**, Signal unchanged
+  (mirror, `e4a6c4a61` → `ef1b80191`; Sky's whole-shard 6,243 → 6,075 also carries other lanes' look-graph commits in
+  that range). Focused tests (8 files, 36) and `tsc` green in the mirror after a cold `pnpm gen`.
+- Proof (iPhone 16 Pro portrait, muted): `route-materials-aerial-spawn.jpg`, `route-materials-h2-windmill.jpg`. Same
+  draws (155) and triangles (1,649,971) before and after; no visible change.
+
+**Stopped by G452** (2026-10-16): every lane works W2 until it closes; the rest of S5 (below) becomes a W1-spike row.
+
+## The Codex remainder (mechanical, in this order)
+
+1. **Baked kind looks at bake time (Sky, -18).** `generators/shackKit.ts` sets `material.userData['look'] =
+   'shack-<kind>'` (and keeps `ShackKind` as its own type); `generators/dressing.ts` `extra` writes
+   `look: DRESSING_LOOKS[material.name]` beside `dressing`. Rerun `node scripts/generate.mjs --job=sky-world`
+   (native; outputs `data/*.json` + `baked/*.glb`, check the GLB hashes do not move) **after sp-o259's S4 sky-world
+   changes land**, then in `world/baked.ts` the material hook becomes `'look' in kind && typeof kind.look === 'string'
+   ? SKY_LIBRARY.look(kind.look) : 'paint' in kind ? isleMaterial() : undefined`; delete `world/shack.ts`,
+   `world/dressing.ts`, `SHACK` / `shackKind`. Before / after pair on h1-sunrest and h2-windmill (shacks, dressing).
+2. **ModelLibrary scene ports (Sky -39, Signal -4).** One SDK helper beside `createModelLibrary`
+   (`@wildshard/sdk/looks/modelLibrary`): `scenePorts(rows, { baked, painted?, looks? })` returning `WorldScenePorts`,
+   where a painted row `{ id, model, look | null }` resolves geometry `id` → `painted(model).geometry` and material
+   `id` → `look === null ? matte map material : mappedLook(look, map)`, plus `geometry` / `model` / `baked` from the
+   library. Generators emit the rows (`crownScene.ts` already does; `millScene.ts`, `restScene.ts` books, the static
+   scene's `look:name` ports, `routeScene.ts` `post-hd`). Users: Sky `crown.ts`, `mill.ts`, `build.ts` `bookStand`
+   and the static-scene material loop, `shapes.ts` `routeScenePorts`; Signal `places.ts` (geometry / model / bake
+   ports). Keep each scene's `missing` behaviour (undrawn until every model is ready). Pair: aerial-spawn,
+   h4-crown, h2-windmill.
+3. **Signal brazier colliders (-2).** The Signal world bake emits the brazier collider rows as placement rows; the
+   `.map` in `world/baked.ts` goes.
+4. **S1 / S2 moves** (no number change): the files marked **stays** move into `runtime/world/` with the rest of the
+   play code.
