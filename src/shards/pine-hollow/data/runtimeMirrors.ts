@@ -22,8 +22,23 @@ import { KNIFE_LOOK } from './skinningKnifeLook';
 import CROSSBOW_DISPLAY_REST from './crossbowDisplay.json' with { type: 'json' };
 import SPRAY_PUFFS from './sprayPuffs.json' with { type: 'json' };
 
+import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from './cabinLook';
+import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from './cabinAssembly';
+import { HEARTH_LOOKS } from './hearthLook';
+import { TIMBER_DRAWS, TIMBER_GLASS } from './timberDraws';
+
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
+  defineMirror('CABIN_DOOR_LOOK', CABIN_DOOR_LOOK),
+  defineMirror('CABIN_MOSS_LOOKS', CABIN_MOSS_LOOKS),
+  defineMirror('CABIN_LIFE', CABIN_LIFE),
+  defineMirror('CABIN_PBR', CABIN_PBR),
+  defineMirror('CABIN_MATERIALS', CABIN_MATERIALS),
+  defineMirror('CABIN_GLASS_EMISSIVE', CABIN_GLASS_EMISSIVE),
+  defineMirror('CABIN_LIGHT', CABIN_LIGHT),
+  defineMirror('HEARTH_LOOKS', HEARTH_LOOKS),
+  defineMirror('TIMBER_DRAWS', TIMBER_DRAWS),
+  defineMirror('TIMBER_GLASS', TIMBER_GLASS),
   defineMirror('KNIFE_LOOK', KNIFE_LOOK),
   defineMirror('CROSSBOW_DISPLAY_REST', CROSSBOW_DISPLAY_REST),
   defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),

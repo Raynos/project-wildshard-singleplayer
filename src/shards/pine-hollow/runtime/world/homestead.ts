@@ -11,14 +11,12 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { loadPainted } from '../looks/paintedTextures';
-import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS } from '../../data/cabinLook';
-import { HEARTH_LOOKS } from '../../data/hearthLook';
+import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS, HEARTH_LOOKS, CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../const';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
 import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
 import { pineModels } from './context';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../../data/cabinAssembly';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
