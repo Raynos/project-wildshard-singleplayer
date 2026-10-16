@@ -35,10 +35,11 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import KEEPSAKE_PICKUPS from '../data/keepsakePickups.json' with { type: 'json' };
+import KEEPSAKE_CONTENT from '../data/keepsakes.json' with { type: 'json' };
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { islandTrophies } from './tables';
+import { islandTrophies, type TrophyDropId } from './tables';
 import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
 import { buildCaptainHat } from '../models/captainHat';
@@ -52,31 +53,10 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { seaGlassFound } from './finds';
 import { charmsFor, chimeCount, nightGlow } from './perks';
 
-export type TrophyDropId = 'bear-claw' | 'boar-tusk' | 'captain-hat';
 /** which death drops which keepsake (while you don't own it) */
 export function trophyFor(a: { kind: string; variant?: string | undefined }): TrophyDropId | null {
-  const id = islandTrophies(a)[0];
-  return id === 'bear-claw' || id === 'boar-tusk' || id === 'captain-hat' ? id : null;
+  return islandTrophies(a)[0] ?? null;
 }
-
-const CHARM_TOAST: Record<'charm-1' | 'charm-2' | 'charm-3', string> = {
-  'charm-1': 'Sea glass charm I · +10 max health — it hangs in Wendell\'s doorway',
-  'charm-2': 'Sea glass charm II · your dodge recharges faster',
-  'charm-3': 'Sea glass charm III · your sword glows at night',
-};
-/** a charm's toast waits for the adventure's own "Sea glass · n / 15" */
-const CHARM_DELAY = 1.3;
-
-/** hut-local spots (the hut's own frame: the door at −z, its wall at z = −2.7; the back wall at +2.7; the floor is the
- *  door anchor's y). The chime (Jake's look review 2026-09-30: "over Wendell's doorway, larger — as board 3 C, seen every
- *  time you walk up") hangs on the door's centre line just outside the lintel batten (z −2.72 … −2.81), 1.25× the model,
- *  its hook up under the porch thatch (the eave skirt's underside is ~3.46 m over the floor there, hut.ts `hip`; the top
- *  of the cord runs into it): its lowest piece ends ~2.2 m over the floor (measured: scripts/e334-look-review-capture.mjs),
- *  clear of the door opening (its top 2.07 m, under the 2.14 m lintel) — no one walks into it — and of the door lantern
- *  (x +0.9) and the trader's stall (x −3.3, z −7.8). Stage 3 hung it left of the door in front of the window shutter. The
- *  plaques on the back wall's inner face, between the shelves (left) and the chest (below right). */
-const CHIME = { x: 0, z: -2.95, up: 3.55, scale: 1.25 };
-const PLAQUES = { x: 0.3, z: 2.655, up: 1.3, scale: 1.5 };
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
 export interface KeepsakeHost<A extends KeepsakeAnimal> {
@@ -120,11 +100,11 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     ownEnteredTree(object, scope);
     return object;
   };
-  const c = adv.place({ poi: 'hut', x: CHIME.x, z: CHIME.z, y: floor + CHIME.up });
-  const chimeObj = entered(() => place(seaGlassChime, [{ x: c.x, y: c.y, z: c.z, yaw: c.yaw, scale: CHIME.scale, params: { count: 0 } }], { ctx, draw: 'single', ...registry, piece: { id: 'sea-glass-chime', name: 'Sea glass wind chime' } }).object);
+  const c = adv.place({ poi: 'hut', x: KEEPSAKE_CONTENT.chime.x, z: KEEPSAKE_CONTENT.chime.z, y: floor + KEEPSAKE_CONTENT.chime.up });
+  const chimeObj = entered(() => place(seaGlassChime, [{ x: c.x, y: c.y, z: c.z, yaw: c.yaw, scale: KEEPSAKE_CONTENT.chime.scale, params: { count: 0 } }], { ctx, draw: 'single', ...registry, piece: { id: 'sea-glass-chime', name: 'Sea glass wind chime' } }).object);
   const chime = chimeObj instanceof SeaGlassChime ? chimeObj : null;
-  const p = adv.place({ poi: 'hut', x: PLAQUES.x, z: PLAQUES.z, y: floor + PLAQUES.up, yaw: Math.PI });
-  const plaquesObj = entered(() => place(trophyPlaques, [{ x: p.x, y: p.y, z: p.z, yaw: p.yaw, scale: PLAQUES.scale, params: { bear: false, boar: false } }], { ctx, draw: 'single', ...registry, piece: { id: 'trophy-plaques', name: 'Trophy plaques' } }).object);
+  const p = adv.place({ poi: 'hut', x: KEEPSAKE_CONTENT.plaques.x, z: KEEPSAKE_CONTENT.plaques.z, y: floor + KEEPSAKE_CONTENT.plaques.up, yaw: Math.PI });
+  const plaquesObj = entered(() => place(trophyPlaques, [{ x: p.x, y: p.y, z: p.z, yaw: p.yaw, scale: KEEPSAKE_CONTENT.plaques.scale, params: { bear: false, boar: false } }], { ctx, draw: 'single', ...registry, piece: { id: 'trophy-plaques', name: 'Trophy plaques' } }).object);
   const plaques = plaquesObj instanceof TrophyPlaques ? plaquesObj : null;
 
   // ── the charms: the found count → the chime's pieces and the charms owned ──
@@ -137,7 +117,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     for (const id of charmsFor(n)) {
       if (!owned.grant(id) || !announce) continue;
       const last = pending[pending.length - 1]?.at ?? -Infinity;   // two charms at once (a dev jump): one toast after the other
-      pending.push({ text: CHARM_TOAST[id], at: Math.max(clock + CHARM_DELAY, last + 2.2) });
+      pending.push({ text: KEEPSAKE_CONTENT.charms.toast[id], at: Math.max(clock + KEEPSAKE_CONTENT.charms.delay, last + KEEPSAKE_CONTENT.charms.spacing) });
     }
   };
   syncGlass(false);
@@ -173,7 +153,6 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       h.hud.toast(KEEPSAKE_PICKUPS[id].toast); sfx.interact('chime', undefined, { gain: 0.8 }); h.music.sting('pickup');
     },
   });
-  const spawnDrop = (id: TrophyDropId, at: THREE.Vector3, toss: boolean): void => { roster.spawn(id, at, toss); };
   const killed = (a: A): void => {
     if (practiceRoom.open) return;
     const id = trophyFor(a);
@@ -182,12 +161,12 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       // he sinks into the spring pool: the hat lands on your side of it, a step and a half toward where he fell
       const pp = h.player.position, d = Math.hypot(a.position.x - pp.x, a.position.z - pp.z), k = d > 1e-3 ? Math.min(1, 1.5 / d) : 0;
       const x = pp.x + (a.position.x - pp.x) * k, z = pp.z + (a.position.z - pp.z) * k;
-      spawnDrop(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
-    } else spawnDrop(id, a.position, true);
+      roster.spawn(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
+    } else roster.spawn(id, a.position, true);
   };
   h.onDeath?.(killed, 30);
   // the captain dies once: a hat left lying through a reload waits at the ring's reward spot
-  if (flags.has('dead:captain') && !owned.has('captain-hat') && adv.finale) spawnDrop('captain-hat', adv.finale.rewardAt, false);
+  if (flags.has('dead:captain') && !owned.has('captain-hat') && adv.finale) roster.spawn('captain-hat', adv.finale.rewardAt, false);
 
   // ── per frame: the drops (walk-over), the charm toasts, charm III's glow ──
   h.game.onUpdate((dt, t) => {
@@ -209,7 +188,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     /** drop a keepsake 2.5 m in front of you (the kill's toss) */
     drop: (id: TrophyDropId) => {
       const pl = h.player.position, x = pl.x - Math.sin(h.player.yaw) * 2.5, z = pl.z - Math.cos(h.player.yaw) * 2.5;
-      spawnDrop(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
+      roster.spawn(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
     },
   };
   if (h.owner !== undefined) h.owner.debug.expose('driftwood.keepsakes', dev);
