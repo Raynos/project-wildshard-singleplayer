@@ -31,5 +31,9 @@ memory-action brain and the stride / swing poses.
 
 | Slice | SHA | Pine Δ | DW Δ | Checks |
 |---|---|---:|---:|---|
-| decision table | (this commit) | — | — | — |
-| `sampleCreatureGroup` data rows, Pine roamer on it | see below | | | |
+| decision table | `f36a9f8e9` | — | — | — |
+| `sampleCreatureGroup` data rows, Pine roamer on it | `fa65c3da5` | 18,251 → 18,247 (C4 3,810 → 3,805) | 0 | check3 mirror, exact parent `9c182a970`: fresh boot, tick 60, 120, 180 snapshots equal for Pine and DW, and the parent's tick-120 save resumed at the candidate reaches the parent's tick 180 for both; oracle tests of the retired roamer loop (120 seeds) and crab callback (200 seeds), bit-identical points, yaws and stream; shard-headless + native fauna / roster / recipes / pose / spawner / site / coconut / elite-core 32/32; root tsc + layers clean; no new `no-shard-host-callback` site; no new runtime/ file |
+
+The stream and ground reach the host as engine service views (`Pick<Rng, 'next'>`, `Pick<HuntGround, 'heightAt'>`), the
+shape the hunting hosts already take, not shard decisions. No pose or visible behaviour changed (placement is
+bit-identical), so no phone pair. The cut is small: the honest gain is G454 compliance, not lines.
