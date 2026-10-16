@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardCatalog": "./shardCatalog.ts",
     "./edgeProfiles": "./edgeProfiles.ts",
     "./plumbing": "./plumbing.ts",
     "./admissionLimits": "./admissionLimits.ts",

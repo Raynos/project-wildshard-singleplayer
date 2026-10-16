@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./outputCatalog": "./outputCatalog.ts",
     "./playerModeData": "./playerModeData.ts",
     "./runtime/movers": "./runtime/movers.ts",
     "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
@@ -165,6 +166,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./outputCatalog": {
+        "types": "./dist/types/sdk/outputCatalog.d.ts",
+        "default": "./dist/outputCatalog.js"
+      },
       "./playerModeData": {
         "types": "./dist/types/sdk/playerModeData.d.ts",
         "default": "./dist/playerModeData.js"
