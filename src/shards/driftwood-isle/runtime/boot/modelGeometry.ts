@@ -8,8 +8,8 @@ export async function readProductGeometry(owner: ProductGeometryOwner): Promise<
   const { readWholeGeometry } = await import('@wildshard/game/plugin/geometry');
   const assembled = await readWholeGeometry(owner, 'driftwood-isle'), result = new Map<string, BufferGeometry>();
   const urls = Object.values(FIXED_MODEL_FILES);
-  if (urls.length !== 72) throw new Error('Driftwood requires all authored source draws');
-  for (let i = 0; i < 72; i++) {
+  if (urls.length !== 73) throw new Error('Driftwood requires all authored source draws');
+  for (let i = 0; i < 73; i++) {
     const url = urls[i]; if (url === undefined) throw new Error('Missing Driftwood source draw URL');
     const id = url.slice(url.lastIndexOf('/') + 1, -4), view = assembled.get(id);
     if (view === undefined) throw new Error(`Missing admitted Driftwood source draw: ${id}`);
@@ -17,7 +17,7 @@ export async function readProductGeometry(owner: ProductGeometryOwner): Promise<
   }
   if (assembled.size !== result.size) throw new Error('Unexpected admitted Driftwood source draw');
   return { templates: result, release: () => {
-    for (let i = 0; i < 72; i++) {
+    for (let i = 0; i < 73; i++) {
       const url = urls[i]; if (url === undefined) throw new Error('Missing Driftwood source draw URL');
       const id = url.slice(url.lastIndexOf('/') + 1, -4);
       assembled.get(id)?.release?.();

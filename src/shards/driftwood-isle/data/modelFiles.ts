@@ -74,4 +74,5 @@ export const FIXED_MODEL_FILES = {
   driftLogLong: '/assets/driftwood-isle/baked/fixed-models/drift-log-long.glb',
   driftLogShort: '/assets/driftwood-isle/baked/fixed-models/drift-log-short.glb',
   driftLogPale: '/assets/driftwood-isle/baked/fixed-models/drift-log-pale.glb',
+  reefFish: '/assets/driftwood-isle/baked/fixed-models/reef-fish.glb',
 } as const;

@@ -1,12 +1,15 @@
 /**
  * The reef fish (E306 / E315 M1: a model on the contract, src/engine/models/model.ts; it was built inside src/shards/driftwood-isle/world/Seabed.ts):
- * a small faceted fish — a flattened diamond body (8 tris) and a tail fin (2), nose along −z, ~0.35 m long — on the kit's
+ * a small faceted fish — a flattened diamond body (8 tris) and a tail fin (2), nose along −z, ~0.35 m long, baked offline
+ * (generators/reefFish.ts, the fixed-model template `reef-fish`) — on the kit's
  * still material, its colour per copy (instanceColor). The lagoon places a school of them instanced (one draw) over
  * its densest reef and swims them round a lissajous loop every frame (src/shards/driftwood-isle/world/Seabed.ts).
  */
 import * as THREE from 'three';
-import { defineModel } from '@wildshard/engine/models/model';
+import { defineModel, type ModelPart } from '@wildshard/engine/models/model';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { REEF_FISH_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 /** the fish's colours: each copy takes one (Placement.color) */
 export const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;
@@ -15,17 +18,12 @@ export const reefFish = defineModel<Record<string, never>>({
   id: 'driftwood-isle/reef-fish', name: 'Reef fish', category: 'creatures', pipeline: 'code',
   file: 'src/shards/driftwood-isle/models/reefFish.ts',
   defaults: {},
+  // the baked fish (generators/reefFish.ts), a fixed-model template; a loading box until the island's templates are in
   build: (ctx) => {
-    const pos: number[] = [];
-    const nose = [0, 0, -0.18], tail = [0, 0, 0.14], top = [0, 0.07, -0.02], bot = [0, -0.06, -0.02], l = [-0.035, 0, -0.03], r = [0.035, 0, -0.03];
-    const t1 = [0, 0.07, 0.24], t2 = [0, -0.07, 0.24];
-    const faces = [[nose, top, l], [nose, r, top], [nose, l, bot], [nose, bot, r], [tail, l, top], [tail, top, r], [tail, bot, l], [tail, r, bot], [tail, t1, t2], [tail, t2, t1]];
-    for (const f of faces) for (const v of f) pos.push(...v);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    geometry.computeVertexNormals();
-    // white vertex colour under the kit's still material (one shared graph toon material): each copy's tint shows
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(pos.length).fill(1), 3));
-    return [{ geometry, material: lowPolyLookMaterial(ctx.sky, 'still') }];
+    const part = (): ModelPart => ({ geometry: ctx.once('driftwood-isle/reef-fish', () => REEF_FISH_GEOMETRY.copy()), material: lowPolyLookMaterial(ctx.sky, 'still') });
+    if (fixedGeometryReady()) return [part()];
+    return loadingSpecimen('driftwood-isle/reef-fish', [0.07, 0.14, 0.42], async () => {
+      await loadFixedGeometry(); const made = part(); return new THREE.Mesh(made.geometry, made.material);
+    });
   },
 });

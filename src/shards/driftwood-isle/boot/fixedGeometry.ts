@@ -67,6 +67,8 @@ export const DRIFT_LOG_GEOMETRY = {
   long: modelGeometry(FIXED_MODEL_FILES.driftLogLong), short: modelGeometry(FIXED_MODEL_FILES.driftLogShort),
   pale: modelGeometry(FIXED_MODEL_FILES.driftLogPale),
 } as const;
+/** The reef fish (generators/reefFish.ts): the lagoon's school tints each instanced copy. */
+export const REEF_FISH_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.reefFish);
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

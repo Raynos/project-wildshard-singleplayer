@@ -21,6 +21,7 @@ import { fireflyCloud } from './fireflies';
 import { gullGeometry } from './gull';
 import { smokeColumnGeometry } from './smoke';
 import { driftLogSpecimens } from './driftLogs';
+import { reefFishGeometry } from './reefFish';
 import { CASTAWAY_SMOKE } from '../data/castawayLook';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
@@ -85,5 +86,7 @@ export function driftwoodFixedSource(): {
   geometries.set('castaway-smoke', smokeColumnGeometry(CASTAWAY_SMOKE));
   // the Explorer's lone drift logs (generators/driftLogs.ts), last so the earlier templates keep their keys
   for (const [name, geometry] of Object.entries(driftLogSpecimens())) geometries.set(`drift-log-${name}`, geometry);
+  // the reef fish (generators/reefFish.ts), last so the earlier templates keep their keys
+  geometries.set('reef-fish', reefFishGeometry());
   return { geometries, world, rows };
 }
