@@ -7,6 +7,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FacetedGroundRow } from './rows';
 import { coverAttributes } from './coverGrid';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { readDriftwoodBlob } from '../boot/blobAssets';
 
 /**
  * A faceted, texture-free ground as a terrain painter (SHARD-PLATFORM M3, look-family rows; W2 C2 baked it): the level's
@@ -53,7 +54,10 @@ async function buildFacetedGround(t: Terrain, f: Parameters<TerrainPainter['buil
   const loan = loans.at(-1);
   if (loan === undefined) throw new Error('Faceted ground: no graph materials lent (the look prepares them before the ground builds)');
   const grid = modelGeometry(urls.ground), walls = modelGeometry(urls.slab);
-  await Promise.all([grid.load(), walls.load()]);
+  await Promise.all([
+    readDriftwoodBlob(urls.ground).then(bytes => grid.load(bytes)),
+    readDriftwoodBlob(urls.slab).then(bytes => walls.load(bytes)),
+  ]);
   const ground = grid.take(), slab = walls.take();
   coverAttributes(ground, ground.getAttribute('position').count); // the graph reads the cover tint's attributes (zero until tintTerrain fills them)
   t.mesh = new THREE.Mesh(ground, loan.ground);

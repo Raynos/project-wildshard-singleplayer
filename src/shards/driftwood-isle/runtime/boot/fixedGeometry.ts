@@ -2,7 +2,7 @@ import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
 import { createOwnedGeometryBatch, type OwnedGeometry as ModelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { readProductGeometry } from './modelGeometry';
+import { readProductGeometry, readNamedFixedGeometry } from './modelGeometry';
 import type { BufferGeometry } from 'three';
 import { FIXED_MODEL_FILES } from '../../data/modelFiles';
 
@@ -110,8 +110,12 @@ export function fixedGeometryReady(): boolean { return ready; }
 /** Called explicitly by the world hook before any synchronous placement or later loot factory. Explicit bytes admit the same templates in Node fixtures. */
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readProductGeometry>[0]): Promise<void> {
   const product = owner === undefined ? undefined : await readProductGeometry(owner);
-  const admitted = product?.templates ?? bytes;
+  const admitted = product?.templates ?? bytes ?? await readNamedFixedGeometry();
   try {
+  const urls = Object.values(FIXED_MODEL_FILES);
+  for (let i = 0; i < 83; i++) {
+    const url = urls[i]; if (url === undefined || !admitted.has(url)) throw new Error('Missing Driftwood source draw');
+  }
   await Promise.all([
     preload.load(admitted),
     loadTrailsideGeometry(admitted),

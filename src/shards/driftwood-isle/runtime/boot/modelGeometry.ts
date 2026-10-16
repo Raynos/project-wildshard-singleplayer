@@ -1,3 +1,4 @@
+import { driftwoodBlobName, loadDriftwoodProduct } from './blobAssets';
 import type { BufferGeometry } from 'three';
 import type { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import { FIXED_MODEL_FILES } from '../../data/modelFiles';
@@ -23,4 +24,10 @@ export async function readProductGeometry(owner: ProductGeometryOwner): Promise<
       assembled.get(id)?.release?.();
     }
   } };
+}
+
+/** Cold Explorer templates come from named product blobs, while the world keeps its existing assembled geometry loan. */
+export async function readNamedFixedGeometry(): Promise<Map<string, Uint8Array>> {
+  const product = await loadDriftwoodProduct();
+  return new Map(await Promise.all(Object.values(FIXED_MODEL_FILES).map(async url => [url, await product.file(driftwoodBlobName(product, url))] as const)));
 }

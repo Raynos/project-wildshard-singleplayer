@@ -1,7 +1,8 @@
 import { Mesh, type Material } from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { decodeFoliageWorld, readFoliageWorld } from './foliageGeometry';
+import { decodeFoliageWorld } from './foliageGeometry';
+import { readDriftwoodBlob } from './blobAssets';
 import { REEF_FILES } from '../../data/reefFiles';
 import { REEF_SPECIMENS, type ReefKind } from '../../data/reefSpecimenRows';
 import type { ReefParams } from '../models/reef';
@@ -15,7 +16,7 @@ export function reefSpecimen(kind: ReefKind, params: ReefParams, material: Mater
   if (url === undefined) throw new Error('Reef specimen has no authored geometry');
   const id = kind === 'weed' ? 'seaweed' : kind === 'star' ? 'reef-starfish' : 'coral';
   return loadingSpecimen(`driftwood-isle/${id}`, row.size, async () => {
-    const intake = modelGeometry(url, {_sway: 'aSway'}); await intake.load();
+    const intake = modelGeometry(url, {_sway: 'aSway'}); await intake.load(await readDriftwoodBlob(url));
     const mesh = new Mesh(intake.take(), material); mesh.receiveShadow = true; return mesh;
   });
 }
@@ -23,4 +24,4 @@ const layout = {magic: 0x31464552, channels: [['position', 3], ['color', 3], ['a
 /** Retain the original full-copy boxes and independently disposable native wind channels. */
 export function decodeReefWorld(input: Uint8Array, copies: number): ReturnType<typeof decodeFoliageWorld> { return decodeFoliageWorld(input, copies, layout); }
 /** A one-to-one owned replacement, with no retained geometry template. */
-export function loadReefWorld(copies: number): ReturnType<typeof readFoliageWorld> { return readFoliageWorld(REEF_FILES.world, copies, layout); }
+export async function loadReefWorld(copies: number): Promise<ReturnType<typeof decodeReefWorld>> { return decodeReefWorld(await readDriftwoodBlob(REEF_FILES.world), copies); }

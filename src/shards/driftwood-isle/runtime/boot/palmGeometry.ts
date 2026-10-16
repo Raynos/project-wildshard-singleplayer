@@ -2,7 +2,8 @@ import { Mesh, type Material } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { decodeFoliageWorld, readFoliageWorld } from './foliageGeometry';
+import { decodeFoliageWorld } from './foliageGeometry';
+import { readDriftwoodBlob } from './blobAssets';
 import { PALM_FILES } from '../../data/palmFiles';
 import type { PalmParams } from '../models/palm';
 
@@ -13,11 +14,11 @@ export function palmSpecimen(p: PalmParams, material: Material): ReturnType<type
   const key = p.h === 8 && p.lean === 0.2 && p.fronds === 11 ? 'tall' : p.h === 5.5 && p.lean === 0.1 && p.fronds === 9 ? 'young' : p.h === 9.5 && p.lean === 0.35 && p.fronds === 13 ? 'leaning' : null;
   if (key === null || p.leanDir !== 0 || p.rot !== 0) throw new Error('Palm specimen has no authored geometry');
   return loadingSpecimen('driftwood-isle/palm', [p.h, p.h, p.h], async () => {
-    const intake = modelGeometry(files[key], { _sway: 'aSway' }); await intake.load();
+    const intake = modelGeometry(files[key], { _sway: 'aSway' }); await intake.load(await readDriftwoodBlob(files[key]));
     const mesh = new Mesh(intake.take(), material); mesh.castShadow = true; mesh.receiveShadow = true; return mesh;
   });
 }
 /** Validate native channels and full picking boxes before the registry can borrow them. */
 export function decodePalmWorld(input: Uint8Array, copies: number): ReturnType<typeof decodeFoliageWorld> { return decodeFoliageWorld(input, copies, layout); }
 /** One compacted owned geometry, with independently releasable channel buffers. */
-export function loadPalmWorld(copies: number): ReturnType<typeof readFoliageWorld> { return readFoliageWorld(files.world, copies, layout); }
+export async function loadPalmWorld(copies: number): Promise<ReturnType<typeof decodePalmWorld>> { return decodePalmWorld(await readDriftwoodBlob(files.world), copies); }

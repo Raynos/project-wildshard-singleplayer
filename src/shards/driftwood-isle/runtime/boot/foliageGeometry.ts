@@ -1,5 +1,4 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { fetchBuildFile } from '@wildshard/game/plugin/geometry';
 
 /** The most attribute channels a foliage batch carries (palms and reef 3, hibiscus 4). */
 const MAX_CHANNELS = 8;
@@ -26,13 +25,4 @@ export function decodeFoliageWorld(input: Uint8Array, copies: number, layout: Fo
   }
   geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   return { geometry, boxes };
-}
-/** A checked owned read: neither parser nor transport retains a world template. */
-export async function readFoliageWorld(url: string, copies: number, layout: FoliageLayout): Promise<ReturnType<typeof decodeFoliageWorld>> {
-  const bytes = await fetchBuildFile(url);
-  // a view on the fetched ArrayBuffer (no copy) for the digest, which refuses a shared buffer
-  const input = bytes.buffer instanceof ArrayBuffer ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength) : new Uint8Array(bytes);
-  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', input)), value => value.toString(16).padStart(2, '0')).join('');
-  if (!url.includes(hash)) throw new Error('Foliage world content hash differs');
-  return decodeFoliageWorld(input, copies, layout);
 }

@@ -4,10 +4,18 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { CableLayout } from '@wildshard/sdk/movers';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import rows from '../../data/zipline.generated.json';
+import { readDriftwoodBlob } from '../boot/blobAssets';
 
 const world = modelGeometry(rows.world), specimen = modelGeometry(rows.specimen);
 const trolley = modelGeometry(rows.trolley), parked = modelGeometry(rows.parked);
-export async function loadZiplineGeometry(): Promise<void> { await Promise.all([world.load(), trolley.load(), specimen.load(), parked.load()]); }
+export async function loadZiplineGeometry(): Promise<void> {
+  await Promise.all([
+    readDriftwoodBlob(rows.world).then(bytes => world.load(bytes)),
+    readDriftwoodBlob(rows.trolley).then(bytes => trolley.load(bytes)),
+    readDriftwoodBlob(rows.specimen).then(bytes => specimen.load(bytes)),
+    readDriftwoodBlob(rows.parked).then(bytes => parked.load(bytes)),
+  ]);
+}
 
 export function ziplineGeometry(lay: CableLayout): { rig: ReturnType<typeof world.copy>; trolley: ReturnType<typeof trolley.copy> } {
   if (['top', 'bottom'].some(key => {

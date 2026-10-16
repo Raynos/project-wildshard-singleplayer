@@ -3,6 +3,8 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
 import { decodeFloatBlock } from '../runtime/looks/bakedIsland';
 import { ISLAND_LOOK } from '../data/islandRows';
+import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** Required boot content: a bad header, placement count or grid refuses the world stage. */
 export function requiredIslandCover(bytes: ArrayBuffer | null, used: number, floats: number | undefined): Float32Array {
@@ -13,10 +15,9 @@ export function requiredIslandCover(bytes: ArrayBuffer | null, used: number, flo
 }
 
 /** Required declared boot file; immutable URL caching and hash admission precede borrowing its storage. */
-export async function loadIslandCover():Promise<Parameters<typeof CoverGrid.create>> {
- const file=ISLAND_COVER_FILES[TIER],response=await fetch(file.url,{cache:'force-cache'});
- if(!response.ok)throw new Error('Required island cover is missing');
- const bytes=await response.arrayBuffer();
+export async function loadIslandCover(product?: ShardProduct):Promise<Parameters<typeof CoverGrid.create>> {
+ const file=ISLAND_COVER_FILES[TIER],input=await readDriftwoodBlob(file.url,product);
+ const bytes=Uint8Array.from(input).buffer;
  if(bytes.byteLength!==file.bytes)throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),hash=Array.from(digest,v=>v.toString(16).padStart(2,'0')).join('');
  if(hash!==file.hash)throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');

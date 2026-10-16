@@ -5,6 +5,8 @@ import {CoverGrid,coverSample} from '../src/shards/driftwood-isle/runtime/looks/
 import {clipIslandDressing} from '../src/shards/driftwood-isle/world/islandDressing';
 import {loadIslandCover} from '../src/shards/driftwood-isle/world/islandCover';
 import {ISLAND_COVER_FILES} from '../src/shards/driftwood-isle/data/islandCoverFiles';
+import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {emptyShardfile} from '../src/sdk/author';
 
 it('borrows a losslessly cropped lattice and keeps zero perimeter samples empty',()=>{
  const source=new AuthorCoverGrid();source.data.set([0.2,0.4,0.6,0.7,0.8],(60*source.n+60)*5);
@@ -24,6 +26,12 @@ it('installs retained native triangle runs and refuses a bad plan before changin
  }finally{geometry.dispose();}
 });
 it('refuses a missing or damaged required cover file through the world loader',async()=>{
- const mocked=vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response('',{status:404}));
- try{await expect(loadIslandCover()).rejects.toThrow('missing');mocked.mockResolvedValue(new Response(new Uint8Array(4)));await expect(loadIslandCover()).rejects.toThrow('corrupt');mocked.mockResolvedValue(new Response(new Uint8Array(ISLAND_COVER_FILES.phone.bytes)));await expect(loadIslandCover()).rejects.toThrow('corrupt');}finally{mocked.mockRestore();}
+ const read=vi.fn<()=>Promise<Uint8Array>>().mockRejectedValue(new Error('Required cover is missing'));
+ const product=createShardProduct({slug:'driftwood-isle',revision:1,
+  shardfile:emptyShardfile({slug:'driftwood-isle',name:'Test',author:'Test',revision:1,seed:1}),
+  sections:new Map([['custom/assets',{byUrl:Object.fromEntries(Object.values(ISLAND_COVER_FILES).map(file=>[file.url,'world/cover.bin']))}]]),
+  files:new Map([['world/cover.bin',{hash:ISLAND_COVER_FILES.phone.hash,url:'/checked/cover.bin'}]]),read,check:true});
+ await expect(loadIslandCover(product)).rejects.toThrow('missing');
+ read.mockResolvedValue(new Uint8Array(4));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');
+ read.mockResolvedValue(new Uint8Array(ISLAND_COVER_FILES.phone.bytes));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');
 });
