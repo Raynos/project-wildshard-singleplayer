@@ -23,6 +23,8 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   const layouts = value('custom/fixedLayouts');
   expect(layouts.chimeSlots.length).toBe(CHIME_PIECES + 1);
   expect(layouts.cove.native.descs.some(row => row.kind === 'treads')).toBe(true);
+  for (const kind of ['world', 'specimen'] as const) expect(layouts.shrine[kind].anchors['altar'], kind).toBeDefined();
+  expect(layouts.trophySlots.boards.length).toBe(2);
   for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(layouts.hut.anchors[key], key).toBeDefined();
   for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
   const trail = value('custom/trailside');

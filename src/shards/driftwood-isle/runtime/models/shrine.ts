@@ -5,11 +5,14 @@ import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { ShrineAnchor, ShrineParams, ShrineSite } from '../../assets/contracts/shrine';
-import bake from '../../data/shrineBake.json' with {type:'json'};
+import { driftwoodRows } from '../boot/rows';
 import { SHRINE_POOL_LOOK, SHRINE_SITES } from '../const';
 import { fixedGeometryReady, loadFixedGeometry,
   SHRINE_KIT_GEOMETRY,SHRINE_WATER_GEOMETRY,SHRINE_GLYPHS_GEOMETRY,
   SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
+
+/** the two sites' baked layouts, from the admitted product (`custom/fixedLayouts`, from data/shrineBake.json) */
+const bake = () => driftwoodRows('custom/fixedLayouts').shrine;
 
 const TIERS = [
   { hw: 6.5, z0: -7.5, z1: 4.0, top: 1.0 },
@@ -26,7 +29,7 @@ export function shrineSiteKind(site:ShrineSite):keyof typeof SHRINE_SITES {
   throw new Error('Shrine site changed; regenerate its authored geometry');
 }
 /** The authored origin retains the native floor's own-space frame. */
-export function shrineOrigin(p:ShrineParams):{x:number;y:number;z:number}{return {...bake[shrineSiteKind(p.site)].origin};}
+export function shrineOrigin(p:ShrineParams):{x:number;y:number;z:number}{return {...bake()[shrineSiteKind(p.site)].origin};}
 
 /** Borrowed layout values are copied for each native owner; floor queries keep the original stair/terrace/causeway law. */
 export interface ShrineLayout {
@@ -35,7 +38,7 @@ export interface ShrineLayout {
 }
 /** Independent native collision and floor callbacks over the admitted layout. */
 export function shrineLayout(p:ShrineParams):ShrineLayout {
-  const row=bake[shrineSiteKind(p.site)],cs=Math.cos(p.site.rot),sn=Math.sin(p.site.rot);
+  const row=bake()[shrineSiteKind(p.site)],cs=Math.cos(p.site.rot),sn=Math.sin(p.site.rot);
   return {colliders:structuredClone(row.colliders),anchors:structuredClone(row.anchors),baseY:row.baseY,waterY:row.waterY,terrace:row.terrace,
     colliderDescs:()=>readColliderRows(row.descs, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
     floorHeightAt:(x,z)=>{

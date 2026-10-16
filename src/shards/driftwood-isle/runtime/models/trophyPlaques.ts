@@ -20,7 +20,7 @@ import { SlotGeometry } from '../models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
-import bakedSlots from '../../data/trophySlots.json' with { type: 'json' };
+import { driftwoodRows } from '../boot/rows';
 import { TROPHY_LAYOUT } from '../const';
 
 export type TrophyId = 'bear' | 'boar';
@@ -41,6 +41,7 @@ const FRONT = TROPHY_LAYOUT.thickness + TROPHY_LAYOUT.panelOffset;
 /** Shipped wall and loose-drop spacings use exact baked vertices. Other Explorer spacings translate each plaque's
  * own ranges together; the original has no AO and no collision or height law to recompute. */
 function plaquesGeometry(gap: number): { slots: SlotGeometry; empty: Record<TrophyId, number>; full: Record<TrophyId, number> } {
+  const bakedSlots = driftwoodRows('custom/fixedLayouts').trophySlots; // the product's baked ranges (data/trophySlots.json)
   const geometry = (gap === 0 ? TROPHY_DROP_GEOMETRY : TROPHY_PLAQUES_GEOMETRY).copy();
   if (gap !== 0 && gap !== PLAQUE_GAP) {
     const position = geometry.getAttribute('position');

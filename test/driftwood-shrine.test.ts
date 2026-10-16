@@ -1,8 +1,11 @@
-import { expect, it } from 'vitest';
+import { beforeAll, expect, it } from 'vitest';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { ShrineBuilder } from '../src/shards/driftwood-isle/generators/shrine';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { shrineLayout, shrineOrigin, shrineSiteKind } from '../src/shards/driftwood-isle/runtime/models/shrine';
 import { SHRINE_SITES } from '../src/shards/driftwood-isle/data/shrineSites';
+
+beforeAll(admitDriftwoodFixtureRows);
 
 it('admits the authored knoll and flat Explorer shrine, refusing other sites', () => {
   expect(shrineSiteKind(SHRINE_SITES.world)).toBe('world');

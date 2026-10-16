@@ -19,6 +19,8 @@ const surfaced = v.variant('kind', [
   v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number, surface: text }),
   v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural, surface: text }),
 ]);
+const shrineSite = v.strictObject({ origin: point, colliders: boxes, descs: v.pipe(v.array(surfaced), v.maxLength(128)), anchors: v.record(text, anchor), baseY: number, waterY: number, terrace: number });
+const trophySlots = v.strictObject({ ranges: runs, boards: runs, empty: v.strictObject({ bear: natural, boar: natural }), full: v.strictObject({ bear: natural, boar: natural }) });
 const trailPoint = { x: number, y: number, z: number };
 const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
 const cove = v.strictObject({
@@ -51,6 +53,10 @@ export const SECTIONS = {
     chimeSlots: runs,
     /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */
     cove,
+    /** the shrine's two admitted sites (knoll and flat Explorer specimen): origin, colliders, stair descriptors, anchors, levels */
+    shrine: v.strictObject({ world: shrineSite, specimen: shrineSite }),
+    /** the trophy plaques' board, empty and full vertex ranges */
+    trophySlots,
     hut: v.strictObject({ site, origin: point, floorY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
       floor: v.strictObject({ cos: number, sin: number, lift: number, deck: v.strictObject({ w: number, d: number, z: number }), steps: v.strictObject({ z0: number, len: number, w: number }) }) }),
     lookout: v.strictObject({ site, zipTo: v.strictObject({ x: number, z: number }), origin: point, platformY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
