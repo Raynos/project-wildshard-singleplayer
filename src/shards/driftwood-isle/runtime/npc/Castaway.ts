@@ -27,7 +27,8 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS, CASTAWAY_POSE, CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING, CASTAWAY_SMOKE } from '../const';
+import { CASTAWAY_POSE, CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING, CASTAWAY_SMOKE } from '../const';
+import { driftwoodRows } from '../boot/rows';
 import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -79,6 +80,7 @@ export class Castaway {
   }
 
   build(): this {
+    const rows = driftwoodRows('custom/fixedLayouts').npcScenes.castaway;
     const mat = lowPolyLookMaterial(this.sky, 'still'), f = this.fireLocal;
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
     this.group.rotation.y = this.bodyYaw;
@@ -94,9 +96,9 @@ export class Castaway {
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
     const smoke = new SmokeColumn(CASTAWAY_SMOKE, f);
 
-    const made = createClientScene(CASTAWAY_SCENE, { geometry: id => geometry.get(id), materials: new Map([['coat', mat]]),
+    const made = createClientScene(rows.recipe, { geometry: id => geometry.get(id), materials: new Map([['coat', mat]]),
       objects: new Map<string, THREE.Object3D>([['flames', this.flames], ['smoke', smoke.mesh]]) });
-    Object.assign(this, bindWorldSceneParts(made, CASTAWAY_PARTS, CASTAWAY_BINDINGS));
+    Object.assign(this, bindWorldSceneParts(made, rows.parts, rows.bindings));
     this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { head: this.head, arm: this.arm, flames: this.flames };
     return this;

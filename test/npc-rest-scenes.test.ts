@@ -1,7 +1,12 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, ShaderMaterial } from 'three';
+import * as v from 'valibot';
+import { parsePrivateScene } from '@wildshard/format/clientChannels';
+import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { expect, test } from 'vitest';
 import { bindWorldSceneParts, createClientScene } from '../src/game/plugin/ui';
-import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE, TRADER_BINDINGS, TRADER_PARTS, TRADER_SCENE } from '../src/shards/driftwood-isle/data/npcScenes';
+import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE, TRADER_BINDINGS, TRADER_PARTS, TRADER_SCENE } from '../src/shards/driftwood-isle/generators/npcScenes';
 
 test('trader rows retain borrowed graph material, native pivots and ordered hierarchy', () => {
   const root = new Group(), geometry = new BoxGeometry(), material = new ShaderMaterial();
@@ -45,4 +50,18 @@ test('plain scenes refuse collider bindings without actual baked metadata and mi
   expect(() => bindWorldSceneParts(made, { gate: 'colliders' }, { gate: { kind: 'colliders', part: 'gate' } })).toThrow('Missing world scene binding: gate');
   expect(() => createClientScene(TRADER_SCENE, { geometry: () => undefined, objects: new Map([['root', new Group()]]) })).toThrow('Private geometry port differs');
   made.dispose();
+});
+
+
+test('the admitted product preserves both rest scenes and refuses invalid scene ports', () => {
+  admitDriftwoodFixtureRows();
+  const rows = driftwoodRows('custom/fixedLayouts');
+  expect(rows.npcScenes).toEqual({castaway:{recipe:parsePrivateScene(CASTAWAY_SCENE),parts:CASTAWAY_PARTS,bindings:CASTAWAY_BINDINGS},
+    trader:{recipe:parsePrivateScene(TRADER_SCENE),parts:TRADER_PARTS,bindings:TRADER_BINDINGS}});
+  expect(Object.isFrozen(rows.npcScenes.castaway.recipe.nodes)).toBe(true);
+  const invalid = structuredClone(rows);
+  invalid.npcScenes.trader.recipe.root = 'missing';
+  expect(() => v.parse(SECTIONS['custom/fixedLayouts'], invalid)).toThrow();
+  const badBinding = {...rows, npcScenes:{...rows.npcScenes, trader:{...rows.npcScenes.trader, bindings:{figure:{kind:'callback',part:'figure'}}}}};
+  expect(() => v.parse(SECTIONS['custom/fixedLayouts'], badBinding)).toThrow();
 });

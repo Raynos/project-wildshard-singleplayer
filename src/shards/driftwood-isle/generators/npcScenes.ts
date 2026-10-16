@@ -34,3 +34,12 @@ export const CASTAWAY_BINDINGS = {
   figure: { kind: 'group', part: 'figure' }, body: { kind: 'object', part: 'body' }, camp: { kind: 'object', part: 'camp' },
   head: { kind: 'object', part: 'head' }, arm: { kind: 'object', part: 'arm' },
 } as const;
+
+/** Compile rest hierarchies and binding names; native pivots and live gestures stay in their existing hosts. */
+export function npcRestScenes(): {
+  castaway: {recipe: typeof CASTAWAY_SCENE; parts: typeof CASTAWAY_PARTS; bindings: typeof CASTAWAY_BINDINGS};
+  trader: {recipe: typeof TRADER_SCENE; parts: typeof TRADER_PARTS; bindings: typeof TRADER_BINDINGS};
+} {
+  return {castaway:{recipe:CASTAWAY_SCENE,parts:CASTAWAY_PARTS,bindings:CASTAWAY_BINDINGS},
+    trader:{recipe:TRADER_SCENE,parts:TRADER_PARTS,bindings:TRADER_BINDINGS}};
+}

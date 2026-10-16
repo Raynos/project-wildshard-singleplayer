@@ -164,6 +164,18 @@
         "bytes": 245826
       },
       "why": "Compile exact pier colliders offline (+39270 B); adopt the existing 8-section/206556 B output, previously 2 sections and 1123 B over its stale ceiling. No custom-line exemption."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 8,
+        "bytes": 245826
+      },
+      "to": {
+        "count": 8,
+        "bytes": 248214
+      },
+      "why": "G465 C9: emit the two existing NPC rest recipes and binding names in fixedLayouts (+2388 B), deleting six const copies and their mirror checks; no new section or host."
     }
   ]
 }

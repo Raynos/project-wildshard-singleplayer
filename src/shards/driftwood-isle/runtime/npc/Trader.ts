@@ -26,7 +26,8 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS, TRADER_POSE, TRADER_HEAD_FOCUS, TRADER_FACING } from '../const';
+import { TRADER_POSE, TRADER_HEAD_FOCUS, TRADER_FACING } from '../const';
+import { driftwoodRows } from '../boot/rows';
 import { NPC_KIT_GEOMETRY } from '../boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -65,13 +66,14 @@ export class Trader {
   constructor(sky: Sky) { this.sky = sky; }
 
   build(): this {
+    const rows = driftwoodRows('custom/fixedLayouts').npcScenes.trader;
     const mat = lowPolyLookMaterial(this.sky);
     // her kit meshes are baked offline (generators/npcKits.ts)
     const kit = NPC_KIT_GEOMETRY.trader;
     const geometry = new Map<string, THREE.BufferGeometry>([['body', kit.body.copy()], ['head', kit.head.copy()], ['upper', kit.upper.copy()], ['fore', kit.fore.copy()]]);
-    const made = createClientScene(TRADER_SCENE, { geometry: id => geometry.get(id),
+    const made = createClientScene(rows.recipe, { geometry: id => geometry.get(id),
       materials: new Map([['coat', mat]]) });
-    Object.assign(this, bindWorldSceneParts(made, TRADER_PARTS, TRADER_BINDINGS));
+    Object.assign(this, bindWorldSceneParts(made, rows.parts, rows.bindings));
     this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { figure: this.figure, head: this.head, upper: this.upper, fore: this.fore };
     return this;

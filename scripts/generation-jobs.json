@@ -15364,6 +15364,36 @@
       ],
       "seedOutputs": [],
       "platform": "portable"
+    },
+    {
+      "id": "driftwood-npc-scenes",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/npcScenes.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/npcScenes.ts",
+        "npcRestScenes",
+        "src/shards/driftwood-isle/data/npcScenes.generated.json"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/npcScenes.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/npcScenes.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/npcScenes.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

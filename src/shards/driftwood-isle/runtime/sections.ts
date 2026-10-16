@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
+import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { WaterSurfaceSchema } from '@wildshard/format/water';
 
 const text = v.pipe(v.string(), v.maxLength(512));
@@ -25,6 +26,8 @@ const surfaced = v.variant('kind', [
 const floors = v.pipe(v.array(v.strictObject({ x: number, z: number, hw: number, hd: number, y: number, rot: number, slope: v.exactOptional(number) })), v.maxLength(16));
 const fixedSite = { site, origin: point, colliders: boxes, anchors: v.record(text, anchor), floors };
 const shrineSite = v.strictObject({ ...fixedSite, descs: v.pipe(v.array(surfaced), v.maxLength(128)), baseY: number, terrace: number });
+const npcScene = v.strictObject({ recipe: PrivateSceneSchema, parts: v.pipe(v.record(text, v.picklist(['group', 'object'])), v.maxEntries(16)),
+  bindings: v.pipe(v.record(text, v.strictObject({ kind: v.picklist(['group', 'object']), part: text })), v.maxEntries(16)) });
 const trophySlots = v.strictObject({ ranges: runs, boards: runs, empty: v.strictObject({ bear: natural, boar: natural }), full: v.strictObject({ bear: natural, boar: natural }) });
 const trailPoint = { x: number, y: number, z: number };
 const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
@@ -58,6 +61,7 @@ export const SECTIONS = {
       v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: v.exactOptional(v.nullable(number)), rot: v.exactOptional(v.strictObject({ x: number, y: number, z: number, w: number })) }),
       v.strictObject({ kind: v.literal('hull'), x: number, y: number, z: number, points: v.pipe(v.array(number), v.maxLength(24)) }),
     ])), v.maxLength(128)) })), v.length(7)),
+    npcScenes: v.strictObject({ castaway: npcScene, trader: npcScene }),
     chimeSlots: runs,
     gullPerches: v.pipe(v.array(point), v.maxLength(10)),
     /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */
