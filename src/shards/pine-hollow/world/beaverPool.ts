@@ -23,7 +23,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineWater, setWaterFade } from './water';
 import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { loadSiteTimbers } from './timberSites';
+import { loadSiteTimbers } from '../runtime/world/timberSites';
 import { pineModels } from '../runtime/world/context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 

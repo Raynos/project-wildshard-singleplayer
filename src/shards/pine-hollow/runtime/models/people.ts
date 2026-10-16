@@ -17,7 +17,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { standInPerson, type StandInPerson } from '../npc/standInPerson';
 import { NPC_FIGURE } from '../../data/peopleLook';
 import { KINGS_CLEARING } from '../../data/layout';
-import { npcModels, type NpcModels } from '../../quest/npcModels';
+import { npcModels, type NpcModels } from '../quest/npcModels';
 import { MILLER, RANGER, TRADER } from '../../quest/wardensHollow';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';

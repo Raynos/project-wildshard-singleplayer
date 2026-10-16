@@ -16,7 +16,7 @@ import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryMo
 import { cabinMats, type Mats, type MatKey } from '../../world/homestead';
 import { TIMBER_DRAWS, TIMBER_GLASS } from '../../data/timberDraws';
 import type { TimberRow } from '../../world/timberBake';
-import { timberDraw } from '../../world/timberSites';
+import { timberDraw } from './timberSites';
 
 /** a walkable deck rectangle: centre, turn, half extents, height (own space, or world once placed) */
 export interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }

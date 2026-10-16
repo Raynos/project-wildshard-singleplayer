@@ -25,7 +25,7 @@
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { floorAtRects } from '@wildshard/engine/physics/box';
@@ -34,26 +34,26 @@ import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Cabins } from './homestead';
-import { loadPainted } from '../runtime/looks/paintedTextures';
-import { PINE_HERO_IDS, type PineHeroId } from '../runtime/world/heroFiles';
-import { pineModels } from '../runtime/world/context';
-import { HERO_FRONT, heroLod0, loadPineHero } from '../runtime/world/hero';
-import { STONE_KINDS, standingStone } from '../runtime/models/standingStone';
-import { waystone } from '../runtime/models/waystone';
-import { beaverDam } from '../runtime/models/beaverDam';
-import { canoe } from '../runtime/models/canoe';
-import { contractBoard } from '../runtime/models/contractBoard';
-import { caveArch, openCaveArch } from '../runtime/models/caveArch';
-import { loadTimber, type Floor } from '../runtime/world/timber';
+import type { Cabins } from '../../world/homestead';
+import { loadPainted } from '../looks/paintedTextures';
+import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
+import { pineModels } from './context';
+import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
+import { STONE_KINDS, standingStone } from '../models/standingStone';
+import { waystone } from '../models/waystone';
+import { beaverDam } from '../models/beaverDam';
+import { canoe } from '../models/canoe';
+import { contractBoard } from '../models/contractBoard';
+import { caveArch, openCaveArch } from '../models/caveArch';
+import { loadTimber, type Floor } from './timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
-import { fireLookout } from '../runtime/models/fireLookout';
-import { ziplineLanding } from '../runtime/models/ziplineLanding';
-import { creekFootbridge } from '../runtime/models/creekFootbridge';
-import { zipCable } from '../runtime/models/zipCable';
-import { loadCodeParts } from '../runtime/world/codeParts';
+import { fireLookout } from '../models/fireLookout';
+import { ziplineLanding } from '../models/ziplineLanding';
+import { creekFootbridge } from '../models/creekFootbridge';
+import { zipCable } from '../models/zipCable';
+import { loadCodeParts } from './codeParts';
 import { PineCrags } from './crags';
-import { CRAG_ROWS } from '../runtime/world/cragBake';
+import { CRAG_ROWS } from './cragBake';
 
 
 
@@ -70,6 +70,11 @@ import { CRAG_ROWS } from '../runtime/world/cragBake';
 export const CANOE_SITE = { x: -67.8, z: 119 };
 export function contractBoardSite(): { x: number; z: number; yaw: number } { return { ...authored.landmarks.contractBoardSite }; }
 export type WaystoneId = 'pond' | 'ridge' | 'den';
+/** the three waystones, in their sites' order (the glow's points) */
+const WAYSTONE_IDS: readonly WaystoneId[] = ['pond', 'ridge', 'den'];
+const WAYSTONES = 3;
+/** most standing-stone rows the authored landmarks hold (throws past it) */
+const MAX_STONE_ROWS = 16;
 export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw: number }> { return structuredClone(authored.landmarks.waystoneSites); }
 
 // ───────────────────────────── the whole set ─────────────────────────────
@@ -144,7 +149,11 @@ export class PineLandmarks {
     const add = <P extends object>(model: ModelDef<P>, id: PineHeroId, places: Place[], extra: Pick<Placement<P>, 'variant' | 'params'> = {}) =>
       heroLod0(ctx, id) ? batch.poses(model, places, HERO_FRONT[id], extra, { draw: 'instanced', cull }) : null;
     const sites = authored.landmarks;
-    for (const row of sites.stones) { const kind = STONE_KINDS.find(value => value === row.kind); if (kind) await add(standingStone, kind, row.places, { variant: kind }); }
+    if (sites.stones.length > MAX_STONE_ROWS) throw new Error(`[landmarks] ${String(sites.stones.length)} standing-stone rows is over ${String(MAX_STONE_ROWS)}`);
+    for (let i = 0; i < Math.min(sites.stones.length, MAX_STONE_ROWS); i++) {
+      const row = sites.stones[i], kind = row === undefined ? undefined : STONE_KINDS.find(value => value === row.kind);
+      if (row && kind) await add(standingStone, kind, row.places, { variant: kind });
+    }
     // Deck support remains the live timber owner's; the base terrain site is authored.
     const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));
     const waySet = await add(waystone, 'waystone', wsPlaces);
@@ -168,11 +177,10 @@ export class PineLandmarks {
     const lamp = new THREE.Vector3(...authored.landmarks.lamp);
     const glowPos = new Float32Array(places.length * 3);
     const anchors = {} as Record<WaystoneId, THREE.Object3D>;
-    const ids: WaystoneId[] = ['pond', 'ridge', 'den'];
     places.forEach((p, i) => {
       const w = lamp.clone().applyMatrix4(placeMatrix(p));
       glowPos.set([w.x, w.y, w.z], i * 3);
-      const id = ids[i];
+      const id = WAYSTONE_IDS[i];
       if (id) { const a = new THREE.Object3D(); a.position.copy(w); this.group.add(a); anchors[id] = a; }
     });
     const g = new THREE.BufferGeometry();
@@ -184,7 +192,7 @@ export class PineLandmarks {
     this.glow.renderOrder = 6;
     this.group.add(this.glow);
     this.anchors = anchors;
-    if (cabins) for (const id of ids) { const a = anchors[id]; cabins.addLampSite(a, 0xffb060, 9, 12, () => this.lit[id]); }
+    if (cabins) for (const id of ['pond', 'ridge', 'den'] as const) { const a = anchors[id]; cabins.addLampSite(a, 0xffb060, 9, 12, () => this.lit[id]); }
   }
 
   /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
@@ -197,7 +205,7 @@ export class PineLandmarks {
 
   setLit(id: WaystoneId, on: boolean): void {
     this.lit[id] = on;
-    const i = (['pond', 'ridge', 'den'] as const).indexOf(id);
+    const i = WAYSTONE_IDS.indexOf(id);
     const pos = this.glow?.geometry.getAttribute('position');
     if (pos && this.anchors) { const a = this.anchors[id]; pos.setY(i, on ? a.position.y : -1e4); pos.needsUpdate = true; }
   }
@@ -206,14 +214,14 @@ export class PineLandmarks {
 
   update(t: number): void {
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmp);
-    this.crags?.update(t);
+    this.crags?.frame(t);
     // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
     const lamps = this.sky.lamps;
     if (this.glowMat && this.glow && this.anchors) {
       // a banked ember by day, the full flame at night, a slow flicker; past 150 m (or none lit) it is not drawn at all
       this.glowMat.opacity = (0.1 + 0.9 * lamps) * (1 + 0.1 * Math.sin(t * 9.3) + 0.05 * Math.sin(t * 23.1));
       let near = Infinity;
-      for (const id of ['pond', 'ridge', 'den'] as const) if (this.lit[id]) near = Math.min(near, this.anchors[id].position.distanceToSquared(this.tmp));
+      for (let i = 0; i < WAYSTONES; i++) { const id = WAYSTONE_IDS[i]; if (id !== undefined && this.lit[id]) near = Math.min(near, this.anchors[id].position.distanceToSquared(this.tmp)); }
       this.glow.visible = near < 150 * 150;
     }
   }
@@ -226,12 +234,12 @@ export class PineLandmarks {
 export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; }): Promise<PineLandmarks> {
   const lm = await new PineLandmarks(h.sky).build(h.cabins, h.registry); // the models register themselves (E315 M2)
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
-  h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/world/landmarks.ts', object: lm.group });
+  h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/runtime/world/landmarks.ts', object: lm.group });
   // PH-B2: the crags' modules registered themselves (models, 90 hulls a task); the cave's shell + the ground over it
   const crags = lm.crags;
   if (crags) {
     await macrotask();
-    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/world/crags.ts', colliders: crags.caveColliders, surface: 'rock' });
+    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/runtime/world/crags.ts', colliders: crags.caveColliders, surface: 'rock' });
   }
   h.onUpdate((_dt, t) => { lm.update(t); });
   return lm;

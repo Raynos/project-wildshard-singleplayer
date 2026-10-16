@@ -8,7 +8,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import { timberModel } from '../world/timber';
-import { BRIDGE, BRIDGE_HALF, siteCopy, type TimberSite } from '../../world/timberSites';
+import { BRIDGE, BRIDGE_HALF, siteCopy, type TimberSite } from '../world/timberSites';
 
 export interface CreekFootbridgeParams {
   /** the copy: fitted to its site in the world, or on the turntable (1.2 m over its gully) */

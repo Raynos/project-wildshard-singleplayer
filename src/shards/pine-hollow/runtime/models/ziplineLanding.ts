@@ -8,7 +8,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import { timberModel } from '../world/timber';
-import { LANDING, siteCopy, type TimberSite } from '../../world/timberSites';
+import { LANDING, siteCopy, type TimberSite } from '../world/timberSites';
 
 export interface ZiplineLandingParams {
   /** the copy: fitted to its site in the world, or on the turntable's flat ground */

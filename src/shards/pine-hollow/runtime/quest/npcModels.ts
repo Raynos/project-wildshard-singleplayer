@@ -1,5 +1,5 @@
 import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
-import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 /**
@@ -24,12 +24,15 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  */
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { NpcKind } from '../runtime/models/people';
-import type { StandInRig } from '../runtime/npc/standInPerson';
-import skins from '../data/npcSkins.generated.json' with { type: 'json' };
+import type { NpcKind } from '../models/people';
+import type { StandInRig } from '../npc/standInPerson';
+import skins from '../../data/npcSkins.generated.json' with { type: 'json' };
 import { legBones, legPose, LEG_BONE_NAMES, type LegBuilt } from '@wildshard/game/systems/npc/npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
+
+/** most materials a baked person's file carries (one today; throws past it) */
+const MAX_SURFACES = 8;
 
 const isSkin = (node: THREE.Object3D): node is THREE.SkinnedMesh => node instanceof THREE.SkinnedMesh;
 interface Source { rig: LegBuilt; map: THREE.Texture | null; normalMap: THREE.Texture | null }
@@ -52,12 +55,12 @@ export class NpcModels {
     return this.sources.load(kind, async () => {
         const [gltf, appearance] = await Promise.all([this.loadFile(skins[kind][TIER].url), this.loadFile(skins[kind][TIER].material)]);
         const meshes: THREE.SkinnedMesh[] = [];
-        gltf.scene.traverse(node => { if (isSkin(node)) meshes.push(node); });
+        rigRoot(gltf).traverse(node => { if (isSkin(node)) meshes.push(node); });
         const mesh = meshes[0];
         if (mesh === undefined || meshes.length !== 1 || mesh.skeleton.bones.length !== LEG_BONE_NAMES.length ||
             mesh.skeleton.bones.some((bone, i) => bone.name !== LEG_BONE_NAMES[i])) throw new Error(`Invalid baked NPC skin ${kind}`);
-        const surfaces: THREE.MeshStandardMaterial[] = [];
-        appearance.scene.traverse(node => {
+        const surfaces: THREE.MeshStandardMaterial[] = [], look = rigRoot(appearance);
+        look.traverse(node => {
           if (!('isMesh' in node) || node.isMesh !== true || !('material' in node)) return;
           const material: unknown = Array.isArray(node.material) ? node.material[0] : node.material;
           if (material instanceof THREE.MeshStandardMaterial) surfaces.push(material);
@@ -75,9 +78,11 @@ export class NpcModels {
           ball: [new THREE.Vector3().fromArray(right), new THREE.Vector3().fromArray(left)],
           walkSpeed: row.walkSpeed, walkCycle: row.walkCycle, webs: row.webs };
         const hit = { rig, map: material.map, normalMap: material.normalMap };
-        appearance.scene.traverse(node => { if ('geometry' in node && node.geometry instanceof THREE.BufferGeometry) node.geometry.dispose(); });
-        for (const surface of surfaces) surface.dispose();
-        for (const surface of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) surface.dispose();
+        look.traverse(node => { if ('geometry' in node && node.geometry instanceof THREE.BufferGeometry) node.geometry.dispose(); });
+        const skinSurfaces = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        if (surfaces.length > MAX_SURFACES || skinSurfaces.length > MAX_SURFACES) throw new Error(`Baked NPC has over ${String(MAX_SURFACES)} materials ${kind}`);
+        for (let i = 0; i < Math.min(surfaces.length, MAX_SURFACES); i++) surfaces[i]?.dispose();
+        for (let i = 0; i < Math.min(skinSurfaces.length, MAX_SURFACES); i++) skinSurfaces[i]?.dispose();
         mesh.skeleton.dispose();
         return hit;
     });

@@ -28,28 +28,29 @@
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
  *   await crags.prepareSkin(macrotask);                             // the baked face skin's tiles
  *   await crags.build(CRAG_ROWS.places, registry, macrotask);  scene.add(crags.group);  // the modules register themselves
- *   cutTerrain(physics, crags.cave?.terrainCuts() ?? []); if (crags.cave) terrain.punch(crags.cave.holeTest());  game.onUpdate(() => crags.update(t))
+ *   cutTerrain(physics, crags.cave?.terrainCuts() ?? []); if (crags.cave) terrain.punch(crags.cave.holeTest());  game.onUpdate(() => crags.frame(t))
  */
 import * as THREE from 'three';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import { pineSetCap } from '../runtime/debug/options';
-import { PINE_CRAG_DIR } from '../runtime/world/heroFiles';
-import { pineModels } from '../runtime/world/context';
-import { CRAG_LOD, useCragKit } from '../runtime/world/cragKit';
-import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from '../runtime/world/cragBake';
-import { CLIFF_MODULES, cragCliff } from '../runtime/models/cragCliff';
-import { BOULDER_MODULES, cragBoulder } from '../runtime/models/cragBoulder';
-import { SCREE_MODULES, scree as screeFan } from '../runtime/models/scree';
-import { CAVE_LOOK, CRAG_LOOK } from '../data/cragLook';
-import { pineLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import { pineSetCap } from '../debug/options';
+import { PINE_CRAG_DIR } from './heroFiles';
+import { pineModels } from './context';
+import { CRAG_LOD, useCragKit } from './cragKit';
+import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
+import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
+import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
+import { SCREE_MODULES, scree as screeFan } from '../models/scree';
+import { CAVE_LOOK, CRAG_LOOK } from '../../data/cragLook';
+import { pineLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { BatchedCull } from '@wildshard/engine/models/cull';
-import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
+import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../kit/caveInterior';
 import { loadGlbNodes } from '@wildshard/engine/models/glbNodes';
+import { fetchBakeJson } from '@wildshard/sdk/kit/geometryPack';
 import { placedGeometryCollider } from '@wildshard/engine/models/colliders';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -63,25 +64,29 @@ const CRAG_DIR = PINE_CRAG_DIR; // the boot file rows list the kit alongside the
 
 // ──────────────────────────────────────────────────── the material ─────────────────────────────────────────────────
 
-/** the cave's fill (see the material): PineCrags.update drives it from the clock */
+/** the cave's fill (see the material): PineCrags.frame drives it from the clock */
 const CAVE_FILL = { value: 1.0 };
 
 
 /**
  * The granite (../data/cragLook.ts `CRAG_GRAPHS`, compiled with Pine's other look.materials graphs before the world
  * builds): `mossy_rock`'s albedo / normal / ARM and `rock_ground`'s albedo / normal, repeating, lent to its texture
- * params; the cave's fill (`CAVE_FILL`) reaches it each frame through PineCrags.update.
+ * params; the cave's fill (`CAVE_FILL`) reaches it each frame through PineCrags.frame.
  */
 function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): THREE.Material {
-  const lent = { rockMap: rock.map, rockNormal: rock.normalMap, rockArm: rock.armMap, gritMap: grit.map, gritNormal: grit.normalMap };
-  for (const [name, t] of Object.entries(lent)) {
+  const lend = (name: string, t: THREE.Texture): void => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true;
     setPineLookTexture(CRAG_LOOK, name, t);
-  }
+  };
+  lend('rockMap', rock.map); lend('rockNormal', rock.normalMap); lend('rockArm', rock.armMap);
+  lend('gritMap', grit.map); lend('gritNormal', grit.normalMap);
   return pineLook(CRAG_LOOK);
 }
 
 // ─────────────────────────────────────────────────────── the set ───────────────────────────────────────────────────
+
+/** most of the world's own batch instances (the face skin's tiles, the cave, its hood; throws past it) */
+const MAX_OWN = 64;
 
 /** LOD / range per kind (m, camera to the instance less half its radius): the kit's models' (world/cragKit.ts) */
 const LOD = CRAG_LOD;
@@ -127,14 +132,13 @@ export class PineCrags {
         loadGlbNodes(`${CRAG_DIR}/crags.glb`, KIT_ATTRS),
         loadGlbNodes(`${CRAG_DIR}/crags-b.glb`, KIT_ATTRS),
         loadGlbNodes(`${CRAG_DIR}/cave.glb`, KIT_ATTRS).catch((e: unknown) => { console.warn('[crags] no cave.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
-        fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
+        fetchBakeJson(`${CRAG_DIR}/cave.json`).then((meta) => meta as CaveMeta).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), Promise.all([loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))])
           .then(([map, normalMap]) => ({ map, normalMap }))]) : Promise.resolve(null), // G180 B1: only the grit samplers the shader uses; an eagerly uploaded unused ARM has no owner.
         sky ? loadCragSkin(TIER, pineModels(sky)) : Promise.resolve(null), // only drawn builds need the skin (G285: ./cragBake.ts)
       ]);
       const mat = sky && tex ? cragMaterial(tex[0], tex[1]) : null;
-      for (const [name, g] of kitB) kit.set(name, g);
-      return new PineCrags(sky, kit, caveGeo, caveMeta, mat, skin);
+      return new PineCrags(sky, new Map([...kit, ...kitB]), caveGeo, caveMeta, mat, skin);
     } catch (e: unknown) {
       console.warn('[crags] the kit did not load', e);
       return null;
@@ -216,22 +220,23 @@ export class PineCrags {
           [0, row.near], { far: row.far, frustum: false, radiusBias: 0.5, step: 1 },
         )];
       });
+      if (this.own.length > MAX_OWN) throw new Error(`[crags] ${String(this.own.length)} own instances is over ${String(MAX_OWN)}`);
       if (registry === null) this.group.add(bm);
     }
     if (this.cave) {
       this.caveLive = true;
-      if (this.sky) { this.cave.buildFx(); for (const o of this.cave.fx) this.group.add(o); }
+      if (this.sky) { this.cave.buildFx(); if (this.cave.fx.length > 0) this.group.add(...this.cave.fx); }
     }
     return this;
   }
 
   /** per frame: the world's own instances' LODs and ranges (when the camera has moved a metre; the modules' are
    *  `place`'s), the cave's shaft and drips near it */
-  update(t: number): void {
+  frame(t: number): void {
     const sky = this.sky;
     if (!sky) return;
-    const cam = sky.viewCamera; cam.getWorldPosition(this.tmp);
-    for (const cull of this.own) cull.update(cam);
+    const cam = sky.viewCamera, own = this.own; cam.getWorldPosition(this.tmp);
+    for (let i = 0; i < Math.min(own.length, MAX_OWN); i++) own[i]?.update(cam);
     if (this.cave && this.caveLive) this.cave.update(t, this.tmp, sky);
     if (this.mat) setPineLookParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
   }

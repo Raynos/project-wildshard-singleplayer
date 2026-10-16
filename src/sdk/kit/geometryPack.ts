@@ -181,3 +181,11 @@ export async function fetchDeflated(url: string): Promise<Uint8Array> {
   if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
   return new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
 }
+
+/** Fetch a bake's JSON sidecar (a kit's placement metadata beside its GLB) as untrusted data (a failed fetch throws). */
+export async function fetchBakeJson(url: string): Promise<unknown> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${String(response.status)} ${url}`);
+  const data: unknown = await response.json();
+  return data;
+}

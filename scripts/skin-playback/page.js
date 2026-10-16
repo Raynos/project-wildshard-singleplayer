@@ -19,7 +19,7 @@ import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
 import { loadSkin } from '../../src/game/shardfile/skinPlayback';
 import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
-import { NpcModels } from '../../src/shards/pine-hollow/quest/npcModels';
+import { NpcModels } from '../../src/shards/pine-hollow/runtime/quest/npcModels';
 import { creatureSkinSource } from '../../test/fixtures/sim-level/skins/sources';
 
 const W = 540, H = 960, HEAD = 120, GAP = 8, PANEL = (H - HEAD - GAP - 40) / 2;

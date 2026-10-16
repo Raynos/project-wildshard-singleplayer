@@ -9,7 +9,7 @@
  */
 import type * as THREE from 'three';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import { loadSiteTimbers, propShapeGeometry } from '../../world/timberSites';
+import { loadSiteTimbers, propShapeGeometry } from '../world/timberSites';
 import { loadLodNodes, prepModel } from '../../world/homestead';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';

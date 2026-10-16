@@ -8,7 +8,7 @@ import type * as THREE from 'three';
 import * as v from 'valibot';
 import { BEAR_CAVE } from '../../data/layout';
 import type { WholeGeometryView } from '@wildshard/game/plugin/geometry';
-import { loadSiteTimbers } from '../../world/timberSites';
+import { loadSiteTimbers } from './timberSites';
 import cragJson from '../../data/crags.json' with { type: 'json' };
 
 /** the kit's modules (nodes `<id>` and `<id>-lod1`: the cliff bands, buttress and slab in crags-b.glb, the rest in crags.glb) */

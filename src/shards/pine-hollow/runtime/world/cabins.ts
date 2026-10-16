@@ -25,24 +25,30 @@ import { finishWeld, place, weld, type Placed } from '@wildshard/engine/models/p
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
-import { pineModels } from '../runtime/world/context';
-import { CABIN_VARIANTS, logCabin, useCabins } from '../runtime/models/logCabin';
-import { huntingLodge } from '../runtime/models/huntingLodge';
-import { traderStall } from '../runtime/models/traderStall';
-import { millersHouse } from '../runtime/models/millersHouse';
-import { watermill } from '../runtime/models/watermill';
-import { hamletShed } from '../runtime/models/hamletShed';
-import { woodenCrate } from '../runtime/models/woodenCrate';
-import { wineBarrel } from '../runtime/models/wineBarrel';
-import { woodenBucket } from '../runtime/models/woodenBucket';
-import { hatchet } from '../runtime/models/hatchet';
-import { stoneFirePit } from '../runtime/models/stoneFirePit';
-import { porchLantern } from '../runtime/models/porchLantern';
+import type { Cabins, CabinBuilding, CabinPropKind } from '../../world/homestead';
+import { pineModels } from './context';
+import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';
+import { huntingLodge } from '../models/huntingLodge';
+import { traderStall } from '../models/traderStall';
+import { millersHouse } from '../models/millersHouse';
+import { watermill } from '../models/watermill';
+import { hamletShed } from '../models/hamletShed';
+import { woodenCrate } from '../models/woodenCrate';
+import { wineBarrel } from '../models/wineBarrel';
+import { woodenBucket } from '../models/woodenBucket';
+import { hatchet } from '../models/hatchet';
+import { stoneFirePit } from '../models/stoneFirePit';
+import { porchLantern } from '../models/porchLantern';
 
 type Model = ModelDef<Record<string, never>>;
 const HAMLET: Readonly<Record<string, Model>> = { 'hunting-lodge': huntingLodge, 'trader-stall': traderStall, 'millers-house': millersHouse, watermill, 'hamlet-shed': hamletShed };
-const PROPS: Readonly<Record<CabinPropKind, Model>> = { crate: woodenCrate, barrel: wineBarrel, bucket: woodenBucket, hatchet };
+const PROPS: readonly (readonly [CabinPropKind, Model])[] = [['crate', woodenCrate], ['barrel', wineBarrel], ['bucket', woodenBucket], ['hatchet', hatchet]];
+const PROP_COUNT = 4;
+/** what each building draws into its own root: its fire pit and its porch lantern */
+const DRAWN_INTO = [['firePitObj', stoneFirePit], ['lanternObj', porchLantern]] as const;
+const DRAWN_COUNT = 2;
+/** most buildings the homestead holds (3 cabins + the hamlet's 5 today; throws past it) */
+const MAX_BUILDINGS = 16;
 
 const at = (m: THREE.Matrix4, host?: number): Placement<Record<string, never>> => { const e = m.elements; return { x: e[12], y: e[13], z: e[14], matrix: m, ...(host === undefined ? {} : { host }) }; };
 
@@ -59,7 +65,11 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
   const hamlet: Placed[] = [];
   /** each building's index in its weld (a prop's host) */
   const hostOf = new Map<CabinBuilding, number>();
-  for (const b of cabins.buildings) {
+  const buildings = cabins.buildings;
+  if (buildings.length > MAX_BUILDINGS) throw new Error(`[cabins] ${String(buildings.length)} buildings is over ${String(MAX_BUILDINGS)}`);
+  for (let i = 0; i < Math.min(buildings.length, MAX_BUILDINGS); i++) {
+    const b = buildings[i];
+    if (b === undefined) continue;
     const w = b.site.hamlet ? hamletWeld : cabinWeld;
     if (w === null) continue;
     if (hostOf.size > 0) await macrotask(); // one building's merge per task (the phone's ~30 ms budget)
@@ -78,8 +88,12 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
   finishWeld(cabinWeld);
   if (hamletWeld) finishWeld(hamletWeld);
   // the props: the cabins' copies (one instanced mesh per part across the three) and the hamlet's (its own)
-  for (const [kind, model] of Object.entries(PROPS) as [CabinPropKind, Model][]) {
-    for (const [w, inHamlet] of [[cabinWeld, false], [hamletWeld, true]] as const) {
+  for (let k = 0; k < PROP_COUNT; k++) {
+    const prop = PROPS[k];
+    if (prop === undefined) continue;
+    const [kind, model] = prop;
+    for (let side = 0; side < 2; side++) {
+      const inHamlet = side === 1, w = inHamlet ? hamletWeld : cabinWeld;
       if (w === null) continue;
       const copies = cabins.buildings.filter((b) => b.site.hamlet === inHamlet).flatMap((b) => b.owner.props[kind].map((m) => at(m, hostOf.get(b))));
       if (copies.length === 0) continue;
@@ -88,8 +102,13 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
     }
   }
   // each building's fire pit and porch lantern, drawn in its own root
-  for (const [which, model] of [['firePitObj', stoneFirePit], ['lanternObj', porchLantern]] as const) {
-    for (const b of cabins.buildings) {
+  for (let d = 0; d < DRAWN_COUNT; d++) {
+    const drawn = DRAWN_INTO[d];
+    if (drawn === undefined) continue;
+    const [which, model] = drawn;
+    for (let i = 0; i < Math.min(buildings.length, MAX_BUILDINGS); i++) {
+      const b = buildings[i];
+      if (b === undefined) continue;
       const o = b.owner[which];
       if (!o) continue;
       o.updateWorldMatrix(true, false);
@@ -99,5 +118,5 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
       if (b.site.hamlet) hamlet.push(placed);
     }
   }
-  if (hamlet.length > 0) placeSet({ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'src/shards/pine-hollow/world/cabins.ts', members: hamlet, place: 'pine-hollow/hamlet', registry }); // the named place (M12)
+  if (hamlet.length > 0) placeSet({ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'src/shards/pine-hollow/runtime/world/cabins.ts', members: hamlet, place: 'pine-hollow/hamlet', registry }); // the named place (M12)
 }

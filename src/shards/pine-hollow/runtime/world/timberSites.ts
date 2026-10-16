@@ -1,5 +1,5 @@
-import floor from '../data/floor.generated.json' with { type: 'json' };
-import type { UnderPlacements } from '../runtime/looks/groundCover';
+import floor from '../../data/floor.generated.json' with { type: 'json' };
+import type { UnderPlacements } from '../looks/groundCover';
 /**
  * Pine Hollow's two site-fitted timber landmarks, the zipline landing and the creek footbridge (E315 M2; PH-B3), where
  * they stand and their offline bake (G285, SF72 "bake the code-built worlds"). Each is fitted to the ground under it: the
@@ -13,11 +13,11 @@ import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { readWholeGeometry, fetchLaneBake, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
-import type { TimberCopy } from '../runtime/world/timber';
-import { mossHint, TimberRowSchema } from './timberBake';
-import siteJson from '../data/siteTimbers.json' with { type: 'json' };
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import source from '../shard.config';
+import type { TimberCopy } from './timber';
+import { mossHint, TimberRowSchema } from '../../world/timberBake';
+import siteJson from '../../data/siteTimbers.json' with { type: 'json' };
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import source from '../../shard.config';
 
 /** the tower / landing turn: local −Z points from the lookout down the cable to the landing (the ride and the vista bench, PH-C1 / C8) */
 export const ZIP_YAW = authored.placements.lookout.yaw;
@@ -89,6 +89,9 @@ export function propShapeGeometry(views: ReadonlyMap<string, WholeGeometryView>,
   return geometry;
 }
 
+/** the floor's kinds (ferns, shrubs, litter, stones, moss, reeds) and the most records it holds in all */
+const FLOOR_KINDS = 6, MAX_FLOOR_RECORDS = 40_000;
+
 /** Required hash-named floor records; the temporary byte view is not retained beside the layout. */
 export async function loadUnderPlacements(): Promise<UnderPlacements> {
   const bytes = await fetchLaneBake(floor.url), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -96,12 +99,12 @@ export async function loadUnderPlacements(): Promise<UnderPlacements> {
   const kinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
   const counts = kinds.map((_, i) => view.getUint32(8 + i * 4, true));
   const count = counts.reduce((total, n) => total + n, 0);
-  if (count > 40_000 || bytes.length !== 32 + count * 12 || counts.some((n, i) => n !== floor.counts[i])) throw new Error('[undergrowth] invalid floor counts');
+  if (count > MAX_FLOOR_RECORDS || bytes.length !== 32 + count * 12 || counts.some((n, i) => n !== floor.counts[i])) throw new Error('[undergrowth] invalid floor counts');
   const layout: UnderPlacements = { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
   let offset = 32;
   const tints = [[.5,.78,.72,.82,.48,.6],[.8,1,.9,.8,.6,.55],[.7,.9,.68,.82,.62,.75],[.75,1,.75,.98,.75,.95],[.6,.85,.62,.78,.5,.62],[.75,1,.85,.95,.45,.6]] as const;
-  for (const [i, kind] of kinds.entries()) for (let j = 0; j < (counts[i] ?? 0); j++) {
-    const tint = tints[i]; if (tint === undefined) throw new Error('[undergrowth] missing tint');
+  for (let i = 0; i < FLOOR_KINDS; i++) for (let j = 0; j < Math.min(counts[i] ?? 0, MAX_FLOOR_RECORDS); j++) {
+    const kind = kinds[i], tint = tints[i]; if (kind === undefined || tint === undefined) throw new Error('[undergrowth] missing kind or tint');
     const nx = view.getInt8(offset + 8) / 127, nz = view.getInt8(offset + 9) / 127, hue = view.getUint8(offset + 11) / 255;
     const mix = (a: number, b: number): number => a + (b - a) * hue;
     layout[kind].push({ x: view.getUint16(offset, true) / 65535 * 500 - 250, y: view.getUint16(offset + 2, true) / 65535 * 256 - 128, z: view.getUint16(offset + 4, true) / 65535 * 500 - 250,
