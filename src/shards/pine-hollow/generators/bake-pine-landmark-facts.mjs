@@ -33,6 +33,14 @@ export async function pineLandmarkFacts(sites,placements,lookout,landing,bridge)
   const world=(point,frame)=>new THREE.Vector3(...point).applyMatrix4(new THREE.Matrix4().fromArray(frame.matrix)).toArray();
   const floors=(row,frame)=>row.floors.map(f=>{const [x,y,z]=world([f.x,f.y,f.z],frame);return{x,z,y,rot:frame.yaw+f.rot,hw:f.hw,hd:f.hd};});
   const zip={top:world(lookout.anchors.zipTop,placements.lookout),launch:world(lookout.anchors.launch,placements.lookout),bottom:world(landing.anchors.zipBottom,placements.landing),landing:world(landing.anchors.landing,placements.landing)};
-  const facts={lamp:lamp(stone),archShape:{fine:arch(fine,m,sites.archGround),coarse:arch(coarse,m,sites.archGround)},zip,timberFloors:{'pine-lookout':floors(lookout,placements.lookout),'pine-zip-landing':floors(landing,placements.landing),'pine-footbridge':floors(bridge,placements.bridge)}};
+  const timberFloors={'pine-lookout':floors(lookout,placements.lookout),'pine-zip-landing':floors(landing,placements.landing),'pine-footbridge':floors(bridge,placements.bridge)},decks=Object.values(timberFloors).flat();
+  // each waystone stands 0.15 m into the highest deck under it (else its site's ground); its flame is the stone's lamp
+  // point in its pose (G467: the runtime places these, it no longer derives them)
+  // (the engine's floorAtRects 'highest' and modelPoseMatrix, the same math in the same order)
+  const deckAt=(x,z)=>{let best;for(const f of decks){const c=Math.cos(f.rot),s=Math.sin(f.rot),lx=(x-f.x)*c-(z-f.z)*s,lz=(x-f.x)*s+(z-f.z)*c;if(Math.abs(lx)<=f.hw&&Math.abs(lz)<=f.hd&&(best===undefined||f.y>best))best=f.y;}return best;};
+  const pose=w=>new THREE.Matrix4().compose(new THREE.Vector3(w.x,w.y,w.z),new THREE.Quaternion().setFromEuler(new THREE.Euler(w.pitch??0,w.yaw,w.roll??0,'YXZ')),new THREE.Vector3(w.scale,w.scale,w.scale));
+  const waystones=sites.waystones.map(w=>({...w,y:(deckAt(w.x,w.z)??w.y)-0.15}));
+  const lampAt=new THREE.Vector3(...lamp(stone)),lamps=waystones.map(w=>lampAt.clone().applyMatrix4(pose(w)).toArray());
+  const facts={waystones,lamps,archShape:{fine:arch(fine,m,sites.archGround),coarse:arch(coarse,m,sites.archGround)},zip,timberFloors};
   for(const g of[stone,stonePhone,fine,finePhone,coarse])g.dispose();return facts;
 }
