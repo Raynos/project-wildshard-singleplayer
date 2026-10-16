@@ -13,6 +13,7 @@
  * <id>.webp (+ <id>-sil.webp, the silhouette an unknown page shows; chalk.webp, the wall's outline atlas).
  */
 import { PINE_HOLLOW_POIS } from './data/layout';
+import { JOURNAL_ANIMALS, JOURNAL_PLACE_NOTES } from './data/journal';
 import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from './data/trophyWall';
 import type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium } from '@wildshard/game/compendium/types';
 
@@ -20,74 +21,8 @@ export const PINE_HOLLOW_ID = 'chunk://local/pine-hollow';
 export const JOURNAL_ART = '/assets/pine-hollow/journal';
 const sketch = (id: string): string => `${JOURNAL_ART}/${id}.webp`;
 
-type Beast = Omit<EntryDef, 'tab' | 'plate'> & { model?: { id: string; variant?: string } };
-const beast = (b: Beast, tab: 'beasts' | 'elites'): EntryDef => {
-  const { model, ...rest } = b;
-  return { ...rest, tab, plate: { sketch: sketch(b.id), ...(model ? { model } : {}) } };
-};
-
-const BEASTS: EntryDef[] = ([
-  { id: 'red-deer', kind: 'species', name: 'Red Deer', subtitle: 'Cervus elaphus', rarity: 'common', massKg: 110, match: { kind: 'deer', variants: ['hind', 'stag', 'big-stag'] }, model: { id: 'deer', variant: 'stag' },
-    hint: 'Hinds graze the Hollow at dawn.', notes: 'Grazes the Hollow in small herds. Heads up, freezes, then bolts: take the shot in the freeze. The great stags carry a rack like a hat stand.' },
-  { id: 'white-deer', kind: 'variant', name: 'White Deer', subtitle: 'Leucistic red deer', rarity: 'uncommon', massKg: 110, match: { kind: 'deer', variants: ['white-hind', 'white-stag'] }, model: { id: 'deer', variant: 'white-stag' },
-    hint: 'Something pale moves among the hinds.', notes: 'Not an albino: the eyes are dark. Stands out in the pines like a lamp, and knows it. Rarely runs alone.' },
-  { id: 'piebald', kind: 'variant', name: 'Piebald Hind', subtitle: 'Red deer, pied', rarity: 'rare', massKg: 105, match: { kind: 'deer', variants: ['piebald'] }, model: { id: 'deer', variant: 'piebald' },
-    hint: 'A patched coat, glimpsed once.', notes: 'White patches over the red, no two alike. The old hunters called her luck. The old hunters said a lot of things.' },
-  { id: 'boar', kind: 'species', name: 'Wild Boar', subtitle: 'Sus scrofa', rarity: 'common', massKg: 80, match: { kind: 'boar', variants: ['boar', 'sow', 'big'] }, model: { id: 'boar', variant: 'boar' },
-    hint: 'Rooted-up ground all over the Hollow.', notes: 'Roots, grunts, charges. Does not freeze like a deer: it comes at you. Step aside and put one behind the shoulder.' },
-  { id: 'black-boar', kind: 'variant', name: 'Black Boar', subtitle: 'Sus scrofa, melanistic', rarity: 'uncommon', massKg: 90, match: { kind: 'boar', variants: ['black'] }, model: { id: 'boar', variant: 'black' },
-    hint: 'A dark shape in the undergrowth.', notes: 'Coal-black and long in the tusk. Hard to see at dusk, easy to hear.' },
-  { id: 'scarback', kind: 'variant', name: 'Scarback', subtitle: 'An old boar', rarity: 'rare', massKg: 85, match: { kind: 'boar', variants: ['scarback'] }, model: { id: 'boar', variant: 'scarback' },
-    hint: 'Bolts in the bark, none in the boar.', notes: 'Every scar on his back is somebody\'s story. Takes a lot of hitting and holds a grudge.' },
-  { id: 'elk', kind: 'species', name: 'Elk', subtitle: 'Cervus canadensis', rarity: 'common', massKg: 250, match: { kind: 'elk', variants: ['cow', 'bull', 'big-bull'] }, model: { id: 'elk', variant: 'bull' },
-    hint: 'A bugle from the old-growth at dusk.', notes: 'Moves as a herd: spook one, lose them all. Thick hide: body shots do less. The bulls bugle at dusk.' },
-  { id: 'pale-elk', kind: 'variant', name: 'Pale Elk', subtitle: 'Cervus canadensis, pale', rarity: 'rare', massKg: 250, match: { kind: 'elk', variants: ['pale'] }, model: { id: 'elk', variant: 'pale' },
-    hint: 'A cream-coloured cow in the herd.', notes: 'Cream from nose to tail. The herd keeps her in the middle.' },
-  { id: 'black-bear', kind: 'species', name: 'Black Bear', subtitle: 'Ursus americanus', rarity: 'common', massKg: 60, match: { kind: 'bear', variants: ['black', 'black-blaze'] }, model: { id: 'bear', variant: 'black' },
-    hint: 'Claw marks on the pines near the Den.', notes: 'Lives in the Den. Curious, then cross. Do not run: it is faster than you and it enjoys it.' },
-  { id: 'brown-bear', kind: 'species', name: 'Brown Bear', subtitle: 'Ursus arctos', rarity: 'uncommon', massKg: 60, match: { kind: 'bear', variants: ['brown'] }, model: { id: 'bear', variant: 'brown' },
-    hint: 'Tracks too big for a black bear.', notes: 'The shoulder hump is all muscle. Stands up to look at you, which is the polite part.' },
-  { id: 'grizzled-sow', kind: 'variant', name: 'Grizzled Sow', subtitle: 'An old brown bear', rarity: 'rare', massKg: 60, match: { kind: 'bear', variants: ['brown-old'] }, model: { id: 'bear', variant: 'brown-old' },
-    hint: 'Silver hair snagged on the Den\'s rocks.', notes: 'Silver-tipped and the size of a woodshed. Has outlived three rangers. Aim for a fourth.' },
-] satisfies Beast[]).map((b) => beast(b, 'beasts'));
-
-const ELITES: EntryDef[] = ([
-  { id: 'ironhide', kind: 'elite', name: 'Old Ironhide', subtitle: 'Terror of the Hollow', rarity: 'legendary', massKg: 80, match: { kind: 'boar', variants: ['ironhide'] }, model: { id: 'boar', variant: 'ironhide' },
-    hint: 'Snapped saplings, one tusk-mark deeper than the rest.', notes: 'A boar the size of a cart, a hide like a stove. Bolts bounce. He charges, and he does not stop charging.' },
-  { id: 'ghost-stag', kind: 'elite', name: 'The Ghost Stag', subtitle: 'The pale one', rarity: 'legendary', massKg: 110, match: { kind: 'deer', variants: ['ghost'] }, model: { id: 'deer', variant: 'ghost' },
-    hint: 'Hoofprints that end in the middle of the path.', notes: 'White as frost, there and gone. It fades, and it comes back behind you. Some say it leads somewhere.' },
-  { id: 'blackpaw', kind: 'elite', name: 'Old Blackpaw', subtitle: 'The Den\'s landlord', rarity: 'legendary', massKg: 60, match: { kind: 'bear', variants: ['black-old'] }, model: { id: 'bear', variant: 'black-old' },
-    hint: 'One pawprint, bigger than the other three.', notes: 'Grey at the muzzle, one paw like a shovel. Roars you still, then comes out of the cave mouth.' },
-  { id: 'imperial-bull', kind: 'elite', name: 'The Imperial Bull', subtitle: 'Seven by seven', rarity: 'legendary', massKg: 250, match: { kind: 'elk', variants: ['imperial'] }, model: { id: 'elk', variant: 'imperial' },
-    hint: 'A bugle that shakes the needles off the pines.', notes: 'The biggest rack in the shard. At dusk his bugle calls rival bulls in, so you are never fighting just him.' },
-  { id: 'antler-king', kind: 'boss', name: 'The Antler King', subtitle: 'The Bark Warden', rarity: 'legendary', match: { kind: 'antler-king' },
-    hint: 'Antlers of light walk the old-growth at night.', notes: 'Bark for a hide, a skull for a face, lanterns in its antlers. The Hollow\'s lanterns went dark the night it woke.' },
-] satisfies Beast[]).map((b) => beast(b, 'elites'));
-
-/** a line per place — the journal's own words; the POI table (layout v2) owns the names and positions */
-const PLACE_NOTES: Record<string, string> = {
-  gate: 'Where the road from the valley comes in. Everyone\'s first page.',
-  crossroads: 'Every path in the shard meets here. The signpost is mostly honest.',
-  'cabin-1': 'The ranger\'s home, and the trophy wall. There is room on it.',
-  'cabin-2': 'West of the crossroads, whatever the old maps say.',
-  'cabin-3': 'At the ridge\'s foot on the way to the Den. Bear country from here on.',
-  zipline: 'Where the line from the fire lookout comes down. Knees bent.',
-  lookout: 'The whole Hollow from up here. The zipline is the fast way down.',
-  pond: 'Still water under the ridge. There is an islet out there.',
-  waterfall: 'The creek\'s head, spilling off the ridge into the pond.',
-  islet: 'You can\'t walk here. Somebody left a canoe.',
-  dam: 'Beavers hold the pond back. Take the dam out and see what drains.',
-  bridge: 'The east road crosses the creek here.',
-  den: 'A bowl of rock in the north-west corner. The bears\' part of town.',
-  cave: 'Old Blackpaw\'s front door. Knock loudly. Or don\'t.',
-  clearing: 'A ring of standing stones in the old-growth. The trees keep their distance.',
-  hamlet: 'The mill, the lodge, the trader. The only neighbours for miles.',
-  lodge: 'The hunting lodge: the contract board is by the door.',
-  mill: 'The wheel turns on the creek. The miller has an errand, he always does.',
-};
-
 const PLACES: EntryDef[] = PINE_HOLLOW_POIS.map((p): EntryDef => ({
-  id: p.id, kind: 'place', tab: 'places', name: p.name, notes: PLACE_NOTES[p.id] ?? '', place: { x: p.x, z: p.z, r: p.r },
+  id: p.id, kind: 'place', tab: 'places', name: p.name, notes: JOURNAL_PLACE_NOTES[p.id] ?? '', place: { x: p.x, z: p.z, r: p.r },
   plate: { sketch: sketch(`place-${p.id}`) },
 }));
 
@@ -135,4 +70,4 @@ export const JOURNAL_SKIN: CompendiumSkin = {
 
 
 /** registered by src/game/compendium/install.ts */
-export const PINE_HOLLOW_COMPENDIUM: ShardCompendium = { chunkId: PINE_HOLLOW_ID, skin: JOURNAL_SKIN, entries: [...BEASTS, ...ELITES, ...PLACES], trophies: PINE_HOLLOW_TROPHIES, wall: RANGER_WALL };
+export const PINE_HOLLOW_COMPENDIUM: ShardCompendium = { chunkId: PINE_HOLLOW_ID, skin: JOURNAL_SKIN, entries: [...JOURNAL_ANIMALS, ...PLACES], trophies: PINE_HOLLOW_TROPHIES, wall: RANGER_WALL };
