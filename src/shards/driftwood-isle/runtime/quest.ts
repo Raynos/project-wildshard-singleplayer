@@ -14,7 +14,8 @@ import { createAchievementCounters } from '@wildshard/game/achievements';
 import { DRIFTWOOD_FEAT_COUNTERS, DRIFTWOOD_NATIVE_PACK } from '../data/questInventory';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { NativeInventory } from '@wildshard/game/inventoryLaw';
-import { ZiplineDriver } from '@wildshard/sdk/movers';
+import type { ZiplineMode } from '@wildshard/format/modes';
+import { CableTraversal } from '@wildshard/sdk/movers';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from '@wildshard/sdk/runtime/prompts';
 
@@ -46,7 +47,7 @@ export interface DriftwoodQuestPorts {
   readonly table: InteractTable;
   readonly spots: DriftwoodSpots;
   /** The admitted cable row; the native quest remains the sole carry owner. */
-  readonly zipline: ConstructorParameters<typeof ZiplineDriver>[0];
+  readonly zipline: ZiplineMode;
   /** the flag feats (quest/Feats.ts; the kill feats are quest/kills.ts's) */
   readonly feats: Parameters<typeof createAchievementCounters>[0]['feats'];
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
@@ -117,10 +118,8 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const rider = { position: host.player.position, velocity: new Vector3(), pitch: 0, carried: false,
     get yaw(): number { return host.player.yaw; }, set yaw(value: number) { host.player.yaw = value; } };
   if (JSON.stringify(ports.zipline.top) !== JSON.stringify(spots.zipline.top) || JSON.stringify(ports.zipline.bottom) !== JSON.stringify(spots.zipline.bottom) || ports.zipline.sag !== spots.zipline.sag) throw new Error('Driftwood cable row does not match the real native spots');
-  const zipline = new ZiplineDriver(ports.zipline, on => {
-    rider.carried = on;
-    if (!on) flags.set('used:zipline');
-  });
+  const cables = new CableTraversal([ports.zipline], flags), cableId = ports.zipline.id;
+  cables.bindRider(cableId, rider);
   host.usePlayerDriver({ input: command => {
     if (!rider.carried) return false;
     if (command !== undefined && !flags.has(policy.rewardFlag)) host.player.yaw = command.yaw;
@@ -165,16 +164,16 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const prompts = bindHeadlessPrompts(spots.promptRegistrations, id => {
     if (id === 'castaway.talk') return { act: policy.actions.talk, position: spots.talk, radius: policy.talkRadius };
     if (id === 'iron-sword') return { act: policy.actions.sword, position: spots.sword, get radius() { return state.iron ? 0 : guarded() ? 1.4 : policy.swordRadius; } };
-    if (id === 'zipline') return { act: policy.actions.zipline, position: spots.zipline.prompt, get radius() { return zipline.isRiding ? 0 : spots.zipline.prompt.radius; } };
+    if (id === 'zipline') return { act: policy.actions.zipline, position: spots.zipline.prompt, get radius() { return cables.state(cableId).riding ? 0 : spots.zipline.prompt.radius; } };
     const i = rules.findIndex(r => r.d.id === id), r = rules[i];
     if (r?.spot.prompt === undefined) return undefined;
     return { act: policy.actions.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
   });
   const graph = installDeclaredQuestHost(host, ports.source, { spots: { interact: [], crack: [] }, prompts, commands: ports.commands,
-    fact: ports.fact, coins: ports.coins, directorActions: new Map(),
-    observations: new Map([['sword-free', () => !state.iron && !guarded()], ['zipline-idle', () => !zipline.isRiding]]),
+    mechanics: { cables }, fact: ports.fact, coins: ports.coins, directorActions: new Map(),
+    observations: new Map([['sword-free', () => !state.iron && !guarded()], ['zipline-idle', () => !cables.state(cableId).riding]]),
     actions: new Map<string, () => void>([
-      ['iron-sword', () => { state.iron = true; ports.ironTaken(); }], ['zipline', () => { zipline.start(); }],
+      ['iron-sword', () => { state.iron = true; ports.ironTaken(); }], ['zipline', () => { cables.start(cableId); }],
       ...rules.map(row => [row.d.id, () => { transitions.interact(row); }] as const),
     ]) });
   commit = graph.run;
@@ -228,16 +227,16 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     // the open gate's collider leaves the world (Interactables.syncDoor parks it; the sluice latches open)
     if (sluiceRule !== undefined && flags.has(sluiceRule.open) && sluice?.isEnabled() === true) sluice.setEnabled(false);
     // Adventure's zipline update is after the player/kit and before the finale's reward beat.
-    zipline.update(dt, rider);
+    cables.updateNative(cableId, dt, host);
     // Only the admitted script owns finale timing; the native quest/body clock keeps its original phase.
     ports.finale.update(dt);
     reward.update(dt, flags.has(policy.rewardFlag));
   }, {
-    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), reward: reward.snapshot(), counts: { ...counts },
+    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: cables.snapshot(cableId), reward: reward.snapshot(), counts: { ...counts },
       barrel: barrel === null || watch === null ? null : { handle: barrel.rb.handle, watch: watch.state() } }),
     restore: value => {
       const saved = v.parse(Saved, value);
-      zipline.restore(saved.zipline);
+      cables.restore(cableId, saved.zipline);
       reward.restore(saved.reward);
       pack.restore(saved.pack);
       ports.finale.restore(saved.finale); state.key = saved.key; state.iron = saved.iron;

@@ -7780,3 +7780,22 @@ serves Pine and Driftwood without a shard audio-files facade. It borrows a
 temporary product scope, releases it before returning, and keeps only plain
 catalogue rows. Recording order, style selection and the shared sprite cache
 continue through `createCatalogueAudio`.
+
+### Declared cable traversal (G466 C7)
+
+`@wildshard/sdk/movers.CableTraversal` binds admitted `state/modes`
+zipline rows to one existing `ZiplineDriver` each. `state(id)` and
+`start(id)` are the actual H2 cable registry, with unknown ids refused.
+Bounded `profile`, `landing`, `lifecycle` and `presentation` fields keep
+the anchor/release, completion flag, carry timing and wind-roll differences
+as data. Rows and borrowed real flag/rider/view owners replace shard
+callbacks; `takeTransitions(id)` returns presentation data only.
+
+`updateNative(id, dt, host)` runs on the existing quest clock and preserves
+the row's position or motor carry policy. `bindRider` lends a shared carry
+owner (including a reward owner while idle). `bindView` borrows the drawn
+trolley, rider and optional camera; `update` advances them at the original
+page phase. `snapshot`/`restore` retain the driver's existing continuation
+inside each caller's old save envelope, without a new clock/save owner or
+restore effects. Pine and Driftwood adopt this same owner in page and
+native paths; only their model assembly and sounds/hints remain local.

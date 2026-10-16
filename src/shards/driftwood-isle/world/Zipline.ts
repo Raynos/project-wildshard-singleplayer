@@ -1,54 +1,38 @@
-/**
- * Zipline — the traversal reward (DRIFTWOOD-REMASTER A7): a plank launch deck jutting out over the headland's
- * cliff a short walk down from the lookout, a steel cable sagging 50-odd metres down to a padded post on the Wreck
- * Cove beach beside the sea cave, and a pulley trolley with a T-bar you hang from. "[E] Ride the zipline" and you
- * go: gravity along the cable minus drag (12–16 m/s at the bottom), the trolley sings along the wire, you let go
- * on the sand with the last of the speed. Two draws: the rig (deck + posts + cable + landing, one merged mesh) and
- * the trolley — the zipline model's geometry (E306 / E315 M1: src/shards/driftwood-isle/runtime/models/zipline.ts), built
- * where it stands; this is the ride, and `place` puts the model's card on what it draws (drawnInto, piece `zipline`).
- *
- *   const zip = new Zipline(sky, { top, bottom }).build();       // top = the deck's outer edge (floor), bottom = the landing (floor)
- *   zip.place(registry); scene.add(zip.group); prompts.push(zip.prompt);   // the game (the deck collides: piece `zipline`)
- *   scene.add(zip.group); player.platforms.push((x, z) => zip.floorHeightAt(x, z));   // a dev scene
- *   game.onUpdate((dt) => zip.update(dt, player));                // after player.update: while riding it owns the position
- *   zip.onRide = (on) => …                                        // lower the viewmodel, sound, achievement
- *
- * Why not straight off the lookout platform (the model's `zipTop`): the headland's top is a flat 34 m shelf for 30 m
- * before its cliff; any cable from the platform down to the cove passes 10 m under that shelf. The deck sits at the
- * cliff lip on the line from the platform to the cave, so it still reads as the lookout's zipline.
- */
+/** Authored cable/deck geometry and static colliders; declared CableTraversal owns all ride state and motion. */
 import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { zipline, ziplineGeometry } from '../runtime/models/zipline';
-import { ZiplineDriver, CableLayout, ZiplineTrolley, type ZiplineSpec } from '@wildshard/sdk/movers';
+import { CableTraversal, CableLayout, type ZiplineSpec } from '@wildshard/sdk/movers';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 
 export class Zipline {
   readonly group = new THREE.Group();
   readonly prompt: Interactable;
-  onRide?: (on: boolean) => void;
   /** the cable's two ends (world) */
   readonly a: THREE.Vector3;
   readonly b: THREE.Vector3;
-  private readonly trolley: ZiplineTrolley;
   private readonly carriage = new THREE.Mesh();
-  private readonly driver: ZiplineDriver;
+  readonly cables: CableTraversal;
+  readonly mode: string;
+  private readonly sky: Sky;
+  private readonly spec: ZiplineSpec;
   private readonly lay: CableLayout;
   /** its placements (the named places' sets read them, src/shards/driftwood-isle/world/places.ts) */
   placed: Placed | null = null;
 
-  constructor(private sky: Sky, private spec: ZiplineSpec, row: ConstructorParameters<typeof ZiplineDriver>[0]) {
+  constructor(sky: Sky, spec: ZiplineSpec, row: ConstructorParameters<typeof CableTraversal>[0][number], flags: Flags, rider: { position: THREE.Vector3; velocity: THREE.Vector3; carried: boolean }) {
+    this.sky = sky; this.spec = spec; this.mode = row.id;
     const lay = this.lay = new CableLayout(spec);
     this.a = lay.a; this.b = lay.b;
-    this.driver = new ZiplineDriver(row, on => { if (!on) this.trolley.park(); this.onRide?.(on); });
+    this.cables = new CableTraversal([row], flags);
     const flat = lay.flat, position = new THREE.Vector3(this.a.x - flat.x * 0.6, lay.deck.y + 1.0, this.a.z - flat.z * 0.6);
-    this.trolley = new ZiplineTrolley(lay, 0.6, this.carriage, { position, radius: 2.4, label: 'Ride the zipline' }, () => this.driver.isRiding, () => { this.start(); });
-    this.prompt = this.trolley.prompt;
+    this.prompt = this.cables.bindView(row.id, this.carriage, rider, { position, radius: 2.4, label: 'Ride the zipline' });
   }
 
   build(): this {
@@ -93,14 +77,4 @@ export class Zipline {
     ];
   }
 
-  get isRiding(): boolean { return this.driver.isRiding; }
-
-  start(): void { this.driver.start(); }
-
-  /** after player.update: while riding, the cable owns the player's position */
-  update(dt: number, player: { position: THREE.Vector3; velocity: THREE.Vector3 }): void {
-    if (!this.isRiding) return;
-    this.driver.update(dt, player);
-    if (this.driver.isRiding) this.trolley.follow(this.driver.distance);
-  }
 }

@@ -4,9 +4,16 @@ const finite = v.pipe(v.number(), v.finite());
 const range = (low: number, high: number) => v.pipe(finite, v.minValue(low), v.maxValue(high));
 const id = v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_.-]{1,128}$/));
 const point = v.strictObject({ x: range(-250, 250), y: range(-250, 250), z: range(-250, 250) });
+/** Optional direct cable anchors and their explicit deck release law. */
+export const CableProfileSchema = v.strictObject({ anchors: v.literal('direct'), start: range(0, 10), release: range(0, 10),
+  landing: v.strictObject({ back: range(0, 10), deck: range(0, 2), velocity: range(0, 16) }) });
 /** Cable traversal parameters; the endpoints are floor positions, not silently raised cable anchors. */
 export const ZiplineModeSchema = v.pipe(v.strictObject({
   kind: v.literal('zipline'), id, top: point, bottom: point,
+  profile: v.exactOptional(CableProfileSchema), landing: v.exactOptional(point),
+  lifecycle: v.exactOptional(v.strictObject({ endFlag: v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_.:-]{1,128}$/)), carry: v.picklist(['start', 'update']), native: v.picklist(['position', 'motor']) })),
+  presentation: v.exactOptional(v.strictObject({ park: range(0, 10),
+    wind: v.exactOptional(v.strictObject({ frequency: range(0, 10), amplitude: range(0, 0.1) })) })),
   sag: v.optional(range(0, 20), 1.6),
   hang: v.optional(range(0, 10), 2.9), gravity: v.optional(range(0, 64), 9.8),
   drag: v.optional(range(0, 1), 0.012), maxSpeed: v.optional(range(2.5, 32), 16),

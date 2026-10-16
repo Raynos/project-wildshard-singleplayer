@@ -151,7 +151,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     const lx = from.x + (cave.x - from.x) * 0.47, lz = from.z + (cave.z - from.z) * 0.47;
     const row = declaration.modes?.traverse.find(mode => mode.id === 'driftwood.zipline');
     if (row?.kind !== 'zipline') throw new Error('Driftwood requires its admitted zipline row');
-    const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }, row).build();
+    const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }, row, flags, w.player).build();
     // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
     // E315 M1: the zipline model (src/shards/driftwood-isle/runtime/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
     // SF57: the piece, its deck colliders and the group belong to this entry (after an await the ambient owner is the page's,
@@ -161,13 +161,13 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
     ownEnteredTree(zip.group, scope);
     w.prompts.push(zip.prompt);
-    zip.onRide = (on) => {
-      w.player.carried = on; // the cable owns the position while riding (PHYSICS P2: the fixed step leaves it alone)
-      w.setViewmodel?.(!on);
-      if (!on) { flags.set('used:zipline'); sfx.interact('plate', zip.b); }
-      else sfx.interact('lever', zip.a);
-    };
-    w.game.onUpdate((dt) => { zip.update(dt, w.player); }, 'shard.driftwood.adventure.2');
+    w.game.onUpdate((dt) => {
+      zip.cables.update(zip.mode, dt);
+      for (const on of zip.cables.takeTransitions(zip.mode)) {
+        w.setViewmodel?.(!on);
+        sfx.interact(on ? 'lever' : 'plate', on ? zip.a : zip.b);
+      }
+    }, 'shard.driftwood.adventure.2');
     adventure.zipline = zip;
     adventure.setAnchor('lookout.zipline', { x: lx, z: lz });
   }

@@ -1,6 +1,6 @@
 import { PINE_DEATH_EFFECTS } from '../data/questDeaths';
-import { ZiplineDriver } from '@wildshard/sdk/movers';
-import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
+import { CableTraversal } from '@wildshard/sdk/movers';
+import type { ModeRows } from '@wildshard/format/modes';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
@@ -76,6 +76,7 @@ export interface PineQuestPorts {
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
   readonly quests: QuestData;
   readonly spots: PineSpots;
+  readonly modes: ModeRows;
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
@@ -92,6 +93,7 @@ export interface PineQuestPorts {
   readonly night: () => number;
 }
 export interface PineQuest {
+  readonly cables: CableTraversal;
   readonly quests: ReturnType<typeof installQuestGraph>['quests'];
   readonly stag: StagWalk;
   /** The page's authored seven-kind pack, shared add/trade law, silently restored with the quest. */
@@ -228,10 +230,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const restoreClock = (saved: string): void => { clock.load(saved); };
 
   // ── the ride down the wire (the page's ZipRide law, quest/zipWire.ts) ──
-  const cable = new ZiplineDriver({ ...ZIPLINE, top: spots.zip.top, bottom: spots.zip.bottom }, () => undefined, ZIP_RIDE, spots.zip.landing);
-  const rider = { position: new Vector3(), velocity: new Vector3() };
+  const cables = new CableTraversal(ports.modes.traverse, flags), cableId = 'pine.zipline';
+  cables.state(cableId);
   const state = { rifle: false };
-  const carry = (p: Vector3): void => { host.player.motor.resetAt(p); host.player.position.copy(p); host.playerFall.vy = 0; host.playerFall.grounded = false; };
 
   let counts: Record<string, number> = {};
   const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
@@ -245,7 +246,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (near(spots.lanterns[id], spots.lanterns[id].radius)) graph.run(PINE_LANTERN_IDS[id]);
   };
   const act = (value: number): void => {
-    if (cable.isRiding) return; // the ride owns the player
+    if (cables.state(cableId).riding) return; // the ride owns the player
     if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(PINE_LODGE_ACT.close, eye); trader.use(PINE_TRADE_CLOSE); return; }
     if (trader.active) { trader.use(PINE_TRADE_CLOSE); return; }
     if (lodge.active) { lodge.use(PINE_LODGE_ACT.close, eye); return; }
@@ -260,7 +261,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (value === PINE_ACT.pond) { lantern('pond'); return; }
     if (value === PINE_ACT.ridge) { lantern('ridge'); return; }
     if (value === PINE_ACT.den) { lantern('den'); return; }
-    if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) cable.start(); return; }
+    if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) cables.start(cableId); return; }
     if (value === PINE_ACT.rifle) { if (!flags.has(LEVER_FLAG) && near(spots.rifle, spots.rifle.radius)) { flags.set(LEVER_FLAG); state.rifle = true; } return; }
     const r = rowOf(value);
     if (r !== null && near(r.prompt,r.promptRadius())) interact(r);
@@ -290,17 +291,14 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     for (let c = 0; c < MAX_COMMANDS; c++) {
       const command = list[c]; if (command === undefined) break;
       if (command.actorId === PINE_INTERACT) act(command.value);
-      else if (command.actorId === PINE_TRADE && !dialogue.active && !lodge.active && !cable.isRiding) trader.use(command.value);
-      else if (command.actorId === PINE_AMMO && command.value === 0 && !dialogue.active && !trader.active && !lodge.active && !cable.isRiding && ports.canSelectAmmo?.() === true) ports.ammunition?.cycle();
-      else if (command.actorId === PINE_LODGE && !dialogue.active && !trader.active && !cable.isRiding) {
+      else if (command.actorId === PINE_TRADE && !dialogue.active && !lodge.active && !cables.state(cableId).riding) trader.use(command.value);
+      else if (command.actorId === PINE_AMMO && command.value === 0 && !dialogue.active && !trader.active && !lodge.active && !cables.state(cableId).riding && ports.canSelectAmmo?.() === true) ports.ammunition?.cycle();
+      else if (command.actorId === PINE_LODGE && !dialogue.active && !trader.active && !cables.state(cableId).riding) {
         eye.copy(host.player.position); eye.y += EYE; lodge.use(command.value, eye);
       }
     }
     dialogue.advanceReading(dt, host.player.position);
-    if (cable.isRiding) {
-      const holding = cable.update(dt, rider); carry(rider.position);
-      if (!holding) { host.impulsePlayer(rider.velocity); flags.set('used:ph-zip'); }
-    }
+    cables.updateNative(cableId, dt, host);
     transitions.step(resin);
     // the sluice lifts on its own once both logs are off and latches open (Interactables.update's latching door)
     transitions.latch(sluice);
@@ -317,7 +315,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     const lead = stag.step(dt, chapter.current?.id === 'stag' && ports.night() > 0.5, host.player.position);
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
-    snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: cable.isRiding ? { s: cable.distance, v: cable.speed } : null,
+    snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
       rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),
       ...(trader.active || tradeSkins.size > 0 ? { trader: { modal: trader.snapshot(), skins: [...tradeSkins] } } : {}),
       ...(ports.ammunition?.changed === true ? { ammunition: ports.ammunition.snapshot() } : {}) }),
@@ -332,13 +330,13 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       const finish = v.parse(v.object({ board: v.object({ claimed: v.number() }), open: v.boolean() }), lodgeState);
       if (saved.hollowAsh !== (finish.board.claimed >= 3) || (finish.open && saved.dialogue !== null)) throw new RangeError('Invalid Pine lodge/modal ownership');
       if (saved.trader?.modal.open === true && (finish.open || saved.dialogue !== null || saved.zip !== null || ports.ammunition === undefined)) throw new RangeError('Invalid Pine trader/modal ownership');
-      restoreClock(saved.dawn); stag.load(saved.stag); fast.on = saved.fast; cable.restore({ riding: saved.zip !== null, s: saved.zip?.s ?? 0, v: saved.zip?.v ?? 0 }); state.rifle = saved.rifle;
+      restoreClock(saved.dawn); stag.load(saved.stag); fast.on = saved.fast; cables.restore(cableId, { riding: saved.zip !== null, s: saved.zip?.s ?? 0, v: saved.zip?.v ?? 0 }); state.rifle = saved.rifle;
       counts = { ...saved.counts };
       pack.restore(saved.pack);
       restoreDialogue(); restoreLodge(); restoreTrader(); restoreAmmo?.(); hollowAsh = saved.hollowAsh; tradeSkins = new Set(saved.trader?.skins);
     },
   });
-  return { quests, stag, pack, riding: () => cable.isRiding, talking: () => dialogue.active || lodge.active || trader.active, lodge, trader,
+  return { quests, stag, pack, cables, riding: () => cables.state(cableId).riding, talking: () => dialogue.active || lodge.active || trader.active, lodge, trader,
     ownsTradeFinish: skin => tradeSkins.has(skin) || skin === 'hollow-ash' && hollowAsh,
     ownsLodgeFinish: () => hollowAsh, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
 }

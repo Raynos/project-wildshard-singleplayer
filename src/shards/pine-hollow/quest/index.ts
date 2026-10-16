@@ -70,15 +70,16 @@ import { ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../da
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { pineTableFromPlacements } from './table';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
-import { makeNpcFigure, type NpcFigure } from '../runtime/models/people';
+import { npcMaterial, makeNpcFigure, type NpcFigure } from '../runtime/models/people';
 import { preloadNpcModels } from '../runtime/quest/npcModels';
-import { loadCodeParts } from '../runtime/world/codeParts';
+import { codePart, loadCodeParts } from '../runtime/world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import { pineBenchPose } from './benchPose';
 import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood } from './trades';
 import type { TradeItem } from '../data/trades';
 import { BoardPanel, CountChip } from './ui';
-import { ZipRide, CanoeRide } from './rides';
+import { CanoeRide } from './rides';
+import { CableTraversal } from '@wildshard/sdk/movers';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../runtime/world/context';
@@ -332,16 +333,13 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   });
 
   // ── the rides ──
-  let zip: ZipRide | null = null, canoe: CanoeRide | null = null;
+  const cables = new CableTraversal(ctx.product.section('state/modes').modes?.traverse ?? [], flags), cableId = 'pine.zipline';
+  let zip: { trolley: THREE.Mesh; prompt: ReturnType<CableTraversal['bindView']> } | null = null, canoe: CanoeRide | null = null;
   if (lm) {
-    zip = new ZipRide(sky, lm.zip.top, lm.zip.bottom, lm.zip.launch, lm.zip.landing);
-    game.scene.add(zip.trolley);
-    h.interactables.push(zip.prompt);
-    zip.onRide = (on) => {
-      h.weapons.visible = !on; h.weapons.setEnabled(!on);
-      if (on) { shot('zipline', lm.zip.top); kitSfx.interact('lever', lm.zip.launch); }
-      else { flags.set('used:ph-zip'); kitSfx.interact('plate', lm.zip.landing); hud.toast('Down the line and into the Hollow'); }
-    };
+    const trolley = new THREE.Mesh(codePart('zip-trolley'), npcMaterial(sky)); trolley.castShadow = true; trolley.name = 'zip-trolley';
+    zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
+      { position: new THREE.Vector3(lm.zip.launch.x, lm.zip.launch.y + 1.1, lm.zip.launch.z), radius: 2.3, label: 'Ride the zipline' }, game.camera) };
+    game.scene.add(zip.trolley); h.interactables.push(zip.prompt);
     const shoreBank = new THREE.Vector3(CANOE_SITE.x - 1.2, 0, CANOE_SITE.z); shoreBank.y = Math.max(heightAt(shoreBank.x, shoreBank.z), POND.level);
     const beach = new THREE.Vector3(ISLET.x + ISLET.r - 1.6, 0, ISLET.z + 0.4); beach.y = Math.max(heightAt(beach.x, beach.z), POND.level);
     const shoreStand = new THREE.Vector3(CANOE_SITE.x + 2.6, 0, CANOE_SITE.z + 1.4); shoreStand.y = floorAt(shoreStand.x, shoreStand.z);
@@ -429,7 +427,14 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const pp = player.position;
     dialogue().update(dt);
     for (const p of people) p.update(dt, t, pp);
-    zip?.update(dt, player, game.camera);
+    if (zip !== null && lm) {
+      cables.update(cableId, dt);
+      for (const on of cables.takeTransitions(cableId)) {
+        h.weapons.visible = !on; h.weapons.setEnabled(!on);
+        if (on) { shot('zipline', lm.zip.top); kitSfx.interact('lever', lm.zip.launch); }
+        else { kitSfx.interact('plate', lm.zip.landing); hud.toast('Down the line and into the Hollow'); }
+      }
+    }
     canoe?.update(dt, t, player);
     if (ff && sky.dayNight) {
       ff.t += dt;
@@ -447,7 +452,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       slowT = t;
       const cam = game.camera.position;
       for (const p of people) p.lod(cam);
-      if (zip) zip.trolley.visible = zip.isRiding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
+      if (zip) zip.trolley.visible = cables.state(cableId).riding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
       if (!perfLap.active) for (const p of PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`); // E350 F-J1: a lap's spot is not discovered
       if (!perfLap.active && hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
         flags.set('secret:log'); hud.toast('Inside the fallen giant. It smells of rain and old resin');
@@ -478,7 +483,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     flags, quest, board, kit, stag, thralls, people, content: PINE_QUEST_CONTENT,
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
-    zip, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
+    zip, cables, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(player.position); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },

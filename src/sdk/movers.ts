@@ -1,4 +1,6 @@
-import { ZiplineModeSchema, type ZiplineMode } from '@wildshard/format/modes';
+import type { SimHost } from '@wildshard/engine/sim';
+import type { Flags } from '@wildshard/engine/world/interact/flags';
+import { CableProfileSchema, parseModes, ZiplineModeSchema, type ModeRows, type ZiplineMode } from '@wildshard/format/modes';
 import { parseMovers } from '@wildshard/format/movers';
 import { MathUtils, Vector3, type AnimationClip, InterpolateLinear, LinearInterpolant, QuaternionLinearInterpolant, Object3D, PropertyBinding } from 'three';
 import { lowerMoverMotion, MoverMotionSchema, type MoverMotion, type MoverTrack } from '@wildshard/format/moverMotion';
@@ -111,8 +113,6 @@ export class CableLayout {
 export interface ZiplineRideState { s: number; v: number }
 const finite = v.pipe(v.number(), v.finite());
 const bounded = (low: number, high: number) => v.pipe(finite, v.minValue(low), v.maxValue(high));
-const RideProfile = v.strictObject({ anchors: v.literal('direct'), start: bounded(0, 10), release: bounded(0, 10),
-  landing: v.strictObject({ back: bounded(0, 10), deck: bounded(0, 2), velocity: bounded(0, 16) }) });
 const Landing = v.strictObject({ x: finite, y: finite, z: finite });
 const Saved = v.strictObject({ riding: v.boolean(), s: v.pipe(finite, v.minValue(0)), v: bounded(0, 32) });
 /** One cable's gravity/drag law and carry/release pose. Uses the caller's update phase and clock. */
@@ -123,18 +123,18 @@ export class ZiplineDriver {
   private readonly motion: ZiplineRideState = { s: 0, v: 0 };
   private riding = false;
   private readonly row: ZiplineMode;
-  private readonly profile: v.InferOutput<typeof RideProfile> | undefined;
+  private readonly profile: v.InferOutput<typeof CableProfileSchema> | undefined;
   private readonly onRide: (on: boolean) => void;
   private readonly landing: ZiplineMode['bottom'];
   /** A direct-anchor profile may lend a separate landing deck; otherwise release uses the declared bottom endpoint. */
-  constructor(row: ZiplineMode, onRide: (on: boolean) => void,
-    profile?: v.InferOutput<typeof RideProfile>, landing?: ZiplineMode['bottom']) {
+  constructor(row: ZiplineMode, onRide: (on: boolean) => void = () => undefined,
+    profile?: v.InferOutput<typeof CableProfileSchema>, landing?: ZiplineMode['bottom']) {
     this.onRide = onRide;
     // Author geometry lends real vectors; admit their numeric coordinates without prototype markers.
     const point = (value: ZiplineMode['top']) => value instanceof Vector3 ? { x: value.x, y: value.y, z: value.z } : value;
     this.row = v.parse(ZiplineModeSchema, { ...row, top: point(row.top), bottom: point(row.bottom) });
-    this.profile = profile === undefined ? undefined : v.parse(RideProfile, profile);
-    this.landing = landing === undefined ? this.row.bottom : v.parse(Landing, point(landing));
+    this.profile = profile === undefined ? this.row.profile : v.parse(CableProfileSchema, profile);
+    this.landing = landing === undefined ? this.row.landing ?? this.row.bottom : v.parse(Landing, point(landing));
     this.layout = new CableLayout({ top: new Vector3(row.top.x, row.top.y, row.top.z),
       bottom: new Vector3(row.bottom.x, row.bottom.y, row.bottom.z), sag: row.sag }, this.profile !== undefined);
   }
@@ -213,4 +213,105 @@ export class ZiplineTrolley {
   park(): void { this.cable.at(this.rest, this.object.position); this.object.rotation.set(0, Math.atan2(this.cable.dir.x, this.cable.dir.z) + Math.PI / 2, 0); }
   /** the trolley at cable distance `s`, rolling a little along the wire */
   follow(s: number): void { this.cable.at(s, this.object.position); this.object.rotation.z = Math.sin(s * 0.7) * 0.05; }
+}
+
+/** Borrowed rider state, never a per-shard movement callback. */
+interface CableRider { readonly position: Vector3; readonly velocity: Vector3; carried?: boolean }
+interface CableEntry {
+  readonly row: ZiplineMode; readonly driver: ZiplineDriver;
+  readonly events: boolean[]; roll: number; rider?: CableRider;
+  view?: { trolley: ZiplineTrolley; rider: CableRider; camera?: { rotation: { z: number } } };
+}
+/**
+ * Declared cable owners keyed by admitted mode identity. The caller retains its clock and save envelope; this owner
+ * advances the original ZiplineDriver, carries/releases the borrowed player, and publishes the row's completion flag.
+ * state/start is the quest mechanic registry: unknown identities refuse, with no fallback or second driver.
+ */
+export class CableTraversal {
+  private readonly entries = new Map<string, CableEntry>();
+  private readonly flags: Pick<Flags, 'set' | 'has'>;
+  private readonly rider = { position: new Vector3(), velocity: new Vector3() };
+  constructor(rows: ModeRows['traverse'], flags: Pick<Flags, 'set' | 'has'>) {
+    this.flags = flags;
+    for (const row of parseModes({ traverse: rows }).traverse) if (row.kind === 'zipline') {
+      this.entries.set(row.id, { row, driver: new ZiplineDriver(row), events: [], roll: 0 });
+    }
+  }
+  private entry(id: string): CableEntry {
+    const entry = this.entries.get(id);
+    if (entry === undefined) throw new Error(`Unknown cable mode: ${id}`);
+    return entry;
+  }
+  /** The live driver state; a completed legacy save may retain only its declared completion flag. */
+  state(id: string): { riding: boolean; atEnd: boolean } {
+    const { driver, row } = this.entry(id);
+    return { riding: driver.isRiding, atEnd: !driver.isRiding && (driver.distance >= driver.len - (row.profile?.release ?? 1.6)
+      || row.lifecycle !== undefined && this.flags.has(row.lifecycle.endFlag)) };
+  }
+  start(id: string): void {
+    const entry = this.entry(id);
+    if (entry.driver.isRiding) return;
+    if (entry.events.length >= 2) throw new Error('Cable presentation transitions were not consumed');
+    entry.driver.start(); entry.roll = 0; this.transition(entry, true);
+    if (entry.row.lifecycle?.carry === 'start' && entry.rider !== undefined) entry.rider.carried = true;
+  }
+  private transition(entry: CableEntry, riding: boolean): void {
+    if (entry.events.length >= 2) throw new Error('Cable presentation transitions were not consumed');
+    entry.events.push(riding);
+  }
+  /** Borrow the actual native carry state, including another mechanic that may own it while the cable is idle. */
+  bindRider(id: string, rider: CableRider): void { this.entry(id).rider = rider; }
+  /** View-only transitions, in command/update order; native callers do not accumulate presentation events. */
+  takeTransitions(id: string): readonly boolean[] { return this.entry(id).events.splice(0); }
+  /** Bind a borrowed trolley, prompt and optional camera to the existing continuation, never a private controller. */
+  bindView(id: string, object: Object3D, rider: CableRider,
+    prompt: { position: Vector3; radius: number; label: string }, camera?: { rotation: { z: number } }): ZiplinePrompt {
+    const entry = this.entry(id), driver = entry.driver;
+    if (entry.view !== undefined) throw new Error(`Cable view already bound: ${id}`);
+    const trolley = new ZiplineTrolley(driver, entry.row.presentation?.park ?? 0.6, object, prompt,
+      () => driver.isRiding, () => { this.start(id); });
+    entry.rider = rider;
+    entry.view = { trolley, rider, ...(camera === undefined ? {} : { camera }) };
+    return trolley.prompt;
+  }
+  private advance(entry: CableEntry, dt: number, rider: CableRider): boolean {
+    const holding = entry.driver.update(dt, rider);
+    if (rider.carried !== undefined) rider.carried = holding;
+    return holding;
+  }
+  private release(entry: CableEntry): void {
+    if (entry.row.lifecycle !== undefined) this.flags.set(entry.row.lifecycle.endFlag);
+    this.transition(entry, false);
+  }
+  /** Page update at the caller's original phase, including the last release-frame wind roll. */
+  update(id: string, dt: number): void {
+    const entry = this.entry(id), view = entry.view;
+    if (view === undefined) throw new Error(`Cable view is not bound: ${id}`);
+    if (!entry.driver.isRiding) return;
+    const holding = this.advance(entry, dt, view.rider);
+    view.trolley.follow(entry.driver.distance);
+    const wind = entry.row.presentation?.wind;
+    if (wind !== undefined && view.camera !== undefined) {
+      entry.roll += dt;
+      view.camera.rotation.z += Math.sin(entry.roll * wind.frequency) * wind.amplitude * (entry.driver.speed / entry.row.maxSpeed);
+    }
+    if (!holding) { view.trolley.park(); this.release(entry); }
+  }
+  /** Native update on its existing quest step. Motor teleports and walking impulses preserve the declared carry law. */
+  updateNative(id: string, dt: number, host: SimHost): void {
+    const entry = this.entry(id), rider = entry.rider ?? this.rider;
+    entry.events.length = 0;
+    if (!entry.driver.isRiding) return;
+    const holding = this.advance(entry, dt, rider);
+    if (entry.row.lifecycle?.native === 'motor') {
+      host.player.motor.resetAt(rider.position); host.player.position.copy(rider.position);
+      host.playerFall.vy = 0; host.playerFall.grounded = false;
+      if (!holding) host.impulsePlayer(rider.velocity);
+    }
+    if (!holding) this.release(entry);
+    entry.events.length = 0;
+  }
+  /** Existing owner envelopes keep their bytes; no new save owner or live restore effects. */
+  snapshot(id: string): ReturnType<ZiplineDriver['snapshot']> { return this.entry(id).driver.snapshot(); }
+  restore(id: string, value: unknown): void { const entry = this.entry(id); entry.driver.restore(value); entry.events.length = 0; }
 }

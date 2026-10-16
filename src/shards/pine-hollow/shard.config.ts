@@ -5,6 +5,7 @@ import { PINE_ITEMS } from './data/items';
 import { PINE_LEDGER } from './data/ledger';
 import { PINE_QUESTS } from './data/quests';
 import { PINE_RUNTIME_SPAWNS } from './data/spawns';
+import { PINE_MODES } from './data/zipline';
 import { PINE_STATE } from './data/state';
 import { PINE_EDGE_HEIGHTS } from './data/edges';
 import { PINE_RUNTIME_COST } from './data/runtimeCost';
@@ -30,6 +31,6 @@ export default parseShardfile({
   // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
-  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS },
-  quests: PINE_QUESTS, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
+  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes'], spawns: PINE_RUNTIME_SPAWNS },
+  modes: PINE_MODES, quests: PINE_QUESTS, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });
