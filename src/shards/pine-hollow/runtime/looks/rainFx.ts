@@ -9,7 +9,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { pineWater, setWaterFade } from '../../world/water';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
-import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
+import { rainCurtainGeometry, stepRainFall, type RainFallRow } from '@wildshard/game/systems/looks/rainCurtain';
 import { pineLook, setPineLookParam, setPineLookTexture } from './graphLooks';
 
 /**
@@ -97,9 +97,9 @@ export class RainFx {
   /** the hood's frame (x, z, cos yaw, sin yaw) and box (half width, lz from, lz to, ceiling y); all 0 with none */
   private readonly cave = new THREE.Vector4();
   private readonly caveBox = new THREE.Vector4();
-  /** the curtain's wrapped world offset and fall velocity */
-  private readonly offset = new THREE.Vector3();
-  private readonly vel = new THREE.Vector3();
+  /** the curtain's wrapped world offset and fall velocity, and its fall as data */
+  private readonly fall = { offset: new THREE.Vector3(), velocity: new THREE.Vector3() };
+  private readonly fallRow: RainFallRow;
   private readonly rainCount: number;
   /** the splashes at the feet */
   splashes!: THREE.Mesh;
@@ -124,6 +124,7 @@ export class RainFx {
     const hood = o.hood;
     if (hood) { this.cave.set(hood.x, hood.z, Math.cos(hood.rot), Math.sin(hood.rot)); this.caveBox.set(hood.hw, hood.lz0, hood.lz1, hood.top); }
     this.rainCount = o.phone ? o.look.streaks.phone : o.look.streaks.desktop;
+    this.fallRow = { count: this.rainCount, speed: 9.5, slant: 0.3, radius: o.phone ? 11 : 16 };
     this.xrng = new Rng(o.seed ^ 0x7e11);
   }
 
@@ -287,16 +288,13 @@ export class RainFx {
     const rainOn = w.rain > 0.01 && !practiceRoom.open;
     this.rain.visible = rainOn;
     if (rainOn) {
-      const id = this.o.programs.rain, o = this.offset.addScaledVector(this.vel.set(wind.x * 0.3, -9.5, wind.z * 0.3), dt);
-      const R = this.o.phone ? 11 : 16, box = 2 * R;
-      // keep the offset small (float precision): any whole multiple of the box wraps to itself
-      o.set(((o.x % box) + box) % box, ((o.y % box) + box) % box, ((o.z % box) + box) % box);
-      setPineLookParam(id, 'velocity', this.xyz(this.vel.x, this.vel.y, this.vel.z));
-      setPineLookParam(id, 'offset', this.xyz(o.x, o.y, o.z));
-      setPineLookParam(id, 'radius', R);
+      const id = this.o.programs.rain, f = this.fall, drawn = stepRainFall(f, this.fallRow, dt, wind, w.rain);
+      setPineLookParam(id, 'velocity', this.xyz(f.velocity.x, f.velocity.y, f.velocity.z));
+      setPineLookParam(id, 'offset', this.xyz(f.offset.x, f.offset.y, f.offset.z));
+      setPineLookParam(id, 'radius', this.fallRow.radius);
       setPineLookParam(id, 'length', 0.42 + 0.26 * w.rain);
       setPineLookParam(id, 'alpha', 0.16 + 0.2 * w.rain);
-      this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
+      this.rain.geometry.setDrawRange(0, drawn);
     }
     const puddles = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
     setWaterFade('puddle', puddles);

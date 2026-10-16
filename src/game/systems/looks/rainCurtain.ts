@@ -48,3 +48,21 @@ export function rainCurtain(spec: RainCurtainSpec): THREE.Mesh {
   mesh.frustumCulled = false; mesh.renderOrder = 20; mesh.visible = false; mesh.name = 'rain';
   return mesh;
 }
+
+/** A curtain's fall as data: its streaks, its fall speed (m/s), its slant (× the wind) and its box's half size (m). */
+export interface RainFallRow { readonly count: number; readonly speed: number; readonly slant: number; readonly radius: number }
+/** A curtain's motion: its world-anchored offset and its fall velocity (a program's uniforms, or the caller's own). */
+export interface RainFall { readonly offset: THREE.Vector3; readonly velocity: THREE.Vector3 }
+
+/**
+ * One frame of a curtain's fall: the velocity `speed` m/s down, slanted by `slant` × the wind (m/s, xz); the offset moved
+ * by it and wrapped into the box round the eye (2 × `radius`: any whole multiple of the box wraps to itself, so the offset
+ * stays small for float precision). Returns the index count the curtain draws at a rain of `rain` (0 … 1): the streaks
+ * follow the intensity, all of them from 0.91 on. Pine Hollow's rain is its user; G441's W3 match is Nalati's
+ * `world/WeatherFX.ts` `update` (its curtain block, over its program's `uOffset` / `uVel`).
+ */
+export function stepRainFall(fall: RainFall, row: RainFallRow, dt: number, wind: { readonly x: number; readonly z: number }, rain: number): number {
+  const o = fall.offset.addScaledVector(fall.velocity.set(wind.x * row.slant, -row.speed, wind.z * row.slant), dt), box = 2 * row.radius;
+  o.set(((o.x % box) + box) % box, ((o.y % box) + box) % box, ((o.z % box) + box) % box);
+  return Math.ceil(row.count * Math.min(1, rain * 1.1)) * 6;
+}
