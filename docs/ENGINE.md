@@ -6529,3 +6529,13 @@ instance namespace. Writes return the underlying durability result; callers
 retain their existing refusal policy. Pine uses this for its boss/elite saves.
 Nalati's W3 `runtime/persistence.ts#record` adopts the same path while keeping
 its explicit failed-write error and native schemas.
+
+**Creature swing envelopes (G441).** `game/plugin/animation.sampleCreatureSwing`
+samples a `CreatureSwingSpec` into caller-owned numeric scratch: bounded
+smooth wind, cut and recovery windows and up to 32 named channels, each
+holding rest, wind and impact values. Invalid windows, channels and output
+owners refuse before writes; inactive phases return rest. Sampling owns no
+clock, RNG, actor memory or save state and allocates nothing per frame.
+Driftwood captain and sailor poses consume it. Nalati
+`species/balbal.ts#animateBalbal` is the named W3 user of the same layered
+arm/body/knee envelope; emergence, grind and tremor remain caller-owned.
