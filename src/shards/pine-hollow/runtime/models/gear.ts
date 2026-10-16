@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { buildBolt, buildCrossbow, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
-import { crossbowDisplayModel } from '../../weapons/crossbow/display';
+import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { isMesh, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';

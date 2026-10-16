@@ -26,7 +26,7 @@ import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
-import { pineModels } from './context';
+import { pineModels } from '../runtime/world/context';
 import { CABIN_VARIANTS, logCabin, useCabins } from '../runtime/models/logCabin';
 import { huntingLodge } from '../runtime/models/huntingLodge';
 import { traderStall } from '../runtime/models/traderStall';

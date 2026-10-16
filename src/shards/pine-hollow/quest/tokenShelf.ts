@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { place } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineModels } from '../world/context';
+import { pineModels } from '../runtime/world/context';
 import { tokenShelf } from '../runtime/models/tokenShelf';
 
 

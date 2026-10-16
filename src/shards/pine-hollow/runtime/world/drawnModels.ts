@@ -12,30 +12,33 @@
  * The shard's `fieldModels` hook (src/shards/pine-hollow/manifest.ts, E349): core calls it once the props step has built, with
  * the fields it made — no shard branch in main.ts.
  *
- *   fieldModels: async () => (await import('./pine-hollow/world/drawnModels')).placeDrawnModels,
+ *   fieldModels: async () => (await import('./pine-hollow/runtime/world/drawnModels')).placeDrawnModels,
  */
 import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import { groundCoverCells, groundCoverMatrix as matrixOf, type Placement as UnderPlacement } from '../runtime/looks/groundCover';
-import type { Undergrowth } from './undergrowth';
+import { groundCoverCells, groundCoverMatrix as matrixOf, type Placement as UnderPlacement } from '../looks/groundCover';
+import type { Undergrowth } from '../../world/undergrowth';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
-import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
+import { PINE_TREE_SET as TREE_SPECS_V2 } from '../../world/treeSet';
 import { pineModels } from './context';
-import { useUndergrowth } from '../runtime/world/undergrowthKit';
-import { forestTree, useTreeFactory, type ForestTreeParams } from '../runtime/models/forestTree';
-import { fern } from '../runtime/models/fern';
-import { shrub } from '../runtime/models/shrub';
-import { needleLitter } from '../runtime/models/needleLitter';
-import { pebbles } from '../runtime/models/pebbles';
-import { moss } from '../runtime/models/moss';
-import { reeds } from '../runtime/models/reeds';
+import { useUndergrowth } from './undergrowthKit';
+import { forestTree, useTreeFactory, type ForestTreeParams } from '../models/forestTree';
+import { fern } from '../models/fern';
+import { shrub } from '../models/shrub';
+import { needleLitter } from '../models/needleLitter';
+import { pebbles } from '../models/pebbles';
+import { moss } from '../models/moss';
+import { reeds } from '../models/reeds';
+
+/** the floor's kinds, each placed in turn (ferns, shrubs, litter, stones, moss, reeds) */
+const FLOOR_KINDS = 6;
 
 /** Place the forest's trees and the floor's kinds, each in slices (`placeSliced` pausing on `due`, SF67): the same draws,
  *  registrations and order as one `place` per model, with a frame let through between the pieces when the cell builds on
  *  the road (the trees' and the ferns' placements were 20–50 ms stretches). */
 export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: () => Promise<void> | null): Promise<void> {
-  const ctx = pineModels(h.sky, h.renderer);
+  const ctx = pineModels(h.sky, h);
   const { forest, under, registry } = h;
   if (forest && forest.trees.length > 0) {
     // a build without the species set's files plants the runtime pines: the forest draws those itself (no model) and
@@ -59,8 +62,10 @@ export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: 
     useUndergrowth(ctx, { kinds: under.kinds, placements: under.layout });
     const kinds = [[fern, 'ferns'], [shrub, 'shrubs'], [needleLitter, 'litter'], [pebbles, 'stones'], [moss, 'moss'], [reeds, 'reeds']] as const;
     const cells = groundCoverCells(), cull = { view: under.view, cells: { size: cells.size, pad: cells.pad }, far: cells.far };
-    for (const [model, kind] of kinds) {
-      const items: readonly UnderPlacement[] = under.layout[kind];
+    for (let i = 0; i < Math.min(kinds.length, FLOOR_KINDS); i++) {
+      const entry = kinds[i];
+      if (entry === undefined) continue;
+      const [model, kind] = entry, items: readonly UnderPlacement[] = under.layout[kind];
       if (items.length === 0) continue;
       await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: matrixOf(it), color: new THREE.Color(it.r, it.g, it.b) })),
         { ctx, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group }, due);

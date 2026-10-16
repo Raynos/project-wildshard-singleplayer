@@ -24,7 +24,7 @@ import { pineWater, setWaterFade } from './water';
 import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { loadSiteTimbers } from './timberSites';
-import { pineModels } from './context';
+import { pineModels } from '../runtime/world/context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
 /** seconds from the sluice lifting to the muddy bed */

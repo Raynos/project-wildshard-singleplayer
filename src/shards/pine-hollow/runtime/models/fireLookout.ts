@@ -14,7 +14,7 @@
  */
 import * as v from 'valibot';
 import { defineModel } from '@wildshard/engine/models/model';
-import { timberModel } from '../../world/timber';
+import { timberModel } from '../world/timber';
 import { TIMBER_ROW } from '../../world/timberBake';
 import lookoutJson from '../../data/lookout.json' with { type: 'json' };
 

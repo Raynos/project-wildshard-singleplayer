@@ -81,7 +81,7 @@ import { BoardPanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
-import { pineModels } from '../world/context';
+import { pineModels } from '../runtime/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
 import { preparePineNightDirector } from '../runtime/nightDirector';

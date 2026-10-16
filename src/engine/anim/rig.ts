@@ -52,6 +52,10 @@ export async function loadRigFile(url: string, aliases: Readonly<Record<string, 
   return gltf;
 }
 
+/** A loaded file's root object (its default scene's group): what a level's runtime reads instead of the loader's raw
+ *  field. */
+export function rigRoot(file: Pick<GLTF, 'scene'>): GLTF['scene'] { return file.scene; }
+
 /** Check authored metadata against the actual loaded scene, without posing or rebinding it. */
 export function bindRig(root: Object3D, animations: readonly AnimationClip[], contract: RigContract, bake: RigBake): RigInstance {
   const fail = (detail: string): never => { throw new Error(`[anim] ${contract.skeleton}: ${detail}`); };

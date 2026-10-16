@@ -1,10 +1,10 @@
 import type * as THREE from 'three';
-import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import { TIER } from '@wildshard/engine/core/tier';
 import { riggedHulls } from '@wildshard/sdk/looks/riggedHulls';
-import coatPages from '../data/coatPages.generated.json' with { type: 'json' };
-import { PINE_HULLS } from '../data/creatureHulls';
-import { pineCoatUrl, pineCreatureRigUrl } from '../runtime/species/rigs';
+import coatPages from '../../data/coatPages.generated.json' with { type: 'json' };
+import { PINE_HULLS } from '../../data/creatureHulls';
+import { pineCoatUrl, pineCreatureRigUrl } from './rigs';
 
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2), pre-skinned to the
@@ -19,7 +19,7 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>
 /** the thralls' baked parts for this tier, once (a failed load leaves the thralls on their bare hulls) */
 function loadThrallParts(): Promise<void> {
   partsLoading ??= loadRigFile(TIER === 'phone' ? '/assets/pine-hollow/creatures/thrall-extras.phone.glb' : '/assets/pine-hollow/creatures/thrall-extras.glb')
-    .then((gltf) => { gltf.scene.traverse((o) => { if (isMesh(o)) thrallParts.set(o.name, o.geometry); }); return undefined; })
+    .then((gltf) => { rigRoot(gltf).traverse((o) => { if (isMesh(o)) thrallParts.set(o.name, o.geometry); }); return undefined; })
     .catch((e: unknown) => { console.error('[pine-hollow] the thralls\' baked eyes and ferns did not load:', e); });
   return partsLoading;
 }

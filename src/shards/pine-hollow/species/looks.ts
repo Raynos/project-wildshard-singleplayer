@@ -5,7 +5,7 @@ import { ELK } from '@wildshard/game/systems/species/elk';
 import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
 import { PINE_BOAR, PINE_BEAR } from './rows';
-import { preloadPineCreatures, skinPineHull } from './hulls';
+import { preloadPineCreatures, skinPineHull } from '../runtime/species/hulls';
 import { hullBody } from './bodies';
 import { ELK_THRALL_TINT, THRALL_TRAITS, thrallPose } from './thrall';
 

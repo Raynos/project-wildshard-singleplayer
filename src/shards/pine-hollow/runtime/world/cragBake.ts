@@ -6,10 +6,10 @@
  */
 import type * as THREE from 'three';
 import * as v from 'valibot';
-import { BEAR_CAVE } from '../data/layout';
+import { BEAR_CAVE } from '../../data/layout';
 import type { WholeGeometryView } from '@wildshard/game/plugin/geometry';
-import { loadSiteTimbers } from './timberSites';
-import cragJson from '../data/crags.json' with { type: 'json' };
+import { loadSiteTimbers } from '../../world/timberSites';
+import cragJson from '../../data/crags.json' with { type: 'json' };
 
 /** the kit's modules (nodes `<id>` and `<id>-lod1`: the cliff bands, buttress and slab in crags-b.glb, the rest in crags.glb) */
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
@@ -36,12 +36,17 @@ type Tier = keyof CragRows['skin'];
 export const CRAG_ROWS: CragRows = v.parse(CragRowsSchema, cragJson);
 /** the bake's `cdata` / `ctint`, named as the granite's graph reads them (`aCdata` / `aCtint`, ../data/cragLook.ts) */
 function graphNamed(g: THREE.BufferGeometry): THREE.BufferGeometry {
-  for (const [from, to] of [['cdata', 'aCdata'], ['ctint', 'aCtint']] as const) {
-    if (!g.hasAttribute(from)) continue;
-    const a = g.getAttribute(from); g.deleteAttribute(from); g.setAttribute(to, a);
-  }
+  renamed(g, 'cdata', 'aCdata'); renamed(g, 'ctint', 'aCtint');
   return g;
 }
+function renamed(g: THREE.BufferGeometry, from: string, to: string): void {
+  if (!g.hasAttribute(from)) return;
+  const a = g.getAttribute(from); g.deleteAttribute(from); g.setAttribute(to, a);
+}
+/** most skin tiles a tier's bake holds (18 today; throws past it) */
+const MAX_SKIN_TILES = 256;
+/** most original views the site-timber source admits (throws past it) */
+const MAX_SOURCE_VIEWS = 4096;
 
 /** Original per-tier draws reconstructed from the charged Scene's exact source ordinals. */
 export class CragSkin {
@@ -51,7 +56,9 @@ export class CragSkin {
   /** Original tile and near/far order; normals arrive as exact authored attributes. */
   async tiles(yieldTask: () => Promise<void>): Promise<[THREE.BufferGeometry, THREE.BufferGeometry][]> {
     const out: [THREE.BufferGeometry, THREE.BufferGeometry][] = [];
-    for (const [i] of CRAG_ROWS.skin[this.tier].tiles.entries()) {
+    const count = CRAG_ROWS.skin[this.tier].tiles.length;
+    if (count > MAX_SKIN_TILES) throw new Error(`[crags] ${String(count)} skin tiles, over ${String(MAX_SKIN_TILES)}`);
+    for (let i = 0; i < Math.min(count, MAX_SKIN_TILES); i++) {
       const geometry = (resolution: string): THREE.BufferGeometry => {
         const key = `${this.tier}-skin-${String(i)}-${resolution}`, view = this.views.get(key);
         if (view === undefined) throw new Error(`[crags] missing original source ${key}`);
@@ -69,7 +76,11 @@ export async function loadCragSkin(tier: Tier, ctx: Parameters<typeof loadSiteTi
   try {
     const views = await loadSiteTimbers(ctx);
     const unused = tier === 'phone' ? 'desktop' : 'phone';
-    for (const [key, view] of views) if (key.startsWith(`${unused}-skin-`)) {
+    const keys = [...views.keys()];
+    if (keys.length > MAX_SOURCE_VIEWS) throw new Error(`[crags] ${String(keys.length)} source views, over ${String(MAX_SOURCE_VIEWS)}`);
+    for (let i = 0; i < Math.min(keys.length, MAX_SOURCE_VIEWS); i++) {
+      const key = keys[i], view = key === undefined ? undefined : views.get(key);
+      if (key === undefined || view === undefined || !key.startsWith(`${unused}-skin-`)) continue;
       view.release?.(); views.delete(key);
     }
     return new CragSkin(views, tier);

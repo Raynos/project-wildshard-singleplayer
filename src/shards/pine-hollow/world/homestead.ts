@@ -16,7 +16,7 @@ import { HEARTH_LOOKS } from '../data/hearthLook';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 import type { PropPart } from '../runtime/models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from './logKit';
-import { pineModels } from './context';
+import { pineModels } from '../runtime/world/context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from '../runtime/world/cabinBake';

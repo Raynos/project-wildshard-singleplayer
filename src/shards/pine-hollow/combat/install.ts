@@ -27,7 +27,7 @@ import * as THREE from 'three';
 
 
 import { Crossbow, MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
-import { crossbowDisplayModel } from '../weapons/crossbow/display';
+import { crossbowDisplayModel } from '../runtime/weapons/crossbow/display';
 import { SKINS, type SkinId } from '../runtime/loadout/skins';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import type { Interactable } from '@wildshard/engine/world/interact/types';

@@ -7,7 +7,7 @@
  * (src/shards/pine-hollow/world/landmarks.ts).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { timberModel } from '../../world/timber';
+import { timberModel } from '../world/timber';
 import { BRIDGE, BRIDGE_HALF, siteCopy, type TimberSite } from '../../world/timberSites';
 
 export interface CreekFootbridgeParams {

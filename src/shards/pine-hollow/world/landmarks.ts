@@ -37,7 +37,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins } from './homestead';
 import { loadPainted } from '../runtime/looks/paintedTextures';
 import { PINE_HERO_IDS, type PineHeroId } from '../runtime/world/heroFiles';
-import { pineModels } from './context';
+import { pineModels } from '../runtime/world/context';
 import { HERO_FRONT, heroLod0, loadPineHero } from '../runtime/world/hero';
 import { STONE_KINDS, standingStone } from '../runtime/models/standingStone';
 import { waystone } from '../runtime/models/waystone';
@@ -45,7 +45,7 @@ import { beaverDam } from '../runtime/models/beaverDam';
 import { canoe } from '../runtime/models/canoe';
 import { contractBoard } from '../runtime/models/contractBoard';
 import { caveArch, openCaveArch } from '../runtime/models/caveArch';
-import { loadTimber, type Floor } from './timber';
+import { loadTimber, type Floor } from '../runtime/world/timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
 import { fireLookout } from '../runtime/models/fireLookout';
 import { ziplineLanding } from '../runtime/models/ziplineLanding';
@@ -53,7 +53,7 @@ import { creekFootbridge } from '../runtime/models/creekFootbridge';
 import { zipCable } from '../runtime/models/zipCable';
 import { loadCodeParts } from '../runtime/world/codeParts';
 import { PineCrags } from './crags';
-import { CRAG_ROWS } from './cragBake';
+import { CRAG_ROWS } from '../runtime/world/cragBake';
 
 
 

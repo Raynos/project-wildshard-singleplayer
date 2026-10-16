@@ -21,7 +21,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { variantDef } from '@wildshard/engine/entities/species/registry';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { pineNightSpec } from './nightSpec';
-import { Puffs } from '../combat/fxKit';
+import { Puffs } from '../runtime/combat/fxKit';
 import { own, release, retire } from '../combat/ctx';
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 

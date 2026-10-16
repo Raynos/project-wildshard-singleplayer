@@ -10,7 +10,7 @@
  */
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { Puffs } from '../combat/fxKit';
+import { Puffs } from '../runtime/combat/fxKit';
 import { headingTo } from '../combat/combatMath';
 import { StagWalk, STAG_PATH } from './stagWalk';
 

@@ -13,7 +13,7 @@ import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { readWholeGeometry, fetchLaneBake, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
-import type { TimberCopy } from './timber';
+import type { TimberCopy } from '../runtime/world/timber';
 import { mossHint, TimberRowSchema } from './timberBake';
 import siteJson from '../data/siteTimbers.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };

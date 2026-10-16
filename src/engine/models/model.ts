@@ -151,6 +151,26 @@ export function modelContext(sky: Sky | null, renderer: Renderer | null = null, 
   };
 }
 
+/** Whatever holds the renderer a shared model context may join: the game, or core's field-models context. A level's
+ *  runtime hands the holder on as it is and never reads the renderer itself. */
+export interface ModelRendererHost { readonly renderer: Renderer | null }
+
+const sharedBySky = new WeakMap<Sky, ModelContext>();
+
+/**
+ * The one model context a running level shares for its sky (its loaded files, materials and kits in one `once` memo),
+ * made on first ask. A host given later whose renderer the context lacks joins it, keeping what was loaded. Keyed by the
+ * Sky, so a level reloaded after a switch gets a fresh one.
+ */
+export function sharedModelContext(sky: Sky, host: ModelRendererHost | null = null): ModelContext {
+  const joined = host?.renderer ?? null;
+  let ctx = sharedBySky.get(sky);
+  if (ctx === undefined) ctx = modelContext(sky, joined);
+  else if (ctx.renderer === null && joined !== null) ctx = { sky, renderer: joined, once: ctx.once };
+  sharedBySky.set(sky, ctx);
+  return ctx;
+}
+
 /** One draw of one copy: a geometry in the model's own space and its material. */
 export interface ModelPart {
   readonly geometry: THREE.BufferGeometry;

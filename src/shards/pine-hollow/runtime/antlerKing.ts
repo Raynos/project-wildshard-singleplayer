@@ -19,7 +19,7 @@ import * as THREE from 'three';
 import type { BossEncounter } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 import { KINGS_CLEARING, KING_ARENA_FOG, KING_FX_LOOKS } from './const';
-import { Puffs } from '../combat/fxKit';
+import { Puffs } from './combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { pineLook, setPineLookParam } from './looks/graphLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from './models/antlerKing';

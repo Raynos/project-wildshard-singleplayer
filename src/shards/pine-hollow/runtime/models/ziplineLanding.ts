@@ -7,7 +7,7 @@
  * Placed once in the Hollow (src/shards/pine-hollow/world/landmarks.ts); its anchors (`zipBottom`, `landing`) are the ride's.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { timberModel } from '../../world/timber';
+import { timberModel } from '../world/timber';
 import { LANDING, siteCopy, type TimberSite } from '../../world/timberSites';
 
 export interface ZiplineLandingParams {

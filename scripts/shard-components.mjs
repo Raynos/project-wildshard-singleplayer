@@ -131,7 +131,7 @@ const reviewedW2Owners = new Map([
   ['src/sdk/bake/rig.ts', 'C2'],
   ['src/shards/pine-hollow/runtime/props/cabinBuild.ts', 'C2'],
   // Weather and visual fight effects.
-  ['src/shards/pine-hollow/combat/fxKit.ts', 'C3'],
+  ['src/shards/pine-hollow/runtime/combat/fxKit.ts', 'C3'],
   ['src/shards/pine-hollow/runtime/air.ts', 'C3'],
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],

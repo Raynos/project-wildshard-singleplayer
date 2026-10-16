@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { SkinnedMesh, Scene, Vector3 } from 'three';
-import { Puffs } from '../src/shards/pine-hollow/combat/fxKit';
+import { Puffs } from '../src/shards/pine-hollow/runtime/combat/fxKit';
 import { StagLead } from '../src/shards/pine-hollow/quest/stagLead';
 import { StagWalk, STAG_PATH } from '../src/shards/pine-hollow/quest/stagWalk';
 

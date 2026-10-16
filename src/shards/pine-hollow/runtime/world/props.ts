@@ -2,23 +2,22 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { CullOptions, CullView } from '@wildshard/engine/models/cull';
-import type { Placement } from '@wildshard/engine/models/model';
+import type { ModelRendererHost, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { BOULDER_SHAPES, loadMossyBoulder, mossyBoulder, type MossyBoulderParams } from '../runtime/models/mossyBoulder';
-import { loadTreeStump, treeStump } from '../runtime/models/treeStump';
-import { fallenLog, loadFallenLog } from '../runtime/models/fallenLog';
+import { BOULDER_SHAPES, loadMossyBoulder, mossyBoulder, type MossyBoulderParams } from '../models/mossyBoulder';
+import { loadTreeStump, treeStump } from '../models/treeStump';
+import { fallenLog, loadFallenLog } from '../models/fallenLog';
 import { pineModels } from './context';
-import propJson from '../data/props.json' with { type: 'json' };
+import propJson from '../../data/props.json' with { type: 'json' };
 
 /**
  * Pine Hollow's forest props (E315 M2: the scatter; the things are models in ../models/): mossy boulders
  * (`pine-hollow/mossy-boulder`, six shapes), cut stumps (`pine-hollow/tree-stump`) and fallen logs
  * (`pine-hollow/fallen-log`), all Poly Haven CC0 photoscans.
  *
- *   const props = new Props(sky, forest, renderer);
+ *   const props = new Props(sky, forest, game);     // `game` (or any renderer host) joins the shard's model context
  *   await props.build(registry, macrotask);      // places and registers them; `registry` null: a dev page / the bake
  *
  * Where they stand is an offline bake (G285, SF72 "bake the code-built worlds"): `../generators/props.ts` scatters them at
@@ -56,11 +55,11 @@ export class Props {
   /** the three place calls: boulders, stumps, logs */
   readonly placed: Placed[] = [];
 
-  constructor(private sky: Sky, private forest: CullView, private renderer: Renderer | null = null) {}
+  constructor(private sky: Sky, private forest: CullView, private host: ModelRendererHost | null = null) {}
 
   /** load the scans and place them at the baked poses — registered on `registry` (the colliders a task apart), or only built */
   async build(registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<THREE.Group> {
-    const ctx = pineModels(this.sky, this.renderer);
+    const ctx = pineModels(this.sky, this.host);
     await Promise.all([loadMossyBoulder(ctx), loadTreeStump(ctx), loadFallenLog(ctx)]);
     const cull: CullOptions = { far: TIER_CONFIG.propsFar, keepNear: 40, minAngular: TIER_CONFIG.propsMinAngular, view: this.forest, bounds: 'sphere' };
     const rocks = PROP_ROWS.rocks.map(([k, solid, ...pose]) => at<MossyBoulderParams>(pose, { variant: BOULDER_SHAPES[k] ?? 'a', params: { solid: solid === 1 } }));

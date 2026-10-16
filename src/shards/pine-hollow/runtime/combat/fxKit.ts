@@ -8,17 +8,22 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
  * flames are material graphs (data/kingFxLook.ts).
  */
 
+/** most spheres one pool holds (throws past it) */
+const MAX_PUFFS = 16;
+
 /** a pool of expanding shimmer spheres (FX dome mode, additive) */
 export class Puffs {
   private readonly items: { mesh: THREE.Mesh; mat: FxMaterial; t: number; life: number; r0: number; r1: number; a: number }[] = [];
   private next = 0;
-  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, n = 4) {
+  /** `parent`: what the parked spheres hang under (the world's root) */
+  constructor(parent: THREE.Object3D, color: THREE.ColorRepresentation, n = 4) {
+    if (n > MAX_PUFFS) throw new Error(`[fx] a puff pool of ${String(n)} is over ${String(MAX_PUFFS)}`);
     const g = new THREE.SphereGeometry(1, 20, 12);
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < Math.min(n, MAX_PUFFS); i++) {
       const mat = fxMaterial(FX.dome, color, 0);
       const mesh = new THREE.Mesh(g, mat);
       mesh.visible = false; mesh.frustumCulled = false; mesh.renderOrder = 28;
-      scene.add(mesh);
+      parent.add(mesh);
       this.items.push({ mesh, mat, t: 0, life: 0, r0: 0.5, r1: 3, a: 1 });
     }
   }
@@ -31,8 +36,10 @@ export class Puffs {
     it.mesh.scale.setScalar(r0); it.mesh.visible = true;
   }
   update(dt: number, t: number): void {
-    for (const it of this.items) {
-      if (!it.mesh.visible) continue;
+    const items = this.items;
+    for (let i = 0; i < Math.min(items.length, MAX_PUFFS); i++) {
+      const it = items[i];
+      if (it === undefined || !it.mesh.visible) continue;
       it.t += dt;
       const k = Math.min(1, it.t / it.life);
       it.mesh.scale.setScalar(it.r0 + (it.r1 - it.r0) * (1 - (1 - k) * (1 - k)));

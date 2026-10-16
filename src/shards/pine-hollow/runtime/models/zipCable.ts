@@ -5,7 +5,7 @@
  * the top anchor (src/shards/pine-hollow/world/landmarks.ts).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { timberMats } from '../../world/timber';
+import { timberMats } from '../world/timber';
 import { codePart, loadCodeParts } from '../world/codeParts';
 
 export const zipCable = defineModel<Record<string, never>>({
