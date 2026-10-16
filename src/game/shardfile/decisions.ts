@@ -39,7 +39,7 @@ export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'fla
    */
   readonly borrowedActors?: ReadonlySet<string>;
   /** Existing encounter state of borrowed bodies, read without creating an encounter. */
-  readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly leanField: string }>;
+  readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly leanField?: string }>;
   onStep: (id: string, run: () => void, adapter?: SimStateAdapter, phase?: 'beforeBodies' | 'afterBodies') => () => void;
 }
 /** Existing encounter authority; a retained encounter can lend its real BossBrain without a replacement encounter. */
@@ -258,6 +258,7 @@ export class ShardDecisions {
       body.mem[requireValue(this.source.state.shared.find(row => row.id === field), 'public field').name] = value;
   }
   private moveStrike(actor: number, binding: number, move?: ActorMove) {
+    if (move?.kind === 'dive' && move.strike !== undefined) return requireValue(this.strikes.get(move.strike), 'dive move strike');
     if (move?.kind === 'stalk' && move.ready.kind === 'range' && move.ready.strike !== undefined)
       return requireValue(this.strikes.get(move.ready.strike), 'range move strike');
     const active = this.striking.get(actor)?.strike;
@@ -282,6 +283,8 @@ export class ShardDecisions {
         if (op === 1) {
           const row = requireValue(this.moves.find(value => value.id === this.name('moves', a)), 'move');
           if (('ground' in row && !row.ground && !actor.flying) || ((row.kind === 'stalk' || row.kind === 'dive' || row.kind === 'takeoff' || row.kind === 'ring-run') && b === 0)) throw new Error('Decision move body/target');
+          if (row.kind === 'dive' && row.strike !== undefined && (!context.script.commands.includes('strike')
+            || !Object.values(context.script.ids.strikes ?? {}).includes(requireValue(this.registries.strikes?.get(row.strike), 'dive strike')))) throw new Error('Dive strike is outside the binding capability');
           if (row.kind === 'stalk' && row.ready.kind === 'range' && this.moveStrike(target, context.binding.id, row) === undefined) throw new Error('Decision range move needs an unambiguous admitted strike');
           if (row.kind === 'burrow' || row.kind === 'surface') {
             const field = requireValue(this.source.state.shared.find(value => value.name === row.field && value.type === 'f64' && value.privacy === 'public'), 'move field');
@@ -355,9 +358,14 @@ export class ShardDecisions {
         ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }) });
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
       const control = this.sim.borrowedControls?.get(requireValue(this.rows[motion.binding - 1], 'move binding').id);
-      if (control !== undefined) actor.mem[control.leanField] = result.bank ?? 0;
+      if (control?.leanField !== undefined) actor.mem[control.leanField] = result.bank ?? 0;
       if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.writeField(handle, id, result.field.value); }
-      if (result.strike !== undefined && motion.target > 0) this.sim.startDeclaredStrike(requireValue(this.actors.get(handle), 'move strike actor'), requireValue(this.actors.get(motion.target), 'move strike target'), result.strike);
+      if (result.strike !== undefined && motion.target > 0) {
+        const strikeId = requireValue(this.registries.strikes?.get(result.strike), 'dive strike');
+        if (this.sim.startDeclaredStrike(requireValue(this.actors.get(handle), 'move strike actor'), requireValue(this.actors.get(motion.target), 'move strike target'), result.strike))
+          this.striking.set(handle, { strike: strikeId, target: motion.target, binding: motion.binding, hit: false });
+        else this.host.enqueue(motion.binding, [11, handle, strikeId, 0, 0, 0]);
+      }
       if (result.done !== undefined) { actor.setMotion(actor.yaw, 0); this.motions.delete(handle); this.host.enqueue(motion.binding, [10, handle, motion.move, Number(result.done), 0, 0]); }
     }
   }

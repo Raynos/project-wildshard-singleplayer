@@ -4,6 +4,8 @@ import { BorrowedDecisionSchema, parseDecisionScripts, type BorrowedDecision } f
 import { parseWorldTargets, worldTargetSpots } from '@wildshard/format/worldTargets';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { parseActorMoves } from '@wildshard/format/actorMoves';
+import { riseSteering } from '@wildshard/engine/ai/moves';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import { ShardDecisions, type DecisionRuntime } from './decisions';
@@ -29,10 +31,12 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const script = parseDecisionScripts(sections.get('sim/scripts')).find(value => value.id === row.script);
     if (script === undefined || !Object.values(script.actors).includes(row.actor) || Object.values(script.actors).some(id => id !== row.actor))
       throw new Error('Borrowed decision must own exactly its admitted actor');
-    const points = worldTargetSpots(parseWorldTargets(sections.get('world/targets'))), perch = points.get(row.perch);
-    if (perch === undefined) throw new Error('Borrowed decision requires its admitted perch');
+    const perch = row.perch === undefined ? undefined : worldTargetSpots(parseWorldTargets(sections.get('world/targets'))).get(row.perch);
+    const idle = row.idle === undefined ? undefined : parseActorMoves(sections.get('actors/moves')).find(move => move.id === row.idle?.move);
+    if (row.idle !== undefined && idle?.kind !== 'rise') throw new Error('Borrowed idle requires its admitted rise move');
+    if (row.perch !== undefined && perch === undefined) throw new Error('Borrowed decision requires its admitted perch');
     bodies.get(row.actor)?.dispose();
-    const scope = ports.scope.child(`decision:${row.actor}`), runner = new StrikeRunner(), state = { tick: 0 };
+    const scope = ports.scope.child(`decision:${row.actor}`), runner = new StrikeRunner(), state = { tick: 0, phase: 0, fighting: false };
     bodies.set(row.actor, scope);
     scope.onDispose(() => { if (bodies.get(row.actor) === scope) bodies.delete(row.actor); });
     const entities = new Map([[row.actor, actor]]), strikes = new Map([[row.actor, runner]]), catalogue = new Map<string, StrikeSpec>();
@@ -40,12 +44,16 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const admission: { owner?: ShardDecisions; initial?: string } = {};
     const owner = (): ShardDecisions => { if (admission.owner === undefined) throw new Error('Decision body is not admitted'); return admission.owner; };
     const control: BorrowedSpeciesControl = {
-      phase: 0, fighting: false, get current() { return runner.spec; }, get windup() { return owner().strikeObservation(row.actor).windup; },
+      get phase() { return row.marks === undefined ? state.phase : actor.mem[row.marks.phase] ?? 0; },
+      set phase(value) { if (row.marks === undefined) state.phase = value; else actor.mem[row.marks.phase] = value; },
+      get fighting() { return row.marks === undefined ? state.fighting : (actor.mem[row.marks.fight] ?? 0) >= 1; },
+      set fighting(value) { if (row.marks === undefined) state.fighting = value; else actor.mem[row.marks.fight] = Number(value); }, get current() { return runner.spec; }, get windup() { return owner().strikeObservation(row.actor).windup; },
       get aim() { return runner.yaw; },
       observe: value => { observation = value; },
       restart: () => { runner.cancel(); actor.cancelAttack(); if (admission.initial === undefined) throw new Error('Decision initial state is not admitted');
         owner().restore(admission.initial); state.tick = owner().host.snapshot().tick;
-        actor.place(perch.x, perch.z, 0, perch.y); actor.yaw = perch.yaw; actor.speed = 0; actor.mem[row.bankField] = 0; },
+        if (perch !== undefined) { actor.place(perch.x, perch.z, 0, perch.y); actor.yaw = perch.yaw; }
+        actor.speed = 0; if (row.bankField !== undefined) actor.mem[row.bankField] = 0; },
       snapshot: () => JSON.stringify({ version: 1, actor: actor.entityId, phase: control.phase, fighting: control.fighting,
         decision: owner().snapshot(), strike: runner.snapshot() }),
       restore: value => {
@@ -60,7 +68,7 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const before: (() => void)[] = [], after: (() => void)[] = [], chest = new Vector3();
     const runtime: DecisionRuntime = { ...ports, scope, state, entities, strikes, slots: { ledgerDedupe: [] },
       borrowedActors: new Set([row.actor]), borrowedControls: new Map([[row.script, { get fighting() { return control.fighting && observation?.calm !== true && actor.alive; },
-        get phase() { return control.phase; }, leanField: row.leanField }]]),
+        get phase() { return control.phase; }, ...(row.leanField === undefined ? {} : { leanField: row.leanField }) }]]),
       registerStrikeCatalogue: (id, specs) => {
         if (id !== row.actor || catalogue.size > 0) throw new Error('Borrowed strike catalogue already owned');
         for (const spec of specs) catalogue.set(spec.id, { ...spec, weight: () => 1 });
@@ -86,9 +94,14 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
       const effect = row.strikeEffects.find(value => value.strike === runner.spec?.id);
       chest.copy(ports.player.position); chest.y += effect?.aimHeight ?? 0;
       runner.update(1 / 60, { actor, target: chest, canReach: () => live.reach(actor), hit: spec => {
-        live.hurt(spec.damage); if (effect !== undefined && (effect.speed > 0 || effect.lift > 0)) live.shove(runner.yaw, effect.speed, effect.lift);
+        if (effect !== undefined && (effect.speed > 0 || effect.lift > 0) && live.shove === undefined) throw new Error('Decision strike requires its actual impulse authority');
+        live.hurt(spec.damage); if (effect !== undefined && (effect.speed > 0 || effect.lift > 0)) live.shove?.(runner.yaw, effect.speed, effect.lift);
       } });
       for (const run of after) run();
+      if (actor.alive && !control.fighting && idle?.kind === 'rise' && row.idle !== undefined) {
+        const steering = riseSteering(idle, actor, actor.mem[row.idle.progress] ?? 0);
+        actor.fly(steering.yaw, steering.speed, steering.altitude, steering.turn);
+      }
     }, scope);
     // The perch is the declared idle pose; constructing/restoring does not execute the guest.
     control.restart();

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./nativeItems": "./nativeItems.ts",
     "./nativeRuntimePlan": "./nativeRuntimePlan.ts",
     "./worldTargets": "./worldTargets.ts",
     "./decisionPublication": "./decisionPublication.ts",
@@ -43,7 +44,6 @@
     "./runtimeBinds": "./runtimeBinds.ts",
     "./runtimeSpawns": "./runtimeSpawns.ts",
     "./skinLayers": "./skinLayers.ts",
-    "./phasedFlyers": "./phasedFlyers.ts",
     "./presentation": "./presentation.ts",
     "./scripts": "./scripts.ts",
     "./hooks": "./hooks.ts",

@@ -120,8 +120,10 @@ export function decisionScriptRules(scripts: readonly DecisionScriptRow[], refer
 /** A live species lends its existing body/encounter to one admitted decision script.
  * Presentation fields and contact impulses are names/numbers, never shard callbacks.
  */
-export const BorrowedDecisionSchema = v.strictObject({ script: id, actor: id, perch: id,
-  leanField: local, bankField: local,
+export const BorrowedDecisionSchema = v.strictObject({ script: id, actor: id, perch: v.exactOptional(id),
+  leanField: v.exactOptional(local), bankField: v.exactOptional(local),
+  marks: v.exactOptional(v.strictObject({ fight: local, phase: local })),
+  idle: v.exactOptional(v.strictObject({ move: id, progress: local })),
   strikeEffects: v.pipe(v.array(v.strictObject({ strike: id, aimHeight: finite, speed: v.pipe(finite, v.minValue(0), v.maxValue(40)),
     lift: v.pipe(finite, v.minValue(0), v.maxValue(40)) })), v.maxLength(32)),
 });

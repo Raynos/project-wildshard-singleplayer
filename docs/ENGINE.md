@@ -2763,21 +2763,16 @@ module memory. Signal's skitterer is the first (`behaviour/skitterer.as`), held 
 `test/shards/sunscar-dunes/skitterer-script.test.ts`. The `modules` argument is a plain row (SHA-256 → base64), so a
 shard keeps it in `data/`.
 
-**Phased flyers and marked boss fights (SF27).** A row's brain may be `{ archetype: 'phased-flyer', data }`
-(`@wildshard/game/shardfile/phasedFlyers`, engine `@wildshard/engine/ai/phasedFlyer` `PhasedFlyerBrain`): a boss flyer
-whose encounter drives it through three memory fields (`fields`: `fight`, `rise`, `phase`). Before the fight it drifts
-round and rises `dormant.from` → `dormant.to` with `rise`; in the fight it circles `center` at `circleRadius` (aiming
-`orbitLead` ahead) at `altitudes[phase]`, dives on the player's chest (`targetHeight`) with its `dive` strikes (never
-under `skim`, `diveSlope` m of altitude per metre to the chest), climbs away for `climbSeconds` and rests
-`restSeconds[phase]` before the next dive; from `groundedPhase` it lies at `lieAltitude`, crawls to `standOff` and
-strikes with its `grounded` strikes. Its continuation is `{ version: 1, actor, state, clock, wait, struck, strikes }`.
+**Marked spawned boss fights.** Decisions belong to admitted `sim/scripts`
+guests on the existing species body; the encounter keeps its memory marks.
 `@wildshard/game/plugin/bossPhase` `bossFight({kind: 'boss', pattern: 'spawned', fight}, ports)` is the matching
 view-free `BossScript`: a fresh body per checkpoint at `hpShares[checkpoint]`, the intro's rise over `riseSeconds`, the
 phase marks, a storm (0..1, goal 1 in `stormPhases`, eased over `stormFade` s) the views read through `update(dt, storm)`,
 invulnerability through the beats and the victory, inside a circular `arena`; its continuation is `{ stormGoal, storm,
 invulnerable }`. The browser runs it under its views and the headless host through `installBossRow`. Signal's Dune
-Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `runtime/quest/matriarchFight.ts` MATRIARCH_FIGHT), held to her old
-brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
+Matriarch uses `behaviour/matriarch.as` on the same borrowed authority as the
+Roc. `test/matriarch-borrowed-body.test.ts` exercises its live native body,
+three phases, checkpoint replacement and logical continuation.
 
 **Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sdk/phasedBoss`)
 `bossFight({kind: 'boss', pattern, fight}, ports)` is the defining parametric fight entry. `arena` and `roaming` retain the existing phase/strike/add/hazard policies; `spawned` binds a real fresh body per checkpoint with phase memory and eased weather; `held` binds one retained body and its native brain restart. Pattern/host mismatches refuse before allocation, RNG or actor/view effects. The spawned and held patterns replace the unused shard preset wrappers; `phasedBossFight` retains the phase presets. Their native clocks, callback order, body ownership and serialized continuations stay unchanged. This entry does not replace the outer `BossBrain`/director encounter clock or an admitted AS body policy.
@@ -3583,15 +3578,6 @@ SDK `flyers.diver(data)` validates author data only. `diverPreset` canonicalizes
 to the original contract before full-shard reference checks and native recipe
 installation; missing sphere strikes, flight motors or cell-bounded homes refuse.
 
-The runtime `phased` diver pattern retains the already-admitted phase-altitude,
-rest, dormant-rise and grounded-strike data of `ai/phasedFlyer`. Its save remains
-the original `{version, actor, state, clock, wait, struck, strikes}` contract.
-The compatibility constructor retains its `CreatureBrain`/HFSM identity through
-an explicit `PhasedDiverStatePort`; the shared policy reads and transitions that
-same phase owner. A direct phased policy owns its phase internally. There is no
-second HFSM, encounter installation, new strike set or changed body recipe.
-The existing phased-row admission is unchanged; unified phased author spelling
-and the boss-row merge remain separate open work.
 
 
 SF81 ghost volley: Nalati page and renderer-free roster advance the same typed firing author after their unchanged death/fade/hidden guards, in reverse rider order. The AS publishes the elapsed clock delta, native shot and retry timer; native ports retain real ballistic sockets, two spread draws followed by the retry draw, body allocation and retirement. Signed eligibility projections bound author inputs without clamping negative native timers. GhostRosterKeeper v2 carries the complete v3 AS/stage cursor and refuses v1 quietly. Native roster admission does not allocate riders or register a second owner.
@@ -3697,12 +3683,6 @@ an explicit native adapter and refuse automatic hosting. Signal's strider and
 ray use these canonical profiles; saved contracts, live witness names, six
 circling slots, body, contact, strike and RNG owners remain the original ones.
 
-SF82 the species catalogue's `diver/phased` profile is defined by
-`format/phasedFlyers.PhasedDiverSchema`; `phasedDiverPreset` resolves its exact
-historical contract before `plugin/brain` constructs the original flight law.
-Signal's Matriarch consumes it in page and native hosts. The encounter still
-owns phase/rise/fight fields, body and strikes; old `phased-flyer` data and
-continuations stay admitted. This does not add automatic creature-root hosting.
 
 SF82 Nalati's Aqbars/Kokbori trusted keepers construct the defining engine
 `StalkerBrain` from their authored `pouncer`/`howler` profiles. Original tuning
@@ -7330,7 +7310,7 @@ descriptor; no byte-sniffing or opaque Wasm fallback is used.
 
 `@wildshard/engine/ai/moves.ActorMoveRunner` runs one admitted move at 60 Hz from data observations and emits steering, bank, normalized field, strike and one-shot completion requests. The platform applies requests through its existing flight, collision and strike owners, then publishes `move.done`; the runner never moves a body or damages a target itself. Missing targets, named perches, strike range or field values refuse before clocks change. `snapshot`/`restore` retain the declaration identity, clocks, orbit angle and completion latch without invoking motion or repeating completed effects.
 
-The public steering kernels also serve the existing raptor/phased brains during the Wasm transition; their encounter decisions remain until KS1/KS4 replace them. No phase policy, renderer, shard callbacks or random source enters this library. A stalk declares exactly one of `above`/`altitude`; range readiness borrows the admitted strike range. Takeoff explicitly declares its destination altitude and named perch. Dive contact is authoritative `reach`, with the declared strike requested once; a timeout completes with `ok=false`. Orbit and ring-run continue until replaced, timed/ready moves finish once.
+The public steering kernels serve both admitted decision guests; the raptor and phased policies are deleted. No phase policy, renderer, shard callbacks or random source enters this library. A stalk declares exactly one of `above`/`altitude`; range readiness borrows the admitted strike range. Takeoff explicitly declares its destination altitude and named perch. Dive contact is authoritative `reach`, with the declared strike requested once; a timeout completes with `ok=false`. Orbit and ring-run continue until replaced, timed/ready moves finish once.
 
 
 ### Mover endpoint lifecycle (KA7)
@@ -7589,8 +7569,8 @@ guest/move and strike continuation; restoring it invokes no Wasm or rewards.
 Rebinding a retired actor releases its prior scope before registering again.
 The data row names the perch, presentation memory fields and strike impulse
 recipes; it supplies no TypeScript callbacks. The old raptor controller and
-its capture-only staging API are removed. Shared credit for this borrowed
-adapter requires the real Matriarch adoption as well as the Roc.
+its capture-only staging API are removed. The Roc and Matriarch now both
+adopt this same authority in their real page and native hosts.
 
 `actors/moves` may declare `orbit.angularSpeed` independently of its travel
 speed. A dive may follow `targetAltitude:true` (the target plus aimHeight)
@@ -7615,3 +7595,25 @@ it suspends at each effect boundary, so an observer can inspect or interrupt
 the exact intermediate state before the next transition. Each reload step
 feeds at most 1,024 rounds. Snapshots and restore versions remain with the
 caller; constructing or restoring fields never emits a phase event.
+### Borrowed spawned decision bodies (KS4)
+
+`format/decisionScripts.BorrowedDecisionSchema` optionally names existing
+encounter `marks: {fight, phase}` and `idle: {move, progress}`. The game
+adapter reads those numeric body marks; the idle reference must resolve
+to an admitted `rise` move, driven by the encounter's own normalized
+progress. No second timer, body, encounter or guest call runs during
+intro or restore. `perch`, `leanField` and `bankField` are optional, so
+a spawned body keeps its owner's original placement and pose fields.
+The absent options preserve the held-body contract.
+
+Both real page/native adopters use `game/shardfile/borrowedDecisions`: the
+Roc and the Matriarch. BossBrain retains checkpoint spawning, thresholds,
+weather, victory and rewards. The guest owns durable decisions/timers;
+the same strike runner owns contact and its continuation. The retired
+`phased` diver policy, schema and compatibility constructor are deleted.
+
+A dive with `strike` and `contactCompletes:false` requests that declared
+strike once when the actual admitted range and reach permit, while keeping
+its flight motion until replaced. Its saved move includes that request edge.
+The script must declare the strike capability and id; completion comes from
+the same live strike runner. No periodic guest polling is required.

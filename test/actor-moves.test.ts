@@ -101,3 +101,17 @@ it('continues orbit/ring motion and normalized burrow/surface fields without Was
     expect(motion.step({ body: actor })).toMatchObject({ done: true, steering: { altitude: 18, yaw: actor.yaw + 0.4 } });
   }
 });
+
+it('a continuing dive requests its admitted strike once in range, including after restore', () => {
+  const actor = body(), row = { id: 'test.continuing', kind: 'dive', speed: 19, turn: 2.4, slope: 0.4, skim: 4.2,
+    altitude: 18, aimHeight: 1.2, maxSeconds: 5.5, strike: 'test.maw', contactCompletes: false };
+  const owner = new ActorMoveRunner(row, actor), far = { x: 100, y: 0, z: 0 };
+  expect(owner.step({ body: actor, target: far, reach: true, range: 10 }).strike).toBeUndefined();
+  const near = { x: actor.position.x, y: actor.position.y - 1.2, z: actor.position.z + 1 };
+  expect(owner.step({ body: actor, target: near, reach: true, range: 10 })).toMatchObject({ strike: 'test.maw' });
+  const resumed = new ActorMoveRunner(row, actor); resumed.restore(owner.snapshot());
+  for (const move of [owner, resumed]) {
+    const frame = move.step({ body: actor, target: near, reach: true, range: 10 });
+    expect(frame.strike).toBeUndefined(); expect(frame.done).toBeUndefined(); expect(frame.steering?.speed).toBe(19);
+  }
+});

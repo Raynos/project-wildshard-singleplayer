@@ -39,7 +39,8 @@ import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
 // depth tie between them resolves as it always has.
 // The sim budget is exactly the critical collider's cost (the tiles are render residency, charged per tile).
 const collider = [...tiles.files, ...navigation.files].filter((file) => [...tiles.critical, ...navigation.critical].includes(file.hash));
-const sim = { resident: collider.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: collider.reduce((sum, file) => sum + file.compressed, 0) };
+const decisionMemory = 2 * 65536; // The guest live/last-good fixed page images.
+const sim = { resident: decisionMemory + collider.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: collider.reduce((sum, file) => sum + file.compressed, 0) };
 
 const maps = [...Object.values(sandMaps), fireBook], ref = (name: keyof typeof sandMaps): string => sandMaps[name].hash;
 const fields = structuredClone(SAND_FIELDS);
@@ -49,7 +50,7 @@ const sand = { ...fields, ground: { ...fields.ground,
   keyShadow: { map: ref('shadow'), ...fields.ground.keyShadow } } };
 const library = { resident: maps.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: maps.reduce((sum, file) => sum + file.compressed, 0) };
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
-const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state', 'clientChannels'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
+const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + decisionMemory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state', 'clientChannels'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
   clientChannels: SIGNAL_BUCKET_CHANNELS, quests: SIGNAL_QUESTS, questNpcs: [QUEST_NPC], questHost: QUEST_HOST, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   // G397: the storm's strength (`shared.storm`) is a host field like the dusk, moving the storm shells' graphs (data/stormLook.ts)
   state: { ...base.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD, { id: 3, name: 'firetime', type: 'f64', privacy: 'host', default: 0, min: 0 }] },

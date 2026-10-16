@@ -65,7 +65,7 @@ export function riseSteering(row: { readonly from: number; readonly to: number; 
   return { yaw: body.yaw + row.yawLead, speed: k > 0 ? row.speed : 0, altitude: row.from + (row.to - row.from) * k, turn: row.turn, ground: row.ground };
 }
 const finite = v.pipe(v.number(), v.finite());
-const saved = v.strictObject({ version: v.literal(1), contract: v.string(), elapsed: v.pipe(finite, v.minValue(0)), angle: finite, complete: v.boolean() });
+const saved = v.strictObject({ version: v.literal(1), contract: v.string(), elapsed: v.pipe(finite, v.minValue(0)), angle: finite, complete: v.boolean(), strikeIssued: v.exactOptional(v.boolean()) });
 function point(value: MovePoint): void { if (![value.x, value.y, value.z].every(Number.isFinite)) throw new Error('Nonfinite move observation'); }
 
 /** One replaceable sim-side move. It emits data requests; platform flight/physics/combat applies them in fixed-step order.
@@ -76,18 +76,19 @@ export class ActorMoveRunner {
   private elapsed = 0;
   private angle: number;
   private complete = false;
+  private strikeIssued = false;
   constructor(input: unknown, body: MoveBody) {
     const row = parseActorMoves([input])[0]; if (row === undefined) throw new Error('Missing move declaration');
     this.row = row; this.contract = JSON.stringify(row);
     point(body.position); if (!Number.isFinite(body.yaw)) throw new Error('Nonfinite move heading');
     this.angle = this.row.kind === 'orbit' ? Math.atan2(body.position.z - this.row.center[1], body.position.x - this.row.center[0]) : 0;
   }
-  snapshot(): v.InferOutput<typeof saved> { return { version: 1, contract: this.contract, elapsed: this.elapsed, angle: this.angle, complete: this.complete }; }
+  snapshot(): v.InferOutput<typeof saved> { return { version: 1, contract: this.contract, elapsed: this.elapsed, angle: this.angle, complete: this.complete, ...(this.row.kind === 'dive' && this.row.strike !== undefined ? { strikeIssued: this.strikeIssued } : {}) }; }
   /** Full validation precedes mutation. Restore neither moves nor emits completion/strike requests. */
   restore(input: unknown): void {
     const value = v.parse(saved, input);
     if (value.contract !== this.contract) throw new Error('Move continuation belongs to another declaration');
-    this.elapsed = value.elapsed; this.angle = value.angle; this.complete = value.complete;
+    this.elapsed = value.elapsed; this.angle = value.angle; this.complete = value.complete; this.strikeIssued = value.strikeIssued ?? false;
   }
   /** Advance exactly once per 60 Hz simulation step. Completed moves emit no further requests. */
   step(observation: MoveObservation): MoveFrame {
@@ -111,9 +112,13 @@ export class ActorMoveRunner {
       }
       case 'dive': {
         if (target === undefined) throw new Error('Missing move target');
-        return { steering: diveSteering(row, body, target), ...(observation.reach === true && row.contactCompletes
-          ? { ...this.finish(true), ...(row.strike === undefined ? {} : { strike: row.strike }) }
-          : this.elapsed >= row.maxSeconds ? this.finish(false) : {}) };
+        if (row.strike !== undefined && !row.contactCompletes && observation.range === undefined) throw new Error('Dive strike requires its admitted range');
+        const reached = observation.reach === true && (observation.range === undefined || Math.hypot(target.x - body.position.x,
+          target.y + row.aimHeight - body.position.y, target.z - body.position.z) <= observation.range);
+        const fire = reached && row.strike !== undefined && !this.strikeIssued;
+        if (fire) this.strikeIssued = true;
+        return { steering: diveSteering(row, body, target), ...(fire ? { strike: row.strike } : {}),
+          ...(reached && row.contactCompletes ? this.finish(true) : this.elapsed >= row.maxSeconds ? this.finish(false) : {}) };
       }
       case 'climb': return { steering: { yaw: body.yaw, speed: row.speed + row.speedBonus, altitude: row.altitude, turn: row.turn, ground: row.ground },
         ...(this.elapsed >= row.seconds ? this.finish(true) : {}) };

@@ -4,7 +4,6 @@ import { BossOwnerRowSchema } from './bossProfiles';
 import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures';
 import { GrazerSchema, ChallengeGrazerSchema } from './grazers';
 import { DiverSchema, PatrolDiverSchema } from './flyers';
-import { PhasedDiverSchema, PhasedFlyerSchema } from './phasedFlyers';
 import { ScriptSpeciesSchema } from './speciesScripts';
 import { StalkerSchema, SkirmisherSchema, GuardianSchema, GuardianPatternsSchema, PerchHunterSchema } from './brains';
 import { BorrowedDecisionSchema } from './decisionScripts';
@@ -21,11 +20,10 @@ const home = v.strictObject({ x: number, z: number, r: number, y: number });
 const brain = v.union([
   v.strictObject({ archetype: v.literal('grazer'), data: GrazerSchema.options[0] }),
   v.strictObject({ archetype: v.literal('grazer'), data: GrazerSchema.options[1], phaseSlots: count }),
-  v.strictObject({ archetype: v.literal('diver'), data: v.union([DiverSchema, PhasedDiverSchema]) }),
+  v.strictObject({ archetype: v.literal('diver'), data: DiverSchema }),
   v.strictObject({ archetype: v.literal('decision'), data: BorrowedDecisionSchema }),
   v.strictObject({ archetype: v.literal('challenge-grazer'), data: ChallengeGrazerSchema, phaseSlots: count }),
   v.strictObject({ archetype: v.literal('patrol-diver'), data: PatrolDiverSchema }),
-  v.strictObject({ archetype: v.literal('phased-flyer'), data: PhasedFlyerSchema }),
   v.strictObject({ archetype: v.literal('script'), data: ScriptSpeciesSchema }),
   v.strictObject({ archetype: v.literal('stalker'), data: StalkerSchema }),
   v.strictObject({ archetype: v.literal('skirmisher'), data: SkirmisherSchema }),
