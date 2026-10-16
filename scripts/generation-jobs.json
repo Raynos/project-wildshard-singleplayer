@@ -635,6 +635,47 @@
       "platform": "native"
     },
     {
+      "id": "pine-ambient-perch-rows",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-perch-rows.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-perch-rows.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/format",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs",
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/pine-hollow/map/top.webp",
+        "public/assets/horizon/pine-hollow-day.webp",
+        "public/assets/horizon/pine-hollow-night.webp",
+        "public/assets/horizon/pine-hollow-day-phone.webp",
+        "public/assets/horizon/pine-hollow-night-phone.webp"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/perchRows.generated.json"
+      ],
+      "platform": "native"
+    },
+    {
       "id": "pine-npc-skins",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-npcs.mjs",

@@ -67,9 +67,9 @@ export function parseAmbientFlock(value:unknown):AmbientFlockData {return v.pars
 export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-community'),seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),
   /** the kill's ravens: a scavenge flock; visitors per species, the body's half width, when they come, how far you may be */
   scavenger:v.strictObject({flock:AmbientFlockSchema,arrival:range,visitors:v.record(id,count),defaultVisitors:count,bodyWidths:v.record(id,positive),giveUp:positive,reach:positive}),
-  perches:v.pipe(v.strictObject({step:positive,spines:v.pipe(v.array(v.pipe(v.array(v.strictObject({y:finite,cx:finite,cz:finite,r:positive})),v.maxLength(256))),v.minLength(1),v.maxLength(32))}),v.check(row=>row.spines.every(spine=>spine.every((knot,index)=>knot.y===(index+1)*row.step)),'ordered equal-step perch knots')),
-  /** visit flocks: the night sentinel on snag tops, the day trunk forager on bark (a perch height range and species weights) */
-  sentinel:v.strictObject({flock:AmbientFlockSchema,species:id}),trunkForager:v.strictObject({flock:AmbientFlockSchema,height:range,weights:v.record(id,positive)}),
+  /** visit flocks and their baked perches: the night sentinel on snag tops, the day trunk forager on bark sections (r, weight w) */
+  sentinel:v.strictObject({flock:AmbientFlockSchema,perches:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite})),v.maxLength(4096))}),
+  trunkForager:v.strictObject({flock:AmbientFlockSchema,perches:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:positive,w:positive})),v.maxLength(4096))}),
   forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive,policy:ForagerPolicySchema}),
   guide:v.strictObject({flock:AmbientFlockSchema,policy:v.strictObject({distance:v.literal('centre'),min:positive,max:positive,schedule:v.strictObject({kind:v.literal('periodic'),initial:finite,period:range})})}),
   harvest:v.strictObject({len:positive,kneelIn:positive,cuts:v.pipe(v.array(positive),v.maxLength(8)),rise:positive}),

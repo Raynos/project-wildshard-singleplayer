@@ -1,4 +1,4 @@
-import perches from './perches.generated.json';
+import perches from './perchRows.generated.json';
 
 const flight={wave:0.7,amplitude:1.2,pitch:0.6,pitchRate:4,bank:-0.5,bankLimit:0.7,bankRate:3};
 const depart={distance:140,up:[35,50],speed:11,lift:4,spread:0.6};
@@ -15,12 +15,11 @@ export const PINE_LIFE={kind:'forest-community',seed:0x71fe,
         land:{speed:7,lift:1.5,ring:[0.25,0.7],stand:0.2,pause:[1.5,4],pitch:0.12},
         feed:{pecks:[2,5],pause:[1.2,3.5],hop:0.22,squabble:0.12,rate:5.5,time:[45,80],leave:150,reland:16,look:[1.1,1.4],wings:[-0.08,1],peck:[0.35,0.75,-0.15],hopTime:0.35,hopHeight:0.18},
         flush:[8,12],lift:{up:[9,13],side:4,speed:6,lift:3},depart,voices:{call:'raven_caw',pair:'raven_pair',flap:'raven_flap',gain:0.9,flapGain:0.8,gap:[3,6],flapGap:0.6}}}},
-  perches,
-  sentinel:{species:'snag',flock:{...bare,seed:0x71fc,count:1,scale:1.05,wingbeat:'1',flight,scavenge:null,channels:[['flap','fold','head','peck'],[1,'legs','body',0]],
+  sentinel:{perches:perches.snags,flock:{...bare,seed:0x71fc,count:1,scale:1.05,wingbeat:'1',flight,scavenge:null,channels:[['flap','fold','head','peck'],[1,'legs','body',0]],
     wingbeats:{'1':{phase:[2.4,Math.PI*2],amplitude:0.75,foldPhase:0.6,foldAmplitude:0.25,rest:[0.12,0.05],rates:[8,10],glide:[1.2,2.6],beats:[2,3]}},
     visit:{...visitor,enter:[0.6,1],stay:[0.4,1],near:[28,70],from:{kind:'behind',back:60,up:12},pose:{pitch:1.1,body:1.1,legs:0,stand:0.16,peck:1.1},sway:0.05,stare:45,stareTurn:2.3,look:[1.6,0.35],
       call:{cue:'owl_hoot',every:[14,28],first:[1.5,4],within:150},flush:14,flushLegs:0,relocate:[30,65],aim:true,leave:120,leaveWait:25}}},
-  trunkForager:{height:[3.2,5.5],weights:{snag:3,birch:1.5,ambient:1},flock:{...bare,seed:0x71fb,count:1,scale:1.05,wingbeat:'2',flight,scavenge:null,channels:[['flap','fold','head','peck'],[2,'legs','body',0]],
+  trunkForager:{perches:perches.bark,flock:{...bare,seed:0x71fb,count:1,scale:1.05,wingbeat:'2',flight,scavenge:null,channels:[['flap','fold','head','peck'],[2,'legs','body',0]],
     wingbeats:{'2':{phase:[11,Math.PI*2],amplitude:0.8,foldPhase:0.6,foldAmplitude:0.25,rest:[-0.05,0.95],rates:[8,10],glide:[0.3,0.3],beats:[3,3]}},
     visit:{...visitor,enter:[0,0.35],stay:[0,0.45],every:15,near:[20,55],from:{kind:'beyond',back:0.8,up:4},speed:8,lift:1.2,approach:[0.6,0.4],cling:1.1,sag:0.25,pose:{pitch:1.3,body:1.3,legs:0.3,stand:0,peck:0.35},look:[0.7,0.8],
       callCue:'woodpecker_call',flushCall:true,gain:0.8,acts:{first:[1,3],every:[3.5,8],hitch:[0.3,0.18],call:0.12,drum:{cue:'woodpecker_drum',length:[0.9,1.4],voiced:1.9,within:60,rate:16,peck:[0.75,0.35]}},

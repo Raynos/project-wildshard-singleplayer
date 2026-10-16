@@ -18,8 +18,7 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import { AmbientForager, foragerState, type ForagerState, type ForagerMotion } from '@wildshard/engine/ai/ambientForager';
-import { AmbientFlock, type AmbientFlockBird, type AmbientFlockPlayer, type AmbientPerch } from '@wildshard/engine/ai/ambientFlock';
-import { TrunkProbe } from './trunkProbe';
+import { AmbientFlock, type AmbientFlockBird, type AmbientFlockPlayer } from '@wildshard/engine/ai/ambientFlock';
 import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
 import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
 
@@ -80,19 +79,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   };
 
   // ── the birds: three ambient flock rows (the ravens at a kill, the owl on a snag top, the woodpecker on the bark) ──
-  const trunks = new TrunkProbe(data.perches), tf = data.trunkForager;
-  const snagTops: AmbientPerch[] = [], bark: AmbientPerch[] = [];
-  for (let i = 0; i < 131072; i++) { // every planted tree (a forest is far fewer)
-    const t = h.trees[i];
-    if (t === undefined) break;
-    const top = t.species === data.sentinel.species ? trunks.top(t) : null;
-    if (top !== null) snagTops.push(top);
-    const w = t.species === undefined ? undefined : tf.weights[t.species];
-    if (w === undefined) continue;
-    const y = t.y + rng.range(...tf.height), sec = trunks.section(t, y);
-    if (sec !== null) bark.push({ x: sec.x, y, z: sec.z, r: sec.r, w });
-  }
-  const ravens = new AmbientFlock(sc.flock), owl = new AmbientFlock(data.sentinel.flock, snagTops), wood = new AmbientFlock(tf.flock, bark);
+  const ravens = new AmbientFlock(sc.flock), owl = new AmbientFlock(data.sentinel.flock, data.sentinel.perches), wood = new AmbientFlock(data.trunkForager.flock, data.trunkForager.perches);
   const flocks = [ravens, owl, wood], pose = newPose(0);
   const lane = (b: AmbientFlockBird, l: AmbientFlock['row']['channels'][0][number]): number => typeof l === 'number' ? l : b[l];
   /** each flock's live birds into the wildlife draw, and its voices through the ambience's one-shots */
