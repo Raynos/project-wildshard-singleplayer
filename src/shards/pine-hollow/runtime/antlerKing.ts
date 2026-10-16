@@ -1,6 +1,5 @@
 import { installEnteredKingBindings } from './kingLifetime';
 import { kingFight, type KingFight } from '../combat/kingFight';
-import { ANTLER_KING_FIGHT } from '../data/kingFight';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES } from '../combat/strikes';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
@@ -19,10 +18,9 @@ import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 import * as THREE from 'three';
 import type { BossEncounter } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
-import { KINGS_CLEARING } from '../data/layout';
+import { KINGS_CLEARING, KING_ARENA_FOG, KING_FX_LOOKS } from './const';
 import { Puffs } from '../combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
-import { KING_FX_LOOKS } from '../data/kingFxLook';
 import { pineLook, setPineLookParam } from './looks/graphLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
@@ -121,7 +119,7 @@ export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => vo
   const lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, ctx.reach);
   const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, ctx.reach));
   // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
-  const R = ANTLER_KING_FIGHT.arena.fog;
+  const R = KING_ARENA_FOG;
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), pineLook(KING_FX_LOOKS.fog));
   wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = 26;
   wall.name = 'antler-king-fog-wall'; scene.add(wall);
