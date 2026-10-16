@@ -1,5 +1,6 @@
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs [--check]
 // The original fixed builders run offline; no colour quantization, simplification or material conversion.
+import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { Mesh, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -10,6 +11,7 @@ import { WorldBakeRows } from '@wildshard/sdk/bake/worldRows';
 import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { driftwoodGroundBytes } from './groundRows.ts';
 
+const blobOutput = namedBlobOutput(new URL('../', import.meta.url), 'driftwood-fixed-blobs');
 const assets = new URL('../../../../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');
 const write = (url, bytes) => {
@@ -24,6 +26,7 @@ const emit = (name, geometry) => {
     .map((key) => [key === 'aSway' ? '_SWAY' : `_${key.toUpperCase()}`, key]));
   const glb = staticGlb([{ geometry, material, customAttributes }], name);
   write(new URL(`${name}.glb`, assets), glb);
+  blobOutput.add(`models/fixed/${name}.glb`, 'glb', glb, `/assets/driftwood-isle/baked/fixed-models/${name}.glb`);
   geometry.dispose();
 };
 const headSource = await readSourceModel(new Uint8Array(readFileSync(new URL('../../../../public/assets/models/driftwood-hero/faces/wendell-head.glb', import.meta.url))));
@@ -56,4 +59,5 @@ if (!check) mkdirSync(folder, { recursive: true });
 for (const [hash, bytes] of baked.assets) write(new URL(hash, folder), bytes);
 write(new URL('../data/fixedTiles.generated.json', import.meta.url), `${JSON.stringify(product)}\n`);
 console.info(`Driftwood scene: ${fixed.geometries.size} source draws, ${product.tiles.length} tiles, ${baked.pieces.length} library subsets; ${baked.scenePath}`);
+blobOutput.finish(new URL('../data/fixedBlobs.generated.json', import.meta.url));
 material.dispose();

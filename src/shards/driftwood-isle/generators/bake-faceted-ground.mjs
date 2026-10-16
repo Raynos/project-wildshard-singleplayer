@@ -1,5 +1,6 @@
 // The faceted ground (generators/facetedGround.ts) baked on the real authored ground, bound exactly as the reef and
 // island-dressing producers bind it; two hash-named static GLBs, the grid and the slab (data/groundFiles.ts).
+import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {readNativeTerrain} from '@wildshard/sdk/bake/terrain';
@@ -21,9 +22,12 @@ binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=b
 let glbs;
 try{glbs=facetedGroundGlbs(binding.field,GROUND_LOOK,OCEAN.level);}
 finally{restoreGround();restoreLevel();}
-const files={};
+const files={},blobs=namedBlobOutput(new URL('../',import.meta.url),'driftwood-ground-blobs');
 for(const [part,bytes] of Object.entries(glbs)){
  const file=`ground-${createHash('sha256').update(bytes).digest('hex')}.glb`;
+ blobs.add(`world/ground/${part}.glb`,'glb',bytes,`/assets/driftwood-isle/baked/${file}`);
  writeFileSync(new URL(file,folder),bytes);files[part]=`/assets/driftwood-isle/baked/${file}`;
 }
 console.log(`ground-files ${JSON.stringify(files)}`);
+
+blobs.finish(new URL('../data/groundBlobs.generated.json',import.meta.url));

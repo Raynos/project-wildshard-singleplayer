@@ -101,3 +101,12 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   classic materials, cable endpoints, colliders and ride law stay.
 
 | Driftwood Isle | Baked sea grid and floor (sp-o240) | Three hash-named G405 build outputs: the phone grid `baked/ocean-e29cd70d….glb` 1,563,904 B raw / 491,313 B gzip-9, the desktop grid `baked/ocean-93422f68….glb` 3,315,552 / 1,059,449 B (one per tier) and the sea floor heights `baked/ocean-4594171d….bin` 524,288 / 395,048 B (both tiers). Cheap driftwood-ocean author job; outputs stay out of Git. | Replaces the runtime build of the coarsening sea grid (positions, aDepth, aSeed, index) and the 512² floor heights one to one; the foam-ring G channel stays runtime (it reads the placed colliders). Download is not a hold reason (G438). |
+
+- 2026-10-16 P2b Driftwood blob-source prerequisite: the existing fixed,
+  reef, ground, foliage/cover and zipline producers also emit 119 unique
+  named author inputs (64,124,496 B raw). Every input matches its existing
+  public payload byte for byte. Five build-only name/source manifests total
+  34,358 B raw / 7,270 B gzip; equal reef variants share one logical name.
+  These cached G405 outputs are not Git binaries. This prerequisite changes
+  no runtime consumer or shipped download; the W2b consumer switch records
+  the published blob inventory separately.

@@ -1,3 +1,4 @@
+import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {bakeIslandPlan,islandPlacements} from './islandCover.ts';
@@ -15,20 +16,20 @@ import {staticGlb} from '@wildshard/sdk/bake/glb';
 
 const root=new URL('../../../../',import.meta.url),folder=new URL('public/assets/driftwood-isle/baked/',root);
 mkdirSync(folder,{recursive:true});
-const hibiscusFiles={},palmFiles={};
-const emit=(bytes,extension,prefix='hibiscus')=>{const hash=createHash('sha256').update(bytes).digest('hex'),file=`${prefix}-${hash}.${extension}`;writeFileSync(new URL(file,folder),bytes);return `/assets/driftwood-isle/baked/${file}`;};
+const hibiscusFiles={},palmFiles={},blobs=namedBlobOutput(new URL('../',import.meta.url),'driftwood-dressing-blobs');
+const emit=(bytes,extension,prefix,name)=>{const hash=createHash('sha256').update(bytes).digest('hex'),file=`${prefix}-${hash}.${extension}`;writeFileSync(new URL(file,folder),bytes);const url=`/assets/driftwood-isle/baked/${file}`;if(name!==undefined)blobs.add(name,extension,bytes,url);return url;};
 const data=await islandDressing(url=>new Uint8Array(readFileSync(new URL(`public${url}`,root))), (tier,geometry,originals,plan)=>{
- const files={world:emit(hibiscusTransport(geometry,originals,plan),'bin')};
+ const files={world:emit(hibiscusTransport(geometry,originals,plan),'bin','hibiscus',`world/hibiscus/${tier}.bin`)};
  for(const variant of hibiscusBush.variants){
   const shape=leafClump({...hibiscusBush.defaults,...variant.params},new Rng(seedOf(hibiscusBush)));
-  try{files[variant.id]=emit(staticGlb([{geometry:shape,material:new MeshStandardMaterial(),customAttributes:{_SWAY:'aSway'},compactIndex:true}],`hibiscus-${variant.id}`),'glb');}finally{shape.dispose();}
+  try{files[variant.id]=emit(staticGlb([{geometry:shape,material:new MeshStandardMaterial(),customAttributes:{_SWAY:'aSway'},compactIndex:true}],`hibiscus-${variant.id}`),'glb','hibiscus',`models/hibiscus/${tier}/${variant.id}.glb`);}finally{shape.dispose();}
  }
  hibiscusFiles[tier]=files;
 },(tier,geometry,originals,plan)=>{
- const files={world:emit(foliageTransport(geometry,originals,plan,0x314d4c50,['position','color','sway']),'bin','palm')};
+ const files={world:emit(foliageTransport(geometry,originals,plan,0x314d4c50,['position','color','sway']),'bin','palm',`world/palms/${tier}.bin`)};
  for(const variant of palm.variants){
   const shape=palmGeometry({...palm.defaults,...variant.params},new Rng(seedOf(palm)));
-  try{files[variant.id]=emit(staticGlb([{geometry:shape,material:new MeshStandardMaterial(),customAttributes:{_SWAY:'sway'},compactIndex:true}],`palm-${variant.id}`),'glb','palm');}finally{shape.dispose();}
+  try{files[variant.id]=emit(staticGlb([{geometry:shape,material:new MeshStandardMaterial(),customAttributes:{_SWAY:'sway'},compactIndex:true}],`palm-${variant.id}`),'glb','palm',`models/palms/${tier}/${variant.id}.glb`);}finally{shape.dispose();}
  }
  palmFiles[tier]=files;
 });
@@ -39,6 +40,7 @@ const tiers={};
 for(const row of data.tiers){
  const hash=createHash('sha256').update(row.cover.bytes).digest('hex'),file=`island-cover-${hash}.bin`;
  writeFileSync(new URL(file,folder),row.cover.bytes);
+ blobs.add(`world/cover/${row.tier}.bin`,'bin',row.cover.bytes,`/assets/driftwood-isle/baked/${file}`);
  tiers[row.tier]={clips:row.clips,cover:{url:`/assets/driftwood-isle/baked/${file}`,hash,bytes:row.cover.bytes.length,used:row.cover.used,floats:(row.cover.bytes.length-16)/4,rect:row.cover.rect}};
 }
 writeFileSync(new URL('../data/islandDressing.generated.json',import.meta.url),`${JSON.stringify(Object.fromEntries(Object.entries(tiers).map(([tier,row])=>[tier,row.clips])))}\n`);
@@ -57,3 +59,5 @@ for(const tier of ['phone','desktop']){
  planFiles[tier]={url:emit(bytes,'json','island-plan'),bytes:bytes.length,used:plan.used};
 }
 console.log(`island-plan-files ${JSON.stringify(planFiles)}`);
+
+blobs.finish(new URL('../data/dressingBlobs.generated.json',import.meta.url));

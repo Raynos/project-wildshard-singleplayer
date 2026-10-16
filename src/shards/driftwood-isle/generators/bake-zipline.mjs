@@ -1,4 +1,5 @@
 // Authored launch and Explorer geometry; the page owns materials, collision and the ride.
+import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
 import { Vector3, Matrix4, Quaternion, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { CableLayout } from '@wildshard/sdk/movers';
@@ -15,16 +16,18 @@ const world = buildZiplineGeometry(cable(layout)), specimenCable = cable(specime
 const at = new Vector3(), yaw = specimenCable.park(at);
 specimen.trolley.applyMatrix4(new Matrix4().compose(at, new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), yaw), new Vector3(1, 1, 1)));
 const material = new MeshStandardMaterial({ vertexColors: true });
-const files = {};
+const files = {}, blobs = namedBlobOutput(new URL('../', import.meta.url), 'driftwood-zipline-blobs');
 for (const [name, geometry] of Object.entries({ world: world.rig, trolley: world.trolley, specimen: specimen.rig, parked: specimen.trolley })) {
   const customAttributes = Object.fromEntries(Object.keys(geometry.attributes).filter(key => !['position', 'normal', 'color', 'uv'].includes(key)).map(key => [`_${key.toUpperCase()}`, key]));
   const bytes = staticGlb([{ geometry, material, customAttributes }], `zipline-${name}`);
-  const file = `zipline-${outputHash(bytes)}.glb`;
+  const hash = outputHash(bytes), file = `zipline-${hash}.glb`;
   writer.put(fileURLToPath(new URL(`../../../../public/assets/driftwood-isle/baked/${file}`, import.meta.url)), bytes);
+  blobs.add(`models/zipline/${name}.glb`, 'glb', bytes, `/assets/driftwood-isle/baked/${file}`);
   files[name] = `/assets/driftwood-isle/baked/${file}`;
   console.info(`${name}: ${bytes.byteLength} B; channels ${Object.keys(geometry.attributes).join(',')}`);
   geometry.dispose();
 }
 material.dispose();
 writer.put(fileURLToPath(new URL('../data/zipline.generated.json', import.meta.url)), `${JSON.stringify({ ...files, layout, specimenLayout }, null, 2)}\n`);
+blobs.finish(new URL('../data/ziplineBlobs.generated.json', import.meta.url));
 writer.finish();
