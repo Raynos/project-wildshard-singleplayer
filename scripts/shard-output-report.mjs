@@ -6,26 +6,25 @@ import {outputContent} from './shard-output-content.mjs';
 import {customSectionFailures} from './shard-platform-sections.mjs';
 import {genPortShares} from './gen-port-shares.mjs';
 import {writeGeneratorInventory} from './generator-inventory.mjs';
-import {gridReady,unknownGridReady,m3Progress,planProgress} from './shard-milestones.mjs';
+import {gridReady,m3Progress,planProgress} from './shard-milestones.mjs';
+import {runtimeReceiptPaths} from './grid-runtime-evidence.mjs';
 
 /** Caller holds the heavy build lane (or measures the gate's exact HEAD output).
  * Each closed shard is copied strictly; an unclosed shard never gets a percent.
- * @param {string} root @param {{build?:boolean,products?:string}} options */
-export async function outputReport(root,{build=true,products=resolve(root,'out')}={}) {
+ * @param {string} root @param {{build?:boolean,products?:string,revision?:string|null,receipts?:readonly string[]}} options */
+export async function outputReport(root,{build=true,products=resolve(root,'out'),revision=process.env.VERCEL_GIT_COMMIT_SHA??null,receipts=runtimeReceiptPaths(root)}={}) {
   const closure=runtimeClosures(root),closed=Object.keys(closure).filter(slug=>closure[slug].status==='closed');
-  const completed=[];
-  if(build&&closed.length>0) {
+  if(build) {
     if(products!==resolve(root,'out'))throw new Error('Build reports publish only to out/');
     const {buildShardfiles}=await import('./build-shardfiles.mjs');
-    for(const slug of closed) {
-      try {await buildShardfiles(root,{strict:false,only:[slug],copyRuntime:true,reuse:true});completed.push(slug);}
-      catch(error) {closure[slug]={...closure[slug],status:'unclosed',refusal:error instanceof Error?error.message:String(error)};}
-    }
+    // Preparation copies raw-closed runtimes strictly and emits
+    // unclosed products without copies. All receive actual byte-validation evidence.
+    await buildShardfiles(root,{strict:false,copyRuntime:'closed',reuse:true});
   }
-  const measures=outputShardLines(root,true,products,build?completed:closed);
+  const measures=outputShardLines(root,true,products,closed);
   const source=Object.values(closure).some(row=>row.status==='unclosed')?sourceProgressLines(root):{};
   const rows=Object.fromEntries(Object.entries(closure).map(([slug,state])=>{
-    const ready=state.status==='unclosed'?unknownGridReady('Runtime unclosed; no current verified output'):gridReady(root,slug,products);
+    const ready=gridReady(root,slug,products,{revision,receipts});
     if(state.status==='unclosed') {
       const progress=source[slug];
       return [slug,{...state,customPercent:null,port:null,gridReady:ready,m3:m3Progress(slug,progress),

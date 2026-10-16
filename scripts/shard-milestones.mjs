@@ -2,7 +2,8 @@
 import {existsSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {outputFormat} from './shard-platform-format.mjs';
+import {outputFormat,gridReadinessFormat} from './shard-platform-format.mjs';
+import {runtimeGridEvidence} from './grid-runtime-evidence.mjs';
 
 export const MILESTONE_SHARDS=['far-reach','sunscar-dunes','pine-hollow','driftwood-isle','nalati-grasslands','nine-dragon-stack'];
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -19,34 +20,37 @@ export function unknownGridReady(evidence='No bound output validation evidence')
 /** Only byte-bound emitted metadata and the writer's matching receipt supply
  * evidence. Missing or stale artifacts stay unknown; source declarations and
  * a successful standalone boot never stand in for grid readiness.
- * @param {string} root @param {string} slug @param {string} products */
-export function gridReady(root,slug,products) {
+ * @param {string} root @param {string} slug @param {string} products
+ * @param {{revision?:string|null,receipts?:readonly string[]}} options */
+export function gridReady(root,slug,products,{revision=null,receipts=[]}={}) {
   const {criteria}=unknownGridReady();
-  const result=()=>({verdict:readinessVerdict(criteria),criteria});
+  /** @type {import('./shard-milestones.mjs').GridReady['binding']} */
+  let binding;
+  const result=()=>({verdict:readinessVerdict(criteria),criteria,...(binding===undefined?{}:{binding})});
   const directory=resolve(products,slug),indexPath=resolve(directory,'shard.json'),receiptPath=resolve(directory,'validation.json');
   if(!existsSync(indexPath)||!existsSync(receiptPath))return result();
   try {
     const bytes=readFileSync(indexPath),index=outputFormat.parseOutputIndex(JSON.parse(bytes.toString('utf8'))),receipt=JSON.parse(readFileSync(receiptPath,'utf8'));
     if(receipt.indexHash!==hash(bytes)||receipt.revision!==index.build.validator||receipt.sourceHash!==index.build.sourceHash)return result();
+    binding={indexHash:hash(bytes),validationHash:hash(readFileSync(receiptPath)),sourceHash:index.build.sourceHash,validator:index.build.validator,revision};
     const sections=new Map();
     for(const row of index.sections) {
       const payload=readFileSync(resolve(directory,row.path));
       if(payload.length!==row.bytes||hash(payload)!==row.hash)return result();
       sections.set(row.name,JSON.parse(payload.toString('utf8')));
     }
-    // The defining validator checks the four 8m midpoint entries at y=0,
-    // their edge openings and the accent palette, not a private approximation.
+    if(receipt.gridReady===undefined)return result();
+    // The writer emits this only after actual asset admission, including the full
+    // 8x15m terrain/mesh/prop/collider/water checks, not just the metadata schema.
     const source=outputFormat.assembleOutputShardfile(index,sections);
-    criteria.bakedTiles={verdict:source.tiles.some(row=>row.lod===0)?'pass':'fail',evidence:`${source.tiles.length} admitted render tiles`};
-    criteria.edgeProfile={verdict:'pass',evidence:'Defining edge schema and semantic validation pass'};
-    criteria.fourEntryways={verdict:'pass',evidence:'Defining entryway schema: four unique 8m midpoint entries and road-height openings'};
-    criteria.hudAccent={verdict:'pass',evidence:`Validated accent ${source.accent}`};
+    const structural=gridReadinessFormat.parseGridStructuralEvidence(receipt.gridReady);
+    if(JSON.stringify(structural)!==JSON.stringify(gridReadinessFormat.structuralGridEvidence(source)))throw new Error('Grid evidence differs from emitted sections');
+    for(const [name,criterion] of Object.entries(structural.criteria))criteria[name]={...criterion,
+      evidence:`index sha256:${hash(bytes)}, validation sha256:${hash(readFileSync(receiptPath))}: ${criterion.evidence}`};
     const caps=JSON.parse(readFileSync(resolve(root,'src/format/memoryGates.json'),'utf8'));
-    const playing=receipt.worst?.playing,loading=receipt.worst?.loading;
-    if([playing,loading,caps.explorerMB,caps.loadingMB].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>=0))criteria.memory={
-      verdict:playing<=caps.explorerMB*1_000_000&&loading<=caps.loadingMB*1_000_000?'pass':'fail',
-      evidence:`Validated model ${playing}/${loading} bytes; playing/loading caps ${caps.explorerMB}/${caps.loadingMB} MB`};
-    criteria.oneFrameLooks={verdict:'unknown',evidence:'No exact-output one-frame look witness in the build receipt'};
+    criteria.memory={verdict:'unknown',evidence:'No qualified exact-SHA boot/soak/milestone native memory receipt; declared costs are not readings'};
+    criteria.oneFrameLooks={verdict:'unknown',evidence:'No exact-SHA Safari grid look/travel witness'};
+    if([caps.explorerMB,caps.loadingMB].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>0))Object.assign(criteria,runtimeGridEvidence(root,slug,revision,receipts,caps));
   } catch(error) {
     criteria.validation={verdict:'fail',evidence:`Output validation refused: ${error instanceof Error?error.message:String(error)}`};
   }

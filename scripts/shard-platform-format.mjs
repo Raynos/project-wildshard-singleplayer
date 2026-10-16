@@ -16,3 +16,4 @@ registerHooks({resolve(specifier,context,next) {
   return next(specifier,context);
 }});
 export const outputFormat=await import('@wildshard/format/outputIndex');
+export const gridReadinessFormat=await import('@wildshard/format/gridReadiness');

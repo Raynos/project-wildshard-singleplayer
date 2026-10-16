@@ -25,11 +25,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const log=console.log,info=console.info;
     if(process.argv.includes('--json')){console.log=console.error;console.info=console.error;}
     let report;
-    try {report=await outputReport(ROOT,{build,products});}
+    const receipts=process.argv.filter(value=>value.startsWith('--grid-receipt=')).map(value=>value.slice('--grid-receipt='.length));
+    try {report=await outputReport(ROOT,{build,products,...(receipts.length===0?{}:{receipts})});}
     finally {console.log=log;console.info=info;}
     const {rows,measures,failures,progress}=report;
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  custom sections / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {

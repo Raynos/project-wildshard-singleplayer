@@ -27,11 +27,13 @@ node scripts/build-mirror.mjs run HEAD --slot check3 -- \
   node scripts/shard-platform.mjs --json --check
 ```
 
-The command prepares official inputs under the heavy build lane, then asks
-the P3 writer to copy each closed runtime strictly. Products publish through
-the writer's temporary directory and rename. One shard's failed strict copy
-is reported as unclosed with its refusal; it cannot block another shard's
-completed measure. `--no-build` reads an already built exact tree and still
+The command prepares official inputs under the heavy build lane, then runs
+the P3 closed-runtime preparation pass: closed clients are copied strictly and
+escaping runtimes retain their source-mode marker. All products are built
+and byte-validated, so unclosed runtimes still supply grid facts. Products
+publish through the writer's temporary directory and rename. Runtime escape
+counts still determine which shards may receive an output percentage.
+`--no-build` reads an already built exact tree and still
 refuses missing, partial, corrupt or non-standalone copies.
 
 G294 roots are the actual copied runtime files and the defining named hosts
@@ -70,11 +72,11 @@ percentage or port badge. AssemblyScript remains a separate visibility unit.
 
 Grid readiness lists baked tiles, edge profile, the four midpoint entries,
 memory, HUD accent and one-frame looks individually as pass/fail/unknown.
-The defining format validator and a byte-bound output receipt supply the
-structural evidence and declared memory model; that model is not a physical
-phone measurement. Unclosed runtimes have no current verified output, so
-their grid evidence stays unknown. A one-frame look witness is not present
-in current build receipts and is never inferred from metadata or a boot.
+The writer emits structural evidence only after full actual asset
+admission. The reader checks the index/source/validator binding, receipt
+bytes and agreement with emitted sections. This is independent of runtime
+closure. Declared memory costs never supply a reading. Memory and one-frame
+looks stay unknown without eligible exact-SHA measured receipts.
 
 The plan line is `60% * M3 + 40% * M2`, with M2 the six grid-ready verdicts.
 When grid evidence is incomplete it reports a lower/upper range, counting
@@ -100,3 +102,56 @@ plan range is **10.44–50.44%**, not a completed-grid claim.
 Validation: six focused behaviours, root types, typed lint and the real
 per-shard census pass. This is a reporting change, with no rendering or
 simulation changes.
+
+## M2 evidence
+
+`validation.json.gridReady` records L0 baked-tile presence (fail if absent),
+four edge profiles, all four y=0 / 8m / 15m entry clearances and the HUD
+accent. The report names the exact index and validation hashes. Full asset
+admission checks terrain, mesh/socket landings, props, colliders and water
+before the writer can emit this stamp. Missing legacy stamps stay unknown;
+changed stamps, indexes or sections cannot borrow an earlier pass.
+
+The reader uses the mirror's `VERCEL_GIT_COMMIT_SHA` as the measured revision.
+It accepts qualified native WebContent-plus-labelled-GPU soak peaks for an
+actually admitted shard, and completed plain Safari milestone grid windows
+for the shard actually entered. Newer observations override older passes.
+Rehearsals, incomplete sampling, other SHAs, standalone-only frames and
+unmeasured memory provide no credit. Current frame-floor receipts have no
+native memory readings; GL allocation telemetry is not substituted.
+
+Default discovery reads small retained milestone/soak receipt locations
+under `progress/shard-platform`. The standard mirror excludes `progress`,
+so pass retained receipts explicitly, without copying their directories:
+
+```sh
+node scripts/build-mirror.mjs run <measured-sha> --slot check3 -- \
+  node scripts/shard-platform.mjs --json \
+  --grid-receipt=/absolute/path/to/receipt.json
+```
+
+Repeat `--grid-receipt` for multiple receipts; the newest qualified result
+wins per criterion. Missing exact-SHA native readings or look/travel windows
+remain unknown. The plan keeps its outcome-based lower/upper range.
+
+The [first structural census](grid-ready.json) measures
+`51ef22115382df27bbb75a8063507c913ca6e68f`. All ten products build and
+validate; all six ported runtimes remain unclosed. The four structural
+criteria now have evidence:
+
+| Shard | Baked tiles | Edge | Four entries | HUD accent | Memory | Looks/travel | Grid-ready |
+|---|---|---|---|---|---|---|---|
+| Sky | pass | pass | pass | pass | unknown | unknown | unknown |
+| Signal | pass | pass | pass | pass | unknown | unknown | unknown |
+| Pine | pass | pass | pass | pass | unknown | unknown | unknown |
+| Driftwood | pass | pass | pass | pass | unknown | unknown | unknown |
+| Nalati | **fail: 0 tiles** | pass | pass | pass | unknown | unknown | fail |
+| Nine | pass | pass | pass | pass | unknown | unknown | unknown |
+
+No qualifying memory or look/travel receipt matches this exact SHA. M2 has
+0 passes, 1 fail and 5 unknowns. Source-labelled M3 is 17.23%; the provisional
+plan range is **10.34–43.67%**. This records missing evidence and the actual
+Nalati output gap; it claims no completed grid-ready shard or new line cut.
+
+Eleven focused behaviours, root types, typed lint and the real ten-product
+census pass. These checks cover the build/report path.

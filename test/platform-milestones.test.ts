@@ -9,8 +9,10 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {emptyShardfile} from '../src/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputIndex';
+import {structuralGridEvidence} from '../src/format/gridReadiness';
 import {MILESTONE_SHARDS,m3Progress,planProgress,gridReady,readinessVerdict} from '../scripts/shard-milestones.mjs';
 import {sourceProgressLines} from '../scripts/shard-platform.mjs';
+import {outputReport} from '../scripts/shard-output-report.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
 it('weights actual must-go lines and keeps unknown M2 evidence out of a point claim',()=>{
@@ -28,7 +30,7 @@ it('weights actual must-go lines and keeps unknown M2 evidence out of a point cl
  expect(readinessVerdict({})).toBe('unknown');
 });
 
-it('requires bound validation evidence for each grid-ready criterion',()=>{
+it('requires bound validation evidence while keeping unclosed output percentages unavailable',async()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-grid-ready-'));
  try{
   const products=join(root,'out');
@@ -38,16 +40,24 @@ it('requires bound validation evidence for each grid-ready criterion',()=>{
   mkdirSync(join(root,'src/format'),{recursive:true});
   writeFileSync(join(root,'src/format/memoryGates.json'),JSON.stringify({explorerMB:1200,loadingMB:1800}));
   const bytes=readFileSync(join(products,'pine-hollow/shard.json'));
-  const receipt={indexHash:createHash('sha256').update(bytes).digest('hex'),revision:'fixture',sourceHash:'0'.repeat(64),worst:{playing:100,loading:200}};
+  const receipt={indexHash:createHash('sha256').update(bytes).digest('hex'),revision:'fixture',sourceHash:'0'.repeat(64),worst:{playing:100,loading:200},gridReady:structuralGridEvidence(source)};
   const path=join(products,'pine-hollow/validation.json');writeFileSync(path,JSON.stringify(receipt));
   const ready=gridReady(root,'pine-hollow',products);
   expect(ready.criteria['fourEntryways']?.verdict).toBe('pass');
   expect(ready.criteria['hudAccent']?.verdict).toBe('pass');
-  expect(ready.criteria['memory']?.verdict).toBe('pass');
+  expect(ready.criteria['memory']?.verdict).toBe('unknown');
   expect(ready.criteria['oneFrameLooks']?.verdict).toBe('unknown');
   expect(ready.criteria['bakedTiles']?.verdict).toBe('fail');
+  expect(ready.binding?.indexHash).toBe(receipt.indexHash);
+  mkdirSync(join(root,'src/shards/pine-hollow/runtime'),{recursive:true});
+  writeFileSync(join(root,'src/shards/pine-hollow/runtime/index.ts'),"import value from '../data/rows'; export const rows=value;");
+  mkdirSync(join(root,'lint'),{recursive:true});writeFileSync(join(root,'lint/ratchet.json'),JSON.stringify({allow:{},budgets:{}}));
+  const report=await outputReport(root,{build:false});
+  expect(report.rows['pine-hollow']).toMatchObject({status:'unclosed',customPercent:null,port:null,gridReady:{criteria:{fourEntryways:{verdict:'pass'}}}});
   writeFileSync(path,JSON.stringify({...receipt,worst:{playing:1_200_000_001,loading:200}}));
-  expect(gridReady(root,'pine-hollow',products).criteria['memory']?.verdict).toBe('fail');
+  expect(gridReady(root,'pine-hollow',products).criteria['memory']?.verdict).toBe('unknown');
+  writeFileSync(path,JSON.stringify({...receipt,gridReady:{...receipt.gridReady,criteria:{...receipt.gridReady.criteria,bakedTiles:{verdict:'pass',evidence:'forged'}}}}));
+  expect(gridReady(root,'pine-hollow',products).criteria['validation']?.verdict).toBe('fail');
   writeFileSync(path,JSON.stringify({...receipt,indexHash:'f'.repeat(64)}));
   expect(gridReady(root,'pine-hollow',products).verdict).toBe('unknown');
  }finally{rmSync(root,{recursive:true,force:true});}

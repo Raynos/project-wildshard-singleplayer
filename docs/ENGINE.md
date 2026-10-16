@@ -6908,7 +6908,18 @@ receipt after full on-disk asset admission. The defining
 `format/gridReadiness.structuralGridEvidence` records L0 baked-tile presence,
 four edge profiles, all four y=0 midpoint openings and their full 8 x 15 m
 terrain/mesh/socket/prop/collider/water clearance, and the HUD palette accent.
+The report checks both the receipt binding and its agreement with emitted
+sections; runtime closure is independent. Unclosed products can have grid
+facts while their custom percentage remains unavailable.
 
+G458 memory and look/travel verdicts require measured exact-source-SHA
+receipts. Declared costs never supply a memory reading. The report accepts
+qualified native WebContent-plus-labelled-GPU soak peaks and completed
+Safari milestone grid windows for the shard actually entered. It hashes
+the receipt bytes, uses current memory caps and lets the latest eligible
+observation override an older pass. Missing/stale/incomplete readings stay
+unknown. Current frame-floor receipts have no native memory field, so their
+GL allocation journal alone cannot pass memory. No runtime is installed.
 
 Runtime copies may import only installed public exports of
 `@wildshard/engine`, `@wildshard/game`, `@wildshard/sdk`,
