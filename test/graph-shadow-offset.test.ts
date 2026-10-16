@@ -1,14 +1,18 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { vec3 } from 'three/tsl';
+import { NodeUpdateType, TextureNode } from 'three/webgpu';
+import { uv, vec3 } from 'three/tsl';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { tentShadowFilter } from '../src/engine/render/nodes/tentShadowFilter';
+import { planeBiasShadowFilter } from '../src/engine/render/nodes/planeBiasShadowFilter';
+import { shadowDepthSample } from '../src/engine/render/nodes/shadowDepthSample';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
-function program(compiled: ReturnType<typeof compileGraph>): THREE.WebGLProgramParametersWithUniforms {
+function program(compiled: ReturnType<typeof compileGraph>, filter?: typeof tentShadowFilter): THREE.WebGLProgramParametersWithUniforms {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
   const fields: Record<string, unknown> = {
@@ -29,6 +33,7 @@ function program(compiled: ReturnType<typeof compileGraph>): THREE.WebGLProgramP
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
   scene.fog = new THREE.Fog(0xaaaaaa, 1, 100);
   const sun = new THREE.DirectionalLight(0xffffff, 1); sun.castShadow = true;
+  if (filter !== undefined) Reflect.set(sun.shadow, 'filterNode', filter);
   const target = new THREE.WebGLRenderTarget(8, 8); target.depthTexture = new THREE.DepthTexture(8, 8); target.depthTexture.compareFunction = THREE.LessEqualCompare;
   sun.shadow.map = target;
   scene.add(object, sun); handler.renderStart(scene, camera); handler.updateLights([sun]);
@@ -39,14 +44,14 @@ function program(compiled: ReturnType<typeof compileGraph>): THREE.WebGLProgramP
   finally { geometry.dispose(); target.dispose(); handler.renderEnd(); }
 }
 
-test('receiver offsets reach real shadow shaders and live uniforms without moving the caster', () => {
+test.each([tentShadowFilter, planeBiasShadowFilter])('receiver offsets reach filtered shadow shaders and live uniforms without moving the caster (%#)', filter => {
   const ir: GraphIr = { version: 1, kind: 'material', model: 'standard', params: { shift: { type: 'vec3', value: [0.12, 0.07, -0.03] } },
     nodes: { shift: { op: 'param', param: 'shift' } }, stages: { surface: { colour: [0.2, 0.5, 0.8] }, 'shadow.offset': { offset: 'shift' } } };
   const compiled = compileGraph(ir), plain = compileGraph({ ...ir, stages: { surface: ir.stages.surface } });
   try {
     expect(compiled.material.positionNode).toBeNull(); expect(compiled.material.receivedShadowPositionNode).not.toBeNull();
     expect(plain.material.receivedShadowPositionNode).toBeNull();
-    const shader = program(compiled), version = compiled.material.version;
+    const shader = program(compiled, filter), version = compiled.material.version;
     expect(shader.fragmentShader).toContain('shadowPositionWorld');
     const holds = (point: THREE.Vector3): boolean => Object.values(shader.uniforms).some(u => u.value instanceof THREE.Vector3 && u.value.equals(point));
     expect(holds(new THREE.Vector3(0.12, 0.07, -0.03))).toBe(true);
@@ -59,4 +64,21 @@ test('receiver offsets reach real shadow shaders and live uniforms without movin
     expect(validateGraph({ ...ir, model: 'unlit' }).ok).toBe(false);
     expect(validateGraph({ ...ir, kind: 'post', stages: { post: { colour: [1, 1, 1] }, 'shadow.offset': { offset: 'shift' } } }).ok).toBe(false);
   } finally { compiled.material.dispose(); plain.material.dispose(); }
+});
+
+test('shadow depth comparisons keep their fixed orientation without object updates and refuse colour maps', () => {
+  const depth = new THREE.DepthTexture(4, 4), replacement = new THREE.DepthTexture(8, 8), colour = new THREE.Texture();
+  depth.compareFunction = THREE.LessEqualCompare; replacement.compareFunction = THREE.LessEqualCompare;
+  expect(shadowDepthSample(depth, uv()).constructor).toBe(TextureNode); // Default-off retains stock sampling.
+  const sample = shadowDepthSample(depth, uv(), true).compare(0.5);
+  const compiled = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } });
+  compiled.material.colorNode = vec3(sample.x);
+  try {
+    program(compiled);
+    expect(sample.updateType).toBe(NodeUpdateType.NONE);
+    sample.value = replacement; program(compiled);
+    expect(sample.value).toBe(replacement);
+    sample.value = colour;
+    expect(() => program(compiled)).toThrow('Shadow comparison needs a depth texture');
+  } finally { compiled.material.dispose(); depth.dispose(); replacement.dispose(); colour.dispose(); }
 });

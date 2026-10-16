@@ -11,7 +11,8 @@
  */
 import type * as THREE from 'three';
 import type { Node } from 'three/webgpu';
-import { Fn, If, abs, clamp, dFdx, dFdy, dot, float, floor, min, reference, select, texture, vec2 } from 'three/tsl';
+import { Fn, If, abs, clamp, dFdx, dFdy, dot, float, floor, min, reference, select, vec2 } from 'three/tsl';
+import { shadowDepthSample } from './shadowDepthSample';
 
 /** what three's shadow node hands a filter (the index signature: Fn's object-argument overload needs one) */
 interface FilterInputs {
@@ -38,7 +39,7 @@ export const tentShadowFilter = Fn<FilterInputs, Node<'float'>>(({ depthTexture,
   const tap = (u: Node<'float'>, v: Node<'float'>): Node<'float'> => {
     const o = vec2(u, v);
     const z = shadowCoord.z.add(min(0, dot(o.sub(vec2(ts, tt)), zSlope)));
-    return texture(depthTexture, tbase.add(o.mul(inv))).compare(z).x; // a compare sample is a float
+    return shadowDepthSample(depthTexture, tbase.add(o.mul(inv))).compare(z).x; // a compare sample is a float
   };
   const out = float(1).toVar();
   If(radius.greaterThanEqual(1.5), () => {

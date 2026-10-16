@@ -10,7 +10,8 @@
  */
 import type * as THREE from 'three';
 import type { Node } from 'three/webgpu';
-import { Fn, abs, clamp, dFdx, dFdy, dot, float, int, interleavedGradientNoise, min, reference, screenCoordinate, select, texture, vec2, vogelDiskSample } from 'three/tsl';
+import { Fn, abs, clamp, dFdx, dFdy, dot, float, int, interleavedGradientNoise, min, reference, screenCoordinate, select, vec2, vogelDiskSample } from 'three/tsl';
+import { shadowDepthSample } from './shadowDepthSample';
 
 /** what three's shadow node hands a filter (the index signature: Fn's object-argument overload needs one) */
 interface FilterInputs {
@@ -34,7 +35,7 @@ export const planeBiasShadowFilter = Fn<FilterInputs, Node<'float'>>(({ depthTex
   for (let i = 0; i < 5; i++) {
     const o = vogelDiskSample(int(i), int(5), phi).mul(radiusScaled);
     const z = shadowCoord.z.add(min(0, dot(o, zSlope)));
-    sum = sum.add(texture(depthTexture, shadowCoord.xy.add(o)).compare(z).x); // a compare sample is a float
+    sum = sum.add(shadowDepthSample(depthTexture, shadowCoord.xy.add(o)).compare(z).x); // a compare sample is a float
   }
   return sum.mul(0.2);
 });

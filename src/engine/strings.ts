@@ -4,6 +4,8 @@ export const ENGINE_STRINGS = {
   "s_explore_playgrounds": "⟦0⟧ · playgrounds",
   "s_memory_saver": "Memory saver",
   "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
+  "s_fixed_shadow_samples": "Fixed shadow samples",
+  "s_fixed_shadow_samples_note": "G437 · E435: remove fixed depth-texture flip updates. Off while horizon differences are reviewed; reloads",
   "s_graph_materials": "Graph materials",
   "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",
   "s_build_pacing": "Build pacing in play",
