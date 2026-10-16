@@ -29,7 +29,6 @@ import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
 import { admitPaintedTextures } from './looks/paintedTextures';
 import { crossbowHeldRows } from './items/boltCrossbow';
-import { leverHeldRows } from './items/leverFirearm';
 import { crossbowDisplayModel } from './weapons/crossbow/display';
 import { Cabins, loadCabinRows } from './world/homestead';
 import { updatePineForest } from '../world/treeFactory';
@@ -61,7 +60,8 @@ import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { isPhShot } from './audio/sfx';
 import { installWeather, loadPineRain } from '../world/weather';
-import { LeverRifle, preloadLeverModel } from './weapons/LeverRifle';
+import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRifle';
+import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS, pineFinishEffect } from '../loadout/effects';
@@ -180,7 +180,7 @@ export class PineHollow extends ShardPlugin {
     const crossbowHeld = crossbowHeldRows(ctx.product), leverHeld = leverHeldRows(ctx.product);
     rt.buildEquipment = runtimeEquipment([
       { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },
-      { slot: 'rifle', create: (targets, nolock) => new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld }) },
+      { slot: 'rifle', create: (targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld }) },
       { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
       if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');
@@ -212,7 +212,7 @@ export class PineHollow extends ShardPlugin {
     installEnteredPineScore(ctx, audio, music, ctx.debugRow);
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
-    if (!(rifle instanceof LeverRifle) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
+    if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
     installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     rt.hooks.wearFinish = (id) => {

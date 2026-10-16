@@ -13,7 +13,7 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { Rifle } from './weapons/Rifle';
+import { rifle as buildRifle } from './weapons/magazineFirearm';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 import { prepareGrassV2 } from '../look/grass';
 import { Vector3 } from 'three';
@@ -97,7 +97,7 @@ export class NalatiPlugin extends ShardPlugin {
       const kit = await buildNalatiLoadoutSliced(world, targets, nolock, macrotask); // SF67: a task apart per weapon
       this.loadout = kit;
       await macrotask();
-      const rifle = new Rifle(world, targets, { row: AR15, allowUnlocked: nolock, muzzleLight: true });
+      const rifle = buildRifle(world, targets, { row: AR15, allowUnlocked: nolock, muzzleLight: true });
       bindNalatiItems(ctx, { bow: kit.bow, sabre: kit.sabre, spear: kit.spear, rifle });
       return { primary: kit.base, rifle, secondary: null, extras: kit.extras, order: ['bow', 'sabre', 'spear'], install: (weapons) => { kit.install(weapons); } };
     };

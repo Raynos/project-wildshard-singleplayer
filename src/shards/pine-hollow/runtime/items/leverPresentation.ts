@@ -1,11 +1,10 @@
-import type { LeverFirearmView } from './leverFirearm';
 import type { HandHold } from '../viewmodel/gloveHands';
 import { BUCKSKIN } from '../const';
 
 /** Authored rifle presentation: metres, seconds and radians. Kick is 1.25 degrees.
  * Gameplay magazine/reserve and action timing remain in the admitted weapon profile.
  * The existing ranged/held owners consume these values without a new controller. */
-export const LEVER_PRESENTATION: Omit<LeverFirearmView, 'magazine' | 'reserve' | 'timing'> = {
+export const LEVER_PRESENTATION = {
   kick: 0.02181661564992912,
   flash: { frames: 2, lightTime: 0.06, light: 34 },
   brass: { count: 4, life: 1.8 }, tracer: { count: 2, time: 0.09 }, adsMotion: 0.3,
@@ -14,7 +13,7 @@ export const LEVER_PRESENTATION: Omit<LeverFirearmView, 'magazine' | 'reserve' |
   hammerPivot: [0, -0.006, 0.122], port: [0, 0.026, 0.045],
   hip: { px: 0.07, py: -0.085, pz: -0.26, rx: 0.05, ry: 0.14, rz: -0.15, scale: 1 },
   cyclePose: { px: -0.03, py: 0.03, pz: 0, rx: 0.1, ry: 0.1, rz: -0.45 },
-};
+} as const;
 
 /** Rest/gate holds retain property order: the existing hands bake keys these rows. */
 export const LEVER_HAND_HOLDS: { left: HandHold; right: HandHold; gate: Omit<HandHold, 'spec'> } = {

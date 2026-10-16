@@ -3649,6 +3649,21 @@ Captain remains its custom recipe; this slice does not claim to port that boss.
 
 SF85 WP-5: `@wildshard/game/plugin/weaponFamily` defines both the built-in held-item families and weapon hooks. `registerWeaponFamily(registry, id, family)` inserts a trusted weapon constructor into a caller-owned session-local `Map`; it never allocates the weapon or installs inputs. Names must be bounded dotted ids outside `kit.*`; duplicates and non-weapon families refuse. The existing item binder checks the shard namespace and all item declarations before construction. Signal and Sky register their native lash and fan factories; local models, cues and continuation owners remain in the shard.
 
+H3 (G466 C6 view): `@wildshard/game/plugin/heldFirearm` is the data-only held-firearm host. `new HeldFirearm(world,
+targets, { row, profile, view, rows, model, hands? })` takes no callbacks (G454): `model.geometry` is borrowed geometry by
+id (a GLB's node names) plus `rows.primitives` merged per id; `rows.materials` builds the viewmodels' shared lit program
+(`look`, over `model.textures` and the procedural `rows.textures`) or an unlit sight glow (`basic`); `rows.parts` places
+each mesh at an anchor (`sighted: false` hides a stock under the eye, `display` adds it to `displayModel()` and
+`heldFirearmDisplay`, the Model Explorer card). The profile picks the action: a `lever` row runs `RangedAction.Cycle`
+(per-round gate, events `cycle`/`eject`/`chambered`/`reloadStart`/`round`/`reloadEnd` at their original boundaries), else a
+magazine on `RangedReload` with bloom. `rows.playback` is HeldPlayback groups with input bindings, outputs onto the
+host records (`frame`, `sight`, `values`, `grip`) and a `schedule` (action groups, grip groups, frame, sight, pose).
+`hands` are two baked fists on `HeldHandParts`, the right posed by the grip groups. Rows read owner paths on `weapon`
+(`time`, `player`, `feel`, `holster`, `hip`, `view`, `profile`, `act`, `partValues`, `poseFrame`, `adsPose`, `grips`,
+`handFrame`, `gate`, `anchors.<id>`, `round`, `inspect`, `game`): a data contract, so a rename moves the JSON paths.
+`parseHeldModelRows` admits a model's JSON rows. Users: Pine's lever-action (GLB parts, the hunter's hands) and Nalati's
+AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`).
+
 `@wildshard/engine/combat/contactWeapon` defines the renderer-free
 `ContactWeaponHost` and `HeldWeaponClock`. Signal's lash and Sky's fan consume
 these same clocks, contact-shape arithmetic and ordered pipeline responses.

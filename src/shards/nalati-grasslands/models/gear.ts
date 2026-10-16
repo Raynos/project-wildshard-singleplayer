@@ -6,17 +6,16 @@
  * drawing the held ones; each card is a separate build by the weapon's own builder on its own materials, put back in the
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';
 import { arrowMaterial, bowSpecimen, buildArrowGeometry, type BowStyle } from '../weapons/recurve';
-import { buildRifleParts } from '../runtime/weapons/Rifle';
+import { rifleSpecimen } from '../runtime/weapons/magazineFirearm';
 import { buildSabre } from '../runtime/weapons/Sabre';
 import { buildJavelin, buildSpear, type SpearParts } from '../runtime/weapons/Spear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
 import { goldenBowModel } from '../runtime/weapons/GoldenBow';
 import { naizagaiModel } from '../runtime/weapons/Naizagai';
 
-import { whiteColors } from '@wildshard/engine/combat/view/ranged';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 
@@ -114,7 +113,7 @@ export const naizagai: ModelDef<object> = defineModel<object>({
 });
 
 /**
- * The AR-15: `buildRifleParts` — the receiver, rail, handguard, barrel, stock and grip (aluminium, polymer, steel), the
+ * The AR-15: its held rows (`rifleSpecimen`) — the receiver, rail, handguard, barrel, stock and grip (aluminium, polymer, steel), the
  * charging handle, the bolt and the magazine in its well — on the specimen's own materials (the parts are built once per
  * shard, never the viewmodel's). No ghost-ring glow (it only shows sighted), no flash, no depth clear. (Its legendary skins
  * drop in Pine Hollow only, E333: none here.)
@@ -123,20 +122,8 @@ export const ar15: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/ar-15', name: 'AR-15', category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
   build: (ctx) => {
-    const parts = ctx.once('gear:ar-15', () => {
-      const r = buildRifleParts(ctx.sky);
-      const meshes = [r.alu, r.poly, r.steel, r.handle, r.bolt, r.mag];
-      for (const m of meshes) whiteColors(m.geometry); // the viewmodels' program reads vertex colours
-      return meshes;
-    });
-    const g = new THREE.Group();
+    const g = rifleSpecimen(ctx.sky);
     g.name = 'AR-15';
-    for (const part of parts) {
-      const m = new THREE.Mesh(part.geometry, part.material);
-      m.position.copy(part.position);
-      m.castShadow = true; m.receiveShadow = true;
-      g.add(m);
-    }
     return g;
   },
 });

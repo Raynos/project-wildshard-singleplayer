@@ -1,6 +1,6 @@
 # Held ranged presentation rows
 
-These are authored programs in heldPlayback.json, not generated output.
+These are authored programs in heldRifle.json (the AR-15 on the held-firearm host), not generated output.
 All inputs are copied observations; channel bindings own only the private
 weapon model transforms. The original weapon action clock remains authoritative.
 
