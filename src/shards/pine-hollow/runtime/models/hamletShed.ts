@@ -1,17 +1,19 @@
 /**
- * Hamlet shed (E315 M2; PINE-HOLLOW-REMASTER PH-B3 / C6): a small log store with a lean-to of firewood on its end. One of the mill hamlet's five buildings (the set
- * `pine-hollow/mill-hamlet`; src/shards/pine-hollow/generators/logCabin.ts `hamletBuildings`).
- * Built in code on the log kit (./logCabin.ts: notched log walls on a stone plinth, a shingled roof, its windows, door,
- * porch and furniture), where it stands; `place` welds it with the hamlet's other four into one set, dropped with distance
- * (`ModelDef.weld`, src/shards/pine-hollow/world/cabins.ts, E347). The Explorer's specimen is the building built alone.
+ * The mill hamlet's five buildings as rows (E315 M2; PINE-HOLLOW-REMASTER PH-B3 / C6, G465): each baked on the log kit
+ * (src/shards/pine-hollow/generators/logCabin.ts `hamletBuildings`: notched log walls on a stone plinth, a shingled roof,
+ * windows, door, porch and furniture) where it stands; `place` welds the five into one set, dropped with distance
+ * (`ModelDef.weld`, ../world/cabins.ts, E347). The Explorer's specimen is the building built alone.
  */
-import { defineModel } from '@wildshard/engine/models/model';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { buildingSpecimen, builtBuilding } from './logCabin';
 
-export const hamletShed = defineModel<Record<string, never>>({
-  id: 'pine-hollow/hamlet-shed', name: "Hamlet shed", category: 'buildings', pipeline: 'code',
-  file: 'src/shards/pine-hollow/models/hamletShed.ts', surface: 'wood',
-  defaults: {},
-  build: (ctx) => buildingSpecimen(ctx, 'hamlet-shed'),
-  weld: (ctx) => builtBuilding(ctx, 'hamlet-shed'),
-});
+const ROWS = [
+  { id: 'hunting-lodge', name: 'Hunting lodge' }, { id: 'trader-stall', name: "Trader's stall" },
+  { id: 'millers-house', name: "Miller's house" }, { id: 'watermill', name: 'Watermill' }, { id: 'hamlet-shed', name: 'Hamlet shed' },
+] as const;
+
+/** The hamlet's building models by their bake id. */
+export const HAMLET_MODELS: Readonly<Record<string, ModelDef<Record<string, never>>>> = Object.fromEntries(ROWS.map((r) => [r.id, defineModel({
+  id: `pine-hollow/${r.id}`, name: r.name, category: 'buildings', pipeline: 'code', file: 'src/shards/pine-hollow/runtime/models/hamletShed.ts', surface: 'wood', defaults: {},
+  build: (ctx) => buildingSpecimen(ctx, r.id), weld: (ctx) => builtBuilding(ctx, r.id),
+})]));

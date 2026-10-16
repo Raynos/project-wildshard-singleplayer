@@ -20,32 +20,20 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { floorAtRects } from '@wildshard/engine/physics/box';
-import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import type { Placement } from '@wildshard/engine/models/model';
 import { finishWeld, place, weld, type Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
+import type { Cabins, CabinBuilding } from './homestead';
 import { pineModels } from './context';
 import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';
-import { huntingLodge } from '../models/huntingLodge';
-import { traderStall } from '../models/traderStall';
-import { millersHouse } from '../models/millersHouse';
-import { watermill } from '../models/watermill';
-import { hamletShed } from '../models/hamletShed';
-import { woodenCrate } from '../models/woodenCrate';
-import { wineBarrel } from '../models/wineBarrel';
-import { woodenBucket } from '../models/woodenBucket';
-import { hatchet } from '../models/hatchet';
-import { stoneFirePit } from '../models/stoneFirePit';
-import { porchLantern } from '../models/porchLantern';
+import { HAMLET_MODELS as HAMLET } from '../models/hamletShed';
+import { PROP_MODELS as PROPS } from '../models/woodenCrate';
+import { DRAWN_INTO_MODELS as DRAWN_INTO } from '../models/stoneFirePit';
 
-type Model = ModelDef<Record<string, never>>;
-const HAMLET: Readonly<Record<string, Model>> = { 'hunting-lodge': huntingLodge, 'trader-stall': traderStall, 'millers-house': millersHouse, watermill, 'hamlet-shed': hamletShed };
-const PROPS: readonly (readonly [CabinPropKind, Model])[] = [['crate', woodenCrate], ['barrel', wineBarrel], ['bucket', woodenBucket], ['hatchet', hatchet]];
 const PROP_COUNT = 4;
 /** what each building draws into its own root: its fire pit and its porch lantern */
-const DRAWN_INTO = [['firePitObj', stoneFirePit], ['lanternObj', porchLantern]] as const;
 const DRAWN_COUNT = 2;
 /** most buildings the homestead holds (3 cabins + the hamlet's 5 today; throws past it) */
 const MAX_BUILDINGS = 16;

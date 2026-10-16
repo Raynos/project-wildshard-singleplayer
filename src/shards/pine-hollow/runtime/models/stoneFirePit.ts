@@ -1,13 +1,14 @@
 /**
- * Stone fire pit (E315 M2): Poly Haven's CC0 `stone_fire_pit` scan, ringed with charred logs in front of the cabins that have one, its fire lit on the clock. Dressed and drawn by each building that has one
- * (src/engine/world/Cabin.ts), so `place` is told the copies are drawn already (`drawnInto`).
+ * The fire pit and the porch lantern as rows (E315 M2, G465): CC0 scans each building dresses itself with (its materials
+ * fixed, lit like the rest); the model is a copy at the origin of the first building's (../world/cabinKit.ts `dressedCopy`).
  */
-import { defineModel } from '@wildshard/engine/models/model';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { dressedCopy } from '../world/cabinKit';
 
-export const stoneFirePit = defineModel<Record<string, never>>({
-  id: 'pine-hollow/stone-fire-pit', name: 'Stone fire pit', category: 'props', pipeline: 'cc0',
-  file: 'src/shards/pine-hollow/models/stoneFirePit.ts',
-  defaults: {},
-  build: (ctx) => dressedCopy(ctx, 'firePitObj'),
-});
+const ROWS = [{ key: 'firePitObj', id: 'stone-fire-pit', name: 'Stone fire pit' }, { key: 'lanternObj', id: 'porch-lantern', name: 'Porch lantern' }] as const;
+
+/** What each building draws into its own root, with its model. */
+export const DRAWN_INTO_MODELS: readonly (readonly [(typeof ROWS)[number]['key'], ModelDef<Record<string, never>>])[] = ROWS.map((r) => [r.key, defineModel({
+  id: `pine-hollow/${r.id}`, name: r.name, category: 'props', pipeline: 'cc0', file: 'src/shards/pine-hollow/runtime/models/stoneFirePit.ts', defaults: {},
+  build: (ctx) => dressedCopy(ctx, r.key),
+})]);

@@ -40,10 +40,7 @@ import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
 import { STONE_KINDS, standingStone } from '../models/standingStone';
-import { waystone } from '../models/waystone';
-import { beaverDam } from '../models/beaverDam';
-import { canoe } from '../models/canoe';
-import { contractBoard } from '../models/contractBoard';
+import { heroModel } from '../models/waystone';
 import { caveArch, openCaveArch } from '../models/caveArch';
 import { loadTimber, type Floor } from './timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
@@ -156,16 +153,16 @@ export class PineLandmarks {
     }
     // Deck support remains the live timber owner's; the base terrain site is authored.
     const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));
-    const waySet = await add(waystone, 'waystone', wsPlaces);
+    const waySet = await add(heroModel('waystone'), 'waystone', wsPlaces);
     const wayGeo = heroLod0(ctx, 'waystone')?.geometry;
     if (waySet && wayGeo) this.lanterns(waySet.places, cabins, await loadPainted('glow'));
 
-    await add(beaverDam, 'beaver-dam', sites.dam);
-    const drawnUp = await add(canoe, 'canoe', sites.canoe);
+    await add(heroModel('beaver-dam'), 'beaver-dam', sites.dam);
+    const drawnUp = await add(heroModel('canoe'), 'canoe', sites.canoe);
     const canoePlace = drawnUp?.places[0];
     this.canoe = drawnUp && canoePlace ? { place: canoePlace, placed: drawnUp.placed } : null;
 
-    await add(contractBoard, 'contract-board', sites.board);
+    await add(heroModel('contract-board'), 'contract-board', sites.board);
     const arch = sites.arch;
     const hollow = (this.crags?.cave ?? null) !== null;
     if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx);

@@ -1,17 +1,20 @@
 /**
- * Fern (E315 M2): Ferns in the shaded floor, along the trail verges and round the pond: nine arched frond quads in a rosette, a procedural pinnate-leaf alpha texture; they cast shadows where the tier does.
- * Built in code by the forest floor's field (src/shards/pine-hollow/world/undergrowth.ts: its geometry, texture and shader material); `place`
- * draws every copy in one InstancedMesh, culled per 32 m cell round the forest's view (../world/drawnModels.ts), and the
- * field's shader fades them past the tier's range and sways them. The Explorer's specimen wears a plain material.
- * Walked through: no collider.
+ * The forest floor's kinds as rows (E315 M2, G465): ferns, bilberry shrubs, needle litter, pebbles, moss and reeds, drawn
+ * by the ground cover's field in its own shader (geometry, texture and material: ../looks/groundCover.ts); `place` draws
+ * every copy of a kind in one InstancedMesh, culled per cell round the forest's view (../world/drawnModels.ts). The
+ * Explorer's specimen wears a plain material. Walked through: no collider.
  */
-import { defineModel } from '@wildshard/engine/models/model';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { underPart, underSpecimen } from '../world/undergrowthKit';
 
-export const fern = defineModel<Record<string, never>>({
-  id: 'pine-hollow/fern', name: 'Fern', category: 'nature', pipeline: 'code',
-  file: 'src/shards/pine-hollow/models/fern.ts',
-  defaults: {},
-  build: (ctx) => underPart(ctx, 'ferns'),
-  specimen: (ctx) => underSpecimen(ctx, 'ferns'),
-});
+const ROWS = [
+  { kind: 'ferns', id: 'fern', name: 'Fern' }, { kind: 'shrubs', id: 'bilberry-shrub', name: 'Bilberry shrub' },
+  { kind: 'litter', id: 'needle-litter', name: 'Needle litter' }, { kind: 'stones', id: 'pebbles', name: 'Pebbles' },
+  { kind: 'moss', id: 'moss-patch', name: 'Moss patch' }, { kind: 'reeds', id: 'reeds', name: 'Reeds' },
+] as const;
+
+/** The floor's kinds with their models, in the order the floor places them. */
+export const UNDER_MODELS: readonly (readonly [ModelDef<Record<string, never>>, (typeof ROWS)[number]['kind']])[] = ROWS.map((r) => [defineModel({
+  id: `pine-hollow/${r.id}`, name: r.name, category: 'nature', pipeline: 'code', file: 'src/shards/pine-hollow/runtime/models/fern.ts', defaults: {},
+  build: (ctx) => underPart(ctx, r.kind), specimen: (ctx) => underSpecimen(ctx, r.kind),
+}), r.kind]);

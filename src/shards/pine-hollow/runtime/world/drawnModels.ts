@@ -24,12 +24,7 @@ import { PINE_TREE_SET as TREE_SPECS_V2 } from '../../world/treeSet';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';
 import { forestTree, useTreeFactory, type ForestTreeParams } from '../models/forestTree';
-import { fern } from '../models/fern';
-import { shrub } from '../models/shrub';
-import { needleLitter } from '../models/needleLitter';
-import { pebbles } from '../models/pebbles';
-import { moss } from '../models/moss';
-import { reeds } from '../models/reeds';
+import { UNDER_MODELS } from '../models/fern';
 
 /** the floor's kinds, each placed in turn (ferns, shrubs, litter, stones, moss, reeds) */
 const FLOOR_KINDS = 6;
@@ -60,7 +55,7 @@ export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: 
   }
   if (under) {
     useUndergrowth(ctx, { kinds: under.kinds, placements: under.layout });
-    const kinds = [[fern, 'ferns'], [shrub, 'shrubs'], [needleLitter, 'litter'], [pebbles, 'stones'], [moss, 'moss'], [reeds, 'reeds']] as const;
+    const kinds = UNDER_MODELS;
     const cells = groundCoverCells(), cull = { view: under.view, cells: { size: cells.size, pad: cells.pad }, far: cells.far };
     for (let i = 0; i < Math.min(kinds.length, FLOOR_KINDS); i++) {
       const entry = kinds[i];
