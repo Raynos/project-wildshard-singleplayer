@@ -31,8 +31,8 @@ are data (`strike()` → `strikeFromData`), Pine's are TS builders carrying a `w
 
 | Host (file) | Real users | U | N | D | S | K | Verdict |
 |---|---|---|---|---|---|---|---|
-| `createNativeHunt` + `huntRosterContinuation` (`game/plugin/brain.ts`) | Pine roster, DW keeper | ✓ | ✓ | ✗ `species` lookup fn; `wanderGoal` / `present` (Pine only) | ✓ | ✓ | **pass with callback debt** |
-| `strikeFromData` / `StrikeData` (`engine/ai/strikeRows.ts`) | DW, Nalati (Pine after slice 1) | ✓ | ✓ | ✓ | ✓ | ✓ | **pass** |
+| `createNativeHunt` + `huntRosterContinuation` (`game/plugin/brain.ts`) | Pine roster, DW keeper | ✓ | ✓ | ✗ `wanderGoal` / `present` (Pine only; `species` lookup fn → table in C3) | ✓ | ✓ | **pass with callback debt** |
+| `strikeFromData` / `StrikeData` (`engine/ai/strikeRows.ts`) | DW, Nalati, Pine (C1) | ✓ | ✓ | ✓ | ✓ | ✓ | **pass** |
 | `admitSpeciesProgram` / declared brains (`format/brains`) | Sky, Signal, DW (`driftwoodSpeciesBrains`), boss rows | ✓ | ✓ | ✓ (presets are data) | ✓ | ✓ | **pass** |
 | `nativeCreatureRecipes`, `creatureFloor` (`game/shardfile/homeKeeper.ts`) | Pine roster (+ Nalati `creatureFloor`) | ✓ (floor) / ✗ (recipes: Pine only) | ✓ | ✓ | ✓ | ✓ | floor **pass**; recipes **fail U** |
 | `createNativeCreatureRoster` (`homeKeeper.ts`) | DW keeper only (Pine reimplements it) | ✗ | ✓ | ✗ `attach`, `joined`, `ground`, `retired`, `preflight` | ✓ | ? | **fail** (twin = Pine roster, §4 row R1) |
@@ -51,7 +51,10 @@ are data (`strike()` → `strikeFromData`), Pine's are TS builders carrying a `w
 Failing hosts for the planner's G454 audit: `createMemoryActionBrain`, `createNativeSpeciesContext`,
 `createCreatureSpawner`, `sampleCreatureGroup`, `selectCreatureSites`, `createNativeCreatureRoster`,
 `nativeCreatureRecipes`, `sampleCreatureSwing` / `poseCreatureStride` / `stepCreatureLift`, `stepEliteScript`,
-`createAmbientLife`. All but the last are Driftwood-only W2 hosts with no Pine twin today.
+`createAmbientLife`. All but the last are Driftwood-only W2 hosts with no Pine twin today. Rough sizes at stake if they count back to
+Driftwood: memory-action brain ~64 lines, creature spawner ~60, group sampler ~56, site selector ~34, native species
+context ~42, native roster + recipes ~170, swing / stride / lift ~84: **~510 lines**. R1 (§4) rescues the roster and
+recipes (~170); the rest have no Pine twin and need a W3 twin or move back into Driftwood.
 
 ## 3. Callback → data conversions (honest ones)
 
@@ -75,5 +78,10 @@ of id / kind / variant / seed / scale order against both bakes. One Opus row, ~3
 
 ## 5. What this lane lands
 
-Slice 1 = C1 (Pine strike rows as data). Slice 2 = C2 if it measures clean. Deltas and SHAs are in the commits and the
-lane report.
+| Slice | SHA | Pine total / C4 | DW total / C4 | Checks |
+|---|---|---|---|---|
+| C1 Pine strike rows as data (`combat/strikes.ts`; play code may no longer import `data/`, so the rows sit in the play file until the `actors/strikes` section reads land) | `9e0f78b9a` | 18,286 → 18,289 / 3,800 → 3,795 | 0 | differential test of every field and weight vs the retired builders; shard-headless, elite-core continuation, boss encounter, King kit: 23/23 |
+| C3 native hunt species as a table (`createNativeHunt`) | `bb111b0ed` | see report | see report | shard-headless, native fauna boot, hunt memory codec, ecology queue, coconut continuation; old-save resume (save written at `3f2479404`) |
+
+C2 was not landed: `createMemoryActionBrain` has one user, so moving its effects into rows changes no count and the
+host still fails U. Honest cuts in this area are the R1 row; the callback fixes above are G454 debt paid, not lines.
