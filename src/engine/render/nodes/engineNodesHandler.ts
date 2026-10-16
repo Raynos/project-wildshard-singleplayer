@@ -314,6 +314,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly objectVariants = new NodeProgramVariants();
   /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
   private readonly environments = new WeakMap<THREE.Texture, Node>();
+  /** the stock program key per material, valid for one render call (`customProgramCacheKeyCallback`) */
+  private readonly stockKeys = new WeakMap<THREE.Material, { stamp: number; version: number; receive: string | undefined; plain: string | undefined }>();
+  /** advances at every render start: the stock keys' validity */
+  private keyStamp = 0;
 
   constructor() {
     super();
@@ -361,13 +365,25 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // the program follows the bound target and the material's tone-mapping flag, as classic programs do
     const stockKey = self.customProgramCacheKeyCallback;
     const frame = (): unknown => Reflect.get(this, 'nodeFrame');
+    // The stock key walks every own property of the material and hashes its node children, and the warm draw path asks
+    // for it on every draw (shadow casts too): on Safari that walk was a large share of a Driftwood frame (sp-o276).
+    // Within one render call the scene, lights and output transform are fixed, so it is computed once per material,
+    // receive-shadow flag and render, and again whenever the material's version moves.
+    const stockKeys = this.stockKeys, stamp = (): number => this.keyStamp;
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
       const current = frame();
       const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
       const layer = layerFrameOf(this);
       const fog = materialNodeFogOf(this) ?? fogPatches().at(-1);
       const fogKey = fog?.node === undefined ? '' : `|fog:${fog.id}`;
-      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
+      const receive = object instanceof THREE.Object3D && object.receiveShadow;
+      let memo = stockKeys.get(this);
+      if (memo === undefined || memo.stamp !== stamp() || memo.version !== this.version) {
+        memo = { stamp: stamp(), version: this.version, receive: undefined, plain: undefined }; stockKeys.set(this, memo);
+      }
+      let stock = receive ? memo.receive : memo.plain;
+      if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
+      return `${stock}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);
@@ -509,7 +525,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * bakes of one build differed); three's stock fog node is dropped wherever the engine epilogue fogs
    */
   override renderStart(scene: THREE.Object3D, camera: THREE.Camera, targetScene?: THREE.Object3D): void {
-    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender(); this.blocks?.invalidateBindings();
+    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender(); this.blocks?.invalidateBindings(); this.keyStamp++;
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     if (worldTime.t !== null && typeof frame === 'object' && frame !== null) {
       Reflect.set(frame, 'time', worldTime.t);
@@ -661,7 +677,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const self = internals(this), frame = this.frame;
     frame.material = material;
     frame.object = object;
-    const real = this.classicRenderer(); real.info.render.frame++;
+    // No per-draw `info.render.frame` bump (stock three's way to refresh its classic uniform groups): the engine binds
+    // its own blocks and leaves the classic renderer none, and the bump only made every later shadow cast re-update its
+    // geometry, instance buffers and skeleton (a bone texture upload per cascade) as if a new frame had begun (sp-o276).
+    const real = this.classicRenderer();
     if (real.properties.has(material)) {
       const properties: unknown = real.properties.get(material);
       if (!isMaterialProperties(properties)) throw new Error('Missing node material properties');
