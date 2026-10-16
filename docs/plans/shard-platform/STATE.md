@@ -3,10 +3,10 @@
 **05:39Z `b203929fb` (G445 source ruler): Pine 89.92 %, DW 80.93 %, Sky 92.12 %, Signal 43.52 %.** Pine +1.47 pt = f542 water fix now imports engine waterSurface (303) directly; x7 checking route. W2 adoption is saturated at the -10 floor.
 Pine/DW: C1 3832/3661 · C2 2645/2352 · C3 148/0 · C4 3724/1679 · C5 1945/1311 · C6 2424/898 · C7 13/503 · C8 983/1739 · C9 3366/1750.
 G437 perf wins: DW first frame 183 → 16.7 ms (`b5fab36ec`); late shader links 0 on Pine, Signal, hub (`6c4e5a3c0`); road links 7 → 0, hitches 5 → 1 (`e310b515c`, `2a934f726`); UBO uploads 24 → 13/frame (`d78199cea`); Fixed shadow samples row −0.40 ms DW (`a88e5e415`, default-off).
-Milestone `78254116d`: boot 5/5, standalone desktop 60 fps; grid frame floors FAIL (desktop and Safari): intermittent first-pass Pine stall 983/852 ms (no repeat in 4 instrumented runs), Pine Safari travel p95 81 ms; likely cause Pine's import-time parse, now moved under the loader (`3efc0d81d`): road worst 133 → 33 ms, long tasks 1 → 0, boot +53 ms, load heap +253 MB (report-only).
+Milestones `78254116d` → `68cd273ea`: the ~1 s Pine stall is gone (drive 983 → 83 ms desktop, 852 → 148-216 ms Safari, after `3efc0d81d`). Floor still FAILS: Pine grid travel p95 33 ms desktop / 86-91 ms Safari; DW Safari standing 44 ms, road 52-75 ms (worse than before). x4 on Pine travel, x6 bisecting DW Safari.
 Fixes: Pine grid entry (broke at de1b7286f) `f542a4cfb`; grid Pine KTX2 props white → textured (broke at 0ec8d4984) `c5ef7b1c1`.
 
-**Lanes:** Opus none (5 held for the G447 design rows and W3). Codex: x4 done; x1 x5 x6 x7 x8 idle (pools dry, honest G437 cuts taken).
+**Lanes:** Opus none (5 held for the G447 design rows and W3). Codex: x4 Pine grid travel fps; x6 DW Safari regression; x1 x5 x7 x8 idle (pools dry, honest G437 cuts taken).
 
 **Rulings:** offline bakes are honest (`1c125707c`); G448: no hand-converted JSON and no new data tables until the design lands.
 
