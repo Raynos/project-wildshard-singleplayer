@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { SmokeColumnRow } from '../../data/lookRows';
+import type { SmokeColumnRow } from './rows';
 import { SMOKE_LOOK } from '../const';
 import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../boot/fixedGeometry';
 

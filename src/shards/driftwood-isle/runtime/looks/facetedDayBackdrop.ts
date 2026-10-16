@@ -23,7 +23,8 @@ import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { DayClock } from '@wildshard/sdk/looks/dayClock';
 import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import { graphDaySkyBackdrop } from '@wildshard/sdk/looks/graphDaySky';
-import type { FACETED_DAY_PRESET, FacetedDayPreset, FacetedDayStyle } from '../../data/facetedDayRows';
+import type { FACETED_DAY_PRESET } from '../const';
+import type { FacetedDayPreset, FacetedDayStyle } from './rows';
 import { FacetedSky, type SkyPalette } from './facetedSky';
 
 /** a faceted day: the shared day clock over the shard's row */

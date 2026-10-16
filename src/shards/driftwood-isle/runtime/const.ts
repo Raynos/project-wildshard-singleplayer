@@ -162,3 +162,9 @@ export const WRECK_SITES = {
   world: { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 0.6499999999999999 },
   specimen: { x: 0, z: 0, heading: 0, roll: -0.2, pitch: 0.05, floorY: 1.2 },
 } as const;
+/** a faceted day preset's fields by kind (data/facetedDayRows.ts FACETED_DAY_PRESET) */
+export const FACETED_DAY_PRESET = {
+  sky: { zenith: 'colour', horizon: 'colour', below: 'colour', sunGlow: 'colour', cloudLit: 'colour', cloudShade: 'colour', night: 'number' },
+  light: 'colour', lightI: 'number', hemiSky: 'colour', hemiGround: 'colour', hemiI: 'number',
+  lift: 'colour', rim: 'colour', fogNear: 'colour', fogSun: 'colour', disc: 'colour', cloudShadow: 'number', dusk: 'number',
+} as const;

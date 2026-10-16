@@ -6,6 +6,7 @@ import { BOAT_LAYOUT } from './boatLayout';
 import { CASTAWAY_SMOKE } from './castawayLook';
 import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
+import { FACETED_DAY_PRESET } from './facetedDayRows';
 import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
 import { GROUND_LOOK } from './groundLook';
 import { FIREFLY_LOOK } from './fireflyLook';
@@ -72,4 +73,5 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CASTAWAY_FACING', CASTAWAY_FACING),
   defineMirror('CASTAWAY_SMOKE', CASTAWAY_SMOKE),
   defineMirror('WRECK_SITES', WRECK_SITES),
+  defineMirror('FACETED_DAY_PRESET', FACETED_DAY_PRESET),
 ];

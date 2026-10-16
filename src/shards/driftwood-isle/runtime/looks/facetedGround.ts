@@ -4,7 +4,7 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { FacetedGroundRow } from '../../data/lookRows';
+import type { FacetedGroundRow } from './rows';
 import { coverAttributes } from './coverGrid';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 

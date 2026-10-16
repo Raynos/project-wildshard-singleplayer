@@ -4,7 +4,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/sdk/looks/streamedInstances';
-import type { StreamedCoverRow } from '../../data/lookRows';
+import type { StreamedCoverRow } from './rows';
 
 
 /**

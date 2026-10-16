@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { modelContext, type ModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { ReefBedRow } from '../../data/lookRows';
+import type { ReefBedRow } from './rows';
 
 /**
  * A sea floor's reef as rows (SHARD-PLATFORM M3, look-family rows; W2 C2 baked its scatter): a baked layout of reefs, beds
