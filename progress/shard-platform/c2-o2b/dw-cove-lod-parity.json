@@ -1,0 +1,65 @@
+{
+ "what": "DW cove prototypes: baked world/island/protos.glb vs the old runtime extraction + meshopt simplify (hashes of positions, Uint8 colours, indices, normals)",
+ "protos": 72,
+ "differ": 0,
+ "missing": [],
+ "verts": 118974,
+ "rawBytes": 5302068,
+ "meshoptBytes": 2720392,
+ "farCopies": [
+  {
+   "name": "palm0_lo",
+   "beforeTris": 3134,
+   "tris": 3134,
+   "ok": true
+  },
+  {
+   "name": "palm1_lo",
+   "beforeTris": 3208,
+   "tris": 3208,
+   "ok": true
+  },
+  {
+   "name": "palm2_lo",
+   "beforeTris": 3134,
+   "tris": 3134,
+   "ok": true
+  },
+  {
+   "name": "palm3_lo",
+   "beforeTris": 1986,
+   "tris": 1986,
+   "ok": true
+  },
+  {
+   "name": "palm4_lo",
+   "beforeTris": 1955,
+   "tris": 1955,
+   "ok": true
+  },
+  {
+   "name": "bpalm0_lo",
+   "beforeTris": 853,
+   "tris": 853,
+   "ok": true
+  },
+  {
+   "name": "bpalm1_lo",
+   "beforeTris": 833,
+   "tris": 833,
+   "ok": true
+  },
+  {
+   "name": "bpalm2_lo",
+   "beforeTris": 921,
+   "tris": 921,
+   "ok": true
+  },
+  {
+   "name": "bpalm3_lo",
+   "beforeTris": 825,
+   "tris": 825,
+   "ok": true
+  }
+ ]
+}
