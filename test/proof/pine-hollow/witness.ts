@@ -21,8 +21,8 @@ import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/d
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
-import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../../src/shards/pine-hollow/data/nativeLoadout';
-import { AIM_COMMAND, AIM_RIBS } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../fixtures/weapon-oracle/nativeLoadout';
+import { AIM_COMMAND, AIM_RIBS } from '../../fixtures/weapon-oracle/headlessRanged';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';

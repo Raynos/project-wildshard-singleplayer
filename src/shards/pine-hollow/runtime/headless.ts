@@ -13,10 +13,8 @@ import { preparePineNightDirector } from './nightDirector';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
-import { installPineKing, KING_RECORD } from './king';
-import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
+import { installPineKing } from './king';
 import { bindNativeLoadout, trustedLevel } from '@wildshard/game/plugin/simulation';
-import { PINE_NATIVE_LOADOUT, PINE_WEAPON, WEAPON_COMMAND, LOADOUT_STEP, LEVER_FLAG } from '../data/nativeLoadout';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY } from '../look/dayKeys';
 import { PINE_QUESTS } from '../data/quests';
@@ -127,7 +125,7 @@ export interface PineInstall {
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
 export function installPine(host: SimHost, parts: PineInstall): {
   roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: NativeBoltItem;
-  lever: NativeCycleItem; longbow: NativeBowItem; loadout: ReturnType<typeof bindNativeLoadout<0 | 1 | 2>>;
+  lever: NativeCycleItem; longbow: NativeBowItem; loadout: ReturnType<typeof bindNativeLoadout<number>>;
   quest: ReturnType<typeof installHollowQuest>;
   air: ReturnType<typeof installPineAir>;
   thralls: ReturnType<typeof installPineNight>;
@@ -156,22 +154,17 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // reinstalls its live spawns at install, and the host keeps every adapter in registration order). Their afterBodies
   // work follows the creature manager, as on the page; the loadout swaps before every weapon updates. The roster's King
   // publication comes last, matching render propagation after equipment's cached-pose queries.
-  const frame = parts.combat;
+  const frame = parts.combat, policy = parts.items.loadout.native;
+  if (policy?.input === undefined) throw new Error('Missing native equipment input policy');
+  const input = policy.input;
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
-  const loadout = bindNativeLoadout(host, PINE_NATIVE_LOADOUT, {
-    owned: slot => slot === PINE_WEAPON.crossbow || (slot === PINE_WEAPON.lever && host.flags.has(LEVER_FLAG))
-      || (slot === PINE_WEAPON.longbow && host.flags.has(KING_RECORD.paid)),
+  const loadout = bindNativeLoadout(host, policy, { flags: host.flags, frame,
     locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
-    step: { id: LOADOUT_STEP, phase: 'afterBodies', pick: () => {
-      const picked = frame.scripts.get(WEAPON_COMMAND) ?? null, took = quest?.takeRifle() ?? false;
-      return picked ?? (took ? PINE_WEAPON.lever : null);
+    step: { id: input.step, phase: input.phase, pick: () => {
+      const picked = frame.scripts.get(input.command) ?? null, took = quest?.takeRifle() ?? false;
+      return picked ?? (took ? 1 : null);
     } },
   });
-  // Input is published after the loadout swap and before all three item owners, in their original order.
-  host.onStep('pine.combat-input', () => {
-    frame.aim = aimShare(frame.scripts.get(AIM_COMMAND) ?? AIM_MIDDLE); frame.live.clear();
-    for (let index = 0; index < 32; index++) { const slot = PINE_NATIVE_LOADOUT.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) frame.live.add(slot); }
-  }, undefined, 'afterBodies');
   observeNativeCombatMotion(host, frame, 7.2);
   let air: ReturnType<typeof installPineAir> | null = null;
   const atmosphere = (): ReturnType<typeof installPineAir> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
@@ -190,7 +183,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { inventory: readItemInventory(parts.items), trades: parts.trades, contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
-    takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
+    takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(0) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster
   // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
   const thralls = installPineNight(host, parts.nightDirector(), { night, heightAt, spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant),

@@ -418,6 +418,7 @@
         "scripts/bake-output.mjs",
         "src/shards/pine-hollow/generators/bake-items.mjs",
         "src/shards/pine-hollow/generators/items.ts",
+        "src/shards/pine-hollow/generators/nativeLoadout.ts",
         "src/shards/pine-hollow/generators/nativeInventory.ts",
         "src/shards/pine-hollow/data/questInventory.ts",
         "src/shards/pine-hollow/generators/equipment.ts",

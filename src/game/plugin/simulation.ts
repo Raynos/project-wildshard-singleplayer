@@ -1,3 +1,4 @@
+import { parseNativeLoadoutRow, type NativeLoadoutRowSchema } from '@wildshard/format/nativeItems';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
 import { ShardDecisions } from '../shardfile/decisions';
 import { WorldTargetHost } from '../shardfile/worldTargets';
@@ -988,7 +989,7 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
   const { row, profiles } = parseNativeSweptMeleeBinding(input, items);
   type Profile = typeof profiles[number]; type Move = Profile['moves']['heavy'];
   const slots = profiles.map((_profile, index) => index);
-  const loadout = createNativeLoadout({ slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
+  const loadout = createNativeLoadout(row.selection ?? { slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
   const state = { queued: false, struck: false, target: null as string | null, swings: 0, hits: 0 };
   const yAxis = new Vector3(0, 1, 0);
   const lunge = (profile: Profile, move: Move): void => {
@@ -1420,10 +1421,12 @@ export function readRuntimeWorldMetadata(input: unknown, quests = false): v.Infe
 export interface NativeLoadoutRow<Slot extends number> {
   readonly slots: readonly Slot[]; readonly initial: Slot;
   readonly lower: number; readonly raise: number;
+  readonly ownership?: readonly (string | null)[];
+  readonly input?: v.InferOutput<typeof NativeLoadoutRowSchema>['input'];
 }
 /** Borrowed ownership and input lock; creating a loadout installs no step. */
 export interface NativeLoadoutPorts<Slot extends number> {
-  readonly owned: (slot: Slot) => boolean; readonly locked: () => boolean;
+  readonly owned?: (slot: Slot) => boolean; readonly flags?: Pick<Flags, 'has'>; readonly locked: () => boolean;
 }
 /** Detached native slot continuation; the old held/swap save shape is retained. */
 export interface NativeLoadoutSnapshot<Slot extends number> extends Readonly<Record<string, SimValue>> {
@@ -1443,12 +1446,23 @@ export interface NativeLoadout<Slot extends number> {
  */
 export function bindNativeLoadout<Slot extends number>(host: SimHost, row: NativeLoadoutRow<Slot>,
   ports: NativeLoadoutPorts<Slot> & { readonly aim?: () => number;
+    readonly frame?: { readonly scripts: ReadonlyMap<string, number>; readonly live: Set<number>; aim: number };
     readonly step?: { readonly id: string; readonly phase: 'beforeBodies' | 'afterBodies'; readonly pick: () => number | null } }):
   NativeLoadout<Slot> & { readonly aim: () => number; readonly bodies: () => readonly NonNullable<ReturnType<SimHost['entities']['get']>>[] } {
-  const loadout = createNativeLoadout(row, ports), step = ports.step;
+  const publication = row.input?.publication, frame = ports.frame, step = ports.step;
+  if (publication !== undefined && frame === undefined) throw new Error('Native input publication requires its combat frame');
+  const loadout = createNativeLoadout(row, ports);
   if (step !== undefined) host.onStep(step.id, dt => {
     const picked = step.pick(); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null);
   }, { snapshot: loadout.snapshot, restore: loadout.restore }, step.phase);
+  if (publication !== undefined && frame !== undefined) {
+    host.onStep(publication.step, () => {
+      const aim = publication.aim, value = frame.scripts.get(aim.command) ?? aim.initial;
+      frame.aim = value === aim.sentinel ? value : Number.isFinite(value) ? Math.min(aim.max, Math.max(aim.min, value)) : aim.initial;
+      frame.live.clear();
+      for (let index = 0; index < 32; index++) { const slot = row.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) frame.live.add(slot); }
+    }, undefined, publication.phase);
+  }
   const bodies: NonNullable<ReturnType<SimHost['entities']['get']>>[] = [];
   return { ...loadout, aim: ports.aim ?? (() => 0.5), bodies: () => {
     bodies.length = 0; host.entities.forEach(body => { bodies.push(body); }); return bodies;
@@ -1458,10 +1472,14 @@ export function bindNativeLoadout<Slot extends number>(host: SimHost, row: Nativ
  * The caller registers step/snapshot in its existing adapter, preserving order.
  */
 export function createNativeLoadout<Slot extends number>(row: NativeLoadoutRow<Slot>, ports: NativeLoadoutPorts<Slot>): NativeLoadout<Slot> {
-  if (row.slots.length === 0 || row.slots.length > 32 || new Set(row.slots).size !== row.slots.length
-    || row.slots.some(slot => !Number.isInteger(slot) || slot < 0 || slot > 31)
-    || !row.slots.includes(row.initial) || !Number.isFinite(row.lower) || row.lower < 0 || row.lower > 60
-    || !Number.isFinite(row.raise) || row.raise < 0 || row.raise > 60) throw new Error('Invalid native equipment slots');
+  parseNativeLoadoutRow(row);
+  if (row.ownership === undefined && ports.owned === undefined) throw new Error('Native equipment requires ownership policy');
+  if (row.ownership?.some(flag => flag !== null) === true && ports.flags === undefined) throw new Error('Native equipment requires flags');
+  const owned = row.ownership === undefined ? ports.owned : (value: Slot): boolean => {
+    const index = row.slots.indexOf(value), flag = row.ownership?.[index];
+    return index !== -1 && (flag === null || (flag !== undefined && ports.flags?.has(flag) === true));
+  };
+  if (owned === undefined) throw new Error('Native equipment requires ownership');
   const slot = v.custom<Slot>(value => row.slots.some(candidate => candidate === value));
   const Saved = v.strictObject({ held: slot, swap: v.nullable(v.strictObject({ to: slot,
     t: v.pipe(v.number(), v.finite(), v.minValue(0)), switched: v.boolean() })) });
@@ -1469,7 +1487,7 @@ export function createNativeLoadout<Slot extends number>(row: NativeLoadoutRow<S
   const swap = { on: false, to: row.initial, t: 0, switched: false };
   const finish = (): void => { if (swap.on) { held = swap.to; swap.on = false; } };
   const select = (to: Slot): void => {
-    if (!row.slots.includes(to) || !ports.owned(to)) return;
+    if (!row.slots.includes(to) || !owned(to)) return;
     if (swap.on) { if (swap.to === to) return; finish(); }
     if (to === held) return;
     swap.on = true; swap.to = to; swap.t = 0; swap.switched = false;
@@ -1483,7 +1501,7 @@ export function createNativeLoadout<Slot extends number>(row: NativeLoadoutRow<S
     if (swap.t >= row.lower && !swap.switched) { swap.switched = true; held = swap.to; }
     if (swap.t >= row.lower + row.raise) finish();
   };
-  return { held: (): Slot => held, swapping: (): boolean => swap.on, owned: ports.owned, select, step,
+  return { held: (): Slot => held, swapping: (): boolean => swap.on, owned, select, step,
     live: (value: Slot): boolean => held === value && !swap.on && !ports.locked(),
     snapshot: (): NativeLoadoutSnapshot<Slot> => ({ held, swap: swap.on ? { to: swap.to, t: swap.t, switched: swap.switched } : null }),
     restore: (value: unknown): void => {

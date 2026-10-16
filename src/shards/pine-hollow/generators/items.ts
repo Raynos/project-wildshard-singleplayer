@@ -1,3 +1,4 @@
+import { NATIVE_LOADOUT } from './nativeLoadout';
 import { PINE_NATIVE_PACK } from './nativeInventory';
 import { LEVER_WEAPON_PROFILE } from './leverProfile';
 import { CROSSBOW_WEAPON_PROFILE } from './crossbowProfile';
@@ -26,4 +27,4 @@ export const PINE_ITEMS = { version: 1, rows: [
     light: contact(`${row.id}.light`), heavy: contact(`${row.id}.heavy`), charge: 0.001 };
   return row.id === CROSSBOW.id ? Object.assign(declared, { profile: CROSSBOW_WEAPON_PROFILE }) : row.id === LONGBOW.id ? Object.assign(declared, { profile: BOW_PROFILE }) : row.id === LEVER.id ? Object.assign(declared, { profile: LEVER_WEAPON_PROFILE }) : declared;
 }), contexts: [], runtimeContexts: ['weapon.ranged', 'weapon.bow'],
-loadout: { inventory: PINE_NATIVE_PACK, primary: CROSSBOW.id, secondary: LONGBOW.id, tools: [] } };
+loadout: { native: NATIVE_LOADOUT, inventory: PINE_NATIVE_PACK, primary: CROSSBOW.id, secondary: LONGBOW.id, tools: [] } };

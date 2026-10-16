@@ -8203,3 +8203,12 @@ membership independently of sample readiness. Pine no longer ships a TS copy.
 
 The retained native-method crossings stay visible to the G454 inventory and
 within their original per-file ceilings; no cast or guard increase hides them.
+
+`combat/items.loadout.native` declares bounded native slot order, the initial
+slot, lower/raise clocks and optional per-slot ownership flags (`null` means
+always owned). `bindNativeLoadout` and `createNativeLoadout` validate these rows
+before installing state; timed and immediate kits retain the held/swap save wire.
+The existing live lock remains caller-owned. An optional numeric input row names
+the aim command, clamp/default/sentinel and the ordered publication step. Binding
+it borrows the mutable combat frame, clears/refills its existing live-slot set
+after selection and before item updates, and adds no continuation adapter.

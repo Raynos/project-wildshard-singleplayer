@@ -9,7 +9,7 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { LeverAction, parseLeverProfile } from './leverBridge';
-import { aimAt, bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { aimAt, bodyHit } from './headlessRanged';
 
 /** The lever-action's fixed-step id; its continuation is the action, the reserve and the dry pull's clock. */
 export const LEVER_STEP = 'pine.lever';

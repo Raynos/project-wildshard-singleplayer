@@ -1,4 +1,4 @@
-import { NativeRangedRowSchema } from './nativeItems';
+import { NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems';
 import * as v from 'valibot';
 import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
 import { isJsonData } from './json';
@@ -65,7 +65,7 @@ const inventory = v.pipe(v.strictObject({ kinds: v.pipe(v.array(name), v.minLeng
 const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
   contexts: v.pipe(v.array(context), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
-  loadout: v.strictObject({ inventory: v.exactOptional(inventory), primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
+  loadout: v.strictObject({ native: v.exactOptional(NativeLoadoutRowSchema), inventory: v.exactOptional(inventory), primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
 /** Admit an item's JSON-only contacts without copying its original event-lifetime tag arrays. */
 export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
   v.assert(v.custom(isJsonData, 'JSON-only melee contacts'), input);
@@ -92,7 +92,7 @@ export function parseNativeMeleeBinding(input: unknown, contactsInput: unknown):
 }
 /** Declared swept phases share the existing melee owner; no new actor or physics authority. */
 const sweptCoefficient = v.pipe(finite, v.minValue(-10000), v.maxValue(10000));
-const sweptPolicy = v.strictObject({ kind: v.literal('swept'), step: name,
+const sweptPolicy = v.strictObject({ kind: v.literal('swept'), step: name, selection: v.exactOptional(NativeLoadoutRowSchema),
   eye: v.pipe(finite, v.minValue(0), v.maxValue(20)), initial: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)),
   source: v.picklist(['env', 'owner']),
   slots: v.pipe(v.array(v.strictObject({ item: weaponId, weapon: weaponId, tags: v.pipe(v.array(tag), v.maxLength(32)),
@@ -116,6 +116,9 @@ export function parseNativeSweptMeleeBinding(input: unknown, itemsInput: unknown
   v.assert(v.custom(isJsonData, 'JSON-only swept melee policy'), input);
   const row = v.parse(sweptPolicy, input), items = v.parse(v.pipe(v.array(v.union([weapon, tool])), v.maxLength(512)), itemsInput);
   if (row.initial >= row.slots.length || new Set(row.slots.map(entry => entry.item)).size !== row.slots.length) throw new Error('Invalid swept melee slots');
+  if (row.selection !== undefined && (row.selection.initial !== row.initial || row.selection.slots.length !== row.slots.length
+    || row.selection.slots.some((value, index) => value !== index) || row.selection.lower !== 0 || row.selection.raise !== 0
+    || row.selection.ownership?.some(flag => flag !== null) === true || row.selection.input !== undefined)) throw new Error('Invalid swept selection policy');
   const profiles = row.slots.map(entry => {
     const item = items.find(candidate => candidate.id === entry.item);
     if (item?.kind !== 'weapon' || item.profile?.family !== 'melee' || item.profile.moves.combo.length !== entry.combo.length) throw new Error('Swept melee requires matching admitted item moves');

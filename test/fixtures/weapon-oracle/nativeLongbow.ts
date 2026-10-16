@@ -11,7 +11,7 @@ import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildsha
 import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
-import { EYE, aimAt, bodyHit, type BodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { EYE, aimAt, bodyHit, type BodyHit } from './headlessRanged';
 
 /** The longbow's fixed-step id; its continuation is the draw, the quiver, the aim and every arrow in flight. */
 export const LONGBOW_STEP = 'pine.longbow';

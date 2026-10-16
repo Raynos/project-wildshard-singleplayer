@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { bindNativeLoadout, createNativeLoadout, HOST_PROBE } from '../src/game/plugin/simulation';
-import { PINE_NATIVE_LOADOUT } from '../src/shards/pine-hollow/data/nativeLoadout';
+import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { PineAmmunition } from '../src/shards/pine-hollow/runtime/weapons/ammunition';
 
 class NativeWeapon extends Weapon {

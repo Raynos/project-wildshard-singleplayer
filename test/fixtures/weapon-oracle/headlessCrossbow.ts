@@ -12,7 +12,7 @@ import { projectileFlightStep } from '../../../src/engine/combat/projectileFligh
 /** The flight multipliers a bolt carries (the ammo's, the weather's): 1 / 1 is the plain bolt. */
 export interface BoltFlight { gravity: number; drag: number }
 const PLAIN_FLIGHT: BoltFlight = { gravity: 1, drag: 1 };
-import { aimAt, bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
+import { aimAt, bodyHit } from './headlessRanged';
 import type { BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
 const boltDamage = (kind: BoltKind, animal: string): number => kind === 'broadhead' && (animal === 'deer' || animal === 'boar') ? 1.4 : 1;
 /** Frozen shipping flight law, independent of the adopted item rows. */

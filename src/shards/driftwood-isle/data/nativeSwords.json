@@ -56,5 +56,18 @@
     "minDistance": 0.01,
     "minRadius": 0.3,
     "lengthScale": 0.6
+  },
+  "selection": {
+    "slots": [
+      0,
+      1
+    ],
+    "initial": 0,
+    "lower": 0,
+    "raise": 0,
+    "ownership": [
+      null,
+      null
+    ]
   }
 }
