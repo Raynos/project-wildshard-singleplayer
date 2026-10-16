@@ -881,7 +881,6 @@
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts": 17,
     "src/shards/pine-hollow/runtime/king.ts": 4,
     "src/shards/pine-hollow/runtime/KingGoals.ts": 1,
-    "src/shards/pine-hollow/runtime/kingPoseHost.ts": 2,
     "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": 2,
     "src/shards/pine-hollow/runtime/kit/caveInterior.ts": 6,
     "src/shards/pine-hollow/runtime/kit/glbNodes.ts": 2,

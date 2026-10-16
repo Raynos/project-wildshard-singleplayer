@@ -140,9 +140,11 @@ export class CollisionPose {
     matrix.compose(this.position, this.quaternion, this.scale);
   }
 
-  /** Resolve once after posing; the caller supplies its existing world frame, including terrain tilt and scale. */
-  solve(frame: Matrix4): void {
+  /** Resolve once after posing; the caller supplies its existing world frame, including terrain tilt and scale.
+   * `through` stops after that joint (parent-first), so its descendants keep their previously solved worlds. */
+  solve(frame: Matrix4, through = this.joints.length - 1): void {
     for (let i = 0; i < this.joints.length; i++) {
+      if (i > through) break;
       const joint = this.joints[i], local = this.local[i], world = this.world[i];
       if (joint === undefined || local === undefined || world === undefined) throw new Error('Missing collision joint');
       const parent = joint.parent === -1 ? frame : this.world[joint.parent];
@@ -497,16 +499,26 @@ export class NativeCreaturePose {
   }
   /** The native decision owner chooses the same terrain cadence as the page; no publication. */
   sampleTerrain(): void { this.actor.samplePoseTerrain(this.law); }
-  /** Explicit render-equivalent boundary after body contacts and equipment queries. Allocates nothing. */
-  publish(): void {
+  /** Explicit render-equivalent boundary after body contacts and equipment queries. Allocates nothing. A staged
+   * `through` joint publishes only that joint's parent chain (a forced getter's read); its descendants keep their last
+   * publication until the next full one, and a continuation saved between the two re-solves them approximately. */
+  publish(through?: string): void {
+    const last = through === undefined ? this.joints.length - 1 : this.recipe.joints.findIndex(row => row.name === through);
+    if (last === -1) throw new Error('Missing native creature publish joint');
     for (let n = 0; n < 32; n++) {
-      if (n >= this.joints.length) break;
+      if (n > last) break;
       const j = this.joints[n]; if (j === undefined) throw new Error('Missing native creature pose joint'); this.fk.setLocal(n, j);
       const p = n * 10; this.published[p] = j.position.x; this.published[p + 1] = j.position.y; this.published[p + 2] = j.position.z;
       this.published[p + 3] = j.rotation.x; this.published[p + 4] = j.rotation.y; this.published[p + 5] = j.rotation.z; this.published[p + 6] = NativeCreaturePose.ORDERS.indexOf(j.rotation.order);
       this.published[p + 7] = j.scale.x; this.published[p + 8] = j.scale.y; this.published[p + 9] = j.scale.z;
     }
-    this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame);
+    this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame, last);
+  }
+  /** An extra contact point on any recipe joint (a weak point, an anchor), read from the last publication. */
+  jointPoint(name: string, at: readonly [number, number, number], out: Vector3): Vector3 {
+    const index = this.recipe.joints.findIndex(row => row.name === name);
+    if (index === -1) throw new Error('Missing native creature query joint');
+    return this.fk.point(index, at, out);
   }
   headWorld(out: Vector3): void { this.fk.point(this.head, this.actor.dims.headAt ?? NativeCreaturePose.ORIGIN, out); }
   bodyCapsule(rear: Vector3, front: Vector3): void {
@@ -519,6 +531,15 @@ export class NativeCreaturePose {
   snapshot(): string {
     return JSON.stringify({ version: 1, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
       local: NativeCreaturePose.encoded([...this.joints.flatMap(NativeCreaturePose.values), ...NativeCreaturePose.values(this.root)]), published: NativeCreaturePose.encoded(Array.from(this.published)), frame: NativeCreaturePose.encoded(Array.from(this.publishedFrame)), leg: NativeCreaturePose.encoded(Array.from(this.legAbd)), wasAlive: this.wasAlive });
+  }
+  /** Approximate continuation from an older owner's saved scalar clock: the caller has written the current locals; the
+   * root follows the actor with the restored tilt and recoil, and everything publishes once. Validates before mutating. */
+  adopt(scalar: string): void {
+    new AnimalPoseLaw(this.law.recipe).restore(scalar);
+    this.law.restore(scalar); this.wasAlive = this.actor.alive;
+    const a = this.actor, i = this.law.input;
+    applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll);
+    this.publish();
   }
   /** Strict bounded atomic restore. No posing, terrain, body, contact, RNG or publications of current locals. */
   restore(value: string): void {

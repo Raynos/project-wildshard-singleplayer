@@ -6126,6 +6126,12 @@ and `foreCapsule`. The bounded saved wire keeps both sets independently.
 Euler orders before changing live state, without posing or publishing
 current locals. `attachNativeCreaturePose` binds that contact provider to
 the caller's actual native actor and lends its terrain-sampling callback.
+`publish(joint)` stages a partial publication of that joint's parent chain
+(a forced getter's read) while descendants keep their last publication;
+`jointPoint(joint, at, out)` reads an extra contact point (a weak point) on
+any recipe joint; `adopt(scalar)` resumes approximately from an older
+owner's saved scalar clock after the caller writes the current locals.
+Pine's Antler King (`runtime/kingPoseKeeper.ts`) uses all three.
 
 G441 pending second user: Nalati's `runtime/tamingHorsePose.ts` will adopt
 the numeric joint/scalar/root lifecycle and continuation. Nalati retains
@@ -6340,7 +6346,9 @@ seeded smoke and spark clouds the same way.
 `createMemoryActionBrain` and `MemoryActionRows`. The bounded row names an
 existing numeric state field, its inspection labels, and ordered body-step
 actions: an attack-phase threshold, an existing once field and an optional
-truthy/falsy selector. All effect ids are preflighted against borrowed
+truthy/falsy selector. JSON input is structurally admitted with strict
+objects before the existing state, phase and safe-field checks. All effect
+ids are preflighted against borrowed
 callbacks before the brain is installed. A due action writes its once field
 before invoking the callback, including a miss or thrown effect. There is
 no expression evaluator, clock, RNG, contact solver or save envelope;
