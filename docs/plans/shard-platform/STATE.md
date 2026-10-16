@@ -16,5 +16,5 @@ Fixes: Pine grid entry (broke at de1b7286f) `f542a4cfb`; grid Pine KTX2 props wh
 
 **End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU (DW Safari +6-12 ms, receipt `06f180053`). UI: DW finale caption overlap. Look: Pine sluice flat low-poly (Jake).
 
-**For wildshard-v:** G450 applied: 6 Codex + 5 Opus lanes on the design rows at 11:20Z. G451: W2 close moved to 05:00Z 10-17; rewire first, W3 after; Codex full speed; longer Pine loading OK (x4 does Pine load-time precompile after P0).
+**For wildshard-v:** G450 applied: 6 Codex + 5 Opus lanes on the design rows at 11:20Z. G451: W2 close moved to 05:00Z 10-17; rewire first, W3 after; Codex full speed; longer Pine loading OK (x4 next).
 Paused: SF22, SF57, SF67.
