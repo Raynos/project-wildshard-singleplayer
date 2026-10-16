@@ -27,15 +27,15 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS } from '../data/npcScenes';
-import { CASTAWAY_POSE } from '../data/npcPose';
-import { CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING } from '../data/npcFocus';
-import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../runtime/boot/fixedGeometry';
+import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS } from '../../data/npcScenes';
+import { CASTAWAY_POSE } from '../../data/npcPose';
+import { CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING } from '../../data/npcFocus';
+import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { SmokeColumn } from '../runtime/looks/smokeColumn';
-import { CASTAWAY_SMOKE } from '../data/castawayLook';
+import { SmokeColumn } from '../looks/smokeColumn';
+import { CASTAWAY_SMOKE } from '../../data/castawayLook';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 

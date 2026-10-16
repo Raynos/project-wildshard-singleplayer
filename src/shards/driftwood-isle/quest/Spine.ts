@@ -21,7 +21,7 @@ import { DRIFTWOOD_MARKERS } from '../data/quests';
 import { presentQuest, installDeclaredNpcTalks, QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { DRIFTWOOD_QUEST } from '../data/questStory';
-import type { Castaway } from '../npc/Castaway';
+import type { Castaway } from '../runtime/npc/Castaway';
 import { castawayRig } from './people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 

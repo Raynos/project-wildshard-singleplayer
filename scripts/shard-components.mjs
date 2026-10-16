@@ -70,7 +70,7 @@ const questOwners=new Set([
   'src/shards/pine-hollow/runtime/npc/standInPerson.ts',
   'src/shards/driftwood-isle/runtime/pack.ts',
   'src/shards/driftwood-isle/runtime/kills.ts',
-  'src/shards/driftwood-isle/npc/Castaway.ts',
+  'src/shards/driftwood-isle/runtime/npc/Castaway.ts',
   'src/shards/driftwood-isle/npc/Trader.ts',
   'src/shards/driftwood-isle/npc/faceHeads.ts',
   'src/game/systems/npc/npcRig.ts',

@@ -329,7 +329,7 @@
     "src/shards/driftwood-isle/runtime/models/trader.ts": 1,
     "src/shards/driftwood-isle/models/trophyPlaques.ts": 2,
     "src/shards/driftwood-isle/runtime/models/zipline.ts": 1,
-    "src/shards/driftwood-isle/npc/Castaway.ts": 4,
+    "src/shards/driftwood-isle/runtime/npc/Castaway.ts": 4,
     "src/shards/driftwood-isle/npc/Trader.ts": 3,
     "src/shards/driftwood-isle/plugin.ts": 1,
     "src/shards/driftwood-isle/quest/Complete.ts": 4,
@@ -1028,7 +1028,8 @@
     "src/shards/driftwood-isle/runtime/models/shoreBoulder.ts": 3,
     "src/shards/driftwood-isle/runtime/models/smallRock.ts": 2,
     "src/shards/driftwood-isle/runtime/models/trader.ts": 3,
-    "src/shards/driftwood-isle/runtime/models/zipline.ts": 1
+    "src/shards/driftwood-isle/runtime/models/zipline.ts": 1,
+    "src/shards/driftwood-isle/runtime/npc/Castaway.ts": 4
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/bag.ts": 1,
@@ -1137,7 +1138,7 @@
     "src/shards/driftwood-isle/runtime/models/trailside.ts": 2,
     "src/shards/driftwood-isle/models/trophyPlaques.ts": 3,
     "src/shards/driftwood-isle/runtime/models/zipline.ts": 3,
-    "src/shards/driftwood-isle/npc/Castaway.ts": 3,
+    "src/shards/driftwood-isle/runtime/npc/Castaway.ts": 3,
     "src/shards/driftwood-isle/npc/Trader.ts": 2,
     "src/shards/driftwood-isle/onboarding/firstMinutes.ts": 3,
     "src/shards/driftwood-isle/quest/adventure.ts": 12,

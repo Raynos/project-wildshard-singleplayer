@@ -30,7 +30,7 @@ Everything here is used by Driftwood alone, so it stays in the shard (the rule o
 | `combat/` | the Drowned Captain (`extends BossBrain`) and the island's strikes | its one boss |
 | `creatures/` | the enemy tables and installer | the island's spawns |
 | `quest/` | the castaway spine: Wendell, the three shards, the altar, the finale, the trader stall, feats | its own adventure |
-| `npc/` | the Castaway and the Trader, with their pivoted models and idle motion | their poses don't fit the kit NPC rig (B39) |
+| `runtime/npc/`, `npc/` | the Castaway (client, `runtime/npc/`) and the Trader (a loop the runtime-performance rule refuses keeps it in `npc/`), with their pivoted models and idle motion | their poses don't fit the kit NPC rig (B39) |
 | `loot/` | keepsakes, perks, finds, the shop | its own loot rules (E314) |
 | `runtime/look/`, `look/` | the toon look: light model, colour-ramp fog, stylized sky, terrain painter (client, in `runtime/look/`); day keys, ground colour, far look and map inputs stay in `look/` (headless and bakes read them) | the toon style is Driftwood's |
 | `audio/` | island ambience, score, SFX, the shrine hum, surface steps | its own sound |

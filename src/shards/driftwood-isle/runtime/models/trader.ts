@@ -1,7 +1,7 @@
 /**
  * Driftwood Isle's trader and her counter (E314, Jake's picks 2026-09-30: "a trader at Wendell's hut", the goods laid
  * out on a small driftwood counter in front of her — board 9 and board 2 A in art/loot/round-1-loop/). Code models on
- * the low-poly kit, Wendell's look (src/shards/driftwood-isle/npc/Castaway.ts), built in their own space: feet / foot of the counter
+ * the low-poly kit, Wendell's look (src/shards/driftwood-isle/runtime/npc/Castaway.ts), built in their own space: feet / foot of the counter
  * at the origin, front toward +Z.
  *
  * - `trader`: the NPC (src/shards/driftwood-isle/npc/Trader.ts): one figure, turned on pivots; the world keeps it live with
