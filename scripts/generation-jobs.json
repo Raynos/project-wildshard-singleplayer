@@ -14667,26 +14667,22 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/format",
-        "src/sdk/assemblyscriptCompiler.d.mts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/compileScript.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/decisionBindingMap.ts",
-        "src/sdk/package.json",
+        "src/sdk",
         "src/shards/_template/data/bossDecision.ts",
-        "src/shards/_template/generators/bossGlue.ts",
-        "src/shards/_template/behaviour/boss.as",
+        "src/shards/_template/data/creatures.ts",
+        "src/shards/_template/data/rows.ts",
+        "src/shards/_template/behaviour",
+        "src/shards/_template/generators/buildOptions.ts",
         "src/shards/_template/generators/bake-boss.mjs"
       ],
       "outputs": [
         "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60"
+        "src/shards/_template/assets/22ac5069bdc99e9c033b2bea47a170d44d288d5b91f79150af45f546dca991b3"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60"
+        "src/shards/_template/assets/22ac5069bdc99e9c033b2bea47a170d44d288d5b91f79150af45f546dca991b3"
       ]
     },
     {

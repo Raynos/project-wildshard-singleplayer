@@ -40,7 +40,7 @@ async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Arr
   printReport(shard, await measureSimulation(shard, assets, (source, bytes) => HeadlessSimulation.create(source, bytes, undefined, { deadline: 'advisory', sections })), policy);
 }
 /** Run the author CLI; returns only after validation/build completes. */
-export async function runCli(args: readonly string[], options: { readonly runtimeCheck?: RuntimeCopyOptions['check']; readonly manifest?: ProjectManifestSource } = {}): Promise<void> {
+export async function runCli(args: readonly string[], options: { readonly decisionLegacyLines?: number; readonly runtimeCheck?: RuntimeCopyOptions['check']; readonly manifest?: ProjectManifestSource } = {}): Promise<void> {
   const [command, input, output, buildFlag] = args;
   if (command === 'schema') {
     if (buildFlag !== undefined) throw new Error('usage: wildshard schema [list|shardfile|root] [JSON-pointer]');
@@ -74,7 +74,7 @@ export async function runCli(args: readonly string[], options: { readonly runtim
   if (command === 'dev') {
     const port = output === undefined ? 0 : Number(output);
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('dev port must be 0..65535');
-    const server = await devProject(resolve(input), { port });
+    const server = await devProject(resolve(input), { port, ...(options.decisionLegacyLines === undefined ? {} : { decisionLegacyLines: options.decisionLegacyLines }) });
     const close = (): void => { void server.close(); }; process.once('SIGINT', close); process.once('SIGTERM', close);
     console.info(`wildshard dev: ${server.url}`); return;
   }
@@ -86,7 +86,7 @@ export async function runCli(args: readonly string[], options: { readonly runtim
     const flags = args.slice(3), mapPath = flags.find(flag => flag.startsWith('--map='))?.slice(6), tilesHash = flags.find(flag => flag.startsWith('--map-tiles-hash='))?.slice(17);
     if (flags.some(flag => flag !== '--product-only' && flag !== '--no-placeholders' && flag !== '--format=2' && flag !== '--copy-runtime' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
     const map = mapPath === undefined || tilesHash === undefined ? undefined : { bytes: readBoundedFile(resolve(mapPath), STILL_IMAGE_LIMITS.bytes), tilesHash };
-    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, ...(options.manifest === undefined ? {} : { manifest: options.manifest }), copyRuntime: flags.includes('--copy-runtime'), ...(options.runtimeCheck === undefined ? {} : { runtimeCheck: options.runtimeCheck }), ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, ...(options.decisionLegacyLines === undefined ? {} : { decisionLegacyLines: options.decisionLegacyLines }), ...(options.manifest === undefined ? {} : { manifest: options.manifest }), copyRuntime: flags.includes('--copy-runtime'), ...(options.runtimeCheck === undefined ? {} : { runtimeCheck: options.runtimeCheck }), ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'prove') {
     if (input.endsWith('.json') && basename(input) !== 'shard.json') throw new Error('prove requires a format-2 shard.json or author project');
@@ -94,7 +94,7 @@ export async function runCli(args: readonly string[], options: { readonly runtim
     const built = input.endsWith('.json') || !existsSync(resolve(input, 'shard.config.ts'));
     const { shard, assets } = built
       ? validateOutputProduct(resolve(input.endsWith('.json') ? dirname(input) : input))
-      : await readProjectAssets(resolve(input), undefined, options.manifest);
+      : await readProjectAssets(resolve(input), undefined, options.manifest, options);
     const plan = v.parse(AuthorProofPlanSchema, JSON.parse(readFileSync(resolve(output), 'utf8')));
     console.info(JSON.stringify(await proveAuthorSimulation(shard, assets, plan), null, 2)); return;
   }
@@ -105,7 +105,7 @@ export async function runCli(args: readonly string[], options: { readonly runtim
       const checked = validateOutputProduct(folder);
       console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`); return;
     }
-    const { shard, assets, output: extensions } = await readProjectAssets(resolve(input), undefined, options.manifest);
+    const { shard, assets, output: extensions } = await readProjectAssets(resolve(input), undefined, options.manifest, options);
     const scripts = outputDecisionScripts(extensions.platform), contracts = decisionModuleContracts(scripts, shard.files);
     const project = resolve(input), policy = projectPerformancePolicy(project, shard);
     validateProject(shard, assets, project, scripts);

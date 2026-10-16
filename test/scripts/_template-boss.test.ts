@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the producer's small immutable Wasm, never compile in the gate scenario.
 import { readFileSync } from 'node:fs';
 import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
+import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { decisionScriptRules } from '@wildshard/format/decisionScripts';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
@@ -20,6 +21,8 @@ test('Template boss runs admitted Wasm decisions and resumes a logical save', ()
   expect(admitScriptContract(bytes, { abi: 1, pages: 1 }).initialPages).toBe(1);
   expect(row.binding).toEqual({ encounter: 'template.boss' });
   expect(product.runtime).toBeNull();
+  expect(BOSS_REGISTRIES.actors).toEqual(buildDecisionRegistries(product, BOSS_MOVES).actors);
+  expect(BOSS_REGISTRIES.strikes).toEqual(buildDecisionRegistries(product, BOSS_MOVES).strikes);
   expect(product.sim.scripts).not.toContain(module.hash); // Separate from the legacy v0 host.
   expect(decisionScriptRules([row], {
     modules: new Map([[row.module, { abi: 1, pages: 1 }]]),
@@ -32,7 +35,7 @@ test('Template boss runs admitted Wasm decisions and resumes a logical save', ()
     if (slot.scope === 'local') throw new Error('Template simulation has no local-only state');
     return { ...slot, scope: slot.scope };
   }) };
-  const boss = BOSS_REGISTRIES.actors.get('big-blob');
+  const boss = BOSS_REGISTRIES.actors?.get('big-blob');
   if (boss === undefined) throw new Error('Missing bound boss');
   const create = () => createScriptScenario(DecisionHost, { script, bytes, seed: 437,
     binding: { id: 1, script: row.id, self: boss, actors: [boss], instance: 0 },

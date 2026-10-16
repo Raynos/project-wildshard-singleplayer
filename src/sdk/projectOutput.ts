@@ -8,6 +8,8 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { defineMirror, type RuntimeMirror } from './runtimeMirrors';
 import type { EmittedSections } from './sections';
 import { outputDecisionScripts, type OutputProductOptions } from './outputProduct';
+import { prepareProjectDecisions, replacedDecisionBlob, decisionBlobNames } from './projectDecisions';
+import type { DecisionBuildOptions } from './buildDecisionScripts';
 
 const bytes = v.custom<Uint8Array>(value => value instanceof Uint8Array);
 const assetMap = v.map(v.string(), bytes);
@@ -53,8 +55,17 @@ function ownedSections(input: EmittedSections): EmittedSections {
 }
 
 /** Parse the optional output export and compile project-contained inputs (including glTF) into immutable blobs. */
-export async function prepareProjectOutput(project: string, input: unknown): Promise<PreparedProjectOutput> {
-  const parsed = v.parse(output, input === undefined ? {} : input), blobs: NamedBlob[] = [], overlays: OutputFile[] = [];
+export async function prepareProjectOutput(project: string, input: unknown, decisions?: { source: Shardfile; options: DecisionBuildOptions }): Promise<PreparedProjectOutput> {
+  let parsed = v.parse(output, input === undefined ? {} : input);
+  const blobs: NamedBlob[] = [], overlays: OutputFile[] = [];
+  if (decisions !== undefined) {
+    const built = await prepareProjectDecisions(project, decisions.source, parsed.platform, decisions.options);
+    blobs.push(...decisionBlobNames(built.blobs, parsed.namedFiles, parsed.blobs, outputDecisionScripts(parsed.platform)));
+    const assets = new Map(parsed.assets); for (const hash of built.replaced) assets.delete(hash);
+    parsed = { ...parsed, ...(built.platform === undefined ? {} : { platform: v.parse(emitted, built.platform) }), assets,
+      namedFiles: parsed.namedFiles.filter(file => !built.replaced.has(file.hash)),
+      blobs: parsed.blobs.filter(row => !replacedDecisionBlob(row, built.replaced)) };
+  }
   for (const row of parsed.blobs) blobs.push(await readNamedBlob(project, row.name, row.source, row.kind, row.options));
   const inventory = [...parsed.namedFiles, ...blobs.map(row => row.file)];
   // Other rows may name files already declared by the root source; full product admission resolves those.

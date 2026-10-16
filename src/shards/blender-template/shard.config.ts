@@ -36,3 +36,6 @@ const project = { ...base, ...SOURCE,
 
 // oxlint-disable-next-line import/no-default-export -- The SDK loads the author declaration.
 export default project;
+
+/** Explicit standalone author-source ceiling; this project has no frozen legacy denominator. */
+export const buildOptions = { asLineCeiling: 256 };

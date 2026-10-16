@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { rapierAlias } from '../vite/rapier.ts';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
+import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 
 let runner;
 const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sdk/package.json'));
@@ -34,7 +35,8 @@ export async function runWildshard(args) {
     folder: basename(project), ...(existsSync(resolve(project, 'manifest.json')) ? { file: resolve(project, 'manifest.json') } : {}),
     imageRoots: [{ prefix: `/src/shards/${basename(project)}/`, directory: project }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }],
   };
-  await (await runner)(args, { ...(manifest === undefined ? {} : { manifest }), runtimeCheck: (/** @type {string} */ path, /** @type {string} */ source) => {
+  const legacy = project === undefined ? undefined : decisionLegacyLines(root, basename(project));
+  await (await runner)(args, { ...(legacy === undefined ? {} : { decisionLegacyLines: legacy }), ...(manifest === undefined ? {} : { manifest }), runtimeCheck: (/** @type {string} */ path, /** @type {string} */ source) => {
     const file = relative(root, resolve(args[1] ?? root, path)).split(sep).join('/');
     return shardfileBoundaryViolations(root, file, source).filter(issue => issue.rule === 'runtime-standalone');
   } });

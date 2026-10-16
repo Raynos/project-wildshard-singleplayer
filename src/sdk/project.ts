@@ -30,6 +30,7 @@ import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedP
 import type { RuntimeMirror } from './runtimeMirrors';
 import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './outputRuntime';
 import { readManifestSource, type ProjectManifestSource } from './projectManifest';
+import { projectDecisionOptions } from './projectDecisions';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -55,7 +56,7 @@ async function authorModule(project: string, file: string): Promise<Record<strin
   return Object.fromEntries(Object.entries(loaded));
 }
 
-async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
+async function projectModule(project: string, decisionLegacyLines?: number): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
   const loaded = await authorModule(project, 'shard.config.ts');
   if (!('default' in loaded)) throw new Error('config has no default export');
   let declaration: unknown = loaded['default'];
@@ -79,21 +80,21 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
   const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
-  const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output']);
+  const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output'], { source: shard, options: projectDecisionOptions(loaded['buildOptions'], decisionLegacyLines) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);
   return { shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
 }
 /** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
-export async function readProject(project: string): Promise<Shardfile> {
-  const loaded = await projectModule(project);
+export async function readProject(project: string, options: { decisionLegacyLines?: number } = {}): Promise<Shardfile> {
+  const loaded = await projectModule(project, options.decisionLegacyLines);
   return mergeProjectBlobs(loaded.shard, loaded.baked, loaded.output.blobs, loaded.output.options.namedFiles).shard;
 }
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
-export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
-  const loaded = await projectModule(project), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
+export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
+  const loaded = await projectModule(project, options.decisionLegacyLines), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
   for (const [hash, bytes] of loaded.output.assets) {
     const previous = pinned.get(hash);
@@ -140,9 +141,9 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', scripts: readonly DecisionScripts[number][]) => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', scripts: readonly DecisionScripts[number][]) => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
-  const loaded = await readProjectAssets(project, options.map, options.manifest), assets = loaded.assets;
+  const loaded = await readProjectAssets(project, options.map, options.manifest, options), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
   // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
   // a static import: the author CLI must bundle to one module (scripts/wildshard.mjs); the bakers' closure stays

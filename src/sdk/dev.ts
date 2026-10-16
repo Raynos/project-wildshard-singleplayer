@@ -37,7 +37,7 @@ export function projectSourceStamp(source: string): string {
 /** A rebuilt static author client. Closing it releases its watcher, socket and private build products. */
 export interface DevProject { url: string; close: () => Promise<void> }
 /** Only the author command chooses DEVSERVER; requests, cookies and URL switches cannot enable it. */
-export async function devProject(project: string, options: { port?: number; client?: string } = {}): Promise<DevProject> {
+export async function devProject(project: string, options: { decisionLegacyLines?: number; port?: number; client?: string } = {}): Promise<DevProject> {
   const source = resolve(project), scratch = realpathSync(mkdtempSync(join(tmpdir(), 'wildshard-dev-')));
   let revision = 0, error: string | null = null, current = '', previous = '', stopped = false;
   const scope = new Scope('sdk.dev');
@@ -46,7 +46,7 @@ export async function devProject(project: string, options: { port?: number; clie
     if (stopped) return;
     const target = join(scratch, `build-${revision + 1}`);
     try {
-      await buildProject(source, target, { devserver: true, ...(options.client === undefined ? {} : { client: options.client }) });
+      await buildProject(source, target, { devserver: true, ...(options.decisionLegacyLines === undefined ? {} : { decisionLegacyLines: options.decisionLegacyLines }), ...(options.client === undefined ? {} : { client: options.client }) });
       const page = join(target, 'index.html');
       if (!existsSync(page)) throw new Error('wildshard dev requires the SDK devserver client; build/pack the SDK first');
       const flags: unknown = JSON.parse(readFileSync(join(target, 'build-flags.json'), 'utf8'));

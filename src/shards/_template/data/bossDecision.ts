@@ -1,17 +1,19 @@
 import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import { parseActorMoves } from '@wildshard/format/actorMoves';
-import { decisionBindingMap, type DecisionBindingMap } from '@wildshard/sdk/decisionBindingMap';
+import { decisionBindingMap, buildDecisionRegistries, type DecisionBindingMap } from '@wildshard/format/decisionBindings';
+import { emptyShardfile } from '@wildshard/sdk/author';
+import { CreaturesSchema } from '@wildshard/format/creatures';
+import * as v from 'valibot';
+import { CREATURES } from './creatures';
+import { TEMPLATE_ROWS } from './rows';
 
 /** The engine runs the motion; Wasm only chooses when to approach or strike. */
 export const BOSS_MOVES = parseActorMoves([{ id: 'template.boss.approach', kind: 'stalk', speed: 1,
   turn: 4, ground: true, above: 0, standOff: 0, ready: { kind: 'range' } }]);
 
-/** Authoritative handles for this bounded reference binding, shared by its glue and scenario.
- * KA3 replaces the handwritten glue; KA6 consumes the same registries, never guessed alias ids. */
-export const BOSS_REGISTRIES = {
-  actors: new Map([['big-blob', 1]]), moves: new Map([['template.boss.approach', 1]]),
-  strikes: new Map([['template.blob.bump', 1]]),
-};
+/** The same real spawn/strike catalogues are used by the product and the platform handle builder. */
+export const BOSS_REGISTRIES = buildDecisionRegistries({ ...emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 2, seed: 357 }),
+  creatures: v.parse(CreaturesSchema, CREATURES), rows: TEMPLATE_ROWS }, BOSS_MOVES);
 
 export function bossDecision(module: string): DecisionScriptRow {
   const rows = parseDecisionScripts([{ id: 'template.boss.decision', abi: '1.0', side: 'sim', module,

@@ -7453,3 +7453,13 @@ Spawn/despawn, impulse and weather declarations currently refuse without
 an admitted mechanic owner. Named spots/perches also refuse until their
 platform section exists. The sim world-target contact section is the next
 KA6 slice; interaction prompts are not treated as strike targets.
+
+The author build reads `sim/scripts`, resolves its constants through
+`buildDecisionRegistries(source, moves)` and recompiles every decision `.as`
+entry before reading named assets. It replaces old producer module hashes and
+re-emits the canonical section, admitting only the newly built v1 contract.
+Standalone `shard.config.ts` exports `buildOptions = { asLineCeiling: N }`;
+the official root CLI supplies sealed legacy counts instead. The ruler and
+root adapter share `scripts/decision-legacy-lines.mjs`, including exact generated
+producer exclusions. Template's handlers use this same compiler and no private
+ABI glue. Generated bindings are virtual `behaviour/generated/<camelId>.ts`.

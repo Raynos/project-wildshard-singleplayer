@@ -1874,7 +1874,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Cheap Template decision output (template-boss-decision).
 /src/shards/_template/behaviour/boss.json
-/src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60
+/src/shards/_template/assets/22ac5069bdc99e9c033b2bea47a170d44d288d5b91f79150af45f546dca991b3
 
 # Cached split bird geometry and existing KTX2 maps (pine-bird-blob-inputs).
 /src/shards/pine-hollow/assets/bird-blobs/

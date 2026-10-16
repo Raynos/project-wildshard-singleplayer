@@ -49,3 +49,6 @@ export default parseShardfile({ ...base, accent: 'ember',
   quests: ADVENTURE, ledger: INK_LEDGER, audio: INK_AUDIO, state: INK_STATE, hooks: INK_HOOKS,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 });
+
+/** Explicit standalone author-source ceiling; this project has no frozen legacy denominator. */
+export const buildOptions = { asLineCeiling: 256 };

@@ -9,6 +9,7 @@ import { parseSync } from 'vite';
 import * as v from 'valibot';
 import { resolveSpecifier } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
+import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
 import { outputRuntime } from './shard-platform-output.mjs';
@@ -823,14 +824,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       row.oneUserBuildTools = {lines:tools.reduce((sum, tool) => sum + tool.lines, 0), files:tools};
     }
     const pair = Object.entries(frozen.shards).find(([, legacy]) => legacy.primary === slug);
-    let legacyLines = null;
-    if (pair !== undefined) {
-      const [folder, legacy] = pair;
-      // The sealed file inventory is the denominator; unrelated suffix folders cannot pad it.
-      legacyLines = Object.keys(legacy.files).filter(path => RULES.typescript.test(path) && !path.endsWith('.d.ts') && !RULES.tests.test(path))
-        .reduce((total, path) => total + count(`src/shards/${folder}/${path}`), 0);
-      if (legacyLines <= 0) throw new Error(`${slug}: frozen legacy has no authored TypeScript lines`);
-    }
+    const legacyLines = decisionLegacyLines(root, slug, { generated, count }) ?? null;
     const {modules,exports,pending} = partitionPendingPlatformUsers(slug,privateModules.get(slug),privateExports.get(slug),pendingUsers);
     const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;

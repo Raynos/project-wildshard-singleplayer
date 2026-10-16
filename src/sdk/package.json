@@ -144,7 +144,8 @@
     "./as/ws": "./as/ws.ts",
     "./decisionScriptBindings": "./decisionScriptBindings.ts",
     "./decisionSource": "./decisionSource.ts",
-    "./buildDecisionScripts": "./buildDecisionScripts.ts"
+    "./buildDecisionScripts": "./buildDecisionScripts.ts",
+    "./projectDecisions": "./projectDecisions.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -732,6 +733,10 @@
       "./buildDecisionScripts": {
         "types": "./dist/types/sdk/buildDecisionScripts.d.ts",
         "default": "./dist/buildDecisionScripts.js"
+      },
+      "./projectDecisions": {
+        "types": "./dist/types/sdk/projectDecisions.d.ts",
+        "default": "./dist/projectDecisions.js"
       }
     }
   }

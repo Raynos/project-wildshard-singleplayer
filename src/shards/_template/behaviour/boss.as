@@ -1,26 +1,26 @@
-// KT2: reference encounter decisions. Engine move/strike rows own every fixed-step motion.
-import { START, TIMER, THRESHOLD, DEATH, STOP, BEAT, begin, end, self, events, event,
-  phase, setPhase, swingNext, setSwingNext, beatSeconds, timer, stop, encounter, action } from './ws';
-
-export function ws_abi():i32 { return 1; }
-export function ws_init(lo:i32,hi:i32):void {}
-export function ws_io():i32 { return 16384; }
-
-export function ws_handle():i32 {
-  begin();
-  for(let index:i32=0;index<events();index++) {
-    let kind=i32(event(index,0));
-    if(kind==STOP) {
-      stop(); timer(0); setPhase(0); setSwingNext(true);
-    } else if(kind==START && phase()==0) {
-      setPhase(1); setSwingNext(true); encounter(1,0); action(false); timer(beatSeconds());
-    } else if(kind==THRESHOLD && event(index,1)==self() && event(index,2)==1 && phase()==1) {
-      setPhase(2); encounter(1,1); timer(beatSeconds());
-    } else if(kind==DEATH && event(index,1)==self() && (phase()==1 || phase()==2)) {
-      stop(); timer(0); setPhase(3); encounter(2,0);
-    } else if(kind==TIMER && event(index,1)==BEAT && (phase()==1 || phase()==2)) {
-      action(swingNext()); setSwingNext(!swingNext()); timer(beatSeconds());
-    }
-  }
-  return end();
+// Engine move/strike rows own motion; this source only handles admitted decisions.
+import { Actor, Move, Strike, Timer, State, Params, Do, Read, Event } from './generated/templateBossDecision';
+function beatSeconds():f64 { return State.phase==2?Params.secondBeat:Params.firstBeat; }
+function action(swing:bool):void {
+  const target=Read.nearestPlayer(Actor.boss);
+  if(target!=0) { if(swing) Do.strike(Actor.boss,Strike.bump,target); else Do.move(Actor.boss,Move.approach,target); }
+}
+export function onStart():void {
+  if(State.phase!=0) return;
+  State.phase=1; State.swingNext=true; Do.encounterPhase(0); action(false); Do.timer(Timer.beat,beatSeconds());
+}
+export function onStop():void {
+  Do.stop(Actor.boss); Do.timer(Timer.beat,0); State.phase=0; State.swingNext=true;
+}
+export function onThreshold(index:i32):void {
+  if(i32(Event.subject)!=Actor.boss || index!=1 || State.phase!=1) return;
+  State.phase=2; Do.encounterPhase(1); Do.timer(Timer.beat,beatSeconds());
+}
+export function onDeath(killer:i32):void {
+  if(i32(Event.subject)!=Actor.boss || (State.phase!=1 && State.phase!=2)) return;
+  Do.stop(Actor.boss); Do.timer(Timer.beat,0); State.phase=3; Do.encounterWin();
+}
+export function onTimer(timer:i32):void {
+  if(timer!=Timer.beat || (State.phase!=1 && State.phase!=2)) return;
+  action(State.swingNext); State.swingNext=!State.swingNext; Do.timer(Timer.beat,beatSeconds());
 }
