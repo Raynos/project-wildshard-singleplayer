@@ -6673,3 +6673,40 @@ stage order, owns the reward-start/finish flags and subscribes to altar/death
 edges until scope disposal. Callers retain their update phase and original
 version-3 stage snapshot; restoring stays silent. Captain combat, reward
 pose/carry and page sound/caption effects remain with their existing owners.
+
+### Authored custom shardfile sections (P2b)
+
+Build-time `@wildshard/sdk/sections` defines a private table with
+`defineSection('custom/name', valibotSchema, value, {audience, load})`.
+The optional policy defaults to `both` / `enter`. Values must be plain JSON;
+Valibot supplies defaults before emission. Predicates or transformations
+that cannot be represented by JSON Schema refuse instead of being dropped.
+
+`emitDefinedSections(definitions)` returns sorted index descriptors and a
+map of canonical bytes at `sections/custom/name.json` and
+`schemas/custom/name.schema.json`. The product writer owns publishing those
+files. Duplicate names and path escapes refuse before any file is written.
+`validateDefinedSection(schemaBytes, value)` independently checks a custom
+section loaded from disk against its canonical draft-07 schema, without
+loading author code. It refuses unknown checks, unresolved external schemas,
+asynchronous validation and non-JSON values; it never coerces data, supplies
+defaults or removes unknown properties. Runtime custom-section readers keep
+their own local schema; the authoring SDK never enters the play graph.
+
+### Built shard discovery catalog (P3)
+
+`@wildshard/sdk/outputCatalog.writeOutputCatalog(outRoot, entries)` writes
+canonical `out/catalog.json` after the caller validates and emits its
+products. Each entry supplies the exact index bytes plus title-card,
+accent, placement and nullable first-party runtime metadata. The writer
+hashes those original bytes, derives `<slug>/shard.json`, and sorts by
+card order then slug without mutating its input. It does not load source
+manifests or execute shard code.
+
+`@wildshard/format/shardCatalog.parseShardCatalog` admits that bounded JSON
+contract. Unknown versions, fields, duplicate slugs/instances/cells and
+index path escapes refuse. Thumbnail paths name the shard's hash-named
+image blobs relative to the catalog; data-image thumbnails support the
+data-only Template. Source `/src/` paths cannot leak into discovery.
+This is the catalog contract/emitter prerequisite; the live discovery
+switch follows the output writer and closed-runtime migration.

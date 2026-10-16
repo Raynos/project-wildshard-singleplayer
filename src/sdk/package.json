@@ -127,7 +127,8 @@
     "./projectMap": "./projectMap.ts",
     "./random": "./random.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
-    "./looks/streamedInstances": "./looks/streamedInstances.ts"
+    "./looks/streamedInstances": "./looks/streamedInstances.ts",
+    "./sections": "./sections.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -159,7 +160,8 @@
     "binaryen": "132.0.0",
     "@wildshard/format": "workspace:*",
     "@valibot/to-json-schema": "1.8.0",
-    "@gltf-transform/extensions": "4.5.0"
+    "@gltf-transform/extensions": "4.5.0",
+    "ajv": "6.15.0"
   },
   "publishConfig": {
     "exports": {
@@ -654,6 +656,10 @@
       "./random": {
         "types": "./dist/types/sdk/random.d.ts",
         "default": "./dist/random.js"
+      },
+      "./sections": {
+        "types": "./dist/types/sdk/sections.d.ts",
+        "default": "./dist/sections.js"
       }
     }
   }

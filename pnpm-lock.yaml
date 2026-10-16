@@ -161,6 +161,9 @@ importers:
 
   src/sdk:
     dependencies:
+      ajv:
+        specifier: 6.15.0
+        version: 6.15.0
       '@valibot/to-json-schema':
         specifier: 1.8.0
         version: 1.8.0(valibot@1.5.0(typescript@7.0.2))
