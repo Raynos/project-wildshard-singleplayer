@@ -190,6 +190,13 @@ grep -h '^serve-build step\|^wildshard build: .* in \|^heavy-lane: acquired' "$B
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins
 link_tree() {
   local src="$1" dst="$2" e n
+  # Generated v2 products are complete: never merge retired flat products or
+  # stale shard directories from public/ back into a proof build.
+  if [ "$src" = "$SRC/public/shardfiles" ]; then
+    for e in "$dst"/*/shard.json; do
+      [ -f "$e" ] && grep -q '"format":"wildshard.shardfile"' "$e" && return 0
+    done
+  fi
   for e in "$src"/* "$src"/.[!.]*; do
     [ -e "$e" ] || continue
     n="$dst/$(basename "$e")"
