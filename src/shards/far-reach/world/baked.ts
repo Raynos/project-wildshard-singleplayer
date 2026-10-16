@@ -1,11 +1,9 @@
 import { SKY_LIBRARY } from './meshes';
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
-import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type:'json' };
-import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type:'json' };
+import STATIC_SCENES from '../data/staticScenes.generated.json' with { type:'json' };
 import { bakedMeshWorld, type BakedMeshKindRow } from '@wildshard/game/shardfile/bakedKinds';
 import { SKY_PIECES } from '../data/pieces';
 import { WORLD_BAKES } from '../data/worldBakes';
-import { SKY_GROUND_COLLIDERS } from '../data/groundScene.generated';
 import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
 import { shackMaterial, type ShackKind } from './shack';
 import { isleMaterial, setIslePack } from './isle';
@@ -26,7 +24,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
 };
 
 export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(WORLD_BAKES, BAKED_URLS, 'far-reach', {
-  resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:SKY_PIECES,colliders:[...BRIDGE_PHYSICS,...PLACEMENTS,...SKY_GROUND_COLLIDERS]},
+  resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:SKY_PIECES,colliders:STATIC_SCENES.standalone.fixed.colliders},
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return 'look' in kind && typeof kind.look === 'string' ? SKY_LIBRARY.look(kind.look) : shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
   attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },

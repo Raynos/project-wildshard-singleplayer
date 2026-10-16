@@ -1,9 +1,10 @@
 import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { fixedWorld } from './fixedWorld';
 import PLACEMENTS from '../data/placements.json' with { type: 'json' };
 
 type Placed = typeof PLACEMENTS.standalone;
 /** Decorative model matrices and hierarchy are author data; live look materials remain owned ports. */
-function recipe(placed: Placed): { readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[] } {
+function recipe(placed: Placed, standalone: boolean): { readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[]; readonly fixed: ReturnType<typeof fixedWorld> } {
   const nodes: PrivateScene['nodes'] = [
     { kind: 'group', id: 'decorations', children: ['sky-isles', 'trees', 'dressing', 'falls'] },
     { kind: 'group', id: 'sky-isles', name: 'far.sky-isles', children: ['isles', 'keels'] },
@@ -30,7 +31,9 @@ function recipe(placed: Placed): { readonly recipe: WorldSceneRecipe; readonly m
       group.children.push(id); materials.push({ kind: 'port', id: material, source: material });
     }
   }
-  return { recipe: { scene: { version: 1, root: 'decorations', nodes, materials, textures: [] },
+  const fixed = fixedWorld(standalone);
+  for (const model of fixed.models) models.add(model);
+  return { fixed, recipe: { scene: { version: 1, root: 'decorations', nodes, materials, textures: [] },
     imports: [{ id: 'dressing-source', kind: 'baked', piece: 'dressing' }] }, models: [...models], bindings: [
       { piece: 'far.sky-isles', part: 'sky-isles' }, { piece: 'far.pines', part: 'trees' },
       { piece: 'far.dressing', part: 'dressing', baked: 'dressing-source' },
@@ -38,5 +41,5 @@ function recipe(placed: Placed): { readonly recipe: WorldSceneRecipe; readonly m
 }
 /** Standalone and regional scenes share the same prepared model frames and original matrix rows. */
 export function skyStaticScenes(): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
-  return { half: PLACEMENTS.half, standalone: recipe(PLACEMENTS.standalone), cell: recipe(PLACEMENTS.cell) };
+  return { half: PLACEMENTS.half, standalone: recipe(PLACEMENTS.standalone, true), cell: recipe(PLACEMENTS.cell, false) };
 }
