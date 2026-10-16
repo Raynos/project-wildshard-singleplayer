@@ -1,7 +1,7 @@
 import { PANO_URL, TEX_URL } from './files';
 import { SKY, SKY_DAY, SKY_FOG, SKY_HAZE, SKY_KEY, SKY_PAINTER_LIGHT, SKY_RAYS, SKY_SUN } from './skyLook';
 import { PANO_FOG_SRGB } from '../look/panoramaData';
-import DRESSING from './skyDressing.generated.json' with { type: 'json' };
+import DRESSING from './skyDressing.json' with { type: 'json' };
 
 const [sunX, sunY, sunZ] = SKY_SUN;
 
@@ -26,7 +26,7 @@ const SKY_LOOK_TEXTURES = {
  * spec rows (the painter's light, the key at the painted sun, the fog, the horizon, the NEUTRAL curve, the god rays), `haze`
  * the heading haze over the panorama's fog strip, `day` the fixed clock and `images` the painted images the look loads up
  * front, and `dressing` the dome's graph per tier and the dressing's graphs, card fields and discs, built at build time
- * (generators/skyDressing.ts → data/skyDressing.generated.json; look/render.ts admits them).
+ * (authored SF59 graph JSON, data/skyDressing.json; look/render.ts admits them).
  */
 export const SKY_PAINTED = {
   look: { light: SKY_PAINTER_LIGHT, sun: { ...SKY_KEY, dir: { x: sunX, y: sunY, z: sunZ } }, fog: { color: SKY.fog, near: SKY_FOG.near, far: SKY_FOG.far }, horizon: SKY.horizon,
