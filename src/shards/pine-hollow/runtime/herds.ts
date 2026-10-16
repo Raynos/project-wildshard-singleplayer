@@ -1,12 +1,12 @@
 import * as v from 'valibot';
 import { Color } from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { HuntGround, HuntSpecies } from '@wildshard/engine/ai/hunt';
+import { bakedHuntGround, type HuntGround, type HuntSpecies } from '@wildshard/engine/ai/huntPattern';
 import type { VariantDef, VariantTable } from '@wildshard/engine/entities/species/registry';
 import { DEER } from '@wildshard/game/systems/species/deer';
 import { ELK } from '@wildshard/game/systems/species/elk';
 import { PINE_BEAR, PINE_BOAR, PINE_ELK_THRALL } from '../species/rows';
-import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
+import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { treeGridOf, type TreeInstance } from '@wildshard/engine/world/forest/placement';
 import { TERRAIN } from '../world/terrain';
 import baked from '../data/physics.generated.json' with { type: 'json' };
@@ -28,13 +28,9 @@ export function pineTrees(): readonly TreeInstance[] {
  * no sea and no water of its own beyond the water line, the creek and the pond.
  */
 export function pineHuntGround(grid: BakedGrid, trees: readonly TreeInstance[] = pineTrees()): HuntGround {
-  const samplers = bakedSamplers(grid), forest = treeGridOf(trees), stream = TERRAIN.streamAt;
-  return {
-    heightAt: samplers.heightAt, normalY: (x, z) => samplers.normalAt(x, z)[1], trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask,
-    inChunk: (x, z, margin) => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin,
-    streamAt: (x, z) => stream === undefined ? null : stream(x, z), waterLevel: () => TERRAIN.waterLevel(), pond: () => TERRAIN.pond,
-    sea: () => false, wetAt: () => false, trees: (x, z, r) => forest.nearby(x, z, r), treeless: () => trees.length === 0, terrain: () => true, chunkHalf: CHUNK_HALF,
-  };
+  const forest = treeGridOf(trees);
+  return bakedHuntGround(grid, { field: TERRAIN, chunkHalf: CHUNK_HALF, trees: (x, z, r) => forest.nearby(x, z, r),
+    treeless: () => trees.length === 0, sea: () => false, wetAt: () => false });
 }
 
 /** The King's species as the creature manager's spawn reads it: kind 'antler-king', his one variant (runtime/antlerKing.ts). */

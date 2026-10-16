@@ -3,7 +3,9 @@ import type { AnimalSim, AnimalState } from '../entities/AnimalSim';
 import { GroupBrain } from './GroupBrain';
 import type { Rng } from '../core/rng';
 import type { FightRules } from '../level/spec';
-import type { HerdPlan } from '../level/data';
+import type { HerdPlan, TerrainField } from '../level/data';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 import type { Navmesh } from '../physics/navmesh';
 import { creatureSoundDefaults, rollVariant, speciesDef, variantOf, type SpeciesDef, type VariantDef, type VariantTable } from '../entities/species/registry';
 import { AggressionDirector } from './director';
@@ -224,6 +226,29 @@ export interface HuntGround {
   chunkHalf: number;
 }
 
+/**
+ * Bind a baked navigation surface to live authored water/forest queries. The grid supplies only height and normal;
+ * trails, pads, water, wetness and trees remain the caller's authority. Bounds are inclusive after the requested margin.
+ * The stream function is captured on binding, while water level and pond are read on each query.
+ */
+export function bakedHuntGround(grid: BakedGrid, ports: {
+  readonly field: Pick<TerrainField, 'trailDistance' | 'cabinMask' | 'streamAt' | 'waterLevel' | 'pond'>;
+  readonly chunkHalf: number;
+  readonly trees: HuntGround['trees'];
+  readonly treeless: HuntGround['treeless'];
+  readonly wetAt: HuntGround['wetAt'];
+  readonly sea: HuntGround['sea'];
+}): HuntGround {
+  const samplers = bakedSamplers(grid), field = ports.field, stream = field.streamAt, half = ports.chunkHalf;
+  return {
+    heightAt: samplers.heightAt, normalY: (x, z) => samplers.normalAt(x, z)[1],
+    trailDistance: field.trailDistance, cabinMask: field.cabinMask,
+    inChunk: (x, z, margin) => Math.abs(x) <= half - margin && Math.abs(z) <= half - margin,
+    streamAt: (x, z) => stream === undefined ? null : stream(x, z), waterLevel: () => field.waterLevel(), pond: () => field.pond,
+    sea: ports.sea, wetAt: ports.wetAt, trees: ports.trees, treeless: ports.treeless, terrain: () => true, chunkHalf: half,
+  };
+}
+
 export type HuntNav = Pick<Navmesh, 'closestWalkable' | 'randomPointNear' | 'findPath' | 'clearAhead'>;
 
 export interface HuntPorts<A extends AnimalSim> {
@@ -353,7 +378,7 @@ export class HuntingStalkerCore<A extends AnimalSim> extends GroupBrain<A> {
    */
   isDry(x: number, z: number): boolean {
     const g = this.ground;
-    if (g.wetAt(x, z)) return false; // the shard's own water (Nalati: src/shards/nalati-grasslands/wet.ts)
+    if (g.wetAt(x, z)) return false; // caller-owned water outside the common waterline (for example a river corridor)
     const y = g.heightAt(x, z), s = g.streamAt(x, z);
     if (s !== null && y < s - 0.05) return false;
     if (y > g.waterLevel() + 0.25) return true;

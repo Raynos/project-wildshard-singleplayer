@@ -6296,3 +6296,14 @@ puffs/traces, with the live tracer lifetime and caller time. No action, damage,
 physics service or random stream is replaced. G441's pending W3 adopter is
 Nalati `runtime/weapons/magazineFirearm.ts`: allocation, hitscan/ejection and
 final publication; its bloom, magazine/reload and callbacks stay local.
+
+### Baked hunting-ground queries
+
+`engine/ai/huntPattern.ts#bakedHuntGround(grid, ports)` binds the existing baked
+height/normal samplers to a hunting ground. The caller lends its terrain field,
+chunk half-size, tree query, treeless, wetness and sea predicates. Bounds stay
+inclusive after the requested margin; an absent stream returns null. Water
+level and pond remain live field reads. The helper neither registers physics
+nor changes terrain, species, placement or RNG policy. Pine uses it for native
+herds; W3 Nalati replaces `runtime/headlessCreatures.ts#nalatiHuntGround` with
+the same binding, retaining its river wetness and forest queries.
