@@ -1,3 +1,4 @@
+import { mergeProjectSections } from './projectSections';
 import { writeNewProject } from './newProject';
 import { assertConfigBoundary } from './configBoundary';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI verifies and writes local build products.
@@ -81,6 +82,7 @@ async function projectModule(project: string, decisionLegacyLines?: number): Pro
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
   const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
+  shard = mergeProjectSections(shard, sidecar?.['sections']);
   const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output'], { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');

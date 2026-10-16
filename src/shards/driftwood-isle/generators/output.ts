@@ -1,3 +1,4 @@
+import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
@@ -28,3 +29,6 @@ const placements = emitNamedBlobs([nameBlob('sim/enemy-placement.json', 'json', 
 export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };
 /** Strict output copies prove the same constants the source mirror fixture checks. */
 export const mirrors = [...RUNTIME_MIRRORS];
+
+/** Root-mapped platform data is admitted before the canonical output writer. */
+export const sections = { 'world/movers': { movers: MOVERS } };

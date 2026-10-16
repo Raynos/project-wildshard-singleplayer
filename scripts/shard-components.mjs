@@ -131,7 +131,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/props/bakedBuilding.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/props/buildingLife.ts', 'C3'],
   // Door and wheel motion within the mixed light/mover building host.
-  ...['BuildingDoor', 'BuildingSwing', 'doorPieces', 'barDoor', 'onDoor', '_doorUse', '_door', '_swing', '_wheel'].map(name => [`src/shards/pine-hollow/runtime/props/buildingLife.ts#${name}`, 'C7']),
+  ...['BuildingDoor', 'BuildingSwing', 'doorPieces', 'barDoor', 'onDoor', '_doorUse', '_doorMoved', '_door', '_swing', '_wheel'].map(name => [`src/shards/pine-hollow/runtime/props/buildingLife.ts#${name}`, 'C7']),
   // Material/rig look decoding and authored appearance rows.
   ['src/sdk/bake/rig.ts', 'C2'],
   ['src/shards/pine-hollow/runtime/props/cabinBuild.ts', 'C2'],

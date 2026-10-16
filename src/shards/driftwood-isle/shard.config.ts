@@ -14,7 +14,6 @@ import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { DECLARED_SEA, WORLD_DROP } from './world/sea';
 import { ENTRY_LANDINGS } from './data/entryLandings';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
-import MOVERS from './data/movers.generated.json' with { type: 'json' };
 import fixed from './data/fixedTiles.generated.json' with { type: 'json' };
 import lookGraphs from './data/lookMaterials.generated.json' with { type: 'json' };
 
@@ -40,7 +39,7 @@ const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixe
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base, rows: { ...base.rows, loot: [LOOT] },
-  movers: MOVERS, sim: { ...base.sim, scripts: [] },
+  sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files], critical: [...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: fixed.library,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },

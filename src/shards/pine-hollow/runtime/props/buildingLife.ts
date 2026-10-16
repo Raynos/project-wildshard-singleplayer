@@ -8,7 +8,7 @@ import { SiteLights, type LightSite, type SiteFlicker, type SiteLightsLook, type
 /**
  * A settlement's buildings as a living place (SHARD-PLATFORM M3, the props system): whatever builds the buildings hands
  * their moving parts and floor queries here (doors, fires and lamps, lantern swings, wheels),
- * and this runs them: the doors swing on use (eased, barred by the caller's rule, heard
+ * and this runs them: the doors swing on use (eased, heard
  * by listeners) with a kinematic leaf piece each; the fires, lamps and the phone's shared lights are the engine's
  * SiteLights (fires burn all day, lamps light at dusk); lamp glass glows with the night. Every number is the shard's
  * look row; nothing here knows a shard's buildings.
@@ -19,6 +19,8 @@ export interface BuildingDoor {
   id: string; pivot: THREE.Object3D; open: boolean; t: number; collider: BoxSpec; interactable: Interactable;
   /** the leaf as a box in the pivot's local frame */
   slab: ColliderDesc;
+  /** Stable view command, borrowed independently from the prompt binding. */
+  use: () => void;
 }
 /** A swinging pivot (a hung lantern) and its seed. */
 export interface BuildingSwing { pivot: THREE.Object3D; seed: number }
@@ -61,7 +63,6 @@ export class BuildingLife {
   readonly audioState={floors:this.floors,firePits:this.firePits,wheel:{value:0.55}};
   /** emissive materials lit by the clock and their full-night intensity */
   private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
-  private readonly doorBars = new Map<Interactable, () => boolean>();
   private readonly doorListeners = new Set<(door: Interactable, opening: boolean) => void>();
 
   constructor(look: BuildingLifeLook) {
@@ -73,8 +74,8 @@ export class BuildingLife {
    * One piece per door: the leaf in its pivot's frame, for a kinematic body that follows the pivot. `swinging()` is true
    * from the moment the door is used until it is fully shut or fully open.
    */
-  doorPieces(): { id: string; pivot: THREE.Object3D; colliders: ColliderDesc[]; swinging: () => boolean }[] {
-    return this.doors.map((d) => ({ id: d.id, pivot: d.pivot, colliders: [d.slab], swinging: () => d.t !== (d.open ? 1 : 0) }));
+  doorPieces(): { id: string; pivot: THREE.Object3D; colliders: ColliderDesc[]; use: () => void; swinging: () => boolean }[] {
+    return this.doors.map((d) => ({ id: d.id, pivot: d.pivot, colliders: [d.slab], use: d.use, swinging: () => d.t !== (d.open ? 1 : 0) }));
   }
 
   /** world y of a floor / deck under (x, z), if inside one */
@@ -101,14 +102,10 @@ export class BuildingLife {
     }
   }
 
-  /** bar a door: while `barred()` says true its use does nothing (the caller toasts / plays why) */
-  barDoor(door: Interactable, barred: () => boolean): void { this.doorBars.set(door, barred); }
   /** hear every door that moves (`opening`: it swung open); returns the unsubscribe */
   onDoor(fn: (door: Interactable, opening: boolean) => void): () => void { this.doorListeners.add(fn); return () => { this.doorListeners.delete(fn); }; }
-  /** a door's use: moved (`toggle`) unless barred, then its listeners told */
-  _doorUse(d: BuildingDoor, toggle: () => void): void {
-    if (this.doorBars.get(d.interactable)?.() === true) return;
-    toggle();
+  /** Hear the admitted interaction's actual door pose change. */
+  _doorMoved(d: BuildingDoor): void {
     for (const fn of this.doorListeners) fn(d.interactable, d.open);
   }
   /** a door: swung, collided, prompted */

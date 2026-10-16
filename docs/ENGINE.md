@@ -8074,3 +8074,22 @@ controls an owned numeric glow, with no shard callback or new clock. Missing
 states, duplicate keys and unknown ownership refuse before gameplay mutation;
 quiet save restoration and the caller's ordered notice queue stay unchanged.
 
+
+### Build-only root-mapped sections (C7)
+
+A project's CLI-only `generators/output.ts` may export `sections`, a plain
+record from existing platform section names to their ordinary envelopes.
+The author pipeline validates each with `parseOutputSection`, merges only
+absent or empty configured fields, then validates the complete shardfile
+before compiling decisions or writing output. A conflicting field, unknown
+section or malformed payload refuses; nothing overrides a nonempty config.
+These are the same canonical sections the product reader reconstructs, not
+a second runtime source. Driftwood's `world/movers` is emitted here and its
+resident borrows that admitted section. No config imports the mover JSON.
+
+Pine's mill-door permissions are ordinary ordered page interaction needs.
+Its building owner only reports a completed toggle to view/audio listeners.
+The canoe's admitted transit data supplies the shared mover tuning and XZ
+anchors; the existing page admission still samples live terrain at banks
+(with the declared water minimum) and registry floors at both landings.
+Ride phase, sound/visibility order and the mover surface clock are unchanged.

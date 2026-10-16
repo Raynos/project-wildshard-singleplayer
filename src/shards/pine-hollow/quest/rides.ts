@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { POND } from '../data/layout';
+import type { MoverTransit } from '@wildshard/format/moverMotion';
 import { codePart } from '../runtime/world/codeParts';
 import { npcMaterial } from '../runtime/models/people';
 import { MoverMechanic } from '@wildshard/engine/sim/moverMotion';
@@ -19,10 +19,9 @@ export class CanoeRide {
   private state: ScriptEntity = { id: 1, name: 'canoe', position: [0, 0, 0], fields: {}, frozen: false, interactive: true };
   private command = 0;
 
-  constructor(sky: Sky, shore: THREE.Vector3, beach: THREE.Vector3, shoreStand: THREE.Vector3, isletStand: THREE.Vector3) {
-    const at = (p: THREE.Vector3): [number, number, number] => [p.x, p.y, p.z];
-    this.motion = new MoverMechanic({ kind: 'transit', from: at(shore), to: at(beach), landings: [at(shoreStand), at(isletStand)],
-      seconds: 9, water: POND.level + 0.02, bankRamp: 8, seat: -0.45, yaw: Math.PI, bob: [1.9, 0.03], pitch: [1.3, 0.02], roll: [2.1, 0.035, 1] });
+  constructor(sky: Sky, row: MoverTransit) {
+    this.motion = new MoverMechanic(row);
+    const [shore, isletStand] = [new THREE.Vector3(...row.from), new THREE.Vector3(...row.landings[1])];
     this.mesh = new THREE.Mesh(codePart('canoe'), npcMaterial(sky)); // the birch-bark hull, thwarts and paddle, baked offline
     this.mesh.castShadow = true; this.mesh.visible = false; this.mesh.name = 'canoe-ride';
     const busy = (): boolean => this.isRiding;

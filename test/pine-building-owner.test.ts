@@ -31,7 +31,10 @@ test('building life keeps its door while the assembly owns static collision', ()
     expect(life.floorHeightAt(0, 0)).toBeDefined();
     const prompt = life.interactables[0];
     if (prompt === undefined) throw new Error('Missing door prompt');
+    const heard: { label: string; opening: boolean }[] = [];
+    life.onDoor((view, opening) => { heard.push({ label: view.label, opening }); });
     prompt.onInteract();
+    expect(heard).toEqual([{ label: CABIN_BUILD.door.close, opening: true }]);
     expect(door.swinging()).toBe(true);
     life.tick(1, 1, new Vector3(), 0);
     expect(door.swinging()).toBe(false);

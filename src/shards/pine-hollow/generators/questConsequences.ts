@@ -36,6 +36,22 @@ export const PINE_QUEST_CONSEQUENCES = {
   ] },
 } as const;
 
+/** The existing building command and sound owner; no chained prompt hook. */
+export const PINE_MILL_DOOR = {
+  actions: [{ id: 'miller.door', needs: [
+    { any: ['errand:done', 'errand:asked'], else: 'unknown' },
+    { all: ['errand:done'], else: 'asked' },
+  ], denied: {
+    unknown: 'The mill door is barred from inside',
+    asked: 'Barred from inside. Brandt keeps the mill shut until the race is clear',
+  }, refused: { unknown: [{ kind: 'call', target: 'locked' }], asked: [{ kind: 'call', target: 'locked' }] },
+  after: [{ kind: 'call', target: 'toggle' }] }],
+  bindings: { calls: [
+    { target: 'toggle', owner: 'door', path: ['use'] },
+    { target: 'locked', owner: 'sfx', path: ['interact'], args: ['locked', { owner: 'door', path: ['prompt', 'position'] }] },
+  ], prompts: [{ target: 'miller.door', owner: 'door', path: ['prompt', 'onInteract'] }] },
+} as const;
+
 /** These events and their fixed durations are published by the admitted native watch handler. */
 export const PINE_CLOCK_CONSEQUENCES = {
   actions: [

@@ -112,8 +112,8 @@ export interface BakedBuildingGeometries { readonly geometry: (index: number) =>
 export interface BakedBuildingOwner {
   readonly _floor: (f: BuildingFloor) => void;
   readonly _door: (d: BuildingDoor) => void;
-  /** a door's use: the owner moves it (`toggle`) unless it is barred, and tells its listeners */
-  readonly _doorUse: (d: BuildingDoor, toggle: () => void) => void;
+  /** Notify presentation listeners after the door toggles. */
+  readonly _doorMoved: (d: BuildingDoor) => void;
   readonly _fire: (f: BuildingFlicker) => void;
   readonly _lamp: (mat: THREE.MeshStandardMaterial, full: number) => void;
   readonly _swing: (sw: BuildingSwing) => void;
@@ -123,7 +123,7 @@ export interface BakedBuildingOwner {
 
 /** The owner that keeps nothing (a specimen's): a door toggles on use. */
 export const NO_BUILDING_OWNER: BakedBuildingOwner = {
-  _floor: () => undefined, _door: () => undefined, _doorUse: (_d, toggle) => { toggle(); }, _fire: () => undefined,
+  _floor: () => undefined, _door: () => undefined, _doorMoved: () => undefined, _fire: () => undefined,
   _lamp: () => undefined, _swing: () => undefined, _wheel: () => undefined, _firePit: () => undefined,
 };
 
@@ -264,14 +264,14 @@ export class BakedBuildingAssembly<K extends string, P extends string> {
     const d: BuildingDoor = {
       id: node.id, pivot, open: false, t: 0, collider: col, slab: { ...node.slab },
       interactable: { position: new THREE.Vector3(...node.use), radius: look.reach, label: look.open, onInteract: () => { /* bound below, once `d` exists */ } },
-    };
-    d.interactable.onInteract = () => {
-      this.owner._doorUse(d, () => {
+      use: () => {
         d.open = !d.open;
         d.interactable.label = d.open ? look.close : look.open;
         col.yTop = d.open ? -1e4 : top;
-      });
+        this.owner._doorMoved(d);
+      },
     };
+    d.interactable.onInteract = d.use;
     return d;
   }
 

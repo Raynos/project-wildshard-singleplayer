@@ -1,10 +1,11 @@
+import { PINE_CANOE } from './canoe';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { PINE_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
-import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from './questConsequences';
+import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES, PINE_MILL_DOOR } from './questConsequences';
 import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
@@ -30,7 +31,8 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 }
 
 const clientJson=emitNamedBlobs([
-  ...([['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>
+  nameBlob('movers/canoe.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_CANOE))),
+  ...([['quests/mill-door.json', PINE_MILL_DOOR], ['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>
     nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(rows))))),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
  CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,

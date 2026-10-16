@@ -27,7 +27,7 @@ const residents = new WeakMap<ShardContext['product'], HybridResidentWorld<Drift
 function residentWorld(context: ShardContext): HybridResidentWorld<DriftwoodWorld> {
   let resident = residents.get(context.product);
   if (resident === undefined) {
-    resident = new HybridResidentWorld<DriftwoodWorld>({ motion: { source: context.product.shardfile, systemId: 'shard.driftwood.movers', rows: [
+    resident = new HybridResidentWorld<DriftwoodWorld>({ motion: { source: { ...context.product.shardfile, ...context.product.section('world/movers') }, systemId: 'shard.driftwood.movers', rows: [
       { id: 'driftwood.boat', target: 'boat', group: 'group', afterPose: 'refreshPose' },
       { id: 'driftwood.bridge', target: 'bridgeDeck', chain: true },
     ] } });

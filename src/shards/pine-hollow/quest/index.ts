@@ -1,3 +1,4 @@
+import { MoverTransitSchema } from '@wildshard/format/moverMotion';
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
@@ -61,10 +62,10 @@ import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/d
 import { pineSkins } from '../runtime/loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
 import { installPineClock } from '../runtime/directorClock';
-import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from '../runtime/world/landmarks';
+import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
 import { hamletRoofs } from '../runtime/world/cabinBake';
-import { ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../data/layout';
+import { LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES } from '../data/layout';
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { pineTableFromPlacements } from './table';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
@@ -127,8 +128,10 @@ async function loadQuest() {
   return { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+  const canoeRow = v.parse(MoverTransitSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('movers/canoe.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
   const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));
+  const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/mill-door.json'))));
   const clockRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/clock.json'))));
   const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/transactions.json'))));
   await Promise.all([(deps.preload ?? preloadNpcModels)(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
@@ -219,7 +222,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // barred until the race is clear — pressed before `errand:done` it only rattles. The cabin door's own piece lets go of the
   // player within 1.4 m of its hinge (main.ts: a swing never pins anyone), so while barred a second piece holds the shut
   // leaf solid: the same slab, following the same pivot, on until the errand is done
-  const millDoor = ((): Interactable | null => {
+  const millDoor = ((): { prompt: Interactable; use: () => void } | null => {
     const mill = h.cabins?.buildings.find((b) => b.id === 'watermill');
     const piece = mill ? h.cabins?.doorPieces().find((d) => d.id === `cabin-${mill.index + 1}-door`) : undefined;
     if (!piece) return null;
@@ -231,16 +234,10 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       const d = Math.hypot(it.position.x - hinge.x, it.position.z - hinge.z);
       if (d < bestD && /^(Open|Close) door$/.test(it.label)) { best = it; bestD = d; }
     }
-    return best;
+    return best === null ? null : { prompt: best, use: piece.use };
   })();
-  if (millDoor) {
-    h.cabins?.barDoor(millDoor, () => {
-      if (flags.has('errand:done')) return false;
-      hud.toast(flags.has('errand:asked') ? 'Barred from inside. Brandt keeps the mill shut until the race is clear' : 'The mill door is barred from inside');
-      kitSfx.interact('locked', millDoor.position);
-      return true;
-    });
-  }
+  if (millDoor) bindQuestPageInteractions(doorRows, { flags, toast: text => { hud.toast(text); },
+    owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
   const night = (): number => sky.dayNight?.night ?? 0;
   const createNight = await preparePineNightDirector();
   if (ctx.scope.disposed) throw new Error('Pine left during night director admission');
@@ -341,11 +338,10 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
       { position: new THREE.Vector3(lm.zip.launch.x, lm.zip.launch.y + 1.1, lm.zip.launch.z), radius: 2.3, label: 'Ride the zipline' }, game.camera) };
     game.scene.add(zip.trolley); h.interactables.push(zip.prompt);
-    const shoreBank = new THREE.Vector3(CANOE_SITE.x - 1.2, 0, CANOE_SITE.z); shoreBank.y = Math.max(heightAt(shoreBank.x, shoreBank.z), POND.level);
-    const beach = new THREE.Vector3(ISLET.x + ISLET.r - 1.6, 0, ISLET.z + 0.4); beach.y = Math.max(heightAt(beach.x, beach.z), POND.level);
-    const shoreStand = new THREE.Vector3(CANOE_SITE.x + 2.6, 0, CANOE_SITE.z + 1.4); shoreStand.y = floorAt(shoreStand.x, shoreStand.z);
-    const isletStand = new THREE.Vector3(ISLET.x + ISLET.r - 3.8, 0, ISLET.z + 0.6); isletStand.y = floorAt(isletStand.x, isletStand.z);
-    canoe = new CanoeRide(sky, shoreBank, beach, shoreStand, isletStand);
+    for (const at of [canoeRow.from, canoeRow.to]) at[1] = Math.max(heightAt(at[0], at[2]), at[1]);
+    for (const at of canoeRow.landings) at[1] = floorAt(at[0], at[2]);
+    const shoreBank = new THREE.Vector3(...canoeRow.from);
+    canoe = new CanoeRide(sky, canoeRow);
     game.scene.add(canoe.mesh);
     h.interactables.push(canoe.out, canoe.back);
     canoe.onRide = (on, arrived) => {
