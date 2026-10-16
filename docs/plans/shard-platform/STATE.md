@@ -1,15 +1,32 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**Order (G450–G452):** rewire now (P0–P4, W2a/W2b) → W2 closes 05:00Z 10-17 → W1 spike (Sky/Signal ≤ 10 % on the output ruler; rows in `progress/shard-platform/wasm-api-design-2026-10-16/README.md` §8, `489075944`, recommended defaults until Jake answers) → W3. Never pause lanes. A Codex lane out of W2 work starts A1–A4 early.
-**G453:** sim never in runtime/ (ratchet `378f868df`); custom sections shrink-only; no dynamic JS loader; no v1 back-compat. **G454:** 5-test host bar, data-only host APIs, callback ratchet `d9e821b88`, catalogue in `pnpm gen`, Opus host review at wave close. **G456:** Opus 5 until 60 % weekly (35 % at 13:17Z); H1–H3, T2.
+**Order (G450–G452):** rewire now (P0–P4, W2a/W2b) → W2 closes 05:00Z 10-17 → W1 spike (Sky/Signal ≤ 10 % on the output ruler; rows KA1–KA7, KS1–KS6, KR1, KP1, KT2 in open-x-queue, G457) → W3. Never pause lanes; Codex lanes out of W2 work run KA1–KA4 now.
+**G453:** sim never in runtime/; custom sections shrink-only; no v1 back-compat. **G454:** 5-test host bar, data-only host APIs, Opus host review at wave close. **G456:** Opus 5 until 60 % weekly (35 % at 13:17Z).
 
-**14:10Z `8324f5ae1` (G445 source ruler): Pine 85.67 %, DW 79.85 %, Sky 89.51 %, Signal 43.57 %.** The source ruler double-counts rewire mirrors; P4 (x7, in flight) moves it to out/*/runtime before the close.
+**Plan % (G458, outcome-only) at 14:10Z `8324f5ae1`: M3 = 18.0 %** (14,406 of 80,172 must-go lines cut; source ruler, Nalati clamped at 0: it sits 4 % above legacy). **M2 not yet measured:** no per-shard grid-ready verdict exists. x7 adds M3 + grid-ready columns + a plan % line to the P4 report. Until then, plan = 10.8 % + 40 % × M2.
+Per shard, custom vs legacy: Pine 85.7 %, DW 79.8 %, Sky 89.5 %, Signal 43.6 %, Nine 77.0 %, Nalati 104.5 %.
 
-**Since 13:00Z:** DW boot repaired: Node-crypto sidecar `d49ece6b4`, inventory ≠ behavior classifier `e66940a25`, named DW consumers `54b4c7409` + fixtures `9107c6d3e` (phone boot 0 errors, visual pair unchanged). Guard credit for verbatim moves `25ae55c62`; per-shard runtime/ ceilings `2117dd06b`; level images/manifest `76c953a90`; Pine producers batch 2 `dabf00269`; product in look ctx `7c5ee6973` (o272 done).
+**Since 14:10Z:**
+- T1 Template on the source layout `eda831648`
+- catalog orchestration + copyRuntime `1a6984b0a`
+- Pine 13 sections `9058fc70e`
+- H1 closed (`51193fc82`, `b2ccf95e3`; waterSurface/painterly stay charged, frozen callers)
+- P4 output census `950f03329` (per-shard closure table next)
+- KA1/KA4 ABI + host seam `26dc60708`, gate mapping `f85e9a1de`
+- physicsRows pin dropped (5 MB JSON cap) `37a3311c5`
+- G457 rows `618dc69ee`
+- Jake OK'd per-shard runtime/ ceilings and Pine on DW creature hosts (o274: 1 of 6 hosts had a Pine twin; ~284 lines stay DW's)
 
-**Lanes:** Codex: x1 all-output catalog · x4 H1 (ambientLife → Pine in check; waterSurface/painterly keep generic math, bodies move; armRig stays, H3) · x5 Pine 13 sections · x6 meshopt GLB intake · x7 P4 output ruler · x8 T1 Template. Opus: o270 Pine rewire · o271 DW rewire + lint moves · o273 runtime cap + Pine moves · o274 Pine on creature hosts · o275 Pine road frame floor.
+**Lanes:**
+- Codex: x1 live catalog reader → KA3 · x4 KA2 DecisionHost · x5 KA1/KA4 harness · x6 meshopt GLB intake · x7 P4 per-shard report · x8 Z1 (v1 reader deletion).
+- Opus: o270 Pine sections switch · o276 DW Safari frames · o277 DW sections end to end · o278 Pine runtime moves w/ perf edits · o279 graph node-build cache.
 
-**fps (follow-up `68cd273ea`):** fails: Pine road desktop p95 33 ms / Safari 86–91 ms (o275); DW Safari standing p95 44 ms, road 52–75 ms (receipt `06f180053`); Sky/Signal Safari road; Nine drive max 415 ms Safari. Passes: every desktop standing, Pine/Sky/Signal/hub Safari standing. Prewarm row `4068a3603` still default-off (o275 measures it).
+**fps:** o275 attributed the Pine road misses:
+- ~70 % is three.js node builds per material during the entry warm (10 builds of 15–20 ms);
+- then post-link program resolution (107–164 ms Safari) and late texture uploads.
+Measured (desktop / Safari):
+- plain: travel p95 33 / 102 ms;
+- prewarm row: 33 / 81 ms. No pass, so the row stays off.
+o279 is building a node-build cache behind a Debug row. Still failing: DW Safari (o276), Sky/Signal Safari road, Nine drive max.
 
-**For wildshard-v (Jake may adjust):** (1) coordinator call on the runtime/ cap: per-shard shrink-only ceilings (`2117dd06b`). (2) Storage pin: Pine physicsRows.json 1.98 MB. (3) o267 `07b5ec55a`: ~510 DW-only creature-host lines fail the bar; o274 moves Pine onto them.
 Paused: SF22 SF57 SF67.
