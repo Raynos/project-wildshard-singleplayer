@@ -22,6 +22,7 @@
     "./author": "./author.ts",
     "./assets": "./assets.ts",
     "./project": "./project.ts",
+    "./projectOutput": "./projectOutput.ts",
     "./ledger": "./ledger.ts",
     "./bake/terrain": "./bake/terrain.ts",
     "./quests": "./quests.ts",
@@ -244,6 +245,10 @@
       "./assets": {
         "types": "./dist/types/sdk/assets.d.ts",
         "default": "./dist/assets.js"
+      },
+      "./projectOutput": {
+        "types": "./dist/types/sdk/projectOutput.d.ts",
+        "default": "./dist/projectOutput.js"
       },
       "./project": {
         "types": "./dist/types/sdk/project.d.ts",

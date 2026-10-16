@@ -16,14 +16,16 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 
 import { projectPerformancePolicy } from './performancePolicy';
 import { checkProjectRuntime } from './runtimePerformance';
-import { admitProduct, assertProductTargets, writeProduct } from './productOutput';
+import { admitProduct, assertProductTargets } from './productOutput';
 import { bakeAuthoredWorld } from './bake/authoredWorld';
 import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
-import { clearOutputProduct, writeOutputProduct } from './outputProduct';
+import { clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
+import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
+import type { RuntimeMirror } from './runtimeMirrors';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -36,7 +38,7 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
   return admitProduct(source, assets, projectPerformancePolicy(project, source));
 }
 
-async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked?: ReadonlyMap<string, Uint8Array> }> {
+async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built) || (Array.isArray(result) && result.length !== 1)) throw new Error('config build produced unexpected output');
@@ -65,19 +67,31 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
-  return { shard, commons: 'commons' in loaded ? loaded.commons : undefined, baked };
+  const output = await prepareProjectOutput(project, 'output' in loaded ? loaded.output : undefined);
+  const mirrors = projectMirrors('mirrors' in loaded ? loaded.mirrors : undefined);
+  return { shard, commons: 'commons' in loaded ? loaded.commons : undefined, baked, output, mirrors };
 }
 /** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
-export async function readProject(project: string): Promise<Shardfile> { return (await projectModule(project)).shard; }
+export async function readProject(project: string): Promise<Shardfile> {
+  const loaded = await projectModule(project);
+  return mergeProjectBlobs(loaded.shard, loaded.baked, loaded.output.blobs, loaded.output.options.namedFiles).shard;
+}
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
-export async function readProjectAssets(project: string, map?: ProjectMap): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array> }> {
+export async function readProjectAssets(project: string, map?: ProjectMap): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
   const loaded = await projectModule(project), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
-  for (const [hash, bytes] of loaded.baked ?? []) pinned.set(hash, bytes);
+  for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
+  for (const [hash, bytes] of loaded.output.assets) {
+    const previous = pinned.get(hash);
+    if (previous !== undefined && contentHash(previous) !== contentHash(bytes)) throw new Error('Output asset conflicts with baked input');
+    pinned.set(hash, bytes);
+  }
   const packed = map === undefined ? undefined : packProjectMap(loaded.shard, map);
   if (packed !== undefined && map !== undefined) pinned.set(packed.hash, map.bytes);
   const shard = packed?.shard ?? loaded.shard;
-  return { shard, assets: projectAssets(project, shard, 'project', pinned) };
+  const merged = mergeProjectBlobs(shard, pinned, loaded.output.blobs, loaded.output.options.namedFiles);
+  return { shard: merged.shard, assets: projectAssets(project, merged.shard, 'project', merged.assets),
+    output: { ...loaded.output.options, namedFiles: merged.namedFiles }, mirrors: loaded.mirrors };
 }
 
 function pinnedCommons(input: unknown, source: Shardfile, project: string): ReadonlyMap<string, Uint8Array> | undefined {
@@ -116,14 +130,11 @@ export async function buildProject(project: string, output?: string, options: { 
   // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
   // a static import: the author CLI must bundle to one module (scripts/wildshard.mjs); the bakers' closure stays
   // renderer-free (the Node sim proofs import this module under the renderer-denying loader)
-  let shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
+  const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
-  let descriptor: unknown;
-  if (options.outputFormat === 2) {
-    clearOutputProduct(destination);
-    descriptor = writeOutputProduct(shard,assets,destination);
-  } else {shard = writeProduct(shard, assets, destination, projectPerformancePolicy(project, shard));descriptor=shard;}
+  clearOutputProduct(destination);
+  const descriptor = writeOutputProduct(shard,assets,destination,loaded.output);
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
   const client = options.client === null ? undefined : options.client ?? [resolve(directory, clientFolder), resolve(directory, 'dist', clientFolder)].find((path) => existsSync(resolve(path, 'index.html')));

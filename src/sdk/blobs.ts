@@ -1,13 +1,8 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Author intake resolves symlinks before reading bounded project files.
-import { realpathSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Relative source resources must remain inside the author's project.
-import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { assetCost, type AssetCost } from '@wildshard/format/product';
 import { parseStillImage } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath, type OutputFile } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
-import { readBoundedFile } from './sourceReader';
 import { compileGltfSource } from './bake/gltfSource';
 
 /** JSON belongs to sections; these named bytes occupy a kind-specific content-addressed blob path. */
@@ -65,18 +60,25 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;
  * an escape (including through a symlink), remote URI or unsupported extension refuses before publication. */
 export async function readNamedBlob(project: string, name: string, source: string, kind: NamedBlobKind, options: BlobOptions = {}): Promise<NamedBlob> {
-  const root = realpathSync(project);
+  const [fileSystem, pathTools, { readBoundedFile }] = await Promise.all([
+    // oxlint-disable-next-line import/no-nodejs-modules -- Only explicit CLI file intake loads filesystem access.
+    import('node:fs'),
+    // oxlint-disable-next-line import/no-nodejs-modules -- Keep config-only nameBlob imports free of file services.
+    import('node:path'),
+    import('./sourceReader'),
+  ]);
+  const root = fileSystem.realpathSync(project);
   const contained = (base: string, path: string): string => {
     const relative = decodeURIComponent(path);
-    if (isAbsolute(relative) || relative.includes('\\') || (/[:?#]/u.test(relative) || relative.includes(String.fromCodePoint(0)))) throw new Error('Blob source must be a local relative path');
-    const file = realpathSync(resolve(base, relative));
-    if (!file.startsWith(`${root}${sep}`)) throw new Error('Blob source escapes its project');
+    if (pathTools.isAbsolute(relative) || relative.includes('\\') || (/[:?#]/u.test(relative) || relative.includes(String.fromCodePoint(0)))) throw new Error('Blob source must be a local relative path');
+    const file = fileSystem.realpathSync(pathTools.resolve(base, relative));
+    if (!file.startsWith(`${root}${pathTools.sep}`)) throw new Error('Blob source escapes its project');
     return file;
   };
   const file = contained(root, source), bytes = readBoundedFile(file, MAX_BYTES);
   if (source.toLowerCase().endsWith('.gltf')) {
     if (kind !== 'glb') throw new Error('Text glTF must compile to a GLB blob');
-    return nameBlob(name, kind, await compileGltfSource(bytes, uri => readBoundedFile(contained(dirname(file), uri), MAX_BYTES)), options);
+    return nameBlob(name, kind, await compileGltfSource(bytes, uri => readBoundedFile(contained(pathTools.dirname(file), uri), MAX_BYTES)), options);
   }
   return nameBlob(name, kind, bytes, options);
 }

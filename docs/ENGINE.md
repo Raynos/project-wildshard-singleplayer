@@ -6963,3 +6963,27 @@ channel, audio and population hosts receive the admitted product's
 `shardfile`; no second source parser is installed. Row factories can read
 platform sections synchronously at load time. Simulation declarations
 remain sections consumed by hosts, outside copied shard runtime code.
+
+### Project output exports (P2b)
+
+`shard.config.ts` may export `output` alongside its default declaration.
+`blobs` contains plain `{name, kind, source, options?}` rows; the CLI reads
+project-contained sources and compiles textual glTF into GLB. Author
+configs need no filesystem import. In-memory `nameBlob` / `emitNamedBlobs`
+results enter as `namedFiles: emitted.files, assets: emitted.assets`.
+`custom` accepts `emitDefinedSections` and `platform` accepts
+`emitPlatformSections`. `buildProject` always emits format 2 and passes
+these extensions to the same disk-validating product writer.
+
+`@wildshard/sdk/projectOutput.mergeProjectBlobs(source, assets, blobs,
+namedFiles?)` admits new bytes and library closure costs once. Reused
+content keeps its original declaration, conservative costs and logical
+name; conflicting bytes, kinds or names refuse. The helper returns
+`{shard, assets, namedFiles}` without mutating its inputs, so manifest
+image packing uses the same accounting as source blobs.
+
+`readProjectAssets` also returns `output` writer options and the config's
+`mirrors` export. Mirrors are validated plain build data; loading them
+never imports copied runtime code. Runtime mirror verification/copying
+remains the separate build step. Config exports cannot inject writer
+runtime inventories or policy allowances.
