@@ -41,7 +41,7 @@ function lendWaterRipples(ripples: THREE.Texture): void {
 export async function dressPineWater(game: Pick<Game, 'scene' | 'rootScene'>): Promise<void> {
   const mesh = game.scene.getObjectByName('pond');
   if (mesh === undefined && game.scene !== game.rootScene) {
-    const { waterTexture } = await import('@wildshard/engine/world/waterSurface');
+    const { waterTexture } = await import('@wildshard/engine/world/water/ripples');
     lendWaterRipples(waterTexture()); return;
   }
   const old: unknown = mesh instanceof THREE.Mesh ? mesh.material : null;

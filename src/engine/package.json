@@ -338,6 +338,7 @@
     "./world/voxelAO": "./world/voxelAO.ts",
     "./world/geometryBake": "./world/geometryBake.ts",
     "./world/water/body": "./world/water/body.ts",
+    "./world/water/ripples": "./world/water/ripples.ts",
     "./world/water/view": "./world/water/view.ts",
     "./world/waterSurface": "./world/waterSurface.ts",
     "./world/waves": "./world/waves.ts",

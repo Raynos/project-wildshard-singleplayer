@@ -5,7 +5,7 @@ import type { SkyRig as Sky } from './skyRig';
 import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import { SEED } from '../core/config';
-import { createWaterMaterial, buildSkyline } from './waterSurface';
+import { buildSkyline, waterTexture } from './water/ripples';
 import { patchWindField } from './wind';
 import type { TreeInstance } from './forest/placement';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
@@ -109,11 +109,10 @@ function buildLilies(sky: Sky, exclusions: readonly { x: number; z: number; r: n
 /**
  * The still pond (PH-L9, the user's pick PH-U28). `group` holds the surface (`mesh`) and the lily pads.
  *
- * One draw, no extra render pass — the shared photoreal water (waterSurface.ts): the clock's sky from
- * the scene's PMREM environment with Fresnel, the treeline and the Ridge mirrored through a skyline probe baked from
- * `forest.trees` and the terrain, wind ripples and gust fronts from wind.ts, a peaty depth tint that lets the shallows show
- * the bed, a broken scum line at the shore and a wet film draped on the bank just above the water. (The pre-remaster
- * planar reflection, a mirrored second scene render, went in E162.)
+ * One draw, no extra render pass. The engine builds the surface (per-vertex depth in `aWater`, the wet film draped on the
+ * bank) and its two baked inputs (water/ripples.ts: the ripple normal map and the skyline probe of `forest.trees` and the
+ * terrain, kept in `userData.waterSkyline`); the shard dresses it in its own water look. (The pre-remaster planar
+ * reflection, a mirrored second scene render, went in E162.)
  */
 export class Water {
   readonly group = new THREE.Group();
@@ -142,7 +141,9 @@ export class Water {
   private buildProbe(): THREE.Mesh {
     const wl = waterLevel(), { half, segs } = pondGrid(POND);
     const skyline = buildSkyline(POND.x, POND.z, wl, this.trees, heightAt);
-    const { material } = createWaterMaterial(this.sky, { skyline: { tex: skyline, x: POND.x, z: POND.z, level: wl } });
+    // a plain stand-in until the shard dresses the pond in its own water look (it borrows this normal map and the probe)
+    const material = new THREE.MeshPhysicalMaterial({ roughness: 0.04, ior: 1.333, transparent: true, depthWrite: false, normalMap: waterTexture() });
+    this.sky.setupMaterial(material);
     const n = segs + 1, pos = new Float32Array(n * n * 3), uv = new Float32Array(n * n * 2), aw = new Float32Array(n * n * 4);
     const depth = new Float32Array(n * n);
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {

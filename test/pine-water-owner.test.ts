@@ -3,7 +3,7 @@ import { Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Scene, Texture } from
 import { dressPineWater } from '../src/shards/pine-hollow/world/water';
 import { lendPineLooks } from '../src/shards/pine-hollow/runtime/looks/graphLooks';
 import { WATER_LOOKS } from '../src/shards/pine-hollow/data/waterLook';
-import { waterTexture } from '@wildshard/engine/world/waterSurface';
+import { waterTexture } from '@wildshard/engine/world/water/ripples';
 
 const textures = vi.fn((_id: string, _name: string, _texture: Texture): void => undefined);
 const materials = new Map(Object.values(WATER_LOOKS).map(id => [id, new MeshStandardMaterial()]));
