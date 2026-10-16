@@ -1,0 +1,44 @@
+import { expect, test } from 'vitest';
+import { bakeSpecies } from '../src/sdk/bake/species';
+import { species } from '../src/sdk/species';
+import { readSpeciesPrograms } from '../src/format/speciesPrograms';
+import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
+import { DRIFTWOOD_SPECIES_PROGRAMS } from '../src/shards/driftwood-isle/generators/speciesPrograms';
+import { speciesWithLook } from '../src/engine/entities/species/look';
+import { registerKing } from '../src/shards/pine-hollow/runtime/antlerKing';
+import { pineLooks } from '../src/shards/pine-hollow/species/looks';
+import { ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK } from '../src/shards/driftwood-isle/species/fauna';
+import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
+import { PINE_BOAR, PINE_SPECIES, pineDeer, pineElk } from '../src/shards/pine-hollow/generators/speciesRows';
+import { BOAR } from '../src/game/systems/species/boar';
+
+test('both populations admit the same gameplay fields without visual or callback metadata', () => {
+  const pine = readSpeciesPrograms(structuredClone(PINE_SPECIES_PROGRAMS));
+  const island = readSpeciesPrograms(structuredClone(DRIFTWOOD_SPECIES_PROGRAMS));
+  expect(pine.page.map(row => row.kind)).toEqual(['boar', 'bear', 'deer', 'elk']);
+  expect(pine.native.map(row => row.kind)).toEqual(['deer', 'elk', 'boar', 'bear', 'antler-king']);
+  expect(island.page).toEqual(island.native);
+  expect(pine.native.find(row => row.kind === 'antler-king')?.aggressive).toBe(true);
+  expect(pine.page[0]).toEqual(bakeSpecies(PINE_BOAR, PINE_BOAR.id));
+  expect(species(pine.page[0])).toEqual(pine.page[0]);
+  expect(pine.page[0]?.spawnOnly).toEqual(PINE_BOAR.spawnOnly);
+  expect(island.native[0]?.variants.map(row => row.scale)).toEqual(BOAR.variants.map(row => row.scale));
+  expect(() => readSpeciesPrograms({ page: [...pine.page, pine.page[0]], native: [] })).toThrow();
+  expect(() => bakeSpecies({ ...PINE_BOAR, think: () => undefined }, PINE_BOAR.id)).toThrow('callback-free');
+  expect(() => species({ ...pine.page[0], parent: PINE_BOAR })).toThrow();
+});
+
+// The gameplay bake strips tint/traits; the existing view must restore exactly the same factory variants.
+test('both emitted populations keep the original resolved visual variants', () => {
+  registerKing();
+  const authored = [...PINE_SPECIES, pineDeer(), pineElk(), ISLAND_BOAR, ISLAND_BEAR];
+  const programs = [...PINE_SPECIES_PROGRAMS.page, ...DRIFTWOOD_SPECIES_PROGRAMS.page];
+  const looks = [...pineLooks(), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK];
+  for (const [i, row] of programs.entries()) {
+    const before = authored[i], look = looks.find(value => value.species === row.id);
+    if (before === undefined || look === undefined) throw new Error(`Missing comparison: ${row.id}`);
+    const old = speciesWithLook(before, look), current = speciesWithLook(row, look);
+    expect(current.variants, row.id).toEqual(old.variants);
+    expect(current.spawnOnly, row.id).toEqual(old.spawnOnly);
+  }
+});

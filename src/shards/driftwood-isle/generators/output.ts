@@ -1,3 +1,6 @@
+import { emitPlatformSections } from '@wildshard/sdk/platformSections';
+import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
+import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
@@ -22,6 +25,6 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 const placed = enemyPlacements();
 const placements = emitNamedBlobs([nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };
 /** Strict output copies prove the same constants the source mirror fixture checks. */
 export const mirrors = [...RUNTIME_MIRRORS];

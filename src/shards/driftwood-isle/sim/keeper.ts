@@ -12,7 +12,7 @@ import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav, type HuntSpecies } from '@wildshard/engine/ai/hunt';
 import { EntityIds } from '@wildshard/engine/entities/ids';
 import { Bodies } from '@wildshard/engine/physics/bodies';
 import { waveHeight } from '@wildshard/engine/world/waves';
@@ -24,7 +24,6 @@ import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
 import { RespawnQueue } from '../runtime/ecology';
 import { RESPAWN } from '../data/ecology';
-import { FAUNA_SPECIES } from './fauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
 export const ISLAND_STEP = 'driftwood.island';
@@ -51,6 +50,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
   readonly placement: NativeEnemyPlacements;
+  readonly fauna: ReadonlyMap<string, HuntSpecies>;
   readonly keeper: NativeKeeperRows;
   readonly bake: DriftwoodBake;
   /** every (kind.variant)'s baked native spec */
@@ -157,7 +157,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     cabinMask: () => 0, streamAt: () => null, pond: () => null, sea: () => true, wetAt: () => false,
     trees: () => [], treeless: () => true, terrain: () => true,
   };
-  const { hunt, reach } = createNativeHunt(host, DRIFTWOOD_NATIVE_HUNT, { rng, ground, nav: ports.nav, species: FAUNA_SPECIES });
+  const { hunt, reach } = createNativeHunt(host, DRIFTWOOD_NATIVE_HUNT, { rng, ground, nav: ports.nav, species: ports.fauna });
   const habitat = bake.habitat;
   if (ports.seed !== ports.placement.seed) throw new Error('Enemy placements require their authored seed');
   const PRACTICE_AT = ports.placement.practice, stream = new Rng(0); stream.restore(ports.placement.native.stream);

@@ -4,7 +4,7 @@ import { DEER } from '../src/game/systems/species/deer';
 import { ELK } from '../src/game/systems/species/elk';
 import { PINE_LOFTS } from '../src/shards/pine-hollow/generators/creatureLofts';
 import { hullBody } from '../src/shards/pine-hollow/species/bodies';
-import { PINE_ELK_THRALL } from '../src/shards/pine-hollow/species/rows';
+import { PINE_ELK_THRALL } from '../src/shards/pine-hollow/generators/speciesRows';
 
 // Pine's deer and elk are drawn only on their rigged hulls: the page binds them to the baked skeleton and dims of
 // species/bodies.ts, never lofting them. Those rows must stay what the offline lofts (generators/creatureLofts.ts) build,

@@ -62,11 +62,11 @@ const { provideNalatiPlaces, provideNalatiDressing } = await import('../src/shar
 provideNalatiPlaces(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
 provideNalatiDressing(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/dressing.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
-const { PINE_BOAR } = await import('../src/shards/pine-hollow/species/rows');
+const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
 // and its elk thrall (E405: Pine's, derived from the kit's elk)
-const { pineElk } = await import('../src/shards/pine-hollow/species/rows');
+const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { pineElkLook } = await import('../src/shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(pineElk(), pineElkLook()));
 // Pure inventory fixtures explicitly install the authored item catalogs.

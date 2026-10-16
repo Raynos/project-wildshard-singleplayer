@@ -4,13 +4,12 @@ import { DEER } from '@wildshard/game/systems/species/deer';
 import { ELK } from '@wildshard/game/systems/species/elk';
 import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
-import { PINE_BOAR, PINE_BEAR } from './rows';
 import { preloadPineCreatures, skinPineHull } from '../runtime/species/hulls';
 import { hullBody } from './bodies';
 import { ELK_THRALL_TINT, THRALL_TRAITS, thrallPose } from './thrall';
 
 export const PINE_BOAR_LOOK: SpeciesLook = {
-  ...BOAR_LOOK, id: 'pine.look.boar', species: PINE_BOAR.id,
+  ...BOAR_LOOK, id: 'pine.look.boar', species: 'pine.creature.boar',
   postPose: thrallPose,
   variants: { ...BOAR_LOOK.variants, thrall: {
     tint: { base: [0.20, 0.19, 0.13], grizzle: [0.34, 0.36, 0.22], dark: [0.09, 0.09, 0.06], black: [0.04, 0.04, 0.03], cheek: [0.26, 0.26, 0.18] },
@@ -20,7 +19,7 @@ export const PINE_BOAR_LOOK: SpeciesLook = {
   skin: (v, bones) => skinPineHull('boar', v.id, bones),
 };
 export const PINE_BEAR_LOOK: SpeciesLook = {
-  ...BEAR_LOOK, id: 'pine.look.bear', species: PINE_BEAR.id,
+  ...BEAR_LOOK, id: 'pine.look.bear', species: 'pine.creature.bear',
   preload: preloadPineCreatures,
   skin: (v, bones) => skinPineHull('bear', v.id, bones),
 };

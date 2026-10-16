@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { SpeciesProgramsSchema, type SpeciesPrograms } from './speciesPrograms';
 import { CreatureStrikesSchema, type CreatureStrikes } from './creatures';
 import { ActorMovesSchema, type ActorMoves } from './actorMoves';
 import { DecisionScriptsSchema, type DecisionScripts } from './decisionScripts';
@@ -10,6 +11,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
   'sim/runtime-plan': NativeRuntimePlanData;
+  'actors/species-programs': SpeciesPrograms;
   'actors/moves': ActorMoves;
   'actors/strikes': CreatureStrikes;
   'sim/scripts': DecisionScripts;
@@ -21,6 +23,7 @@ export interface PlatformDataSections {
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
   'sim/runtime-plan': { schema: NativeRuntimePlanSchema },
+  'actors/species-programs': { schema: SpeciesProgramsSchema },
   'actors/moves': { schema: ActorMovesSchema },
   'actors/strikes': { schema: CreatureStrikesSchema },
   'sim/scripts': { schema: DecisionScriptsSchema },
@@ -33,6 +36,7 @@ export const PLATFORM_DATA_SECTIONS = {
 export type PlatformDataSectionName = keyof PlatformDataSections;
 
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
+export function parsePlatformDataSection(name: 'actors/species-programs', value: unknown): SpeciesPrograms;
 export function parsePlatformDataSection(name: 'actors/moves', value: unknown): ActorMoves;
 export function parsePlatformDataSection(name: 'actors/strikes', value: unknown): CreatureStrikes;
 export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): DecisionScripts;

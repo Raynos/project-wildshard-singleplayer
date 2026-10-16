@@ -8,7 +8,6 @@ import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/h
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
 import { PINE_SPAWNS } from '../combat/spawns';
-import { PINE_SPECIES, pineDeer, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
 import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
 import { installPineCompendium } from './compendium/install';
@@ -164,7 +163,7 @@ export class PineHollow extends ShardPlugin {
     if (audio === null) throw new Error('Pine synth bed needs its mixer');
     installEnteredPineVoices(ctx, audio);
     registerKing();
-    ctx.rows.species([...PINE_SPECIES, pineDeer(), pineElk()]);
+    ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks());
     ctx.rows.spawnTable(PINE_SPAWNS);
     const inventory = ctx.product.section('custom/questInventory', SECTIONS);

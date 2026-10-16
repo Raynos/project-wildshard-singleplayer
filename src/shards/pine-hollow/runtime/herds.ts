@@ -1,11 +1,7 @@
 import * as v from 'valibot';
 import { Color } from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { bakedHuntGround, type HuntGround, type HuntSpecies } from '@wildshard/engine/ai/huntPattern';
-import type { VariantDef, VariantTable } from '@wildshard/engine/entities/species/registry';
-import { DEER } from '@wildshard/game/systems/species/deer';
-import { ELK } from '@wildshard/game/systems/species/elk';
-import { PINE_BEAR, PINE_BOAR, PINE_ELK_THRALL } from '../species/rows';
+import { bakedHuntGround, type HuntGround } from '@wildshard/engine/ai/huntPattern';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { treeGridOf, type TreeInstance } from '@wildshard/engine/world/forest/placement';
 import { TERRAIN } from '../world/terrain';
@@ -35,16 +31,3 @@ export function pineHuntGround(grid: BakedGrid, trees: readonly TreeInstance[] =
 
 /** The King's species as the creature manager's spawn reads it: kind 'antler-king', his one variant (runtime/antlerKing.ts). */
 export const PINE_KING_KIND = 'antler-king';
-
-/**
- * Pine's creature rows (a kind-keyed table) as the manager's spawn rolls and hunting brain read them, renderer-free (SF72; `spawnRolls`'
- * species seam and `HuntConfig.species`): the kit's deer, the kit's elk with Pine's thrall (species/rows.ts pineElk), Pine's
- * boar and bear, and the Antler King's one variant (`king`: his scale is the baked body's, models/antlerKing.ts KING_VARIANT).
- * The kit's deer and elk rows are public game modules for this (`@wildshard/game/systems/species/deer` / `elk`, beside
- * bear and boar): a renderer-free host reads the rows the page registers, never the global registry.
- */
-export function pineSpawnSpecies(king: VariantDef): ReadonlyMap<string, VariantTable & HuntSpecies> {
-  const elk = { ...ELK, spawnOnly: [PINE_ELK_THRALL] };
-  return new Map<string, VariantTable & HuntSpecies>([['deer', DEER], ['elk', elk], ['boar', PINE_BOAR], ['bear', PINE_BEAR],
-    [PINE_KING_KIND, { ...ELK, kind: PINE_KING_KIND, variants: [king], aggressive: true }]]);
-}

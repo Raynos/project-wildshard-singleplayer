@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",
     "./outputCatalogScan": "./outputCatalogScan.ts",
@@ -184,6 +185,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./bake/species": {
+        "types": "./dist/types/sdk/bake/species.d.ts",
+        "default": "./dist/bake/species.js"
+      },
       "./outputCatalogScan": {
         "types": "./dist/types/sdk/outputCatalogScan.d.ts",
         "default": "./dist/outputCatalogScan.js"

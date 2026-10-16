@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type { SpeciesData } from '@wildshard/format/speciesPrograms';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -12,7 +13,7 @@ import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites }
 import { pineEliteStreams } from '../combat/eliteStreams';
 import { SPAWN } from '../data/layout';
 import { PINE_FAUNA } from '../data/fauna.generated';
-import { PINE_HERD_STREAM, PINE_KING_KIND, pineHuntGround, pineSpawnSpecies } from './herds';
+import { PINE_HERD_STREAM, PINE_KING_KIND, pineHuntGround } from './herds';
 import type { PineBake } from './baked';
 import { installKingPoseKeeper } from './kingPoseKeeper';
 
@@ -36,6 +37,7 @@ export interface PineBody { readonly id: string; readonly kind: string; readonly
 /** A parked prewarm body (runtime/antlerKing.ts `prewarm`): its id and rolled recipe, no host body until the King's script calls it. */
 export interface PineParked { readonly id: string; readonly kind: string; readonly variant: string; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number }
 export interface PineRosterPorts {
+  readonly species: readonly SpeciesData[];
   readonly bake: PineBake;
   /** The rain keeper's goal from the same weather reading, lent before the roster starts thinking. */
   readonly wanderGoal?: (herd: number) => { x: number; z: number; r: number } | null;
@@ -106,7 +108,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   // spawn, and on a restoring host before the host restores its clocks.
   const kingRow = bake.parked[0];
   if (kingRow?.kind !== PINE_KING_KIND) throw new Error('Pine bake has no Antler King prewarm');
-  const species = pineSpawnSpecies({ id: kingRow.variant, label: kingRow.spec.label, weight: 1, rarity: kingRow.spec.rarity, scale: [kingRow.scale, kingRow.scale] });
+  const species = new Map(ports.species.map(row => [row.kind, row]));
   const { hunt, reach } = createNativeHunt(host, PINE_NATIVE_HUNT, { rng, ground: pineHuntGround(grid), nav: ports.nav, species,
     ...(ports.wanderGoal === undefined ? {} : { wanderGoal: ports.wanderGoal }), present: body => !('hidden' in body) || body.hidden !== true });
   // the shared native roster (G454 rows): the bake's first spec per kind.variant, the manager's spawn ray and creature floor

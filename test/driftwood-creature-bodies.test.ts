@@ -10,7 +10,7 @@ import { speciesWithLook } from '../src/engine/entities/species/look';
 import type { AnimalSpecies } from '../src/engine/entities/species/registry';
 import { BEAR_LOOK } from '../src/game/systems/species/view/bear';
 import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
-import { ISLAND_BEAR, ISLAND_BOAR } from '../src/shards/driftwood-isle/creatures/species';
+import { ISLAND_BEAR, ISLAND_BOAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { asIsland, buildCreatureParts, faceHeadOf, type FaceHead } from '../src/shards/driftwood-isle/generators/creatureBodies';
 import { creatureBody, preloadCreatureBodies } from '../src/shards/driftwood-isle/species/bodies';
 import bake from '../src/shards/driftwood-isle/data/creatureBodies.generated.json' with { type: 'json' };

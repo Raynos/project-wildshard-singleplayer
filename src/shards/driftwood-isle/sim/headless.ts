@@ -36,6 +36,7 @@ export const DRIFTWOOD_DAY_START = 0.2 * (20 / 24), DRIFTWOOD_CYCLE_S = 48 * 60;
  * The declared entry walk: every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, product }) => {
+  const fauna = new Map(product.section('actors/species-programs').native.map(row => [row.kind, row]));
   const placement = readEnemyPlacements(JSON.parse(new TextDecoder().decode(await product.file('sim/enemy-placement.json'))));
   const keeper = readKeeperRows(JSON.parse(new TextDecoder().decode(await product.file('sim/keeper.json'))));
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
@@ -53,7 +54,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     // Install before restore too: a saved swim cannot attach to a dry host. Never borrow the renderer's global wave clock.
     host.useWater({ surfaceAt: DRIFTWOOD_SEA.restAt, bob: (x, z) => waveHeight(x, z, host.clock.now) });
     if (!context.restoring) installNativeCollision(host, bake, { resolution: 256 });
-    const island = installIsland(host, { placement, keeper, bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
+    const island = installIsland(host, { placement, keeper, fauna, bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     const captain = installCaptain(host, bake, island);
     const reward = { started: false, completed: false };
     const finale = createDriftwoodFinale(host.scope, createDirector(), { flags: host.flags, player: host.player.position, rewardAt: spots.reward, reward,

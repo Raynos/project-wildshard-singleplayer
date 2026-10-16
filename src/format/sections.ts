@@ -1,3 +1,4 @@
+import type { SpeciesPrograms } from './speciesPrograms';
 import type { Shardfile } from './shardSchema';
 import type { CreatureStrikes } from './creatures';
 import type { ActorMoves } from './actorMoves';
@@ -44,6 +45,8 @@ export interface PlatformSections {
   'look/materials': { readonly rows: Pick<Rows, 'looks'> };
   /** new (KA5): sim-side steering mechanics, independently selected by decisions. */
   'actors/moves': ActorMoves;
+  /** Callback-free gameplay species, in each owning world's original registration order. */
+  'actors/species-programs': SpeciesPrograms;
   'actors/creatures': Pick<Shardfile, 'creatures'>;
   'actors/crowds': Pick<Shardfile, 'crowds'>;
   'actors/npcs': Pick<Shardfile, 'questNpcs'>;

@@ -1,3 +1,6 @@
+import { emitPlatformSections } from '@wildshard/sdk/platformSections';
+import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
+import { PINE_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
@@ -41,6 +44,6 @@ const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
 }));
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', PINE_SPECIES_PROGRAMS]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
 /** The data/ values runtime/const.ts copies; the build proves the copied runtime still equals them. */
 export const mirrors = [...RUNTIME_MIRRORS];
