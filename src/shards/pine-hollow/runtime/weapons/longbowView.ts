@@ -3,8 +3,8 @@ import type { ProjectileKind } from '@wildshard/engine/combat/view/projectile';
 import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { BowView } from '@wildshard/sdk/weapons/bowProfile';
-import { arrowGeometry, bowPoses, staveBowSpecimen, staveBowView } from '../viewmodel/staveBow';
-import { ARROW_FLIGHT, ARROW_MAX_FLYING, ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from '../const';
+import { arrowGeometry, bowPoses, longbowLook, staveBowSpecimen, staveBowView } from '../viewmodel/staveBow';
+import { ARROW_FLIGHT, ARROW_MAX_FLYING, ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_MATERIAL, LONGBOW_POSES } from '../const';
 
 /** The arrow's length (TIP at the origin, shaft along +Z — Projectiles.ts's convention). */
 export const ARROW_LEN = LONGBOW_ARROW.length;
@@ -31,7 +31,7 @@ function longbowMaterial(sky: Sky): THREE.MeshPhysicalMaterial { return viewmode
  * left glove on it (the bow's one mesh) — built as the viewmodel builds it on its own material, without a bow in your hands.
  */
 export function longbowSpecimen(sky: Sky): THREE.Group {
-  const m = new THREE.Mesh(staveBowSpecimen(LONGBOW_LOOK), longbowMaterial(sky));
+  const m = new THREE.Mesh(staveBowSpecimen(longbowLook()), longbowMaterial(sky));
   m.castShadow = true; m.receiveShadow = true;
   const g = new THREE.Group();
   g.add(m);
@@ -40,5 +40,5 @@ export function longbowSpecimen(sky: Sky): THREE.Group {
 
 /** The held Longbow's view: the yew stave, its string and arrow, the hunter's gloved hands (@wildshard/sdk/viewmodel/staveBow). */
 export function buildLongbow(sky: Sky): BowView {
-  return staveBowView(LONGBOW_LOOK, longbowMaterial(sky));
+  return staveBowView(longbowLook(), longbowMaterial(sky));
 }

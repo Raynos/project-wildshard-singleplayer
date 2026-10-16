@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { BowShape, type BowView, type GripPose } from '@wildshard/engine/combat/view/bowProfile';
-import type { FistOpts } from '@wildshard/engine/player/nalatiArms';
-import type { ArmPaletteRow } from './gloveHands';
+import * as v from 'valibot';
 import { bakedBowRows, handsPart, type BakedBow } from '../boot/handsGeometry';
 
 /**
@@ -19,43 +18,25 @@ import { bakedBowRows, handsPart, type BakedBow } from '../boot/handsGeometry';
  *   bowPoses(rows)                 a look's grip poses (triples) as the platform's GripPose
  */
 
-/** A stave bow's colours (sRGB hex): the sapwood back, the heartwood belly, horn nocks, the leather grip and its inlay, the string. */
-export interface StaveBowPalette {
-  readonly sap: number; readonly sapDark: number; readonly heart: number; readonly heartDark: number; readonly heartHi: number;
-  readonly horn: number; readonly hornHi: number; readonly leather: number; readonly leatherHi: number; readonly amber: number;
-  readonly string: number; readonly serving: number;
-}
-/** An arrow as data: its length and its colours (sRGB hex). */
-export interface ArrowLook {
-  readonly length: number;
-  readonly shaft: number; readonly shaftDark: number; readonly binding: number; readonly head: number;
-  readonly feather: number; readonly featherBar: number;
-}
-/** A fist on the bow: nalatiArms.gloveFist's options. */
-export type StaveFist = Readonly<FistOpts>;
-/** A stave bow as data. Bow-local frame: the grip centre at the origin, +Y up the bow, −Z where the arrow flies (the back),
- *  +Z toward the archer (the belly), +X the archer's right; the arrow rests left of the grip. */
-export interface StaveBowLook {
-  /** the stiff grip's half length, the working limb's length and the horn nock's (m) */
-  readonly gripH: number; readonly limbW: number; readonly nockL: number;
-  /** the limbs' bend (1/m) at rest and its rise at full draw */
-  readonly kappaRest: number; readonly kappaDraw: number;
-  /** the braced string's distance from the grip and the draw length (m) */
-  readonly braceZ: number; readonly drawLen: number;
-  /** the arrow's rest beside the grip (m) */
-  readonly arrowX: number; readonly arrowY: number;
-  /** segments round the stave and round the string, the string's radius and its served length at the nock (m) */
-  readonly radial: number; readonly stringRadial: number; readonly stringR: number; readonly serving: number;
-  readonly palette: StaveBowPalette;
-  /** the arrow nocked on the string */
-  readonly arrow: ArrowLook;
-  /** the gloves' and sleeves' palette over the arm builder's */
-  readonly hands: ArmPaletteRow;
-  /** the left fist round the grip, the right fist on the string, and the right fist's roll about its wrist (rad) */
-  readonly leftFist: StaveFist; readonly rightFist: StaveFist; readonly rightRoll: number;
-  /** each sleeve's length (m) and fold seed (nalatiArms.riderArm) */
-  readonly leftSleeve: readonly [number, number]; readonly rightSleeve: readonly [number, number];
-}
+const finite = v.pipe(v.number(), v.finite()), pair = v.tuple([finite, finite]);
+/** The arrow's exact authored length and palette. */
+const ArrowLookSchema = v.strictObject({ length: finite, shaft: finite, shaftDark: finite, binding: finite, head: finite, feather: finite, featherBar: finite });
+const optional = v.exactOptional(finite);
+const fist = v.strictObject({ R: finite, mirror: v.exactOptional(v.boolean()), thumbRing: v.exactOptional(v.boolean()), span: v.exactOptional(finite),
+  yaw: v.exactOptional(finite), curl: v.exactOptional(finite), thumbCurl: v.exactOptional(finite) });
+/** Exact client look from the admitted hand bake, including the serialised input-key order. */
+export const StaveBowLookSchema = v.strictObject({ gripH: finite, limbW: finite, nockL: finite, kappaRest: finite, kappaDraw: finite,
+  braceZ: finite, drawLen: finite, arrowX: finite, arrowY: finite, radial: finite, stringRadial: finite, stringR: finite, serving: finite,
+  palette: v.strictObject({ sap: finite, sapDark: finite, heart: finite, heartDark: finite, heartHi: finite, horn: finite, hornHi: finite,
+    leather: finite, leatherHi: finite, amber: finite, string: finite, serving: finite }),
+  arrow: ArrowLookSchema, hands: v.strictObject({ leather: optional, leatherLight: optional, leatherDark: optional, leatherEdge: optional,
+    thread: optional, fleece: optional, fleeceShade: optional, fleeceDeep: optional, wool: optional, woolShade: optional, red: optional, redDeep: optional, redLine: optional,
+    gold: optional, jade: optional, jadeDark: optional }),
+  leftFist: fist, rightFist: fist, rightRoll: finite, leftSleeve: pair, rightSleeve: pair });
+export type ArrowLook = v.InferOutput<typeof ArrowLookSchema>;
+export type StaveBowLook = v.InferOutput<typeof StaveBowLookSchema>;
+/** Only read after held-pool admission; the bake remains the single owner of its look. */
+export function longbowLook(): StaveBowLook { return v.parse(StaveBowLookSchema, JSON.parse(bakedBowRows().look)); }
 /** A grip pose as data: the bow's place and aim point in rig space, its cant and pitch. */
 export interface GripPoseRow { readonly pos: readonly [number, number, number]; readonly aim: readonly [number, number, number]; readonly cant: number; readonly pitch: number }
 
@@ -107,15 +88,15 @@ export function staveBowSpecimen(look: StaveBowLook): THREE.BufferGeometry {
 /** The platform bow's view strategy for a stave bow, every part on `mat` (the viewmodels' shared lit program, vertex
  *  colours × the 1×1 fillers): the stave with the left fist, the nocked arrow, the right fist and both sleeves. */
 export function staveBowView(look: StaveBowLook, mat: THREE.Material): BowView {
-  const b = bakedBow(look), v = (t: readonly number[]): THREE.Vector3 => new THREE.Vector3().fromArray(t);
-  const rWristDir = v(b.rWristDir);
+  const b = bakedBow(look), vector = (t: readonly number[]): THREE.Vector3 => new THREE.Vector3().fromArray(t);
+  const rWristDir = vector(b.rWristDir);
   const roll = new THREE.Quaternion().setFromAxisAngle(rWristDir, look.rightRoll);
   const mesh = new StaveBowMesh(look, handsPart('bow-stave'), b);
   const nocked = new THREE.Mesh(handsPart('bow-arrow-nocked'), mat);
   const rHand = new THREE.Mesh(handsPart('bow-right-fist'), mat);
   const lSleeve = new THREE.Mesh(handsPart('bow-left-sleeve'), mat);
   const rSleeve = new THREE.Mesh(handsPart('bow-right-sleeve'), mat);
-  return { mat, mesh, nocked, rHand, lSleeve, rSleeve, lWrist: v(b.lWrist), rWrist: v(b.rWrist), rHook: v(b.rHook), rWristDir, roll };
+  return { mat, mesh, nocked, rHand, lSleeve, rSleeve, lWrist: vector(b.lWrist), rWrist: vector(b.rWrist), rHook: vector(b.rHook), rWristDir, roll };
 }
 
 /** A look's grip poses (triples) as the platform bow's GripPose, keys kept. */

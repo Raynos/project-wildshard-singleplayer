@@ -12,7 +12,7 @@ import { SPRAY_LOOK } from './streamLook';
 import HOLLOW_LOG_SHAPE from './hollowLog.json' with { type: 'json' };
 import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHollow';
 
-import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
+import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
 import { BOW_PROFILE } from './bowProfile';
 import { FINISH_CARDS } from './finishCards';
 
@@ -28,7 +28,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),
   defineMirror('ARROW_MATERIAL', ARROW_MATERIAL),
   defineMirror('LONGBOW_ARROW', LONGBOW_ARROW),
-  defineMirror('LONGBOW_LOOK', LONGBOW_LOOK),
   defineMirror('LONGBOW_MATERIAL', LONGBOW_MATERIAL),
   defineMirror('LONGBOW_POSES', LONGBOW_POSES),
   defineMirror('ARROW_FLIGHT', BOW_PROFILE.flight),
