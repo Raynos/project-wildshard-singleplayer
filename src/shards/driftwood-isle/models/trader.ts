@@ -24,7 +24,7 @@ import { traderRig } from '../quest/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 
 import { COUNTER_TOP as TOP } from '../data/counterLayout';
-import { COUNTER_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { COUNTER_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 

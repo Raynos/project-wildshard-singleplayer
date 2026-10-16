@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { REEF_FISH_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { REEF_FISH_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 
 /** the fish's colours: each copy takes one (Placement.color) */
 export const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;

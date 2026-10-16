@@ -8,7 +8,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { palm } from '../src/shards/driftwood-isle/models/palm';
 import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
-import { decodePalmWorld } from '../src/shards/driftwood-isle/boot/palmGeometry';
+import { decodePalmWorld } from '../src/shards/driftwood-isle/runtime/boot/palmGeometry';
 import { PALM_FILES } from '../src/shards/driftwood-isle/data/palmFiles';
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;

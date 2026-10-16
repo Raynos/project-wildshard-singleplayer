@@ -2,9 +2,9 @@ import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
 import { createOwnedGeometryBatch, type OwnedGeometry as ModelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { readProductGeometry } from '../runtime/boot/modelGeometry';
+import { readProductGeometry } from './modelGeometry';
 import type { BufferGeometry } from 'three';
-import { FIXED_MODEL_FILES } from '../data/modelFiles';
+import { FIXED_MODEL_FILES } from '../../data/modelFiles';
 
 const preload = createOwnedGeometryBatch();
 const modelGeometry = preload.geometry;

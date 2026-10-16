@@ -1,8 +1,8 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry } from 'three';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/data/modelFiles';
-import { loadFixedGeometry, fixedGeometryReady, WENDELL_HEAD_GEOMETRY, HAT_GEOMETRY, DUNE_LOGS_GEOMETRY, PIER_GEOMETRIES } from '../src/shards/driftwood-isle/boot/fixedGeometry';
-import { copyCoverGeometry } from '../src/shards/driftwood-isle/boot/coverGeometry';
+import { loadFixedGeometry, fixedGeometryReady, WENDELL_HEAD_GEOMETRY, HAT_GEOMETRY, DUNE_LOGS_GEOMETRY, PIER_GEOMETRIES } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
+import { copyCoverGeometry } from '../src/shards/driftwood-isle/runtime/boot/coverGeometry';
 
 it('preloads fixed and cover handles from admitted geometry without fetching', async () => {
   const source = new BoxGeometry(), fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));

@@ -30,7 +30,7 @@
  * `caveBounds` {x, z, r, yMin, yMax} (the cave reverb) — also on `Cove.forIsland()` for the ambience.
  */
 import * as THREE from 'three';
-import { copyCoveGeometry, coveColliderDescs } from '../boot/coveGeometry';
+import { copyCoveGeometry, coveColliderDescs } from '../runtime/boot/coveGeometry';
 import { coveFloorAt, coveHalfWidth, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from './coveLayout';
 import { waterfall } from './Waterfall';
 import { rockMaterial } from './rockKit';

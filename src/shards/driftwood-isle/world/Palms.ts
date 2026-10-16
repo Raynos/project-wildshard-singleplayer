@@ -15,7 +15,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { updateWind } from '@wildshard/engine/world/wind';
-import { loadPalmWorld } from '../boot/palmGeometry';
+import { loadPalmWorld } from '../runtime/boot/palmGeometry';
 import { palm, palmMaterial, type PalmParams } from '../models/palm';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }

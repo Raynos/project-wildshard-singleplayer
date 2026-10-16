@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { castawayRig } from '../quest/people';
-import { fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 
 export const castaway: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/models/people.ts', surface: 'flesh',

@@ -26,7 +26,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin } from '../models/shrine';
 import type { ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
 import { FIREFLY_LOOK } from '../data/fireflyLook';
-import { SHRINE_FIREFLIES_GEOMETRY } from '../boot/fixedGeometry';
+import { SHRINE_FIREFLIES_GEOMETRY } from '../runtime/boot/fixedGeometry';
 
 export interface ShrineSpec { x: number; z: number; rot: number }
 

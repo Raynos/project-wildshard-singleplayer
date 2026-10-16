@@ -41,7 +41,7 @@ import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { onDeck } from './entryDeck';
 import { ENTRY_DECKS } from '../data/entryDecks';
 import { entryDeck } from '../models/entryDeck';
-import { loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 

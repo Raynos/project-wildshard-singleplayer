@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { palmSpecimen } from '../boot/palmGeometry';
+import { palmSpecimen } from '../runtime/boot/palmGeometry';
 
 export interface PalmParams {
   /** trunk height, metres */

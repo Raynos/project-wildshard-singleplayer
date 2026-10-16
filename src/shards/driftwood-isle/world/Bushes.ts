@@ -15,7 +15,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { loadHibiscusWorld } from '../boot/hibiscusGeometry';
+import { loadHibiscusWorld } from '../runtime/boot/hibiscusGeometry';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 

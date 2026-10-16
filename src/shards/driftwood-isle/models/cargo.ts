@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { CARGO_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CARGO_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 
 type Template = (typeof CARGO_GEOMETRY)[keyof typeof CARGO_GEOMETRY];
 /** a specimen of model `id`: its baked lone copy `kind` (scaled by `k`), or a loading box until the island's templates are in */

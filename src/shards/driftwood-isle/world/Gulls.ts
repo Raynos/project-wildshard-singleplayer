@@ -18,7 +18,7 @@ import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { GullFlock } from '../runtime/looks/gullFlock';
 import { GULL_GRAPH_LOOK } from '../data/gullGraphLook';
 import { GULL_CORRIDORS, GULL_FLIGHT, GULL_WHEEL, GULL_BURSTS } from '../data/gullsLook';
-import { GULL_GEOMETRY } from '../boot/fixedGeometry';
+import { GULL_GEOMETRY } from '../runtime/boot/fixedGeometry';
 
 let lent: THREE.Material | null = null;
 /** Lend the gulls their compiled graph material (look.materials `driftwood-gulls`), before the world builds. */

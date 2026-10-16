@@ -27,7 +27,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { fencePost, plankStep, signpost, trailMaterial } from '../models/trailside';
 
-import { copyTrailsideGeometry } from '../boot/trailsideGeometry';
+import { copyTrailsideGeometry } from '../runtime/boot/trailsideGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { islandTrailsideSpec, type TrailsideSpec } from './trailsideLayout';
 

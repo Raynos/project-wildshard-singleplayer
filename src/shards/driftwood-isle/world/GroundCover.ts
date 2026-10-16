@@ -20,11 +20,11 @@ import { DENSITY, beach, ss, type Site } from '../runtime/looks/coverSites';
  * switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
-import { DUNE_LOGS_GEOMETRY } from '../boot/fixedGeometry';
+import { DUNE_LOGS_GEOMETRY } from '../runtime/boot/fixedGeometry';
 import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
 import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
 import { Cove } from './Cove';
-import { copyCoverGeometry } from '../boot/coverGeometry';
+import { copyCoverGeometry } from '../runtime/boot/coverGeometry';
 import { GROUND_COVER } from '../data/coverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, coverSample, coverJitter } from './coverTint';

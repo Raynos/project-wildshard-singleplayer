@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { SmokeColumnRow } from '../../data/lookRows';
 import { SMOKE_LOOK } from '../const';
-import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../../boot/fixedGeometry';
+import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../boot/fixedGeometry';
 
 /**
  * A thin, broken smoke column off a fire (SHARD-PLATFORM W2 C2): ONE mesh of camera-facing puff quads that the smoke's

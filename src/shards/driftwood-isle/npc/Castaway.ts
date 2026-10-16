@@ -30,7 +30,7 @@ import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/u
 import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS } from '../data/npcScenes';
 import { CASTAWAY_POSE } from '../data/npcPose';
 import { CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING } from '../data/npcFocus';
-import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
+import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../runtime/boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

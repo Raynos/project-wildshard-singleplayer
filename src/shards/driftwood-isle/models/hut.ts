@@ -19,7 +19,7 @@ import { libraryModel } from '@wildshard/game/models/libraryModel';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import bake from '../data/hutBake.json' with { type: 'json' };
-import { HUT_FLAMES_GEOMETRY, HUT_KIT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { HUT_FLAMES_GEOMETRY, HUT_KIT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 
 /** Where a hut stands: its centre (world xz) and which way its door faces (rot, radians; 0 = −z). */
 export interface HutSite { readonly x: number; readonly z: number; readonly rot: number }

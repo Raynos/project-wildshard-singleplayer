@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
-import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BOAT_LAYOUT } from '../data/boatLayout';

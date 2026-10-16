@@ -1,8 +1,8 @@
 import type { BufferGeometry } from 'three';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { FIXED_MODEL_FILES } from '../data/modelFiles';
-import bake from '../data/trailsideBake.json' with { type: 'json' };
-import { trailsideSpecKey, type TrailsideSpec } from '../world/trailsideLayout';
+import { FIXED_MODEL_FILES } from '../../data/modelFiles';
+import bake from '../../data/trailsideBake.json' with { type: 'json' };
+import { trailsideSpecKey, type TrailsideSpec } from '../../world/trailsideLayout';
 
 const template = modelGeometry(FIXED_MODEL_FILES.trailside);
 /** Explicit immutable template intake; tests and offline tools may supply bytes directly. */

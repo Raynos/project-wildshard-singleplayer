@@ -12,7 +12,7 @@
  */
 import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { reefSpecimen } from '../boot/reefGeometry';
+import { reefSpecimen } from '../runtime/boot/reefGeometry';
 import { REEF_SPECIMENS, type ReefKind } from '../data/reefSpecimenRows';
 import { REEF_LOOK } from '../data/reefLook';
 

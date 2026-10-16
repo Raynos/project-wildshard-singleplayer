@@ -7,7 +7,7 @@ import { seedOf } from '@wildshard/engine/models/model';
 import { leafClump } from '../src/shards/driftwood-isle/generators/hibiscus';
 import { hibiscusBush } from '../src/shards/driftwood-isle/models/hibiscusBush';
 import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/data/hibiscusFiles';
-import { loadHibiscusVariants, copyHibiscusVariant, decodeHibiscusWorld } from '../src/shards/driftwood-isle/boot/hibiscusGeometry';
+import { loadHibiscusVariants, copyHibiscusVariant, decodeHibiscusWorld } from '../src/shards/driftwood-isle/runtime/boot/hibiscusGeometry';
 
 const phone = (): Uint8Array => {
   const buffer = new ArrayBuffer(16 + (6 + 3 * 11) * 4), header = new DataView(buffer);

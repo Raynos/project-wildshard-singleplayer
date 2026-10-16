@@ -19,7 +19,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from '../runtime/models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import bakedSlots from '../data/trophySlots.json' with { type: 'json' };
 import { TROPHY_LAYOUT } from '../data/trophyLayout';
 

@@ -1,9 +1,9 @@
 import type { BufferGeometry } from 'three';
-import { decodeFoliageWorld, readFoliageWorld } from './foliageGeometry';
+import { decodeFoliageWorld, readFoliageWorld } from '../../boot/foliageGeometry';
 import { TIER } from '@wildshard/engine/core/tier';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { HIBISCUS_FILES } from '../data/hibiscusFiles';
-import type { HibiscusBushParams } from '../models/hibiscusBush';
+import { HIBISCUS_FILES } from '../../data/hibiscusFiles';
+import type { HibiscusBushParams } from '../../models/hibiscusBush';
 
 const files = HIBISCUS_FILES[TIER === 'phone' ? 'phone' : 'desktop'];
 const variants = { flowering: modelGeometry(files.flowering, { _sway: 'aSway' }), leaf: modelGeometry(files.leaf, { _sway: 'aSway' }), small: modelGeometry(files.small, { _sway: 'aSway' }) };

@@ -1,7 +1,7 @@
 import { DRIFTWOOD_MELEE_PROFILE, DRIFTWOOD_IRON_PROFILE } from '../data/meleeProfile';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import type { Group, Material } from 'three';
-import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from '../boot/fixedGeometry';
+import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from './boot/fixedGeometry';
 import { FP_ARMS_MATERIALS } from '../data/fpArmsLook';
 import displayRows from '../data/ironSwordScene.json' with { type: 'json' };
 import { bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';

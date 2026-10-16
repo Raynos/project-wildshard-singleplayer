@@ -16,7 +16,7 @@
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ReefBed } from '../runtime/looks/reefBed';
-import { loadReefWorld } from '../boot/reefGeometry';
+import { loadReefWorld } from '../runtime/boot/reefGeometry';
 import { SEABED } from '../data/seabedLook';
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';

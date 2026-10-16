@@ -7,7 +7,7 @@ import {pierBoxes} from '../world/pierLayout';
 import {pierParamsKey,pierSpecKey,type PierParams,type PierSpec} from '../assets/contracts/pier';
 import {PIER_DEFAULTS,PIER_VARIANTS} from '../data/pierRows';
 import rows from '../data/piers.generated.json' with {type:'json'};
-import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../boot/fixedGeometry';
+import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../runtime/boot/fixedGeometry';
 
 const pair=(v:readonly number[]):[number,number]=>{const [a,b]=v;if(a===undefined||b===undefined||v.length!==2)throw new Error('Pier row requires a pair');return [a,b];};
 /** Read the canonical measured parameters; tuples are admitted before lending them to native code. */

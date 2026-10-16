@@ -13,7 +13,7 @@ import type { WreckAnchor, HoldBounds, WreckSpec } from '../assets/contracts/wre
 import { barrel as barrelModel, crate as crateModel, ropeCoil } from '../models/cargo';
 import { driftLog } from '../models/driftLog';
 import { reefRock } from '../models/reefRock';
-import { WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY, WRECK_ROCKS_GEOMETRY } from '../boot/fixedGeometry';
+import { WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY, WRECK_ROCKS_GEOMETRY } from '../runtime/boot/fixedGeometry';
 import bake from '../data/wreckBake.json' with { type: 'json' };
 import { wreckFloorHeight } from './wreckFloor';
 

@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { BRIDGE_SPANS } from '../data/bridgeRows';
 import { admitBridgeFacts, bridgeKey } from '../boot/bridgeFacts';
-import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';

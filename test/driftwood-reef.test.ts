@@ -7,7 +7,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { REEF, type ReefParams } from '../src/shards/driftwood-isle/models/reef';
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
-import { decodeReefWorld } from '../src/shards/driftwood-isle/boot/reefGeometry';
+import { decodeReefWorld } from '../src/shards/driftwood-isle/runtime/boot/reefGeometry';
 import { REEF_FILES } from '../src/shards/driftwood-isle/data/reefFiles';
 import { REEF_SPECIMENS } from '../src/shards/driftwood-isle/data/reefSpecimenRows';
 

@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { islandKnobs } from '../tiers';
-import { copyHibiscusVariant, loadHibiscusVariants, hibiscusVariantsReady } from '../boot/hibiscusGeometry';
+import { copyHibiscusVariant, loadHibiscusVariants, hibiscusVariantsReady } from '../runtime/boot/hibiscusGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 
 /** one bush: its radius (0.7–1.5 m), whether it is in flower, and its sway's phase (the world's: from where it stands) */

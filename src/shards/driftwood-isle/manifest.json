@@ -349,16 +349,16 @@
       "export": "createDriftwoodAudio"
     },
     "posesLoader": {
-      "module": "./boot/poses",
+      "module": "./runtime/boot/poses",
       "export": "poses"
     },
     "boot": {
       "files": {
-        "module": "./boot/sources",
+        "module": "./runtime/boot/sources",
         "export": "bootFiles"
       },
       "sources": {
-        "module": "./boot/sources",
+        "module": "./runtime/boot/sources",
         "export": "bootSources"
       },
       "audio": {
@@ -366,7 +366,7 @@
         "export": "BOOT_AUDIO"
       },
       "lateReads": {
-        "module": "./boot/lateReads",
+        "module": "./runtime/boot/lateReads",
         "export": "lateReads"
       }
     },

@@ -10,7 +10,7 @@ import bake from '../data/shrineBake.json' with {type:'json'};
 import { SHRINE_POOL_LOOK } from '../data/poolLook';
 import { fixedGeometryReady, loadFixedGeometry,
   SHRINE_KIT_GEOMETRY,SHRINE_WATER_GEOMETRY,SHRINE_GLYPHS_GEOMETRY,
-  SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
+  SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../runtime/boot/fixedGeometry';
 
 const TIERS = [
   { hw: 6.5, z0: -7.5, z1: 4.0, top: 1.0 },

@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { CAPE_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CAPE_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 /** A fresh copy of the admitted cape; worn/specimen scaling never changes its template. */

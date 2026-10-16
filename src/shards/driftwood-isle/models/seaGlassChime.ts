@@ -20,7 +20,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from '../runtime/models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import bakedSlots from '../data/chimeSlots.json' with { type: 'json' };
 
 /** Maximum collectible pieces; slot 0 is always the cord and bar. */
