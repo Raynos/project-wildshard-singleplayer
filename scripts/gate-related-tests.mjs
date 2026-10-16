@@ -8,8 +8,9 @@
 // Vitest's results cache, `node_modules/.vite/vitest`, plus its module load) while the estimated wall time (their sum over
 // WS_VITEST_MAX_WORKERS, plus Vitest's startup) stays within `--budget` (45 s). What is left over is printed to stderr
 // and runs in CI. A changed test file always runs. Today the whole suite (~115 files) estimates under the budget at the
-// gate's 4 workers, so the cap only bites once the suite grows.
-import { existsSync, readFileSync } from 'node:fs';
+// gate's 4 workers, so the cap only bites once the suite grows. Wasm scenarios have explicit source/row edges
+// below because the test imports the built bytes; those required tests run even beyond the estimate.
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
 import { createVitest } from 'vitest/node';
 
@@ -48,6 +49,26 @@ function stem(path) {
   return basename(path).replace(TEST_FILE, '').replace(/\.d?\.?[cm]?[jt]sx?$/u, '').replaceAll(/[-_.]/gu, '').toLowerCase();
 }
 
+/** Scenario imports reach the built Wasm, not its author source. Preserve that explicit gate edge.
+ * Row declarations can be composed across author modules, so an author data/config change selects all
+ * scenarios for its shard rather than guessing which row a TypeScript expression produces.
+ * @param {string[]} changed repository-relative paths, including removed sources
+ * @param {string[]} tests available repository-relative scenario test paths
+ * @returns {string[]} */
+export function scriptScenarioTests(changed, tests) {
+  const selected = new Set();
+  for (const file of changed) {
+    const source = /^src\/shards\/([^/]+)\/behaviour\/(?:[^/]+\/)*([^/]+)\.as$/u.exec(file);
+    if (source) {
+      const target = `test/scripts/${source[1]}-${source[2]}.test.ts`;
+      if (tests.includes(target)) selected.add(target);
+    }
+    const author = /^src\/shards\/([^/]+)\/(?:data\/|generators\/|shard\.config\.ts$|behaviour\/(?!.*\.as$))/u.exec(file);
+    if (author) for (const test of tests) if (test.startsWith(`test/scripts/${author[1]}-`)) selected.add(test);
+  }
+  return [...selected].sort((a, b) => a.localeCompare(b));
+}
+
 /**
  * Pick the related test files to run within `seconds` of estimated wall time on `workers` workers.
  * @param {string[]} related every related test file (relative paths)
@@ -55,16 +76,17 @@ function stem(path) {
  * @param {Map<string, number>} durations last test seconds per file
  * @param {number} seconds wall-time budget
  * @param {number} workers
+ * @param {string[]} required explicit gate edges that must run even beyond the estimate
  * @returns {{ run: string[], left: string[] }}
  */
-export function capRelated(related, changed, durations, seconds, workers) {
+export function capRelated(related, changed, durations, seconds, workers, required = []) {
   const known = [...durations.values()].sort((a, b) => a - b);
   const typical = known.length > 0 ? (known[Math.floor(known.length / 2)] ?? 1) : 1;
   const cost = (/** @type {string} */ file) => (durations.get(file) ?? typical) + LOAD_SECONDS;
   const budget = Math.max(0, seconds - STARTUP_SECONDS) * workers;
   const stems = new Set(changed.map(stem));
   const own = changed.filter((file) => INCLUDED.test(file) && !related.includes(file));
-  const named = [...own, ...related.filter((file) => changed.includes(file) || stems.has(stem(file)))];
+  const named = [...new Set([...required, ...own, ...related.filter((file) => changed.includes(file) || stems.has(stem(file)))])];
   const rest = related.filter((file) => !named.includes(file)).sort((a, b) => cost(a) - cost(b) || a.localeCompare(b));
   const run = [...named];
   let spent = named.reduce((sum, file) => sum + cost(file), 0);
@@ -96,9 +118,12 @@ if (isMain) {
       related = [...new Set(specs.map((spec) => relative(ROOT, spec.moduleId)))];
     } finally { await vitest.close(); }
   }
-  const { run, left } = capRelated(related, sources, knownDurations(), seconds, workers);
+  const scenarioDir = resolve(ROOT, 'test/scripts');
+  const scenarios = existsSync(scenarioDir) ? readdirSync(scenarioDir).filter(file => file.endsWith('.test.ts')).map(file => `test/scripts/${file}`) : [];
+  const required = scriptScenarioTests(changed, scenarios);
+  const { run, left } = capRelated(related, sources, knownDurations(), seconds, workers, required);
   const walk = ((performance.now() - started) / 1000).toFixed(1);
   const over = left.length > 0 ? `; ${left.length} over the ${seconds}s budget run in CI only: ${left.join(' ')}` : '';
-  console.error(`gate-related-tests: ${related.length} related test files for ${sources.length} changed sources (${walk}s)${over}`);
+  console.error(`gate-related-tests: ${related.length} related + ${required.length} required scenario test files for ${sources.length} changed sources (${walk}s)${over}`);
   console.info(JSON.stringify(run));
 }
