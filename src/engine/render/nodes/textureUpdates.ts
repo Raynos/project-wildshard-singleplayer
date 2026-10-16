@@ -1,6 +1,6 @@
 /** Schedule render inputs and coalesce stock pure reads between callbacks. */
-import type { Texture } from 'three';
-import { NodeUpdateType, TextureNode, type Node, type NodeFrame } from 'three/webgpu';
+import { Material, Object3D, type Texture } from 'three';
+import { NodeUpdateType, ReferenceNode, TextureNode, type Node, type NodeFrame } from 'three/webgpu';
 
 interface FlipTexture extends TextureNode {
   readonly _matrixUniform: object | null;
@@ -11,7 +11,20 @@ const prototype: unknown = TextureNode.prototype;
 const stockUpdate: unknown = typeof prototype === 'object' && prototype !== null ? Reflect.get(prototype, 'update') : undefined;
 const stockReference: unknown = typeof prototype === 'object' && prototype !== null ? Reflect.get(prototype, 'updateReference') : undefined;
 interface TextureRun { readonly base: TextureNode; epoch: number; flip: boolean }
-type Update = { readonly kind: 'ordinary'; readonly node: Node } | {
+/** A stock reference to a fixed holder (a shared uniform, a day key): its value cannot change between the draws of one
+ * camera pass, so it is read once per pass instead of once per draw (sp-o276: a third of the per-draw node work on
+ * Safari). Object- and material-relative references, subclasses and custom callbacks keep the per-draw dispatch. */
+interface PassReference { readonly kind: 'pass'; readonly node: Node; last: number }
+const referencePrototype: unknown = ReferenceNode.prototype;
+const referenceUpdate: unknown = Reflect.get(ReferenceNode.prototype, 'update');
+const referenceReference: unknown = Reflect.get(ReferenceNode.prototype, 'updateReference');
+function isPassReference(node: Node): boolean {
+  if (Object.getPrototypeOf(node) !== referencePrototype || node.updateType !== NodeUpdateType.OBJECT) return false;
+  if (Reflect.get(node, 'update') !== referenceUpdate || Reflect.get(node, 'updateReference') !== referenceReference) return false;
+  const holder: unknown = Reflect.get(node, 'object');
+  return typeof holder === 'object' && holder !== null && !(holder instanceof Object3D) && !(holder instanceof Material);
+}
+type Update = { readonly kind: 'ordinary'; readonly node: Node } | PassReference | {
   readonly kind: 'sample'; readonly node: FlipTexture; readonly flip: { value: boolean };
   readonly reference: Node | null; readonly run: TextureRun;
 };
@@ -60,7 +73,10 @@ export class TextureUpdates {
     }
     let epoch = ++plan.epoch;
     for (const entry of plan.updates) {
-      if (entry.kind === 'sample') {
+      if (entry.kind === 'pass') {
+        if (entry.last === frame.renderId && entry.node.updateType === NodeUpdateType.OBJECT) continue;
+        entry.last = frame.renderId;
+      } else if (entry.kind === 'sample') {
         const {node, run} = entry;
         if (node.updateType === NodeUpdateType.OBJECT && node.update === stockUpdate && node.updateReference === stockReference &&
           node._matrixUniform === null && node._flipYUniform === entry.flip && node.referenceNode === entry.reference && run.base.referenceNode === null) {
@@ -88,7 +104,7 @@ export class TextureUpdates {
           updates.push({kind: 'sample', node, flip: node._flipYUniform, reference: ref, run}); continue;
         }
       }
-      updates.push({kind: 'ordinary', node});
+      updates.push(isPassReference(node) ? {kind: 'pass', node, last: -1} : {kind: 'ordinary', node});
     }
     return {updates, epoch: 0};
   }
