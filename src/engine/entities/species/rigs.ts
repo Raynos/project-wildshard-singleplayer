@@ -1,5 +1,5 @@
-import { MathUtils, Vector3, type Bone } from 'three';
-import type { RigAnimCtx, FurStyle } from './registry';
+import { MathUtils, Vector3, type Bone, type Vector3Like } from 'three';
+import type { FurStyle } from './registry';
 import { smoothstep } from '../../core/noise';
 
 /**
@@ -18,15 +18,19 @@ export const step = (x: number, a: number, b: number): number => smooth01((x - a
 const _v = new Vector3();
 const _look = { yaw: 0, pitch: 0 };
 
-/** the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped */
-export function lookAngles(c: Pick<RigAnimCtx, 'lookWeight' | 'lookTarget' | 'position' | 'yaw' | 'scale'>, eyeY: number, maxYaw = 1.2, maxPitch = 0.6): { yaw: number; pitch: number } {
+/** What `lookAngles` reads: a rig's animate context, or a renderer-free pose input with plain points. */
+export interface LookInput { readonly lookWeight: number; readonly lookTarget: Vector3Like; readonly position: Vector3Like; readonly yaw: number; readonly scale: number }
+
+/** the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped
+ *  (pitch to [minPitch, maxPitch]: a tall rig looks down further than up) */
+export function lookAngles(c: LookInput, eyeY: number, maxYaw = 1.2, maxPitch = 0.6, minPitch = -maxPitch): { yaw: number; pitch: number } {
   if (c.lookWeight < 0.001) { _look.yaw = 0; _look.pitch = 0; return _look; }
   _v.subVectors(c.lookTarget, c.position);
   let ly = Math.atan2(_v.x, _v.z) - c.yaw;
   ly = Math.atan2(Math.sin(ly), Math.cos(ly));
   const dist = Math.hypot(_v.x, _v.z);
   _look.yaw = clamp(ly, -maxYaw, maxYaw) * c.lookWeight;
-  _look.pitch = clamp(Math.atan2(_v.y + 1.4 - eyeY * c.scale, dist), -maxPitch, maxPitch) * c.lookWeight;   // the player's eyes are ~1.4 m over their feet
+  _look.pitch = clamp(Math.atan2(_v.y + 1.4 - eyeY * c.scale, dist), minPitch, maxPitch) * c.lookWeight;   // the player's eyes are ~1.4 m over their feet
   return _look;
 }
 

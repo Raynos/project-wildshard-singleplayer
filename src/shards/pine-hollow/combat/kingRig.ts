@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
-import { smoothstep } from '@wildshard/engine/core/noise';
+import { clamp, lookAngles, step } from '@wildshard/engine/entities/species/rigs';
 import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playBakedClip, readBakedClips, scaleLimbPose, zeroLimbPose, type BakedPoseClip, type LimbPose, type LimbPoseRest, type LimbRest, type LimbRigSpec } from '../runtime/species/limbRig';
 import { KING_GAITS as GAITS, KING_RIG as RIG } from '../data/kingRig';
 import baked from '../data/kingClips.generated.json' with { type: 'json' };
@@ -51,9 +51,6 @@ export const kingRest = (bones: Record<string, THREE.Bone>): KingRest => limbRes
 /** the gaits' timing (the gate reads the stance windows off it) */
 export const KING_GAITS: typeof GAITS = GAITS;
 
-const clamp = THREE.MathUtils.clamp;
-const step = (x: number, a: number, b: number): number => smoothstep(0, 1, (x - a) / (b - a));
-
 /** one clip, alone, at `x` (a phase for walk / charge, a 0..1 progress for the attacks, seconds for idle) into `p` */
 export function clipPose(p: KingPose, clip: KingClip, x: number, t = 0): KingPose {
   zeroLimbPose(p);
@@ -66,7 +63,6 @@ export function applyKingPose(r: KingRest, p: KingPose): void { applyLimbPose(KI
 // ─────────────────────────────── the species' animate ───────────────────────────────
 
 const _pose = newPose(), _clip = newPose();
-const _look = new THREE.Vector3();
 
 /** per animal, in `Animal.mem`: ph (the stride phase), act (the fight's move), held (s the attack has sat at 1), walkW /
  *  runW (the eased gait weights) */
@@ -125,18 +121,12 @@ export function advanceKingPose(c: KingPoseInput, r: KingPoseRest, into: KingPos
   // the recoil: a hit (the flinch) and the stagger's brace
   const f = Math.max(c.flinch, c.brace * 0.7);
   if (f > 0.01) addLimbPose(P, clipPose(_clip, 'hit', 1 - f, c.t), 1);
-  // the look: the neck and head turn to the target, on top of the clip
+  // the look (the custom rigs' shared lookAngles, from his head's rest height): the neck and head turn to the target, on top of the clip
   if (c.lookWeight > 0.001) {
-    const head = r.at['head'];
-    _look.subVectors(c.lookTarget, c.position);
-    let yaw = Math.atan2(_look.x, _look.z) - c.yaw;
-    yaw = Math.atan2(Math.sin(yaw), Math.cos(yaw));
-    const dist = Math.hypot(_look.x, _look.z);
-    const pitch = clamp(Math.atan2(_look.y + 1.4 - (head?.y ?? 2.5) * c.scale, dist), -0.5, 0.4);
+    const look = lookAngles(c, r.at['head']?.y ?? 2.5, 1.0, 0.4, -0.5);
     // (the sweep owns the head: its dive is measured without the look — the look's pitch would drive the rack into the ground)
-    const k = c.lookWeight * (1 - rw * 0.6) * (1 - dive);
-    P.neckYaw += clamp(yaw, -1.0, 1.0) * 0.45 * k; P.headYaw += clamp(yaw, -1.0, 1.0) * 0.4 * k;
-    P.headPitch -= pitch * 0.6 * k;
+    const k = (1 - rw * 0.6) * (1 - dive);
+    P.neckYaw += look.yaw * 0.45 * k; P.headYaw += look.yaw * 0.4 * k; P.headPitch -= look.pitch * 0.6 * k;
   }
   return P;
 }
