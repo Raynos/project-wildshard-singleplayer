@@ -119,3 +119,13 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   restores pass. These cached build outputs add no Git binary or runtime
   download; consumer migration is separate. The meshopt tree pool remains
   on its existing path until the named intake admits its compressed GLB.
+
+- 2026-10-16 P2b Pine crag/stream blob-source prerequisite: 48 named
+  GLB/bin inputs retain all original public payload bytes (7,457,509 B
+  crags + 368,607 B streams = 7,826,116 B). Two generated name/source
+  manifests total 15,753 B raw / 2,721 B gzip-9. Producer-scoped source
+  directories avoid a duplicate output owner for shared GLB bytes.
+  Existing payload pins stay; each manifest is pinned from the official
+  producer. Cold generation and missing-file warm restoration pass.
+  Cached build outputs add no Git binary or shipped download in this
+  prerequisite; runtime consumer migration remains separate.

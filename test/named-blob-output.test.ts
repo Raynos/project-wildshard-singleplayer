@@ -12,6 +12,15 @@ test('producer blob sources own their bytes, collapse equal URL aliases and refu
   mkdirSync(resolve('tmp'), { recursive: true });
   const project = mkdtempSync(resolve('tmp/blob-output-')), root = pathToFileURL(`${project}/`);
   try {
+    expect(() => namedBlobOutput(root, 'invalid', 'assets/../escape')).toThrow('Invalid blob source directory');
+    expect(() => namedBlobOutput(root, 'invalid', '/assets')).toThrow('Invalid blob source directory');
+    const scoped = namedBlobOutput(root, 'scoped-test', 'assets/streams');
+    scoped.add('stream.bin', 'bin', new Uint8Array([4]));
+    scoped.finish(new URL('stream.json', root));
+    const scopedSource = `assets/streams/${hashImmutableBytes(new Uint8Array([4]))}`;
+    const scopedMetadata: unknown = JSON.parse(readFileSync(new URL('stream.json', root), 'utf8'));
+    expect(scopedMetadata).toMatchObject({ blobs: [{ source: scopedSource }] });
+    expect(new Uint8Array(readFileSync(new URL(scopedSource, root)))).toEqual(new Uint8Array([4]));
     const output = namedBlobOutput(root, 'blob-source-test'), bytes = new Uint8Array([1, 2, 3]);
     const name = output.add('world/first.bin', 'bin', bytes, '/old/first.bin');
     expect(output.add('world/alias.bin', 'bin', bytes, '/old/alias.bin')).toBe(name);

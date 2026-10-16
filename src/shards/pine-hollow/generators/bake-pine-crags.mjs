@@ -19,6 +19,7 @@ import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { pineCragQueries } from './cragGround.ts';
 import { bakePineCrags, canonicalCragTiltX, shuffleLanes } from './crags.ts';
 import { pineCragBake } from './cragScene.ts';
+import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const read = (path) => { const bytes = readFileSync(resolve(root, path)); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); };
@@ -70,11 +71,13 @@ if (import.meta.main) {
   const { rows, bins } = await bakeCragRows();
   const authored = pineCragBake({ phone: { bin: bins.phone, tiles: rows.skin.phone.tiles }, desktop: { bin: bins.desktop, tiles: rows.skin.desktop.tiles } }, root);
   const out = resolve(root, 'public/assets/pine-hollow/baked');
+  const blobs = namedBlobOutput(new URL('../', import.meta.url), 'pine-crag-blobs', 'assets/crags');
   mkdirSync(out, { recursive: true });
   const sizes = [];
   for (const t of ['phone', 'desktop']) {
     const packed = deflateSync(shuffleLanes(bins[t]), { level: 9 });
     writeFileSync(resolve(out, `crags.${t}.bin`), packed);
+    blobs.add(`world/crags/${t}.bin`, 'bin', packed, `/assets/pine-hollow/baked/crags.${t}.bin`);
     sizes.push(`${t} ${String(rows.skin[t].tiles.length)} tiles ${String(bins[t].length)} → ${String(packed.length)} zlib`);
   }
   writeFileSync(resolve(root, 'src/shards/pine-hollow/data/crags.json'), `${JSON.stringify(rows)}\n`);
@@ -82,8 +85,10 @@ if (import.meta.main) {
   const pieces = authored.pieces.map(piece => {
     const hash = createHash('sha256').update(piece.glb).digest('hex');
     writeFileSync(resolve(shapes, `${hash}.glb`), piece.glb);
+    blobs.add(`world/crags/${piece.name}.glb`, 'glb', piece.glb, `/assets/pine-hollow/baked/crag-skins/${hash}.glb`);
     return { id: piece.name, glb: hash, kinds: piece.kinds };
   });
   writeFileSync(resolve(root, 'src/shards/pine-hollow/data/cragScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, pieces })}\n`);
+  blobs.finish(new URL('../data/cragBlobs.generated.json', import.meta.url));
   console.info(`pine-hollow crags: ${String(rows.places.length)} placements; ${sizes.join('; ')} (baked/crags.<tier>.bin)`);
 }

@@ -3,14 +3,16 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { byteWriter } from './bake-output.mjs';
 
 /** Build-only bridge from a producer's exact bytes to author-project blob inputs.
- * Equal payloads have one canonical logical name; URL aliases never add a second index reference. */
-export function namedBlobOutput(project, label) {
+ * Equal payloads have one canonical logical name; URL aliases never add a second index reference.
+ * A bounded assets/ subdirectory isolates producer ownership when payloads also exist in another job. */
+export function namedBlobOutput(project, label, directory = 'assets') {
+  if (!/^assets(?:\/[A-Za-z0-9_-]+)*$/u.test(directory) || directory.length > 120) throw new Error('Invalid blob source directory');
   const writer = byteWriter(process.argv.includes('--check'), label), rows = new Map(), aliases = new Map();
   return {
     add(name, kind, bytes, url) {
       const blob = nameBlob(name, kind, bytes), old = rows.get(blob.file.hash);
       if (old !== undefined && old.kind !== kind) throw new Error('Blob source changes kind');
-      const row = old ?? { name, kind, source: `assets/${blob.file.hash}` };
+      const row = old ?? { name, kind, source: `${directory}/${blob.file.hash}` };
       if (old === undefined && [...rows.values()].some(value => value.name === name)) throw new Error('Duplicate logical blob source name');
       if (url !== undefined && aliases.has(url) && aliases.get(url) !== row.name) throw new Error('Blob URL changes content');
       rows.set(blob.file.hash, row);
