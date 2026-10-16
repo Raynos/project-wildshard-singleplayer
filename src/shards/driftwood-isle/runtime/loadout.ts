@@ -1,9 +1,7 @@
-import { DRIFTWOOD_MELEE_PROFILE, DRIFTWOOD_IRON_PROFILE } from '../data/meleeProfile';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import type { Group, Material } from 'three';
 import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from './boot/fixedGeometry';
-import { FP_ARMS_MATERIALS } from '../data/fpArmsLook';
-import displayRows from '../data/ironSwordScene.json' with { type: 'json' };
+import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE, FP_ARMS_MATERIALS, IRON_SWORD_SCENE } from './const';
 import { bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -12,10 +10,10 @@ import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import source from '../shard.config';
+import type { ShardContext } from '@wildshard/game/shard/context';
 
 /** Both swords use the same castaway rig parts the shell already loaded, with the original task break. */
-export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows: readonly [MeleeProfile, MeleeProfile], ctx: Parameters<typeof bindRuntimeItems>[0]): void {
+export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows: readonly [MeleeProfile, MeleeProfile], ctx: Parameters<typeof bindRuntimeItems>[0] & Pick<ShardContext, 'product'>): void {
   shell.buildEquipment = async (targets, nolock, viewmodel?: ShardSword | null) => {
     if (viewmodel?.arms === undefined || viewmodel.ironArms === undefined) throw new Error('Driftwood requires both native sword arms');
     const { ironArms, swim: _swim, ...woodArms } = viewmodel;
@@ -30,7 +28,7 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
       }
       throw new Error(`Native Driftwood sword was built from a different authored profile: ${row.id}`);
     } };
-    const bound = bindRuntimeItems(ctx, source, { families: new Map(), kit: new Map([['melee', melee]]), icon: () => 'sword' });
+    const bound = bindRuntimeItems(ctx, ctx.product.shardfile, { families: new Map(), kit: new Map([['melee', melee]]), icon: () => 'sword' });
     if (bound.primary !== primary) throw new Error('Driftwood declares the wooden sword first');
     // The normal loadout owns the original pickup/Owned lock; do not unlock the iron sword via declared defaults.
     return { primary, rifle: null, secondary: null, extras: [...bound.extras] };
@@ -41,7 +39,7 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
 export function buildIronSwordDisplay(materials: ReadonlyMap<string, Material>): Group {
   const blade = materials.get(FP_ARMS_MATERIALS.pickupBlade), fittings = materials.get(FP_ARMS_MATERIALS.pickupFittings);
   if (blade === undefined || fittings === undefined) throw new Error('Iron sword display requires its graph materials');
-  const made=createClientScene(displayRows,{
+  const made=createClientScene(IRON_SWORD_SCENE,{
     geometry:id=>{if(id==='blade')return IRON_SWORD_BLADE_GEOMETRY.copy();if(id==='fittings')return IRON_SWORD_FITTINGS_GEOMETRY.copy();throw new Error('Unknown declared iron sword geometry');},
     materials: new Map([['blade', blade], ['fittings', fittings]]),
   });

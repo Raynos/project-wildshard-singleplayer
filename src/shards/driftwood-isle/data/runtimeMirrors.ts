@@ -7,8 +7,10 @@ import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
 import { GROUND_LOOK } from './groundLook';
 import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
+import ironSwordScene from './ironSwordScene.json' with { type: 'json' };
 import { ISLAND_LOOKS } from './islandLook';
 import { KIT_LENDS } from './kitLook';
+import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE } from './meleeProfile';
 import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
 import { REEF_LOOK } from './reefLook';
@@ -45,4 +47,7 @@ export const RUNTIME_MIRRORS = [
   defineMirror('MIDDAY_SKY_ROWS', MIDDAY_SKY_ROWS),
   defineMirror('DAY_LIGHT', DAY_LIGHT),
   defineMirror('RAMP_FOG', RAMP_FOG),
+  defineMirror('DRIFTWOOD_MELEE_PROFILE', DRIFTWOOD_MELEE_PROFILE),
+  defineMirror('DRIFTWOOD_IRON_PROFILE', DRIFTWOOD_IRON_PROFILE),
+  defineMirror('IRON_SWORD_SCENE', ironSwordScene),
 ];
