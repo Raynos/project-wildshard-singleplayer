@@ -32,10 +32,10 @@ the title deck.
 | `life/` | ravens, the owl, the woodpecker, hares | its small life |
 | `look/` | the sky backdrop on seven pure-sky keys that re-light the IBL | the PBR sky is Pine's |
 | `audio/` | the forest ambience with zoned beds and interior reverb, the score, SFX, synth fallbacks | its own sound |
-| `compendium/`, `compendium.ts`, `feats.ts`, `items.ts` | the hunter's journal, 19 feats, its items | its own game data |
-| `debug/` | its Debug rows | its own toggles |
+| `runtime/compendium/`, `compendium.ts`, `feats.ts`, `items.ts` | the hunter's journal, 19 feats, its items | its own game data |
+| `runtime/debug/` | its Debug rows | its own toggles |
 
-Layout debt (grandfathered): `compendium.ts` next to `compendium/`, `debug/`, `dev/`, `feats.ts`, `items.ts`, `life/`.
+Layout debt (grandfathered): `compendium.ts`, `dev/`, `feats.ts`, `items.ts`, `life/`.
 
 ## Regenerating the shard (G298)
 
