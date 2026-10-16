@@ -87,3 +87,16 @@ test('bound crab and sailor bodies keep once-only strikes and restored attack me
     } finally { made.dispose(); }
   }
 });
+
+test('a missed crab or sailor strike stays spent when the target returns inside reach', () => {
+  for (const [row, look] of [[CRAB, CRAB_LOOK], [SAILOR, SAILOR_LOOK]] as const) {
+    const made = body(row, look), ctx = context(), hits: number[] = [];
+    ctx.hurt = damage => { hits.push(damage); };
+    try {
+      made.actor.mem['st'] = 2; made.actor.mem['hit'] = 0; made.actor.startAttack(.9); made.actor.step(.7);
+      ctx.player.set(0, 0, 100); row.act?.(made.actor, ctx);
+      expect(hits).toEqual([]); expect(made.actor.mem['hit']).toBe(1);
+      ctx.player.set(0, 0, 1); row.act?.(made.actor, ctx); expect(hits).toEqual([]);
+    } finally { made.dispose(); }
+  }
+});

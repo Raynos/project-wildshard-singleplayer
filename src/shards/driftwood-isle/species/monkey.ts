@@ -9,7 +9,9 @@ import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { MonkeyBrain, pickPerch, setPerch } from './monkeyPolicy';
+import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from './monkeyPolicy';
+import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
+import { MONKEY_ACTIONS } from '../data/speciesActions';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -45,9 +47,9 @@ const callbacks = driftwoodSpeciesBrains.bind('monkey', (actor, decision, ctx) =
     pickPerch: (a: Animal, min: number, max: number, away?: Animal['position']): number => pickPerch(a, current, min, max, away),
     setPerch: (a: Animal, index: number): void => { setPerch(a, current, index); },
   };
-  return new MonkeyBrain<Animal, ThinkCtx>(actor, (_actor, context) => {
+  return createMemoryActionBrain<Animal, ThinkCtx>(actor, MONKEY_ACTIONS, { decide: (_actor, context) => {
     current = context; Object.assign(ports, context); decision.policy.think(ports);
-  });
+  }, effects: new Map([['bite', biteMonkey], ['throw', throwMonkeyCoconut]]) });
 });
 
 export const MONKEY: SpeciesRow = { ...ENEMY_SPECIES_METADATA.monkey, ...callbacks };

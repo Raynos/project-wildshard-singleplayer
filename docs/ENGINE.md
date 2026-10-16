@@ -6220,3 +6220,18 @@ BoxSpec negative-Y convention and the existing scalar inverse transform. `first`
 `highest` returns the uppermost matching floor; no match returns undefined. It creates no collision or clock.
 Pine keeps its floor rows and registration owners; Nine `world/floorRows.ts#entryDeckFloor` is the G441 W3
 adoption of its inclusive entry-slab loop, with first-match policy and the existing zero deck height.
+
+**Actor-memory actions (G441).** `game/plugin/brain` defines
+`createMemoryActionBrain` and `MemoryActionRows`. The bounded row names an
+existing numeric state field, its inspection labels, and ordered body-step
+actions: an attack-phase threshold, an existing once field and an optional
+truthy/falsy selector. All effect ids are preflighted against borrowed
+callbacks before the brain is installed. A due action writes its once field
+before invoking the callback, including a miss or thrown effect. There is
+no expression evaluator, clock, RNG, contact solver or save envelope;
+CreatureBrain still owns inspection and the caller's existing StrikeRunner
+and projectile owner perform the effects. Act-before-think stays valid.
+Driftwood uses it for crab, sailor and monkey page/native adapters. The
+named W3 user is Nalati `species/balbal.ts#actBalbal`, replacing its numeric
+state/attackPhase/hit gate while preserving motion, slam flags, damage,
+contact, sound order and actor-memory continuation.

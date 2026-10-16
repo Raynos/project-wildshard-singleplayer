@@ -1,4 +1,5 @@
 import type { CombatTag } from '@wildshard/engine/combat/pipeline';
+import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import { StalkerBrain } from "@wildshard/engine/ai/stalker";
 import { huntMemoryCodec } from "@wildshard/engine/ai/huntPattern";
 import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig } from "@wildshard/engine/ai/hunt";
@@ -39,6 +40,59 @@ import { creatureFloor, installHomeKeeper, type HomeKeeperSpec, type KeptBossBod
 import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
 
 type Rng = ReturnType<SimHost['rng']['stream']>;
+
+/** Plain actor-memory gates for ordered body-step effects; clocks and saved fields remain actor-owned. */
+export interface MemoryActionRows {
+  readonly stateKey: string; readonly states: readonly string[];
+  readonly actions: readonly {
+    readonly state: number; readonly phase: number; readonly effect: string;
+    readonly once: { readonly key: string; readonly value: number; readonly test: 'falsy' | 'not-value' };
+    readonly when?: { readonly key: string; readonly test: 'truthy' | 'falsy' };
+  }[];
+}
+
+/**
+ * Bind an existing decision to inspectable states and preflighted, ordered memory-action gates.
+ * A due action claims its existing once field before the borrowed effect, including misses and throws.
+ * This owns no clock, random stream, contact solver or save envelope; act may run before the first think.
+ */
+export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: MemoryActionRows, ports: {
+  readonly decide: (actor: A, context: C) => void;
+  readonly effects: ReadonlyMap<string, (actor: A, context: C) => void>;
+}): CreatureBrain<string, A, C> {
+  const validKey = (key: string): boolean => /^[a-zA-Z][a-zA-Z0-9._-]{0,63}$/u.test(key)
+    && key !== 'constructor' && key !== 'prototype' && key !== '__proto__';
+  if (!validKey(rows.stateKey) || rows.states.length === 0 || rows.states.length > 32
+    || new Set(rows.states).size !== rows.states.length || rows.states.some(state => !validKey(state)) || rows.actions.length > 16) throw new Error('Invalid memory-action states');
+  const states = [...rows.states], stateKey = rows.stateKey;
+  const actions = rows.actions.map(row => {
+    const run = ports.effects.get(row.effect);
+    if (!Number.isInteger(row.state) || row.state < 0 || row.state >= states.length || !Number.isFinite(row.phase) || row.phase < 0 || row.phase > 1
+      || !validKey(row.once.key) || !Number.isFinite(row.once.value) || !['falsy', 'not-value'].includes(row.once.test)
+      || (row.when !== undefined && (!validKey(row.when.key) || !['truthy', 'falsy'].includes(row.when.test))) || run === undefined) throw new Error('Invalid or unbound memory action');
+    return { ...row, once: { ...row.once }, when: row.when === undefined ? undefined : { ...row.when }, run };
+  });
+  class BoundMemoryBrain extends CreatureBrain<string, A, C> {
+    override think(context: C): void {
+      ports.decide(actor, context);
+      const state = states[actor.mem[stateKey] ?? 0];
+      if (state !== undefined) this.transition(state);
+    }
+    override act(context: C): void {
+      const phase = actor.attackPhase;
+      if (phase < 0) return;
+      for (const action of actions) {
+        if (actor.mem[stateKey] !== action.state || !(phase >= action.phase)) continue;
+        if (action.when !== undefined && Boolean(actor.mem[action.when.key]) !== (action.when.test === 'truthy')) continue;
+        const once = actor.mem[action.once.key];
+        if (action.once.test === 'falsy' ? Boolean(once) : once === action.once.value) continue;
+        actor.mem[action.once.key] = action.once.value;
+        action.run(actor, context);
+      }
+    }
+  }
+  return new BoundMemoryBrain(actor, states);
+}
 
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
 export function speciesResolver(rows: ShardRows): (speciesId: string, variantId: string) => AnimalSimSpec {

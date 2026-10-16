@@ -3,7 +3,8 @@ import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateSailor } from './sailorPose';
 import { creatureBody, preloadCreatureBodies } from './bodies';
-import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
+import { SAILOR_ACTIONS } from '../data/speciesActions';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
@@ -49,32 +50,17 @@ export function preloadSailorHead(): Promise<void> { return preloadCreatureBodie
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
-const ST_ATTACK = 2;
-const HIT_R = 1.9, WINDUP = 0.6, SWING_DUR = 0.9;
+const HIT_R = 1.9;
 
 /** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
 export interface SailorStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
-function strikeSailor<A extends AnimalSim>(a: A, c: SailorStrikePorts<A>): void {
-  const m = a.mem as SailorMem, p = a.attackPhase;
-  if (m.st !== ST_ATTACK || p < 0) return;
-  if (p >= WINDUP / SWING_DUR + 0.05 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.sailor, shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
-}
-const STATES = ['hide', 'rise', 'attack', 'guard', 'sink'] as const;
-/** The sailor's brain shell: the selected decision (shipping or data-selected) at 10 Hz, the strike every body step. */
-export class SailorBrain<A extends AnimalSim, C extends SailorStrikePorts<A>> extends CreatureBrain<typeof STATES[number], A, C> {
-  private readonly decide: (actor: A, ctx: C) => void;
-  constructor(actor: A, decide: (actor: A, ctx: C) => void) { super(actor, STATES); this.decide = decide; }
-  override think(ctx: C): void {
-    this.decide(this.actor, ctx);
-    const state = STATES[this.actor.mem['st'] ?? 0];
-    if (state !== undefined) this.transition(state);
-  }
-  override act(ctx: C): void { strikeSailor(this.actor, ctx); }
+export function strikeSailor<A extends AnimalSim>(a: A, c: SailorStrikePorts<A>): void {
+  if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.sailor, shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash');
 }
 
 const callbacks = driftwoodSpeciesBrains.bind('sailor', (actor, decision) => {
   if (decision.archetype !== 'guardian') throw new Error('Driftwood sailor requires its authored guardian row');
-  return new SailorBrain<Animal, ThinkCtx>(actor, (_actor, ctx) => { decision.policy.think(ctx); });
+  return createMemoryActionBrain<Animal, ThinkCtx>(actor, SAILOR_ACTIONS, { decide: (_actor, ctx) => { decision.policy.think(ctx); }, effects: new Map([['swing', strikeSailor]]) });
 });
 
 export const SAILOR: SpeciesRow = { ...ENEMY_SPECIES_METADATA.sailor, ...callbacks };

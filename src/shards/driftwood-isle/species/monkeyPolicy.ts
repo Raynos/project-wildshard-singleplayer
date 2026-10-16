@@ -1,5 +1,4 @@
 import { Vector3 } from 'three';
-import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
 
@@ -57,26 +56,13 @@ export function setPerch<A extends AnimalSim>(a: A, c: MonkeyPerchPorts<A>, i: n
 }
 
 const _from = new Vector3(), _to = new Vector3();
-function strikeMonkey<A extends AnimalSim>(a: A, c: MonkeyStrikePorts<A>): void {
-  const m = a.mem as MonkeyMem, p = a.attackPhase;
-  if (m.st !== ST_ATTACK || p < 0) return;
-  if (m.bite) { if (p >= 0.45 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, DRIFTWOOD_STRIKES.bite)) c.sound('monkey_shriek'); } }
-      else if (p >= THROW_RELEASE && !m.hit) {
-        m.hit = 1;
-        _from.set(a.position.x, a.position.y + 0.95 * a.scale, a.position.z);
-        _to.set(c.player.x, c.player.y + 0.9, c.player.z);
-        c.world.throwCoconut?.(_from, _to, a);
-      }
+/** Existing bite contact; the caller's declared memory gate claims the strike first. */
+export function biteMonkey<A extends AnimalSim>(a: A, c: MonkeyStrikePorts<A>): void {
+  if (driftwoodContact(a, c, DRIFTWOOD_STRIKES.bite)) c.sound('monkey_shriek');
 }
-const STATES = ['perch', 'ground-idle', 'attack', 'drop', 'ground', 'return', 'climb'] as const;
-/** The monkey's brain shell: the selected decision (shipping or data-selected) at 10 Hz, the strike every body step. */
-export class MonkeyBrain<A extends AnimalSim, C extends MonkeyStrikePorts<A>> extends CreatureBrain<typeof STATES[number], A, C> {
-  private readonly decide: (actor: A, ctx: C) => void;
-  constructor(actor: A, decide: (actor: A, ctx: C) => void) { super(actor, STATES); this.decide = decide; }
-  override think(ctx: C): void {
-    this.decide(this.actor, ctx);
-    const state = STATES[this.actor.mem['st'] ?? 0];
-    if (state !== undefined) this.transition(state);
-  }
-  override act(ctx: C): void { strikeMonkey(this.actor, ctx); }
+/** Existing coconut owner and target heights; no random draw or projectile clock is added. */
+export function throwMonkeyCoconut<A extends AnimalSim>(a: A, c: MonkeyStrikePorts<A>): void {
+  _from.set(a.position.x, a.position.y + 0.95 * a.scale, a.position.z);
+  _to.set(c.player.x, c.player.y + 0.9, c.player.z);
+  c.world.throwCoconut?.(_from, _to, a);
 }

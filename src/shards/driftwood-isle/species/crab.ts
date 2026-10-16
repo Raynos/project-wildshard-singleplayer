@@ -2,7 +2,8 @@ import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateCrab } from './crabPose';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
-import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
+import { CRAB_ACTIONS } from '../data/speciesActions';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { creatureBody } from './bodies';
@@ -35,7 +36,7 @@ import type * as THREE from 'three';
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
-const ST_ATTACK = 2, SNAP_R = 1.6, WINDUP = 0.5, SNAP_DUR = 0.78;
+const SNAP_R = 1.6;
 
 /** the shell: a blow from within 60° of the crab's heading does half damage */
 function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): number {
@@ -46,32 +47,13 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
 
 /** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
 export interface CrabStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
-function strikeCrab<A extends AnimalSim>(a: A, c: CrabStrikePorts<A>): void {
-  const m = a.mem as CrabMem, p = a.attackPhase;
-  if (m.st !== ST_ATTACK || p < 0) return;
-  if (p >= WINDUP / SNAP_DUR && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.snap, damage: a.mods.chargeDamage, shape: { kind: 'point', radius: SNAP_R * Math.max(1, a.scale * 0.8) } })) c.sound('crab_snap'); }
-}
-const STATES = ['idle', 'sidestep', 'attack', 'flee'] as const;
-/** The crab's brain shell: the selected decision (shipping or data-selected) at 10 Hz, the strike every body step. */
-export class CrabBrain<A extends AnimalSim, C extends CrabStrikePorts<A>> extends CreatureBrain<typeof STATES[number], A, C> {
-  private readonly decide: (actor: A, ctx: C) => void;
-  constructor(actor: A, decide: (actor: A, ctx: C) => void) { super(actor, STATES); this.decide = decide; }
-  override think(ctx: C): void {
-    this.decide(this.actor, ctx);
-    const state = STATES[this.actor.mem['st'] ?? 0];
-    if (state !== undefined) this.transition(state);
-  }
-  override act(ctx: C): void { strikeCrab(this.actor, ctx); }
-}
-/** `Animal.mem` as the crab uses it (numbers only, the registry contract): every key is written by the first `think` tick */
-interface CrabMem extends Record<string, number> {
-  init: number; hx: number; hz: number; st: number; tm: number; sd: number; cd: number; hitT: number; shy: number; scat: number;
-  wander: number; tx: number; tz: number; hit: number;
+export function strikeCrab<A extends AnimalSim>(a: A, c: CrabStrikePorts<A>): void {
+  if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.snap, damage: a.mods.chargeDamage, shape: { kind: 'point', radius: SNAP_R * Math.max(1, a.scale * 0.8) } })) c.sound('crab_snap');
 }
 
 const callbacks = driftwoodSpeciesBrains.bind('crab', (actor, decision) => {
   if (decision.archetype !== 'skirmisher') throw new Error('Driftwood crab requires its authored skirmisher row');
-  return new CrabBrain<Animal, ThinkCtx>(actor, (_actor, ctx) => { decision.policy.think(ctx); });
+  return createMemoryActionBrain<Animal, ThinkCtx>(actor, CRAB_ACTIONS, { decide: (_actor, ctx) => { decision.policy.think(ctx); }, effects: new Map([['snap', strikeCrab]]) });
 });
 
 export const CRAB: SpeciesRow = { ...ENEMY_SPECIES_METADATA.crab, ...callbacks };
