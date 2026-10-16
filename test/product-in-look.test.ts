@@ -20,7 +20,7 @@ const productOf = (slug: string): ShardProduct => createShardProduct({ slug, rev
 describe('toLevelSpec binds the product', () => {
   const seen: { look: ShardProduct | null; roster: ShardProduct | null } = { look: null, roster: null };
   const manifest: ShardManifest = { ...driftwood,
-    render: (product) => { seen.look = product; return Promise.resolve<LookStrategy>({}); },
+    render: (product) => { seen.look = product; return Promise.resolve<LookStrategy>({ compose: () => ({}) }); },
     roster: (product) => { seen.roster = product; return Promise.resolve<readonly RosterEntry[]>([]); } };
 
   test('the look and roster loaders get the loaded product', async () => {
