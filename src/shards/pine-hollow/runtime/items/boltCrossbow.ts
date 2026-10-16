@@ -188,10 +188,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
-  private readonly poseFrame = { portrait: 0, ads: 0, reloading: 0, scale: 1 };
+  private readonly poseFrame = { portrait: 0, ads: 0, reloading: 0, scale: 1, sprinting: 0, sprint: 0, reloadTilt: 0 };
   private readonly partValues = { loaded: 0, reloading: 0, reloadProgress: 0 };
 
-  private sprintBlend = 0; private reloadTilt = 0;
   /** loaded bolt's broadhead tip, in model space (measured from the bolt geometry) and bolt-local */
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
   /** the solved iron-sights pose + the numbers behind it (dev / verification: `__wildshard.world.crossbow.adsPose`) */
@@ -236,7 +235,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.game.scene.add(this.puffs.points);
 
     this.buildHands();
-    this.posePlayback = new HeldPlayback({ pose: playback.crossbow, parts: playback.crossbowParts, sight: sights.sight, string: sights.string, peep: sights.peep }, new Map<string, unknown>([['root', this.model], ['loadedBolt', this.loadedBolt], ['stringLeft', this.stringLeft], ['stringRight', this.stringRight], ['serving', this.serving], ['peep', this.peep], ['peepRing', this.peepRing], ['peepPost', this.peepPost]]));
+    this.posePlayback = new HeldPlayback({ frame: inputs.frames.crossbow.program, pose: playback.crossbow, parts: playback.crossbowParts, sight: sights.sight, string: sights.string, peep: sights.peep }, new Map<string, unknown>([['root', this.model], ['loadedBolt', this.loadedBolt], ['stringLeft', this.stringLeft], ['stringRight', this.stringRight], ['serving', this.serving], ['peep', this.peep], ['peepRing', this.peepRing], ['peepPost', this.peepPost]]));
+    this.posePlayback.bindInputs('frame', inputs.frames.crossbow.inputs, new Map([['weapon', this]]));
+    this.posePlayback.bindOutputs('frame', inputs.frames.crossbow.outputs, new Map([['frame', this.poseFrame]]));
     this.posePlayback.bindInputs('pose', inputs.crossbow, new Map([['weapon', this]]));
     this.posePlayback.bindInputs('sight', sights.sightInputs, new Map([['weapon', this]])); this.posePlayback.bindOutputs('sight', sights.sightOutputs, new Map([['sight', this.adsPose]]));
     this.posePlayback.bindInputs('string', sights.stringInputs, new Map([['weapon', this]])); this.posePlayback.bindInputs('peep', sights.peepInputs, new Map([['weapon', this]]));
@@ -344,29 +345,22 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.state.ads = this.feel.sampleFrame(dt, p, frame, cam, this.sky.csm);
 
     // pose blend: hip ↔ ADS ↔ sprint ↔ reload
-    this.sprintBlend += ((p.sprinting ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
-    const rl = this.state.reloading ? Math.sin(Math.min(1, this.state.reloadProgress) * Math.PI) : 0;
-    this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
-    const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.feel.adsBlend);
-    // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
-    const port = portrait, scale = this.view.hip.scale * (1 - port * 0.55);
-    this.poseFrame.scale = scale; if (a > 0) this.posePlayback.apply('sight', this.poseFrame);
+    this.poseFrame.sprinting = Number(p.sprinting); this.poseFrame.reloading = Number(this.state.reloading);
+    this.posePlayback.apply('frame', this.poseFrame);
+    const { ads: a } = this.poseFrame; if (a > 0) this.posePlayback.apply('sight', this.poseFrame);
 
     this.peep.visible = a > 0.001 && !this.inspect;
     if (this.peep.visible) { this.posePlayback.apply('peep', this.poseFrame); for (const m of this.peepMats) m.opacity = a; }
 
-    this.model.scale.setScalar(scale);
-    this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.poseFrame.reloading = Number(this.state.reloading); this.posePlayback.apply('pose', this.poseFrame);
+    this.posePlayback.apply('pose', this.poseFrame);
     this.hands?.aim(this.model);
 
     this.feel.scanAim(this, this.targets, true, _v3, _fwd, _aimEnd, this.model);
 
-    this.stepBolts(dt);
+    this.flightPool.step(dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.presentation.traces, this.presentation.paint);
   }
 
-  private stepBolts(dt: number): void { this.flightPool.step(dt); }
 
   // ── projectiles ──
   /**

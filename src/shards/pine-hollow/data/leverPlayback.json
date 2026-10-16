@@ -396,7 +396,7 @@
         {"input":"gatePositionY","owner":"weapon","path":["gate","y"]},
         {"input":"roundZ","owner":"weapon","path":["round","position","z"]},
         {"input":"gatePositionZ","owner":"weapon","path":["gate","z"]},
-        {"input":"loadBlend","owner":"weapon","path":["loadBlend"]}
+        {"input":"loadBlend","owner":"weapon","path":["poseFrame","loadBlend"]}
       ],
       "outputs": [
         {"property":"x","target":"visual","path":["at","x"]},
@@ -417,7 +417,7 @@
         {"input":"open","owner":"weapon","path":["partValues","open"]},
         {"input":"leverAngle","owner":"weapon","path":["view","lever","open"]},
         {"input":"handTurn","owner":"weapon","path":["view","lever","handTurn"]},
-        {"input":"loadBlend","owner":"weapon","path":["loadBlend"]}
+        {"input":"loadBlend","owner":"weapon","path":["poseFrame","loadBlend"]}
       ],
       "outputs": [
         {"property":"x","target":"visual","path":["axis","x"]},
@@ -438,7 +438,7 @@
         {"input":"open","owner":"weapon","path":["partValues","open"]},
         {"input":"leverAngle","owner":"weapon","path":["view","lever","open"]},
         {"input":"handTurn","owner":"weapon","path":["view","lever","handTurn"]},
-        {"input":"loadBlend","owner":"weapon","path":["loadBlend"]}
+        {"input":"loadBlend","owner":"weapon","path":["poseFrame","loadBlend"]}
       ],
       "outputs": [
         {"property":"x","target":"visual","path":["palm","x"]},

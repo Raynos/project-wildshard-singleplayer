@@ -11,7 +11,6 @@ import type { Targets } from '@wildshard/engine/combat/types';
 import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
 import { whiteColors, FOV_HIP, FOV_ADS, prepareWeaponView, weaponDisplay, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
-import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 
@@ -188,10 +187,9 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
-  private readonly poseFrame = { portrait: 0, ads: 0, scale: 0, cycle: 0 };
+  private readonly poseFrame = { portrait: 0, ads: 0, scale: 0, cycle: 0, sprinting: 0, reloading: 0, sprint: 0, loadBlend: 0 };
   private readonly partValues = { open: 0, cycling: 0, cycleU: 0, hammerAngle: 0, cocked: 0, reloading: 0 };
 
-  private sprintBlend = 0; private loadBlend = 0;
   private time = 0;
   tracerLife: number;
   /** hip pose (lower-right); a dev knob: `__weapons.get('rifle').hip.py = …` */
@@ -261,7 +259,9 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.syncState();
     this.buildHands();
-    this.posePlayback = new HeldPlayback({ pose: playback.lever, parts: playback.leverParts, sight: leverPlayback.sight, cycle: leverPlayback.cycle, handAt: leverPlayback.handAt, handAxis: leverPlayback.handAxis, handPalm: leverPlayback.handPalm }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
+    this.posePlayback = new HeldPlayback({ frame: inputs.frames.lever.program, pose: playback.lever, parts: playback.leverParts, sight: leverPlayback.sight, cycle: leverPlayback.cycle, handAt: leverPlayback.handAt, handAxis: leverPlayback.handAxis, handPalm: leverPlayback.handPalm }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
+    this.posePlayback.bindInputs('frame', inputs.frames.lever.inputs, new Map([['weapon', this]]));
+    this.posePlayback.bindOutputs('frame', inputs.frames.lever.outputs, new Map([['frame', this.poseFrame]]));
     this.posePlayback.bindInputs('pose', inputs.lever, new Map([['weapon', this]]));
     const owners = new Map([['weapon', this]]);
     this.posePlayback.bindInputs('parts', leverPlayback.partInputs, owners);
@@ -371,16 +371,11 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     s.ads = this.feel.sampleFrame(dt, p, frame, cam, this.sky.csm);
 
     // pose: hip ↔ sighted ↔ sprint ↔ the loading roll ↔ the lever's rock ↔ holster
-    this.sprintBlend += ((p.sprinting ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
-    const loading = this.phase === 'reload' ? 1 : 0;
-    this.loadBlend += (loading - this.loadBlend) * Math.min(1, dt / (loading ? this.view.timing.reloadIn : this.view.timing.reloadOut) * 2.2);
-    const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.feel.adsBlend);
-    const port = portrait, scale = this.hip.scale * (1 - port * 0.14);
-    this.poseFrame.scale = scale; if (a > 0 && this.adsPose.scale !== scale) this.posePlayback.apply('sight', this.poseFrame);
+    this.poseFrame.sprinting = Number(p.sprinting); this.poseFrame.reloading = Number(this.phase === 'reload');
+    this.posePlayback.apply('frame', this.poseFrame);
+    const { ads: a, scale } = this.poseFrame; if (a > 0 && this.adsPose.scale !== scale) this.posePlayback.apply('sight', this.poseFrame);
     this.stock.visible = a < 0.85 || this.inspect > 0;
-    this.model.scale.setScalar(scale);
-    this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.poseFrame.scale = scale; this.poseFrame.cycle = this.partValues.open; this.posePlayback.apply('pose', this.poseFrame);
+    this.poseFrame.cycle = this.partValues.open; this.posePlayback.apply('pose', this.poseFrame);
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
