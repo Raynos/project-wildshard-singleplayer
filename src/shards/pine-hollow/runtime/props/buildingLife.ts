@@ -1,13 +1,13 @@
 import type * as THREE from 'three';
 import { floorAtRects, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { SiteLights, type LightSite, type SiteFlicker, type SiteLightsLook, type SiteWave } from '@wildshard/engine/fx/SiteLights';
 
 /**
  * A settlement's buildings as a living place (SHARD-PLATFORM M3, the props system): whatever builds the buildings hands
- * their moving parts here (the doors, the fires and lamps, the lantern swings, the wheels, the
- * floors and the static solids), and this runs them: the doors swing on use (eased, barred by the caller's rule, heard
+ * their moving parts and floor queries here (doors, fires and lamps, lantern swings, wheels),
+ * and this runs them: the doors swing on use (eased, barred by the caller's rule, heard
  * by listeners) with a kinematic leaf piece each; the fires, lamps and the phone's shared lights are the engine's
  * SiteLights (fires burn all day, lamps light at dusk); lamp glass glows with the night. Every number is the shard's
  * look row; nothing here knows a shard's buildings.
@@ -56,8 +56,6 @@ export class BuildingLife {
   private readonly gain = { fire: 1, lamp: 1 };
   private swings: BuildingSwing[] = [];
   private floors: BuildingFloor[] = [];
-  /** static solids that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
-  private solids: ColliderDesc[] = [];
   /** emissive materials lit by the clock and their full-night intensity */
   private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
   private readonly doorBars = new Map<Interactable, () => boolean>();
@@ -66,15 +64,6 @@ export class BuildingLife {
   constructor(look: BuildingLifeLook) {
     this.lifeLook = look;
     this.lights = new SiteLights(look);
-  }
-
-  /**
-   * Every building's static collision in world space: the legacy boxes minus the door boxes, plus the solids (floors,
-   * decks, steps, plinths, furniture).
-   */
-  colliderDescs(): ColliderDesc[] {
-    const doorBoxes = new Set(this.doors.map((d) => d.collider));
-    return [...this.colliders.filter((c) => !doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids];
   }
 
   /**
@@ -129,8 +118,6 @@ export class BuildingLife {
   _swing(sw: BuildingSwing): void { this.swings.push(sw); }
   /** a floor / deck */
   _floor(f: BuildingFloor): void { this.floors.push(f); }
-  /** a static solid (only in colliderDescs) */
-  _solid(d: ColliderDesc, _prop: boolean): void { this.solids.push(d); }
   /** a wheel turning about its x axis */
   _wheel(o: THREE.Object3D): void { this.wheels.push(o); }
   /** a legacy box */

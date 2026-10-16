@@ -106,12 +106,11 @@ export interface BakedBuildingMats<K extends string, P extends string> {
 export interface BakedBuildingGeometries { readonly geometry: (index: number) => THREE.BufferGeometry }
 
 /**
- * What a building hands its owner as it is assembled (its live parts: doors, fires, lamps, wheels, floors, static boxes);
+ * What a building hands its owner as it is assembled (doors, fires, lamps, wheels, floor queries and legacy door boxes);
  * a specimen's owner keeps nothing (`NO_BUILDING_OWNER`).
  */
 export interface BakedBuildingOwner {
   readonly _collider: (c: BoxSpec) => void;
-  readonly _solid: (d: ColliderDesc, prop: boolean) => void;
   readonly _floor: (f: BuildingFloor) => void;
   readonly _door: (d: BuildingDoor) => void;
   /** a door's use: the owner moves it (`toggle`) unless it is barred, and tells its listeners */
@@ -125,7 +124,7 @@ export interface BakedBuildingOwner {
 
 /** The owner that keeps nothing (a specimen's): a door toggles on use. */
 export const NO_BUILDING_OWNER: BakedBuildingOwner = {
-  _collider: () => undefined, _solid: () => undefined, _floor: () => undefined, _door: () => undefined, _doorUse: (_d, toggle) => { toggle(); }, _fire: () => undefined,
+  _collider: () => undefined, _floor: () => undefined, _door: () => undefined, _doorUse: (_d, toggle) => { toggle(); }, _fire: () => undefined,
   _lamp: () => undefined, _swing: () => undefined, _wheel: () => undefined, _firePit: () => undefined,
 };
 
@@ -229,13 +228,12 @@ export class BakedBuildingAssembly<K extends string, P extends string> {
         default: break;
       }
     }
-    // the live parts in the order the builder handed them: its legacy boxes (its door's right after the door's box), its
-    // static solids, its floors, its fire pit
+    // Live parts retain their original order: legacy boxes (each door follows its box), floors, then the fire pit.
+    // Static solids remain on this assembly's weld; the life owner does not register them.
     for (const c of this.legacy) {
       owner._collider(c);
       if (door?.collider === c) owner._door(door);
     }
-    for (const s of b.solids) owner._solid(s.d, s.prop);
     for (const f of this.floors) owner._floor(f);
     if (b.firePit !== null) owner._firePit({ x: b.firePit[0], y: b.firePit[1], z: b.firePit[2] });
     this.band();

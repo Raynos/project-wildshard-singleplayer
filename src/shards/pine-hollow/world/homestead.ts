@@ -40,8 +40,8 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
  * - `update(dt, t)` door swing (0.6 s ease in-out), fire / lantern flicker on the clock, the phone's pooled lights, the wheel.
  * - `floorHeightAt(x, z)` → world y of a cabin floor / porch deck under (x,z), or undefined.
  * - `firePits`      `{ x, y, z }` of the camp fires (audio / warmth logic).
- * - `colliderDescs()` PHYSICS P3: the static collision as real geometry (walls, floors, porch + its step, furniture);
- *                   `doorPieces()` the door slabs, in each door pivot's frame, for kinematic pieces that swing with it.
+ * - Static collision belongs to each placed building's weld and its prop models; `doorPieces()` hands the door slabs
+ *   to the kinematic pieces that follow each pivot.
  *
  * The kit's materials (the Poly Haven PBR sets, the moss, the particles) are here: the landmarks' timber shares them.
  */

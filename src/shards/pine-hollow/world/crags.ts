@@ -54,7 +54,7 @@ import { placedGeometryCollider } from '@wildshard/engine/models/colliders';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
-const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
+const CRAG_DIR = PINE_CRAG_DIR; // the boot file rows list the kit alongside the landmarks' props
 
 /*
  * E322 F-L2 (Jake picked B): the face skin is textured by its facets, not its smoothed normals (the old projection laid
