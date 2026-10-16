@@ -6,9 +6,20 @@
 //
 //   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
 //   import { linkNodeModules } from './link-node-modules.mjs'  (the node ones)
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, symlinkSync, unlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
+/**
+ * true when `path` holds a live entry; a dangling symlink (its target gone after a dependency update) is removed so the
+ * caller can relink it, since existsSync follows links and symlinkSync refuses an existing name (EEXIST)
+ * @param {string} path
+ */
+function present(path) {
+  if (existsSync(path)) return true;
+  try { if (lstatSync(path).isSymbolicLink()) unlinkSync(path); } catch { /* nothing there */ }
+  return false;
+}
 
 /** the scopes whose packages live in the repo itself (pnpm-workspace.yaml) */
 const WORKSPACE_SCOPES = new Set(['@wildshard']);
@@ -62,7 +73,7 @@ function linkWorkspaceSources(tree, to) {
     const name = JSON.parse(readFileSync(manifest, 'utf8')).name;
     if (typeof name !== 'string' || !/^@wildshard\/[a-z][a-z0-9-]*$/u.test(name)) continue;
     const link = join(to, name);
-    if (existsSync(link)) continue;
+    if (present(link)) continue;
     mkdirSync(dirname(link), { recursive: true });
     symlinkSync(relative(dirname(link), join(sources, entry.name)), link);
   }
@@ -108,7 +119,7 @@ function linkMissingDependencies(repo, pkgDir, to) {
   const deps = { ...json.dependencies, ...json.devDependencies, ...json.optionalDependencies };
   const entries = readdirSync(store);
   for (const [name, range] of Object.entries(deps)) {
-    if (typeof range !== 'string' || existsSync(join(to, name))) continue;
+    if (typeof range !== 'string' || present(join(to, name))) continue;
     if (range.startsWith('workspace:')) {
       const sources = resolve(pkgDir, '..');
       const local = readdirSync(sources).find(entry => {
