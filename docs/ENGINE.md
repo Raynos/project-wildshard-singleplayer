@@ -6929,3 +6929,37 @@ products to `dist/shardfiles/<slug>`, excluding transitional runtime
 sources. It refuses missing or stale receipts, checking the validator,
 assembled-source and exact index hashes before bundling. SDK clients
 embed the same index and resolve sections relative to their document.
+
+### Loading program experiment (G451)
+
+`engine/render/programRetention.retainRendererPrograms(renderer, owner,
+camera, scene)` lends already compiled native programs an ordinary
+material-owned cache reference until `owner` retires. Captures are
+idempotent and bounded to 512 keys; normal material disposal releases
+both Three's program list and key map. It retains no source geometry,
+textures or live material uniforms. Driver storage is opaque: the grid
+reserves a conservative 256 KiB per possible key and reports native
+loading memory separately.
+
+The reload Debug row **Grid programs during loading** defaults off.
+When enabled, an owned grid prepares the single selected admitted
+cell under the loader, cancels entry, retains programs and retires the
+temporary world before initial entry or saved continuation restoration.
+Saved continuation semantics and ordinary off-mode ordering stay unchanged. This risky render/memory lifetime
+experiment remains off pending device evidence and a green quiet frame
+floor; see `docs/reviews/grid-loading-programs.md`.
+
+### Product-built hybrid host rows (P2a step 5)
+
+`game/plugin/headless.HybridRuntimePlugin` calls its protected
+`rows(product: ShardProduct)` factory during `world()`, before strings
+and world construction, and retains the result for kit/play. The factory
+runs once per plugin; an absent product refuses before publication, and
+another product cannot replace an initialized plugin's rows. A refused
+factory publishes no partial rows and may be retried with a valid product.
+
+`HybridRuntimeRows` has no source field. All existing quest, held-item,
+channel, audio and population hosts receive the admitted product's
+`shardfile`; no second source parser is installed. Row factories can read
+platform sections synchronously at load time. Simulation declarations
+remain sections consumed by hosts, outside copied shard runtime code.

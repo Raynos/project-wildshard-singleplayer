@@ -69,6 +69,10 @@ export const GAME_STRINGS = {
   },
   /** Infinite Wildshard, the 3 × 3 grid (SHARD-PLATFORM §3.3, G58, G79; SF21a) */
   grid: {
+    loadingPrograms: {
+      label: 'Grid programs during loading', off: 'Off',
+      note: 'G451 · E435: warm one admitted cell before play. Longer loading; programs stay until page exit. Default off pending a device reading and quiet frame floor; reloads',
+    },
     ended: 'Infinite Wildshard ended unexpectedly last time.',
     waiting: (name: string): string => `${name} · NOT READY FOR GRID`,
     waitingSelect: 'ENTER THROUGH SHARD SELECT',

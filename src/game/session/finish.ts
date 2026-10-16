@@ -19,19 +19,23 @@ import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
+  const warmGrid = ctx.gridLive?.bootProgramCell !== null && ctx.gridLive?.bootProgramCell !== undefined && ctx.session.ownedGridHome === true;
 
   // The staged loader invokes the trusted play hook after buildPlay. Only a fully installed runtime can leave:
   // leaving during buildPlay disposes its kit scope before that hook runs and makes recovery fall back to title.
-  if (ctx.session.ownedGridHome === true) {
-    if (ctx.gridLive === null) throw new Error('Owned grid home requires its admitted live session');
-    if (ctx.session.recovery?.saved?.location.kind === 'cell' || ctx.session.recovery === undefined) await ctx.gridLive.enterInitialHome();
-  }
-  if (ctx.session.recovery !== undefined) {
-    if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');
-    const pose = await ctx.gridLive.resumeRecovery(ctx.session.recovery);
-    player.spawn(pose.x, pose.z, pose.yaw, pose.y); player.pitch = 0;
-    if (pose.road) gridCells.leave();
-  }
+  const enterGrid = async (): Promise<void> => {
+    if (ctx.session.ownedGridHome === true) {
+      if (ctx.gridLive === null) throw new Error('Owned grid home requires its admitted live session');
+      if (ctx.session.recovery?.saved?.location.kind === 'cell' || ctx.session.recovery === undefined) await ctx.gridLive.enterInitialHome();
+    }
+    if (ctx.session.recovery !== undefined) {
+      if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');
+      const pose = await ctx.gridLive.resumeRecovery(ctx.session.recovery);
+      player.spawn(pose.x, pose.z, pose.yaw, pose.y); player.pitch = 0;
+      if (pose.road) gridCells.leave();
+    }
+  };
+  if (!warmGrid) await enterGrid();
   if (ctx.gridLive !== null) {
     const grid = ctx.gridLive;
     // GPU/background own the same checkpoint port above; New game captured it before resetting and suppresses stale saves.
@@ -53,7 +57,14 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   try {
-    await step('shaders', (p) => precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    await step('shaders', async (p) => {
+      if (warmGrid && ctx.gridLive !== null) {
+        await ctx.gridLive.prepareBootPrograms();
+        await enterGrid();
+        ctx.grid?.prepareFrame(); game.sky.prepareLayers();
+      }
+      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`));
+    });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
     await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during first frame');
