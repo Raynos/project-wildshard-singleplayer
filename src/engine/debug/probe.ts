@@ -15,6 +15,7 @@ import { tagOf, type ColliderTag } from '../physics/surface';
 import type { Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
+import { levelDebugRows } from '../ui/debugOptions';
 import { tap } from '../core/harnessTap';
 import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
@@ -132,6 +133,8 @@ export interface ProbeApp {
   readonly owners: ReturnType<typeof ownerCensus>;
 }
 export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
+  /** Effective registered Debug choices, including defaults, for measurement receipts. */
+  debugSettings?: () => readonly { id: string; value: string }[];
   /** Scalar allocation storage and native-ruler provenance; available independently of a retired level. */
   memory?: () => MemorySnapshot;
   /** What the page's textures load as (KTX2 / images), why, and the KTX2 capability probe's verdict (render/ktx2Probe.ts). */
@@ -387,6 +390,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get placement() { return placementCensus(); },
       get owners() { return ownerCensus(); },
     }),
+    debugSettings: () => levelDebugRows().filter(row => row.choices().length > 0).map(row => ({ id: row.id, value: row.get() })),
     version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), textures: textureReport, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     colliderTag: (handle) => world.physics.world.colliders.contains(handle) ? tagOf(world.physics.world.getCollider(handle)) : undefined,
     get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,

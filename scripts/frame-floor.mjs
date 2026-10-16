@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
+import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { validateFrameFloorArgs } from './frame-floor-args.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
@@ -147,7 +148,7 @@ const expectedSystems = systemArgs.map((arg) => {
   return { shard: match[1], id: match[2], present: match[3] === 'on' };
 });
 const fixture = (tier) => [
-  saveFixtureCode({ scope: 'global', key: 'settings', data: { ...settings, tier }, merge: true }),
+  frameFloorSettingsCode({ ...settings, tier }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: developer === 'on' }),
   ...Object.entries(deviceSaves).map(([key, data]) => saveFixtureCode({ scope: 'device', key, data })),
@@ -207,7 +208,7 @@ function metadata() {
   const deviceSaved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}');
   return { renderer: ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER)),
     viewport: [innerWidth, innerHeight], devicePixelRatio, renderScale: g.renderer.getPixelRatio(), canvas: [g.canvas.width, g.canvas.height], developer: Object.hasOwn(document.documentElement.dataset,'dev'),
-    settings: saved.keys?.settings?.data, gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
+    settings: saved.keys?.settings?.data, effectiveDebugSettings: window.__wildshard.debugSettings?.() ?? null, settingsReset: 'replace-settings-and-clear-debug-overrides', gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
     bootTrace: deviceSaved.keys?.['boot.trace']?.data, console: window.__frameFloorConsole ?? [],
     textures: window.__wildshard.textures?.() ?? null,
     systems: Object.values(g.app.systemsByPhase()).flat().map((system) => system.id),

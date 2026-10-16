@@ -7551,3 +7551,11 @@ geometry, units and motion. Pass those verified rows as the optional fourth
 argument to `buildDecisionRegistries(source, moves, worldTargets, strikes)`.
 Compiler, scenarios and runtime use the same joint root/native strike
 namespace; duplicate identities refuse instead of allocating aliases.
+
+### Frame-floor Debug isolation
+
+`EngineProbe.debugSettings()` reads the effective registered Debug choices,
+including defaults, without changing them. Frame-floor replaces its saved
+Settings and clears persisted `debug.*` overrides before each page boot, then
+applies only its explicit picks. Each case records the effective choices;
+older previews without this diagnostic report `null`, never inferred values.
