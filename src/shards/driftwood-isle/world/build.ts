@@ -29,7 +29,7 @@ import { Shrine } from './Shrine';
 import { Bushes } from './Bushes';
 import { Gulls } from './Gulls';
 import { Trailside } from './Trailside';
-import { RopeBridge } from './RopeBridge';
+import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';
 import { Palms, type PalmSpec } from './Palms';
 import { Cove } from './Cove';
@@ -52,7 +52,7 @@ type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? Autho
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Boulders | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Bushes | null;
-  gulls: Gulls | null; trailside: Trailside | null; bridge: RopeBridge | null; seabed: Seabed | null;
+  gulls: Gulls | null; trailside: Trailside | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Palms | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
@@ -171,7 +171,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...trailside.colliders); trailside.place(registry);
   await stages.next('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-  const bridge = await stages.build('Rope bridge', () => new RopeBridge(sky, BRIDGE).place(registry), { values: value => value.colliders });
+  const bridge = await stages.build('Rope bridge', () => placeRopeBridge(sky, BRIDGE, registry), { values: value => value.colliders });
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
   const seabed = await stages.build('Seabed', () => buildSeabed(sky), { objects: value => [value.mesh, value.fish] });
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
