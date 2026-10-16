@@ -6814,15 +6814,25 @@ catalog. Build orchestration serializes publication of each output root.
 This spike leaves live discovery on its existing path until runtime
 closure, level emission and the full asynchronous composition are wired.
 
-Build orchestration also calls
-`sdk/outputRuntime.validateRuntimeData(sections, copiedSections,
-mirrors, copiedConstants)` with the namespaces imported from checked
-output `runtime/sections.ts` and `runtime/const.ts`. It requires a
-synchronous Valibot schema for every custom section, refuses undeclared
-schema keys, and parses emitted values with those schemas. Declared
-constant mirrors use the defining `runtimeMirrorIssues` comparer. These
-are build-time proofs; client runtime code is compiled into the app and
-never imported from a remote JavaScript URL.
+`wildshard build <project> <output> --copy-runtime` enables the strict
+copied-runtime build path (`buildProject` option `copyRuntime: true`). It
+copies the complete TS inventory before the format-2 writer, preserves
+the admitted runtime entry, and runs
+`sdk/outputRuntime.proveRuntimeData(destination, index, mirrors)` before
+the build succeeds. Repository orchestration injects the raw P0 boundary
+checker through `runtimeCheck`; ordinary SDK output admission also checks
+imports on the actual copy. There is no migration allowance or source
+fallback. Current app builds opt in together when their runtimes close.
+
+The proof reads hashed emitted custom JSON and evaluates only the copied
+`runtime/sections.ts` and `runtime/const.ts` namespaces using an in-memory
+Node build. It never executes either page or native entry and emits no
+JavaScript artifact. `validateRuntimeData` requires a synchronous Valibot
+schema for every custom section, refuses undeclared schema keys and
+parses emitted values. The config's `mirrors` export is checked with the
+defining `runtimeMirrorIssues` comparer. A failed proof removes the owned
+product, including its validation receipt. Client runtime code is
+compiled into the app and never imported from a remote JavaScript URL.
 
 ### Named author blobs (P2b)
 

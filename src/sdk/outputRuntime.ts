@@ -2,12 +2,15 @@
 import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Runtime inventory paths are local project-relative paths.
 import { dirname, relative, resolve, sep } from 'node:path';
-import { parseSync } from 'vite';
+import { build, parseSync } from 'vite';
+// oxlint-disable-next-line import/no-nodejs-modules -- Build-only schema evaluation never ships executable output.
+import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 import { runtimeMirrorIssues, type RuntimeMirror } from './runtimeMirrors';
+import type { OutputIndex } from '@wildshard/format/outputIndex';
 
 export interface RuntimeCopyFile { readonly path: string; readonly hash: string; readonly bytes: number; readonly lines: number }
 export interface RuntimeCopy { readonly files: readonly RuntimeCopyFile[]; readonly lines: number; readonly entry?: 'runtime/index.ts' }
@@ -45,6 +48,38 @@ export function validateRuntimeData(sections: ReadonlyMap<string, unknown>,
   if (mirrors.length > 0 && copiedConstants === undefined) throw new Error('Declared mirrors require runtime/const.ts');
   const issues = runtimeMirrorIssues(mirrors, copiedConstants ?? {});
   if (issues.length > 0) throw new Error(issues.join('\n'));
+}
+
+/** Execute only copied schema/constant modules as a Node build proof. The temporary
+ * compilation stays in memory; runtime/index.ts is never evaluated or bundled for
+ * delivery. All inputs come from the emitted inventory, never the author folder. */
+export async function proveRuntimeData(destination: string, index: OutputIndex, mirrors: readonly RuntimeMirror[]): Promise<void> {
+  const read = (file: { readonly path: string; readonly hash: string; readonly bytes: number }): Uint8Array => {
+    const bytes = readBoundedFile(resolve(destination, file.path), file.bytes);
+    if (bytes.length !== file.bytes || hashImmutableBytes(bytes) !== file.hash) throw new Error(`Runtime proof input changed: ${file.path}`);
+    return bytes;
+  };
+  for (const file of index.runtime?.files ?? []) read(file);
+  const sections = new Map<string, unknown>();
+  for (const file of index.sections.filter(row => row.name.startsWith('custom/'))) {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read(file)));
+    sections.set(file.name, value);
+  }
+  const namespace = async (path: string): Promise<Readonly<Record<string, unknown>> | undefined> => {
+    if (!index.runtime?.files.some(file => file.path === path)) return undefined;
+    const result = await build({ configFile: false, publicDir: false, logLevel: 'silent',
+      build: { write: false, minify: false, lib: { entry: resolve(destination, path), formats: ['es'], fileName: 'runtime-proof' },
+        rolldownOptions: { platform: 'node', external: [/^node:/u] } } });
+    const output = Array.isArray(result) ? result[0] : result;
+    if (output === undefined || !('output' in output) || Array.isArray(result) && result.length !== 1) throw new Error('Runtime proof produced unexpected output');
+    const chunks = output.output.filter(chunk => chunk.type === 'chunk');
+    const chunk = chunks[0];
+    if (chunks.length !== 1 || chunk === undefined) throw new Error('Runtime proof must compile to one build-only module');
+    const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
+    if (typeof loaded !== 'object' || loaded === null) throw new Error('Runtime proof module has no namespace');
+    return loaded as Readonly<Record<string, unknown>>;
+  };
+  validateRuntimeData(sections, await namespace('runtime/sections.ts'), mirrors, await namespace('runtime/const.ts'));
 }
 
 /** Parser comment ranges preserve strings, regexes and template literal text.

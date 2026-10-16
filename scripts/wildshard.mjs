@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // Execute the workspace's author CLI without requiring a previously packed SDK or a Vite dev server.
 import { build } from 'vite';
-import { resolve } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { createRequire } from 'node:module';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { rapierAlias } from '../vite/rapier.ts';
+import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 
 let runner;
 const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sdk/package.json'));
@@ -26,7 +27,11 @@ export async function runWildshard(args) {
     if (typeof cli.runCli !== 'function') throw new Error('Author CLI has no runner');
     return cli.runCli;
   })();
-  await (await runner)(args);
+  const root = resolve(import.meta.dirname, '..');
+  await (await runner)(args, { runtimeCheck: (/** @type {string} */ path, /** @type {string} */ source) => {
+    const file = relative(root, resolve(args[1] ?? root, path)).split(sep).join('/');
+    return shardfileBoundaryViolations(root, file, source).filter(issue => issue.rule === 'runtime-standalone');
+  } });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

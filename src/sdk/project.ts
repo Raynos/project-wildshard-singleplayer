@@ -26,6 +26,7 @@ import { projectPlaceholders } from './bake/placeholders';
 import { clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
+import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './outputRuntime';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -123,7 +124,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { outputFormat?: 2; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { outputFormat?: 2; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
   const loaded = await readProjectAssets(project, options.map), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
@@ -133,8 +134,18 @@ export async function buildProject(project: string, output?: string, options: { 
   const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
+  if (options.copyRuntime === true) {
+    const root = realpathSync(project), target = resolve(destination);
+    if (target === root || target.startsWith(`${root}${sep}`) || root.startsWith(`${target}${sep}`)) throw new Error('Runtime output must be separate from its author project');
+  }
   clearOutputProduct(destination);
-  const descriptor = writeOutputProduct(shard,assets,destination,loaded.output);
+  let descriptor: ReturnType<typeof writeOutputProduct>;
+  try {
+    const runtime = options.copyRuntime === true ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []) }) : undefined;
+    if (runtime !== undefined && (shard.runtime === null) !== (runtime.entry === undefined)) throw new Error('Copied runtime and trusted runtime declaration must agree');
+    descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }) });
+    if (runtime !== undefined) await proveRuntimeData(destination, descriptor, loaded.mirrors);
+  } catch (error) { clearOutputProduct(destination); throw error; }
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
   const client = options.client === null ? undefined : options.client ?? [resolve(directory, clientFolder), resolve(directory, 'dist', clientFolder)].find((path) => existsSync(resolve(path, 'index.html')));
