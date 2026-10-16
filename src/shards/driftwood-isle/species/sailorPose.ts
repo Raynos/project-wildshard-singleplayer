@@ -1,29 +1,17 @@
 import { MathUtils } from 'three';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, squashBody, step } from '@wildshard/engine/entities/species/rigs';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import type { SailorMem } from './sailor';
+import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 
 type Side = 'L' | 'R';
 type SailorBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, AnimalRigJoint>;
 const L = MathUtils.lerp;
-const RISE_T = 1.5;
-export function stepSailorRise(a: Pick<AnimalSim, 'mem' | 'yOffset'>, dt: number): number {
-  const m = a.mem as SailorMem;
-  if (m.rising) { m.rise = Math.min(1, (m.rise || 0) + dt / RISE_T); if (m.rise >= 1) m.rising = 0; }
-  if (m.sinking) { m.rise = Math.max(0, (m.rise || 0) - dt / RISE_T); if (m.rise <= 0) m.sinking = 0; }
-  const up = m.init ? smooth01(m.rise || 0) : 0;
-  const floor = m.floor || 0;
-  m.floorS = (m.floorS ?? floor) + (floor - (m.floorS ?? floor)) * Math.min(1, dt * 6);   // the deck under it, smoothed (it steps off the heeled deck onto the sand)
-  a.yOffset = L(m.floorS - 2.3, m.floorS, up);
-  return up;
-}
 const R = (b: AnimalRigJoint,x:number,y:number,z:number) => b.rotation.set(x,y,z);
 
 export function animateSailor(c: AnimalRigContext): void {
   const b = c.bones as SailorBones, t = c.t, seed = c.seed, a = c.animal, dt = c.dt;
   // ── rising / sinking through the deck (per frame, smooth): mem.rise 0 (under) → 1 (standing) ──
-  const up = stepSailorRise(a, dt);
+  const up = stepCreatureLift(a, dt, 1.5, 1.5, -2.3, 6);
   const rise = 1 - up;
   const dead = c.deathT >= 0 ? smooth01(c.deathT) : 0;
   const moving = clamp(c.speed / 0.8, 0, 1);

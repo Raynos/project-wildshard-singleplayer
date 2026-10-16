@@ -10,7 +10,7 @@ const L = MathUtils.lerp;
 
 export function animateCaptain(c: AnimalRigContext): void {
   const b = c.bones as CaptainBones, t = c.t, seed = c.seed, m = c.mem as CaptainMem;
-  // the rise / sink clock and his feet under the pool run on the body step (captainPolicy.ts advanceCaptainRise); the
+  // the rise / sink clock and his feet under the pool run on the body step (captainPolicy.ts body-step lift); the
   // pose only reads them
   const up = m.init ? smooth01(m.rise || 0) : 0;
   const rise = 1 - up;

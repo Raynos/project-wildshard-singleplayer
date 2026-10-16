@@ -6,6 +6,38 @@ import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRi
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
+/**
+ * Step caller-owned rise/rising/sinking/init memory and return its eased lift.
+ * Flags advance up then down and clear at their original endpoints. Explicit direction leaves flags caller-owned.
+ * Optional floor easing uses the existing floor/floorS fields; no clock or save envelope is installed.
+ */
+export function stepCreatureLift(actor: Pick<AnimalSim, 'mem' | 'yOffset'>, dt: number,
+  riseTime: number, sinkTime: number, under: number, floorEase?: number, direction?: 'up' | 'down' | 'hold'): number {
+  switch (direction) {
+    case undefined: case 'up': case 'down': case 'hold': break;
+    default: throw new RangeError('Invalid creature lift direction');
+  }
+  const m = actor.mem, progress = m['rise'], rising = m['rising'], sinking = m['sinking'], initialized = m['init'];
+  const floor = floorEase === undefined ? 0 : m['floor'] ?? 0, previousFloor = m['floorS'] ?? floor;
+  if (!Number.isFinite(dt) || dt < 0 || !Number.isFinite(riseTime) || riseTime <= 0 || !Number.isFinite(sinkTime) || sinkTime <= 0 || !Number.isFinite(under)
+    || (floorEase !== undefined && (!Number.isFinite(floorEase) || floorEase < 0 || !Number.isFinite(floor) || !Number.isFinite(previousFloor)))
+    || (progress !== undefined && !Number.isFinite(progress)) || (rising !== undefined && !Number.isFinite(rising))
+    || (sinking !== undefined && !Number.isFinite(sinking)) || (initialized !== undefined && !Number.isFinite(initialized))) throw new RangeError('Invalid creature lift frame');
+  if (direction === 'up' || (direction === undefined && rising)) {
+    m['rise'] = Math.min(1, (m['rise'] ?? 0) + dt / riseTime);
+    if (direction === undefined && m['rise'] >= 1) m['rising'] = 0;
+  }
+  if (direction === 'down' || (direction === undefined && sinking)) {
+    m['rise'] = Math.max(0, (m['rise'] ?? 0) - dt / sinkTime);
+    if (direction === undefined && m['rise'] <= 0) m['sinking'] = 0;
+  }
+  const t = Math.min(1, Math.max(0, initialized ? m['rise'] ?? 0 : 0)), up = t * t * (3 - 2 * t);
+  const top = floorEase === undefined ? 0 : previousFloor + (floor - previousFloor) * Math.min(1, dt * floorEase);
+  if (floorEase !== undefined) m['floorS'] = top;
+  actor.yOffset = (1 - up) * (top + under) + up * top;
+  return up;
+}
+
 /** Native angular response; input/output wrapping and a speed cap are independent policies. */
 export interface NpcFacingProfile {
   readonly rate: number;

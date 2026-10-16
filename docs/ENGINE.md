@@ -6361,6 +6361,18 @@ uv shared, never copied) once per instance with the caller's named `InstancedBuf
 is the first attribute's. `cardGroup` feeds its baked card rows through it; Pine's baked buildings feed their
 seeded smoke and spark clouds the same way.
 
+**Creature lift (G441).** `game/plugin/animation.stepCreatureLift` steps
+an actor's existing `rise`, `rising`, `sinking` and `init` memory, returning
+the eased lift and updating its body offset. Numeric rise/sink durations
+and the lower offset are required; an optional floor-easing rate borrows
+the existing `floor`/`floorS` values. Up advances before down, clearing its
+flag at the endpoint. Explicit `up`/`down`/`hold` leaves flag transitions
+caller-owned. Invalid frames refuse before any memory or offset write.
+The helper allocates nothing and installs no clock or save owner.
+Driftwood's captain body step and sailor pose consume it. Named W3 user:
+Nalati `species/balbal.ts#thinkBalbal` RISE/SINK and `#animateBalbal` lift;
+Nalati retains phase changes, defaults, chamber floors and death sinking.
+
 **Creature group materialization (G441).** `game/plugin/brain` defines
 `createCreatureSpawner(manager)`, `CreatureSpawner` and `CreatureSpawnRow`.
 It owns ordered `spawn`, `group` and

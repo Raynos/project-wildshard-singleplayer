@@ -1,5 +1,5 @@
-import { MathUtils, Vector3 } from 'three';
-import { smoothstep } from '@wildshard/engine/core/noise';
+import { Vector3 } from 'three';
+import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
@@ -35,8 +35,6 @@ export const SWING_DMG = 24;
 export const UNDER = -2.8;
 const WADE = [0, 1.2, 1.35, 1.7], WINDUP = [0, 0.7, 0.62, 0.5], COOLDOWN = [0, 1.4, 1.2, 0.8], SINK_EVERY = [0, 0, 7, 5];
 const UNDER_T = 1.1;
-/** how long he takes to rise out of the pool and to sink back under it (s) */
-const RISE_T = 1.1, SINK_T = 0.9;
 /** E297: how far out he waits while two others hold the attack tokens (m) */
 const HOLD_R = 3.4;
 const _bub = new Vector3();
@@ -119,24 +117,11 @@ function decideCaptain<A extends AnimalSim>(a: A, c: CaptainPorts<A>): void {
   }
 }
 
-/**
- * His rise out of the pool and his sink back under it, on the body step (SF72: it used to run in the rig's animate, so a
- * body with no view never came up): `mem.rise` eases 0..1 while `rising` / `sinking`, clearing the flag at the end (the
- * decision waits on it), and his feet sit `UNDER` the pool lerped up by its smoothstep (his hit capsule goes under with
- * him). Before his first decision he waits under the pool.
- */
-export function advanceCaptainRise(a: AnimalSim, dt: number): void {
-  const m = a.mem as CaptainMem;
-  if (m.rising) { m.rise = Math.min(1, (m.rise || 0) + dt / RISE_T); if (m.rise >= 1) m.rising = 0; }
-  if (m.sinking) { m.rise = Math.max(0, (m.rise || 0) - dt / SINK_T); if (m.rise <= 0) m.sinking = 0; }
-  a.yOffset = MathUtils.lerp(UNDER, 0, m.init ? smoothstep(0, 1, m.rise || 0) : 0);
-}
-
 function strikeCaptain<A extends AnimalSim>(a: A, c: CaptainPorts<A>): void {
   if (driftwoodContact(a, c, { ...(a.mem['combo'] ? DRIFTWOOD_STRIKES.second : DRIFTWOOD_STRIKES.swing), shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash');
 }
 /** The captain's authored fight (10 Hz decisions; the rise / sink and the strike on the body step) over any native body. */
 export function createCaptainBrain<A extends AnimalSim>(actor: A): ReturnType<typeof createMemoryActionBrain<A, CaptainPorts<A>>> {
   return createMemoryActionBrain<A, CaptainPorts<A>>(actor, CAPTAIN_ACTIONS, { decide: decideCaptain, effects: new Map([['swing', strikeCaptain]]),
-    beforeAct: (a, c) => { advanceCaptainRise(a, c.dt); }, threshold: a => { const windup = WINDUP[captainPhase(a.hp, a.maxHp)] ?? 0.7; return windup / (windup + 0.35) + 0.04; } });
+    beforeAct: (a, c) => { stepCreatureLift(a, c.dt, 1.1, 0.9, UNDER); }, threshold: a => { const windup = WINDUP[captainPhase(a.hp, a.maxHp)] ?? 0.7; return windup / (windup + 0.35) + 0.04; } });
 }
