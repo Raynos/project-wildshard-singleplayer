@@ -1,6 +1,7 @@
 import { pageScope, resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
+import { setting } from '../ui/Settings';
 import * as THREE from 'three';
 import { Pass, ToneMappingEffect, ToneMappingMode, type EffectComposer } from 'postprocessing';
 import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/perflog';
@@ -223,6 +224,30 @@ function holdDrawnPrograms(renderer: Renderer, root: THREE.Object3D): () => void
       for (const { uniform, value } of uniforms) Reflect.set(uniform, 'value', value);
     }
   };
+}
+
+/**
+ * With a node handler installed, three's `compile()` redraws every shadow map of the target scene before it builds (node
+ * materials read the map when they are built), so each warm-up job paid a whole shadow pass of the page (sp-o289). Where
+ * every shadow-casting light the compile gathers already has its map, that redraw changes nothing the next frame does
+ * not redraw anyway: hold the renderer's shadow update for this one synchronous compile and put both flags back.
+ * Returns undefined (no hold) when any gathered caster light still lacks a map, so it is made as before.
+ */
+export function holdShadowRedraw(renderer: { readonly shadowMap: { enabled: boolean; autoUpdate: boolean; needsUpdate: boolean } }, root: THREE.Object3D, target: THREE.Scene | null): (() => void) | undefined {
+  const shadowMap = renderer.shadowMap;
+  if (!shadowMap.enabled || !shadowMap.autoUpdate && !shadowMap.needsUpdate) return undefined;
+  const unmapped: THREE.Light[] = [];
+  const check = (object: THREE.Object3D): void => {
+    if (!(object instanceof THREE.Light) || !object.castShadow) return;
+    const shadow: unknown = Reflect.get(object, 'shadow');
+    if (shadow instanceof THREE.LightShadow && shadow.map === null) unmapped.push(object);
+  };
+  (target ?? root).traverseVisible(check);
+  if (target !== null && target !== root) root.traverseVisible(check);
+  if (unmapped.length > 0) return undefined;
+  const auto = shadowMap.autoUpdate, needs = shadowMap.needsUpdate;
+  shadowMap.autoUpdate = false; shadowMap.needsUpdate = false;
+  return () => { shadowMap.autoUpdate = auto; shadowMap.needsUpdate = needs; };
 }
 
 /** How many programs the renderer holds (0 for a test double without `info.programs`). */
@@ -719,6 +744,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   await waitMaterialPreparations([...borrowed], current);
   for (const texture of collectTextures(jobs)) watch(texture);
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
+  // Debug ▸ Performance ▸ Hold compile shadow redraw (sp-o289, default off): read once per warm-up
+  const skipShadowRedraw = setting('compileShadowHold') === 'on';
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];
   // op-hitch31: the programs the jobs' materials compiled to, including ones issued before `before` (a captured
@@ -756,7 +783,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       renderer.setRenderTarget(job.rt);
       job.lights?.prepare();
       job.prepare?.();
-      renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
+      const restoreShadows = skipShadowRedraw ? holdShadowRedraw(renderer, job.root, job.target) : undefined;
+      try { renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined); } finally { restoreShadows?.(); }
       job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
     } finally {
       restoreDrawn?.();
