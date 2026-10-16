@@ -1,8 +1,8 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**03:45Z `57e7b68b9` (G445 source ruler): Pine 88.60 %, DW 80.93 %, Sky 92.12 %, Signal 43.52 %** (02:50Z 89.53 / 81.46). Unknown owners 51 / 69 / 68 / 55. Old ruler at 01:00Z: Pine 66.32, DW 56.20.
-Pine/DW: C1 3718/3661 · C2 2462/2352 · C3 156/0 · C4 3724/1679 · C5 1945/1311 · C6 2434/898 · C7 13/503 · C8 983/1739 · C9 3366/1750. Pace ~315 lines/h (Pine −197, DW −92 in 55 min) and falling.
-Since 02:50Z: Pine constructors `c5d186c6d` (−36), dead combat math `43bc4d74e` (−24), bow geometry `934a67e61` (−21), world contracts `a9b36ab86` (−20); DW finale `06fe2dd7c`, barrel plates `bdcc27c64`, creature sites `2cc5c05cd` (−11 to −13 each).
+**04:40Z `6c4e5a3c0` (G445 source ruler): Pine 88.45 %, DW 80.93 %, Sky 92.12 %, Signal 43.52 %** W2 adoption is saturated at the -10 floor; lanes moved to G437 engine perf.
+Pine/DW: C1 3704/3661 · C2 2462/2352 · C3 148/0 · C4 3724/1679 · C5 1945/1311 · C6 2424/898 · C7 13/503 · C8 983/1739 · C9 3366/1750.
+G437 wins since 03:45Z: DW first frame 183 → 16.7 ms (`b5fab36ec`); late shader links 0 on Pine, Signal, hub (`6c4e5a3c0`); UBO uploads 24 → 13/frame (`d78199cea`); Fixed shadow samples row −0.40 ms DW graph CPU (`a88e5e415`, default-off). Milestone (x7): desktop standalone 4/4 at 16.7 ms; Pine GRID ENTRY REFUSED (missing pond, pre-dates 1d09; x7 bisecting at de1b7286f, fix in hand).
 
 **Lanes (G432 Opus; Claude weekly 20 %; Codex 5 + pusher):**
 - Opus: none running; all 5 held for the G447 design rows (S4/S5/W2c are Opus) and W3. Pine and DW bakes are surveyed out.
@@ -15,7 +15,7 @@ Since 02:50Z: Pine constructors `c5d186c6d` (−36), dead combat math `43bc4d74e
 
 **Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G449 (G449: runtime/ standalone; no new runtime→shard imports).
 
-**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlaps the quest banner.
+**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlap.
 **G439 refs:** DONE.
 
 **For wildshard-v:** lanes are hitting the -10 floor (DW wrappers dry, Pine native chain dry); W2 pace will fall further. The design (`2ead9dfa1`) recommends P0–P4 on Codex tonight (Q6 option 2); lifting the G447 hold would put lanes back on big work. G447 hold applied; keep `f0ca1f1c8` until the output ruler lands (recommended). G442 closed.
