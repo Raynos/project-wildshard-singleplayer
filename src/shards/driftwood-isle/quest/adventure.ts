@@ -26,7 +26,7 @@ import { installFeats } from './Feats';
 import { installPlaces } from './Places';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { GUIDE } from '../data/discovery';
-import { installFinale, type Finale } from './Finale';
+import { installDirectorFinale, type Finale } from '../runtime/finalePresentation';
 import { installComplete, type Complete, type CompleteProgress } from './Complete';
 import { installEcology } from './Ecology';
 import type { RespawnQueue } from '../runtime/ecology';
@@ -185,7 +185,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   }
   adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
   const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
-  adventure.finale = await installFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
+  adventure.finale = await installDirectorFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──

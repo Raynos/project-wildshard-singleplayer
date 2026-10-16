@@ -6,9 +6,6 @@ import { parseDirector } from '@wildshard/format/director';
 import declaration from '../data/director.json' with { type: 'json' };
 import module from '../behaviour/director.json' with { type: 'json' };
 
-/** Finale decisions emitted by the immutable author module; combat and the reward view remain native recipes. */
-export type DriftwoodFinaleEvent = 'captain.restore' | 'captain.wake' | 'captain.dead' | 'reward.start' | 'reward.finish';
-
 /** The same immutable admitted bytes for page and worker; embedding avoids a second runtime download. */
 export function driftwoodDirectorBytes(): Uint8Array {
   if (module.module !== declaration.module) throw new Error('Driftwood finale module is stale');

@@ -10,7 +10,7 @@
  *     holds there, the caption fades in; seven seconds later `seen:reward` completes the quest and the clock runs on.
  */
 import * as THREE from 'three';
-import type { FinaleHost } from '../quest/Finale';
+import { app as clientApp } from '@wildshard/engine/app/runtime';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
@@ -18,6 +18,9 @@ import { DrownedCaptain } from '../combat/captain';
 import { CAPTAIN_ARENA_R, CAPTAIN_ID, CAPTAIN_NAME, FINALE_REWARD } from './const';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from './director';
+
+/** The existing view services; native finale timing and fight authority remain separate. */
+export type FinaleHost = Pick<typeof clientApp, 'events' | 'encounters' | 'levelScope' | 'engineScope' | 'clock'>;
 
 export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3; rewardPose: { yaw: number; pitch: number; phase: number } }
 
@@ -93,8 +96,10 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
 }
 
 /** SF24 decisions/timers are data + bounded script; captain combat and reward camera/renderer remain runtime recipes (G51). */
-export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Pick<LevelContext, 'scope' | 'system'>, app: FinaleHost): Promise<Finale> {
-  const recipe = finaleRecipe(adv, w, app), scope = context.scope;
+export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Pick<LevelContext, 'scope' | 'system'>, host?: FinaleHost): Promise<Finale> {
+  const scope = context.scope, app = host ?? { events: clientApp.events, encounters: clientApp.encounters, levelScope: scope,
+    engineScope: clientApp.engineScope, clock: clientApp.clock };
+  const recipe = scope.run(() => finaleRecipe(adv, w, app));
   const create = await prepareDriftwoodDirector();
   if (scope.disposed) throw new Error('Finale scope left during admission');
   const clock = scope.run(() => createDriftwoodFinale(scope, create(), recipe.director));

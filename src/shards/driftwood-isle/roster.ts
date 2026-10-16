@@ -17,7 +17,7 @@ import { sailclothCape } from './runtime/models/sailclothCape';
 export const ROSTER: readonly RosterEntry[] = [
   // the fauna (driftwood-isle.ts `fauna`), faceted low-poly in code here
   live(boar, { pipeline: 'code' }), live(bear, { pipeline: 'code' }), // no deer since E318
-  // the enemies (src/shards/driftwood-isle/creatures/Enemies.ts) and the boss (src/shards/driftwood-isle/quest/Finale.ts)
+  // the enemies (src/shards/driftwood-isle/creatures/Enemies.ts) and the boss (src/shards/driftwood-isle/runtime/finalePresentation.ts)
   live(reefCrab), live(coconutMonkey), live(drownedSailor), live(drownedCaptain),
   // the gulls (src/shards/driftwood-isle/world/Gulls.ts: ≤ 36, one instanced draw)
   live(gull, { copies: 36, drawnAs: 'instanced' }),

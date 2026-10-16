@@ -2,7 +2,7 @@
  * Driftwood Isle's own creatures (E306 / E315 M5) — the island's enemies on the species rigs, all lofted in code in the
  * faceted low-poly style but the Drowned Captain, and the gulls. The copies are spawned and driven by the island:
  * src/shards/driftwood-isle/creatures/Enemies.ts (reef crabs at the tidepools, coconut monkeys in the palm groves, the Drowned Sailor in the
- * wreck's hold), the finale (src/shards/driftwood-isle/quest/Finale.ts: the Captain, once the altar is used), src/shards/driftwood-isle/world/Gulls.ts (the
+ * wreck's hold), the finale (src/shards/driftwood-isle/runtime/finalePresentation.ts: the Captain, once the altar is used), src/shards/driftwood-isle/world/Gulls.ts (the
  * gulls, one instanced draw, wings in the vertex shader). The deer, boar and bear are shared (src/game/models/creatures.ts).
  */
 import * as THREE from 'three';
