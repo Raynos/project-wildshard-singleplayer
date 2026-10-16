@@ -12,6 +12,7 @@ import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@w
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { PINE_FINISHES } from '../loadout/skins';
+import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../runtime/weapons/LeverRifle';
 import { QUIVER_MAX } from '../weapons/Longbow';
 import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../weapons/longbowView';
@@ -27,7 +28,7 @@ const FILE = 'src/shards/pine-hollow/models/gear.ts';
  */
 export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
   id: 'pine-hollow/crossbow', name: 'Hunting crossbow', category: 'gear', pipeline: 'code', file: FILE,
-  defaults: { skin: null }, variants: skinVariants('crossbow', PINE_FINISHES),
+  defaults: { skin: null }, variants: skinVariants('crossbow', PINE_FINISHES), prepare: loadCodeParts,
   build: (ctx, p) => {
     const model = ctx.once('gear:crossbow', () => {
       const into = { model: new THREE.Group(), peep: new THREE.Group(), peepRing: new THREE.Group() };

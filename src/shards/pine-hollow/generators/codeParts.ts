@@ -110,6 +110,29 @@ function caveRoof(heightAt: (x: number, z: number) => number): THREE.BufferGeome
   return g.setIndex(Array.from({ length: verts.length / 3 }, (_, i) => i));
 }
 
+/** Ghost Stag's fixed antler tines, in the crossbow root's frame, sharing the finish material at runtime. */
+function ghostStagTines(): THREE.BufferGeometry {
+  const tipL = new THREE.Vector3(-0.335, 0.004, -0.205), tipR = new THREE.Vector3(0.335, 0.004, -0.205);
+  const curve = new THREE.CatmullRomCurve3([tipL, new THREE.Vector3(-0.2, 0.002, -0.275), new THREE.Vector3(0, 0, -0.305), new THREE.Vector3(0.2, 0.002, -0.275), tipR], false, 'catmullrom', 0.5);
+  const cone = new THREE.ConeGeometry(1, 1, 7, 1); cone.translate(0, 0.5, 0);
+  cone.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(cone.getAttribute('position').count * 3).fill(1), 3));
+  const tines = [[0.02, 0.085, 0.55, -0.35], [0.1, 0.07, 0.35, -0.2], [0.2, 0.06, 0.15, 0], [0.31, 0.045, 0.05, 0.15]] as const;
+  const parts: THREE.BufferGeometry[] = [], up = new THREE.Vector3(0, 1, 0), rotation = new THREE.Quaternion(), euler = new THREE.Euler(), matrix = new THREE.Matrix4(), position = new THREE.Vector3(), scale = new THREE.Vector3();
+  for (const side of [0, 1]) for (const [t0, len, back, out] of tines) {
+    const p = curve.getPoint(side ? 1 - t0 : t0);
+    position.copy(p).addScaledVector(up, 0.006); scale.set(0.007, len, 0.005);
+    rotation.setFromEuler(euler.set(back, 0, side ? -out : out));
+    parts.push(cone.clone().applyMatrix4(matrix.compose(position, rotation, scale)));
+    if (len > 0.065) {
+      position.copy(p).addScaledVector(up, len * 0.45); scale.set(0.005, len * 0.45, 0.004);
+      rotation.setFromEuler(euler.set(back + 0.9, 0, side ? -(out + 0.5) : out + 0.5));
+      parts.push(cone.clone().applyMatrix4(matrix.compose(position, rotation, scale)));
+    }
+  }
+  const geometry = mergeGeometries(parts, false); cone.dispose(); for (const part of parts) part.dispose();
+  return geometry;
+}
+
 /** every code-built part, by name, in pack order */
 export function pineCodeParts(heightAt: (x: number, z: number) => number): Record<string, THREE.BufferGeometry> {
   return {
@@ -117,7 +140,7 @@ export function pineCodeParts(heightAt: (x: number, z: number) => number): Recor
     'token-shelf': tokenShelf(),
     'npc-ranger': buildPrimitiveParts(NPC_RANGER_BODY), 'npc-ranger-glass': buildPrimitiveParts(NPC_RANGER_GLASS),
     'npc-miller': buildPrimitiveParts(NPC_MILLER_BODY), 'npc-trader': buildPrimitiveParts(NPC_TRADER_BODY),
-    'zip-trolley': zipTrolley(), canoe: canoe(), 'zip-cable': zipCable(), 'cave-roof': caveRoof(heightAt),
+    'zip-trolley': zipTrolley(), canoe: canoe(), 'zip-cable': zipCable(), 'cave-roof': caveRoof(heightAt), 'ghost-stag-tines': ghostStagTines(),
   };
 }
 
