@@ -46,3 +46,20 @@ trader, weapons/{ammunition,gustClock,headlessCrossbow,headlessLever,headlessLon
 - **P** rows need sp-x8's step 3 (`ctx.product` passed by session, pluginLoad and the grid).
 
 Order: M (antlerKing, index graph ids) → T → P once step 3 lands (index, persistence, facts, audio).
+
+## Landed (12:20Z-12:50Z)
+
+| Commit | What | Escapes |
+|---|---|---|
+| 4337ac6ae | antlerKing: clearing, arena fog, fx ids from `runtime/const.ts`; `data/runtimeMirrors.ts` + `test/pine-runtime-mirrors.test.ts` | antlerKing rs 12 -> 9 |
+| 11aabf6b3 | cabinLook / cragLook drop their runtime type imports; `test/pine-runtime-types.test.ts` | no-runtime-in-build -2 |
+| 984396843 | index.ts graph ids (look materials, wildlife) from const mirrors | index rs -2 |
+| 0ba7892c0, 1dc83e4ba | rangedFrame, leverPresentation (no build reader) into runtime/items; lever and buckskin mirrors; test path | rs -4, no-runtime-in-build -2 |
+| 2adc2cdfb | heldLook into runtime/weapons; hands palette/materials mirrored | LeverRifle -2, Crossbow -2 |
+| 52d7cd405 | index, persistence, facts, audio sfx/ambience/wiring read `ctx.product` (shardfile, `combat/items` profiles) | rs -9 |
+| d3c02c3e1 | score.ts profile passed in (no module-level config read) | rs -1 |
+
+Pine totals (ratchet at start -> now, all lanes): runtime-standalone 178 -> 155, no-build-time-import 200 -> 176,
+no-runtime-in-build 15 -> 10.
+
+Not landed: `keyedSkyRows` into runtime/ (look/dayKeys is sim-reachable, so the move made a new sim-in-runtime file).
