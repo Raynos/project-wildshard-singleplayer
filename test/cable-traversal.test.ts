@@ -9,8 +9,8 @@ import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { Scope } from '@wildshard/engine/app/scope';
 import { installCableModes, cableModes } from '@wildshard/engine/player/modes';
 import { parseModes } from '@wildshard/format/modes';
-import { PINE_MODES } from '../src/shards/pine-hollow/data/zipline';
-import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/data/modes';
+import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
+import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/generators/modes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rows = [...PINE_MODES.traverse, ...DRIFTWOOD_MODES.traverse].filter(row => row.kind === 'zipline');

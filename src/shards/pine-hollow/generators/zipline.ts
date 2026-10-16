@@ -1,4 +1,4 @@
-import spots from './spots.generated.json' with { type: 'json' };
+import spots from '../data/spots.generated.json' with { type: 'json' };
 import type { ModeRows } from '@wildshard/format/modes';
 /** Shipping direct-anchor cable and release values, shared by page and native riders. */
 export const ZIPLINE = { kind: 'zipline', id: 'pine.zipline', sag: 1.2, hang: 3.15, gravity: 9.8, drag: 0.012, maxSpeed: 16 } as const;

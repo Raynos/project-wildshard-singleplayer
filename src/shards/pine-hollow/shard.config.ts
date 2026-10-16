@@ -7,7 +7,6 @@ import PINE_ITEMS from './data/items.generated.json' with { type: 'json' };
 import { PINE_LEDGER } from './data/ledger';
 import { PINE_QUESTS } from './data/quests';
 import { PINE_RUNTIME_SPAWNS } from './data/spawns';
-import { PINE_MODES } from './data/zipline';
 import { PINE_STATE } from './data/state';
 import { PINE_EDGE_HEIGHTS } from './data/edges';
 import { PINE_RUNTIME_COST } from './data/runtimeCost';
@@ -37,5 +36,5 @@ export default parseShardfile({
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
   runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes', 'clientChannels'], spawns: PINE_RUNTIME_SPAWNS },
   clientChannels: [...weatherChannels.clientChannels, ...skyChannels.clientChannels],
-  modes: PINE_MODES, quests: PINE_QUESTS, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
+  quests: PINE_QUESTS, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

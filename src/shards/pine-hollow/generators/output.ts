@@ -1,3 +1,4 @@
+import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
 import { PINE_CANOE } from './canoe';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -51,3 +52,6 @@ const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
 export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', PINE_SPECIES_PROGRAMS]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
 /** The data/ values runtime/const.ts copies; the build proves the copied runtime still equals them. */
 export const mirrors = [...RUNTIME_MIRRORS];
+
+/** Build-only mode rows; page and native owners consume the admitted section. */
+export const sections = { 'state/modes': { modes: PINE_MODES } };

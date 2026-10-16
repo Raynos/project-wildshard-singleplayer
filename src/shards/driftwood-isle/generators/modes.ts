@@ -1,5 +1,5 @@
 import type { ModeRows } from '@wildshard/sdk/modes';
-import spots from './spotsRows.json' with { type: 'json' };
+import spots from '../data/spotsRows.json' with { type: 'json' };
 
 /** The authored cable floors (data/spotsRows.json) and shipping scalar parameters, admitted by the SDK mode schema. */
 export const DRIFTWOOD_MODES: ModeRows = { traverse: [{ kind: 'zipline', id: 'driftwood.zipline',

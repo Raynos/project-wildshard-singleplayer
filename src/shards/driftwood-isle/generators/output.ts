@@ -1,3 +1,4 @@
+import { DRIFTWOOD_MODES } from './modes';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
@@ -31,4 +32,4 @@ export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new 
 export const mirrors = [...RUNTIME_MIRRORS];
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
-export const sections = { 'world/movers': { movers: MOVERS } };
+export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
