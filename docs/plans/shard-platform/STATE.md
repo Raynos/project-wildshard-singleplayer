@@ -29,4 +29,5 @@
 
 **KS1/KS4 notes:** takeoff needs altitude + perch; ready range borrows the strike's observation.range; dive may declare a strike id; the platform publishes move.done.
 **G463 (Jake picked all five):** W2 closes on time, leftovers → W3 closure rows; DW client world build into runtime/ under logged raises (sim-reachable stays out); transitional sim/ folder; build refuses AS > 10 %; Pine desktop KTX2 ships (delete the image path + its Debug row together); DW phone bloom cut ships only with a same-look board. Ruler crash fixed `bd8d3d1ba` (local, pushes after x7's quiet window).
+**For wildshard-v:** x4 has no fix for the approach-registry crash, so your subagent owns it. src/format/decisionBindings.ts carries x4's UNCOMMITTED world/targets spots hunk: commit through a private index and leave it in place.
 Paused: SF22 SF57 SF67.
