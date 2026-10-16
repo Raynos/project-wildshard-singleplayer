@@ -7522,3 +7522,29 @@ XYZ/yaw points for the move owner. `buildDecisionRegistries` accepts that
 same section as its third argument; compiler and runtime must both pass it.
 The writer and full validator check target move/contact and flag/interaction
 identities; worker admission transports the same validated section.
+
+### Borrowed decision authorities (KS1 / KS4)
+
+`game/shardfile/decisions.DecisionRuntime` is an internal game-owned port
+for `ShardDecisions`, implemented directly by `SimHost`. A retained-world
+adapter lends its actual player, bodies, strike runners, fixed-step
+registrations, events, flags and ledger dedupe. It creates no body and
+advances no second physics or decision clock. Shards supply admitted rows,
+not callbacks or adapters. `DecisionEncounter` lends the existing boss's
+phase, retry and decision authority without replacing its encounter.
+
+`borrowedActors` explicitly transfers decision ownership of real
+`runtime.spawns` identities; missing bodies, undeclared names, overlapping
+spawn identities and a second declared controller refuse. Compiler and
+runtime use `buildDecisionRegistries` over the same joint catalogue.
+Numeric public `state.shared` fields use those bodies' actual `mem` entries
+under the declared field names and bounds. Encounter/view writes are read
+live; guest writes and restore update that same memory.
+
+`strikeObservation(id)` returns live read-only `current`, `state`,
+`windup` and `aim` observations from the existing runner. `snapshot()` and
+`restore()` preserve only the decision continuation; body, encounter and
+strike saves remain with their owners. Restore validates before mutation,
+enters no Wasm and emits no gameplay edge. This authority seam alone does
+not remove a species' existing controller: the page/native adopter must
+hand it over before its old policy can be deleted.

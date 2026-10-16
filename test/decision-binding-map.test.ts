@@ -50,3 +50,15 @@ it('builds identical compiler and sim handles from real catalogue rows, never al
   source.creatures.spawns.push(spawn('actor.first'));
   expect(() => buildDecisionRegistries(source, [])).toThrow('Duplicate');
 });
+
+it('uses actual runtime spawn identities in the same namespace and refuses a second owner', async () => {
+  const { buildDecisionRegistries } = await import('@wildshard/format/decisionBindings');
+  const { emptyShardfile } = await import('../src/sdk/author');
+  const source = emptyShardfile({ slug: 'binding-test', name: 'Binding', author: 'Test', seed: 2, revision: 1 });
+  const actor = { id: 'actor.retained', kind: 'animal', look: 'animal', at: [0, 0] as [number, number], yaw: 0 };
+  source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], bosses: [actor], actors: [] } };
+  const before = buildDecisionRegistries(source, []);
+  expect(before.actors?.get(actor.id)).toBeDefined(); expect(before.spawns).toEqual(before.actors);
+  source.runtime.spawns?.actors?.push(actor);
+  expect(() => buildDecisionRegistries(source, [])).toThrow('Duplicate');
+});

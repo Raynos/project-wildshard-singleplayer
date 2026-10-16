@@ -11,6 +11,7 @@ import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { DecisionModule } from '../src/engine/script/decisionModule';
+import { ShardDecisions, type DecisionRuntime } from '../src/game/shardfile/decisions';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -188,5 +189,46 @@ test('activation delivers the real player handle even without a start subscripti
     expect(sim.decisions?.host.snapshot().bindings[0]?.pending[0]).toEqual([15, 0x7fffffff, 0, 0, 0, 0]);
     for (let i = 0; i < 7; i++) sim.host.step();
     expect(sim.decisions?.host.state(1)).toEqual({ calls: 1 });
+  } finally { sim.dispose(); }
+});
+
+test('retained actors lend their actual body, public memory and strike owner without another simulation', async () => {
+  const f = fixture(), sim = createShardfileSim(f.source, f.assets, { rapier: await rapier });
+  try {
+    const actor = sim.host.entities.get('actor.a'); if (actor === undefined) throw new Error('Missing retained actor');
+    actor.mem['phase'] = 2;
+    const source = structuredClone(f.source);
+    source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], bosses: [], actors: source.creatures.spawns.map(row => ({
+      id: row.id, kind: row.species, look: row.variant, at: [row.at[0], row.at[2]], yaw: row.yaw,
+    })) } };
+    source.creatures.spawns = [];
+    const owner = sim.host;
+    const runtime: DecisionRuntime = { scope: owner.scope, events: owner.events, flags: owner.flags, physics: owner.physics,
+      player: owner.player, state: owner.state, slots: owner.slots, entities: owner.entities, strikes: owner.strikes,
+      borrowedActors: new Set(['actor.a', 'actor.b']), groundHeightAt: owner.groundHeightAt.bind(owner),
+      registerStrikeCatalogue: owner.registerStrikeCatalogue.bind(owner), startDeclaredStrike: owner.startDeclaredStrike.bind(owner),
+      onStep: owner.onStep.bind(owner) };
+    expect(() => new ShardDecisions({ ...runtime, borrowedActors: new Set() }, source, f.assets, f.sections, new Map(), sim.quest)).toThrow('two controllers');
+    const decisions = new ShardDecisions(runtime, source, f.assets, f.sections, new Map(), sim.quest);
+    const view = decisions.strikeObservation(actor.entityId);
+    expect(decisions.publication().fields).toContainEqual({ actor: 1, field: 89, value: 2 });
+    for (let i = 0; i < 7; i++) owner.step();
+    expect(actor.mem['phase']).toBe(1); expect(view.current?.id).toBe('bump');
+    expect(view.state).toBe(owner.strikes.get(actor.entityId)?.state);
+    expect(view.aim).toBe(owner.strikes.get(actor.entityId)?.yaw);
+    expect(owner.entities.get(actor.entityId)).toBe(actor); expect(owner.entities.size).toBe(2);
+    actor.mem['phase'] = 3;
+    expect(decisions.publication().fields).toContainEqual({ actor: 1, field: 89, value: 3 });
+    const saved = decisions.snapshot(), invoke = vi.spyOn(DecisionModule.prototype, 'invoke');
+    try {
+      actor.mem['phase'] = 0; decisions.restore(saved);
+      expect(actor.mem['phase']).toBe(3); expect(decisions.snapshot()).toBe(saved); expect(invoke).not.toHaveBeenCalled();
+      const bad: unknown = JSON.parse(saved);
+      if (typeof bad !== 'object' || bad === null) throw new Error('Missing continuation');
+      Reflect.set(bad, 'fields', [[1, 89, 99], [2, 89, 0]]);
+      expect(() => decisions.restore(JSON.stringify(bad))).toThrow('field bounds');
+      expect(actor.mem['phase']).toBe(3); expect(decisions.snapshot()).toBe(saved);
+    } finally { invoke.mockRestore(); }
+    owner.strikes.get(actor.entityId)?.cancel(); expect(view.current).toBeNull();
   } finally { sim.dispose(); }
 });

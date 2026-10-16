@@ -10,7 +10,9 @@ import { DecisionHost, type DecisionWorld, type DecisionContext, type DecisionSn
 import { ActorMoveRunner } from '@wildshard/engine/ai/moves';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { PhaseEncounter } from '@wildshard/engine/ai/phases';
-import type { SimHost, SimValue } from '@wildshard/engine/sim';
+import type { SimHost, SimValue, SimStateAdapter } from '@wildshard/engine/sim';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { StrikeRunner, StrikeSpec, StrikePhase } from '@wildshard/engine/ai/strikes';
 import type { Navmesh } from '@wildshard/engine/physics/navmesh';
 import type { DeclaredQuests, QuestDataPorts } from '../quest/declared';
 import type { MoverRuntime } from '../plugin/mover';
@@ -19,6 +21,31 @@ import type { ShardScriptPorts } from './scripts';
 
 interface Motion { move: number; target: number; runner: ActorMoveRunner; binding: number }
 interface Strike { strike: number; target: number; binding: number; hit: boolean }
+/** Actual game-owned authorities lent to a decision binding. The default SimHost implements this directly.
+ * A retained-body adapter lends the existing bodies, strike runners and fixed-step registrations; it must not
+ * spawn or step another body, or advance another clock. This is an internal game port, never a shard callback API.
+ */
+export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'flags' | 'physics' | 'groundHeightAt'
+  | 'registerStrikeCatalogue' | 'startDeclaredStrike'> {
+  readonly player: Pick<SimHost['player'], 'id' | 'position' | 'yaw' | 'health' | 'motor'>;
+  readonly state: Pick<SimHost['state'], 'tick'>;
+  readonly slots: Pick<SimHost['slots'], 'ledgerDedupe'>;
+  readonly entities: ReadonlyMap<string, AnimalSim>;
+  readonly strikes: ReadonlyMap<string, StrikeRunner>;
+  /** Explicit controller handover for already-live runtime.spawns, admitted against the same product ids.
+   * Public numeric fields for these actors are their existing AnimalSim.mem entries, named by state.shared.
+   */
+  readonly borrowedActors?: ReadonlySet<string>;
+  onStep: (id: string, run: () => void, adapter?: SimStateAdapter, phase?: 'beforeBodies' | 'afterBodies') => () => void;
+}
+/** Existing encounter authority; a retained encounter can lend its real BossBrain without a replacement encounter. */
+export type DecisionEncounter = Pick<PhaseEncounter, 'boss' | 'retry' | 'validateDecision' | 'applyDecision'>;
+/** Live read-only presentation of the actual strike runner, never a second contact clock. */
+export interface DecisionStrikeObservation {
+  readonly current: Readonly<Pick<StrikeSpec, 'id' | 'range' | 'windup' | 'active' | 'recover' | 'cooldown'>> | null;
+  readonly state: StrikePhase;
+  readonly windup: number; readonly aim: number;
+}
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
 const pointFields = v.array(v.tuple([natural, natural, finite]));
@@ -39,7 +66,7 @@ function listName(name: string): name is ScriptV1ListName { return Object.hasOwn
 export class ShardDecisions {
   readonly host: DecisionHost;
   readonly registries: DecisionRegistries;
-  private readonly sim: SimHost;
+  private readonly sim: DecisionRuntime;
   private readonly source: Shardfile;
   private readonly rows: readonly DecisionScriptRow[];
   private readonly moves: readonly ActorMove[];
@@ -48,13 +75,14 @@ export class ShardDecisions {
   private readonly enabled = new Map<number, boolean>();
   private readonly motions = new Map<number, Motion>();
   private readonly striking = new Map<number, Strike>();
+  private readonly strikeViews = new Map<string, DecisionStrikeObservation>();
   private readonly fieldActors = new Set<number>();
   private readonly fields = new Map<number, Map<number, number>>();
   private readonly channels = new Map<number, number>();
   private readonly playerFlags = new Set<number>();
   private readonly zones = new Set<string>();
   private readonly phases = new Map<string, number>();
-  private readonly encounters: ReadonlyMap<string, PhaseEncounter>;
+  private readonly encounters: ReadonlyMap<string, DecisionEncounter>;
   private readonly quest: DeclaredQuests;
   private readonly movers: MoverRuntime | undefined;
   private readonly fact: QuestDataPorts['fact'];
@@ -62,8 +90,8 @@ export class ShardDecisions {
   private readonly contract: string;
   private events: DecisionPublication['events'][number][] = [];
   private readonly strikes;
-  constructor(sim: SimHost, source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections: ReadonlyMap<string, unknown>,
-    encounters: ReadonlyMap<string, PhaseEncounter>, quest: DeclaredQuests, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
+  constructor(sim: DecisionRuntime, source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections: ReadonlyMap<string, unknown>,
+    encounters: ReadonlyMap<string, DecisionEncounter>, quest: DeclaredQuests, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
     navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled']) {
     this.sim = sim; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
     this.rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
@@ -74,13 +102,19 @@ export class ShardDecisions {
     const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
     if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
     this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, actors: [...this.names], state: source.state,
+      ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
       strikes: source.rows.strikes, quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
     const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>();
     const bindings = this.rows.map((row, index) => {
       const map = decisionBindingMap(row, this.registries), actorIds = Object.values(map.ids.actors ?? {});
       for (const handle of actorIds) {
         const name = requireValue(this.actors.get(handle), 'binding actor');
-        if (owners.has(name) || source.creatures.spawns.find(value => value.id === name)?.brain !== null) throw new Error('Decision actor has two controllers');
+        const spawn = source.creatures.spawns.find(value => value.id === name);
+        const borrowed = sim.borrowedActors?.has(name) === true;
+        const runtime = source.runtime?.spawns;
+        if (owners.has(name) || (borrowed ? spawn !== undefined || ![...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].some(value => value.id === name)
+          : spawn?.brain !== null)) throw new Error('Decision actor has two controllers');
+        requireValue(sim.entities.get(name), 'absent actor');
         owners.add(name); this.fieldActors.add(handle); sim.registerStrikeCatalogue(name, [...this.strikes.values()]);
       }
       if (row.commands.some(name => ['spawn', 'despawn', 'impulse', 'weather'].includes(name))) throw new Error('Decision mechanic has no admitted platform row owner');
@@ -110,7 +144,10 @@ export class ShardDecisions {
     this.host = new DecisionHost({ scripts, bindings, modules, seed: [source.identity.seed >>> 0, 0], world });
     for (const binding of bindings) { this.enabled.set(binding.id, false); this.host.setEnabled(binding.id, false); }
     for (const row of source.state.shared.filter(field => field.type !== 'string' && field.privacy === 'public')) for (const actor of this.fieldActors) {
-      const values = this.fields.get(actor) ?? new Map<number, number>(); values.set(row.id, Number(row.default)); this.fields.set(actor, values);
+      const body = requireValue(this.actor(actor), 'field actor'), value = sim.borrowedActors?.has(body.entityId) === true ? body.mem[row.name] ?? Number(row.default) : Number(row.default);
+      this.validateField(row.id, value);
+      const values = this.fields.get(actor) ?? new Map<number, number>(); values.set(row.id, value); this.fields.set(actor, values);
+      if (sim.borrowedActors?.has(body.entityId) === true) body.mem[row.name] = value;
     }
     sim.scope.onDispose(sim.flags.onChange((name, on) => { const flag = this.registries.flags?.get(name); if (flag !== undefined) this.publish([12, flag, Number(on), 0, 0, 0]); }));
     sim.events.on('damage.dealt', ({ req, dealt }) => {
@@ -155,7 +192,7 @@ export class ShardDecisions {
     if (op === 4) return actor?.yaw ?? this.sim.player.yaw;
     if (op === 5) return actor === undefined ? this.sim.player.health.attributes.health / this.sim.player.health.attributes.maxHealth : actor.hp / actor.maxHp;
     if (op === 6) return Number(actor?.alive ?? this.sim.player.health.alive);
-    if (op === 7) return requireValue(this.fields.get(a)?.get(b), 'unavailable public field');
+    if (op === 7) return this.fieldValue(a, b);
     if (op === 15) return Number(this.motions.has(a));
     if (op === 16) return ['idle', 'windup', 'active', 'recover', 'cooldown'].indexOf(this.sim.strikes.get(requireValue(this.actors.get(a), 'strike actor'))?.state ?? 'idle');
     throw new Error('Decision read has no authoritative mechanic');
@@ -191,6 +228,19 @@ export class ShardDecisions {
     const high = row.max ?? (row.type === 'bool' ? 1 : row.type === 'i32' ? 2147483647 : Number.MAX_VALUE);
     if (!Number.isFinite(value) || value < low || value > high || (row.type !== 'f64' && !Number.isInteger(value))) throw new Error('Decision field bounds');
   }
+  private fieldValue(actor: number, field: number): number {
+    const body = this.actor(actor);
+    const value = body !== undefined && this.sim.borrowedActors?.has(body.entityId) === true
+      ? body.mem[requireValue(this.source.state.shared.find(row => row.id === field && row.privacy === 'public' && row.type !== 'string'), 'public field').name]
+      : this.fields.get(actor)?.get(field);
+    const result = requireValue(value, 'unavailable public field'); this.validateField(field, result); return result;
+  }
+  private writeField(actor: number, field: number, value: number): void {
+    this.fields.get(actor)?.set(field, value);
+    const body = this.actor(actor);
+    if (body !== undefined && this.sim.borrowedActors?.has(body.entityId) === true)
+      body.mem[requireValue(this.source.state.shared.find(row => row.id === field), 'public field').name] = value;
+  }
   private moveStrike(actor: number, binding: number) {
     const active = this.striking.get(actor)?.strike;
     if (active !== undefined) return this.strikes.get(this.name('strikes', active));
@@ -208,7 +258,7 @@ export class ShardDecisions {
         if (op === 3) { apply.push(() => this.stop(target)); continue; }
         if (op === 4) {
           this.validateField(a, b);
-          apply.push(() => { this.fields.get(target)?.set(a, b); }); continue;
+          apply.push(() => { this.writeField(target, a, b); }); continue;
         }
         if (b > 0) this.position(b);
         if (op === 1) {
@@ -281,9 +331,9 @@ export class ShardDecisions {
       const row = requireValue(this.moves.find(value => value.id === this.name('moves', motion.move)), 'move');
       const field = row.kind === 'burrow' || row.kind === 'surface' ? this.registries.fields?.get(row.field) : undefined;
       const result = motion.runner.step({ body: actor, ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
-        ...(field === undefined ? {} : { field: this.fields.get(handle)?.get(field) ?? 0 }) });
+        ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }) });
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
-      if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.fields.get(handle)?.set(id, result.field.value); }
+      if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.writeField(handle, id, result.field.value); }
       if (result.strike !== undefined && motion.target > 0) this.sim.startDeclaredStrike(actor.entityId, requireValue(this.actors.get(motion.target), 'move strike target'), result.strike);
       if (result.done !== undefined) { actor.setMotion(actor.yaw, 0); this.motions.delete(handle); this.host.enqueue(motion.binding, [10, handle, motion.move, Number(result.done), 0, 0]); }
     }
@@ -311,6 +361,26 @@ export class ShardDecisions {
   }
   /** Existing combat/interactions feed this queue; events never execute Wasm synchronously. */
   publish(event: ScriptV1Event): void { for (const [id, active] of this.enabled) if (active) this.host.enqueue(id, event); }
+  /** Borrowed views observe the same runner the fixed-step combat owner updates. A view cannot start/cancel a strike. */
+  strikeObservation(actor: string): DecisionStrikeObservation {
+    const handle = requireValue(this.names.get(actor), 'strike observation actor');
+    if (!this.fieldActors.has(handle)) throw new Error('Decision strike observation needs its owned actor');
+    let view = this.strikeViews.get(actor);
+    if (view === undefined) {
+      const runner = (): StrikeRunner => requireValue(this.sim.strikes.get(actor), 'strike observation runner');
+      view = { get current() { return runner().spec; }, get state() { return runner().state; }, get aim() { return runner().yaw; },
+        get windup() {
+          const live = runner(), spec = live.spec;
+          if (spec === null) return 0;
+          const elapsed = live.state === 'windup' ? 0 : spec.windup
+            + (live.state === 'recover' || live.state === 'cooldown' ? spec.active : 0)
+            + (live.state === 'cooldown' ? spec.recover : 0);
+          return elapsed + live.time;
+        } };
+      this.strikeViews.set(actor, view);
+    }
+    return view;
+  }
   /** Only the native picker may call this after verifying distance and LOS. */
   interact(id: string): boolean {
     const target = requireValue(this.registries.targets?.get(id), 'interaction target'); let routed = false;
@@ -320,18 +390,20 @@ export class ShardDecisions {
     return routed;
   }
   publication(): DecisionPublication { return { tick: this.sim.state.tick,
-    fields: [...this.fields].flatMap(([actor, rows]) => [...rows].map(([field, value]) => ({ actor, field, value }))),
+    fields: [...this.fields].flatMap(([actor, rows]) => [...rows.keys()].map(field => ({ actor, field, value: this.fieldValue(actor, field) }))),
     channels: [...this.channels].map(([channel, value]) => ({ channel, value })), events: structuredClone(this.events) }; }
   private savedStrikes(): { actor: number; strike: number; target: number; binding: number; hit: boolean }[] {
     const rows: { actor: number; strike: number; target: number; binding: number; hit: boolean }[] = [];
     for (const [actor, strike] of this.striking) rows.push({ actor, ...strike });
     return rows;
   }
-  private snapshot(): string { return JSON.stringify({ contract: this.contract, decision: this.host.snapshot(), enabled: [...this.enabled],
-    fields: [...this.fields].flatMap(([actor, values]) => [...values].map(([field, value]) => [actor, field, value])), channels: [...this.channels], playerFlags: [...this.playerFlags], zones: [...this.zones], phases: [...this.phases],
+  /** Logical continuation only. Body, encounter and strike snapshots stay with their existing owners. */
+  snapshot(): string { return JSON.stringify({ contract: this.contract, decision: this.host.snapshot(), enabled: [...this.enabled],
+    fields: [...this.fields].flatMap(([actor, values]) => [...values.keys()].map(field => [actor, field, this.fieldValue(actor, field)])), channels: [...this.channels], playerFlags: [...this.playerFlags], zones: [...this.zones], phases: [...this.phases],
     moves: [...this.motions].map(([actor, motion]) => ({ actor, move: motion.move, target: motion.target, binding: motion.binding, state: motion.runner.snapshot() })),
     strikes: this.savedStrikes() }); }
-  private restore(input: SimValue): void {
+  /** Validate the whole logical record before mutation; loading invokes no Wasm or gameplay edge. */
+  restore(input: SimValue): void {
     if (typeof input !== 'string') throw new Error('Invalid decision continuation');
     const saved = v.parse(continuation, JSON.parse(input)); if (saved.contract !== this.contract) throw new Error('Incompatible decision continuation');
     const fields = new Map<number, Map<number, number>>();
@@ -365,6 +437,7 @@ export class ShardDecisions {
     this.host.restore(saved.decision);
     this.enabled.clear(); for (const [id, on] of saved.enabled) this.enabled.set(id, on);
     this.fields.clear(); for (const [id, values] of fields) this.fields.set(id, values);
+    for (const [actor, values] of fields) for (const [field, value] of values) this.writeField(actor, field, value);
     this.channels.clear(); for (const [id, value] of saved.channels) this.channels.set(id, value);
     this.playerFlags.clear(); for (const id of saved.playerFlags) this.playerFlags.add(id);
     this.zones.clear(); for (const zone of saved.zones) this.zones.add(zone);
