@@ -4,7 +4,7 @@
  * the low-poly kit, Wendell's look (src/shards/driftwood-isle/runtime/npc/Castaway.ts), built in their own space: feet / foot of the counter
  * at the origin, front toward +Z.
  *
- * - `trader`: the NPC (src/shards/driftwood-isle/npc/Trader.ts): one figure, turned on pivots; the world keeps it live with
+ * - `trader`: the NPC (src/shards/driftwood-isle/runtime/npc/Trader.ts): one figure, turned on pivots; the world keeps it live with
  *   `traderOf(placed.object).update(…)`. A capsule collider.
  * - `tradeCounter`: a driftwood plank counter on crooked log legs with a lower shelf (a crate on it), a cream sailcloth
  *   runner with a teal stripe draped over the front, and the shop's goods on top: two whetstones on a wooden block (the
@@ -19,7 +19,7 @@ import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/mo
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Trader } from '../../npc/Trader';
+import type { Trader } from '../npc/Trader';
 import { traderRig } from '../../quest/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 

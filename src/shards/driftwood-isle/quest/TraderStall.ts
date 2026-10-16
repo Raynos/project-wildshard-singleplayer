@@ -17,7 +17,7 @@ import { place } from '@wildshard/engine/models/place';
 import { bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 import { TRADER_PAGE } from '../data/traderPage';
 import { trader, tradeCounter, traderOf, traderRigOf } from '../runtime/models/trader';
-import type { Trader } from '../npc/Trader';
+import type { Trader } from '../runtime/npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 import { ownEnteredTree } from './Spine';
 

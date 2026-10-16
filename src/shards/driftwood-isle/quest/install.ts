@@ -9,7 +9,7 @@ import { installAdventure, type Adventure } from './adventure';
 import { installKeepsakes } from '../loot/keepsakes';
 import { bindDriftwoodEffects } from '../loot/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
-import { installFirstMinutes } from '../onboarding/firstMinutes';
+import { installFirstMinutes } from '../runtime/onboarding/firstMinutes';
 import { ironSwordDrop } from '../loadout/rows';
 import { loadZiplineGeometry } from '../runtime/models/zipline';
 import { preloadCaptainMesh } from '../species/captainMesh';

@@ -26,10 +26,10 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS } from '../data/npcScenes';
-import { NPC_KIT_GEOMETRY } from '../runtime/boot/fixedGeometry';
-import { TRADER_POSE } from '../data/npcPose';
-import { TRADER_HEAD_FOCUS, TRADER_FACING } from '../data/npcFocus';
+import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS } from '../../data/npcScenes';
+import { NPC_KIT_GEOMETRY } from '../boot/fixedGeometry';
+import { TRADER_POSE } from '../../data/npcPose';
+import { TRADER_HEAD_FOCUS, TRADER_FACING } from '../../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
@@ -37,6 +37,8 @@ const NECK = 1.48;
 export const TRADER_NEAR_R = 85;   // past this she (and her counter) are not drawn: a few pixels at that range
 const GREET_R = 11;        // m: coming inside this she beckons you over (once, until you go past REARM_R)
 const REARM_R = 18;
+/** the most companions that hide with her (today one: her counter) */
+const MAX_COMPANIONS = 8;
 
 type Gesture = 'none' | 'beckon' | 'tidy' | 'offer';
 const GESTURE_S: Record<Gesture, number> = { none: 0, beckon: 2.4, tidy: 2.6, offer: 1.8 };
@@ -57,7 +59,7 @@ export class Trader {
   private idleT = 6;        // seconds to the next idle tidy
   private offerT = 3;       // seconds to the next "take a look" while you stand at the counter
   private greeted = false;
-  /** extra culling: things drawn with her (her counter) hide with her past TRADER_NEAR_R */
+  /** extra culling: things drawn with her (her counter) hide with her past TRADER_NEAR_R; up to MAX_COMPANIONS */
   readonly companions: THREE.Object3D[] = [];
 
   private readonly sky: Sky;
@@ -86,7 +88,7 @@ export class Trader {
   offer(): void { this.start('offer'); this.offerT = 5; }
 
   setNear(near: boolean): void {
-    if (near !== this.figure.visible) { this.figure.visible = near; for (const c of this.companions) c.visible = near; }
+    if (near !== this.figure.visible) { this.figure.visible = near; for (let i = 0; i < Math.min(this.companions.length, MAX_COMPANIONS); i++) { const c = this.companions[i]; if (c !== undefined) c.visible = near; } }
   }
 
   update(dt: number, t: number, player: THREE.Vector3): void {

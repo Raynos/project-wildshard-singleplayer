@@ -25,6 +25,8 @@ const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'bear', 'monkey', 
 const ATTACK_R = 6, WINDUP_R = 10, CALM_R = 15, DODGE_FOR = 2.5, JUMP_AFTER = 12;
 /** s between scans of the animals for the nearest fighter */
 const SCAN_EVERY = 0.2;
+/** the most bodies one scan reads (the island spawns a few dozen; a larger roster scans its first 1024) */
+const MAX_SCAN = 1024;
 
 export interface FirstMinutesDeps {
   hints: FirstHints;
@@ -60,8 +62,10 @@ export function installFirstMinutes(ctx: ShardContext, d: FirstMinutesDeps): voi
     scanT = SCAN_EVERY;
     const p = d.player.position;
     nearest = Infinity;
-    for (const a of d.animals()) {
-      if (!a.alive || a.hidden || !HOSTILE.has(a.kind)) continue;
+    const bodies = d.animals();
+    for (let i = 0; i < Math.min(bodies.length, MAX_SCAN); i++) {
+      const a = bodies[i];
+      if (a === undefined || !a.alive || a.hidden || !HOSTILE.has(a.kind)) continue;
       nearest = Math.min(nearest, Math.hypot(a.position.x - p.x, a.position.z - p.z));
     }
   } });

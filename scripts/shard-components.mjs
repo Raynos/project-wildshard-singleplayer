@@ -71,7 +71,7 @@ const questOwners=new Set([
   'src/shards/driftwood-isle/runtime/pack.ts',
   'src/shards/driftwood-isle/runtime/kills.ts',
   'src/shards/driftwood-isle/runtime/npc/Castaway.ts',
-  'src/shards/driftwood-isle/npc/Trader.ts',
+  'src/shards/driftwood-isle/runtime/npc/Trader.ts',
   'src/shards/driftwood-isle/npc/faceHeads.ts',
   'src/game/systems/npc/npcRig.ts',
   'src/game/complete/ShardComplete.ts',
@@ -155,7 +155,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/rainShelter.ts', 'C4'],
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
-  ['src/shards/driftwood-isle/onboarding/firstMinutes.ts', 'C5'],
+  ['src/shards/driftwood-isle/runtime/onboarding/firstMinutes.ts', 'C5'],
   ['src/shards/driftwood-isle/runtime/finalePresentation.ts', 'C5'],
   ['src/shards/pine-hollow/compendium.ts', 'C5'],
   ['src/shards/pine-hollow/runtime/compendium/install.ts', 'C5'],

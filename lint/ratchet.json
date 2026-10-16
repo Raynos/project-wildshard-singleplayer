@@ -327,11 +327,9 @@
     "src/shards/driftwood-isle/runtime/models/shoreBoulder.ts": 1,
     "src/shards/driftwood-isle/models/shrine.ts": 4,
     "src/shards/driftwood-isle/runtime/models/smallRock.ts": 1,
-    "src/shards/driftwood-isle/runtime/models/trader.ts": 1,
     "src/shards/driftwood-isle/models/trophyPlaques.ts": 2,
     "src/shards/driftwood-isle/runtime/models/zipline.ts": 1,
     "src/shards/driftwood-isle/runtime/npc/Castaway.ts": 4,
-    "src/shards/driftwood-isle/npc/Trader.ts": 3,
     "src/shards/driftwood-isle/plugin.ts": 1,
     "src/shards/driftwood-isle/quest/Complete.ts": 4,
     "src/shards/driftwood-isle/quest/Ecology.ts": 1,
@@ -655,7 +653,8 @@
     "src/shards/sunscar-dunes/world/build.ts": 3,
     "src/shards/sunscar-dunes/world/fireFx.ts": 1,
     "src/shards/sunscar-dunes/world/meshes.ts": 4,
-    "src/shards/sunscar-dunes/world/places.ts": 2
+    "src/shards/sunscar-dunes/world/places.ts": 2,
+    "src/shards/driftwood-isle/runtime/npc/Trader.ts": 3
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
@@ -1026,7 +1025,7 @@
     "src/shards/driftwood-isle/runtime/models/shipwreck.ts": 2,
     "src/shards/driftwood-isle/runtime/models/shoreBoulder.ts": 3,
     "src/shards/driftwood-isle/runtime/models/smallRock.ts": 2,
-    "src/shards/driftwood-isle/runtime/models/trader.ts": 3,
+    "src/shards/driftwood-isle/runtime/models/trader.ts": 1,
     "src/shards/driftwood-isle/runtime/models/zipline.ts": 1,
     "src/shards/driftwood-isle/runtime/npc/Castaway.ts": 4,
     "src/shards/pine-hollow/runtime/models/antlerKing.ts": 5,
@@ -1059,7 +1058,8 @@
     "src/shards/pine-hollow/runtime/models/cragCliff.ts": 1,
     "src/shards/pine-hollow/runtime/models/scree.ts": 1,
     "src/shards/pine-hollow/runtime/models/standingStone.ts": 2,
-    "src/shards/pine-hollow/runtime/models/waystone.ts": 1
+    "src/shards/pine-hollow/runtime/models/waystone.ts": 1,
+    "src/shards/driftwood-isle/runtime/npc/Trader.ts": 3
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/bag.ts": 1,
@@ -1169,8 +1169,6 @@
     "src/shards/driftwood-isle/models/trophyPlaques.ts": 3,
     "src/shards/driftwood-isle/runtime/models/zipline.ts": 3,
     "src/shards/driftwood-isle/runtime/npc/Castaway.ts": 3,
-    "src/shards/driftwood-isle/npc/Trader.ts": 2,
-    "src/shards/driftwood-isle/onboarding/firstMinutes.ts": 3,
     "src/shards/driftwood-isle/quest/adventure.ts": 12,
     "src/shards/driftwood-isle/quest/Complete.ts": 1,
     "src/shards/driftwood-isle/quest/Ecology.ts": 1,
@@ -1180,7 +1178,7 @@
     "src/shards/driftwood-isle/quest/people.ts": 1,
     "src/shards/driftwood-isle/quest/Places.ts": 1,
     "src/shards/driftwood-isle/quest/Spine.ts": 6,
-    "src/shards/driftwood-isle/quest/TraderStall.ts": 3,
+    "src/shards/driftwood-isle/quest/TraderStall.ts": 2,
     "src/shards/driftwood-isle/roster.ts": 1,
     "src/shards/driftwood-isle/runtime/audio/ambience.ts": 3,
     "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts": 8,
@@ -1803,7 +1801,9 @@
     "src/shards/sunscar-dunes/world/baked.ts": 1,
     "src/shards/sunscar-dunes/world/build.ts": 2,
     "src/shards/sunscar-dunes/world/places.ts": 1,
-    "src/shards/driftwood-isle/runtime/look/toon.ts": 1
+    "src/shards/driftwood-isle/runtime/look/toon.ts": 1,
+    "src/shards/driftwood-isle/runtime/npc/Trader.ts": 2,
+    "src/shards/driftwood-isle/runtime/onboarding/firstMinutes.ts": 3
   },
   "wildshard/shard-game-imports": {
     "src/shards/_template/manifest.ts": 1,
@@ -1822,12 +1822,11 @@
     "src/shards/driftwood-isle/loot/shop.ts": 1,
     "src/shards/driftwood-isle/loot/tables.ts": 1,
     "src/shards/driftwood-isle/manifest.ts": 1,
-    "src/shards/driftwood-isle/onboarding/firstMinutes.ts": 1,
     "src/shards/driftwood-isle/plugin.ts": 1,
     "src/shards/driftwood-isle/quest/adventure.ts": 5,
     "src/shards/driftwood-isle/quest/Complete.ts": 3,
     "src/shards/driftwood-isle/quest/facts.ts": 3,
-    "src/shards/driftwood-isle/quest/install.ts": 4,
+    "src/shards/driftwood-isle/quest/install.ts": 5,
     "src/shards/driftwood-isle/quest/people.ts": 1,
     "src/shards/driftwood-isle/quest/Spine.ts": 3,
     "src/shards/driftwood-isle/roster.ts": 1,
@@ -1920,7 +1919,8 @@
     "src/shards/sunscar-dunes/world/build.ts": 2,
     "src/shards/sunscar-dunes/world/meshes.ts": 1,
     "src/shards/sunscar-dunes/world/places.ts": 1,
-    "src/shards/pine-hollow/world/streams.ts": 2
+    "src/shards/pine-hollow/world/streams.ts": 2,
+    "src/shards/driftwood-isle/quest/TraderStall.ts": 1
   },
   "wildshard/shard-game-plugins": {
     "src/shards/_template/manifest.ts": 1,
@@ -1940,12 +1940,11 @@
     "src/shards/driftwood-isle/loot/tables.ts": 1,
     "src/shards/driftwood-isle/manifest.ts": 1,
     "src/shards/driftwood-isle/runtime/models/trader.ts": 1,
-    "src/shards/driftwood-isle/onboarding/firstMinutes.ts": 1,
     "src/shards/driftwood-isle/plugin.ts": 1,
     "src/shards/driftwood-isle/quest/adventure.ts": 5,
     "src/shards/driftwood-isle/quest/Complete.ts": 3,
     "src/shards/driftwood-isle/quest/facts.ts": 3,
-    "src/shards/driftwood-isle/quest/install.ts": 4,
+    "src/shards/driftwood-isle/quest/install.ts": 5,
     "src/shards/driftwood-isle/quest/people.ts": 1,
     "src/shards/driftwood-isle/quest/Spine.ts": 3,
     "src/shards/driftwood-isle/roster.ts": 1,
@@ -2102,7 +2101,9 @@
     "src/shards/sunscar-dunes/world/meshes.ts": 1,
     "src/shards/sunscar-dunes/world/places.ts": 1,
     "src/shards/driftwood-isle/runtime/look/toon.ts": 1,
-    "src/shards/pine-hollow/world/streams.ts": 2
+    "src/shards/pine-hollow/world/streams.ts": 2,
+    "src/shards/driftwood-isle/runtime/onboarding/firstMinutes.ts": 1,
+    "src/shards/driftwood-isle/quest/TraderStall.ts": 1
   },
   "wildshard/shard-sandbox": {
     "src/shards/driftwood-isle/quest/Complete.ts": 2,
@@ -2151,7 +2152,6 @@
   "wildshard/shard-services": {
     "src/shards/driftwood-isle/creatures/Enemies.ts": 1,
     "src/shards/driftwood-isle/loot/keepsakes.ts": 2,
-    "src/shards/driftwood-isle/onboarding/firstMinutes.ts": 1,
     "src/shards/driftwood-isle/quest/Ecology.ts": 1,
     "src/shards/driftwood-isle/quest/Finale.ts": 1,
     "src/shards/driftwood-isle/quest/Spine.ts": 1,
@@ -2203,6 +2203,7 @@
     "src/shards/pine-hollow/runtime/items/boltCrossbow.ts": 1,
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts": 1,
     "src/shards/pine-hollow/runtime/looks/rainFx.ts": 2,
-    "src/shards/pine-hollow/world/weather.ts": 1
+    "src/shards/pine-hollow/world/weather.ts": 1,
+    "src/shards/driftwood-isle/runtime/onboarding/firstMinutes.ts": 1
   }
 }
