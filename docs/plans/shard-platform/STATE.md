@@ -1,33 +1,28 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**Order:** W2 closes 05:00Z 10-17. **G461 until then:** a row runs only if it (a) cuts Pine/DW custom lines on the honest ruler, (b) lands P4, or (c) clears a failing or unknown Pine/DW grid-ready check. Otherwise it's a W1 spike row (G457). Sky/Signal/Nine fps waits. No docs tidies, download-diet work or other-wave shards. **G460:** Opus is for visual rows only; Codex stays at 6. **G456 ladder:** Claude 42 % weekly.
+**Order:** W2 closes 05:00Z 10-17 (G463: leftovers → W3 closure rows) → W1 spike → W3.
 
-**Plan % (G458), x7 `9e3cde3cc`: 10.3–43.7 %.**
-- **M3:** 17.2 %, source-labelled.
-- **M2:** 0 pass / 1 fail (Nalati tiles) / 5 unknown (memory + look/travel need exact-SHA receipts).
-- **Output-ruler escapes:** Signal 6, Sky 23, Nine 33, DW 76, Nalati 159, Pine ~180.
+**G465 (Jake, overrides G461 (c)/G464 on grid-ready):** the only goal is fewer custom shard lines, through data, engine hosts that pass G454, and AssemblyScript. Grid-ready and fps work stopped. Code whose end state is data, a host or a script goes straight there, never via runtime/; only lasting view code moves in. Const mirrors add runtime lines (pre-admission use only). **G464:** DW closes first; the ruler prints each shard's output % the moment it closes. Script lanes run Pine/Template/17-headless fixtures before every commit.
 
-**Push gate RED** at `41dc937fc` (Template `.gitignore` layout test + `build-shardfiles --reuse` 'Import signature outside ABI'); x8 is repairing it, and ~12 local commits wait.
+**Plan % (G458), ruler `2f80e66b4`: 10.3–43.6 %.** M3 is 17.1 % and slipped 0.9 pt in 6 h. Escapes: DW 37, Pine 155, Signal 6; Sky sim-in-runtime 0 (`e54ca1cb1`). KR1 net lines (report-only): W2 −11,974, W1 −26,125, so platform growth outpaces shard cuts.
 
-**Lanes (the outcome each moves):**
+**Lanes. Targets are ESTIMATED custom lines removed by 05:00Z; the hourly report tracks actuals:**
 
-| Lane | Work | Outcome |
+| Lane | Work | Target |
 |---|---|---|
-| x8 | gate repair → visited-cache ship-blocker → KS6 Signal sim out | gate / ship / W1 |
-| x7 | exact-SHA Pine+DW frame floor + soak receipts | (c) Pine/DW memory + look/travel checks |
-| x6 | crag/stream + birds intake → Pine closure from the escape list | (a) Pine |
-| x1 | KS2 Sky sim out of runtime/ (manifest migrations + live reader parked as a row) | W1 |
-| x4 | KA6 game wiring | W1 |
-| x5 | KA3 bindings/build + AS budget, then disk scenarios | W1 |
-| o282 | Pine texture uploads (~565 ms in the entry window) | (c) Pine look/travel |
-| o286 | graph program key + uniform blocks; Safari A/B | (c) DW look/travel |
-| o287 | DW closure (21 leaves, client world build with logged ceiling raises, sim/ folder) | (a) DW |
-| o288 | Pine rig binding (SDK separate-map option) + 8-creature board | (a) Pine |
-| o284 | Sky/Signal fps, wrapping up | (G461 waits) |
+| o293 | DW code-built models → build-time GLB/data, TS deleted | DW −800 |
+| o294 | Pine code looks/builders → graph JSON/GLB/data | Pine −800 |
+| x5 | DW sim behaviours (director/ecology/quest/placement) → host rows / AS, TS deleted | DW −300 |
+| x4 | DW world-build data → sections/blobs, systems onto hosts | DW −200 |
+| x7 | DW leaves → sections; per-shard output %; lines-removed line; bloom row delete | DW −100 |
+| x6 | Pine client data → named JSON blobs/sections, mirrors replaced | Pine −200 |
+| x8 | KS1 roc.as + rows, ROC_BRAIN/raptor deleted | Sky −250 |
+| x1 | schema push-red fix, then Sky gust on world/targets, Sky world onto hosts/data | Sky −150 |
+| o291 | wrapping up (fps stopped by G465) | — |
 
-**Queued for the next free Opus slot:** a Pine/DW graphical row (Pine road program-link/shader cache). The Nalati terrain-tile binding waits for W3.
+**Gate:** red at x1's `e54ca1cb1` (schema-reference refuses loose_object in nativeRuntimePlan); x1 fixing at the schema source.
 
-**KS1/KS4 notes:** takeoff needs altitude + perch; ready range borrows the strike's observation.range; dive may declare a strike id; the platform publishes move.done.
-**G463 (Jake picked all five):** W2 closes on time, leftovers → W3 closure rows; DW client world build into runtime/ under logged raises (sim-reachable stays out); transitional sim/ folder; build refuses AS > 10 %; Pine desktop KTX2 ships (delete the image path + its Debug row together); DW phone bloom cut ships only with a same-look board. Ruler crash fixed `bd8d3d1ba` (local, pushes after x7's quiet window).
-**For wildshard-v:** x4 has no fix for the approach-registry crash, so your subagent owns it. src/format/decisionBindings.ts carries x4's UNCOMMITTED world/targets spots hunk: commit through a private index and leave it in place.
+**Stopped by G465 (default-off rows, to delete):** phone bloom `bdff6fb33` (x7 deletes it). Done earlier today: Pine desktop KTX2 `3316af68e` (road passes, memory −630 MB), frame-floor Debug isolation `0132d7935`, visited-cache ship fix `e17581f78`, graph memo fix `cb77a4059`.
+
+**KS1/KS4 notes:** takeoff needs altitude + perch; ready range borrows the strike's observation.range (optional ready.strike id); the platform publishes move.done.
 Paused: SF22 SF57 SF67.
