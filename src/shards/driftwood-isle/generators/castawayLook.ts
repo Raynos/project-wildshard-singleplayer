@@ -3,7 +3,7 @@
 // (body, campfire, code head, waving arm, flames); the smoke over his campfire
 // is data/smokeLook.ts's CASTAWAY_SMOKE. The palette:
 // skin '#c98d62', beard '#cfcac0', straw hat '#d8b867', striped shirt '#e9e3d4' / '#3d6fae', canvas trousers '#b59f77'.
-import type { KitMeshRow } from '../data/lookRows';
+import type { KitMeshRow } from './kitParts';
 
 /** Wendell's body (turns with the figure): bare feet, rolled trousers, the rope belt and its knot, the striped shirt's bands (a little barrel-chested), the neck, the left arm hanging on the driftwood staff. */
 export const CASTAWAY_BODY: KitMeshRow = {

@@ -1,38 +1,8 @@
-// SHARD-PLATFORM W2 C2 (look-family rows): the row types Driftwood's look data is written in: a low-poly kit mesh as its
-// parts (runtime/kit/kitParts.ts builds it), a smoke column's numbers (data/smokeLook.ts), the reef bed's
+// SHARD-PLATFORM W2 C2 (look-family rows): the row types Driftwood's look data is written in (a low-poly kit mesh's rows
+// are generators/kitParts.ts's own): a smoke column's numbers (data/smokeLook.ts), the reef bed's
 // scatter (runtime/looks/reefBed.ts), the faceted ground (runtime/looks/facetedGround.ts), the mooring lines
 // (runtime/props/mooringLines.ts) and the streamed ground cover (runtime/looks/streamedCover.ts). The rows themselves are
-// data/{castaway,trader,seabed,ground,boat,cover}Look.ts.
-
-/** A primitive's kind; `args` are the constructor's (`log`: a, b, r0, r1, sides, twist; `rope`: r then the points
- *  flattened; `rock`: r, detail, squash, rough; `plank`: length, width, thickness, wobble), the kit's rng implied. */
-export type KitPartKind = 'box' | 'icosa' | 'cone' | 'cylinder' | 'torus' | 'sphere' | 'log' | 'rope' | 'rock' | 'plank';
-
-/** One part of a kit mesh as data. */
-export interface KitPartRow {
-  readonly kind: KitPartKind;
-  readonly args: readonly number[];
-  /** its colour (any CSS colour three parses) */
-  readonly color: string;
-  /** transforms applied to the primitive first, in order: ['rotateX' | 'rotateY' | 'rotateZ', rad] or ['translate', x, y, z] */
-  readonly pre?: readonly (readonly [string, ...number[]])[];
-  /** where: [x, y, z, ry, rx, rz, sx, sy, sz] (trailing defaults 0 / 1 may be left off); or `matrix` (16, column-major) */
-  readonly at?: readonly number[];
-  readonly matrix?: readonly number[];
-  /** the kit's per-vertex wobble (m), per-face jitter and wind sway */
-  readonly wobble?: number;
-  readonly jitter?: number;
-  readonly sway?: { readonly w: number; readonly phase?: number; readonly hang?: boolean };
-  /** placed off the build's origin (its position, or a log's two ends) */
-  readonly rel?: boolean;
-}
-
-/** A kit mesh as data: the kit's seed, its finish (baked ambient occlusion or none) and its parts in add order. */
-export interface KitMeshRow {
-  readonly seed: number;
-  readonly ao: { readonly floorY: number; readonly strength: number } | false;
-  readonly parts: readonly KitPartRow[];
-}
+// data/{smoke,seabed,ground,boat,cover}Look.ts.
 
 /** A smoke column's numbers as data. */
 export interface SmokeColumnRow {
