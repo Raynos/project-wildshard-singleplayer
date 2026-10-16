@@ -28,7 +28,8 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
   const { scatterShoreBoulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
-  const { Trailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
+  const { buildTrailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
+  const { islandTrailsideSpec } = await imp('src/shards/driftwood-isle/world/trailsideLayout.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
   const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/models/hut.ts');
   const { modelContext } = await imp('src/engine/models/model.ts');
@@ -38,14 +39,14 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const palms = FOLIAGE.tiers.desktop.palms.specs;
   const rocks = scatterShoreBoulders(def.seed);
   const bushes = FOLIAGE.tiers.desktop.bushes.specs;
-  const trailside = Trailside.forIsland();
+  const trailside = islandTrailsideSpec();
 
   // ── structures kept in blender mode, as bake occluders ──
   const sky = { setupMaterial() { /* no CSM in Node */ }, viewCamera: new THREE.PerspectiveCamera() };
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: wl + 1.2, landing: true }).build();
   addObject(pier.group);
   tryBuild('hut', () => placeModelSite(hut, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry: null }).group);
-  tryBuild('trailside', () => new Trailside(sky).build(trailside).mesh);
+  tryBuild('trailside', () => buildTrailside(sky, trailside).mesh);
 
   return {
     scene: {

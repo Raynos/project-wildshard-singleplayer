@@ -28,7 +28,7 @@ import { Wreck } from './Wreck';
 import { Shrine } from './Shrine';
 import { placeIslandBushes } from './Bushes';
 import { Gulls } from './Gulls';
-import { Trailside } from './Trailside';
+import { buildTrailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';
 import { placeIslandPalms, type PalmSpec } from './Palms';
@@ -52,7 +52,7 @@ type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? Autho
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Awaited<ReturnType<typeof placeShoreBoulders>> | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
-  gulls: Gulls | null; trailside: Trailside | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
+  gulls: Gulls | null; trailside: ReturnType<typeof buildTrailside> | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Awaited<ReturnType<typeof placeIslandPalms>> | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
@@ -165,7 +165,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     centre: new THREE.Vector3(0, 0, -205), radius: 90,
   }), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
-  const trailside = new Trailside(sky).build(Trailside.forIsland());
+  const trailside = buildTrailside(sky);
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   statics.push(...trailside.colliders); trailside.place(registry);
