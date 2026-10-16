@@ -14,9 +14,11 @@ import { driftLog } from '../src/shards/driftwood-isle/runtime/models/driftLog';
 import { captainHat, sailclothCape } from '../src/shards/driftwood-isle/runtime/models/captainHat';
 import { reefFish } from '../src/shards/driftwood-isle/runtime/models/reefFish';
 import { seaGlassChime } from '../src/shards/driftwood-isle/runtime/models/seaGlassChime';
+import { castaway } from '../src/shards/driftwood-isle/runtime/models/people';
+import { trader, tradeCounter } from '../src/shards/driftwood-isle/runtime/models/trader';
 import { trophyPlaques } from '../src/shards/driftwood-isle/runtime/models/trophyPlaques';
 
-const entries = [live(barrel), live(crate), live(ropeCoil), live(driftLog), live(captainHat), live(sailclothCape), live(reefFish), live(seaGlassChime), live(trophyPlaques)];
+const entries = [live(barrel), live(crate), live(ropeCoil), live(driftLog), live(captainHat), live(sailclothCape), live(reefFish), live(seaGlassChime), live(trophyPlaques), live(castaway), live(trader), live(tradeCounter)];
 
 it('forwards cold fixed preparation to the existing live roster', () => {
   expect(fixedGeometryReady()).toBe(false);
@@ -54,18 +56,22 @@ it('matches the original warm cards for every authored geometry and variant', as
   const borrowed = vi.spyOn(lowPolyKit, 'lowPolyLookMaterial').mockReturnValue(material);
   const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(product);
   const signatures: Record<string, unknown> = {}, ctx = modelContext(SkyRig.prototype);
-  async function check<P extends object>(def: ModelDef<P>): Promise<void> {
+  async function check<P extends object>(def: ModelDef<P>, allBorrowed = true): Promise<void> {
     // The parent oracle explicitly preloads the same warm-world templates; the new cards use their roster preparation.
     await (def.prepare ?? loadFixedGeometry)();
     for (const [id, params] of [['default', def.defaults] as const, ...(def.variants ?? []).map(row => [row.id, {...def.defaults, ...row.params}] as const)]) {
       const parts = partsOf(def.build(ctx, params, new Rng(seedOf(def))));
       signatures[`${def.id}/${id}`] = await Promise.all(parts.map(async part => ({geometry: await geometryHash(part.geometry), castShadow: part.castShadow ?? false, receiveShadow: part.receiveShadow ?? false})));
-      for (const part of parts) expect(part.material).toBe(material);
+      for (const part of parts) {
+        if (allBorrowed) expect(part.material).toBe(material);
+        else expect(part.material).toBeInstanceOf(Material);
+      }
     }
   }
   try {
     await check(barrel); await check(crate); await check(ropeCoil); await check(driftLog);
     await check(captainHat); await check(sailclothCape); await check(reefFish); await check(seaGlassChime); await check(trophyPlaques);
+    await check(castaway, false); await check(trader); await check(tradeCounter);
     expect(signatures).toMatchSnapshot();
     expect(mocked).toHaveBeenCalled();
   } finally { mocked.mockRestore(); borrowed.mockRestore(); material.dispose(); }

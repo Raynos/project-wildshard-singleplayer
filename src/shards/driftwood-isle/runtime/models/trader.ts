@@ -14,9 +14,8 @@
  *
  * The world side (where they stand, the per-frame update) is src/shards/driftwood-isle/quest/TraderStall.ts. No shop logic here.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Trader } from '../npc/Trader';
@@ -24,7 +23,7 @@ import { traderRig } from '../npc/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 
 import { COUNTER_TOP as TOP } from '../const';
-import { COUNTER_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { COUNTER_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 
@@ -35,30 +34,14 @@ export function traderRigOf(o: THREE.Object3D): NpcRig<Trader, Sky> | null { ret
 
 export const trader: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'flesh',
-  defaults: {},
-  // her kit meshes are baked (generators/npcKits.ts): a loading box until the island's templates are in
-  build: (ctx) => {
-    const one = (): THREE.Object3D => { const rig = traderRig(ctx.sky); byGroup.set(rig.model.group, rig); return rig.model.group; };
-    if (fixedGeometryReady()) return one();
-    return loadingSpecimen('driftwood-isle/trader', [0.7, 1.8, 0.7], async () => { await loadFixedGeometry(); return one(); });
-  },
+  prepare: loadFixedGeometry, defaults: {},
+  build: (ctx) => { const rig = traderRig(ctx.sky); byGroup.set(rig.model.group, rig); return rig.model.group; },
   colliders: () => [{ kind: 'capsule', x: 0, y: 0.9, z: 0, halfHeight: 0.62, radius: 0.26 }],
 });
 
 export const tradeCounter: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'wood',
-  defaults: {},
-  build: (ctx) => {
-    const parts = (): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
-    if (fixedGeometryReady()) return parts();
-    return loadingSpecimen('driftwood-isle/trade-counter', [TOP.w, TOP.y + 0.4, TOP.d], async () => {
-      await loadFixedGeometry();
-      const [part] = parts();
-      if (part === undefined) throw new Error('Trade counter geometry missing');
-      const mesh = new THREE.Mesh(part.geometry, part.material);
-      mesh.castShadow = true; mesh.receiveShadow = true;
-      return mesh;
-    });
-  },
+  prepare: loadFixedGeometry, defaults: {},
+  build: (ctx): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }],
   colliders: () => [{ kind: 'box', x: 0, y: TOP.y / 2, z: 0, hx: TOP.w / 2, hy: TOP.y / 2, hz: TOP.d / 2 + 0.02 }],
 });

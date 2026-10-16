@@ -30,6 +30,38 @@ exports[`matches the original warm cards for every authored geometry and variant
       "receiveShadow": true,
     },
   ],
+  "driftwood-isle/castaway/default": [
+    {
+      "castShadow": true,
+      "geometry": "77319bf1b06ef7f7a4743d0dfea3f27646c72cf585bb81d59deadeaabbcb43e8",
+      "receiveShadow": true,
+    },
+    {
+      "castShadow": false,
+      "geometry": "8f29f4761cfcb9bb7002cdebde78517d07589bb2e64641fe57b779a8690dd56a",
+      "receiveShadow": false,
+    },
+    {
+      "castShadow": false,
+      "geometry": "acc890e8a8e131c0cac6ad69e636c9063194549030a94eb492b2086c94d0ef86",
+      "receiveShadow": false,
+    },
+    {
+      "castShadow": true,
+      "geometry": "d8da5334d062b6a2867755b0139bf20131151b3f63499a05e61f928f2bfcbd14",
+      "receiveShadow": true,
+    },
+    {
+      "castShadow": false,
+      "geometry": "0f7bc627d3419076c77511f73d03da29b770523f0002dedc4539b3190187fef9",
+      "receiveShadow": false,
+    },
+    {
+      "castShadow": false,
+      "geometry": "4bef59ce11dd343f378617acede9f8fa445a9bfa7c4e7a47ef49e9b699192721",
+      "receiveShadow": false,
+    },
+  ],
   "driftwood-isle/crate/big": [
     {
       "castShadow": true,
@@ -140,6 +172,35 @@ exports[`matches the original warm cards for every authored geometry and variant
       "castShadow": true,
       "geometry": "fd77c79bcaed82a6727ea470768f54e210e03be6a3cb5c2885b9df70a273706d",
       "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trade-counter/default": [
+    {
+      "castShadow": true,
+      "geometry": "e5d58631c49d1dc05d83af6cf47bbedbc9e685f335d3cfb3db874fe7bfba9c7d",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trader/default": [
+    {
+      "castShadow": true,
+      "geometry": "28ecb53f93a8d28a1671ec4d9bae13be46f0ef1b5dc6ad47388fc81ce300824a",
+      "receiveShadow": true,
+    },
+    {
+      "castShadow": false,
+      "geometry": "0862dbd36e2e22688e06601b9e018eecc06da007d2750779991af5f043d5ddad",
+      "receiveShadow": false,
+    },
+    {
+      "castShadow": false,
+      "geometry": "0b5c06c30c86f08822cf5d5f4c3886f719ac733baf16403ce37d551ff97ea8db",
+      "receiveShadow": false,
+    },
+    {
+      "castShadow": false,
+      "geometry": "123755cb9114031505791549a2b1c6c50c216494a7e6c4a913538c572a07b486",
+      "receiveShadow": false,
     },
   ],
   "driftwood-isle/trophy-plaques/bear": [
