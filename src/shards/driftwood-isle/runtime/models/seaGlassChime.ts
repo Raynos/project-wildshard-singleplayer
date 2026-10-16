@@ -16,11 +16,10 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from './slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CHIME_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 import { driftwoodRows } from '../boot/rows';
 
 /** Maximum collectible pieces; slot 0 is always the cord and bar. */
@@ -60,10 +59,8 @@ export interface SeaGlassChimeParams {
 export const seaGlassChime = defineModel<SeaGlassChimeParams>({
   id: 'driftwood-isle/sea-glass-chime', name: 'Sea glass wind chime', category: 'props', pipeline: 'code',
   file: 'src/shards/driftwood-isle/runtime/models/seaGlassChime.ts', surface: 'wood',
+  prepare: loadFixedGeometry,
   defaults: { count: CHIME_PIECES },
   variants: [0, 5, 10, 15].map((n) => ({ id: `${n}`, label: `${n} / 15`, params: { count: n } })),
-  build: (ctx, p) => fixedGeometryReady() ? buildSeaGlassChime(ctx, p.count) : loadingSpecimen('driftwood-isle/sea-glass-chime', [0.7, 0.95, 0.1], async () => {
-    await loadFixedGeometry();
-    return buildSeaGlassChime(ctx, p.count);
-  }),
+  build: (ctx, p) => buildSeaGlassChime(ctx, p.count),
 });

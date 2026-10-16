@@ -15,11 +15,10 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from '../models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 import { driftwoodRows } from '../boot/rows';
 import { TROPHY_LAYOUT } from '../const';
 
@@ -119,6 +118,7 @@ export interface TrophyPlaquesParams {
 export const trophyPlaques = defineModel<TrophyPlaquesParams>({
   id: 'driftwood-isle/trophy-plaques', name: 'Trophy plaques', category: 'props', pipeline: 'code',
   file: 'src/shards/driftwood-isle/runtime/models/trophyPlaques.ts', surface: 'wood',
+  prepare: loadFixedGeometry,
   defaults: { bear: true, boar: true, gap: PLAQUE_GAP },
   variants: [
     { id: 'both', label: 'Both', params: {} },
@@ -126,8 +126,5 @@ export const trophyPlaques = defineModel<TrophyPlaquesParams>({
     { id: 'bear', label: 'Bear', params: { boar: false } },
     { id: 'boar', label: 'Boar', params: { bear: false } },
   ],
-  build: (ctx, p) => fixedGeometryReady() ? buildTrophyPlaques(ctx, { bear: p.bear, boar: p.boar }, p.gap) : loadingSpecimen('driftwood-isle/trophy-plaques', [p.gap + 0.34, 0.43, 0.16], async () => {
-    await loadFixedGeometry();
-    return buildTrophyPlaques(ctx, { bear: p.bear, boar: p.boar }, p.gap);
-  }),
+  build: (ctx, p) => buildTrophyPlaques(ctx, { bear: p.bear, boar: p.boar }, p.gap),
 });

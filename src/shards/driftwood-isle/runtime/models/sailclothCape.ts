@@ -13,8 +13,7 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { CAPE_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CAPE_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 /** A fresh copy of the admitted cape; worn/specimen scaling never changes its template. */
@@ -37,15 +36,11 @@ export interface SailclothCapeParams {
 export const sailclothCape = defineModel<SailclothCapeParams>({
   id: 'driftwood-isle/sailcloth-cape', name: 'Sailcloth cape', category: 'gear', pipeline: 'code',
   file: 'src/shards/driftwood-isle/runtime/models/sailclothCape.ts', surface: 'felt',
+  prepare: loadFixedGeometry,
   defaults: { size: 1 },
   specimenYaw: Math.PI, // the Explorer opens on its outside (the back)
-  build: (ctx, p): readonly ModelPart[] | THREE.Object3D => fixedGeometryReady() ? [{
+  build: (ctx, p): readonly ModelPart[] => [{
     geometry: ctx.once(`sailcloth-cape:${p.size}`, () => (p.size === 1 ? sailclothCapeGeometry() : sailclothCapeGeometry().scale(p.size, p.size, p.size))),
     material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true,
-  }] : loadingSpecimen('driftwood-isle/sailcloth-cape', [0.7 * p.size, p.size, 0.4 * p.size], async () => {
-    await loadFixedGeometry();
-    const mesh = buildSailclothCape(ctx);
-    if (p.size !== 1) mesh.geometry.scale(p.size, p.size, p.size);
-    return mesh;
-  }),
+  }],
 });

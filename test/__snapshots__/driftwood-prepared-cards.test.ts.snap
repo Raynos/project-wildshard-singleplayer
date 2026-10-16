@@ -1,0 +1,181 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`matches the original warm cards for every authored geometry and variant 1`] = `
+{
+  "driftwood-isle/barrel/default": [
+    {
+      "castShadow": true,
+      "geometry": "54d5aac6581d7bb3ca11a911f0e44c25fcf5a45630920d6c27f777bcd1464c26",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/barrel/lying": [
+    {
+      "castShadow": true,
+      "geometry": "91f5724befd74364b25f3aa4acd6675ac386637cfe907e5f0ce0903aae0c30cb",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/barrel/standing": [
+    {
+      "castShadow": true,
+      "geometry": "54d5aac6581d7bb3ca11a911f0e44c25fcf5a45630920d6c27f777bcd1464c26",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/captain-hat/default": [
+    {
+      "castShadow": true,
+      "geometry": "d2c24d4dfda6715fc2d61eb1c6a71881ccc6b442d226467925f083c3e9db8710",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/crate/big": [
+    {
+      "castShadow": true,
+      "geometry": "d4a4e4ad3f5dd11cd2e2cf2f05eca00cb48dcfe79c28558e781cc35057ff0b58",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/crate/broken": [
+    {
+      "castShadow": true,
+      "geometry": "2133b265d751d4c2f1fb761d755604f8e5386e1ec0de28ccc5bd1aa96f7b0dca",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/crate/default": [
+    {
+      "castShadow": true,
+      "geometry": "d4a4e4ad3f5dd11cd2e2cf2f05eca00cb48dcfe79c28558e781cc35057ff0b58",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/crate/small": [
+    {
+      "castShadow": true,
+      "geometry": "e612b81b6864612661ce29435bd5c2738c54c58d40f95eaff4774959a956fa9a",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/drift-log/default": [
+    {
+      "castShadow": true,
+      "geometry": "4b67a8a7cda5c8aee4969f63e1322b15a123fc48170e8c1ad2fcb08e3af1dadc",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/drift-log/long": [
+    {
+      "castShadow": true,
+      "geometry": "4b67a8a7cda5c8aee4969f63e1322b15a123fc48170e8c1ad2fcb08e3af1dadc",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/drift-log/pale": [
+    {
+      "castShadow": true,
+      "geometry": "b695911eddca942355651608661ab2472d8fec7a209dc9ee73bdbe4811063d7c",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/drift-log/short": [
+    {
+      "castShadow": true,
+      "geometry": "e05a1f2f6a68f5d0115af5c1845847c1b67ddfff1d38d415ed65ab41d7b34fca",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/reef-fish/default": [
+    {
+      "castShadow": false,
+      "geometry": "a730b175ffcd493c291ee869493a29fc77be58905adc282212e9de4aa4058a47",
+      "receiveShadow": false,
+    },
+  ],
+  "driftwood-isle/rope-coil/default": [
+    {
+      "castShadow": true,
+      "geometry": "b96210ccb6b0aab0fb8e98a7043d3079b7d8e8e5ffbdb6f502ccab8478f98ac1",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/sailcloth-cape/default": [
+    {
+      "castShadow": true,
+      "geometry": "8be699dbfd323586a87024ac5dcf0cb59fe6e3e38ad1391bc7832e236ceecb30",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/sea-glass-chime/0": [
+    {
+      "castShadow": true,
+      "geometry": "c67e8cfce86d8000bc35012abeaf544c535acd82ee7e255ba7a37ba713d1e2ba",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/sea-glass-chime/10": [
+    {
+      "castShadow": true,
+      "geometry": "685c49c0743ebc3d3538b0cb12032f6b4189fa1e3fdbe9499639c269ffe589d6",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/sea-glass-chime/15": [
+    {
+      "castShadow": true,
+      "geometry": "fd77c79bcaed82a6727ea470768f54e210e03be6a3cb5c2885b9df70a273706d",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/sea-glass-chime/5": [
+    {
+      "castShadow": true,
+      "geometry": "0cd8d60cc5173f75030c03b936a51f56b8ebc3152255d9ec8de1cec91dc745a7",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/sea-glass-chime/default": [
+    {
+      "castShadow": true,
+      "geometry": "fd77c79bcaed82a6727ea470768f54e210e03be6a3cb5c2885b9df70a273706d",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trophy-plaques/bear": [
+    {
+      "castShadow": true,
+      "geometry": "4fedadf1dfb89c31f28ef8928f5d0c8e770bf49faa404052f82a2b73ed849e61",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trophy-plaques/boar": [
+    {
+      "castShadow": true,
+      "geometry": "6eaba1a9401e87e005b0884c500a025768fa267d773fa250399a2d06146a0150",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trophy-plaques/both": [
+    {
+      "castShadow": true,
+      "geometry": "59abbc56f331bb9e721e90c7cc0c79b9e74e7759aa6f8eb494a21ce4919d2e5a",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trophy-plaques/default": [
+    {
+      "castShadow": true,
+      "geometry": "59abbc56f331bb9e721e90c7cc0c79b9e74e7759aa6f8eb494a21ce4919d2e5a",
+      "receiveShadow": true,
+    },
+  ],
+  "driftwood-isle/trophy-plaques/empty": [
+    {
+      "castShadow": true,
+      "geometry": "45db36d480468d302cf936bc2875ba994288a8bad979d27731e0c3b876663a4a",
+      "receiveShadow": true,
+    },
+  ],
+}
+`;

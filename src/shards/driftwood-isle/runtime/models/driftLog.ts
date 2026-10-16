@@ -9,11 +9,9 @@
  * three variants are fixed-model templates (`drift-log-*`) loaded through the shard's geometry intake; a log of another
  * size scales its tone's template. The Blender cove's TRELLIS driftwood is a different model (src/shards/driftwood-isle/runtime/models/cove.ts).
  */
-import * as THREE from 'three';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { DRIFT_LOG_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { DRIFT_LOG_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 
 export interface DriftLogParams {
   /** length, metres */
@@ -30,27 +28,21 @@ const TEMPLATES = [
   { kind: 'long', len: 4, r0: 0.26 }, { kind: 'short', len: 2.6, r0: 0.18 }, { kind: 'pale', len: 4, r0: 0.26 },
 ] as const;
 
-function specimen(ctx: ModelContext, p: DriftLogParams): readonly ModelPart[] | THREE.Object3D {
+function specimen(ctx: ModelContext, p: DriftLogParams): readonly ModelPart[] {
   const t = TEMPLATES[((Math.round(p.tone) % 3) + 3) % 3] ?? TEMPLATES[0], sx = p.len / t.len, sr = p.r0 / t.r0;
-  const part = (): ModelPart => ({
+  return [{
     geometry: ctx.once(`driftwood-isle/drift-log:${t.kind}:${sx}:${sr}`, () => {
       const g = DRIFT_LOG_GEOMETRY[t.kind].copy();
       return sx === 1 && sr === 1 ? g : g.scale(sx, sr, sr);
     }),
     material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true,
-  });
-  if (fixedGeometryReady()) return [part()];
-  return loadingSpecimen('driftwood-isle/drift-log', [p.len, 2 * p.r0, 2 * p.r0], async () => {
-    await loadFixedGeometry();
-    const made = part(), mesh = new THREE.Mesh(made.geometry, made.material);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    return mesh;
-  });
+  }];
 }
 
 export const driftLog = defineModel<DriftLogParams>({
   id: 'driftwood-isle/drift-log', name: 'Drift log', category: 'nature', pipeline: 'code',
   file: 'src/shards/driftwood-isle/runtime/models/driftLog.ts', surface: 'wood',
+  prepare: loadFixedGeometry,
   defaults: { len: 4, r0: 0.26, r1: 0.19, tone: 0 },
   variants: [
     { id: 'long', label: 'Long', params: {} }, { id: 'short', label: 'Short', params: { len: 2.6, r0: 0.18, r1: 0.12, tone: 1 } },

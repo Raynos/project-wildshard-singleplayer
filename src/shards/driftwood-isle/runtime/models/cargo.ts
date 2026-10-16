@@ -6,55 +6,49 @@
  * intake. The world's copies are placed `drawnInto` the wreck's mesh (their collision stays the wreck's boxes), so only
  * a specimen ever draws one; a crate or coil of another size scales its baked template.
  */
-import * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { defineModel, type ModelContext, type ModelPart, type ModelDef } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { CARGO_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CARGO_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 
 type Template = (typeof CARGO_GEOMETRY)[keyof typeof CARGO_GEOMETRY];
-/** a specimen of model `id`: its baked lone copy `kind` (scaled by `k`), or a loading box until the island's templates are in */
-function specimen(ctx: ModelContext, id: string, kind: keyof typeof CARGO_GEOMETRY, size: readonly [number, number, number], k = 1): readonly ModelPart[] | THREE.Object3D {
+/** A prepared specimen's baked lone copy, scaled without changing its template. */
+function specimen(ctx: ModelContext, id: string, kind: keyof typeof CARGO_GEOMETRY, k = 1): readonly ModelPart[] {
   const template: Template = CARGO_GEOMETRY[kind];
-  const part = (): ModelPart => ({ geometry: ctx.once(`${id}:${kind}:${k}`, () => (k === 1 ? template.copy() : template.copy().scale(k, k, k))),
-    material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true });
-  if (fixedGeometryReady()) return [part()];
-  return loadingSpecimen(id, size, async () => {
-    await loadFixedGeometry();
-    const p = part(), mesh = new THREE.Mesh(p.geometry, p.material);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    return mesh;
-  });
+  return [{ geometry: ctx.once(`${id}:${kind}:${k}`, () => (k === 1 ? template.copy() : template.copy().scale(k, k, k))),
+    material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
+}
+
+/** Existing card differences, with one preparation and catalog declaration for the cargo family. */
+function cargoModel<P extends object>(row: Pick<ModelDef<P>, 'id' | 'name' | 'defaults' | 'variants' | 'build'>): ModelDef<P> {
+  return defineModel({ ...row, category: 'props', pipeline: 'code', surface: 'wood',
+    file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', prepare: loadFixedGeometry });
 }
 
 export interface BarrelParams { readonly lying: boolean }
-export const barrel = defineModel<BarrelParams>({
-  id: 'driftwood-isle/barrel', name: 'Barrel', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', surface: 'wood',
+export const barrel = cargoModel<BarrelParams>({
+  id: 'driftwood-isle/barrel', name: 'Barrel',
   defaults: { lying: false },
   variants: [{ id: 'standing', label: 'Standing', params: {} }, { id: 'lying', label: 'Lying', params: { lying: true } }],
   // the specimen: a standing barrel's foot on the origin (its centre 0.45 up), a lying one's side on it
-  build: (ctx, p) => p.lying ? specimen(ctx, 'driftwood-isle/barrel', 'lying', [0.9, 0.78, 0.78])
-    : specimen(ctx, 'driftwood-isle/barrel', 'barrel', [0.78, 0.9, 0.78]),
+  build: (ctx, p) => p.lying ? specimen(ctx, 'driftwood-isle/barrel', 'lying')
+    : specimen(ctx, 'driftwood-isle/barrel', 'barrel'),
 });
 
 export interface CrateParams { readonly size: number; readonly broken: boolean }
-export const crate = defineModel<CrateParams>({
-  id: 'driftwood-isle/crate', name: 'Crate', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', surface: 'wood',
+export const crate = cargoModel<CrateParams>({
+  id: 'driftwood-isle/crate', name: 'Crate',
   defaults: { size: 0.8, broken: false },
   variants: [
     { id: 'big', label: 'Big', params: {} }, { id: 'small', label: 'Small', params: { size: 0.55 } },
     { id: 'broken', label: 'Broken', params: { size: 0.7, broken: true } },
   ],
-  build: (ctx, p) => specimen(ctx, 'driftwood-isle/crate', p.broken ? 'broken' : 'crate', [p.size, p.size, p.size],
+  build: (ctx, p) => specimen(ctx, 'driftwood-isle/crate', p.broken ? 'broken' : 'crate',
     p.size / (p.broken ? 0.7 : 0.8)),
 });
 
 export interface CoilParams { readonly r: number }
-export const ropeCoil = defineModel<CoilParams>({
-  id: 'driftwood-isle/rope-coil', name: 'Rope coil', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', surface: 'wood',
+export const ropeCoil = cargoModel<CoilParams>({
+  id: 'driftwood-isle/rope-coil', name: 'Rope coil',
   defaults: { r: 0.3 },
-  build: (ctx, p) => specimen(ctx, 'driftwood-isle/rope-coil', 'coil', [2 * p.r, 0.18, 2 * p.r], p.r / 0.3),
+  build: (ctx, p) => specimen(ctx, 'driftwood-isle/rope-coil', 'coil', p.r / 0.3),
 });
