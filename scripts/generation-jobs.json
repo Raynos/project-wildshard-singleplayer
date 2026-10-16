@@ -10446,7 +10446,7 @@
         "src/shards/_template/.wildshard/product/f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c": "f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c",
         "src/shards/_template/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e": "faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/_template/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31": "fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
-        "src/shards/_template/.wildshard/product/shard.json": "b4d6f62c6d7a274f3688370fb4fd111f72254429e5430d9e6dd5f6b313b01dbd"
+        "src/shards/_template/.wildshard/product/shard.json": "1fe852aedc161779fde060e596fa7641d40f6202c0df9c2a818ad730417ce6b7"
       }
     },
     {
@@ -14682,6 +14682,42 @@
         "src/shards/pine-hollow/assets/rig-blobs/f5e7344105cacbec5ed298229c26d89726a26584ecc318eb647dc08c10d7b01d",
         "src/shards/pine-hollow/assets/rig-blobs/f6d262a3bf6761c70b85e10c90367610a33734c867090e4b8fd604900170f780",
         "src/shards/pine-hollow/data/rigBlobs.generated.json"
+      ]
+    },
+    {
+      "id": "template-boss-decision",
+      "shard": "_template",
+      "entry": "src/shards/_template/generators/bake-boss.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/_template/generators/bake-boss.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/compileScript.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/decisionBindingMap.ts",
+        "src/sdk/package.json",
+        "src/shards/_template/data/bossDecision.ts",
+        "src/shards/_template/generators/bossGlue.ts",
+        "src/shards/_template/behaviour/boss.as",
+        "src/shards/_template/generators/bake-boss.mjs"
+      ],
+      "outputs": [
+        "src/shards/_template/behaviour/boss.json",
+        "src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/_template/behaviour/boss.json",
+        "src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60"
       ]
     }
   ]

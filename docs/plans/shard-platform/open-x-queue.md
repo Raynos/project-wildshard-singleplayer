@@ -50,7 +50,7 @@ them early. The ids carry a `K` so they don't collide with the shardfile rows ab
 | KS6 | Signal sim out of TS: drop the `world/build.ts` flag writes, lash cracks through strike targets, bucket `restoreFrom` | S | Codex | open |
 | KR1 | Ruler and report: AS column beside custom %, net lines, script metrics row | S | Codex | open |
 | KP1 | Milestone proof: both shards' sim from the built shardfile alone (`prove`), then the soak and frame floor | S | Opus | open |
-| KT2 | = T2 above (Template reference Wasm encounter), built on KA1–KA4 | M | Codex | open |
+| KT2 | = T2 above (Template reference Wasm encounter), built on KA1–KA4 | M | sp-x8 | reference built: critical named ABI-v1 Wasm, `sim/scripts` + `actors/moves`, real DecisionHost scenario (under 2 s), logical fresh-host save continuation. KA3 replaces Template-only `generators/bossGlue.ts`; KA6 supplies page/SDK worker event wiring |
 
 ## Part A: open engineering, assigned
 

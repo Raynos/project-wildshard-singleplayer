@@ -25,11 +25,23 @@ The first-party manifest keeps the canonical `_template` slug, grey picker art a
 `template-solo` save identity, and points at `/shardfiles/_template/shard.json`.
 The existing Game admits the product before its normal world/kit/play stages, sharing
 one player, physics world, fixed-step driver and HUD. There is no custom runtime chunk.
-`shard.config.ts` includes build-time `data/card.ts` metadata and an explicit
-`output` block for named blob inputs. Budgets live in `data/` too. Root
+`shard.config.ts` includes build-time `data/card.ts` metadata;
+`generators/output.ts` declares named blobs and platform sections. Budgets live in `data/` too. Root
 `manifest.json` is a temporary discovery bridge only: P3 catalog activation
 removes it, together with the generated discovery module. Runtime code never
 imports `data/card.ts`. Keep bridge metadata synchronized until that switch.
+
+The KT2 reference in `behaviour/boss.as` binds `template.boss` through the
+`sim/scripts` section. It approaches, alternates timed strikes and moves,
+accelerates at the second-phase threshold, wins on death and resets on stop.
+The fixed-step engine owns the declared `actors/moves` and strike mechanics.
+`template-boss-decision` compiles one fixed Wasm page; the scenario at
+`test/scripts/_template-boss.test.ts` runs those built bytes through the real
+DecisionHost, including a logical save restored into a fresh host. The
+Template stays runtime-free. Its explicit reference registries and temporary
+`generators/bossGlue.ts` transport are shared by the compiler and scenario;
+KA3 replaces the handwritten glue, and KA6 wires the page events/commands.
+The scenario does not compile AS or invent a second motion implementation.
 
 A copied author project does not need a custom runtime. If one is necessary,
 use `runtime/index.ts`, `runtime/sections.ts` for custom-section schemas and
