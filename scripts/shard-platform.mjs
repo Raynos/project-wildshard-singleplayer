@@ -863,6 +863,12 @@ export function outputShardLines(root = ROOT, includeSources = false, products =
 export function shardLines(root = ROOT, includeSources = false) {
   return outputShardLines(root, includeSources);
 }
+/** Source-basis progress inventory, including component spans and sole-user charges.
+ * Never supplies canonical output percentages for an unclosed shard. */
+export function sourceProgressInventory(root = ROOT, products = resolve(root,'out')) {
+  const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true,products);
+  return Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{...row,measurement:'source'}]));
+}
 /** G458 progress only. The canonical custom percentage remains unavailable for
  * unclosed shards. Preserve the predecessor's source/G294 law for this labelled
  * estimate rather than disguising the output/source unit change as a cut. */

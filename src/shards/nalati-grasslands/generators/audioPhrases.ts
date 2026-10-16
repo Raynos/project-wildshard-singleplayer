@@ -23,7 +23,7 @@ function ordered(input:Step[]):Step[]{
    if(['kind','out','type','when','vibrato','envelope'].includes(key))continue;
    const parsed=v.parse(AudioPhraseProgramSchema,{steps:[step]}).steps[0];if(parsed===undefined)throw new Error('Missing phrase step');
    const scalar=Reflect.get(parsed,key) as E;
-   if(randomExpr(scalar)){const id=`arg.${serial++}`;rows.push(value(id,scalar));Reflect.set(made,key,id);}
+   if(randomExpr(scalar)){const id=`arg.${serial++}`;rows.push({...value(id,scalar),...(step.when===undefined?{}:{when:step.when})});Reflect.set(made,key,id);}
   }
   return [...rows,made];
  });
@@ -74,4 +74,58 @@ const programs:Record<string,Step[]>={
 for(const [name,f] of [['wolf_yelp',1150],['dog_yelp',1400]] as const)programs[name]=[
  tone({t:'at',type:'sawtooth',f0:f,f1:mul(f,.5),glide:.32,gain:.55,attack:.01,hold:.04,decay:.3,vibrato:{rate:26,depth:40},lowpass:3600}),
  tone({t:add('at',.36),type:'sine',f0:mul(f,.7),f1:mul(f,.55),glide:.25,gain:.22,attack:.02,decay:.25,vibrato:{rate:12,depth:20}})];
-export const NALATI_CALL_PHRASES:Readonly<Record<string,AudioPhraseProgram>>=Object.fromEntries(Object.entries(programs).map(([name,steps])=>[name,v.parse(AudioPhraseProgramSchema,{steps:ordered(steps)})]));
+programs['native.thunder']=[
+ burst({when:['lt','distance',400],t:'at',type:'highpass',freq:900,q:.3,gain:mul(.9,'near'),attack:.004,decay:.35,pan:'pan'}),
+ burst({when:['lt','distance',400],t:add('at',.03),type:'bandpass',freq:2400,freqEnd:500,q:.5,gain:mul(.5,'near'),attack:.01,decay:.8,pan:'pan'}),
+ value('rolls',add(3,['floor',random(0,3)])),repeat('rolls',5,'i',[
+  value('ti',add('at',mul('i',random(.25,.7)),['if',['gt','distance',400],random(0,.4),.05])),
+  burst({t:'ti',type:'lowpass',freq:add(160,mul(220,'near',random(.6,1))),q:.8,gain:mul('level',random(.35,.6)),attack:random(.05,.25),hold:random(.1,.5),decay:random(1.4,3.2),pan:mul('pan',.6),rate:random(.5,.8)})])];
+programs['native.lightning']=[repeat(26,26,'i',[
+ value('k',['/','i',26]),value('ti',add('at',mul('k',1.15),random(0,.03))),
+ burst({t:'ti',type:'bandpass',freq:random(2500,7000),q:2,gain:mul('gain',add(.05,mul(.2,'k','k')),random(.5,1)),attack:.001,decay:random(.01,.04),pan:'pan'})]),
+ burst({t:'at',type:'bandpass',freq:5200,q:1.2,gain:mul(.05,'gain'),attack:1,decay:.15,pan:'pan'})];
+programs['native.hooves']=[value('offset',random(.03,.06)),repeat(2,2,'i',[
+ value('ti',add('at',['if','i','offset',0])),
+ tone({when:'wood',t:'ti',type:'triangle',f0:random(170,210),f1:120,glide:.06,gain:.45,decay:.1}),
+ burst({when:'wood',t:'ti',type:'bandpass',freq:900,q:2,gain:.35,decay:.05}),
+ burst({when:'gravel',t:'ti',type:'bandpass',freq:random(1800,2600),q:.7,gain:.3,decay:random(.05,.08)}),
+ tone({when:'gravel',t:'ti',type:'sine',f0:random(70,85),f1:45,glide:.04,gain:.3,decay:.07}),
+ tone({when:['not',['or','wood','gravel']],t:'ti',type:'sine',f0:random(55,70),f1:38,glide:.05,gain:.35,decay:.08}),
+ burst({when:['not',['or','wood','gravel']],t:'ti',type:'lowpass',freq:random(180,260),gain:.35,decay:.07}),
+ burst({when:['not',['or','wood','gravel']],t:'ti',type:'bandpass',freq:3200,q:.6,gain:.05,decay:.08})])];
+programs['native.bowTwang']=[
+ tone({t:'at',type:'triangle',f0:add(150,mul(40,'power')),f1:118,glide:.18,gain:add(.35,mul(.3,'power')),attack:.002,decay:.28,vibrato:{rate:38,depth:6}}),
+ tone({t:'at',type:'sawtooth',f0:add(300,mul(80,'power')),f1:240,glide:.1,gain:add(.12,mul(.1,'power')),attack:.002,decay:.14,lowpass:1800}),
+ burst({t:'at',type:'highpass',freq:2500,gain:mul(.3,'power'),decay:.02}),burst({t:'at',type:'lowpass',freq:260,gain:mul(.4,'power'),decay:.08})];
+programs['native.bowDraw']=[tone({t:'at',type:'sawtooth',f0:random(95,115),f1:random(130,150),glide:.7,gain:.05,attack:.15,hold:.4,decay:.25,vibrato:{rate:23,depth:14},lowpass:1100}),
+ burst({t:'at',type:'bandpass',freq:1300,freqEnd:2100,q:3,gain:.04,attack:.2,hold:.35,decay:.2})];
+programs['native.bowFullDraw']=[burst({t:'at',type:'highpass',freq:3200,gain:.12,decay:.012}),
+ tone({t:add('at',.01),type:'sawtooth',f0:150,f1:138,glide:.1,gain:.04,attack:.01,decay:.12,vibrato:{rate:30,depth:10},lowpass:1400})];
+programs['native.bowLetDown']=[tone({t:'at',type:'sawtooth',f0:random(140,150),f1:random(95,105),glide:.45,gain:.04,attack:.05,hold:.15,decay:.3,vibrato:{rate:21,depth:12},lowpass:1000}),
+ burst({t:add('at',.35),type:'bandpass',freq:2400,q:2,gain:.03,decay:.05})];
+programs['native.arrowImpact']=[
+ burst({when:'wood',t:'at',type:'bandpass',freq:1500,q:1.8,gain:mul(.55,'gain'),decay:.05,pan:'pan'}),
+ tone({when:'wood',t:'at',type:'triangle',f0:95,f1:88,glide:.35,gain:mul(.3,'gain'),attack:.003,decay:.35,vibrato:{rate:24,depth:9},pan:'pan'}),
+ burst({when:'flesh',t:'at',type:'lowpass',freq:600,gain:mul(.7,'gain'),decay:.08,pan:'pan'}),
+ tone({when:'flesh',t:'at',type:'sine',f0:110,f1:60,glide:.06,gain:mul(.45,'gain'),decay:.1,pan:'pan'}),
+ burst({when:['not',['or','wood','flesh']],t:'at',type:'lowpass',freq:380,gain:mul(.5,'gain'),decay:.07,pan:'pan'}),
+ burst({when:['not',['or','wood','flesh']],t:'at',type:'bandpass',freq:2400,q:.8,gain:mul(.08,'gain'),decay:.08,pan:'pan'})];
+programs['native.javelinThrow']=[burst({t:'at',type:'bandpass',freq:1400,freqEnd:300,q:1,gain:.3,attack:.04,decay:.45}),
+ burst({t:'at',type:'lowpass',freq:500,gain:.2,attack:.02,decay:.12}),tone({t:'at',type:'sawtooth',f0:150,f1:110,glide:.12,gain:.08,attack:.02,decay:.12,lowpass:700})];
+programs['native.javelinImpact']=[tone({t:'at',type:'sine',f0:120,f1:48,glide:.08,gain:mul(.6,'gain'),decay:.14,pan:'pan'}),
+ burst({t:'at',type:'lowpass',freq:['if','flesh',500,700],gain:mul(.55,'gain'),decay:.1,pan:'pan'}),
+ tone({when:'wood',t:'at',type:'triangle',f0:70,f1:64,glide:.5,gain:mul(.3,'gain'),decay:.5,vibrato:{rate:18,depth:6},pan:'pan'}),
+ burst({when:['not',['or','wood','flesh']],t:add('at',.02),type:'bandpass',freq:1800,q:.7,gain:mul(.12,'gain'),decay:.12,pan:'pan'})];
+programs['native.spearThrust']=[burst({t:'at',type:'bandpass',freq:900,freqEnd:2600,q:1.2,gain:.3,attack:.02,decay:.14}),tone({t:'at',type:'triangle',f0:230,f1:190,glide:.08,gain:.07,attack:.01,decay:.08})];
+programs['native.lark']=[value('pan',random(-.8,.8)),{kind:'bus',id:'bird',out:'out',gain:random(.05,.09),pan:'pan'},value('time','t'),value('n',add(10,['floor',random(0,18)])),value('base',random(3200,4400)),
+ repeat('n',27,'i',[value('f',mul('base',random(.8,1.25))),value('d',random(.03,.07)),value('f1',mul('f',random(.85,1.2))),value('rate',random(40,80)),value('depth',random(60,200)),
+ {...tone({t:'time',type:'sine',f0:'f',f1:'f1',glide:'d',gain:1,attack:.006,decay:'d',vibrato:{rate:'rate',depth:'depth'}}),out:'bird'},value('time',add('time','d',random(.01,.05)))])];
+programs['native.cricket']=[value('f',random(4200,4900)),{kind:'bus',id:'insect',out:'out',gain:mul(.02,'level',random(.5,1)),pan:random(-.9,.9)},value('n',add(3,['floor',random(0,2)])),
+ repeat('n',4,'i',[{...tone({t:add('t',mul('i',.045)),type:'sine',f0:'f',gain:1,attack:.004,decay:.025}),out:'insect'}])];
+programs['native.crackle']=[burst({t:'t',type:'highpass',freq:random(1500,3500),gain:mul(random(.02,.09),'level'),decay:random(.006,.025),pan:random(-.3,.3)}),
+ value('pop',['lt','random',.08]),burst({when:'pop',t:add('t',.01),type:'bandpass',freq:random(600,1100),q:1.2,gain:mul(.12,'level'),decay:.04})];
+programs['native.steelRing']=[[2380,1,.9],[3710,.6,.7],[5160,.35,.5],[5190,.3,.5]].map(([f,g,d])=>{
+ if(f===undefined||g===undefined||d===undefined)throw new Error('Missing steel partial');
+ return tone({t:'at',type:'sine',f0:mul(f,random(.99,1.01)),gain:mul('gain',g),attack:.003,decay:d,pan:'pan'});
+});
+export const NALATI_PHRASES:Readonly<Record<string,AudioPhraseProgram>>=Object.fromEntries(Object.entries(programs).map(([name,steps])=>[name,v.parse(AudioPhraseProgramSchema,{steps:ordered(steps)})]));

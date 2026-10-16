@@ -89,6 +89,10 @@ export class SteppeVoices {
     a.playPhrase(requireAudioProfile(source.audio.synth?.[kind],`nalati.call.${kind}`), bus, {at: t});
   }
 
+  private phrase(id: string, values: Readonly<Record<string, number>>, out: AudioNode = this.a.sfx): void {
+    this.a.playPhrase(requireAudioProfile(source.audio.synth?.[`native.${id}`], id), out, values);
+  }
+
   // ─────────────── weather (the storms) ───────────────
   /** the storm beds: `rain` 0..1 (a close patter + a wide hiss), `wind` 0..1 (a low roar, brighter as it rises). Built on first use. */
   setStorm(rainIn: number, windIn: number): void {
@@ -138,17 +142,7 @@ export class SteppeVoices {
       a.route(lp, pan * 0.6);
       if (a.shot(distance < 400 ? 'thunder-near' : 'thunder-far', { out: lp, t, gain: 0.5 + 0.7 * near })) return;
     }
-    if (distance < 400) {
-      // the crack: a bright broadband tear, then a snapping tail
-      a.burst({ t, type: 'highpass', freq: 900, q: 0.3, gain: 0.9 * near, attack: 0.004, decay: 0.35, pan });
-      a.burst({ t: t + 0.03, type: 'bandpass', freq: 2400, freqEnd: 500, q: 0.5, gain: 0.5 * near, attack: 0.01, decay: 0.8, pan });
-    }
-    // the rumble: several low noise rolls, overlapping, each a little later and lower
-    const rolls = 3 + Math.floor(rnd(0, 3));
-    for (let i = 0; i < rolls; i++) {
-      const at = t + i * rnd(0.25, 0.7) + (distance > 400 ? rnd(0, 0.4) : 0.05);
-      a.burst({ t: at, type: 'lowpass', freq: 160 + 220 * near * rnd(0.6, 1), q: 0.8, gain: level * rnd(0.35, 0.6), attack: rnd(0.05, 0.25), hold: rnd(0.1, 0.5), decay: rnd(1.4, 3.2), pan: pan * 0.6, rate: rnd(0.5, 0.8) });
-    }
+    this.phrase('thunder', {at: t, distance, near, level, pan});
   }
 
   /** the static crackle before a strike (1.2 s of dry snaps, rising) */
@@ -158,12 +152,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally('lightningCrackle');
     if (a.shot('lightningCrackle', { pan, gain })) return;
-    const t0 = a.ctx.currentTime;
-    for (let i = 0; i < 26; i++) {
-      const k = i / 26, t = t0 + k * 1.15 + rnd(0, 0.03);
-      a.burst({ t, type: 'bandpass', freq: rnd(2500, 7000), q: 2, gain: gain * (0.05 + 0.2 * k * k) * rnd(0.5, 1), attack: 0.001, decay: rnd(0.01, 0.04), pan });
-    }
-    a.burst({ t: t0, type: 'bandpass', freq: 5200, q: 1.2, gain: 0.05 * gain, attack: 1.0, decay: 0.15, pan });
+    this.phrase('lightning', {at: a.ctx.currentTime, pan, gain});
   }
 
   // ─────────────── hooves, the stampede, the steppe weapons ───────────────
@@ -174,20 +163,7 @@ export class SteppeVoices {
     if (t - this.lastHoof < 0.055 * (1 + dist / 20)) return;
     this.lastHoof = t;
     if (a.shot(`hoof-${surf}`, { out: bus, t, gain: 0.8 })) return; // one sampled take is the whole pair
-    for (const b of [0, rnd(0.03, 0.06)]) {
-      const ti = t + b;
-      if (surf === 'wood') { // the bridge deck: a hollow knock
-        a.tone({ t: ti, type: 'triangle', f0: rnd(170, 210), f1: 120, glide: 0.06, gain: 0.45, decay: 0.1, out: bus });
-        a.burst({ t: ti, type: 'bandpass', freq: 900, q: 2, gain: 0.35, decay: 0.05, out: bus });
-      } else if (surf === 'gravel') { // stones: a crunch over the thud
-        a.burst({ t: ti, type: 'bandpass', freq: rnd(1800, 2600), q: 0.7, gain: 0.3, decay: rnd(0.05, 0.08), out: bus });
-        a.tone({ t: ti, type: 'sine', f0: rnd(70, 85), f1: 45, glide: 0.04, gain: 0.3, decay: 0.07, out: bus });
-      } else { // turf: soft, low, a swish of grass
-        a.tone({ t: ti, type: 'sine', f0: rnd(55, 70), f1: 38, glide: 0.05, gain: 0.35, decay: 0.08, out: bus });
-        a.burst({ t: ti, type: 'lowpass', freq: rnd(180, 260), gain: 0.35, decay: 0.07, out: bus });
-        a.burst({ t: ti, type: 'bandpass', freq: 3200, q: 0.6, gain: 0.05, decay: 0.08, out: bus });
-      }
-    }
+    this.phrase('hooves', {at: t, wood: Number(surf === 'wood'), gravel: Number(surf === 'gravel')}, bus);
   }
 
   /** a herd stampeding `distance` m away: a rolling ground rumble under a scatter of hooves (~3.5 s) */
@@ -214,10 +190,7 @@ export class SteppeVoices {
     a.tally('bowTwang');
     const t = a.ctx.currentTime, p = Math.max(0.2, Math.min(1, power));
     if (a.shot('bowTwang', { gain: 0.55 + 0.45 * p, rate: 0.94 + 0.08 * p })) { this.arrowWhoosh(p); return; }
-    a.tone({ t, type: 'triangle', f0: 150 + 40 * p, f1: 118, glide: 0.18, gain: 0.35 + 0.3 * p, attack: 0.002, decay: 0.28, vibrato: { rate: 38, depth: 6 } });
-    a.tone({ t, type: 'sawtooth', f0: 300 + 80 * p, f1: 240, glide: 0.1, gain: 0.12 + 0.1 * p, attack: 0.002, decay: 0.14, lowpass: 1800 });
-    a.burst({ t, type: 'highpass', freq: 2500, gain: 0.3 * p, decay: 0.02 });
-    a.burst({ t, type: 'lowpass', freq: 260, gain: 0.4 * p, decay: 0.08 });
+    this.phrase('bowTwang', {at: t, power: p});
     this.arrowWhoosh(p);
   }
 
@@ -239,9 +212,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally('bowDraw');
     if (a.shot('bowDraw', { gain: 0.7 })) return;
-    const t = a.ctx.currentTime;
-    a.tone({ t, type: 'sawtooth', f0: rnd(95, 115), f1: rnd(130, 150), glide: 0.7, gain: 0.05, attack: 0.15, hold: 0.4, decay: 0.25, vibrato: { rate: 23, depth: 14 }, lowpass: 1100 });
-    a.burst({ t, type: 'bandpass', freq: 1300, freqEnd: 2100, q: 3, gain: 0.04, attack: 0.2, hold: 0.35, decay: 0.2 });
+    this.phrase('bowDraw', {at: a.ctx.currentTime});
   }
 
   /** full draw reached (Bow.onFullDraw): one tight creak and the nock's click */
@@ -251,9 +222,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally('bowFullDraw');
     if (a.shot('bowFullDraw', { gain: 0.6 })) return;
-    const t = a.ctx.currentTime;
-    a.burst({ t, type: 'highpass', freq: 3200, gain: 0.12, decay: 0.012 });
-    a.tone({ t: t + 0.01, type: 'sawtooth', f0: 150, f1: 138, glide: 0.1, gain: 0.04, attack: 0.01, decay: 0.12, vibrato: { rate: 30, depth: 10 }, lowpass: 1400 });
+    this.phrase('bowFullDraw', {at: a.ctx.currentTime});
   }
 
   /** the draw eased back without a shot (Bow.onLetDown: an early release, or the arm tiring) */
@@ -263,9 +232,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally('bowLetDown');
     if (a.shot('bowLetDown', { gain: 0.6 })) return;
-    const t = a.ctx.currentTime;
-    a.tone({ t, type: 'sawtooth', f0: rnd(140, 150), f1: rnd(95, 105), glide: 0.45, gain: 0.04, attack: 0.05, hold: 0.15, decay: 0.3, vibrato: { rate: 21, depth: 12 }, lowpass: 1000 });
-    a.burst({ t: t + 0.35, type: 'bandpass', freq: 2400, q: 2, gain: 0.03, decay: 0.05 });
+    this.phrase('bowLetDown', {at: a.ctx.currentTime});
   }
 
   /** an arrow striking: the shaft's quiver in wood, a dull thump in the turf, a wet thud in flesh */
@@ -275,17 +242,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally(`arrowImpact:${kind}`);
     if (a.shot(`arrowImpact-${kind}`, { pan, gain })) return;
-    const t = a.ctx.currentTime;
-    if (kind === 'wood') {
-      a.burst({ t, type: 'bandpass', freq: 1500, q: 1.8, gain: 0.55 * gain, decay: 0.05, pan });
-      a.tone({ t, type: 'triangle', f0: 95, f1: 88, glide: 0.35, gain: 0.3 * gain, attack: 0.003, decay: 0.35, vibrato: { rate: 24, depth: 9 }, pan });
-    } else if (kind === 'flesh') {
-      a.burst({ t, type: 'lowpass', freq: 600, gain: 0.7 * gain, decay: 0.08, pan });
-      a.tone({ t, type: 'sine', f0: 110, f1: 60, glide: 0.06, gain: 0.45 * gain, decay: 0.1, pan });
-    } else {
-      a.burst({ t, type: 'lowpass', freq: 380, gain: 0.5 * gain, decay: 0.07, pan });
-      a.burst({ t, type: 'bandpass', freq: 2400, q: 0.8, gain: 0.08 * gain, decay: 0.08, pan });
-    }
+    this.phrase('arrowImpact', {at: a.ctx.currentTime, wood: Number(kind === 'wood'), flesh: Number(kind === 'flesh'), pan, gain});
   }
 
   /** a javelin thrown: a grunt of effort and a long heavy whoosh */
@@ -295,10 +252,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally('javelinThrow');
     if (a.shot('javelinThrow')) return;
-    const t = a.ctx.currentTime;
-    a.burst({ t, type: 'bandpass', freq: 1400, freqEnd: 300, q: 1, gain: 0.3, attack: 0.04, decay: 0.45 });
-    a.burst({ t, type: 'lowpass', freq: 500, gain: 0.2, attack: 0.02, decay: 0.12 });
-    a.tone({ t, type: 'sawtooth', f0: 150, f1: 110, glide: 0.12, gain: 0.08, attack: 0.02, decay: 0.12, lowpass: 700 });
+    this.phrase('javelinThrow', {at: a.ctx.currentTime});
   }
 
   /** a javelin landing: heavier than an arrow — a deep thump, the shaft ringing in wood */
@@ -308,11 +262,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally(`javelinImpact:${kind}`);
     if (a.shot(`javelinImpact-${kind}`, { pan, gain })) return;
-    const t = a.ctx.currentTime;
-    a.tone({ t, type: 'sine', f0: 120, f1: 48, glide: 0.08, gain: 0.6 * gain, decay: 0.14, pan });
-    a.burst({ t, type: 'lowpass', freq: kind === 'flesh' ? 500 : 700, gain: 0.55 * gain, decay: 0.1, pan });
-    if (kind === 'wood') a.tone({ t, type: 'triangle', f0: 70, f1: 64, glide: 0.5, gain: 0.3 * gain, decay: 0.5, vibrato: { rate: 18, depth: 6 }, pan });
-    else if (kind === 'ground') a.burst({ t: t + 0.02, type: 'bandpass', freq: 1800, q: 0.7, gain: 0.12 * gain, decay: 0.12, pan });
+    this.phrase('javelinImpact', {at: a.ctx.currentTime, wood: Number(kind === 'wood'), flesh: Number(kind === 'flesh'), pan, gain});
   }
 
   /** the sabre's cut: a thin fast swish and the steel's ring */
@@ -340,9 +290,7 @@ export class SteppeVoices {
 
   /** a thin inharmonic steel ring (three partials, a slow beat between the upper two) */
   private steelRing(t: number, gain: number, pan = 0): void {
-    for (const [f, g, d] of [[2380, 1, 0.9], [3710, 0.6, 0.7], [5160, 0.35, 0.5], [5190, 0.3, 0.5]] as const) {
-      this.a.tone({ t, type: 'sine', f0: f * rnd(0.99, 1.01), gain: gain * g, attack: 0.003, decay: d, pan });
-    }
+    this.phrase('steelRing', {at: t, gain, pan});
   }
 
   /** the spear's thrust: a short upward rip of air and the shaft's creak */
@@ -352,9 +300,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally('spearThrust');
     if (a.shot('spearThrust')) return;
-    const t = a.ctx.currentTime;
-    a.burst({ t, type: 'bandpass', freq: 900, freqEnd: 2600, q: 1.2, gain: 0.3, attack: 0.02, decay: 0.14 });
-    a.tone({ t, type: 'triangle', f0: 230, f1: 190, glide: 0.08, gain: 0.07, attack: 0.01, decay: 0.08 });
+    this.phrase('spearThrust', {at: a.ctx.currentTime});
   }
 
   // ─────────────── the synth steppe bed ───────────────
@@ -425,16 +371,7 @@ export class SteppeVoices {
 
   /** a skylark high up: a long tumbling trill of quick bright notes */
   private lark(): void {
-    const a = this.a, c = a.ctx, t0 = c.currentTime, pan = rnd(-0.8, 0.8);
-    const bus = c.createGain(); bus.gain.value = rnd(0.05, 0.09);
-    a.route(bus, pan, a.ambient);
-    let t = t0;
-    const n = 10 + Math.floor(rnd(0, 18)), base = rnd(3200, 4400);
-    for (let i = 0; i < n; i++) {
-      const f = base * rnd(0.8, 1.25), d = rnd(0.03, 0.07);
-      a.tone({ t, type: 'sine', f0: f, f1: f * rnd(0.85, 1.2), glide: d, gain: 1, attack: 0.006, decay: d, vibrato: { rate: rnd(40, 80), depth: rnd(60, 200) }, out: bus });
-      t += d + rnd(0.01, 0.05);
-    }
+    this.phrase('lark', {}, this.a.ambient);
   }
 
   private scheduleCricket(): void {
@@ -450,11 +387,7 @@ export class SteppeVoices {
 
   /** a cricket's chirp: three or four quick pulses of a high sine */
   private cricket(level: number): void {
-    const a = this.a, c = a.ctx, t0 = c.currentTime, f = rnd(4200, 4900);
-    const bus = c.createGain(); bus.gain.value = 0.02 * level * rnd(0.5, 1);
-    a.route(bus, rnd(-0.9, 0.9), a.ambient);
-    const n = 3 + Math.floor(rnd(0, 2));
-    for (let i = 0; i < n; i++) a.tone({ t: t0 + i * 0.045, type: 'sine', f0: f, gain: 1, attack: 0.004, decay: 0.025, out: bus });
+    this.phrase('cricket', {level}, this.a.ambient);
   }
 
   private scheduleCrackle(): void {
@@ -463,9 +396,7 @@ export class SteppeVoices {
       ambientTick('audio.crackle', () => {
         const k = this.steppeLv.camp, a = this.a;
         if (a.ambientOn && a.bedId === STEPPE_BED && k > 0.03) {
-          const t = a.ctx.currentTime;
-          a.burst({ t, type: 'highpass', freq: rnd(1500, 3500), gain: rnd(0.02, 0.09) * k, decay: rnd(0.006, 0.025), pan: rnd(-0.3, 0.3), out: a.ambient });
-          if (audioRandom() < 0.08) a.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(600, 1100), q: 1.2, gain: 0.12 * k, decay: 0.04, out: a.ambient }); // a knot pops
+          this.phrase('crackle', {level: k}, a.ambient);
         }
         this.scheduleCrackle();
       });

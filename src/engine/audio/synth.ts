@@ -117,14 +117,14 @@ export abstract class Synth {
       if(step.kind==='tone'){
         const opts:Parameters<Synth['tone']>[0]={f0:value(step.f0),gain:value(step.gain),decay:value(step.decay),out:target(step.out)};
         if(step.type!==undefined)opts.type=step.type;
-        for(const key of ['t','f1','glide','attack','hold','lowpass'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
+        for(const key of ['t','f1','glide','attack','hold','lowpass','pan'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
         if(step.vibrato)opts.vibrato={rate:value(step.vibrato.rate),depth:value(step.vibrato.depth)};
         if(step.envelope)opts.envelope={end:value(step.envelope.end),stop:step.envelope.stop.map(value)};
         this.tone(opts);return;
       }
       const opts:Parameters<Synth['burst']>[0]={freq:value(step.freq),gain:value(step.gain),decay:value(step.decay),out:target(step.out)};
       if(step.type!==undefined)opts.type=step.type;
-      for(const key of ['t','freqEnd','q','attack','hold','rate'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
+      for(const key of ['t','freqEnd','q','attack','hold','rate','pan'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
       this.burst(opts);
     };
     for(const step of program.steps){

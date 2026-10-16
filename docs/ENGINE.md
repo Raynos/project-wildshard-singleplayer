@@ -8103,3 +8103,19 @@ The canoe's admitted transit data supplies the shared mover tuning and XZ
 anchors; the existing page admission still samples live terrain at banks
 (with the declared water minimum) and registry floors at both landings.
 Ride phase, sound/visibility order and the mover surface clock are unchanged.
+
+### Native phrase panning and source census
+
+`AudioPhraseProgram` tone/burst rows accept an optional numeric `pan`
+expression. It forwards to the existing native sound operation, preserving
+its panner creation, clamp and output rather than adding a shared bus.
+Programs without this field retain their existing arguments. Nalati's
+transient weather, hoof, weapon and bed phrases use the same data host as
+Driftwood's gull. Native sample-first gates, live storm loops and timer
+lifetimes remain with their existing owners.
+
+`scripts/shard-platform.mjs#sourceProgressInventory` exposes the full
+source-basis progress inventory, including component spans and sole-user
+charges, after resolving every consumer. Filter its returned map only
+then. Its `measurement: source` label never supplies output percentages
+or closure credit for a shard whose runtime is still unclosed.

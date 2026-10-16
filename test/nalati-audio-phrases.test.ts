@@ -30,7 +30,7 @@ function close(actual:unknown,expected:unknown):void {
 }
 it('replays every migrated call with its original timing, argument and noise draw order',()=>{
  const rows=parseAudioData(audio.audio).synth;
- expect(Object.keys(rows??{}).sort()).toEqual([...new Set(replay.cases.map(row=>row.kind))].sort());
+ expect(Object.keys(rows??{})).toEqual(expect.arrayContaining([...new Set(replay.cases.map(row=>row.kind))]));
  for(const sample of replay.cases){
   const recorder=new Recorder(sample.seed);
   recorder.playPhrase(requireAudioProfile(rows?.[sample.kind],sample.kind),recorder.sfx,{at:replay.at},recorder.random);

@@ -153,11 +153,11 @@ export const SynthBedGraphSchema = v.pipe(v.strictObject({tap:v.exactOptional(id
 /** Bounded ordered mixer primitives. Randomness is an explicit numeric input named `random`. */
 const phraseTone = v.strictObject({kind:v.literal('tone'),when:v.exactOptional(mixExpr),out:id,type:v.exactOptional(synthWave),
   f0:mixExpr,gain:mixExpr,decay:mixExpr,t:v.exactOptional(mixExpr),f1:v.exactOptional(mixExpr),glide:v.exactOptional(mixExpr),
-  attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),lowpass:v.exactOptional(mixExpr),
+  attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),pan:v.exactOptional(mixExpr),lowpass:v.exactOptional(mixExpr),
   vibrato:v.exactOptional(v.strictObject({rate:mixExpr,depth:mixExpr})),envelope:v.exactOptional(v.strictObject({end:mixExpr,stop:v.pipe(v.array(mixExpr),v.maxLength(16))}))});
 const phraseBurst = v.strictObject({kind:v.literal('burst'),when:v.exactOptional(mixExpr),out:id,type:v.exactOptional(v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass'])),
   freq:mixExpr,gain:mixExpr,decay:mixExpr,t:v.exactOptional(mixExpr),freqEnd:v.exactOptional(mixExpr),q:v.exactOptional(mixExpr),
-  attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),rate:v.exactOptional(mixExpr)});
+  attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),pan:v.exactOptional(mixExpr),rate:v.exactOptional(mixExpr)});
 const phraseValue = v.strictObject({kind:v.literal('value'),when:v.exactOptional(mixExpr),id,value:mixExpr});
 const phraseEnvelope = v.strictObject({kind:v.literal('envelope'),out:id,t:mixExpr,ramps:v.pipe(v.array(v.variant('kind',[v.strictObject({kind:v.literal('linear'),value:mixExpr,t:mixExpr}),v.strictObject({kind:v.literal('target'),value:mixExpr,t:mixExpr,tau:mixExpr})])),v.maxLength(16))});
 const phraseBody = v.variant('kind',[phraseValue,phraseTone,phraseBurst]);
