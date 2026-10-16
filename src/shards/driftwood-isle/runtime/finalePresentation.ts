@@ -6,7 +6,7 @@
  *     rises again when you come near. The shared boss bar shows his health and phase while you are in the
  *     arena. His death (`dead:captain`, Spine.ts's kill hook) opens the last step.
  *   - The reward: walk up to the ring. The view eases to the spot where the stone ring frames the ringed planet (found
- *     from `shrine.anchors.ring` and `sky.planetDir`), the day/night clock (sky.dayNight, D3) eases to golden hour and
+ *     in the authored quest-spots row), the day/night clock (sky.dayNight, D3) eases to golden hour and
  *     holds there, the caption fades in; seven seconds later `seen:reward` completes the quest and the clock runs on.
  */
 import * as THREE from 'three';
@@ -20,8 +20,8 @@ import { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { prepareDriftwoodDirector } from './director';
 import stages from '../data/finaleStages.json' with { type: 'json' };
+import spots from '../data/spots.generated.json' with { type: 'json' };
 
-const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;
 
 export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3; rewardPose: { yaw: number; pitch: number; phase: number } }
@@ -49,25 +49,11 @@ interface FinaleRecipe extends Finale {
 function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, app: FinaleHost): FinaleRecipe {
   const { flags, place } = adv;
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
-  const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
   const bar = new BossBar();
   let captain: AdvAnimal | null = null;
 
-  // ── the reward spot: back along the planet's direction from the ring's centre until the eye is at standing height ──
-  const planet = w.sky.planetDir.clone();
-  const flatLen = Math.max(0.2, Math.hypot(planet.x, planet.z));
-  const rewardAt = new THREE.Vector3(ringP.x, ringP.y, ringP.z);
-  {
-    let best = Infinity;
-    for (let sample = 0; sample < 109; sample++) {
-      const d = 3 + sample * 0.25;
-      const x = ringP.x - (planet.x / flatLen) * d, z = ringP.z - (planet.z / flatLen) * d;
-      const eye = adv.floorAt(x, z) + 1.68;
-      const want = ringP.y - (planet.y / flatLen) * d;   // the ray from the eye through the ring's centre climbs at the planet's slope
-      const err = Math.abs(eye - want);
-      if (err < best) { best = err; rewardAt.set(x, adv.floorAt(x, z), z); }
-    }
-  }
+  // The page and native reward controller share the author-only placement row.
+  const target = spots.reward, rewardAt = new THREE.Vector3(target.x, target.y, target.z);
 
   adv.setAnchor('shrine.reward', { x: rewardAt.x, y: rewardAt.y, z: rewardAt.z });   // the quest's last marker
 
@@ -91,7 +77,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   }
   // ── per frame: wake on approach, the boss bar, the reward view ──
   let started = false, completed = false;
-  const rewardPose = { yaw: Math.atan2(-planet.x, -planet.z), pitch: Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1)), phase: GOLDEN };
+  const rewardPose = { yaw: target.yaw, pitch: target.pitch, phase: target.phase };
   const reward = new QuestRewardBeat({ scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
     dayNight: w.sky.dayNight, ...(adv.spine === null ? {} : { objective: adv.spine.objective.root }),
     ...(w.setViewmodel === undefined ? {} : { setViewmodel: w.setViewmodel }), sting: () => { w.music.sting('chunk'); } }, {
