@@ -11,11 +11,11 @@ import { isMesh, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { PINE_FINISHES } from '../../loadout/skins';
-import { loadCodeParts } from '../../world/codeParts';
+import { PINE_FINISHES } from '../loadout/skins';
+import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { QUIVER_MAX } from '../../weapons/Longbow';
-import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../../weapons/longbowView';
+import { QUIVER_MAX } from '../weapons/Longbow';
+import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../weapons/longbowView';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/shards/pine-hollow/models/gear.ts';

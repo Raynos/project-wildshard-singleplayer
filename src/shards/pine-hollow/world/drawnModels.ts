@@ -22,7 +22,7 @@ import type { Undergrowth } from './undergrowth';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 import { pineModels } from './context';
-import { useUndergrowth } from './undergrowthKit';
+import { useUndergrowth } from '../runtime/world/undergrowthKit';
 import { forestTree, useTreeFactory, type ForestTreeParams } from '../runtime/models/forestTree';
 import { fern } from '../runtime/models/fern';
 import { shrub } from '../runtime/models/shrub';

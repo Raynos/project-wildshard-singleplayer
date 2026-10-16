@@ -3,9 +3,9 @@ import type { ProjectileKind } from '@wildshard/engine/combat/view/projectile';
 import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { BowView } from '@wildshard/sdk/weapons/bowProfile';
-import { arrowGeometry, bowPoses, staveBowSpecimen, staveBowView } from '../runtime/viewmodel/staveBow';
-import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from '../data/longbowLook';
-import { ARROW_FLIGHT, ARROW_MAX_FLYING } from './longbowFlight';
+import { arrowGeometry, bowPoses, staveBowSpecimen, staveBowView } from '../viewmodel/staveBow';
+import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from '../../data/longbowLook';
+import { ARROW_FLIGHT, ARROW_MAX_FLYING } from '../../weapons/longbowFlight';
 
 /** The arrow's length (TIP at the origin, shaft along +Z — Projectiles.ts's convention). */
 export const ARROW_LEN = LONGBOW_ARROW.length;

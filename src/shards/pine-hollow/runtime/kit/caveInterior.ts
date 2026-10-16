@@ -5,7 +5,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { insidePolygon, yawLocal, yawWorld, type YawFrame } from '@wildshard/engine/world/yawFrame';
 import { pineLook, setPineLookParam } from '../looks/graphLooks';
-import { codePart } from '../../world/codeParts';
+import { codePart } from '../world/codeParts';
 
 /**
  * A cave cut into the terrain (SHARD-PLATFORM M3, the kit system): one interior baked by a shard's builder, described in

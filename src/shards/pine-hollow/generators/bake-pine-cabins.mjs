@@ -3,7 +3,7 @@
 // (src/shards/pine-hollow/generators/logCabin.ts) runs here only, over the page's own baked terrain grid
 // (public/assets/baked/pine-hollow/terrain.bin), and writes the geometry binary, zlib-compressed, to
 // public/assets/pine-hollow/baked/cabins.bin and its rows (the binary's hash and size, the geometries, the buildings) to
-// src/shards/pine-hollow/data/cabins.json, which the page assembles (src/shards/pine-hollow/world/cabinBake.ts).
+// src/shards/pine-hollow/data/cabins.json, which the page assembles (src/shards/pine-hollow/runtime/world/cabinBake.ts).
 // test/shards/pine-hollow/cabin-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-cabins.mjs
 import { createHash } from 'node:crypto';

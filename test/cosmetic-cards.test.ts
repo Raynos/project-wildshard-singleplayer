@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/cosmetics/locker';
-import { PINE_FINISHES, SKINS } from '../src/shards/pine-hollow/loadout/skins';
-import { pineFinishes, finishPick } from '../src/shards/pine-hollow/loadout/finishes';
+import { PINE_FINISHES, SKINS } from '../src/shards/pine-hollow/runtime/loadout/skins';
+import { pineFinishes, finishPick } from '../src/shards/pine-hollow/runtime/loadout/finishes';
 
 test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', () => {
   const locker = new SkinLocker('pine-hollow', PINE_FINISHES);

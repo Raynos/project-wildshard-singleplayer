@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { loadLodPairInto, lodPairOf, vertexHull, type GlbPart } from '@wildshard/engine/models/glb';
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
-import { pineHeroUrl, type PineHeroId } from './heroFiles';
+import { pineHeroUrl, type PineHeroId } from '../runtime/world/heroFiles';
 
 /**
  * the turn that brings each generation's front (the face the reference showed: the carved glyphs, the lantern's arm, the

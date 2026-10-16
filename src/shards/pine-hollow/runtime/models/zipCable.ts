@@ -6,7 +6,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import { timberMats } from '../../world/timber';
-import { codePart, loadCodeParts } from '../../world/codeParts';
+import { codePart, loadCodeParts } from '../world/codeParts';
 
 export const zipCable = defineModel<Record<string, never>>({
   id: 'pine-hollow/zip-cable', name: 'Zip-line cable', category: 'props', pipeline: 'code',

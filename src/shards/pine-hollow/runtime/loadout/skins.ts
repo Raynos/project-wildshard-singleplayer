@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { WEAPON_FINISHES } from '../data/weaponFinishes';
+import { WEAPON_FINISHES } from '../../data/weaponFinishes';
 import { codePart } from '../world/codeParts';
 
 /** Pine's authored material finishes and legendary sources; application and ownership are generic. */

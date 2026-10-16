@@ -6,7 +6,7 @@
  * Walked through: no collider.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { underPart, underSpecimen } from '../../world/undergrowthKit';
+import { underPart, underSpecimen } from '../world/undergrowthKit';
 
 export const reeds = defineModel<Record<string, never>>({
   id: 'pine-hollow/reeds', name: 'Reeds', category: 'nature', pipeline: 'code',

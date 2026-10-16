@@ -7,7 +7,7 @@
  */
 import type * as THREE from 'three';
 import { fetchDeflated, GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import meta from '../data/codeParts.json' with { type: 'json' };
+import meta from '../../data/codeParts.json' with { type: 'json' };
 
 /** a baked part's name */
 export type CodePartName = keyof typeof meta.parts;

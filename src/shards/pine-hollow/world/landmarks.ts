@@ -36,7 +36,7 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins } from './homestead';
 import { loadPainted } from '../runtime/looks/paintedTextures';
-import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
+import { PINE_HERO_IDS, type PineHeroId } from '../runtime/world/heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
 import { STONE_KINDS, standingStone } from '../runtime/models/standingStone';
@@ -51,7 +51,7 @@ import { fireLookout } from '../runtime/models/fireLookout';
 import { ziplineLanding } from '../runtime/models/ziplineLanding';
 import { creekFootbridge } from '../runtime/models/creekFootbridge';
 import { zipCable } from '../runtime/models/zipCable';
-import { loadCodeParts } from './codeParts';
+import { loadCodeParts } from '../runtime/world/codeParts';
 import { PineCrags } from './crags';
 import { CRAG_ROWS } from './cragBake';
 
@@ -65,7 +65,7 @@ import { CRAG_ROWS } from './cragBake';
 
 // ───────────────────────────── the image-to-3D hero props ─────────────────────────────
 
-/** every prop the landmarks can place (src/shards/pine-hollow/world/heroFiles.ts lists the ones built so far: the rest are skipped) */
+/** every prop the landmarks can place (src/shards/pine-hollow/runtime/world/heroFiles.ts lists the ones built so far: the rest are skipped) */
 /** Native quest readers borrow the same generated landmark facts as the world. */
 export const CANOE_SITE = { x: -67.8, z: 119 };
 export function contractBoardSite(): { x: number; z: number; yaw: number } { return { ...authored.landmarks.contractBoardSite }; }

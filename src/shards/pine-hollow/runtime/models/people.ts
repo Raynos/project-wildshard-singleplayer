@@ -12,7 +12,7 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
  */
 import * as THREE from 'three';
 import { announceModelReady, defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import { codePart, loadCodeParts } from '../../world/codeParts';
+import { codePart, loadCodeParts } from '../world/codeParts';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { standInPerson, type StandInPerson } from '../npc/standInPerson';
 import { NPC_FIGURE } from '../../data/peopleLook';

@@ -3,7 +3,7 @@
  * (src/engine/world/Cabin.ts), so `place` is told the copies are drawn already (`drawnInto`).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { dressedCopy } from '../../world/cabinKit';
+import { dressedCopy } from '../world/cabinKit';
 
 export const porchLantern = defineModel<Record<string, never>>({
   id: 'pine-hollow/porch-lantern', name: 'Porch lantern', category: 'props', pipeline: 'cc0',

@@ -19,7 +19,7 @@ import { PROP_KINDS, type PropKind, type BakedBuilding } from './logKit';
 import { pineModels } from './context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
-import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
+import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from '../runtime/world/cabinBake';
 
 /**
  * Pine Hollow's homestead: the three log cabins and the mill hamlet's five buildings, as a living place (E347: its log kit

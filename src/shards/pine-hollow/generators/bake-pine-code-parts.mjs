@@ -3,7 +3,7 @@
 // stand-in people, the zipline trolley, the canoe, the zip-line cable and the cave's roof patch (over the terrain
 // lattice, public/assets/baked/pine-hollow/terrain.bin). Writes the geometry pack, zlib, hash-named and immutable, to
 // public/assets/pine-hollow/baked/code-parts-<sha12>.bin and its rows (url, hash, geometry rows, each part's geometry)
-// to src/shards/pine-hollow/data/codeParts.json, which the page reads (src/shards/pine-hollow/world/codeParts.ts).
+// to src/shards/pine-hollow/data/codeParts.json, which the page reads (src/shards/pine-hollow/runtime/world/codeParts.ts).
 // `--check` refuses stale outputs.
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-code-parts.mjs
 import { createHash } from 'node:crypto';

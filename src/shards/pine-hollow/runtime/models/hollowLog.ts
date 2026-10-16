@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { cabinMats, type Mats } from '../../world/homestead';
-import { codePart, loadCodeParts } from '../../world/codeParts';
+import { codePart, loadCodeParts } from '../world/codeParts';
 import HOLLOW_LOG_SHAPE from '../../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 

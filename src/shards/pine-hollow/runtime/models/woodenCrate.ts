@@ -5,7 +5,7 @@
  * (`drawnInto`). Each copy collides as its own box, the scan's bounds (`propBox`, E315).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { propBox, propPart } from '../../world/cabinKit';
+import { propBox, propPart } from '../world/cabinKit';
 
 export const woodenCrate = defineModel<Record<string, never>>({
   id: 'pine-hollow/wooden-crate', name: 'Wooden crate', category: 'props', pipeline: 'cc0',

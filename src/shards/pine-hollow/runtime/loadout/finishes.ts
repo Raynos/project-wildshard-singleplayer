@@ -1,5 +1,5 @@
 import type { EffectDef } from '@wildshard/engine/combat/effects/types';
-import { pineFinishEffect } from './effects';
+import { pineFinishEffect } from '../../loadout/effects';
 /**
  * Pine Hollow's FINISHES row on the Bag's GEAR (E314, Jake's pick C, art/loot/round-3-other-shards/board-1-pine-hollow.jpg):
  * every crossbow / lever-action finish (src/engine/player/Skins.ts) as a tap-to-wear card, the ones you don't own yet dim with
@@ -11,7 +11,7 @@ import { pineFinishEffect } from './effects';
  */
 import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import { SKINS } from './skins';
-import { FINISH_CARDS } from '../data/finishCards';
+import { FINISH_CARDS } from '../../data/finishCards';
 
 export const PINE_FINISH_EFFECTS: readonly EffectDef[] = FINISH_CARDS.map(({ id }) => pineFinishEffect(id, SKINS[id].weapon));
 

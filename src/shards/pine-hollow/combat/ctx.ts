@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import { GroundTell } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
-import type { SkinId } from '../loadout/skins';
+import type { SkinId } from '../runtime/loadout/skins';
 import type { PhShot } from '../runtime/audio/sfx';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Lane } from './lane';

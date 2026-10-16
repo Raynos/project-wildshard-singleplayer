@@ -8,7 +8,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { codePart, loadCodeParts } from '../../world/codeParts';
+import { codePart, loadCodeParts } from '../world/codeParts';
 
 export const tokenShelf = defineModel<Record<string, never>>({
   id: 'pine-hollow/token-shelf', name: 'Token shelf', category: 'props', pipeline: 'code',

@@ -11,14 +11,14 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { loadSiteTimbers } from './timberSites';
-import { mossHint } from './timberBake';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import { BakedBuildingAssembly, NO_BUILDING_OWNER, type BakedBuildingOwner, type BakedBuildingRole, type BakedBuildingTier } from '../runtime/props/bakedBuilding';
-import { CABIN_BUILD } from '../runtime/props/cabinBuild';
-import rows from '../data/cabins.json' with { type: 'json' };
-import { CabinRowsSchema, type CabinRows, type BakedBuilding, type KitMat, type PropKind } from './logKit';
-import type { Mats } from './homestead';
+import type { loadSiteTimbers } from '../../world/timberSites';
+import { mossHint } from '../../world/timberBake';
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import { BakedBuildingAssembly, NO_BUILDING_OWNER, type BakedBuildingOwner, type BakedBuildingRole, type BakedBuildingTier } from '../props/bakedBuilding';
+import { CABIN_BUILD } from '../props/cabinBuild';
+import rows from '../../data/cabins.json' with { type: 'json' };
+import { CabinRowsSchema, type CabinRows, type BakedBuilding, type KitMat, type PropKind } from '../../world/logKit';
+import type { Mats } from '../../world/homestead';
 
 /** Unchanged native owner rows, parsed strictly once. */
 export const CABIN_ROWS: CabinRows = v.parse(CabinRowsSchema, rows);
@@ -49,7 +49,7 @@ export function hamletRoofs(): { x: number; z: number; rot: number; w: number; d
 /** Read the admitted shape library; a bake that fails to load is a page fault (`console.error`), and the buildings stand absent. */
 export async function loadCabinBake(ctx: Parameters<typeof loadSiteTimbers>[0]): Promise<CabinGeometries | null> {
   try {
-    const { loadSiteTimbers: readViews } = await import('./timberSites');
+    const { loadSiteTimbers: readViews } = await import('../../world/timberSites');
     return new CabinGeometries(await readViews(ctx));
   } catch (error: unknown) {
     console.error('[pine-hollow] the baked log buildings did not load:', error);

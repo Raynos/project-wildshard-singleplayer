@@ -5,7 +5,7 @@
  * (`drawnInto`). No collider of its own: it sits in its chopping block's (its building's).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { propPart } from '../../world/cabinKit';
+import { propPart } from '../world/cabinKit';
 
 export const hatchet = defineModel<Record<string, never>>({
   id: 'pine-hollow/hatchet', name: 'Hatchet', category: 'props', pipeline: 'cc0',

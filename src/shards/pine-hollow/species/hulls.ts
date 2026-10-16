@@ -4,7 +4,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { riggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import coatPages from '../data/coatPages.generated.json' with { type: 'json' };
 import { PINE_HULLS } from '../data/creatureHulls';
-import { pineCoatUrl, pineCreatureRigUrl } from './rigs';
+import { pineCoatUrl, pineCreatureRigUrl } from '../runtime/species/rigs';
 
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2), pre-skinned to the
