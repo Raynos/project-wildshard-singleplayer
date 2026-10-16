@@ -22,7 +22,7 @@ const hosts = {
   'actors/creatures': ['game/shardfile/brainRuntime#installDeclaredBrains'],
   'actors/crowds': ['game/shardfile/crowdRuntime#prepareDeclaredCrowds'],
   'actors/npcs': ['game/plugin/simulation#installDeclaredQuestHost'],
-  'actors/species': ['game/shard/declaredRows#declaredSpeciesLook'],
+  'actors/species': ['game/plugin/brain#speciesResolver', 'game/shardfile/clientRecipes#clientSpeciesLooks'],
   'actors/spawns': ['game/shardfile/brainRuntime#installDeclaredBrains'],
   'actors/strikes': [], // Consumed by the runtime's explicitly imported creature host.
   'combat/items': ['game/shardfile/items#installDeclaredItems'],

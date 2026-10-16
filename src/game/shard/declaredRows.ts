@@ -1,7 +1,6 @@
 import { Weather, type WeatherProfile } from '@wildshard/engine/world/weather';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ShardCompendium } from '../compendium/types';
 import type { LootPresentation } from '../loot/runtime';
 import type { ShardRows } from '@wildshard/format/rows';
@@ -19,11 +18,6 @@ export function declaredWeather(row: ShardRows['weather'][number], rng: Rng): We
 }
 /** A complete authored hour schedule runs the existing engine day clock. */
 export function declaredDay(row: ShardRows['days'][number]): DayCycle { return new DayCycle(row); }
-/** Registered view recipes receive pure parameters; missing recipes fail before the view boots. */
-export function declaredSpeciesLook(row: ShardRows['looks'][number], recipes: ReadonlyMap<string, (row: ShardRows['looks'][number]) => SpeciesLook>): SpeciesLook {
-  const recipe = recipes.get(row.recipe); if (recipe === undefined) throw new Error(`Unknown species look recipe ${row.recipe}`);
-  return recipe(row);
-}
 /** Constant stamp/stat data supplies the existing compendium without authored closures. */
 export function declaredCompendium(row: ShardRows['compendiums'][number], rows: ShardRows, chunkId: string, sketchData?: (ref: string) => string): ShardCompendium {
   const kinds = new Map(rows.species.map((species) => [species.id, species.kind]));
