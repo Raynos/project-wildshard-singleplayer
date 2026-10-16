@@ -4,7 +4,7 @@ import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { CableLayout } from '../../../src/sdk/movers';
+import { CableLayout } from '../../../src/engine/sim/cableTraversal';
 
 const { step: QUEST_STEP } = policy;
 

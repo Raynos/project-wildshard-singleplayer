@@ -88,7 +88,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   }, install: (host, context) => {
     const input = bindHeadlessCommands(context), combat = context.combat;
     if (combat === undefined) throw new Error('Pine requires its native combat frame');
-    installPine(host, { species: product.section('actors/species-programs').native, bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, modes: shard.modes ?? { traverse: [] }, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+    installPine(host, { species: product.section('actors/species-programs').native, bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
       interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
@@ -96,7 +96,6 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
 export interface PineInstall {
   readonly species: PineRosterPorts['species'];
   readonly combat: NativeCombatFrame; readonly items: ShardItems;
-  readonly modes: PineQuestPorts['modes'];
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
   readonly director: () => DirectorLane;
   /** Independent admitted night population handler; placement and roster owners remain native. */
@@ -184,7 +183,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
-  quest = installHollowQuest(host, { director: parts.director(), quests: parts.quests ?? PINE_QUESTS, modes: parts.modes, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
+  quest = installHollowQuest(host, { director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster

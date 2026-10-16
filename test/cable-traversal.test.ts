@@ -2,16 +2,36 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Group, PerspectiveCamera, Vector3 } from 'three';
-import { CableTraversal, ZiplineDriver, ZiplineTrolley } from '@wildshard/sdk/movers';
+import { CableTraversal, ZiplineDriver, ZiplineTrolley } from '@wildshard/engine/sim/cableTraversal';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { createSimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
+import { Scope } from '@wildshard/engine/app/scope';
+import { installCableModes, cableModes } from '@wildshard/engine/player/modes';
 import { parseModes } from '@wildshard/format/modes';
 import { PINE_MODES } from '../src/shards/pine-hollow/data/zipline';
 import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/data/modes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rows = [...PINE_MODES.traverse, ...DRIFTWOOD_MODES.traverse].filter(row => row.kind === 'zipline');
+test('mode setup installs once, isolates page/native scopes and refuses missing owners', () => {
+  const page = new Scope('cable-page'), native = new Scope('cable-native'), flags = new Flags('cable-modes', false);
+  try {
+    expect(() => cableModes(page)).toThrow('not installed');
+    const owner = installCableModes(page, rows, flags);
+    expect(cableModes(page)).toBe(owner);
+    expect(installCableModes(page, rows, flags)).toBe(owner);
+    expect(() => installCableModes(page, [], flags)).toThrow('another declaration');
+    expect(() => installCableModes(page, rows, new Flags('other', false))).toThrow('flags owner');
+    const separate = installCableModes(native, rows, flags);
+    const row = rows[0]; if (row === undefined) throw new Error('Missing cable row');
+    owner.start(row.id);
+    expect(separate.state(row.id).riding).toBe(false);
+    expect(separate.declaration(row.id)).toEqual(row);
+  } finally { page.dispose(); native.dispose(); }
+  expect(() => cableModes(page)).toThrow('not installed');
+  expect(() => installCableModes(page, rows, flags)).toThrow('disposed');
+});
 for (const row of rows) test(`${row.id}: page carry, wind, trolley, release and silent continuation`, () => {
   const flags = new Flags('cable-test', false), owner = new CableTraversal([row], flags);
   const rider = { position: new Vector3(), velocity: new Vector3(), carried: false }, expected = { position: new Vector3(), velocity: new Vector3(), carried: false };
@@ -68,9 +88,9 @@ test('both native carry policies keep release positions, impulses and original s
   for (const row of rows) {
     const host = createSimHost(SIM_LEVEL, { rapier }), flags = new Flags('cable-native', false);
     try {
-      const owner = new CableTraversal([row], flags);
-      const rider = { position: host.player.position, velocity: new Vector3(), carried: false };
-      if (row.lifecycle?.native === 'position') owner.bindRider(row.id, rider);
+      const owner = installCableModes(host.scope, [row], flags);
+      owner.bindNative(host);
+      const rider = owner.nativeRider(row.id);
       const reference = new ZiplineDriver(row, () => undefined, row.profile, row.landing), expected = { position: new Vector3(), velocity: new Vector3() };
       owner.start(row.id); reference.start();
       for (let tick = 0; reference.isRiding && tick < 2400; tick++) {

@@ -1,6 +1,5 @@
 import { PINE_DEATH_EFFECTS } from '../data/questDeaths';
-import { CableTraversal } from '@wildshard/sdk/movers';
-import type { ModeRows } from '@wildshard/format/modes';
+import { cableModes } from '@wildshard/engine/player/modes';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
@@ -76,7 +75,6 @@ export interface PineQuestPorts {
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
   readonly quests: QuestData;
   readonly spots: PineSpots;
-  readonly modes: ModeRows;
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
@@ -93,7 +91,7 @@ export interface PineQuestPorts {
   readonly night: () => number;
 }
 export interface PineQuest {
-  readonly cables: CableTraversal;
+  readonly cables: ReturnType<typeof cableModes>;
   readonly quests: ReturnType<typeof installQuestGraph>['quests'];
   readonly stag: StagWalk;
   /** The page's authored seven-kind pack, shared add/trade law, silently restored with the quest. */
@@ -230,7 +228,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const restoreClock = (saved: string): void => { clock.load(saved); };
 
   // ── the ride down the wire (the page's ZipRide law, quest/zipWire.ts) ──
-  const cables = new CableTraversal(ports.modes.traverse, flags), cableId = 'pine.zipline';
+  const cables = cableModes(host.scope), cableId = 'pine.zipline';
   cables.state(cableId);
   const state = { rifle: false };
 

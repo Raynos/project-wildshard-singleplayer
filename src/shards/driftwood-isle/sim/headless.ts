@@ -70,9 +70,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     // the kill hooks: the sailor's flag and the kill feats' ledger facts
     installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, fact);
     // the quest and its interactables at the page's points: `script` commands on `driftwood.interact` (runtime/quest.ts)
-    const zipline = shard.modes?.traverse.find(row => row.id === 'driftwood.zipline');
-    if (zipline?.kind !== 'zipline') throw new Error('Driftwood requires its admitted zipline row');
-    installDriftwoodQuest(host, { zipline, source: shard, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
+    installDriftwoodQuest(host, { source: shard, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
       commands: input.scripts(),
       floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); },
       finale, reward, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => input.walk(level.player.speed) });

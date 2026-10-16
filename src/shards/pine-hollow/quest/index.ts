@@ -77,7 +77,6 @@ import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood } fro
 import type { TradeItem } from '../data/trades';
 import { BoardPanel, CountChip } from './ui';
 import { CanoeRide } from './rides';
-import { CableTraversal } from '@wildshard/sdk/movers';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../runtime/world/context';
@@ -143,7 +142,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const beat: Beat | null = beatParam !== null && isBeat(beatParam) ? beatParam : null;
   if (beat) { flags.reset(); for (const f of beatFlags(beat)) flags.set(f); }
   const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = bindPineFacts(ctx, progress, h.chunkId, facts);
-  const quest = bindRuntimeQuest(ctx, source, 'wardens-hollow', { flags, facts }).state;
+  const { state: quest, cables } = bindRuntimeQuest(ctx, source, 'wardens-hollow', { flags, facts });
 
   let sfx: PineHollowSfx | null = null;
   const kitSfx = new InteractSfx(h.audio);
@@ -335,8 +334,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   });
 
   // ── the rides ──
-  const cables = new CableTraversal(ctx.product.section('state/modes').modes?.traverse ?? [], flags), cableId = 'pine.zipline';
-  let zip: { trolley: THREE.Mesh; prompt: ReturnType<CableTraversal['bindView']> } | null = null, canoe: CanoeRide | null = null;
+  const cableId = 'pine.zipline';
+  let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> } | null = null, canoe: CanoeRide | null = null;
   if (lm) {
     const trolley = new THREE.Mesh(codePart('zip-trolley'), npcMaterial(sky)); trolley.castShadow = true; trolley.name = 'zip-trolley';
     zip = { trolley, prompt: cables.bindView(cableId, trolley, player,

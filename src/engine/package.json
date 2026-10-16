@@ -6,6 +6,7 @@
     "./audio/declaredAmbience": "./audio/declaredAmbience.ts",
     "./audio/declaredBank": "./audio/declaredBank.ts",
     "./sim/moverLifecycle": "./sim/moverLifecycle.ts",
+    "./sim/cableTraversal": "./sim/cableTraversal.ts",
     "./sim/moverMotion": "./sim/moverMotion.ts",
     "./ai/moves": "./ai/moves.ts",
     "./script/decision": "./script/decision.ts",

@@ -2,7 +2,7 @@
 import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
 import { Vector3, Matrix4, Quaternion, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { CableLayout } from '@wildshard/sdk/movers';
+import { CableLayout } from '@wildshard/engine/sim/cableTraversal';
 import { buildZiplineGeometry } from './lookout.ts';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

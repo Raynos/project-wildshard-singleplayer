@@ -1,7 +1,7 @@
 /** Immutable authored zipline draws; the live driver, materials and colliders remain with the world owner. */
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { CableLayout } from '@wildshard/sdk/movers';
+import type { CableLayout } from '@wildshard/engine/sim/cableTraversal';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { ZIPLINE_ROWS as rows } from '../const';
 import { readDriftwoodBlob } from '../boot/blobAssets';

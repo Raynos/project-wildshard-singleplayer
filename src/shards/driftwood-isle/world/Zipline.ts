@@ -5,10 +5,9 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
-import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { zipline, ziplineGeometry } from '../runtime/models/zipline';
-import { CableTraversal, CableLayout, type ZiplineSpec } from '@wildshard/sdk/movers';
+import { type CableTraversal, CableLayout, type ZiplineSpec } from '@wildshard/engine/sim/cableTraversal';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 
 export class Zipline {
@@ -26,13 +25,13 @@ export class Zipline {
   /** its placements (the named places' sets read them, src/shards/driftwood-isle/world/places.ts) */
   placed: Placed | null = null;
 
-  constructor(sky: Sky, spec: ZiplineSpec, row: ConstructorParameters<typeof CableTraversal>[0][number], flags: Flags, rider: { position: THREE.Vector3; velocity: THREE.Vector3; carried: boolean }) {
-    this.sky = sky; this.spec = spec; this.mode = row.id;
+  constructor(sky: Sky, spec: ZiplineSpec, cables: CableTraversal, mode: string, rider: { position: THREE.Vector3; velocity: THREE.Vector3; carried: boolean }) {
+    this.sky = sky; this.spec = spec; this.mode = mode;
     const lay = this.lay = new CableLayout(spec);
     this.a = lay.a; this.b = lay.b;
-    this.cables = new CableTraversal([row], flags);
+    this.cables = cables;
     const flat = lay.flat, position = new THREE.Vector3(this.a.x - flat.x * 0.6, lay.deck.y + 1.0, this.a.z - flat.z * 0.6);
-    this.prompt = this.cables.bindView(row.id, this.carriage, rider, { position, radius: 2.4, label: 'Ride the zipline' });
+    this.prompt = this.cables.bindView(mode, this.carriage, rider, { position, radius: 2.4, label: 'Ride the zipline' });
   }
 
   build(): this {

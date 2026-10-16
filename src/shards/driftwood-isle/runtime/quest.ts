@@ -14,8 +14,7 @@ import { createAchievementCounters } from '@wildshard/game/achievements';
 import { DRIFTWOOD_FEAT_COUNTERS, DRIFTWOOD_NATIVE_PACK } from '../data/questInventory';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { NativeInventory } from '@wildshard/game/inventoryLaw';
-import type { ZiplineMode } from '@wildshard/format/modes';
-import { CableTraversal } from '@wildshard/sdk/movers';
+import { cableModes } from '@wildshard/engine/player/modes';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from '@wildshard/sdk/runtime/prompts';
 
@@ -46,8 +45,6 @@ export interface DriftwoodQuestPorts {
   readonly source: Shardfile;
   readonly table: InteractTable;
   readonly spots: DriftwoodSpots;
-  /** The admitted cable row; the native quest remains the sole carry owner. */
-  readonly zipline: ZiplineMode;
   /** the flag feats (quest/Feats.ts; the kill feats are quest/kills.ts's) */
   readonly feats: Parameters<typeof createAchievementCounters>[0]['feats'];
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
@@ -115,11 +112,9 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const pack = new NativeInventory<string>(DRIFTWOOD_NATIVE_PACK);
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
-  const rider = { position: host.player.position, velocity: new Vector3(), pitch: 0, carried: false,
-    get yaw(): number { return host.player.yaw; }, set yaw(value: number) { host.player.yaw = value; } };
-  if (JSON.stringify(ports.zipline.top) !== JSON.stringify(spots.zipline.top) || JSON.stringify(ports.zipline.bottom) !== JSON.stringify(spots.zipline.bottom) || ports.zipline.sag !== spots.zipline.sag) throw new Error('Driftwood cable row does not match the real native spots');
-  const cables = new CableTraversal([ports.zipline], flags), cableId = ports.zipline.id;
-  cables.bindRider(cableId, rider);
+  const cables = cableModes(host.scope), cableId = 'driftwood.zipline', rider = cables.nativeRider(cableId);
+  const zipline = cables.declaration(cableId);
+  if (JSON.stringify(zipline.top) !== JSON.stringify(spots.zipline.top) || JSON.stringify(zipline.bottom) !== JSON.stringify(spots.zipline.bottom) || zipline.sag !== spots.zipline.sag) throw new Error('Driftwood cable row does not match the real native spots');
   host.usePlayerDriver({ input: command => {
     if (!rider.carried) return false;
     if (command !== undefined && !flags.has(policy.rewardFlag)) host.player.yaw = command.yaw;

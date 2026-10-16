@@ -1,3 +1,4 @@
+import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import { ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
@@ -138,7 +139,10 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry
   })();
   const identity = { id: preparation.shard.identity.slug, seed: preparation.shard.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
-  return plan;
+  return { ...plan, install: (host, context) => {
+    installCableModes(host.scope, preparation.shard.modes?.traverse ?? [], host.flags).bindNative(host);
+    plan.install(host, context);
+  } };
 }
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */

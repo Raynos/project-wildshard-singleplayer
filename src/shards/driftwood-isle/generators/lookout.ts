@@ -12,7 +12,7 @@
  * writes both.
  */
 import * as THREE from 'three';
-import type { CableLayout } from '@wildshard/sdk/movers';
+import type { CableLayout } from '@wildshard/engine/sim/cableTraversal';
 import { SEED } from '@wildshard/engine/core/config';
 import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { log, beam, plank, rope, rock, sagLine, tris } from '@wildshard/engine/world/geometryKit';

@@ -1,3 +1,4 @@
+import { installCableModes } from '@wildshard/engine/player/modes';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
@@ -198,6 +199,8 @@ export interface RuntimeQuestPorts {
 }
 /** A declared quest bound into the runtime's play scope. Coins are the runtime's to pay (its purse and its beat). */
 export interface RuntimeQuest {
+  /** The mode host's admitted cable owner, on this quest's existing scope and flags. */
+  readonly cables: ReturnType<typeof installCableModes>;
   readonly state: QuestState;
   readonly declared: QuestRow;
   readonly reward: { readonly coins: number; readonly fact: string | null };
@@ -226,7 +229,7 @@ export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope'>, sourc
     if (state.isComplete) witness();
     ctx.scope.onDispose(state.observe({ complete: witness }));
   }
-  return { state, declared, reward: { coins: declared.onComplete?.coins ?? 0, fact } };
+  return { state, declared, cables: installCableModes(ctx.scope, source.modes?.traverse ?? [], ports.flags), reward: { coins: declared.onComplete?.coins ?? 0, fact } };
 }
 
 /** What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. */

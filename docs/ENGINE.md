@@ -7862,7 +7862,7 @@ continue through `createCatalogueAudio`.
 
 ### Declared cable traversal (G466 C7)
 
-`@wildshard/sdk/movers.CableTraversal` binds admitted `state/modes`
+`@wildshard/engine/sim/cableTraversal.CableTraversal` binds admitted `state/modes`
 zipline rows to one existing `ZiplineDriver` each. `state(id)` and
 `start(id)` are the actual H2 cable registry, with unknown ids refused.
 Bounded `profile`, `landing`, `lifecycle` and `presentation` fields keep
@@ -7879,12 +7879,16 @@ inside each caller's old save envelope, without a new clock/save owner or
 restore effects. Pine and Driftwood adopt this same owner in page and
 native paths; only their model assembly and sounds/hints remain local.
 
-`combat/items` weapon rows may include strict `equipment` presentation data: the original equipment id and legacy
-slot, UI and menu metadata, sound cues, hit-stop and ranged feel. `readItemEquipment(items, id)` from
-`@wildshard/game/plugin/nativeItems` reads that admitted row and returns an `EquipmentRow`; it refuses a missing
-row or presentation. It takes no factories or callbacks, and installs no service, state, input or save owner.
-Pine's three ranged weapons and Driftwood's swords use the same reader. Authored tables may run entirely in
-`generators/`, while the page reads their emitted `combat/items` section. Pickup creation remains outside the data.
+`@wildshard/engine/player/modes.installCableModes(scope, rows, flags)`
+installs that scope's bounded admitted rows once; `cableModes(scope)` borrows
+its actual owner and refuses missing/disposed scopes. Repeated bindings must
+retain the same rows and flag owner. The page quest binder installs it from
+the admitted modes; native preparation installs it before the selected plan
+and lends the actual native carry/reward pose with `bindNative(host)`.
+No cable controller remains in the SDK. `nativeRider(id)` and
+`declaration(id)` borrow the actual installed pose and validated row. Page
+and native scopes never share a driver; their original update/save phases
+remain separate, including silent old-save continuation.
 
 ### Declared score entry lifecycle (G466 C8)
 
