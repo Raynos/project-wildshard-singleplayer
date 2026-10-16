@@ -3,8 +3,8 @@ import type { DayLookPreset, DayLookSchema } from '@wildshard/sdk/looks/dayLookP
 import type { OvercastRow } from '@wildshard/sdk/looks/overcast';
 
 /**
- * A keyed sky's row types (SHARD-PLATFORM M3, look-family rows; the shared day clock is its clock, `keyedSky` its backdrop) and its
- * key files: import-free at run time, so a shard's boot file list reads the key URLs without the clock.
+ * A keyed sky's row types and its preset schema (SHARD-PLATFORM M3, look-family rows; the shared day clock is its clock,
+ * runtime/looks/keyedSky.ts its backdrop, which also names each key's files): plain data, no functions (W2c).
  */
 
 /** Linear RGB. */
@@ -84,9 +84,4 @@ export interface KeyedSkyStyle extends DayClockStyle<typeof SKY_PRESET> {
   readonly dome: { readonly name: string; readonly radius: number; readonly segments: readonly [number, number] };
   /** the weather's cloud deck over the blended preset (`@wildshard/sdk/looks/overcast`), in order */
   readonly overcast: readonly OvercastRow<SkyPreset>[];
-}
-
-/** A key's file URLs: the colour JPEG and its gain map. */
-export function skyKeyFiles(style: KeyedSkyStyle, key: SkyKeyRow): { color: string; gain: string } {
-  return { color: style.keyFiles.color.replaceAll('{id}', key.id), gain: style.keyFiles.gain.replaceAll('{id}', key.id) };
 }

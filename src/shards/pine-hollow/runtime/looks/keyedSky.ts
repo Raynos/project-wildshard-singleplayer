@@ -7,7 +7,7 @@ import { driveDayAir, driveDayLight, runDayClock } from '@wildshard/sdk/looks/da
 import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/sdk/looks/graphDaySky';
 import { overcastOver } from '@wildshard/sdk/looks/overcast';
 import * as THREE from 'three';
-import { skyKeyFiles, type KeyedSkyStyle, type SKY_PRESET, type SkyPreset } from '../../data/keyedSkyRows';
+import type { KeyedSkyStyle, SKY_PRESET, SkyKeyRow, SkyPreset } from '../../data/keyedSkyRows';
 
 /** A keyed sky's clock: the shared day clock over its row. */
 export type KeyedSkyDay = DayClock<typeof SKY_PRESET, KeyedSkyStyle>;
@@ -35,6 +35,11 @@ export type KeyedSkyDay = DayClock<typeof SKY_PRESET, KeyedSkyStyle>;
  * THE WEATHER lays multipliers over the blended preset (`KeyedSky.mod`, written by the shard's weather every frame), and the
  * look loop a layer over every preset (`KeyedSky.look`); the presets' own numbers are never edited.
  */
+
+/** A key's file URLs (the row's `keyFiles`, `{id}` replaced by the key's id): the colour JPEG and its gain map. */
+function skyKeyFiles(style: KeyedSkyStyle, key: SkyKeyRow): { color: string; gain: string } {
+  return { color: style.keyFiles.color.replaceAll('{id}', key.id), gain: style.keyFiles.gain.replaceAll('{id}', key.id) };
+}
 
 const SHADOW_STEP = 0.25 * Math.PI / 180;
 const tmpC = new THREE.Color();
