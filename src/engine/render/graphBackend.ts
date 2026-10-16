@@ -27,9 +27,6 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
     // Debug ▸ Performance ▸ Direct block writes (sp-o286, default off): live
     handler.directBlockWrites = setting('graphBlockWrites') === 'on';
     onSettingChange('graphBlockWrites', (value) => { handler.directBlockWrites = value === 'on'; });
-    // Debug ▸ Performance ▸ Uniform block ring (sp-o290, default off): live
-    handler.blockRing = setting('graphBlockRing') === 'on';
-    onSettingChange('graphBlockRing', (value) => { handler.blockRing = value === 'on'; });
     return handler;
   });
   installed.set(renderer, loading);

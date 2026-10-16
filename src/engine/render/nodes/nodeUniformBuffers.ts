@@ -26,21 +26,10 @@ interface BlockUniform { readonly value: unknown }
 /** a uniform group as the node handler builds it (three's `UniformsGroup`) */
 export interface BlockGroup { readonly name: string; readonly uniforms: readonly (BlockUniform | readonly BlockUniform[])[] }
 
-/** the extra WebGL 2 calls the block ring makes (`NodeUniformBuffers.ring`); a recorder without them never rings */
-export type UniformRingGl = Pick<WebGL2RenderingContext, 'UNIFORM_BUFFER_OFFSET_ALIGNMENT' | 'bindBufferRange'>;
-const ringCapable = (gl: UniformBlockGl): gl is UniformBlockGl & UniformRingGl =>
-  typeof Reflect.get(gl, 'bindBufferRange') === 'function' && typeof Reflect.get(gl, 'UNIFORM_BUFFER_OFFSET_ALIGNMENT') === 'number';
-
 /** where one uniform value lives in its block, and what it last wrote */
 interface Slot { readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array; last: unknown }
-/**
- * a group's buffer and layout; `stale` says its own buffer missed writes made while the ring was on, `ringAt` where its
- * current floats were last placed in the ring (a running byte count; -1 none)
- */
-interface Block { readonly buffer: WebGLBuffer; readonly data: Float32Array; readonly slots: readonly Slot[]; stale: boolean; ringAt: number }
-
-/** the ring's size: a Driftwood frame writes well under 1 MB of object blocks, so a placement survives several frames */
-const RING_BYTES = 4 * 1024 * 1024;
+/** a group's buffer and layout */
+interface Block { readonly buffer: WebGLBuffer; readonly data: Float32Array; readonly slots: readonly Slot[] }
 
 const CHUNK = 16;
 
@@ -180,32 +169,11 @@ export class NodeUniformBuffers {
    * one pass, instead of compared with a kept copy through its `equals` and copied back through `copy` / `toArray`.
    */
   directWrites = false;
-  /**
-   * The block ring (the Developer Debug row Performance ▸ Uniform block ring, `graphBlockRing`, live, default off): a
-   * block whose floats changed is written whole at the next free, aligned offset of one big ring buffer and bound there
-   * with `bindBufferRange`, instead of rewritten in place in its own buffer. A group shared by many draws (every draw's
-   * object block) then never overwrites bytes an earlier draw of the same frame still reads, which Metal (ANGLE) may
-   * stall on or shadow-copy (sp-o286). A placement is reused while the ring has not lapped it.
-   */
-  get ring(): boolean { return this.ringOn; }
-  set ring(on: boolean) {
-    if (on && this.ringGl === null) return;
-    if (on !== this.ringOn) { this.ringOn = on; this.invalidateBindings(); }
-  }
-  private ringOn = false;
-  private readonly ringGl: (UniformBlockGl & UniformRingGl) | null;
-  private ringBuffer: WebGLBuffer | null = null;
-  /** the ring's running write position in bytes (never wraps; the ring offset is this modulo `RING_BYTES`) */
-  private ringCursor = 0;
-  private ringAlign = 256;
-  /** the ring offset each binding point was last bound at (ring mode) */
-  private readonly ringBound = new Map<number, number>();
 
   constructor(gl: UniformBlockGl) {
     this.gl = gl;
     const max: unknown = gl.getParameter(gl.MAX_UNIFORM_BUFFER_BINDINGS);
     this.top = typeof max === 'number' && max > 0 ? max - 1 : 23;
-    this.ringGl = ringCapable(gl) ? gl : null;
   }
 
   /** upload what changed in `groups` and bind them, in order, to the top binding points for `program` (a linked GL program) */
@@ -217,11 +185,10 @@ export class NodeUniformBuffers {
       const group = groups[i];
       if (group === undefined) continue;
       const block = this.block(group);
+      this.upload(block);
       const point = this.top - i;
-      if (this.ringOn && this.ringGl !== null) this.ringBind(this.ringGl, block, point);
-      else {
-        this.upload(block);
-        if (this.bound.get(point) !== block.buffer) { gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer); this.bound.set(point, block.buffer); }
+      if (this.bound.get(point) !== block.buffer) {
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer); this.bound.set(point, block.buffer);
       }
       let index = known.index.get(group.name);
       if (index === undefined) { index = gl.getUniformBlockIndex(program, group.name); known.index.set(group.name, index); }
@@ -232,7 +199,7 @@ export class NodeUniformBuffers {
   }
 
   /** Classic draws and render boundaries may bind external groups. */
-  invalidateBindings(): void { this.bound.clear(); this.ringBound.clear(); }
+  invalidateBindings(): void { this.bound.clear(); }
 
   /** free a group's buffer (its material was disposed) */
   release(group: object): void {
@@ -241,35 +208,6 @@ export class NodeUniformBuffers {
     this.gl.deleteBuffer(block.buffer);
     for (const [point, buffer] of this.bound) if (buffer === block.buffer) this.bound.delete(point);
     this.blocks.delete(group);
-  }
-
-  /** refresh `block`'s floats; if they changed or the ring lapped its placement, write them at the ring's cursor; bind */
-  private ringBind(gl: UniformBlockGl & UniformRingGl, block: Block, point: number): void {
-    const dirty = this.refresh(block) !== null;
-    if (dirty) block.stale = true;
-    const size = block.data.byteLength;
-    if (dirty || block.ringAt < 0 || this.ringCursor > block.ringAt + RING_BYTES - size) {
-      let ring = this.ringBuffer;
-      if (ring === null) {
-        const align: unknown = gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT);
-        if (typeof align === 'number' && align > 0) this.ringAlign = align;
-        ring = gl.createBuffer(); this.ringBuffer = ring;
-        gl.bindBuffer(gl.UNIFORM_BUFFER, ring);
-        gl.bufferData(gl.UNIFORM_BUFFER, RING_BYTES, gl.DYNAMIC_DRAW);
-        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-      }
-      let at = Math.ceil(this.ringCursor / this.ringAlign) * this.ringAlign;
-      // a block never straddles the ring's end: it starts the next lap instead
-      if ((at % RING_BYTES) + size > RING_BYTES) at = (Math.floor(at / RING_BYTES) + 1) * RING_BYTES;
-      gl.bindBuffer(gl.UNIFORM_BUFFER, ring);
-      gl.bufferSubData(gl.UNIFORM_BUFFER, at % RING_BYTES, block.data);
-      gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-      block.ringAt = at; this.ringCursor = at + size;
-    }
-    const ring = this.ringBuffer, offset = block.ringAt % RING_BYTES;
-    if (ring === null || (this.ringBound.get(point) === offset && this.bound.get(point) === ring)) return;
-    gl.bindBufferRange(gl.UNIFORM_BUFFER, point, ring, offset, size);
-    this.ringBound.set(point, offset); this.bound.set(point, ring);
   }
 
   private block(group: BlockGroup): Block {
@@ -283,33 +221,13 @@ export class NodeUniformBuffers {
     // Slot views are made once; uploads use WebGL2's source offset/count overload.
     const data = new Float32Array(layout.size / 4);
     const block: Block = { buffer, data, slots: layout.slots.map((s) => ({ uniform: s.uniform, element: s.element, offset: s.offset,
-      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined })), stale: false, ringAt: -1 };
+      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined })) };
     this.blocks.set(group, block);
     return block;
   }
 
-  /** write what changed into the block's floats and its own buffer (a block the ring left stale is written whole) */
   private upload(block: Block): void {
-    const span = this.refresh(block), gl = this.gl;
-    if (block.stale) {
-      block.stale = false;
-      gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer);
-      gl.bufferSubData(gl.UNIFORM_BUFFER, 0, block.data);
-      gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-      return;
-    }
-    if (span === null) return;
-    const [first, last] = span;
-    gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer);
-    // Layout slots are ordered. Keep the ordinary three-argument call when
-    // only one changed; the span overload pays off for multiple dirty slots.
-    if (first === last) gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, first.data);
-    else gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, block.data, first.offset / 4, (last.offset + last.data.byteLength - first.offset) / 4);
-    gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-  }
-
-  /** write what changed into the block's floats: the first and last changed slots, or null when nothing did */
-  private refresh(block: Block): readonly [Slot, Slot] | null {
+    const gl = this.gl;
     let first: Slot | undefined, last: Slot | undefined;
     const direct = this.directWrites;
     for (const slot of block.slots) {
@@ -329,6 +247,13 @@ export class NodeUniformBuffers {
       write(value, slot.data);
       first ??= slot; last = slot;
     }
-    return first !== undefined && last !== undefined ? [first, last] : null;
+    if (first !== undefined && last !== undefined) {
+      gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer);
+      // Layout slots are ordered. Keep the ordinary three-argument call when
+      // only one changed; the span overload pays off for multiple dirty slots.
+      if (first === last) gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, first.data);
+      else gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, block.data, first.offset / 4, (last.offset + last.data.byteLength - first.offset) / 4);
+      gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+    }
   }
 }

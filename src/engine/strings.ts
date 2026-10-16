@@ -11,8 +11,6 @@ export const ENGINE_STRINGS = {
   "s_graph_block_writes": "Direct block writes",
   "s_graph_block_writes_note": "E435 · sp-o286: each graph draw compares and writes its uniform block values straight into the block's floats in one pass, instead of through a kept copy's equals and copy. Off until a quiet Safari frame floor shows the gain. Live",
   "s_compile_shadow_hold": "Hold compile shadow redraw",
-  "s_graph_block_ring": "Uniform block ring",
-  "s_graph_block_ring_note": "E435 · sp-o290: each graph draw whose uniform block changed writes it at a fresh offset of one ring buffer and binds that range, instead of rewriting the block's own buffer that earlier draws of the frame still read (a possible Metal stall). Off until a quiet Safari frame floor shows the gain. Live",
   "s_compile_shadow_hold_note": "E435 · sp-o289: a shader warm-up compile no longer redraws every shadow map of the page (three does that once a graph back-end is installed) when every caster light already has its map; the next frame redraws them as before. Off until a Safari frame floor shows the gain. Live",
   "s_graph_materials": "Graph materials",
   "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",

@@ -124,7 +124,6 @@ export const OPTION_VALUES = {
   fixedShadowSamples: ['off', 'on'],                   // G437: fixed depth-texture flip uniforms; reload, default off.
   graphSplitKeys: ['off', 'on'],                       // sp-o286: graph program keys kept in material / scene / object parts (src/engine/render/nodes/engineNodesHandler.ts); live, default off.
   graphBlockWrites: ['off', 'on'],                     // sp-o286: graph uniform blocks written straight into their floats (src/engine/render/nodes/nodeUniformBuffers.ts); live, default off.
-  graphBlockRing: ['off', 'on'],                       // sp-o290: changed graph uniform blocks written to and bound from one ring buffer (src/engine/render/nodes/nodeUniformBuffers.ts); live, default off.
   compileShadowHold: ['off', 'on'],                    // sp-o289: warm-up compiles skip three's redundant shadow redraw where every caster light has its map (src/engine/render/precompile.ts holdShadowRedraw); live, default off.
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   buildPacing: ['on', 'off', 'uploads'],               // SF63: quiet frame floors back paced builds by default; Developer can switch them off. uploads also budgets WebKit's isolated warm-up image uploads (src/engine/render/precompile.ts UploadBudget).
@@ -142,7 +141,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, graphSplitKeys: DEBUG_ONLY, graphBlockWrites: DEBUG_ONLY, graphBlockRing: DEBUG_ONLY, compileShadowHold: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, graphSplitKeys: DEBUG_ONLY, graphBlockWrites: DEBUG_ONLY, compileShadowHold: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -207,7 +206,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'), fps: option('fps'),
-    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), graphSplitKeys: option('graphSplitKeys'), graphBlockWrites: option('graphBlockWrites'), graphBlockRing: option('graphBlockRing'), compileShadowHold: option('compileShadowHold'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'),
+    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), graphSplitKeys: option('graphSplitKeys'), graphBlockWrites: option('graphBlockWrites'), compileShadowHold: option('compileShadowHold'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
