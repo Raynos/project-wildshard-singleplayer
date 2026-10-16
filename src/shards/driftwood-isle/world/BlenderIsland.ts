@@ -41,7 +41,7 @@ import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json
 import { area, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
-import { smallRock } from '../runtime/models/smallRock';
+import { smallRock } from '../runtime/models/shoreBoulder';
 import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
 import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
