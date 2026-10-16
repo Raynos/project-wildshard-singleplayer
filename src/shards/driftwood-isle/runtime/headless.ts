@@ -1,10 +1,9 @@
 import { installNativeMelee, trustedLevel } from '@wildshard/game/plugin/simulation';
 import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import type { SimHost } from '@wildshard/engine/sim';
-import { readNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
+import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
 import { waveHeight } from '@wildshard/engine/world/waves';
-import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
+import { driftwoodBake, driftwoodSpecs } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captain';
 import { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
@@ -23,24 +22,6 @@ import { DRIFTWOOD_DAY, type Preset } from '../look/dayKeys';
 /** The page's sky clock (look/backdrop.ts, Settings ▸ Time of day 'live', no `?tod`): it starts at 0.2 of the day phase
  *  (`0.2 * DAY`, DAY = 20 / 24) and runs a 48 min cycle (`CYCLE_S`); test/shards/driftwood-isle holds the two equal. */
 export const DRIFTWOOD_DAY_START = 0.2 * (20 / 24), DRIFTWOOD_CYCLE_S = 48 * 60;
-/** Driftwood's DayCycle exactly as its page sky builds it. */
-export function driftwoodDayClock(): DayCycle<Preset> {
-  const clock = new DayCycle({ ...DRIFTWOOD_DAY, start: DRIFTWOOD_DAY_START });
-  clock.cycle = DRIFTWOOD_CYCLE_S;
-  return clock;
-}
-
-/** The admitted platform navigation bytes, parsed by the same renderer-free WSNM reader as the page. */
-export function driftwoodNavmesh(bytes: Uint8Array): Navmesh {
-  return readNavmesh(bytes, 'Driftwood declared navigation does not parse', () => 0);
-}
-
-/** Install the Node-canonical native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
- *  sea cave's cut included) and the 2067 fixed WORLD colliders (cuboids, capsules and convex hulls) the page built. */
-export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
-  installNativeCollision(host,bake,{resolution:256});
-}
-
 /**
  * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the Node-canonical native
  * world (the island's heightfield as Rapier built it and every fixed WORLD collider; `ground: false`, the baked floor as
@@ -59,16 +40,18 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
   const createDirector = await prepareDriftwoodDirector();
-  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(navigation), spots = driftwoodSpots();
+  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = readNavmesh(navigation, 'Driftwood declared navigation does not parse', () => 0), spots = driftwoodSpots();
   const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, ENTRY_WALK), install: (host, context) => {
     // the page's own day clock, stepped by the host before every tick's steps (a restoring install builds it again)
-    host.useDayClock(driftwoodDayClock());
+    const clock = new DayCycle<Preset>({ ...DRIFTWOOD_DAY, start: DRIFTWOOD_DAY_START });
+    clock.cycle = DRIFTWOOD_CYCLE_S;
+    host.useDayClock(clock);
     // The registered sea's dry entry sockets and rest height, with the page's Gerstner swell on this host's own clock.
     // Install before restore too: a saved swim cannot attach to a dry host. Never borrow the renderer's global wave clock.
     host.useWater({ surfaceAt: DRIFTWOOD_SEA.restAt, bob: (x, z) => waveHeight(x, z, host.clock.now) });
-    if (!context.restoring) addDriftwoodWorld(host, bake);
+    if (!context.restoring) installNativeCollision(host, bake, { resolution: 256 });
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     const captain = installCaptain(host, bake, island);
     const reward = { started: false };
