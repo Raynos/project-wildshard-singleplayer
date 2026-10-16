@@ -4,7 +4,7 @@ import { loadPineFinishes, pineSkinRows, pineSkins } from '../src/shards/pine-ho
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { pineFinishes, finishPick } from '../src/shards/pine-hollow/runtime/loadout/finishes';
+import { FINISH_CARDS } from '../src/shards/pine-hollow/runtime/const';
 
 test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', async () => {
   const file = output.namedFiles.find(row => row.name === 'loadout/finishes.json');
@@ -16,24 +16,24 @@ test('Pine finish cards retain authored order, ownership and slot-exclusive wear
   const PINE_FINISHES = pineSkinRows(), SKINS = pineSkins();
   const locker = new SkinLocker('pine-hollow', PINE_FINISHES);
   const ids = ['hollow-ash', 'ghost-stag', 'blackpaw', 'imperial', 'warden', 'ironhide', 'scarback-furnace'];
-  expect(pineFinishes(locker).map(card => card.id)).toEqual(ids);
-  expect(pineFinishes(locker).every(card => card.locked && !card.worn)).toBe(true);
-  expect(finishPick(locker, 'ghost-stag')).toBeNull();
-  expect(finishPick(locker, 'not-a-finish')).toBeNull();
+  expect(locker.cardRows(FINISH_CARDS).map(card => card.id)).toEqual(ids);
+  expect(locker.cardRows(FINISH_CARDS).every(card => card.locked && !card.worn)).toBe(true);
+  expect(locker.pick('ghost-stag')).toBeNull();
+  expect(locker.pick('not-a-finish')).toBeNull();
   for (const skin of PINE_FINISHES) locker.own(skin.id);
   for (const skin of PINE_FINISHES) {
-    expect(finishPick(locker, skin.id)).toEqual({ skin, act: 'wear' });
+    expect(locker.pick(skin.id)).toEqual({ skin, act: 'wear' });
     locker.wear(skin.weapon, skin.id);
-    expect(finishPick(locker, skin.id)).toEqual({ skin, act: 'off' });
-    const card = pineFinishes(locker).find(row => row.id === skin.id);
+    expect(locker.pick(skin.id)).toEqual({ skin, act: 'off' });
+    const card = locker.cardRows(FINISH_CARDS).find(row => row.id === skin.id);
     expect(card).toMatchObject({ name: skin.name, worn: true, locked: false,
       blurb: skin.weapon === 'rifle' ? 'Lever-action' : 'Crossbow' });
     locker.wear(skin.weapon, null);
   }
   locker.wear('crossbow', 'ghost-stag');
   locker.wear('rifle', 'ironhide');
-  expect(pineFinishes(locker).filter(card => card.worn).map(card => card.id)).toEqual(['ghost-stag', 'ironhide']);
-  expect(finishPick(locker, 'ghost-stag')?.skin).toBe(SKINS['ghost-stag']);
+  expect(locker.cardRows(FINISH_CARDS).filter(card => card.worn).map(card => card.id)).toEqual(['ghost-stag', 'ironhide']);
+  expect(locker.pick('ghost-stag')?.skin).toBe(SKINS['ghost-stag']);
 });
 
 test('cosmetic card reads are silent and toggles retain auto-wear and save behavior', () => {

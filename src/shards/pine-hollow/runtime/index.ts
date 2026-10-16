@@ -55,7 +55,7 @@ import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { loadBirdModels } from './birds';
 import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/wildlife';
-import { WILDLIFE_LOOK } from './const';
+import { WILDLIFE_LOOK, FINISH_CARDS } from './const';
 import * as v from 'valibot';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
@@ -64,8 +64,7 @@ import { installWeather, loadPineRain } from '../world/weather';
 import { LeverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
-import { AMMO_ROWS } from '../loadout/effects';
-import { pineFinishEffects, pineFinishes, finishPick } from './loadout/finishes';
+import { AMMO_ROWS, pineFinishEffect } from '../loadout/effects';
 import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
@@ -103,7 +102,7 @@ export class PineHollow extends ShardPlugin {
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
-    rt.menu = { skins: () => rt.play ? pineFinishes(rt.play.skins) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => isPineItem(id) ? mottLine(id) : null } };
+    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(FINISH_CARDS) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => isPineItem(id) ? mottLine(id) : null } };
     const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
@@ -198,7 +197,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo(AMMO_ROWS);
-    ctx.rows.effect([...pineFinishEffects(), ...STARTER_EFFECTS]);
+    ctx.rows.effect([...FINISH_CARDS.map(({ id }) => pineFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
     ctx.rows.skin(pineSkinRows());
   }
 
@@ -221,7 +220,8 @@ export class PineHollow extends ShardPlugin {
     installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     rt.hooks.wearFinish = (id) => {
-      const pick = finishPick(skins, id); if (!pick) return;
+      if (!Object.hasOwn(pineSkins(), id)) return;
+      const pick = skins.pick(id); if (!pick) return;
       if (pick.act === 'wear') { wearSkin(pick.skin); return; }
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
