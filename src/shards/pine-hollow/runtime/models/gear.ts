@@ -11,7 +11,7 @@ import { isMesh, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { PINE_FINISHES } from '../loadout/skins';
+import { pineSkinRows, PINE_FINISH_VARIANTS, preparePineFinishes } from '../loadout/skins';
 import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
 import { QUIVER_MAX } from '../weapons/Longbow';
@@ -28,7 +28,7 @@ const FILE = 'src/shards/pine-hollow/models/gear.ts';
  */
 export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
   id: 'pine-hollow/crossbow', name: 'Hunting crossbow', category: 'gear', pipeline: 'code', file: FILE,
-  defaults: { skin: null }, variants: skinVariants('crossbow', PINE_FINISHES), prepare: loadCodeParts,
+  defaults: { skin: null }, variants: skinVariants('crossbow', PINE_FINISH_VARIANTS), prepare: async () => { await Promise.all([loadCodeParts(), preparePineFinishes()]); },
   build: (ctx, p) => {
     const model = ctx.once('gear:crossbow', () => {
       const into = { model: new THREE.Group(), peep: new THREE.Group(), peepRing: new THREE.Group() };
@@ -39,7 +39,7 @@ export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
       });
       return into.model;
     });
-    return wearSkin(crossbowDisplayModel({ model }, ctx.sky), p, ctx.sky, PINE_FINISHES);
+    return wearSkin(crossbowDisplayModel({ model }, ctx.sky), p, ctx.sky, pineSkinRows());
   },
 });
 
@@ -51,10 +51,10 @@ export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
  */
 export const leverAction: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
   id: 'pine-hollow/lever-action', name: 'Lever-action rifle', category: 'gear', pipeline: ['blender', 'code'], file: FILE,
-  defaults: { skin: null }, variants: skinVariants('rifle', PINE_FINISHES),
+  defaults: { skin: null }, variants: skinVariants('rifle', PINE_FINISH_VARIANTS), prepare: preparePineFinishes,
   build: (ctx, p) => {
     const made = ctx.once('gear:lever-action', async () => leverSpecimen(ctx.sky, await preloadLeverModel()));
-    return loadingSpecimen('pine-hollow/lever-action', [0.05, 0.16, 1.02], async () => wearSkin((await made).clone(), p, ctx.sky, PINE_FINISHES));
+    return loadingSpecimen('pine-hollow/lever-action', [0.05, 0.16, 1.02], async () => wearSkin((await made).clone(), p, ctx.sky, pineSkinRows()));
   },
 });
 
@@ -92,7 +92,7 @@ export const longbowArrow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/longbow-arrow', name: 'Longbow arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: {},
   specimenYaw: Math.PI / 2,
-  build: (ctx) => [{ geometry: ctx.once('gear:longbow-arrow', buildArrowGeometry), material: ctx.once('gear:longbow-arrow-material', () => arrowMaterial(ctx.sky)), castShadow: true, receiveShadow: true }],
+  build: (ctx) => [ctx.once('gear:longbow-arrow-part', () => ({ geometry: buildArrowGeometry(), material: arrowMaterial(ctx.sky), castShadow: true, receiveShadow: true }))],
 });
 
 /** the Hollow's kit (src/main.ts): the crossbow (1), the lever-action (2, the cabin pickup), the longbow (3, the King's

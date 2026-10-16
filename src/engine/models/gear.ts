@@ -26,8 +26,8 @@ import { announceModelReady, type ModelVariant } from './model';
 /** a skinnable weapon's params: the legendary skin its specimen wears (null: plain) */
 export interface GearSkinParams { readonly skin: SkinId | null }
 
-/** a skinnable weapon's variants: plain, then every legendary skin made for it (Skins.ts SKINS, by `weapon`) */
-export function skinVariants(kind: WeaponKind, rows: readonly SkinDef[]): readonly ModelVariant<GearSkinParams>[] {
+/** A weapon's variants need only identity metadata: plain, then each finish in its authored order. */
+export function skinVariants(kind: WeaponKind, rows: readonly Pick<SkinDef, 'id' | 'name' | 'weapon'>[]): readonly ModelVariant<GearSkinParams>[] {
   const skins = rows.filter((s) => s.weapon === kind).map((s) => ({ id: s.id, label: s.name, params: { skin: s.id } }));
   return [{ id: 'plain', label: engineString('s_8b854ade2cd0'), params: { skin: null } }, ...skins];
 }

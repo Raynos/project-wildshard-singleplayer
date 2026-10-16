@@ -10,12 +10,12 @@ import { pineFinishEffect } from '../../loadout/effects';
  *   finishPick(locker, id) → 'wear' | 'off' | null   (what a tap does: main.ts applies it to the weapon's model)
  */
 import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
-import { SKINS } from './skins';
+import { pineSkins, type SkinId } from './skins';
 import { FINISH_CARDS } from '../const';
 
-export const PINE_FINISH_EFFECTS: readonly EffectDef[] = FINISH_CARDS.map(({ id }) => pineFinishEffect(id, SKINS[id].weapon));
+export const pineFinishEffects = (): readonly EffectDef[] => FINISH_CARDS.map(({ id }) => pineFinishEffect(id, pineSkins()[id].weapon));
 
-export const isSkinId = (id: string): id is keyof typeof SKINS => Object.hasOwn(SKINS, id);
+export const isSkinId = (id: string): id is SkinId => Object.hasOwn(pineSkins(), id);
 
 export const pineFinishes = (locker: Pick<SkinLocker, 'cardRows'>): ReturnType<SkinLocker['cardRows']> => locker.cardRows(FINISH_CARDS);
 

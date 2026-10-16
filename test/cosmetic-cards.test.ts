@@ -1,9 +1,19 @@
 import { expect, test } from 'vitest';
 import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/cosmetics/locker';
-import { PINE_FINISHES, SKINS } from '../src/shards/pine-hollow/runtime/loadout/skins';
+import { loadPineFinishes, pineSkinRows, pineSkins } from '../src/shards/pine-hollow/runtime/loadout/skins';
+import { output } from '../src/shards/pine-hollow/generators/output';
+import { emptyShardfile } from '../src/sdk/author';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { pineFinishes, finishPick } from '../src/shards/pine-hollow/runtime/loadout/finishes';
 
-test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', () => {
+test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', async () => {
+  const file = output.namedFiles.find(row => row.name === 'loadout/finishes.json');
+  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (file === undefined || bytes === undefined) throw new Error('Missing named finish JSON');
+  const shardfile = emptyShardfile({ slug: 'pine-hollow', name: 'Pine', author: 'Wildshard', revision: 1, seed: 1 });
+  await loadPineFinishes(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile, sections: new Map(),
+    files: new Map([['loadout/finishes.json', { hash: file.hash, url: file.path }]]), read: () => Promise.resolve(bytes) }));
+  const PINE_FINISHES = pineSkinRows(), SKINS = pineSkins();
   const locker = new SkinLocker('pine-hollow', PINE_FINISHES);
   const ids = ['hollow-ash', 'ghost-stag', 'blackpaw', 'imperial', 'warden', 'ironhide', 'scarback-furnace'];
   expect(pineFinishes(locker).map(card => card.id)).toEqual(ids);

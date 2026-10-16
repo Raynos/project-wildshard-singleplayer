@@ -60,7 +60,7 @@ import source from '../shard.config';
 import * as THREE from 'three';
 import type { Cabins } from '../runtime/world/homestead';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
-import { SKINS } from '../runtime/loadout/skins';
+import { pineSkins } from '../runtime/loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
 import { installPineClock } from '../runtime/directorClock';
 import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from '../runtime/world/landmarks';
@@ -259,7 +259,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const transactions = bindQuestPageInteractions(PINE_QUEST_TRANSACTIONS, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
       ['ammo', { get add() { return h.crossbow.addAmmo?.bind(h.crossbow) ?? null; } }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
-      ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(SKINS[id]); } }]))]]) });
+      ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(pineSkins()[id]); } }]))]]) });
   const boardUi = ui.view('board', (scope) => {
     const panel = new BoardPanel(() => board, scope);
     panel.onClaim = (i) => {
@@ -286,7 +286,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the trader's slate ──
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
-  const owns = (s: string): boolean => s in SKINS && h.skins.has(s);
+  const owns = (s: string): boolean => s in pineSkins() && h.skins.has(s);
   const room: Room = (k, n) => h.crossbow.room?.(k, n) ?? true;
   // the platform draws the stall (SF28; the G87 sheet since G181): the goods and the rules are declared here
   const trade = ui.view('trade', (scope) => {

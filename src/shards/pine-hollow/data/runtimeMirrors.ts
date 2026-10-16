@@ -14,7 +14,6 @@ import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHoll
 
 import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
 import { BOW_PROFILE } from './bowProfile';
-import { WEAPON_FINISHES } from './weaponFinishes';
 import { FINISH_CARDS } from './finishCards';
 
 import { KNIFE_LOOK } from './skinningKnifeLook';
@@ -34,7 +33,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('LONGBOW_POSES', LONGBOW_POSES),
   defineMirror('ARROW_FLIGHT', BOW_PROFILE.flight),
   defineMirror('ARROW_MAX_FLYING', BOW_PROFILE.pool),
-  defineMirror('WEAPON_FINISHES', WEAPON_FINISHES),
   defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
   defineMirror('HOLLOW_LOG_SHAPE', HOLLOW_LOG_SHAPE),

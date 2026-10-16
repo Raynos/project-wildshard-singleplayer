@@ -28,7 +28,7 @@ import * as THREE from 'three';
 
 import { Crossbow, MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../runtime/weapons/crossbow/display';
-import { SKINS, type SkinId } from '../runtime/loadout/skins';
+import { pineSkins, type SkinId } from '../runtime/loadout/skins';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
@@ -95,7 +95,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // the drop orbs' skinned weapons, built now and parked (hidden) in the scene so the boot's precompile covers their
   // programs: the first elite kill / the King's reward then compiles nothing mid-play
   const buildSkin = (id: SkinId): THREE.Object3D => {
-    const s = SKINS[id];
+    const s = pineSkins()[id];
     const m = s.weapon === 'rifle' ? h.rifle.displayModel() : h.crossbow instanceof Crossbow ? crossbowDisplayModel(h.crossbow, sky) : new THREE.Group();
     applySkin(m, s, sky);
     return m;
@@ -121,7 +121,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     shot: (name, at) => { sfx?.shot(name, { at }); },
     toast: (s) => { h.hud.toast(s); }, feed: (s) => { h.hud.killFeed(s); },
     addItem: (id, n) => { h.inventory.add(id, n); },
-    ownSkin: (id) => { const s = SKINS[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
+    ownSkin: (id) => { const s = pineSkins()[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
     dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
     longbow: h.longbow ? {
@@ -143,7 +143,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     toast: ctx.toast,
     sting: (e) => { if (e === 'kill') h.music.sting('chunk'); else h.music.combat(e === 'phase2' ? 1 : 0.8); },
     pickupHum: (on) => { h.audio.pickupHum(on); },
-    ownSkin: (id) => { if (id in SKINS) ctx.ownSkin(id as keyof typeof SKINS); },
+    ownSkin: (id) => { if (id in pineSkins()) ctx.ownSkin(id as SkinId); },
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
     canSee: (from, to) => { const ph = app.physics; return ph === null || lineOfSight(ph, from, to, 0.6); },
   };

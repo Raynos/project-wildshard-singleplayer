@@ -65,8 +65,8 @@ import { LeverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS } from '../loadout/effects';
-import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from './loadout/finishes';
-import { SKINS, PINE_FINISHES, skinPickups, type SkinId } from './loadout/skins';
+import { pineFinishEffects, pineFinishes, finishPick } from './loadout/finishes';
+import { pineSkins, pineSkinRows, loadPineFinishes, skinPickups, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
 import { isPineItem } from '../items';
@@ -99,6 +99,7 @@ export class PineHollow extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     admitPaintedTextures(ctx.product);
+    await loadPineFinishes(ctx.product);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
@@ -197,8 +198,8 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo(AMMO_ROWS);
-    ctx.rows.effect([...PINE_FINISH_EFFECTS, ...STARTER_EFFECTS]);
-    ctx.rows.skin(PINE_FINISHES);
+    ctx.rows.effect([...pineFinishEffects(), ...STARTER_EFFECTS]);
+    ctx.rows.skin(pineSkinRows());
   }
 
   override async play(ctx: ShardContext): Promise<void> {
@@ -227,14 +228,14 @@ export class PineHollow extends ShardPlugin {
     };
     const skinDrops = new ClaimedPickupRoster<SkinId>(skinPickups(ctx.product.section('custom/skinPickups', SECTIONS)), {
       scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
-      model: id => { const skin = SKINS[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky); applySkin(item, skin, sky); return item; },
+      model: id => { const skin = pineSkins()[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
-      take: id => { const skin = SKINS[id], label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
+      take: id => { const skin = pineSkins()[id], label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
     });
     ctx.on('actor.died', ({ actor }) => {
       const animal = animals.animals.find((a) => a.combatActor() === actor);
       if (animal === undefined) return;
-      const skin = Object.values(SKINS).find((row) => row.dropsFrom?.kind === animal.kind && row.dropsFrom.variant === animal.variant);
+      const skin = Object.values(pineSkins()).find((row) => row.dropsFrom?.kind === animal.kind && row.dropsFrom.variant === animal.variant);
       if (!skin || skins.has(skin.id) || rt.hooks.isElite?.(animal) === true) return;
       const at = animal.position;
       skinDrops.spawn(skin.id, new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), true);
