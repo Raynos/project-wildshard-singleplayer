@@ -5,21 +5,17 @@ import {lowPolyLookMaterial} from '@wildshard/engine/world/lowpolyKit';
 import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {readColliderRows} from '@wildshard/engine/models/colliders';
 import {driftwoodRows} from '../boot/rows';
-import {pierParamsKey,pierSpecKey,type PierParams,type PierSpec} from '../../assets/contracts/pier';
+import {pierParamsKey,type PierParams} from '../../assets/contracts/pier';
 import {PIER_DEFAULTS,PIER_VARIANTS} from '../../data/pierRows';
 import rows from '../../data/piers.generated.json' with {type:'json'};
 import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../boot/fixedGeometry';
 
 const pair=(v:readonly number[]):[number,number]=>{const [a,b]=v;if(a===undefined||b===undefined||v.length!==2)throw new Error('Pier row requires a pair');return [a,b];};
-/** Read the canonical measured parameters; tuples are admitted before lending them to native code. */
-export function pierWorldParams(spec:PierSpec):PierParams {
- const row=rows.find(r=>r.specKey===pierSpecKey(spec));
- if(row===undefined)throw new Error('Pier site changed; regenerate its authored geometry');
- const p=row.params;
- return {length:p.length,width:p.width,pileDepth:p.pileDepth,pennantDir:pair(p.pennantDir),
-  landing:p.landing===null?null:{...p.landing,postGround:pair(p.landing.postGround)},
-  ...(p.pennantAt===undefined?{}:{pennantAt:p.pennantAt}),...(p.seaRamp===undefined?{}:{seaRamp:p.seaRamp})};
-}
+const admit=(p:typeof rows[number]['params']):PierParams=>({length:p.length,width:p.width,pileDepth:p.pileDepth,pennantDir:pair(p.pennantDir),
+ landing:p.landing===null?null:{...p.landing,postGround:pair(p.landing.postGround)},
+ ...(p.pennantAt===undefined?{}:{pennantAt:p.pennantAt}),...(p.seaRamp===undefined?{}:{seaRamp:p.seaRamp})});
+/** The four world piers as the author job placed them (south pier first): site, measured params, pilings, bollards and legacy boxes, world space. */
+export const PIER_WORLD=rows.flatMap(row=>row.world===null?[]:[{...row.world,params:admit(row.params)}]);
 /** Resolve one of the seven authored parameter sets; there is no procedural fallback. */
 export function pierGeometryKey(p:PierParams):string {
  const row=rows.find(r=>r.paramKey===pierParamsKey(p));

@@ -62,7 +62,3 @@ export function pierParamsKey(p:PierParams):string {
   p.landing?.postGround[0]??null,p.landing?.postGround[1]??null,p.pennantDir[0],p.pennantDir[1],p.pennantAt??null,
   p.seaRamp?.run??null,p.seaRamp?.landY??null,p.seaRamp?.flare??null]);
 }
-/** Canonical world site; only four authored pier sites are admitted. */
-export function pierSpecKey(p:PierSpec):string {
- return JSON.stringify([p.x,p.z,p.length,p.width,p.deckY,p.rot??0,p.pileDepth??8,p.landing??false,p.pennantAt??null,p.seaRamp?.run??null,p.seaRamp?.flare??null]);
-}

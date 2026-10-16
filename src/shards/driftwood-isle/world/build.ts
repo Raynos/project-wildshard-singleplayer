@@ -12,18 +12,17 @@ import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import * as THREE from 'three';
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import { CHUNK_HALF, ENTRY_WIDTH, ROAD_LENGTH } from '@wildshard/engine/core/config';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR } from '../world/sites';
 import manifest from '../discovery.generated';
-import { PIER_PENNANT_AT } from '../data/layout';
 import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
-import { placeShoreBoulders, scatterShoreBoulders } from './Boulders';
+import { placeShoreBoulders, SHORE_PERCHES } from './Boulders';
 import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/models/fixedSites';
 import { Wreck } from './Wreck';
 import { placeShrine, type Shrine } from '../runtime/world/Shrine';
@@ -38,7 +37,7 @@ import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
-import { ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect } from './sea';
+import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { onDeck } from './entryDeck';
 import { ENTRY_DECKS } from '../data/entryDecks';
@@ -61,9 +60,9 @@ export interface DriftwoodWorld {
 
 /** SF46 (G164, shipped by G172): how the world is built with the whole island lowered (the terrain and everything on it
  *  follow the manifest's dropped field, ./sea.ts): the sea at road level, each pier and jetty starting past its entry's
- *  asphalt socket with a ramp up from the socket's road height. */
+ *  asphalt socket with a ramp up from the socket's road height (their sites: generators/pierSites.ts). */
 export interface DriftwoodLowered {
-  readonly level: number; readonly pierStart: number; readonly seaRamp: number;
+  readonly level: number;
   /** the declared sea row's dry sockets (the swim body's clip, ./sea.ts); the ocean's draw clips each whole deck (G170) */
   readonly dry: readonly DryRect[];
   /** how far inside a confining grid cell's edge the sea stops (G149: the shore revetment's inner face) */
@@ -72,12 +71,8 @@ export interface DriftwoodLowered {
    *  end of an asphalt road deck (./entryDeck.ts) that carries the socket on over it, and a pier / jetty ramps up from it */
   readonly landings: readonly EntryLanding[];
 }
-/** G164 / council C3-R2-C2: each pier / jetty ramps from the socket's inner edge (15 m in, road height) up to its deck over
- *  at least 8 m at no more than 8°; the deck stands 1.2 m above the sea, so 9 m (≈ 7.6°) */
-export const SEA_RAMP_RUN = 9;
-/** G164's lowered world: the sea at road level, the decks (1.2 m above it, as they always stood) from 15 m in (the socket's
- *  inner edge), a `SEA_RAMP_RUN` ramp up from road height */
-export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: SEA_RAMP_RUN, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
+/** G164's lowered world: the sea at road level */
+export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
@@ -92,8 +87,6 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }, , coverGrid, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
-  // Jake's SF72 pick: each sea ramp flares from the full entry socket at the landing to its deck.
-  const cut = lowered.pierStart, seaRamp = { seaRamp: { run: lowered.seaRamp, flare: ENTRY_WIDTH } };
   // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
@@ -111,8 +104,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
-  // SF46: it starts `cut` in (past the entry socket) and ramps up from road height
-  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp }).place(registry, 'pier');
+  // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
+  const pier = new Pier(sky, 0).place(registry, 'pier');
   // G170: the four asphalt road decks over the water (./entryDeck.ts): the platform's socket floor carried on over the
   // declared entry landings (the shardfile's socket-landing proof, installed exactly as declared); each ramp rises from one
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'stone',
@@ -132,9 +125,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   if (boat.ropes) game.scene.add(boat.ropes);
   await stages.next('Pier and boat');
   // faceted shore boulders along the beach
-  const rockSpecs = scatterShoreBoulders(manifest.seed);
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-  const rocks = await stages.build('Shore boulders', () => placeShoreBoulders(sky, rockSpecs, registry, slice.due), { values: value => value.colliders });
+  const rocks = await stages.build('Shore boulders', () => placeShoreBoulders(sky, registry, slice.due), { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
   const hut = await stages.build('Hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'hut' } }); }, { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
@@ -147,9 +139,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const shrine = await stages.build('Shrine', () => placeShrine(sky, SHRINE, registry), { values: value => value.colliders });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
-  for (const [i, j] of JETTIES.entries()) {
-    const x = j.x + Math.sin(j.rot) * cut, z = j.z + Math.cos(j.rot) * cut; // `rot` 0 runs +z
-    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, landing: j.landing ?? false, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
+  for (const [i] of JETTIES.entries()) {
+    const jetty = new Pier(sky, i + 1).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
   }
   await slice();
   if (FOLIAGE.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
@@ -160,7 +151,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
       ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
       new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
-      ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
+      ...SHORE_PERCHES.map((p) => new THREE.Vector3().fromArray(p)),
       ...driftwoodRows('custom/fixedLayouts').gullPerches,
   ]), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts

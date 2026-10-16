@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type {Rng} from '@wildshard/sdk/random';
-import type {PierParams} from '../assets/contracts/pier';
-import {pierDeckAt,pierHalfWidthAt} from '../world/pierLayout';
+import type {PierParams,PierSpec} from '../assets/contracts/pier';
+import {pierDeckAt,pierHalfWidthAt,pierPosts} from '../world/pierLayout';
 
 const C = {
   plank: new THREE.Color('#9a7a56'),
@@ -190,3 +190,29 @@ export function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeome
   return { deck: mergeGeometries(parts, false), cloth };
 }
 
+interface PierBox { x:number;z:number;hw:number;hd:number;rot:number;yTop:number;yBottom:number }
+/** the posts' and bollards' legacy boxes, own space (the ocean's foam rings and the melee sweep) */
+function pierBoxes(p: PierParams): PierBox[] {
+  const out: PierBox[] = [];
+  const postR = 0.17, postTop = 0.95;
+  const rampFrom = p.landing?.rampFrom ?? p.length;
+  for (let a = 1.2; a < rampFrom; a += 3.0) for (const s of [-1, 1]) out.push({ x: s * (pierHalfWidthAt(p, a) + 0.1), z: a, hw: postR + 0.04, hd: postR + 0.04, rot: 0, yTop: postTop, yBottom: -1 });
+  for (const s of [-1, 1]) out.push({ x: s * (pierHalfWidthAt(p, 0.35) + 0.25), z: 0.35, hw: 0.32, hd: 0.32, rot: 0, yTop: 1.35, yBottom: -1 });
+  if (p.landing) {
+    const [gl, gr] = p.landing.postGround;
+    for (const s of [-1, 1]) {
+      const gy = s < 0 ? gl : gr, top = gy + 1.5;
+      out.push({ x: s * (p.width / 2 + 0.3), z: p.length - 0.4, hw: 0.34, hd: 0.34, rot: 0, yTop: top, yBottom: gy - 1 });
+    }
+  }
+  return out;
+}
+/** A world pier as the world places it (G467: what world/Pier.ts worked out at load): its site, its pilings and bollards
+ *  (world xz) and their legacy boxes (world space), the deck's own (along, across) turned by its heading. */
+export function pierWorldLayout(spec:PierSpec,params:PierParams):{x:number;z:number;rot:number;deckY:number;posts:[number,number][];bollards:[number,number][];boxes:PierBox[]} {
+ const yaw=spec.rot??0,cos=Math.cos(yaw),sin=Math.sin(yaw),deckY=spec.deckY;
+ const toWorld=([along,across]:[number,number]):[number,number]=>[spec.x+across*cos+along*sin,spec.z-across*sin+along*cos];
+ const {posts,bollards}=pierPosts(params);
+ return {x:spec.x,z:spec.z,rot:yaw,deckY,posts:posts.map(toWorld),bollards:bollards.map(toWorld),
+  boxes:pierBoxes(params).map(b=>{const [x,z]=toWorld([b.z,b.x]);return {x,z,hw:b.hw,hd:b.hd,rot:0-yaw,yTop:b.yTop+deckY,yBottom:b.yBottom+deckY};})};
+}

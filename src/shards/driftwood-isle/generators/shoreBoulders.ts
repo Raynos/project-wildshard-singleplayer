@@ -37,10 +37,23 @@ export function scatterShore(seed: number, count: number, ground: Ground): Bould
     return out.filter((b) => Math.hypot(b.x - WRECK.x, b.z - WRECK.z) > 16 + b.r);
 }
 
-/** The authored island shoreline scatter; reused by both detail tiers without geometry payloads. */
-export function shoreBoulderFacts(): { seed: number; count: number; specs: BoulderSpec[] } {
+/**
+ * The authored island shoreline scatter; reused by both detail tiers without geometry payloads. With it, what the world
+ * used to work out from each spec at load (G467): the shore boulder model's placements (yawed, leaned with the slope by
+ * the terrain normal 1.5 m out, sunk to a third of their height), the legacy boxes of the rocks that collide (r > 0.9)
+ * and the gull perches on the big rocks' tops (r > 1.8).
+ */
+export function shoreBoulderFacts(): { seed: number; count: number; specs: BoulderSpec[]; placements: ShorePlacement[]; boxes: ShoreBox[]; perches: [number, number, number][] } {
   const source = readNativeTerrain(driftwoodGroundBytes());
   const heightAt = (x: number, z: number): number => source.heightAt(x, z) - WORLD_DROP;
-  const seed = SEED, count = 110;
-  return { seed, count, specs: scatterShore(seed, count, { heightAt }) };
+  const seed = SEED, count = 110, specs = scatterShore(seed, count, { heightAt });
+  const placements = specs.map((b): ShorePlacement => {
+    const y = heightAt(b.x, b.z), [nx, , nz] = source.normalAt(b.x, b.z, 1.5);
+    return { x: b.x, y: y + b.r * (b.squash ?? 0.7) * 0.35, z: b.z, yaw: b.rot ?? 0, leanX: nz * 0.6, leanZ: -nx * 0.6, params: { r: b.r, squash: b.squash ?? 0.7 } };
+  });
+  const boxes = specs.filter(b => b.r > 0.9).map((b): ShoreBox => ({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: heightAt(b.x, b.z) + b.r * 1.2, yBottom: heightAt(b.x, b.z) - 2 }));
+  const perches = specs.filter(b => b.r > 1.8).map((b): [number, number, number] => [b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z]);
+  return { seed, count, specs, placements, boxes, perches };
 }
+interface ShorePlacement { x: number; y: number; z: number; yaw: number; leanX: number; leanZ: number; params: { r: number; squash: number } }
+interface ShoreBox { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
