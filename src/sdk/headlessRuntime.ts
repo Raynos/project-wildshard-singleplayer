@@ -1,3 +1,4 @@
+import { ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
@@ -21,6 +22,53 @@ export interface HeadlessRuntimeInstallation {
   commands: () => readonly HeadlessCommand[];
   emit: (effect: HeadlessEffect) => void;
 }
+/** Tick readers borrow the current admitted tape; no input state or simulation clock is retained. */
+export interface HeadlessCommandPorts {
+  readonly ledger: ReturnType<typeof ledgerPorts>;
+  readonly shots: () => readonly string[];
+  readonly heavy: () => NonNullable<Extract<HeadlessCommand, { kind: 'player' }>['heavy']> | null;
+  readonly scripts: (ids?: readonly string[]) => () => readonly Extract<HeadlessCommand, { kind: 'script' }>[];
+  readonly lastScript: <T extends number | null>(id: string, fallback: T) => number | T;
+  readonly melee: () => NativeSweptMeleeInput;
+  readonly walk: (speed: number) => { x: number; z: number };
+}
+/** Bind existing tick commands and ledger effects once at installation. Shots keep every attack; heavy picks the first
+ * held command; melee/walk take the last player command, including an empty release. Script values use the last match.
+ * Readers resample the current tape on every call, refuse overflow, and preserve tape order. Filtered lists and melee
+ * input are borrowed scratch values, consumed immediately by the native owner rather than saved between ticks. */
+export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 'commands' | 'emit'>): HeadlessCommandPorts {
+  const commands = (): readonly HeadlessCommand[] => {
+    const tape = context.commands();
+    if (tape.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
+    return tape;
+  };
+  const player = (): Extract<HeadlessCommand, { kind: 'player' }> | undefined => {
+    let last: Extract<HeadlessCommand, { kind: 'player' }> | undefined;
+    for (const command of commands()) if (command.kind === 'player') last = command;
+    return last;
+  };
+  const input: { attack: string | null; heavy: boolean; heavyTarget: string | null } = { attack: null, heavy: false, heavyTarget: null };
+  return {
+    ledger: ledgerPorts(context.emit),
+    shots: pickCommands(commands, command => command.kind === 'player' ? command.attack?.targetId : undefined),
+    heavy: () => { for (const command of commands()) if (command.kind === 'player' && command.heavy !== undefined) return command.heavy; return null; },
+    scripts: ids => pickCommands(commands, command => command.kind === 'script' && (ids === undefined || ids.includes(command.actorId)) ? command : undefined),
+    lastScript: <T extends number | null>(id: string, fallback: T): number | T => {
+      let result: number | T = fallback;
+      for (const command of commands()) if (command.kind === 'script' && command.actorId === id) result = command.value;
+      return result;
+    },
+    melee: () => {
+      const current = player(); input.attack = current?.attack?.targetId ?? null;
+      input.heavy = current?.heavy !== undefined; input.heavyTarget = current?.heavy?.targetId ?? null; return input;
+    },
+    walk: speed => {
+      const current = player(), x = current?.moveX ?? 0, z = current?.moveZ ?? 0, length = Math.hypot(x, z), scale = length > 1 ? speed / length : speed;
+      return { x: x * scale, z: z * scale };
+    },
+  };
+}
+
 /** A renderer-free native runtime. Install is synchronous and registers every mutable controller via host.onStep.
  * Restore calls install before applying the complete native snapshot. It must not step or award anything at install.
  * Optional entry walks remain independent of the live headless simulation.

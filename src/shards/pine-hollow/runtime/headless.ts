@@ -2,7 +2,7 @@ import { PINE_TERRAIN } from '../data/terrainBindings';
 import * as v from 'valibot';
 import { parseCrossbowProfile } from '../weapons/crossbow/profiles';
 import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import { installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
+import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
@@ -91,16 +91,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
     try { addPineWorld(fresh, bake, isStandaloneEdgeWall); fresh.step(); return proveTerrainEntries(fresh.physics, shard.entryways, heightAt, ENTRY_WALK); } finally { fresh.dispose(); }
   }, install: (host, context) => {
-    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, crossbowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
-      // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a
-      // `pine.weapon` script command picks a weapon (the tick's last)
-      shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
-      heavy: () => { const held = context.commands().find(command => command.kind === 'player' && command.heavy !== undefined); return held?.kind === 'player' ? held.heavy ?? null : null; },
-      pick: () => { let picked: number | null = null; const commands = context.commands(); for (let i = 0; i < 1024; i++) { const command = commands[i]; if (command === undefined) break; if (command.kind === 'script' && command.actorId === WEAPON_COMMAND) picked = command.value; } return picked; },
-      // a `pine.aim` script command says where on the target's body the tick's shots go (the tick's last; none: its middle)
-      aim: () => context.commands().reduce((aim, command) => command.kind === 'script' && command.actorId === AIM_COMMAND ? aimShare(command.value) : aim, AIM_MIDDLE),
-      // a `pine.interact` script command presses a quest prompt (runtime/quest.ts PINE_ACT)
-      interact: () => context.commands().flatMap(command => command.kind === 'script' && (command.actorId === PINE_INTERACT || command.actorId === PINE_LODGE) ? [command] : []) });
+    const input = bindHeadlessCommands(context);
+    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, crossbowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+      shots: input.shots, heavy: input.heavy, pick: () => input.lastScript(WEAPON_COMMAND, null),
+      aim: () => { const value = input.lastScript(AIM_COMMAND, null); return value === null ? AIM_MIDDLE : aimShare(value); }, interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
 

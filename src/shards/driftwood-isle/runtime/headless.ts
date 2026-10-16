@@ -1,5 +1,5 @@
 import { installNativeMelee, trustedLevel } from '@wildshard/game/plugin/simulation';
-import { installNativeCollision, type HeadlessRuntimeInstallation, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
+import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
 import { readNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
@@ -30,9 +30,6 @@ export function driftwoodDayClock(): DayCycle<Preset> {
   return clock;
 }
 
-/** The tick protocol's command allowance (sdk/tickProtocol.ts): a tick never carries more. */
-const MAX_COMMANDS = 1024;
-
 /** The admitted platform navigation bytes, parsed by the same renderer-free WSNM reader as the page. */
 export function driftwoodNavmesh(bytes: Uint8Array): Navmesh {
   return readNavmesh(bytes, 'Driftwood declared navigation does not parse', () => 0);
@@ -58,15 +55,6 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * the puzzle barrel the player pushes onto the second tide plate (the kit's body and never-jam rule), and the open sluice.
  * The declared entry walk: every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
  */
-/** The walk the tick's last `player` command asks for (m/s): the host's walk (SimHost.step: the stick clamped to 1, times
- * the level's speed), the velocity the page's Player asks for and the barrel's watch reads. */
-function walkOf(list: ReturnType<HeadlessRuntimeInstallation['commands']>, speed: number): { x: number; z: number } {
-  let x = 0, z = 0;
-  for (let i = 0; i < MAX_COMMANDS; i++) { const command = list[i]; if (command === undefined) break; if (command.kind === 'player') { x = command.moveX; z = command.moveZ; } }
-  const len = Math.hypot(x, z), k = len > 1 ? speed / len : speed;
-  return { x: x * k, z: z * k };
-}
-
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
@@ -101,27 +89,17 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const offFinale = host.flags.onChange((flag, on) => { if (on && (flag === 'used:altar' || flag === 'dead:captain')) finale.changed(); });
     host.scope.onDispose(offFinale);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
-    const input = { attack: null as string | null, heavy: false, heavyTarget: null as string | null };
-    const held = installNativeMelee(host, shard.items.rows, NATIVE_SWORDS, { alarm: () => island.alarm(), staggered: (actor, strength, running) => island.staggered(actor, strength, running), input: () => {
-      input.attack = null; input.heavy = false; input.heavyTarget = null;
-      const list = context.commands();
-      for (let i = 0; i < MAX_COMMANDS; i++) {
-        const command = list[i]; if (command === undefined) break;
-        if (command.kind === 'player') { input.attack = command.attack?.targetId ?? null; input.heavy = command.heavy !== undefined; input.heavyTarget = command.heavy?.targetId ?? null; }
-      }
-      return input;
-    } });
-    const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
-    const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
+    const input = bindHeadlessCommands(context), { fact, coins } = input.ledger;
+    const held = installNativeMelee(host, shard.items.rows, NATIVE_SWORDS, { alarm: () => island.alarm(), staggered: (actor, strength, running) => island.staggered(actor, strength, running), input: input.melee });
     // the kill hooks: the sailor's flag and the kill feats' ledger facts
     installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, fact);
     // the quest and its interactables at the page's points: `script` commands on `driftwood.interact` (runtime/quest.ts)
     const zipline = shard.modes?.traverse.find(row => row.id === 'driftwood.zipline');
     if (zipline?.kind !== 'zipline') throw new Error('Driftwood requires its admitted zipline row');
     installDriftwoodQuest(host, { zipline, source: shard, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
-      commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
+      commands: input.scripts(),
       floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); },
-      finale, reward, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
+      finale, reward, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => input.walk(level.player.speed) });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
     host.onStep('driftwood.poses', island.publishPoses, undefined, 'afterBodies');
