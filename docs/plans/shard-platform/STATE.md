@@ -20,8 +20,5 @@
 
 **Visual:** each C1/C2 batch ships a labelled phone board, sent to wildshard-v. A short Opus host review runs at each component's close.
 
-**For wildshard-v:**
-1. Pine generators/logCabin.ts (1,335 lines): A) freeze the bake (per-building blobs ~5–9 MB, delete the generator, ≈ −1,300) or B) a Blender port (3–5 h). Rec: A.
-2. The authored TS row tables DW audioPcm.ts / Pine weatherChannels.ts: G466 C8 row 1 emits them as section JSON through a generator. Building that.
-3. Ruler gap: the G458 source ruler excludes shard generators/ TS (Pine 7,388 / DW 7,093 lines today). At least 118 counted lines got credit today by moving into generators (x7 audit). Rec: show generator TS as its own column on the hourly report, and keep the lane rule that a commit's 'net −N' counts generator lines (moves into generators/ aren't cuts). Counting it in M3 would be a big re-base: Jake's call.
+**G467:** Pine logCabin.ts stays (a working generator); generators are not custom code (no column, no re-base, build-time code may live in generators/).
 Paused: SF22 SF57 SF67.
