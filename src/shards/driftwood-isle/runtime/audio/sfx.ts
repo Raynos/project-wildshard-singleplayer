@@ -1,4 +1,3 @@
-import source from '../../shard.config';
 import { ISLAND_FAMILIES, type Surface } from '../const';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -7,6 +6,10 @@ import { spatialAudio } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
+import type { ShardContext } from '@wildshard/game/shard/context';
+
+/** the shard's declared audio rows (its product's `audio` section) */
+type IslandAudio = ShardContext['product']['shardfile']['audio'];
 /**
  * Driftwood Isle's voice table (08 §6.3 C.2): the island's footsteps (B9) and combat layers (S3), played from the procedural
  * bank (gen.ts via audio.voices), the gull calls, and the island's synth bed (the warm breeze, the far surf hiss, the swells).
@@ -35,23 +38,23 @@ export type InteractSound = 'chest' | 'locked' | 'lever' | 'plate' | 'door' | 'g
 interface At { x: number; y: number; z: number }
 
 
-function pcm(id:string):Parameters<typeof renderPcm>[0]{const row=source.audio.pcm?.[id];if(row===undefined)throw new Error(`Missing creature PCM recipe: ${id}`);return row;}
+function pcm(rows:IslandAudio,id:string):Parameters<typeof renderPcm>[0]{const row=rows.pcm?.[id];if(row===undefined)throw new Error(`Missing creature PCM recipe: ${id}`);return row;}
 const ENEMIES: readonly Enemy[] = ['boar', 'crab', 'monkey', 'sailor'];
 /** the island's own families on the procedural bank (08 §6.3 C.2; the engine's FAMILIES rows until S4.3: same counts, rates, seeds) */
-export const ISLAND_VOICES: VoiceTable = {
+export const islandVoices = (rows: IslandAudio): VoiceTable => ({
   'impact-shell': { n: 4, ch: 1, half: false, gen: (sr: number, seed: number) => impact('shell', sr, seed) },
-  ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, { n: 3, ch: 1, half: e === 'sailor' || e === 'boar', gen: (sr: number, seed: number) => renderPcm(pcm(`vocal.${e}`),sr,seed) }])),
-  'windup-boar': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => renderPcm(pcm('windup.boar'),sr,seed) },
-  'windup-crab': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => renderPcm(pcm('windup.crab'),sr,seed) },
-  'windup-sailor': { n: 2, ch: 1, half: true, gen: (sr: number, seed: number) => renderPcm(pcm('windup.sailor'),sr,seed) },
-};
+  ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, { n: 3, ch: 1, half: e === 'sailor' || e === 'boar', gen: (sr: number, seed: number) => renderPcm(pcm(rows,`vocal.${e}`),sr,seed) }])),
+  'windup-boar': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => renderPcm(pcm(rows,'windup.boar'),sr,seed) },
+  'windup-crab': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => renderPcm(pcm(rows,'windup.crab'),sr,seed) },
+  'windup-sailor': { n: 2, ch: 1, half: true, gen: (sr: number, seed: number) => renderPcm(pcm(rows,'windup.sailor'),sr,seed) },
+});
 
 export class IslandSfx {
   private readonly playback:ReturnType<Audio['voices']['playback']>;
   /** diagnostics: the last footstep's surface / gain / rate */
   lastStep: { surface: Surface; gain: number; rate: number } | undefined;
 
-  constructor(private readonly audio: Audio, scope?: Scope) { audio.voices.register(ISLAND_VOICES, scope);const rows=source.audio.playback;if(rows===undefined)throw new Error('Missing island playback');this.playback=audio.voices.playback(rows); }
+  constructor(private readonly audio: Audio, private readonly rows: IslandAudio, scope?: Scope) { audio.voices.register(islandVoices(rows), scope);const playback=rows.playback;if(playback===undefined)throw new Error('Missing island playback');this.playback=audio.voices.playback(playback); }
 
   /** render the island's one-shots in the background (call once the graph exists: after audio.resume()) */
   prewarm(): void { this.audio.voices.prewarm(ISLAND_FAMILIES); }
@@ -79,7 +82,7 @@ export class IslandSfx {
     const { pan, gain } = spatial;
     tap.sound?.('gullCall');
     if (a.shot('gull', { pan, gain, out: a.ambient })) return;
-    const phrase=source.audio.synth?.['gull'];if(phrase===undefined)throw new Error('Missing declared gull phrase');
+    const phrase=this.rows.synth?.['gull'];if(phrase===undefined)throw new Error('Missing declared gull phrase');
     a.playPhrase(phrase,a.ambient,{pan,gain});
   }
 }

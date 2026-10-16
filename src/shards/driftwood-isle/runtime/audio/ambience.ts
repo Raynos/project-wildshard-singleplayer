@@ -1,11 +1,10 @@
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { AmbienceMix } from '@wildshard/engine/audio/ambience';
-import source from '../../shard.config';
-import { requireAudioProfile, requireAudioZone, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioZone, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 
 export interface IslandAmbienceOpts {
-  wind?: Parameters<Audio['windBed']>[0];
+  wind: Parameters<Audio['windBed']>[0];
   sea: number;
   heightAt: (x: number, z: number) => number;
   /** the palms' trunks (Palms.scatterIsland specs) */
@@ -17,8 +16,8 @@ export interface IslandAmbienceOpts {
 }
 
 /** Lend native island geometry and wind ports to the shared mix. */
-export function createIslandAmbience(audio:Audio,o:IslandAmbienceOpts,profile:AudioZoneProfile=requireAudioProfile(source.audio.zones,'ambience.driftwood')):AmbienceMix {
-    const wind=o.wind??requireAudioProfile(source.audio.ambience??undefined,'island wind');
+export function createIslandAmbience(audio:Audio,o:IslandAmbienceOpts,profile:AudioZoneProfile):AmbienceMix {
+    const wind=o.wind;
     const CAVE = requireAudioZone(profile, 'cave');
     requireAudioZone(profile, 'shore');
     const f = o.cove?.fall.foot, c = o.cove?.cave, fall = { x: f?.[0] ?? 127.5, z: f?.[1] ?? 18 };

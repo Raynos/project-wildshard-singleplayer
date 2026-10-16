@@ -16,7 +16,6 @@ import { installDriftwoodCreatures } from '../creatures/install';
 import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
 import { installDriftwoodLoadout } from './loadout';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
-import source from '../shard.config';
 import { FP_ARMS_MATERIALS } from './const';
 import { followToon } from './look/toon';
 
@@ -67,7 +66,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (shell.world === null) throw new Error('Driftwood kit requires its world host');
     // the castaway arms' graph toon materials (data/fpArmsLook.ts), owned by this scope, lent before the swords and the
     // swimming hands are dressed (and any Model Explorer card)
-    const arms = await runtimeLookMaterials(ctx, source, true, Object.values(FP_ARMS_MATERIALS));
+    const arms = await runtimeLookMaterials(ctx, ctx.product.shardfile, true, Object.values(FP_ARMS_MATERIALS));
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded while compiling its arms');
     ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
     this.installCreatures(ctx);
