@@ -3,7 +3,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { FIXED_MODEL_FILES } from '../../data/modelFiles';
-import bake from '../../data/coveBake.json' with { type: 'json' };
+import { driftwoodRows } from './rows';
 import { coveSpecKey, type CoveSpec } from '../../world/coveLayout';
 
 const templates = {
@@ -12,6 +12,10 @@ const templates = {
   glow: modelGeometry(FIXED_MODEL_FILES.coveGlow),
   pools: modelGeometry(FIXED_MODEL_FILES.covePools),
 };
+
+/** the cave's baked facts, from the admitted product (`custom/fixedLayouts`, from data/coveBake.json) */
+const bake = () => driftwoodRows('custom/fixedLayouts').cove;
+type CoveBake = ReturnType<typeof bake>;
 
 /** Explicit intake; a fixture can admit these same immutable templates without fetch. */
 export async function loadCoveGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
@@ -26,21 +30,22 @@ export async function loadCoveGeometry(bytes?: ReadonlyMap<string, Uint8Array | 
 /** The authored island is one admitted layout. Refuse a different spec rather than draw geometry with mismatched collision. */
 export function copyCoveGeometry(spec: CoveSpec): {
   geometry: Record<keyof typeof templates, BufferGeometry>;
-  catalogue: typeof bake.catalogue;
-  native: typeof bake.native;
+  catalogue: CoveBake['catalogue'];
+  native: CoveBake['native'];
 } {
-  if (coveSpecKey(spec) !== bake.specKey) throw new Error('Cove layout changed; regenerate its fixed geometry');
+  const { specKey, catalogue, native } = bake();
+  if (coveSpecKey(spec) !== specKey) throw new Error('Cove layout changed; regenerate its fixed geometry');
   return {
     geometry: {
       structure: templates.structure.copy(), rocks: templates.rocks.copy(),
       glow: templates.glow.copy(), pools: templates.pools.copy(),
     },
-    catalogue: bake.catalogue,
-    native:bake.native,
+    catalogue,
+    native,
   };
 }
 
 /** Fresh native descriptors from the admitted static cave facts. */
 export function coveColliderDescs(): ColliderDesc[] {
-  return readColliderRows(bake.native.descs, { kinds: ['box', 'treads'], surfaces: ['rock'], requireSurface: true });
+  return readColliderRows(bake().native.descs, { kinds: ['box', 'treads'], surfaces: ['rock'], requireSurface: true });
 }

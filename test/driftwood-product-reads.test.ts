@@ -22,6 +22,7 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   expect(clip.ranges.reduce((sum, row) => sum + row.count, 0)).toBe(clip.outputIndices);
   const layouts = value('custom/fixedLayouts');
   expect(layouts.chimeSlots.length).toBe(CHIME_PIECES + 1);
+  expect(layouts.cove.native.descs.some(row => row.kind === 'treads')).toBe(true);
   for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(layouts.hut.anchors[key], key).toBeDefined();
   for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
   const quest = value('custom/questRows');

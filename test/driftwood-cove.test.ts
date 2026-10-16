@@ -1,6 +1,9 @@
-import { expect, it } from 'vitest';
+import { beforeAll, expect, it } from 'vitest';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { coveColliderDescs, copyCoveGeometry } from '../src/shards/driftwood-isle/runtime/boot/coveGeometry';
 import { coveFloorAt, islandCoveSpec, STEPS } from '../src/shards/driftwood-isle/world/coveLayout';
+
+beforeAll(admitDriftwoodFixtureRows);
 
 it('admits the stair as real ascending treads between the native cave floors', () => {
   const rows=coveColliderDescs(),stairs=rows.find(row=>row.kind==='treads');

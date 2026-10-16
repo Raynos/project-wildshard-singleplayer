@@ -3,6 +3,7 @@ import { defineSection, type DefinedSection } from '@wildshard/sdk/sections';
 import cumulusPuffs from './cumulusPuffs.json' with { type: 'json' };
 import islandClips from './islandClips.generated.json' with { type: 'json' };
 import chimeSlots from './chimeSlots.json' with { type: 'json' };
+import coveBake from './coveBake.json' with { type: 'json' };
 import hut from './hutBake.json' with { type: 'json' };
 import lookout from './lookoutBake.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
@@ -25,6 +26,17 @@ const desc = v.variant('kind', [
 ]);
 const boxes = v.pipe(v.array(box), v.maxLength(128));
 const descs = v.pipe(v.array(desc), v.maxLength(128));
+const surfaced = v.variant('kind', [
+  v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number, surface: text }),
+  v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural, surface: text }),
+]);
+const cove = v.strictObject({
+  specKey: v.pipe(v.string(), v.maxLength(4096)),
+  native: v.strictObject({ colliders: boxes, anchors: v.record(text, anchor), descs: v.pipe(v.array(surfaced), v.maxLength(128)),
+    cuts: v.pipe(v.array(v.strictObject({ x: number, z: number, hw: number, hd: number, yaw: number, below: number })), v.maxLength(16)) }),
+  catalogue: v.strictObject({ placements: v.pipe(v.array(v.strictObject({ x: number, y: number, z: number, params: v.strictObject({ r: number, squash: number, moss: number }) })), v.maxLength(512)),
+    boxes: v.pipe(v.array(number), v.maxLength(8192)) }),
+});
 const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
@@ -38,6 +50,7 @@ const CumulusPuffs = v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.max
 const IslandClips = v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs });
 const FixedLayouts = v.strictObject({
   chimeSlots: runs,
+  cove,
   hut: v.strictObject({ site, origin: point, floorY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
     floor: v.strictObject({ cos: number, sin: number, lift: number, deck: v.strictObject({ w: number, d: number, z: number }), steps: v.strictObject({ z0: number, len: number, w: number }) }) }),
   lookout: v.strictObject({ site, zipTo: v.strictObject({ x: number, z: number }), origin: point, platformY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
@@ -51,6 +64,6 @@ const section = (name: string, schema: v.GenericSchema, value: unknown): Defined
 export const DRIFTWOOD_CLIENT_SECTIONS: readonly DefinedSection[] = [
   section('custom/cumulusPuffs', CumulusPuffs, cumulusPuffs),
   section('custom/islandClips', IslandClips, islandClips),
-  section('custom/fixedLayouts', FixedLayouts, { chimeSlots, hut, lookout }),
+  section('custom/fixedLayouts', FixedLayouts, { chimeSlots, cove: coveBake, hut, lookout }),
   section('custom/questRows', QuestRows, { feats: DRIFTWOOD_FEATS, items: DRIFTWOOD_ITEMS, effects: DRIFTWOOD_EFFECTS, goods: GOODS }),
 ];

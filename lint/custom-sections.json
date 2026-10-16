@@ -68,6 +68,18 @@
         "bytes": 134664
       },
       "why": "W2a sp-o280: custom/kingKit, the King kit pool and lantern spots the client read from data/kingKit.generated.json"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 5,
+        "bytes": 39637
+      },
+      "to": {
+        "count": 5,
+        "bytes": 54357
+      },
+      "why": "W2b sp-o283: custom/fixedLayouts gains the cove's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue the client read from data/coveBake.json"
     }
   ]
 }

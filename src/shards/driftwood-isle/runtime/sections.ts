@@ -15,6 +15,17 @@ const desc = v.variant('kind', [
 ]);
 const boxes = v.pipe(v.array(box), v.maxLength(128));
 const descs = v.pipe(v.array(desc), v.maxLength(128));
+const surfaced = v.variant('kind', [
+  v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number, surface: text }),
+  v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural, surface: text }),
+]);
+const cove = v.strictObject({
+  specKey: v.pipe(v.string(), v.maxLength(4096)),
+  native: v.strictObject({ colliders: boxes, anchors: v.record(text, anchor), descs: v.pipe(v.array(surfaced), v.maxLength(128)),
+    cuts: v.pipe(v.array(v.strictObject({ x: number, z: number, hw: number, hd: number, yaw: number, below: number })), v.maxLength(16)) }),
+  catalogue: v.strictObject({ placements: v.pipe(v.array(v.strictObject({ x: number, y: number, z: number, params: v.strictObject({ r: number, squash: number, moss: number }) })), v.maxLength(512)),
+    boxes: v.pipe(v.array(number), v.maxLength(8192)) }),
+});
 const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
@@ -36,6 +47,8 @@ export const SECTIONS = {
   /** the fixed models' baked layouts: the chime's draw slots, the hut's and the lookout's colliders, anchors and floors */
   'custom/fixedLayouts': v.strictObject({
     chimeSlots: runs,
+    /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */
+    cove,
     hut: v.strictObject({ site, origin: point, floorY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
       floor: v.strictObject({ cos: number, sin: number, lift: number, deck: v.strictObject({ w: number, d: number, z: number }), steps: v.strictObject({ z0: number, len: number, w: number }) }) }),
     lookout: v.strictObject({ site, zipTo: v.strictObject({ x: number, z: number }), origin: point, platformY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
