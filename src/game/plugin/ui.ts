@@ -1,5 +1,3 @@
-import { createAmbientLife,createCirclingLife,type AmbientLifeHost,type CirclingLifeHost } from '../systems/life/ambientLife';
-import { parseAmbientLife } from '@wildshard/format/ambientLife';
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
 import "../quest/presentation.css";
@@ -2428,10 +2426,4 @@ export function bindWorldSceneParts<K extends Readonly<Record<string,WorldSceneB
   return out as WorldSceneBoundParts<K>;
 }
 
-/** Install declared ambient wildlife on actual scoped world/model owners, never on import. */
-export function installAmbientLife<Birds>(input:unknown,ports:AmbientLifeHost<Birds>|CirclingLifeHost):ReturnType<typeof createAmbientLife<Birds>> {
-  const data=parseAmbientLife(input);
-  if(data.kind==='circling-flyer')return createCirclingLife(data,ports);
-  if(!('animals' in ports))throw new Error('Forest role needs its actual herd');
-  return createAmbientLife(data,ports);
-}
+

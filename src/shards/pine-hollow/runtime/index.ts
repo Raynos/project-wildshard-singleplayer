@@ -50,7 +50,7 @@ import { installPineLoadout } from '../loadout/loadout';
 import { installPineCombat } from '../combat/install';
 import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
-import { installAmbientLife } from '@wildshard/game/plugin/ui';
+import { installAmbientLife } from './life/ambientLife';
 import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { loadBirdModels } from './birds';

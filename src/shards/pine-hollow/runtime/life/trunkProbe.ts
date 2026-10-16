@@ -4,7 +4,7 @@ import type { AmbientLifeData } from '@wildshard/format/ambientLife';
 
 export interface TrunkSection { x: number; z: number; r: number }
 
-/** Query authored local trunk profiles on the actual planted tree transforms. */
+/** Query Pine's authored local trunk profiles on its actual planted tree transforms. */
 export class TrunkProbe {
   constructor(private readonly rows: AmbientLifeData['perches']) {}
   private world(t: TreeInstance, k: { cx: number; cz: number }): { x: number; z: number } {

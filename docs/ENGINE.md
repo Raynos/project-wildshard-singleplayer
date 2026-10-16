@@ -5528,35 +5528,16 @@ actor classes refuse. `apply(frame)` writes the evaluated numbers;
 body, scene object or state grant is created. Pine weather and Signal well
 transforms use this binding.
 
-`game/plugin/ui.installAmbientLife(rows, ports)` installs bounded scavenger,
-sentinel, trunk-forager, ground-forager and guide populations. Supply the
-actual posed view, scoped world, herd, terrain and knife/model owners; the
-host retains the native observation clock and harvest cancellation policy.
-Role counts, model ids, cues and tuning live in author rows. One-user roles
-remain charged to their shard.
+Pine's ambient-life installer lives in its own
+`runtime/life/ambientLife.ts` (G456 H1), alongside its forager and trunk
+policies. The posed view, scoped world, herd, terrain, knife, observation
+clock and harvest cancellation stay with the same owners. This is private
+client content, not a game host or a native simulation installer.
 
 `engine/ai/ambientFlight.CirclingFlyer` is the reusable circling-flyer law.
 Its bounded tuning controls vertical waves, pitch and bank; `step` borrows
 the caller's phase/radius/home and `face` reuses its existing pose channels.
 Nalati's W3 valley raptors are the documented pending user.
-
-The `circling-flyer` role selects `game/systems/life/ambientLife.createCirclingLife` through the same installer;
-it needs only `{ctx, game, view}`. Declare each model/scale and orbit's centre,
-radius, altitude, angular speed, phase and wing tuning in `flock`. The view is
-borrowed and the scope owns the actual frame system. Forest-only perch,
-carcass and forager laws retain their one-user charge. Driftwood's circling
-gulls are the W2 adopter; Nalati's valley raptors follow in W3.
-
-```ts
-installAmbientLife({kind:'circling-flyer',
-  flight:{wave:0.7,amplitude:1.2,pitch:0.6,pitchRate:4,
-    bank:-0.5,bankLimit:0.7,bankRate:3},
-  system:{id:'wildlife',after:[],before:['main.frame']},
-  flock:[{model:0,scale:1,x:0,y:18,z:0,radius:20,speed:0.5,
-    phase:0,wingSpeed:6,wingAmplitude:0.4}]
-}, {ctx,game,view});
-```
-
 
 CirclingFlyer also accepts an optional bounded harmonic wheel row. Its `wheel`
 samples the caller's actual flock/time/body into a borrowed point; `face` accepts
@@ -5955,15 +5936,12 @@ contact, action and reload clocks remain with their existing owners.
 
 ### Bodyless ambient policy
 
-`src/game/systems/life/bodylessForager.ts` exposes `BodylessForager`: a
+`src/shards/pine-hollow/runtime/life/bodylessForager.ts` owns Pine's
 renderer-free grazing, alert and escape policy over caller-owned state,
 RNG, scheduled deltas and ground queries. It borrows motion channels;
-visibility, reseating and population lifetime stay with the caller. Pine's
-small foragers are the first user. G441's W3 user is Nalati's
-`creatures/marmotBrain.ts`: its forage/sentry/threat/retreat decisions move
-onto the runner with burrow retreat rows, while its colony whistle and
-band clocks remain the native owners. Pending credit is rechecked at the
-end of W3.
+visibility, reseating and population lifetime stay with the caller. It is
+Pine client content. A future Nalati adoption must meet the five-test host
+bar with real users rather than importing this shard's code.
 
 ### Native creature recipe intake
 

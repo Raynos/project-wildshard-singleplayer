@@ -2472,7 +2472,7 @@
     "src/shards/pine-hollow/runtime/facts.ts": 5,
     "src/shards/pine-hollow/runtime/headless.ts": 10,
     "src/shards/pine-hollow/runtime/herds.ts": 4,
-    "src/shards/pine-hollow/runtime/index.ts": 76,
+    "src/shards/pine-hollow/runtime/index.ts": 65,
     "src/shards/pine-hollow/runtime/king.ts": 18,
     "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": 11,
     "src/shards/pine-hollow/runtime/nightDirector.ts": 1,
@@ -2568,6 +2568,7 @@
     "src/shards/sunscar-dunes/world/fireFx.ts": 1,
     "src/shards/sunscar-dunes/world/places.ts": 4,
     "src/shards/pine-hollow/runtime/world/hero.ts": 2,
-    "src/shards/pine-hollow/runtime/world/cragKit.ts": 4
+    "src/shards/pine-hollow/runtime/world/cragKit.ts": 4,
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts": 43
   }
 }

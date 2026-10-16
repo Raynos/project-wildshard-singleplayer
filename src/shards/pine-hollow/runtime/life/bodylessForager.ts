@@ -14,10 +14,9 @@ export interface ForagerGround { heightAt: (x: number, z: number) => number; can
 const TAU = Math.PI * 2;
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
-/** Bodyless foraging policy. Visibility, seating, discarded paused time and
+/** Pine's bodyless foraging policy. Visibility, seating, discarded paused time and
  * population ownership stay with the caller. Each step consumes only its lent RNG.
- * The first motion profile is a hop; Nalati's burrow keeper supplies the W3 retreat
- * profile and keeps its colony whistle and band-clock ownership. */
+ * This hop profile is Pine content, not a shared platform host (G456 H1). */
 export class BodylessForager {
   private readonly rows: ForagerPolicyRows;
   private readonly random: ForagerRandom;

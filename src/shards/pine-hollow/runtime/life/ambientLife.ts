@@ -17,13 +17,13 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { ShardContext } from '../../plugin/context';
-import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '../../shard/retainedHooks';
-import { sharedWeaponVoices } from '../../plugin/audio';
+import type { ShardContext } from '@wildshard/game/plugin/context';
+import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { BodylessForager, type BodylessForagerState, type ForagerMotion } from './bodylessForager';
 import { TrunkProbe } from './trunkProbe';
-import type { AmbientLifeData, CirclingLifeData } from '@wildshard/format/ambientLife';
+import { parseAmbientLife, type AmbientLifeData, type CirclingLifeData } from '@wildshard/format/ambientLife';
 
 type WildKind=number;
 interface PlaceSpot {id:string;x:number;z:number;r:number}
@@ -745,4 +745,12 @@ export function createCirclingLife(data:CirclingLifeData,host:CirclingLifeHost):
     host.view.begin();for(const body of bodies){flight.step(body.pose,body.orbit,dt);body.wing+=dt*body.row.wingSpeed;body.pose.a0=Math.sin(body.wing)*body.row.wingAmplitude;host.view.add(body.pose);}host.view.commit();
   }});
   return {mesh:host.view.mesh,harvest:()=>{throw new Error('Circling population cannot harvest');},busy:false};
+}
+
+/** Install this shard's ambient role on its actual scoped world/model owners. */
+export function installAmbientLife<Birds>(input:unknown,ports:AmbientLifeHost<Birds>|CirclingLifeHost):ReturnType<typeof createAmbientLife<Birds>> {
+  const data=parseAmbientLife(input);
+  if(data.kind==='circling-flyer')return createCirclingLife(data,ports);
+  if(!('animals' in ports))throw new Error('Forest role needs its actual herd');
+  return createAmbientLife(data,ports);
 }

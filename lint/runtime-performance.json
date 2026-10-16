@@ -6065,6 +6065,226 @@
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts:unbounded-loop:e450f5ba9e289549ca1e95a30a3fd4ba524da29b74da9feb295861628bd80834": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:b5dd2f8b8ff55952ff256f75d1c270171a5578f34f296ac4bae7b7b01ca16cd6": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:raw-render:26ac04d3c61192df7c8aef1624f65c27f8fcc32c97f81124161fc5085d275655": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:affbc18a2a1d0e0c8b0eb9fe74956cf7ecee43f8bf069d20f8fa4acdacd8febe": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:85bdb452fc3968b137d97f0204516177ab41838657001ef19951ba72693260e8": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:44794b4942313db075054297b08c07fab56629a66337a1fa45856c1ada3bfb17": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:29bbdb633fac5a4114cc0139c1af55230e1804b28f0beb9efab4b48a3b3b4847": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:a0966e4615f647d1756b0dbc17558e938d4682117f1e50beac8d23970730ab96": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:a02c47b9a34bbfa35d89a198184296aecb051b598687e34a2f8cc6fa0b16ccc2": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:bb57486947b60f758edab1e6308005c462e666b1f9b164f5442c2e649330a9db": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:f89533470f1b1188ed8ad68737e3f233f8735fc1f3405b8a2e55bfa881598d78": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:76cb223974ac26b1129926910c8376a4423f31561f68924c436c035494fdf604": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:abee9fd7e098f0b964d2e60674aa66ae661aff5b3bdeda10f03b2e7c9f3355b3": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:a909f08adc74c9f8ae0f0469145bce027e78dc393ea609089cccc73817047c74": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:25987c9a32c9dd73344e390a6483f0d143f27f5d78972867a14fdc3e8c816e45": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:bea0e3509911956f693112f7c7d8389292544c8ca791388b9b8c7678ce027738": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:96cd302e095808a335e8c4ba6d04d9d5566a88ce22bb8a1cbdc9f1f8927a0dfb": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:a0cc5b59d7dc8078439213c31866e685b899eb625f4260bdf7518d5a36ca8fc3": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:7c6e03e4264e26280d4e3b14800b90063597fb37c95cba3c7cd7e52fd0f678cd": {
+      "count": 2,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:e6d56c5f84b97026f02a4995d545d407f4245a5a459920c28cd1052ceda2b38a": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:e7f6f945543b3bc1b94a32b515c5577a864c570dc8c8db7030620fc3b4e19490": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:c827b74f9870005487e540a0c6cd337bf21d2812236d629c2ce1d1a396b0293a": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:46b28f419eeb14d7eebf75d2ef7c9b800a718f61f350dccc39251dc818338112": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:2bf4014b9bad2b0a9e4dfaae5c724d6ab7f351760772c7d610b25d87a4e20a11": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:e459399dca3240c0529a3560347017a893832480f768a33a202f5bdcb98161d9": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:925d2ae598f82b7ff809f441aea47324a9d1c012c5828e21b9f32201b21b1d30": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:e1f77c9d8f1f02324de8c8f74d9dcfa94b03fef6c7d4198978849dbe328ed2f8": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:3f7c4c4c85634669e7ecb2bf6cfe1c639c9c463e017e82030353bd3f036c56ff": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:2e739b1d699406ad621282e4afecbd77b37f64d4a91e59bb321ad8dd437a1b5d": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:20df5b973edccd35a02060cff48c0d284260181adf3f44e9b62ced724df4cf50": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:ba9ec115ab00631a233a907c88a4ccb873e61f46fa40870e1fae780b4fa956e5": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:694cd2bc91cff208311b87455b12602f78378c45a00aa96c2276489bab288163": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:d4757ea7b15edcedf8291983638deca39f727e6deec857b4c6fa4f3ecf1575d4": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:2b1cbae5cd8a6fda8da6cc6e4dcd56796e084b080534791dd9f9bcaad4867101": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:30be69b92a293f7fe336dd426774aeb1e3f5215eea423261bbcaa5f5957cd89b": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:f44c7571146f75aefcda083954d52435bb2c7f01993f494b82ccc6f8b62a17b1": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:07cd523d1b427ac134a90688b38a51ca02a7b71cfd9130ab1181ca65a6119f76": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:40c75f8a7907f5b9ae72c9b94ec0317c471bd6373e3fd2c0e65616d3f7a639f2": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:046246a41cb779a95f8b0a1af7afe733b78f2b71ac54f6b9292208f86c6397dd": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:2abcefecebe7c1fdf5f03fe0ba8defe11937e5f9a93044dc43fe94bc8d35d817": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:387deaa655c4f9af86833838adb9606dd71148e394176709e01b553d74d7dc67": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:4aeff48fa166bce16820bf8046c188801481f6d98c98cfa96da516eb360c8c8e": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:69c005c3114342c4b5a7184e55c541c862ba5dccf8c5150b7db8f61a926ff5bb": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:8ece87200928031544983f361bc0b07978ca7e721d41df0a729e5584752be9f4": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:bb96b4bf90a458a4fd7303cb5054aabc37f37bafb746b85cbefc721c332ac8e1": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:9826e24b4dae5507d9a2c758ec90bce1ba012737c1cbce30c164e4935b782071": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:9bd3db73e8b125c61cb0e57f32dfaa967b46f28dea216aa431fcdc887617a6f8": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:frame-allocation:42401bbaa1de6631b17ac8e02642b121f4a02fc76bc907f69aaededbcf1264c0": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:4a1a436e211e054791ca34f0fb7517110e573ab785f824abdda938f859488733": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:dom:48e43197f01816df958a926ff8d5443d70b8373e16c35df088d2f75cb0d57599": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:raw-render:f11b05bc1cd9becb4c58cd3421540a700754e0f1753c2880109311c12fdf8dc3": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/ambientLife.ts:unbounded-loop:fd29c9cce1e0ae0167368dc4bcb44d6c484efcc471a3b6beb10638e3f6347550": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/bodylessForager.ts:unbounded-loop:a6514c56e011fe082a6364963c7a9b70e3416272076153b451d00841c0127ca2": {
+      "count": 1,
+      "row": "H1"
+    },
+    "src/shards/pine-hollow/runtime/life/bodylessForager.ts:frame-allocation:110b9da692566eaeaecc2cf67585a87307fd8d496ee6fef45f2a9cd8e904f0f0": {
+      "count": 1,
+      "row": "H1"
     }
   }
 }

@@ -45,17 +45,6 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/systems/life/ambientLife.ts",
-      "export": "createCirclingLife",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati ambient life on the game's ambient-life host (SF48)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
       "module": "src/engine/models/ownedGeometry.ts",
       "shard": "nine-dragon-stack",
       "plan": {
