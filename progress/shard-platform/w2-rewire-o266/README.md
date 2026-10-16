@@ -64,7 +64,67 @@ quest/, loot/, loadout/rows.ts, world/build.ts, world/sea.ts,
 look/dayKeys.ts, boot/ground.ts, boot/bridgeFacts.ts. These leave runtime/
 as sections plus hosts or Wasm (W1/W3 rows), not here.
 
+## For sp-x5: sections and named blobs Driftwood's client reads need
+
+What is left in Driftwood's client `runtime/` after the const mirrors
+(2026-10-16 13:15Z). sp-x5 emits these from `shard.config.ts` and owns
+`runtime/sections.ts`; this lane then switches the reads to
+`ctx.product.section(name, SECTIONS)` / `ctx.product.url(name)`.
+
+### Named blobs (URL tables of baked GLBs; read with `product.url`)
+
+| Blob names (proposed) | data/ source | Reader |
+|---|---|---|
+| `models/fixed/<key>.glb` (83) | `modelFiles.ts` `FIXED_MODEL_FILES` (key -> URL) | runtime/boot/{fixedGeometry,modelGeometry,coverGeometry,coveGeometry,trailsideGeometry}.ts |
+| `ground/ground.glb`, `ground/slab.glb` | `groundFiles.ts` `GROUND_FILES` | runtime/look/terrainPainter.ts |
+| `reef/<group>/<kind>.glb` | `reefFiles.ts` `REEF_FILES` | runtime/boot/reefGeometry.ts |
+| `palms/<key>.glb`, `hibiscus/<key>.glb` | `palmFiles.ts`, `hibiscusFiles.ts` | runtime/boot/{palmGeometry,hibiscusGeometry}.ts |
+| `zipline/<key>.glb` | `zipline.generated.json` (world, trolley, ...) | runtime/models/zipline.ts |
+
+`bootFiles.ts` (`DRIFTWOOD_BOOT_FILES`, `DRIFTWOOD_BOOT_SOURCES`: boot
+selections over the URLs above, `{ <sel>: { source: { urls: string[] } } }`)
+is read by runtime/boot/{sources,lateReads}.ts; once the URLs are named
+blobs it becomes lists of blob names (custom `custom/bootFiles`, or
+sp-x6's boot inventory if that lands first).
+
+### Custom sections (no platform section fits)
+
+| Section (proposed) | data/ source | Shape | Reader |
+|---|---|---|---|
+| `custom/cumulusPuffs` | `cumulusPuffs.json` (generators/cumulus.ts) | `number[7][]`, 8.8 KB | runtime/look/backdrop.ts |
+| `custom/islandClips` | `islandClips.generated.json` | `{ sourceVertices, sourceIndices, outputIndices: number; ranges: { start, count }[] }` | runtime/looks/bakedIsland.ts |
+| `custom/hutBake`, `custom/lookoutBake` | `hutBake.json`, `lookoutBake.json` | `{ site, origin, floorY, ... }`, 7-9 KB | runtime/models/{hut,lookout}.ts |
+| `custom/chimeSlots` | `chimeSlots.json` | `{ start, count }[]` | runtime/models/seaGlassChime.ts |
+| `custom/reefSpecimens` | `reefSpecimenRows.ts` `REEF_SPECIMENS` | record of kind -> specimen row | runtime/boot/reefGeometry.ts |
+| `custom/trailSpecimens` | `trailSpecimens.ts` + `trailSpecimenRows.ts` | record + row array | runtime/boot/trailSpecimens.ts |
+| `custom/coveBake` | `coveBake.json` | `{ specKey, ... }`, 24 KB | runtime/boot/coveGeometry.ts |
+| `custom/trailsideBake` | `trailsideBake.json` | `{ specKey, ... }`, **201 KB**: better a named blob if a JSON blob kind exists | runtime/boot/trailsideGeometry.ts |
+| `custom/rows` (or platform economy rows) | `questInventory.ts` `DRIFTWOOD_ITEMS`, `DRIFTWOOD_FEATS`; `economy.ts` `DRIFTWOOD_EFFECTS`, `GOODS` | `ctx.rows.item/feat/effect/shop` inputs | runtime/index.ts |
+
+`runtime/finalePresentation.ts` reads `captainEncounter.ts`
+(`CAPTAIN_DEF.id`, `.arena.r`, `CAPTAIN_PRESENTATION.name`) and
+`spots.generated.json` (`reward` point): small, so const mirrors (this
+lane) unless the platform `combat/encounters` section carries them.
+
+### Blocked on a product route (not sections)
+
+- runtime/look/{backdrop,terrainPainter}.ts pass `shard.config` to the
+  sky and ground look materials but run under the engine's
+  `WorldLookContext` (renderer, sky, scope), which has no product.
+- runtime/audio/files.ts `createDriftwoodAudio()` is the boot audio
+  preload (discovery `audioBindings.preload`), called with no context.
+
 ## Landings
 
 | SHA | Change | no-build-time-import DW | runtime-standalone DW |
 |---|---|---|---|
+| `a62ca473f` | look ids, sea constants (hybrid, looks) | 207 -> 194 | 106 -> 93 |
+| `8f1090f43` | arms look, step surfaces, voice families | 193 -> 188 | -5 |
+| `aa80aa697` | ground row, kit lends, sky, day light, fog | 188 -> 183 | -5 |
+| `98d180613` | ctx.product: resident motion, arms, audio; data/residentWorld.ts deleted | 183 -> 177 | -6 |
+| `844047b79` | loadout: profiles, pickup scene, items via ctx.product | 177 -> 173 | -4 |
+| `59d229350` | models: rock palettes, boat, counter, island rows | 173 -> 167 | -6 |
+| `4dd9fcce7` | Castaway scene, pose, focus, smoke | 167 -> 163 | -4 |
+| `acc832f84` | reef look id, wreck sites | 163 -> 161 | -2 |
+
+(Counts between rows moved as other lanes moved files into runtime/.)
