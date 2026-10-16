@@ -1,6 +1,6 @@
 import { Box3, Vector3 } from 'three';
 import * as v from 'valibot';
-import { islandProtos, type IslandProto } from './islandCover';
+import { islandProtos, type IslandProto } from './islandProtos';
 
 interface ProtoFacts { name:string;present:boolean;empty:boolean;min:{x:number;y:number;z:number};max:{x:number;y:number;z:number};half:number;top:number }
 /** Prototype bounds and original rock fit dimensions; no vertices or placements are duplicated. */

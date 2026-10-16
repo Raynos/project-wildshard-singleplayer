@@ -42,7 +42,8 @@ if (tierArg === undefined) {
     const dir = resolve(ROOT, 'public/assets/models/driftwood-blender');
     const glb = readFileSync(resolve(dir, 'island.glb')), bin = readFileSync(resolve(dir, 'placements.bin'));
     const meta = JSON.parse(readFileSync(resolve(dir, 'island.json'), 'utf8'));
-    const protos = await island.islandProtos(new Uint8Array(glb), { protos: meta.protos });
+    const { islandProtos } = await src('shards/driftwood-isle/generators/islandProtos.ts');
+    const protos = await islandProtos(new Uint8Array(glb), { protos: meta.protos });
     const f = island.islandPlacements(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
     const used = island.islandUsed(f, meta, tierArg === 'phone');
     const { covers, bigs } = island.islandSets(f, meta, used, tierArg === 'phone');
