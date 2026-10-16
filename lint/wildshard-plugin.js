@@ -21,6 +21,7 @@ import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations, frozenRuntimePerformanceViolations } from './runtime-performance.mjs';
 import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
+import { shardfileBoundaryVisitors } from './shardfile-boundaries.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -929,6 +930,26 @@ const boundaryVisitors = check => ({
   },
 });
 
+// G450: normal lint enforces today's file ceilings without the retired ratchet hook.
+// Count mode emits every site for lint/ratchet.mjs and the source/runtime copier.
+const shardfileDebt = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')) : {};
+const shardfileBoundaryRule = name => ({
+  meta: { type: 'problem', docs: { description: `Shardfile source boundary: ${name} (G450)` },
+    schema: [{ type: 'object', properties: { count: { type: 'boolean' } }, additionalProperties: false }] },
+  create(context) {
+    const file = pathOf(context);
+    if (legacySourcePath(file) !== null) return {};
+    const index = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
+    const root = index === -1 ? REPO : context.filename.slice(0, index);
+    const limit = context.options[0]?.count === true ? 0 : shardfileDebt[`wildshard/${name}`]?.[file] ?? 0;
+    let count = 0;
+    return shardfileBoundaryVisitors(root, file, name, (node, message) => {
+      count += 1;
+      if (count > limit) report(context, node, message);
+    });
+  },
+});
+
 const generatorImports = rule('Generator and data imports stay on the authoring surface (DS0.3)', context => {
   if(legacySourcePath(pathOf(context))!==null)return {};
   return boundaryVisitors((node,source,computed)=>{
@@ -1044,6 +1065,9 @@ const plugin = {
     'sdk-no-facade': sdkNoFacade,
     'legacy-npc-imports': legacyNpcImports,
     'runtime-commons': runtimeCommons,
+    'runtime-standalone': shardfileBoundaryRule('runtime-standalone'),
+    'no-build-time-import': shardfileBoundaryRule('no-build-time-import'),
+    'no-runtime-in-build': shardfileBoundaryRule('no-runtime-in-build'),
     'runtime-performance': runtimePerformance,
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,

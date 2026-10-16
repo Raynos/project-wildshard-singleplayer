@@ -2487,6 +2487,9 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | `wildshard/shard-names` | the game names no particular shard: slugs, display names, camelCase forms, distinctive stems and shard-declared ids, from `lint/shard-words.generated.json`; comments and ordinary words (pine, driftwood) pass | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/no-shard-branch` | outside `src/shards/`: a branch on a slug or a style (`slug ===`, `style ===`, `isNalati`, a slug literal in a comparison or `case`) | hard error |
 | `wildshard/no-level-identity` | outside `src/shards/`: comparing, switching on, or keying a table by a level's `id`, `slug`, `kitLook`, `style`, `biome` … Pass a capability or a data strategy instead | ratchet (4 at HEAD) |
+| `wildshard/runtime-standalone` | source `runtime/` imports leaving its own folder, non-public packages, JSON/assets and raw/URL transforms; includes type/re-export/lazy/glob/resource forms | G450 per-file ratchet; new files start at zero |
+| `wildshard/no-build-time-import` | play imports of shard `data/`, `generators/`, `behaviour/`, `assets/`, `blender/` or `shard.config`; same-shard build composition and SDK CLI/bakers stay legal | G450 per-file ratchet |
+| `wildshard/no-runtime-in-build` | build inputs importing `runtime/` or legacy play folders/root modules; G297 bridges remain measured migration debt | G450 per-file ratchet |
 | `wildshard/shard-sandbox` | in `src/shards/`: `window` / `globalThis` / `self` reads or writes, window or document input listeners, `setting(key)` for a key you don't own, an `/assets/…` path outside your `assetGlobs` and the shared folders | ratchet (new files at 0) |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside the save store | hard error |
 | `wildshard/shard-services` | a shard importing an engine page service (`app`, `saves`, `hudSlots`, `practiceRoom`, `lockOn`) instead of taking it from its ShardContext (AG12) | ratchet (the four original shards' 58 imports may only fall; a new shard starts at 0) |
@@ -2512,6 +2515,15 @@ pre-commit and requires an exact coordinator approval trailer in the generated c
 A rule whose total reaches 0 still moves to `.oxlintrc.json` as a hard error. Allow lists, budgets and the Debug-row
 cap (`debugRows`) are human-reviewed source policy and never regenerate. Historical allowances and SF2's
 `lint/shard-coupling.json` remain shrink-only. See [GIT.md](process/GIT.md) for the receipt and source-only workflow.
+
+G450's three source-boundary rules enforce `lint/ratchet.json` ceilings directly during ordinary oxlint,
+including the active commit/push gates. Existing file counts pass; every excess site fails, and missing rows mean zero.
+Their `{count: true}` option emits all violations for census tooling, as configured in `.oxlintrc.ratchet.json`.
+`lint/shardfile-boundaries.mjs` supplies the same AST visitors to oxlint and
+`shardfileBoundaryViolations(root, sourceRelativeFile, sourceText)` to the verbatim runtime copier. The latter returns
+raw `{rule, message, start, end}` diagnostics without applying migration debt; callers decide when a shard must be closed.
+Exact registered frozen sources keep their historical exemption. Each migration removes its now-unused ceilings;
+the new closed shard remains at zero.
 
 **The other checks a shard meets**
 

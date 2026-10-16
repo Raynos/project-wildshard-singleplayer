@@ -9,6 +9,9 @@
   "rules": {
     "wildshard/layer": "error",
     "wildshard/runtime-commons": "error",
+    "wildshard/runtime-standalone": ["error", { "count": true }],
+    "wildshard/no-build-time-import": ["error", { "count": true }],
+    "wildshard/no-runtime-in-build": ["error", { "count": true }],
     "wildshard/public-index": "error",
     "wildshard/engine-words": "error",
     "wildshard/no-shard-branch": "error",
