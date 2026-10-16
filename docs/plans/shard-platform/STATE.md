@@ -2,7 +2,7 @@
 
 **W2 = 9 components (G466, Jake 13:35 Cancun).** Each component is ONE megabuild across Pine AND DW. W2 stays open until its components close (the 05:00Z close is cancelled), and the W1 spike rides along: roc.as/moves → H1 in C4, Sky/Signal quests → H2 in C5, Sky movers → H5 in C7. Close bar: 100/0 per component except listed view code. G465 holds: no runtime/ detours, no const mirrors, every commit a measured net cut. Plan: `progress/shard-platform/host-gap-2026-10-16/README.md` (`6e1fa0038`).
 
-**Headline: components closed 0 / 9.** Ruler at `fa8ce4112` (19:3xZ): M3 26.7 % (21,384 of 80,172 cut; was 16.7 % an hour earlier), plan 16.0–49.3 %. Custom vs legacy: Pine 17,623 = 82.7 % (−551 since 12Z), DW 11,647 = 67.8 % (−1,554), Sky 1,800 = 26.6 % (−4,275), Signal 1,807 = 43.8 %. The table below is the 13:00 Cancun baseline per component.
+**Headline: components closed 0 / 9 (C7 nearest: Pine 20 / DW 5 lines left, view loans).** Ruler at `10f3e7b92` (21:2xZ): M3 30.7 % (24,631 of 80,172 cut), plan 18.4–51.8 %. Custom vs legacy: Pine 15,679 = 73.6 %, DW 10,346 = 60.3 %, Sky 1,798 = 26.5 %, Signal 1,807 = 43.8 %. The table below is the 13:00 Cancun baseline per component.
 
 | Comp | Lane | Pine lines | DW lines |
 |---|---|---:|---:|
