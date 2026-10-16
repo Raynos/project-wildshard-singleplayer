@@ -4,6 +4,25 @@ Source: sp-x6's read-only sweep of SHARD-PLATFORM.md and design-system.md on 202
 landing receipts. Graphical / O parts, the readability and looks seats, and Jake's picks are excluded; they wait for Opus.
 Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an owner below are one backlog, not separate estimates.
 
+## Shardfile design rows (G450, 2026-10-16; design `progress/shard-platform/shardfile-design-2026-10-15/README.md` §6)
+
+| Row | What | Size | Lane | State |
+|---|---|---|---|---|
+| P0 | Lint ratchets runtime-standalone / no-build-time-import / no-runtime-in-build, today's counts | S | sp-x4 | in flight |
+| P1 | Output v2 writer `out/<slug>/` + validator §2.8 1–4 (A); loader adapter + blob URLs (B) | M | sp-x5 (A), sp-x8 (B) | in flight |
+| P2a | Runtime data API `product.section/strings/file` spec + skeleton | S | sp-o258 designs, Codex builds | in flight |
+| P2b | `defineSection`, `schemas/custom/`, named blobs, first W1 platform sections | M | sp-x6 | in flight |
+| P3 | Runtime copy, `import.meta.glob` registry, `out/catalog.json`, title menu reads it | M | sp-x1 | in flight |
+| P4 | Ruler on the output; drop `runtimeExcludedFolders` and the G445 clause; new report columns | S | sp-x7 | in flight |
+| S1 / S1b / S2 / S3 | Sky and Signal rewire to sections, play folders into runtime/, private assets into blobs | M / S / S / S | Codex after P1–P3 | open |
+| S4 | Sky look-graph builders + Signal fire.ts emit SF59 graph JSON at build | M | sp-o259 | in flight |
+| S5 | Sky/Signal world/ onto hosts or build-time sections (decision table, then moves) | M | sp-o262 picks, Codex moves | in flight |
+| T1 | Template on the new source layout; `wildshard new` writes it | S | Codex | open |
+| W2a / W2b | Pine / Driftwood rewire from data/ + play folders into runtime/ wholesale (counted) + assets into blobs | L / L | 2 Codex lanes each, after P1–P3 | open |
+| W2c | Pine cabinLook/keyedSkyRows, DW groundLook/coverLook emit graph JSON at build | M | sp-o260 (Pine), sp-o261 (DW) | in flight |
+| W3a / W3b | Nalati / Nine play folders into runtime/ | L / L | Codex (W3) | open |
+| Z1 | Delete v1 monolith reader, legacy discovery, `runtime/source.ts`; ratchets become errors | S | Codex | open |
+
 ## Part A: open engineering, assigned
 
 | Row | What remains | Size | Lane |

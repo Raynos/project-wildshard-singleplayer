@@ -6,15 +6,15 @@ G437 perf wins: DW first frame 183 → 16.7 ms (`b5fab36ec`); late shader links 
 Milestones `78254116d` → `68cd273ea`: the ~1 s Pine stall is gone (drive 983 → 83 ms desktop, 852 → 148-216 ms Safari, after `3efc0d81d`). Floor still FAILS: Pine grid travel p95 33 ms desktop / 86-91 ms Safari; DW Safari standing 44 ms, road 52-75 ms (worse than before). x4 on Pine travel, DW Safari work 6-7 → 15-18 ms: first cause c5b1f0b2f (pickup graph), later graph ports also contribute; no ≥3 ms fix on HEAD, receipt `06f180053`, goes to the G437 perf pass. Pine ledger `54210bc02` + Safari 6 ms slice `ec3527529`: Safari approach p95 91 → 72 ms (still > 33; the rest would need longer loading, Jake's call); cold-gen catalogue fix `3e1f25d7b`.
 Fixes: Pine grid entry (broke at de1b7286f) `f542a4cfb`; grid Pine KTX2 props white → textured (broke at 0ec8d4984) `c5ef7b1c1`.
 
-**Lanes:** Opus none (5 held for the G447 design rows and W3). Codex: x4 Pine grid travel fps;  x1 x5 x7 x8 idle (pools dry, honest G437 cuts taken).
+**Lanes (G450, hold lifted 11:15Z):** Codex: x4 P0 lint · x5 P1 writer · x8 P1 loader · x6 P2b sections · x1 P3 runtime copy/catalog · x7 P4 output ruler + pusher. Opus: o258 P2a API spec · o259 S4 Sky/Signal graphs · o260 Pine W2c · o261 DW W2c · o262 S5 Sky/Signal world/. Rows in open-x-queue.md.
 
 **Rulings:** offline bakes are honest (`1c125707c`); G448: no hand-converted JSON and no new data tables until the design lands.
 
-**Holds:** G445 source ruler `f0ca1f1c8` landed before the G447 hold; left in place until the output ruler. G446 W1 conversion stopped. G447: design committed `2ead9dfa1` (6 questions for Jake). G449: runtime/ standalone; no new runtime→shard imports.
+**Decisions:** G450 lifts G447: Jake's picks (out/<slug>/, verbatim runtime/ copy, hashed blobs + logical names, build-only SDK uncounted, Pine/DW play folders into runtime/ now, P0–P4 now). G445 ruler `f0ca1f1c8` stays until P4. G449: runtime/ standalone.
 
-**Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table: 78 entries / 43 rows, consistent. No W3 prep before noon. In force: G415–G449.
+**Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table: 78 entries / 43 rows, consistent. No W3 prep before noon. In force: G415–G450.
 
 **End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU (DW Safari +6-12 ms, receipt `06f180053`). UI: DW finale caption overlap. Look: Pine sluice flat low-poly (Jake).
 
-**For wildshard-v (needs Jake):** lifting G447 is now the main lever. (1) Every W2 pool is dry at -10, so pace is ~0. (2) Evidence: Pine's plugin import runs parseShardfile on every graph table synchronously, a 99.6 ms road hitch and likely the ~1 s cold Pine stall; the design's build-time validation removes it. Recommendation: Q6 option 2, P0–P4 on Codex now. Keep `f0ca1f1c8` until the output ruler lands.
+**For wildshard-v:** G450 applied: 6 Codex + 5 Opus lanes on the design rows at 11:20Z. Noon W2 close (G443) still runs at 17:00Z.
 Paused: SF22, SF57, SF67.
