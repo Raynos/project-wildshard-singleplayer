@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Execute the workspace's author CLI without requiring a previously packed SDK or a Vite dev server.
 import { build } from 'vite';
-import { relative, resolve, sep } from 'node:path';
+import { basename, relative, resolve, sep } from 'node:path';
+import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { createRequire } from 'node:module';
@@ -28,7 +29,12 @@ export async function runWildshard(args) {
     return cli.runCli;
   })();
   const root = resolve(import.meta.dirname, '..');
-  await (await runner)(args, { runtimeCheck: (/** @type {string} */ path, /** @type {string} */ source) => {
+  const project = args[1] === undefined ? undefined : resolve(args[1]);
+  const manifest = project === undefined || !['build', 'validate', 'prove'].includes(args[0] ?? '') || !existsSync(resolve(project, 'shard.config.ts')) ? undefined : {
+    folder: basename(project), ...(existsSync(resolve(project, 'manifest.json')) ? { file: resolve(project, 'manifest.json') } : {}),
+    imageRoots: [{ prefix: `/src/shards/${basename(project)}/`, directory: project }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }],
+  };
+  await (await runner)(args, { ...(manifest === undefined ? {} : { manifest }), runtimeCheck: (/** @type {string} */ path, /** @type {string} */ source) => {
     const file = relative(root, resolve(args[1] ?? root, path)).split(sep).join('/');
     return shardfileBoundaryViolations(root, file, source).filter(issue => issue.rule === 'runtime-standalone');
   } });

@@ -1,5 +1,7 @@
 /** Bounded inert SHARD SELECT images. These limits apply before a browser decoder sees any bytes. */
 export const STILL_IMAGE_LIMITS = { bytes: 4_194_304, dimension: 4096, chunks: 1024 } as const;
+/** Texture strips may be wide, but never exceed a title image's pixel area or wire cap. */
+export const IMAGE_ASSET_LIMITS = { ...STILL_IMAGE_LIMITS, dimension: 8192, pixels: STILL_IMAGE_LIMITS.dimension ** 2 } as const;
 /** Byte-derived image envelope and conservative CPU/data-URL and compositor residency. */
 export interface StillImage { mime: 'image/png' | 'image/jpeg' | 'image/webp'; width: number; height: number; decoded: number; gpu: number }
 const crcTable = Uint32Array.from({ length: 256 }, (_unused, value) => {
@@ -14,7 +16,7 @@ function crc(view: DataView, start: number, end: number): number {
 }
 
 function envelope(bytes: Uint8Array, mime: StillImage['mime'], width: number, height: number): StillImage {
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > STILL_IMAGE_LIMITS.dimension || height > STILL_IMAGE_LIMITS.dimension) throw new Error('Still image dimensions exceed admission bounds');
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > IMAGE_ASSET_LIMITS.dimension || height > IMAGE_ASSET_LIMITS.dimension || width * height > IMAGE_ASSET_LIMITS.pixels) throw new Error('Still image dimensions exceed admission bounds');
   const pixels = width * height * 4;
   // Include the immutable wire bytes and the UTF-16 base64 URL, rounded conservatively to four times wire.
   return { mime, width, height, decoded: pixels + bytes.length * 4, gpu: pixels };
@@ -114,13 +116,21 @@ function webp(bytes: Uint8Array, view: DataView): StillImage {
   return envelope(bytes, 'image/webp', width, height);
 }
 
-/** Admit PNG (up to 8-bit), 8-bit JPEG or single-frame WebP; reject SVG, animation and oversized payloads. */
-export function parseStillImage(bytes: Uint8Array): StillImage {
+/** Admit image blobs, including wide texture strips: at most 8192 per dimension,
+ * 4096² pixels and 4 MiB wire. PNG/JPEG/WebP header and animation rules stay shared. */
+export function parseImageAsset(bytes: Uint8Array): StillImage {
   if (bytes.length < 12 || bytes.length > STILL_IMAGE_LIMITS.bytes) throw new Error('Still image wire exceeds admission bounds');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (view.getUint32(0) === 0x89504e47 && view.getUint32(4) === 0x0d0a1a0a) return png(bytes, view);
   if (view.getUint16(0) === 0xffd8) return jpeg(bytes, view);
   if (view.getUint32(0) === 0x52494646 && view.getUint32(8) === 0x57454250) return webp(bytes, view);
   throw new Error('Only bounded PNG, JPEG and WebP still images are admitted');
+}
+
+/** Title images keep the stricter 4096-per-dimension cap before browser decoding. */
+export function parseStillImage(bytes: Uint8Array): StillImage {
+  const image = parseImageAsset(bytes);
+  if (image.width > STILL_IMAGE_LIMITS.dimension || image.height > STILL_IMAGE_LIMITS.dimension) throw new Error('Still image dimensions exceed admission bounds');
+  return image;
 }
 

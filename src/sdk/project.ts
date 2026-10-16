@@ -27,6 +27,7 @@ import { clearOutputProduct, writeOutputProduct, type OutputProductOptions } fro
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
 import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './outputRuntime';
+import { readManifestSource, type ProjectManifestSource } from './projectManifest';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -87,7 +88,7 @@ export async function readProject(project: string): Promise<Shardfile> {
 }
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
-export async function readProjectAssets(project: string, map?: ProjectMap): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
+export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
   const loaded = await projectModule(project), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
   for (const [hash, bytes] of loaded.output.assets) {
@@ -95,10 +96,13 @@ export async function readProjectAssets(project: string, map?: ProjectMap): Prom
     if (previous !== undefined && contentHash(previous) !== contentHash(bytes)) throw new Error('Output asset conflicts with baked input');
     pinned.set(hash, bytes);
   }
-  const packed = map === undefined ? undefined : packProjectMap(loaded.shard, map);
+  const level = manifestSource === undefined || manifestSource.file === undefined && loaded.shard.manifest === undefined ? undefined : await readManifestSource(manifestSource, loaded.shard.manifest);
+  if (level !== undefined && loaded.shard.manifest !== undefined && canonicalJson(loaded.shard.manifest) !== canonicalJson(level.authored)) throw new Error('Authored manifest differs from configured level metadata');
+  const source = level === undefined ? loaded.shard : parseShardfile({ ...loaded.shard, manifest: level.manifest });
+  const packed = map === undefined ? undefined : packProjectMap(source, map);
   if (packed !== undefined && map !== undefined) pinned.set(packed.hash, map.bytes);
-  const shard = packed?.shard ?? loaded.shard;
-  const merged = mergeProjectBlobs(shard, pinned, loaded.output.blobs, loaded.output.options.namedFiles);
+  const shard = packed?.shard ?? source;
+  const merged = mergeProjectBlobs(shard, pinned, [...loaded.output.blobs, ...(level?.blobs ?? [])], loaded.output.options.namedFiles);
   return { shard: merged.shard, assets: projectAssets(project, merged.shard, 'project', merged.assets),
     output: { ...loaded.output.options, namedFiles: merged.namedFiles }, mirrors: loaded.mirrors };
 }
@@ -132,9 +136,9 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { outputFormat?: 2; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
-  const loaded = await readProjectAssets(project, options.map), assets = loaded.assets;
+  const loaded = await readProjectAssets(project, options.map, options.manifest), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
   // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
   // a static import: the author CLI must bundle to one module (scripts/wildshard.mjs); the bakers' closure stays

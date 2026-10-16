@@ -21,6 +21,7 @@ import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSche
 import { validateOutputProduct } from './outputProduct';
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 import type { RuntimeCopyOptions } from './outputRuntime';
+import type { ProjectManifestSource } from './projectManifest';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -35,7 +36,7 @@ async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Arr
   printReport(shard, await measureSimulation(shard, assets), policy);
 }
 /** Run the author CLI; returns only after validation/build completes. */
-export async function runCli(args: readonly string[], options: { readonly runtimeCheck?: RuntimeCopyOptions['check'] } = {}): Promise<void> {
+export async function runCli(args: readonly string[], options: { readonly runtimeCheck?: RuntimeCopyOptions['check']; readonly manifest?: ProjectManifestSource } = {}): Promise<void> {
   const [command, input, output, buildFlag] = args;
   if (command === 'schema') {
     if (buildFlag !== undefined) throw new Error('usage: wildshard schema [list|shardfile|root] [JSON-pointer]');
@@ -72,11 +73,11 @@ export async function runCli(args: readonly string[], options: { readonly runtim
     const flags = args.slice(3), mapPath = flags.find(flag => flag.startsWith('--map='))?.slice(6), tilesHash = flags.find(flag => flag.startsWith('--map-tiles-hash='))?.slice(17);
     if (flags.some(flag => flag !== '--product-only' && flag !== '--no-placeholders' && flag !== '--format=2' && flag !== '--copy-runtime' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
     const map = mapPath === undefined || tilesHash === undefined ? undefined : { bytes: readBoundedFile(resolve(mapPath), STILL_IMAGE_LIMITS.bytes), tilesHash };
-    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, copyRuntime: flags.includes('--copy-runtime'), ...(options.runtimeCheck === undefined ? {} : { runtimeCheck: options.runtimeCheck }), ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, ...(options.manifest === undefined ? {} : { manifest: options.manifest }), copyRuntime: flags.includes('--copy-runtime'), ...(options.runtimeCheck === undefined ? {} : { runtimeCheck: options.runtimeCheck }), ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'prove') {
     if (output === undefined || buildFlag !== undefined) throw new Error('usage: wildshard prove <project|shard.json> <proof.json>');
-    const authored = input.endsWith('.json') ? undefined : await readProjectAssets(resolve(input));
+    const authored = input.endsWith('.json') ? undefined : await readProjectAssets(resolve(input), undefined, options.manifest);
     const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));
     const assets = authored?.assets ?? projectAssets(resolve(input, '..'), shard, 'product');
     const plan = v.parse(AuthorProofPlanSchema, JSON.parse(readFileSync(resolve(output), 'utf8')));
@@ -92,7 +93,7 @@ export async function runCli(args: readonly string[], options: { readonly runtim
       }
     }
     const built = input.endsWith('.json');
-    const authored = built ? undefined : await readProjectAssets(resolve(input));
+    const authored = built ? undefined : await readProjectAssets(resolve(input), undefined, options.manifest);
     const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));
     const assets = authored?.assets ?? projectAssets(resolve(input, '..'), shard, 'product');
     const project = built ? resolve(input, '..') : resolve(input), policy = projectPerformancePolicy(project, shard);

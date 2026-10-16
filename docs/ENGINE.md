@@ -7056,3 +7056,39 @@ An author project may put its named `output` export in `generators/output.ts`.
 normal config boundary checks and output admission. The config cannot also
 export `output`. This keeps section emission and hashing outside the browser
 import graph while existing client code still borrows `shard.config.ts`.
+
+### Authored level metadata in output builds (P3)
+
+`projectManifest.readManifestSource({folder, file, imageRoots}, declared?)` is an
+explicit build-only input. With `file`, it reads bounded JSON; without
+it, it accepts only metadata explicitly declared in the config product.
+Still images are read through caller-declared `{prefix, directory}` roots. Each image must match exactly
+one prefix and stay inside its real filesystem root; missing, ambiguous,
+traversing and escaping symlink paths refuse. No TypeScript manifest or
+runtime source path is evaluated. Pure in-memory manifest packing remains
+usable without loading file services.
+
+`buildProject` accepts this descriptor as `manifest`; `readProjectAssets`
+accepts it as its third argument. The repo CLI wrapper supplies authored
+`manifest.json` plus the project's image root and public assets root.
+The SDK itself discovers no source files when this option is absent.
+When both the optional file and config metadata are absent, no level is
+emitted; there is no TypeScript manifest evaluation or source fallback.
+Existing configured metadata must agree with the authored JSON. Packed
+metadata enters `ui/level`, and every image URL names its immutable
+`/shardfiles/<folder>/blobs/image/<hash>.<ext>` output.
+
+Manifest images use `mergeProjectBlobs` with the existing source outputs
+and map. Content already admitted keeps its original name, dependencies
+and conservative costs. Only new reachable library content is charged;
+a map also used by the card or level is one file and one cost. Title
+catalog generation subsequently reads this output, never the source
+manifest or source image paths.
+
+Image blobs use `format/stillImage.parseImageAsset`: wide texture strips
+may reach 8192 pixels per axis but at most 4096² total pixels, with the
+same 4 MiB wire, format/header and no-animation checks. This admits the
+existing 6144×704 horizon without changing its bytes. The title's
+`parseStillImage` keeps its 4096-per-axis limit. Image blob cost and
+extension readers share the asset parser; decoded/GPU accounting stays
+byte-derived.

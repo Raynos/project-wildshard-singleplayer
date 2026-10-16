@@ -4,7 +4,7 @@ import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainT
 import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/format/meshCollisionBytes";
 import { visitGlbGeometry, type GlbVertex } from "@wildshard/format/glbTriangles";
 import { projectedLayerCoverage, type OverdrawEstimate } from "@wildshard/format/overdraw";
-import { parseStillImage } from "@wildshard/format/stillImage";
+import { parseImageAsset } from "@wildshard/format/stillImage";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import type { ShardTerrain } from "@wildshard/format/terrain";
 import { assertMigrationCompatibility } from "@wildshard/format/migrations";
@@ -292,7 +292,7 @@ function commonsKind(bytes: Uint8Array): 'ktx2' | 'glb' | 'audio' | 'binary' {
 /** Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. */
 export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
   const kind = requestedKind === 'commons' ? commonsKind(bytes) : requestedKind;
-  if (kind === 'image') { const image = parseStillImage(bytes); return { decoded: image.decoded, gpu: image.gpu, triangles: 0, draws: 0 }; }
+  if (kind === 'image') { const image = parseImageAsset(bytes); return { decoded: image.decoded, gpu: image.gpu, triangles: 0, draws: 0 }; }
   if (kind === 'glb') return parseGlb(bytes);
   if (kind === 'ktx2') return parseKtx2(bytes);
   if (kind === 'audio') return parseAudio(bytes);

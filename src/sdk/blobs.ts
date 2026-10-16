@@ -1,5 +1,5 @@
 import { assetCost, type AssetCost } from '@wildshard/format/product';
-import { parseStillImage } from '@wildshard/format/stillImage';
+import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath, type OutputFile } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
@@ -32,7 +32,7 @@ function isTextGltf(bytes: Uint8Array): boolean {
 }
 
 function extension(kind: NamedBlobKind, bytes: Uint8Array): string {
-  if (kind === 'image') return ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' })[parseStillImage(bytes).mime];
+  if (kind === 'image') return ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' })[parseImageAsset(bytes).mime];
   if (kind === 'audio') return new TextDecoder().decode(bytes.subarray(0, 4)) === 'RIFF' ? 'wav' : 'm4a';
   if (kind === 'tile') { decodeTerrainTile(bytes); return 'wtt'; }
   return kind === 'bin' ? 'bin' : kind;

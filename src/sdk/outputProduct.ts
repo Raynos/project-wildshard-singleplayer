@@ -8,7 +8,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { assetCost, offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { isTerrainTileData } from '@wildshard/format/terrainTileBytes';
-import { parseStillImage } from '@wildshard/format/stillImage';
+import { parseImageAsset } from '@wildshard/format/stillImage';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { admitProduct } from './productOutput';
 import { performanceTargetIssues } from './reportCard';
@@ -37,7 +37,7 @@ function blobKind(kind: string, bytes: Uint8Array): OutputFile['kind'] {
 }
 function blobExtension(kind: OutputFile['kind'], bytes: Uint8Array): string {
   if (kind === 'tile') return 'wtt';
-  if (kind === 'image') return {'image/webp':'webp','image/jpeg':'jpg','image/png':'png'}[parseStillImage(bytes).mime];
+  if (kind === 'image') return {'image/webp':'webp','image/jpeg':'jpg','image/png':'png'}[parseImageAsset(bytes).mime];
   if (kind === 'audio') {
     const head = new TextDecoder().decode(bytes.subarray(0,4));
     if (head === 'RIFF') return 'wav'; if (head === 'OggS') return 'ogg';

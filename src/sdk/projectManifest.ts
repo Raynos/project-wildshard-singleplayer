@@ -1,6 +1,47 @@
 import { parseManifestMetadata, type ManifestMetadata } from '@wildshard/format/minimap';
 import { hashImmutableBytes } from './immutable';
 import { nameBlob, type NamedBlob } from './blobs';
+import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
+
+/** Explicit author-side file intake. URL prefixes are mapped by the caller;
+ * the SDK knows no repository layout and never resolves a runtime source URL. */
+export interface ProjectManifestSource {
+  readonly folder: string;
+  readonly file?: string;
+  readonly imageRoots: readonly { readonly prefix: string; readonly directory: string }[];
+}
+
+/** Read bounded author JSON and its images only through declared local roots.
+ * Symlink/traversal escapes, missing images and ambiguous prefixes refuse. File
+ * services are loaded only here, so the in-memory packer stays config-safe. */
+export async function readManifestSource(source: ProjectManifestSource, declared?: unknown): Promise<{ readonly authored: ManifestMetadata; readonly manifest: ManifestMetadata; readonly blobs: readonly NamedBlob[] }> {
+  const [fs, paths, reader] = await Promise.all([
+    // oxlint-disable-next-line import/no-nodejs-modules -- Explicit author file intake owns its bounded disk reads.
+    import('node:fs'),
+    // oxlint-disable-next-line import/no-nodejs-modules -- Resolve images beneath caller-declared filesystem roots.
+    import('node:path'),
+    import('./sourceReader'),
+  ]);
+  if (source.imageRoots.length > 32) throw new Error('Too many manifest image roots');
+  const roots = source.imageRoots.map(root => {
+    if (!/^\/(?:[a-zA-Z0-9_-]+\/)+$/u.test(root.prefix)) throw new Error('Manifest image root needs a bounded absolute URL prefix');
+    return { prefix: root.prefix, directory: fs.realpathSync(root.directory) };
+  });
+  const input = source.file === undefined ? declared : reader.readShardfileSource(source.file);
+  if (input === undefined) throw new Error('Manifest intake requires an explicit file or declared level metadata');
+  const authored = parseManifestMetadata(input, source.folder), images = new Map<string, Uint8Array>();
+  for (const { url } of manifestImages(authored)) {
+    if (url.startsWith('data:image/') || images.has(url)) continue;
+    const matches = roots.filter(root => url.startsWith(root.prefix)), root = matches[0];
+    if (matches.length !== 1 || root === undefined) throw new Error(`Manifest image needs exactly one declared root: ${url}`);
+    const tail = url.slice(root.prefix.length);
+    if (/[\\%?#]/u.test(tail) || tail.includes(String.fromCodePoint(0)) || tail.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error(`Manifest image path escapes its root: ${url}`);
+    const file = fs.realpathSync(paths.resolve(root.directory, tail));
+    if (!file.startsWith(`${root.directory}${paths.sep}`)) throw new Error(`Manifest image path escapes its root: ${url}`);
+    images.set(url, reader.readBoundedFile(file, STILL_IMAGE_LIMITS.bytes));
+  }
+  return { authored, ...packManifestImages(source.folder, authored, images) };
+}
 
 /** Build-only image inputs. Every non-data image is resolved by orchestration
  * before packing, never by runtime source imports or network fallback. */
