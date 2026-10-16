@@ -20,7 +20,7 @@
 | x1 | schema push-red fix, then Sky gust on world/targets, Sky world onto hosts/data | Sky −150 |
 | o291 | wrapping up (fps stopped by G465) | — |
 
-**Gate:** red at x1's `e54ca1cb1` (schema-reference refuses loose_object in nativeRuntimePlan); x1 fixing at the schema source.
+**Landed since G465 (measured net shard lines, 18:15Z):** DW ≈ −254 (x4 −71/−18, x7 −10/−39/−20/−21, x5 −44/−10/−11, o293 −10); Pine ≈ −305 (o294 −156, o295 −36+, x6 −4/−18/−59/−10/−9/−13); Sky −14 (x1 gust), Roc join pending (x8: −21 before dead-code removal, +31 build step to pay back). Ruler at `4cbcad71d` showed M3 16.0 %, which predates most of these.
 
 **Stopped by G465 (default-off rows, to delete):** phone bloom `bdff6fb33` (x7 deletes it). Done earlier today: Pine desktop KTX2 `3316af68e` (road passes, memory −630 MB), frame-floor Debug isolation `0132d7935`, visited-cache ship fix `e17581f78`, graph memo fix `cb77a4059`.
 
