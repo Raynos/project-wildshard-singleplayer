@@ -1,0 +1,588 @@
+{
+  "status": "attribution only; no runtime change shipped",
+  "firstBad": "c5b1f0b2f20b6ce97b724386de6e4c75aae35f72",
+  "immediateParent": "eb23978d49356ecfa4495a4c2a08f81f384435ca",
+  "firstCause": "Two world-pickup graph surfaces, not mandatory native arms or fallback-rig removal.",
+  "headBaseline": "68cd273ea77e21b3155351f834e786c38e237288",
+  "finalControlParent": "54210bc023934db61c6435388abb4e2af2fdb6c7",
+  "protocol": {
+    "harnessBlob": "ddf8a879e944ff40fd1d515e9d5c53493638a7f8",
+    "surface": "iOS Simulator Safari / frame-floor-iphone-17-pro",
+    "tier": "phone",
+    "renderScale": 2,
+    "developer": true,
+    "muted": true,
+    "clock": "live",
+    "framesPerPose": 120,
+    "settleSeconds": 2,
+    "glObserver": false,
+    "profiler": false,
+    "views": "spawn, then authored-camera scan selects the heaviest two",
+    "adjacentSettingsEqual": true,
+    "quiet": "Bounded quiet windows, no simultaneous build or pusher",
+    "search": "First-parent SHA list; shared HEAD never moved. 12 ms work p95 is a search boundary, not a frame-floor pass."
+  },
+  "builds": {
+    "historical": "Coordinator-approved scratch loader selects Driftwood/shared generation and Driftwood product/boot packing. Selected producers keep full pins/refusals. At 9e5d74c6d only, missing Signal behaviour/skitterer.json is produced by its full official job for the global compile. Existing committed foreign outputs are not rerun. Bisect builds make no runtime source changes.",
+    "current": "Stock serve-build.sh --rev --shard driftwood-isle --devserver; no scratch adapter.",
+    "diagnostics": "Unreferenced source-control commit objects only; no branches/refs or candidates landed."
+  },
+  "decision": "Neither current-HEAD candidate demonstrates >=3 ms work improvement. Discard source drafts; remaining graph per-draw cost goes to the G436/G437 end-of-plan pass. Later individual commits are not attributed.",
+  "readings": [
+    {
+      "sha": "68cd273ea77e21b3155351f834e786c38e237288",
+      "firstParentIndex": 1360,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 15,
+          "cadenceP95Ms": 34,
+          "draws": 289,
+          "triangles": 1609814
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 18,
+          "cadenceP95Ms": 36,
+          "draws": 345,
+          "triangles": 1629819
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 17,
+          "cadenceP95Ms": 34,
+          "draws": 248,
+          "triangles": 1089367
+        }
+      ]
+    },
+    {
+      "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+      "firstParentIndex": 0,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 7,
+          "cadenceP95Ms": 34,
+          "draws": 257,
+          "triangles": 1397537
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 7,
+          "cadenceP95Ms": 34,
+          "draws": 286,
+          "triangles": 1658212
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 6,
+          "cadenceP95Ms": 34,
+          "draws": 256,
+          "triangles": 1394989
+        }
+      ]
+    },
+    {
+      "sha": "9e5d74c6d2c2e40ccd58ecb6ab13d90d2697d9df",
+      "firstParentIndex": 680,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 8,
+          "cadenceP95Ms": 34,
+          "draws": 257,
+          "triangles": 1397537
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 7,
+          "cadenceP95Ms": 34,
+          "draws": 289,
+          "triangles": 1659414
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 7,
+          "cadenceP95Ms": 34,
+          "draws": 256,
+          "triangles": 1383508
+        }
+      ]
+    },
+    {
+      "sha": "9296a81cc0db7b2da7ed6ad6760ef62eb20d397c",
+      "firstParentIndex": 1020,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1091899
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 35,
+          "draws": 290,
+          "triangles": 1659942
+        }
+      ]
+    },
+    {
+      "sha": "65829298a236723026078366febdba3e3ceb3075",
+      "firstParentIndex": 1190,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 15,
+          "cadenceP95Ms": 43,
+          "draws": 289,
+          "triangles": 1609814
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 18,
+          "cadenceP95Ms": 39,
+          "draws": 344,
+          "triangles": 1629819
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 19,
+          "cadenceP95Ms": 34,
+          "draws": 248,
+          "triangles": 1089367
+        }
+      ]
+    },
+    {
+      "sha": "6174a6363fea13394e7a2809ea2de5c72b11e14c",
+      "firstParentIndex": 1105,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 17,
+          "cadenceP95Ms": 37,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 19,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1091899
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 19,
+          "cadenceP95Ms": 34,
+          "draws": 290,
+          "triangles": 1659942
+        }
+      ]
+    },
+    {
+      "sha": "8463d1222bb9000c55af14c3302fb11d01c5d855",
+      "firstParentIndex": 1062,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 20,
+          "cadenceP95Ms": 46,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 20,
+          "cadenceP95Ms": 43,
+          "draws": 289,
+          "triangles": 1659942
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 18,
+          "cadenceP95Ms": 35,
+          "draws": 231,
+          "triangles": 1092615
+        }
+      ]
+    },
+    {
+      "sha": "45e79bb0ff321329707548543445cee5a298992a",
+      "firstParentIndex": 1041,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 15,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 34,
+          "draws": 258,
+          "triangles": 1410276
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1092615
+        }
+      ]
+    },
+    {
+      "sha": "51555a7699ce377f81cbf8e68726d18640be48e6",
+      "firstParentIndex": 1030,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1091899
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 290,
+          "triangles": 1660874
+        }
+      ]
+    },
+    {
+      "sha": "45e79bb0ff321329707548543445cee5a298992a",
+      "firstParentIndex": 1041,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 17,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 16,
+          "cadenceP95Ms": 35,
+          "draws": 258,
+          "triangles": 1410276
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 16,
+          "cadenceP95Ms": 34,
+          "draws": 230,
+          "triangles": 1091683
+        }
+      ]
+    },
+    {
+      "sha": "624a6b4a784b9a9a0716a1ecd15ce0b7aacd949b",
+      "firstParentIndex": 1040,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 17,
+          "cadenceP95Ms": 36,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 14,
+          "cadenceP95Ms": 35,
+          "draws": 258,
+          "triangles": 1410276
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 16,
+          "cadenceP95Ms": 36,
+          "draws": 290,
+          "triangles": 1662038
+        }
+      ]
+    },
+    {
+      "sha": "f2989f0062e374f25fd1f70658e976138353623c",
+      "firstParentIndex": 1035,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 312,
+          "triangles": 1660874
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 34,
+          "draws": 258,
+          "triangles": 1398295
+        }
+      ]
+    },
+    {
+      "sha": "a504ad97fd01bb4a6a8eede610b81856f518c36a",
+      "firstParentIndex": 1037,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 311,
+          "triangles": 1659942
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1092615
+        }
+      ]
+    },
+    {
+      "sha": "eb23978d49356ecfa4495a4c2a08f81f384435ca",
+      "firstParentIndex": 1038,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1091899
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 290,
+          "triangles": 1659942
+        }
+      ]
+    },
+    {
+      "sha": "c5b1f0b2f20b6ce97b724386de6e4c75aae35f72",
+      "firstParentIndex": 1039,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 17,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 16,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1091899
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 16,
+          "cadenceP95Ms": 35,
+          "draws": 290,
+          "triangles": 1659942
+        }
+      ]
+    },
+    {
+      "label": "pickup-only rollback at first bad",
+      "sha": "cc809454ffdd283947b0a53c34e701bea52e1637",
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 35,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 311,
+          "triangles": 1659942
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 35,
+          "draws": 258,
+          "triangles": 1398295
+        }
+      ]
+    },
+    {
+      "label": "admitted toon families on current HEAD",
+      "sha": "2be4cd7ca2b1829a1db6235abea248df8a1063fc",
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 17,
+          "cadenceP95Ms": 34,
+          "draws": 289,
+          "triangles": 1609814
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 15,
+          "cadenceP95Ms": 35,
+          "draws": 248,
+          "triangles": 1091211
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 19,
+          "cadenceP95Ms": 38,
+          "draws": 322,
+          "triangles": 1612011
+        }
+      ]
+    },
+    {
+      "label": "family final control",
+      "sha": "bc59e2f8a78a8aa85e66034a23102c2a9c7b11da",
+      "parent": "c5b1f0b2f20b6ce97b724386de6e4c75aae35f72",
+      "stockBuild": false,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 10,
+          "cadenceP95Ms": 34,
+          "draws": 259,
+          "triangles": 1412324
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 9,
+          "cadenceP95Ms": 34,
+          "draws": 231,
+          "triangles": 1091899
+        },
+        {
+          "name": "pier",
+          "workP95Ms": 8,
+          "cadenceP95Ms": 34,
+          "draws": 258,
+          "triangles": 1398295
+        }
+      ]
+    },
+    {
+      "label": "raw final control",
+      "sha": "3d422d0217602d5ca5db1c02daee158af4f82364",
+      "parent": "54210bc023934db61c6435388abb4e2af2fdb6c7",
+      "stockBuild": true,
+      "complete": true,
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn",
+          "workP95Ms": 16,
+          "cadenceP95Ms": 41,
+          "draws": 289,
+          "triangles": 1609814
+        },
+        {
+          "name": "wreck",
+          "workP95Ms": 18,
+          "cadenceP95Ms": 34,
+          "draws": 248,
+          "triangles": 1091211
+        },
+        {
+          "name": "beach",
+          "workP95Ms": 19,
+          "cadenceP95Ms": 37,
+          "draws": 323,
+          "triangles": 1612011
+        }
+      ]
+    }
+  ]
+}
