@@ -17,4 +17,4 @@ Fixes: Pine grid entry (broke at de1b7286f) `f542a4cfb`; grid Pine KTX2 props wh
 **End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU (DW Safari +6-12 ms, receipt `06f180053`). UI: DW finale caption overlap. Look: Pine sluice flat low-poly (Jake).
 
 **For wildshard-v (needs Jake):** lifting G447 is now the main lever. (1) Every W2 pool is dry at -10, so pace is ~0. (2) Evidence: Pine's plugin import runs parseShardfile on every graph table synchronously, a 99.6 ms road hitch and likely the ~1 s cold Pine stall; the design's build-time validation removes it. Recommendation: Q6 option 2, P0–P4 on Codex now. Keep `f0ca1f1c8` until the output ruler lands.
-Paused rows: SF22, SF57, SF67. G439 refs DONE. G442 closed.
+Paused: SF22, SF57, SF67.
