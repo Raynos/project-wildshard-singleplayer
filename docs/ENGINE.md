@@ -6630,3 +6630,11 @@ Pine's page and native quest use that same update law. Native callers
 keep their motor/fall/impulse publication and adapt existing `{s,v}|null`
 saves through silent `restore`; page callers keep their carry flag,
 trolley, camera roll and ride callbacks. No extra step is installed.
+
+Driftwood's `runtime/director.ts#createDriftwoodFinale` is the renderer-free
+page/native finale controller over the existing `DirectorScriptStageLane`.
+It reads the same player/target and flags, routes the captain callbacks in
+stage order, owns the reward-start/finish flags and subscribes to altar/death
+edges until scope disposal. Callers retain their update phase and original
+version-3 stage snapshot; restoring stays silent. Captain combat, reward
+pose/carry and page sound/caption effects remain with their existing owners.
