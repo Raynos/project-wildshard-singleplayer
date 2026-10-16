@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { validateGraph } from '../src/format/materialGraph';
-import { CREATURE_GRAPHS, CREATURE_LOOKS } from '../src/shards/driftwood-isle/data/creatureLook';
+import { CREATURE_LOOKS } from '../src/shards/driftwood-isle/data/creatureLook';
+import { CREATURE_GRAPHS } from '../src/shards/driftwood-isle/generators/creatureGraphs';
 import source from '../src/shards/driftwood-isle/shard.config';
 import { graphCreatureLook } from '../src/shards/driftwood-isle/runtime/looks/creatureLooks';
 import { CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
