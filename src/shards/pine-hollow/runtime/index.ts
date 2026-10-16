@@ -136,7 +136,8 @@ export class PineHollow extends ShardPlugin {
           } });
       }
       const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { installPineLandmarkUpdate(ctx, game, fn); } });
-      if (landmarks.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); await world.terrain.punchSliced(landmarks.crags.holeTest(), slicer(30).due); }
+      const cave = landmarks.crags?.cave;
+      if (cave) { cutTerrain(world.physics, cave.terrainCuts()); await world.terrain.punchSliced(cave.holeTest(), slicer(30).due); }
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;
     });
@@ -264,9 +265,9 @@ export class PineHollow extends ShardPlugin {
     const ambience = new ForestAmbience(audio, { heightAt, cabins, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, requireAudioProfile(runtimeAudio(ctx, source.audio).zones, 'ambience.pine'));
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
     installPineAudio({ context: ctx, game, audio, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
-    for (const spot of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 });
+    landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
-      roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
+      roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const wildlife=new WildlifeMesh(sky,LIFE_CAPACITY);
     const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set,backend)=>{wildlife.useBirds(set,backend);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,

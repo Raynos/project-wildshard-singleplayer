@@ -168,7 +168,7 @@ export class PineLandmarks implements PineLandmarksHandle {
 
     await add(contractBoard, 'contract-board', sites.board);
     const arch = sites.arch;
-    const hollow = (this.crags?.caveMetaData ?? null) !== null;
+    const hollow = (this.crags?.cave ?? null) !== null;
     if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx);
     await add(caveArch, 'cave-arch', [arch], hollow ? {} : { variant: 'closed' });
   }

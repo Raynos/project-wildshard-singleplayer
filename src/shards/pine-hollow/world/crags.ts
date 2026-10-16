@@ -28,7 +28,7 @@
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
  *   await crags.prepareSkin(macrotask);                             // the baked face skin's tiles
  *   await crags.build(CRAG_ROWS.places, registry, macrotask);  scene.add(crags.group);  // the modules register themselves
- *   cutTerrain(physics, crags.terrainCuts()); terrain.punch(crags.holeTest());  game.onUpdate(() => crags.update(t))
+ *   cutTerrain(physics, crags.cave?.terrainCuts() ?? []); if (crags.cave) terrain.punch(crags.cave.holeTest());  game.onUpdate(() => crags.update(t))
  */
 import * as THREE from 'three';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
@@ -46,7 +46,7 @@ import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/cor
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import type { TerrainCut } from '@wildshard/engine/physics/terrain';
+import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
 import { loadGlbNodes } from '@wildshard/engine/models/glbNodes';
@@ -60,12 +60,6 @@ const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the 
  * E322 F-L2 (Jake picked B): the face skin is textured by its facets, not its smoothed normals (the old projection laid
  * the ledge's top texture on its face: the stretch); paler granite (F-L1). Its shapes: ../generators/crags.ts.
  */
-
-/** a placement's matrix: yaw about +Y, then the tilt (a scree patch lies with the slope: tiltX pitches its front down) */
-export function cragMatrix(p: CragPlace, out = new THREE.Matrix4()): THREE.Matrix4 {
-  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(p.tiltX, p.yaw, p.tiltZ, 'YXZ'));
-  return out.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(p.scale, p.scale, p.scale));
-}
 
 // ──────────────────────────────────────────────────── the material ─────────────────────────────────────────────────
 
@@ -108,7 +102,7 @@ export class PineCrags {
   /** the world's own instances in the batch: the face skin's tiles, the cave and its far hood */
   private own: BatchedCull[] = [];
   /** the bear cave (null: no cave.json in this build); live (updated) once built */
-  private readonly cave: CaveInteriorView | null;
+  readonly cave: CaveInteriorView | null;
   private caveLive = false;
   private tmp = new THREE.Vector3();
   private skin: [THREE.BufferGeometry, THREE.BufferGeometry][] = [];
@@ -193,7 +187,7 @@ export class PineCrags {
       useCragKit(ctx, { kit: this.kit, mat: this.mat });
       const placeKind = async <P extends object>(model: ModelDef<P>, list: readonly CragPlace[], far: number): Promise<void> => {
         if (list.length === 0) return;
-        const pls = list.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: cragMatrix(p), variant: p.id }));
+        const pls = list.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: modelPoseMatrix({ ...p, pitch: p.tiltX, roll: p.tiltZ }), variant: p.id }));
         // LOD by the camera's distance less half the module's radius, re-chosen once it has moved a metre; three culls
         // each live copy per camera (the batch's per-object culling)
         const placed = place(model, pls, { ctx, draw: 'batched', ...(this.batch ? { batch: this.batch } : {}), registry,
@@ -230,28 +224,6 @@ export class PineCrags {
     }
     return this;
   }
-
-  // ── the cave's questions (@wildshard/sdk/kit/caveInterior) ──
-
-  /** the cave's data (null: no cave.json in this build) */
-  get caveMetaData(): CaveMeta | null { return this.cave?.meta ?? null; }
-
-  /** the physics heightfield's cuts (world rects): the ground under the passage where the slope runs through it */
-  terrainCuts(): TerrainCut[] { return this.cave?.terrainCuts() ?? []; }
-
-  /** the drawn terrain's hole: true for a triangle (world vertices) that reaches into the cave's passage */
-  holeTest(): (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean {
-    return this.cave?.holeTest() ?? (() => false);
-  }
-
-  /** the cave's reverb / bed spots, world (the mouth's own spot is the audio lane's — these go inside) */
-  caveSpots(): { x: number; z: number; r: number }[] { return this.cave?.spots() ?? []; }
-
-  /** inside the cave's footprint (no rain falls there) */
-  inCave(x: number, z: number): boolean { return this.cave?.inside(x, z) ?? false; }
-
-  /** the passage's floor height at depth `lz` (the test poses, the spawn) */
-  caveFloorAt(lz: number): number | undefined { return this.cave?.floorAt(lz); }
 
   /** per frame: the world's own instances' LODs and ranges (when the camera has moved a metre; the modules' are
    *  `place`'s), the cave's shaft and drips near it */
