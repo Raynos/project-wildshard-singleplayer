@@ -11,14 +11,12 @@
  *   game.onUpdate((dt) => shrine.update(dt));
  *   shrine.setDusk(k)       // 0 = broad day … 1 = dusk / night: glyph brightness + the firefly cloud (the day clock drives it)
  *
- * The fireflies are one mesh of quads its material graph poses on the GPU (data/fireflyLook.ts, handed over by
+ * The fireflies are one baked mesh of quads its material graph poses on the GPU (data/fireflyLook.ts, handed over by
  * setFireflyLook before the world builds); without it (a page outside the hybrid world) the cloud is not drawn.
  *
  * `anchors` (world coords, yaw = world facing, 0 = +Z): altar, pool, stairFoot, ring (see the model).
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
 import { placeModelSite, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -27,7 +25,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin } from '../models/shrine';
 import type { ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
-import { FIREFLY_COUNT, FIREFLY_LOOK } from '../data/fireflyLook';
+import { FIREFLY_LOOK } from '../data/fireflyLook';
+import { SHRINE_FIREFLIES_GEOMETRY } from '../boot/fixedGeometry';
 
 export interface ShrineSpec { x: number; z: number; rot: number }
 
@@ -38,8 +37,6 @@ export function setFireflyLook(materials: ReadonlyMap<string, THREE.Material>, s
   if (material === undefined) throw new Error('Driftwood: look.materials lacks the firefly graph');
   fireflyLook = { material, dusk: (k) => { setParam(FIREFLY_LOOK, 'dusk', k); } };
 }
-/** a firefly quad's four corners, x then y (the graph scales and turns them to the camera) */
-const CORNERS: readonly number[] = [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5];
 
 export class Shrine {
   /** what it draws: the stone + jungle, the pool, the glyphs — and the firefly cloud */
@@ -86,26 +83,13 @@ export class Shrine {
     Object.assign(this.anchors, site.anchors);
     const m = shrineMaterials(ctx);
     this.glyphMat = m.glyphs;
-    this.buildFireflies(new Rng(SEED ^ 0x5418), y0 + lay.terrace);
+    this.buildFireflies(y0 + lay.terrace);
     return this;
   }
 
-  /** the firefly cloud (an effect, not the model): FIREFLY_COUNT quads the graph circles round the platform, 0.4–3 m up */
-  private buildFireflies(rng: Rng, top: number): void {
-    const n = FIREFLY_COUNT, position = new Float32Array(n * 12), uv = new Float32Array(n * 8), fly = new Float32Array(n * 16), index: number[] = [];
-    for (let i = 0; i < n; i++) {
-      const seed = [rng.range(0, Math.PI * 2), rng.range(4, 13), rng.range(0.4, 3.4), rng.range(0, 100)];
-      for (let k = 0; k < 4; k++) {
-        const v = i * 4 + k, x = CORNERS[k * 2] ?? 0, y = CORNERS[k * 2 + 1] ?? 0;
-        position.set([x, y, 0], v * 3); uv.set([x + 0.5, y + 0.5], v * 2); fly.set(seed, v * 4);
-      }
-      index.push(i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3);
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(position, 3));
-    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    g.setAttribute('aFly', new THREE.BufferAttribute(fly, 4));
-    g.setIndex(index);
+  /** the firefly cloud (an effect, not the model): the baked FIREFLY_COUNT quads (generators/fireflies.ts) the graph circles round the platform, 0.4–3 m up */
+  private buildFireflies(top: number): void {
+    const g = SHRINE_FIREFLIES_GEOMETRY.copy();
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, top - this.baseY, 0), 18);
     const mesh = new THREE.Mesh(g, this.look?.material);
     mesh.name = 'shrine-fireflies';

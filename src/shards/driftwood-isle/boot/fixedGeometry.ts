@@ -56,6 +56,8 @@ export const CARGO_GEOMETRY = {
   crate: modelGeometry(FIXED_MODEL_FILES.cargoCrate), broken: modelGeometry(FIXED_MODEL_FILES.cargoCrateBroken),
   coil: modelGeometry(FIXED_MODEL_FILES.cargoCoil),
 } as const;
+/** The Ring Shrine's firefly quads (generators/fireflies.ts, the shrine base's space); the graph poses each by its `aFly`. */
+export const SHRINE_FIREFLIES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shrineFireflies, { _afly: 'aFly' });
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);
