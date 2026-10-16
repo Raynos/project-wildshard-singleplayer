@@ -6,6 +6,9 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author producers use file URLs for their explicit output root.
 import { pathToFileURL } from 'node:url';
 import { namedBlobOutput } from '../scripts/named-blob-output.mjs';
+import { compileScript } from '../src/sdk/compileScript';
+import { scriptSource } from './script/fixture';
+import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 test('producer blob sources own their bytes, collapse equal URL aliases and refuse conflicting names', () => {
@@ -31,5 +34,23 @@ test('producer blob sources own their bytes, collapse equal URL aliases and refu
     const source = `assets/${hashImmutableBytes(bytes)}`;
     expect(metadata).toEqual({ blobs: [{ name, kind: 'bin', source }], byUrl: { '/old/first.bin': name, '/old/alias.bin': name } });
     expect(new Uint8Array(readFileSync(new URL(source, root)))).toEqual(bytes);
+  } finally { rmSync(project, { recursive: true }); }
+});
+
+
+test('producer Wasm contracts survive generated declarations and source readmission', async () => {
+  mkdirSync(resolve('tmp'), { recursive: true });
+  const project = mkdtempSync(resolve('tmp/blob-output-script-')), root = pathToFileURL(`${project}/`);
+  try {
+    const output = namedBlobOutput(root, 'script-source-test'), bytes = await compileScript(scriptSource());
+    expect(() => output.add('script.wasm', 'wasm', bytes)).toThrow('explicit script contract');
+    output.add('script.wasm', 'wasm', bytes, undefined, { abi: 0 });
+    output.finish(new URL('blobs.json', root));
+    const metadata: unknown = JSON.parse(readFileSync(new URL('blobs.json', root), 'utf8'));
+    expect(metadata).toMatchObject({ blobs: [{ kind: 'wasm', options: { script: { abi: 0 } } }] });
+    if (typeof metadata !== 'object' || metadata === null || !('blobs' in metadata)) throw new Error('Missing generated declarations');
+    const prepared = await prepareProjectOutput(project, { blobs: metadata.blobs });
+    expect(prepared.blobs[0]?.bytes).toEqual(bytes);
+    expect(prepared.blobs[0]?.script).toEqual({ abi: 0 });
   } finally { rmSync(project, { recursive: true }); }
 });
