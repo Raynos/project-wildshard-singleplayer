@@ -1,0 +1,5782 @@
+{
+  "audio": {
+    "ambience": {
+      "bed": "island",
+      "gust": {
+        "amount": [
+          0.5,
+          1.6
+        ],
+        "fall": [
+          2,
+          4
+        ],
+        "gentle": 1.4,
+        "rise": [
+          1.5,
+          3
+        ],
+        "scope": "audio.ocean.surf",
+        "scopeFirst": true,
+        "startTap": "audio.startIsland",
+        "tap": "audio.gust",
+        "wait": [
+          5,
+          12
+        ]
+      },
+      "phrases": [
+        {
+          "program": {
+            "steps": [
+              {
+                "id": "pan",
+                "kind": "value",
+                "value": [
+                  "+",
+                  -0.35,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      0.35,
+                      -0.35
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "size",
+                "kind": "value",
+                "value": [
+                  "+",
+                  0.7,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      1.15,
+                      0.7
+                    ]
+                  ]
+                ]
+              },
+              {
+                "gain": [
+                  "*",
+                  0.42,
+                  "size"
+                ],
+                "id": "bus",
+                "kind": "bus",
+                "out": "out",
+                "pan": "pan"
+              },
+              {
+                "id": "build",
+                "kind": "value",
+                "value": [
+                  "+",
+                  1.6,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      2.4,
+                      1.6
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "wash",
+                "kind": "value",
+                "value": [
+                  "+",
+                  2.6,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      4,
+                      2.6
+                    ]
+                  ]
+                ]
+              },
+              {
+                "attack": "build",
+                "decay": 1.2,
+                "freq": 240,
+                "freqEnd": 700,
+                "gain": 0.5,
+                "hold": 0.2,
+                "kind": "burst",
+                "out": "bus",
+                "t": "t",
+                "type": "lowpass"
+              },
+              {
+                "attack": 0.5,
+                "decay": "wash",
+                "freq": 1800,
+                "freqEnd": 500,
+                "gain": 0.55,
+                "hold": 0.4,
+                "kind": "burst",
+                "out": "bus",
+                "q": 0.4,
+                "t": [
+                  "+",
+                  "t",
+                  [
+                    "*",
+                    "build",
+                    0.75
+                  ]
+                ],
+                "type": "bandpass"
+              },
+              {
+                "attack": 0.35,
+                "decay": [
+                  "*",
+                  "wash",
+                  0.6
+                ],
+                "freq": 2600,
+                "gain": 0.16,
+                "hold": 0.3,
+                "kind": "burst",
+                "out": "bus",
+                "t": [
+                  "+",
+                  "t",
+                  [
+                    "*",
+                    "build",
+                    0.85
+                  ]
+                ],
+                "type": "highpass"
+              },
+              {
+                "attack": 0.6,
+                "decay": [
+                  "*",
+                  "wash",
+                  0.7
+                ],
+                "freq": 4200,
+                "gain": 0.08,
+                "kind": "burst",
+                "out": "bus",
+                "q": 0.6,
+                "t": [
+                  "+",
+                  [
+                    "+",
+                    "t",
+                    "build"
+                  ],
+                  1.2
+                ],
+                "type": "bandpass"
+              }
+            ]
+          },
+          "tick": "audio.surf",
+          "wait": [
+            6,
+            9
+          ]
+        }
+      ],
+      "winds": [
+        {
+          "cutoff": 900,
+          "frequency": 180,
+          "gain": 0.05,
+          "pan": -0.3,
+          "q": 0.4,
+          "rate": 0.05
+        },
+        {
+          "cutoff": 1100,
+          "frequency": 420,
+          "gain": 0.03,
+          "pan": 0.3,
+          "q": 0.6,
+          "rate": 0.08
+        },
+        {
+          "cutoff": 5000,
+          "frequency": 1500,
+          "gain": 0.02,
+          "pan": 0,
+          "q": 0.35,
+          "rate": 0.03
+        }
+      ]
+    },
+    "cues": [],
+    "emitters": {
+      "shrine": {
+        "connect": "always",
+        "disconnect": {
+          "after": 0.6,
+          "node": "panner"
+        },
+        "fadeIn": {
+          "mode": "linear",
+          "seconds": 1.5
+        },
+        "fadeOut": {
+          "mode": "linear",
+          "seconds": 0.4
+        },
+        "graph": "shrine",
+        "initial": "scheduled",
+        "level": 0.5,
+        "offset": "fixed",
+        "out": "ambient",
+        "proximity": {
+          "build": 30,
+          "drop": 36,
+          "duckFar": 13,
+          "duckGain": 0.7079457843841379,
+          "duckNear": 10,
+          "max": 22,
+          "reference": 4
+        },
+        "sample": "shrine",
+        "scope": "audio.shrine.hum",
+        "stop": {
+          "after": 0.45,
+          "mode": "scheduled",
+          "order": []
+        },
+        "tap": "shrine.bed"
+      }
+    },
+    "loopGraphs": {
+      "shrine": [
+        {
+          "frequency": 480,
+          "id": "lp",
+          "kind": "filter",
+          "q": 0.6,
+          "type": "lowpass"
+        },
+        {
+          "from": "lp",
+          "kind": "connect",
+          "to": "out"
+        },
+        {
+          "detune": 0,
+          "frequency": 0,
+          "id": "d2",
+          "kind": "oscillator",
+          "midi": 38,
+          "type": "sine"
+        },
+        {
+          "id": "g1",
+          "kind": "gain",
+          "value": 0.55
+        },
+        {
+          "from": "d2",
+          "kind": "connect",
+          "to": "g1"
+        },
+        {
+          "from": "g1",
+          "kind": "connect",
+          "to": "lp"
+        },
+        {
+          "id": "d2",
+          "kind": "start"
+        },
+        {
+          "detune": 4,
+          "frequency": 0,
+          "id": "d3",
+          "kind": "oscillator",
+          "midi": 50,
+          "type": "sine"
+        },
+        {
+          "id": "g2",
+          "kind": "gain",
+          "value": 0.16
+        },
+        {
+          "from": "d3",
+          "kind": "connect",
+          "to": "g2"
+        },
+        {
+          "from": "g2",
+          "kind": "connect",
+          "to": "lp"
+        },
+        {
+          "id": "d3",
+          "kind": "start"
+        },
+        {
+          "detune": -3,
+          "frequency": 0,
+          "id": "a2",
+          "kind": "oscillator",
+          "midi": 45,
+          "type": "triangle"
+        },
+        {
+          "id": "fifth",
+          "kind": "gain",
+          "value": 0.14
+        },
+        {
+          "from": "a2",
+          "kind": "connect",
+          "to": "fifth"
+        },
+        {
+          "from": "fifth",
+          "kind": "connect",
+          "to": "lp"
+        },
+        {
+          "id": "a2",
+          "kind": "start"
+        },
+        {
+          "frequency": 0.09,
+          "id": "lfo",
+          "kind": "oscillator",
+          "type": "sine"
+        },
+        {
+          "id": "lg",
+          "kind": "gain",
+          "value": 0.1
+        },
+        {
+          "from": "lfo",
+          "kind": "connect",
+          "to": "lg"
+        },
+        {
+          "from": "lg",
+          "kind": "connect",
+          "param": "gain",
+          "to": "fifth"
+        },
+        {
+          "id": "lfo",
+          "kind": "start"
+        }
+      ]
+    },
+    "music": {
+      "base": "island",
+      "bootSlots": [
+        "title",
+        "island"
+      ],
+      "catalogue": {
+        "extraStings": [],
+        "mode": "bank",
+        "stingSets": {}
+      },
+      "id": "score.driftwood",
+      "lifecycle": {
+        "dispose": true,
+        "logChanges": false,
+        "persistent": false,
+        "pins": {}
+      },
+      "minFade": 0,
+      "selectMode": "first",
+      "selection": [
+        {
+          "slots": [
+            "island"
+          ],
+          "when": []
+        }
+      ],
+      "sets": {
+        "island": "base"
+      },
+      "slots": [
+        "island"
+      ],
+      "source": null,
+      "synthLead": "marimba"
+    },
+    "observations": [
+      {
+        "after": [],
+        "before": [
+          "main.world"
+        ],
+        "frame": [
+          {
+            "value": "dusk",
+            "when": "hasClock",
+            "write": "shrine.dusk"
+          },
+          {
+            "value": "night",
+            "when": "hasClock",
+            "write": "ambience.night"
+          }
+        ],
+        "id": "shard.driftwood.dusk",
+        "initial": {},
+        "inputs": [
+          {
+            "id": "hasClock",
+            "op": "present",
+            "path": [],
+            "source": "clock"
+          },
+          {
+            "fallback": 0,
+            "id": "night",
+            "op": "number",
+            "path": [
+              "night"
+            ],
+            "source": "clock"
+          },
+          {
+            "fallback": 0,
+            "id": "dusk",
+            "op": "number",
+            "path": [
+              "dusk"
+            ],
+            "source": "clock"
+          }
+        ],
+        "interval": 0,
+        "steps": []
+      },
+      {
+        "after": [
+          "engine.audio.listener"
+        ],
+        "before": [
+          "main.frame"
+        ],
+        "frame": [],
+        "id": "shard.driftwood.shrineHum",
+        "initial": {},
+        "inputs": [],
+        "interval": 0,
+        "steps": [
+          {
+            "call": "hum",
+            "kind": "call"
+          }
+        ]
+      },
+      {
+        "after": [
+          "shard.driftwood.shrineHum"
+        ],
+        "before": [
+          "main.frame"
+        ],
+        "frame": [],
+        "id": "shard.driftwood.ambience",
+        "initial": {},
+        "inputs": [],
+        "interval": 0,
+        "steps": [
+          {
+            "call": "ambience",
+            "kind": "call"
+          }
+        ]
+      }
+    ],
+    "pcm": {
+      "vocal.boar": {
+        "duration": [
+          "+",
+          0.14,
+          [
+            "*",
+            "n",
+            0.22
+          ]
+        ],
+        "finish": [
+          0.9,
+          0.02
+        ],
+        "seed": [
+          2654435,
+          5
+        ],
+        "steps": [
+          {
+            "at": 0,
+            "attack": 0.01,
+            "decay": 0.05,
+            "f": 1800,
+            "gain": 0.25,
+            "kind": "noise",
+            "q": 1.4,
+            "type": "bandpass"
+          },
+          {
+            "kind": "values",
+            "rows": [
+              [
+                "at",
+                [
+                  "max",
+                  1,
+                  [
+                    "round",
+                    [
+                      "*",
+                      0.02,
+                      "sr"
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          },
+          {
+            "body": [
+              {
+                "kind": "values",
+                "rows": [
+                  [
+                    "d",
+                    [
+                      "+",
+                      0.11,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          0.16,
+                          0.11
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    "f0a",
+                    [
+                      "+",
+                      88,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          110,
+                          88
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    "f0b",
+                    [
+                      "+",
+                      62,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          72,
+                          62
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "snout",
+                "kind": "formants",
+                "rows": [
+                  [
+                    [
+                      "+",
+                      330,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          400,
+                          330
+                        ]
+                      ]
+                    ],
+                    5,
+                    1
+                  ],
+                  [
+                    950,
+                    6,
+                    0.6
+                  ],
+                  [
+                    2300,
+                    7,
+                    0.22
+                  ]
+                ]
+              },
+              {
+                "at": "at",
+                "breath": 0.12,
+                "dur": [
+                  "+",
+                  "d",
+                  0.06
+                ],
+                "env": [
+                  0.012,
+                  [
+                    "*",
+                    "d",
+                    0.6
+                  ],
+                  0.04
+                ],
+                "f0": [
+                  "lerp",
+                  "f0a",
+                  "f0b",
+                  "u"
+                ],
+                "gain": 1.6,
+                "jitter": 0.04,
+                "kind": "voice",
+                "rough": 0.55,
+                "shimmer": 0.15,
+                "tense": 0.85,
+                "vowel": "snout"
+              },
+              {
+                "kind": "values",
+                "rows": [
+                  [
+                    "at",
+                    [
+                      "+",
+                      "at",
+                      [
+                        "max",
+                        1,
+                        [
+                          "round",
+                          [
+                            "*",
+                            [
+                              "+",
+                              "d",
+                              [
+                                "+",
+                                0.05,
+                                [
+                                  "*",
+                                  "random",
+                                  [
+                                    "-",
+                                    0.09,
+                                    0.05
+                                  ]
+                                ]
+                              ]
+                            ],
+                            "sr"
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              }
+            ],
+            "count": "n",
+            "index": "k",
+            "kind": "repeat",
+            "max": 3
+          },
+          {
+            "drive": 1.4,
+            "kind": "saturate"
+          }
+        ],
+        "values": [
+          [
+            "n",
+            [
+              "+",
+              2,
+              [
+                "floor",
+                [
+                  "*",
+                  "random",
+                  2
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      "vocal.crab": {
+        "duration": 0.45,
+        "finish": [
+          0.9,
+          0.02
+        ],
+        "seed": [
+          2654435,
+          5
+        ],
+        "steps": [
+          {
+            "body": [
+              {
+                "args": [
+                  3000,
+                  0.5,
+                  0.001
+                ],
+                "at": "at",
+                "kind": "click"
+              },
+              {
+                "at": "at",
+                "gain": 0.3,
+                "jitter": 0.1,
+                "kind": "strike",
+                "modes": [
+                  [
+                    [
+                      "+",
+                      2100,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          2400,
+                          2100
+                        ]
+                      ]
+                    ],
+                    0.02,
+                    1
+                  ],
+                  [
+                    3300,
+                    0.016,
+                    0.7
+                  ],
+                  [
+                    4800,
+                    0.012,
+                    0.5
+                  ]
+                ]
+              },
+              {
+                "kind": "values",
+                "rows": [
+                  [
+                    "at",
+                    [
+                      "+",
+                      "at",
+                      [
+                        "max",
+                        1,
+                        [
+                          "round",
+                          [
+                            "*",
+                            "gap",
+                            "sr"
+                          ]
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    "gap",
+                    [
+                      "*",
+                      "gap",
+                      0.82
+                    ]
+                  ]
+                ]
+              }
+            ],
+            "count": "n",
+            "index": "k",
+            "kind": "repeat",
+            "max": 7
+          },
+          {
+            "at": 0,
+            "attack": 0.05,
+            "decay": 0.12,
+            "f": 4200,
+            "gain": 0.05,
+            "kind": "noise",
+            "q": 1.2,
+            "type": "bandpass"
+          },
+          {
+            "args": [
+              8,
+              0.3,
+              2500,
+              5000,
+              0.04
+            ],
+            "at": [
+              "max",
+              1,
+              [
+                "round",
+                [
+                  "*",
+                  0.03,
+                  "sr"
+                ]
+              ]
+            ],
+            "kind": "bubbles"
+          }
+        ],
+        "values": [
+          [
+            "n",
+            [
+              "+",
+              4,
+              [
+                "floor",
+                [
+                  "*",
+                  "random",
+                  4
+                ]
+              ]
+            ]
+          ],
+          [
+            "at",
+            0
+          ],
+          [
+            "gap",
+            [
+              "+",
+              0.06,
+              [
+                "*",
+                "random",
+                [
+                  "-",
+                  0.08,
+                  0.06
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      "vocal.monkey": {
+        "duration": 0.7,
+        "finish": [
+          0.9,
+          0.02
+        ],
+        "seed": [
+          2654435,
+          5
+        ],
+        "steps": [
+          {
+            "body": [
+              {
+                "kind": "values",
+                "rows": [
+                  [
+                    "d",
+                    [
+                      "if",
+                      [
+                        "lt",
+                        "k",
+                        1
+                      ],
+                      [
+                        "+",
+                        0.18,
+                        [
+                          "*",
+                          "random",
+                          [
+                            "-",
+                            0.24,
+                            0.18
+                          ]
+                        ]
+                      ],
+                      [
+                        "+",
+                        0.26,
+                        [
+                          "*",
+                          "random",
+                          [
+                            "-",
+                            0.34,
+                            0.26
+                          ]
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    "top",
+                    [
+                      "+",
+                      1300,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          1650,
+                          1300
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "ee",
+                "kind": "formants",
+                "rows": [
+                  [
+                    1150,
+                    4,
+                    1
+                  ],
+                  [
+                    2500,
+                    5,
+                    0.7
+                  ],
+                  [
+                    3700,
+                    6,
+                    0.35
+                  ]
+                ]
+              },
+              {
+                "at": [
+                  "max",
+                  1,
+                  [
+                    "round",
+                    [
+                      "*",
+                      [
+                        "*",
+                        "k",
+                        0.27
+                      ],
+                      "sr"
+                    ]
+                  ]
+                ],
+                "breath": 0.28,
+                "dur": [
+                  "+",
+                  "d",
+                  0.08
+                ],
+                "env": [
+                  0.015,
+                  [
+                    "*",
+                    "d",
+                    0.55
+                  ],
+                  0.05
+                ],
+                "f0": [
+                  "+",
+                  [
+                    "if",
+                    [
+                      "lt",
+                      "u",
+                      0.35
+                    ],
+                    [
+                      "lerp",
+                      [
+                        "*",
+                        "top",
+                        0.5
+                      ],
+                      "top",
+                      [
+                        "/",
+                        "u",
+                        0.35
+                      ]
+                    ],
+                    [
+                      "lerp",
+                      "top",
+                      [
+                        "*",
+                        "top",
+                        0.72
+                      ],
+                      [
+                        "/",
+                        [
+                          "-",
+                          "u",
+                          0.35
+                        ],
+                        0.65
+                      ]
+                    ]
+                  ],
+                  [
+                    "*",
+                    [
+                      "sin",
+                      [
+                        "*",
+                        "u",
+                        "d",
+                        2,
+                        3.141592653589793,
+                        24
+                      ]
+                    ],
+                    70
+                  ]
+                ],
+                "gain": 1.3,
+                "jitter": 0.03,
+                "kind": "voice",
+                "rough": 0.25,
+                "shimmer": 0.12,
+                "tense": 0.95,
+                "vowel": "ee"
+              }
+            ],
+            "count": 2,
+            "index": "k",
+            "kind": "repeat",
+            "max": 2
+          },
+          {
+            "at": 0,
+            "attack": 0.02,
+            "decay": 0.15,
+            "f": 3200,
+            "gain": 0.08,
+            "kind": "noise",
+            "q": 1.2,
+            "type": "bandpass"
+          },
+          {
+            "drive": 1.3,
+            "kind": "saturate"
+          }
+        ],
+        "values": []
+      },
+      "vocal.sailor": {
+        "duration": [
+          "+",
+          "dur",
+          0.2
+        ],
+        "finish": [
+          0.9,
+          0.12
+        ],
+        "seed": [
+          2654435,
+          5
+        ],
+        "steps": [
+          {
+            "id": "oo",
+            "kind": "formants",
+            "rows": [
+              [
+                320,
+                5,
+                1
+              ],
+              [
+                800,
+                6,
+                0.45
+              ],
+              [
+                2400,
+                8,
+                0.1
+              ]
+            ]
+          },
+          {
+            "id": "aa",
+            "kind": "formants",
+            "rows": [
+              [
+                620,
+                5,
+                1
+              ],
+              [
+                1050,
+                6,
+                0.6
+              ],
+              [
+                2500,
+                8,
+                0.15
+              ]
+            ]
+          },
+          {
+            "at": 0,
+            "blend": {
+              "amount": [
+                "sin",
+                [
+                  "*",
+                  [
+                    "min",
+                    1,
+                    [
+                      "*",
+                      "u",
+                      1.3
+                    ]
+                  ],
+                  3.141592653589793
+                ]
+              ],
+              "to": "aa"
+            },
+            "breath": 0.22,
+            "dur": "dur",
+            "env": [
+              0.18,
+              [
+                "*",
+                "dur",
+                0.45
+              ],
+              [
+                "*",
+                "dur",
+                0.2
+              ]
+            ],
+            "f0": [
+              "*",
+              "f0a",
+              1,
+              [
+                "lerp",
+                1,
+                0.74,
+                "u"
+              ],
+              [
+                "+",
+                1,
+                [
+                  "*",
+                  0.012,
+                  [
+                    "sin",
+                    [
+                      "*",
+                      "u",
+                      "dur",
+                      2,
+                      3.141592653589793,
+                      5.5
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "gain": [
+              "*",
+              1.4,
+              1
+            ],
+            "jitter": 0.045,
+            "kind": "voice",
+            "rough": 0.3,
+            "shimmer": 0.18,
+            "tense": [
+              "lerp",
+              0.45,
+              0.25,
+              "u"
+            ],
+            "vowel": "oo"
+          },
+          {
+            "at": 0,
+            "blend": {
+              "amount": [
+                "sin",
+                [
+                  "*",
+                  [
+                    "min",
+                    1,
+                    [
+                      "*",
+                      "u",
+                      1.3
+                    ]
+                  ],
+                  3.141592653589793
+                ]
+              ],
+              "to": "aa"
+            },
+            "breath": 0.22,
+            "dur": "dur",
+            "env": [
+              0.18,
+              [
+                "*",
+                "dur",
+                0.45
+              ],
+              [
+                "*",
+                "dur",
+                0.2
+              ]
+            ],
+            "f0": [
+              "*",
+              "f0a",
+              1.031,
+              [
+                "lerp",
+                1,
+                0.74,
+                "u"
+              ],
+              [
+                "+",
+                1,
+                [
+                  "*",
+                  0.012,
+                  [
+                    "sin",
+                    [
+                      "*",
+                      "u",
+                      "dur",
+                      2,
+                      3.141592653589793,
+                      5.5
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "gain": [
+              "*",
+              1.4,
+              0.45
+            ],
+            "jitter": 0.045,
+            "kind": "voice",
+            "rough": 0.3,
+            "shimmer": 0.18,
+            "tense": [
+              "lerp",
+              0.45,
+              0.25,
+              "u"
+            ],
+            "vowel": "oo"
+          },
+          {
+            "base": 0.65,
+            "depth": 0.35,
+            "drive": 12,
+            "f": 14,
+            "kind": "flutter",
+            "q": 0.7
+          },
+          {
+            "args": [
+              16,
+              [
+                "*",
+                "dur",
+                0.8
+              ],
+              250,
+              900,
+              0.1
+            ],
+            "at": [
+              "max",
+              1,
+              [
+                "round",
+                [
+                  "*",
+                  0.15,
+                  "sr"
+                ]
+              ]
+            ],
+            "kind": "bubbles"
+          },
+          {
+            "f": 3000,
+            "kind": "filter",
+            "q": 0.7,
+            "type": "lowpass"
+          }
+        ],
+        "values": [
+          [
+            "dur",
+            [
+              "+",
+              1.2,
+              [
+                "*",
+                "random",
+                [
+                  "-",
+                  1.45,
+                  1.2
+                ]
+              ]
+            ]
+          ],
+          [
+            "f0a",
+            [
+              "+",
+              92,
+              [
+                "*",
+                "random",
+                [
+                  "-",
+                  102,
+                  92
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      "windup.boar": {
+        "duration": 0.85,
+        "finish": [
+          0.9,
+          0.02
+        ],
+        "seed": [
+          31337,
+          7
+        ],
+        "steps": [
+          {
+            "body": [
+              {
+                "kind": "values",
+                "rows": [
+                  [
+                    "at",
+                    [
+                      "max",
+                      1,
+                      [
+                        "round",
+                        [
+                          "*",
+                          [
+                            "if",
+                            [
+                              "lt",
+                              "k",
+                              1
+                            ],
+                            0,
+                            "second"
+                          ],
+                          "sr"
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              },
+              {
+                "args": [
+                  95,
+                  55,
+                  0.04,
+                  0.5
+                ],
+                "at": "at",
+                "kind": "thump"
+              },
+              {
+                "at": "at",
+                "attack": 0.04,
+                "decay": 0.07,
+                "f": 1600,
+                "f1": 850,
+                "gain": 0.35,
+                "kind": "noise",
+                "q": 0.8,
+                "type": "bandpass"
+              },
+              {
+                "at": "at",
+                "dur": 0.16,
+                "f": 2200,
+                "gain": 0.4,
+                "kind": "grains",
+                "q": 0.9,
+                "rate": 900,
+                "shape": 1
+              },
+              {
+                "at": [
+                  "+",
+                  "at",
+                  [
+                    "max",
+                    1,
+                    [
+                      "round",
+                      [
+                        "*",
+                        0.03,
+                        "sr"
+                      ]
+                    ]
+                  ]
+                ],
+                "attack": 0.02,
+                "decay": 0.06,
+                "f": 3200,
+                "gain": 0.12,
+                "kind": "noise",
+                "type": "highpass"
+              }
+            ],
+            "count": 2,
+            "index": "k",
+            "kind": "repeat",
+            "max": 2
+          },
+          {
+            "at": [
+              "max",
+              1,
+              [
+                "round",
+                [
+                  "*",
+                  0.62,
+                  "sr"
+                ]
+              ]
+            ],
+            "attack": 0.012,
+            "decay": 0.07,
+            "f": 1500,
+            "f1": 900,
+            "gain": 0.45,
+            "kind": "noise",
+            "q": 1.6,
+            "type": "bandpass"
+          }
+        ],
+        "values": [
+          [
+            "second",
+            [
+              "+",
+              0.28,
+              [
+                "*",
+                "random",
+                [
+                  "-",
+                  0.34,
+                  0.28
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      "windup.crab": {
+        "duration": 0.55,
+        "finish": [
+          0.9,
+          0.02
+        ],
+        "seed": [
+          31337,
+          7
+        ],
+        "steps": [
+          {
+            "body": [
+              {
+                "at": [
+                  "max",
+                  1,
+                  [
+                    "round",
+                    [
+                      "*",
+                      "time",
+                      "sr"
+                    ]
+                  ]
+                ],
+                "gain": [
+                  "+",
+                  0.15,
+                  [
+                    "*",
+                    "k",
+                    0.01
+                  ]
+                ],
+                "jitter": 0.05,
+                "kind": "strike",
+                "modes": [
+                  [
+                    [
+                      "+",
+                      2500,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          4000,
+                          2500
+                        ]
+                      ]
+                    ],
+                    0.008,
+                    1
+                  ],
+                  [
+                    [
+                      "+",
+                      1200,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          1600,
+                          1200
+                        ]
+                      ]
+                    ],
+                    0.01,
+                    0.5
+                  ]
+                ]
+              },
+              {
+                "kind": "values",
+                "rows": [
+                  [
+                    "time",
+                    [
+                      "+",
+                      "time",
+                      "gap"
+                    ]
+                  ],
+                  [
+                    "gap",
+                    [
+                      "max",
+                      0.009,
+                      [
+                        "*",
+                        "gap",
+                        0.86
+                      ]
+                    ]
+                  ]
+                ]
+              }
+            ],
+            "count": 16,
+            "index": "k",
+            "kind": "repeat",
+            "max": 16,
+            "while": [
+              "lt",
+              "time",
+              0.4
+            ]
+          },
+          {
+            "kind": "values",
+            "rows": [
+              [
+                "at",
+                [
+                  "max",
+                  1,
+                  [
+                    "round",
+                    [
+                      "*",
+                      [
+                        "+",
+                        "time",
+                        0.02
+                      ],
+                      "sr"
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          },
+          {
+            "args": [
+              3500,
+              0.7,
+              0.0015
+            ],
+            "at": "at",
+            "kind": "click"
+          },
+          {
+            "at": "at",
+            "gain": 0.4,
+            "kind": "strike",
+            "modes": [
+              [
+                2200,
+                0.025,
+                1
+              ],
+              [
+                3300,
+                0.02,
+                0.7
+              ],
+              [
+                700,
+                0.04,
+                0.4
+              ]
+            ]
+          }
+        ],
+        "values": [
+          [
+            "time",
+            0
+          ],
+          [
+            "gap",
+            0.03
+          ]
+        ]
+      },
+      "windup.sailor": {
+        "duration": 1,
+        "finish": [
+          0.9,
+          0.08
+        ],
+        "seed": [
+          31337,
+          7
+        ],
+        "steps": [
+          {
+            "at": 0,
+            "attack": 0.12,
+            "decay": 0.18,
+            "f": 150,
+            "f1": 1600,
+            "gain": 1,
+            "kind": "noise",
+            "pink": true,
+            "q": 1.2,
+            "type": "lowpass"
+          },
+          {
+            "at": [
+              "max",
+              1,
+              [
+                "round",
+                [
+                  "*",
+                  0.05,
+                  "sr"
+                ]
+              ]
+            ],
+            "dur": 0.85,
+            "f": 3000,
+            "gain": 0.5,
+            "grain": 0.0012,
+            "kind": "grains",
+            "q": 0.8,
+            "rate": 70,
+            "shape": 1
+          },
+          {
+            "envelope": [
+              "*",
+              [
+                "min",
+                1,
+                [
+                  "/",
+                  "t",
+                  0.3
+                ]
+              ],
+              [
+                "exp",
+                [
+                  "/",
+                  [
+                    "-",
+                    0,
+                    [
+                      "max",
+                      0,
+                      [
+                        "-",
+                        "t",
+                        0.35
+                      ]
+                    ]
+                  ],
+                  0.35
+                ]
+              ]
+            ],
+            "f": 110,
+            "gain": 0.12,
+            "kind": "sine"
+          },
+          {
+            "envelope": [
+              "*",
+              [
+                "min",
+                1,
+                [
+                  "/",
+                  "t",
+                  0.3
+                ]
+              ],
+              [
+                "exp",
+                [
+                  "/",
+                  [
+                    "-",
+                    0,
+                    [
+                      "max",
+                      0,
+                      [
+                        "-",
+                        "t",
+                        0.35
+                      ]
+                    ]
+                  ],
+                  0.35
+                ]
+              ]
+            ],
+            "f": 164.8,
+            "gain": 0.08,
+            "kind": "sine"
+          },
+          {
+            "envelope": [
+              "*",
+              [
+                "min",
+                1,
+                [
+                  "/",
+                  "t",
+                  0.3
+                ]
+              ],
+              [
+                "exp",
+                [
+                  "/",
+                  [
+                    "-",
+                    0,
+                    [
+                      "max",
+                      0,
+                      [
+                        "-",
+                        "t",
+                        0.35
+                      ]
+                    ]
+                  ],
+                  0.35
+                ]
+              ]
+            ],
+            "f": 220.6,
+            "gain": 0.05,
+            "kind": "sine"
+          },
+          {
+            "envelope": [
+              "*",
+              [
+                "min",
+                1,
+                [
+                  "/",
+                  "t",
+                  0.3
+                ]
+              ],
+              [
+                "exp",
+                [
+                  "/",
+                  [
+                    "-",
+                    0,
+                    [
+                      "max",
+                      0,
+                      [
+                        "-",
+                        "t",
+                        0.35
+                      ]
+                    ]
+                  ],
+                  0.35
+                ]
+              ]
+            ],
+            "f": 109.2,
+            "gain": 0.08,
+            "kind": "sine"
+          }
+        ],
+        "values": []
+      }
+    },
+    "playback": {
+      "actions": {
+        "heavy": {
+          "family": {
+            "prefix": "whoosh-heavy"
+          },
+          "options": [
+            [
+              "gain",
+              [
+                "+",
+                0.45,
+                [
+                  "*",
+                  0.2,
+                  "s"
+                ]
+              ]
+            ],
+            [
+              "rate",
+              [
+                "+",
+                0.9,
+                [
+                  "*",
+                  0.15,
+                  "s"
+                ]
+              ]
+            ],
+            [
+              "pan",
+              [
+                "*",
+                -0.35,
+                "dir"
+              ]
+            ],
+            [
+              "panTo",
+              [
+                "*",
+                0.35,
+                "dir"
+              ]
+            ]
+          ],
+          "state": [],
+          "values": [
+            [
+              "s",
+              [
+                "clamp",
+                "speed",
+                0,
+                1
+              ]
+            ]
+          ]
+        },
+        "impact": {
+          "family": {
+            "param": "material",
+            "prefix": "impact-"
+          },
+          "options": [
+            [
+              "gain",
+              [
+                "+",
+                0.4,
+                [
+                  "*",
+                  0.45,
+                  "s"
+                ]
+              ]
+            ],
+            [
+              "rate",
+              [
+                "-",
+                1.04,
+                [
+                  "*",
+                  0.1,
+                  "s"
+                ]
+              ]
+            ]
+          ],
+          "state": [],
+          "values": [
+            [
+              "s",
+              [
+                "clamp",
+                "strength",
+                0,
+                1
+              ]
+            ]
+          ]
+        },
+        "interact": {
+          "family": {
+            "param": "sound",
+            "prefix": "ui-"
+          },
+          "options": [
+            [
+              "gain",
+              [
+                "*",
+                "interact.sound",
+                "gain",
+                [
+                  "if",
+                  "release",
+                  0.6,
+                  1
+                ]
+              ]
+            ],
+            [
+              "rate",
+              [
+                "if",
+                "release",
+                1.18,
+                1
+              ]
+            ],
+            [
+              "delay",
+              "delay"
+            ],
+            [
+              "jitter",
+              "jitter"
+            ]
+          ],
+          "state": [],
+          "values": []
+        },
+        "plunge": {
+          "family": {
+            "param": "direction",
+            "prefix": "plunge-"
+          },
+          "options": [
+            [
+              "gain",
+              [
+                "if",
+                "up",
+                0.35,
+                0.5
+              ]
+            ]
+          ],
+          "state": [],
+          "values": []
+        },
+        "step": {
+          "family": {
+            "param": "surface",
+            "prefix": "step-"
+          },
+          "options": [
+            [
+              "gain",
+              "gain"
+            ],
+            [
+              "rate",
+              "rate"
+            ],
+            [
+              "pan",
+              [
+                "*",
+                "state.side",
+                0.12
+              ]
+            ]
+          ],
+          "state": [
+            [
+              "side",
+              [
+                "*",
+                -1,
+                "state.side"
+              ]
+            ]
+          ],
+          "values": [
+            [
+              "k",
+              [
+                "clamp",
+                [
+                  "/",
+                  "speed",
+                  7.2
+                ],
+                0.2,
+                1.15
+              ]
+            ],
+            [
+              "gain",
+              [
+                "*",
+                "step.surface",
+                [
+                  "+",
+                  0.35,
+                  [
+                    "*",
+                    0.65,
+                    "k"
+                  ]
+                ]
+              ]
+            ],
+            [
+              "rate",
+              [
+                "+",
+                0.9,
+                [
+                  "*",
+                  0.14,
+                  "k"
+                ]
+              ]
+            ]
+          ],
+          "warm": true
+        },
+        "vocal": {
+          "family": {
+            "param": "enemy",
+            "prefix": "vocal-"
+          },
+          "options": [
+            [
+              "gain",
+              [
+                "*",
+                "vocal.enemy",
+                [
+                  "clamp",
+                  "intensity",
+                  0.2,
+                  1.3
+                ]
+              ]
+            ]
+          ],
+          "state": [],
+          "values": []
+        },
+        "whoosh": {
+          "family": {
+            "prefix": "whoosh"
+          },
+          "options": [
+            [
+              "gain",
+              [
+                "+",
+                0.22,
+                [
+                  "*",
+                  0.3,
+                  "s"
+                ]
+              ]
+            ],
+            [
+              "rate",
+              [
+                "+",
+                0.82,
+                [
+                  "*",
+                  0.38,
+                  "s"
+                ]
+              ]
+            ],
+            [
+              "pan",
+              [
+                "*",
+                -0.4,
+                "dir"
+              ]
+            ],
+            [
+              "panTo",
+              [
+                "*",
+                0.4,
+                "dir"
+              ]
+            ]
+          ],
+          "state": [],
+          "values": [
+            [
+              "s",
+              [
+                "clamp",
+                "speed",
+                0,
+                1
+              ]
+            ]
+          ]
+        },
+        "windup": {
+          "family": {
+            "param": "enemy",
+            "prefix": "windup-"
+          },
+          "options": [
+            [
+              "gain",
+              "windup.enemy"
+            ]
+          ],
+          "state": [],
+          "values": []
+        }
+      },
+      "initial": {
+        "side": 1
+      },
+      "mode": "voices",
+      "prewarm": [
+        "step-sand",
+        "step-planks",
+        "step-grass",
+        "step-wetSand",
+        "step-rock",
+        "step-water",
+        "step-stone",
+        "whoosh",
+        "impact-flesh",
+        "hurt",
+        "impact-shell",
+        "impact-wood",
+        "impact-stone",
+        "whoosh-heavy",
+        "vocal-boar",
+        "vocal-crab",
+        "vocal-monkey",
+        "vocal-sailor",
+        "windup-boar",
+        "windup-crab",
+        "windup-sailor",
+        "plunge-down",
+        "plunge-up",
+        "death",
+        "ui-chime",
+        "ui-chest",
+        "ui-locked",
+        "ui-lever",
+        "ui-plate",
+        "ui-door",
+        "ui-grate",
+        "ui-glyph",
+        "ui-ignite"
+      ],
+      "tables": {
+        "interact": {
+          "chest": 0.7,
+          "chime": 0.45,
+          "door": 0.7,
+          "glyph": 0.6,
+          "grate": 0.6,
+          "ignite": 0.8,
+          "lever": 0.7,
+          "locked": 0.6,
+          "plate": 0.65
+        },
+        "step": {
+          "grass": 0.3,
+          "planks": 0.42,
+          "rock": 0.34,
+          "sand": 0.34,
+          "stone": 0.36,
+          "water": 0.34,
+          "wetSand": 0.36
+        },
+        "vocal": {
+          "boar": 0.75,
+          "crab": 0.6,
+          "monkey": 0.5,
+          "sailor": 0.85
+        },
+        "windup": {
+          "boar": 0.7,
+          "crab": 0.65,
+          "sailor": 0.7
+        }
+      }
+    },
+    "routing": [
+      {
+        "actions": [
+          {
+            "defaults": {
+              "heavy": false,
+              "speed": 1
+            },
+            "delay": null,
+            "voice": "island.whoosh",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.weapon.fire",
+        "when": [
+          {
+            "field": "dir",
+            "op": "number"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.flesh",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.hit.flesh",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.flesh",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.weapon.clang.flesh",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.shell",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.hit.shell",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.shell",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.weapon.clang.shell",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.wood",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.hit.wood",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.wood",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.weapon.clang.wood",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.stone",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.hit.stone",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.stone",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.weapon.clang.stone",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "gain": 1.3
+            },
+            "delay": null,
+            "voice": "island.vocal.boar",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.creature.death",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "boar"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "gain": 1.3
+            },
+            "delay": null,
+            "voice": "island.vocal.crab",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.creature.death",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "crab"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "gain": 1.3
+            },
+            "delay": null,
+            "voice": "island.vocal.monkey",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.creature.death",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "monkey"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "gain": 1.3
+            },
+            "delay": null,
+            "voice": "island.vocal.sailor",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.creature.death",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "sailor"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.windup.boar",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.ai.windup",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "boar"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.windup.crab",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.ai.windup",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "crab"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.windup.sailor",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.ai.windup",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "sailor"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.windup.boar",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.ai.windup",
+        "when": [
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "bear"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.sand",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.sand",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.wetSand",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.wetSand",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.grass",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.grass",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.rock",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.rock",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.planks",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.planks",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.stone",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.stone",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "speed": 0
+            },
+            "delay": null,
+            "voice": "island.step.water",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.step.water",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.dive",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.player.dive",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.surface",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.player.surface",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.chime",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.feat.earned",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "island.gull",
+            "when": []
+          }
+        ],
+        "bus": "audio",
+        "id": "cue.ambient.gull",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "heavy": false,
+              "speed": 1
+            },
+            "delay": null,
+            "voice": "island.whoosh",
+            "when": []
+          }
+        ],
+        "bus": "combat",
+        "id": "cue.sword.swing",
+        "when": [
+          {
+            "field": "dir",
+            "op": "number"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.shell",
+            "when": []
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.boar",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "boar"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.crab",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "crab"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.monkey",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "monkey"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.sailor",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "sailor"
+              }
+            ]
+          }
+        ],
+        "bus": "combat",
+        "id": "cue.sword.hit",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          },
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "crab"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.wood",
+            "when": []
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.boar",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "boar"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.crab",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "crab"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.monkey",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "monkey"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.sailor",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "sailor"
+              }
+            ]
+          }
+        ],
+        "bus": "combat",
+        "id": "cue.sword.hit",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          },
+          {
+            "field": "kind",
+            "op": "equals",
+            "value": "sailor"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.flesh",
+            "when": []
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.boar",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "boar"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.crab",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "crab"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.monkey",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "monkey"
+              }
+            ]
+          },
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 1.3
+            },
+            "voice": "island.kill.sailor",
+            "when": [
+              {
+                "field": "killed",
+                "op": "equals",
+                "value": true
+              },
+              {
+                "field": "kind",
+                "op": "equals",
+                "value": "sailor"
+              }
+            ]
+          }
+        ],
+        "bus": "combat",
+        "id": "cue.sword.hit",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.wood",
+            "when": []
+          }
+        ],
+        "bus": "combat",
+        "id": "cue.sword.clang",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          },
+          {
+            "field": "clang",
+            "op": "equals",
+            "value": "wood"
+          }
+        ]
+      },
+      {
+        "actions": [
+          {
+            "defaults": {
+              "strength": 1
+            },
+            "delay": null,
+            "voice": "island.impact.stone",
+            "when": []
+          }
+        ],
+        "bus": "combat",
+        "id": "cue.sword.clang",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          },
+          {
+            "field": "clang",
+            "op": "equals",
+            "value": "stone"
+          }
+        ]
+      }
+    ],
+    "samples": {
+      "bed": "island",
+      "catalogue": {
+        "inventoryOmitSlots": [],
+        "loopOrder": [
+          "island",
+          "underwater",
+          "pickup",
+          "shrine"
+        ],
+        "overlaySamples": true,
+        "ownMusic": false,
+        "priorityOwn": false
+      },
+      "loopGains": {
+        "island": 0.5
+      },
+      "set": "driftwood-isle"
+    },
+    "score": "default",
+    "surfaces": {
+      "fallback": "sand",
+      "rules": [
+        {
+          "kind": "floor",
+          "source": "decks",
+          "surface": "planks",
+          "tolerance": 0.45
+        },
+        {
+          "kind": "floor",
+          "source": "stone",
+          "surface": "stone",
+          "tolerance": 0.45
+        },
+        {
+          "kind": "value",
+          "op": "lt",
+          "source": "height",
+          "surface": "water",
+          "threshold": 0.02
+        },
+        {
+          "kind": "value",
+          "op": "gt",
+          "source": "slope",
+          "surface": "rock",
+          "threshold": 0.32
+        },
+        {
+          "kind": "value",
+          "op": "lt",
+          "source": "height",
+          "surface": "wetSand",
+          "threshold": 0.45
+        },
+        {
+          "kind": "value",
+          "op": "gt",
+          "source": "height",
+          "surface": "grass",
+          "threshold": 3.35,
+          "when": [
+            "not",
+            [
+              "lt",
+              "trail",
+              3.3
+            ]
+          ]
+        }
+      ]
+    },
+    "synth": {
+      "gull": {
+        "steps": [
+          {
+            "filter": {
+              "frequency": 1900,
+              "q": 0.7,
+              "type": "bandpass"
+            },
+            "gain": [
+              "*",
+              0.28,
+              "gain"
+            ],
+            "id": "bus",
+            "kind": "bus",
+            "out": "out",
+            "pan": "pan"
+          },
+          {
+            "id": "base",
+            "kind": "value",
+            "value": [
+              "+",
+              1050,
+              [
+                "*",
+                "random",
+                [
+                  "-",
+                  1350,
+                  1050
+                ]
+              ]
+            ]
+          },
+          {
+            "attack": 0.015,
+            "decay": 0.09,
+            "f0": [
+              "*",
+              "base",
+              0.85
+            ],
+            "f1": [
+              "*",
+              "base",
+              1.25
+            ],
+            "gain": 1,
+            "glide": 0.06,
+            "hold": 0.05,
+            "kind": "tone",
+            "lowpass": 4200,
+            "out": "bus",
+            "t": "t",
+            "type": "sawtooth",
+            "vibrato": {
+              "depth": 90,
+              "rate": 42
+            }
+          },
+          {
+            "attack": 0.005,
+            "decay": 0.12,
+            "f0": [
+              "*",
+              "base",
+              1.25
+            ],
+            "f1": [
+              "*",
+              "base",
+              0.9
+            ],
+            "gain": 0.7,
+            "glide": 0.12,
+            "kind": "tone",
+            "lowpass": 3600,
+            "out": "bus",
+            "t": [
+              "+",
+              "t",
+              0.06
+            ],
+            "type": "sawtooth",
+            "vibrato": {
+              "depth": 90,
+              "rate": 42
+            }
+          },
+          {
+            "attack": 0.02,
+            "decay": 0.1,
+            "freq": [
+              "*",
+              "base",
+              2
+            ],
+            "gain": 0.25,
+            "hold": 0.06,
+            "kind": "burst",
+            "out": "bus",
+            "q": 2,
+            "t": "t",
+            "type": "bandpass"
+          },
+          {
+            "id": "t2",
+            "kind": "value",
+            "value": [
+              "+",
+              "t",
+              [
+                "+",
+                0.2,
+                [
+                  "*",
+                  "random",
+                  [
+                    "-",
+                    0.27,
+                    0.2
+                  ]
+                ]
+              ]
+            ]
+          },
+          {
+            "attack": 0.012,
+            "decay": 0.15,
+            "f0": [
+              "*",
+              "base",
+              0.95
+            ],
+            "f1": [
+              "*",
+              "base",
+              0.62
+            ],
+            "gain": 0.8,
+            "glide": 0.16,
+            "hold": 0.03,
+            "kind": "tone",
+            "lowpass": 3200,
+            "out": "bus",
+            "t": "t2",
+            "type": "sawtooth",
+            "vibrato": {
+              "depth": 70,
+              "rate": 36
+            }
+          },
+          {
+            "attack": 0.02,
+            "decay": 0.12,
+            "freq": [
+              "*",
+              "base",
+              1.6
+            ],
+            "gain": 0.18,
+            "kind": "burst",
+            "out": "bus",
+            "q": 2,
+            "t": "t2",
+            "type": "bandpass"
+          },
+          {
+            "body": [
+              {
+                "id": "t3",
+                "kind": "value",
+                "value": [
+                  "+",
+                  "t2",
+                  [
+                    "+",
+                    0.2,
+                    [
+                      "*",
+                      "random",
+                      [
+                        "-",
+                        0.28,
+                        0.2
+                      ]
+                    ]
+                  ]
+                ]
+              },
+              {
+                "attack": 0.012,
+                "decay": 0.14,
+                "f0": [
+                  "*",
+                  "base",
+                  0.8
+                ],
+                "f1": [
+                  "*",
+                  "base",
+                  0.55
+                ],
+                "gain": 0.55,
+                "glide": 0.14,
+                "kind": "tone",
+                "lowpass": 2800,
+                "out": "bus",
+                "t": "t3",
+                "type": "sawtooth",
+                "vibrato": {
+                  "depth": 60,
+                  "rate": 30
+                }
+              }
+            ],
+            "count": [
+              "if",
+              [
+                "lt",
+                "random",
+                0.35
+              ],
+              1,
+              0
+            ],
+            "kind": "repeat",
+            "max": 1
+          }
+        ]
+      }
+    },
+    "voiceBindings": [
+      {
+        "args": [
+          {
+            "fallback": 1,
+            "field": "speed",
+            "kind": "field"
+          },
+          {
+            "fields": {
+              "dir": {
+                "field": "dir",
+                "kind": "field"
+              },
+              "heavy": {
+                "fallback": false,
+                "field": "heavy",
+                "kind": "field"
+              }
+            },
+            "kind": "options"
+          }
+        ],
+        "id": "island.whoosh",
+        "method": "whoosh",
+        "owner": "sfx",
+        "when": [
+          {
+            "field": "dir",
+            "op": "number"
+          }
+        ]
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "flesh"
+          },
+          {
+            "fallback": 1,
+            "field": "strength",
+            "kind": "field"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.impact.flesh",
+        "method": "impact",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "shell"
+          },
+          {
+            "fallback": 1,
+            "field": "strength",
+            "kind": "field"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.impact.shell",
+        "method": "impact",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "wood"
+          },
+          {
+            "fallback": 1,
+            "field": "strength",
+            "kind": "field"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.impact.wood",
+        "method": "impact",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "stone"
+          },
+          {
+            "fallback": 1,
+            "field": "strength",
+            "kind": "field"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.impact.stone",
+        "method": "impact",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "boar"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          },
+          {
+            "fallback": 1.3,
+            "field": "gain",
+            "kind": "field"
+          }
+        ],
+        "id": "island.vocal.boar",
+        "method": "vocal",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "crab"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          },
+          {
+            "fallback": 1.3,
+            "field": "gain",
+            "kind": "field"
+          }
+        ],
+        "id": "island.vocal.crab",
+        "method": "vocal",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "monkey"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          },
+          {
+            "fallback": 1.3,
+            "field": "gain",
+            "kind": "field"
+          }
+        ],
+        "id": "island.vocal.monkey",
+        "method": "vocal",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "sailor"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          },
+          {
+            "fallback": 1.3,
+            "field": "gain",
+            "kind": "field"
+          }
+        ],
+        "id": "island.vocal.sailor",
+        "method": "vocal",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "boar"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.windup.boar",
+        "method": "windup",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "crab"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.windup.crab",
+        "method": "windup",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "sailor"
+          },
+          {
+            "field": "point",
+            "kind": "field"
+          }
+        ],
+        "id": "island.windup.sailor",
+        "method": "windup",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "sand"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.sand",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "wetSand"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.wetSand",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "grass"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.grass",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "rock"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.rock",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "planks"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.planks",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "stone"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.stone",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "water"
+          },
+          {
+            "fallback": 0,
+            "field": "speed",
+            "kind": "field"
+          }
+        ],
+        "id": "island.step.water",
+        "method": "footstep",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": false
+          }
+        ],
+        "id": "island.dive",
+        "method": "plunge",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": true
+          }
+        ],
+        "id": "island.surface",
+        "method": "plunge",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "chime"
+          }
+        ],
+        "id": "island.chime",
+        "method": "interact",
+        "owner": "sfx",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "field": "point",
+            "kind": "field"
+          },
+          {
+            "key": "position",
+            "kind": "owner",
+            "owner": "listener"
+          },
+          {
+            "key": "yaw",
+            "kind": "owner",
+            "owner": "listener"
+          }
+        ],
+        "id": "island.gull",
+        "method": "gullCallAt",
+        "owner": "sfx",
+        "when": [
+          {
+            "field": "point",
+            "op": "present"
+          }
+        ]
+      }
+    ],
+    "zones": {
+      "graph": {
+        "beds": [
+          {
+            "id": "surf",
+            "out": "surfPan"
+          },
+          {
+            "gain": 0.35,
+            "id": "surfBody",
+            "out": "surf"
+          },
+          {
+            "gain": 0.12,
+            "id": "surfHiss",
+            "out": "surf"
+          },
+          {
+            "id": "lap",
+            "out": "occl"
+          },
+          {
+            "id": "breeze",
+            "out": "occl"
+          },
+          {
+            "id": "palms",
+            "out": "occl"
+          },
+          {
+            "id": "lookout",
+            "out": "occl"
+          },
+          {
+            "id": "jungle",
+            "out": "occl"
+          },
+          {
+            "id": "jungleDay",
+            "out": "jungle"
+          },
+          {
+            "id": "jungleNight",
+            "out": "jungle"
+          },
+          {
+            "id": "waterfall",
+            "out": "fallPan"
+          },
+          {
+            "id": "cove",
+            "out": "ambient"
+          },
+          {
+            "id": "underwater",
+            "out": "ambient"
+          }
+        ],
+        "chains": [
+          {
+            "filters": [
+              [
+                "lowpass",
+                700
+              ]
+            ],
+            "noise": "noise-pink",
+            "to": "surfBody"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                2400
+              ]
+            ],
+            "noise": "noise-white",
+            "to": "surfHiss"
+          },
+          {
+            "mark": "swell"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                520
+              ]
+            ],
+            "noise": "noise-pink",
+            "stages": [
+              {
+                "gain": 0.6,
+                "lfos": [
+                  {
+                    "depth": 0.35,
+                    "rate": 0.55
+                  },
+                  {
+                    "depth": 0.2,
+                    "rate": 0.83
+                  }
+                ]
+              }
+            ],
+            "to": "lap"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                260
+              ],
+              [
+                "lowpass",
+                900
+              ]
+            ],
+            "noise": "noise-pink",
+            "to": "breeze"
+          },
+          {
+            "filters": [
+              [
+                "highpass",
+                2200
+              ],
+              [
+                "bandpass",
+                5200
+              ]
+            ],
+            "noise": "noise-white",
+            "pan": "flutter",
+            "stages": [
+              {
+                "flutter": {
+                  "depth": 3.5,
+                  "filters": [
+                    [
+                      "lowpass",
+                      9
+                    ]
+                  ],
+                  "noise": "noise-white"
+                },
+                "gain": 0.55
+              }
+            ],
+            "to": "palms"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                480
+              ],
+              [
+                "lowpass",
+                2000
+              ]
+            ],
+            "noise": "noise-pink",
+            "to": "lookout"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                1150
+              ]
+            ],
+            "noise": "noise-white",
+            "stages": [
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.35,
+                    "rate": 0.31
+                  }
+                ]
+              }
+            ],
+            "sweeps": [
+              [
+                0,
+                {
+                  "depth": 220,
+                  "rate": 0.13
+                }
+              ]
+            ],
+            "to": "lookout"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                900
+              ]
+            ],
+            "noise": "noise-white",
+            "stages": [
+              {
+                "gain": 0.25,
+                "lfos": [
+                  {
+                    "depth": 0.25,
+                    "rate": 7.3,
+                    "type": "square"
+                  }
+                ]
+              }
+            ],
+            "to": "lookout"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                4700
+              ]
+            ],
+            "noise": "noise-white",
+            "stages": [
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.45,
+                    "rate": 38
+                  },
+                  {
+                    "depth": 0.25,
+                    "rate": 0.097
+                  }
+                ]
+              }
+            ],
+            "to": "jungleDay"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                6600
+              ]
+            ],
+            "noise": "noise-white",
+            "stages": [
+              {
+                "gain": 0.3,
+                "lfos": [
+                  {
+                    "depth": 0.27,
+                    "rate": 53
+                  },
+                  {
+                    "depth": 0.15,
+                    "rate": 0.116
+                  }
+                ]
+              }
+            ],
+            "to": "jungleDay"
+          },
+          {
+            "filters": [
+              [
+                "lowpass",
+                320
+              ]
+            ],
+            "noise": "noise-pink",
+            "stages": [
+              {
+                "gain": 0.4
+              }
+            ],
+            "to": "jungle"
+          },
+          {
+            "osc": 4400,
+            "stages": [
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.5,
+                    "rate": 32,
+                    "type": "square"
+                  }
+                ]
+              },
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.5,
+                    "rate": 1.7,
+                    "type": "square"
+                  }
+                ]
+              },
+              {
+                "gain": 0.16
+              }
+            ],
+            "to": "jungleNight"
+          },
+          {
+            "osc": 4900,
+            "stages": [
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.5,
+                    "rate": 32,
+                    "type": "square"
+                  }
+                ]
+              },
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.5,
+                    "rate": 1.1,
+                    "type": "square"
+                  }
+                ]
+              },
+              {
+                "gain": 0.1
+              }
+            ],
+            "to": "jungleNight"
+          },
+          {
+            "mark": "birds"
+          },
+          {
+            "filters": [
+              [
+                "lowpass",
+                2400
+              ],
+              [
+                "highpass",
+                140
+              ]
+            ],
+            "noise": "noise-pink",
+            "to": "waterfall"
+          },
+          {
+            "filters": [
+              [
+                "lowpass",
+                110
+              ]
+            ],
+            "noise": "noise-pink",
+            "stages": [
+              {
+                "gain": 0.9
+              }
+            ],
+            "to": "waterfall"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                3200
+              ]
+            ],
+            "noise": "noise-white",
+            "stages": [
+              {
+                "flutter": {
+                  "depth": 0.3,
+                  "filters": [
+                    [
+                      "lowpass",
+                      14
+                    ]
+                  ],
+                  "noise": "noise-white"
+                },
+                "gain": 0.35
+              }
+            ],
+            "to": "waterfall"
+          },
+          {
+            "filters": [
+              [
+                "bandpass",
+                700
+              ]
+            ],
+            "noise": "noise-pink",
+            "stages": [
+              {
+                "gain": 0.5,
+                "lfos": [
+                  {
+                    "depth": 0.25,
+                    "rate": 0.21
+                  }
+                ]
+              }
+            ],
+            "to": "cove"
+          },
+          {
+            "mark": "drips"
+          },
+          {
+            "sample": "bubble-bed",
+            "to": "underwater"
+          }
+        ],
+        "tap": "island.bed"
+      },
+      "holdSeconds": 0,
+      "id": "ambience.driftwood",
+      "levels": {
+        "breeze": 0.07,
+        "breeze-height": 0.1,
+        "cove": 0.1,
+        "jungle": 0.14,
+        "lap": 0.22,
+        "lookout": 0.22,
+        "palms": 0.2,
+        "surf": 0.85,
+        "surf-night": 0.3,
+        "underwater": 0.5,
+        "waterfall": 0.45
+      },
+      "mix": {
+        "cutoffs": [
+          [
+            "occl",
+            [
+              "+",
+              [
+                "*",
+                20000,
+                [
+                  "-",
+                  1,
+                  "occl"
+                ]
+              ],
+              [
+                "*",
+                700,
+                "occl"
+              ]
+            ]
+          ]
+        ],
+        "defaultZone": "beach",
+        "diag": [
+          [
+            "surf",
+            [
+              "*",
+              "surf",
+              "dry"
+            ]
+          ],
+          [
+            "shoreDist",
+            "shoreDist"
+          ],
+          [
+            "lap",
+            "lap"
+          ],
+          [
+            "breeze",
+            "breeze"
+          ],
+          [
+            "palms",
+            "palms"
+          ],
+          [
+            "wind",
+            "wind"
+          ],
+          [
+            "jungle",
+            "jungle"
+          ],
+          [
+            "night",
+            "night"
+          ],
+          [
+            "cove",
+            "coveW"
+          ],
+          [
+            "waterfall",
+            [
+              "dist",
+              "fall"
+            ]
+          ],
+          [
+            "lookout",
+            [
+              "min",
+              1,
+              "lookout"
+            ]
+          ],
+          [
+            "occlusion",
+            "occl"
+          ],
+          [
+            "hold",
+            "hold"
+          ],
+          [
+            "cave",
+            "cave"
+          ],
+          [
+            "shrine",
+            "shrine"
+          ],
+          [
+            "underwater",
+            "uw"
+          ]
+        ],
+        "levels": [
+          [
+            "surf",
+            [
+              "*",
+              "surf",
+              "dry"
+            ]
+          ],
+          [
+            "lap",
+            [
+              "*",
+              "level.lap",
+              "lap",
+              "dry"
+            ]
+          ],
+          [
+            "breeze",
+            [
+              "*",
+              "breeze",
+              "dry"
+            ]
+          ],
+          [
+            "palms",
+            [
+              "*",
+              "level.palms",
+              "palms",
+              "wind",
+              [
+                "-",
+                1,
+                [
+                  "*",
+                  0.5,
+                  "night"
+                ]
+              ],
+              "dry"
+            ]
+          ],
+          [
+            "lookout",
+            [
+              "*",
+              "level.lookout",
+              [
+                "min",
+                1,
+                "lookout"
+              ],
+              "wind",
+              "dry"
+            ]
+          ],
+          [
+            "jungle",
+            [
+              "*",
+              "level.jungle",
+              "jungle",
+              "dry"
+            ]
+          ],
+          [
+            "jungleDay",
+            [
+              "-",
+              1,
+              "night"
+            ]
+          ],
+          [
+            "jungleNight",
+            [
+              "+",
+              0.25,
+              [
+                "*",
+                0.75,
+                "night"
+              ]
+            ]
+          ],
+          [
+            "waterfall",
+            [
+              "*",
+              "level.waterfall",
+              "dry"
+            ]
+          ],
+          [
+            "cove",
+            [
+              "*",
+              "level.cove",
+              "coveW",
+              "dry"
+            ]
+          ],
+          [
+            "underwater",
+            [
+              "*",
+              "level.underwater",
+              "uw"
+            ]
+          ]
+        ],
+        "rooms": [
+          {
+            "id": "hold",
+            "level": [
+              "*",
+              "wet.hold",
+              "hold",
+              "dry"
+            ],
+            "weight": "hold"
+          },
+          {
+            "id": "cave",
+            "level": [
+              "*",
+              "wet.cave",
+              "cave",
+              "dry"
+            ],
+            "weight": "cave"
+          },
+          {
+            "id": "shrine",
+            "level": [
+              "*",
+              "wet.shrine",
+              "shrine",
+              "dry"
+            ],
+            "weight": "shrine"
+          }
+        ],
+        "values": [
+          [
+            "above",
+            [
+              "-",
+              [
+                "-",
+                "y",
+                1.68
+              ],
+              [
+                "max",
+                "ground",
+                "sea"
+              ]
+            ]
+          ],
+          [
+            "uw",
+            "underwater"
+          ],
+          [
+            "dry",
+            [
+              "-",
+              1,
+              "uw"
+            ]
+          ],
+          [
+            "night",
+            [
+              "clamp",
+              "night",
+              0,
+              1
+            ]
+          ],
+          [
+            "hold",
+            [
+              "if",
+              "holdBox",
+              [
+                "*",
+                [
+                  "ss",
+                  [
+                    "+",
+                    "holdBox.r",
+                    1.5
+                  ],
+                  [
+                    "-",
+                    "holdBox.r",
+                    1
+                  ],
+                  [
+                    "dist",
+                    "holdBox"
+                  ]
+                ],
+                [
+                  "in",
+                  "y",
+                  "holdBox.yMin",
+                  [
+                    "+",
+                    "holdBox.yMax",
+                    1.68
+                  ]
+                ]
+              ],
+              0
+            ]
+          ],
+          [
+            "cave",
+            [
+              "if",
+              "caveBox",
+              [
+                "ss",
+                [
+                  "+",
+                  "caveBox.r",
+                  1.5
+                ],
+                [
+                  "-",
+                  "caveBox.r",
+                  1
+                ],
+                [
+                  "dist",
+                  "caveBox"
+                ]
+              ],
+              [
+                "zone",
+                "cave"
+              ]
+            ]
+          ],
+          [
+            "shrine",
+            [
+              "zone",
+              "shrine"
+            ]
+          ],
+          [
+            "occl",
+            [
+              "max",
+              "hold",
+              [
+                "*",
+                "cave",
+                0.85
+              ]
+            ]
+          ],
+          [
+            "jungle",
+            [
+              "zone",
+              "jungle"
+            ]
+          ],
+          [
+            "coveW",
+            [
+              "zone",
+              "cove"
+            ]
+          ],
+          [
+            "lookout",
+            [
+              "+",
+              [
+                "*",
+                [
+                  "ss",
+                  12,
+                  24,
+                  [
+                    "-",
+                    "y",
+                    "sea"
+                  ]
+                ],
+                [
+                  "zone",
+                  "lookout"
+                ]
+              ],
+              [
+                "*",
+                [
+                  "ss",
+                  18,
+                  30,
+                  [
+                    "-",
+                    "y",
+                    "sea"
+                  ]
+                ],
+                [
+                  "zone",
+                  "headland"
+                ],
+                "headland.gain"
+              ]
+            ]
+          ],
+          [
+            "palms",
+            [
+              "min",
+              1,
+              [
+                "/",
+                "palms.sum",
+                2.5
+              ]
+            ]
+          ],
+          [
+            "wt",
+            [
+              "if",
+              "windTime",
+              "windTime",
+              "t"
+            ]
+          ],
+          [
+            "gust",
+            [
+              "+",
+              0.65,
+              [
+                "*",
+                0.35,
+                [
+                  "abs",
+                  [
+                    "+",
+                    [
+                      "*",
+                      [
+                        "sin",
+                        [
+                          "*",
+                          "wt",
+                          0.13
+                        ]
+                      ],
+                      0.7
+                    ],
+                    [
+                      "*",
+                      [
+                        "sin",
+                        [
+                          "+",
+                          [
+                            "*",
+                            "wt",
+                            0.29
+                          ],
+                          1.3
+                        ]
+                      ],
+                      0.3
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "wind",
+            [
+              "*",
+              "windStrength",
+              "gust"
+            ]
+          ],
+          [
+            "lap",
+            [
+              "if",
+              [
+                "lt",
+                "ground",
+                [
+                  "+",
+                  "sea",
+                  0.1
+                ]
+              ],
+              [
+                "-",
+                1,
+                [
+                  "ss",
+                  6,
+                  14,
+                  [
+                    "-",
+                    "y",
+                    "sea"
+                  ]
+                ]
+              ],
+              0
+            ]
+          ],
+          [
+            "surf",
+            [
+              "*",
+              [
+                "-",
+                "level.surf",
+                [
+                  "*",
+                  "level.surf-night",
+                  "night"
+                ]
+              ],
+              [
+                "-",
+                1,
+                [
+                  "*",
+                  0.6,
+                  "occl"
+                ]
+              ]
+            ]
+          ],
+          [
+            "breeze",
+            [
+              "*",
+              [
+                "+",
+                "level.breeze",
+                [
+                  "*",
+                  "level.breeze-height",
+                  [
+                    "ss",
+                    4,
+                    25,
+                    [
+                      "-",
+                      [
+                        "+",
+                        "above",
+                        "ground"
+                      ],
+                      "sea"
+                    ]
+                  ]
+                ]
+              ],
+              "wind",
+              [
+                "-",
+                1,
+                [
+                  "*",
+                  0.8,
+                  "occl"
+                ]
+              ]
+            ]
+          ]
+        ],
+        "zoneFloor": 0,
+        "zoneMode": "first",
+        "zones": [
+          [
+            "sea",
+            "uw"
+          ],
+          [
+            "hold",
+            [
+              "gt",
+              "hold",
+              0.5
+            ]
+          ],
+          [
+            "cave",
+            [
+              "gt",
+              "cave",
+              0.5
+            ]
+          ],
+          [
+            "shrine",
+            [
+              "gt",
+              "shrine",
+              0.5
+            ]
+          ],
+          [
+            "lookout",
+            [
+              "gt",
+              "lookout",
+              0.5
+            ]
+          ],
+          [
+            "jungle",
+            [
+              "gt",
+              "jungle",
+              0.5
+            ]
+          ],
+          [
+            "cove",
+            [
+              "gt",
+              "coveW",
+              0.5
+            ]
+          ],
+          [
+            "sea",
+            [
+              "lt",
+              "ground",
+              "sea"
+            ]
+          ],
+          [
+            "palms",
+            [
+              "gt",
+              "palms",
+              0.5
+            ]
+          ],
+          [
+            "beach",
+            1
+          ]
+        ]
+      },
+      "nodes": [
+        {
+          "filter": [
+            "lowpass",
+            20000
+          ],
+          "id": "occl",
+          "out": "ambient"
+        },
+        {
+          "follow": {
+            "diag": "shoreDist",
+            "rays": 256,
+            "refine": 3,
+            "step": 2,
+            "zone": "shore"
+          },
+          "id": "surfPan",
+          "out": "occl",
+          "panner": [
+            12,
+            1,
+            400
+          ]
+        },
+        {
+          "at": "fall",
+          "id": "fallPan",
+          "out": "ambient",
+          "panner": [
+            6,
+            1.1,
+            250
+          ]
+        }
+      ],
+      "programs": {
+        "bird": {
+          "steps": [
+            {
+              "id": "pan",
+              "kind": "value",
+              "value": [
+                "-",
+                [
+                  "*",
+                  "random",
+                  1.6
+                ],
+                0.8
+              ]
+            },
+            {
+              "id": "gain",
+              "kind": "value",
+              "value": [
+                "*",
+                0.35,
+                [
+                  "+",
+                  0.5,
+                  [
+                    "*",
+                    "random",
+                    0.5
+                  ]
+                ]
+              ]
+            },
+            {
+              "alwaysPan": true,
+              "gain": "gain",
+              "id": "bus",
+              "kind": "bus",
+              "out": "out",
+              "pan": "pan"
+            },
+            {
+              "id": "first",
+              "kind": "value",
+              "value": [
+                "lt",
+                "random",
+                0.45
+              ]
+            },
+            {
+              "id": "f",
+              "kind": "value",
+              "value": [
+                "if",
+                "first",
+                [
+                  "+",
+                  380,
+                  [
+                    "*",
+                    "random",
+                    120
+                  ]
+                ],
+                [
+                  "+",
+                  2200,
+                  [
+                    "*",
+                    "random",
+                    900
+                  ]
+                ]
+              ]
+            },
+            {
+              "body": [
+                {
+                  "attack": 0.02,
+                  "decay": 0.14,
+                  "envelope": {
+                    "end": 0.14,
+                    "stop": [
+                      0.14,
+                      0.05
+                    ]
+                  },
+                  "f0": "f",
+                  "f1": [
+                    "*",
+                    "f",
+                    0.8
+                  ],
+                  "gain": 0.5,
+                  "glide": 0.14,
+                  "kind": "tone",
+                  "lowpass": 1400,
+                  "out": "bus",
+                  "t": [
+                    "+",
+                    "t",
+                    [
+                      "*",
+                      "k",
+                      0.22
+                    ]
+                  ],
+                  "type": "sawtooth",
+                  "when": "first"
+                },
+                {
+                  "attack": 0.02,
+                  "decay": 0.12,
+                  "envelope": {
+                    "end": 0.12,
+                    "stop": [
+                      0.12,
+                      0.05
+                    ]
+                  },
+                  "f0": "f",
+                  "f1": [
+                    "*",
+                    "f",
+                    0.86
+                  ],
+                  "gain": 0.6,
+                  "glide": 0.12,
+                  "kind": "tone",
+                  "lowpass": 8000,
+                  "out": "bus",
+                  "t": [
+                    "+",
+                    "t",
+                    [
+                      "*",
+                      "k",
+                      0.16
+                    ]
+                  ],
+                  "type": "sine",
+                  "when": [
+                    "not",
+                    "first"
+                  ]
+                },
+                {
+                  "id": "f",
+                  "kind": "value",
+                  "value": [
+                    "*",
+                    "f",
+                    [
+                      "if",
+                      "first",
+                      1,
+                      0.9
+                    ]
+                  ]
+                }
+              ],
+              "count": [
+                "if",
+                "first",
+                [
+                  "+",
+                  2,
+                  [
+                    "floor",
+                    [
+                      "*",
+                      "random",
+                      3
+                    ]
+                  ]
+                ],
+                [
+                  "+",
+                  3,
+                  [
+                    "floor",
+                    [
+                      "*",
+                      "random",
+                      3
+                    ]
+                  ]
+                ]
+              ],
+              "eachTest": true,
+              "index": "k",
+              "kind": "repeat",
+              "max": 6
+            }
+          ],
+          "tap": "island.bird"
+        },
+        "drip": {
+          "steps": [
+            {
+              "id": "scale",
+              "kind": "value",
+              "value": "cave"
+            },
+            {
+              "id": "f",
+              "kind": "value",
+              "value": [
+                "+",
+                1300,
+                [
+                  "*",
+                  "random",
+                  1400
+                ]
+              ]
+            },
+            {
+              "attack": 0.003,
+              "decay": 0.09,
+              "envelope": {
+                "end": 0.09,
+                "stop": [
+                  0.12
+                ]
+              },
+              "f0": "f",
+              "f1": [
+                "*",
+                "f",
+                0.7
+              ],
+              "gain": [
+                "*",
+                0.12,
+                "scale"
+              ],
+              "glide": 0.05,
+              "kind": "tone",
+              "out": "out",
+              "t": "t"
+            }
+          ],
+          "tap": "island.drip"
+        },
+        "swell": {
+          "steps": [
+            {
+              "id": "size",
+              "kind": "value",
+              "value": [
+                "*",
+                [
+                  "+",
+                  0.7,
+                  [
+                    "*",
+                    "random",
+                    0.5
+                  ]
+                ],
+                [
+                  "-",
+                  1,
+                  [
+                    "*",
+                    0.35,
+                    "night"
+                  ]
+                ]
+              ]
+            },
+            {
+              "id": "build",
+              "kind": "value",
+              "value": [
+                "+",
+                1.4,
+                [
+                  "*",
+                  "random",
+                  0.9
+                ]
+              ]
+            },
+            {
+              "id": "wash",
+              "kind": "value",
+              "value": [
+                "+",
+                2.4,
+                [
+                  "*",
+                  "random",
+                  1.6
+                ]
+              ]
+            },
+            {
+              "kind": "envelope",
+              "out": "surfBody",
+              "ramps": [
+                {
+                  "kind": "linear",
+                  "t": [
+                    "+",
+                    "t",
+                    [
+                      "*",
+                      "build",
+                      0.8
+                    ]
+                  ],
+                  "value": [
+                    "+",
+                    0.35,
+                    [
+                      "*",
+                      [
+                        "-",
+                        1,
+                        0.35
+                      ],
+                      "size",
+                      0.45
+                    ]
+                  ]
+                },
+                {
+                  "kind": "linear",
+                  "t": [
+                    "+",
+                    "t",
+                    "build"
+                  ],
+                  "value": [
+                    "+",
+                    0.35,
+                    [
+                      "*",
+                      [
+                        "-",
+                        1,
+                        0.35
+                      ],
+                      "size"
+                    ]
+                  ]
+                },
+                {
+                  "kind": "target",
+                  "t": [
+                    "+",
+                    [
+                      "+",
+                      "t",
+                      "build"
+                    ],
+                    0.3
+                  ],
+                  "tau": [
+                    "/",
+                    "wash",
+                    3
+                  ],
+                  "value": 0.35
+                }
+              ],
+              "t": "t"
+            },
+            {
+              "kind": "envelope",
+              "out": "surfHiss",
+              "ramps": [
+                {
+                  "kind": "linear",
+                  "t": [
+                    "+",
+                    "t",
+                    [
+                      "*",
+                      "build",
+                      0.8
+                    ]
+                  ],
+                  "value": [
+                    "+",
+                    0.12,
+                    [
+                      "*",
+                      [
+                        "-",
+                        0.75,
+                        0.12
+                      ],
+                      "size",
+                      0.45
+                    ]
+                  ]
+                },
+                {
+                  "kind": "linear",
+                  "t": [
+                    "+",
+                    "t",
+                    "build"
+                  ],
+                  "value": [
+                    "+",
+                    0.12,
+                    [
+                      "*",
+                      [
+                        "-",
+                        0.75,
+                        0.12
+                      ],
+                      "size"
+                    ]
+                  ]
+                },
+                {
+                  "kind": "target",
+                  "t": [
+                    "+",
+                    [
+                      "+",
+                      "t",
+                      "build"
+                    ],
+                    0.3
+                  ],
+                  "tau": [
+                    "/",
+                    "wash",
+                    3
+                  ],
+                  "value": 0.12
+                }
+              ],
+              "t": "t"
+            }
+          ]
+        }
+      },
+      "routing": {
+        "bounds": [],
+        "listener": "context",
+        "near": [],
+        "prewarm": [
+          "bubble-bed",
+          "ir-shrine",
+          "ir-cave",
+          "ir-hold"
+        ],
+        "probes": [
+          {
+            "from": "wreck",
+            "id": "holdBox",
+            "key": "holdBounds",
+            "kind": "bounds"
+          },
+          {
+            "from": "cove",
+            "id": "caveBox",
+            "key": "caveBounds",
+            "kind": "bounds"
+          },
+          {
+            "id": "palms",
+            "kind": "near",
+            "radius": 22
+          }
+        ],
+        "rooms": {
+          "from": "sfx",
+          "list": [
+            {
+              "id": "hold",
+              "ir": "ir-hold",
+              "level": [
+                "*",
+                "wet.hold",
+                "hold",
+                "dry"
+              ],
+              "weight": "hold"
+            },
+            {
+              "feeds": [
+                "fallPan"
+              ],
+              "id": "cave",
+              "ir": "ir-cave",
+              "level": [
+                "*",
+                "wet.cave",
+                "cave",
+                "dry"
+              ],
+              "weight": "cave"
+            },
+            {
+              "id": "shrine",
+              "ir": "ir-shrine",
+              "level": [
+                "*",
+                "wet.shrine",
+                "shrine",
+                "dry"
+              ],
+              "weight": "shrine"
+            }
+          ],
+          "to": "world"
+        },
+        "steer": [
+          {
+            "pan": "flutter",
+            "tau": 0.2,
+            "toward": "palms",
+            "width": 0.7
+          }
+        ],
+        "underwater": [
+          500,
+          0.15
+        ],
+        "warm": [
+          "noise-pink",
+          "noise-white",
+          "bubble-bed"
+        ],
+        "zoneNames": [
+          "sea",
+          "beach",
+          "palms",
+          "jungle",
+          "cove",
+          "lookout",
+          "hold",
+          "cave",
+          "shrine"
+        ]
+      },
+      "schedules": [
+        {
+          "every": [
+            4,
+            5,
+            0.4
+          ],
+          "mark": "swell",
+          "program": "swell",
+          "targets": [
+            "surfBody",
+            "surfHiss"
+          ],
+          "tick": "island.swell"
+        },
+        {
+          "every": [
+            2.5,
+            6,
+            0
+          ],
+          "mark": "birds",
+          "program": "bird",
+          "targets": [
+            "jungle"
+          ],
+          "tick": "island.bird",
+          "when": [
+            "and",
+            [
+              "gt",
+              "bed.jungle",
+              0.05
+            ],
+            [
+              "lt",
+              "night",
+              0.6
+            ],
+            [
+              "not",
+              "underwater"
+            ]
+          ]
+        },
+        {
+          "every": [
+            0.7,
+            2.2,
+            0
+          ],
+          "mark": "drips",
+          "program": "drip",
+          "targets": [
+            "sfx"
+          ],
+          "tick": "island.drip",
+          "when": [
+            "and",
+            [
+              "gt",
+              "cave",
+              0.05
+            ],
+            [
+              "not",
+              "underwater"
+            ]
+          ]
+        }
+      ],
+      "silentSeconds": 0,
+      "smoothSeconds": 0.1,
+      "tickHz": 10,
+      "wet": {
+        "cave": 0.55,
+        "hold": 0.45,
+        "shrine": 0.3
+      },
+      "zones": [
+        {
+          "gain": 1,
+          "id": "shore",
+          "inner": 188,
+          "outer": 330,
+          "source": "terrain.shore",
+          "x": 0,
+          "z": 12
+        },
+        {
+          "gain": 1,
+          "id": "shrine",
+          "inner": 8,
+          "outer": 16,
+          "x": -98,
+          "z": 108
+        },
+        {
+          "gain": 1,
+          "id": "jungle",
+          "inner": 26,
+          "outer": 62,
+          "x": -98,
+          "z": 108
+        },
+        {
+          "gain": 1,
+          "id": "cove",
+          "inner": 22,
+          "outer": 48,
+          "x": 136,
+          "z": 8
+        },
+        {
+          "gain": 1,
+          "id": "lookout",
+          "inner": 18,
+          "outer": 40,
+          "x": 94,
+          "z": 94
+        },
+        {
+          "gain": 0.5,
+          "id": "headland",
+          "inner": 40,
+          "outer": 70,
+          "x": 98,
+          "z": 96
+        },
+        {
+          "gain": 1,
+          "id": "cave",
+          "inner": 1.2,
+          "outer": 3.2,
+          "source": "cove.interior",
+          "x": 120,
+          "z": 19
+        }
+      ]
+    }
+  }
+}

@@ -3,7 +3,10 @@ import { emptyShardfile } from '../src/sdk/author';
 import { absentShardProduct, createShardProduct } from '../src/game/shardfile/shardProduct';
 import { pineAudioProfile } from '../src/shards/pine-hollow/runtime/audio/profile';
 import { createPineAudio } from '../src/shards/pine-hollow/runtime/audio/files';
-import { PINE_AUDIO } from '../src/shards/pine-hollow/data/audio';
+import AUDIO from '../src/shards/pine-hollow/data/audio.generated.json' with { type: 'json' };
+import { parseAudioData } from '@wildshard/format/audio';
+
+const PINE_AUDIO = parseAudioData(AUDIO.audio);
 
 const shardfile = emptyShardfile({ slug: 'pine-audio-test', name: 'Audio test', author: 'Wildshard', revision: 1, seed: 1 });
 function product(audio: typeof PINE_AUDIO) {

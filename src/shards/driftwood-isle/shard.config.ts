@@ -7,7 +7,7 @@ import { DRIFTWOOD_LEDGER } from './data/ledger';
 import { DRIFTWOOD_SWORDS } from './data/items';
 import { DRIFTWOOD_SPAWNS } from './data/spawns';
 import { DRIFTWOOD_MODES } from './data/modes';
-import { DRIFTWOOD_AUDIO } from './data/audio';
+import AUDIO from './data/audio.generated.json' with { type: 'json' };
 import { DRIFTWOOD_EDGE_HEIGHTS } from './data/edges';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { DECLARED_SEA, WORLD_DROP } from './world/sea';
@@ -56,7 +56,7 @@ export default parseShardfile({
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, questHost: QUEST_HOST, questNpcs: QUEST_NPCS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
-  audio: DRIFTWOOD_AUDIO, modes: DRIFTWOOD_MODES,
+  audio: AUDIO.audio, modes: DRIFTWOOD_MODES,
   // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m
   // sockets dry (dryEntries) and the four declared landings (top y = 0, the full 8 m across each socket's shard-side edge;
   // G170: the inner ends of the asphalt road decks) prove the walk off the socket. The trusted runtime consumes both rows itself (world/sea.ts, world/build.ts).

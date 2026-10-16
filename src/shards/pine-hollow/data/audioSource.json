@@ -1,0 +1,2285 @@
+{
+  "audio": {
+    "ambience": {
+      "bed": "forest",
+      "gust": {
+        "amount": [
+          0.5,
+          1.6
+        ],
+        "fall": [
+          2,
+          4
+        ],
+        "gentle": 1,
+        "rise": [
+          1.5,
+          3
+        ],
+        "scope": "audio.pine.bed",
+        "scopeFirst": false,
+        "startTap": "audio.startForest",
+        "tap": "audio.gust",
+        "wait": [
+          5,
+          12
+        ]
+      },
+      "phrases": [
+        {
+          "program": {
+            "steps": [
+              {
+                "id": "pan",
+                "kind": "value",
+                "value": [
+                  "+",
+                  -0.9,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      0.9,
+                      -0.9
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "dist",
+                "kind": "value",
+                "value": [
+                  "+",
+                  0.35,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      1,
+                      0.35
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "base",
+                "kind": "value",
+                "value": [
+                  "+",
+                  2400,
+                  [
+                    "*",
+                    "random",
+                    [
+                      "-",
+                      4200,
+                      2400
+                    ]
+                  ]
+                ]
+              },
+              {
+                "id": "notes",
+                "kind": "value",
+                "value": [
+                  "+",
+                  2,
+                  [
+                    "floor",
+                    [
+                      "+",
+                      0,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          4,
+                          0
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              },
+              {
+                "filter": {
+                  "frequency": [
+                    "*",
+                    6000,
+                    "dist"
+                  ],
+                  "type": "lowpass"
+                },
+                "gain": [
+                  "*",
+                  0.11,
+                  "dist"
+                ],
+                "id": "bus",
+                "kind": "bus",
+                "out": "out",
+                "pan": "pan"
+              },
+              {
+                "body": [
+                  {
+                    "id": "f0",
+                    "kind": "value",
+                    "value": [
+                      "*",
+                      "base",
+                      [
+                        "+",
+                        0.85,
+                        [
+                          "*",
+                          "random",
+                          [
+                            "-",
+                            1.2,
+                            0.85
+                          ]
+                        ]
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "f1",
+                    "kind": "value",
+                    "value": [
+                      "*",
+                      "f0",
+                      [
+                        "+",
+                        0.7,
+                        [
+                          "*",
+                          "random",
+                          [
+                            "-",
+                            1.4,
+                            0.7
+                          ]
+                        ]
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "dur",
+                    "kind": "value",
+                    "value": [
+                      "+",
+                      0.05,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          0.13,
+                          0.05
+                        ]
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "rate",
+                    "kind": "value",
+                    "value": [
+                      "+",
+                      30,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          60,
+                          30
+                        ]
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "depth",
+                    "kind": "value",
+                    "value": [
+                      "+",
+                      80,
+                      [
+                        "*",
+                        "random",
+                        [
+                          "-",
+                          260,
+                          80
+                        ]
+                      ]
+                    ]
+                  },
+                  {
+                    "attack": 0.012,
+                    "decay": "dur",
+                    "f0": "f0",
+                    "f1": "f1",
+                    "gain": 1,
+                    "glide": "dur",
+                    "kind": "tone",
+                    "out": "bus",
+                    "t": "t",
+                    "type": "sine",
+                    "vibrato": {
+                      "depth": "depth",
+                      "rate": "rate"
+                    }
+                  },
+                  {
+                    "id": "t",
+                    "kind": "value",
+                    "value": [
+                      "+",
+                      "t",
+                      [
+                        "+",
+                        "dur",
+                        [
+                          "+",
+                          0.03,
+                          [
+                            "*",
+                            "random",
+                            [
+                              "-",
+                              0.12,
+                              0.03
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  }
+                ],
+                "count": "notes",
+                "kind": "repeat",
+                "max": 6
+              }
+            ]
+          },
+          "tick": "audio.bird",
+          "wait": [
+            4,
+            12
+          ]
+        }
+      ],
+      "winds": [
+        {
+          "frequency": 260,
+          "gain": 0.11,
+          "pan": -0.55,
+          "q": 0.5,
+          "rate": 0.07
+        },
+        {
+          "frequency": 620,
+          "gain": 0.06,
+          "pan": 0.55,
+          "q": 0.8,
+          "rate": 0.11
+        },
+        {
+          "frequency": 140,
+          "gain": 0.09,
+          "pan": 0,
+          "q": 0.4,
+          "rate": 0.05
+        },
+        {
+          "frequency": 2400,
+          "gain": 0.012,
+          "pan": 0.2,
+          "q": 0.5,
+          "rate": 0.09
+        }
+      ]
+    },
+    "cues": [],
+    "music": {
+      "base": "pine",
+      "bootSlots": [
+        "title",
+        "pine"
+      ],
+      "catalogue": {
+        "extraStings": [
+          "dawn"
+        ],
+        "mode": "slots",
+        "stingSets": {
+          "dawn": "pine-hollow"
+        }
+      },
+      "id": "score.pine",
+      "lifecycle": {
+        "bossScene": "boss",
+        "deckSting": {
+          "delay": 2,
+          "exceptSlot": "title"
+        },
+        "dispose": false,
+        "logChanges": true,
+        "persistent": true,
+        "pins": {
+          "boss": {
+            "scene": "boss"
+          },
+          "boss-2": {
+            "phase": 2,
+            "scene": "boss"
+          },
+          "boss-3": {
+            "phase": 3,
+            "scene": "boss"
+          },
+          "dawn": {
+            "sting": "dawn"
+          },
+          "night": {
+            "scene": "night"
+          }
+        }
+      },
+      "minFade": 0,
+      "selectMode": "first",
+      "selection": [
+        {
+          "slots": [
+            "pine"
+          ],
+          "when": [
+            {
+              "field": "scene",
+              "op": "equals",
+              "value": "day"
+            }
+          ]
+        },
+        {
+          "slots": [
+            "night"
+          ],
+          "when": [
+            {
+              "field": "scene",
+              "op": "equals",
+              "value": "night"
+            }
+          ]
+        },
+        {
+          "slots": [
+            "boss"
+          ],
+          "when": [
+            {
+              "field": "scene",
+              "op": "equals",
+              "value": "boss"
+            }
+          ]
+        }
+      ],
+      "sets": {
+        "boss": "pine-hollow",
+        "night": "pine-hollow",
+        "pine": "base"
+      },
+      "slots": [
+        "pine",
+        "night",
+        "boss"
+      ],
+      "source": null,
+      "synthLead": "pluck"
+    },
+    "observations": [
+      {
+        "after": [
+          "hud.combat"
+        ],
+        "before": [
+          "shard.pine.weather.state",
+          "shard.pine.weather",
+          "world.life",
+          "first hints",
+          "main.frame"
+        ],
+        "frame": [
+          {
+            "value": "night",
+            "when": "hasClock",
+            "write": "ambience.night"
+          }
+        ],
+        "id": "audio",
+        "initial": {
+          "elite": 0,
+          "eliteT": 0,
+          "night": 0,
+          "snortAt": -99
+        },
+        "inputs": [
+          {
+            "id": "hasClock",
+            "op": "present",
+            "path": [],
+            "source": "clock"
+          },
+          {
+            "fallback": 0,
+            "id": "night",
+            "op": "number",
+            "path": [
+              "night"
+            ],
+            "source": "clock"
+          },
+          {
+            "id": "pinned",
+            "op": "truth",
+            "path": [],
+            "source": "pinned"
+          },
+          {
+            "id": "boss",
+            "op": "equals",
+            "path": [
+              "sceneName"
+            ],
+            "source": "score",
+            "value": "boss"
+          },
+          {
+            "id": "engaged",
+            "op": "truth",
+            "path": [],
+            "source": "engaged"
+          },
+          {
+            "id": "listener.x",
+            "op": "number",
+            "path": [
+              "x"
+            ],
+            "source": "listener"
+          },
+          {
+            "id": "listener.y",
+            "op": "number",
+            "path": [
+              "y"
+            ],
+            "source": "listener"
+          },
+          {
+            "id": "listener.z",
+            "op": "number",
+            "path": [
+              "z"
+            ],
+            "source": "listener"
+          }
+        ],
+        "interval": 0.2,
+        "steps": [
+          {
+            "changed": "clock.change",
+            "id": "night",
+            "kind": "state",
+            "value": [
+              "if",
+              "state.night",
+              [
+                "gt",
+                "night",
+                0.35
+              ],
+              [
+                "gt",
+                "night",
+                0.55
+              ]
+            ],
+            "when": "hasClock"
+          },
+          {
+            "call": "score.scene",
+            "kind": "call",
+            "when": [
+              "and",
+              "hasClock",
+              [
+                "not",
+                "pinned"
+              ],
+              [
+                "not",
+                "boss"
+              ]
+            ]
+          },
+          {
+            "changed": "elite.change",
+            "id": "elite",
+            "kind": "state",
+            "value": "engaged"
+          },
+          {
+            "call": "combat",
+            "kind": "call",
+            "remember": "eliteT",
+            "when": [
+              "and",
+              "state.elite",
+              [
+                "gt",
+                [
+                  "-",
+                  "t",
+                  "state.eliteT"
+                ],
+                1
+              ]
+            ]
+          },
+          {
+            "actorKind": "deer",
+            "call": "deer.snort",
+            "exclude": [
+              "alert",
+              "flee"
+            ],
+            "gap": 3,
+            "kind": "entities",
+            "list": "animals",
+            "radius": 70,
+            "remember": "snortAt",
+            "state": "alert"
+          }
+        ]
+      }
+    ],
+    "playback": {
+      "actions": {
+        "shot": {
+          "family": {
+            "param": "family",
+            "prefix": ""
+          },
+          "options": [],
+          "state": [],
+          "tap": "pineSfx:",
+          "values": []
+        }
+      },
+      "initial": {},
+      "mode": "samples",
+      "prewarm": [],
+      "sample": {
+        "cutoffScale": 30,
+        "delay": 0.01,
+        "jitter": 40,
+        "outOfRangeHandled": true,
+        "power": 1.3,
+        "reach": 220,
+        "scale": 10
+      },
+      "tables": {}
+    },
+    "routing": [
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "pine.leverShot",
+            "when": []
+          },
+          {
+            "defaults": {},
+            "delay": 0.42,
+            "overrides": {
+              "gain": 0.55
+            },
+            "voice": "pine.leverEcho",
+            "when": []
+          }
+        ],
+        "id": "cue.lever.fire",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "pine.leverDry",
+            "when": []
+          }
+        ],
+        "id": "cue.lever.dry",
+        "when": []
+      },
+      {
+        "actions": [],
+        "id": "cue.lever.reload",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "pine.leverCycle",
+            "when": []
+          }
+        ],
+        "id": "cue.lever.cycle",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 0.9
+            },
+            "voice": "pine.leverRoundIn",
+            "when": []
+          }
+        ],
+        "id": "cue.lever.round",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "pine.longbowLoose",
+            "when": []
+          }
+        ],
+        "id": "cue.longbow.loose",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "overrides": {
+              "gain": 0.8
+            },
+            "voice": "pine.longbowDraw",
+            "when": []
+          }
+        ],
+        "id": "cue.longbow.draw",
+        "when": []
+      },
+      {
+        "actions": [
+          {
+            "defaults": {},
+            "delay": null,
+            "voice": "pine.boltImpact-rock",
+            "when": []
+          }
+        ],
+        "id": "cue.projectile.hit",
+        "when": [
+          {
+            "field": "surface",
+            "op": "equals",
+            "value": "ground"
+          },
+          {
+            "field": "point",
+            "op": "present"
+          }
+        ]
+      }
+    ],
+    "samples": {
+      "bed": "forest",
+      "catalogue": {
+        "inventoryOmitSlots": [
+          "island"
+        ],
+        "loopOrder": [],
+        "overlaySamples": false,
+        "ownMusic": true,
+        "priorityOwn": true
+      },
+      "loopGains": {
+        "forest": 0.5
+      },
+      "set": "pine-hollow"
+    },
+    "score": "default",
+    "surfaces": {
+      "fallback": "litter",
+      "rules": [
+        {
+          "kind": "floor",
+          "source": "cabins",
+          "surface": "planks",
+          "tolerance": 0.45
+        },
+        {
+          "kind": "value",
+          "op": "gt",
+          "source": "rain",
+          "surface": "wet",
+          "threshold": 0.3
+        },
+        {
+          "kind": "circle",
+          "padding": 3.5,
+          "source": "pond",
+          "surface": "mud"
+        },
+        {
+          "kind": "value",
+          "op": "gt",
+          "source": "slope",
+          "surface": "rock",
+          "threshold": 0.32
+        }
+      ]
+    },
+    "voiceBindings": [
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "leverShot"
+          }
+        ],
+        "id": "pine.leverShot",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "leverDry"
+          }
+        ],
+        "id": "pine.leverDry",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "leverCycle"
+          }
+        ],
+        "id": "pine.leverCycle",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "longbowLoose"
+          }
+        ],
+        "id": "pine.longbowLoose",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "leverEcho"
+          },
+          {
+            "fields": {
+              "gain": {
+                "key": "echoGain",
+                "kind": "owner",
+                "owner": "ports"
+              }
+            },
+            "kind": "options"
+          }
+        ],
+        "id": "pine.leverEcho",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "leverRoundIn"
+          },
+          {
+            "fields": {
+              "gain": {
+                "fallback": 0.9,
+                "field": "gain",
+                "kind": "field"
+              }
+            },
+            "kind": "options"
+          }
+        ],
+        "id": "pine.leverRoundIn",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      },
+      {
+        "args": [
+          {
+            "kind": "literal",
+            "value": "longbowDraw"
+          },
+          {
+            "fields": {
+              "gain": {
+                "fallback": 0.8,
+                "field": "gain",
+                "kind": "field"
+              }
+            },
+            "kind": "options"
+          }
+        ],
+        "id": "pine.longbowDraw",
+        "method": "shot",
+        "owner": "ports",
+        "when": []
+      }
+    ],
+    "zones": {
+      "holdSeconds": 0,
+      "id": "ambience.pine",
+      "levels": {
+        "cabin": 1.1,
+        "cave": 1,
+        "creek": 0.9,
+        "dawn": 0.9,
+        "hollow": 0.7,
+        "mill": 0.9,
+        "night": 0.9,
+        "nightfog": 0.7,
+        "oldgrowth": 1,
+        "out": 0.55,
+        "pond": 1,
+        "rain-canopy": 1,
+        "rain-open": 0.9,
+        "ridge": 0.9,
+        "waterfall": 1.1
+      },
+      "mix": {
+        "cutoffs": [
+          [
+            "occl",
+            [
+              "+",
+              [
+                "*",
+                20000,
+                [
+                  "-",
+                  1,
+                  "cabin"
+                ]
+              ],
+              [
+                "*",
+                650,
+                "cabin"
+              ]
+            ]
+          ]
+        ],
+        "defaultZone": "hollow",
+        "diag": [
+          [
+            "hollow",
+            "hollow"
+          ],
+          [
+            "pond",
+            "pond"
+          ],
+          [
+            "cabin",
+            "cabin"
+          ],
+          [
+            "cave",
+            "cave"
+          ],
+          [
+            "oldgrowth",
+            "oldgrowth"
+          ],
+          [
+            "ridge",
+            "ridge"
+          ],
+          [
+            "creek",
+            "creek"
+          ],
+          [
+            "waterfall",
+            "waterfall"
+          ],
+          [
+            "mill",
+            "mill"
+          ],
+          [
+            "night",
+            "night"
+          ],
+          [
+            "rain",
+            "rain"
+          ],
+          [
+            "dawn",
+            "dawn"
+          ],
+          [
+            "underwater",
+            "uw"
+          ]
+        ],
+        "levels": [
+          [
+            "hollow",
+            [
+              "*",
+              "hollow",
+              "dry"
+            ]
+          ],
+          [
+            "pond",
+            [
+              "*",
+              "pond",
+              [
+                "-",
+                1,
+                [
+                  "*",
+                  0.4,
+                  "night"
+                ]
+              ],
+              "walls",
+              "dry"
+            ]
+          ],
+          [
+            "cabin",
+            [
+              "*",
+              "fire",
+              "dry"
+            ]
+          ],
+          [
+            "creek",
+            [
+              "*",
+              "creek",
+              "walls",
+              "dry"
+            ]
+          ],
+          [
+            "waterfall",
+            [
+              "*",
+              "waterfall",
+              "walls",
+              "dry"
+            ]
+          ],
+          [
+            "mill",
+            [
+              "*",
+              "mill",
+              "walls",
+              "dry"
+            ]
+          ],
+          [
+            "ridge",
+            [
+              "*",
+              "ridge",
+              "outside",
+              "dry"
+            ]
+          ],
+          [
+            "oldgrowth",
+            [
+              "*",
+              "oldgrowth",
+              "outside",
+              [
+                "-",
+                1,
+                [
+                  "*",
+                  0.5,
+                  "night"
+                ]
+              ],
+              "dry"
+            ]
+          ],
+          [
+            "cave",
+            [
+              "*",
+              "cave",
+              "dry"
+            ]
+          ],
+          [
+            "night",
+            [
+              "*",
+              "night",
+              "walls",
+              "hush",
+              "dry"
+            ]
+          ],
+          [
+            "nightfog",
+            [
+              "*",
+              "night",
+              "thr",
+              "walls",
+              "hush",
+              "dry"
+            ]
+          ],
+          [
+            "dawn",
+            [
+              "*",
+              "dawn",
+              [
+                "-",
+                1,
+                "night"
+              ],
+              "walls",
+              "hush",
+              "dry"
+            ]
+          ],
+          [
+            "rain-canopy",
+            [
+              "*",
+              "rain",
+              [
+                "-",
+                1,
+                "open"
+              ],
+              "walls",
+              "hush",
+              "dry"
+            ]
+          ],
+          [
+            "rain-open",
+            [
+              "*",
+              "rain",
+              "open",
+              "walls",
+              "hush",
+              "dry"
+            ]
+          ]
+        ],
+        "rooms": [
+          {
+            "id": "cabin",
+            "level": [
+              "*",
+              "wet.cabin",
+              "cabin",
+              "dry"
+            ],
+            "weight": "cabin"
+          },
+          {
+            "id": "den",
+            "level": [
+              "*",
+              "wet.den",
+              "cave",
+              "dry"
+            ],
+            "weight": "cave"
+          },
+          {
+            "id": "oldgrowth",
+            "level": [
+              "*",
+              "wet.oldgrowth",
+              "room.oldgrowth",
+              "dry"
+            ],
+            "weight": "room.oldgrowth"
+          },
+          {
+            "id": "bowl",
+            "level": [
+              "*",
+              "wet.bowl",
+              "room.bowl",
+              "dry"
+            ],
+            "weight": "room.bowl"
+          }
+        ],
+        "shade": [
+          [
+            "*",
+            [
+              "-",
+              1,
+              [
+                "*",
+                0.7,
+                "cabin"
+              ]
+            ],
+            [
+              "-",
+              1,
+              [
+                "*",
+                0.55,
+                "night"
+              ]
+            ],
+            [
+              "-",
+              1,
+              [
+                "*",
+                0.6,
+                "cave"
+              ]
+            ]
+          ],
+          [
+            "+",
+            [
+              "*",
+              20000,
+              [
+                "-",
+                1,
+                "cabin"
+              ]
+            ],
+            [
+              "*",
+              700,
+              "cabin"
+            ]
+          ]
+        ],
+        "values": [
+          [
+            "uw",
+            "underwater"
+          ],
+          [
+            "dry",
+            [
+              "-",
+              1,
+              "uw"
+            ]
+          ],
+          [
+            "night",
+            [
+              "clamp",
+              "rawNight",
+              0,
+              1
+            ]
+          ],
+          [
+            "dawn",
+            [
+              "clamp",
+              "rawDawn",
+              0,
+              1
+            ]
+          ],
+          [
+            "rain",
+            [
+              "clamp",
+              "rawRain",
+              0,
+              1
+            ]
+          ],
+          [
+            "outside",
+            [
+              "-",
+              1,
+              "cabin"
+            ]
+          ],
+          [
+            "others",
+            [
+              "max",
+              [
+                "max",
+                [
+                  "max",
+                  [
+                    "*",
+                    "pond",
+                    0.6
+                  ],
+                  "cave"
+                ],
+                [
+                  "*",
+                  "ridge",
+                  0.7
+                ]
+              ],
+              [
+                "*",
+                "oldgrowth",
+                0.8
+              ]
+            ]
+          ],
+          [
+            "hollow",
+            [
+              "*",
+              [
+                "-",
+                1,
+                "others"
+              ],
+              "outside",
+              [
+                "-",
+                1,
+                [
+                  "*",
+                  0.75,
+                  "night"
+                ]
+              ]
+            ]
+          ],
+          [
+            "walls",
+            [
+              "-",
+              1,
+              [
+                "*",
+                0.8,
+                "cabin"
+              ]
+            ]
+          ],
+          [
+            "hush",
+            [
+              "-",
+              1,
+              [
+                "*",
+                0.85,
+                "cave"
+              ]
+            ]
+          ],
+          [
+            "room.oldgrowth",
+            [
+              "*",
+              "oldgrowth",
+              "outside"
+            ]
+          ],
+          [
+            "room.bowl",
+            [
+              "if",
+              [
+                "gt",
+                "hollow",
+                0
+              ],
+              [
+                "*",
+                0.5,
+                [
+                  "-",
+                  1,
+                  "others"
+                ],
+                "outside"
+              ],
+              0
+            ]
+          ]
+        ],
+        "zoneFloor": 0.5,
+        "zoneMode": "max",
+        "zones": [
+          [
+            "cabin",
+            "cabin"
+          ],
+          [
+            "cave",
+            "cave"
+          ],
+          [
+            "pond",
+            "pond"
+          ],
+          [
+            "waterfall",
+            "waterfall"
+          ],
+          [
+            "mill",
+            "mill"
+          ],
+          [
+            "creek",
+            "creek"
+          ],
+          [
+            "ridge",
+            "ridge"
+          ],
+          [
+            "oldgrowth",
+            "oldgrowth"
+          ]
+        ]
+      },
+      "nodes": [
+        {
+          "gain": "out",
+          "id": "out",
+          "out": "world"
+        },
+        {
+          "filter": [
+            "lowpass",
+            20000
+          ],
+          "id": "occl",
+          "out": "out"
+        },
+        {
+          "gain": 1,
+          "id": "sendIn",
+          "input": "sfx"
+        }
+      ],
+      "routing": {
+        "activeGains": [
+          [
+            "out",
+            "out"
+          ],
+          [
+            "sendIn",
+            1
+          ]
+        ],
+        "bounds": [],
+        "listener": "port",
+        "near": [],
+        "prewarm": [
+          "ir-cabin",
+          "ir-bowl"
+        ],
+        "probeFinite": [
+          "x",
+          "y",
+          "z",
+          "rawNight",
+          "rawDawn",
+          "rawRain"
+        ],
+        "probes": [
+          {
+            "floor": "cabins",
+            "id": "cabin",
+            "kind": "footprint",
+            "maxY": 3.2,
+            "minY": 0,
+            "sites": "cabins",
+            "x": [
+              -6,
+              2.45
+            ],
+            "z": [
+              -6,
+              6
+            ]
+          },
+          {
+            "id": "pond",
+            "inner": 4,
+            "kind": "circle",
+            "outer": 40,
+            "pan": "pond",
+            "source": "pond"
+          },
+          {
+            "fade": 25,
+            "ids": [
+              "creek",
+              "waterfall",
+              "mill",
+              "ridge",
+              "oldgrowth",
+              "cave"
+            ],
+            "initial": [
+              "gt",
+              "pond",
+              0.5
+            ],
+            "kind": "spots",
+            "open": "open",
+            "pans": [
+              "creek",
+              "waterfall",
+              "mill"
+            ],
+            "source": "spots"
+          },
+          {
+            "gain": 0.55,
+            "id": "fire",
+            "initial": "cabin",
+            "inner": 2,
+            "kind": "maximum",
+            "outer": 9,
+            "source": "fire"
+          }
+        ],
+        "rooms": {
+          "from": "sfx",
+          "input": "sendIn",
+          "list": [
+            {
+              "id": "cabin",
+              "ir": "ir-cabin",
+              "level": [
+                "*",
+                "wet.cabin",
+                "cabin",
+                "dry"
+              ],
+              "weight": "cabin"
+            },
+            {
+              "id": "den",
+              "ir": "ir-den",
+              "level": [
+                "*",
+                "wet.den",
+                "cave",
+                "dry"
+              ],
+              "weight": "cave"
+            },
+            {
+              "id": "oldgrowth",
+              "ir": "ir-oldgrowth",
+              "level": [
+                "*",
+                "wet.oldgrowth",
+                "room.oldgrowth",
+                "dry"
+              ],
+              "weight": "room.oldgrowth"
+            },
+            {
+              "id": "bowl",
+              "ir": "ir-bowl",
+              "level": [
+                "*",
+                "wet.bowl",
+                "room.bowl",
+                "dry"
+              ],
+              "weight": "room.bowl"
+            }
+          ],
+          "prewarmMissing": true,
+          "to": "world"
+        },
+        "samples": {
+          "beds": [
+            {
+              "id": "hollow",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "pond",
+              "out": "occl",
+              "panned": true
+            },
+            {
+              "id": "cabin",
+              "out": "out",
+              "panned": false
+            },
+            {
+              "id": "creek",
+              "out": "occl",
+              "panned": true
+            },
+            {
+              "id": "waterfall",
+              "out": "occl",
+              "panned": true
+            },
+            {
+              "id": "mill",
+              "out": "occl",
+              "panned": true
+            },
+            {
+              "id": "ridge",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "oldgrowth",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "cave",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "night",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "nightfog",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "rain-canopy",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "rain-open",
+              "out": "occl",
+              "panned": false
+            },
+            {
+              "id": "dawn",
+              "out": "occl",
+              "panned": false
+            }
+          ],
+          "startDelay": 0.05,
+          "tap": "forest.bed:"
+        },
+        "steer": [],
+        "warm": [],
+        "zoneNames": [
+          "hollow",
+          "pond",
+          "cabin",
+          "creek",
+          "waterfall",
+          "mill",
+          "ridge",
+          "oldgrowth",
+          "cave"
+        ]
+      },
+      "schedules": [
+        {
+          "entered": true,
+          "every": [
+            9,
+            16,
+            0
+          ],
+          "mark": "thrall",
+          "random": "global",
+          "shot": {
+            "chance": [
+              "+",
+              0.35,
+              [
+                "*",
+                0.5,
+                "thr"
+              ]
+            ],
+            "family": "thrall_call",
+            "gain": [
+              "*",
+              0.9,
+              "thr"
+            ],
+            "radius": [
+              25,
+              35
+            ]
+          },
+          "start": "built",
+          "targets": [],
+          "tick": "forest.thrall",
+          "when": [
+            "and",
+            [
+              "gt",
+              "thr",
+              0.05
+            ],
+            [
+              "not",
+              "underwater"
+            ],
+            [
+              "lt",
+              "diag.cabin",
+              0.5
+            ]
+          ]
+        }
+      ],
+      "silentSeconds": 60,
+      "smoothSeconds": 0.1,
+      "tickHz": 10,
+      "wet": {
+        "bowl": 0.12,
+        "cabin": 0.4,
+        "den": 0.55,
+        "oldgrowth": 0.3
+      },
+      "zones": [
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.0",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -118,
+          "z": 92
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.1",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -124,
+          "z": 84
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.2",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -130,
+          "z": 76
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.3",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -138,
+          "z": 64
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.4",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -142,
+          "z": 51
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.5",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -146,
+          "z": 38
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.6",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -148.5,
+          "z": 22
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.7",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -151,
+          "z": 6
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.8",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -153.5,
+          "z": -9
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.9",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -156,
+          "z": -24
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.10",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -160.66666666666666,
+          "z": -35.333333333333336
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.11",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -165.33333333333334,
+          "z": -46.66666666666667
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.12",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -170,
+          "z": -58
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.13",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -174.66666666666666,
+          "z": -69.33333333333333
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.14",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -179.33333333333334,
+          "z": -80.66666666666667
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.15",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -184,
+          "z": -92
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.16",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -188,
+          "z": -107
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.17",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -192,
+          "z": -122
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.18",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -194.5,
+          "z": -136
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.19",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -197,
+          "z": -150
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.20",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -199.33333333333334,
+          "z": -162
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.21",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -201.66666666666666,
+          "z": -174
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.22",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -204,
+          "z": -186
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.23",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -208,
+          "z": -203
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.24",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -212,
+          "z": -220
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.25",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -215,
+          "z": -235
+        },
+        {
+          "fade": 18,
+          "gain": 1,
+          "id": "creek.26",
+          "inner": 6,
+          "outer": 24,
+          "source": "creek",
+          "x": -218,
+          "z": -250
+        },
+        {
+          "fade": 14,
+          "gain": 1,
+          "id": "creek.27",
+          "inner": 4,
+          "outer": 18,
+          "source": "creek",
+          "x": -70,
+          "z": 236
+        },
+        {
+          "fade": 14,
+          "gain": 1,
+          "id": "creek.28",
+          "inner": 4,
+          "outer": 18,
+          "source": "creek",
+          "x": -74,
+          "z": 225
+        },
+        {
+          "fade": 14,
+          "gain": 1,
+          "id": "creek.29",
+          "inner": 4,
+          "outer": 18,
+          "source": "creek",
+          "x": -78,
+          "z": 214
+        },
+        {
+          "fade": 14,
+          "gain": 1,
+          "id": "creek.30",
+          "inner": 4,
+          "outer": 18,
+          "source": "creek",
+          "x": -81,
+          "z": 204
+        },
+        {
+          "fade": 14,
+          "gain": 1,
+          "id": "creek.31",
+          "inner": 4,
+          "outer": 18,
+          "source": "creek",
+          "x": -84,
+          "z": 194
+        },
+        {
+          "fade": 14,
+          "gain": 1,
+          "id": "creek.32",
+          "inner": 4,
+          "outer": 18,
+          "source": "creek",
+          "x": -86,
+          "z": 178
+        },
+        {
+          "fade": 45,
+          "gain": 1,
+          "id": "waterfall.33",
+          "inner": 10,
+          "open": true,
+          "outer": 55,
+          "source": "waterfall",
+          "x": -88,
+          "z": 146
+        },
+        {
+          "fade": 25,
+          "gain": 1,
+          "id": "waterfall.34",
+          "inner": 5,
+          "open": true,
+          "outer": 30,
+          "source": "waterfall",
+          "x": -86,
+          "z": 178
+        },
+        {
+          "fade": 30,
+          "gain": 1,
+          "id": "mill.35",
+          "inner": 5,
+          "outer": 35,
+          "source": "mill.wheel",
+          "x": -191,
+          "z": -144
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.36",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -230,
+          "z": 216.48109628723748
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.37",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -192,
+          "z": 213.86496194571558
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.38",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -154,
+          "z": 202.54311464714576
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.39",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -116,
+          "z": 199.11369517706453
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.40",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -78,
+          "z": 197.33593964281948
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.41",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -40,
+          "z": 206.76991780749654
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.42",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": -2,
+          "z": 221.19922023292798
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.43",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": 36,
+          "z": 223.29407668401606
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.44",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": 74,
+          "z": 212.10009595648174
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.45",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": 112,
+          "z": 209.17897678816112
+        },
+        {
+          "fade": 22,
+          "gain": 1,
+          "id": "ridge.46",
+          "inner": 18,
+          "open": true,
+          "outer": 40,
+          "source": "ridge",
+          "x": 150,
+          "z": 210.077830535831
+        },
+        {
+          "fade": 26,
+          "gain": 1,
+          "id": "ridge.47",
+          "inner": 16,
+          "open": true,
+          "outer": 42,
+          "source": "ridge",
+          "x": 36,
+          "z": 214
+        },
+        {
+          "fade": 30,
+          "gain": 1,
+          "id": "oldgrowth.48",
+          "inner": 65.1,
+          "outer": 95.1,
+          "source": "oldgrowth",
+          "x": 160,
+          "z": -149.9
+        },
+        {
+          "fade": 30,
+          "gain": 1,
+          "id": "oldgrowth.49",
+          "inner": 65.1,
+          "outer": 95.1,
+          "source": "oldgrowth",
+          "x": 160,
+          "z": -94.95
+        },
+        {
+          "fade": 30,
+          "gain": 1,
+          "id": "oldgrowth.50",
+          "inner": 65.1,
+          "outer": 95.1,
+          "source": "oldgrowth",
+          "x": 160,
+          "z": -40
+        },
+        {
+          "fade": 30,
+          "gain": 1,
+          "id": "oldgrowth.51",
+          "inner": 65.1,
+          "outer": 95.1,
+          "source": "oldgrowth",
+          "x": 160,
+          "z": 14.950000000000003
+        },
+        {
+          "fade": 30,
+          "gain": 1,
+          "id": "oldgrowth.52",
+          "inner": 65.1,
+          "outer": 95.1,
+          "source": "oldgrowth",
+          "x": 160,
+          "z": 69.9
+        },
+        {
+          "fade": 12,
+          "gain": 1,
+          "id": "cave.53",
+          "inner": 2,
+          "outer": 14,
+          "source": "cave",
+          "x": 201.4142135623731,
+          "z": 201.4142135623731
+        }
+      ]
+    }
+  }
+}
