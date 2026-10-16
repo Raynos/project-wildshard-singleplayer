@@ -4,7 +4,7 @@
  * writes both meshes' blocks to `../data/beaverPool.json`; the page builds the meshes from them (../world/beaverPool.ts)
  * and never runs this. test/shards/pine-hollow/beaver-pool-bake.test.ts is the stale gate.
  *
- *   · `still`: the pool's surface on the pond surface's own grid (../world/pond.ts `pondGrid`) over exactly the cells the
+ *   · `still`: the pool's surface on the pond surface's own grid (the engine's `pondGrid`) over exactly the cells the
  *     pond leaves out, in the pool's reach and not always above its water, with the ground under each vertex (the page
  *     re-lays each vertex at the draining level against it).
  *   · `trickle`: a narrow running ribbon down the bed's channel, riffle to sluice, a few cm over the bed.

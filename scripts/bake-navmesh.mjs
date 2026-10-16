@@ -160,7 +160,7 @@ function addDesc(soup, d) {
 }
 
 /**
- * Where the ground is under water: the sea (an ocean shard) or the pond — inside the square src/shards/pine-hollow/world/pond.ts draws
+ * Where the ground is under water: the sea (an ocean shard) or the pond — inside the square src/engine/world/pondGrid.ts draws
  * (2r + 30 m across) and below its surface; 0.25 m of margin, as AnimalManager's `isDry`. (A pond shard's valleys lower
  * than the pond elsewhere are dry land: no water is drawn there, though `isDry` still calls them wet.)
  */
