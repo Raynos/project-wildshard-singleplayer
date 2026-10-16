@@ -10,9 +10,9 @@ import { isJsonData } from './json';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 const path = v.pipe(v.string(), v.maxLength(240), v.regex(/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/u));
-const sectionName = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*\/[a-z][a-zA-Z0-9-]*$/u));
+const sectionName = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*\/[a-zA-Z][a-zA-Z0-9_-]*$/u));
 const measuredFile = { path, hash: ShardHashSchema, bytes: ShardNaturalSchema };
-const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)), audience: v.picklist(['sim', 'client', 'both']), load: v.picklist(['boot', 'enter', 'stream']) });
+const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)) });
 const costs = v.omit(FilesSchema.pipe[0].item, ['kind']).entries;
 const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), commons: v.exactOptional(v.literal(true)) });
 const runtime = v.strictObject({ ...v.omit(RuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema });
@@ -27,43 +27,43 @@ export const OutputIndexSchema = v.strictObject({
 export type OutputIndex = v.InferOutput<typeof OutputIndexSchema>;
 export type OutputFile = OutputIndex['files'][number];
 export type OutputSection = OutputIndex['sections'][number];
-interface SectionMapping { readonly name: string; readonly fields: readonly (keyof Shardfile)[]; readonly row?: keyof Shardfile['rows']; readonly spawns?: true; readonly audience: OutputSection['audience']; readonly load: OutputSection['load'] }
+interface SectionMapping { readonly name: string; readonly fields: readonly (keyof Shardfile)[]; readonly row?: keyof Shardfile['rows']; readonly spawns?: true; }
 /** Root-key envelopes preserve optional-field absence and every existing host's values. */
 export const OUTPUT_SECTIONS: readonly SectionMapping[] = [
-  {name:'world/tiles',fields:['tiles','far','near'],audience:'both',load:'stream'},
-  {name:'world/terrain',fields:['terrain','nativeGround'],audience:'both',load:'boot'},
-  {name:'world/edge',fields:['edge','entryways'],audience:'both',load:'boot'},
-  {name:'world/collision',fields:['meshCollision'],audience:'both',load:'enter'},
-  {name:'world/navigation',fields:['navigation'],audience:'both',load:'enter'},
-  {name:'world/props',fields:['props'],audience:'both',load:'enter'},
-  {name:'world/water',fields:['water'],audience:'both',load:'enter'},
-  {name:'world/movers',fields:['movers'],audience:'both',load:'enter'},
-  {name:'world/traversal',fields:['traversal'],audience:'both',load:'enter'},
-  {name:'world/spawn',fields:['spawn'],audience:'both',load:'boot'},
-  {name:'look/look',fields:['look','presentation'],audience:'client',load:'enter'},
-  {name:'look/map',fields:['map'],audience:'client',load:'enter'},
-  {name:'actors/creatures',fields:['creatures'],audience:'both',load:'enter'},
-  {name:'actors/crowds',fields:['crowds'],audience:'both',load:'enter'},
-  {name:'actors/npcs',fields:['questNpcs'],audience:'both',load:'enter'},
-  {name:'actors/spawns',fields:[],spawns:true,audience:'both',load:'enter'},
-  {name:'combat/items',fields:['items'],audience:'both',load:'enter'},
-  {name:'combat/encounters',fields:['encounters'],audience:'both',load:'enter'},
-  {name:'quests/quests',fields:['quests'],audience:'both',load:'enter'},
-  {name:'quests/host',fields:['questHost'],audience:'both',load:'enter'},
-  {name:'quests/directors',fields:['directors'],audience:'both',load:'enter'},
-  {name:'economy/ledger',fields:['ledger'],audience:'both',load:'enter'},
-  {name:'state/state',fields:['state'],audience:'both',load:'boot'},
-  {name:'state/migrations',fields:['migrations'],audience:'both',load:'boot'},
-  {name:'state/modes',fields:['modes'],audience:'both',load:'enter'},
-  {name:'sim/sim',fields:['sim'],audience:'both',load:'boot'},
-  {name:'sim/hooks',fields:['hooks'],audience:'both',load:'enter'},
-  {name:'sim/client-scripts',fields:['clientScripts'],audience:'client',load:'enter'},
-  {name:'sim/client-channels',fields:['clientChannels'],audience:'client',load:'enter'},
-  {name:'sim/plumbing',fields:['plumbing'],audience:'client',load:'enter'},
-  {name:'audio/audio',fields:['audio'],audience:'client',load:'enter'},
-  {name:'ui/card',fields:['accent','manifest'],audience:'client',load:'boot'},
-  {name:'ui/ui',fields:['ui','targets'],audience:'client',load:'enter'},
-  ...(['species','strikes','loot','days','weather','looks','compendiums'] as const).map(row => ({name:({species:'actors/species',strikes:'combat/strikes',loot:'economy/loot',days:'world/days',weather:'world/weather',looks:'look/materials',compendiums:'ui/compendium'})[row],fields:[],row,audience:'both' as const,load:'enter' as const})),
+  {name:'world/tiles',fields:['tiles','far','near']},
+  {name:'world/terrain',fields:['terrain','nativeGround']},
+  {name:'world/edge',fields:['edge','entryways']},
+  {name:'world/collision',fields:['meshCollision']},
+  {name:'world/navigation',fields:['navigation']},
+  {name:'world/props',fields:['props']},
+  {name:'world/water',fields:['water']},
+  {name:'world/movers',fields:['movers']},
+  {name:'world/traversal',fields:['traversal']},
+  {name:'world/spawn',fields:['spawn']},
+  {name:'look/look',fields:['look','presentation']},
+  {name:'look/map',fields:['map']},
+  {name:'actors/creatures',fields:['creatures']},
+  {name:'actors/crowds',fields:['crowds']},
+  {name:'actors/npcs',fields:['questNpcs']},
+  {name:'actors/spawns',fields:[],spawns:true},
+  {name:'combat/items',fields:['items']},
+  {name:'combat/encounters',fields:['encounters']},
+  {name:'quests/quests',fields:['quests']},
+  {name:'quests/host',fields:['questHost']},
+  {name:'quests/directors',fields:['directors']},
+  {name:'economy/ledger',fields:['ledger']},
+  {name:'state/state',fields:['state']},
+  {name:'state/migrations',fields:['migrations']},
+  {name:'state/modes',fields:['modes']},
+  {name:'sim/sim',fields:['sim']},
+  {name:'sim/hooks',fields:['hooks']},
+  {name:'sim/client-scripts',fields:['clientScripts']},
+  {name:'sim/client-channels',fields:['clientChannels']},
+  {name:'sim/plumbing',fields:['plumbing']},
+  {name:'audio/audio',fields:['audio']},
+  {name:'ui/card',fields:['accent','manifest']},
+  {name:'ui/ui',fields:['ui','targets']},
+  ...(['species','strikes','loot','days','weather','looks','compendiums'] as const).map(row => ({name:({species:'actors/species',strikes:'combat/strikes',loot:'economy/loot',days:'world/days',weather:'world/weather',looks:'look/materials',compendiums:'ui/compendium'})[row],fields:[],row})),
 ];
 /** Detect the explicit disk envelope, including unsupported versions that must refuse. */
 export function isOutputIndex(input: unknown): boolean { return typeof input === 'object' && input !== null && 'format' in input && input.format === 'wildshard.shardfile'; }
@@ -91,7 +91,7 @@ export function parseOutputIndex(input: unknown): OutputIndex {
     if (refs.has(ref)) throw new Error('Duplicate output blob reference'); refs.add(ref);
     if (entry.name !== undefined) { if (logical.has(entry.name)) throw new Error('Duplicate logical blob name'); logical.add(entry.name); }
   }
-  for (const entry of index.runtime?.files ?? []) if (!/^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u.test(entry.path)) throw new Error('Runtime output must be TypeScript inside runtime/');
+  for (const entry of index.runtime?.files ?? []) if (!/^runtime\/(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(entry.path)) throw new Error('Runtime output must be TypeScript inside runtime/');
   return index;
 }
 /** Validated relative blob path, independent of a server base URL. */

@@ -8,7 +8,7 @@ it('roundtrips every platform field without transport metadata', () => {
   const payloads = outputSectionPayloads(source);
   const index = {format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,
     build:{sourceHash:'0'.repeat(64),validator:'test'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library},
-    sections:[...payloads].map(([name,value]) => { const mapping = OUTPUT_SECTIONS.find(row => row.name === name); if (mapping === undefined) throw new Error('Missing mapping'); const bytes = new TextEncoder().encode(encodeCanonicalJson(value)); return {name,path:`sections/${name}.json`,schema:`wildshard:${name}@1`,hash:hashImmutableBytes(bytes),bytes:bytes.length,audience:mapping.audience,load:mapping.load}; }),schemas:[],files:[],runtime:null};
+    sections:[...payloads].map(([name,value]) => { const mapping = OUTPUT_SECTIONS.find(row => row.name === name); if (mapping === undefined) throw new Error('Missing mapping'); const bytes = new TextEncoder().encode(encodeCanonicalJson(value)); return {name,path:`sections/${name}.json`,schema:`wildshard:${name}@1`,hash:hashImmutableBytes(bytes),bytes:bytes.length}; }),schemas:[],files:[],runtime:null};
   expect(assembleOutputShardfile(index,payloads)).toEqual(source);
   expect(() => parseOutputIndex({...index,formatVersion:3})).toThrow();
   expect(() => parseOutputIndex({...index,sections:[...index.sections,index.sections[0]]})).toThrow();
