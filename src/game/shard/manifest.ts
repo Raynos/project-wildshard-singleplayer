@@ -23,6 +23,7 @@ import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { AccentId } from '@wildshard/format/accent';
 import type { RegionalSimCost, RuntimeCost } from '@wildshard/format/runtimeCost';
 import type { ShardSlug } from './slugs.generated';
+import type { ShardProduct } from '../shardfile/shardProduct';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
  *
@@ -580,9 +581,11 @@ export interface ShardManifest {
    * The shard's render strategy (`ShardRender`): its own passes in the engine's composer, its per-frame uniforms, its
    * tuning of the engine's effects. A lazy loader, so the def stays node-safe and the code downloads with the shard:
    * `render: async () => (await import('./look/render')).createRender()` — a fresh strategy per call (a rebuilt shard gets
-   * a new one). Game.buildSky awaits it. Omitted = the engine's chain as it is.
+   * a new one). Game.buildSky awaits it. Omitted = the engine's chain as it is. The game hands it the shard's loaded
+   * product (`toLevelSpec(manifest, product)`), so a look reads its built output, never `shard.config`; the engine only
+   * ever sees the bound loader (progress/shard-platform/product-in-look-o272/).
    */
-  render?: () => Promise<LookStrategy>;
+  render?: (product: ShardProduct) => Promise<LookStrategy>;
   /**
    * A built fragment's limits (the landscape shards have the terrain's edge walls instead): below `floor` or outside the
    * box, on foot or on the board, the player is put back on the last floor they stood on inside them (a registry floor;
@@ -596,9 +599,10 @@ export interface ShardManifest {
    * The shard's live models (E306 / E315 M5, src/engine/models/live.ts): its creature roster — every species it can spawn, alive
    * now or not (its bosses, its flocks) — its people and the gear its player holds, listed in its Model Explorer at boot
    * (src/engine/models/roster.ts). A lazy loader, so the def stays node-safe: `roster: async () => (await import('./<slug>/roster')).ROSTER`.
-   * Omitted = the models its world places, and a card per species of the animals alive when Explore opens.
+   * Omitted = the models its world places, and a card per species of the animals alive when Explore opens. Like `render`,
+   * it gets the shard's loaded product, so a specimen's model can read its built output.
    */
-  roster?: () => Promise<readonly RosterEntry[]>;
+  roster?: (product: ShardProduct) => Promise<readonly RosterEntry[]>;
   /**
    * The core fields' copies drawn as the shard's own models (E315 M2 / E349, Pine Hollow: the forest's trees as its forest
    * tree model, the forest floor's six kinds as theirs — src/shards/pine-hollow/world/drawnModels.ts). Called once, after
@@ -699,6 +703,12 @@ export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetada
 };
 /** Validate authored metadata, resolve literal bundled image imports and compose
  * the unchanged native boot owners. Missing source images refuse admission. */
+/**
+ * A generated discovery binding's call into a shard's look or roster factory with the shard's product
+ * (scripts/authored-manifest.mjs). A factory that takes no product is accepted as it is.
+ */
+export function callWithProduct<T>(make: (product: ShardProduct) => T, product: ShardProduct): T { return make(product); }
+
 export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: AuthoredShardBindings,
   native: Parameters<typeof defineShard>[1], images: Readonly<Record<string, string>>): ShardManifest {
   const {bindings: _declaredBindings, boot: bootData, ...data} = parseManifestMetadata(input, slug);

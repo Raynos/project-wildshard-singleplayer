@@ -40,6 +40,7 @@ import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { installProductGround, installProductSampling } from '../shardfile/productGround';
 import { installProductNavigation } from '../shardfile/productNavigation';
 import { loadManifestProduct } from '../shardfile/runtimeProduct';
+import { absentShardProduct } from '../shardfile/shardProduct';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/product';
@@ -111,9 +112,9 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   const boot: StagedBoot = { handoff: null, items: new Map(), featTotal: undefined, skins: [],
     runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null },
     progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
-  const sequence = sessionStages({ kit, manifest, slug: manifest.slug, stage, session, boot });
   const loadPlugin = session.ownedGridHome ? () => Promise.resolve({ default: GridPageShellPlugin }) : manifest.load;
   if (loadPlugin === undefined) {
+    const sequence = sessionStages({ kit, manifest, slug: manifest.slug, stage, session, boot, product: absentShardProduct(manifest.slug) });
     let next = await sequence.next();
     while (!next.done) next = await sequence.next();
     return next.value;
@@ -121,6 +122,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   const scope = currentOwner();
   if (scope === null) throw new Error('Plugin boot needs a level scope');
   const product = await stage('product', () => loadManifestProduct(manifest, scope));
+  const sequence = sessionStages({ kit, manifest, slug: manifest.slug, stage, session, boot, product });
   const { default: Plugin } = await stage('manifest.load', () => retried(loadPlugin));
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), ...(session.residency === undefined ? {} : { residency: session.residency }), bag: {
@@ -137,7 +139,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
   installTemplateDebug(app, app.engineScope);
   try {
-    return await bootLevel(session.ownedGridHome ? gridPageShellLevel(manifest) : gridLevel(toLevelSpec(manifest)), {
+    return await bootLevel(session.ownedGridHome ? gridPageShellLevel(manifest) : gridLevel(toLevelSpec(manifest, product)), {
       sequence, scope, progress: () => boot.progress,
       afterData: (spec) => { if (boot.handoff?.arrive) spec.spawn = boot.handoff.arrive; },
       dispose: () => {

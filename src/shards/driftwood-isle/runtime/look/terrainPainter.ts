@@ -7,13 +7,16 @@
  */
 import { facetedGroundPainter, prepareFacetedGround } from '../looks/facetedGround';
 import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
-import source from '../../shard.config';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { followToon } from './toon';
 import { GROUND_FILES } from '../../data/groundFiles';
 import { GROUND_LOOK, KIT_LENDS } from '../const';
 
-/** The ground's and the kit's graph materials compiled under the world's scope before it builds (the look's `prepareWorld`). */
-export function prepareGround(context: WorldLookContext): Promise<void> { return prepareFacetedGround(context, source, GROUND_LOOK, followToon, KIT_LENDS); }
+/** The ground's and the kit's graph materials, from the island's built output, compiled under the world's scope before it
+ *  builds (the look's `prepareWorld`). */
+export function prepareGround(product: ShardProduct): (context: WorldLookContext) => Promise<void> {
+  return (context) => prepareFacetedGround(context, product.shardfile, GROUND_LOOK, followToon, KIT_LENDS);
+}
 
 /** Driftwood's ground: no textures at all, two draw calls, facets of solid colour. */
 export const LOWPOLY_TERRAIN: TerrainPainter = facetedGroundPainter(GROUND_FILES);

@@ -13,21 +13,23 @@
  *   terrainPainter  the faceted ground coloured by height and slope (terrainPainter.ts)
  */
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { STYLIZED_BACKDROP } from './backdrop';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { stylizedBackdrop } from './backdrop';
 import { LOWPOLY_TERRAIN, prepareGround } from './terrainPainter';
 import { rampFog } from './toon';
 
 /** the island's shadow rig: a low sun (golden hour, dawn) grazes the flat decks, so more normal bias, or the planks speckle */
 const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: 0.14, radius: 0.6, texelBias: 'phone', depth16: 'phone' };
 
-export const shardRender = (): LookStrategy => ({
+/** The look over the island's built output (the game hands the product in: ShardManifest.render). */
+export const shardRender = (product: ShardProduct): LookStrategy => ({
   mode: 'extend',
   chain: 'clean',
   compose: (c) => ({ chain: c.engineChain('clean') }),
   fog: rampFog.model(200),
   fogControl: rampFog.control,
   shadows: DRIFTWOOD_SHADOWS,
-  backdrop: STYLIZED_BACKDROP,
-  prepareWorld: prepareGround,
+  backdrop: stylizedBackdrop(product),
+  prepareWorld: prepareGround(product),
   terrainPainter: LOWPOLY_TERRAIN,
 });

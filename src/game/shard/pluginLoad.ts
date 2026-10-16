@@ -18,7 +18,7 @@ export function loadShardPlugin(app: App, manifest: ShardManifest, game: GameSer
     let context: ShardContext | undefined;
     const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game, product); return context; };
     try {
-      await app.loadLevel(toLevelSpec(manifest), {
+      await app.loadLevel(toLevelSpec(manifest, product), {
         world: (level) => plugin.world?.(ctx(level)),
         kit: (level) => plugin.kit?.(ctx(level)),
         play: (level) => plugin.play?.(ctx(level)),

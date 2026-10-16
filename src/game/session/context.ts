@@ -17,6 +17,7 @@ import type { LoadStage } from '../shard/load';
 import type { GridRecoveryRecord } from '../grid/recovery';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/product';
+import type { ShardProduct } from '../shardfile/shardProduct';
 
 export interface KitPorts {
   items: readonly ItemRow[];
@@ -53,4 +54,6 @@ export interface StagedBoot {
 export interface SessionContext {
   manifest: ShardManifest; slug: string; stage: LoadStage;
   boot: StagedBoot; session: SessionState; kit: KitPorts;
+  /** the shard's built output, loaded before the first hook; bound into its look and roster loaders (`toLevelSpec`) */
+  product: ShardProduct;
 }

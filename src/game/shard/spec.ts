@@ -1,12 +1,19 @@
 import type { EngineMechanism, LevelSpec } from '@wildshard/engine/level/spec';
 import { bakedMapUrl, type ShardManifest } from './manifest';
 import { legacyContentIdentity } from './list';
+import { absentShardProduct, type ShardProduct } from '../shardfile/shardProduct';
 
 const ENGINE_MECHANISMS: ReadonlySet<string> = new Set(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice']);
 const engineMechanism = (value: string): value is EngineMechanism => ENGINE_MECHANISMS.has(value);
 
-/** Node-safe boundary. Only authored engine policy crosses it, never title or game metadata. */
-export function toLevelSpec(manifest: ShardManifest): LevelSpec {
+/**
+ * Node-safe boundary. Only authored engine policy crosses it, never title or game metadata. `product` is the shard's
+ * loaded built output: it is bound into the look and roster loaders here, so the engine gets plain loaders and never
+ * learns of products (progress/shard-platform/product-in-look-o272/). Without one they get an absent product, whose
+ * every read refuses.
+ */
+export function toLevelSpec(manifest: ShardManifest, product?: ShardProduct): LevelSpec {
+  const { render, roster } = manifest, bound = (): ShardProduct => product ?? absentShardProduct(manifest.slug);
   const bakedId = manifest.legacy === true ? legacyContentIdentity(manifest.slug) : undefined;
   const { style: creatureStyle, dev } = manifest; // opaque authored metadata, copied without a rendering decision
   return {
@@ -34,15 +41,15 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     species: manifest.species ?? [], spawns: manifest.spawns,
     minimap: ((map) => {
       const { image: path, ...look } = map ?? {};
-      const product = manifest.shardfile !== undefined || manifest.entries?.shardfile === true;
-      const image = path === undefined || (product && !path.startsWith('data:')) ? undefined : bakedMapUrl(path);
+      const built = manifest.shardfile !== undefined || manifest.entries?.shardfile === true;
+      const image = path === undefined || (built && !path.startsWith('data:')) ? undefined : bakedMapUrl(path);
       return image === undefined ? look : { ...look, image };
     })(manifest.minimap),
     kitLook: manifest.kitLook ?? 'pbr',
     ...(manifest.hands === undefined ? {} : { hands: manifest.hands }),
     ...(manifest.bounds === undefined ? {} : { bounds: manifest.bounds }),
     ...(manifest.camera === undefined ? {} : { camera: manifest.camera }),
-    ...(manifest.render === undefined ? {} : { look: manifest.render }),
+    ...(render === undefined ? {} : { look: () => render(bound()) }),
     ...(manifest.look === undefined ? {} : { lookLayer: manifest.look }),
     ...(manifest.tiers === undefined ? {} : { tiers: manifest.tiers }),
     ...(manifest.faunaTuning === undefined ? {} : { faunaTuning: manifest.faunaTuning }),
@@ -56,6 +63,6 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     ...(manifest.surfaceAt === undefined ? {} : { surfaceAt: manifest.surfaceAt }),
     ...(manifest.assets === undefined ? {} : { assets: manifest.assets }),
     ...(manifest.explore === undefined ? {} : { explore: manifest.explore }),
-    ...(manifest.roster === undefined ? {} : { roster: manifest.roster }),
+    ...(roster === undefined ? {} : { roster: () => roster(bound()) }),
   };
 }

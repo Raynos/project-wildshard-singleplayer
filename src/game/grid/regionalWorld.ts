@@ -77,7 +77,7 @@ import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wh
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky, type RegionBackdrop, type RegionSkyOutcome } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
-import { provideRuntimeProduct, runtimeProduct } from '../shardfile/runtimeProduct';
+import { provideRuntimeProduct, runtimeProduct, shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { AdmittedProduct } from '../shardfile/product';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientWorld } from '../shardfile/clientWorld';
@@ -215,7 +215,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
   return async request => {
     if (request.scope.disposed) throw new Error('Regional world requires a live runtime scope');
     const { cell, page } = request, app = page.context.app, home = page.world, game = home.game, sky = home.sky;
-    const level = (ports.level ?? toLevelSpec)(request.manifest);
+    // the look and roster loaders read the cell's admitted product (the one its ShardContext gets), never shard.config
+    const level = ports.level === undefined ? toLevelSpec(request.manifest, shardProductFromAdmission(request.admitted, request.scope)) : ports.level(request.manifest);
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
