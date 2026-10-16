@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { parseActorMoves } from '@wildshard/format/actorMoves';
+import { readCreatureStrikes } from '@wildshard/format/creatures';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import { compileDecisionScripts, readDecisionSources, type DecisionBuildOptions } from './buildDecisionScripts';
@@ -29,7 +30,11 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   if (targetEntry !== undefined && targetBytes === undefined) throw new Error('Missing declared world target section bytes');
   if (targetEntry !== undefined && targetBytes !== undefined && (targetBytes.length !== targetEntry.bytes || hashImmutableBytes(targetBytes) !== targetEntry.hash)) throw new Error('World target section hash or size mismatch');
   const worldTargets = targetBytes === undefined ? undefined : parseWorldTargets(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(targetBytes)));
-  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets), authored, options);
+  const strikeEntry = platform?.sections.find(row => row.name === 'actors/strikes'), strikeBytes = strikeEntry === undefined ? undefined : platform?.files.get(strikeEntry.path);
+  if (strikeEntry !== undefined && strikeBytes === undefined) throw new Error('Missing declared native strike section bytes');
+  if (strikeEntry !== undefined && strikeBytes !== undefined && (strikeBytes.length !== strikeEntry.bytes || hashImmutableBytes(strikeBytes) !== strikeEntry.hash)) throw new Error('Native strike section hash or size mismatch');
+  const strikes = strikeBytes === undefined ? [] : readCreatureStrikes(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(strikeBytes)));
+  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets, strikes), authored, options);
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];
   const files = new Map(platform?.files);
   for (const row of platform?.sections ?? []) if (row.name === 'sim/scripts') files.delete(row.path);

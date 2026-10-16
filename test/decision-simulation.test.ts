@@ -245,3 +245,20 @@ test('retained actors lend their actual body, public memory and strike owner wit
     owner.strikes.get(actor.entityId)?.cancel(); expect(view.current).toBeNull();
   } finally { sim.dispose(); }
 });
+
+test('native strike sections reach the existing runner with their world-space geometry', async () => {
+  const f = fixture(), original = f.source.rows.strikes[0];
+  if (original === undefined) throw new Error('Missing native strike fixture');
+  f.source.rows.strikes = [];
+  f.sections.set('actors/strikes', [{ ...original, shape: { kind: 'sphere', radius: 26 }, range: 30,
+    units: 'world', weight: { kind: 'constant', value: 1 }, motion: { speed: 0 } }].map(({ speed: _speed, ...row }) => row));
+  const sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
+  try {
+    for (let i = 0; i < 8; i++) sim.host.step();
+    expect(sim.decisions?.registries.strikes?.get('bump')).toBe(1);
+    expect(sim.host.strikes.get('actor.a')?.spec).toMatchObject({ range: 30, shape: { radius: 26 }, units: 'world' });
+    for (let i = 0; i < 29; i++) sim.host.step();
+    expect(sim.host.entities.get('actor.b')?.hp).toBe(93);
+    expect(sim.decisions?.host.metrics()[0]?.refusals).toBe(0);
+  } finally { sim.dispose(); }
+});

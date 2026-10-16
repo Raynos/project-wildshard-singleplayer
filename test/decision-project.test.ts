@@ -5,7 +5,8 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { prepareProjectOutput } from '@wildshard/sdk/projectOutput';
-import { projectDecisionOptions } from '@wildshard/sdk/projectDecisions';
+import { prepareProjectDecisions, projectDecisionOptions } from '@wildshard/sdk/projectDecisions';
+import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import { outputDecisionScripts } from '@wildshard/sdk/outputProduct';
 import { decisionLegacyLines, legacyGeneratedPaths } from '../scripts/decision-legacy-lines.mjs';
@@ -56,4 +57,22 @@ test('ABI0-only author sources do not enter the v1 compiler or require its budge
   const built = await prepareProjectOutput(root, undefined, { source, options: {} });
   expect(built.blobs).toEqual([]);
   expect(built.options.platform).toBeUndefined();
+});
+
+test('the author compiler binds native strike rows only after checking their actual section bytes', async () => {
+  const root = project(); writeFileSync(resolve(root, 'behaviour/main.as'), "import { Strike } from './generated/testProject';\nexport function onStart():void {if(Strike.wave<1)unreachable();}");
+  const source = emptyShardfile({ slug: 'test', name: 'Test', author: 'Test', revision: 1, seed: 1 });
+  const scripts = emitPlatformSections(new Map([['sim/scripts', [{ ...row, binding: { shard: true }, strikes: { wave: 'actor.wave' } }]]]));
+  const strikes = [{ id: 'actor.wave', shape: { kind: 'lane', length: 26, width: 6 }, range: 30, windup: 1,
+    active: 1, recover: 1, cooldown: 1, damage: 12, tags: ['actor.wave'], weight: { kind: 'constant', value: 1 }, units: 'world' }];
+  const bytes = new TextEncoder().encode(encodeCanonicalJson(strikes)), path = 'sections/actors/strikes.json';
+  const entry = { name: 'actors/strikes', path, hash: hashImmutableBytes(bytes), bytes: bytes.length, schema: 'wildshard:actors/strikes@1' };
+  const platform = { sections: [...scripts.sections, entry], files: new Map([...scripts.files, [path, bytes]]) };
+  const built = await prepareProjectDecisions(root, source, platform, { asLineCeiling: 2 });
+  expect(built.blobs).toHaveLength(1);
+  expect(outputDecisionScripts(built.platform)[0]?.strikes).toEqual({ wave: 'actor.wave' });
+  const corrupt = { ...platform, files: new Map(platform.files) }; corrupt.files.set(path, new Uint8Array([0]));
+  await expect(prepareProjectDecisions(root, source, corrupt, { asLineCeiling: 2 })).rejects.toThrow('Native strike section hash or size mismatch');
+  const missing = { ...platform, files: new Map(platform.files) }; missing.files.delete(path);
+  await expect(prepareProjectDecisions(root, source, missing, { asLineCeiling: 2 })).rejects.toThrow('Missing declared native strike section bytes');
 });

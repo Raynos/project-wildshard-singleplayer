@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import { buildDecisionRegistries, decisionBindingMap, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
 import { parseActorMoves, actorMoveRules, type ActorMove } from '@wildshard/format/actorMoves';
+import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Event, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -96,14 +97,16 @@ export class ShardDecisions {
     this.sim = sim; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
     this.rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
     this.moves = parseActorMoves(sections.get('actors/moves') ?? []);
-    this.registries = buildDecisionRegistries(source, this.moves);
+    const nativeStrikes = readCreatureStrikes(sections.get('actors/strikes') ?? []);
+    this.registries = buildDecisionRegistries(source, this.moves, undefined, nativeStrikes);
     this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
-    this.strikes = simStrikes(source.rows);
+    this.strikes = new Map(simStrikes(source.rows));
+    for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
     const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
     if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
     this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, actors: [...this.names], state: source.state,
       ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
-      strikes: source.rows.strikes, quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
+      strikes: source.rows.strikes, ...(nativeStrikes.length === 0 ? {} : { nativeStrikes }), quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
     const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>(), bodies = new Set<AnimalSim>();
     const bindings = this.rows.map((row, index) => {
       const map = decisionBindingMap(row, this.registries), actorIds = Object.values(map.ids.actors ?? {});
