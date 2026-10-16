@@ -1,13 +1,13 @@
 import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { animateCaptain } from './captainPose';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
+import { bindCreatureBrain } from '@wildshard/game/plugin/brain';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { creatureBody } from './bodies';
 import { captainMesh, type CaptainMesh } from './captainMesh';
-import { CaptainBrain } from './captainPolicy';
+import { createCaptainBrain } from './captainPolicy';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -43,7 +43,7 @@ function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
 
 
 
-export const CAPTAIN: SpeciesRow = { ...ENEMY_SPECIES_METADATA.captain, act: actCaptain, think: thinkCaptain };
+export const CAPTAIN: SpeciesRow = { ...ENEMY_SPECIES_METADATA.captain, ...bindCreatureBrain(createCaptainBrain).callbacks };
 
 /** the captain's look over a mesh (the page's by default; a test passes its own) */
 export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { return {
@@ -57,12 +57,3 @@ export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { retu
   animate: animateCaptain,
 }; }
 export const CAPTAIN_LOOK: SpeciesLook = captainLook();
-
-const brains = new WeakMap<Animal, CaptainBrain<Animal>>();
-function brain(a: Animal): CaptainBrain<Animal> {
-  let value = brains.get(a);
-  if (value === undefined) { value = new CaptainBrain(a); brains.set(a, value); }
-  return value;
-}
-function thinkCaptain(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
-function actCaptain(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }

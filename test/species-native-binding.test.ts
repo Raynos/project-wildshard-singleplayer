@@ -12,6 +12,8 @@ import { DRIFTWOOD_ENEMY_SPECIES } from '../src/shards/driftwood-isle/data/enemy
 import { CRAB, CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
 import { SAILOR, SAILOR_LOOK } from '../src/shards/driftwood-isle/species/sailor';
 import { MONKEY, MONKEY_LOOK } from '../src/shards/driftwood-isle/species/monkey';
+import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/data/brains';
+import { DUNE_RAY } from '../src/shards/sunscar-dunes/data/species/duneRay';
 
 function body(row: SpeciesRow, look: SpeciesLook): { actor: Animal; dispose: () => void } {
   const variant = row.variants[0];
@@ -27,6 +29,7 @@ function body(row: SpeciesRow, look: SpeciesLook): { actor: Animal; dispose: () 
   const actor = new Animal({ mesh, bones: { body: root, head }, materials: [material] }, model, .5);
   actor.bindSimulation(new AnimalSim({ kind: row.kind, label: actor.label, variant: variant.id, rarity: variant.rarity,
     hp: actor.maxHp, aggressive: actor.aggressive, dims: model.dims, mods: actor.mods,
+    ...(row.flight === undefined ? {} : { flight: row.flight }),
   }, .5, 1, actor.entityId, { heightAt: () => 0, random: () => .5 }));
   return { actor, dispose: () => { geometry.dispose(); material.dispose(); } };
 }
@@ -99,4 +102,16 @@ test('a missed crab or sailor strike stays spent when the target returns inside 
       ctx.player.set(0, 0, 1); row.act?.(made.actor, ctx); expect(hits).toEqual([]);
     } finally { made.dispose(); }
   }
+});
+
+test('the declared patrol species uses the same lazy callback owner through its first act and later contexts', () => {
+  const made = body(DUNE_RAY, CRAB_LOOK), catalogue = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES), bound = catalogue.bind(DUNE_RAY.kind);
+  try {
+    expect(catalogue.witness(made.actor)).toBeNull();
+    bound.act(made.actor, context()); expect(catalogue.witness(made.actor)).toBe('patrol-diver');
+    const later = context(); later.player.set(50, 0, 50);
+    bound.think(made.actor, later); bound.act(made.actor, later);
+    expect(Number.isFinite(made.actor.yaw)).toBe(true); expect(Number.isFinite(made.actor.speed)).toBe(true);
+    expect(catalogue.witness(made.actor)).toBe('patrol-diver');
+  } finally { made.dispose(); }
 });

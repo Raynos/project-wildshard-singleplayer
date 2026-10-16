@@ -7,7 +7,7 @@ import { driftwoodSpeciesBrains } from './speciesBrains';
 import { strikeCrab } from '../species/crab';
 import { strikeSailor } from '../species/sailor';
 import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from '../species/monkeyPolicy';
-import { CaptainBrain } from '../species/captainPolicy';
+import { createCaptainBrain } from '../species/captainPolicy';
 import { CRAB_ACTIONS, SAILOR_ACTIONS, MONKEY_ACTIONS } from '../data/speciesActions';
 
 /** One live enemy's shipping policy, observing through ports allocated once at its spawn. */
@@ -42,6 +42,6 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
         default: throw new Error('Unknown admitted Driftwood enemy decision');
     }
   }
-  if (kind === 'captain') { const brain = new CaptainBrain<HuntBody>(actor); return wrap(brain, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } }); }
+  if (kind === 'captain') { const brain = createCaptainBrain(actor); return wrap(brain, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } }); }
   throw new Error(`Driftwood has no enemy policy for ${kind}`);
 }

@@ -4,6 +4,8 @@ import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/plugin/brain';
 import { MONKEY_ACTIONS } from '../src/shards/driftwood-isle/data/speciesActions';
 import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyPolicy';
+import { createCaptainBrain, type CaptainPorts } from '../src/shards/driftwood-isle/species/captainPolicy';
+import { Rng } from '../src/engine/core/rng';
 
 function actor(): AnimalSim {
   return new AnimalSim({ kind: 'hunter', label: 'Hunter', variant: 'common', rarity: 'common', hp: 30, aggressive: true,
@@ -51,4 +53,45 @@ test('preflights every action and refuses unsafe fields before registration or e
   const action = rows.actions[0]; if (action === undefined) throw new Error('Missing test action');
   expect(() => createMemoryActionBrain(a, { ...rows, actions: [{ ...action, phase: -1 }] }, { decide: () => undefined, effects })).toThrow('action');
   expect(a.mem).toEqual(original);
+});
+
+function captain() {
+  const a = actor(), effects: string[] = [];
+  Object.assign(a.mem, { init: 1, st: 3, cd: 0, hitT: 0, hit: 0, combo: 0, rise: .2, rising: 1, sinking: 0, subT: 0,
+    poolX: 0, poolZ: 0, arena: 22, awake: 1, phase: 1 });
+  const ports: CaptainPorts<AnimalSim> = { dt: .1, calm: false, player: new Vector3(0, 0, 1), rng: new Rng(357), world: {},
+    sound: name => { effects.push(name); }, heightAt: () => 0, claim: () => true, mayAttack: () => true,
+    reach: () => true, hurt: damage => { if (damage > 0) effects.push('hurt'); } };
+  a.startAttack(1); a.step(.8);
+  return { a, ports, effects, brain: createCaptainBrain(a) };
+}
+
+test('a decision-latched strike advances rise on every body step and resumes the old boolean continuation', () => {
+  const { a, ports, effects, brain } = captain(), startRise = a.mem['rise'] ?? 0;
+  brain.act(ports); expect(effects).toEqual([]); expect(a.mem['rise']).toBeGreaterThan(startRise);
+  brain.think(ports); const saved = a.snapshot(), pending = brain.snapshot(); expect(pending).toBe(true);
+  brain.act(ports); expect(effects).toEqual(['hurt', 'sailor_slash']); expect(brain.snapshot()).toBe(false);
+  effects.length = 0; a.mem['hit'] = 0;
+  brain.act(ports); expect(effects).toEqual([]);
+  a.restore(saved); brain.restore(pending); brain.act(ports); expect(effects).toEqual(['hurt', 'sailor_slash']);
+  brain.restore(true); expect(() => brain.restore('true')).toThrow('continuation'); expect(brain.snapshot()).toBe(true);
+});
+
+test('latched misses stay spent and the strike reads current hp and combo at the body step', () => {
+  const { a, ports, effects, brain } = captain();
+  ports.player.set(0, 0, 100); brain.think(ports); brain.act(ports);
+  expect(a.mem['hit']).toBe(1); expect(effects).toEqual([]);
+  ports.player.set(0, 0, 1); brain.think(ports); brain.act(ports); expect(effects).toEqual([]);
+  a.mem['hit'] = 0; a.mem['combo'] = 1; a.startAttack(1); a.step(.67);
+  brain.think(ports); a.hp = a.maxHp * .2;
+  brain.act(ports); expect(effects).toEqual(['hurt', 'sailor_slash']);
+});
+
+test('invalid cadence and dynamic thresholds refuse without claiming an action field', () => {
+  const a = actor(), effects = new Map([['hit', () => undefined]]);
+  a.mem['st'] = 1; a.startAttack(1); a.step(.6);
+  const brain = createMemoryActionBrain(a, rows, { decide: () => undefined, effects, threshold: () => Number.NaN });
+  expect(() => brain.act(undefined)).toThrow('threshold'); expect(a.mem['hit']).toBeUndefined();
+  const malformed = { ...rows }; Reflect.set(malformed, 'cadence', 'bad');
+  expect(() => createMemoryActionBrain(a, malformed, { decide: () => undefined, effects })).toThrow('states');
 });

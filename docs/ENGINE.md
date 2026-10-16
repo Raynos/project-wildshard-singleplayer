@@ -6338,3 +6338,16 @@ level and pond remain live field reads. The helper neither registers physics
 nor changes terrain, species, placement or RNG policy. Pine uses it for native
 herds; W3 Nalati replaces `runtime/headlessCreatures.ts#nalatiHuntGround` with
 the same binding, retaining its river wetness and forest queries.
+
+**Memory-action cadence and callback binding.** The same `createMemoryActionBrain` accepts optional `cadence: "decision"`
+rows: one pending body action per successful decision. `snapshot()` and
+`restore()` preserve that boolean continuation; malformed values refuse.
+An optional borrowed `beforeAct` runs on every body step, before the latch,
+and a numeric `threshold` resolver reads the current body at action time.
+Defaults keep body-step actions and their original memory ownership.
+
+`bindCreatureBrain(create)` exposes the same lazy per-animal callback
+binding used by admitted species: its first think or act constructs once,
+later calls receive the current context, and `live` reports ownership
+without allocating a brain. Captain and existing admitted ground species
+share this binder; no clock, decision or random draw runs at binding time.

@@ -44,6 +44,7 @@ type Rng = ReturnType<SimHost['rng']['stream']>;
 /** Plain actor-memory gates for ordered body-step effects; clocks and saved fields remain actor-owned. */
 export interface MemoryActionRows {
   readonly stateKey: string; readonly states: readonly string[];
+  readonly cadence?: 'body' | 'decision';
   readonly actions: readonly {
     readonly state: number; readonly phase: number; readonly effect: string;
     readonly once: { readonly key: string; readonly value: number; readonly test: 'falsy' | 'not-value' };
@@ -59,12 +60,15 @@ export interface MemoryActionRows {
 export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: MemoryActionRows, ports: {
   readonly decide: (actor: A, context: C) => void;
   readonly effects: ReadonlyMap<string, (actor: A, context: C) => void>;
-}): CreatureBrain<string, A, C> {
+  readonly beforeAct?: (actor: A, context: C) => void;
+  readonly threshold?: (actor: A, context: C, phase: number) => number;
+}): CreatureBrain<string, A, C> & { snapshot: () => boolean; restore: (value: unknown) => void } {
   const validKey = (key: string): boolean => /^[a-zA-Z][a-zA-Z0-9._-]{0,63}$/u.test(key)
     && key !== 'constructor' && key !== 'prototype' && key !== '__proto__';
   if (!validKey(rows.stateKey) || rows.states.length === 0 || rows.states.length > 32
-    || new Set(rows.states).size !== rows.states.length || rows.states.some(state => !validKey(state)) || rows.actions.length > 16) throw new Error('Invalid memory-action states');
-  const states = [...rows.states], stateKey = rows.stateKey;
+    || new Set(rows.states).size !== rows.states.length || rows.states.some(state => !validKey(state)) || rows.actions.length > 16
+    || (rows.cadence !== undefined && !['body', 'decision'].includes(rows.cadence))) throw new Error('Invalid memory-action states');
+  const states = [...rows.states], stateKey = rows.stateKey, decisionStep = rows.cadence === 'decision';
   const actions = rows.actions.map(row => {
     const run = ports.effects.get(row.effect);
     if (!Number.isInteger(row.state) || row.state < 0 || row.state >= states.length || !Number.isFinite(row.phase) || row.phase < 0 || row.phase > 1
@@ -73,16 +77,23 @@ export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: 
     return { ...row, once: { ...row.once }, when: row.when === undefined ? undefined : { ...row.when }, run };
   });
   class BoundMemoryBrain extends CreatureBrain<string, A, C> {
+    private pending = false;
     override think(context: C): void {
       ports.decide(actor, context);
+      this.pending = decisionStep;
       const state = states[actor.mem[stateKey] ?? 0];
       if (state !== undefined) this.transition(state);
     }
     override act(context: C): void {
+      ports.beforeAct?.(actor, context);
+      if (decisionStep) { if (!this.pending) return; this.pending = false; }
       const phase = actor.attackPhase;
       if (phase < 0) return;
       for (const action of actions) {
-        if (actor.mem[stateKey] !== action.state || !(phase >= action.phase)) continue;
+        if (actor.mem[stateKey] !== action.state) continue;
+        const threshold = ports.threshold?.(actor, context, action.phase) ?? action.phase;
+        if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) throw new Error('Invalid memory-action threshold');
+        if (!(phase >= threshold)) continue;
         if (action.when !== undefined && Boolean(actor.mem[action.when.key]) !== (action.when.test === 'truthy')) continue;
         const once = actor.mem[action.once.key];
         if (action.once.test === 'falsy' ? Boolean(once) : once === action.once.value) continue;
@@ -90,6 +101,8 @@ export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: 
         action.run(actor, context);
       }
     }
+    snapshot(): boolean { return this.pending; }
+    restore(value: unknown): void { if (typeof value !== 'boolean') throw new Error('Invalid memory-action continuation'); this.pending = value; }
   }
   return new BoundMemoryBrain(actor, states);
 }
@@ -676,6 +689,20 @@ function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, S
   }
 }
 type Callbacks = SpeciesBinding;
+
+/** Lazily bind one real species policy on its first callback, retaining live context and inspection ownership. */
+export function bindCreatureBrain(create: (actor: Animal, context: ThinkCtx) => ReturnType<SpeciesNativeFactory>): {
+  readonly callbacks: Pick<SpeciesBinding, 'think' | 'act'>; readonly live: (actor: Animal) => boolean;
+} {
+  const live = new WeakMap<Animal, ReturnType<SpeciesNativeFactory>>();
+  const of = (actor: Animal, context: ThinkCtx): ReturnType<SpeciesNativeFactory> => {
+    let value = live.get(actor);
+    if (value === undefined) { value = create(actor, context); live.set(actor, value); }
+    return value;
+  };
+  return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor, context).think(context); },
+    act: (actor, context) => { of(actor, context).act(context); } } };
+}
 /** Browser callbacks bound to one policy per animal (built at its first decision); `live` answers the witness. */
 function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes,
   held?: SpeciesHeldPorts & { register: (actor: AnimalSim, controller: HeldSpeciesControl) => void; occupied: (actor: AnimalSim) => boolean; kind: string }): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
@@ -718,14 +745,7 @@ function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?
       }
       if (adapter === undefined) throw new Error(`Species ${brain.archetype} requires a trusted native body adapter`);
       if ((brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer') && homes === undefined) throw new Error(`Species ${brain.archetype} requires its native body home`);
-      const live = new WeakMap<Animal, ReturnType<SpeciesNativeFactory>>();
-      const of = (actor: Animal, context: ThinkCtx): ReturnType<SpeciesNativeFactory> => {
-        let value = live.get(actor);
-        if (value === undefined) { value = adapter(actor, decisionOf(brain, actor, homes?.(actor)), context); live.set(actor, value); }
-        return value;
-      };
-      return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor, context).think(context); },
-        act: (actor, context) => { of(actor, context).act(context); } } };
+      return bindCreatureBrain((actor, context) => adapter(actor, decisionOf(brain, actor, homes?.(actor)), context));
     }
     case 'challenge-grazer': {
       const live = new WeakMap<Animal, ChallengeGrazerBrain<Animal>>(), slots = brain.phaseSlots;
@@ -734,14 +754,10 @@ function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?
         think: (a, c) => { of(a).think({ ...c, phaseOffset: seedSlot(a.seed, slots) }); }, act: (a, c) => { of(a).act({ ...c, phaseOffset: seedSlot(a.seed, slots) }); } } };
     }
     case 'patrol-diver': {
-      const live = new WeakMap<Animal, PatrolDiverBrain<Animal>>();
-      const of = (a: Animal): PatrolDiverBrain<Animal> => { let value = live.get(a); if (value === undefined) { value = new PatrolDiverBrain(a, brain.data, brain.data.home, brain.strike); live.set(a, value); } return value; };
-      return { live: a => live.has(a), callbacks: { think: (a, c) => { of(a).think(c); }, act: (a, c) => { of(a).act(c); } } };
+      return bindCreatureBrain(actor => new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike));
     }
     case 'phased-flyer': {
-      const live = new WeakMap<Animal, PhasedFlyerBrain<Animal>>();
-      const of = (a: Animal): PhasedFlyerBrain<Animal> => { let value = live.get(a); if (value === undefined) { value = new PhasedFlyerBrain(a, brain.data, brain); live.set(a, value); } return value; };
-      return { live: a => live.has(a), callbacks: { think: (a, c) => { of(a).think(c); }, act: (a, c) => { of(a).act(c); } } };
+      return bindCreatureBrain(actor => new PhasedFlyerBrain(actor, brain.data, brain));
     }
     case 'script': {
       const live = new WeakMap<Animal, ScriptSpeciesPolicy<Animal>>();

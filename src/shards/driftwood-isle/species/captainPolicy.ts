@@ -1,8 +1,9 @@
 import { MathUtils, Vector3 } from 'three';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
+import { CAPTAIN_ACTIONS } from '../data/speciesActions';
 
 /**
  * The Drowned Captain's fight (./captain.ts has the rig, the look and the species row): renderer-free, so the same policy
@@ -132,28 +133,10 @@ export function advanceCaptainRise(a: AnimalSim, dt: number): void {
 }
 
 function strikeCaptain<A extends AnimalSim>(a: A, c: CaptainPorts<A>): void {
-  const m = a.mem as CaptainMem, p = a.attackPhase;
-  if (m.st !== ST_ATTACK || p < 0) return;
-  const phase = captainPhase(a.hp, a.maxHp), dur = (WINDUP[phase] ?? 0.7) + 0.35;
-  if (p >= (WINDUP[phase] ?? 0.7) / dur + 0.04 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...(m.combo ? DRIFTWOOD_STRIKES.second : DRIFTWOOD_STRIKES.swing), shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
+  if (driftwoodContact(a, c, { ...(a.mem['combo'] ? DRIFTWOOD_STRIKES.second : DRIFTWOOD_STRIKES.swing), shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash');
 }
-const STATES = ['hide', 'rise', 'fight', 'attack', 'sink', 'under'] as const;
 /** The captain's authored fight (10 Hz decisions; the rise / sink and the strike on the body step) over any native body. */
-export class CaptainBrain<A extends AnimalSim> extends CreatureBrain<typeof STATES[number], A, CaptainPorts<A>> {
-  private strikeStep = false;
-  constructor(actor: A) { super(actor, STATES); }
-  override think(ctx: CaptainPorts<A>): void {
-    decideCaptain(this.actor, ctx);
-    this.strikeStep = true;
-    const state = STATES[this.actor.mem['st'] ?? 0];
-    if (state !== undefined) this.transition(state);
-  }
-  override act(ctx: CaptainPorts<A>): void {
-    advanceCaptainRise(this.actor, ctx.dt);
-    if (!this.strikeStep) return;
-    this.strikeStep = false; strikeCaptain(this.actor, ctx);
-  }
-  /** Whether a decision is waiting for its strike on the next body step (the rest of his fight is the actor's memory). */
-  snapshot(): boolean { return this.strikeStep; }
-  restore(value: unknown): void { if (typeof value !== 'boolean') throw new Error('Invalid captain continuation'); this.strikeStep = value; }
+export function createCaptainBrain<A extends AnimalSim>(actor: A): ReturnType<typeof createMemoryActionBrain<A, CaptainPorts<A>>> {
+  return createMemoryActionBrain<A, CaptainPorts<A>>(actor, CAPTAIN_ACTIONS, { decide: decideCaptain, effects: new Map([['swing', strikeCaptain]]),
+    beforeAct: (a, c) => { advanceCaptainRise(a, c.dt); }, threshold: a => { const windup = WINDUP[captainPhase(a.hp, a.maxHp)] ?? 0.7; return windup / (windup + 0.35) + 0.04; } });
 }
