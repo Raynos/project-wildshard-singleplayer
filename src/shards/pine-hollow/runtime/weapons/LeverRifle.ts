@@ -3,13 +3,14 @@ import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, weaponDisplay
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { WeaponHands, gripPose, holdDef, prepareWeaponHands, type HandHold } from '../viewmodel/gloveHands';
-import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
+import { WeaponHands, gripPose, holdDef, prepareWeaponHands } from '../viewmodel/gloveHands';
+import { HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
 import { LEVER_MATERIALS } from '../../data/heldLook';
 import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
+import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../../data/leverPresentation';
 import details from '../../data/leverDetails.json' with { type: 'json' };
 
 /**
@@ -57,29 +58,10 @@ export interface LeverBuildOptions {
   model?: LeverModel;
 }
 
-const KICK_PITCH = THREE.MathUtils.degToRad(1.25);
-const FLASH_FRAMES = 2, FLASH_LIGHT_TIME = 0.06, FLASH_LIGHT = 34;
-const BRASS_COUNT = 4, BRASS_LIFE = 1.8;
-const TRACER_COUNT = 2, TRACER_TIME = 0.09;
-const ADS_MOTION = 0.3;
-/** the lever's throw (rad about X at its pivot), the bolt's travel (m), the hammer down / cocked (rad) */
-const LEVER_OPEN = 0.92, BOLT_TRAVEL = 0.058, HAMMER_DOWN = -0.12, HAMMER_COCKED = 0.5;
-
-// model space: −Z along the bore, +Y up, the bore axis at y = 0
-/** sight line height over the bore: the gold bead's centre and the buckhorn notch's floor */
-export const SIGHT_Y = 0.045;
-/** the eye on the comb, the buckhorn 45 cm ahead of it (a carbine's eye relief); the sights stand on raised bases, the
- *  line higher over the receiver than a real 1894's, so the receiver's top and the wrist sit low in the frame, not across the view */
-const EYE_Z = 0.36;
-const REAR_Z = -0.13, FRONT_Z = -0.512, MUZZLE_Z = -0.535;
-const HAMMER_PIVOT = new THREE.Vector3(0, -0.006, 0.122);
-/** the Blender model's receiver is 16 mm shallower (a real 1894's proportions): its lever pivot and loading gate sit higher */
+// Model-space geometry anchors stay with the rifle's native parts.
+const HAMMER_PIVOT = new THREE.Vector3(...LEVER_PRESENTATION.hammerPivot);
 const MODEL_LEVER_PIVOT = new THREE.Vector3(0, -0.031, -0.018);
 const MODEL_GATE = new THREE.Vector3(0.0158, -0.021, 0.028);
-const PORT = new THREE.Vector3(0.0, 0.026, 0.045);
-/** how much of the lever's throw the right hand turns with (its fist rides the loop all the way) */
-const HAND_TURN = 0.6;
-
 
 // ───────────────────────────── the Blender model ─────────────────────────────
 
@@ -136,7 +118,7 @@ export function leverSpecimen(sky: Sky, model: LeverModel): THREE.Group {
   const { brassMat, woodMat, steelMat, parts, beadGeo } = buildLever(sky, model);
   return weaponDisplay([
     { geo: parts.wood, mat: woodMat }, { geo: parts.stock, mat: woodMat }, { geo: parts.steel, mat: steelMat }, { geo: beadGeo, mat: brassMat },
-    { geo: parts.lever, mat: steelMat, pos: parts.leverPivot }, { geo: parts.hammer, mat: steelMat, pos: HAMMER_PIVOT, rot: new THREE.Euler(HAMMER_DOWN, 0, 0) }, { geo: parts.bolt, mat: steelMat },
+    { geo: parts.lever, mat: steelMat, pos: parts.leverPivot }, { geo: parts.hammer, mat: steelMat, pos: HAMMER_PIVOT, rot: new THREE.Euler(LEVER_PRESENTATION.lever.hammerDown, 0, 0) }, { geo: parts.bolt, mat: steelMat },
   ], { mode: 'parts', copyGeometry: true, whiteColors: true });
 }
 
@@ -153,11 +135,6 @@ function cartridgeGeometry(live: boolean): THREE.BufferGeometry { return detailG
  * right on the wrist with its fingers through the loop (it rides the lever through a cycle); `gate` = the right hand
  * thumbing a cartridge, relative to the round's base. A dev knob: edit, then the rifle's `rebuildHands()`.
  */
-export const LEVER_HAND_HOLDS: { left: HandHold; right: HandHold; gate: Omit<HandHold, 'spec'> } = {
-  left: { spec: { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
-  right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
-  gate: { at: [0.03, -0.01, 0.03], axis: [0, 0, -1], palm: [-1, 0, 0] },
-};
 /** The rifle's two hands built ahead of `new LeverRifle` (SF67), a task apart (`due`): the geometry its constructor would build. */
 export async function prepareLeverHands(due: () => Promise<void> | null): Promise<void> {
   await prepareWeaponHands(HUNTER_HANDS, LEVER_HAND_HOLDS.left, LEVER_HAND_HOLDS.right, due);
@@ -179,19 +156,8 @@ const LEVER_HANDS: LeverFirearmHandsKit = {
 /** Pine's view: the .30-30's kick, flash, brass and tracer; the lever's throw; the sights at a carbine's eye relief; the
  *  action's clock; the hip pose and the lever's rock. */
 export const LEVER_VIEW: LeverFirearmView = {
-  magazine: MAGAZINE, reserve: RESERVE_START,
-  kick: KICK_PITCH,
-  flash: { frames: FLASH_FRAMES, lightTime: FLASH_LIGHT_TIME, light: FLASH_LIGHT },
-  brass: { count: BRASS_COUNT, life: BRASS_LIFE },
-  tracer: { count: TRACER_COUNT, time: TRACER_TIME },
-  adsMotion: ADS_MOTION,
-  lever: { open: LEVER_OPEN, boltTravel: BOLT_TRAVEL, hammerDown: HAMMER_DOWN, hammerCocked: HAMMER_COCKED, handTurn: HAND_TURN },
-  sight: { y: SIGHT_Y, eyeZ: EYE_Z, rearZ: REAR_Z, frontZ: FRONT_Z, muzzleZ: MUZZLE_Z },
-  hammerPivot: [HAMMER_PIVOT.x, HAMMER_PIVOT.y, HAMMER_PIVOT.z],
-  port: [PORT.x, PORT.y, PORT.z],
+  ...LEVER_PRESENTATION, magazine: MAGAZINE, reserve: RESERVE_START,
   timing: { autoReloadDelay: AUTO_RELOAD_DELAY, autoReloadClose: LEVER_WEAPON_PROFILE.lever.autoReloadClose, reloadIn: RELOAD_IN, reloadOut: RELOAD_OUT, roundTime: ROUND_TIME },
-  hip: { px: 0.07, py: -0.085, pz: -0.26, rx: 0.05, ry: 0.14, rz: -0.15, scale: 1.0 },
-  cyclePose: { px: -0.03, py: 0.03, pz: 0, rx: 0.1, ry: 0.1, rz: -0.45 },
 };
 
 function requireLeverModel(): LeverModel {
