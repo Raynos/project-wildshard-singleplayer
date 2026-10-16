@@ -1,7 +1,6 @@
-import type { CoverSite } from './streamedCover';
-
-/** Ground measurements shared by live cover placement and its offline tint grid. */
-export interface Site extends CoverSite { td: number; sd: number; palm: number }
+/** A candidate point's ground (its height over the sea, slope and normal, its trail and shrine distances, how near a
+ *  palm), shared by the cover's baked cells (coverCells.ts) and its tint grid (coverGrid.ts). */
+export interface Site { h: number; slope: number; nx: number; ny: number; nz: number; td: number; sd: number; palm: number }
 type Density = (s: Site) => number;
 
 export const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };

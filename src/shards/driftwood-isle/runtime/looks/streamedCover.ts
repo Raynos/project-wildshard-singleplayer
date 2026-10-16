@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/sdk/looks/streamedInstances';
@@ -10,9 +9,9 @@ import type { StreamedCoverRow } from './rows';
 /**
  * A ground cover streamed round the viewer as rows (SHARD-PLATFORM M3, look-family rows): instanced low-poly plants, one
  * InstancedMesh per kind (one draw each, no shadow casting), refilled from square cells round the viewer whenever it has
- * moved `refill` m. Each cell's candidates are generated once (deterministic, from the cell's hash) through the shard's
- * hooks and cached, then the ones that can show from here are copied into the instance buffers — no per-frame
- * allocation. The plants wear the shard's material graphs (its look.materials), which bend them and fade each one by its
+ * moved `refill` m. Each cell's plants are baked at build (generators/coverCells.ts: where a plant stands, its kind,
+ * scale, tint and the ground under it) and decoded from that file once per cell as the window caches it, then the ones
+ * that can show from here are copied into the instance buffers — no per-frame allocation. The plants wear the shard's material graphs (its look.materials), which bend them and fade each one by its
  * distance to the camera; the cover sets their params (a kind's reach, far reach, mode and keep once, the viewer's
  * position, the slope reach and the far set's grow-in every frame).
  *
@@ -29,41 +28,14 @@ import type { StreamedCoverRow } from './rows';
  *   swaps in one frame when it is all on the GPU. The near set starts `nearLag` m early and must swap within
  *   `nearLag` m of travel (else the rest uploads that frame).
  *
- * Nothing here knows a shard: its numbers and kinds are rows in its `data/`, its graphs its look's; where a plant may
- * stand, how dense each kind is there, its tint and the ground it stands on are the shard's hooks.
+ * Nothing here knows a shard: its numbers and kinds are rows in its `data/`, its graphs its look's, its plants a baked
+ * file.
  *
  *   setCoverLooks({ materials, setParam, follow });   // the compiled graphs, before the world builds
- *   const cover = new StreamedCover({ row, geometry, hooks, heightAt }).build();
+ *   const cover = new StreamedCover({ row, geometry, cells, heightAt }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  */
-
-/** A candidate point's site, as the shard's `site` hook fills it (the shard's own fields beside these). */
-export interface CoverSite {
-  /** the ground's height over the cover's datum (the shard's: e.g. over the sea) and its slope (1 − normal y) */
-  h: number;
-  slope: number;
-  nx: number;
-  ny: number;
-  nz: number;
-}
-
-/** The shard's placement rules. */
-export interface StreamedCoverHooks<S extends CoverSite> {
-  /** a new site to fill */
-  readonly newSite: () => S;
-  /** a candidate point (x, z): fill `site` and return true, or false to place nothing there */
-  readonly site: (x: number, z: number, site: S) => boolean;
-  /** kind `kind`'s (row index) instances per candidate × 2 at a site */
-  readonly density: (kind: number, site: S) => number;
-  /** whether kind `kind` (row index) has a per-instance tint (its meshes then carry instance colours) */
-  readonly tinted: (kind: number) => boolean;
-  /** kind `kind`'s per-instance tint (multiplies the vertex colours), drawn from `rng`, into `out` (a tinted kind only) */
-  readonly tint: (kind: number, site: S, rng: Rng, out: THREE.Color) => void;
-  /** the plant at (x, z) on that site: writes the cover grid's side, the ground's colour (rgb) and the cover's (jittered
-   *  rgb, top) at `out[o … o + 7]` and returns the ground's height */
-  readonly ground: (x: number, z: number, site: S, out: Float32Array, o: number) => number;
-}
 
 /** The cover's compiled graphs by look.materials id, their param setter and their toon look's once-a-frame follow. */
 export interface CoverLooks {
@@ -76,15 +48,14 @@ let lent: CoverLooks | null = null;
 export function setCoverLooks(looks: CoverLooks): void { lent = looks; }
 
 /** What the cover needs. */
-export interface StreamedCoverOptions<S extends CoverSite> {
+export interface StreamedCoverOptions {
   readonly row: StreamedCoverRow;
   /** the kinds' geometries by the rows' keys */
   readonly geometry: Readonly<Record<string, THREE.BufferGeometry>>;
-  readonly hooks: StreamedCoverHooks<S>;
+  /** the baked cells (generators/coverCells.ts) */
+  readonly cells: Uint8Array;
   /** the ground height under the viewer (the slope reach fades out over it) */
   readonly heightAt: (x: number, z: number) => number;
-  /** the cells' seed */
-  readonly seed: number;
 }
 
 /** Measurements for the pop-in / stutter scripts (`group.userData.stats`). */
@@ -98,6 +69,21 @@ const MODE_NEAR = 0, MODE_HANDOVER = 1, MODE_FAR = 2;
 /** floats per cached candidate: x y z yaw scale · tint rgb · ground normal xyz, cover side (aNrm) · ground rgb (aGround) ·
  *  cover rgb top (aCover) */
 const STRIDE = 19;
+/** the baked file's header (u32s) and bytes per plant (generators/coverCells.ts) */
+const MAGIC = 0x43435357, VERSION = 1, HEAD = 9, PLANT = 22, TAU = Math.PI * 2, EMPTY = new Float32Array(0);
+
+/** the baked file: its cells' rect (cell coordinates), kinds, tinted kinds (a bit each) and each (cell, kind)'s first byte */
+interface CellFile { readonly view: DataView; readonly x0: number; readonly z0: number; readonly w: number; readonly h: number; readonly nk: number; readonly tinted: number; readonly starts: Uint32Array }
+
+function readCells(bytes: Uint8Array, cell: number): CellFile {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), u = (i: number): number => (bytes.byteLength >= HEAD * 4 ? view.getUint32(i * 4, true) : 0);
+  if (u(0) !== MAGIC || u(1) !== VERSION || u(2) !== cell) throw new Error('StreamedCover: the baked cells are missing or another version (rebuild them)');
+  const w = u(5), h = u(6), nk = u(7), n = w * h * nk, starts = new Uint32Array(n + 1);
+  starts[0] = (HEAD * 4 + n * 2 + 3) & ~3;
+  for (let i = 0; i < Math.min(n, 1048576); i++) starts[i + 1] = (starts[i] ?? 0) + view.getUint16(HEAD * 4 + i * 2, true) * PLANT;
+  if (starts[n] !== bytes.byteLength) throw new Error('StreamedCover: the baked cells are corrupt (rebuild them)');
+  return { view, x0: u(3) - 2 ** 15, z0: u(4) - 2 ** 15, w, h, nk, tinted: u(8), starts };
+}
 
 /** the cover's per-instance attributes: the ground's colour, the cover's (rgb, top) and the ground normal + cover side */
 const ATTRS = [{ name: 'aGround', size: 3 }, { name: 'aCover', size: 4 }, { name: 'aNrm', size: 4 }] as const;
@@ -137,12 +123,13 @@ function writePlant(A: InstanceArrays, n: number, v: Float32Array, i: number): v
 }
 
 /** A ground cover streamed round the viewer (see the module comment). */
-export class StreamedCover<S extends CoverSite> {
+export class StreamedCover {
   /** the cover's meshes (the shard may add its own) */
   readonly group = new THREE.Group();
   /** measurements (also `group.userData.stats`) */
   readonly stats: StreamedCoverStats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
-  private readonly o: StreamedCoverOptions<S>;
+  private readonly o: StreamedCoverOptions;
+  private readonly file: CellFile;
   private readonly row: StreamedCoverRow;
   private readonly farBudgetMs: number;
   private readonly kinds: Kind[] = [];
@@ -155,8 +142,6 @@ export class StreamedCover<S extends CoverSite> {
   private readonly player = [0, 0, 0];
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
   private rMax = 0;
-  private readonly tint = new THREE.Color();
-  private readonly site: S;
   /** the far tier's rebuild: a job stepped within the budget a frame; where the shown / the next set were built from */
   private farJob: Generator<undefined, undefined, undefined> | null = null;
   private readonly farLast = new THREE.Vector3(1e9, 0, 1e9);
@@ -167,16 +152,13 @@ export class StreamedCover<S extends CoverSite> {
   /** a near set is in the back meshes, uploading; the far job has written its whole set (it uploads until swapped) */
   private nearPending = false;
   private farWritten = false;
-  /** per kind, a candidate cell's plants as they are generated */
-  private readonly scratch: Float32Array[] = [];
-  private readonly cellLens: number[] = [];
 
-  /** The cover's rows, geometries and hooks. */
-  constructor(options: StreamedCoverOptions<S>) {
+  /** The cover's rows, geometries and baked cells. */
+  constructor(options: StreamedCoverOptions) {
     this.o = options;
     this.row = options.row;
+    this.file = readCells(options.cells, options.row.cell);
     this.farBudgetMs = forTier(this.row.farBudgetMs);
-    this.site = options.hooks.newSite();
     this.cells = new CellWindow(this.row.cell, (cx, cz) => this.generate(cx, cz));
   }
 
@@ -208,7 +190,7 @@ export class StreamedCover<S extends CoverSite> {
     for (let ki = 0; ki < Math.min(row.kinds.length, 32); ki++) {
       const k = row.kinds[ki];
       if (k === undefined) continue;
-      const cap = Math.round(k.cap * capK), [near, far] = k.reach, hasTint = this.o.hooks.tinted(ki);
+      const cap = Math.round(k.cap * capK), [near, far] = k.reach, hasTint = (this.file.tinted & (1 << ki)) !== 0;
       const reach = new THREE.Vector3(near * K, far * K, (far - near) * K * row.growShare);
       this.rMax = Math.max(this.rMax, reach.y * sr.up + row.refill + row.eyeSlack); // sized for the slope reach
       let farTier: FarTier | null = null;
@@ -228,41 +210,25 @@ export class StreamedCover<S extends CoverSite> {
     return this;
   }
 
-  /** Drop every cached cell and refill both tiers next update (the shard's placement rules changed). */
-  reset(): void {
-    this.cells.clear();
-    this.last.set(1e9, 0, 1e9); this.farLast.set(1e9, 0, 1e9);
-  }
-
-  /** a cell's candidates per kind (STRIDE floats each), generated once (the window caches them) */
+  /** a cell's plants per kind (STRIDE floats each), decoded once from the baked file (the window caches them) */
   private generate(cx: number, cz: number): Float32Array[] {
-    const row = this.row, CELL = row.cell, hooks = this.o.hooks, site = this.site;
-    const rng = new Rng(this.o.seed ^ Math.imul(cx + 1013, 73856093) ^ Math.imul(cz + 2027, 19349663));
-    // one candidate set per cell, the site read once per point, then a density lottery per kind
-    const n = row.candidates;
-    // written into per-kind scratch (a kind takes at most one plant per candidate), then one exact copy per kind
-    const kinds = this.kinds, nk = kinds.length, len = this.cellLens;
-    while (this.scratch.length < nk) this.scratch.push(new Float32Array(n * STRIDE));
-    len.length = nk; len.fill(0);
-    for (let i = 0; i < n; i++) {
-      const x = (cx + rng.next()) * CELL, z = (cz + rng.next()) * CELL;
-      if (!hooks.site(x, z, site)) continue;
-      for (let ki = 0; ki < nk; ki++) {
-        const k = kinds[ki], out = this.scratch[ki];
-        if (k === undefined || out === undefined) continue;
-        const d = hooks.density(ki, site);
-        if (rng.next() * 2 > d) continue;
-        const jx = x + rng.range(-0.3, 0.3), jz = z + rng.range(-0.3, 0.3), sc = rng.range(k.scale[0], k.scale[1]);
-        if (hooks.tinted(ki)) hooks.tint(ki, site, rng, this.tint); else this.tint.setRGB(1, 1, 1);
-        const yaw = rng.range(0, Math.PI * 2), o = len[ki] ?? 0;
-        out[o] = jx; out[o + 1] = hooks.ground(jx, jz, site, out, o + 11) - row.sink; out[o + 2] = jz; out[o + 3] = yaw; out[o + 4] = sc;
-        out[o + 5] = this.tint.r; out[o + 6] = this.tint.g; out[o + 7] = this.tint.b;
-        out[o + 8] = site.nx; out[o + 9] = site.ny; out[o + 10] = site.nz;
-        len[ki] = o + STRIDE;
+    const f = this.file, d = f.view, CELL = this.row.cell, i = cx - f.x0, k = cz - f.z0, out: Float32Array[] = [];
+    this.kinds.forEach((kind, ki) => {
+      const c = (k * f.w + i) * f.nk + ki, a = f.starts[c] ?? 0, b = f.starts[c + 1] ?? 0, [s0, s1] = kind.scale;
+      if (i < 0 || k < 0 || i >= f.w || k >= f.h || ki >= f.nk) { out.push(EMPTY); return; }
+      const count = (b - a) / PLANT, v = new Float32Array(count * STRIDE);
+      for (let e = 0; e < Math.min(count, 65535); e++) {
+        const o = a + e * PLANT, p = e * STRIDE;
+        const nx = d.getInt8(o + 12) / 127, nz = d.getInt8(o + 13) / 127;
+        v[p] = cx * CELL - 0.5 + (d.getUint16(o, true) / 65535) * (CELL + 1); v[p + 1] = (d.getUint16(o + 4, true) / 65535) * 128 - 16;
+        v[p + 2] = cz * CELL - 0.5 + (d.getUint16(o + 2, true) / 65535) * (CELL + 1); v[p + 3] = (d.getUint16(o + 6, true) / 65535) * TAU;
+        v[p + 4] = s0 + (d.getUint8(o + 8) / 255) * (s1 - s0);
+        for (let j = 0; j < 3; j++) v[p + 5 + j] = (d.getUint8(o + 9 + j) / 255) * 2;
+        v[p + 8] = nx; v[p + 9] = Math.sqrt(Math.max(0, 1 - nx * nx - nz * nz)); v[p + 10] = nz;
+        for (let j = 0; j < 8; j++) v[p + 11 + j] = d.getUint8(o + 14 + j) / 255;
       }
-    }
-    const out: Float32Array[] = [];
-    for (let ki = 0; ki < nk; ki++) out.push((this.scratch[ki] ?? new Float32Array(0)).slice(0, len[ki] ?? 0));
+      out.push(v);
+    });
     return out;
   }
 
@@ -272,7 +238,7 @@ export class StreamedCover<S extends CoverSite> {
     const t0 = diagnosticNow(), row = this.row;
     for (const k of this.kinds) k.set.begin();
     const arrs = this.kinds.map((k) => k.set.arrays());
-    const TAU = Math.PI * 2, up = this.uniforms.uReachUp.value, slack = row.refill + row.eyeSlack;
+    const up = this.uniforms.uReachUp.value, slack = row.refill + row.eyeSlack;
     // nearest cells first: a kind that runs into its cap then drops its furthest (thinnest) plants, not a corner
     for (const [cx, cz] of this.cells.within(px, pz, this.rMax)) {
       const data = this.cells.get(cx, cz);
@@ -300,7 +266,7 @@ export class StreamedCover<S extends CoverSite> {
     const row = this.row, cellsAt = this.cells.within(px, pz, this.rFar);
     for (const k of this.kinds) k.far?.set.begin();
     const arrs = this.kinds.map((k) => k.far?.set.arrays() ?? null);
-    const TAU = Math.PI * 2, slack = row.farSlack + row.eyeSlack, up = this.uniforms.uReachUp.value;
+    const slack = row.farSlack + row.eyeSlack, up = this.uniforms.uReachUp.value;
     for (const [cx, cz] of cellsAt) {
       if (!this.cells.has(cx, cz)) { this.cells.get(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
       const data = this.cells.get(cx, cz);

@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { triAreas, type CoverTri } from './coverTris';
 import { islandProtos, type IslandProto } from './islandProtos';
 import { AuthorCoverGrid, baseCoverGrid } from './coverGrid';
+import { bakeCoverCells } from './coverCells';
 import { area } from '../world/blenderArea';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with {type:'json'};
 import { coveFamilyOf, type CoveFamily } from '../runtime/models/cove';
@@ -127,7 +128,7 @@ export function islandSets(f: Float32Array, meta: CoverMeta, used: number, phone
   return { casters, covers, bigs, smallRocks: apart };
 }
 
-export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}): Promise<{bytes:Uint8Array;used:number;rect:{x:number;z:number;width:number;height:number}}> {
+export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;rect:{x:number;z:number;width:number;height:number}}> {
   const base = '/assets/models/driftwood-blender/';
   const meta = v.parse(v.object({ protos: v.array(v.object({ name: v.string(), kind: v.string() })), mustDraw: v.number() }), JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
   const protos = await islandProtos(readAsset(`${base}island.glb`), meta), f = islandPlacements(Uint8Array.from(readAsset(`${base}placements.bin`)).buffer);
@@ -135,7 +136,7 @@ export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array
   const grid=baseCoverGrid(palms,ground.heightAt,ground.normalAt,ground.trailDistance);
   grid.writeBlock(islandCoverBlock(coverTrianglesOf(protos,f,[sets.covers,sets.bigs])),area.x0,area.x1,area.z0,area.z1);
   const {data,rect}=grid.crop();
-  return {bytes:encodeIslandCover(data,used),used,rect};
+  return {bytes:encodeIslandCover(data,used),cells:bakeCoverCells(grid,palms,ground,seed,area),used,rect};
 }
 
 

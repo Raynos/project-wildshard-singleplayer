@@ -1,7 +1,8 @@
 import { driftwoodRows } from '../runtime/boot/rows';
 import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 import { loadIslandCover } from './islandCover';
-import { area as BLENDER_AREA } from './blenderArea';
+import { TIER } from '@wildshard/engine/core/tier';
+import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -89,7 +90,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress?: StepProgress): Promise<DriftwoodWorld> {
   const lowered = G164_LOWERED;
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, { normalAt, TRAILS }, , coverGrid] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover()]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, { normalAt, TRAILS }, , coverGrid, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
   // Jake's SF72 pick: each sea ramp flares from the full entry socket at the landing to its deck.
   const cut = lowered.pierStart, seaRamp = { seaRamp: { run: lowered.seaRamp, flare: ENTRY_WIDTH } };
@@ -185,9 +186,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs, grid:coverGrid });
-  cover.excludeArea(BLENDER_AREA); // Required baked cover owns this rectangle before the first refill.
-  cover.build();
+  const cover = new GroundCover(sky, { cells: coverCells, grid: coverGrid }).build(); // its plants baked per cell (generators/coverCells.ts)
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await stages.next('Palms and ground cover');

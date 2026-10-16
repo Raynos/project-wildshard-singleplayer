@@ -145,7 +145,7 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
     const clips={palms:retain(mergedPalms,palmKeep(palms)),bushes:retain(mergedBushes,(x,z)=>!inArea(x,z)),logs:retain(logs.geometry,(x,z)=>!inArea(x,z))};
     bushesReady?.(tier,mergedBushes,bg,clips.bushes);
     palmsReady?.(tier,mergedPalms,pg,clips.palms);
-    const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground);
+    const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground,manifest.seed);
     tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }

@@ -35,6 +35,10 @@ function paint(c: THREE.Color, { h, slope, x, z, y, lip }: FacetedGroundCell, f:
   }
 }
 
+/** The facet colour by height and slope, without paths or lips (the ground under each streamed cover plant,
+ *  coverCells.ts). */
+export const facetColour = (c: THREE.Color, h: number, slope: number, x: number, z: number): THREE.Color => lowPolyGroundColor(c, h, slope, x, z);
+
 /** The painted grid: positions, Uint8 colours and the index (the last index of a triangle is its provoking vertex). */
 export function facetedGrid(f: FacetedGroundField, row: FacetedGroundRow, wl: number): { pos: Float32Array; col: Uint8Array; idx: Uint16Array } {
   const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n, lipRow = row.lip;

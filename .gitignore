@@ -1918,3 +1918,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/pine-hollow/assets/journal/
 /src/shards/pine-hollow/data/journal.generated.json
 /src/shards/pine-hollow/data/journalBlobs.generated.json
+
+# Driftwood streamed cover cells (registered build outputs).
+/src/shards/driftwood-isle/assets/1ac4b986a648982c2ea67bf9f0190145c21ac38735a8c76ade68581ab7fab08a
+/src/shards/driftwood-isle/assets/f3aa5483963c5000ead63cdb5e80b29ea862697b7cc9f71f74742fa955d25a6a

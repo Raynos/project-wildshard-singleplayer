@@ -5,7 +5,7 @@ import { ISLAND } from '../data/layout';
 import { islandCoveSpec } from './coveLayout';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
 import { GROUND_COVER } from '../data/coverLook';
-import { DENSITY, type Site } from '../runtime/looks/coverSites';
+import { DENSITY, type Site } from './coverSites';
 import type { CoverSample } from '../runtime/looks/coverGrid';
 
 const smooth = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
@@ -35,6 +35,22 @@ export class AuthorCoverGrid {
     for(let z=z0;z<=z1;z++)data.set(this.data.subarray((z*this.n+x0)*5,(z*this.n+x1+1)*5),(z-z0)*width*5);
     return{data,rect:{x:x0,z:z0,width,height}};
   }
+  /** Bilinear sample at (x, z) into out (the colour weighted by cover, so a bare neighbour doesn't grey it). */
+  sample(x: number, z: number, out: CoverSample): CoverSample {
+    const n = this.n, fx = (x + CHUNK_HALF) / this.step, fz = (z + CHUNK_HALF) / this.step;
+    const i = Math.max(0, Math.min(n - 2, Math.floor(fx))), k = Math.max(0, Math.min(n - 2, Math.floor(fz)));
+    const u = Math.min(1, Math.max(0, fx - i)), w = Math.min(1, Math.max(0, fz - k));
+    let r = 0, g = 0, b = 0, cw = 0, top = 0, side = 0;
+    for (let c = 0; c < 4; c++) {
+      const di = c & 1, dk = c >> 1, wt = (di === 1 ? u : 1 - u) * (dk === 1 ? w : 1 - w);
+      const o = ((k + dk) * n + i + di) * 5, t = this.data[o + 3] ?? 0, sd = this.data[o + 4] ?? 0, ca = (t + sd) * wt;
+      r += (this.data[o] ?? 0) * ca; g += (this.data[o + 1] ?? 0) * ca; b += (this.data[o + 2] ?? 0) * ca; cw += ca;
+      top += t * wt; side += sd * wt;
+    }
+    if (cw < 1e-5) { out.r = 0; out.g = 0; out.b = 0; out.top = 0; out.side = 0; return out; }
+    out.r = r / cw; out.g = g / cw; out.b = b / cw; out.top = top; out.side = side;
+    return out;
+  }
   writeBlock(block: Float32Array, x0:number,x1:number,z0:number,z1:number): void {
     if(block.length!==this.blockLength(x0,x1,z0,z1))throw new Error('Author cover overlay differs');
     const i0=this.ix(x0),i1=this.ix(x1),k0=this.ix(z0),k1=this.ix(z1),row=(i1-i0+1)*5;
@@ -51,10 +67,16 @@ function nearPalm(palms: readonly { x: number; z: number }[], x: number, z: numb
   }
 
 
+/** Where the cover places nothing: the named places' footprints, the cave mouth and the pier's landing; and the shrine
+ *  (the jungle's centre). */
+export function coverAvoid(): { avoid: { x: number; z: number; r: number }[]; shrine: { x: number; z: number } } {
+ const cave=islandCoveSpec().cave;
+ return { avoid: [{x:HUT.x,z:HUT.z,r:9},{x:LOOKOUT.x,z:LOOKOUT.z,r:8},{x:SHRINE.x,z:SHRINE.z,r:9.5},{x:WRECK.x,z:WRECK.z,r:13},{x:cave.x,z:cave.z+cave.depth/2,r:8},{x:0,z:-151,r:3.2}], shrine: { x: SHRINE.x, z: SHRINE.z } };
+}
+
 /** The native cover estimate outside the Blender splat, compiled once per tier. */
 export function baseCoverGrid(palms: readonly {x:number;z:number}[], heightAt:(x:number,z:number)=>number, normalAt:(x:number,z:number,eps:number)=>[number,number,number], trailDistance:(x:number,z:number)=>number): AuthorCoverGrid {
- const cave=islandCoveSpec().cave;
- const avoid=[{x:HUT.x,z:HUT.z,r:9},{x:LOOKOUT.x,z:LOOKOUT.z,r:8},{x:SHRINE.x,z:SHRINE.z,r:9.5},{x:WRECK.x,z:WRECK.z,r:13},{x:cave.x,z:cave.z+cave.depth/2,r:8},{x:0,z:-151,r:3.2}];
+ const { avoid } = coverAvoid();
     const sea = 0, grid = new AuthorCoverGrid(), per = GROUND_COVER.candidates / (GROUND_COVER.cell * GROUND_COVER.cell), col = new Color();
     const site: Site = { h: 0, slope: 0, nx: 0, ny: 1, nz: 0, td: 0, sd: 0, palm: 0 };
     grid.fill((x, z, out) => {

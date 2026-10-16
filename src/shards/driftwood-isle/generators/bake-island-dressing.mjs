@@ -42,6 +42,8 @@ for(const row of data.tiers){
  const hash=createHash('sha256').update(row.cover.bytes).digest('hex'),file=`island-cover-${hash}.bin`;
  writeFileSync(new URL(file,folder),row.cover.bytes);
  blobs.add(`world/cover/${row.tier}.bin`,'bin',row.cover.bytes,`/assets/driftwood-isle/baked/${file}`);
+ blobs.add(`world/cover/cells/${row.tier}.bin`,'bin',row.cover.cells); // the streamed cover's plants per cell (generators/coverCells.ts)
+ console.log(`cover-cells ${row.tier}: ${(row.cover.cells.length/1024).toFixed(0)} KB`);
  tiers[row.tier]={clips:row.clips,cover:{url:`/assets/driftwood-isle/baked/${file}`,hash,bytes:row.cover.bytes.length,used:row.cover.used,floats:(row.cover.bytes.length-16)/4,rect:row.cover.rect}};
 }
 writeFileSync(new URL('../data/islandDressing.generated.json',import.meta.url),`${JSON.stringify(Object.fromEntries(Object.entries(tiers).map(([tier,row])=>[tier,row.clips])))}\n`);
