@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
-import { PINE_GRAPHS } from '../src/shards/pine-hollow/data/graphLooks';
+import { PINE_GRAPHS } from '../src/shards/pine-hollow/generators/lookMaterials';
 import { KING_FX_GRAPHS, KING_FX_LOOKS } from '../src/shards/pine-hollow/data/kingFxLook';
 
 test("the Antler King's fog wall and lantern flame graphs validate, compile and take their live params", () => {

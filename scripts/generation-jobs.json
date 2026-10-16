@@ -190,6 +190,53 @@
       "platform": "portable"
     },
     {
+      "id": "pine-look-materials",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/lookMaterials.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/lookMaterials.ts",
+        "pineLookMaterials",
+        "src/shards/pine-hollow/data/lookMaterials.generated.json"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/lookMaterials.ts",
+        "src/shards/pine-hollow/generators/cabinGraphs.ts",
+        "src/shards/pine-hollow/data/cabinAssembly.ts",
+        "src/shards/pine-hollow/data/cabinLook.ts",
+        "src/shards/pine-hollow/data/caveShaftLook.ts",
+        "src/shards/pine-hollow/data/cragLook.ts",
+        "src/shards/pine-hollow/data/forestLook.ts",
+        "src/shards/pine-hollow/data/hearthLook.ts",
+        "src/shards/pine-hollow/data/kingFxLook.ts",
+        "src/shards/pine-hollow/data/skyLook.ts",
+        "src/shards/pine-hollow/data/streamLook.ts",
+        "src/shards/pine-hollow/data/undergrowthLook.ts",
+        "src/shards/pine-hollow/data/waterLook.ts",
+        "src/shards/pine-hollow/data/weatherLook.ts",
+        "src/shards/pine-hollow/data/wildlifeLook.ts",
+        "src/shards/pine-hollow/data/wildlifeKinds.ts",
+        "src/format",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/lookMaterials.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/lookMaterials.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "portable"
+    },
+    {
       "id": "driftwood-island-clips",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/islandClips.ts",

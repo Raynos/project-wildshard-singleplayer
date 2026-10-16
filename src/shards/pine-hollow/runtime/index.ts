@@ -39,7 +39,7 @@ import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { Cabins } from '../world/homestead';
 import { updatePineForest } from '../world/treeFactory';
-import { PINE_GRAPHS } from '../data/graphLooks';
+import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
 import { lendPineLooks } from './looks/graphLooks';
 import { dressPineWater } from '../world/water';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
@@ -100,8 +100,8 @@ export class PineHollow extends ShardPlugin {
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
     ctx.app.registerTrample(trample, ctx.scope);
-    // the look.materials graphs the spray, the water, the cabins' hearth particles and the cave's shaft wear (data/graphLooks.ts), owned by this scope
-    lendPineLooks(await runtimeLookMaterials(ctx, source, true, Object.keys(PINE_GRAPHS)));
+    // the look.materials graphs the spray, the water, the cabins' hearth particles and the cave's shaft wear (generators/lookMaterials.ts, built as data/lookMaterials.generated.json), owned by this scope
+    lendPineLooks(await runtimeLookMaterials(ctx, source, true, lookMaterials.runtime));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
     lendPineWildlifeLook(await runtimeLookMaterials(ctx, source, true, [WILDLIFE_LOOK]));

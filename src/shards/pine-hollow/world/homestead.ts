@@ -11,7 +11,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { loadPainted } from '../runtime/looks/paintedTextures';
-import { CABIN_DOOR_LOOK, CABIN_LIFE, cabinMossLook } from '../data/cabinLook';
+import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 import type { PropPart } from '../models/logCabin';
@@ -77,9 +77,9 @@ async function loadMats(sky: Sky): Promise<Mats> {
   };
   const m: Mats = {
     log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: endGrain }),
-    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: pineMappedLook(cabinMossLook('roof'), scan('roof')), beam: scan('beam'), deck: scan('deck'),
+    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: pineMappedLook(CABIN_MOSS_LOOKS.roof, scan('roof')), beam: scan('beam'), deck: scan('deck'),
     door: pineMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
-    stone: pineMappedLook(cabinMossLook('stone'), scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
+    stone: pineMappedLook(CABIN_MOSS_LOOKS.stone, scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
     glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
     iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
     smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
@@ -89,7 +89,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
   for (const key of ['roof', 'stone'] as const) {
     const normal = scan(key).normalMap;
     if (normal === null) throw new Error(`Cabin scan ${key} has no normal map`);
-    setPineLookTexture(cabinMossLook(key), 'normalMap', normal);
+    setPineLookTexture(CABIN_MOSS_LOOKS[key], 'normalMap', normal);
   }
   for (const k of ['log', 'endGrain', 'chink', 'beam', 'deck', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
