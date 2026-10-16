@@ -51,8 +51,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
   flags: Flags | null = null;
-  /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
-  private questWorld: ReturnType<typeof bindQuestPageInteractions>['world'] | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
@@ -98,8 +96,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     await worldBuildYield(ctx, 4);
 
     const page = bindQuestPageInteractions(source, { flags, toast, interactables:rt.interactables,
-      owners: new Map<string,unknown>([['world',built],['plugin',this]]) });
-    this.questWorld = page.world;
+      owners: new Map<string,unknown>([['world',built],['plugin',this]]) }, ctx.product.section('world/targets'));
+    page.bindWorldTargets(fan);
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     await worldBuildYield(ctx, 4);
     const host = motion.scriptHost; this.bindHeldActions(ctx, channels.hooks, () => host.currentTick);
@@ -131,7 +129,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     wind('updraftStreaks').place(...axis); wind('updraftLeaves').place(...axis);
     fan.onGust = (from, dir) => {
       const at = from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), salt = fxRandom.next(); gust[0].burst(at, dir, salt); gust[1].burst(at, dir, salt);
-      rt.play?.cues.charge(FAN_ROW, 'heavy'); this.gustVanes(from, dir);
+      rt.play?.cues.charge(FAN_ROW, 'heavy');
     };
     ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gust[0].update(dt); gust[1].update(dt); } });
 
@@ -187,10 +185,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (name === 'roc-opening') { this.built?.storm.strike(1.0); if (body !== null) body.stageOpening(); }
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
     if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
-  }
-  /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
-  gustVanes(from: Vector3, dir: Vector3): number {
-    return this.questWorld?.scan(from, dir) ?? 0;
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   /** Borrowed capture command on the actual bridge owner. */
