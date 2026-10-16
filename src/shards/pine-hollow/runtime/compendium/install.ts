@@ -9,12 +9,13 @@ export function installPineCompendium(host: CompendiumHost): ReturnType<typeof i
     let wall: TrophyWallInstance | null = null;
     const place = def.wall, root = place ? host.cabins?.roots[place.cabin] : undefined;
     if (place && root && (def.trophies ?? []).length > 0) {
+      if (host.context === undefined) throw new Error('Pine trophy wall needs its shard context (the product)');
       const anchor = new THREE.Object3D();
       anchor.position.set(...place.at);
       anchor.rotation.y = place.yaw;
       root.add(anchor);
       anchor.updateMatrixWorld(true);
-      wall = new TrophyWall({ anchor, state, rows: place.rows, width: place.width, rowY: place.rowY, tip: true });
+      wall = new TrophyWall({ product: host.context.product, anchor, state, rows: place.rows, width: place.width, rowY: place.rowY, tip: true });
       wall.onExamine = (id) => { journal.open(id); };
       host.interactables.push(wall.interactable);
     }

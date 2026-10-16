@@ -23,12 +23,16 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { fetchDeflated, GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import mounts from '../../data/trophyMounts.json' with { type: 'json' };
-import { CHALK_LAYOUT, loadPainted } from '../looks/paintedTextures';
+import type { InferOutput } from 'valibot';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { SECTIONS } from '../sections';
+import { chalkLayout, loadPainted } from '../looks/paintedTextures';
 import type { CompendiumState } from "@wildshard/game/compendium/state";
 import type { TrophySlot } from "@wildshard/game/compendium/types";
 
 export interface TrophyWallOptions {
+  /** the admitted product: the baked mounts pack (`custom/trophyMounts`, a named blob) */
+  product: ShardProduct;
   anchor: THREE.Object3D;
   state: CompendiumState;
   /** slots per row, top row first (their sum = the slot count) */
@@ -46,8 +50,14 @@ interface Placed { slot: TrophySlot; x: number; y: number; w: number; h: number 
 const LOOK_RANGE = 4.2;
 /** past this (m) the wall is not drawn */
 const CULL = 30;
-/** each mount slot's geometry in the baked pack (by entry id) */
-const MOUNT_SLOTS: Readonly<Record<string, number>> = mounts.slots;
+type TrophyMounts = InferOutput<(typeof SECTIONS)['custom/trophyMounts']>;
+/** The section's pack rows as the pack reader takes them: the bake writes no index (`own` null on every geometry). */
+function mountRows(rows: TrophyMounts['rows']): Parameters<typeof packedRows>[0] {
+  return { bytes: rows.bytes, geometries: rows.geometries.map(g => {
+    if (g.own !== null) throw new Error('[trophy-wall] an indexed mount geometry: custom/trophyMounts declares no index kind');
+    return { ...g, own: null };
+  }) };
+}
 
 export class TrophyWall {
   readonly scope = uiScope('trophyWall');
@@ -68,8 +78,13 @@ export class TrophyWall {
   private readonly tmp = new THREE.Vector3();
   private readonly hit = new THREE.Vector3();
   private readonly plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  /** the baked mounts pack's rows and its blob URL; each slot's geometry in the pack by entry id */
+  private readonly pack: TrophyMounts;
+  private readonly packUrl: string;
 
   constructor(private opts: TrophyWallOptions) {
+    this.pack = opts.product.section('custom/trophyMounts', SECTIONS);
+    this.packUrl = opts.product.url(this.pack.url);
     const slots = opts.state.def.trophies ?? [];
     let k = 0;
     opts.rows.forEach((count, r) => {
@@ -101,11 +116,11 @@ export class TrophyWall {
   /** the taken slots' baked mounts merged into one mesh; the pack is fetched only while a slot is taken, never kept */
   private async mountTaken(): Promise<void> {
     const build = ++this.builds;
-    const taken = this.placed.flatMap((p) => { const i = this.taken(p) ? MOUNT_SLOTS[p.slot.entry] : undefined; return i === undefined ? [] : [i]; });
+    const taken = this.placed.flatMap((p) => { const i = this.taken(p) ? this.pack.slots[p.slot.entry] : undefined; return i === undefined ? [] : [i]; });
     let parts: THREE.BufferGeometry[] = [];
     if (taken.length > 0) {
       try {
-        const pack = new GeometryPack(await fetchDeflated(mounts.url), packedRows(mounts.rows), 'trophy-wall');
+        const pack = new GeometryPack(await fetchDeflated(this.packUrl), packedRows(mountRows(this.pack.rows)), 'trophy-wall');
         parts = taken.map((i) => pack.geometry(i));
       } catch (error: unknown) { console.error('[trophy-wall] the baked mounts did not load:', error); return; }
     }
@@ -130,7 +145,7 @@ export class TrophyWall {
     const mat = this.chalkMat;
     if (!mat) return;
     if (this.chalk) { this.group.remove(this.chalk); this.chalk.geometry.dispose(); this.chalk = null; }
-    const [aw = 1, ah = 1] = CHALK_LAYOUT.size, outlines: Readonly<Record<string, readonly number[]>> = CHALK_LAYOUT.outlines, labels: Readonly<Record<string, readonly number[]>> = CHALK_LAYOUT.labels;
+    const layout = chalkLayout(), [aw, ah] = layout.size, outlines: Readonly<Record<string, readonly number[]>> = layout.outlines, labels: Readonly<Record<string, readonly number[]>> = layout.labels;
     const quad = (rect: readonly number[] | undefined, w: number, h: number, x: number, y: number): THREE.BufferGeometry => {
       if (rect === undefined) throw new Error('[trophy-wall] a slot has no baked chalk');
       const [rx = 0, ry = 0, rw = 0, rh = 0] = rect, g = new THREE.PlaneGeometry(w, h), uv = g.getAttribute('uv');

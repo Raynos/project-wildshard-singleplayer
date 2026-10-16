@@ -1,5 +1,5 @@
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
-import SKIN_PICKUPS from '../data/skinPickups.json' with { type: 'json' };
+import { SECTIONS } from './sections';
 import { preloadHeldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -12,7 +12,6 @@ import { installEnteredPineVoices } from './audio/entered';
 import { PINE_SPAWNS } from '../combat/spawns';
 import { PINE_SPECIES, pineDeer, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
-import { PINE_FEATS, PINE_BAG_ITEMS as PINE_ITEMS } from '../data/questInventory';
 import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
 import { installPineCompendium } from './compendium/install';
 import { ShardPlugin,type ShardContext } from '@wildshard/game/plugin/context';
@@ -21,10 +20,6 @@ import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
-import { moduleBytes } from '@wildshard/game/plugin/brain';
-import { PINE_ELITE_MODULES } from '../data/eliteBrainRows';
-import nightModule from '../behaviour/night.generated.json' with { type: 'json' };
-import watchModule from '../behaviour/director.json' with { type: 'json' };
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { pineRifleFloor } from '../quest/rifleFloor';
@@ -32,6 +27,7 @@ import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/e
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
+import { admitPaintedTextures } from './looks/paintedTextures';
 import { crossbowHeldRows } from './items/boltCrossbow';
 import { leverHeldRows } from './items/leverFirearm';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
@@ -55,7 +51,6 @@ import { installPineCombat } from '../combat/install';
 import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
 import { installAmbientLife } from '@wildshard/game/plugin/ui';
-import { PINE_LIFE,LIFE_CAPACITY } from '../data/ambientLife';
 import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { loadBirdModels } from './birds';
@@ -63,13 +58,14 @@ import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/
 import { PINE_RUNTIME_GRAPHS, WILDLIFE_LOOK } from './const';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
+import { isPhShot } from './audio/sfx';
 import { installWeather, loadPineRain } from '../world/weather';
 import { LeverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS } from '../loadout/effects';
 import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from './loadout/finishes';
-import { SKINS, PINE_FINISHES, type SkinId } from './loadout/skins';
+import { SKINS, PINE_FINISHES, skinPickups, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
 import { isPineItem } from '../items';
@@ -81,6 +77,11 @@ function declaredProfile(ctx: ShardContext, id: string): unknown {
   if (row?.kind !== 'weapon' || row.profile === undefined) throw new Error(`Pine Hollow: combat/items declares no profile for ${id}`);
   return row.profile;
 }
+
+/** The client Wasm modules the play hook prepares before install: the four elites' brains, the night and the watch
+ *  directors (named blobs of the product, hash-checked by the reader). */
+const PREPARED_MODULES = ['behaviour/ironhide.wasm', 'behaviour/ghostStag.wasm', 'behaviour/blackpaw.wasm', 'behaviour/imperialBull.wasm',
+  'behaviour/night.wasm', 'behaviour/director.wasm'] as const;
 
 function runtime(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;
@@ -96,6 +97,7 @@ export class PineHollow extends ShardPlugin {
 
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
+    admitPaintedTextures(ctx.product);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
@@ -168,8 +170,9 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.species([...PINE_SPECIES, pineDeer(), pineElk()]);
     ctx.rows.speciesLook(pineLooks());
     ctx.rows.spawnTable(PINE_SPAWNS);
-    ctx.rows.item(PINE_ITEMS);
-    ctx.rows.feat(PINE_FEATS);
+    const inventory = ctx.product.section('custom/questInventory', SECTIONS);
+    ctx.rows.item(inventory.items);
+    ctx.rows.feat(inventory.feats);
     ctx.rows.compendium({ ...PINE_HOLLOW_COMPENDIUM, id: PINE_HOLLOW_COMPENDIUM.chunkId });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
@@ -197,7 +200,7 @@ export class PineHollow extends ShardPlugin {
 
   override async play(ctx: ShardContext): Promise<void> {
     if (!retainsRuntimeServices(ctx)) return this.installPlay(ctx);
-    const modules = [...Object.values(PINE_ELITE_MODULES), nightModule.bytes, watchModule.bytes].map(moduleBytes);
+    const modules = await Promise.all(PREPARED_MODULES.map(name => ctx.product.file(name)));
     await withPreparedScriptMemories(modules, ctx.scope, () => presenting() ? nextDrawnFrame(ctx.scope) : macrotask(), () => this.installPlay(ctx));
   }
 
@@ -219,7 +222,7 @@ export class PineHollow extends ShardPlugin {
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
     };
-    const skinDrops = new ClaimedPickupRoster<SkinId>(SKIN_PICKUPS, {
+    const skinDrops = new ClaimedPickupRoster<SkinId>(skinPickups(ctx.product.section('custom/skinPickups', SECTIONS)), {
       scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
       model: id => { const skin = SKINS[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
@@ -273,8 +276,9 @@ export class PineHollow extends ShardPlugin {
     installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
-    const wildlife=new WildlifeMesh(sky,LIFE_CAPACITY);
-    const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
+    const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
+    const wildlife=new WildlifeMesh(sky,lifeRows.scavenger.count+lifeRows.guide.count+lifeRows.forager.count+2);
+    const life = installAmbientLife(lifeRows,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!isPhShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });
