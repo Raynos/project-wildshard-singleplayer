@@ -27,6 +27,7 @@ import { MIDDAY_SKY_ROWS } from './skyPalette';
 import { SMOKE_LOOK } from './smokeLook';
 import { DAY_LIGHT, RAMP_FOG } from './toonLook';
 import { CASCADE_LOOKS } from './waterfallLook';
+import { WRECK_SITES } from './wreckSites';
 
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
@@ -70,4 +71,5 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CASTAWAY_HEAD_FOCUS', CASTAWAY_HEAD_FOCUS),
   defineMirror('CASTAWAY_FACING', CASTAWAY_FACING),
   defineMirror('CASTAWAY_SMOKE', CASTAWAY_SMOKE),
+  defineMirror('WRECK_SITES', WRECK_SITES),
 ];

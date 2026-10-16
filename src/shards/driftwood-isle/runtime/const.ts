@@ -157,3 +157,8 @@ export const CASTAWAY_HEAD_FOCUS = { range: 9, yawLimit: 1.1, pitchLimit: 0.4, p
 export const CASTAWAY_FACING = { range: 6, rate: 3, maxSpeed: 2.2, wrapTarget: true, wrapOutput: true } as const;
 /** the castaway's campfire smoke column (data/castawayLook.ts) */
 export const CASTAWAY_SMOKE = { count: 42, rise: 21, life: 13, rate: [0.85, 0.3], seedSpread: 10, reseed: 1.37, seed: 24076, ease: 0.9, linear: 0.1, base: 1.2, lean: 5, wind: [0.8, 0.55], wanderX: [8, 5, 0.2, 1.1], wanderZ: [6.3, 3, 0.2, 0.9], size: [0.9, 4.4], fadeIn: 0.08, fadeOut: 0.45, fadePow: 1.3, thin: [0.45, 0.55, 7.7], color: [0.8, 0.79, 0.77], opacity: [0.12, 0.46], opacityFrom: 8, opacityTo: 30, bounds: { offset: [2, 9, 1.5], radius: 14 }, renderOrder: 4, name: 'castaway-smoke' } as const;
+/** the two authored shipwreck sites, Wreck Cove (lowered with the world) and the Explorer's specimen (data/wreckSites.ts) */
+export const WRECK_SITES = {
+  world: { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 0.6499999999999999 },
+  specimen: { x: 0, z: 0, heading: 0, roll: -0.2, pitch: 0.05, floorY: 1.2 },
+} as const;

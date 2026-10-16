@@ -3,7 +3,7 @@ import { defineModel } from '@wildshard/engine/models/model';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { fixedGeometryReady, loadFixedGeometry, SHIPWRECK_KIT_GEOMETRY, SHIPWRECK_GLOW_GEOMETRY, WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY } from '../boot/fixedGeometry';
-import { WRECK_SITES } from '../../data/wreckSites';
+import { WRECK_SITES } from '../const';
 import type { WreckSpec } from '../../assets/contracts/wreck';
 
 /** Select the world landmark or flat-ground Explorer specimen; a new site needs an authored bake. */
