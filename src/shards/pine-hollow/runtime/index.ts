@@ -31,7 +31,7 @@ import { admitPaintedTextures } from './looks/paintedTextures';
 import { crossbowHeldRows } from './items/boltCrossbow';
 import { leverHeldRows } from './items/leverFirearm';
 import { crossbowDisplayModel } from './weapons/crossbow/display';
-import { Cabins } from './world/homestead';
+import { Cabins, loadCabinRows } from './world/homestead';
 import { updatePineForest } from '../world/treeFactory';
 import { lendPineLooks } from './looks/graphLooks';
 import { dressPineWater } from '../world/water';
@@ -124,7 +124,7 @@ export class PineHollow extends ShardPlugin {
     this.particles = carpet.particles;
     rt.overhead.push(carpet.grass.group, carpet.under.group, carpet.particles.group);
     await step('cabins', async () => {
-      const content = game.scene, cabins = new Cabins(sky, content);
+      const content = game.scene, cabins = new Cabins(sky, content, await loadCabinRows());
       const built = await cabins.build();
       content.add(built.group);
       rt.interactables.push(...built.interactables);

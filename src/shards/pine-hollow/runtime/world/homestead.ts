@@ -11,7 +11,8 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { loadPainted } from '../looks/paintedTextures';
-import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS, HEARTH_LOOKS, CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../const';
+import * as v from 'valibot';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
 import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
@@ -58,6 +59,31 @@ export interface Mats {
 }
 export type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 'glass'>;
 
+const number = v.pipe(v.number(), v.finite()), pair = v.tuple([number, number]), triple = v.tuple([number, number, number]);
+const waves = v.pipe(v.array(triple), v.maxLength(32));
+const materialRow = v.strictObject({ color: number, roughness: number, metalness: number,
+  transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(number), envMapIntensity: v.exactOptional(number),
+  emissiveIntensity: v.exactOptional(number), emissive: v.exactOptional(number), side: v.exactOptional(v.picklist([0, 1, 2])),
+  depthWrite: v.exactOptional(v.boolean()), vertexColors: v.exactOptional(v.boolean()) });
+/** Client-only author rows: unknown fields, malformed vectors and unbounded lists refuse before construction. */
+export const CabinRowsSchema = v.strictObject({
+  CABIN_DOOR_LOOK: v.string(), CABIN_MOSS_LOOKS: v.strictObject({ roof: v.string(), stone: v.string() }),
+  HEARTH_LOOKS: v.strictObject({ smoke: v.string(), flame: v.string(), ember: v.string() }),
+  CABIN_LIFE: v.strictObject({ door: v.strictObject({ seconds: number, angle: number }),
+    flicker: v.strictObject({ depth: number, waves }), fire: pair, lamp: pair, glass: pair,
+    swing: v.strictObject({ z: waves, x: pair }), indoor: v.strictObject({ doorRadius: number, ranks: pair }) }),
+  CABIN_PBR: v.pipe(v.array(v.strictObject({ key: v.picklist(['log', 'roof', 'beam', 'deck', 'door', 'stone', 'bark']),
+    scan: v.string(), color: triple, normal: pair })), v.length(7)),
+  CABIN_MATERIALS: v.strictObject({ endGrain: materialRow, chink: materialRow, glass: materialRow, iron: materialRow, cloth: materialRow, char: materialRow }),
+  CABIN_GLASS_EMISSIVE: triple, CABIN_LIGHT: v.strictObject({ count: number, color: number, intensity: number, distance: number, decay: number }),
+});
+type CabinRows = v.InferOutput<typeof CabinRowsSchema>;
+/** Read verified named JSON before the building or its materials are constructed. */
+export async function loadCabinRows(): Promise<CabinRows> {
+  const product = await loadFirstPartyProduct('pine-hollow');
+  return v.parse(CabinRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('world/cabins.json'))));
+}
+
 const matsCache = new WeakMap<Sky, Promise<Mats>>();
 /** the cabins' PBR materials, loaded once per sky and shared (PH-B3: the landmarks build with the same set — no new programs) */
 export function cabinMats(sky: Sky): Promise<Mats> {
@@ -65,6 +91,7 @@ export function cabinMats(sky: Sky): Promise<Mats> {
 }
 
 async function loadMats(sky: Sky): Promise<Mats> {
+  const { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, HEARTH_LOOKS, CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE } = await loadCabinRows();
   const cap = pineSetCap(TIER_CONFIG.maxTexture); // G180 B1: 512² on the phone with the memory trim on
   const [endGrain, glow] = await Promise.all([loadPainted('endGrain'), loadPainted('glow')]); // the log ends' and the lamps' (baked offline)
   const scans = new Map(await Promise.all(CABIN_PBR.map(async row => [row.key, pbrMaterial(await loadPBR(row.scan, 1, cap), {
@@ -139,6 +166,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   /** what the buildings were built from: kept for the Model Explorer's specimens */
   private loaded: { mats: Mats; props: Record<PropKind, PropPart[]>; firePit: THREE.Object3D; lantern: THREE.Object3D; geometries: CabinGeometries } | null = null;
   private readonly sky: Sky;
+  private readonly rows: CabinRows;
   /** the content scene the phone's shared cabin lights join (`game.scene`: a grid region's parked frame) */
   private readonly lightScene: THREE.Scene;
 
@@ -147,8 +175,9 @@ export class Cabins extends BuildingLife implements BuildingOwner {
    * the live root while a region builds changes every visible program's light count (sp-o6: nine programs relinked in one
    * 162 ms Simulator frame of Pine's `world` hook). In the parked frame the lights are future lights the entry warms.
    */
-  constructor(sky: Sky, lightScene: THREE.Scene) {
-    super(CABIN_LIFE);
+  constructor(sky: Sky, lightScene: THREE.Scene, rows: CabinRows) {
+    super(rows.CABIN_LIFE);
+    this.rows = rows;
     this.sky = sky;
     this.lightScene = lightScene;
   }
@@ -166,6 +195,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
    * their models. A bake that did not load leaves no buildings (a page fault).
    */
   async build(): Promise<{ group: THREE.Group; interactables: Interactable[] }> {
+    const { CABIN_LIGHT } = this.rows;
     // the seven PBR sets, the six models and the bake in one round of fetches
     const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadRigFile('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadRigFile('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadRigFile('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadRigFile('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
@@ -230,7 +260,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   update(dt: number, t: number): void {
     const cam = this.sky.viewCamera, sky = this.sky; cam.getWorldPosition(this.tmpV);
     this.tick(dt, t, this.tmpV, sky.lamps);
-    const id = HEARTH_LOOKS.smoke, c = sky.sunColor;
+    const id = this.rows.HEARTH_LOOKS.smoke, c = sky.sunColor;
     this.sunColour[0] = c.r; this.sunColour[1] = c.g; this.sunColour[2] = c.b;
     setPineLookParam(id, 'sunColour', this.sunColour); setPineLookParam(id, 'lamps', sky.lamps); setPineLookParam(id, 'shade', 1 - 0.8 * sky.night);
   }
