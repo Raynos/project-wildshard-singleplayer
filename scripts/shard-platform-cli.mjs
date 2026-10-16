@@ -43,14 +43,14 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         for(const scenario of metrics.scenarios)console.log(`    ${scenario.script} / ${scenario.scenario}: calls ${scenario.calls}, coarse fuel total/max ${scenario.fuel}/${scenario.maxFuel}, refusals ${scenario.refusals}; ${scenario.path} sha256:${scenario.receiptHash}`);
         for(const script of metrics.scripts.filter(value=>!value.measured))console.log(`    ${script.id}: fuel/calls unknown (no matching scenario receipt)`);
         if (row.status==='unclosed') {
-          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}  M3 ${m3}; grid ${row.gridReady.verdict}; gen TS ${row.generatorTsLines}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}`);
+          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}  M3 ${m3}; grid ${row.gridReady.verdict}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}`);
           console.log(`  grid-ready ${ready}`);
           for (const file of row.files.slice(0,5)) console.log(`  ${file.path}: ${file.count} escapes; ${file.messages.join('; ')}`);
           if (row.refusal) console.log(`  strict copy: ${row.refusal}`);
           continue;
         }
         const pct=row.customPercent===null?'native':`${row.customPercent.toFixed(2)} %`;
-        console.log(`${slug.padEnd(22)} closed     ${pct.padEnd(17)} 0        M3 ${m3}; grid ${row.gridReady.verdict}; ${row.customSections?.length}/${row.customSectionBytes}  AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}  gen TS ${row.generatorTsLines}  bin ${row.content?.privateBinaryBytes}  build ${row.oneUserBuildTools?.lines}`);
+        console.log(`${slug.padEnd(22)} closed     ${pct.padEnd(17)} 0        M3 ${m3}; grid ${row.gridReady.verdict}; ${row.customSections?.length}/${row.customSectionBytes}  AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}  bin ${row.content?.privateBinaryBytes}  build ${row.oneUserBuildTools?.lines}`);
         console.log(`  grid-ready ${ready}`);
       }
       const percent=value=>`${(100*value).toFixed(1)} %`;
@@ -62,7 +62,6 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         for(const [slug,row] of Object.entries(wave.shards))console.log(`  ${slug}: ${row.before} -> ${row.after??'unknown'} (${row.basis}), cut ${row.cut??'unknown'}`);
         for(const [layer,row] of Object.entries(wave.layers))console.log(`  ${layer}: ${row.before} -> ${row.after}, growth ${row.growth}`);
       }
-      console.log('Generator TS counts authored non-test source generators/ TS/TSX, excluding declaration files and registered generated artifacts; report-only, no M3 change.');
       console.log('Since-noon counts use the source ruler on both dates, including ownership/ruler corrections. Output closure never supplies a cut; negative removed lines mean growth.');
       console.log('Platform growth includes all concurrent engine/game/SDK work and build tools, once per wave; historical source and current output/source units differ. Net lines never change custom % or gate.');
     }

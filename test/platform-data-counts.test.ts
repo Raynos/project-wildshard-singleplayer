@@ -5,7 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {dirname,join} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- No repository copy.
 import {tmpdir} from 'node:os';
-import {shardLines,sourceProgressLines} from '../scripts/shard-platform.mjs';
+import {shardLines} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
 it('measures shipped TS, including generated copies, and never authoring data or shaders',()=>{
@@ -15,17 +15,10 @@ it('measures shipped TS, including generated copies, and never authoring data or
   platformOutput(root,'_template',{'runtime/index.ts':'export const LIVE=1;\nexport const GENERATED=2;'});
   put('src/shards/_template/data/table.ts','export const TABLE=1;');
   put('src/shards/_template/data/shader.glsl','void main() { gl_Position=vec4(0.0); }');
-  put('src/shards/_template/generators/bake.ts','// Author-only.\nexport const AUTHOR=1;\n\nexport const OTHER=2;');
-  put('src/shards/_template/generators/derived.ts','export const DERIVED=1;');
-  put('src/shards/_template/generators/bake.test.ts','export const TEST=1;');
-  put('src/shards/_template/generators/types.d.ts','export declare const TYPE:number;');
-  put('scripts/source-generation-outputs.json',JSON.stringify({schema:'source-generation-outputs/1',producers:{'scripts/producer.mjs':['src/shards/_template/runtime/index.ts','src/shards/_template/generators/derived.ts']}}));
+  put('src/shards/_template/generators/bake.ts','export const AUTHOR=1;');
+  put('scripts/source-generation-outputs.json',JSON.stringify({schema:'source-generation-outputs/1',producers:{'scripts/producer.mjs':['src/shards/_template/runtime/index.ts']}}));
   const row=shardLines(root,true)['_template'];
   expect(row?.conversion.customRuntimeLines).toBe(2);
-  expect(row?.generatorTsLines).toBe(2);
-  const progress=sourceProgressLines(root)['_template'];
-  expect(progress?.generatorTsLines).toBe(2);
-  expect(progress?.customLines).toBe(2);
   expect(row?.conversion.rawGlslLines).toBe(0);
   expect(row?.customSources?.map(source=>source.path)).toEqual(['out/_template/runtime/index.ts']);
  }finally{rmSync(root,{recursive:true,force:true});}

@@ -38,7 +38,7 @@ export async function outputReport(root,{build=true,products=resolve(root,'out')
     if(state.status==='unclosed') {
       const progress=source[slug];
       return [slug,{...state,customPercent:null,port:null,linesRemovedSince12Z:dailyLines.shards[slug]??null,gridReady:ready,scriptMetrics,m3:m3Progress(slug,progress),
-        assemblyScriptLines:progress.assemblyScriptLines,generatorTsLines:progress.generatorTsLines,assemblyScriptBudget:progress.assemblyScriptBudget}];
+        assemblyScriptLines:progress.assemblyScriptLines,assemblyScriptBudget:progress.assemblyScriptBudget}];
     }
     if(!Object.hasOwn(measures,slug))throw new Error(`${slug}: closed runtime has no output measure`);
     const measured=measures[slug];
