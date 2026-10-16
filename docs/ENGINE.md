@@ -5657,6 +5657,24 @@ to lit meshes. It leaves vertex placement, visible geometry and caster
 depth unchanged; clones retain it and parameter updates need no rebuild.
 Absent keeps the normal lookup. It is separate from vertex shadow:true.
 
+### Inline graph reads (E435)
+
+`EngineNodesHandler.inlineReads` (the Developer Debug row **Inline
+graph reads**, Performance, `graphInlineReads`, live, default off)
+reads each stock `ReferenceNode` / `MaterialReferenceNode` of a graph
+draw's update list in place (`nodes/textureUpdates.ts`) instead of
+dispatching it through `NodeFrame.updateNode`, `updateReference`,
+`update`, `updateValue` and `getValueFromReference`. It still reads
+the holder (an explicit object, else the drawn object or material) on
+every draw, so an edit made between two draws of one camera pass, by
+game code or by a custom object callback earlier in the list, is seen
+exactly as with the row off. A node whose update, target or update
+type was replaced after its plan was made, an array value, a property
+path or an unbuilt uniform keeps the stock dispatch. A pure read does
+not end a sampler run (the texture flip coalescing). Turning the row
+off remakes every plan. `TextureUpdates.inlinedReads` counts the reads
+made in place.
+
 `physics/bodies.DynamicBodySlots<T>` is the bounded slot/lifecycle owner for
 existing dynamic bodies: ordered reuse, source identity, age/rest clocks,
 optional flight landing and the exact native handle continuation. Rows choose
