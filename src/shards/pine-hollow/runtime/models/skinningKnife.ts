@@ -9,7 +9,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
  * (@wildshard/sdk/kit/heldTool) over the row ../data/skinningKnifeLook.ts `KNIFE_LOOK`.
  *
  *   const knife = new SkinKnife(game, sky, ctx);   // parented to the camera, hidden; fetches the GLB after the level loads
- *   knife.update(beatT);                           // every frame: −1 = hidden; 0 … BEAT.len = the beat's clock (lifeMath.BEAT)
+ *   knife.update(beatT);                           // every frame: −1 = hidden; 0 … the harvest beat's len (custom/ambientLife `harvest`)
  *
  * The motion follows the beat: it rises into view as the view kneels (0 → kneelIn), then two strokes — each a short
  * wind-up and a fast draw down and across the hide that lands on `BEAT.cuts[i]` (the flesh sound, the kick) — and it
@@ -20,9 +20,7 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { HeldTool, heldToolSpecimen, type HeldToolRow } from '../kit/heldTool';
 import { KNIFE_LOOK } from '../../data/skinningKnifeLook';
-import { PINE_LIFE } from '../../data/ambientLife';
-
-const BEAT=PINE_LIFE.harvest;
+import { SECTIONS } from '../sections';
 
 /** the Blender knife's file */
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
@@ -33,7 +31,7 @@ const KNIFE: HeldToolRow = { ...KNIFE_LOOK, url: KNIFE_MODEL_URL };
 export class SkinKnife extends HeldTool {
   /** parented to `game`'s camera, hidden; fetches the GLB `loadDelayMs` of game time after the level has loaded */
   constructor(game: Game, sky: Sky, ctx: ShardContext) {
-    super(game, sky, ctx, KNIFE, BEAT, (load) => {
+    super(game, sky, ctx, KNIFE, ctx.product.section('custom/ambientLife', SECTIONS).harvest, (load) => {
       // fetched KNIFE.loadDelayMs of game time after the level loads (off the load's requests and bytes), on the level's
       // own update system instead of a wall-clock timer
       let left = -1; // seconds to the fetch: −1 not scheduled yet, 0 fetched
