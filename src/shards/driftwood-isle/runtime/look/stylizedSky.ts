@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import type { SkyPalette as PlatformSkyPalette } from '../looks/facetedSky';
-import { MIDDAY_SKY_ROWS } from '../../data/skyPalette';
+import { MIDDAY_SKY_ROWS } from '../const';
 
 /** the sky's day palette (linear, pre-tonemap); DayNight lerps these per preset */
 export type SkyPalette = PlatformSkyPalette;

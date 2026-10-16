@@ -9,9 +9,8 @@ import { facetedGroundPainter, prepareFacetedGround } from '../looks/facetedGrou
 import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
 import source from '../../shard.config';
 import { followToon } from './toon';
-import { GROUND_LOOK } from '../../data/groundLook';
 import { GROUND_FILES } from '../../data/groundFiles';
-import { KIT_LENDS } from '../../data/kitLook';
+import { GROUND_LOOK, KIT_LENDS } from '../const';
 
 /** The ground's and the kit's graph materials compiled under the world's scope before it builds (the look's `prepareWorld`). */
 export function prepareGround(context: WorldLookContext): Promise<void> { return prepareFacetedGround(context, source, GROUND_LOOK, followToon, KIT_LENDS); }

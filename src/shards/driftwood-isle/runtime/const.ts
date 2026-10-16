@@ -60,3 +60,38 @@ export const ISLAND_FAMILIES = [
   'vocal-boar', 'vocal-crab', 'vocal-monkey', 'vocal-sailor', 'windup-boar', 'windup-crab', 'windup-sailor',
   'plunge-down', 'plunge-up', 'death', 'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
 ] as const;
+/** the faceted ground's materials, build band, cliff lip and slab walls (data/groundLook.ts GROUND_LOOK) */
+export const GROUND_LOOK = {
+  materials: { ground: 'driftwood-ground', slab: 'driftwood-ground-slab' },
+  band: 64,
+  lip: { steep: 0.8, reach: 2.5, from: 0.4, to: 1.4 },
+  slab: { segs: 96, rock: '#5a5d63', deep: '#1c1f26', top: 0.05, bulge: [4, 5], foot: 2, mid: 0.55, shade: [0.85, 0.3] },
+} as const;
+/** the low-poly kit variant each graph is lent to (data/kitLook.ts KIT_LENDS) */
+export const KIT_LENDS = {
+  default: 'driftwood-kit', still: 'driftwood-kit-still', 'rock-smooth': 'driftwood-kit-rock', pennant: 'driftwood-kit-pennant',
+  palm: 'driftwood-kit-palm', solid: 'driftwood-kit-solid',
+} as const;
+/** the faceted sky's dome and cumulus looks (data/skyLook.ts) */
+export const SKY_DOME_LOOK = 'driftwood-sky-dome';
+export const SKY_CLOUD_LOOK = 'driftwood-sky-cumulus';
+/** the midday sky palette, linear RGB before the tonemap (data/skyPalette.ts) */
+export const MIDDAY_SKY_ROWS = {
+  zenith: [0.055, 0.2, 0.78],
+  horizon: [0.36, 0.7, 1.0],
+  below: [0.22, 0.46, 0.72],
+  sunGlow: [1.0, 0.88, 0.62],
+  cloudLit: [1.25, 1.22, 1.16],
+  cloudShade: [0.52, 0.6, 0.92],
+  night: 0,
+} as const;
+/** the day light every toon look starts from, and the colour-ramp fog (data/toonLook.ts) */
+export const DAY_LIGHT = {
+  uToonLift: [0.07, 0.035, 0.2],
+  uToonRim: [1.3, 0.95, 0.6],
+  uCloudShadow: 0.6,
+  uToonNight: 0,
+  uSeaLevel: -1e4,
+  uCloudTime: 0,
+} as const;
+export const RAMP_FOG = { start: 180, end: 1700, near: [0.5, 0.6, 0.98], zenith: [0.055, 0.2, 0.78] } as const;

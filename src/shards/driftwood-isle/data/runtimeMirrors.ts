@@ -4,13 +4,18 @@ import { ISLAND_SURFACES } from './audioSurfaces';
 import { COVER_LOOKS } from './coverLook';
 import { CREATURE_LOOKS } from './creatureLook';
 import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
+import { GROUND_LOOK } from './groundLook';
 import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
 import { ISLAND_LOOKS } from './islandLook';
+import { KIT_LENDS } from './kitLook';
 import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
 import { REEF_LOOK } from './reefLook';
+import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from './skyLook';
+import { MIDDAY_SKY_ROWS } from './skyPalette';
 import { SMOKE_LOOK } from './smokeLook';
+import { DAY_LIGHT, RAMP_FOG } from './toonLook';
 import { CASCADE_LOOKS } from './waterfallLook';
 
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
@@ -33,4 +38,11 @@ export const RUNTIME_MIRRORS = [
   defineMirror('FP_ARMS_LOOK', FP_ARMS_LOOK),
   defineMirror('ISLAND_SURFACES', ISLAND_SURFACES),
   defineMirror('ISLAND_FAMILIES', ISLAND_FAMILIES),
+  defineMirror('GROUND_LOOK', GROUND_LOOK),
+  defineMirror('KIT_LENDS', KIT_LENDS),
+  defineMirror('SKY_DOME_LOOK', SKY_DOME_LOOK),
+  defineMirror('SKY_CLOUD_LOOK', SKY_CLOUD_LOOK),
+  defineMirror('MIDDAY_SKY_ROWS', MIDDAY_SKY_ROWS),
+  defineMirror('DAY_LIGHT', DAY_LIGHT),
+  defineMirror('RAMP_FOG', RAMP_FOG),
 ];
