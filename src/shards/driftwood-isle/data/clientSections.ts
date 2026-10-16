@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { defineSection, type DefinedSection } from '@wildshard/sdk/sections';
+import foliage from './foliagePlacements.generated.json' with { type: 'json' };
 import cumulusPuffs from './cumulusPuffs.json' with { type: 'json' };
 import islandClips from './islandClips.generated.json' with { type: 'json' };
 import chimeSlots from './chimeSlots.json' with { type: 'json' };
@@ -62,8 +63,10 @@ const good = v.strictObject({ id: goodId, name: text, does: text, icon: v.pickli
 
 const CumulusPuffs = v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024));
 const IslandClips = v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs });
+const gullPerches = v.pipe(v.array(point), v.maxLength(10));
 const FixedLayouts = v.strictObject({
   chimeSlots: runs,
+  gullPerches,
   cove,
   shrine: v.strictObject({ world: shrineSite, specimen: shrineSite }),
   trophySlots,
@@ -93,7 +96,7 @@ const section = (name: string, schema: v.GenericSchema, value: unknown): Defined
 export const DRIFTWOOD_CLIENT_SECTIONS: readonly DefinedSection[] = [
   section('custom/cumulusPuffs', CumulusPuffs, cumulusPuffs),
   section('custom/islandClips', IslandClips, islandClips),
-  section('custom/fixedLayouts', FixedLayouts, { chimeSlots, cove: coveBake, shrine: shrineBake, trophySlots: trophySlotsBake, hut, lookout }),
+  section('custom/fixedLayouts', FixedLayouts, { chimeSlots, gullPerches: v.parse(v.object({ gullPerches }), foliage).gullPerches, cove: coveBake, shrine: shrineBake, trophySlots: trophySlotsBake, hut, lookout }),
   section('custom/trailside', Trailside, trailside),
   section('custom/questRows', QuestRows, { feats: DRIFTWOOD_FEATS, items: DRIFTWOOD_ITEMS, effects: DRIFTWOOD_EFFECTS, goods: GOODS }),
 ];

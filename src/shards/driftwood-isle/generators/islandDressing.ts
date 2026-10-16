@@ -21,6 +21,23 @@ import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
 import { inArea } from '../world/blenderArea';
+import { GULL_CORRIDORS } from '../data/gullsLook';
+
+/** The world's wet-sand perches, compiled under its original native height binding. */
+export function beachGullPerches(heightAt: (x: number, z: number) => number, seed: number): {x:number;y:number;z:number}[] {
+ const rng = new Rng(seed ^ 0x6011), wl = waterLevel(), out: {x:number;y:number;z:number}[] = [];
+ let tries = 0;
+ while (out.length < 10 && tries++ < 2000) {
+  const x = rng.range(-90,90), z = -195 + rng.range(-90,90);
+  if (!inChunk(x,z,25)) continue;
+  const h = heightAt(x,z) - wl;
+  if (h < 0.15 || h > 1.2) continue;
+  if ((Math.abs(x)<GULL_CORRIDORS.half && Math.abs(z)>GULL_CORRIDORS.beyond) || (Math.abs(z)<GULL_CORRIDORS.half && Math.abs(x)>GULL_CORRIDORS.beyond)) continue;
+  if (out.some(p=>Math.hypot(p.x-x,p.z-z)<3)) continue;
+  out.push({x,y:h+wl,z});
+ }
+ return out;
+}
 
 interface FoliagePlacements { palms: {specs: PalmSpec[]; placements: Placement<PalmParams>[]}; bushes: {specs: BushSpec[]; placements: Placement<HibiscusBushParams>[]} }
 function scatterPalms(heightAt: (x: number, z: number) => number, seed: number, count = Math.round(islandKnobs().palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
@@ -103,7 +120,7 @@ function palmKeep(points:readonly{x:number;z:number}[]):(x:number,z:number)=>boo
  };
 }
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
-export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
+export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;gullPerches:ReturnType<typeof beachGullPerches>;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
  const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
  const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
   budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const}; // Only the real authored ground frame is evaluated by this isolated producer.
@@ -132,6 +149,6 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
     tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }
-  return{seed:manifest.seed,tiers};
+  return{seed:manifest.seed,gullPerches:beachGullPerches(ground.heightAt,manifest.seed),tiers};
  }finally{logs.geometry.dispose();_buildAs(null);restoreGround();restoreLevel();}
 }

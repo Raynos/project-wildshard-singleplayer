@@ -140,6 +140,18 @@
         "bytes": 204699
       },
       "why": "G465: resolve 33 foliage and ground labels through the existing admitted asset index, deleting four copied runtime file tables"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 6,
+        "bytes": 204699
+      },
+      "to": {
+        "count": 6,
+        "bytes": 205433
+      },
+      "why": "G465: bake the fixed wet-sand gull perches into existing fixedLayouts, deleting the runtime sampler and corridor adapter"
     }
   ]
 }

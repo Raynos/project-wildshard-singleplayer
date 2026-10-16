@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../runtime/boot/rows';
 import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 import { loadIslandCover } from './islandCover';
 import { area as BLENDER_AREA } from './blenderArea';
@@ -160,7 +161,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
       new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
       ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
-      ...Gulls.beachPerches(manifest.seed, 10, { x: 0, z: -195, r: 90 }),
+      ...driftwoodRows('custom/fixedLayouts').gullPerches.map(p => new THREE.Vector3(p.x, p.y, p.z)),
     ],
     centre: new THREE.Vector3(0, 0, -205), radius: 90,
   }), { objects: value => [value.group] });

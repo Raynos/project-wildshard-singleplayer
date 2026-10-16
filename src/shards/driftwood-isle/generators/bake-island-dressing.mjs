@@ -47,7 +47,7 @@ writeFileSync(new URL('../data/islandDressing.generated.json',import.meta.url),`
 console.log('Island dressing: native triangle runs and two cropped full cover grids');
 console.log(`cover-files ${JSON.stringify(Object.fromEntries(Object.entries(tiers).map(([tier,row])=>[tier,row.cover])))}`);
 
-writeFileSync(new URL('../data/foliagePlacements.generated.json',import.meta.url),`${JSON.stringify({seed:data.seed,tiers:Object.fromEntries(data.tiers.map(row=>[row.tier,row.foliage]))})}\n`);
+writeFileSync(new URL('../data/foliagePlacements.generated.json',import.meta.url),`${JSON.stringify({seed:data.seed,gullPerches:data.gullPerches,tiers:Object.fromEntries(data.tiers.map(row=>[row.tier,row.foliage]))})}\n`);
 
 const islandBase=new URL('public/assets/models/driftwood-blender/',root);
 const islandMeta=JSON.parse(readFileSync(new URL('island.json',islandBase),'utf8'));

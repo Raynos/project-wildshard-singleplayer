@@ -6,7 +6,7 @@
  * compiles and lends before the world builds (`setGullLook`); a flock made before that refuses.
  *
  *   const gulls = new Gulls().build({
- *     perches: [...pier.posts.map((p) => new Vector3(p.x, pier.deckY + 1.02, p.z)), ...Gulls.beachPerches(seed, 8)],
+ *     perches: [...pier.posts.map((p) => new Vector3(p.x, pier.deckY + 1.02, p.z)), ...beachPerches],
  *     centre: new Vector3(0, 0, -215), radius: 80,       // the wheeling flocks live over this circle (beach + lagoon)
  *   });
  *   scene.add(gulls.group);
@@ -16,7 +16,7 @@
 import type * as THREE from 'three';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { GullFlock } from '../looks/gullFlock';
-import { GULL_BURSTS, GULL_CORRIDORS, GULL_FLIGHT, GULL_GRAPH_LOOK, GULL_WHEEL } from '../const';
+import { GULL_BURSTS, GULL_FLIGHT, GULL_GRAPH_LOOK, GULL_WHEEL } from '../const';
 import { GULL_GEOMETRY } from '../boot/fixedGeometry';
 
 let lent: THREE.Material | null = null;
@@ -30,15 +30,7 @@ const look = (): { geometry: () => THREE.BufferGeometry; material: THREE.Materia
   if (lent === null) throw new Error('Gulls: no graph material lent (the runtime compiles it before the world builds)');
   return { geometry: GULL_GEOMETRY.copy, material: lent.clone() }; // a copy per flock (the world's, a Model Explorer card's)
 };
-/** the N/S and E/W pier corridors */
-const pierCorridor = (x: number, z: number): boolean =>
-  (Math.abs(x) < GULL_CORRIDORS.half && Math.abs(z) > GULL_CORRIDORS.beyond) || (Math.abs(z) < GULL_CORRIDORS.half && Math.abs(x) > GULL_CORRIDORS.beyond);
-
 export class Gulls extends GullFlock {
   constructor() { super(look(), new CirclingFlyer(GULL_FLIGHT,GULL_WHEEL,GULL_BURSTS)); }
 
-  /** Sand perches: spots on the beach just above the water line, away from the pier corridors. */
-  static override beachPerches(seed: number, count = 8, near?: { x: number; z: number; r: number }): THREE.Vector3[] {
-    return GullFlock.beachPerches(seed, count, near, pierCorridor);
-  }
 }

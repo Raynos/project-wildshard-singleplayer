@@ -1,11 +1,10 @@
 /**
  * A low-poly gull flock as a look-family system (SHARD-PLATFORM M3): ONE instanced draw call for every gull, faceted
  * flat-shaded vertex-coloured geometry, no textures. The shard passes its look (`GullLook`: its baked gull and its graph
- * material, whose vertex stage poses the flap rig: ../../data/gullGraphLook.ts) and, for beach perches, the ground it
- * keeps gulls off.
+ * material, whose vertex stage poses the flap rig: ../../data/gullGraphLook.ts) and its authored perch positions.
  *
  *   const gulls = new GullFlock(look, flight).build({
- *     perches: [...posts, ...GullFlock.beachPerches(seed, 8)],
+ *     perches: [...posts, ...beachPerches],
  *     centre: new Vector3(0, 0, -215), radius: 80,       // the wheeling flocks live over this circle
  *   });
  *   scene.add(gulls.group);
@@ -24,10 +23,8 @@
  * per-frame allocations.
  */
 import * as THREE from 'three';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { ambientTick } from '@wildshard/engine/core/harnessTap';
 import { Rng } from '@wildshard/engine/core/rng';
-import { waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { PosedInstances } from '@wildshard/sdk/looks/posedInstances';
 
@@ -104,24 +101,6 @@ export class GullFlock {
   private flushR = 4;
 
   constructor(private readonly look: GullLook, private readonly flight: {burst:(state:Gull,dt:number,flap:number,fold:number,id:string,rng:Rng,gliding:boolean)=>readonly [number,number];face:(pose:Gull,dx:number,dy:number,dz:number,dt:number,bank:number)=>void;wheel:(orbit:Flock,body:Gull,time:number,out:THREE.Vector3)=>void}) {}
-
-  /** Sand perches: spots on the beach just above the water line, off the ground `keepOff` names (a shard's corridors). */
-  static beachPerches(seed: number, count = 8, near?: { x: number; z: number; r: number }, keepOff?: (x: number, z: number) => boolean): THREE.Vector3[] {
-    const rng = new Rng(seed ^ 0x6011), wl = waterLevel();
-    const out: THREE.Vector3[] = [];
-    let tries = 0;
-    while (out.length < count && tries++ < count * 200) {
-      const x = near ? near.x + rng.range(-near.r, near.r) : rng.range(-CHUNK_HALF + 30, CHUNK_HALF - 30);
-      const z = near ? near.z + rng.range(-near.r, near.r) : rng.range(-CHUNK_HALF + 30, CHUNK_HALF - 30);
-      if (!inChunk(x, z, 25)) continue;
-      const h = heightAt(x, z) - wl;
-      if (h < 0.15 || h > 1.2) continue;                                   // the wet sand band
-      if (keepOff?.(x, z) === true) continue;
-      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 3)) continue;
-      out.push(new THREE.Vector3(x, h + wl, z));
-    }
-    return out;
-  }
 
   build(spec: GullsSpec): this {
     this.rng = new Rng((spec.seed ?? 0x5ea1) ^ 0x9011);

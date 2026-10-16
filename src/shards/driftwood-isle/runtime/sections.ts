@@ -60,6 +60,7 @@ export const SECTIONS = {
   /** the fixed models' baked layouts: the chime's draw slots, the hut's and the lookout's colliders, anchors and floors */
   'custom/fixedLayouts': v.strictObject({
     chimeSlots: runs,
+    gullPerches: v.pipe(v.array(point), v.maxLength(10)),
     /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */
     cove,
     /** the shrine's two admitted sites (knoll and flat Explorer specimen): origin, colliders, stair descriptors, anchors, levels */
