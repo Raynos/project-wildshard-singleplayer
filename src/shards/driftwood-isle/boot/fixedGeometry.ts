@@ -58,6 +58,8 @@ export const CARGO_GEOMETRY = {
 } as const;
 /** The Ring Shrine's firefly quads (generators/fireflies.ts, the shrine base's space); the graph poses each by its `aFly`. */
 export const SHRINE_FIREFLIES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shrineFireflies, { _afly: 'aFly' });
+/** The herring gull (generators/gull.ts, gull-local); the flock's graph turns each vertex's `aPart`. */
+export const GULL_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.gull, { _apart: 'aPart' });
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

@@ -2,7 +2,7 @@
  * Gulls — Driftwood Isle's herring gulls: ONE instanced draw call for every gull, faceted flat-shaded vertex-coloured
  * geometry, no textures (the island style). SHARD-PLATFORM M3: the flock (perching, wheeling, flushing, the guide's V,
  * E309 B, src/shards/driftwood-isle/quest/gullGuide.ts) is the gull flock (../runtime/looks/gullFlock.ts); Driftwood's
- * palette is data (data/gullsLook.ts), the flap rig and the toon surface a graph look (data/gullGraphLook.ts) the runtime
+ * gull is baked offline in its palette (generators/gull.ts, the fixed-model template `gull`), the flap rig and the toon surface a graph look (data/gullGraphLook.ts) the runtime
  * compiles and lends before the world builds (`setGullLook`); a flock made before that refuses.
  *
  *   const gulls = new Gulls().build({
@@ -17,7 +17,8 @@ import type * as THREE from 'three';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { GullFlock } from '../runtime/looks/gullFlock';
 import { GULL_GRAPH_LOOK } from '../data/gullGraphLook';
-import { GULL_CORRIDORS, GULL_PALETTE, GULL_FLIGHT, GULL_WHEEL, GULL_BURSTS } from '../data/gullsLook';
+import { GULL_CORRIDORS, GULL_FLIGHT, GULL_WHEEL, GULL_BURSTS } from '../data/gullsLook';
+import { GULL_GEOMETRY } from '../boot/fixedGeometry';
 
 let lent: THREE.Material | null = null;
 /** Lend the gulls their compiled graph material (look.materials `driftwood-gulls`), before the world builds. */
@@ -26,9 +27,9 @@ export function setGullLook(materials: ReadonlyMap<string, THREE.Material>): voi
   if (material === undefined) throw new Error('Gulls: look.materials lacks the gull graph');
   lent = material;
 }
-const look = (): { palette: typeof GULL_PALETTE; material: THREE.Material } => {
+const look = (): { geometry: () => THREE.BufferGeometry; material: THREE.Material } => {
   if (lent === null) throw new Error('Gulls: no graph material lent (the runtime compiles it before the world builds)');
-  return { palette: GULL_PALETTE, material: lent.clone() }; // a copy per flock (the world's, a Model Explorer card's)
+  return { geometry: GULL_GEOMETRY.copy, material: lent.clone() }; // a copy per flock (the world's, a Model Explorer card's)
 };
 /** the N/S and E/W pier corridors */
 const pierCorridor = (x: number, z: number): boolean =>

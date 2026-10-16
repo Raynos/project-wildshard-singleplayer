@@ -69,4 +69,5 @@ export const FIXED_MODEL_FILES = {
   cargoCrateBroken: '/assets/driftwood-isle/baked/fixed-models/cargo-crate-broken.glb',
   cargoCoil: '/assets/driftwood-isle/baked/fixed-models/cargo-coil.glb',
   shrineFireflies: '/assets/driftwood-isle/baked/fixed-models/shrine-fireflies.glb',
+  gull: '/assets/driftwood-isle/baked/fixed-models/gull.glb',
 } as const;

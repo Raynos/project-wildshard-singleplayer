@@ -8,7 +8,9 @@
 import * as THREE from 'three';
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { Gulls } from '../world/Gulls';
+import { fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 const FILE = 'src/shards/driftwood-isle/models/creatures.ts';
 
@@ -31,5 +33,10 @@ export const drownedCaptain: ModelDef<CreatureParams> = defineModel<CreaturePara
 export const gull: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/gull', name: 'Herring gull', category: 'creatures', pipeline: 'code', file: FILE, surface: 'flesh',
   defaults: {},
-  build: () => new Gulls().build({ perches: [new THREE.Vector3(0, 0, 0)], centre: new THREE.Vector3(0, 0, 0), radius: 1, count: 1 }).group,
+  // the baked gull (generators/gull.ts) is a fixed-model template: a loading box until the island's templates are in
+  build: () => {
+    const one = (): THREE.Object3D => new Gulls().build({ perches: [new THREE.Vector3(0, 0, 0)], centre: new THREE.Vector3(0, 0, 0), radius: 1, count: 1 }).group;
+    if (fixedGeometryReady()) return one();
+    return loadingSpecimen('driftwood-isle/gull', [0.95, 0.3, 0.9], async () => { await loadFixedGeometry(); return one(); });
+  },
 });

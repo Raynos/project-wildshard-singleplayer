@@ -18,6 +18,7 @@ import { originalWreck } from './driftwoodWreck.mjs';
 import { originalPiers } from './driftwoodPiers';
 import { cargoSpecimens } from './cargo';
 import { fireflyCloud } from './fireflies';
+import { gullGeometry } from './gull';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
 export function driftwoodFixedSource(): {
@@ -75,5 +76,7 @@ export function driftwoodFixedSource(): {
   for (const [name, geometry] of Object.entries(cargoSpecimens())) geometries.set(`cargo-${name}`, geometry);
   // the shrine's firefly quads (generators/fireflies.ts), last so the earlier templates keep their keys
   geometries.set('shrine-fireflies', fireflyCloud());
+  // the herring gull the flock draws (generators/gull.ts), last so the earlier templates keep their keys
+  geometries.set('gull', gullGeometry());
   return { geometries, world, rows };
 }
