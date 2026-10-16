@@ -25,7 +25,7 @@ import { uploadTexture } from '@wildshard/engine/core/assets';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PosedInstances, type PosedInstances as PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { WILDLIFE_LOOK } from '../../data/wildlifeLook';
+import { WILDLIFE_LOOK } from '../const';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];

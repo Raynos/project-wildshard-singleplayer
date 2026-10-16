@@ -13,8 +13,22 @@ import { SPRAY_LOOK } from './streamLook';
 import HOLLOW_LOG_SHAPE from './hollowLog.json' with { type: 'json' };
 import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHollow';
 
+import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
+import { BOW_PROFILE } from './bowProfile';
+import { WEAPON_FINISHES } from './weaponFinishes';
+import { FINISH_CARDS } from './finishCards';
+
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
+  defineMirror('ARROW_MATERIAL', ARROW_MATERIAL),
+  defineMirror('LONGBOW_ARROW', LONGBOW_ARROW),
+  defineMirror('LONGBOW_LOOK', LONGBOW_LOOK),
+  defineMirror('LONGBOW_MATERIAL', LONGBOW_MATERIAL),
+  defineMirror('LONGBOW_POSES', LONGBOW_POSES),
+  defineMirror('ARROW_FLIGHT', BOW_PROFILE.flight),
+  defineMirror('ARROW_MAX_FLYING', BOW_PROFILE.pool),
+  defineMirror('WEAPON_FINISHES', WEAPON_FINISHES),
+  defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
   defineMirror('HOLLOW_LOG_SHAPE', HOLLOW_LOG_SHAPE),
   defineMirror('NPC_FIGURE', NPC_FIGURE),

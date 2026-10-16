@@ -11,7 +11,7 @@ import { pineFinishEffect } from '../../loadout/effects';
  */
 import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import { SKINS } from './skins';
-import { FINISH_CARDS } from '../../data/finishCards';
+import { FINISH_CARDS } from '../const';
 
 export const PINE_FINISH_EFFECTS: readonly EffectDef[] = FINISH_CARDS.map(({ id }) => pineFinishEffect(id, SKINS[id].weapon));
 

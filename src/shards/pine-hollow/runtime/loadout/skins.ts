@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { WEAPON_FINISHES } from '../../data/weaponFinishes';
+import { WEAPON_FINISHES } from '../const';
 import { codePart } from '../world/codeParts';
 import type { InferOutput } from 'valibot';
 import type { ClaimedPickupRow } from '@wildshard/game/loot/runtime';
