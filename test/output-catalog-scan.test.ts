@@ -55,3 +55,9 @@ it('refuses missing placements and incomplete directories without publishing a p
   mkdirSync(join(directory,'incomplete'));
   expect(()=>writeCatalogFromOutputs(directory,[placement])).toThrow();
 });
+it('refuses an omitted declared output instead of publishing a partial catalog',()=>{
+  const directory=outputRoot(),alpha=product(directory,'alpha',1);writeCatalogFromOutputs(directory,[alpha]);
+  const before=readFileSync(join(directory,'catalog.json'),'utf8');
+  expect(()=>writeCatalogFromOutputs(directory,[alpha,{slug:'beta',placement:{instance:'beta',grid:[2,0],size:[500,500,500]}}])).toThrow('every declared output');
+  expect(readFileSync(join(directory,'catalog.json'),'utf8')).toBe(before);
+});

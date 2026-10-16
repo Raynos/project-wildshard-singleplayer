@@ -7,7 +7,7 @@ import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { LevelSectionSchema } from '@wildshard/format/level';
 import { AccentSchema } from '@wildshard/format/accent';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import type { ShardCatalog, ShardCatalogEntry } from '@wildshard/format/shardCatalog';
+import { ShardCatalogPlacementsSchema, type ShardCatalog, type ShardCatalogEntry } from '@wildshard/format/shardCatalog';
 import { readBoundedFile } from './sourceReader';
 import { hashImmutableBytes } from './immutable';
 import { writeOutputCatalog, type OutputCatalogEntry } from './outputCatalog';
@@ -18,7 +18,8 @@ export interface CatalogPlacement { readonly slug: string; readonly placement: S
  * each exact index, and discovery sections/images are independently hash-checked. */
 export function writeCatalogFromOutputs(destination: string, placements: readonly CatalogPlacement[]): ShardCatalog {
   const entries: OutputCatalogEntry[] = [];
-  if (new Set(placements.map(row => row.slug)).size !== placements.length) throw new Error('Duplicate catalog placement identity');
+  const declared = v.parse(ShardCatalogPlacementsSchema, placements), used = new Set<string>();
+  if (new Set(declared.map(row => row.slug)).size !== declared.length) throw new Error('Duplicate catalog placement identity');
   const json = (bytes: Uint8Array): unknown => JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   for (const directory of readdirSync(destination,{withFileTypes:true}).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0)) {
     if (directory.name.startsWith('.')) continue;
@@ -36,8 +37,9 @@ export function writeCatalogFromOutputs(destination: string, placements: readonl
     };
     const {manifest}=v.parse(LevelSectionSchema,section('ui/level'));
     const {accent}=v.parse(v.strictObject({accent:AccentSchema}),section('ui/card'));
-    const placement=placements.find(row=>[folder,index.identity.slug].includes(row.slug));
-    if(placement===undefined)throw new Error(`Catalog requires grid placement: ${folder}`);
+    const matches=declared.filter(row=>[folder,index.identity.slug].includes(row.slug)),placement=matches[0];
+    if(matches.length!==1||placement===undefined)throw new Error(`Catalog requires exactly one grid placement: ${folder}`);
+    used.add(placement.slug);
     const image=(url:string):string=>{
       if(url.startsWith('data:image/'))return url;
       const prefix=`/shardfiles/${folder}/`,path=url.startsWith(prefix)?url.slice(prefix.length):url;
@@ -54,5 +56,6 @@ export function writeCatalogFromOutputs(destination: string, placements: readonl
       card:{name:manifest.name,label:manifest.label,biome:manifest.biome,blurb:manifest.blurb,order:manifest.order,status:manifest.status,thumb:image(manifest.card.thumb),portrait:image(manifest.card.portrait),landscape:image(manifest.card.landscape),accent},
       placement:placement.placement,runtime:index.runtime===null?null:{entry:'runtime/index.ts',files:index.runtime.files}});
   }
+  for(const row of declared)if(!used.has(row.slug))throw new Error(`Catalog requires every declared output: ${row.slug}`);
   return writeOutputCatalog(destination,entries);
 }

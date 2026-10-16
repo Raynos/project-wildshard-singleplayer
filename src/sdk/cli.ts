@@ -22,6 +22,8 @@ import { validateOutputProduct } from './outputProduct';
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 import type { RuntimeCopyOptions } from './outputRuntime';
 import type { ProjectManifestSource } from './projectManifest';
+import { ShardCatalogPlacementsSchema } from '@wildshard/format/shardCatalog';
+import { writeCatalogFromOutputs } from './outputCatalogScan';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -51,7 +53,13 @@ export async function runCli(args: readonly string[], options: { readonly runtim
       ? `/properties${output}` : output;
     console.info(JSON.stringify(schemaAt(document, pointer), null, 2)); return;
   }
-  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] [--no-placeholders] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
+  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] [--no-placeholders] | build <project> --behaviour-only | catalog <out-directory> <placements.json> | validate <project|shard.json> | dev <project> [port]');
+  if (command === 'catalog') {
+    if (output === undefined || args.length !== 3) throw new Error('usage: wildshard catalog <out-directory> <placements.json>');
+    const placements = v.parse(ShardCatalogPlacementsSchema, readShardfileSource(resolve(output)));
+    const catalog = writeCatalogFromOutputs(resolve(input), placements);
+    console.info(`catalog: ${catalog.shards.length} validated output(s)`); return;
+  }
   if (command === 'synth') {
     if (output !== undefined) throw new Error('usage: wildshard synth <project>');
     const result = await synthProject(resolve(input));

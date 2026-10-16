@@ -7071,3 +7071,27 @@ existing 6144×704 horizon without changing its bytes. The title's
 `parseStillImage` keeps its 4096-per-axis limit. Image blob cost and
 extension readers share the asset parser; decoded/GPU accounting stays
 byte-derived.
+
+### Complete catalog build orchestration (P3)
+
+`node scripts/build-shardfiles.mjs --catalog` builds every first-party
+product with `--copy-runtime`, including the strict runtime boundary,
+section-schema and constant-mirror proofs, then regenerates discovery
+from every output. The game supplies grid placements; all title metadata
+comes from validated output sections and image blobs. The author CLI
+`wildshard catalog <out-directory> <placements.json>` admits a bounded
+array through `ShardCatalogPlacementsSchema` before scanning outputs.
+A declared placement without its output refuses publication.
+
+Catalog generation runs once after all product and map checks pass.
+Failure preserves the previous catalog. `--catalog` refuses `--shard`;
+ordinary and partial builds remove an obsolete catalog. The orchestration
+option `copyRuntime:true` also proves selected products without
+publishing discovery; this supports per-shard output measurement. Vite publishes
+`out/catalog.json` as `dist/shardfiles/catalog.json`, alongside data
+products but without runtime TypeScript or build-cache stamps.
+
+This strict complete-build mode is opt-in until client runtime closure.
+The live title still uses its current discovery path. Switching that
+reader must enable `--catalog` in the app, push-gate and Vercel build
+commands in the same commit, so no shipped reader lacks its catalog.
