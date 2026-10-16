@@ -53,13 +53,6 @@ export const FP_ARMS_LOOK = {
 /** the step surfaces the island's audio maps (data/audioSurfaces.ts) */
 export const ISLAND_SURFACES = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'] as const;
 export type Surface = typeof ISLAND_SURFACES[number];
-/** the island's voice families, prewarmed in this order (data/audioPlayback.ts) */
-export const ISLAND_FAMILIES = [
-  'step-sand', 'step-planks', 'step-grass', 'step-wetSand', 'step-rock', 'step-water', 'step-stone',
-  'whoosh', 'impact-flesh', 'hurt', 'impact-shell', 'impact-wood', 'impact-stone', 'whoosh-heavy',
-  'vocal-boar', 'vocal-crab', 'vocal-monkey', 'vocal-sailor', 'windup-boar', 'windup-crab', 'windup-sailor',
-  'plunge-down', 'plunge-up', 'death', 'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
-] as const;
 /** the faceted ground's materials, build band, cliff lip and slab walls (data/groundLook.ts GROUND_LOOK) */
 export const GROUND_LOOK = {
   materials: { ground: 'driftwood-ground', slab: 'driftwood-ground-slab' },
