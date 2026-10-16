@@ -722,7 +722,13 @@ export class Game {
    * and its environment remain valid without reading the not-yet-created composer. */
   async warmSkyLayer(layer: Pick<BackdropLayer, 'prepare'>): Promise<void> {
     const composer = this._composer;
-    if (composer !== null) await layer.prepare(this.renderer, this.camera, composer.inputBuffer);
+    if (composer === null) return;
+    // A live page spaces the layer's links and uploads by drawn frames, as warmSceneRoots does (sp-o284).
+    if (this.frameCount === 0) { await layer.prepare(this.renderer, this.camera, composer.inputBuffer); return; }
+    const { waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
+    const current = (): boolean => !this.levelScope.disposed && this._composer === composer;
+    await layer.prepare(this.renderer, this.camera, composer.inputBuffer, () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current),
+      setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
   }
 
   /** Hide newly constructed models from this owner's asynchronous preparation until entry, on every browser.

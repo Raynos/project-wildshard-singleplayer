@@ -71,7 +71,7 @@ import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 import type { Renderer } from '../render/renderer';
-import { prepareSceneRoots } from '../render/precompile';
+import { prepareSceneRoots, type UploadBudget } from '../render/precompile';
 import type { AtmosphereSpec, SkySpec } from '../level/data';
 import { compassDir } from './dayCycle';
 
@@ -376,30 +376,22 @@ export class BackdropLayer {
     this.domes.push(dressing);
   }
 
-  /** Prepare final page variants before this attached layer's first visible frame on WebKit.
+  /** Prepare final page variants before this attached layer's first visible frame, on every browser.
    * Borrow the actual materials and page lighting; preserve visibility, parents, blending,
-   * uniforms and target. The resident scope fences every painted slice. Other browsers
-   * compile its hidden pieces against the page scene (`compileHidden`, G321). */
-  async prepare(renderer: Renderer, camera: PerspectiveCamera, target: WebGLRenderTarget | null): Promise<void> {
+   * uniforms and target. The resident scope fences every painted slice. The page's whole-world
+   * warm-up walks visible objects only, so the hidden domes and dressing are prepared here (G321):
+   * compiled against the real composer target, each link resolved in its own slice and every
+   * image uploaded before the weight shows them. (sp-o284: Chromium's former `compileAsync`
+   * against the canvas target left Sky Reach's entry five graph links and the 5562×1024
+   * panorama upload in one 183 ms frame.) A live page passes its drawn-frame `pause` and upload budget,
+   * so each link and each image upload gets a painted frame of its own: on WebKit the GPU process
+   * pays for an upload after the call returns, so a time box alone let the four look images join one
+   * 207 ms Simulator frame. */
+  async prepare(renderer: Renderer, camera: PerspectiveCamera, target: WebGLRenderTarget | null,
+    pause?: () => Promise<void>, uploadBudget?: UploadBudget): Promise<void> {
     if (this.disposed || this.scope.disposed) throw new Error('Backdrop layer left before preparation');
     if (this.backdrop === null) throw new Error('Backdrop layer preparation requires attachment');
-    if (!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) { await this.compileHidden(renderer, camera); return; }
-    await prepareSceneRoots(renderer, camera, this.host.scene, target, this.domes, () => !this.disposed && !this.scope.disposed);
-  }
-
-  /**
-   * G321: elsewhere than WebKit, its hidden domes and dressing compile here (`compileAsync` against the page scene), not at
-   * the first frame its weight shows them: the page's whole-world warm-up walks visible objects only, so each piece's
-   * program otherwise linked mid-crossing (op-sky36's frame floor: 4 more long frames entering Sky Reach's cell).
-   */
-  private async compileHidden(renderer: Renderer, camera: PerspectiveCamera): Promise<void> {
-    const pending: Promise<unknown>[] = [];
-    for (const dome of this.domes) {
-      const was = dome.visible;
-      dome.visible = true;
-      try { pending.push(renderer.compileAsync(dome, camera, this.host.scene)); } finally { dome.visible = was; }
-    }
-    await Promise.all(pending);
+    await prepareSceneRoots(renderer, camera, this.host.scene, target, this.domes, () => !this.disposed && !this.scope.disposed, pause, uploadBudget);
   }
 
   /**
