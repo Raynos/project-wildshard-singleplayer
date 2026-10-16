@@ -107,6 +107,68 @@ export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: 
   return new BoundMemoryBrain(actor, states);
 }
 
+/** An authored creature pose, without behaviour, RNG or a save owner. */
+export interface CreatureSpawnRow {
+  readonly kind: string; readonly x: number; readonly z: number; readonly yaw: number;
+  readonly variant?: string | null;
+}
+/** Ordered manager-owned creature materialization and retirement. */
+export interface CreatureSpawner<A> {
+  spawn: (kind: string, x: number, z: number, yaw: number, variant?: string) => A;
+  group: <R extends CreatureSpawnRow>(kind: string, at: { readonly x: number; readonly z: number }, rows: readonly R[], joined?: (actor: A, row: R) => void) => A[];
+  place: <R extends CreatureSpawnRow & { readonly herd: number }>(centres: readonly { readonly x: number; readonly z: number }[], kinds: readonly string[], rows: readonly R[],
+    joined?: (actor: A, row: R) => void, grouped?: (kind: string, index: number) => void) => void;
+  dispose: () => void;
+}
+
+/**
+ * Materialize authored creature groups in order through the caller's actual manager.
+ * Owns only spawned actor retirement and herd membership; placement RNG, effects and saves stay borrowed.
+ * Group batches preflight all centres and row membership before their first spawn.
+ */
+export function createCreatureSpawner<A extends { herd: number }>(ports: {
+  spawn: (kind: string, x: number, z: number, yaw: number, variant?: string) => A;
+  retire: (actor: A) => void;
+  addHerd: (kind: string, x: number, z: number) => number;
+  readonly herds: readonly { readonly members: A[] }[];
+}): CreatureSpawner<A> {
+  interface Point { readonly x: number; readonly z: number }
+  const owned = new Set<A>(); let disposed = false;
+  const validPoint = (at: Point): boolean => Number.isFinite(at.x) && Number.isFinite(at.z);
+  const validRow = (row: CreatureSpawnRow): boolean => row.kind.length > 0 && validPoint(row) && Number.isFinite(row.yaw);
+  const spawn = (kind: string, x: number, z: number, yaw: number, variant?: string): A => {
+    if (disposed) throw new Error('Creature spawner is disposed');
+    const actor = ports.spawn(kind, x, z, yaw, variant); owned.add(actor); return actor;
+  };
+  const group = <R extends CreatureSpawnRow>(kind: string, at: Point, rows: readonly R[], joined?: (actor: A, row: R) => void): A[] => {
+    if (disposed || kind.length === 0 || !validPoint(at) || rows.length > 1024 || rows.some(row => row.kind !== kind || !validRow(row))) throw new Error('Invalid creature group');
+    const herd = ports.addHerd(kind, at.x, at.z), members = ports.herds[herd]?.members;
+    if (!Number.isSafeInteger(herd) || herd < 0 || members === undefined) throw new Error('Unbound creature herd');
+    const actors: A[] = [];
+    for (const row of rows) {
+      const actor = spawn(row.kind, row.x, row.z, row.yaw, row.variant ?? undefined);
+      actor.herd = herd; members.push(actor); actors.push(actor); joined?.(actor, row);
+    }
+    return actors;
+  };
+  const place = <R extends CreatureSpawnRow & { readonly herd: number }>(centres: readonly Point[], kinds: readonly string[], rows: readonly R[],
+    joined?: (actor: A, row: R) => void, grouped?: (kind: string, index: number) => void): void => {
+    if (disposed || centres.length > 1024 || rows.length > 1024 || centres.length !== kinds.length
+      || centres.some((at, i) => !validPoint(at) || !kinds[i])
+      || rows.some(row => !validRow(row) || !Number.isSafeInteger(row.herd) || row.herd < -1 || row.herd >= centres.length
+        || (row.herd >= 0 && row.kind !== kinds[row.herd]))) throw new Error('Invalid creature placement');
+    for (const [index, at] of centres.entries()) {
+      const kind = kinds[index]; if (kind === undefined) throw new Error('Missing creature herd kind');
+      group(kind, at, rows.filter(row => row.herd === index), joined); grouped?.(kind, index);
+    }
+  };
+  const dispose = (): void => {
+    if (disposed) return;
+    disposed = true; for (const actor of owned) ports.retire(actor); owned.clear();
+  };
+  return { spawn, group, place, dispose };
+}
+
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
 export function speciesResolver(rows: ShardRows): (speciesId: string, variantId: string) => AnimalSimSpec {
   const catalogue = new Map(rows.species.map((row) => [row.id, row]));

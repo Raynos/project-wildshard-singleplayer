@@ -847,6 +847,39 @@
       },
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/plugin/brain.ts",
+      "export": "createCreatureSpawner",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati creature herd materialization (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/plugin/brain.ts",
+      "export": "CreatureSpawner",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati creature herd materialization (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/plugin/brain.ts",
+      "export": "CreatureSpawnRow",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati creature herd materialization (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
     }
   ]
 }

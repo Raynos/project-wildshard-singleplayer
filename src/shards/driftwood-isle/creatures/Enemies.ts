@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createCreatureSpawner } from '@wildshard/game/plugin/brain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { SEED } from '@wildshard/engine/core/config';
@@ -100,19 +101,15 @@ export class Enemies {
   private playerPos = new THREE.Vector3();
 
   private disposed = false;
-  private readonly spawned = new Set<Animal>();
+  private readonly creatures: ReturnType<typeof createCreatureSpawner<Animal>>;
   constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) {
-    this.group.name = 'enemies'; opts.scope?.onDispose(() => { this.dispose(); });
-  }
-  private spawn(kind: string, x: number, z: number, yaw: number, variant?: string): Animal {
-    const actor = this.animals.spawn(kind, x, z, yaw, variant); this.spawned.add(actor); return actor;
+    this.creatures = createCreatureSpawner(animals); this.group.name = 'enemies'; opts.scope?.onDispose(() => { this.dispose(); });
   }
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
     this.volley.dispose();
-    for (const actor of this.spawned) this.animals.retire(actor);
-    this.spawned.clear(); this.group.removeFromParent();
+    this.creatures.dispose(); this.group.removeFromParent();
     if (this.opts.scope === undefined) {
       this.coconutMesh?.geometry.dispose(); // the kit's shared still material stays with the kit
       this.dropPool?.points.geometry.dispose();
@@ -174,17 +171,10 @@ export class Enemies {
       ...(this.opts.spawn===undefined?{}:{spawn:this.opts.spawn}),...(this.opts.troops===undefined?{}:{troops:this.opts.troops}),
       sailor:this.opts.wreck!==null&&this.opts.wreck!==undefined});
     this.rng.restore(rows.stream.snapshot());
-    for(const [i,centre] of rows.centres.entries()){
-      const kind=rows.kinds[i];if(kind===undefined)throw new Error('Missing enemy herd kind');
-      const herd=this.animals.addHerd(kind,centre.x,centre.z);
-      for(const row of rows.enemies.filter(entry=>entry.herd===i)){
-        const actor=this.spawn(row.kind,row.x,row.z,row.yaw,row.variant??undefined);
-        actor.herd=herd;this.animals.herds[herd]?.members.push(actor);
-        if(row.practice===true){this.practiceCrab=actor;this.practiceDead=0;}
-        if(kind==='crab')this.placed.crabs++;else this.placed.monkeys++;
-      }
-      if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++;
-    }
+    this.creatures.place(rows.centres, rows.kinds, rows.enemies, (actor, row) => {
+      if(row.practice===true){this.practiceCrab=actor;this.practiceDead=0;}
+      if(row.kind==='crab')this.placed.crabs++;else this.placed.monkeys++;
+    }, (kind, i) => { if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++; });
     const sailor=rows.enemies.find(row=>row.kind==='sailor');if(sailor!==undefined)this.placeSailor(sailor);
   }
 
@@ -192,9 +182,8 @@ export class Enemies {
   private placePracticeCrab(): void {
     const at = this.opts.practice;
     if (at === undefined) return;
-    const herd = this.animals.addHerd('crab', at.x, at.z);
-    const a = this.spawn('crab', at.x, at.z, 0, 'small'); // yaw 0: faces −z, down the path toward the pier
-    a.herd = herd; this.animals.herds[herd]?.members.push(a);
+    const [a] = this.creatures.group('crab', at, [{ kind: 'crab', ...at, yaw: 0, variant: 'small' }]);
+    if (a === undefined) throw new Error('Missing practice crab');
     this.practiceCrab = a; this.practiceDead = 0;
     this.placed.crabs++;
   }
@@ -214,7 +203,7 @@ export class Enemies {
     if (wreck === null || wreck === undefined) return;
     const centre=holdCentre();
     this.animals.habitat.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
-    const a = this.spawn('sailor', spot.x, spot.z, spot.yaw, 'sailor');
+    const a = this.creatures.spawn('sailor', spot.x, spot.z, spot.yaw, 'sailor');
     a.herd = -1;
     const light = new THREE.PointLight(0x7fe8ff, 0, 7, 2);
     light.castShadow = false;

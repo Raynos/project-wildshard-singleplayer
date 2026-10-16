@@ -6353,13 +6353,24 @@ uv shared, never copied) once per instance with the caller's named `InstancedBuf
 is the first attribute's. `cardGroup` feeds its baked card rows through it; Pine's baked buildings feed their
 seeded smoke and spark clouds the same way.
 
+**Creature group materialization (G441).** `game/plugin/brain` defines
+`createCreatureSpawner(manager)`, `CreatureSpawner` and `CreatureSpawnRow`.
+It owns ordered `spawn`, `group` and
+`place` herd/member joins plus idempotent retirement of only its actors.
+`place` preflights bounded pose rows and herd indices before creating any
+herd; ungrouped rows remain caller-owned. Callbacks retain practice,
+reporting and effects in their original actor/group order. Placement RNG,
+species policy, scenery and saved state remain with their existing owners.
+Driftwood's Enemies uses it for authored herds, practice and the sailor.
+The named W3 user is Nalati `creatures/wildlife.ts#spawnPack/#spawnHerd`,
+replacing manager spawn/membership wiring while preserving free-spot
+searches, wolf tracking and pack/herd controllers.
+
 **Actor-memory actions (G441).** `game/plugin/brain` defines
 `createMemoryActionBrain` and `MemoryActionRows`. The bounded row names an
 existing numeric state field, its inspection labels, and ordered body-step
 actions: an attack-phase threshold, an existing once field and an optional
-truthy/falsy selector. JSON input is structurally admitted with strict
-objects before the existing state, phase and safe-field checks. All effect
-ids are preflighted against borrowed
+truthy/falsy selector. All effect ids are preflighted against borrowed
 callbacks before the brain is installed. A due action writes its once field
 before invoking the callback, including a miss or thrown effect. There is
 no expression evaluator, clock, RNG, contact solver or save envelope;
