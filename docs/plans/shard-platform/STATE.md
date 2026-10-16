@@ -1,26 +1,26 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**Order:** W2 closes 05:00Z 10-17 (G463: leftovers → W3 closure rows) → W1 spike → W3.
+**W2 = 9 components (G466, Jake 13:35 Cancun).** Each component is ONE megabuild across Pine AND DW. W2 stays open until its components close (the 05:00Z close is cancelled), and the W1 spike rides along: roc.as/moves → H1 in C4, Sky/Signal quests → H2 in C5, Sky movers → H5 in C7. Close bar: 100/0 per component except listed view code. G465 holds: no runtime/ detours, no const mirrors, every commit a measured net cut. Plan: `progress/shard-platform/host-gap-2026-10-16/README.md` (`6e1fa0038`).
 
-**G465 (Jake, overrides G461 (c)/G464 on grid-ready):** the only goal is fewer custom shard lines, through data, engine hosts that pass G454, and AssemblyScript. Grid-ready and fps work stopped. Code whose end state is data, a host or a script goes straight there, never via runtime/; only lasting view code moves in. Const mirrors add runtime lines (pre-admission use only). **G464:** DW closes first; the ruler prints each shard's output % the moment it closes. Script lanes run Pine/Template/17-headless fixtures before every commit.
+**Headline: components closed 0 / 9.** Baseline at 13:00 Cancun (replan §1.2): Pine 18,955 = 89.0 %, DW 14,266 = 83.1 %. Later readings come from x7's per-component ruler.
 
-**Plan % (G458), ruler `2f80e66b4`: 10.3–43.6 %.** M3 is 17.1 % and slipped 0.9 pt in 6 h. Escapes: DW 37, Pine 155, Signal 6; Sky sim-in-runtime 0 (`e54ca1cb1`). KR1 net lines (report-only): W2 −11,974, W1 −26,125, so platform growth outpaces shard cuts.
+| Comp | Lane | Pine lines | DW lines |
+|---|---|---:|---:|
+| C1 static world → GLB / rows | O1 (Opus) | 2,937 | 2,179 |
+| C2 looks → graph JSON | O2 (Opus) | 2,994 | 1,904 |
+| C3 effects + water + AS scripts | O4 (Opus, next free slot) | 865 | 379 |
+| C4 creatures + bosses | x8 (after KS4 lands) | 3,017 | 1,814 |
+| C5 NPCs, quests (H2) | x5 (after the movers JSON lands) | 3,521 | 2,177 |
+| C6 items: sim x6, held view O3 (H3) | x6 + O3 | 2,572 | 866 |
+| C7 movers (H5) | x1 | 15 | 875 |
+| C8 audio (+H4, H10) | x4 | 940 | 1,740 |
+| C9 boot glue, escapes, const.ts deletion, P4 re-base | x7 | 2,094 | 2,332 |
 
-**Lanes. Targets are ESTIMATED custom lines removed by 05:00Z; the hourly report tracks actuals:**
+**Since noon:** measured cuts landed (DW ≈ −400, Pine ≈ −400, Sky ≈ −90), but const-mirror commits added +221 Pine / +371 DW, which C9 deletes. KR1 net lines are report-only; platform growth is accepted (G466 (7)).
 
-| Lane | Work | Target |
-|---|---|---|
-| o293 | DW code-built models → build-time GLB/data, TS deleted | DW −800 |
-| o294 | Pine code looks/builders → graph JSON/GLB/data | Pine −800 |
-| x5 | DW sim behaviours (director/ecology/quest/placement) → host rows / AS, TS deleted | DW −300 |
-| x4 | DW world-build data → sections/blobs, systems onto hosts | DW −200 |
-| x7 | DW leaves → sections; per-shard output %; lines-removed line; bloom row delete | DW −100 |
-| x6 | Pine client data → named JSON blobs/sections, mirrors replaced | Pine −200 |
-| x8 | KS1 roc.as + rows, ROC_BRAIN/raptor deleted | Sky −250 |
-| x1 | schema push-red fix, then Sky gust on world/targets, Sky world onto hosts/data | Sky −150 |
+**Visual:** each C1/C2 batch ships a labelled phone board, sent to wildshard-v. A short Opus host review runs at each component's close.
 
-**Landed since G465 (measured net shard lines, 18:15Z):** DW ≈ −254 (x4 −71/−18, x7 −10/−39/−20/−21, x5 −44/−10/−11, o293 −10); Pine ≈ −305 (o294 −156, o295 −36+, x6 −4/−18/−59/−10/−9/−13); Sky −14 (x1 gust), Roc join pending (x8: −21 before dead-code removal, +31 build step to pay back). Ruler at `4cbcad71d` showed M3 16.0 %, which predates most of these.
-
-**For wildshard-v (pick for Jake):** Pine generators/logCabin.ts (1,335 lines, biggest Pine file). A) freeze the bake: commit per-building geometry blobs (~5–9 MB binary, near the 10 MB push cap), a ~60-line reader, delete the generator (net ≈ −1,300 shard lines; later edits happen in Blender on the GLB; the source survives in git history). B) full Blender port (3–5 h, moves ~1,100 lines to scripts/blender, small KR1 gain). Rec: A. Notes in tmp/sp-o296/NOTES.txt.
-**For wildshard-v (low-priority pick):** DW data/audioPcm.ts (1,435 lines) and Pine data/weatherChannels.ts (1,241) are authored row tables in TS with no producer. A mechanical TS→JSON conversion would cut ~2,700 counted lines (~3 pt M3) but is the same data reformatted, which G448 ruled out. Rec: keep G448 (don't convert) unless Jake objects.
+**For wildshard-v:**
+1. Pine generators/logCabin.ts (1,335 lines): A) freeze the bake (per-building blobs ~5–9 MB, delete the generator, ≈ −1,300) or B) a Blender port (3–5 h). Rec: A.
+2. The authored TS row tables DW audioPcm.ts / Pine weatherChannels.ts: G466 C8 row 1 emits them as section JSON through a generator. Building that.
 Paused: SF22 SF57 SF67.
