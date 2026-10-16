@@ -47,6 +47,30 @@ commit, folder names kept under `runtime/` (`look/x.ts` -> `runtime/look/x.ts`).
 | `budgets.ts`, `strings.ts`, `roster.ts`, `plugin.ts`, `manifest.json` | root | design §3.1 sends them to `data/`, a debug section and `runtime/index.ts`; not this row |
 | `explore/`, `thumbs/` | build-time assets | images only |
 
+## A second gate: the runtime-performance hard rule
+
+`wildshard/runtime-performance` (hard, `.oxlintrc.json`) runs only on
+`runtime/**` files and its baseline grants no new allowances (SF62). A
+client file with an unbounded loop, DOM, timer or frame allocation can
+not move by paths alone, so these stay put until their loops are made
+statically finite (a code change, not this row): `onboarding/firstMinutes.ts`,
+`npc/Trader.ts`, `boot/foliageGeometry.ts`, `models/` entryDeck, people,
+pier, ropeBridge, shrine, trophyPlaques. `look/groundColor.ts` stays too
+(generators, the far look and the Blender export read it).
+
 ## Landings
 
-Filled in as each move lands (SHA, folder, ratchet note).
+| SHA | What moved | Ratchet note |
+|---|---|---|
+| `3f2479404` | `fpArms.ts` -> `runtime/fpArms.ts` | runtime-standalone +1 moved, -2 importers; shard-game-plugins -1 |
+| `262295ea0` | `look/` backdrop, render, stylizedSky, terrainPainter, toon -> `runtime/look/` | runtime-standalone +10 moved, -2 importers; toon shard-game-plugins +1, shard-engine-imports +1 |
+| `0d56683e7` | 11 `boot/` loaders, file lists, poses -> `runtime/boot/` | runtime-standalone +27 moved, -2 importers; shard-sandbox -2 |
+| `d97143bee` | fix: the move script kept `.ts` on `shard.config` / `ktx2.generated` imports (TS5097) | none |
+| `b3377f6c9` | 22 `models/` builders -> `runtime/models/` | runtime-standalone +23 moved, -5 importers; shard-game-imports -1 |
+| `dcb111f5c` | `npc/Castaway.ts` -> `runtime/npc/Castaway.ts` | runtime-standalone +4 moved |
+
+Every move is paths only. Headless reach (`scripts/sim-in-runtime.mjs`)
+is unchanged by all of them: none of the moved files is reachable from
+`runtime/headless.ts`. runtime-standalone rises are the moved files' own
+imports of `data/`, `shard.config`, JSON and the folders that stay; they
+fall as those become sections or `runtime/const.ts` mirrors.
