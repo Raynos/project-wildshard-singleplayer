@@ -1,5 +1,5 @@
 import source from '../../shard.config';
-import { ISLAND_FAMILIES } from '../../data/audioPlayback';
+import { ISLAND_FAMILIES, type Surface } from '../const';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { impact, renderPcm } from '@wildshard/engine/audio/gen';
@@ -7,7 +7,6 @@ import { spatialAudio } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
-import type { Surface } from '../../data/audioSurfaces';
 /**
  * Driftwood Isle's voice table (08 §6.3 C.2): the island's footsteps (B9) and combat layers (S3), played from the procedural
  * bank (gen.ts via audio.voices), the gull calls, and the island's synth bed (the warm breeze, the far surf hiss, the swells).

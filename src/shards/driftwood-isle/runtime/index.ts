@@ -17,7 +17,7 @@ import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
 import { installDriftwoodLoadout } from './loadout';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import source from '../shard.config';
-import { FP_ARMS_MATERIALS } from '../data/fpArmsLook';
+import { FP_ARMS_MATERIALS } from './const';
 import { followToon } from './look/toon';
 
 type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;

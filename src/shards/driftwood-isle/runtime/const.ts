@@ -35,3 +35,28 @@ export const ISLAND_LOOKS = {
   terrain: 'driftwood-island-terrain', props: 'driftwood-island-props',
   cover: 'driftwood-island-cover', coverBig: 'driftwood-island-cover-big',
 } as const;
+/** the look.materials ids the arms, the two swords and the swimming arms wear (data/fpArmsLook.ts) */
+export const FP_ARMS_MATERIALS = { arms: 'driftwood-fp-arms', wood: 'driftwood-fp-wood', iron: 'driftwood-fp-iron', swim: 'driftwood-fp-swim', pickupBlade: 'driftwood-pickup-blade', pickupFittings: 'driftwood-pickup-fittings' } as const;
+/** the castaway's first-person arms: rig, framing, shadow lookup and swim line (data/fpArmsLook.ts) */
+export const FP_ARMS_LOOK = {
+  url: '/assets/models/driftwood-fp/fp-arms.glb',
+  skeleton: 'driftwood-fp',
+  sockets: ['R_weapon', 'L_hand'],
+  joints: { sides: ['R', 'L'], arm: ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'], fingers: ['thumb', 'index', 'middle', 'ring', 'pinky'], phalanges: 3 },
+  offset: [-0.03, -0.012, 0],
+  frame: { size: 0.6, pitch: -0.2, yaw: 0, roll: 0 },
+  sunward: 1.2,
+  bladeBase: 0.012,
+  swim: { tilt: 1.1, handsZ: -0.5, waterY: -0.16, startD: -0.16 },
+  materials: FP_ARMS_MATERIALS,
+} as const;
+/** the step surfaces the island's audio maps (data/audioSurfaces.ts) */
+export const ISLAND_SURFACES = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'] as const;
+export type Surface = typeof ISLAND_SURFACES[number];
+/** the island's voice families, prewarmed in this order (data/audioPlayback.ts) */
+export const ISLAND_FAMILIES = [
+  'step-sand', 'step-planks', 'step-grass', 'step-wetSand', 'step-rock', 'step-water', 'step-stone',
+  'whoosh', 'impact-flesh', 'hurt', 'impact-shell', 'impact-wood', 'impact-stone', 'whoosh-heavy',
+  'vocal-boar', 'vocal-crab', 'vocal-monkey', 'vocal-sailor', 'windup-boar', 'windup-crab', 'windup-sailor',
+  'plunge-down', 'plunge-up', 'death', 'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
+] as const;

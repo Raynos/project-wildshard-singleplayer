@@ -15,7 +15,7 @@
 import type { Object3D } from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ToonArms, type ToonArmsLooks } from './viewmodel/toonArms';
-import { FP_ARMS_LOOK } from '../data/fpArmsLook';
+import { FP_ARMS_LOOK } from './const';
 
 const ARMS = new ToonArms(FP_ARMS_LOOK);
 

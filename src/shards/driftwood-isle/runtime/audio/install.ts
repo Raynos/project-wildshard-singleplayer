@@ -11,7 +11,7 @@ import { LOWERED_SEA } from '../../world/sea';
 import { driftwoodWorld } from '../../world/build';
 import { Cove } from '../../world/Cove';
 import { IslandSfx } from './sfx';
-import { ISLAND_SURFACES } from '../../data/audioSurfaces';
+import { ISLAND_SURFACES } from '../const';
 import { createIslandAmbience } from './ambience';
 
 /** Runs in level.play after the shell supplies its host. Constructors make no cosmetic draws. */

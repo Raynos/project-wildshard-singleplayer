@@ -1,6 +1,9 @@
 import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
+import { ISLAND_FAMILIES } from './audioPlayback';
+import { ISLAND_SURFACES } from './audioSurfaces';
 import { COVER_LOOKS } from './coverLook';
 import { CREATURE_LOOKS } from './creatureLook';
+import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
 import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
 import { ISLAND_LOOKS } from './islandLook';
@@ -26,4 +29,8 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CREATURE_LOOKS', CREATURE_LOOKS),
   defineMirror('COVER_LOOKS', COVER_LOOKS),
   defineMirror('ISLAND_LOOKS', ISLAND_LOOKS),
+  defineMirror('FP_ARMS_MATERIALS', FP_ARMS_MATERIALS),
+  defineMirror('FP_ARMS_LOOK', FP_ARMS_LOOK),
+  defineMirror('ISLAND_SURFACES', ISLAND_SURFACES),
+  defineMirror('ISLAND_FAMILIES', ISLAND_FAMILIES),
 ];
