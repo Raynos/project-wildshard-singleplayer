@@ -2,14 +2,11 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
- * A smooth-shaded figure from primitive parts (SHARD-PLATFORM M3, moved from Pine Hollow's models/people.ts): every part
- * a three.js primitive placed by a position, an Euler (rx, ry, rz) and a scale, made non-indexed, its uvs dropped, its
- * normals recomputed and its vertices painted one colour, then all merged in add order into one position + normal +
- * colour geometry (one draw on a vertex-coloured material). `PartKit` takes built geometries; `buildPrimitiveParts`
- * takes the parts as rows (a shard's `data/`), so a stand-in person, a trolley or a canoe is data.
- *
- *   const geometry = buildPrimitiveParts(rows);
- *   const mesh = new THREE.Mesh(geometry, vertexColouredMaterial);
+ * A smooth-shaded figure from primitive parts, built offline (SHARD-PLATFORM W2: Pine's code-parts bake, ./codeParts.ts):
+ * every part a three.js primitive placed by a position, an Euler (rx, ry, rz) and a scale, made non-indexed, its uvs
+ * dropped, its normals recomputed and its vertices painted one colour, then all merged in add order into one position +
+ * normal + colour geometry (one draw on a vertex-coloured material). `PartKit` takes built geometries;
+ * `buildPrimitiveParts` takes the parts as rows (./peopleParts.ts), so a stand-in person, a trolley or a canoe is data.
  */
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _c = new THREE.Color();

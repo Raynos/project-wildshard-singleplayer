@@ -124,7 +124,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/runtime/props/mooringLines.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/kit/caveInterior.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/kit/lodGlb.ts', 'C1'],
-  ['src/shards/pine-hollow/runtime/kit/primitiveParts.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/props/bakedBuilding.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/props/buildingLife.ts', 'C3'],
   // Door and wheel motion within the mixed light/mover building host.

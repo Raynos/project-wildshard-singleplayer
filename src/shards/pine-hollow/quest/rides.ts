@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { POND } from '../data/layout';
-import { PartKit } from '../runtime/kit/primitiveParts';
+import { codePart } from '../world/codeParts';
 import { npcMaterial } from '../models/people';
 
 interface Rider { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean }
@@ -34,12 +34,7 @@ export class ZipRide {
 
   constructor(sky: Sky, top: THREE.Vector3, bottom: THREE.Vector3, launch: THREE.Vector3, private readonly landing: THREE.Vector3) {
     this.wire = new ZiplineDriver({ ...ZIPLINE, top, bottom }, () => undefined, ZIP_RIDE);
-    const k = new PartKit();
-    k.add(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12), '#3a3d42', 0, 0, 0, 0, 0, Math.PI / 2);
-    k.add(new THREE.BoxGeometry(0.07, 0.24, 0.22), '#7a2e22', 0, -0.07, 0);
-    for (const sx of [-1, 1]) k.add(new THREE.CylinderGeometry(0.016, 0.016, 0.62, 5), '#b9a57a', sx * 0.15, -0.46, 0, 0, 0, sx * 0.45);
-    k.add(new THREE.CylinderGeometry(0.028, 0.028, 0.7, 6), '#4a3522', 0, -0.76, 0, 0, 0, Math.PI / 2);
-    this.trolley = new THREE.Mesh(k.finish(), npcMaterial(sky));
+    this.trolley = new THREE.Mesh(codePart('zip-trolley'), npcMaterial(sky)); // baked offline (../generators/codeParts.ts)
     this.trolley.castShadow = true;
     this.trolley.name = 'zip-trolley';
     this.carriage = new ZiplineTrolley(this.wire, ZIP_RIDE.start, this.trolley, { position: new THREE.Vector3(launch.x, launch.y + 1.1, launch.z), radius: 2.3, label: 'Ride the zipline' }, () => this.riding, () => { this.start(); });
@@ -75,17 +70,6 @@ export class ZipRide {
   }
 }
 
-/** the canoe: a lathed birch-bark hull, two thwarts, a paddle across them */
-function canoeGeometry(): THREE.BufferGeometry {
-  const k = new PartKit();
-  const hull = new THREE.SphereGeometry(1, 18, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
-  k.add(hull, '#8a5a34', 0, 0.33, 0, 0, 0, 0, 0.46, 0.34, 2.3);
-  k.add(new THREE.TorusGeometry(1, 0.035, 4, 24), '#5b3a22', 0, 0.33, 0, Math.PI / 2, 0, 0, 0.46, 2.3, 1);
-  for (const z of [-0.8, 0.8]) k.add(new THREE.BoxGeometry(0.8, 0.04, 0.08), '#6e4a2c', 0, 0.28, z);
-  k.add(new THREE.BoxGeometry(0.06, 0.03, 1.5), '#a07a4e', 0.12, 0.33, 0.1, 0, 0.2, 0);
-  return k.finish();
-}
-
 export class CanoeRide {
   readonly mesh: THREE.Mesh;
   /** "[E] Paddle to the islet" at the drawn-up canoe; "[E] Paddle back" on the islet's beach */
@@ -97,7 +81,7 @@ export class CanoeRide {
   private readonly water = POND.level;
 
   constructor(sky: Sky, private readonly shore: THREE.Vector3, private readonly beach: THREE.Vector3, private readonly shoreStand: THREE.Vector3, private readonly isletStand: THREE.Vector3) {
-    this.mesh = new THREE.Mesh(canoeGeometry(), npcMaterial(sky));
+    this.mesh = new THREE.Mesh(codePart('canoe'), npcMaterial(sky)); // the birch-bark hull, thwarts and paddle, baked offline
     this.mesh.castShadow = true; this.mesh.visible = false; this.mesh.name = 'canoe-ride';
     const busy = (): boolean => this.t >= 0;
     this.out = { position: new THREE.Vector3(shore.x, shore.y + 0.8, shore.z), get radius() { return busy() ? 0 : 2.6; }, label: 'Paddle to the islet', onInteract: () => { this.start(1); } };

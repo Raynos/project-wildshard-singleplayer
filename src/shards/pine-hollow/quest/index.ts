@@ -72,6 +72,7 @@ import { pineTableFromPlacements } from './table';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
 import { makeNpcFigure, type NpcFigure } from '../models/people';
 import { preloadNpcModels } from './npcModels';
+import { loadCodeParts } from '../world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import { pineBenchPose } from './benchPose';
 import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood } from './trades';
@@ -128,7 +129,7 @@ async function loadQuest() {
   return { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
-  await (deps.preload ?? preloadNpcModels)();
+  await Promise.all([(deps.preload ?? preloadNpcModels)(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
   const { DialogueBox, presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
@@ -362,7 +363,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const logModels = pineModels(sky);
   void loadHollowLog(logModels).then(() => {
     const site = hollowLogSite();
-    placeModel(hollowLog, [{ x: HOLLOW_LOG.x, y: site.floorY, z: HOLLOW_LOG.z, yaw: HOLLOW_LOG.yaw, params: { len: HOLLOW_LOG.len, R: HOLLOW_LOG.R, r: HOLLOW_LOG.r } }],
+    placeModel(hollowLog, [{ x: HOLLOW_LOG.x, y: site.floorY, z: HOLLOW_LOG.z, yaw: HOLLOW_LOG.yaw }],
       { ctx: logModels, draw: 'single', registry: h.registry, piece: { id: 'hollow-log', floor: (x, z) => (insideHollowLog(x, z) ? site.floorY : undefined), solidFloor: true } });
     hollow = site;
     return site;

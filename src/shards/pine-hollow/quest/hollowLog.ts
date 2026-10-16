@@ -8,8 +8,9 @@
 import * as THREE from 'three';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { yawLocal } from '@wildshard/engine/world/yawFrame';
+import { HOLLOW_LOG_SHAPE } from '../data/hollowLog';
 
-export const HOLLOW_LOG = { x: 112, z: -86, yaw: 0.35, len: 11, R: 1.6, r: 1.3 };
+export const HOLLOW_LOG = { x: 112, z: -86, yaw: 0.35, ...HOLLOW_LOG_SHAPE };
 
 /** the passage's facts, world space: the bed's top inside, its middle, the two mouths (on the ground) */
 export interface HollowLog { floorY: number; mid: THREE.Vector3; mouths: [THREE.Vector3, THREE.Vector3] }
