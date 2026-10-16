@@ -5,7 +5,7 @@ import { Bodies, Body } from '@wildshard/engine/physics/bodies';
 import type { Collider } from '@dimforge/rapier3d-simd';
 import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, plateOverlap, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
-import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
+import { bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
@@ -16,7 +16,7 @@ import baked from '../data/spots.generated.json' with { type: 'json' };
 import { NativeInventory } from '@wildshard/game/inventoryLaw';
 import { ZiplineDriver } from '@wildshard/sdk/movers';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
-import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
+import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from '@wildshard/sdk/runtime/prompts';
 
 /** Native command IDs, prompt/contact thresholds and limits are authored JSON. */
 import policy from '../data/nativeQuest.json' with { type: 'json' };
@@ -82,9 +82,6 @@ function bakedBox(physics: SimHost['physics'], c: { x: number; z: number; hw: nu
   return found;
 }
 
-/** One table row with its flag spellings made once (the step reads them every tick). */
-interface Rule extends InteractionState { readonly spot:DriftwoodSpots['rows'][number] }
-
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
 const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.unknown(), zipline: v.unknown(), reward: v.unknown(),
@@ -112,7 +109,7 @@ const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.s
  */
 export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: NativeInventory<string> } {
   const { table, spots } = ports, flags = host.flags;
-  const rules: Rule[] = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
+  const rules = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
   const pack = new NativeInventory<string>(DRIFTWOOD_NATIVE_PACK);
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
@@ -150,7 +147,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const counter=createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats,flags:flagRows,write:'each'},
     {read:()=>({...counts}),write:current=>{counts=current;},emit:ports.fact});
   /** the row's prompt point: the hold key's follows where the sailor fell (Interactables.moveTo, 1 m over the key) */
-  const promptOf = (r: Rule): { x: number; y: number; z: number } | undefined => {
+  const promptOf = (r: (typeof rules)[number]): { x: number; y: number; z: number } | undefined => {
     if (r.d.kind !== 'key' || state.key === null) return r.spot.prompt;
     keyPrompt.x = state.key.x; keyPrompt.y = state.key.y + 1.0; keyPrompt.z = state.key.z;
     return keyPrompt;
@@ -165,24 +162,15 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     commit:id=>commit(id),item:(id,n)=>{pack.add(id,n);},plate:(row,size)=>plateOverlap(host.physics,row.spot,row.spot.yaw,size,policy.plate),
     touched:r=>{const feet=host.player.position,dx=feet.x-r.spot.x,dz=feet.z-r.spot.z;
       return dx*dx+dz*dz<policy.touch.radius*policy.touch.radius&&Math.abs(feet.y-r.spot.y)<policy.touch.height;}});
-  const picker = createHeadlessPromptPicker(host);
   const prompts = bindHeadlessPrompts(spots.promptRegistrations, id => {
     if (id === 'castaway.talk') return { act: policy.actions.talk, position: spots.talk, radius: policy.talkRadius };
     if (id === 'iron-sword') return { act: policy.actions.sword, position: spots.sword, get radius() { return state.iron ? 0 : guarded() ? 1.4 : policy.swordRadius; } };
     if (id === 'zipline') return { act: policy.actions.zipline, position: spots.zipline.prompt, get radius() { return zipline.isRiding ? 0 : spots.zipline.prompt.radius; } };
     const i = rules.findIndex(r => r.d.id === id), r = rules[i];
     if (r?.spot.prompt === undefined) return undefined;
-    const prompt: HeadlessPrompt = { act: policy.actions.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
-    return prompt;
+    return { act: policy.actions.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
   });
-  const interact = spots.promptRegistrations.flatMap((registration, index) => {
-    const prompt = prompts[index];
-    if (registration.id === null || prompt === undefined) return [];
-    return prompt.act === null ? [] : [{ id: registration.id,
-      get x() { return prompt.position.x; }, get y() { return prompt.position.y; }, get z() { return prompt.position.z; },
-      get radius() { return picker.pick(prompts)?.act === prompt.act ? prompt.radius : 0; } }];
-  });
-  const graph = installDeclaredQuestHost(host, ports.source, { spots: { interact, crack: [] }, commands: ports.commands,
+  const graph = installDeclaredQuestHost(host, ports.source, { spots: { interact: [], crack: [] }, prompts, commands: ports.commands,
     fact: ports.fact, coins: ports.coins, directorActions: new Map(),
     observations: new Map([['sword-free', () => !state.iron && !guarded()], ['zipline-idle', () => !zipline.isRiding]]),
     actions: new Map<string, () => void>([
@@ -199,8 +187,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     state.key = { x, y: ports.floorAt(x, z), z };
   }, host.scope);
 
-  const syncFeats=():void=>{counter.syncFlags(flags);};
-  const offFlags = flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); });
+  const offFlags = flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) counter.syncFlags(flags); });
   host.scope.onDispose(offFlags);
 
   // the puzzle barrel (Interactables.placeLive's 'barrel'): the kit's body at its home, upright on the row's yaw, in its

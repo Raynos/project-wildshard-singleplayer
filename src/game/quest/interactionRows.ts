@@ -155,7 +155,7 @@ export type PromptRegistration = v.InferOutput<typeof registration>;
 export function parsePromptRegistrations(input: unknown): PromptRegistration[] { return v.parse(v.pipe(v.array(registration), v.maxLength(1024)), input); }
 
 /** A live prompt in actual page registration order; null acts still compete but have no hosted command. */
-export interface HeadlessPrompt extends PromptTarget { readonly act: number | null }
+export interface HeadlessPrompt extends PromptTarget { readonly act: number | null; readonly id?: string | null }
 /** A host borrows the authoritative eye and world; selection never performs the prompt's action. */
 export interface HeadlessPromptPicker { pick: <T extends HeadlessPrompt>(candidates: readonly T[]) => T | undefined }
 
@@ -164,7 +164,7 @@ export function bindHeadlessPrompts(registrations: readonly PromptRegistration[]
   return registrations.map(registrationRow => {
     const live = registrationRow.id === null ? undefined : resolve(registrationRow.id);
     if (registrationRow.id !== null && live === undefined) throw new Error(`Native prompt ${registrationRow.id} has no live host binding`);
-    return { act: live?.act ?? null, get position() { return live?.position ?? registrationRow.position; }, get radius() { return live?.radius ?? registrationRow.radius; },
+    return { id: registrationRow.id, act: live?.act ?? null, get position() { return live?.position ?? registrationRow.position; }, get radius() { return live?.radius ?? registrationRow.radius; },
       ...(registrationRow.weak === undefined ? {} : { weak: registrationRow.weak }), sight: registrationRow.sight };
   });
 }

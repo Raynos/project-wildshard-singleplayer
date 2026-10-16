@@ -1251,6 +1251,7 @@ export interface QuestHostPorts extends Omit<QuestGraphPorts, 'drive' | 'summon'
  * a transient flag stage introduces no saved cursor. The caller still owns all body, mover and encounter lifetimes. */
 export function installQuestHost(host: SimHost, quests: QuestData, input: QuestHostRow, ports: QuestHostPorts): ReturnType<typeof installQuestGraph> {
   const row = parseQuestHost(input);
+  if (ports.prompts !== undefined && ports.prompts.length > 1024) throw new Error('Quest prompt roster exceeds its finite bound');
   if (row.actors.ids.some(id => host.entities.get(id) === undefined)) throw new Error(row.actors.error);
   const observations = new Map<string, () => boolean>();
   const actions = new Map<string, () => void>();
@@ -1264,7 +1265,7 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     }
   }
   for (const route of row.commands.routes) {
-    if (![...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)].includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
+    if (!(ports.prompts === undefined ? [...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)] : ports.prompts.map(prompt => prompt.id)).includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
     if (route.action.kind === 'owner') {
       const owner = ports.actions.get(route.action.id);
       if (owner === undefined) throw new Error(`Unbound quest command ${route.action.id}`);

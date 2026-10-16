@@ -7,7 +7,7 @@ import * as graphContracts from '@wildshard/format/questGraph';
 import type { NpcDef } from "@wildshard/engine/quest/core";
 import type { SimHost } from "@wildshard/engine/sim";
 import { DeclaredQuests } from "../quest/declared";
-import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
+import { bindHeadlessPrompts, createHeadlessPromptPicker, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
 import { bindInteractionState, type Flags } from "@wildshard/engine/world/interact/flags";
 import type { QuestData } from "@wildshard/format/quests";
@@ -164,6 +164,8 @@ export interface QuestGraphPorts {
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   /** Optional actual page roster; commands can answer only its selected visible nearest prompt. */
   readonly promptRegistrations?: readonly PromptRegistration[];
+  /** Already-bound live rows, including unhosted competitors; external routes use their actual sight and order. */
+  readonly prompts?: readonly HeadlessPrompt[];
   /** An existing modal/ride owner delivers actions itself. With no marks, no extra step or snapshot is installed. */
   readonly drive?: 'commands' | 'external';
   readonly fact: (name: string, entity: string) => void;
@@ -184,24 +186,32 @@ export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: Qu
   const actions = new Map(rows.graph.actions.map(action => [action.row, action] as const)), summon = ports.summon;
   if (actions.size > 0 && summon === undefined) throw new Error('A quest graph summons a boss but has no summon port');
   if (ports.drive === 'external' && rows.interactions.marks.length > 0) throw new Error('Externally driven quest marks need an explicit continuation owner');
+  if (ports.prompts !== undefined && ports.prompts.length > 1024) throw new Error('Quest prompt roster exceeds its finite bound');
   const quests = new DeclaredQuests(host, rows.quests, { fact: ports.fact, coins: ports.coins });
   const rules = new InteractionRules(host.flags, rows.interactions);
   const groundAt = (x: number, z: number): number => host.groundHeightAt(x, z);
   const spots = Object.fromEntries([...rows.npcs.map(npc => [npc.spot, npcSpot(npc, groundAt)] as const),
     ...ports.spots.interact.map(s => [s.id, s] as const), ...ports.spots.crack.map(s => [`crack.${s.id}`, s] as const)]);
   const done = (row: string): void => { const action = actions.get(row); if (action !== undefined) summon?.(action.summon); };
-  const prompts = ports.promptRegistrations === undefined ? undefined : bindHeadlessPrompts(ports.promptRegistrations, id => {
+  const picker = createHeadlessPromptPicker(host), prompts = ports.prompts ?? (ports.promptRegistrations === undefined ? undefined : bindHeadlessPrompts(ports.promptRegistrations, id => {
     const entry = rows.interactions.rows.find(row => row.at === id && row.crack === undefined), spot = spots[id];
     if (entry === undefined || spot === undefined) return undefined;
     const prompt: HeadlessPrompt = { act: entry.act, position: spot, radius: spot.radius };
     return prompt;
-  });
+  }));
   if (ports.drive !== 'external') installInteractionRows(host, rules, { actorId: rows.graph.actor, stepId: rows.graph.step, spots, commands: ports.commands,
     ...(prompts === undefined ? {} : { prompts }),
     ...(ports.crack === undefined ? {} : { crack: ports.crack }),
     done });
   return { quests, rules, run: (id, changed) => { const result = rules.run(id, changed); if (result.ok) done(id); return result; },
-    near: (id) => { const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(host, spot); } };
+    near: (id) => {
+      if (ports.prompts !== undefined) {
+        const prompt = ports.prompts.reduce<HeadlessPrompt | undefined>((last, row) => row.id === id ? row : last, undefined);
+        if (prompt === undefined) throw new Error(`Undeclared quest prompt ${id}`);
+        return prompt.act !== null && picker.pick(ports.prompts)?.act === prompt.act && eyeReaches(host, { ...prompt.position, radius: prompt.radius });
+      }
+      const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(host, spot);
+    } };
 }
 
 /** Compile the flag effects of latched levers, pickups and benches from the engine's authored table. Geometry, inventory,

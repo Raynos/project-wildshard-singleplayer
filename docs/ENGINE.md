@@ -2839,6 +2839,10 @@ existing owners; single-item `prepareRuntimePlan` adds no new saved step.
 declared quest graph headless (SF27): `DeclaredQuests` plus the interaction step at the baked spots and each quest-giver's
 talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ row, summon }` arms a boss when the row
 runs). `drive: "external"` lets an existing modal/ride owner deliver `run(id)` without a second step or snapshot; transient marks refuse without their own continuation. `compileQuestTable(table, bindings)` compiles only supported latched-lever, pickup and bench flag effects, preserving ordered sets and leaving geometry, inventory and sitting with their existing owners.
+Live native prompt rows may be supplied as `QuestGraphPorts.prompts` (at most 1,024).
+`bindHeadlessPrompts` retains each registration id, moving position, reach and sight;
+external QuestHost routes use the same nearest visible selection, including unhosted
+competitors. This borrows data only and adds no callbacks, clock or continuation.
 A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/plugin/quests` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
 height, neck, shoulder, arm cut, material) and its dialogue. The shared pivot NPC host
