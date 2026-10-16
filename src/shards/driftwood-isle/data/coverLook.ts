@@ -1,7 +1,7 @@
 // SHARD-PLATFORM M3 (look-family rows): Driftwood's streamed ground cover as data (world/GroundCover.ts builds it through
 // runtime/looks/streamedCover.ts): its cells, reaches, caps, upload budget, slope reach and kinds, and the material graphs
 // its plants wear (SHARD-PLATFORM W2 C2: the shardfile's `look.materials`, compiled by the hybrid runtime; W2c: their
-// graphs are built at build time, generators/coverGraphs.ts). The kinds' densities and tints stay code.
+// graphs are authored graph JSON, data/lookGraphs.json). The kinds' densities and tints stay code.
 import type { StreamedCoverRow } from './lookRows';
 
 /**
@@ -47,9 +47,9 @@ export const GROUND_COVER: StreamedCoverRow = {
 };
 
 /** the look.materials id a kind's near (`far` false) or far model wears */
-export const coverLookId = (kind: string, far: boolean): string => `${GROUND_COVER.look}-${kind}${far ? '-far' : ''}`;
+const coverLookId = (kind: string, far: boolean): string => `${GROUND_COVER.look}-${kind}${far ? '-far' : ''}`;
 
 /** every cover look id, a near model's per kind and a far model's per kind that has one (the hybrid runtime compiles them;
- *  their graphs: generators/coverGraphs.ts) */
+ *  their graphs: data/lookGraphs.json) */
 export const COVER_LOOKS: readonly string[] = GROUND_COVER.kinds.flatMap((k) =>
   k.far === undefined ? [coverLookId(k.name, false)] : [coverLookId(k.name, false), coverLookId(k.name, true)]);

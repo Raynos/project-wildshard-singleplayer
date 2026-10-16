@@ -3,8 +3,8 @@
  * cove's cover tiles); past that the terrain was bare facet colour, so plants seemed to appear as you walked up to them.
  * The chunk-wide cover grid (@wildshard/sdk/looks/coverGrid) holds what the cover makes the ground look like per 4 m:
  * The build combines the density estimate and the Blender island’s actual placed cover; runtime borrows that full grid, and the terrains sample it per vertex and mix their facets towards it by how much of the ground the plants hide
- * from where you look (their graphs: generators/groundGraphs.ts `coverMix`). The plants fade into the same colour (their graph,
- * generators/coverGraphs.ts).
+ * from where you look (their graphs: data/lookGraphs.json, the cover mix). The plants fade into the same colour (their graph,
+ * data/lookGraphs.json).
  *
  *   const grid = CoverGrid.create(admitted, bounds); // Borrow the validated, cropped full-grid body
  *   tintTerrain(terrain.mesh);                // after the fill: aCover per vertex

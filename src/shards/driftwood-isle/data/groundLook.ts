@@ -1,12 +1,8 @@
 // SHARD-PLATFORM M3 (look-family rows): Driftwood's faceted ground (look/terrainPainter.ts builds it through
 // runtime/looks/facetedGround.ts): the materials it wears, the build's band, the cliff lip, the slab walls and the sand
-// paths. The colours by height and slope are look/groundColor.ts; the materials' graphs are built at build time
-// (generators/groundGraphs.ts, emitted as data/lookMaterials.generated.json).
+// paths. The colours by height and slope are look/groundColor.ts; the materials' graphs are authored graph JSON
+// (data/lookGraphs.json).
 import type { FacetedGroundRow } from './lookRows';
-
-/** the look.materials ids the ground and its slab walls wear */
-export const GROUND_MATERIAL = 'driftwood-ground';
-export const SLAB_MATERIAL = 'driftwood-ground-slab';
 
 /**
  * Faceted ground: 64 rows a task (the 256² grid was one ~120 ms task at 4x CPU); a cliff's top lip where the normal y is
@@ -15,7 +11,7 @@ export const SLAB_MATERIAL = 'driftwood-ground-slab';
  * foot 2 m out, shaded 0.85–1.15.
  */
 export const GROUND_LOOK: FacetedGroundRow = {
-  materials: { ground: GROUND_MATERIAL, slab: SLAB_MATERIAL },
+  materials: { ground: 'driftwood-ground', slab: 'driftwood-ground-slab' },
   band: 64,
   lip: { steep: 0.8, reach: 2.5, from: 0.4, to: 1.4 },
   slab: { segs: 96, rock: '#5a5d63', deep: '#1c1f26', top: 0.05, bulge: [4, 5], foot: 2, mid: 0.55, shade: [0.85, 0.3] },

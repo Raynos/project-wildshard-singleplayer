@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { validateGraph } from '../src/format/materialGraph';
 import { CREATURE_LOOKS } from '../src/shards/driftwood-isle/data/creatureLook';
-import { CREATURE_GRAPHS } from '../src/shards/driftwood-isle/generators/creatureGraphs';
+import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with { type: 'json' };
+import { authoredGraphs } from './fixtures/authoredGraphs';
 import source from '../src/shards/driftwood-isle/shard.config';
 import { graphCreatureLook } from '../src/shards/driftwood-isle/runtime/looks/creatureLooks';
 import { CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
+
+const CREATURE_GRAPHS = authoredGraphs(lookGraphs.looks);
 
 describe('Driftwood creature graph looks', () => {
   it('declares the bodies as valid graph toon looks reading the tint and flash ports', () => {

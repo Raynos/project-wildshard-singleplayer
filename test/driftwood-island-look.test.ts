@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { validateGraph } from '../src/format/materialGraph';
 import { ISLAND_LOOKS } from '../src/shards/driftwood-isle/data/islandLook';
-import { ISLAND_GRAPHS } from '../src/shards/driftwood-isle/generators/islandGraphs';
+import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with { type: 'json' };
+import { authoredGraphs } from './fixtures/authoredGraphs';
 import source from '../src/shards/driftwood-isle/shard.config';
+
+const ISLAND_GRAPHS = authoredGraphs(lookGraphs.looks);
 
 describe('Driftwood baked cove graph looks', () => {
   it('declares every cove material as a valid graph toon look', () => {

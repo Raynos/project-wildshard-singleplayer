@@ -2,7 +2,7 @@
 // on the graph toon look (`look.materials`, compiled by the runtime with its other looks, runtime/hybrid.ts). The flap
 // rig that was GLSL is the vertex stage: each part (`aPart`) turned about its joint from the instance's `aAnim`
 // (flap, head yaw, wing fold, leg tuck), then the instance's own transform; the surface is the vertex paint, matte.
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/gullGraphs.ts → data/lookMaterials.generated.json).
+// G466 C2: the graphs are authored graph JSON (data/lookGraphs.json).
 
 /** the look.materials id the gulls wear */
 export const GULL_GRAPH_LOOK = 'driftwood-gulls';

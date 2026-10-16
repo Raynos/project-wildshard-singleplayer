@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/skyGraphs.ts → data/lookMaterials.generated.json).
+// G466 C2: the graphs are authored graph JSON (data/lookGraphs.json).
 
 /**
  * Driftwood's faceted sky (DRIFTWOOD-REMASTER L2, the user's pick D2) as two SF59 material graphs (SHARD-PLATFORM W2 C2;

@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/kitGraphs.ts → data/lookMaterials.generated.json).
+// G466 C2: the graphs are authored graph JSON (data/lookGraphs.json).
 
 /**
  * The island's low-poly kit materials as SF59 material graphs (SHARD-PLATFORM W2 C2; the shardfile's `look.materials`,
@@ -16,15 +16,8 @@
  * - `solid`: the still kit drawn one-sided (the boat's hull, models/boat.ts).
  */
 
-/** the look.materials ids the kit wears */
-export const KIT_LOOK = 'driftwood-kit';
-export const KIT_STILL_LOOK = 'driftwood-kit-still';
-export const KIT_ROCK_LOOK = 'driftwood-kit-rock';
-export const KIT_PENNANT_LOOK = 'driftwood-kit-pennant';
-export const KIT_PALM_LOOK = 'driftwood-kit-palm';
-export const KIT_SOLID_LOOK = 'driftwood-kit-solid';
-
-/** The kit variant each graph is lent to (engine/world/lowpolyKit.ts `lowPolyLookMaterial(sky, variant)`). */
+/** The look.materials id each kit variant wears (engine/world/lowpolyKit.ts `lowPolyLookMaterial(sky, variant)`). */
 export const KIT_LENDS: Readonly<Record<string, string>> = {
-  default: KIT_LOOK, still: KIT_STILL_LOOK, 'rock-smooth': KIT_ROCK_LOOK, pennant: KIT_PENNANT_LOOK, palm: KIT_PALM_LOOK, solid: KIT_SOLID_LOOK,
+  default: 'driftwood-kit', still: 'driftwood-kit-still', 'rock-smooth': 'driftwood-kit-rock', pennant: 'driftwood-kit-pennant',
+  palm: 'driftwood-kit-palm', solid: 'driftwood-kit-solid',
 };

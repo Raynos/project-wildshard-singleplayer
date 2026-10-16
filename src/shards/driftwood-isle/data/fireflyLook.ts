@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/fireflyGraphs.ts → data/lookMaterials.generated.json).
+// G466 C2: the graphs are authored graph JSON (data/lookGraphs.json).
 
 /**
  * The Ring Shrine's firefly cloud (world/Shrine.ts) as an SF59 material graph (SHARD-PLATFORM W2 C2; the shardfile's

@@ -1,7 +1,7 @@
 // SHARD-PLATFORM M3 (look-family rows): Driftwood's castaway arms (E334, Jake's picks 2026-09-30: board 2 A "castaway",
 // board 3 A "breaststroke") as a toon-arms row (runtime/viewmodel/toonArms.ts); fpArms.ts passes it. The arms wear the
 // graph toon look (FP_ARMS_GRAPHS, the shardfile's look.materials, compiled by the kit hook: runtime/index.ts).
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/fpArmsGraphs.ts → data/lookMaterials.generated.json).
+// G466 C2: the graphs are authored graph JSON (data/lookGraphs.json).
 
 /** the look.materials ids the arms, the two swords and the swimming arms wear */
 export const FP_ARMS_MATERIALS = { arms: 'driftwood-fp-arms', wood: 'driftwood-fp-wood', iron: 'driftwood-fp-iron', swim: 'driftwood-fp-swim', pickupBlade: 'driftwood-pickup-blade', pickupFittings: 'driftwood-pickup-fittings' } as const;
