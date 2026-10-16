@@ -14491,6 +14491,39 @@
         "src/shards/pine-hollow/assets/fd0fa3a338ad78dd2f6e3f314449b80791eb251dd868924440f44ff8da82ccf5",
         "src/shards/pine-hollow/data/clientBlobs.generated.json"
       ]
+    },
+    {
+      "id": "pine-creature-blob-inputs",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/creatureBlobs.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/creatureBlobs.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk",
+        "src/format",
+        "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs",
+        "src/shards/pine-hollow/generators/creatureBlobs.mjs",
+        "public/assets/pine-hollow/creatures/thrall-extras.glb",
+        "public/assets/pine-hollow/creatures/thrall-extras.phone.glb"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/assets/creature-blobs/ca5ae104111ef7e1f3afb7be8bac96daf0b94cc95fc59609e9c7b832a6daec70",
+        "src/shards/pine-hollow/assets/creature-blobs/ee8474e5884ba74d057f445a9fa8c8236873ae1587dc167e488e82bf608bf7a8",
+        "src/shards/pine-hollow/data/creatureBlobs.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/assets/creature-blobs/ca5ae104111ef7e1f3afb7be8bac96daf0b94cc95fc59609e9c7b832a6daec70",
+        "src/shards/pine-hollow/assets/creature-blobs/ee8474e5884ba74d057f445a9fa8c8236873ae1587dc167e488e82bf608bf7a8",
+        "src/shards/pine-hollow/data/creatureBlobs.generated.json"
+      ]
     }
   ]
 }

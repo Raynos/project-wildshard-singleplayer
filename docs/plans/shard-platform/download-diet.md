@@ -168,3 +168,11 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   from the all-meshopt sweep and 1,404,146 B from plain sources. Raw
   output is 23,109,744 B. Every choice and both candidate sizes are
   logged in [the per-file receipt](../../../progress/shard-platform/driftwood-gzip-choices/README.md).
+
+- 2026-10-16 Pine thrall extras named-source prerequisite: desktop and
+  phone retain their distinct exact GLBs (203,700 B each; 407,400 B
+  total, 69,024 B per-file gzip-9). The per-file download rule keeps
+  both plain. All 28 decoded views, node/accessor/material/scene rows
+  match. The registered cheap producer passes cold comparison and
+  verified warm restoration. No generated binary enters Git; reader
+  migration follows separately.

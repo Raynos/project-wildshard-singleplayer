@@ -1863,3 +1863,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/pine-hollow/assets/e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1
 /src/shards/pine-hollow/assets/fd0fa3a338ad78dd2f6e3f314449b80791eb251dd868924440f44ff8da82ccf5
 /src/shards/pine-hollow/data/clientBlobs.generated.json
+
+# Cached named creature inputs (pine-creature-blob-inputs).
+/src/shards/pine-hollow/assets/creature-blobs/
+/src/shards/pine-hollow/data/creatureBlobs.generated.json
