@@ -320,10 +320,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly objectVariants = new NodeProgramVariants();
   /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
   private readonly environments = new WeakMap<THREE.Texture, Node>();
-  /** the stock program key per material, valid for one render call (`customProgramCacheKeyCallback`) */
+  /** the stock program key per material, valid for one key context (`customProgramCacheKeyCallback`, `keyContextNow`) */
   private readonly stockKeys = new WeakMap<THREE.Material, { stamp: number; version: number; receive: string | undefined; plain: string | undefined }>();
-  /** advances at every render start: the stock keys' validity */
-  private keyStamp = 0;
+  /**
+   * What a program key's scene and output parts are computed under: the render call (its stack entry), the lights, the
+   * bound target and the renderer's output transform. Its stamp advances whenever one of them moves, so a target bound
+   * inside one render call (or a light update) never reuses a key computed for the previous target (sp-o286, sp-o290).
+   */
+  private keyContext: { top: object; lights: number; target: THREE.RenderTarget | null; toneMapping: THREE.ToneMapping; colorSpace: string; stamp: number } | null = null;
+  /** the last key context's stamp (`keyContextNow`) */
+  private keyContextStamp = 0;
   /**
    * Split program keys (the Developer Debug row Performance ▸ Split program keys, `graphSplitKeys`, live, default off):
    * the program key a graph draw asks for is the same string, kept as three parts instead of being rebuilt every draw.
@@ -335,9 +341,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   splitKeys = false;
   /** the material part of each material's split key and its last whole key (`splitKeys`) */
   private readonly splitMemos = new WeakMap<THREE.Material, SplitKeyMemo>();
-  /** the scene part of the split key: the render call (stack entry), lights, target and output it was computed for */
-  private sceneMemo: { top: object | null; lights: number; target: THREE.RenderTarget | null; toneMapping: THREE.ToneMapping; colorSpace: string; value: string } | null = null;
-  /** advances at every `updateLights`: the scene part's validity */
+  /** the scene part of the split key and the key context it was computed under (`keyContextNow`) */
+  private sceneMemo: { stamp: number; value: string } | null = null;
+  /** advances at every `updateLights`: the key context's validity */
   private lightsStamp = 0;
   /** material parts computed (three's node-children walk) under `splitKeys`; a test's and a bench's count */
   materialKeyWalks = 0;
@@ -390,9 +396,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const frame = (): unknown => Reflect.get(this, 'nodeFrame');
     // The stock key walks every own property of the material and hashes its node children, and the warm draw path asks
     // for it on every draw (shadow casts too): on Safari that walk was a large share of a Driftwood frame (sp-o276).
-    // Within one render call the scene, lights and output transform are fixed, so it is computed once per material,
-    // receive-shadow flag and render, and again whenever the material's version moves.
-    const stockKeys = this.stockKeys, stamp = (): number => this.keyStamp;
+    // It is computed once per material, receive-shadow flag and key context (render call, lights, bound target, output
+    // transform: `keyContextNow`), and again whenever the material's version moves.
+    const stockKeys = this.stockKeys, keyContext = (): number => this.keyContextNow();
     // Split keys (Debug ▸ Performance ▸ Split program keys, `splitKeys`): the same key, from three parts kept apart
     const splitOn = (): boolean => this.splitKeys, scenePart = (): string | null => this.scenePart();
     const splitKey = (material: THREE.Material, object: unknown, scene: string, fogId: string, layer: number): string => this.splitKey(material, object, scene, fogId, layer);
@@ -407,12 +413,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         if (scene !== null) return splitKey(this, object, scene, fog?.node === undefined ? '' : fog.id, layer === null ? 0 : layer.whole ? 1 : 2);
       }
       const receive = object instanceof THREE.Object3D && object.receiveShadow;
-      let memo = stockKeys.get(this);
-      if (memo === undefined || memo.stamp !== stamp() || memo.version !== this.version) {
-        memo = { stamp: stamp(), version: this.version, receive: undefined, plain: undefined }; stockKeys.set(this, memo);
+      const stamp = keyContext();
+      let stock: string | undefined;
+      if (stamp < 0) stock = stockKey.call(this);
+      else {
+        let memo = stockKeys.get(this);
+        if (memo === undefined || memo.stamp !== stamp || memo.version !== this.version) {
+          memo = { stamp, version: this.version, receive: undefined, plain: undefined }; stockKeys.set(this, memo);
+        }
+        stock = receive ? memo.receive : memo.plain;
+        if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       }
-      let stock = receive ? memo.receive : memo.plain;
-      if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       return `${stock}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
     this.epilogue.push((out, ctx) => {
@@ -438,23 +449,36 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     });
   }
 
-  /** the scene part of the split key for the current render call and target, or null where it cannot be kept (`splitKeys`) */
-  private scenePart(): string | null {
+  /**
+   * The stamp of the current key context (`keyContext`): the same number while the render call, lights, bound target and
+   * output transform stay put, a new one when any moves; -1 where no key may be kept (outside a render call, or an XR
+   * target, whose output space is its texture's and may move without the target changing).
+   */
+  private keyContextNow(): number {
     const top = internals(this).renderStack.at(-1), renderer = this.real;
-    if (top === undefined || renderer === null) return null;
+    if (top === undefined || renderer === null) return -1;
     const target = renderer.getRenderTarget();
-    // an XR target's output space is its texture's, which may move without the target changing
-    if (target !== null && Reflect.get(target, 'isXRRenderTarget') === true) return null;
-    const memo = this.sceneMemo;
-    if (memo?.top === top && memo.lights === this.lightsStamp && memo.target === target &&
-      memo.toneMapping === renderer.toneMapping && memo.colorSpace === renderer.outputColorSpace) return memo.value;
+    if (target !== null && Reflect.get(target, 'isXRRenderTarget') === true) return -1;
+    const c = this.keyContext;
+    if (c?.top === top && c.lights === this.lightsStamp && c.target === target &&
+      c.toneMapping === renderer.toneMapping && c.colorSpace === renderer.outputColorSpace) return c.stamp;
+    const stamp = ++this.keyContextStamp;
+    this.keyContext = { top, lights: this.lightsStamp, target, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp };
+    return stamp;
+  }
+
+  /** the scene part of the split key for the current key context, or null where it cannot be kept (`splitKeys`) */
+  private scenePart(): string | null {
+    const stamp = this.keyContextNow(), top = internals(this).renderStack.at(-1);
+    if (stamp < 0 || top === undefined) return null;
+    if (this.sceneMemo?.stamp === stamp) return this.sceneMemo.value;
     const sceneContext: unknown = top.sceneContext, proxy: unknown = Reflect.get(this, 'renderer');
     const sceneKey: unknown = typeof sceneContext === 'object' && sceneContext !== null ? Reflect.get(sceneContext, 'getCacheKey') : undefined;
     const rendererKey: unknown = typeof proxy === 'object' && proxy !== null ? Reflect.get(proxy, 'getCacheKey') : undefined;
     if (typeof sceneKey !== 'function' || typeof rendererKey !== 'function') return null;
     // three's stock key concatenates the scene hash and the renderer hash in this order (WebGLNodesHandler)
     const value = `${String(Reflect.apply(sceneKey, sceneContext, []))}${String(Reflect.apply(rendererKey, proxy, []))}`;
-    this.sceneMemo = { top, lights: this.lightsStamp, target, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, value };
+    this.sceneMemo = { stamp, value };
     return value;
   }
 
@@ -617,7 +641,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * bakes of one build differed); three's stock fog node is dropped wherever the engine epilogue fogs
    */
   override renderStart(scene: THREE.Object3D, camera: THREE.Camera, targetScene?: THREE.Object3D): void {
-    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender(); this.blocks?.invalidateBindings(); this.keyStamp++;
+    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender(); this.blocks?.invalidateBindings();
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     if (worldTime.t !== null && typeof frame === 'object' && frame !== null) {
       Reflect.set(frame, 'time', worldTime.t);
