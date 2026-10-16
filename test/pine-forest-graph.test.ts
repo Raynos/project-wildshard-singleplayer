@@ -1,8 +1,13 @@
 import { expect, test } from 'vitest';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
-import { FOREST_LOOKS, FOREST_TEXTURES } from '../src/shards/pine-hollow/data/forestLook';
-import { FOREST_GRAPHS } from '../src/shards/pine-hollow/generators/forestGraphs';
+import { FOREST_LOOKS } from '../src/shards/pine-hollow/data/forestLook';
+import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
+import { authoredGraphs } from './fixtures/authoredGraphs';
+
+const FOREST_GRAPHS = authoredGraphs(lookGraphs.views);
+/** each look's lent textures (world/treeFactory.ts): the bark arrays, the card and impostor atlases */
+const FOREST_TEXTURES = { bark: ['barkMap', 'barkNormal', 'barkArm'], cards: ['cardMap', 'cardNormal', 'cardArm'], far: ['farMap', 'farNormal'] };
 
 test("Pine's forest graphs validate in their budgets and compile swayed, dissolving trees with lent textures", () => {
   const lent: Record<string, readonly string[]> = {

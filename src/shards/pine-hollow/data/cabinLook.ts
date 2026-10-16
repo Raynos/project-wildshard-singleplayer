@@ -1,13 +1,11 @@
 // Pine Hollow's cabin looks as data (SHARD-PLATFORM M3, look-family rows): the look.materials ids the door and the
-// moss-bound kinds wear (their SF59 graphs are built at build time, generators/cabinGraphs.ts) and how the
+// moss-bound kinds wear (their SF59 graphs are authored JSON, data/lookGraphs.json) and how the
 // homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
-import type { CABIN_MOSS_BINDINGS } from './cabinAssembly';
-
 /** the look.materials id the cabin doors wear */
 export const CABIN_DOOR_LOOK = 'pine-cabin-door';
 
-/** the look.materials id each moss-bound cabin kind wears (CABIN_MOSS_BINDINGS: the roof, the stone) */
-export const CABIN_MOSS_LOOKS = { roof: 'pine-cabin-moss-roof', stone: 'pine-cabin-moss-stone' } as const satisfies Record<typeof CABIN_MOSS_BINDINGS[number]['key'], string>;
+/** the look.materials id each moss-bound cabin kind wears (the roof, the stone) */
+export const CABIN_MOSS_LOOKS = { roof: 'pine-cabin-moss-roof', stone: 'pine-cabin-moss-stone' } as const;
 
 /**
  * The homestead as a living place (world/homestead.ts hands it to @wildshard/sdk/props/buildingLife): a door swings in

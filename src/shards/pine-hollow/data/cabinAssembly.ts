@@ -18,4 +18,3 @@ export const CABIN_MATERIALS = {
 } as const;
 export const CABIN_GLASS_EMISSIVE = [1, 0.5, 0.17] as const;
 export const CABIN_LIGHT = { count: 2, color: 0xffa050, intensity: 0, distance: 10, decay: 2 } as const;
-export const CABIN_MOSS_BINDINGS = [{ key: 'roof', strength: 1, upOnly: true }, { key: 'stone', strength: 0.6, upOnly: false }] as const;

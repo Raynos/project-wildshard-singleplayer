@@ -5,7 +5,10 @@ import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { materialTextureRefs } from '../src/format/materials';
 import { clientGraphs } from '../src/game/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
-import { SKY_GRAPHS } from '../src/shards/pine-hollow/generators/skyGraphs';
+import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
+import { authoredGraphs } from './fixtures/authoredGraphs';
+
+const SKY_GRAPHS = authoredGraphs({ 'pine-sky-dome': lookGraphs.views['pine-sky-dome'], 'pine-sky-env': lookGraphs.views['pine-sky-env'] });
 
 const LENT: GraphIr = { version: 1, kind: 'material', model: 'unlit',
   params: { key: { type: 'texture', value: 'slot', role: 'lent' } },

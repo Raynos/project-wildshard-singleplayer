@@ -5,7 +5,10 @@ import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
 import { Scope } from '../src/engine/app/scope';
 import { validateGraph } from '../src/format/materialGraph';
 import { UNDER_LOOK } from '../src/shards/pine-hollow/data/undergrowthLook';
-import { UNDER_GRAPHS } from '../src/shards/pine-hollow/generators/undergrowthGraphs';
+import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
+import { authoredGraphs } from './fixtures/authoredGraphs';
+
+const UNDER_GRAPHS = authoredGraphs({ 'pine-undergrowth': lookGraphs.runtime['pine-undergrowth'] });
 
 test("Pine's undergrowth graph validates in its budget and compiles a swaying, cut, shadow-casting foliage material", () => {
   // every kind borrows the same compiled graph

@@ -9,7 +9,7 @@ import * as v from 'valibot';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import type { MatKey } from '../runtime/world/homestead';
 
-/** a baked draw's `moss` hint (the roof's and the stone's), named as the moss graphs read it (`aMoss`, ../generators/cabinGraphs.ts) */
+/** a baked draw's `moss` hint (the roof's and the stone's), named as the moss graphs read it (`aMoss`, data/lookGraphs.json) */
 export function mossHint(g: THREE.BufferGeometry): THREE.BufferGeometry {
   if (!g.hasAttribute('moss')) return g;
   const moss = g.getAttribute('moss'); g.deleteAttribute('moss');

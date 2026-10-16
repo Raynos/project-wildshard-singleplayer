@@ -3,7 +3,10 @@ import { DoubleSide } from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
 import { WILDLIFE_LOOK } from '../src/shards/pine-hollow/data/wildlifeLook';
-import { WILDLIFE_GRAPHS } from '../src/shards/pine-hollow/generators/wildlifeGraphs';
+import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
+import { authoredGraphs } from './fixtures/authoredGraphs';
+
+const WILDLIFE_GRAPHS = authoredGraphs(lookGraphs.views);
 
 test("Pine's wildlife graph validates in its budget and compiles a posed, double-sided, glowing material", () => {
   const graph = WILDLIFE_GRAPHS[WILDLIFE_LOOK];
