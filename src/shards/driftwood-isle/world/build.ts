@@ -23,8 +23,7 @@ import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
 import { placeShoreBoulders, scatterShoreBoulders } from './Boulders';
-import { hut as hutModel, hutOrigin, hutLayout } from '../runtime/models/hut';
-import { lookout as lookoutModel, lookoutOrigin, lookoutLayout } from '../runtime/models/lookout';
+import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/models/hut';
 import { Wreck } from './Wreck';
 import { Shrine } from '../runtime/world/Shrine';
 import { placeIslandBushes } from './Bushes';
@@ -135,10 +134,10 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
   const rocks = await stages.build('Shore boulders', () => placeShoreBoulders(sky, rockSpecs, registry, slice.due), { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-  const hut = await stages.build('Hut', () => placeModelSite(hutModel, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry, piece: { id: 'hut' } }), { values: value => value.colliders });
+  const hut = await stages.build('Hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'hut' } }); }, { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
   const lookoutSite = { site: LOOKOUT, zipTo: { x: Cove.forIsland().cave.x, z: Cove.forIsland().cave.z } };
-  const lookout = await stages.build('Lookout', () => placeModelSite(lookoutModel, lookoutOrigin(lookoutSite), lookoutLayout(lookoutSite), { ctx: modelContext(sky), registry, piece: { id: 'lookout' } }), { values: value => value.colliders });
+  const lookout = await stages.build('Lookout', () => { const s = bakedSite('lookout', lookoutSite); return placeModelSite(lookoutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'lookout' } }); }, { values: value => value.colliders });
   // E315 M1: the shipwreck model (../models/shipwreck.ts) with the cove's cargo, drift logs and reef
   // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
   const wreck = await stages.build('Wreck', () => new Wreck(sky, WRECK).place(registry), { objects: value => [value.group], values: value => value.colliders });

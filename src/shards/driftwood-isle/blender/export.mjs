@@ -31,7 +31,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const { buildTrailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
   const { islandTrailsideSpec } = await imp('src/shards/driftwood-isle/world/trailsideLayout.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
-  const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/runtime/models/hut.ts');
+  const { hut, bakedSite } = await imp('src/shards/driftwood-isle/runtime/models/hut.ts');
   const { modelContext } = await imp('src/engine/models/model.ts');
   const { placeModelSite } = await imp('src/engine/models/place.ts');
   const { HUT } = island;
@@ -45,7 +45,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const sky = { setupMaterial() { /* no CSM in Node */ }, viewCamera: new THREE.PerspectiveCamera() };
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: wl + 1.2, landing: true }).build();
   addObject(pier.group);
-  tryBuild('hut', () => placeModelSite(hut, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry: null }).group);
+  tryBuild('hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hut, s.origin, s.layout, { ctx: modelContext(sky), registry: null }).group; });
   tryBuild('trailside', () => buildTrailside(sky, trailside).mesh);
 
   return {
