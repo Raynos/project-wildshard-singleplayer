@@ -33,7 +33,7 @@ def main():
                               env=dict(os.environ, WS_GATE_REPO=str(root))).returncode
     timings = {}
     started = time.time()
-    present, tests = [], None
+    present, tests, passed_gate = [], None, False
 
     def run(name, command, **options):
         step = time.time()
@@ -90,13 +90,16 @@ def main():
         run('build', [sys.executable, 'scripts/heavy-lane.py', 'gate', '--', *command])
         passed.parent.mkdir(parents=True, exist_ok=True)
         passed.write_text('build passed\n')
+        passed_gate = True
         print('vercel-gate: ' + sha[:9] + ' passed')
         return 0
     except subprocess.CalledProcessError as error:
         print('vercel-gate: FAILED at ' + sha[:9] + ' — ' + str(error), file=sys.stderr)
         return 1
     finally:
-        record = {'at': int(started), 'tip': sha, 'changed': len(present), 'tests': None if tests is None else len(tests),
+        # `passed` says whether the gate passed: a failed gate still records the seconds of the steps it ran (a record
+        # alone once read as a pass for a tip whose Pine build had refused).
+        record = {'at': int(started), 'tip': sha, 'passed': passed_gate, 'changed': len(present), 'tests': None if tests is None else len(tests),
                   'total': round(time.time() - started, 1), **timings}
         try:
             with (common / 'push-gate-steps.jsonl').open('a') as log:
