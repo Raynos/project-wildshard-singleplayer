@@ -506,10 +506,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     return memo.key;
   }
 
-  /** write block values straight into their floats (`NodeUniformBuffers.directWrites`; Debug ▸ Performance ▸ Direct block writes) */
-  get directBlockWrites(): boolean { return this.blocks?.directWrites ?? false; }
-  set directBlockWrites(on: boolean) { if (this.blocks !== null) this.blocks.directWrites = on; }
-
   override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }
 
   /** Clone-safe optional attributes use the renderer's existing constant-value binding. */

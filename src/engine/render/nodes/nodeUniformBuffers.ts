@@ -15,8 +15,6 @@
  * number of node programs share a handful of points. A value is written only when it changed since the buffer last saw it.
  */
 
-import { Color, Matrix3, Matrix4, Vector2, Vector3, Vector4 } from 'three';
-
 /** the WebGL 2 calls the blocks make (a context, or a test's recorder) */
 export type UniformBlockGl = Pick<WebGL2RenderingContext, 'MAX_UNIFORM_BUFFER_BINDINGS' | 'UNIFORM_BUFFER' | 'DYNAMIC_DRAW' | 'INVALID_INDEX'
   | 'getParameter' | 'createBuffer' | 'deleteBuffer' | 'bindBuffer' | 'bufferData' | 'bufferSubData' | 'bindBufferBase' | 'getUniformBlockIndex' | 'uniformBlockBinding'>;
@@ -101,52 +99,6 @@ function remember(last: unknown, value: unknown): unknown {
   const clone: unknown = Reflect.get(value, 'clone');
   return typeof clone === 'function' ? Reflect.apply(clone, value, []) : value;
 }
-/** a mat4's 16 floats where they differ; true if any did */
-function writeMat4(e: readonly number[], data: Float32Array): boolean {
-  let dirty = false;
-  for (let i = 0; i < 16; i++) { const f = Math.fround(e[i] ?? 0); if (data[i] !== f) { data[i] = f; dirty = true; } }
-  return dirty;
-}
-/** a mat3 as three padded columns (three's writeUniformValue) where they differ; true if any did */
-function writeMat3(e: readonly number[], data: Float32Array): boolean {
-  let dirty = false;
-  for (let c = 0; c < 3; c++) {
-    for (let r = 0; r < 3; r++) { const f = Math.fround(e[c * 3 + r] ?? 0), at = c * 4 + r; if (data[at] !== f) { data[at] = f; dirty = true; } }
-  }
-  return dirty;
-}
-function write2(data: Float32Array, a: number, b: number): boolean {
-  const fa = Math.fround(a), fb = Math.fround(b);
-  if (data[0] === fa && data[1] === fb) return false;
-  data[0] = fa; data[1] = fb; return true;
-}
-function write3(data: Float32Array, a: number, b: number, c: number): boolean {
-  const fa = Math.fround(a), fb = Math.fround(b), fc = Math.fround(c);
-  if (data[0] === fa && data[1] === fb && data[2] === fc) return false;
-  data[0] = fa; data[1] = fb; data[2] = fc; return true;
-}
-function write4(data: Float32Array, a: number, b: number, c: number, d: number): boolean {
-  const fa = Math.fround(a), fb = Math.fround(b), fc = Math.fround(c), fd = Math.fround(d);
-  if (data[0] === fa && data[1] === fb && data[2] === fc && data[3] === fd) return false;
-  data[0] = fa; data[1] = fb; data[2] = fc; data[3] = fd; return true;
-}
-/**
- * Direct block writes (`NodeUniformBuffers.directWrites`): write a value of a known three type straight into its slot's
- * floats where they differ from what the buffer already holds, and say whether any did; null for any other value (the
- * generic compare-and-copy path). The slot's floats are exactly the uploaded bytes, so a skipped write uploads nothing
- * the GPU does not already have.
- */
-function writeDirect(value: unknown, data: Float32Array): boolean | null {
-  if (typeof value === 'number') { const f = Math.fround(value); if (data[0] === f) return false; data[0] = f; return true; }
-  if (value instanceof Matrix4) return writeMat4(value.elements, data);
-  if (value instanceof Vector3) return write3(data, value.x, value.y, value.z);
-  if (value instanceof Vector4) return write4(data, value.x, value.y, value.z, value.w);
-  if (value instanceof Color) return write3(data, value.r, value.g, value.b);
-  if (value instanceof Vector2) return write2(data, value.x, value.y);
-  if (value instanceof Matrix3) return writeMat3(value.elements, data);
-  if (typeof value === 'boolean') { const f = value ? 1 : 0; if (data[0] === f) return false; data[0] = f; return true; }
-  return null;
-}
 function changed(last: unknown, value: unknown): boolean {
   if (last === undefined || ArrayBuffer.isView(value)) return true;
   if (!isObject(value)) return last !== value;
@@ -163,12 +115,6 @@ export class NodeUniformBuffers {
   private readonly bound = new Map<number, WebGLBuffer>();
   private readonly top: number;
   private readonly gl: UniformBlockGl;
-  /**
-   * Direct block writes (the Developer Debug row Performance ▸ Direct block writes, `graphBlockWrites`, live, default
-   * off): a number, boolean, vector, colour or matrix is compared against and written into the block's own floats in
-   * one pass, instead of compared with a kept copy through its `equals` and copied back through `copy` / `toArray`.
-   */
-  directWrites = false;
 
   constructor(gl: UniformBlockGl) {
     this.gl = gl;
@@ -229,19 +175,9 @@ export class NodeUniformBuffers {
   private upload(block: Block): void {
     const gl = this.gl;
     let first: Slot | undefined, last: Slot | undefined;
-    const direct = this.directWrites;
     for (const slot of block.slots) {
       const value: unknown = Array.isArray(slot.uniform.value) ? slot.uniform.value[slot.element]
         : slot.element === 0 ? slot.uniform.value : undefined;
-      if (direct) {
-        const dirty = writeDirect(value, slot.data);
-        if (dirty !== null) {
-          // the kept copy is now stale: the generic path rewrites this slot once if the row goes off
-          slot.last = undefined;
-          if (dirty) { first ??= slot; last = slot; }
-          continue;
-        }
-      }
       if (!changed(slot.last, value)) continue;
       slot.last = remember(slot.last, value);
       write(value, slot.data);

@@ -8,8 +8,6 @@ export const ENGINE_STRINGS = {
   "s_fixed_shadow_samples_note": "G437 · E435: remove fixed depth-texture flip updates. Off while horizon differences are reviewed; reloads",
   "s_graph_split_keys": "Split program keys",
   "s_graph_split_keys_note": "E435 · sp-o286: each graph draw's program key keeps its material part per material version and its scene part per render call, so an unchanged draw reuses last draw's key instead of rebuilding it. Off until a quiet Safari frame floor shows the gain. Live",
-  "s_graph_block_writes": "Direct block writes",
-  "s_graph_block_writes_note": "E435 · sp-o286: each graph draw compares and writes its uniform block values straight into the block's floats in one pass, instead of through a kept copy's equals and copy. Off until a quiet Safari frame floor shows the gain. Live",
   "s_compile_shadow_hold": "Hold compile shadow redraw",
   "s_compile_shadow_hold_note": "E435 · sp-o289: a shader warm-up compile no longer redraws every shadow map of the page (three does that once a graph back-end is installed) when every caster light already has its map; the next frame redraws them as before. Off until a Safari frame floor shows the gain. Live",
   "s_graph_materials": "Graph materials",

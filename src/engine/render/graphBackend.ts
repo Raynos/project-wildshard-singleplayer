@@ -24,9 +24,6 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
     // Debug ▸ Performance ▸ Split program keys (sp-o286, default off): live
     handler.splitKeys = setting('graphSplitKeys') === 'on';
     onSettingChange('graphSplitKeys', (value) => { handler.splitKeys = value === 'on'; });
-    // Debug ▸ Performance ▸ Direct block writes (sp-o286, default off): live
-    handler.directBlockWrites = setting('graphBlockWrites') === 'on';
-    onSettingChange('graphBlockWrites', (value) => { handler.directBlockWrites = value === 'on'; });
     return handler;
   });
   installed.set(renderer, loading);
