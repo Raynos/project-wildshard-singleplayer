@@ -1,13 +1,13 @@
 /**
  * Driftwood's herring gull (runtime/world/Gulls.ts, the GULL_FLOCK row on @wildshard/sdk/looks/ambientFlock), built offline: one faceted, flat-shaded,
- * vertex-coloured gull in its palette (data/gullsLook.ts) about the graph rig's joints (data/gullGraphLook.ts), each
+ * vertex-coloured gull in its palette (generators/gullsLook.ts) about the graph rig's joints (data/gullGraphLook.ts), each
  * vertex tagged with the part (`aPart`) the graph turns. The flock draws it as the fixed-model template `gull`, loaded
  * through the shard's geometry intake; the flap, head, fold and legs stay posed on the GPU from `aAnim`.
  */
 import * as THREE from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { GULL_RIG } from '../data/gullGraphLook';
-import { GULL_PALETTE } from '../data/gullsLook';
+import { GULL_PALETTE } from './gullsLook';
 
 /** vertex part ids (aPart): what the vertex shader rotates */
 const PART = { body: 0, wingL: 1, wingR: 2, head: 3, legL: 4, legR: 5 } as const;

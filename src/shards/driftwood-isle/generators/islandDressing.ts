@@ -21,7 +21,7 @@ import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
 import { inArea } from '../world/blenderArea';
-import { GULL_CORRIDORS } from '../data/gullsLook';
+import { GULL_CORRIDORS } from './gullsLook';
 
 /** The world's wet-sand perches, compiled under its original native height binding. */
 export function beachGullPerches(heightAt: (x: number, z: number) => number, seed: number): {x:number;y:number;z:number}[] {

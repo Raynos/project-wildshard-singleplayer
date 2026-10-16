@@ -5,7 +5,44 @@
  * `castaway-smoke` through the shard's geometry intake.
  */
 import * as THREE from 'three';
-import type { SmokeColumnRow } from '../data/lookRows';
+
+/** A smoke column's numbers as data. */
+interface SmokeColumnRow {
+  /** puffs, metres the column climbs, seconds a puff lives, the per-puff life speed (base, jittered gain), the seed spread
+   *  and the seed's step each time a puff restarts, and the start seed of the column's LCG */
+  readonly count: number;
+  readonly rise: number;
+  readonly life: number;
+  readonly rate: readonly [number, number];
+  readonly seedSpread: number;
+  readonly reseed: number;
+  readonly seed: number;
+  /** the rise's eased and linear shares, the base over the fire (m), the lean (m at the top) and the wind (x, z) */
+  readonly ease: number;
+  readonly linear: number;
+  readonly base: number;
+  readonly lean: number;
+  readonly wind: readonly [number, number];
+  /** the wander: [frequency on age, frequency on seed, base reach, reach gained by the top] for x, then z */
+  readonly wanderX: readonly [number, number, number, number];
+  readonly wanderZ: readonly [number, number, number, number];
+  /** the puff's size (base, gained by the top), the fade in (age share), the fade out (age share) and its power, and the
+   *  thinning (base, sine gain, seed frequency) */
+  readonly size: readonly [number, number];
+  readonly fadeIn: number;
+  readonly fadeOut: number;
+  readonly fadePow: number;
+  readonly thin: readonly [number, number, number];
+  /** the colour (linear), and the opacity close (base) and gained from `opacityFrom` to `opacityTo` m */
+  readonly color: readonly [number, number, number];
+  readonly opacity: readonly [number, number];
+  readonly opacityFrom: number;
+  readonly opacityTo: number;
+  /** the bounding sphere's centre off the fire and its radius, the render order and the mesh's name */
+  readonly bounds: { readonly offset: readonly [number, number, number]; readonly radius: number };
+  readonly renderOrder: number;
+  readonly name: string;
+}
 
 /** a puff quad's four corners, x then y (metres of its size; the graph scales and turns them to the camera) */
 const CORNERS: readonly number[] = [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5];

@@ -9,7 +9,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { PierParams, PierSpec } from '../assets/contracts/pier';
-import { BOAT_MOORING } from '../data/boatLook';
 import { BOAT_LAYOUT } from '../data/boatLayout';
 import { BOAT_CLEATS } from './boatFrame';
 import { pierPosts } from '../world/pierLayout';
@@ -17,6 +16,9 @@ import { LOWERED_SEA } from '../world/sea';
 import { BOAT_MOOR } from '../world/sites';
 
 interface XZ { x: number; z: number }
+
+/** Hemp-coloured lines tied 1.9 m over the still water, sagging 35 cm: 8-segment tubes 3 cm thick, 4 sides. */
+const BOAT_MOORING = { color: '#d2bd85', postAbove: 1.9, sag: 0.35, segments: 8, radius: 0.03, radial: 4 };
 
 /** [bow post, stern piling] on the boat's side of the pier (the original Pier.mooringsFor). */
 function moorings(spec: PierSpec, params: PierParams, x: number, z: number): [XZ, XZ] {

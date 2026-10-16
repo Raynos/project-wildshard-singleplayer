@@ -9,10 +9,25 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
 import type { PainterField } from '@wildshard/engine/render/look';
-import type { FacetedGroundRow } from '../data/lookRows';
 import { GROUND_PATHS } from '../data/groundLook';
 import { LP, hash2, lowPolyGroundColor } from '../look/groundColor';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+
+/** A faceted ground's numbers as data. */
+interface FacetedGroundRow {
+  /** the look.materials ids the grid and the slab wear (graph toon materials the look lends before the ground builds) */
+  readonly materials: { readonly ground: string; readonly slab: string };
+  /** rows built per task */
+  readonly band: number;
+  /** a cliff's top lip: below this normal y, the highest ground within `reach` m, smoothstepped `from` → `to` m above */
+  readonly lip: { readonly steep: number; readonly reach: number; readonly from: number; readonly to: number };
+  /** the slab walls: segments per side, rock and deep colours, the lip above the ground (m), the bulge's base and
+   *  jittered gain (m), the foot's step out (m), the bulge's depth share and the shade's base and jittered gain */
+  readonly slab: {
+    readonly segs: number; readonly rock: string; readonly deep: string; readonly top: number;
+    readonly bulge: readonly [number, number]; readonly foot: number; readonly mid: number; readonly shade: readonly [number, number];
+  };
+}
 
 /** the field the bake samples: the bound ground's heights, normals and trail distance */
 export type FacetedGroundField = Pick<PainterField, 'heightAt' | 'normalAt' | 'trailDistance'>;

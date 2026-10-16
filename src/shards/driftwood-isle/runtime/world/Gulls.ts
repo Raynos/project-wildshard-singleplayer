@@ -1,5 +1,5 @@
 /**
- * Gulls: Driftwood Isle's herring gulls are the gull flock row (data/gullsLook.ts GULL_FLOCK, section `custom/gullFlock`)
+ * Gulls: Driftwood Isle's herring gulls are the gull flock row (generators/gullsLook.ts GULL_FLOCK, section `custom/gullFlock`)
  * on the ambient-flock host (@wildshard/sdk/looks/ambientFlock), ONE instanced draw of the gull baked offline in its
  * palette (generators/gull.ts) in its graph look (data/gullGraphLook.ts), lent before the world builds.
  */

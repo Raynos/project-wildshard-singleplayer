@@ -1,5 +1,4 @@
 // G466 C2: the graphs are authored graph JSON (data/lookGraphs.json).
-import type { SmokeColumnRow } from './lookRows';
 
 /**
  * Driftwood's smoke column (the castaway's campfire breadcrumb, generators/castawayLook.ts) as an SF59 material graph
@@ -21,7 +20,7 @@ export const SMOKE_LOOK = 'driftwood-castaway-smoke';
  * fire, leaning 5 m downwind by the top along the trade wind off the sea (0.8, 0.55, NPC-local); 0.9–5.3 m puffs, in over
  * the first 8 % of a life, out over the last 45 %; 0.12 opacity close, 0.58 from 30 m (posed on the GPU: data/smokeLook.ts).
  */
-export const CASTAWAY_SMOKE: SmokeColumnRow = {
+export const CASTAWAY_SMOKE = {
   count: 42,
   rise: 21,
   life: 13,
@@ -48,4 +47,4 @@ export const CASTAWAY_SMOKE: SmokeColumnRow = {
   bounds: { offset: [2, 9, 1.5], radius: 14 },
   renderOrder: 4,
   name: 'castaway-smoke',
-};
+} as const;

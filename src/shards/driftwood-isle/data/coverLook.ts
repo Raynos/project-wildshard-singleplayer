@@ -2,7 +2,6 @@
 // runtime/looks/streamedCover.ts): its cells, reaches, caps, upload budget, slope reach and kinds, and the material graphs
 // its plants wear (SHARD-PLATFORM W2 C2: the shardfile's `look.materials`, compiled by the hybrid runtime; W2c: their
 // graphs are authored graph JSON, data/lookGraphs.json). The kinds' densities and tints stay code.
-import type { StreamedCoverRow } from './lookRows';
 
 /**
  * The cover's numbers. 16 m cells of 520 candidates, refilled every 4 m; the desktop reaches 1.25× further (E117) with
@@ -15,7 +14,7 @@ import type { StreamedCoverRow } from './lookRows';
  * as flat chips; for tufts only 60 % of them get one): tufts, ferns, hibiscus, daisies and pebbles on the grass, shells and
  * starfish on the sand, bushes along the sand → grass edge.
  */
-export const GROUND_COVER: StreamedCoverRow = {
+export const GROUND_COVER = {
   cell: 16,
   refill: 4,
   candidates: 520,
@@ -44,7 +43,7 @@ export const GROUND_COVER: StreamedCoverRow = {
     { name: 'starfish', geometry: 'starfish', cap: 300, reach: [8, 20], scale: [1.1, 1.8] },
     { name: 'bush', geometry: 'bush', cap: 900, reach: [16, 38], scale: [0.8, 1.6], far: { geometry: 'bushFar', reach: [30, 76], cap: 4000, keep: 1 } },
   ],
-};
+} as const;
 
 /** the look.materials id a kind's near (`far` false) or far model wears */
 const coverLookId = (kind: string, far: boolean): string => `${GROUND_COVER.look}-${kind}${far ? '-far' : ''}`;
@@ -52,4 +51,4 @@ const coverLookId = (kind: string, far: boolean): string => `${GROUND_COVER.look
 /** every cover look id, a near model's per kind and a far model's per kind that has one (the hybrid runtime compiles them;
  *  their graphs: data/lookGraphs.json) */
 export const COVER_LOOKS: readonly string[] = GROUND_COVER.kinds.flatMap((k) =>
-  k.far === undefined ? [coverLookId(k.name, false)] : [coverLookId(k.name, false), coverLookId(k.name, true)]);
+  'far' in k ? [coverLookId(k.name, false), coverLookId(k.name, true)] : [coverLookId(k.name, false)]);
