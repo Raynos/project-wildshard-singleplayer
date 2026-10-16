@@ -38,3 +38,17 @@ export const WILDLIFE_LOOK = 'pine-wildlife';
 export const LEVER_AUTO_RELOAD_CLOSE = 5;
 /** the gloves' linear tint over the hunter palette (data/handsLook.ts BUCKSKIN) */
 export const BUCKSKIN: [number, number, number] = [3.2, 4.2, 6.0];
+/** the hunter's gloves and coat cuff palette (data/handsLook.ts HUNTER_HANDS, a GloveHandsLook) */
+export const HUNTER_HANDS = {
+  palette: {
+    leather: 0x6a4a30, leatherLight: 0x8a6646, leatherDark: 0x3a281a, leatherEdge: 0x4a3424, thread: 0xa89878,
+    fleece: 0x6e685e, fleeceShade: 0x524c44, fleeceDeep: 0x3a352f,
+    wool: 0x5e5038, woolShade: 0x3e3424, red: 0x4a3422, redDeep: 0x33251a, redLine: 0x2a1e14,
+  },
+  coatLip: 0x8a7650,
+  coatStitch: 0x2e2618,
+};
+/** the hands' material parameters (data/handsLook.ts HANDS_MATERIAL) */
+export const HANDS_MATERIAL = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
+/** the coat sleeve's material row (data/handsLook.ts COAT_MATERIAL) */
+export const COAT_MATERIAL = { set: 'coat', normalScale: [0.8, 0.8], roughness: 1, metalness: 0, envMapIntensity: 0.5, specularIntensity: 0.5 } as const;

@@ -4,9 +4,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { LeverFirearm as LeverFirearmWeapon, type LeverFirearmHandsKit, type LeverFirearmView } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { WeaponHands, gripPose, holdDef } from '../viewmodel/gloveHands';
-import { HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
-import { LEVER_MATERIALS } from '../../data/heldLook';
-import { LEVER_AUTO_RELOAD_CLOSE } from '../const';
+import { LEVER_MATERIALS } from './heldLook';
+import { HANDS_MATERIAL, HUNTER_HANDS, LEVER_AUTO_RELOAD_CLOSE } from '../const';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
@@ -98,7 +97,7 @@ interface LeverParts { wood: THREE.BufferGeometry; stock: THREE.BufferGeometry; 
 interface LeverBuild { readonly brassMat: THREE.MeshPhysicalMaterial; readonly woodMat: THREE.MeshPhysicalMaterial; readonly steelMat: THREE.MeshPhysicalMaterial; readonly parts: LeverParts; readonly beadGeo: THREE.BufferGeometry }
 /** The viewmodel's build and the Model Explorer's card (`leverSpecimen`) are this one function, so the two never drift. */
 function buildLever(sky: Sky, model: LeverModel): LeverBuild {
-  // ── materials: the viewmodels' shared lit program, data/heldLook.ts LEVER_MATERIALS ──
+  // ── materials: the viewmodels' shared lit program, ./heldLook.ts LEVER_MATERIALS ──
   const sets = { gunmetal: viewmodelTexSet('gunmetal'), wood: model.wood, steel: model.steel }; // gunmetal: the cartridges' tiled brass UVs
   sets.gunmetal.map.repeat.set(2, 2); sets.gunmetal.normalMap.repeat.set(2, 2); sets.gunmetal.armMap.repeat.set(2, 2);
   const mat = (id: keyof typeof LEVER_MATERIALS): THREE.MeshPhysicalMaterial => viewmodelRowMaterial(sky, `lever-${id}`, LEVER_MATERIALS[id], sets);

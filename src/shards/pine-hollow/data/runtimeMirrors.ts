@@ -5,7 +5,7 @@ import { KINGS_CLEARING } from './layout';
 import lookMaterials from './lookMaterials.generated.json' with { type: 'json' };
 import { WILDLIFE_LOOK } from './wildlifeLook';
 import { LEVER_WEAPON_PROFILE } from './leverProfile';
-import { BUCKSKIN } from './handsLook';
+import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from './handsLook';
 
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
@@ -16,4 +16,7 @@ export const RUNTIME_MIRRORS = [
   defineMirror('WILDLIFE_LOOK', WILDLIFE_LOOK),
   defineMirror('LEVER_AUTO_RELOAD_CLOSE', LEVER_WEAPON_PROFILE.lever.autoReloadClose),
   defineMirror('BUCKSKIN', BUCKSKIN),
+  defineMirror('HUNTER_HANDS', HUNTER_HANDS),
+  defineMirror('HANDS_MATERIAL', HANDS_MATERIAL),
+  defineMirror('COAT_MATERIAL', COAT_MATERIAL),
 ];
