@@ -9,6 +9,7 @@ import { pageScope } from '../app/resources';
  *   ktx2Texture(served)           the KTX2 stand-in of a file the tier fetches, as a CompressedTexture — or null (none, or
  *                                 KTX2 off): the caller then loads the image as before. One transcode per file per wave;
  *                                 Memory saver also shares weak source identity across later waves, without retaining mips
+ *   ktx2File(url)                 a KTX2 file at its own URL (a product's named blob), as a CompressedTexture
  *   ktx2Layers(served[], size)    per-file textures for a texture array (the terrain / bark splat), mip-trimmed to `size`
  *
  * glTF: every GLTFLoader gets the loader at parse time (the prototype patch below), so a `.glb` / `.gltf` whose textures
@@ -154,6 +155,21 @@ function load(url: string, keep: boolean): Promise<THREE.CompressedTexture> {
     }
   }
   return p;
+}
+
+/**
+ * A KTX2 file at its own URL (a shardfile product's named blob, not the stand-in of another file) as a CompressedTexture
+ * on the page's loader, in any texture mode: one transcode per file per wave, flipY = false (the file keeps its encoded
+ * orientation), its mips dropped from JS once uploaded. The caller sets its sampler and colour space, then fences it with
+ * `prepareCompressedTexture`.
+ */
+export async function ktx2File(url: string): Promise<THREE.CompressedTexture> {
+  if (texMode() !== 'ktx2') markGpuOnly('KTX2 product files on the image path (their mips are dropped from JS once uploaded)');
+  const t = (await load(url, true)).clone();
+  t.flipY = false;
+  t.generateMipmaps = false;
+  if (memorySaverOn()) sources.share(t, url, 0);
+  return labelAsset(releaseAfterUpload(t), 'engine/ktx2File', url);
 }
 
 /**

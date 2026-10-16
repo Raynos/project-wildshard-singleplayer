@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { ktx2Texture } from '@wildshard/engine/core/ktx2';
+import { ktx2File, ktx2Texture, prepareCompressedTexture } from '@wildshard/engine/core/ktx2';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { CreatureHull } from '@wildshard/engine/entities/species/look';
 import type { BoneDef } from '@wildshard/engine/entities/species/registry';
@@ -12,12 +12,14 @@ import type { BoneDef } from '@wildshard/engine/entities/species/registry';
  * (`RiggedHullFamilyRow`, pure data) and says where its files are; nothing here knows a shard.
  *
  *   const family = riggedHulls(row, { rig: (hull) => url, coat: (hull, kind, variant) => key, coatImage: (key) => url });
+ *   const built = riggedHulls(row, { files: { [hull]: { rig, base, normal } }, coat, coatImage });  // a product's blobs
  *   await family.preload();                                  // every rig, before a herd spawns (a look's `preload`)
  *   const h = family.skin(kind, variant, bones);              // null → keep the procedural mesh (a look's `skin`)
  *   h.geometry (position, normal, uv, color, skinIndex, skinWeight[, the extras' attributes]; one group)  h.map  h.normalMap
  *
  * Each rig (`<hull>[.phone].rigged.glb`) is a glTF skin whose joints are the species' bones by name and order, with the
- * hull's PBR base colour + normal map. A rig is only used when its joint names match the variant's bones (in order); the
+ * hull's PBR base colour + normal map, or (`files`, a built product's named blobs) an image-free rig beside its separate
+ * KTX2 base colour and normal maps, sampled exactly as the glTF maps were (`riggedHullMap`). A rig is only used when its joint names match the variant's bones (in order); the
  * model then takes the rig's joint positions. Every variant of a hull wears it, in its authored baked coat (a KTX2 key,
  * else its lossless image; a variant with no baked coat wears the hull's own atlas). A hull's generator flap (the row's
  * `flaps`, `pressFlap`) is pressed onto its body at load (positions + normals only). A variant can add baked rigid parts
@@ -50,10 +52,25 @@ export interface RiggedHullFamilyRow {
   readonly fur?: Readonly<Record<string, Readonly<Record<string, RiggedHullFur>>>>;
 }
 
+/**
+ * A hull's files as data (a built product's named-blob URLs for this tier): its image-free rig and its separate KTX2
+ * maps, which the rig's material no longer carries. Both maps are sampled as the glTF maps they replace (`riggedHullMap`).
+ */
+export interface RiggedHullFiles {
+  /** the image-free rigged GLB */
+  readonly rig: string;
+  /** the base colour map (KTX2, sampled sRGB) */
+  readonly base: string;
+  /** the tangent-space normal map (KTX2, in its file's own colour space) */
+  readonly normal: string;
+}
+
 /** Where a family's files are, and a variant's optional extra geometry. */
 export interface RiggedHullUrls {
-  /** a hull's rig for this tier */
-  rig: (hull: string) => string;
+  /** a hull's rig for this tier, its maps in the rig's material (a hull in `files` reads that instead) */
+  rig?: (hull: string) => string;
+  /** per hull, its rig and separate maps (data: URLs only); a hull listed here ignores `rig` and the GLB's material maps */
+  files?: Readonly<Record<string, RiggedHullFiles>>;
   /** a baked coat's KTX2 table key */
   coat: (hull: string, kind: string, variant: string) => string;
   /** a baked coat's lossless image (undefined: no baked coat, the hull's own atlas) */
@@ -89,6 +106,34 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
   return new THREE.BufferAttribute(out, k);
 }
 
+/**
+ * A separate hull map's sampler, as the rig's glTF map had it (glTF orientation, the rig's one repeat sampler, the
+ * family's anisotropy 4): flipY false, repeat wrap, anisotropy 4; `base` is sRGB, `normal` keeps its file's colour space
+ * (GLTFLoader sets none on a normal map). Named as the glTF image was (`<hull>-albedo` / `<hull>-normal`).
+ */
+export function riggedHullMap<T extends THREE.Texture>(texture: T, slot: 'base' | 'normal', hull: string): T {
+  texture.flipY = false;
+  texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+  texture.anisotropy = 4;
+  if (slot === 'base') texture.colorSpace = THREE.SRGBColorSpace;
+  texture.name = `${hull}-${slot === 'base' ? 'albedo' : 'normal'}`;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** a hull's separate maps, sampled and fenced before the rig publishes them (a failed one frees the other) */
+async function loadHullMaps(hull: string, files: RiggedHullFiles): Promise<{ map: THREE.Texture; normalMap: THREE.Texture }> {
+  const [base, normal] = await Promise.allSettled([ktx2File(files.base), ktx2File(files.normal)]);
+  if (base.status === 'rejected' || normal.status === 'rejected') {
+    if (base.status === 'fulfilled') base.value.dispose();
+    if (normal.status === 'fulfilled') normal.value.dispose();
+    const reason: unknown = base.status === 'rejected' ? base.reason : normal.status === 'rejected' ? normal.reason : null;
+    throw reason instanceof Error ? reason : new Error(`creature rig ${hull}: its maps did not load`);
+  }
+  const [map, normalMap] = await Promise.all([prepareCompressedTexture(riggedHullMap(base.value, 'base', hull)), prepareCompressedTexture(riggedHullMap(normal.value, 'normal', hull))]);
+  return { map, normalMap };
+}
+
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */
 function jointsMatch(rig: Rig, bones: readonly BoneDef[]): boolean {
   return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
@@ -108,7 +153,17 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
   const loadRig = (name: string): Promise<Rig> => {
     let p = loading.get(name);
     if (!p) {
-      p = loadRigFile(urls.rig(name)).then((gltf) => {
+      const files = urls.files?.[name];
+      const url = files?.rig ?? urls.rig?.(name);
+      if (url === undefined) return Promise.reject(new Error(`creature rig ${name}: no rig file`));
+      const maps = files === undefined ? Promise.resolve(null) : loadHullMaps(name, files);
+      p = Promise.allSettled([loadRigFile(url), maps]).then(([file, separateMaps]) => {
+        if (file.status === 'rejected' || separateMaps.status === 'rejected') {
+          if (separateMaps.status === 'fulfilled') { separateMaps.value?.map.dispose(); separateMaps.value?.normalMap.dispose(); }
+          const reason: unknown = file.status === 'rejected' ? file.reason : separateMaps.status === 'rejected' ? separateMaps.reason : null;
+          throw reason instanceof Error ? reason : new Error(`creature rig ${name}: ${String(reason)}`);
+        }
+        const gltf = file.value, separate = separateMaps.value;
         gltf.scene.updateMatrixWorld(true);
         const found: THREE.SkinnedMesh[] = [];
         gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
@@ -138,9 +193,9 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
         if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this (as the procedural)
         const mat = Array.isArray(sm.material) ? sm.material[0] : sm.material;
         const std = mat instanceof THREE.MeshStandardMaterial ? mat : null;
-        const map = std?.map ?? null, normalMap = std?.normalMap ?? null;
-        if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
-        if (normalMap) normalMap.anisotropy = 4;
+        const map = separate?.map ?? std?.map ?? null, normalMap = separate?.normalMap ?? std?.normalMap ?? null;
+        if (map && separate === null) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
+        if (normalMap && separate === null) normalMap.anisotropy = 4;
         const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
         const out: Rig = { geometry, map, normalMap, joints };
         retainCachedResources(out);

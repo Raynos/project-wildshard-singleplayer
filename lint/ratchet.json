@@ -2084,8 +2084,7 @@
     "src/shards/pine-hollow/runtime/world/homestead.ts": 1,
     "src/shards/pine-hollow/world/treeFactory.ts": 1,
     "src/shards/pine-hollow/world/weather.ts": 1,
-    "src/shards/pine-hollow/runtime/world/heroFiles.ts": 3,
-    "src/shards/pine-hollow/runtime/species/rigs.ts": 1
+    "src/shards/pine-hollow/runtime/world/heroFiles.ts": 3
   },
   "wildshard/shard-services": {
     "src/shards/driftwood-isle/creatures/Enemies.ts": 1,
@@ -2497,7 +2496,7 @@
     "src/shards/pine-hollow/runtime/models/woodenCrate.ts": 2,
     "src/shards/pine-hollow/runtime/models/zipCable.ts": 2,
     "src/shards/pine-hollow/runtime/props/buildingLife.ts": 1,
-    "src/shards/pine-hollow/runtime/species/hulls.ts": 4,
+    "src/shards/pine-hollow/runtime/species/hulls.ts": 3,
     "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts": 1,
     "src/shards/pine-hollow/runtime/weapons/headlessCrossbow.ts": 14,
     "src/shards/pine-hollow/runtime/weapons/headlessLever.ts": 4,

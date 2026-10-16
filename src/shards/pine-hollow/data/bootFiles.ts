@@ -277,40 +277,12 @@ export const PINE_BOOT_FILES = {
     },
     "present": true
   },
-  "rigs": {
-    "source": {
-      "urls": {
-        "phone": [
-          "/assets/pine-hollow/creatures/deer-hind.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/deer-stag.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/boar.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/elk-bull.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/bear-black.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/bear-brown.phone.rigged.glb",
-          "/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb"
-        ],
-        "desktop": [
-          "/assets/pine-hollow/creatures/deer-hind.rigged.glb",
-          "/assets/pine-hollow/creatures/deer-stag.rigged.glb",
-          "/assets/pine-hollow/creatures/boar.rigged.glb",
-          "/assets/pine-hollow/creatures/elk-cow.rigged.glb",
-          "/assets/pine-hollow/creatures/elk-bull.rigged.glb",
-          "/assets/pine-hollow/creatures/bear-black.rigged.glb",
-          "/assets/pine-hollow/creatures/bear-brown.rigged.glb",
-          "/assets/pine-hollow/creatures/antler-king-rig.rigged.glb"
-        ]
-      }
-    },
-    "present": true
-  },
   "propBase": {
     "source": {
       "concat": [
         "world",
         "rocks",
-        "heroes",
-        "rigs"
+        "heroes"
       ]
     },
     "map": [

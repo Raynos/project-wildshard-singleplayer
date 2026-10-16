@@ -826,7 +826,9 @@ manifest's creature and loot tables, the node-safe modules are `boot/filePolicy`
 
 Compressed textures use one renderer-wide upload queue during warm-up and asynchronous loading. Set the final
 colour space and sampler before awaiting `prepareCompressedTexture(texture, renderer?, current?)` from
-`@wildshard/engine/core/ktx2`; publish the material only after it resolves. Each compressed 2D or array texture
+`@wildshard/engine/core/ktx2`; publish the material only after it resolves. `ktx2File(url)` loads a KTX2 file at
+its own URL (a shardfile product's named blob, not a stand-in) on the page's loader in any texture mode: flipY false,
+one transcode per file per wave, the caller sets the sampler and fences it. Each compressed 2D or array texture
 gets a painted slice and graphics-error fence before any consumer draw. Raw KTX2 layers remain CPU inputs until
 array assembly. Shader patches declare borrowed textures and also record actual sampler uniforms at compilation;
 warm-up re-collects those uniforms before uploading. Cancellation and upload errors refuse readiness. A glTF loader
@@ -2226,11 +2228,14 @@ binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 `riggedHulls(row, urls)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
 skeletons, from one `RiggedHullFamilyRow` (pure data: the log label, the rigs to preload, `kind:variant` → hull, each
 hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its `RiggedHullUrls` (a
-hull's rig file per tier, a baked coat's KTX2 key and lossless image, and an optional per-variant `parts`: baked rigid
+hull's rig file per tier, or `files`: per hull a `RiggedHullFiles` of URLs, data only (a built product's named blobs: an
+image-free rig and its separate KTX2 `base` and `normal` maps, loaded with `ktx2File` and sampled by `riggedHullMap` as
+the glTF maps were: flipY false, repeat wrap, anisotropy 4, the base sRGB, the normal in its file's colour space); a
+baked coat's KTX2 key and lossless image, and an optional per-variant `parts`: baked rigid
 geometry with per-vertex `_bone` and `_glow`, as a static GLB node loads it, appended once to the hull in the same draw
 and flagged `overgrown`). `preload()` loads every rig and adopts its baked coats once; `skin(kind, variant, bones)` is a
 species look's `skin` (null keeps the procedural mesh: no hull, not loaded, or baked against other bones). `pressFlap(pos, nrm, index, flap)` collapses a flap in place.
-Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS; the thralls' eyes and ferns
+Pine Hollow's `runtime/species/hulls.ts` is its binding on its product's blobs (`files` from `runtime/species/rigs.ts`; row `data/creatureHulls.ts` PINE_HULLS; the thralls' eyes and ferns
 baked by `generators/bake-pine-thrall-extras.mjs`).
 
 **Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/graphDaySky` (`src/sdk/looks/graphDaySky.ts`)
