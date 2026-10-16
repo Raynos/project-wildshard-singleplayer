@@ -5,6 +5,8 @@ import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { castRay } from '@wildshard/engine/physics/query';
+import type { HuntBody } from '@wildshard/engine/ai/hunt';
+import type { createNativeCreaturePoses } from '../plugin/animation';
 
 /**
  * A creature's floor in a renderer-free host (the creature manager's `creatureFloor`; Pine Hollow, Sky Reach): the first
@@ -201,9 +203,18 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
 }
 
 /** Mutable identity/recipe slot owned by a native roster; a retired slot keeps its recipe with no live actor. */
-export interface NativeCreatureSlot<A extends AnimalSim = AnimalSim> {
+export interface NativeCreatureSlot {
   id: string; kind: string; variant: string; herd: number; readonly recipe: SimSpawn;
-  range: readonly [number, number]; actor: A | null;
+  range: readonly [number, number]; actor: HuntBody | null;
+}
+
+/** The hunting brain a native roster joins (`createNativeHunt`'s hunt, on the roster's own stream): herd membership, a
+ *  body's memory (three draws) and its release. */
+export interface NativeRosterHunt {
+  readonly herds: readonly { readonly members: HuntBody[] }[];
+  addHerd: (kind: string, x: number, z: number) => number;
+  adopt: (actor: HuntBody, x: number, z: number) => void;
+  forget: (actor: HuntBody) => void;
 }
 
 /** Immutable baked kind/variant lookup and the existing dynamic-actor placement wire.
@@ -236,138 +247,161 @@ export function nativeCreatureRecipes(specs: Iterable<AnimalSimSpec>, duplicates
   };
 }
 
-/** Baked native creature intake. Callers retain pose/policy, herd ownership, ecology and their save envelope.
- * Spawn draws use the supplied stream in scale/rig-seed/body-seed/memory order; reinstall never draws.
- * The registry owns kind/variant admission and structure-aware placement, not a shard's decision schedule. */
-export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: SimHost, ports: {
+/** What differs between two native rosters, as data (G454): the baked specs and their duplicate rule, the scale table, the
+ *  spawn ray's floor, the attack turn cap, which kinds the hunting brain adopts, the platform pose roster and the restoring
+ *  host's saved floor flags. The roster calls no shard code: a shard acts on the bodies it is handed back. */
+export interface NativeRosterRows {
   readonly specs: Iterable<AnimalSimSpec>;
+  /** Which baked spec a kind.variant keeps when the bake lists it twice (`nativeCreatureRecipes`). */
+  readonly duplicates?: 'first' | 'last';
   readonly variants: ReadonlyMap<string, readonly { readonly id: string; readonly scale: readonly [number, number] }[]>;
-  readonly rng: Rng; readonly spawnY: number; readonly attackTurnCap: number;
+  readonly rng: Rng; readonly spawnY: number;
+  /** A body's turn cap while it attacks (a melee shard); absent: the body keeps its own. */
+  readonly attackTurnCap?: number;
   readonly heightfield?: 'ground' | 'any';
-  /** Optional existing herd owner; joining/retiring updates the same member arrays. */
-  readonly herds?: { readonly herds: readonly { readonly members: NonNullable<B['actor']>[] }[]; addHerd: (kind: string, x: number, z: number) => number };
-  readonly retired?: (body: B) => void;
-  readonly preflight?: (body: B) => void;
-  readonly attach: (native: AnimalSim, body: B) => NonNullable<B['actor']>;
-  readonly joined: (body: B, actor: NonNullable<B['actor']>) => void;
-  readonly ground?: (body: B, x: number, z: number, fromY: number) => number | undefined;
-}): {
+  /** The hunting brain (herds, memories) on `rng`. */
+  readonly hunt: NativeRosterHunt;
+  /** The kinds whose memory the hunting brain adopts at spawn (`remember`); every other kind skips its three draws. */
+  readonly hunted: readonly string[] | 'every';
+  /** The platform pose roster (`createNativeCreaturePoses`) every body attaches to; absent: a bare body (no tilt). */
+  readonly poses?: Pick<ReturnType<typeof createNativeCreaturePoses>, 'binding' | 'delete'>;
+  /** A restoring host's decoded entities: a body it holds keeps its saved floor flag over a fresh install's sample. */
+  readonly saved?: Pick<NativeRosterSaved, 'entities'>;
+}
+/** A restoring host's decoded continuation as a native roster reads it (`SimSnapshot`'s adapters and entities). */
+export interface NativeRosterSaved {
+  readonly adapters: readonly { readonly id: string; readonly state: unknown }[];
+  readonly entities: readonly { readonly id: string; readonly state: { readonly flags: { readonly levelGround: boolean } } }[];
+}
+
+/** A bare native body for the hunting brain: never hidden (no view), no ground tilt to sample. */
+const bareBody = (native: AnimalSim): HuntBody => Object.assign(native, { hidden: false, sampleTerrain: (): void => undefined });
+
+/** Baked native creature intake: one native roster for every shard that runs its creatures natively (G454: data rows).
+ * Callers keep their spawn rolls, boot order, policies, ecology and their save envelope; every function here returns the
+ * body it made and calls back into nothing. Spawn draws use the supplied stream in scale/rig-seed/body-seed/memory order;
+ * reinstall never draws. The roster owns kind/variant admission, structure-aware placement, herd membership, the hunting
+ * brain's adoption and release, and the pose roster's attachment. */
+export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: SimHost, rows: NativeRosterRows): {
   body: (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number,
     range?: readonly [number, number], authored?: { seed: number; scale: number }) => {
       id: string; kind: string; variant: string; herd: number; range: readonly [number, number]; actor: null; recipe: SimSpawn };
   spec: (kind: string, variant: string) => AnimalSimSpec;
+  read: ReturnType<typeof nativeCreatureRecipes>['read'];
   byId: Map<string, B>;
   floor: (x: number, z: number, fromY: number) => number;
-  materialize: (body: B, recipe: SimSpawn, structure: boolean) => void;
-  arrive: (body: B) => void;
+  materialize: (body: B, recipe: SimSpawn, structure: boolean) => HuntBody;
+  arrive: (body: B) => HuntBody;
   draw: (body: B, consumeMemory?: boolean) => void;
-  /** Retire an owned live identity and detach its herd membership before caller cleanup. Never draws. */
+  /** The body's memory: the hunting brain adopts a hunted kind at its recipe point, any other kind skips three draws. */
+  remember: (body: B) => void;
+  /** Retire an owned live identity and detach its herd membership. Never draws. */
   retire: (body: B) => void;
-  /** Retire a pending predecessor only when its owned actor is still present and dead. */
-  retireDead: (id: string | undefined) => void;
+  /** Retire a pending predecessor only when its owned actor is still present and dead; returns the retired body. */
+  retireDead: (id: string | undefined) => B | null;
   /** Refill the same recipe slot: retire, allocate, replace its herd, draw, then arrive. */
-  refill: (body: B, allocate: () => string, home: { readonly x: number; readonly z: number }) => void;
-  /** Replay authored memory-adoption checkpoints, then continue at the declared stream. Preflight is effect-free. */
+  refill: (body: B, allocate: () => string, home: { readonly x: number; readonly z: number }) => HuntBody;
+  /** Replay authored memory-adoption checkpoints into the hunting brain, then continue at the declared stream. Preflight is effect-free. */
   adopt: (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
-    stream: Readonly<RngState>, adopt: (actor: NonNullable<B['actor']>, x: number, z: number) => void) => void;
+    stream: Readonly<RngState>) => void;
   retarget: (body: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
     x: number, z: number, allocate: () => { id: string; yaw: number }) => B & { herd: number };
-  bindBodyStep: (callbacks: { before: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
-    after: (body: B, actor: NonNullable<B['actor']>, dt: number) => void }) => void;
-  reinstall: (body: B, saved: Readonly<SimSnapshot>) => void;
+  reinstall: (body: B, saved: NativeRosterSaved) => HuntBody;
 } {
-  const recipes = nativeCreatureRecipes(ports.specs), byId = new Map<string, B>();
-  const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), ports.heightfield);
+  const recipes = nativeCreatureRecipes(rows.specs, rows.duplicates), byId = new Map<string, B>(), { hunt, poses } = rows;
+  const hunted = rows.hunted === 'every' ? null : new Set(rows.hunted);
+  const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), rows.heightfield);
   const floor = (x: number, z: number, fromY: number): number => sample(x, z, fromY).y;
   const spec = recipes.spec;
   const body = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number,
     range?: readonly [number, number], authored?: { seed: number; scale: number }) => {
-    const scale = range ?? ports.variants.get(kind)?.find(row => row.id === variant)?.scale;
+    const scale = range ?? rows.variants.get(kind)?.find(row => row.id === variant)?.scale;
     if (scale === undefined) throw new Error(`Missing native creature scale: ${kind}.${variant}`);
     return { id, kind, variant, herd, range: scale, actor: null,
       recipe: { id, spec: spec(kind, variant), seed: authored?.seed ?? 0, scale: authored?.scale ?? 1, at: { x: at.x, y: 0, z: at.z }, yaw } };
   };
-  const materialize = (item: B, recipe: SimSpawn, structure: boolean): void => {
-    ports.preflight?.(item);
-    const actor = ports.attach(host.spawn(recipe), item);
-    actor.levelGround = structure;
-    if (structure) actor.groundHeight = (x, z, fromY) => ports.ground?.(item, x, z, fromY) ?? floor(x, z, fromY);
-    actor.attackTurnCap = ports.attackTurnCap;
-    item.actor = actor; byId.set(item.id, item); ports.herds?.herds[item.herd]?.members.push(actor); ports.joined(item, actor);
+  const materialize = (item: B, recipe: SimSpawn, structure: boolean): HuntBody => {
+    poses?.binding.preflight(item);
+    const native = host.spawn(recipe), actor = poses === undefined ? bareBody(native) : poses.binding.attach(native, item);
+    const level = rows.saved?.entities.find(entity => entity.id === recipe.id)?.state.flags.levelGround ?? structure;
+    actor.levelGround = level;
+    if (level) actor.groundHeight = (x, z, fromY) => floor(x, z, fromY);
+    if (rows.attackTurnCap !== undefined) actor.attackTurnCap = rows.attackTurnCap;
+    item.actor = actor; byId.set(item.id, item); hunt.herds[item.herd]?.members.push(actor);
+    return actor;
   };
-  const arrive = (item: B): void => {
-    const at = item.recipe.at, found = sample(at.x, at.z, Math.max(ports.spawnY, host.groundHeightAt(at.x, at.z)) + 1);
-    at.y = found.y; materialize(item, item.recipe, found.structure);
+  const arrive = (item: B): HuntBody => {
+    const at = item.recipe.at, found = sample(at.x, at.z, Math.max(rows.spawnY, host.groundHeightAt(at.x, at.z)) + 1);
+    at.y = found.y; return materialize(item, item.recipe, found.structure);
   };
   const draw = (item: B, consumeMemory = true): void => {
-    item.recipe.scale = ports.rng.range(item.range[0], item.range[1]); ports.rng.next(); item.recipe.seed = ports.rng.next();
-    if (consumeMemory) { ports.rng.next(); ports.rng.next(); ports.rng.next(); }
+    item.recipe.scale = rows.rng.range(item.range[0], item.range[1]); rows.rng.next(); item.recipe.seed = rows.rng.next();
+    if (consumeMemory) { rows.rng.next(); rows.rng.next(); rows.rng.next(); }
+  };
+  const remember = (item: B): void => {
+    const actor = item.actor;
+    if (actor === null) throw new Error('Missing native creature to remember');
+    if (hunted === null || hunted.has(item.kind)) hunt.adopt(actor, item.recipe.at.x, item.recipe.at.z);
+    else { rows.rng.next(); rows.rng.next(); rows.rng.next(); }
   };
   const release = (item: B, detach: boolean): void => {
-    const actor = item.actor, members = ports.herds?.herds[item.herd]?.members;
+    const actor = item.actor, members = hunt.herds[item.herd]?.members;
     if (actor === null || byId.get(item.id) !== item || (members !== undefined && members.length > 1024)) throw new Error('Foreign native roster retirement');
     const at = detach ? members?.indexOf(actor) ?? -1 : -1; if (at >= 0) members?.splice(at, 1);
-    byId.delete(item.id); host.retire(item.id); ports.retired?.(item); item.actor = null;
+    byId.delete(item.id); hunt.forget(actor); host.retire(item.id); poses?.delete(item.id); item.actor = null;
   };
   const retire = (item: B): void => { release(item, true); };
-  const retireDead = (id: string | undefined): void => {
+  const retireDead = (id: string | undefined): B | null => {
     const item = id === undefined ? undefined : byId.get(id);
-    if (item?.actor !== null && item?.actor !== undefined && !item.actor.alive) retire(item);
+    if (item?.actor === null || item?.actor === undefined || item.actor.alive) return null;
+    retire(item); return item;
   };
-  const refill = (item: B, allocate: () => string, home: { readonly x: number; readonly z: number }): void => {
-    const herds = ports.herds;
-    if (herds === undefined || !Number.isFinite(home.x) || !Number.isFinite(home.z) || (herds.herds[item.herd]?.members.length ?? 0) > 1) throw new Error('Invalid native roster replacement');
-    ports.preflight?.(item); release(item, false);
+  const refill = (item: B, allocate: () => string, home: { readonly x: number; readonly z: number }): HuntBody => {
+    if (!Number.isFinite(home.x) || !Number.isFinite(home.z) || (hunt.herds[item.herd]?.members.length ?? 0) > 1) throw new Error('Invalid native roster replacement');
+    poses?.binding.preflight(item); release(item, false);
     const id = allocate();
     if (id.length === 0 || id.length > 128 || byId.has(id)) throw new Error('Invalid native replacement identity');
     item.id = id; item.recipe.id = id;
-    const old = herds.herds[item.herd]; if (old !== undefined) old.members.length = 0;
-    item.herd = herds.addHerd(item.kind, home.x, home.z);
-    draw(item); arrive(item);
+    const old = hunt.herds[item.herd]; if (old !== undefined) old.members.length = 0;
+    item.herd = hunt.addHerd(item.kind, home.x, home.z);
+    draw(item); return arrive(item);
   };
-  const adopt = (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
-    stream: Readonly<RngState>, remember: (actor: NonNullable<B['actor']>, x: number, z: number) => void): void => {
-    const check = new Rng(0), initial = ports.rng.snapshot(), ids = new Set<string>();
+  const adopt = (checkpoints: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
+    stream: Readonly<RngState>): void => {
+    const check = new Rng(0), initial = rows.rng.snapshot(), ids = new Set<string>();
     const validate = (state: Readonly<RngState>): void => {
       check.restore(state);
       if (state.initial !== initial.initial || state.scrambledFork !== initial.scrambledFork) throw new Error('Foreign native adoption stream');
     };
-    if (rows.length > 1024) throw new Error('Native adoption roster exceeds its bound');
+    if (checkpoints.length > 1024) throw new Error('Native adoption roster exceeds its bound');
     validate(stream);
-    const ready = rows.map(row => {
+    const ready = checkpoints.map(row => {
       const item = byId.get(row.id), actor = item?.actor;
       if (row.id.length === 0 || row.id.length > 128 || ids.has(row.id) || actor === null || actor === undefined
         || !Number.isFinite(row.x) || !Number.isFinite(row.z) || (row.seed !== undefined && row.seed !== item?.recipe.seed)) throw new Error('Invalid native adoption row');
       ids.add(row.id); validate(row.stream); return { row, actor };
     });
-    for (const { row, actor } of ready) { ports.rng.restore(row.stream); remember(actor, row.x, row.z); }
-    ports.rng.restore(stream);
+    for (const { row, actor } of ready) { rows.rng.restore(row.stream); hunt.adopt(actor, row.x, row.z); }
+    rows.rng.restore(stream);
   };
   const retarget = (item: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
     x: number, z: number, allocate: () => { id: string; yaw: number }): B & { herd: number } => {
     if (variant === undefined) throw new Error('Missing native creature variant');
     if (item === undefined) throw new Error('Missing native creature recipe slot');
-    const range = ports.variants.get(kind)?.find(row => row.id === variant)?.scale, native = spec(kind, variant);
+    const range = rows.variants.get(kind)?.find(row => row.id === variant)?.scale, native = spec(kind, variant);
     if (range === undefined) throw new Error(`Missing native creature scale: ${kind}.${variant}`);
     const { id, yaw } = allocate();
     item.id = id; item.kind = kind; item.variant = variant; item.herd = herd; item.range = range;
     item.recipe.id = id; item.recipe.spec = native; item.recipe.at.x = x; item.recipe.at.z = z; item.recipe.yaw = yaw;
     return item;
   };
-  const bindBodyStep = (callbacks: {
-    before: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
-    after: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
-  }): void => { host.useBodyStep({
-    before: (id, actor, dt) => { const item = byId.get(id); if (item?.actor === actor) callbacks.before(item, item.actor, dt); },
-    after: (id, actor, dt) => { const item = byId.get(id); if (item?.actor === actor) callbacks.after(item, item.actor, dt); },
-  }); };
-  const reinstall = (item: B, saved: Readonly<SimSnapshot>): void => {
+  const reinstall = (item: B, saved: NativeRosterSaved): HuntBody => {
     const recipe = recipes.read(saved, item.id);
     item.recipe.yaw = recipe.yaw; item.recipe.seed = recipe.seed; item.recipe.scale = recipe.scale;
     Object.assign(item.recipe.at, recipe.at);
     const found = sample(recipe.at.x, recipe.at.z, recipe.at.y + 1);
     const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
-    materialize(item, item.recipe, level ?? found.structure);
+    return materialize(item, item.recipe, level ?? found.structure);
   };
-  return { body, spec, byId, floor, materialize, arrive, draw, retire, retireDead, refill, adopt, retarget, bindBodyStep, reinstall };
+  return { body, spec, read: recipes.read, byId, floor, materialize, arrive, draw, remember, retire, retireDead, refill, adopt, retarget, reinstall };
 }

@@ -57,7 +57,7 @@ const FAUNA = new Set(['boar', 'bear']);
 const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey], ['sailor', animateSailor], ['captain', animateCaptain]]);
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
-export interface IslandBody extends NativeCreatureSlot<AnimalSim & HuntBody> { brain: EnemyBrain | null }
+export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
   readonly bake: DriftwoodBake;
   /** every (kind.variant)'s baked native spec */
@@ -189,18 +189,19 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   };
   const brainPorts = { host, hunt, rng, world, heightAt, waterLevel: ports.waterLevel };
   const poses = createNativeCreaturePoses([...bake.actors, { kind: 'captain', variant: 'captain', pose: bake.captain.pose }], ROSTER, POSE_CALLBACKS);
+  // the shared native roster (G454 rows): the island's scale tables, any heightfield as the floor, the melee turn cap, the
+  // fauna adopted by the hunting brain, every body on the native pose roster
   const intake = createNativeCreatureRoster<IslandBody>(host, {
     specs: specs.values(), variants: new Map([...ENEMIES, ['boar', ISLAND_BOAR.variants], ['bear', ISLAND_BEAR.variants]]),
-    rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', herds: hunt,
-    retired: body => { poses.delete(body.id); body.brain = null; },
-    ...poses.binding,
-    ground: (body, x, z) => body.kind === 'sailor' ? bake.holdFloorAt(x, z) : undefined,
-    joined: (body, actor) => {
-      const members = hunt.herds[body.herd]?.members ?? null;
-      body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, members, brainPorts);
-    },
-  });
-  const { materialize, arrive, draw } = intake;
+    rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', hunt, hunted: [...FAUNA], poses });
+  /** a body the roster made: a sailor on a deck keeps the hold's floor under his feet; an enemy takes its shipping policy */
+  const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
+  const join = (body: IslandBody, actor: HuntBody): void => {
+    if (body.kind === 'sailor' && actor.levelGround) actor.groundHeight = holdFloor;
+    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts);
+  };
+  const { draw } = intake;
+  const place = (body: IslandBody): void => { join(body, intake.arrive(body)); };
   const variants = (kind: string): NonNullable<ReturnType<typeof ENEMIES.get>> => { const table = kind === 'boar' ? ISLAND_BOAR.variants : kind === 'bear' ? ISLAND_BEAR.variants : ENEMIES.get(kind); if (table === undefined) throw new Error(`Driftwood has no ${kind} variants`); return table; };
   const enemyBody = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number): IslandBody =>
     ({ ...intake.body(id, kind, variant, herd, at, yaw), brain: null });
@@ -232,15 +233,15 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
    *  brain's world clock */
   const tracked = { speed: 0, prev: new Vector3(), seen: false };
   if (saved === undefined) {
-    fauna.forEach(actor => { const body = faunaBody(actor); arrive(body); bodies.push(body); });
-    intake.adopt(boot.rows, boot.stream, (actor, x, z) => { hunt.adopt(actor, x, z); });
+    fauna.forEach(actor => { const body = faunaBody(actor); place(body); bodies.push(body); });
+    intake.adopt(boot.rows, boot.stream);
     if (bodies.some(b => b.actor === null || hunt.memory(b.actor) === undefined)) throw new Error('Driftwood fauna memories diverge from the stream');
     placed.enemies.forEach((row, i) => {
       const id = `creature:${String(fauna.length + i)}`;
       const variant = row.variant ?? new WeightedTable({ mode: 'weighted', rows: variants(row.kind).map(r => ({ item: r, weight: r.weight })) }).pick(undefined, rng.next())?.item.id;
       if (variant === undefined) throw new Error(`Driftwood ${row.kind} rolled no variant`);
       const body = enemyBody(id, row.kind, variant, row.herd < 0 ? -1 : row.herd + herdBase, row, row.yaw);
-      draw(body); arrive(body); bodies.push(body);
+      draw(body); place(body); bodies.push(body);
       if (row.practice === true) practice.body = body;
     });
     if (bodies.length !== BODY_COUNT || practice.body === null) throw new Error('Driftwood keeps its 34 load-time bodies');
@@ -253,7 +254,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** Enemies.placePracticeCrab: a fresh small crab in the practice slot at the pier's foot, facing down the path, a herd of
    *  one, under the manager's next entity id. */
   const replacePractice = (body: IslandBody): void => {
-    intake.refill(body, allocateId, PRACTICE_AT);
+    join(body, intake.refill(body, allocateId, PRACTICE_AT));
     // its band clocks start fresh under the new id (host.retire forgot the old one's)
     const i = bodies.indexOf(body); sight[i] = null;
     practice.dead = 0; practice.fade = -1;
@@ -295,21 +296,24 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       if (bodies.length + 1 >= ROSTER) throw FULL_ROSTER;
       const body = intake.retarget(extra[bodies.length - BODY_COUNT], entry.kind, entry.variant, entry.herd, x, z, allocateRespawn);
       draw(body, !FAUNA.has(body.kind));
-      if (body.kind === 'sailor') { body.recipe.at.y = bake.holdFloorAt(x, z) ?? heightAt(x, z); materialize(body, body.recipe, true); } else arrive(body);
-      if (body.actor !== null && FAUNA.has(body.kind)) hunt.adopt(body.actor, x, z);
-      intake.retireDead(pendingIds.get(entry));
+      if (body.kind === 'sailor') { body.recipe.at.y = bake.holdFloorAt(x, z) ?? heightAt(x, z); join(body, intake.materialize(body, body.recipe, true)); } else place(body);
+      if (FAUNA.has(body.kind)) intake.remember(body);
+      const fallen = intake.retireDead(pendingIds.get(entry)); if (fallen !== null) fallen.brain = null;
       pendingIds.delete(entry); bodies.push(body);
     }
   };
   let poseNear = false; // recomputed before each body; never continuation state
-  intake.bindBodyStep({
-    before: (body, a, dt) => {
+  const owned = (id: string, actor: AnimalSim): IslandBody | null => { const body = intake.byId.get(id); return body?.actor === actor ? body : null; };
+  host.useBodyStep({
+    before: (id, actor, dt) => {
+      const body = owned(id, actor), a = body?.actor; if (body === null || a === null || a === undefined) return;
       poseNear = a.position.distanceToSquared(player) < ANIM_LOD * ANIM_LOD;
       if (!a.alive || a.stunned) return;
       if (body.brain === null) { if (a.state === 'charge') hunt.advanceCharge(a, dt, player); }
       else body.brain.move(dt);
     },
-    after: (body, a, dt) => {
+    after: (id, actor, dt) => {
+      const body = owned(id, actor), a = body?.actor; if (body === null || a === null || a === undefined) return;
       // AnimalView.update moves first, then animateSailor advances its root offset, including dead/stunned bodies within the page animation range.
       poses.get(body.id)?.advance(dt, host.clock.now, poseNear);
       if (a.state === 'charge' && a.alive && !a.stunned) hunt.chargeContact(a, player);
@@ -368,7 +372,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const spawnCaptain = (): HuntBody => {
     if (captain !== null) throw new Error('The Driftwood captain is spawned once');
     const body = captainBody(entityIds.allocate());
-    draw(body); arrive(body); captain = body;
+    draw(body); place(body); captain = body;
     if (body.actor === null) throw new Error('The Driftwood captain did not spawn');
     return body.actor;
   };
@@ -390,7 +394,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // the practice crab's replacements each made a herd of one, in order
   keeper.herds.slice(bake.herds.length).forEach(([cx, cz]) => { hunt.addHerd('crab', cx, cz); });
   const reinstall = (body: IslandBody): void => {
-    intake.reinstall(body, saved);
+    join(body, intake.reinstall(body, saved));
     // a fauna body's memory: the keeper's restore overwrites it and the stream it drew from
     if (body.actor !== null && FAUNA.has(body.kind)) hunt.adopt(body.actor, body.recipe.at.x, body.recipe.at.z);
   };

@@ -5,9 +5,9 @@ import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/Animal
 import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
 import { PINE_NATIVE_HUNT } from '../data/nativeHunt';
-import { creatureFloor as structureFloor, nativeCreatureRecipes } from '@wildshard/game/shardfile/homeKeeper';
+import { createNativeCreatureRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
-import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
+import type { SimHost } from '@wildshard/engine/sim';
 import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites } from '../combat/eliteRoster';
 import { pineEliteStreams } from '../combat/eliteStreams';
 import { SPAWN } from '../data/layout';
@@ -23,8 +23,6 @@ const BODY_COUNT = 164;
 /** The most bodies a play may add to the list: two rivals a bugle, a respawn per lair every 20 minutes. Every keeper loop is
  *  bounded by the list, the list by this. */
 const LIVE_MAX = 512;
-/** What a renderer-free body adds for the hunting brain: not hidden (no view; a fight may hide it), no ground tilt to sample. */
-const HUNT_BODY: { hidden: boolean; sampleTerrain: () => void } = { hidden: false, sampleTerrain: (): void => undefined };
 /** combat/ctx.ts SCRIPTED: the state a fight's own animal holds (the manager's loop leaves it alone). */
 const SCRIPTED = 'sidestep';
 
@@ -102,8 +100,6 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
 } {
   const { bake, grid } = ports, rng = new Rng(PINE_HERD_STREAM), player = host.player.position;
   const kingPose = installKingPoseKeeper(host);
-  /** Every body this roster made, listed or kept out of the list by a fight, by entity id. */
-  const made = new Map<string, PineHuntBody>();
   // the page's distance bands (engine/sim/bands.ts, Pine overrides no tier ticks): the scheduler's 'ai' rate for the herds
   // (every frame within 60 m, every other frame to 160 m, paused beyond; decisions at 20 / 10 Hz), 'always' for a scripted
   // elite (pinned: it thinks every frame), and the creature body LOD (a capsule within 45 m, released past 55). Before any
@@ -111,60 +107,60 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   const kingRow = bake.parked[0];
   if (kingRow?.kind !== PINE_KING_KIND) throw new Error('Pine bake has no Antler King prewarm');
   const species = pineSpawnSpecies({ id: kingRow.variant, label: kingRow.spec.label, weight: 1, rarity: kingRow.spec.rarity, scale: [kingRow.scale, kingRow.scale] });
-  const ground = pineHuntGround(grid), heightAt = ground.heightAt;
-  const { hunt, reach } = createNativeHunt(host, PINE_NATIVE_HUNT, { rng, ground, nav: ports.nav, species,
-    ...(ports.wanderGoal === undefined ? {} : { wanderGoal: ports.wanderGoal }), present: body => made.get(body.entityId)?.hidden !== true });
+  const { hunt, reach } = createNativeHunt(host, PINE_NATIVE_HUNT, { rng, ground: pineHuntGround(grid), nav: ports.nav, species,
+    ...(ports.wanderGoal === undefined ? {} : { wanderGoal: ports.wanderGoal }), present: body => !('hidden' in body) || body.hidden !== true });
+  // the shared native roster (G454 rows): the bake's first spec per kind.variant, the manager's spawn ray and creature floor
+  // over the page's terrain grid (the host's ground), every kind adopted by the hunting brain, no turn cap, a restoring
+  // host's saved floor flags
+  const intake = createNativeCreatureRoster<NativeCreatureSlot>(host, { specs: [...bake.actors, ...bake.parked].map(row => row.spec), duplicates: 'first',
+    variants: new Map(), rng, spawnY: ports.spawnY, hunt, hunted: 'every', ...(ports.saved === undefined ? {} : { saved: ports.saved }) });
+  /** Every body this roster made, listed or kept out of the list by a fight, by entity id. */
+  const made = (id: string): PineHuntBody | null => intake.byId.get(id)?.actor ?? null;
   const list: PineBody[] = [], parked: PineParked[] = [];
   const baked = new Map(bake.actors.map(a => [a.id, a] as const)), bakedParked = new Map(bake.parked.map(a => [a.id, a] as const));
   let next = 0, booted = false;
-  const recipes = nativeCreatureRecipes([...bake.actors, ...bake.parked].map(row => row.spec), 'first');
-  /** creatureFloor: the first WORLD hit under `fromY`; the terrain when it is the ground's heightfield (or nothing). */
-  const creatureFloor = structureFloor(host, heightAt);
   const rolls = (kind: string, variant: string | string[] | undefined): { id: string; spec: AnimalSimSpec; seed: number; scale: number; variant: string } => {
     const r = spawnRolls(rng, kind, variant, list.some(b => b.actor.kind === kind && b.actor.rarity === 'legendary' && b.actor.alive), known => {
       const row = species.get(known); if (row === undefined) throw new Error(`Pine has no creature row '${known}'`); return row; });
     const id = `creature:${String(next++)}`;
     // a live spawn takes the next id past the load-time list, with the recipe the bake read for its kind and variant
-    if (booted) return { id, spec: recipes.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
+    if (booted) return { id, spec: intake.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
     const row = baked.get(id) ?? bakedParked.get(id);
     if (row === undefined) {
       // only a herd body that rolled an elite's identity is missing from the load-time list (the boot swap retired it): its
       // recipe is that identity's, which the elite at its lair carries
       if (!isEliteVariant(kind, r.variant.id)) throw new Error(`Pine roster diverges from the page at ${id}`);
-      return { id, spec: recipes.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
+      return { id, spec: intake.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
     }
     // the bake is the page's own roll: a divergent draw anywhere refuses the roster rather than simulating another world
     if (row.kind !== kind || row.variant !== r.variant.id || row.seed !== r.seed || row.scale !== r.scale) throw new Error(`Pine roster diverges from the page at ${id}`);
     return { id, spec: row.spec, seed: r.seed, scale: r.scale, variant: r.variant.id };
   };
   const seen: boolean[] = [];
-  /** the host body of a recipe on the creature floor a metre over the spawn height or the ground, out of any herd */
-  const materialize = (recipe: SimSpawn, kind: string, listed = true, immutableHeight = false): PineHuntBody => {
-    const { x, z } = recipe.at, at = creatureFloor(x, z, Math.max(ports.spawnY, heightAt(x, z)) + 1);
-    // A dynamic recipe's height was resolved in its original WORLD query frame. A fresh, unstepped install can
-    // see a different deck hit; restore must reinstall the immutable recipe, then restore the saved moving pose.
-    if (!immutableHeight) recipe.at.y = at.y;
-    const a: PineHuntBody = Object.assign(host.spawn(recipe), { ...HUNT_BODY });
-    const savedGround = ports.saved?.entities.find(entity => entity.id === recipe.id)?.state.flags.levelGround;
-    a.levelGround = savedGround ?? at.structure;
-    if (a.levelGround) a.groundHeight = (px, pz, py) => creatureFloor(px, pz, py).y;
+  const slot = (id: string, kind: string, variant: string, spec: AnimalSimSpec, seed: number, scale: number, at: { x: number; y: number; z: number }, yaw: number): NativeCreatureSlot =>
+    ({ id, kind, variant, herd: -1, range: [scale, scale], actor: null, recipe: { id, spec, seed, scale, at, yaw } });
+  /** a body the shared roster made, out of any herd; the King's pose joins his; a listed body joins the manager's list */
+  const join = (a: PineHuntBody, kind: string, listed: boolean): PineHuntBody => {
     if (kind === PINE_KING_KIND) kingPose.attach(a);
     a.herd = -1;
-    made.set(recipe.id, a);
     if (!listed) return a;
     if (list.length >= LIVE_MAX) throw new Error('Pine roster is full');
-    list.push({ id: recipe.id, kind, actor: a, scripted: false }); seen.push(false);
+    list.push({ id: a.entityId, kind, actor: a, scripted: false }); seen.push(false);
     return a;
   };
   /** AnimalManager.spawnAnimal: the shared stream's rolls, the creature floor from a metre over the ground, the brain's memory. */
   const spawn = (kind: string, x: number, z: number, yaw: number, variant: string | string[] | undefined, listed = true): PineHuntBody => {
-    const r = rolls(kind, variant), a = materialize({ id: r.id, spec: r.spec, seed: r.seed, scale: r.scale, at: { x, y: 0, z }, yaw }, kind, listed);
-    hunt.adopt(a, x, z);
+    const r = rolls(kind, variant), body = slot(r.id, kind, r.variant, r.spec, r.seed, r.scale, { x, y: 0, z }, yaw);
+    const a = join(intake.arrive(body), kind, listed);
+    intake.remember(body);
     return a;
   };
+  /** AnimalManager.retire: out of the list, the King's pose, the brain and the host */
   const retire = (a: HuntBody): void => {
     const i = list.findIndex(b => b.actor === a); if (i !== -1) { list.splice(i, 1); seen.splice(i, 1); }
-    hunt.forget(a); kingPose.retire(a.entityId); host.retire(a.entityId); made.delete(a.entityId);
+    kingPose.retire(a.entityId);
+    const body = intake.byId.get(a.entityId);
+    if (body === undefined) { hunt.forget(a); host.retire(a.entityId); } else intake.retire(body);
   };
   Array.from(hunt.placeHerds(PINE_FAUNA, SPAWN, spawn)); // every herd in one go
   swapRolledElites({ bodies: list.map(b => b.actor), herds: hunt.herds, retire, spawn });
@@ -227,8 +223,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     // keeps out of it (the Antler King's: his species thinks nothing, the fight drives him)
     saved.entities.forEach(({ id }) => {
       if (host.entities.has(id)) return;
-      const checked = recipes.read(saved, id), b = kept.get(id), kind = b?.kind ?? checked.spec.kind;
-      const a = materialize({ id, spec: recipes.spec(kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, kind, b !== undefined, true);
+      const checked = intake.read(saved, id), b = kept.get(id), kind = b?.kind ?? checked.spec.kind, variant = checked.spec.variant;
+      const a = join(intake.reinstall(slot(id, kind, variant, intake.spec(kind, variant), checked.seed, checked.scale, { ...checked.at }, checked.yaw), saved), kind, b !== undefined);
       if (b !== undefined) hunt.adopt(a, checked.at.x, checked.at.z); // its memory: the continuation overwrites it and the stream it drew from
     });
     if (keeper.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible Pine roster continuation');
@@ -237,9 +233,9 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   const adoptParked = (id: string, x: number, z: number, yaw: number): PineHuntBody => {
     const row = parked.find(p => p.id === id);
     if (row === undefined) throw new Error(`Pine has no parked body ${id}`);
-    return materialize({ id, spec: row.spec, seed: row.seed, scale: row.scale, at: { x, y: 0, z }, yaw }, row.kind, false);
+    return join(intake.arrive(slot(id, row.kind, row.variant, row.spec, row.seed, row.scale, { x, y: 0, z }, yaw)), row.kind, false);
   };
   return { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant),
     spawnLoose: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant, false), retire, adoptParked,
-    actor: id => made.get(id) ?? null };
+    actor: made };
 }
