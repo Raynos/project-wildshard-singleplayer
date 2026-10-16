@@ -4,10 +4,8 @@
  * King's reward) and the skinning knife the skinning beat raises (./skinningKnife.ts). The viewmodels keep drawing the held
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
-import * as THREE from 'three';
-import { buildBolt, buildCrossbow, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
-import { crossbowDisplayModel } from '../weapons/crossbow/display';
-import { isMesh, whiteColors } from '@wildshard/engine/combat/view/ranged';
+import { crossbowModel, crossbowRows, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
+import { heldLauncherBolt, heldLauncherDisplay } from '@wildshard/game/plugin/heldLauncher';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
@@ -29,18 +27,7 @@ const FILE = 'src/shards/pine-hollow/models/gear.ts';
 export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
   id: 'pine-hollow/crossbow', name: 'Hunting crossbow', category: 'gear', pipeline: 'code', file: FILE,
   defaults: { skin: null }, variants: skinVariants('crossbow', PINE_FINISH_VARIANTS), prepare: async () => { await Promise.all([loadCodeParts(), preparePineFinishes()]); },
-  build: (ctx, p) => {
-    const model = ctx.once('gear:crossbow', () => {
-      const into = { model: new THREE.Group(), peep: new THREE.Group(), peepRing: new THREE.Group() };
-      buildCrossbow(ctx.sky, into);
-      into.model.remove(into.peep);
-      into.model.traverse((m) => { // the viewmodels' program reads vertex colours
-        if (isMesh(m) && (Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
-      });
-      return into.model;
-    });
-    return wearSkin(crossbowDisplayModel({ model }, ctx.sky), p, ctx.sky, pineSkinRows());
-  },
+  build: (ctx, p) => wearSkin(heldLauncherDisplay(ctx.sky, crossbowRows(), crossbowModel()), p, ctx.sky, pineSkinRows()),
 });
 
 /**
@@ -78,7 +65,7 @@ export const crossbowBolt: ModelDef<object> = defineModel<object>({
   defaults: {},
   specimenYaw: Math.PI / 2, // side on: the shaft runs across the card
   build: (ctx) => {
-    const { geometry, material } = ctx.once('gear:crossbow-bolt', () => buildBolt(ctx.sky));
+    const { geometry, material } = ctx.once('gear:crossbow-bolt', () => heldLauncherBolt(ctx.sky, crossbowRows(), crossbowModel()));
     return [{ geometry, material, castShadow: true, receiveShadow: true }];
   },
 });

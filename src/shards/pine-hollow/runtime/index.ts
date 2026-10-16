@@ -26,10 +26,8 @@ import { pineRifleFloor } from '../quest/rifleFloor';
 import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
-import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
+import { crossbowHeldRows, pineCrossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
 import { admitPaintedTextures } from './looks/paintedTextures';
-import { crossbowHeldRows } from './items/boltCrossbow';
-import { crossbowDisplayModel } from './weapons/crossbow/display';
 import { Cabins, loadCabinRows } from './world/homestead';
 import { updatePineForest } from '../world/treeFactory';
 import { lendPineLooks } from './looks/graphLooks';
@@ -62,6 +60,7 @@ import { isPhShot } from './audio/sfx';
 import { installWeather, loadPineRain } from '../world/weather';
 import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
+import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS, pineFinishEffect } from '../loadout/effects';
@@ -179,7 +178,7 @@ export class PineHollow extends ShardPlugin {
     await preloadLeverModel(ctx.product);
     const crossbowHeld = crossbowHeldRows(ctx.product), leverHeld = leverHeldRows(ctx.product);
     rt.buildEquipment = runtimeEquipment([
-      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },
+      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },
       { slot: 'rifle', create: (targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld }) },
       { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
@@ -212,7 +211,7 @@ export class PineHollow extends ShardPlugin {
     installEnteredPineScore(ctx, audio, music, ctx.debugRow);
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
-    if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
+    if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof HeldLauncher)) throw new Error('Pine ranged kit was not built');
     installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     rt.hooks.wearFinish = (id) => {
@@ -224,7 +223,7 @@ export class PineHollow extends ShardPlugin {
     };
     const skinDrops = new ClaimedPickupRoster<SkinId>(ctx.product.section('custom/skinPickups', SECTIONS), {
       scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
-      model: id => { const skin = pineSkins()[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky); applySkin(item, skin, sky); return item; },
+      model: id => { const skin = pineSkins()[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow.displayModel(); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
       take: id => { const skin = pineSkins()[id], label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
     });

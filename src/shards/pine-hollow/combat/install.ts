@@ -26,8 +26,8 @@ import * as THREE from 'three';
 
 
 
-import { Crossbow, MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
-import { crossbowDisplayModel } from '../runtime/weapons/crossbow/display';
+import { MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
+import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { pineSkins, type SkinId } from '../runtime/loadout/skins';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -96,7 +96,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // programs: the first elite kill / the King's reward then compiles nothing mid-play
   const buildSkin = (id: SkinId): THREE.Object3D => {
     const s = pineSkins()[id];
-    const m = s.weapon === 'rifle' ? h.rifle.displayModel() : h.crossbow instanceof Crossbow ? crossbowDisplayModel(h.crossbow, sky) : new THREE.Group();
+    const m = s.weapon === 'rifle' ? h.rifle.displayModel() : h.crossbow instanceof HeldLauncher ? h.crossbow.displayModel() : new THREE.Group();
     applySkin(m, s, sky);
     return m;
   };

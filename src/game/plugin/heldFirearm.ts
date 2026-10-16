@@ -6,7 +6,7 @@ import { Firearm, RangedAction, RangedReload, type RangedCycleEvent } from '@wil
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { BrassEjectionRow } from '@wildshard/engine/combat/view/brass';
 import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { FOV_ADS, FOV_HIP, prepareWeaponView, viewmodelRowMaterial, viewmodelTexSet, weaponDisplay, whiteColors,
+import { FOV_ADS, FOV_HIP, makeBoltAtlas, makeCord, prepareWeaponView, viewmodelRowMaterial, viewmodelTexSet, weaponDisplay, whiteColors,
   type RangedOptions, type RangedWorld, type ViewmodelMaterialRow, type ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
 import type { AimInfo, WeaponState } from '@wildshard/engine/combat/Weapon';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
@@ -70,8 +70,8 @@ export type HeldOutputTarget = 'frame' | 'sight' | 'values' | 'grip';
 /** The model's rows: what a world card needs too. */
 export interface HeldModelRows {
   readonly materials: Readonly<Record<string, HeldMaterialRow>>;
-  /** procedural texture sets by id: the set's name and its repeat */
-  readonly textures?: Readonly<Record<string, { readonly set: 'gunmetal' | 'anodised' | 'polymer'; readonly repeat: readonly [number, number] }>>;
+  /** procedural texture sets by id: the set's name and its repeat (`cord` and `bolt` keep their own: a cord tiled 1 × 14, a clamped atlas) */
+  readonly textures?: Readonly<Record<string, { readonly set: HeldTextureSet; readonly repeat?: readonly [number, number] }>>;
   /** geometry by id built from primitive rows (merged in order) */
   readonly primitives?: Readonly<Record<string, readonly PrimitiveRow[]>>;
   readonly parts: readonly HeldPartRow[];
@@ -103,6 +103,8 @@ export interface HeldFirearmRows extends HeldModelRows {
     readonly ejection: BrassEjectionRow; readonly tracer: RangedTraceRow; readonly hitMuzzle: Triple;
   };
 }
+/** The engine's procedural viewmodel sets a texture row may name. */
+export type HeldTextureSet = 'gunmetal' | 'anodised' | 'polymer' | 'walnut' | 'brushed-steel' | 'leather' | 'cord' | 'bolt';
 const num = v.pipe(v.number(), v.finite()), triple = v.tuple([num, num, num]), rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
 const primitive = v.strictObject({ kind: v.picklist(['box', 'cylinder', 'cone', 'sphere', 'torus', 'icosahedron', 'capsule']), args: v.pipe(v.array(num), v.maxLength(8)),
   ops: v.exactOptional(v.array(v.union([v.tuple([v.picklist(['translate', 'scale']), num, num, num]), v.tuple([v.picklist(['rotateX', 'rotateY', 'rotateZ']), num])]))) });
@@ -111,7 +113,7 @@ const look = v.strictObject({ set: v.exactOptional(rowId), normalScale: v.exactO
 /** A held model's rows as JSON (materials, procedural sets, primitive geometry, parts, anchors, glow, brass, root scale). */
 export const HeldModelRowsSchema = v.object({
   materials: v.record(rowId, v.union([v.strictObject({ name: rowId, look }), v.strictObject({ name: rowId, basic: v.strictObject({ color: num, opacity: num }) })])),
-  textures: v.exactOptional(v.record(rowId, v.strictObject({ set: v.picklist(['gunmetal', 'anodised', 'polymer']), repeat: v.tuple([num, num]) }))),
+  textures: v.exactOptional(v.record(rowId, v.strictObject({ set: v.picklist(['gunmetal', 'anodised', 'polymer', 'walnut', 'brushed-steel', 'leather', 'cord', 'bolt']), repeat: v.exactOptional(v.tuple([num, num])) }))),
   primitives: v.exactOptional(v.record(rowId, v.pipe(v.array(primitive), v.maxLength(512)))),
   parts: v.pipe(v.array(v.strictObject({ id: rowId, geometry: rowId, material: rowId, at: v.exactOptional(v.union([rowId, triple])), rot: v.exactOptional(triple),
     sighted: v.exactOptional(v.boolean()), hidden: v.exactOptional(v.boolean()), display: v.exactOptional(v.union([v.boolean(), v.strictObject({ rot: triple })])) })), v.maxLength(64)),
@@ -128,7 +130,7 @@ export interface HeldFirearmModel {
 }
 /** A fist's grip: where it closes, its axis and its palm normal (model space). */
 export interface HeldGrip { readonly at: THREE.Vector3; readonly axis: THREE.Vector3; readonly palm: THREE.Vector3 }
-interface GripRow { readonly at: Triple; readonly axis: Triple; readonly palm: Triple }
+export interface GripRow { readonly at: Triple; readonly axis: Triple; readonly palm: Triple }
 /** One baked fist (borrowed geometry, its sleeve and wrist) and where it grips. */
 export interface HeldHandRow extends GripRow {
   readonly geometry: THREE.BufferGeometry; readonly sleeve: THREE.BufferGeometry | null;
@@ -148,9 +150,10 @@ export interface HeldFirearmOptions<P extends HeldFirearmProfile> extends Ranged
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v2 = new THREE.Vector3(), _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3();
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 const need = <T>(value: T | undefined, what: string): T => { if (value === undefined) throw new Error(`Held firearm: missing ${what}`); return value; };
-const grip = (row: GripRow): HeldGrip => ({ at: new THREE.Vector3(...row.at), axis: new THREE.Vector3(...row.axis).normalize(), palm: new THREE.Vector3(...row.palm).normalize() });
+/** A grip row as vectors (the directions normalised). */
+export const heldGrip = (row: GripRow): HeldGrip => ({ at: new THREE.Vector3(...row.at), axis: new THREE.Vector3(...row.axis).normalize(), palm: new THREE.Vector3(...row.palm).normalize() });
 /** Grip space (+Y the grip axis, the back of a right hand +X) → model space. */
-function placeFist(fist: THREE.Object3D, p: HeldGrip, mirror: boolean): void {
+export function placeHeldFist(fist: THREE.Object3D, p: HeldGrip, mirror: boolean): void {
   _y.copy(p.axis).normalize(); _x.copy(p.palm).multiplyScalar(mirror ? 1 : -1);
   _x.addScaledVector(_y, -_x.dot(_y)).normalize(); _z.crossVectors(_x, _y);
   fist.position.copy(p.at); fist.quaternion.copy(_q.setFromRotationMatrix(_m.makeBasis(_x, _y, _z)));
@@ -160,8 +163,8 @@ function placeFist(fist: THREE.Object3D, p: HeldGrip, mirror: boolean): void {
 export function heldFirearmParts(sky: Sky, rows: HeldModelRows, model: HeldFirearmModel): { geometry: ReadonlyMap<string, THREE.BufferGeometry>; materials: ReadonlyMap<string, THREE.Material> } {
   const sets: Record<string, ViewmodelSet> = { ...model.textures };
   for (const [id, row] of Object.entries(rows.textures ?? {})) {
-    const set = viewmodelTexSet(row.set);
-    for (const texture of [set.map, set.normalMap, set.armMap]) texture.repeat.set(...row.repeat);
+    const set: ViewmodelSet = row.set === 'cord' ? makeCord() : row.set === 'bolt' ? makeBoltAtlas() : viewmodelTexSet(row.set), repeat = row.repeat;
+    if (repeat !== undefined) for (const texture of [set.map, set.normalMap, set.armMap]) texture?.repeat.set(...repeat);
     sets[id] = set;
   }
   const materials = new Map<string, THREE.Material>(Object.entries(rows.materials).map(([id, row]) => [id, 'look' in row
@@ -281,13 +284,13 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
     this.effects.mount();
     this.syncState();
     const hands = opts.hands;
-    this.grips = { rest: grip(hands?.right ?? { at: [0, 0, 0], axis: [0, 1, 0], palm: [1, 0, 0] }), gate: grip(hands?.gate ?? { at: [0, 0, 0], axis: [0, 1, 0], palm: [1, 0, 0] }), out: grip({ at: [0, 0, 0], axis: [0, 1, 0], palm: [1, 0, 0] }) };
+    this.grips = { rest: heldGrip(hands?.right ?? { at: [0, 0, 0], axis: [0, 1, 0], palm: [1, 0, 0] }), gate: heldGrip(hands?.gate ?? { at: [0, 0, 0], axis: [0, 1, 0], palm: [1, 0, 0] }), out: heldGrip({ at: [0, 0, 0], axis: [0, 1, 0], palm: [1, 0, 0] }) };
     if (hands !== undefined) {
       const fist = (row: HeldHandRow, name: string) => ({ name, geometry: row.geometry, sleeve: row.sleeve, wrist: row.wrist, dir: row.dir, elbow: row.elbow,
         material: hands.material, sleeveMaterial: row.coat === true ? hands.coatMaterial ?? hands.material : hands.material });
       this.hands = new HeldHandParts(this.model, [fist(hands.left, 'hand-left'), fist(hands.right, 'hand-right')],
         { name: 'weapon-hands', viewmodelOnly: true, transparentMaterials: [hands.material, hands.coatMaterial ?? hands.material] });
-      placeFist(this.hands.fist(0), grip(hands.left), true); placeFist(this.hands.fist(1), this.grips.rest, false);
+      placeHeldFist(this.hands.fist(0), heldGrip(hands.left), true); placeHeldFist(this.hands.fist(1), this.grips.rest, false);
     }
 
     const play = rows.playback;
@@ -379,7 +382,7 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
     if (hands?.group.visible === true) {
       this.handFrame.roundVisible = Number(this.round?.visible ?? false);
       for (const group of sc.grip) this.posePlayback.apply(group, this.handFrame);
-      const right = hands.fist(1); placeFist(right, this.grips.out, false); right.visible = this.sightedHidden.every(mesh => mesh.visible);
+      const right = hands.fist(1); placeHeldFist(right, this.grips.out, false); right.visible = this.sightedHidden.every(mesh => mesh.visible);
     }
     this.effects.flash.advance(dt, this.model);
     const frame = this.frameInputs;

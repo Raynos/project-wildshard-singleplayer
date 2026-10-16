@@ -98,6 +98,7 @@
     "./plugin/quests": "./plugin/quests.ts",
     "./plugin/weaponFamily": "./plugin/weaponFamily.ts",
     "./plugin/heldFirearm": "./plugin/heldFirearm.ts",
+    "./plugin/heldLauncher": "./plugin/heldLauncher.ts",
     "./plugin/animation": "./plugin/animation.ts",
     "./plugin/simulation": "./plugin/simulation.ts",
     "./plugin/context": "./plugin/context.ts",

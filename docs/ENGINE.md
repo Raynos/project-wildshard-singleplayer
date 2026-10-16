@@ -3675,7 +3675,21 @@ host records (`frame`, `sight`, `values`, `grip`) and a `schedule` (action group
 (`time`, `player`, `feel`, `holster`, `hip`, `view`, `profile`, `act`, `partValues`, `poseFrame`, `adsPose`, `grips`,
 `handFrame`, `gate`, `anchors.<id>`, `round`, `inspect`, `game`): a data contract, so a rename moves the JSON paths.
 `parseHeldModelRows` admits a model's JSON rows. Users: Pine's lever-action (GLB parts, the hunter's hands) and Nalati's
-AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`).
+AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`). A texture row may name any engine
+viewmodel set (`walnut`, `brushed-steel`, `leather`, `cord`, `bolt` beside the modern three); its `repeat` is optional.
+
+H3's bolt-flight action: `@wildshard/game/plugin/heldLauncher`. `new HeldLauncher(world, targets, { row, profile, view,
+rows, model, hands? })` is a held crossbow on data only: `rows.scene` is the model's private hierarchy
+(`createClientScene` rows over `model.geometry`), `rows.objects` its declared sight groups, `rows.nodes` the meshes the
+rows pose (string legs, serving, the loaded bolt, the sight post), `rows.fade` the materials that fade in sighted. The
+action is `RangedAction` in quiver mode; the string is a spring row (`spring`, `reloadSpring`, `release`, the reload
+window). Bolts fly the engine's `projectileFlightStep` (the profile's gravity / drag × the loaded `HeldBolt`'s, or the
+`projectile.modify` answer for an ammo row) and resolve on `ProjectileContact` (`rows.glance`); the trail, spin and
+glow sizes are `rows.tracer`. `boltMod: HeldBolt` is plain data: flight multipliers, a damage table by target kind
+(`default` + `kinds`) and an optional material. Playback groups are `frame`, `pose`, `parts`, `sight`, `string` and
+`peep`; owner paths add `draw`, `tipModel`, `tipL`, `tipR`, `nockRest`, `nockDrawn`. `displayModel()` and
+`heldLauncherDisplay(sky, rows, model)` pose a copy at `rows.displayRest`; `heldLauncherBolt` is the bolt card. User:
+Pine's crossbow.
 
 `@wildshard/engine/combat/contactWeapon` defines the renderer-free
 `ContactWeaponHost` and `HeldWeaponClock`. Signal's lash and Sky's fan consume

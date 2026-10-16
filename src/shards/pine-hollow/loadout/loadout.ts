@@ -20,7 +20,7 @@ import * as THREE from 'three';
 
 import { runtimeAudio, sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import type { Bow } from '@wildshard/game/weapons/Bow';
-import { PLAIN_BOLT, type BoltMod } from '../runtime/items/boltCrossbow';
+import { PLAIN_BOLT, type HeldBolt as BoltMod } from '@wildshard/game/plugin/heldLauncher';
 import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
 import { bindLongbowCharge } from './events';
 import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';
@@ -28,7 +28,7 @@ import { QUIVER_MAX } from '../runtime/weapons/Longbow';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
-import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
+import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, DEER_SIZED, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
 
 const savedSchema = valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) });
 const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: savedSchema, initial: () => ({}) });
@@ -141,7 +141,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   h.scene.add(parked);
 
   const mods = new Map<BoltKind, BoltMod>();
-  for (const k of BOLT_KINDS) mods.set(k, { gravity: 1, drag: 1, damage: (animal) => boltDamage(k, animal), material: dress.get(k) });
+  for (const k of BOLT_KINDS) mods.set(k, { gravity: 1, drag: 1, damage: { default: boltDamage(k, ''), kinds: Object.fromEntries([...DEER_SIZED].map(animal => [animal, boltDamage(k, animal)])) }, material: dress.get(k) });
   const applyBolt = (): void => {
     if (!crossbow) return;
     const k = quiver.selected, m = mods.get(k) ?? PLAIN_BOLT, row = AMMO_ROWS.find((ammo) => ammo.id === `ammo.${k}`);

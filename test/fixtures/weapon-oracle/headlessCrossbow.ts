@@ -8,7 +8,10 @@ import { shotSpread } from '../../../src/engine/combat/shotSpread';
 import { smoothstep } from '../../../src/engine/core/noise';
 import { sticksIn } from '../../../src/engine/physics/query';
 import { CROSSBOW_PROFILE } from '../../../src/shards/pine-hollow/weapons/crossbow/profiles';
-import { boltFlightStep, PLAIN_FLIGHT, type BoltFlight } from '../../../src/shards/pine-hollow/weapons/crossbow/flight';
+import { projectileFlightStep } from '../../../src/engine/combat/projectileFlight';
+/** The flight multipliers a bolt carries (the ammo's, the weather's): 1 / 1 is the plain bolt. */
+export interface BoltFlight { gravity: number; drag: number }
+const PLAIN_FLIGHT: BoltFlight = { gravity: 1, drag: 1 };
 import { aimAt, bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { boltDamage, type BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
 
@@ -51,7 +54,7 @@ export interface PineCrossbowPorts {
  * (the page aims along the camera; the tape aims at a body): fired when loaded and off its 0.3 s cooldown, else a dry pull
  * starts the reload; a spent bow reloads itself 1.4 s after the shot (1.35 s); a 30-bolt quiver. The bolt leaves 0.35 m down
  * the aim line from the eye at 62 m/s with the page's hip spread (0.75°, from the host's gameplay stream: four draws as
- * the page's gameplayRandom) and flies the page's own law (weapons/crossbow/flight.ts `boltFlightStep`: gravity, drag) in four substeps a tick, each tested
+ * the page's gameplayRandom) and flies the page's own law (the engine's `projectileFlightStep`: gravity, drag) in four substeps a tick, each tested
  * against the world (a 3 cm ball swept through it, edges passed) and the creatures' hitboxes short of the wall: a body
  * takes the damage model's blow (`damageFor`: head ×2.5, range falloff) through the host's combat pipeline (its rules: the
  * King's bark and ribcage, a boss's shield, the elites' own); wood and ground keep the bolt, stone glances it. The
@@ -116,7 +119,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   const fly = (b: Bolt, dt: number): void => {
     b.age += dt;
     const h = dt / SUBSTEPS;
-    for (let s = 0; s < SUBSTEPS; s++) { prev.copy(b.pos); boltFlightStep(b.pos, b.vel, h, ports.flight?.(b.ammo) ?? PLAIN_FLIGHT, p); if (testHit(b)) { b.active = false; return; } }
+    for (let s = 0; s < SUBSTEPS; s++) { prev.copy(b.pos); const mod = ports.flight?.(b.ammo) ?? PLAIN_FLIGHT; projectileFlightStep(b.pos, b.vel, h, { gravity: p.gravity * mod.gravity, drag: p.drag * mod.drag, windCoupling: 0 }); if (testHit(b)) { b.active = false; return; } }
     if (Math.abs(b.pos.x) > BOUND || Math.abs(b.pos.z) > BOUND || b.pos.y < FLOOR || b.age > MAX_AGE) b.active = false;
   };
   host.onStep(CROSSBOW_STEP, dt => {
