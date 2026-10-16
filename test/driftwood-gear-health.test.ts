@@ -1,3 +1,6 @@
+import { declaredLootEconomy } from '../src/game/shard/declaredRows';
+import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { parseRows } from '../src/format/rows';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -9,7 +12,9 @@ import { Owned } from '../src/game/loot/Owned';
 import { Purse } from '../src/game/loot/Purse';
 import { bindDriftwoodEffects } from '../src/shards/driftwood-isle/loot/effects';
 import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
-import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/data/economy';
+import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
+
+const economy = declaredLootEconomy(parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot);
 
 test('GEAR borrows live player max health through upgrades, revokes and other health-owner changes', async () => {
   const scope = new Scope('gear-health'), owned = new Owned('driftwood-isle');
@@ -17,8 +22,8 @@ test('GEAR borrows live player max health through upgrades, revokes and other he
   const effects = new EffectService(DRIFTWOOD_EFFECTS);
   const purse = new Purse('driftwood-isle', { read: () => 0, write: () => true });
   try {
-    bindDriftwoodEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [], hitCap: 20, slug: 'driftwood-isle' });
-    const view = await driftwoodLootPresentation({ adventure: { flags: new Flags('driftwood-isle', false), trader: null },
+    bindDriftwoodEffects({ grants: economy.grants, effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [], hitCap: 20, slug: 'driftwood-isle' });
+    const view = await driftwoodLootPresentation({ economy, adventure: { flags: new Flags('driftwood-isle', false), trader: null },
       owned, health, scope, audio: { voices: { play: () => undefined } }, toast: () => undefined, hold: () => undefined });
     const check = (max: number, hearts: number): void => {
       expect(health.attributes.maxHealth).toBe(max);

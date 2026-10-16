@@ -1,3 +1,6 @@
+import type { FindsCatalogueRows } from '../bag/findsCatalogue';
+import { parseLootEconomy, type LootEconomy } from '@wildshard/format/lootEconomy';
+import { isOwnedId, isCosmetic, type OwnedId, type CosmeticId } from '../loot/Owned';
 import { Weather, type WeatherProfile } from '@wildshard/engine/world/weather';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Rng } from '@wildshard/engine/core/rng';
@@ -79,4 +82,33 @@ export function declaredProductCompendium(product: ShardProduct, id: string, ske
 /** Presentation uses the existing purse and a registered cue; data cannot install callbacks. */
 export function declaredLootPresentation(row: ShardRows['loot'][number], cue: (id: string) => void): LootPresentation {
   return { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => row.charted, chime: () => { cue(row.chime); } };
+}
+
+type EconomyGrant<K extends OwnedId> = Omit<LootEconomy['grants']['player'][number], 'key' | 'unless'> & { key: K; unless?: K[] };
+/** Economy metadata with identifiers admitted by the existing ownership service. */
+export interface DeclaredLootEconomy extends Omit<LootEconomy, 'goods' | 'grants' | 'finds'> {
+  goods: (Omit<LootEconomy['goods'][number], 'id' | 'needs'> & { id: OwnedId; needs?: OwnedId })[];
+  grants: { player: EconomyGrant<OwnedId>[]; worn: EconomyGrant<CosmeticId>[]; weapons: EconomyGrant<OwnedId>[] };
+  finds: FindsCatalogueRows<OwnedId>;
+}
+/** Resolve portable economy rows before any live state is touched. The current Owned service remains authoritative. */
+export function declaredLootEconomy(rows: ShardRows['loot']): DeclaredLootEconomy {
+  const sources = rows.filter(row => row.economy !== undefined);
+  if (sources.length !== 1) throw new Error('Exactly one admitted economy payload is required');
+  const economy = parseLootEconomy(sources[0]?.economy);
+  const owned = (id: string): OwnedId => { if (!isOwnedId(id)) throw new Error('Unknown economy ownership'); return id; };
+  const worn = (id: string): CosmeticId => { const key = owned(id); if (!isCosmetic(key)) throw new Error('Economy worn grant requires a cosmetic'); return key; };
+  const grants = <K extends OwnedId>(entries: LootEconomy['grants']['player'], key: (id: string) => K) => entries.map(({ key: id, unless, ...row }) => ({ ...row, key: key(id), ...(unless === undefined ? {} : { unless: unless.map(key) }) }));
+  return { ...economy, goods: economy.goods.map(({ id, needs, ...good }) => ({ ...good, id: owned(id), ...(needs === undefined ? {} : { needs: owned(needs) }) })),
+    grants: { player: grants(economy.grants.player, owned), worn: grants(economy.grants.worn, worn), weapons: grants(economy.grants.weapons, owned) },
+    finds: { ...economy.finds, sections: economy.finds.sections.map(section => {
+      const items = section.items.map(item => {
+        const sticker: FindsCatalogueRows<OwnedId>['sections'][number]['items'][number] = 'owned' in item
+          ? { label: item.label, icon: item.icon, owned: owned(item.owned) } : { label: item.label, icon: item.icon, flag: item.flag };
+        if (item.prize !== undefined) return Object.assign(sticker, { prize: item.prize });
+        return sticker;
+      });
+      const result: FindsCatalogueRows<OwnedId>['sections'][number] = { title: section.title, items };
+      return Object.assign(result, section.dense === undefined ? {} : { dense: section.dense }, section.wide === undefined ? {} : { wide: section.wide });
+    }) } };
 }

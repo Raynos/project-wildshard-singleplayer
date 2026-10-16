@@ -10,13 +10,9 @@
  *   next charm:   every 5 pieces (5 → I, 10 → II, 15 → III)
  * And the sea chart's marks (E314 stage 2, `seaChartMarks`): every beach piece not found yet, where it lies, in its colour.
  */
-import { createFindsCatalogue } from '@wildshard/game/bag/findsCatalogue';
-import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { DRIFTWOOD_FINDS } from '../data/finds';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
+import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 
 export interface FlagReader { has: (flag: string) => boolean }
-export interface OwnedReader { has: (id: OwnedId) => boolean }
 
 export const CHARM_EVERY = 5;
 
@@ -30,18 +26,7 @@ export function seaGlassFound(flags: FlagReader): boolean[] {
   return Array.from({ length: SEA_GLASS_COUNT }, (_, i) => flags.has(`${SEA_GLASS_FLAG}${i + 1}`));
 }
 
-const catalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
-/** The Bag observes current flags and ownership through its declared catalogue. */
-export const driftwoodFinds = (flags: FlagReader, owned: OwnedReader): ReturnType<typeof catalogue> => catalogue({ flags, owned });
-
-/** the sea chart (E314 stage 2): the beach sea glass not found yet — world x / z and the piece's colour (a found one is gone) */
-export function seaChartMarks(flags: FlagReader): { x: number; z: number; color: string }[] {
-  const out: { x: number; z: number; color: string }[] = [];
-  for (const r of DRIFTWOOD_INTERACT.rows) {
-    if (r.kind !== 'pickup' || r.look !== 'seaglass' || r.at.poi !== 'world') continue;
-    const f = r.sets?.[0];
-    if (f === undefined || flags.has(f)) continue;
-    out.push({ x: r.at.x, z: r.at.z, color: r.color ?? '#7df0d0' });
-  }
-  return out;
+/** Filter the authored world-space marks without rebuilding placement or reading the interaction table. */
+export function seaChartMarks(flags: FlagReader, marks: readonly { flag: string; x: number; z: number; color: string }[]): { x: number; z: number; color: string }[] {
+  return marks.filter(row => !flags.has(row.flag)).map(({ x, z, color }) => ({ x, z, color }));
 }

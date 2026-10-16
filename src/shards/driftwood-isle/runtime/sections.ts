@@ -42,14 +42,6 @@ const cove = v.strictObject({
 const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
-const modifier = v.strictObject({ attr: text, op: v.picklist(['add', 'mul', 'override']), value: number });
-const effectId = v.pipe(text, v.startsWith('effect.')) as v.GenericSchema<`effect.${string}`>;
-const effectTag = v.pipe(text, v.includes('.')) as v.GenericSchema<`${string}.${string}`>;
-const effect = v.strictObject({ id: effectId, kind: v.literal('permanent'), tags: v.pipe(v.array(effectTag), v.maxLength(32)), modifiers: v.pipe(v.array(modifier), v.maxLength(32)),
-  grants: v.exactOptional(v.pipe(v.array(effectTag), v.maxLength(32))), stacking: v.union([v.literal('none'), v.strictObject({ max: natural })]), group: v.exactOptional(text), removes: v.exactOptional(v.pipe(v.array(effectId), v.maxLength(32))) });
-const goodId = v.picklist(['whetstone-1', 'whetstone-2', 'heart-1', 'heart-2', 'sea-chart', 'cape']);
-const good = v.strictObject({ id: goodId, name: text, does: text, icon: v.picklist(['whetstone', 'heart', 'chart', 'cape']), price: natural, needs: v.exactOptional(goodId) });
-
 /** Product-owned logical names and the client's build-time rows (W2b, G449); runtime/ never imports data/. */
 export const SECTIONS = {
   'custom/assets': v.strictObject({
@@ -90,7 +82,7 @@ export const SECTIONS = {
   'custom/gullFlock': AmbientFlockSchema,
   /** the sea's water-surface row and its baked grid per tier and floor (data/oceanLook.ts, data/oceanFiles.ts; world/Ocean.ts) */
   'custom/oceanSurface': v.strictObject({ surface: WaterSurfaceSchema, files: v.strictObject({ level: number, phone: text, desktop: text, floor: text }) }),
-  'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) }),
+  'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)) }),
 } as const;
 
 const placement = v.strictObject({

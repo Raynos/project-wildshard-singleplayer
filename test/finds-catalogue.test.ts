@@ -1,13 +1,15 @@
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
 import type { OwnedId } from '../src/game/loot/Owned';
-import { driftwoodFinds } from '../src/shards/driftwood-isle/loot/finds';
-import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/data/finds';
+import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
 import { SHARD_FLAGS } from '../src/shards/driftwood-isle/data/interactables';
 import { FINDS_ELITES, elitePrize, nalatiFinds } from '../src/shards/nalati-grasslands/bag';
 import { NALATI_ELITE_DEFS } from '../src/shards/nalati-grasslands/data/eliteEncounters';
 import { NALATI_PLACES } from '../src/shards/nalati-grasslands/data/questStory';
+
+const islandCatalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
+const driftwoodFinds = (flags: { has: (id: string) => boolean }, owned: { has: (id: OwnedId) => boolean }) => islandCatalogue({ flags, owned });
 
 test('Driftwood reads live flags and owned trophies while preserving milestones and chip colors', () => {
   const set = new Set<string>(), have = new Set<OwnedId>();
@@ -55,6 +57,6 @@ test('catalogues refuse unbounded metadata, invalid milestones and missing owner
   expect(() => createFindsCatalogue({ ...DRIFTWOOD_FINDS, glass: { ...DRIFTWOOD_FINDS.glass, colors: [] } })).toThrow('colors');
   expect(() => createFindsCatalogue({ ...DRIFTWOOD_FINDS, next: { ...DRIFTWOOD_FINDS.next, every: 0 } })).toThrow('milestone');
   expect(() => createFindsCatalogue({ ...DRIFTWOOD_FINDS, counters: [{ label: 'No', flags: { prefix: 'a', count: 257 } }] })).toThrow('range');
-  const catalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
-  expect(() => catalogue({ flags: { has: () => false } })).toThrow('ownership');
+  const refusingCatalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
+  expect(() => refusingCatalogue({ flags: { has: () => false } })).toThrow('ownership');
 });

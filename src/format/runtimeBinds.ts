@@ -30,10 +30,11 @@ import * as v from 'valibot';
  *   Left unbound in a hybrid whose other unbound data is only the look's family materials, the data client runs
  *   presentation-only (G345): it draws the tiles in those materials and lends them and the ground's queries to the
  *   runtime (`runtimePresentation`, `@wildshard/game/shardfile/runtimeProduct`), with no kit, play stage or simulation.
+ * - `loot`: the trusted runtime consumes the original economy rows; only the secondary data client omits them.
  * - `props` (G227): the compiled props section (tiles, library models, panels, far proxy), bound the same way; the
  *   runtime keeps the behaviour of the pieces it dresses.
  */
-export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 'state', 'terrain', 'props', 'modes', 'clientChannels', 'movers'] as const;
+export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 'state', 'terrain', 'props', 'modes', 'clientChannels', 'movers', 'loot'] as const;
 /** One section a trusted runtime binds rather than the data client. */
 export type RuntimeBoundSection = (typeof RUNTIME_BOUND_SECTIONS)[number];
 /** `runtime.binds`: the declared capability that replaces the implicit "empty apart from audio, edges and colliders" rule. */

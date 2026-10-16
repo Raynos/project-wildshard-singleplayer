@@ -107,6 +107,7 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
       ...(source.questNpcs === undefined ? {} : { questNpcs: [] }),
       ...(source.questHost === undefined ? {} : { questHost: null }) } : {}),
     ...(binds.has('ledger') ? { ledger: [] } : {}),
+    ...(binds.has('loot') ? { rows: { ...source.rows, loot: [] } } : {}),
     ...(binds.has('items') ? { items: { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } } } : {}),
     ...(binds.has('state') ? { state: { ...source.state, shared: [], player: [] } } : {}),
   };

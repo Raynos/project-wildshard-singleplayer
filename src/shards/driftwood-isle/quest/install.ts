@@ -1,3 +1,4 @@
+import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { onCreatureDeath } from '@wildshard/game/loot/deaths';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -37,13 +38,14 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
   const effects = ctx.app.effects, health = ctx.app.player;
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');
-  bindDriftwoodEffects({ effects, scope: ctx.scope, owned: h.owned, health, player, swords, hitCap: ctx.manifest.fight?.maxHitDamage ?? Infinity, slug: ctx.manifest.slug });
+  const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
+  bindDriftwoodEffects({ grants: economy.grants, effects, scope: ctx.scope, owned: h.owned, health, player, swords, hitCap: ctx.manifest.fight?.maxHitDamage ?? Infinity, slug: ctx.manifest.slug });
   const scopedGame = { scene: game.scene, camera: game.camera, renderer: game.renderer,
     onUpdate: (run: (dt: number, t: number) => void, label?: string) => { ctx.system({ id: label ?? 'shard.driftwood.keepsakes', phase: 'update', after: ['game.loot', 'body-shadow'], before: ['hud.combat', 'last place', 'first hints', 'main.world'], run }); } };
   installKeepsakes({ owner: ctx, onDeath: (run, order) => { onCreatureDeath(ctx, () => h.animals.animals, run, order); },
     owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
     body: h.bodyShadow ?? null, swords, effectsManaged: true });
-  const presentation = await driftwoodLootPresentation({ adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
+  const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
     toast: (text) => { h.hud.toast(text); }, hold: new QuestViews(ctx).panelHold({ hud: h.hud, weapons: h.weapons, menu: h.menu,
       nolock: h.nolock, touchUi: h.touchUi, restartOnClose: true,
       stow: on => { h.weapons.stowed = on; }, resume: () => { h.weapons.setEnabled(!player.swimming); } }) });

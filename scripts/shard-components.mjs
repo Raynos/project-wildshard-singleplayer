@@ -78,6 +78,10 @@ const questOwners=new Set([
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
+  ['src/format/lootEconomy.ts', 'C6'],
+  ['src/game/shard/declaredRows.ts#EconomyGrant', 'C6'],
+  ['src/game/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
+  ['src/game/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
   ['src/engine/models/ownedGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/boot/trailSpecimens.ts', 'C1'],
   // Native geometry admission and owned static batch/specimen buffers.

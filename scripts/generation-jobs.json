@@ -3,6 +3,37 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "driftwood-loot",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-loot.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-loot.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "scripts/bake-output.mjs",
+        "src/shards/driftwood-isle/generators/bake-loot.mjs",
+        "src/shards/driftwood-isle/generators/loot.ts",
+        "src/shards/driftwood-isle/generators/economy.ts",
+        "src/shards/driftwood-isle/generators/finds.ts",
+        "src/shards/driftwood-isle/data/discovery.ts",
+        "src/shards/driftwood-isle/data/interactables.ts"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/loot.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/loot.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "pine-journal",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-journal.mjs",

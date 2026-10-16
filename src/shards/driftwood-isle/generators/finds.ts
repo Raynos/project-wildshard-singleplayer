@@ -1,5 +1,5 @@
-import { DRIFTWOOD_PLACES } from './discovery';
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
+import { DRIFTWOOD_PLACES } from '../data/discovery';
+import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
 
 const glass = { prefix: SEA_GLASS_FLAG, count: SEA_GLASS_COUNT };
 /** Original Bag counters, sticker order, glass palette and whole-charm milestone. */

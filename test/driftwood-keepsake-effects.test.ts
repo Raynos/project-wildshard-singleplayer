@@ -1,3 +1,6 @@
+import { declaredLootEconomy } from '../src/game/shard/declaredRows';
+import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { parseRows } from '../src/format/rows';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -6,7 +9,9 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { EffectService } from '../src/engine/combat/effects/EffectService';
 import type { OwnedId } from '../src/game/loot/Owned';
 import { bindDriftwoodEffects } from '../src/shards/driftwood-isle/loot/effects';
-import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/data/economy';
+import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
+
+const economy = declaredLootEconomy(parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot);
 
 test('owned keepsakes apply and revoke gameplay through the existing effect binding', () => {
   const scope = new Scope('keepsake-effects'), have = new Set<OwnedId>(), listeners = new Set<() => void>();
@@ -20,7 +25,7 @@ test('owned keepsakes apply and revoke gameplay through the existing effect bind
     if (on) have.add(id); else have.delete(id);
     for (const run of listeners) run();
   };
-  bindDriftwoodEffects({ effects, scope, owned, health, player, swords: [sword], hitCap: 20, slug: 'driftwood-isle' });
+  bindDriftwoodEffects({ grants: economy.grants, effects, scope, owned, health, player, swords: [sword], hitCap: 20, slug: 'driftwood-isle' });
   expect(health.attributes.maxHealth).toBe(100);
   change('heart-1'); expect(health.attributes.maxHealth).toBe(120);
   change('heart-2'); expect(health.attributes.maxHealth).toBe(140);

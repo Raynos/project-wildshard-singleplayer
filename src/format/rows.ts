@@ -1,3 +1,4 @@
+import { LootEconomySchema, lootEconomyRules } from './lootEconomy';
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { sketchReference } from './sketch';
@@ -44,7 +45,7 @@ const look = v.strictObject({ id, species: id, recipe: id, material: v.optional(
 const basicCompendium = v.strictObject({ id, className: id, title: text, tabs: v.pipe(v.array(v.strictObject({ id, label: text })), v.maxLength(16)), stamp: text,
   stats: v.pipe(v.array(v.strictObject({ label: text, value: text })), v.maxLength(8)),
   entries: v.pipe(v.array(v.strictObject({ id, kind: v.literal('species'), tab: id, name: text, notes: text, sketch: v.pipe(text, v.check(sketchReference, 'bounded inert SVG data or admitted sketch hash')), species: id })), v.maxLength(256)) });
-const loot = v.strictObject({ id, gear: v.literal('purse.coins'), finds: v.null(), marks: v.null(), charted: v.boolean(), chime: id });
+const loot = v.strictObject({ id, gear: v.literal('purse.coins'), finds: v.null(), marks: v.null(), charted: v.boolean(), chime: id, economy: v.exactOptional(LootEconomySchema) });
 const raw = v.strictObject({ strikes: v.pipe(v.array(strike), v.maxLength(256)), weather: v.pipe(v.array(weather), v.maxLength(16)), days: v.pipe(v.array(day), v.maxLength(16)),
   species: v.pipe(v.array(species), v.maxLength(256)), looks: v.pipe(v.array(look), v.maxLength(256)), compendiums: v.pipe(v.array(v.union([basicCompendium, JournalRowSchema])), v.maxLength(16)), loot: v.pipe(v.array(loot), v.maxLength(16)) });
 /** Pure author rows: numeric weights, state output tables, clocks and registered view/presentation recipes. */
@@ -53,6 +54,7 @@ export type ShardRows = v.InferOutput<typeof raw>;
 export function rowRules(rows: ShardRows): string[] {
   const errors: string[] = [];
   for (const list of Object.values(rows)) if (new Set(list.map((r) => r.id)).size !== list.length) errors.push('unique row ids');
+  for (const row of rows.loot) if (row.economy !== undefined) errors.push(...lootEconomyRules(row.economy));
   for (const w of rows.weather) {
     const states = new Set(w.states.map((s) => s.id));
     if (states.size !== w.states.length || w.states.some((s) => !states.has(s.next)) || w.modes.some((m) => m.hold !== null && !states.has(m.hold)) || new Set(w.modes.map((m) => m.id)).size !== w.modes.length) errors.push('weather states and transitions');

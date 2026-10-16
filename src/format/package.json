@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./lootEconomy": "./lootEconomy.ts",
     "./compendiumRows": "./compendiumRows.ts",
     "./nativeItems": "./nativeItems.ts",
     "./audioBank": "./audioBank.ts",

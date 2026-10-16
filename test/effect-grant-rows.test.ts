@@ -1,3 +1,6 @@
+import { declaredLootEconomy } from '../src/game/shard/declaredRows';
+import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { parseRows } from '../src/format/rows';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -6,8 +9,10 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { EffectService, selectEffectGrants } from '../src/engine/combat/effects/EffectService';
 import type { OwnedId } from '../src/game/loot/Owned';
 import { bindDriftwoodEffects } from '../src/shards/driftwood-isle/loot/effects';
-import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/data/economy';
+import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 import { NalatiSkinLocker, NALATI_SKINS } from '../src/shards/nalati-grasslands/weapons/nalatiSkins';
+
+const economy = declaredLootEconomy(parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot);
 
 test('Driftwood selects ordered live grants, highest upgrades and worn cosmetics', () => {
   const have = new Set<OwnedId>(), worn = new Set<string>();
@@ -20,7 +25,7 @@ test('Driftwood selects ordered live grants, highest upgrades and worn cosmetics
   };
   const sync = vi.spyOn(effects, 'sync');
   const refresh = (): void => { sync.mockClear(); changed(); };
-  bindDriftwoodEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [sword], hitCap: Infinity, slug: 'driftwood-isle' });
+  bindDriftwoodEffects({ grants: economy.grants, effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [sword], hitCap: Infinity, slug: 'driftwood-isle' });
   const playerGrants = (): Parameters<EffectService['sync']>[1] => sync.mock.calls.find(call => call[0] === health)?.[1] ?? [];
   const weaponGrants = (): Parameters<EffectService['sync']>[1] => sync.mock.calls.find(call => call[0] === sword)?.[1] ?? [];
   expect(playerGrants()).toEqual([]);

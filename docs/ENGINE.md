@@ -7961,3 +7961,13 @@ only reference earlier inputs; missing owners and disposed scopes refuse.
 Pine and Driftwood supply their real geometry and live native values.
 The installer preserves listener, sample, timer and random-stream order;
 no extra audio clock or copied PCM buffers are introduced.
+
+`economy/loot` rows may carry an optional strict `economy` payload: ordered
+permanent effects, trader goods, owned/worn effect grants, finds counters and
+world-space chart marks. `declaredLootEconomy(rows)` in `game/shard/declaredRows`
+re-admits that data and checks Owned/cosmetic keys before callers lend it to the
+existing EffectService, FindsCatalogue and ShopPanel. These readers create no
+save, reward, transaction or timing owner. Authored tables can compile entirely
+at build time. `runtime.binds: ['loot']` declares the existing runtime as the
+sole installer; `withoutRuntimeRows` empties only the secondary client's loot
+rows, retaining the original admitted payload for that owner.

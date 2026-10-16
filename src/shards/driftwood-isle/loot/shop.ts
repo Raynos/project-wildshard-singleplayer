@@ -7,9 +7,8 @@
  *   goodState(good, owned, coins)  → 'owned' | 'locked' (a II before its I) | 'short' (too few coins) | 'buy'
  *   buyGood(good, owned, purse)    → true when bought (coins taken, the id granted); false changes nothing
  */
-import type { IconId } from '@wildshard/engine/ui/icons';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { GOODS } from '../data/economy';
+import type { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 
 /**
  * PRICES — coins are capped per enemy (Bounty.ts), so the island holds a fixed purse: one full clear of Driftwood is
@@ -19,16 +18,7 @@ import { GOODS } from '../data/economy';
  * the cape the cheapest.
  */
 
-export interface Good {
-  id: OwnedId;
-  name: string;
-  /** what it does, one short line (the card's sub-line) */
-  does: string;
-  icon: IconId;
-  price: number;
-  /** bought first (a II needs its I) */
-  needs?: OwnedId;
-}
+export type Good = ReturnType<typeof declaredLootEconomy>['goods'][number];
 
 export type GoodState = 'owned' | 'locked' | 'short' | 'buy';
 
@@ -47,4 +37,4 @@ export function buyGood(g: Good, owned: OwnedView & { grant: (id: OwnedId) => bo
   return true;
 }
 
-export const goodById = (id: OwnedId): Good | undefined => GOODS.find((g) => g.id === id);
+export const goodById = (goods: readonly Good[], id: OwnedId): Good | undefined => goods.find((g) => g.id === id);
