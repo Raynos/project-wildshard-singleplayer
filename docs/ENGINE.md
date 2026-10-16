@@ -7892,13 +7892,6 @@ adjacent silhouette URLs. The Template and Pine use the same defining host.
 Pine's authored journal/POI/trophy assembly runs only in its generators; its
 original chunk id, entry ids, text, images and display order remain data.
 
-`combat/items` weapon rows may include strict `equipment` presentation data: the original equipment id and legacy
-slot, UI and menu metadata, sound cues, hit-stop and ranged feel. `readItemEquipment(items, id)` from
-`@wildshard/game/plugin/nativeItems` reads that admitted row and returns an `EquipmentRow`; it refuses a missing
-row or presentation. It takes no factories or callbacks, and installs no service, state, input or save owner.
-Pine's three ranged weapons and Driftwood's swords use the same reader. Authored tables may run entirely in
-`generators/`, while the page reads their emitted `combat/items` section. Pickup creation remains outside the data.
-
 ### Native track-row movers (G466 H5)
 
 `engine/sim/moverMotion.MoverMechanic` evaluates admitted stop/driver rows
