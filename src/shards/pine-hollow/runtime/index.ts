@@ -4,7 +4,6 @@ import { preloadHeldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeScore } from '@wildshard/game/plugin/audio';
-import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
@@ -54,7 +53,8 @@ import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/
 import { WILDLIFE_LOOK, FINISH_CARDS } from './const';
 import * as v from 'valibot';
 import { installPineAudio } from './audio/wiring';
-import { ForestAmbience } from './audio/ambience';
+import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
+import * as audioTerrain from '@wildshard/engine/world/Heightfield';
 import { isPhShot } from './audio/sfx';
 import { installWeather, loadPineRain } from '../world/weather';
 import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRifle';
@@ -269,7 +269,7 @@ export class PineHollow extends ShardPlugin {
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
     placePineHollowSets(registry);
-    const ambience = new ForestAmbience(audio, { heightAt, cabins, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, requireAudioProfile(runtimeAudio(ctx, ctx.product.shardfile.audio).zones, 'ambience.pine'), ctx.product.shardfile.audio);
+    const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabins?.audioState.floors ?? [] }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: cabins?.audioState }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
     installPineAudio({ context: ctx, game, audio, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });

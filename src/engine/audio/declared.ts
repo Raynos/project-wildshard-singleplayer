@@ -1,3 +1,4 @@
+import { DeclaredAmbience, type DeclaredAmbiencePorts } from './declaredAmbience';
 import { CatalogueScore } from './SetScore';
 import type { Music } from './Music';
 import type { AudioData } from '@wildshard/format/audio';
@@ -36,21 +37,25 @@ export interface DeclaredAudioPorts {
 }
 /** Native score owners supplied by the mixer; the declaration supplies all content policy. */
 export interface DeclaredScorePorts {audio:Pick<Audio,'onLevelBank'>;music:Music;scope:Scope;beforeBind?:()=>void}
-function scorePorts(ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts):ports is DeclaredScorePorts {
+function scorePorts(ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts):ports is DeclaredScorePorts {
   return 'music' in ports&&'residentBank' in ports.music&&'onLevelBank' in ports.audio;
 }
+/** Zoned ambience uses the existing native mix and declared ownership policy. */
+export function installDeclaredAudio(data:AudioData,ports:DeclaredAmbiencePorts,phase:'ambience'):DeclaredAmbience;
 /** Score-only phase uses the existing catalogue and keeps native bank and entered lifetimes separate. */
 export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredScorePorts,phase:'score'):CatalogueScore;
 /** Bank-only phase preserves separately owned cue and ambience lifetimes. */
 export function installDeclaredAudio(data:AudioData,ports:{audio:DeclaredBankAudio;scope:Scope},phase:'voices'):DeclaredSoundBank;
 export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts):void;
 /** Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. */
-export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts,phase?:'voices'|'score'):void|DeclaredSoundBank|CatalogueScore {
-  if(ports.scope.disposed)throw new Error('Audio scope is disposed');
+export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts,phase?:'voices'|'score'|'ambience'):void|DeclaredSoundBank|CatalogueScore|DeclaredAmbience {
+  if(ports.scope?.disposed)throw new Error('Audio scope is disposed');
+  if(phase==='ambience'){if(!('sea' in ports))throw new Error('Missing ambience ports');return new DeclaredAmbience(data,ports);}
   if(phase==='score'){
     if(!scorePorts(ports)||data.music===undefined)throw new Error('Missing declared score ports or profile');
     return CatalogueScore.install(ports.audio,ports.music,ports.scope,data.music,'beforeBind' in ports?{beforeBind:ports.beforeBind}:{});
   }
+  if(ports.scope===undefined)throw new Error('Missing audio scope');
   if(phase==='voices'){
     if(!('voices' in ports.audio))throw new Error('Missing declared bank ports');
     return new DeclaredSoundBank(ports.audio,data,ports.scope);

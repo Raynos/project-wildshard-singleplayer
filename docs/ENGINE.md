@@ -7913,3 +7913,14 @@ Its carry result is data (riding, position, heading, visibility and arrival),
 so the client borrows its real rider/view and keeps only model/audio/UI work.
 Pine's canoe uses this track; its hinged doors use the mechanic's reversible
 quadratic phase. Neither path introduces an authored update callback.
+
+### Declared ambience lifecycle (G466 C8)
+
+`installDeclaredAudio(rows, ports, 'ambience')` binds the existing
+`AmbienceMix` and native sound bank to `audio.zones.lifecycle`. The rows
+select the initial zone, scope ownership, wind handoff, sample-only or
+whole-scope teardown, and ordered numeric input reads. Derived inputs can
+only reference earlier inputs; missing owners and disposed scopes refuse.
+Pine and Driftwood supply their real geometry and live native values.
+The installer preserves listener, sample, timer and random-stream order;
+no extra audio clock or copied PCM buffers are introduced.

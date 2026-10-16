@@ -40,7 +40,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { waterWeather } from './water';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
-import type { ForestAmbience } from '../runtime/audio/ambience';
+import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
 import { loadRainBake, RainFx, type RainBake } from '../runtime/looks/rainFx';
@@ -61,7 +61,7 @@ export interface PineWeatherHost {
   trees: readonly TreeInstance[];
   animals: AnimalManager;
   particles: Particles | null;
-  ambience: ForestAmbience | null;
+  ambience: DeclaredAmbience | null;
   /** a roof over (x, z) — the cabins' floors and porch decks */
   roofAt: (x: number, z: number) => boolean;
   /** the quest's pale stag, when it is out */
@@ -168,7 +168,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
       lane.evaluate({ time: 0, delta: dt, values }); ports.apply(lane.frame);
     }
     if (h.horizonVeil) h.horizonVeil.value.set(veil.x.value, veil.y.value);
-    if (h.ambience) h.ambience.rain = room ? 0 : weather.rain;
+    if (h.ambience) h.ambience.inputs['rain'] = room ? 0 : weather.rain;
     fx.update(dt, weather, wind, h.game.camera);
     shelter.update(dt, weather.rain);
     stagInFog(eye, dt);

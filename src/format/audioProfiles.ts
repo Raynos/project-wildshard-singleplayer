@@ -190,6 +190,23 @@ const audioSpatialProbe=v.variant('kind',[
  v.strictObject({kind:v.literal('spots'),source:id,ids:v.pipe(v.array(id),v.maxLength(32)),fade:finite,open:id,initial:mixExpr,pans:v.pipe(v.array(id),v.maxLength(32))}),
  v.strictObject({kind:v.literal('maximum'),id,source:id,initial:mixExpr,inner:finite,outer:finite,gain:finite})
 ]);
+/** Native mix ownership, borrowed numeric inputs and entered/source teardown. */
+const ambienceReference=v.strictObject({owner:id,path:v.pipe(v.array(id),v.minLength(1),v.maxLength(8))});
+export const AudioAmbienceLifecycleSchema = v.strictObject({
+  scope:id,zone:id,childScope:v.boolean(),ownedZones:v.boolean(),dispose:v.picklist(['scope','samples']),
+  bank:v.boolean(),wind:v.boolean(),logZone:v.boolean(),random:v.picklist(['audio','global']),
+  values:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=32)),
+  surfaces:v.boolean(),spots:v.boolean(),
+  circles:v.pipe(v.record(id,ambienceReference),v.check(rows=>Object.keys(rows).length<=16)),
+  pointLists:v.pipe(v.record(id,ambienceReference),v.check(rows=>Object.keys(rows).length<=16)),
+  spotBindings:v.pipe(v.record(id,v.strictObject({zone:id,gain:ambienceReference,above:finite})),v.check(rows=>Object.keys(rows).length<=16)),
+  inputs:v.pipe(v.array(v.variant('kind',[
+    v.strictObject({kind:v.literal('read'),id,owner:id,path:v.pipe(v.array(id),v.minLength(1),v.maxLength(8))}),
+    v.strictObject({kind:v.literal('value'),id,value:mixExpr}),
+  ])),v.maxLength(32)),
+});
+export type AudioAmbienceLifecycle = v.InferOutput<typeof AudioAmbienceLifecycleSchema>;
+
 /** Native audio lifecycle policy; observations and decoded samples are supplied by the resident owner. */
 export const AudioAmbienceRoutingSchema = v.strictObject({
   probes:v.exactOptional(v.pipe(v.array(audioSpatialProbe),v.maxLength(64))),probeFinite:v.exactOptional(v.pipe(v.array(id),v.maxLength(32))),
@@ -207,7 +224,7 @@ export const AudioAmbienceRoutingSchema = v.strictObject({
 });
 export type AudioAmbienceRouting = v.InferOutput<typeof AudioAmbienceRoutingSchema>;
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export const AudioZonesSchema = v.strictObject({ id, lifecycle:v.exactOptional(AudioAmbienceLifecycleSchema), routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),

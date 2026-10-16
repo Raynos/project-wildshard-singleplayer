@@ -2315,7 +2315,93 @@
           "x": 201.4142135623731,
           "z": 201.4142135623731
         }
-      ]
+      ],
+      "lifecycle": {
+        "scope": "ForestAmbience",
+        "zone": "hollow",
+        "childScope": true,
+        "ownedZones": true,
+        "dispose": "samples",
+        "bank": true,
+        "wind": false,
+        "logZone": true,
+        "random": "audio",
+        "values": {
+          "dawn": 0,
+          "rain": 0
+        },
+        "inputs": [
+          {
+            "kind": "read",
+            "id": "rawNight",
+            "owner": "mix",
+            "path": [
+              "night"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "rawDawn",
+            "owner": "values",
+            "path": [
+              "dawn"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "rawRain",
+            "owner": "values",
+            "path": [
+              "rain"
+            ]
+          },
+          {
+            "kind": "value",
+            "id": "thr",
+            "value": [
+              "clamp",
+              [
+                "*",
+                "rawNight",
+                0.5
+              ],
+              0,
+              1
+            ]
+          }
+        ],
+        "surfaces": true,
+        "spots": true,
+        "circles": {
+          "pond": {
+            "owner": "terrain",
+            "path": [
+              "POND"
+            ]
+          }
+        },
+        "pointLists": {
+          "fire": {
+            "owner": "cabins",
+            "path": [
+              "firePits"
+            ]
+          }
+        },
+        "spotBindings": {
+          "mill.wheel": {
+            "zone": "mill",
+            "gain": {
+              "owner": "cabins",
+              "path": [
+                "wheel",
+                "value"
+              ]
+            },
+            "above": 0.01
+          }
+        }
+      }
     },
     "bank": {
       "families": {},

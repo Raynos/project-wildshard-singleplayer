@@ -25,7 +25,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const islandSfx = installDeclaredAudio(declared,{audio,scope:ctx.scope},'voices');
   const sea = declaredSea.level; // SF46 (G164): the lowered sea at road height
   const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
-  const ambience = createIslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: islandCoveSpec() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
+  const ambience = createIslandAmbience(audio, { sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: islandCoveSpec() }, audioRows);
   const cues = createCueRouter(audioRows.routing.filter(route => route.bus === 'audio'), {
     voices: new Map(), bindings: declared.voiceBindings, owners: new Map<string, object>([['sfx', islandSfx],['playback',islandSfx.playback], ['listener', player]]),
   });

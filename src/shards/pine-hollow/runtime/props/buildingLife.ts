@@ -44,7 +44,8 @@ const wave = (t: number, seed: number, w: BuildingWave): number => Math.sin(t * 
 /** A settlement's buildings as a living place (see the module comment). */
 export class BuildingLife {
   /** radians per second of every wheel (0 stops them) */
-  wheelSpeed = 0.55;
+  get wheelSpeed():number{return this.audioState.wheel.value;}
+  set wheelSpeed(value:number){this.audioState.wheel.value=value;}
   interactables: Interactable[] = [];
   firePits: { x: number; y: number; z: number }[] = [];
   private readonly lifeLook: BuildingLifeLook;
@@ -56,6 +57,8 @@ export class BuildingLife {
   private readonly gain = { fire: 1, lamp: 1 };
   private swings: BuildingSwing[] = [];
   private floors: BuildingFloor[] = [];
+  /** Live data loan for audio; no building methods or gameplay callbacks cross the host boundary. */
+  readonly audioState={floors:this.floors,firePits:this.firePits,wheel:{value:0.55}};
   /** emissive materials lit by the clock and their full-night intensity */
   private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
   private readonly doorBars = new Map<Interactable, () => boolean>();

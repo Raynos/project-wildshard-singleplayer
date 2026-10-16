@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./audio/declaredAmbience": "./audio/declaredAmbience.ts",
     "./audio/declaredBank": "./audio/declaredBank.ts",
     "./sim/moverLifecycle": "./sim/moverLifecycle.ts",
     "./sim/moverMotion": "./sim/moverMotion.ts",

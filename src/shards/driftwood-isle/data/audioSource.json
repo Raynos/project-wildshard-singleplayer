@@ -6132,7 +6132,44 @@
           "x": 120,
           "z": 19
         }
-      ]
+      ],
+      "lifecycle": {
+        "scope": "audio.island.ambience",
+        "zone": "beach",
+        "childScope": false,
+        "ownedZones": false,
+        "dispose": "scope",
+        "bank": false,
+        "wind": true,
+        "logZone": false,
+        "random": "global",
+        "values": {},
+        "inputs": [
+          {
+            "kind": "read",
+            "id": "windTime",
+            "owner": "wind",
+            "path": [
+              "uTime",
+              "value"
+            ]
+          },
+          {
+            "kind": "read",
+            "id": "windStrength",
+            "owner": "wind",
+            "path": [
+              "uWindStrength",
+              "value"
+            ]
+          }
+        ],
+        "surfaces": false,
+        "spots": false,
+        "circles": {},
+        "pointLists": {},
+        "spotBindings": {}
+      }
     },
     "bank": {
       "families": {

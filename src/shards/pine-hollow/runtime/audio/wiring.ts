@@ -1,5 +1,4 @@
 import { runtimeAudio, audioObserverSystems } from '@wildshard/game/plugin/audio';
-import type { AudioZones } from '@wildshard/format/audioProfiles';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
@@ -9,7 +8,7 @@ import type { Music } from '@wildshard/engine/audio/Music';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { ForestAmbience, ZoneSpot } from './ambience';
+import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 
@@ -35,7 +34,7 @@ export interface PineAudioHost {
   audio: Audio;
   sky: Sky;
   music: Music;
-  ambience: ForestAmbience;
+  ambience: DeclaredAmbience;
   animals: AnimalManager;
   /** the cabins + the hamlet (their doors, the mill wheel's speed); null = none built */
   cabins: { interactables: Interactable[]; wheelSpeed: number; onDoor: (fn: (door: Interactable, opening: boolean) => void) => () => void } | null;
@@ -45,23 +44,10 @@ export interface PineAudioHost {
 }
 
 
-/** The shardfile's exact baked zone rows; only a live mill-wheel query remains a trusted runtime port. */
-export function pineZoneSpots(wheel: () => number, profile: AudioZones): ZoneSpot[] {
-  return profile.zones.map((row) => {
-    const zone = row.source === 'mill.wheel' ? 'mill' : row.source;
-    if (zone !== 'creek' && zone !== 'waterfall' && zone !== 'mill' && zone !== 'ridge' && zone !== 'oldgrowth' && zone !== 'cave') throw new Error(`Unknown forest audio zone: ${row.id}`);
-    const spot: ZoneSpot = { zone, x: row.x, z: row.z, r: row.inner, fade: row.fade ?? row.outer - row.inner };
-    if (row.open !== undefined) spot.open = row.open;
-    if (row.source === 'mill.wheel') spot.gain = () => (wheel() > 0.01 ? 1 : 0);
-    return spot;
-  });
-}
-
 export function installPineAudio(h: PineAudioHost): void {
   const { game, sky, music, ambience: amb, animals } = h;
   const rows = runtimeAudio(h.context, h.context.product.shardfile.audio);
-  const spots = pineZoneSpots(() => h.cabins?.wheelSpeed ?? 0, requireAudioProfile(rows.zones, 'ambience.pine'));
-  for (const s of spots) amb.addSpot(s);
+  const spots = amb.declaredSpots;
 
   // ── doors: every cabin / hamlet door (their prompts flip "Open door" ↔ "Close door") ──
   // a door that moved (a barred one, the mill's (E322), does not): its creak, through the cabins' door listeners
