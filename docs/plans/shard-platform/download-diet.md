@@ -146,3 +146,17 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   per-file gzip-9 totals are 9,530,728 → 9,284,667 (-246,061 B).
   Logical names/URL aliases and all seven binary world payloads stay
   unchanged. This transforms output bytes only, without new Git blobs.
+
+- 2026-10-16 Pine named GLBs choose encoding per file: meshopt is kept
+  only when gzip-9 does not exceed the original. All 140 decoded views
+  across four GLBs and their scene/accessor/material/skin/animation rows
+  are identical. Raw bytes are 3,596,080 → 2,455,944 (-1,140,136 B);
+  per-file gzip-9 is 1,675,062 → 1,250,863 (-424,199 B). Logical names,
+  tier variants and other author options stay unchanged.
+
+  | Logical GLB | Chosen encoding | Raw B before → after | Gzip-9 B before → after |
+  | --- | --- | ---: | ---: |
+  | `models/held/hands.glb` | meshopt | 2,867,736 → 1,727,600 | 1,570,063 → 1,145,864 |
+  | `models/held/lever-details.glb` | plain | 62,596 → 62,596 | 6,100 → 6,100 |
+  | `models/held/crossbow-pool.glb` | plain | 542,748 → 542,748 | 83,632 → 83,632 |
+  | `models/king/kit.glb` | plain | 123,000 → 123,000 | 15,267 → 15,267 |

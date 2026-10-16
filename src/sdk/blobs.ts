@@ -10,7 +10,7 @@ import { compressGlb } from './bake/glbCompression';
 export type NamedBlobKind = Exclude<OutputFile['kind'], 'json'>;
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
 export interface BlobOptions extends Partial<AssetCost> { readonly critical?: boolean; readonly dependencies?: readonly string[] }
-/** Explicit build-only source transformation; compressed input is always admitted without needing this option. */
+/** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
 export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */
 export interface NamedBlob { readonly file: OutputFile; readonly bytes: Uint8Array }
@@ -63,12 +63,14 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;
  * an escape (including through a symlink), remote URI or unsupported extension refuses before publication. */
 export async function readNamedBlob(project: string, name: string, source: string, kind: NamedBlobKind, options: BlobSourceOptions = {}): Promise<NamedBlob> {
-  const [fileSystem, pathTools, { readBoundedFile }] = await Promise.all([
+  const [fileSystem, pathTools, { readBoundedFile }, compression] = await Promise.all([
     // oxlint-disable-next-line import/no-nodejs-modules -- Only explicit CLI file intake loads filesystem access.
     import('node:fs'),
     // oxlint-disable-next-line import/no-nodejs-modules -- Keep config-only nameBlob imports free of file services.
     import('node:path'),
     import('./sourceReader'),
+    // oxlint-disable-next-line import/no-nodejs-modules -- Compare actual download encoding only during CLI intake.
+    import('node:zlib'),
   ]);
   const root = fileSystem.realpathSync(project);
   const contained = (base: string, path: string): string => {
@@ -83,7 +85,9 @@ export async function readNamedBlob(project: string, name: string, source: strin
   if (options.meshopt === true && kind !== 'glb') throw new Error('Meshopt compression requires a GLB blob');
   const admit = (value: Uint8Array): NamedBlob => {
     if (options.meshopt !== true) return nameBlob(name, kind, value, options);
-    return nameBlob(name, kind, compressGlb(value), options);
+    const packed = compressGlb(value);
+    const selected = compression.gzipSync(packed, { level: 9 }).length <= compression.gzipSync(value, { level: 9 }).length ? packed : value;
+    return nameBlob(name, kind, selected, options);
   };
   if (source.toLowerCase().endsWith('.gltf')) {
     if (kind !== 'glb') throw new Error('Text glTF must compile to a GLB blob');

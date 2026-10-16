@@ -7196,7 +7196,9 @@ those pending integrations have passed.
 
 `readNamedBlob(project, name, source, 'glb', {meshopt:true})` encodes
 buffer views with `EXT_meshopt_compression` at build time. Project output
-blob declarations accept the same `options.meshopt` flag. This is lossless:
+blob declarations accept the same `options.meshopt` flag. The intake keeps
+the candidate only when its gzip-9 size does not exceed the original;
+otherwise the original bytes are admitted. This is lossless:
 there is no quantization, welding, index reordering, scene or material
 change. Already compressed GLBs are admitted unchanged, without a flag.
 The output stays a named `blobs/glb/<hash>.glb`; the existing engine

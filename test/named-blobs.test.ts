@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Measure the build-only download encoding in the author intake fixture.
+import { gzipSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author-source admission needs real filesystem/symlink refusal coverage.
 import { mkdirSync, mkdtempSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
@@ -61,7 +63,7 @@ test('named source intake refuses remote resources and project escapes including
     const blob = await readNamedBlob(project, 'models/triangle.glb', 'model.gltf', 'glb');
     expect(blob.file.kind).toBe('glb');
     const packed = await readNamedBlob(project, 'models/triangle.glb', 'model.gltf', 'glb', { meshopt: true });
-    expect(packed.file.hash).not.toBe(blob.file.hash);
+    expect(gzipSync(packed.bytes, { level: 9 }).length).toBeLessThanOrEqual(gzipSync(blob.bytes, { level: 9 }).length);
     expect(parseGlb(packed.bytes)).toMatchObject({ gpu: blob.file.gpu, triangles: blob.file.triangles, draws: blob.file.draws });
     await expect(readNamedBlob(project, 'bad.bin', 'geometry.bin', 'bin', { meshopt: true })).rejects.toThrow('GLB');
     await expect(readNamedBlob(project, 'escape.bin', '../outside.bin', 'bin')).rejects.toThrow('escapes');
