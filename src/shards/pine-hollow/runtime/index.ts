@@ -178,8 +178,8 @@ export class PineHollow extends ShardPlugin {
     const CROSSBOW = readItemEquipment(items, 'weapon.crossbow'), LEVER = readItemEquipment(items, 'weapon.lever'), LONGBOW = readItemEquipment(items, 'weapon.longbow');
     const crossbowHeld = crossbowHeldRows(ctx.product), leverHeld = leverHeldRows(ctx.product);
     rt.buildEquipment = runtimeEquipment([
-      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },
-      { slot: 'rifle', create: (targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld }) },
+      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld, profile: declaredProfile(ctx, 'weapon.crossbow') }) },
+      { slot: 'rifle', create: (targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld, profile: declaredProfile(ctx, 'weapon.lever') }) },
       { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: pineLongbow(), allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
       if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');

@@ -1,9 +1,9 @@
 import type * as v from 'valibot';
 import { RangedAction, type RangedCycleEvent } from '@wildshard/engine/combat/Firearm';
 import { parseNativeFirearmProfile, type FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
+import { LEVER_WEAPON_PROFILE } from '../../../src/shards/pine-hollow/generators/leverProfile';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { AR15 } from '../data/firearmProfile';
+import { AR15 } from './pineFirearmProfile';
 
 /** Rounds in a full gun (the tube and the chamber) and the reserve a fresh rifle carries. */
 export const MAGAZINE = LEVER_WEAPON_PROFILE.magazine, RESERVE_START = LEVER_WEAPON_PROFILE.reserve;

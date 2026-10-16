@@ -1,6 +1,5 @@
 import type * as v from 'valibot';
 import { parseNativeFirearmProfile, type FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import { CROSSBOW_WEAPON_PROFILE } from '../../data/crossbowProfile';
 
 /** The existing flight/view profile with admitted launch/contact clocks; view and stuck-bolt dressing remain native. */
 export interface CrossbowProfile {
@@ -24,5 +23,3 @@ export function crossbowProfile(input: unknown): CrossbowProfile {
     spreadAds: p.spreadAds, spreadHip: p.spreadHip, spreadRadius: p.spreadRadius, spreadAxisScale: p.spreadAxisScale,
     muzzle: projectile.muzzle, substeps: projectile.substeps, lifetime: projectile.lifetime, damageScale: p.damageScale };
 }
-/** The page's numeric flight/view recipe is derived from the same declaration the native host admits. */
-export const CROSSBOW_PROFILE: CrossbowProfile = crossbowProfile(CROSSBOW_WEAPON_PROFILE);

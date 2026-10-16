@@ -9,7 +9,7 @@ import { coatSet, loadCoatTextures } from '../../viewmodel/gloveHands';
 import { handsPart } from '../../boot/handsGeometry';
 import { COAT_MATERIAL, HANDS_MATERIAL } from '../../const';
 import { SECTIONS } from '../../sections';
-import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
+import { crossbowProfile, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import type { InferOutput } from 'valibot';
 import * as THREE from 'three';
 
@@ -63,8 +63,8 @@ function hand({ part, ...hold }: CrossbowRows['hands']['left']): HeldHandRow {
   return { ...hold, geometry: handsPart(baked.geometry), sleeve: baked.sleeve === null ? null : handsPart(baked.sleeve), wrist: new THREE.Vector3().fromArray(baked.wrist), dir: new THREE.Vector3().fromArray(baked.dir) };
 }
 /** Pine's crossbow: the profile, view, rows, parts and hands on the held-launcher host. */
-export function pineCrossbow(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: Held; profile?: CrossbowProfile }): CrossbowWeapon {
-  return new HeldLauncher(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile: opts.profile ?? CROSSBOW_PROFILE, view: crossbowData().view,
+export function pineCrossbow(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: Held; profile: unknown }): CrossbowWeapon {
+  return new HeldLauncher(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile: crossbowProfile(opts.profile), view: crossbowData().view,
     rows: crossbowRows(opts.held), model: crossbowModel(),
     hands: { material: viewmodelMaterial(world.sky, 'hunter-hands', HANDS_MATERIAL), coatMaterial: viewmodelRowMaterial(world.sky, 'hunter-coat', COAT_MATERIAL, { coat: coatSet() }),
       left: hand(crossbowData().hands.left), right: hand(crossbowData().hands.right) } });

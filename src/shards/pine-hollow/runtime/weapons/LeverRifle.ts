@@ -7,8 +7,8 @@ import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRo
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { handGeometry, type HandHold } from '../viewmodel/gloveHands';
 import { LEVER_MATERIALS } from './heldLook';
-import { HANDS_MATERIAL, HUNTER_HANDS, LEVER_AUTO_RELOAD_CLOSE } from '../const';
-import { AUTO_RELOAD_DELAY, LEVER_PROFILE, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
+import { HANDS_MATERIAL, HUNTER_HANDS } from '../const';
+import { parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary, type ModelLibrary } from '@wildshard/game/plugin/geometry';
 import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../items/leverPresentation';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../items/rangedFrame';
@@ -20,7 +20,7 @@ import type * as THREE from 'three';
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11), a row over the platform's lever firearm
  * (`@wildshard/sdk/items/leverFirearm`, SHARD-PLATFORM SF36: this file is the model, the cartridge, the hands, the view and
- * the binding; the action is weapons/leverAction.ts): a 1900s backwoods lever-action carbine in the
+ * the binding; the action is the engine RangedAction): a 1900s backwoods lever-action carbine in the
  * Winchester 1894 mould, replacing the AR-15 on Pine Hollow only (Driftwood and the dev harnesses keep Rifle.ts). It fills
  * the same kit slot (`id 'rifle'`: the cabin pickup, Old Ironhide's skin, the trader's Scarback Furnace finish) and the
  * same `KitWeapon` contract, so Weapons.ts / the HUD / Combat / the feel hooks need nothing new.
@@ -128,11 +128,15 @@ function detailGeometry(name: string): THREE.BufferGeometry {
   return geometry;
 }
 
-/** Pine's view: the .30-30's kick, flash, brass and tracer; the lever's throw; the sights; the action's clock; the poses. */
-export const LEVER_VIEW = {
-  ...LEVER_PRESENTATION, magazine: MAGAZINE, reserve: RESERVE_START,
-  timing: { autoReloadDelay: AUTO_RELOAD_DELAY, autoReloadClose: LEVER_AUTO_RELOAD_CLOSE, reloadIn: RELOAD_IN, reloadOut: RELOAD_OUT, roundTime: ROUND_TIME },
-};
+/** Construct the same page profile and view from combat/items before the held host allocates any ammunition or clocks. */
+export function leverSettings(input: unknown): { profile: FirearmProfile; view: typeof LEVER_PRESENTATION & { magazine: number; reserve: number; timing: { autoReloadDelay: number; autoReloadClose: number; reloadIn: number; reloadOut: number; roundTime: number } } } {
+  const p = parseNativeFirearmProfile(input, 'lever');
+  if (p.lever === undefined) throw new Error('Missing admitted lever timing');
+  return { profile: { ...p, action: 'lever', kick: 1.25 * (Math.PI / 180), brass: { count: 4, life: 1.8 }, tracer: { count: 2, life: 0.09, width: 3 },
+    ads: { blend: 0.17, motion: 0.3, nearMargin: 0.03, sightY: 0.045, rearZ: -0.13, frontZ: -0.512, muzzleZ: -0.535 } },
+    view: { ...LEVER_PRESENTATION, magazine: p.magazine, reserve: p.reserve,
+      timing: { autoReloadDelay: p.autoReload, autoReloadClose: p.lever.autoReloadClose, reloadIn: p.lever.reloadIn, reloadOut: p.lever.reloadOut, roundTime: p.reload } } };
+}
 
 function requireLeverModel(): LeverModel {
   if (modelReady === null) throw new Error('Required lever-action model is not loaded');
@@ -153,9 +157,9 @@ function hand(hold: HandHold, mirror: boolean): HeldHandRow {
 const bound = <T>(row: T | undefined): T => { if (row === undefined) throw new Error('Missing lever presentation binding'); return row; };
 
 /** Pine's lever-action: the profile, the view, the model and the sections' playback rows on the held-firearm host. */
-export function leverRifle(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: LeverHeldRows; profile?: FirearmProfile; model?: LeverModel }): HeldFirearm<FirearmProfile> {
-  const { playback, inputs, lever } = opts.held, frame = inputs.frames.lever, rows = lever.bindings.slice(0, 5).map(bound);
-  return new HeldFirearm(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile: opts.profile ?? LEVER_PROFILE, view: LEVER_VIEW,
+export function leverRifle(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: LeverHeldRows; profile: unknown; model?: LeverModel }): HeldFirearm<FirearmProfile> {
+  const { playback, inputs, lever } = opts.held, frame = inputs.frames.lever, rows = lever.bindings.slice(0, 5).map(bound), { profile, view } = leverSettings(opts.profile);
+  return new HeldFirearm(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile, view,
     model: leverModel(opts.model ?? requireLeverModel()),
     hands: { material: viewmodelMaterial(world.sky, 'hunter-hands', HANDS_MATERIAL), left: hand(LEVER_HAND_HOLDS.left, true), right: hand(LEVER_HAND_HOLDS.right, false), gate: LEVER_HAND_HOLDS.gate },
     rows: { ...LEVER_MODEL, mount: 'ownPass', gate: 'gate', round: 'round', brass: { geometry: 'round-case', material: 'brass' }, rotationReads: { hammerAngle: 'hammer' },

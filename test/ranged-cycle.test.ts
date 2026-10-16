@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { RangedAction, type RangedCycleEvent } from '../src/engine/combat/Firearm';
-import { LeverAction, type LeverHooks } from '../src/shards/pine-hollow/weapons/leverAction';
+import { LeverAction, type LeverHooks } from './fixtures/weapon-oracle/leverBridge';
 import { LeverAction as OriginalAction } from './fixtures/weapon-oracle/leverAction';
 
 type Action = Pick<OriginalAction, 'tube' | 'chambered' | 'caseInChamber' | 'hammerCocked' | 'phase' | 'phaseT' |

@@ -7,7 +7,7 @@ import type { DamageRequest } from '../../../src/engine/combat/pipeline';
 import { shotSpread } from '../../../src/engine/combat/shotSpread';
 import { smoothstep } from '../../../src/engine/core/noise';
 import { sticksIn } from '../../../src/engine/physics/query';
-import { CROSSBOW_PROFILE } from '../../../src/shards/pine-hollow/weapons/crossbow/profiles';
+import { CROSSBOW_PROFILE } from './crossbowProfile';
 import { projectileFlightStep } from '../../../src/engine/combat/projectileFlight';
 /** The flight multipliers a bolt carries (the ammo's, the weather's): 1 / 1 is the plain bolt. */
 export interface BoltFlight { gravity: number; drag: number }

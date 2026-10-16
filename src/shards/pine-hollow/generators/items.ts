@@ -1,5 +1,5 @@
-import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
-import { CROSSBOW_WEAPON_PROFILE } from '../data/crossbowProfile';
+import { LEVER_WEAPON_PROFILE } from './leverProfile';
+import { CROSSBOW_WEAPON_PROFILE } from './crossbowProfile';
 import { BOW_PROFILE } from '../data/bowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from './equipment';
 

@@ -1,6 +1,6 @@
 // Frozen native installer at 28bc7527b, before data-frame adoption. Test oracle only.
 import { worldHit } from '@wildshard/engine/physics/query';
-import { LEVER_WEAPON_PROFILE } from '../../../src/shards/pine-hollow/data/leverProfile';
+import { LEVER_WEAPON_PROFILE } from '../../../src/shards/pine-hollow/generators/leverProfile';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -8,7 +8,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { LeverAction, parseLeverProfile } from '../../../src/shards/pine-hollow/weapons/leverAction';
+import { LeverAction, parseLeverProfile } from './leverBridge';
 import { aimAt, bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 
 /** The lever-action's fixed-step id; its continuation is the action, the reserve and the dry pull's clock. */

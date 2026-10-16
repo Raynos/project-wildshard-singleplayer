@@ -417,8 +417,8 @@
         "src/shards/pine-hollow/generators/bake-items.mjs",
         "src/shards/pine-hollow/generators/items.ts",
         "src/shards/pine-hollow/generators/equipment.ts",
-        "src/shards/pine-hollow/data/leverProfile.ts",
-        "src/shards/pine-hollow/data/crossbowProfile.ts",
+        "src/shards/pine-hollow/generators/leverProfile.ts",
+        "src/shards/pine-hollow/generators/crossbowProfile.ts",
         "src/shards/pine-hollow/data/bowProfile.ts"
       ],
       "outputs": [

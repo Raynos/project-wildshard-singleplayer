@@ -12,8 +12,6 @@ export const KING_ARENA_FOG = 31;
 export const KING_FX_LOOKS = { fog: 'pine-king-fog', flame: 'pine-king-flame' } as const;
 /** the small wildlife's look.materials id (data/wildlifeLook.ts WILDLIFE_LOOK) */
 export const WILDLIFE_LOOK = 'pine-wildlife';
-/** the lever action's auto-reload close (data/leverProfile.ts LEVER_WEAPON_PROFILE.lever.autoReloadClose) */
-export const LEVER_AUTO_RELOAD_CLOSE = 5;
 /** the gloves' linear tint over the hunter palette (data/handsLook.ts BUCKSKIN) */
 export const BUCKSKIN: [number, number, number] = [3.2, 4.2, 6.0];
 /** the hunter's gloves and coat cuff palette (data/handsLook.ts HUNTER_HANDS, a GloveHandsLook) */
