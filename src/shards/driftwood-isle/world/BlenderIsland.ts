@@ -47,7 +47,8 @@ import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain } from './coverTint';
 import { driftwoodRows } from '../runtime/boot/rows';
-import { clipGridTerrain, droppedPlacements, islandLooks, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, usedPlacements, type IslandLooks, type IslandProto } from '../runtime/looks/bakedIsland';
+import { clipGridTerrain, islandLooks, sunBounceLevel, type IslandLooks } from '../runtime/looks/bakedIsland';
+import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import { coverAttributes } from '../runtime/looks/coverGrid';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -63,16 +64,11 @@ const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are th
 /** the tier's cover share and reaches (data/islandRows.ts) */
 const TIER_LOOK = TIER === 'phone' ? ISLAND_TIERS.phone : ISLAND_TIERS.desktop;
 
-/** a loaded prototype (world-space positions, Uint8 colour + baked AO, index) */
-export type Proto = IslandProto;
-
 export interface IslandMeta {
   version: number;
   protos: { name: string; kind: string; tris: number }[];
   placements: number;
   mustDraw: number;
-  /** proto index → its far (LOD) proto */
-  lod: Record<string, number>;
   colliders: Collider[];
   extraPalms: PalmSpec[];
   bake: { bounceGain: number; refSun: [number, number, number] };
@@ -140,16 +136,14 @@ export class BlenderIsland {
       const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
-    const [gltf, meta, place, ao, bounce, plan] = await Promise.all([
+    const [gltf, meta, place, ao, bounce, plan, protoFile] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
       fetch(`${BASE}island.json`).then((r) => r.json() as Promise<IslandMeta>),
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
-      lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(),
+      lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(), readDriftwoodBlob('world/island/protos.glb'),
     ]);
-    const f = droppedPlacements(place, WORLD_DROP); // G164: each placement's y
-    const used = usedPlacements(f, meta.mustDraw, TIER_LOOK.share);
     const coverGrid = CoverGrid.get();
-    if(coverGrid===null||used!==ISLAND_COVER_FILES[TIER].used||used!==plan.used)throw new Error('Required full island cover does not match its placements');
+    if(coverGrid===null||plan.used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
     // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles,
     // every placement and every collider box), so it stays on the dropped terrain exactly
     const drop = WORLD_DROP;
@@ -191,16 +185,12 @@ export class BlenderIsland {
       o.geometry.computeBoundingSphere();
       this.group.add(m);
     }
-    const protos = protosFromMeshes(found, meta.protos.map((p) => p.name), ISLAND_LOOK.protoPrefix);
+    // the prototypes as baked (generators/islandCover.ts: E117, each palm's far copy is its near one simplified)
+    const protos = new Map<string, THREE.BufferGeometry>();
+    (await loader.parseAsync(Uint8Array.from(protoFile).buffer, '')).scene.traverse((o) => { if (isMesh(o)) protos.set(o.name, o.geometry); });
     // SF67: the build ends its task at each ~30 ms between its sections (the order and every result are unchanged)
     const slice = slicer();
     await slice();
-
-    // ── the palms' far copies (their `_lo` prototypes) ──
-    const lodOf = new Map<number, number>(Object.entries(meta.lod).map(([k, lo]) => [Number(k), lo]));
-    await simplifierReady();
-    // E117: far = near, simplified (not the file's hand-made `_lo` palms: a whole tile changed shape at the swap)
-    for (const [pi, lo] of lodOf) { const near = protos[pi]; if (near) protos[lo] = simplifiedProto(near, ISLAND_LOOK.far.ratio, ISLAND_LOOK.far.error); await slice(); }
     // E156: the cove's ground wears the cover it carries (coverTint.ts): what was placed here, splatted into the grid over
     // GroundCover's estimate for this area, then sampled by the cove's terrain
     for (const tile of terrainTiles) tintTerrain(tile);
@@ -211,7 +201,7 @@ export class BlenderIsland {
     }
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
-    const unclaimed = await this.placeModels(models, f, plan, meta, protos, { cast: propsMat, cover: coverMat, big: bigMat });
+    const unclaimed = await this.placeModels(models, new Float32Array(place), plan, meta, protos, { cast: propsMat, cover: coverMat, big: bigMat });
 
     // ── hide what the area replaces ──
     clipGridTerrain(ctx.terrain, driftwoodRows('custom/islandClips'));
@@ -250,10 +240,8 @@ export class BlenderIsland {
    * pieces), each the box the P2 bridge mirrored (`boxDesc`: the same centre, half extents and turn) in 'wood', as the
    * bridge tagged it. Returns the boxes no copy claims (none: they would stay on the bridge).
    */
-  private async placeModels(models:ModelContext,f:Float32Array,plan:v.InferOutput<typeof placementPlan>,meta:IslandMeta,protos:Proto[],materials:Readonly<Record<CoveLook,THREE.Material>>):Promise<Collider[]> {
-    const byName=new Map<string,Proto>();
-    meta.protos.forEach((p,i)=>{const pr=protos[i];if(pr)byName.set(p.name,pr);});
-    coveProtos(models,{protos:byName,materials});
+  private async placeModels(models:ModelContext,f:Float32Array,plan:v.InferOutput<typeof placementPlan>,meta:IslandMeta,protos:ReadonlyMap<string,THREE.BufferGeometry>,materials:Readonly<Record<CoveLook,THREE.Material>>):Promise<Collider[]> {
+    coveProtos(models,{protos,materials});
     const slice=slicer(),cell={size:16,pad:4},sky=models.sky,view=new THREE.Frustum(),pv=new THREE.Matrix4(),box=new THREE.Box3(),ball=new THREE.Sphere();
     // a caster is drawn while the camera or any shadow cascade sees its box (padded 4 m: the frusta are a frame old), so no
     // shadow is lost; the camera's frustum is taken as each choice starts (copy 0)
@@ -266,7 +254,7 @@ export class BlenderIsland {
     const culls:Readonly<Record<CoveLook,(placed:{p:Placed|null})=>CullOptions>>={cast:placed=>({test:seen(placed),flat:true}),cover:()=>({far:TIER_LOOK.cover.far+1,cells:cell}),big:()=>({far:TIER_LOOK.big.far+1,cells:cell})};
     for(const row of plan.families){
       const placements=row.indices.map(i=>{
-        const o=i*10,x=f[o+1]??0,y=f[o+2]??0,z=f[o+3]??0,sc=f[o+8]??1,t=f[o+9]??1;
+        const o=i*10,x=f[o+1]??0,y=(f[o+2]??0)-WORLD_DROP,z=f[o+3]??0,sc=f[o+8]??1,t=f[o+9]??1;
         const matrix=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(f[o+4]??0,f[o+5]??0,f[o+6]??0,f[o+7]??1),new THREE.Vector3(sc,sc,sc));
         return {x,y,z,matrix,color:new THREE.Color(t,t,t),variant:meta.protos[f[o]??0]?.name??''};
       });

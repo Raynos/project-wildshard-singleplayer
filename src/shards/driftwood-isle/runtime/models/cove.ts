@@ -13,19 +13,17 @@
  * Explorer's specimen is one prototype on its own, in its own space (origin at its foot), in the casters' look, from the
  * loaded file (the island hands its prototypes to the shard's model context, `coveProtos`).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Pipeline } from '@wildshard/engine/world/registry';
 import { ISLAND_LOOK } from '../const';
 
-/** a prototype as the island reads it: positions (own space), rgba colours (a = AO), triangle indices */
-export interface CoveProto { readonly pos: Float32Array; readonly col: Uint8Array; readonly index: Uint32Array }
-
 /** a family's look in the world: the casters', the small cover's or the big cover's (data/islandLook.ts) */
 export type CoveLook = 'cast' | 'cover' | 'big';
 
-/** the island's loaded prototypes by name (a palm's far copy is `<name>_lo`) and each look's material */
-export interface CoveProtos { readonly protos: ReadonlyMap<string, CoveProto>; readonly materials: Readonly<Record<CoveLook, THREE.Material>> }
+/** the island's baked prototypes by name (a palm's far copy is `<name>_lo`: rgba colours, a = AO; flat-shading normals)
+ *  and each look's material */
+export interface CoveProtos { readonly protos: ReadonlyMap<string, THREE.BufferGeometry>; readonly materials: Readonly<Record<CoveLook, THREE.Material>> }
 
 const KEY = 'driftwood-isle/cove:protos';
 
@@ -73,16 +71,10 @@ const FAMILIES = {
 
 export type CoveFamily = keyof typeof FAMILIES;
 
-/** a prototype as the island draws it: its geometry (flat normals for the shadow bias) in own space, in `material` */
+/** a prototype as the island draws it: a copy of its baked geometry, in `material` */
 function protoPart(ctx: ModelContext, proto: string, look: CoveLook, material: CoveLook): { geometry: THREE.BufferGeometry; material: THREE.Material; castShadow: boolean; receiveShadow: boolean }[] {
-  const island = coveProtos(ctx), p = island?.protos.get(proto);
-  if (!island || !p) return [];
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(p.pos.slice(), 3));
-  g.setAttribute('color', new THREE.BufferAttribute(p.col.slice(), 4, true));
-  g.setIndex(new THREE.BufferAttribute(p.index.slice(), 1));
-  g.computeVertexNormals();
-  return [{ geometry: g, material: island.materials[material], castShadow: look === 'cast', receiveShadow: true }];
+  const island = coveProtos(ctx), g = island?.protos.get(proto);
+  return island && g ? [{ geometry: g.clone(), material: island.materials[material], castShadow: look === 'cast', receiveShadow: true }] : [];
 }
 
 function coveModel(key: CoveFamily): ModelDef<CoveParams> {

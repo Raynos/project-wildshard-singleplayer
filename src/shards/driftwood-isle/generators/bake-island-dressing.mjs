@@ -1,7 +1,7 @@
 import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {bakeIslandPlan,islandPlacements} from './islandCover.ts';
+import {bakeIslandPlan,islandPlacements,islandProtoGlb} from './islandCover.ts';
 import {islandDressing} from './islandDressing.ts';
 import {palmGeometry} from './palm.ts';
 import {palm} from '../runtime/models/palm.ts';
@@ -59,5 +59,7 @@ for(const tier of ['phone','desktop']){
  planFiles[tier]={url:emit(bytes,'json','island-plan'),bytes:bytes.length,used:plan.used};
 }
 console.log(`island-plan-files ${JSON.stringify(planFiles)}`);
+// SHARD-PLATFORM C2: the cove's prototypes with their far copies simplified at build; the page only clones them
+blobs.add('world/island/protos.glb','glb',await islandProtoGlb(new Uint8Array(readFileSync(new URL('island.glb',islandBase))),islandMeta));
 
 blobs.finish(new URL('../data/dressingBlobs.generated.json',import.meta.url));

@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 
@@ -12,14 +11,9 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
  *
  * - `setIslandLooks` / `islandLooks`: the compiled graph looks the runtime lends the island before the world builds.
  * - `clipGridTerrain`: install the authored terrain clipping facts.
- * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a far copy keeps its near copy's shape.
- * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`: read and sort the bake.
- * - `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s; the generator writes it).
  * - `sunBounceLevel`: how much of the baked bounce the live sun lights.
+ * The prototypes, their far copies (simplified at build) and the cover splat are baked (generators/islandCover.ts).
  */
-
-/** a prototype as the bake holds it: world-space positions, Uint8 RGBA (alpha: its baked AO), index */
-export interface IslandProto { pos: Float32Array; col: Uint8Array; index: Uint32Array }
 
 /** The island's compiled graph looks (look.materials, data/islandLook.ts) with their param / texture writers and their toon
  *  look's once-a-frame follow of the day clock. */
@@ -55,79 +49,6 @@ export function clipGridTerrain(mesh: THREE.Mesh, ISLAND_TERRAIN_CLIP: IslandTer
     out.set(source.array.subarray(row.start, row.start + row.count), offset); offset += row.count;
   }
   geometry.setIndex(new THREE.BufferAttribute(out, 1));
-}
-
-/** `p` with its triangles simplified (to `ratio` of them, never past `error` of its size) and its vertices compacted to
- *  the ones they use. Await `MeshoptSimplifier.ready` (`simplifierReady`) first. */
-export function simplifiedProto(p: IslandProto, ratio: number, error: number): IslandProto {
-  const target = Math.max(3, Math.floor((p.index.length * ratio) / 3) * 3);
-  const [idx] = MeshoptSimplifier.simplify(p.index, p.pos, 3, target, error);
-  const remap = new Int32Array(p.pos.length / 3).fill(-1);
-  let n = 0;
-  for (const v of idx) if ((remap[v] ?? 0) < 0) remap[v] = n++;
-  const pos = new Float32Array(n * 3), col = new Uint8Array(n * 4), index = new Uint32Array(idx.length);
-  for (let v = 0; v < remap.length; v++) {
-    const r = remap[v] ?? -1;
-    if (r < 0) continue;
-    pos.set(p.pos.subarray(v * 3, v * 3 + 3), r * 3);
-    col.set(p.col.subarray(v * 4, v * 4 + 4), r * 4);
-  }
-  for (let i = 0; i < idx.length; i++) index[i] = remap[idx[i] ?? 0] ?? 0;
-  return { pos, col, index };
-}
-
-/** Resolves once meshoptimizer's simplifier is loaded. */
-export const simplifierReady = (): Promise<void> => MeshoptSimplifier.ready;
-
-/** The prototypes from a loaded scene's meshes (world-space positions, Uint8 colour + baked AO), by `names`' index
- *  (a mesh named `<prefix><name>`). */
-export function protosFromMeshes(found: readonly THREE.Mesh[], names: readonly string[], prefix: string): IslandProto[] {
-  const protos: IslandProto[] = [];
-  const protoIndex = new Map<string, number>(names.map((name, i) => [`${prefix}${name}`, i]));
-  const v = new THREE.Vector3();
-  for (const o of found) {
-    const pi = protoIndex.get(o.name);
-    if (pi === undefined) continue;
-    const g = o.geometry, p = g.getAttribute('position'), c = g.getAttribute('color'), idx = g.getIndex();
-    const pos = new Float32Array(p.count * 3), col = new Uint8Array(p.count * 4);
-    for (let i = 0; i < p.count; i++) {
-      v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
-      pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
-      col[i * 4] = Math.round(THREE.MathUtils.clamp(c.getX(i), 0, 1) * 255);
-      col[i * 4 + 1] = Math.round(THREE.MathUtils.clamp(c.getY(i), 0, 1) * 255);
-      col[i * 4 + 2] = Math.round(THREE.MathUtils.clamp(c.getZ(i), 0, 1) * 255);
-      col[i * 4 + 3] = c.itemSize > 3 ? Math.round(THREE.MathUtils.clamp(c.getW(i), 0, 1) * 255) : 255;
-    }
-    const index = new Uint32Array(idx ? idx.count : p.count);
-    for (let i = 0; i < index.length; i++) index[i] = idx ? idx.getX(i) : i;
-    protos[pi] = { pos, col, index };
-  }
-  return protos;
-}
-
-/** The placements file (f32 × 10: proto, x, y, z, quaternion, scale, tint) with each placement's y lowered by `drop`. */
-export function droppedPlacements(buf: ArrayBuffer, drop: number): Float32Array {
-  const f = new Float32Array(buf);
-  for (let i = 0; i < f.length / 10; i++) f[i * 10 + 2] = (f[i * 10 + 2] ?? 0) - drop;
-  return f;
-}
-
-/** How many placements a tier builds: the first `mustDraw` always, and `share` of the rest (the file is ordered so the
- *  tier's set is a prefix). */
-export function usedPlacements(f: Float32Array, mustDraw: number, share: number): number {
-  return mustDraw + Math.round((f.length / 10 - mustDraw) * share);
-}
-
-const BLOCK_HEADER = 16;
-
-/** A baked float block (a 16-byte header: magic, version, the placements it was baked from, floats; then the f32s,
- *  little-endian), or null when the file is not this build's (another magic, version, placement count or size). */
-export function decodeFloatBlock(buf: ArrayBuffer, used: number, floats: number, magic: number, version: number): Float32Array | null {
-  if (buf.byteLength !== BLOCK_HEADER + floats * 4) return null;
-  const view = new DataView(buf);
-  if (view.getUint32(0, true) !== magic || view.getUint32(4, true) !== version || view.getUint32(8, true) !== used || view.getUint32(12, true) !== floats) return null;
-  if(new Uint8Array(new Uint32Array([1]).buffer)[0]!==1)return null;
-  return new Float32Array(buf,BLOCK_HEADER,floats);
 }
 
 /** The live sun's share of a baked bounce: its luminance × intensity × its elevation over the bake's reference

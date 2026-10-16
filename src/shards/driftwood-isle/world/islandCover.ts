@@ -1,7 +1,6 @@
 import type { CoverGrid } from './coverTint';
 import { TIER } from '@wildshard/engine/core/tier';
 import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
-import { decodeFloatBlock } from '../runtime/looks/bakedIsland';
 import { ISLAND_LOOK } from '../data/islandRows';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -9,7 +8,9 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 /** Required boot content: a bad header, placement count or grid refuses the world stage. */
 export function requiredIslandCover(bytes: ArrayBuffer | null, used: number, floats: number | undefined): Float32Array {
   if (bytes === null || floats === undefined) throw new Error('Required island cover is missing');
-  const block = decodeFloatBlock(bytes, used, floats, ISLAND_LOOK.coverFile.magic, ISLAND_LOOK.coverFile.version);
+  // the baked file: a 16-byte header (magic, version, the placements it was baked from, floats), then the f32s
+  const head = bytes.byteLength === 16 + floats * 4 ? new Uint32Array(bytes, 0, 4) : null, { magic, version } = ISLAND_LOOK.coverFile;
+  const block = head?.[0] === magic && head[1] === version && head[2] === used && head[3] === floats ? new Float32Array(bytes, 16, floats) : null;
   if (block === null || !block.every(Number.isFinite)) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
   return block;
 }

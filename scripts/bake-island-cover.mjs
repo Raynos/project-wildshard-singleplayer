@@ -37,20 +37,12 @@ if (tierArg === undefined) {
   try {
     const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
     (await src('engine/core/tier.ts')).initializeTier(tierArg);
-    const THREE = await import('three');
-    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-    const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js');
     const island = await src('shards/driftwood-isle/generators/islandCover.ts');
     const { coverTrianglesOf } = island;
     const dir = resolve(ROOT, 'public/assets/models/driftwood-blender');
     const glb = readFileSync(resolve(dir, 'island.glb')), bin = readFileSync(resolve(dir, 'placements.bin'));
     const meta = JSON.parse(readFileSync(resolve(dir, 'island.json'), 'utf8'));
-    await MeshoptDecoder.ready;
-    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(glb.buffer.slice(glb.byteOffset, glb.byteOffset + glb.byteLength), '');
-    gltf.scene.updateMatrixWorld(true);
-    const found = [];
-    gltf.scene.traverse((o) => { if (o instanceof THREE.Mesh) found.push(o); });
-    const protos = island.islandProtos(found, meta);
+    const protos = await island.islandProtos(new Uint8Array(glb), { protos: meta.protos });
     const f = island.islandPlacements(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
     const used = island.islandUsed(f, meta, tierArg === 'phone');
     const { covers, bigs } = island.islandSets(f, meta, used, tierArg === 'phone');
