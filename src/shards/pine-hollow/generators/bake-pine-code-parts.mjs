@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM W2: Pine Hollow's code-built parts baked offline (./codeParts.ts): the hollow log, the token shelf, the
-// stand-in people, the zipline trolley and the canoe. Writes the geometry pack, zlib, hash-named and immutable, to
+// stand-in people, the zipline trolley, the canoe, the zip-line cable and the cave's roof patch (over the terrain
+// lattice, public/assets/baked/pine-hollow/terrain.bin). Writes the geometry pack, zlib, hash-named and immutable, to
 // public/assets/pine-hollow/baked/code-parts-<sha12>.bin and its rows (url, hash, geometry rows, each part's geometry)
 // to src/shards/pine-hollow/data/codeParts.json, which the page reads (src/shards/pine-hollow/world/codeParts.ts).
 // `--check` refuses stale outputs.
@@ -9,10 +10,12 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { bakePineCodeParts } from './codeParts.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), check = process.argv.includes('--check');
-const { bin, rows, parts } = bakePineCodeParts();
+const ground = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
+const { bin, rows, parts } = bakePineCodeParts(ground.heightAt);
 const sha256 = createHash('sha256').update(bin).digest('hex');
 const url = `/assets/pine-hollow/baked/code-parts-${sha256.slice(0, 12)}.bin`;
 const packed = deflateSync(bin, { level: 9 });

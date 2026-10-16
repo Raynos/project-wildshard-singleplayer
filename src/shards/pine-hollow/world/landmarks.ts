@@ -51,6 +51,7 @@ import { fireLookout } from '../models/fireLookout';
 import { ziplineLanding } from '../models/ziplineLanding';
 import { creekFootbridge } from '../models/creekFootbridge';
 import { zipCable } from '../models/zipCable';
+import { loadCodeParts } from './codeParts';
 import { PineCrags } from './crags';
 import { CRAG_ROWS } from './cragBake';
 
@@ -109,7 +110,7 @@ export class PineLandmarks implements PineLandmarksHandle {
   async build(cabins: Cabins | null, registry: WorldRegistry | null = null): Promise<this> {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const ctx = pineModels(this.sky);
-    await Promise.all([loadTimber(ctx), loadSiteTimbers(ctx)]);
+    await Promise.all([loadTimber(ctx), loadSiteTimbers(ctx), loadCodeParts()]);
     const batch = new ModelPlacementBatch({ ctx, registry, fallbackParent: this.group, colliders: this.timberColliders });
     const placeTimber = async <P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, params: P | undefined, id: keyof typeof authored.landmarks.timberFloors): Promise<void> => {
       const mine: readonly Floor[] = authored.landmarks.timberFloors[id];
@@ -124,9 +125,9 @@ export class PineLandmarks implements PineLandmarksHandle {
     await placeTimber(ziplineLanding, landingAt, atSite, 'pine-zip-landing');
     const zip=authored.landmarks.zip;
     this.zip={top:new THREE.Vector3(...zip.top),bottom:new THREE.Vector3(...zip.bottom),launch:new THREE.Vector3(...zip.launch),landing:new THREE.Vector3(...zip.landing)};
-    // the steel cable between the two gantries
-    const { top, bottom } = this.zip;
-    await batch.place(zipCable, [{ x: top.x, y: top.y, z: top.z, params: { span: [bottom.x - top.x, bottom.y - top.y, bottom.z - top.z] } }], { draw: 'single', piece: { id: 'pine-zip-cable' } });
+    // the steel cable between the two gantries (baked between the same anchors, ../generators/codeParts.ts)
+    const { top } = this.zip;
+    await batch.place(zipCable, [{ x: top.x, y: top.y, z: top.z }], { draw: 'single', piece: { id: 'pine-zip-cable' } });
     await macrotask();
     const bridge = bridgeSite();
     await placeTimber(creekFootbridge, bridge.at, atSite, 'pine-footbridge');

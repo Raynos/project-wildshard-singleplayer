@@ -1,7 +1,8 @@
 /**
  * Pine Hollow's code-built parts from their offline bake (SHARD-PLATFORM W2: ../generators/codeParts.ts writes the
- * hollow log, the token shelf, the stand-in people, the zipline trolley and the canoe into one geometry pack): fetched
- * once (`loadCodeParts`, awaited by the quest's install and the models' `prepare`), then each part read back exactly as
+ * hollow log, the token shelf, the stand-in people, the zipline trolley, the canoe, the zip-line cable and the cave's
+ * roof patch into one geometry pack): fetched once (`loadCodeParts`, awaited by the quest's install, the landmarks' and
+ * the models' `prepare`), then each part read back exactly as
  * the builder left it, a fresh copy per call (`codePart`).
  */
 import type * as THREE from 'three';

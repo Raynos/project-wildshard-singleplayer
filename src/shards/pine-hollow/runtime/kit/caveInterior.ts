@@ -1,12 +1,11 @@
 import * as THREE from 'three';
-import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import type { Material as SurfaceMaterial } from '@wildshard/engine/physics/surface';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { insidePolygon, yawLocal, yawWorld, type YawFrame } from '@wildshard/engine/world/yawFrame';
 import { pineLook, setPineLookParam } from '../looks/graphLooks';
+import { codePart } from '../../world/codeParts';
 
 /**
  * A cave cut into the terrain (SHARD-PLATFORM M3, the kit system): one interior baked by a shard's builder, described in
@@ -131,27 +130,13 @@ export class CaveInterior {
 
   /**
    * The terrain over the cut (its drawn triangles that are not in the hole) as a trimesh: the heightfield under the cut
-   * was pushed below the cave's floor, so the ground up there (on the slope above the mouth) comes back as this.
+   * was pushed below the cave's floor, so the ground up there (on the slope above the mouth) comes back as this. Baked
+   * offline from the terrain's lattice (../../generators/codeParts.ts `caveRoof`), its vertices relative to the mouth.
    */
   roofPatch(): ColliderDesc[] {
-    const row=authored.cragAssembly.roof;
-    const res=row.resolution,d=row.size/(res-1),half=row.size/2;
-    const verts: number[] = [], idx: number[] = [];
-    const ox = this.frame.x, oz = this.frame.z;
-    const tri = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number): void => {
-      const ay = heightAt(ax, az), by = heightAt(bx, bz), cy = heightAt(cx, cz);
-      const b = verts.length / 3;
-      verts.push(ax - ox, ay, az - oz, bx - ox, by, bz - oz, cx - ox, cy, cz - oz);
-      idx.push(b, b + 1, b + 2);
-    };
-    if(row.triangles.length>131072)throw new Error('Cave roof exceeds terrain triangle count');
-    for(let i=0;i<Math.min(row.triangles.length,131072);i++){
-      const ordinal=row.triangles[i];if(ordinal===undefined)throw new Error('Cave roof triangle missing');
-      const cell=Math.floor(ordinal/2),ix=cell%res,iz=Math.floor(cell/res),x0=ix*d-half,x1=x0+d,z0=iz*d-half,z1=z0+d;
-      if(ordinal%2===0)tri(x0,z0,x0,z1,x1,z0);else tri(x0,z1,x1,z1,x1,z0);
-    }
-    if (idx.length === 0) return [];
-    return [{ kind: 'trimesh', x: ox, y: 0, z: oz, vertices: Float32Array.from(verts), indices: Uint32Array.from(idx), surface: this.look.surface }];
+    const g = codePart('cave-roof'), idx = g.getIndex();
+    if (idx === null || idx.count === 0) return [];
+    return [{ kind: 'trimesh', x: this.frame.x, y: 0, z: this.frame.z, vertices: Float32Array.from(g.getAttribute('position').array), indices: Uint32Array.from(idx.array), surface: this.look.surface }];
   }
 
   /** Build the shaft and the drips (hidden until the eye is near); they are added to `fx` in that order. */

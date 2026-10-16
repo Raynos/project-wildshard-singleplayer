@@ -4,8 +4,10 @@
  *   · the hollow log's shell, bore, two rims and rotted bed (../models/hollowLog.ts draws them on the cabins' PBR set);
  *   · the token shelf: the pine rack and the eight carved tokens on edge (../models/tokenShelf.ts);
  *   · the hamlet's three stand-in people and the ranger's lantern glass (./peopleParts.ts rows; ../models/people.ts);
- *   · the zipline trolley and the canoe (../quest/rides.ts).
- * Reads only data rows and seeded kits; no renderer, page or game service.
+ *   · the zipline trolley and the canoe (../quest/rides.ts);
+ *   · the zip-line cable between the gantries' anchors (../models/zipCable.ts);
+ *   · the terrain patch over the bear cave's cut, a collider trimesh (../runtime/kit/caveInterior.ts `roofPatch`).
+ * Reads only data rows, seeded kits and the terrain lattice its runner passes in; no renderer, page or game service.
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -14,6 +16,8 @@ import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
 import { HOLLOW_LOG_SHAPE } from '../data/hollowLog';
+import { BEAR_CAVE } from '../data/layout';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';
 
@@ -84,20 +88,42 @@ function canoe(): THREE.BufferGeometry {
   return k.finish();
 }
 
+/** the zip-line cable: a sagging chord (≈ 1.2 % of its span) from its top anchor (the origin) to its bottom one, a thin tube */
+function zipCable(): THREE.BufferGeometry {
+  const { top, bottom } = authored.landmarks.zip;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(...bottom).sub(new THREE.Vector3(...top));
+  const sag = a.distanceTo(b) * 0.012;
+  const pts: THREE.Vector3[] = [];
+  for (let i = 0; i <= 40; i++) { const t = i / 40; pts.push(a.clone().lerp(b, t).add(new THREE.Vector3(0, -4 * sag * t * (1 - t), 0))); }
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, 0.022, 5, false);
+}
+
+/** the terrain's drawn triangles over the cave's cut (the bake's roof row), heights from the lattice, (x, z) relative to the mouth */
+function caveRoof(heightAt: (x: number, z: number) => number): THREE.BufferGeometry {
+  const row = authored.cragAssembly.roof, res = row.resolution, d = row.size / (res - 1), half = row.size / 2, verts: number[] = [];
+  for (const ordinal of row.triangles) {
+    const cell = Math.floor(ordinal / 2), x0 = (cell % res) * d - half, x1 = x0 + d, z0 = Math.floor(cell / res) * d - half, z1 = z0 + d;
+    const corners = ordinal % 2 === 0 ? [[x0, z0], [x0, z1], [x1, z0]] : [[x0, z1], [x1, z1], [x1, z0]];
+    for (const [x = 0, z = 0] of corners) verts.push(x - BEAR_CAVE.x, heightAt(x, z), z - BEAR_CAVE.z);
+  }
+  const g = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  return g.setIndex(Array.from({ length: verts.length / 3 }, (_, i) => i));
+}
+
 /** every code-built part, by name, in pack order */
-export function pineCodeParts(): Record<string, THREE.BufferGeometry> {
+export function pineCodeParts(heightAt: (x: number, z: number) => number): Record<string, THREE.BufferGeometry> {
   return {
     ...hollowLog(),
     'token-shelf': tokenShelf(),
     'npc-ranger': buildPrimitiveParts(NPC_RANGER_BODY), 'npc-ranger-glass': buildPrimitiveParts(NPC_RANGER_GLASS),
     'npc-miller': buildPrimitiveParts(NPC_MILLER_BODY), 'npc-trader': buildPrimitiveParts(NPC_TRADER_BODY),
-    'zip-trolley': zipTrolley(), canoe: canoe(),
+    'zip-trolley': zipTrolley(), canoe: canoe(), 'zip-cable': zipCable(), 'cave-roof': caveRoof(heightAt),
   };
 }
 
 /** The pack: its bytes, its rows and each part's geometry index. */
-export function bakePineCodeParts(): { bin: Uint8Array; rows: PackedGeometryRows; parts: Record<string, number> } {
+export function bakePineCodeParts(heightAt: (x: number, z: number) => number): { bin: Uint8Array; rows: PackedGeometryRows; parts: Record<string, number> } {
   const writer = new GeometryPackWriter('pine code parts'), parts: Record<string, number> = {};
-  for (const [name, geometry] of Object.entries(pineCodeParts())) { parts[name] = writer.add(geometry); geometry.dispose(); }
+  for (const [name, geometry] of Object.entries(pineCodeParts(heightAt))) { parts[name] = writer.add(geometry); geometry.dispose(); }
   return { bin: writer.bytes(), rows: writer.rows(), parts };
 }
