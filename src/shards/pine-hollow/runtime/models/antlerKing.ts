@@ -4,14 +4,16 @@ import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/en
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
+import { createModelLibrary, type ModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import type { InferOutput } from 'valibot';
 import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../../data/antlerKingLook';
 import { animateKing, observeKingPose } from '../../combat/kingRig';
 import { KING_BONES } from '../../data/kingRig';
 import { bindKingQueryView } from '../kingQueryView';
 import { readKingCollisionBake } from '../kingCollisionBake';
 import kingCollision from '../../data/kingCollision.generated.json' with { type: 'json' };
-import kingKit from '../../data/kingKit.generated.json' with { type: 'json' };
+import { SECTIONS } from '../sections';
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark
@@ -52,16 +54,30 @@ export const KING_VARIANT: VariantDef = {
 
 const RIB_R = KING_DRESS.ribR;
 
-/** the King's baked kit (generators/kingKit.ts → data/kingKit.generated.json): the lantern's frame and glass, the ribs and
- *  the core, one rest-geometry pool the shard's kit preloads (`preloadKingKit`) and the dressing borrows */
-const KING_KIT_GEOMETRY = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [kingKit.pool] }, '[pine-hollow king kit]');
-/** load the King's baked kit once (the shard's kit step, before the fight or a card builds him) */
-export const preloadKingKit = (): Promise<void> => KING_KIT_GEOMETRY.preload();
-/** where his three lanterns hang off his hull's rack (head-bone local, model units): baked off the hull */
-const KING_LANTERNS: readonly (readonly number[])[] = kingKit.lanterns;
-/** the most lantern spots the rack takes (data/kingKit.generated.json holds 3); his own parts are those plus the ribcage */
+/** the most lantern spots the rack takes (custom/kingKit holds 3); his own parts are those plus the ribcage */
 const MAX_LANTERNS = 8, MAX_OWN = 9;
-if (KING_LANTERNS.length > MAX_LANTERNS) throw new Error('antler-king: more lantern spots than the rack takes');
+/** the King's baked kit (generators/kingKit.ts → the product's `custom/kingKit`, a named blob): the lantern's frame and
+ *  glass, the ribs and the core, one rest-geometry pool the shard's kit preloads (`preloadKingKit`) and the dressing
+ *  borrows, and where his three lanterns hang off his hull's rack (head-bone local, model units, baked off the hull) */
+interface AdmittedKingKit { readonly library: ModelLibrary<never, never>; readonly lanterns: InferOutput<(typeof SECTIONS)['custom/kingKit']>['lanterns'] }
+let admittedKit: AdmittedKingKit | null = null;
+let kitLoading: Promise<void> | null = null;
+async function admitKingKit(admitted: ShardProduct | undefined): Promise<void> {
+  const product = admitted ?? await (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct('pine-hollow');
+  const rows = product.section('custom/kingKit', SECTIONS);
+  if (rows.lanterns.length > MAX_LANTERNS) throw new Error('antler-king: more lantern spots than the rack takes');
+  const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {},
+    geometryPools: [{ url: product.url(rows.pool.url), parts: rows.pool.parts }] }, '[pine-hollow king kit]');
+  await library.preload();
+  admittedKit = { library, lanterns: rows.lanterns };
+}
+/** load the King's baked kit once (the shard's kit step, before the fight or a card builds him); a caller without the
+ *  product (a cold Model Explorer card) loads the first-party product the world shares */
+export const preloadKingKit = (product?: ShardProduct): Promise<void> => (kitLoading ??= admitKingKit(product));
+function kingKit(): AdmittedKingKit {
+  if (admittedKit === null) throw new Error('[pine-hollow king kit] is not loaded');
+  return admittedKit;
+}
 
 /** the shared geometries + materials (made once at boot, so their programs are compiled with the rest) */
 export interface KingKit {
@@ -74,7 +90,7 @@ export interface KingKit {
 export function makeKingKit(sky: Sky): KingKit {
   const D = KING_DRESS;
   const part = (name: string): THREE.BufferGeometry => {
-    const g = KING_KIT_GEOMETRY.geometry(name, { borrow: true });
+    const g = kingKit().library.geometry(name, { borrow: true });
     if (g === null) throw new Error(`[pine-hollow] the King's baked ${name} is not loaded`);
     return g;
   };
@@ -119,11 +135,12 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   const own: THREE.Object3D[] = [];
   const lanterns: THREE.Group[] = [];
   const collision = bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive));
-  for (let i = 0; i < Math.min(KING_LANTERNS.length, MAX_LANTERNS); i++) {
-    const p = KING_LANTERNS[i];
+  const spots = kingKit().lanterns;
+  for (let i = 0; i < Math.min(spots.length, MAX_LANTERNS); i++) {
+    const p = spots[i];
     if (p === undefined) continue;
     const l = kingLantern(kit);
-    l.position.set(p[0] ?? 0, p[1] ?? 0, p[2] ?? 0);
+    l.position.set(p[0], p[1], p[2]);
     head.add(l); lanterns.push(l); own.push(l);
   }
   const cage = new THREE.Group();

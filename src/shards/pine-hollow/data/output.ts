@@ -22,6 +22,7 @@ import held from './heldBlobs.generated.json' with {type:'json'};
 import night from '../behaviour/night.generated.json' with {type:'json'};
 import director from '../behaviour/director.json' with {type:'json'};
 import king from './kingBlobs.generated.json' with {type:'json'};
+import kingKit from './kingKit.generated.json' with {type:'json'};
 
 const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
@@ -36,6 +37,7 @@ const values:Readonly<Record<string,unknown>>={
  'custom/trophyMounts':{...trophies,url:named(trophies.url)},
  'custom/crossbowPool':{...crossbow,pool:{...crossbow.pool,url:named(crossbow.pool.url)}},
  'custom/handsPool':{...hands,pool:{...hands.pool,url:named(hands.pool.url)}},
+ 'custom/kingKit':{...kingKit,pool:{...kingKit.pool,url:named(kingKit.pool.url)}},
 };
 
 // Semantic host laws are kept in their defining public parsers. The serialized

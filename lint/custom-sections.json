@@ -56,6 +56,18 @@
         "bytes": 136299
       },
       "why": "W2a sp-o280: custom/handsPool, the baked hand and Longbow rows the client read from data/handsPool.generated.json"
+    },
+    {
+      "slug": "pine-hollow",
+      "from": {
+        "count": 13,
+        "bytes": 134353
+      },
+      "to": {
+        "count": 14,
+        "bytes": 134664
+      },
+      "why": "W2a sp-o280: custom/kingKit, the King kit pool and lantern spots the client read from data/kingKit.generated.json"
     }
   ]
 }

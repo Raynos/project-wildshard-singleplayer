@@ -254,6 +254,7 @@ reader adoption; this table grants no extra section or byte headroom.
 | W2 Pine trophyMounts section exit | `custom/trophyMounts` | Replace packed geometry metadata with platform geometry/model-library rows. | sp-x5 / W2 client rewire |
 | W2 Pine crossbowPool section exit | `custom/crossbowPool` | Replace the pool and hierarchy bundle with platform model/client-scene rows. | sp-x5 / W2 client rewire |
 | W2 Pine handsPool section exit | `custom/handsPool` | Replace the baked hand and Longbow rows with platform model-library and held rows. | sp-o280 / W2a client rewire |
+| W2 Pine kingKit section exit | `custom/kingKit` | Replace the King kit pool and lantern spots with platform model-library and socket rows. | sp-o280 / W2a client rewire |
 
 ## W2b Driftwood client custom-section exits (G453)
 

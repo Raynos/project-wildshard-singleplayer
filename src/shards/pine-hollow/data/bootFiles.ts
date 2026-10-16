@@ -3,7 +3,6 @@ import painted from './paintedTextures.generated.json' with {type:'json'};
 import skins from './npcSkins.generated.json' with {type:'json'};
 import floor from './floor.generated.json' with { type: 'json' };
 import birds from './ambientBirds.generated.json' with {type:'json'};
-import kingKit from './kingKit.generated.json' with {type:'json'};
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
 export const PINE_BOOT_FILES = {
   "skyHdr": {
@@ -223,7 +222,6 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/trader.glb", skins.trader.phone.url,
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.phone.url,
           ...painted.urls,
-          kingKit.pool.url,
           floor.url,
           "/assets/pine-hollow/creatures/thrall-extras.phone.glb",
           "/assets/pine-hollow/baked/rain.phone.bin"
@@ -240,7 +238,6 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/trader.glb", skins.trader.desktop.url,
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.desktop.url,
           ...painted.urls,
-          kingKit.pool.url,
           floor.url,
           "/assets/pine-hollow/creatures/thrall-extras.glb",
           "/assets/pine-hollow/baked/rain.bin"

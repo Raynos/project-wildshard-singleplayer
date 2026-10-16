@@ -49,4 +49,5 @@ export const SECTIONS = {
   'custom/trophyMounts':mountPack,
   'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema}),
   'custom/handsPool':v.strictObject({pool,hands:v.record(long,bakedHand),bow:bakedBow}),
+  'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;
