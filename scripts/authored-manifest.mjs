@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 
@@ -44,7 +45,13 @@ export function authoredManifestSource(root, slug) {
   };
   const b = data.bindings;
   if (!b || typeof b.accent !== 'string') throw new Error(`${file}: missing binding declarations`);
-  const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${value(b.budgets)}`];
+  // Build-only budget bindings become checked literals. Generated runtime discovery
+  // never imports data/. Remove this bridge with catalog activation (P3).
+  const budgetPath = modulePath(b.budgets?.module);
+  const budget = budgetPath.startsWith('./data/')
+    ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${slug}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
+    : value(b.budgets);
+  const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];
   for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'tierPolicy', 'pondClip', 'spawns']) if (b[key]) rows.push(`${key}: ${value(b[key])}`);
   if (b.navigation) { const id = value(b.navigation);rows.push(`navigation: { row: ${id}.navigation, url: ${id}.url }`); }
   if (b.audioCues || b.audioPreload) rows.push(`audioBindings: { ${[...(b.audioCues ? [`cues: ${value(b.audioCues)}`] : []), ...(b.audioPreload ? [`preload: async () => ${lazy(b.audioPreload, true)}`] : [])].join(', ')} }`);
