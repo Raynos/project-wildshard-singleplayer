@@ -7017,16 +7017,30 @@ absence. New host APIs take data or Wasm references instead of shard TS hooks.
 `docs/api/HOSTS.md`: resolved host callers, callback sites, planned W3 users,
 all platform section fields, the wire schema field inventory and the exact
 Wasm import/export ABI. Proof/input-only generation skips derived docs.
-Two resolved calling shards can establish the first host-bar test; pending
-users never do. Observed callbacks fail the data-only test. Other semantic
+Resolved calling shards are candidates, not proof of live adoption: orphaned
+source can contain calls too. Pending users never prove real use. Observed
+callbacks fail the data-only test. Other semantic
 judgments remain `needs-review`, granting no pass. The historical host audit
 is linked as evidence, not silently treated as a current verdict.
 
 `lint/host-reviews.json` accepts entries keyed by `src/<layer>/<module>#export`
 (or `#*` for a module), with `sourceHash` (the catalogue's SHA-256), `evidence`
-and `verdicts` (`noShardNouns`, `dataOnly`, `serverSafe`, `deletionTest`, each
+and `verdicts` (`twoRealUsers`, `noShardNouns`, `dataOnly`, `serverSafe`, `deletionTest`, each
 `pass` or `fail`). Changed source invalidates review credit; a review cannot
 override observed TS callbacks or substitute a planned user for a real one.
+
+G456 H1 retains two content closures solely to preserve frozen callers.
+`engine/world/waterSurface.ts` belongs to Pine: frozen `world/PineWeatherFX`,
+`streams` and `beaverPool` still call `createWaterMaterial`; the shared pond
+also uses its material and skyline probe. `engine/world/painterly.ts` belongs
+to Nalati: frozen `look/terrainPainter`, `look/creatureMaterial` and
+`world/glbPaint` still use its factory and per-material knobs. Frozen shaders
+also share its uniform objects, which `game/grid/regionLight.ts` snapshots.
+These shader/preset bodies get no shared-host credit; their unchanged source
+hashes and owning shards are recorded in `lint/host-reviews.json`. Generic
+state/math stays public; no platform module imports a shard, and no frozen
+source changes. `game/systems/viewmodel/armRig.ts` remains an H3 review:
+Nine runtime and Driftwood's `blender/fp-arms/bake.mjs` are real users.
 
 ### CLI-only output sidecars
 

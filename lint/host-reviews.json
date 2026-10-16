@@ -1,4 +1,23 @@
 {
   "schema": "wildshard.host-reviews/1",
-  "entries": {}
+  "entries": {
+    "src/engine/world/waterSurface.ts#*": {
+      "sourceHash": "d86c271c25a020ae5da87959985545a0c3bb32ef2f517e04090197eaf033dc1f",
+      "evidence": "G456 H1 frozen-body exception: content owner Pine. Retained edges: pine-hollow-legacy/world/PineWeatherFX.ts, streams.ts, beaverPool.ts -> createWaterMaterial; engine/world/pond.ts -> createWaterMaterial/buildSkyline. Not a second-user claim; content bodies remain charged to their owning shard.",
+      "verdicts": {
+        "twoRealUsers": "fail",
+        "noShardNouns": "fail",
+        "deletionTest": "fail"
+      }
+    },
+    "src/engine/world/painterly.ts#*": {
+      "sourceHash": "1a3811e00a1c5d7930c77a856307fa91707265a4711b62a32dab4331591c57be",
+      "evidence": "G456 H1 frozen-body exception: content owner Nalati. Retained edges: nalati-grasslands-legacy/look/terrainPainter.ts, look/creatureMaterial.ts, world/glbPaint.ts -> painterlyMaterial/painterlyKnobs; game/grid/regionLight.ts -> shared uniform state. Not a second-user claim; content bodies remain charged to their owning shard.",
+      "verdicts": {
+        "twoRealUsers": "fail",
+        "noShardNouns": "fail",
+        "deletionTest": "fail"
+      }
+    }
+  }
 }

@@ -93,7 +93,8 @@ test('catalogue joins section fields and actual callers; pending users grant no 
     const reference = { fields: [{ path: '$.props', type: 'array' }], abi: [{ name: 'query' }], contract: { version: 0 } };
     const result = hostCatalogue(f.root, reference), called = result.hosts.find(row => row.export === 'host'), planned = result.hosts.find(row => row.export === 'Base');
     expect(called?.users).toEqual(['sample', 'second']);
-    expect(called?.verdicts['twoRealUsers']?.status).toBe('pass');
+    // Both source files may be orphaned: static calls prove candidates, not live adoption.
+    expect(called?.verdicts['twoRealUsers']?.status).toBe('needs-review');
     expect(called?.verdicts['dataOnly']?.status).toBe('needs-review');
     expect(planned?.users).toEqual([]);
     expect(planned?.verdicts['twoRealUsers']?.status).toBe('needs-review');
@@ -111,12 +112,13 @@ test('review credit expires on changed source and never overrides observed callb
   const f = fixture("import {host} from '../../../game/host'; host(()=>{});");
   try {
     const callbacks = hostCallbackViolations(f.root, file);
-    const audit = { sourceHash: 'exact', evidence: 'reviewed source', verdicts: { noShardNouns: 'pass', dataOnly: 'pass', serverSafe: 'fail', deletionTest: 'pass' } };
+    const audit = { sourceHash: 'exact', evidence: 'reviewed source and live entry reach', verdicts: { twoRealUsers: 'pass', noShardNouns: 'pass', dataOnly: 'pass', serverSafe: 'fail', deletionTest: 'pass' } };
     const exact = hostVerdicts(['sample'], callbacks, audit, 'exact');
     expect(exact['noShardNouns']?.status).toBe('pass');
     expect(exact['dataOnly']?.status).toBe('fail');
     expect(exact['serverSafe']?.status).toBe('fail');
-    expect(exact['twoRealUsers']?.status).toBe('needs-review');
+    expect(exact['twoRealUsers']?.status).toBe('pass');
+    expect(hostVerdicts(['sample', 'second'], [], audit, 'changed')['twoRealUsers']?.status).toBe('needs-review');
     expect(hostVerdicts(['sample'], [], audit, 'changed')['noShardNouns']?.status).toBe('needs-review');
   } finally { f.close(); }
 });

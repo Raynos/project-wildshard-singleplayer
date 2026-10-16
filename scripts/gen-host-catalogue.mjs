@@ -18,15 +18,14 @@ const review = reason => verdict('needs-review', reason);
 /** Machine findings are evidence, never a substitute for the semantic host grill. */
 export function hostVerdicts(users, callbacks, audited, sourceHash) {
   const results = {
-    twoRealUsers: users.length >= 2 ? verdict('pass', `${users.length} shards have resolved play calls`)
-      : review(`${users.length} direct calling shards; trace indirect users before calling this shared`),
+    twoRealUsers: review(`${users.length} resolved calling shards; verify entry reach and live adoption before granting shared credit`),
     noShardNouns: review(`Semantic review required; see ${AUDIT}`),
     dataOnly: callbacks.length > 0 ? verdict('fail', `${callbacks.length} shard TS callback values cross this host`)
       : review('No explicit shard callbacks found; host parameter semantics still require review'),
     serverSafe: review('Import/DOM and server execution review required; client presentation is labelled separately'),
     deletionTest: review('A reviewer must judge whether this survives deletion of its first shard'),
   };
-  if (typeof sourceHash === 'string' && audited?.sourceHash === sourceHash && audited.evidence) for (const test of ['noShardNouns', 'dataOnly', 'serverSafe', 'deletionTest']) {
+  if (typeof sourceHash === 'string' && audited?.sourceHash === sourceHash && audited.evidence) for (const test of ['twoRealUsers', 'noShardNouns', 'dataOnly', 'serverSafe', 'deletionTest']) {
     if (test === 'dataOnly' && callbacks.length > 0) continue;
     const status = audited.verdicts?.[test];
     if (status === 'pass' || status === 'fail') results[test] = verdict(status, audited.evidence);
