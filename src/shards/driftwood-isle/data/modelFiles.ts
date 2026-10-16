@@ -71,4 +71,7 @@ export const FIXED_MODEL_FILES = {
   shrineFireflies: '/assets/driftwood-isle/baked/fixed-models/shrine-fireflies.glb',
   gull: '/assets/driftwood-isle/baked/fixed-models/gull.glb',
   castawaySmoke: '/assets/driftwood-isle/baked/fixed-models/castaway-smoke.glb',
+  driftLogLong: '/assets/driftwood-isle/baked/fixed-models/drift-log-long.glb',
+  driftLogShort: '/assets/driftwood-isle/baked/fixed-models/drift-log-short.glb',
+  driftLogPale: '/assets/driftwood-isle/baked/fixed-models/drift-log-pale.glb',
 } as const;

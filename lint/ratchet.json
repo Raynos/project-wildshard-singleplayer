@@ -412,7 +412,7 @@
     "src/shards/driftwood-isle/world/build.ts": 11,
     "src/shards/driftwood-isle/world/Bushes.ts": 9,
     "src/shards/driftwood-isle/world/Cove.ts": 9,
-    "src/shards/driftwood-isle/world/driftLogs.ts": 2,
+    "src/shards/driftwood-isle/generators/driftLogs.ts": 2,
     "src/shards/driftwood-isle/world/gpuOnlyCopies.ts": 1,
     "src/shards/driftwood-isle/world/GroundCover.ts": 10,
     "src/shards/driftwood-isle/world/Gulls.ts": 1,

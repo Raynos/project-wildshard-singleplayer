@@ -7,7 +7,7 @@ import { ShipwreckBuilder, WRECK_COLOURS as C, type CargoCopy, type WreckAround 
 import { addBarrel, addCoil, addCrate } from './cargo';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from '../data/rockProfiles';
-import { addDriftLog, DRIFT } from '../world/driftLogs';
+import { addDriftLog, DRIFT } from './driftLogs';
 import type { WreckSpec, WreckAnchor, HoldBounds } from '../assets/contracts/wreck';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BoxSpec } from '@wildshard/engine/physics/box';

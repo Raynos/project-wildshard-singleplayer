@@ -7,7 +7,7 @@ import { SEED, TRAILS, PLATEAU, HEADLAND } from '../data/landscapeRows.ts';
 import { SHRINE_SITES } from '../data/shrineSites.ts';
 import { WRECK_SITES } from '../data/wreckSites.ts';
 import { islandCoveSpec } from '../world/coveLayout.ts';
-import { driftLogBox } from '../models/driftLog.ts';
+import { driftLogBox } from './driftLogs.ts';
 import { duneLogs } from './duneLogs.ts';
 
 /** Compile the native dune ring and its drawn-into catalogue from the authored terrain. */

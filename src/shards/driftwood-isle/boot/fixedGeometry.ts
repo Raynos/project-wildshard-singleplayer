@@ -62,6 +62,11 @@ export const SHRINE_FIREFLIES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shrineF
 export const GULL_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.gull, { _apart: 'aPart' });
 /** The castaway's campfire smoke quads (generators/smoke.ts, the fire's frame); the graph poses each by its `aPuff`. */
 export const CASTAWAY_SMOKE_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.castawaySmoke, { _apuff: 'aPuff' });
+/** The Explorer's lone drift logs (generators/driftLogs.ts): the world's copies are drawn into their bakes' kits. */
+export const DRIFT_LOG_GEOMETRY = {
+  long: modelGeometry(FIXED_MODEL_FILES.driftLogLong), short: modelGeometry(FIXED_MODEL_FILES.driftLogShort),
+  pale: modelGeometry(FIXED_MODEL_FILES.driftLogPale),
+} as const;
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

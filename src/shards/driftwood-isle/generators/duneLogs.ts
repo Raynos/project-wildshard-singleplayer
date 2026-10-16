@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { log } from '@wildshard/engine/world/geometryKit';
-import { addDriftLog, DRIFT } from '../world/driftLogs';
+import { addDriftLog, DRIFT } from './driftLogs';
 import { ISLAND } from '../data/layout';
 
 /** Author-only dune-log sculpt and scatter, shared by the fixed mesh and clipping compilers. */

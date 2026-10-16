@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { CargoCopy } from './shipwreck';
 import { cargoBox } from './cargo';
-import { driftLogBox } from '../models/driftLog';
+import { driftLogBox } from './driftLogs';
 
 interface CatalogueGroup<P extends object> { placements: Placement<P>[]; boxes: number[] }
 /** Compact registration data for the five families already drawn by the wreck. */
