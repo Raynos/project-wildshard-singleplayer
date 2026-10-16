@@ -7990,3 +7990,20 @@ callbacks, strips visual variant fields, and admits the result through the same
 canonical schema as `@wildshard/sdk/species.species`. Pine and Driftwood emit both
 catalogues in their output producers; their existing hunt/brain and save owners
 remain unchanged.
+
+### Numeric channel programs (H4)
+
+`@wildshard/game/plugin/channelPrograms#installChannelPrograms` binds one
+`numeric.group` from the admitted client-channel rows. Each row names private
+numeric `outputs`, optional read-only `inputs`, and `restoreOnly` fields. The
+caller lends an owner map and supplies copied observations; no shard function,
+clock, state write or graph traversal is admitted. Output properties use the
+existing bounded numeric capability binder (one or two field components).
+
+A frame snapshots all borrowed inputs, evaluates the existing straight-line
+channel programs, then publishes their fields. `capture()` returns the original
+values of fields marked `restore` and all restore-only fields, for the owner's
+existing scope lifetime. Restore-only fields are never written during evaluation.
+Pine's weather projections and Nalati's storm-look projection are the two live
+users. Their generators emit ordinary client-channel JSON; neither playback
+path imports the build-time expression authoring.

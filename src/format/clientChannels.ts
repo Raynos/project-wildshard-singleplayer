@@ -65,8 +65,20 @@ const connector = v.pipe(v.strictObject({
 }), v.check(row => (row.instances === undefined || row.instances.start + row.instances.capacity <= 8192
   && (row.instances.capacity === 1 || row.instances.pitch !== undefined))
   && (row.turn?.alternate !== true || row.instances?.pitch !== undefined), 'bounded connector slots and alternating copies'));
+const inputPathKey = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_-]*$/u), v.maxLength(96),
+  v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe numeric input path'));
+const numericInputs = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe(name, v.maxLength(96)),
+  path: v.pipe(v.array(v.union([inputPathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)),
+})), v.maxLength(128), v.check(rows => new Set(rows.map(row => row.input)).size === rows.length, 'unique numeric input bindings'));
+/** Explicit private visual fields, shared by numeric DAG groups and their restore phase. */
+const numericPort=v.strictObject({property:ClientChannelPropertySchema,target:name,
+ path:v.pipe(v.array(inputPathKey),v.minLength(1),v.maxLength(2)),restore:v.exactOptional(v.boolean()),nullable:v.exactOptional(v.boolean())});
+const numericProgram=v.pipe(v.strictObject({group:name,outputs:v.pipe(v.array(numericPort),v.minLength(1),v.maxLength(32)),
+ inputs:v.optional(numericInputs,[]),restoreOnly:v.optional(v.pipe(v.array(numericPort),v.maxLength(32)),[]),
+}),v.check(row=>row.outputs.length+row.restoreOnly.length<=32,'bounded numeric field loans'));
 const program = v.strictObject({
   id: name,
+  numeric:v.exactOptional(numericProgram),
   geometry: v.exactOptional(geometry),
   connectors: v.exactOptional(v.pipe(v.array(connector), v.minLength(1), v.maxLength(32))),
   prompt: v.exactOptional(prompt),
@@ -99,6 +111,7 @@ export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof pro
   && (row.geometry === undefined || [...row.geometry.from, ...row.geometry.to, row.geometry.extent, row.geometry.wave].every(value => value < row.nodes.length))
   && (row.connectors ?? []).every(pose => [...pose.from, ...pose.to, ...(pose.at ?? []), ...pose.scale,
     pose.enabled, ...(pose.cache === undefined ? [] : [pose.cache])].every(value => value < row.nodes.length))
+  && (row.numeric===undefined||row.numeric.outputs.every(output=>row.channels.some(channel=>channel.property===output.property))&&row.numeric.inputs.every(input=>row.reads.includes(input.input)))
   && uniqueConnectorSlots([row])
   && new Set(row.reads).size === row.reads.length
   && new Set(row.channels.map(channel => channel.property)).size === row.channels.length
@@ -115,7 +128,7 @@ export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof pro
     return (!('c' in value) || value.c < at) && (!('a' in value) || value.a < at) && (!('b' in value) || value.b < at);
   }), 'unique visual channels and reads; backward-only nodes and bounded private slots'));
 /** Admitted visual programs; aggregate caps apply before any expression storage is allocated. */
-export const ClientChannelsSchema: v.GenericSchema<ClientChannelProgram[], ClientChannelProgram[]> = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
+export const ClientChannelsSchema: v.GenericSchema<v.InferInput<typeof ClientChannelProgramSchema>[], ClientChannelProgram[]> = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
     && new Set(rows.flatMap(row => row.prompt === undefined ? [] : [row.prompt.id])).size === rows.filter(row => row.prompt !== undefined).length
     && uniqueConnectorSlots(rows)
@@ -130,11 +143,6 @@ export type ClientChannelProperty = v.InferOutput<typeof ClientChannelPropertySc
 export function parseClientChannels(input: unknown): ClientChannelProgram[] { return v.parse(ClientChannelsSchema, input); }
 
 /** Bounded read-only numeric capabilities for a privately owned playback group. */
-const inputPathKey = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_-]*$/u), v.maxLength(96),
-  v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe numeric input path'));
-const numericInputs = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe(name, v.maxLength(96)),
-  path: v.pipe(v.array(v.union([inputPathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)),
-})), v.maxLength(128), v.check(rows => new Set(rows.map(row => row.input)).size === rows.length, 'unique numeric input bindings'));
 /** Admit only bounded paths; trusted owners are supplied separately and are never writable channels. */
 export function parseClientChannelInputs(input: unknown): v.InferOutput<typeof numericInputs> { return v.parse(numericInputs, input); }
 

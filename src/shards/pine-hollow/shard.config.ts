@@ -1,3 +1,4 @@
+import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import AUDIO from './data/audio.generated.json' with { type: 'json' };
@@ -33,6 +34,7 @@ export default parseShardfile({
   // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
-  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes'], spawns: PINE_RUNTIME_SPAWNS },
+  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes', 'clientChannels'], spawns: PINE_RUNTIME_SPAWNS },
+  clientChannels:weatherChannels.clientChannels,
   modes: PINE_MODES, quests: PINE_QUESTS, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

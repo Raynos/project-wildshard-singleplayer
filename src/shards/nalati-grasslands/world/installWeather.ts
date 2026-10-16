@@ -1,3 +1,4 @@
+import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { wildEnv } from '../creatures/env';
 import { clockForSun, steppeClock, nightKeys, blendSteppeKey } from '../look/dayKeys';
 import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, type SkyLook } from '../look/skyRig';
@@ -89,60 +90,6 @@ const TIME_NAMES = ['dawn', 'day', 'noon', 'golden', 'dusk', 'night', 'midnight'
 function isTimeName(s: string): s is DayPhase | 'noon' | 'midnight' { return (TIME_NAMES as readonly string[]).includes(s); }
 const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 
-// the storm's slate palette (× the hour's own light level)
-const SLATE_ZENITH = new THREE.Color(0.12, 0.13, 0.19);
-const SLATE_HORIZON = new THREE.Color(0.3, 0.31, 0.38);
-const SLATE_FOG = new THREE.Color(0.17, 0.18, 0.23);
-const SLATE_HEMI = new THREE.Color(0.42, 0.46, 0.58);
-const SLATE_SHADE = new THREE.Color(0.13, 0.14, 0.22);
-const SLATE_CLOUD = new THREE.Color(0.36, 0.38, 0.46);
-const STORM_KEY = new THREE.Color(0.78, 0.82, 0.95);
-const FLASH = new THREE.Color(0.85, 0.82, 1.0);
-const _c = new THREE.Color();
-
-/** the storm over the hour's look: gloom, slate, fog, flat light — and the lightning flash on top */
-function stormLook(L: SkyLook, w: Weather): void {
-  const s = w.overcast, fl = w.flash, rain = w.rain;
-  // how bright the hour is (the slate palette scales with it, so a night storm stays dark between flashes)
-  const nf = Math.min(1, Math.max(0.1, (L.horizon.r + L.horizon.g + L.horizon.b) / 2.2));
-  if (s > 0) {
-    L.keyIntensity *= 1 - 0.82 * s;
-    L.keyColor.lerp(STORM_KEY, s * 0.6);
-    L.disc *= 1 - smoothstep(0.25, 0.75, s);
-    L.zenith.lerp(_c.copy(SLATE_ZENITH).multiplyScalar(nf), s);
-    L.horizon.lerp(_c.copy(SLATE_HORIZON).multiplyScalar(nf), s);
-    L.glow.multiplyScalar(1 - s);
-    L.stars *= 1 - s;
-    L.hemiSky.lerp(_c.copy(SLATE_HEMI).multiplyScalar(nf), s * 0.8);
-    L.hemiIntensity *= 1 + 0.2 * s;
-    L.envIntensity *= 1 - 0.4 * s;
-    L.fogColor.lerp(_c.copy(SLATE_FOG).multiplyScalar(nf), s);
-    L.fogSunColor.lerp(_c.copy(SLATE_FOG).multiplyScalar(nf * 1.2), s);
-    L.shadeTint.lerp(_c.copy(SLATE_SHADE).multiplyScalar(nf), s * 0.7);
-    L.rimColor.multiplyScalar(1 - 0.7 * s);
-    L.cloudLight.lerp(_c.copy(SLATE_CLOUD).multiplyScalar(nf), s);
-    L.planetOpacity *= 1 - 0.85 * s;
-    L.saturation -= 0.28 * s;
-    L.shadowTint.lerp(_c.setRGB(0.9, 0.97, 1.12), s);
-    L.highTint.lerp(_c.setRGB(0.95, 0.98, 1.05), s);
-    L.volStrength *= 1 - s;
-    L.godRays *= 1 - s;
-  }
-  // rain thickens the air: fog to ~60 m in the downpour
-  L.fogDist += 0.002 * s + 0.009 * rain;
-  L.fogHeightDensity += 0.003 * rain;
-  // the wet after: a cleaner, more saturated world (the rainbow shot)
-  const after = w.wet * (1 - s);
-  if (after > 0) { L.saturation += 0.12 * after; L.highTint.lerp(_c.setRGB(1.08, 1.02, 0.92), 0.4 * after); }
-  // the lightning flash lights the whole world for a frame or two
-  if (fl > 0) {
-    L.hemiIntensity += 2.6 * fl;
-    L.hemiSky.lerp(FLASH, fl);
-    L.fogColor.lerp(_c.copy(FLASH).multiplyScalar(0.55), fl * 0.6);
-    L.cloudLight.lerp(FLASH, fl * 0.7);
-  }
-}
-
 /**
  * The river's shader is unlit (its colours are painted): its light follows the hour and the storm through the water's
  * own setters (src/shards/nalati-grasslands/water.ts `setLight` / `setRain`), so the water doesn't glow at night and rain rings its surface.
@@ -177,6 +124,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
 
   const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey }, def);
   const base = makeLook(), look = makeLook();
+  const stormLook=installChannelPrograms(ctx.ctx.product.shardfile.clientChannels,'weather',new Map([['look',look]]));
   const dimWater = waterDimmer(ctx.water);
   const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);
 
@@ -250,7 +198,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       // the look
       rig.look(clock, base);
       copyLook(look, base);
-      stormLook(look, weather);
+      stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.overcast,flash:weather.flash,rain:weather.rain,wet:weather.wet}});
       rig.flash = weather.flash * 0.7;
       rig.apply(look, dt);
       dimWater?.(look, dayFog, dayKey, indoors ? 0 : weather.rain);

@@ -1,7 +1,8 @@
 // Private visual scalar DAGs; native clocks, rain, animals and audio stay with their owners.
-import { OLD_GROWTH } from './layout';
+import { OLD_GROWTH } from '../data/layout';
+import {parseClientChannels} from '@wildshard/format/clientChannels';
 
-export const PINE_WEATHER_CHANNELS = [
+const PINE_WEATHER_CHANNELS = [
   {
     "target": "overcast", "owner": "mod", "path": ["overcast"], "restore": false,
     "program": {
@@ -1241,3 +1242,9 @@ export const PINE_WEATHER_CHANNELS = [
   }
   , { target: "fogBlobAmt", owner: "weather", path: ["fogBlobAmt", "value"], restore: true, program: null }
 ] as const;
+
+/** Build-only: emit the existing straight-line weather DAGs in the platform client-channel section. */
+export const PINE_WEATHER_PROGRAMS=parseClientChannels(PINE_WEATHER_CHANNELS.flatMap(row=>row.program===null?[]:[{
+ ...row.program,numeric:{group:'weather',outputs:[{property:'value',target:row.owner,path:[...row.path],restore:row.restore,nullable:row.owner==='volume'}],
+ restoreOnly:row===PINE_WEATHER_CHANNELS[0]?PINE_WEATHER_CHANNELS.filter(extra=>extra.program===null&&extra.restore).map(extra=>({property:'value',target:extra.owner,path:[...extra.path],restore:true})):[]},
+}]));

@@ -24,7 +24,7 @@
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import type { Scope } from '@wildshard/engine/app/scope';
-import { createClientChannels } from '@wildshard/game/plugin/ui';
+import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
@@ -32,7 +32,6 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import type { LevelContext } from '@wildshard/engine/level/context';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
@@ -49,7 +48,6 @@ import { HerdShelter } from '../runtime/species/herdShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
 import { BEAR_CAVE } from '../data/layout';
-import { PINE_WEATHER_CHANNELS } from '../data/weatherChannels';
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
@@ -83,7 +81,7 @@ export function installWeather(ctx: ShardContext, host: PineWeatherHost): PineWe
   return installPineWeather(host, ctx, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, entered?: ShardContext): PineWeatherRig | null {
+function installPineWeather(h: PineWeatherHost, ctx: ShardContext, entered?: ShardContext): PineWeatherRig | null {
   const pine = pineBackdrop(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -95,7 +93,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
   if (entered === undefined) {
     const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });
-    (ctx?.scope ?? h.game.levelScope).onDispose(stopSetting);
+    ctx.scope.onDispose(stopSetting);
   }
 
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
@@ -107,13 +105,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   const veil = { x: { value: 0 }, y: { value: 0 } };
   const roots = new Map<string, unknown>(Object.entries({ mod: pine.mod, fog: fogUniforms, weather: weatherUniforms, volume: volumetricFog,
     veil, particles: h.particles?.params ?? null, water: waterWeather, wind: windBoost, windVector: wind }));
-  const channels = PINE_WEATHER_CHANNELS.flatMap(row => {
-    if (row.program === null) return [];
-    const lane = createClientChannels(row.program);
-    return [{ lane, ports: lane.bindNumeric([{ property: 'value', target: row.owner, path: row.path, nullable: row.owner === 'volume' }], roots) }];
-  });
-  const first = channels[0]; if (first === undefined) throw new Error('Weather projections missing');
-  const borrowed = first.lane.bindNumeric(PINE_WEATHER_CHANNELS.filter(row => row.restore).map(row => ({ property: 'value', target: row.owner, path: row.path, restore: true, nullable: row.owner === 'volume' })), roots);
+  const channels=installChannelPrograms(ctx.product.shardfile.clientChannels,'weather',roots);
   const answers = (scope: Scope): void => {
     h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? wetProjectile(input, weather.rain) : input, scope);
     h.game.app.events.answer('creature.wander-goal', (query) => {
@@ -121,9 +113,9 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
       return { ...query, goal: shelter.wanderGoal(query.herd, weather.rain) ?? query.goal };
     }, scope);
   };
-  if (entered === undefined) answers(ctx?.scope ?? h.game.levelScope);
+  if (entered === undefined) answers(ctx.scope);
   else installEnteredRuntimeService(entered, (scope) => {
-    const restore = borrowed.capture();
+    const restore = channels.capture();
     const mod = { ...pine.mod }, fogBlob = weatherUniforms.fogBlob.value.clone(), horizon = h.horizonVeil?.value.clone();
     answers(scope);
     scope.onDispose(onSettingChange('weather', (mode) => { weather.setMode(mode, atT); }));
@@ -164,9 +156,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
     const room = practiceRoom.open;
     const values = [weather.overcast, weather.fog, weather.rain, weather.wet, weather.wind, windUniforms.uGust.value,
       hold, eye.x, eye.z, baseH, baseFall, baseMist, Number(room), WIND_DIR.x, WIND_DIR.z];
-    for (const { ports, lane } of channels) {
-      lane.evaluate({ time: 0, delta: dt, values }); ports.apply(lane.frame);
-    }
+    channels.evaluate({time:0,delta:dt,values});
     if (h.horizonVeil) h.horizonVeil.value.set(veil.x.value, veil.y.value);
     if (h.ambience) h.ambience.inputs['rain'] = room ? 0 : weather.rain;
     fx.update(dt, weather, wind, h.game.camera);
@@ -174,14 +164,8 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
     stagInFog(eye, dt);
   };
   const state = (dt: number): void => { if (!dev.paused) weather.update(dt, pine.clock); };
-  if (ctx) {
-    ctx.system({ id: 'shard.pine.weather.state', phase: 'update', after: ['audio'], before: ['world.life', 'first hints', 'main.frame'], tick: 'weather', run: state });
-    ctx.system({ id: 'shard.pine.weather', phase: 'update', after: ['shard.pine.weather.state'], before: ['world.life', 'first hints', 'main.frame'], run: update });
-  } else {
-    const system = { id: 'world.weather.state', phase: 'update' as const, tick: 'weather', run: state };
-    h.game.onUpdate((dt) => { const due = h.game.app.scheduler.systemDt(system, dt); if (due > 0) state(due); }, 'world.weather.state');
-    h.game.onUpdate(update, 'world.weather');
-  }
+  ctx.system({ id: 'shard.pine.weather.state', phase: 'update', after: ['audio'], before: ['world.life', 'first hints', 'main.frame'], tick: 'weather', run: state });
+  ctx.system({ id: 'shard.pine.weather', phase: 'update', after: ['shard.pine.weather.state'], before: ['world.life', 'first hints', 'main.frame'], run: update });
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };
   const debug = {
@@ -189,7 +173,6 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
     /** dev (C7's evidence): every grazer's distance to the nearest big tree — the mean, and how many stand within 6 m */
     herdShelter: () => shelter.stats(),
   };
-  if (ctx) ctx.debug.expose('pine.weather', debug);
-  else h.game.levelScope.onDispose(h.game.app.debug.scopedExpose('pine.weather', debug));
+  ctx.debug.expose('pine.weather', debug);
   return rig;
 }

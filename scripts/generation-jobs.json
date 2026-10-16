@@ -3,6 +3,69 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "pine-hollow-weather-channels",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-weather-channels.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-weather-channels.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-weather-channels.mjs",
+        "src/shards/pine-hollow/generators/weatherChannels.ts",
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/format",
+        "src/sdk/clientChannels.ts",
+        "src/sdk/immutable.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/data/layout.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/weatherChannels.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/weatherChannels.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "nalati-grasslands-weather-channels",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-weather-channels.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-weather-channels.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-weather-channels.mjs",
+        "src/shards/nalati-grasslands/generators/weatherChannels.ts",
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/format",
+        "src/sdk/clientChannels.ts",
+        "src/sdk/immutable.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/weatherChannels.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/weatherChannels.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "driftwood-loot",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-loot.mjs",
