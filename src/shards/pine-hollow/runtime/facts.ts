@@ -4,12 +4,11 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Progress } from '@wildshard/game/Progress';
 import { progressSave } from '@wildshard/game/saves';
 import { createPineFacts, type PineFacts } from '../quest/featLaw';
-import source from '../shard.config';
 
 const countsSchema = v.record(v.string(), v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0)));
 /** C26 imports current counters once, retaining Progress solely as the unchanged journal/title presentation. */
-export function bindPineFacts(ctx: Pick<ShardContext, 'app' | 'scope'>, progress: Pick<Progress, 'bindLedger' | 'refreshLedger'>, instance: string, facts: RuntimeFacts = bindRuntimeLedger(ctx, source, instance)): PineFacts {
-  const { read, write } = bindRuntimeJsonRecord(ctx, source, 'pine.feat-counts', countsSchema, () => progressSave.read(instance).counts, instance);
+export function bindPineFacts(ctx: Pick<ShardContext, 'app' | 'scope' | 'product'>, progress: Pick<Progress, 'bindLedger' | 'refreshLedger'>, instance: string, facts: RuntimeFacts = bindRuntimeLedger(ctx, ctx.product.shardfile, instance)): PineFacts {
+  const { read, write } = bindRuntimeJsonRecord(ctx, ctx.product.shardfile, 'pine.feat-counts', countsSchema, () => progressSave.read(instance).counts, instance);
   const policy = createPineFacts({ read, write: current => { write(current); }, emit: (fact, entity) => { facts(fact, entity); } });
   policy.replay();
   const achievement = (id: string) => facts.achievement(`pine-hollow.${id}`);

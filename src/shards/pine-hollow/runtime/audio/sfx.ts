@@ -3,7 +3,7 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import { cachedBytes, decodeBytes } from '@wildshard/engine/audio/preload';
 import { CueCatalogue, type SampleClip } from '@wildshard/engine/audio/Cues';
-import source from '../../shard.config';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { getSfxSet } from '@wildshard/engine/ui/Settings';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -19,7 +19,7 @@ import { getSfxSet } from '@wildshard/engine/ui/Settings';
  *            owl's hoot, the woodpecker's drum + call) and the skinning knife's two strokes (src/shards/pine-hollow/life/)
  *   barks    the ranger, the miller and the trader (8 short non-verbal / one-word barks each; PH-U23)
  *
- *   const sfx = new PineHollowSfx(audio);          // ForestAmbience makes one: `ambience.sfx`
+ *   const sfx = new PineHollowSfx(audio, rows);          // ForestAmbience makes one: `ambience.sfx`
  *   sfx.playback.listener(x, y, z, yaw)            // per frame (ForestAmbience does it)
  *   sfx.shot('king_roar', { at: pos })             // false = not decoded yet (it starts decoding) or not in the build
  *   sfx.bark('ranger', npcPos)                     // a random bark of that NPC, never the one it played last
@@ -63,8 +63,9 @@ export class PineHollowSfx {
   private lastBark = new Map<Npc, string>();
   readonly playback:ReturnType<Audio['voices']['playback']>;
 
-  constructor(audio: Audio) {
-    this.catalogue=catalogue();const rows=source.audio.playback;if(rows===undefined)throw new Error('Missing forest playback');this.playback=audio.voices.playback(rows,{available:()=>this.catalogue.available,samples:{clips:id=>this.catalogue.clips(id),load:id=>{this.catalogue.load(id);}}});
+  /** `rows`: the shard's declared audio (`ctx.product.shardfile.audio`) */
+  constructor(audio: Audio, rows: Shardfile['audio']) {
+    this.catalogue=catalogue();const playback=rows.playback;if(playback===undefined)throw new Error('Missing forest playback');this.playback=audio.voices.playback(playback,{available:()=>this.catalogue.available,samples:{clips:id=>this.catalogue.clips(id),load:id=>{this.catalogue.load(id);}}});
   }
   prewarm(families:readonly string[]):void {this.catalogue.prewarm(families);}
 

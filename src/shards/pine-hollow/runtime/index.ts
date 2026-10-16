@@ -5,12 +5,8 @@ import { preloadKingKit } from '../models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
 import { installEnteredPineScore } from './audio/score';
 import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/headless';
-import { CROSSBOW_WEAPON_PROFILE } from '../data/crossbowProfile';
-import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
-import { BOW_PROFILE } from '../data/bowProfile';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
 import { PINE_SPAWNS } from '../combat/spawns';
@@ -77,6 +73,13 @@ import { mottLine } from '../quest/trades';
 import { isPineItem } from '../items';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
+/** A weapon's declared profile from the built `combat/items` section (data/items.ts attaches it at build). */
+function declaredProfile(ctx: ShardContext, id: string): unknown {
+  const row = ctx.product.section('combat/items').items.rows.find(item => item.id === id);
+  if (row?.kind !== 'weapon' || row.profile === undefined) throw new Error(`Pine Hollow: combat/items declares no profile for ${id}`);
+  return row.profile;
+}
+
 function runtime(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;
   if (rt?.world === undefined || rt.world === null) throw new Error('Pine plugin needs its world host');
@@ -100,10 +103,10 @@ export class PineHollow extends ShardPlugin {
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
     ctx.app.registerTrample(trample, ctx.scope);
     // the look.materials graphs the spray, the water, the cabins' hearth particles and the cave's shaft wear (generators/lookMaterials.ts, their ids copied into runtime/const.ts), owned by this scope
-    lendPineLooks(await runtimeLookMaterials(ctx, source, true, PINE_RUNTIME_GRAPHS));
+    lendPineLooks(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, PINE_RUNTIME_GRAPHS));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
-    lendPineWildlifeLook(await runtimeLookMaterials(ctx, source, true, [WILDLIFE_LOOK]));
+    lendPineWildlifeLook(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [WILDLIFE_LOOK]));
     const streams = await new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
@@ -176,10 +179,10 @@ export class PineHollow extends ShardPlugin {
       { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
       if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');
-      bindRuntimeEquipment(ctx, source, [
-        { id: 'weapon.crossbow', weapon: weapons.primary, profile: CROSSBOW_WEAPON_PROFILE, presentation: true },
-        { id: 'weapon.lever', weapon: weapons.rifle, profile: LEVER_WEAPON_PROFILE, presentation: true },
-        { id: 'weapon.longbow', weapon: weapons.secondary, profile: BOW_PROFILE },
+      bindRuntimeEquipment(ctx, ctx.product.shardfile, [
+        { id: 'weapon.crossbow', weapon: weapons.primary, profile: declaredProfile(ctx, 'weapon.crossbow'), presentation: true },
+        { id: 'weapon.lever', weapon: weapons.rifle, profile: declaredProfile(ctx, 'weapon.lever'), presentation: true },
+        { id: 'weapon.longbow', weapon: weapons.secondary, profile: declaredProfile(ctx, 'weapon.longbow') },
       ]);
     } });
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
@@ -260,7 +263,7 @@ export class PineHollow extends ShardPlugin {
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
     placePineHollowSets(registry);
-    const ambience = new ForestAmbience(audio, { heightAt, cabins, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, requireAudioProfile(runtimeAudio(ctx, source.audio).zones, 'ambience.pine'));
+    const ambience = new ForestAmbience(audio, { heightAt, cabins, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, requireAudioProfile(runtimeAudio(ctx, ctx.product.shardfile.audio).zones, 'ambience.pine'), ctx.product.shardfile.audio);
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
     installPineAudio({ context: ctx, game, audio, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });

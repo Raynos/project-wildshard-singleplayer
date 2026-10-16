@@ -11,7 +11,7 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
  * pattern with generated beds (src/shards/pine-hollow/runtime/audio/sfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable
  * Audio 3 Medium, the better take per bed).
  *
- *   const amb = new ForestAmbience(audio, { heightAt, cabins });
+ *   const amb = new ForestAmbience(audio, { heightAt, cabins }, zones, ctx.product.shardfile.audio);
  *   game.onUpdate((dt) => amb.update(dt, game.camera));   // listener every frame, the zone mix at 10 Hz
  *   amb.night = 0 … 1 · amb.dawn = 0 … 1 · amb.rain = 0 … 1 · amb.thralls = 0 … 1   // the clock / weather / the King's night
  *   amb.setUnderwater(true | false)                      // the pond (next to audio.setUnderwater)
@@ -42,7 +42,7 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
 import type { Camera } from 'three';
 import { PineHollowSfx, PH_BEDS, type PhBed } from './sfx';
 import { requireAudioProfile, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../../shard.config';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
 type Room = 'cabin' | 'den' | 'oldgrowth' | 'bowl';
@@ -60,7 +60,6 @@ export interface ForestAmbienceOpts {
   spots?: readonly ZoneSpot[];
 }
 
-const DEFAULT_PROFILE = requireAudioProfile(source.audio.zones, 'ambience.pine');
 /** the beds that are positional (panned toward their zone's centre); the rest surround you */
 
 /** a cabin's inside: its floor, and within the smallest cabin's half-width of the site along the door axis (the porch is past it) */
@@ -89,10 +88,11 @@ export class ForestAmbience {
 
   private spots: ZoneSpot[];
 
-  constructor(audio: Audio, o: ForestAmbienceOpts, profile: AudioZoneProfile = DEFAULT_PROFILE) {
+  /** `profile`: the declared zone rows; `rows`: the shard's declared audio (`ctx.product.shardfile.audio`) */
+  constructor(audio: Audio, o: ForestAmbienceOpts, profile: AudioZoneProfile, rows: Shardfile['audio']) {
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
-    this.sfx = new PineHollowSfx(audio);
-    this.surfaces=audio.surfaceMap(requireAudioProfile(source.audio.surfaces,'forest step surfaces'),['planks','wet','mud','rock','litter'] as const,{heightAt:o.heightAt,floors:{cabins:[o.cabins]},values:{rain:()=>this.rain},circles:{pond:()=>hasPond()?POND:undefined}});
+    this.sfx = new PineHollowSfx(audio, rows);
+    this.surfaces=audio.surfaceMap(requireAudioProfile(rows.surfaces,'forest step surfaces'),['planks','wet','mud','rock','litter'] as const,{heightAt:o.heightAt,floors:{cabins:[o.cabins]},values:{rain:()=>this.rain},circles:{pond:()=>hasPond()?POND:undefined}});
     this.spots = [...(o.spots ?? [])];
     this.routing = new AmbienceMix(audio,profile,{
       random:audioRandom,scope:this.scope,...(o.scope===undefined?{}:{zoneScope:this.scope}),heightAt:o.heightAt,sea:0,

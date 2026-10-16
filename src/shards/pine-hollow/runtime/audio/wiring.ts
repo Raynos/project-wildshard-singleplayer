@@ -12,7 +12,6 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ForestAmbience, ZoneSpot } from './ambience';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../../shard.config';
 
 /**
  * Pine Hollow's sound, hooked to its gameplay (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane). The sound lane made
@@ -32,7 +31,7 @@ import source from '../../shard.config';
  */
 export interface PineAudioHost {
   game: Game;
-  context?: ShardContext;
+  context: ShardContext;
   audio: Audio;
   sky: Sky;
   music: Music;
@@ -47,7 +46,7 @@ export interface PineAudioHost {
 
 
 /** The shardfile's exact baked zone rows; only a live mill-wheel query remains a trusted runtime port. */
-export function pineZoneSpots(wheel: () => number, profile: AudioZones = requireAudioProfile(source.audio.zones, 'ambience.pine')): ZoneSpot[] {
+export function pineZoneSpots(wheel: () => number, profile: AudioZones): ZoneSpot[] {
   return profile.zones.map((row) => {
     const zone = row.source === 'mill.wheel' ? 'mill' : row.source;
     if (zone !== 'creek' && zone !== 'waterfall' && zone !== 'mill' && zone !== 'ridge' && zone !== 'oldgrowth' && zone !== 'cave') throw new Error(`Unknown forest audio zone: ${row.id}`);
@@ -60,14 +59,14 @@ export function pineZoneSpots(wheel: () => number, profile: AudioZones = require
 
 export function installPineAudio(h: PineAudioHost): void {
   const { game, sky, music, ambience: amb, animals } = h;
-  const rows = h.context === undefined ? source.audio : runtimeAudio(h.context, source.audio);
+  const rows = runtimeAudio(h.context, h.context.product.shardfile.audio);
   const spots = pineZoneSpots(() => h.cabins?.wheelSpeed ?? 0, requireAudioProfile(rows.zones, 'ambience.pine'));
   for (const s of spots) amb.addSpot(s);
 
   // ── doors: every cabin / hamlet door (their prompts flip "Open door" ↔ "Close door") ──
   // a door that moved (a barred one, the mill's (E322), does not): its creak, through the cabins' door listeners
   const doorSound: Parameters<NonNullable<PineAudioHost['cabins']>['onDoor']>[0] = (door, opening) => { amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: door.position }); };
-  const retained = h.context !== undefined && retainsRuntimeServices(h.context);
+  const retained = retainsRuntimeServices(h.context);
   if (!retained) h.cabins?.onDoor(doorSound);
 
   const score = pineScore(music);
@@ -85,7 +84,7 @@ export function installPineAudio(h: PineAudioHost): void {
   });
   const system=requireAudioProfile(observer.systems.find(row=>row.id==='audio'),'pine audio system');
   const diagnostic={spots,get night(){return observer.value('audio','night')!==0;}};
-  if (retained && h.context !== undefined) {
+  if (retained) {
     installEnteredRuntimeObserver(h.context, '__pineAudio', diagnostic);
     installEnteredRuntimeService(h.context, (scope) => {
       const previousShade = h.audio.ambientShade;
