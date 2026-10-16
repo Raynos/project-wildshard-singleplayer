@@ -4,8 +4,47 @@ import { NodeFrame, NodeUpdateType, TextureNode } from 'three/webgpu';
 import { uniform } from 'three/tsl';
 import { TextureUpdates } from '../src/engine/render/nodes/textureUpdates';
 
-vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
+class Bitmap { readonly width = 0; }
+vi.stubGlobal('ImageBitmap', Bitmap);
 afterAll(() => { vi.unstubAllGlobals(); });
+
+test('flip policy matches every image kind and keeps custom image getters live', () => {
+  // Node has no DOM: only ImageBitmap identity affects this policy. Other image
+  // fixtures keep their source shape without pretending to supply a GL upload.
+  const bitmap = new Bitmap(), target = new THREE.Texture(bitmap);
+  target.isRenderTargetTexture = true;
+  const depth = new THREE.DepthTexture(4, 4), framebuffer = new THREE.FramebufferTexture(4, 4);
+  const image = new THREE.Texture({ tagName: 'IMG', src: 'image.webp' });
+  const canvas = new THREE.Texture({ tagName: 'CANVAS', width: 4, height: 4 });
+  const data = new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  const compressed = new THREE.CompressedTexture([], 4, 4);
+  const custom = new THREE.Texture();
+  let borrowed: unknown = bitmap, reads = 0;
+  Object.defineProperty(custom, 'image', { get: () => { reads++; return borrowed; } });
+  const cases: readonly (readonly [string, THREE.Texture, boolean])[] = [
+    ['target', target, true], ['depth', depth, true], ['framebuffer', framebuffer, true],
+    ['bitmap', new THREE.Texture(bitmap), true], ['HTMLImage', image, false],
+    ['canvas', canvas, false], ['data', data, false], ['compressed', compressed, false],
+    ['custom getter', custom, true],
+  ];
+  const updates = new TextureUpdates(new NodeFrame());
+  for (const [name, texture, bitmapFlip] of cases) {
+    const sampler = new TextureNode(texture), flip = { value: false };
+    sampler.updateType = NodeUpdateType.OBJECT; Reflect.set(sampler, '_flipYUniform', flip);
+    for (const flipY of [true, false]) {
+      texture.flipY = flipY;
+      updates.update([sampler]);
+      const alwaysFlip = texture === target || texture === depth || texture === framebuffer;
+      expect(flip.value, `${name}, flipY=${String(flipY)}`).toBe(alwaysFlip || (bitmapFlip && flipY));
+    }
+  }
+  expect(reads).toBeGreaterThan(0);
+  const sampler = new TextureNode(custom), flip = { value: false };
+  sampler.updateType = NodeUpdateType.OBJECT; Reflect.set(sampler, '_flipYUniform', flip);
+  custom.flipY = true; updates.update([sampler]); expect(flip.value).toBe(true);
+  borrowed = image.image; updates.update([sampler]); expect(flip.value).toBe(false);
+  for (const [, texture] of cases) texture.dispose();
+});
 
 test('flip-only static samples avoid unused matrix work while UV and object reads stay live per draw', () => {
   const depth = new THREE.DepthTexture(4, 4), ordinary = new THREE.DataTexture(new Uint8Array(4), 1, 1);

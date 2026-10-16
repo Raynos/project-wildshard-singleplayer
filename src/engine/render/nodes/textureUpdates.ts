@@ -24,8 +24,10 @@ function isFlipTexture(node: Node): node is Node & FlipTexture {
   return typeof flip === 'object' && flip !== null && typeof Reflect.get(flip, 'value') === 'boolean';
 }
 function textureFlip(texture: SampleTexture): boolean {
-  return (typeof ImageBitmap !== 'undefined' && texture.image instanceof ImageBitmap && texture.flipY) ||
-    texture.isRenderTargetTexture || texture.isFramebufferTexture === true || texture.isDepthTexture === true;
+  // Targets/depth always flip. Avoid WebKit's DOM-class check for every shadow
+  // sample; ordinary images still use the live image and flipY policy.
+  return texture.isRenderTargetTexture || texture.isFramebufferTexture === true || texture.isDepthTexture === true ||
+    (typeof ImageBitmap !== 'undefined' && texture.image instanceof ImageBitmap && texture.flipY);
 }
 
 /** RENDER nodes share a camera-pass epoch. Object inputs and custom callbacks
