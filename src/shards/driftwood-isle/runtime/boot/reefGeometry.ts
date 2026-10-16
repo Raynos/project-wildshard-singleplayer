@@ -4,8 +4,8 @@ import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/o
 import { decodeFoliageWorld } from './foliageGeometry';
 import { readDriftwoodBlob } from './blobAssets';
 import { REEF_FILES } from '../../data/reefFiles';
-import { REEF_SPECIMENS, type ReefKind } from '../../data/reefSpecimenRows';
-import type { ReefParams } from '../models/reef';
+import { REEF_SPECIMENS } from '../const';
+import type { ReefKind, ReefParams } from '../models/reef';
 
 const key = (value: object): string => JSON.stringify(Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
 /** Explorer loads only its selected authored rest shape, with the existing graph material. */

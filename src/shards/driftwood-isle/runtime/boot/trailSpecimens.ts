@@ -1,8 +1,7 @@
 import { Mesh, type Material, type Object3D } from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { TRAIL_SPECIMENS } from '../../data/trailSpecimens';
-import { TRAIL_SPECIMEN_ROWS } from '../../data/trailSpecimenRows';
+import { TRAIL_SPECIMENS, TRAIL_SPECIMEN_ROWS } from '../const';
 import type { PlankStepParams, SignpostParams } from '../models/trailside';
 
 const key = (params: object): string => JSON.stringify(Object.entries(params).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));

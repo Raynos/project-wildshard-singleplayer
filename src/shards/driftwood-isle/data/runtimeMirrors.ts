@@ -27,6 +27,9 @@ import { DECK_SLAB } from './entryRows';
 import { TROPHY_LAYOUT } from './trophyLayout';
 import { SHRINE_SITES } from './shrineSites';
 import { REEF_LOOK } from './reefLook';
+import { REEF_SPECIMENS } from './reefSpecimenRows';
+import { TRAIL_SPECIMEN_ROWS } from './trailSpecimenRows';
+import { TRAIL_SPECIMENS } from './trailSpecimens';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from './skyLook';
 import { MIDDAY_SKY_ROWS } from './skyPalette';
@@ -92,4 +95,7 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CAPTAIN_ID', CAPTAIN_DEF.id),
   defineMirror('CAPTAIN_ARENA_R', CAPTAIN_DEF.arena.r),
   defineMirror('CAPTAIN_NAME', CAPTAIN_PRESENTATION.name),
+  defineMirror('REEF_SPECIMENS', REEF_SPECIMENS),
+  defineMirror('TRAIL_SPECIMEN_ROWS', TRAIL_SPECIMEN_ROWS),
+  defineMirror('TRAIL_SPECIMENS', TRAIL_SPECIMENS),
 ];
