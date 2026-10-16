@@ -47,6 +47,6 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
     if(section.name.startsWith('custom/')){customSectionBytes+=content.length;customSections.push({name:section.name,bytes:content.length});}
     sections.push({name:section.name,value:JSON.parse(content.toString('utf8'))});
   }
-  return {runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
+  return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
 }
 

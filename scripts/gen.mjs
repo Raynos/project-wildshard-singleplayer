@@ -41,8 +41,9 @@ await step('boot-tables', async () => {
 await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
 // Boot tables add static imports; derive the closure from the completed graph.
 await step('shards', () => genShards(undefined, false, false, shard));
-// SF65: SHARD SELECT's port badges (the SF6 public share), measured from the completed source tree.
-const measures = await step('port-shares', () => genPortShares());
+// P4: generation precedes output, so clear old percentages. Only a completed
+// strict output report may repopulate badges; no source-side ruler fallback.
+await step('port-shares', () => genPortShares());
 // SF74 W13 (G281): the API surface, docs/api/*.md and the export index are build outputs, gitignored (~1.6 s).
 // Commit-time inputs (scripts/precommit-inputs.mjs) keep only src/public outputs, so they skip these docs.
 if (!buildInputs && !proof) {
@@ -55,4 +56,4 @@ if (!buildInputs && !proof) {
 
 // G405: derived documentation is fresh build output, never commit payload.
 if (!buildInputs && !proof) execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
-if (!proof) await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`, measures));
+if (!proof) await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`));

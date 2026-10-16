@@ -9,12 +9,11 @@ import { parseSync } from 'vite';
 import * as v from 'valibot';
 import { resolveSpecifier } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
-import { shardContent } from './shard-platform-content.mjs';
 import { discoverGeneration } from './generate.mjs';
-import { componentInventory, componentWave, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
-import { generatorInventory } from './generator-inventory.mjs';
+import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
 import { outputRuntime } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
+import { runtimeClosures } from './shard-runtime-closure.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -42,12 +41,10 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
   producers: v.record(producerPath, v.array(producerPath)) });
 // G291/G294's classification table. Audit findings adjust these rules explicitly, never hidden import heuristics.
 // Unit on BOTH sides: nonblank physical lines after parser comment removal, in .ts/.tsx only;
-// .as, .d.ts and tests do not enter the G291 ratio. G445: TypeScript in data/
-// is custom, including registered generated TS; only non-code formats are data.
-// generators/ stays excluded from current runtime and included in the frozen denominator.
-// Registered generated outputs outside data/ remain excluded. The sealed legacy
-// denominator keeps its original producer exclusions; G445 changes current code,
-// never the historical yardstick. Names and headers never grant an exemption.
+// .as, .d.ts and tests do not enter the TS ratio. Only verified copied
+// out/<slug>/runtime files enter it, including generated TS that ships there.
+// Authoring directories have no numerator exemption rules: they are not inputs.
+// The registered frozen denominator retains its historical producer exclusions.
 // G294 adds one-user platform modules to the numerator; relocating a helper into engine/game/SDK cannot reduce it.
 // G456 H2: SDK bake modules and project validation are build tools, never shard runtime debt.
 // This exact path exception does not exempt SDK runtime modules or their dependencies.
@@ -67,7 +64,6 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 // The frozen denominator attributes no platform code (only the sealed legacy files), so no per-export rule applies there.
 const RULES = {
   typescript: /\.tsx?$/u,
-  runtimeExcludedFolders: new Set(['generators']),
   tests: /(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.tsx?$/u,
   attributedLayers: /^src\/(?:engine|game|sdk)\//u,
   buildOnlySdk: /^src\/sdk\/(?:bake\/|project\.ts$)/u,
@@ -555,8 +551,8 @@ const SHELL_UI_CONTROL = new Set([
 const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
   || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
-/** @param {string} root @param {boolean} includeSources @param {string|null} products */
-export function shardLines(root = ROOT, includeSources = false, products = null) {
+/** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs */
+function countOutput(root, includeSources, products, slugs) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
@@ -578,14 +574,7 @@ export function shardLines(root = ROOT, includeSources = false, products = null)
     if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
     return texts.get(path);
   };
-  // G445 includes generated TS data in every primary shard. Registered frozen
-  // copies retain the historical denominator's original producer exclusions.
-  const primaryDataTs = path => {
-    const folder = /^src\/shards\/([^/]+)\/data\/.*\.tsx?$/u.exec(path)?.[1];
-    return folder !== undefined && !Object.hasOwn(frozen.shards, folder);
-  };
-  const ignored = (path) => products === null ? generated.has(path) && !primaryDataTs(path)
-    : !path.startsWith(`${relative(root, products).replaceAll('\\', '/')}/`) && generated.has(path);
+  const ignored = path => !path.startsWith(`${relative(root, products).replaceAll('\\', '/')}/`) && generated.has(path);
   const parseCache = process.env.WS_SHARD_PARSE_CACHE;
   const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
@@ -631,11 +620,30 @@ export function shardLines(root = ROOT, includeSources = false, products = null)
   const authoredFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name)).sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
-  const outputs = products === null ? null : Object.fromEntries(Object.keys(authoredFiles).map(slug => [slug, outputRuntime(root, slug, products)]));
-  const prefixOf = slug => products === null ? `src/shards/${slug}/` : `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
-  const shardFiles = outputs === null ? authoredFiles : Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
+  // Build tools are visible debt, never a runtime root or a second runtime user.
+  const buildUsers = new Map();
+  for (const [slug, files] of Object.entries(authoredFiles)) {
+    if (slug === RULES.template) continue;
+    const prefix = `src/shards/${slug}/`;
+    const buildFile = path => path.startsWith(prefix) && /^(?:data|generators)\/|^shard\.config\./u.test(path.slice(prefix.length));
+    const queue = files.filter(buildFile), seen = new Set();
+    while (queue.length > 0) {
+      const path = queue.pop();
+      if (seen.has(path) || !exists(path) || !sourceFile.test(path)) continue;
+      seen.add(path);
+      if (!buildFile(path) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
+      if (path.startsWith('src/sdk/')) {
+        if (!buildUsers.has(path)) buildUsers.set(path, new Set());
+        buildUsers.get(path).add(slug);
+      }
+      for (const edge of graph(path)) if (edge.to !== null) queue.push(edge.to);
+    }
+  }
+  const outputs = Object.fromEntries(slugs.map(slug => [slug, outputRuntime(root, slug, products)]));
+  const prefixOf = slug => `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
+  const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
   const hostFiles = new Map();
-  if (outputs !== null) for (const [slug, output] of Object.entries(outputs)) {
+  for (const [slug, output] of Object.entries(outputs)) {
     const path = `${prefixOf(slug)}.section-hosts.ts`;
     texts.set(path, sectionHostImports(output.sections)); probes.set(path, true);
     hostFiles.set(slug, path);
@@ -774,18 +782,16 @@ export function shardLines(root = ROOT, includeSources = false, products = null)
     for (const path of files) {
       const local = path.slice(prefixOf(slug).length), top = local.split('/')[0];
       const lines = count(path);
-      const dataManifest = products === null && local === 'manifest.ts' && declarationOnlyManifest(text(path), path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
-      if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)
-        && !dataManifest && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) {
+      if (RULES.typescript.test(path) && !RULES.tests.test(local)) {
         shardRuntimeLines += lines;
         if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines,
-          ...(products === null ? {} : {ownerPath:`src/shards/${slug}/${local}`})});
+          ownerPath:`src/shards/${slug}/${local}`});
       }
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
-      if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top) || dataManifest) {
+      if (!RULES.typescript.test(path)) {
         additionalGlslLines += shaderLines;
         if (collectSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
       }
@@ -793,13 +799,16 @@ export function shardLines(root = ROOT, includeSources = false, products = null)
       if (!path.endsWith('.as') && trusted) row.trustedRuntimeLines += lines;
       if (!path.endsWith('.as') && (top === 'runtime' || trusted)) row.runtimeLines += lines;
     }
-    if (products !== null) {
+    {
       // AS remains a separate source visibility column: its shipped executable
       // form is Wasm and never adds TS lines to the runtime numerator.
       row.assemblyScriptLines = authoredFiles[slug].filter(path => path.endsWith('.as') && !RULES.tests.test(path)).reduce((sum, path) => sum + count(path), 0);
       row.customSectionBytes = outputs[slug].customSectionBytes;
       row.customSections = outputs[slug].customSections;
       row.measurement = 'built-output';
+      const tools = [...buildUsers].filter(([path, users]) => users.size === 1 && users.has(slug)
+        && (RULES.buildOnlySdk.test(path) || !moduleUsers.has(path))).map(([path]) => ({path, lines:count(path), bytes:Buffer.byteLength(text(path))}));
+      row.oneUserBuildTools = {lines:tools.reduce((sum, tool) => sum + tool.lines, 0), files:tools};
     }
     const pair = Object.entries(frozen.shards).find(([, legacy]) => legacy.primary === slug);
     let legacyLines = null;
@@ -836,8 +845,17 @@ export function shardLines(root = ROOT, includeSources = false, products = null)
 }
 /** Authoritative P4 measure. Missing, partial or non-standalone copies refuse;
  * authoring files never substitute for missing output or supply G294 users. */
-export function outputShardLines(root = ROOT, includeSources = false, products = resolve(root, 'out')) {
-  return shardLines(root, includeSources, products);
+/** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]|null} only */
+export function outputShardLines(root = ROOT, includeSources = false, products = resolve(root, 'out'), only = null) {
+  const closures = runtimeClosures(root);
+  const closed = Object.keys(closures).filter(slug => closures[slug].status === 'closed');
+  if (only?.some(slug => !closed.includes(slug))) throw new Error('Output measurement requested an unclosed shard');
+  return countOutput(root, includeSources, products, only ?? closed);
+}
+/** The canonical measure is output-only. Unclosed shards have no row/percentage;
+ * runtimeClosures supplies their explicit work queue to reports. */
+export function shardLines(root = ROOT, includeSources = false) {
+  return outputShardLines(root, includeSources);
 }
 /** Headless availability is reported separately from the custom/frozen measure. */
 export function milestoneFlags(_slug, _row, root = ROOT) {
@@ -852,47 +870,7 @@ export function checkShares(recorded, lines) {
   return failures;
 }
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8')), lines = shardLines();
-  const productArg = process.argv.find(value => value.startsWith('--products='));
-  const products = productArg === undefined ? resolve(ROOT, 'public/shardfiles') : resolve(ROOT, productArg.slice('--products='.length));
-  const inventory = generatorInventory(ROOT);
-  const report = Object.fromEntries(Object.entries(lines).map(([slug, row]) => {
-    const content = shardContent(slug, ROOT, products);
-    const customPercent = row.conversion.runtimeShare === null ? null : 100 * row.conversion.runtimeShare;
-    return [slug, { ...row, baseline: recorded.baseline[slug], ceiling: recorded.enforced[slug] ?? Math.floor(recorded.baseline[slug] * 0.2),
-      enforced: Object.hasOwn(recorded.enforced, slug), milestones: milestoneFlags(slug, row), content,
-      port: portHeadline(customPercent, content), generators: inventory.totals.find(total => total.shard === slug) }];
-  }));
-  const average = portAverage(report);
-  if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS, wave: componentWave(lines), waves:SHARD_WAVES.map(wave=>componentWave(lines,wave.id)) } }, null, 2));
-  else {
-    console.log(`PORT average (6 ported shards): ${average === null ? 'unavailable; build admitted products first' : `${average.toFixed(1)} %`}`);
-    for (const slug of HEADLINE_SHARDS) { const row = report[slug]; console.log(`  ${slug}: PORT ${row.port.percent === null ? 'unavailable' : `${row.port.percent.toFixed(1)} %`}; world ${row.port.world}; generators ${row.generators.ported} ported / ${row.generators.left} left (${row.generators.portedLines} / ${row.generators.leftLines} lines)`); }
-    for(const milestone of SHARD_WAVES.toSorted((a,b)=>Number(b.current)-Number(a.current))){
-      const wave=componentWave(lines,milestone.id);
-      console.log(`${wave.id} (${wave.status}): components closed ${wave.closed} of ${wave.total}`);
-      for(const [key,row] of Object.entries(wave.components))console.log(`  ${key}: ${wave.shards.map(slug=>`${wave.names[slug]} ${row.lines[slug]??'unavailable'}`).join(', ')}; ${row.closed?'closed':'open'}`);
-      for(const slug of wave.shards)console.log(`  ${wave.names[slug]} unknown ownership: ${wave.unknown[slug]?.join(', ')??'inventory unavailable'}`);
-    }
-    console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       enforcement    AS lines / 10% legacy');
-    for (const [slug, row] of Object.entries(lines)) {
-            const measure = row.conversion, ratio = measure.runtimeShare === null ? 'native (no frozen legacy)' : `${(measure.runtimeShare * 100).toFixed(1)} %`;
-      const passed = measure.passed;
-      console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed === null ? 'NATIVE' : passed ? 'PASS' : 'FAIL').padEnd(10)} ${RULES.enforcement}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget.ceiling??'no frozen denominator'} (${row.assemblyScriptBudget.passed===null?'NATIVE':row.assemblyScriptBudget.passed?'within':'over'}; report-only)`);
-      console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
-      const sole = measure.gameSystemAttribution, byModule = new Map();
-      for(const pending of sole.pendingSecondUser??[]) console.log(`  pending second user ${pending.path}${pending.name?`#${pending.name}`:''}: ${pending.lines} lines; ${pending.users.map(user=>`${user.shard} / ${user.plan.row}; rechecked ${user['rechecked-by']}`).join(', ')}`);
-      for (const entry of sole.exports) byModule.set(entry.path, [...byModule.get(entry.path) ?? [], entry]);
-      const wholeLines = sole.modules.reduce((total, module) => total + module.lines, 0);
-      const listed = (rows, separator) => rows.length > 0 ? rows.join(separator) : 'none';
-      console.log(`  G294 sole whole modules ${wholeLines} lines (${listed(sole.modules.map(module => `${module.path} ${module.lines}`), ', ')}); sole exports ${sole.lines - wholeLines} lines (${listed([...byModule].map(([path, entries]) =>
-        `${path} ${entries.reduce((total, entry) => total + entry.lines, 0)}: ${entries.map(entry => `${entry.exported ? '' : '~'}${entry.name} ${entry.lines}`).join(' ')}`), '; ')})`);
-      console.log(`  raw GLSL ${measure.rawGlslLines} lines (${measure.additionalGlslLines} additional to runtime TS); AssemblyScript ${row.assemblyScriptLines} lines (10% legacy budget, report-only); content ${JSON.stringify(shardContent(slug, ROOT, products))}`);
-    }
-  }
-  if (process.argv.includes('--check')) {
-    const failures = checkShares(recorded, lines);
-    for (const failure of failures) console.error(`shard-platform: ${failure}`);
-    if (failures.length > 0) process.exitCode = 1;
-  }
+  const {spawnSync}=await import('node:child_process');
+  const result=spawnSync(process.execPath,[resolve(import.meta.dirname,'shard-platform-cli.mjs'),...process.argv.slice(2)],{stdio:'inherit'});
+  process.exitCode=result.status??1;
 }

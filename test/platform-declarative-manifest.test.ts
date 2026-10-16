@@ -6,6 +6,7 @@ import { join, dirname } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolated census root, never the shared checkout.
 import { tmpdir } from 'node:os';
 import { declarationOnlyManifest, shardLines } from '../scripts/shard-platform.mjs';
+import {platformOutput} from './fixtures/platformOutputs';
 
 it('recognizes typed literal rows, imported data and const aliases without executing them', () => {
   expect(declarationOnlyManifest(`import type { Manifest } from './contract';
@@ -30,7 +31,7 @@ it('keeps any runtime logic, side effect or unknown expression custom', () => {
   ]) expect(declarationOnlyManifest(source), source).toBe(false);
 });
 
-it('excludes only root manifest data while retaining referenced logic and shader code', () => {
+it('counts only emitted runtime, regardless of authoring manifest logic', () => {
   const root = mkdtempSync(join(tmpdir(), 'platform-manifest-'));
   const put = (file: string, text: string): void => { const path = join(root, file); mkdirSync(dirname(path), {recursive: true}); writeFileSync(path, text); };
   try {
@@ -38,15 +39,11 @@ it('excludes only root manifest data while retaining referenced logic and shader
     put('src/shards/_template/logic.ts', 'export const VALUE = compute();');
     put('src/shards/_template/nested/manifest.ts', 'export default {value: 1};');
     put('src/shards/pine-hollow/manifest.ts', 'export default {load: () => load()};');
-    const rows = shardLines(root, true), template = rows['_template'], pine = rows['pine-hollow'];
-    if (template === undefined || pine === undefined) throw new Error('Missing fixture measurement');
-    expect(template.customSources?.map(source => source.path)).toEqual([
-      'src/shards/_template/logic.ts', 'src/shards/_template/nested/manifest.ts',
-    ]);
-    expect(pine.customSources?.map(source => source.path)).toContain('src/shards/pine-hollow/manifest.ts');
-    put('src/shards/_template/manifest.ts', 'export default {shader: `void main() { gl_Position = vec4(0.0); }`};');
-    const shader = shardLines(root, true)['_template'];
-    expect(shader?.conversion.additionalGlslLines).toBeGreaterThan(0);
-    expect(shader?.customSources).toContainEqual(expect.objectContaining({path: 'src/shards/_template/manifest.ts', kind: 'additional-glsl'}));
+    platformOutput(root,'_template',{'runtime/index.ts':'export const LIVE=1;'});
+    platformOutput(root,'pine-hollow',{'runtime/index.ts':'export const LIVE=1;'});
+    const rows = shardLines(root,true);
+    expect(rows['_template']?.conversion.shardRuntimeLines).toBe(1);
+    expect(rows['pine-hollow']?.conversion.shardRuntimeLines).toBe(1);
+    expect(rows['_template']?.customSources?.map(row=>row.path)).toEqual(['out/_template/runtime/index.ts']);
   } finally { rmSync(root, {recursive: true, force: true}); }
 });

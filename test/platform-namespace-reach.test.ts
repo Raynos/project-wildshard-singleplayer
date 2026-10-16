@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Construct confined fixture paths.
 import { dirname, join } from 'node:path';
 import { shardLines } from '../scripts/shard-platform.mjs';
+import {platformOutput} from './fixtures/platformOutputs';
 
 function charges(loader: string, initialization = '', shell = '', shellRoot = 'src/entry.ts', pineMember = 'createAmbientLife'): string[] {
   const root = mkdtempSync(join(tmpdir(), 'platform-namespace-'));
@@ -15,8 +16,8 @@ function charges(loader: string, initialization = '', shell = '', shellRoot = 's
     put('src/game/plugin/ui.ts', `export function forestHelper() { return 1; }\nexport function createAmbientLife() { return forestHelper(); }\nexport function borrowedNpcSpecimen() { return 2; }\nexport function enterGrid() { return 3; }\n${initialization}`);
     put('src/game/model.ts', loader);
     if (shell !== '') put(shellRoot, shell);
-    put('src/shards/pine-hollow/runtime.ts', `import { ${pineMember} } from '@wildshard/game/plugin/ui'; export const life = ${pineMember}();`);
-    put('src/shards/driftwood-isle/runtime.ts', "import { modelCatalogue } from '@wildshard/game/model'; export const model = modelCatalogue;");
+    platformOutput(root,'pine-hollow',{'runtime/index.ts': `import { ${pineMember} } from '@wildshard/game/plugin/ui'; export const life = ${pineMember}();`});
+    platformOutput(root,'driftwood-isle',{'runtime/index.ts': "import { modelCatalogue } from '@wildshard/game/model'; export const model = modelCatalogue;"});
     const row = shardLines(root)['pine-hollow'];
     if (row === undefined) throw new Error('Pine measurement absent');
     return row.conversion.gameSystemAttribution.exports.filter(entry => entry.path === 'src/game/plugin/ui.ts').map(entry => entry.name);

@@ -1,0 +1,645 @@
+{
+  "source": "156b82ae80e75d1201762b55ebdc67bbb7245770",
+  "metric": "G450 built-output, per-shard closure",
+  "rows": {
+    "_template": {
+      "status": "closed",
+      "escapes": 0,
+      "customPercent": null,
+      "topEscapeFiles": [],
+      "customRuntimeLines": 0,
+      "legacyLines": null,
+      "customSections": [],
+      "customSectionBytes": 0,
+      "assemblyScriptLines": 94,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "privateBinaryBytes": 0,
+      "oneUserBuildTools": {
+        "lines": 0,
+        "files": []
+      }
+    },
+    "blender-template": {
+      "status": "closed",
+      "escapes": 0,
+      "customPercent": null,
+      "topEscapeFiles": [],
+      "customRuntimeLines": 0,
+      "legacyLines": null,
+      "customSections": [],
+      "customSectionBytes": 0,
+      "assemblyScriptLines": 23,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "privateBinaryBytes": 0,
+      "oneUserBuildTools": {
+        "lines": 0,
+        "files": []
+      }
+    },
+    "driftwood-isle": {
+      "status": "unclosed",
+      "escapes": 112,
+      "customPercent": null,
+      "topEscapeFiles": [
+        {
+          "path": "src/shards/driftwood-isle/runtime/keeper.ts",
+          "count": 13,
+          "messages": [
+            "runtime/ is standalone: ../data/nativeHunt leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/crabPose leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/monkeyPose leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/sailorPose leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/captainPose leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/crab leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/sailor leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/monkeyVariants leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/tables leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/coconuts leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/ecology leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/species leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/nativeFauna leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/index.ts",
+          "count": 10,
+          "messages": [
+            "runtime/ is standalone: ../strings leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/build leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/gpuOnlyCopies leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/systems leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/questInventory leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/economy leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/install leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/adventure leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/install leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../loadout/rows leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/headless.ts",
+          "count": 6,
+          "messages": [
+            "runtime/ is standalone: ../world/sea leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../data/nativeSwords.json; read the admitted product instead",
+            "runtime/ is standalone: ../data/questInventory leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/interactables leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/entryWalk leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/dayKeys leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/hybrid.ts",
+          "count": 6,
+          "messages": [
+            "runtime/ is standalone: ../world/build leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/install leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/Waterfall leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/Shrine leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/Cove leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/Gulls leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/enemyBrains.ts",
+          "count": 5,
+          "messages": [
+            "runtime/ is standalone: ../species/crab leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/sailor leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/monkeyPolicy leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/captainPolicy leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/speciesActions leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        }
+      ]
+    },
+    "far-reach": {
+      "status": "unclosed",
+      "escapes": 23,
+      "customPercent": null,
+      "topEscapeFiles": [
+        {
+          "path": "src/shards/far-reach/runtime/index.ts",
+          "count": 17,
+          "messages": [
+            "runtime/ is standalone: ../data/runtimeRows leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/worldTextures leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/brains leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/strings leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/layout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/build leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/nativeWorld leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/windLook leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/fanModel leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/equipment leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/meshes leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/baked leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/isle leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/rayWakeLook leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/meadow leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/rocFight leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quests/flags leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/far-reach/runtime/headless.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../data/nativeWorld leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../data/physics.generated.json; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/far-reach/runtime/looks/wakeRibbon.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../../world/meshes leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../../data/rayWakeLook leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/far-reach/runtime/source.ts",
+          "count": 1,
+          "messages": [
+            "runtime/ cannot import JSON or assets: ../data/product.generated.json; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/far-reach/runtime/weapons/heldFan.ts",
+          "count": 1,
+          "messages": [
+            "runtime/ is standalone: ../../world/meshes leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        }
+      ]
+    },
+    "ink-cel-valley": {
+      "status": "closed",
+      "escapes": 0,
+      "customPercent": null,
+      "topEscapeFiles": [],
+      "customRuntimeLines": 0,
+      "legacyLines": null,
+      "customSections": [],
+      "customSectionBytes": 0,
+      "assemblyScriptLines": 94,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "privateBinaryBytes": 0,
+      "oneUserBuildTools": {
+        "lines": 1805,
+        "files": [
+          {
+            "path": "src/sdk/project.ts",
+            "lines": 148,
+            "bytes": 14028
+          },
+          {
+            "path": "src/sdk/projectManifest.ts",
+            "lines": 71,
+            "bytes": 6555
+          },
+          {
+            "path": "src/sdk/blobs.ts",
+            "lines": 80,
+            "bytes": 7278
+          },
+          {
+            "path": "src/sdk/bake/gltfSource.ts",
+            "lines": 54,
+            "bytes": 4334
+          },
+          {
+            "path": "src/sdk/outputRuntime.ts",
+            "lines": 105,
+            "bytes": 9895
+          },
+          {
+            "path": "src/sdk/projectOutput.ts",
+            "lines": 134,
+            "bytes": 9162
+          },
+          {
+            "path": "src/sdk/outputProduct.ts",
+            "lines": 125,
+            "bytes": 12101
+          },
+          {
+            "path": "src/sdk/runtimeImports.ts",
+            "lines": 29,
+            "bytes": 4726
+          },
+          {
+            "path": "src/sdk/reportCard.ts",
+            "lines": 7,
+            "bytes": 1306
+          },
+          {
+            "path": "src/sdk/productOutput.ts",
+            "lines": 46,
+            "bytes": 4736
+          },
+          {
+            "path": "src/sdk/projectMap.ts",
+            "lines": 19,
+            "bytes": 1947
+          },
+          {
+            "path": "src/sdk/bake/placeholders.ts",
+            "lines": 355,
+            "bytes": 38117
+          },
+          {
+            "path": "src/sdk/bake/nearPlaceholder.ts",
+            "lines": 138,
+            "bytes": 15622
+          },
+          {
+            "path": "src/sdk/behaviourSource.ts",
+            "lines": 46,
+            "bytes": 4494
+          },
+          {
+            "path": "src/sdk/bake/authoredWorld.ts",
+            "lines": 134,
+            "bytes": 12440
+          },
+          {
+            "path": "src/sdk/bake/worldCollision.ts",
+            "lines": 115,
+            "bytes": 10089
+          },
+          {
+            "path": "src/sdk/bake/worldGeometry.ts",
+            "lines": 66,
+            "bytes": 4639
+          },
+          {
+            "path": "src/sdk/bake/textureWasm.ts",
+            "lines": 55,
+            "bytes": 5962
+          },
+          {
+            "path": "src/sdk/runtimePerformance.ts",
+            "lines": 28,
+            "bytes": 3057
+          },
+          {
+            "path": "src/sdk/performancePolicy.ts",
+            "lines": 13,
+            "bytes": 1578
+          },
+          {
+            "path": "src/sdk/configBoundary.ts",
+            "lines": 5,
+            "bytes": 624
+          },
+          {
+            "path": "src/sdk/newProject.ts",
+            "lines": 32,
+            "bytes": 3251
+          }
+        ]
+      }
+    },
+    "nalati-grasslands": {
+      "status": "unclosed",
+      "escapes": 159,
+      "customPercent": null,
+      "topEscapeFiles": [
+        {
+          "path": "src/shards/nalati-grasslands/runtime/state.ts",
+          "count": 25,
+          "messages": [
+            "runtime/ cannot import JSON or assets: ../shard.config; read the admitted product instead",
+            "runtime/ is standalone: ../creatures/wildlife leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/env leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/knockdown leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../ride/input leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../water leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../outcrops leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../cragRock leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/index leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/dressing/index leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/goldenKing leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/elites leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/installWeather leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/weatherStep leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/loadout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../wet leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/night leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../stealth leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/index leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/grass leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../ride/ride leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/stormTitan leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/nalatiSkins leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/layout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/places leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/nalati-grasslands/runtime/headlessCreatures.ts",
+          "count": 16,
+          "messages": [
+            "runtime/ is standalone: ../creatures/marmotBrain leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/wolf leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/kokbori leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/horse leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/leopard leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/sheepdog leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/flockRows leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/wildPlacement leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/fauna leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/sheepdogBrain leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/eliteRoster leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/eliteEncounters leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/terrain leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../wet leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/trampleMovers leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/knockdown leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/nalati-grasslands/runtime/headless.ts",
+          "count": 12,
+          "messages": [
+            "runtime/ is standalone: ../world/terrain leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../wet leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/grassFieldLayout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/trampleMovers leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/dayKeys leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/env leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/Weather leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/weatherProfile leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/wildLight leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/weatherStep leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/layout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../layout leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/nalati-grasslands/runtime/index.ts",
+          "count": 12,
+          "messages": [
+            "runtime/ is standalone: ../species/rows leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/hulls leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../strings leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/feats leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/grassFieldLayout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/grass leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/loadout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/equipment leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../adventure leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../bag leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../playground/registration leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../shard.config; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/nalati-grasslands/runtime/bootRoster.ts",
+          "count": 11,
+          "messages": [
+            "runtime/ is standalone: ../species/wolf leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/horse leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/leopard leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/goldenKing leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/eliteRoster leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/eliteEncounters leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../creatures/wildPlacement leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/fauna leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/layout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/spawns leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/terrain leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        }
+      ]
+    },
+    "nine-dragon-stack": {
+      "status": "unclosed",
+      "escapes": 33,
+      "customPercent": null,
+      "topEscapeFiles": [
+        {
+          "path": "src/shards/nine-dragon-stack/runtime/geometry.ts",
+          "count": 5,
+          "messages": [
+            "runtime/ cannot import JSON or assets: ../shard.config; read the admitted product instead",
+            "runtime/ cannot import JSON or assets: ../data/world.generated.json; read the admitted product instead",
+            "runtime/ is standalone: ../world/layoutBake leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/specimens leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import assets, JSON, ?raw or ?url; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/nine-dragon-stack/runtime/audio/ambience.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../../look/lanterns leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../../shard.config; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/nine-dragon-stack/runtime/facts.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ cannot import JSON or assets: ../shard.config; read the admitted product instead",
+            "runtime/ is standalone: ../world/feats leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/nine-dragon-stack/runtime/grapple.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../grapple/sim leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/feats leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/nine-dragon-stack/runtime/headless.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../world/floorRows leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../data/physics.generated.json; read the admitted product instead"
+          ]
+        }
+      ]
+    },
+    "pastel-plain": {
+      "status": "closed",
+      "escapes": 0,
+      "customPercent": null,
+      "topEscapeFiles": [],
+      "customRuntimeLines": 0,
+      "legacyLines": null,
+      "customSections": [],
+      "customSectionBytes": 0,
+      "assemblyScriptLines": 94,
+      "assemblyScriptBudget": {
+        "ceiling": null,
+        "share": null,
+        "passed": null,
+        "enforcement": "report-only"
+      },
+      "privateBinaryBytes": 0,
+      "oneUserBuildTools": {
+        "lines": 0,
+        "files": []
+      }
+    },
+    "pine-hollow": {
+      "status": "unclosed",
+      "escapes": 187,
+      "customPercent": null,
+      "topEscapeFiles": [
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "count": 29,
+          "messages": [
+            "runtime/ is standalone: ../strings leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/spawns leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/rows leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/looks leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../compendium leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/rifleFloor leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/crossbow/display leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/homestead leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/treeFactory leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/water leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/timberSites leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/context leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/undergrowth leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/props leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/landmarks leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/cabins leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/drawnModels leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/places leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../loadout/loadout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/install leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/eliteStreams leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/index leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/weather leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/longbowProfile leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/equipment leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../loadout/effects leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../loadout/events leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/trades leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../items leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/quest.ts",
+          "count": 14,
+          "messages": [
+            "runtime/ is standalone: ../data/questDeaths leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/zipline leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/graph leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/interactions leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/wardensHollow leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/table leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/stagWalk leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/dayKeys leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/featLaw leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/nativeLoadout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/readings leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/contracts leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../quest/benchPose leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../data/spots.generated.json; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/headless.ts",
+          "count": 9,
+          "messages": [
+            "runtime/ is standalone: ../data/terrainBindings leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/crossbow/profiles leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../weapons/leverAction leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/nativeLoadout leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/dayKeys leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../data/quests leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../data/entryWalk.json; read the admitted product instead",
+            "runtime/ is standalone: ../loadout/ammo leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../world/weatherProfile leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/antlerKing.ts",
+          "count": 8,
+          "messages": [
+            "runtime/ is standalone: ../combat/kingFight leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../look/skyBackdrop leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/strikes leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../species/bodies leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/spawns leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/fxKit leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/kingRig leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../combat/ctx leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/world/cabinBake.ts",
+          "count": 7,
+          "messages": [
+            "runtime/ is standalone: ../../world/timberSites leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../../world/timberBake leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../../data/timberWorld.generated.json; read the admitted product instead",
+            "runtime/ cannot import JSON or assets: ../../data/cabins.json; read the admitted product instead",
+            "runtime/ is standalone: ../../world/logKit leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../../world/homestead leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        }
+      ]
+    },
+    "sunscar-dunes": {
+      "status": "unclosed",
+      "escapes": 6,
+      "customPercent": null,
+      "topEscapeFiles": [
+        {
+          "path": "src/shards/sunscar-dunes/runtime/headless.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../data/nativeWorld leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ cannot import JSON or assets: ../data/physics.generated.json; read the admitted product instead"
+          ]
+        },
+        {
+          "path": "src/shards/sunscar-dunes/runtime/items/heldWhip.ts",
+          "count": 2,
+          "messages": [
+            "runtime/ is standalone: ../../world/baked leaves its own runtime/; read a built section or move play code into runtime/",
+            "runtime/ is standalone: ../../world/meshes leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/sunscar-dunes/runtime/index.ts",
+          "count": 1,
+          "messages": [
+            "runtime/ is standalone: ../plugin leaves its own runtime/; read a built section or move play code into runtime/"
+          ]
+        },
+        {
+          "path": "src/shards/sunscar-dunes/runtime/source.ts",
+          "count": 1,
+          "messages": [
+            "runtime/ cannot import JSON or assets: ../data/product.generated.json; read the admitted product instead"
+          ]
+        }
+      ]
+    }
+  }
+}

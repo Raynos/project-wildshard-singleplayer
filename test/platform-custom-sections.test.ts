@@ -6,6 +6,7 @@ import {join} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small isolated policy fixture.
 import {tmpdir} from 'node:os';
 import {customSectionFailures} from '../scripts/shard-platform-sections.mjs';
+import {comparePlatformList} from '../scripts/check-platform-ratchets.mjs';
 
 it('enforces both ceilings and a named exit for every private section',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-custom-section-'));
@@ -24,5 +25,19 @@ it('enforces both ceilings and a named exit for every private section',()=>{
   expect(customSectionFailures(root,measures)).toEqual(['demo: custom/wind needs a recorded plan exit row']);
   writeFileSync(join(root,'lint/ratchet.json'),'{}');
   expect(customSectionFailures(root,{demo:{customSections:[]}})).toEqual(['demo: missing custom-section count ceiling','demo: missing custom-section bytes ceiling']);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('cannot enlarge or remove either custom-section policy ceiling',()=>{
+ const root=mkdtempSync(join(tmpdir(),'platform-custom-policy-'));
+ const before=join(root,'before.json'),after=join(root,'after.json');
+ const policy=(count:number,bytes:number):string=>JSON.stringify({budgets:{'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes}});
+ try{
+  writeFileSync(before,policy(2,100));writeFileSync(after,policy(1,90));
+  expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual([]);
+  writeFileSync(after,policy(3,101));
+  expect(comparePlatformList('lint/ratchet.json',before,after)).toHaveLength(2);
+  writeFileSync(after,'{}');
+  expect(comparePlatformList('lint/ratchet.json',before,after)).toHaveLength(2);
  }finally{rmSync(root,{recursive:true,force:true});}
 });

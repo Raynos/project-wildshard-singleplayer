@@ -20,6 +20,7 @@ export interface ShardLines {
   measurement?:'built-output';
   customSectionBytes?:number;
   customSections?:{name:string;bytes:number}[];
+  oneUserBuildTools?:{lines:number;files:{path:string;lines:number;bytes:number}[]};
   components?:ComponentInventory;
   customSources?:CustomSource[];
   runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; conversion: ConversionMeasure;
@@ -29,9 +30,9 @@ export interface ShardLines {
 export interface ShardPlatformList { baseline: Record<string, number>; enforced: Record<string, number> }
 export interface MilestoneFlags { headless: boolean }
 export function codeLines(source: string, path?: string): number;
-export function shardLines(root?: string, includeSources?: boolean, products?:string|null): Record<string, ShardLines>;
+export function shardLines(root?: string, includeSources?: boolean): Record<string, ShardLines>;
 /** Strict output-only P4 measure; never falls back to an authoring closure. */
-export function outputShardLines(root?:string,includeSources?:boolean,products?:string):Record<string,ShardLines>;
+export function outputShardLines(root?:string,includeSources?:boolean,products?:string,only?:string[]|null):Record<string,ShardLines>;
 export function milestoneFlags(slug: string, row: ShardLines, root?: string): MilestoneFlags;
 export function checkShares(recorded: ShardPlatformList, lines: Record<string, ShardLines>): string[];
 

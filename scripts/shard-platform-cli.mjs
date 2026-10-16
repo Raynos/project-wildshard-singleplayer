@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+// P4 command orchestration stays outside the importable census to avoid an async cycle.
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {checkShares} from './shard-platform.mjs';
+import {outputReport,refreshOutputReports} from './shard-output-report.mjs';
+import {componentWave,SHARD_WAVES} from './shard-components.mjs';
+
+const ROOT=resolve(import.meta.dirname,'..'),LIST='lint/shard-platform.json';
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  const build = !process.argv.includes('--no-build');
+  if (build && !process.env.WS_HEAVY_TOKEN) {
+    const {spawnSync} = await import('node:child_process');
+    const result = spawnSync('python3', ['scripts/heavy-lane.py', 'build', '--', process.execPath, ...process.argv.slice(1)], {cwd:ROOT, stdio:'inherit'});
+    process.exitCode = result.status ?? 1;
+  } else {
+    if (build) {
+      // The copied product needs the same official cheap inputs as an app build.
+      const {execFileSync}=await import('node:child_process');
+      execFileSync(process.execPath,['scripts/gen.mjs','--proof'],{cwd:ROOT,stdio:['inherit',2,2]});
+    }
+    const productArg = process.argv.find(value => value.startsWith('--products='));
+    const products = productArg === undefined ? resolve(ROOT, 'out') : resolve(ROOT, productArg.slice('--products='.length));
+    const log=console.log,info=console.info;
+    if(process.argv.includes('--json')){console.log=console.error;console.info=console.error;}
+    let report;
+    try {report=await outputReport(ROOT,{build,products});}
+    finally {console.log=log;console.info=info;}
+    const {rows,measures,failures}=report;
+    if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',closed:Object.keys(measures).length,total:Object.keys(rows).length,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    else {
+      console.log('shard                  closure    custom / frozen   escapes  custom sections / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
+      for (const [slug,row] of Object.entries(rows)) {
+        if (row.status==='unclosed') {
+          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}`);
+          for (const file of row.files.slice(0,5)) console.log(`  ${file.path}: ${file.count} escapes; ${file.messages.join('; ')}`);
+          if (row.refusal) console.log(`  strict copy: ${row.refusal}`);
+          continue;
+        }
+        const pct=row.customPercent===null?'native':`${row.customPercent.toFixed(2)} %`;
+        console.log(`${slug.padEnd(22)} closed     ${pct.padEnd(17)} 0        ${row.customSections?.length}/${row.customSectionBytes}  AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}  bin ${row.content?.privateBinaryBytes}  build ${row.oneUserBuildTools?.lines}`);
+      }
+    }
+    if (process.argv.includes('--check')) {
+      const recorded=JSON.parse(readFileSync(resolve(ROOT,LIST),'utf8'));
+      failures.push(...checkShares(recorded,measures));
+    }
+    for (const failure of failures) console.error(`shard-platform: ${failure}`);
+    if (failures.length>0) process.exitCode=1;
+  }
+}
