@@ -1,20 +1,10 @@
-import { createAchievementCounters } from '@wildshard/game/achievements';
+import { createAchievementCounters, type AchievementCounters, type AchievementCounterPorts } from '@wildshard/game/achievements';
 import { PINE_FEAT_COUNTERS } from '../data/questInventory';
 
 /** Gameplay submits the same bounded outcomes in the page and renderer-free host. */
-export interface PineFacts {
-  readonly kill: (kind: string, variant?: string) => void;
-  readonly event: (event: string, total?: number) => void;
-  readonly syncFlags:ReturnType<typeof createAchievementCounters>['syncFlags'];
-}
-/** Storage and emission belong to the caller; this policy owns matching, saturation and stable fact identities. */
-export interface PineFeatPorts {
-  readonly read: () => Record<string, number>;
-  readonly write: (counts: Record<string, number>) => void;
-  readonly emit: (fact: string, entity: string) => void;
-}
+export type PineFacts = Pick<AchievementCounters, 'kill' | 'event' | 'syncFlags'>;
 /** The page's counter law; submit each newly reached stable identity once, replaying saved identities only on migration. */
-export function createPineFacts(ports: PineFeatPorts): PineFacts & { replay: () => void } {
+export function createPineFacts(ports: AchievementCounterPorts): PineFacts & { replay: () => void } {
   return createAchievementCounters(PINE_FEAT_COUNTERS,ports);
 }
 

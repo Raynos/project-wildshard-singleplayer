@@ -45,7 +45,6 @@ export type PhShot = 'boltImpact-rock' | 'deer_snort' | 'leverCycle' | 'leverSho
   | 'skinCut-a' | 'skinCut-b';
 export type Npc = 'ranger' | 'miller' | 'trader';
 export const PH_BEDS: readonly PhBed[] = ['hollow', 'pond', 'cabin', 'creek', 'waterfall', 'mill', 'ridge', 'oldgrowth', 'cave', 'night', 'nightfog', 'rain-canopy', 'rain-open', 'dawn'];
-export const NPCS: readonly Npc[] = ['ranger', 'miller', 'trader'];
 
 export interface PhPlay { at?: { x: number; y: number; z: number } | undefined; gain?: number; pan?: number; out?: AudioNode }
 
