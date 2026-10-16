@@ -599,14 +599,19 @@
       "inputRoots": [
         "src/shards/pine-hollow/generators/questNpcs.ts",
         "src/shards/pine-hollow/data/layout.ts",
-        "src/shards/pine-hollow/data/questNpcs.ts",
+        "src/shards/pine-hollow/generators/questTalkPolicy.ts",
         "src/shards/pine-hollow/data/wardensHollow.ts",
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/package.json",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/shards/pine-hollow/generators/wardensHollow.ts",
+        "src/shards/pine-hollow/generators/quests.ts",
+        "src/sdk/quests.ts",
+        "src/format/quests.ts",
+        "src/format/package.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/questNpcs.generated.json"

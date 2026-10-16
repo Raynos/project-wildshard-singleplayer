@@ -8,7 +8,7 @@ import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from './handsLo
 
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import { SPRAY_LOOK } from './streamLook';
-import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHollow';
+import people from './questNpcs.generated.json' with { type: 'json' };
 
 import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
 import { FINISH_CARDS } from './finishCards';
@@ -26,7 +26,7 @@ export const RUNTIME_MIRRORS = [
   defineMirror('LONGBOW_POSES', LONGBOW_POSES),
   defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
-  defineMirror('NPC_NAMES', { ranger: RANGER_DIALOGUE.name, miller: MILLER_DIALOGUE.name, trader: TRADER_DIALOGUE.name }),
+  defineMirror('NPC_NAMES', Object.fromEntries(people.rows.map(row => [row.npc.id, row.npc.name]))),
   defineMirror('CRAG_LOOK', CRAG_LOOK),
   defineMirror('CAVE_LOOK', CAVE_LOOK),
   defineMirror('SPRAY_LOOK', SPRAY_LOOK),
