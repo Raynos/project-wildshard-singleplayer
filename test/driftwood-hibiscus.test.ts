@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { MeshStandardMaterial } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
+import { namedModelProduct } from './fixtures/namedModelProduct';
 import { Rng } from '@wildshard/engine/core/rng';
 import { seedOf } from '@wildshard/engine/models/model';
 import { leafClump } from '../src/shards/driftwood-isle/generators/hibiscus';
@@ -44,11 +46,7 @@ it('loads the three Explorer bakes through the native intake with their wind cha
     const geometry = leafClump({ ...hibiscusBush.defaults, ...variant.params }, new Rng(seedOf(hibiscusBush)));
     emitted.set(files[variant.id], staticGlb([{ geometry, material: new MeshStandardMaterial(), customAttributes: { _SWAY: 'aSway' }, compactIndex: true }])); geometry.dispose();
   }
-  const mocked = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
-    const bytes = typeof input === 'string' ? emitted.get(input) : undefined;
-    if (bytes === undefined) throw new Error('Unknown specimen request');
-    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
-  });
+  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
   try {
     await loadHibiscusVariants();
     for (const variant of hibiscusBush.variants ?? []) {

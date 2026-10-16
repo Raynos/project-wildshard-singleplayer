@@ -4,6 +4,8 @@ import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
+import { namedModelProduct } from './fixtures/namedModelProduct';
 import { REEF, type ReefParams } from '../src/shards/driftwood-isle/runtime/models/reef';
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
@@ -42,11 +44,7 @@ it('loads all authored reef cards with the borrowed material and refuses undecla
       emitted.set(url, staticGlb([{geometry, material, customAttributes: {_SWAY: 'aSway'}, compactIndex: true}], `reef-${kind}`)); geometry.dispose();
     }
   }
-  const mocked = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
-    const bytes = typeof input === 'string' ? emitted.get(input) : undefined;
-    if (bytes === undefined) throw new Error('Undeclared reef request');
-    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
-  });
+  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
   try {
     for (const kind of ['coral', 'weed', 'star'] as const) {
       const def = REEF[kind];

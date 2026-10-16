@@ -5,6 +5,8 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
+import { namedModelProduct } from './fixtures/namedModelProduct';
 import { palm } from '../src/shards/driftwood-isle/runtime/models/palm';
 import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
@@ -43,11 +45,7 @@ it('loads each authored Explorer palm with its swaying kit material', async () =
     const geometry = palmGeometry({...palm.defaults, ...variant.params}, new Rng(seedOf(palm)));
     emitted.set(files[variant.id], staticGlb([{geometry, material, customAttributes: {_SWAY: 'sway'}, compactIndex: true}])); geometry.dispose();
   }
-  const mocked = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
-    const bytes = typeof input === 'string' ? emitted.get(input) : undefined;
-    if (bytes === undefined) throw new Error('Undeclared palm request');
-    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
-  });
+  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
   try {
     for (const variant of palm.variants ?? []) {
       const ready = new Promise<void>(resolve => { document.addEventListener('ws:model-ready', () => resolve(), {once: true}); });
