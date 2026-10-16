@@ -29,7 +29,7 @@ import * as THREE from 'three';
 import { Crossbow, MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../runtime/weapons/crossbow/display';
 import { pineSkins, type SkinId } from '../runtime/loadout/skins';
-import type { PineHollowSfx } from '../runtime/audio/sfx';
+import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';

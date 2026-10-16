@@ -2280,6 +2280,21 @@
           "z": 201.4142135623731
         }
       ]
+    },
+    "bank": {
+      "families": {},
+      "spatial": {},
+      "catalogue": {
+        "set": "pine-hollow",
+        "tolerance": 0.001,
+        "arrayFamilies": true,
+        "familyGain": false,
+        "loopGain": 0.5
+      },
+      "barks": {
+        "prefix": "bark-",
+        "gain": 0.8
+      }
     }
   }
 }

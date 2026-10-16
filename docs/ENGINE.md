@@ -7659,3 +7659,26 @@ ids; `start(id)` queues on that same owner. It exposes no clock or save methods.
 Sky mover and Signal encounter bindings use these data-only paths. Legacy owner
 maps remain explicit only while Pine/DW migrate; no mechanic row falls back to
 one. Cable installation and its continuation stay with the traversal component.
+
+### Declared native voice banks (G466 C8)
+
+`installDeclaredAudio(rows, {audio, scope}, 'voices')` constructs a
+`DeclaredSoundBank` from admitted `audio.bank` and `audio.playback` data. Pine's
+recorded sprite/bark bank and Driftwood's procedural bank use this same owner;
+no shard generator or playback closure moves into the platform. The ordinary
+installer signature keeps its existing cue/profile/bed behaviour.
+
+`audio.bank.families` selects bounded PCM programs or native impact recipes,
+variant counts, channels and half-rate rendering. Registration is scope-owned;
+missing programs refuse before changing the pool. `bank.catalogue` selects the
+existing recording/sprite decoding policy. Counted boot decoding and playback
+borrow the same per-set clip cache without copying AudioBuffers. `bank.barks`
+selects the family prefix and gain; sorted decoded families, the cosmetic RNG
+stream and immediate-repeat exclusion retain their original order.
+
+Voice bindings can target `bank.playback.play(action, parameters, options)`
+directly. `bank.spatial(id, position, listener, yaw)` uses declared full-3D range,
+attenuation and tap IDs, tries the native sampled shot first, and executes the
+existing phrase only after sample refusal. Construction needs no AudioContext
+or browser; only the supplied native mixer performs playback. Frozen legacy
+sound banks remain unchanged.

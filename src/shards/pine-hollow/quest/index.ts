@@ -59,7 +59,7 @@ import source from '../shard.config';
  */
 import * as THREE from 'three';
 import type { Cabins } from '../runtime/world/homestead';
-import type { PineHollowSfx } from '../runtime/audio/sfx';
+import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { pineSkins } from '../runtime/loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
 import { installPineClock } from '../runtime/directorClock';

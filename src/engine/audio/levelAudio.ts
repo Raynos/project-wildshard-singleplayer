@@ -39,6 +39,12 @@ export interface AudioCatalogueExtras {
  * without changing recordings, gains, the decoder, sound clocks or randomness.
  */
 export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalogueExtras): Promise<LevelAudioProfile> {
+  let catalogueExtras=extras;
+  if(catalogueExtras===undefined&&data.bank?.catalogue!==undefined){
+    const {declaredCatalogue}=await import('./declaredBank');
+    const policy=data.bank.catalogue,catalogue=declaredCatalogue(policy);
+    catalogueExtras={files:()=>catalogue.shotFiles(),decode:async(read,onFile)=>{await declaredCatalogue(policy,read).decodeShots(onFile);}};
+  }
   const samples = data.samples, music = data.music, policy = samples?.catalogue;
   if (samples === undefined || music === undefined || policy === undefined) throw new Error('Missing declared audio catalogue');
   const [{ audioFiles, musicDir, sfxDir }, { musicManifests, sfxManifests }, { getMusicStyle, getSfxSet }, { styleFiles, decodeStyle }, { sfxFiles, decodeSfxSet }] = await Promise.all([
@@ -52,7 +58,7 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
   const ownSfx = (): string[] => Object.hasOwn(sfxManifests(), samples.set) ? [samples.set] : [];
   const selectedSfx = (): string[] => [...sfxFiles(getSfxSet(), samples.bed, levels),
     ...(policy.overlaySamples && getSfxSet() !== 'synth' ? sfxFiles(samples.set, samples.bed, levels) : []),
-    ...(getSfxSet() === 'synth' ? [] : extras?.files() ?? [])];
+    ...(getSfxSet() === 'synth' ? [] : catalogueExtras?.files() ?? [])];
   const decodeSamples = async (read: AudioRead, decode: AudioDecode, onFile?: () => void): Promise<SfxBank> => {
     if (!policy.overlaySamples) return decodeSfxSet(getSfxSet(), samples.bed, read, onFile, decode, levels);
     const set = getSfxSet(), [base, own] = await Promise.all([
@@ -75,7 +81,7 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
     decode: async (style, read, decode, onFile) => {
       const [title, bank] = await Promise.all([
         decodeStyle(style, music.bootSlots, read, decode, onFile).catch(() => undefined), decodeSamples(read, decode, onFile),
-        ...(getSfxSet() === 'synth' || extras === undefined ? [] : [extras.decode(read, onFile)]),
+        ...(getSfxSet() === 'synth' || catalogueExtras === undefined ? [] : [catalogueExtras.decode(read, onFile)]),
       ]);
       return { title, samples: bank, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } };
     },

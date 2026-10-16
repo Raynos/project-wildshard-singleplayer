@@ -40,7 +40,9 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
  * Settings ▸ Sound effects = Synth: no beds (Audio's synth forest bed plays), the reverb still works.
  */
 import type { Camera } from 'three';
-import { PineHollowSfx, PH_BEDS, type PhBed } from './sfx';
+import { PH_BEDS, type PhBed } from './sfx';
+import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
+import {installDeclaredAudio} from '@wildshard/engine/audio/declared';
 import { requireAudioProfile, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -91,7 +93,7 @@ export class ForestAmbience {
   /** `profile`: the declared zone rows; `rows`: the shard's declared audio (`ctx.product.shardfile.audio`) */
   constructor(audio: Audio, o: ForestAmbienceOpts, profile: AudioZoneProfile, rows: Shardfile['audio']) {
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
-    this.sfx = new PineHollowSfx(audio, rows);
+    this.sfx = installDeclaredAudio(rows,{audio,scope:this.scope},'voices');
     this.surfaces=audio.surfaceMap(requireAudioProfile(rows.surfaces,'forest step surfaces'),['planks','wet','mud','rock','litter'] as const,{heightAt:o.heightAt,floors:{cabins:[o.cabins]},values:{rain:()=>this.rain},circles:{pond:()=>hasPond()?POND:undefined}});
     this.spots = [...(o.spots ?? [])];
     this.routing = new AmbienceMix(audio,profile,{

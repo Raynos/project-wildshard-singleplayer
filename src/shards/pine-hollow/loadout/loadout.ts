@@ -27,7 +27,7 @@ import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';
 import { QUIVER_MAX } from '../runtime/weapons/Longbow';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
-import type { PineHollowSfx } from '../runtime/audio/sfx';
+import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
 
 const savedSchema = valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) });

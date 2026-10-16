@@ -1,11 +1,10 @@
 import { createCatalogueAudio, type LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
-import { pineShotFiles, decodePineShots } from './sfx';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** Declared boot routing; the existing sprite decoder retains its native cache. */
 export async function createPineAudio(product?: ShardProduct): Promise<LevelAudioProfile> {
-  if (product !== undefined) return createCatalogueAudio(product.section('audio/audio').audio, { files: pineShotFiles, decode: decodePineShots });
+  if (product !== undefined) return createCatalogueAudio(product.section('audio/audio').audio);
   // Background boot inventory runs as shell code. The returned catalogue borrows
   // plain audio rows, so its temporary product lease ends after preparation.
   const scope = new Scope('pine.audio.catalogue');

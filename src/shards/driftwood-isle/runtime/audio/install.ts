@@ -7,7 +7,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../../world/build';
 import { islandCoveSpec } from '../boot/coveGeometry';
-import { IslandSfx } from './sfx';
+import {installDeclaredAudio} from '@wildshard/engine/audio/declared';
 import { ISLAND_SURFACES, SHRINE_SITES } from '../const';
 import { createIslandAmbience } from './ambience';
 
@@ -23,12 +23,12 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   if (declaredSea?.kind !== 'sea') throw new Error('Driftwood audio requires its admitted sea');
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
   const shrineHum = built.shrine === null ? null : audio.loopEmitter(requireAudioProfile(audioRows.emitters?.['shrine'],'shrine emitter'),requireAudioProfile(audioRows.loopGraphs,'audio loop graphs'),{position:{x:SHRINE.x,y:heightAt(SHRINE.x,SHRINE.z)+2.5,z:SHRINE.z},duck:gain=>{music.duck(gain);}});
-  const islandSfx = new IslandSfx(audio, declared, ctx.scope);
+  const islandSfx = installDeclaredAudio(declared,{audio,scope:ctx.scope},'voices');
   const sea = declaredSea.level; // SF46 (G164): the lowered sea at road height
   const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
   const ambience = createIslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: islandCoveSpec() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
   const cues = createCueRouter(audioRows.routing.filter(route => route.bus === 'audio'), {
-    voices: new Map(), bindings: declared.voiceBindings, owners: new Map<string, object>([['sfx', islandSfx], ['listener', player]]),
+    voices: new Map(), bindings: declared.voiceBindings, owners: new Map<string, object>([['sfx', islandSfx],['playback',islandSfx.playback], ['listener', player]]),
   });
   audio.installCues(cues, ctx.scope);
   ctx.answer('player.stepSurface', (request) => ({ ...request, surface: surfaces.surfaceAt(request.x, request.z, request.y) }));

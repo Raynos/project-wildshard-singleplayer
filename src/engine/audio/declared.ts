@@ -1,4 +1,5 @@
 import type { AudioData } from '@wildshard/format/audio';
+import { DeclaredSoundBank, type DeclaredBankAudio } from './declaredBank';
 import type { Scope } from '../app/scope';
 import type { Audio } from './Audio';
 import type { CombatCues, CombatCueOpts } from '../combat/cues';
@@ -8,6 +9,7 @@ import type { AudioMusicProfile, AudioSampleProfile, AudioZoneProfile } from './
 /** Catalogue cue ids plus bounded wind recipes and a score mode, supplied as validated level data. */
 export interface DeclaredAudioData {
   cues: readonly { id: string; voice: string }[];
+  bank?: NonNullable<AudioData['bank']>; playback?: NonNullable<AudioData['playback']>; pcm?: NonNullable<AudioData['pcm']>; synth?: NonNullable<AudioData['synth']>;
   /** Extended profiles resolve only through trusted platform catalogue installers. */
   music?: AudioMusicProfile | undefined; samples?: AudioSampleProfile | undefined; zones?: AudioZoneProfile | undefined;
   /** Ordered cue rules resolve the same admitted voice catalogue, with scoped delayed playback. */
@@ -30,10 +32,18 @@ export interface DeclaredAudioPorts {
     zones?: ((profile: AudioZoneProfile, scope: Scope) => void) | undefined;
   } | undefined;
 }
+/** Bank-only phase preserves separately owned cue and ambience lifetimes. */
+export function installDeclaredAudio(data:AudioData,ports:{audio:DeclaredBankAudio;scope:Scope},phase:'voices'):DeclaredSoundBank;
+export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts):void;
 /** Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. */
-export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAudioPorts): void {
+export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope},phase?:'voices'):void|DeclaredSoundBank {
+  if(ports.scope.disposed)throw new Error('Audio scope is disposed');
+  if(phase==='voices'){
+    if(!('voices' in ports.audio))throw new Error('Missing declared bank ports');
+    return new DeclaredSoundBank(ports.audio,data,ports.scope);
+  }
+  if(!('cues' in ports))throw new Error('Missing cue ports');
   if (data.ambience?.gust !== undefined) throw new Error('Gust beds require their declared native driver');
-  if (ports.scope.disposed) throw new Error('Audio scope is disposed');
   if ((data.music !== undefined && ports.profiles?.music === undefined) || (data.samples !== undefined && ports.profiles?.samples === undefined) || (data.zones !== undefined && ports.profiles?.zones === undefined)) throw new Error('Audio profile requires its trusted catalogue installer');
   const voices = new Map(data.cues.map((cue) => {
     const voice = ports.voices.get(cue.voice); if (voice === undefined) throw new Error(`Unknown catalogue voice: ${cue.voice}`);
