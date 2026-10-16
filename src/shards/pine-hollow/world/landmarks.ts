@@ -74,17 +74,7 @@ export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw:
 
 // ───────────────────────────── the whole set ─────────────────────────────
 
-export interface PineLandmarksHandle {
-  group: THREE.Group;
-  /** the zipline's cable ends (world) and where you stand to ride / where you land */
-  zip: { top: THREE.Vector3; bottom: THREE.Vector3; launch: THREE.Vector3; landing: THREE.Vector3 };
-  setLit: (id: WaystoneId, on: boolean) => void;
-  setCanoeAway: (away: boolean) => void;
-  isLit: (id: WaystoneId) => boolean;
-  floorHeightAt: (x: number, z: number) => number | undefined;
-}
-
-export class PineLandmarks implements PineLandmarksHandle {
+export class PineLandmarks {
   readonly group = new THREE.Group();
   zip = { top: new THREE.Vector3(0, 0, 0), bottom: new THREE.Vector3(0, 0, 0), launch: new THREE.Vector3(0, 0, 0), landing: new THREE.Vector3(0, 0, 0) };
   /** the timber models' colliders, then the props' (world space: the navmesh bake reads them) */

@@ -4,26 +4,10 @@
  * ./cabinBake.ts) read. Shape helpers exist only in generators/cabinShapes.ts; the live path reads admitted geometry.
  */
 import * as v from 'valibot';
-import type { BuildingDoor, BuildingFloor, BuildingSwing } from '../runtime/props/buildingLife';
-import type { SiteFlicker as BuildingFlicker, SiteLightAnchor as BuildingLightAnchor, SiteLightKind as BuildingLightKind, SiteRoom as BuildingRoom } from '@wildshard/engine/fx/SiteLights';
 
 /** a building part's material: the PBR sets (homestead.ts `Mats`) a baked part names */
 export type KitMat = 'log' | 'endGrain' | 'chink' | 'roof' | 'beam' | 'deck' | 'door' | 'stone' | 'bark' | 'iron' | 'cloth' | 'char';
 
-/** a door: its pivot, state, legacy box, prompt and leaf (@wildshard/sdk/props/buildingLife runs it) */
-export type Door = BuildingDoor;
-/** `kind`: a fire burns all day and only reads stronger at night; a lamp (lantern, room light) is lit by the clock (PH-L3) */
-export type LightKind = BuildingLightKind;
-/** a light of its own that flickers */
-export type Fire = BuildingFlicker;
-/** phone tier: a point light's slot — the shared lights jump to the nearest cabin's anchors (`rank`: which ones get a light) */
-export type LightAnchor = BuildingLightAnchor;
-/** a room's floor rectangle in the building's frame (inside = the pooled pair lights the room) */
-export type Room = BuildingRoom;
-/** a swinging pivot (a hung lantern) */
-export type Swing = BuildingSwing;
-/** a floor / deck rectangle in world space */
-export type Floor = BuildingFloor;
 export type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
 export const PROP_KINDS: readonly PropKind[] = ['crate', 'barrel', 'bucket', 'hatchet'];
 
@@ -88,7 +72,4 @@ const Geometry = v.strictObject({ attrs: v.array(v.tuple([v.string(), n])), coun
 export const CabinRowsSchema = v.strictObject({ bin: v.string(), bytes: n, geometries: v.array(Geometry), buildings: v.array(Building), hamlet: v.nullable(v.strictObject({ at: xyz, pad: n })) });
 export type CabinRows = v.InferOutput<typeof CabinRowsSchema>;
 export type BakedBuilding = v.InferOutput<typeof Building>;
-export type BakedNode = v.InferOutput<typeof Node>;
-export type BakedLight = v.InferOutput<typeof Light>;
-export type BakedGeometry = v.InferOutput<typeof Geometry>;
 
