@@ -12,8 +12,7 @@ import { swimHands } from '@wildshard/engine/models/swimHands';
 import { bear, boar, deer } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
 import { elk } from './runtime/models/creatures';
 import { antlerKing } from './runtime/models/antlerKing';
-import { owl, raven, woodpecker } from './runtime/models/birds';
-import { snowshoeHare } from './runtime/models/wildlife';
+import { WILD_MODELS as WILD } from './runtime/models/birds';
 import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
 import { GEAR } from './runtime/models/gear';
 
@@ -29,8 +28,8 @@ export const ROSTER: readonly RosterEntry[] = [
   // the boss (src/shards/pine-hollow/combat/antlerKing.ts): at night in the King's clearing; parked out of the herd list by day
   live(antlerKing, { planned: 1 }),
   // the birds and the hares (src/shards/pine-hollow/life/index.ts)
-  live(raven, { copies: RAVENS, drawnAs: 'instanced' }), live(owl, { copies: OWLS, drawnAs: 'instanced' }),
-  live(woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(snowshoeHare, { copies: HARES, drawnAs: 'instanced' }),
+  live(WILD.raven, { copies: RAVENS, drawnAs: 'instanced' }), live(WILD.owl, { copies: OWLS, drawnAs: 'instanced' }),
+  live(WILD.woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(WILD.hare, { copies: HARES, drawnAs: 'instanced' }),
   // the people (src/shards/pine-hollow/quest/index.ts): one each, the generated person skinned on its code rig
   live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
   // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the

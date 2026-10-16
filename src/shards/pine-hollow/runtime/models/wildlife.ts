@@ -19,8 +19,7 @@
  */
 import * as THREE from 'three';
 import { loadBirdModels, type BirdSet } from '../birds';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import type { ModelContext } from '@wildshard/engine/models/model';
 import { uploadTexture } from '@wildshard/engine/core/assets';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PosedInstances, type PosedInstances as PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
@@ -117,8 +116,6 @@ export class WildlifeMesh {
 
 // ─────────────── the models (E306 / E315 M5) ───────────────
 
-const FILE = 'src/shards/pine-hollow/models/wildlife.ts';
-
 /**
  * How the life code (src/shards/pine-hollow/life/index.ts) holds each kind at rest, for its specimen: a raven on the ground between
  * pecks at a kill, the owl on its snag, the woodpecker on a trunk, a hare sat up alert — the part angles, the pitch, the
@@ -142,12 +139,3 @@ export function wildlifeSpecimen(ctx: ModelContext, kind: WildKind): THREE.Insta
   wild.begin(); wild.add({ ...newPose(kind), ...REST[kind] }); wild.commit();
   return wild.mesh;
 }
-
-/** the snowshoe hare, in its summer coat (code: `hare` above) — five about you on open ground (life/index.ts N_HARE):
- *  they graze, hop, sit up when you are near and bolt in zig-zags; drawn in the forest's one wildlife draw */
-export const snowshoeHare: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/snowshoe-hare', name: 'Snowshoe hare', category: 'creatures', pipeline: 'code', file: FILE, surface: 'flesh',
-  defaults: {},
-  build: (ctx) => wildlifeBaked() ? wildlifeSpecimen(ctx, KIND.hare)
-    : loadingSpecimen('pine-hollow/snowshoe-hare', [0.2, 0.42, 0.5], async () => { await preloadPineWildlife(); return wildlifeSpecimen(ctx, KIND.hare); }),
-});
