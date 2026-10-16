@@ -1,0 +1,49 @@
+import { expect, test } from 'vitest';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { compileDecisionScripts, decisionLineCeiling } from '@wildshard/sdk/buildDecisionScripts';
+import { inspectDecisionSource } from '@wildshard/sdk/decisionSource';
+import { generateDecisionBindings } from '@wildshard/sdk/decisionScriptBindings';
+import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
+import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
+
+const raw = { id: 'test.compiler', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
+  source: 'behaviour/main.as', binding: { encounter: 'test.encounter' }, on: ['start', 'timer'],
+  onFail: 'reset', reads: ['nearestPlayer'], commands: ['move', 'timer'], actors: { boss: 'actual.boss' },
+  moves: { stalk: 'actual.stalk' }, timers: ['beat'], stateVersion: 1,
+  state: [{ name: 'count', type: 'i32', scope: 'binding', default: 0, min: 0, max: 10 }], params: { wait: 0.1 } };
+const registries = { actors: new Map([['actual.boss', 37]]), moves: new Map([['actual.stalk', 82]]) };
+const source = `import {Actor, Move, Timer, State, Params, Read, Do} from './generated/testCompiler';
+export function onStart():void { State.count=1; Do.move(Actor.boss,Move.stalk,Read.nearestPlayer(Actor.boss)); Do.timer(Timer.beat,Params.wait); }
+export function onTimer(timer:i32):void { if(timer==Timer.beat) State.count=State.count+1; }`;
+const sources = () => new Map([['behaviour/main.as', source]]);
+const budget = { asLineCeiling: 10 };
+
+test('generated capabilities compile and drive the real host with authoritative ids and logical state', async () => {
+  const built = await compileDecisionScripts([raw], registries, sources(), budget), row = built.rows[0], blob = built.blobs[0];
+  if (row === undefined || blob === undefined) throw new Error('Missing compiled decision');
+  expect(row.module).toBe(blob.file.path); expect(built.lines).toBe(3);
+  const binding = generateDecisionBindings(row, registries);
+  const script: DecisionScript = { ...row, ids: binding.map.ids, reads: ['nearestPlayer'], lists: [], state: [{ name: 'count', type: 'i32', scope: 'binding', default: 0, min: 0, max: 10 }] };
+  const scenario = createScriptScenario(DecisionHost, { bytes: blob.bytes, script, seed: 7,
+    binding: { id: 1, script: row.id, self: 37, actors: [37], instance: 0 }, actors: [{ id: 37, at: [0, 0, 0] }], players: [{ id: 101, at: [0, 0, 2] }] });
+  scenario.send('start'); expect(scenario.commands()).toEqual([['move', 'boss', 'stalk', 101], ['timer', 'beat', 0.1]]);
+  scenario.advance(0.2); expect(scenario.state()).toEqual({ count: 2 });
+  expect(scenario.host.metrics()[0]).toMatchObject({ refusals: 0, disabled: false });
+});
+test('handler subscriptions, absent capabilities and source closure refuse before publication', async () => {
+  await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/main.as', `${source}\nexport function onDeath():void {}`]]), budget)).rejects.toThrow('handlers');
+  await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/main.as', source.replace('onTimer', 'otherTimer')]]), budget)).rejects.toThrow('handlers');
+  await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/main.as', source.replace('Do.timer(Timer.beat,Params.wait)', 'Do.reward(1)')]]), budget)).rejects.toThrow('compile failed');
+  await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/main.as', `${source}\nimport {x} from '../../outside';`]]), budget)).rejects.toThrow('Undeclared');
+  const row = parseDecisionScripts([raw])[0]; if (row === undefined) throw new Error('Missing row');
+  const bindings = generateDecisionBindings(row, registries).bindings;
+  expect(bindings).toContain('boss:i32=37'); expect(bindings).toContain('stalk:i32=82'); expect(bindings).not.toContain('static reward');
+});
+test('the budget counts every authored source and preserves comment-looking string literals', async () => {
+  const info = await inspectDecisionSource('// blank\n/* block\n comment */\nconst a="// kept";\nconst b="/* kept */"; // tail\n', 'behaviour/count.as');
+  expect(info.lines).toBe(2);
+  expect(() => decisionLineCeiling({})).toThrow('buildOptions.asLineCeiling'); expect(decisionLineCeiling({ decisionLegacyLines: 39, asLineCeiling: 100 })).toBe(3);
+  const authored = sources(); authored.set('behaviour/unused.as', 'const unused=1;');
+  await expect(compileDecisionScripts([raw], registries, authored, { asLineCeiling: 3 })).rejects.toThrow('4 > 3');
+  await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/generated/hidden.as', source]]), budget)).rejects.toThrow('Invalid authored');
+});

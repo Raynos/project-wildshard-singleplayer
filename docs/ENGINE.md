@@ -7393,3 +7393,20 @@ the v0 path; v1 bytes without their declared rows refuse. The author build
 passes its decision rows into this boundary before measuring the native
 simulation. Decision execution/event wiring remains KA6; KT2 exercises the
 real DecisionHost separately, rather than inventing a second interpreter.
+
+### Declared decision author compilation (KA3)
+
+`@wildshard/sdk/decisionScriptBindings.generateDecisionBindings(row, registries)`
+uses the defining format binding map to generate only declared constants,
+state/parameter accessors, reads, commands and subscribed event dispatch. The
+`@wildshard/sdk/as/ws` core owns the v1 IO layout and bounded list/command buffers.
+Guest sources stay virtual compiler inputs, outside the host TypeScript program.
+
+`@wildshard/sdk/buildDecisionScripts.compileDecisionScripts(rows, registries,
+authoredSources, options)` compiles and meters those inputs, then admits each
+module with its declared v1 page contract. `buildDecisionScripts` reads bounded
+project-owned `.as` files and refuses symlinks. The parser checks handler
+subscriptions and counts all authored `.as`, including unused sources, without
+comments or blank lines. Generated code never counts. Root adapters supply the
+sealed `decisionLegacyLines` denominator (10 percent); standalone projects must
+declare `asLineCeiling`. No SDK module reads repository policy.

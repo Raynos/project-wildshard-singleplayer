@@ -140,7 +140,11 @@
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",
-    "./outputProduct": "./outputProduct.ts"
+    "./outputProduct": "./outputProduct.ts",
+    "./as/ws": "./as/ws.ts",
+    "./decisionScriptBindings": "./decisionScriptBindings.ts",
+    "./decisionSource": "./decisionSource.ts",
+    "./buildDecisionScripts": "./buildDecisionScripts.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -712,6 +716,22 @@
       "./outputProduct": {
         "types": "./dist/types/sdk/outputProduct.d.ts",
         "default": "./dist/outputProduct.js"
+      },
+      "./as/ws": {
+        "types": "./dist/types/sdk/as/ws.d.ts",
+        "default": "./dist/as/ws.js"
+      },
+      "./decisionScriptBindings": {
+        "types": "./dist/types/sdk/decisionScriptBindings.d.ts",
+        "default": "./dist/decisionScriptBindings.js"
+      },
+      "./decisionSource": {
+        "types": "./dist/types/sdk/decisionSource.d.ts",
+        "default": "./dist/decisionSource.js"
+      },
+      "./buildDecisionScripts": {
+        "types": "./dist/types/sdk/buildDecisionScripts.d.ts",
+        "default": "./dist/buildDecisionScripts.js"
       }
     }
   }
