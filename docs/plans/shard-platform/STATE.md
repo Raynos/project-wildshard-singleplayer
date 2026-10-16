@@ -12,9 +12,9 @@ Fixes: Pine grid entry (broke at de1b7286f) `f542a4cfb`; grid Pine KTX2 props wh
 
 **Decisions:** G450 lifts G447: Jake's picks (out/<slug>/, verbatim runtime/ copy, hashed blobs + logical names, build-only SDK uncounted, Pine/DW play folders into runtime/ now, P0–P4 now). G445 ruler `f0ca1f1c8` stays until P4. G449: runtime/ standalone.
 
-**Waves (G443/G444):** W2 closes 05:00Z 10-17 (G451, midnight Cancun) wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table: 78 entries / 43 rows, consistent. No W3 prep before noon. In force: G415–G451.
+**Waves (G443/G444):** W2 closes 05:00Z 10-17 (G451, midnight Cancun) wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table: 78 entries / 43 rows, consistent. No W3 prep before noon. In force: G415–G452.
 
-**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU (DW Safari +6-12 ms, receipt `06f180053`). UI: DW finale caption overlap. Look: Pine sluice flat low-poly (Jake).
+**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU (DW Safari +6-12 ms, receipt `06f180053`). UI: DW finale caption overlap.
 
-**For wildshard-v:** G450 applied: 6 Codex + 5 Opus lanes on the design rows at 11:20Z. G451: W2 close moved to 05:00Z 10-17; rewire first, W3 after; Codex full speed; longer Pine loading OK (x4 next).
+**For wildshard-v:** G450 applied: 6 Codex + 5 Opus lanes on the design rows at 11:20Z. G451: W2 close moved to 05:00Z 10-17; rewire first; G452: then a W1 mini spike (Sky/Signal to ≤ 10 % on the output ruler, S1–S5), W3 only after both ≤ 10 %; Codex full speed; longer Pine loading OK (x4 next).
 Paused: SF22, SF57, SF67.
