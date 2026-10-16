@@ -40,7 +40,7 @@ import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragB
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { CAVE_LOOK, CRAG_LOOK } from '../../data/cragLook';
+import { CAVE_LOOK, CRAG_LOOK } from '../const';
 import { pineLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';

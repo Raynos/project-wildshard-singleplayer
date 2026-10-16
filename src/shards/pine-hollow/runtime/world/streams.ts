@@ -18,7 +18,7 @@
  */
 import * as THREE from 'three';
 import SPRAY from '../../data/sprayPuffs.json' with { type: 'json' };
-import { SPRAY_LOOK } from '../../data/streamLook';
+import { SPRAY_LOOK } from '../const';
 import { pineLook } from '../looks/graphLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';

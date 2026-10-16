@@ -6,7 +6,7 @@
  */
 import type * as THREE from 'three';
 import * as v from 'valibot';
-import { BEAR_CAVE } from '../../data/layout';
+import { BEAR_CAVE } from '../const';
 import type { WholeGeometryView } from '@wildshard/game/plugin/geometry';
 import { loadSiteTimbers } from './timberSites';
 import cragJson from '../../data/crags.json' with { type: 'json' };

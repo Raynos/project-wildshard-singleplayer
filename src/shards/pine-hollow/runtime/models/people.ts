@@ -15,10 +15,8 @@ import { announceModelReady, defineModel, type ModelContext, type ModelDef } fro
 import { codePart, loadCodeParts } from '../world/codeParts';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { standInPerson, type StandInPerson } from '../npc/standInPerson';
-import { NPC_FIGURE } from '../../data/peopleLook';
-import { KINGS_CLEARING } from '../../data/layout';
+import { NPC_FIGURE, KINGS_CLEARING, NPC_NAMES } from '../const';
 import { npcModels, type NpcModels } from '../quest/npcModels';
-import { MILLER, RANGER, TRADER } from '../../quest/wardensHollow';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';
 
@@ -86,21 +84,21 @@ function person(id: string, kind: NpcKind): (ctx: ModelContext) => THREE.Object3
 /** Hale, the ranger (board B3 pick A, "the old warden": long coat, campaign hat, grey beard, brass badge, a lantern held
  *  low): out front of his cabin, gives the quest, and points toward the old-growth now and then as he talks */
 export const rangerHale: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/ranger-hale', name: RANGER.name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+  id: 'pine-hollow/ranger-hale', name: NPC_NAMES.ranger, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
   defaults: {}, rig: { clips: NPC_CLIPS }, prepare: loadCodeParts,
   build: person('pine-hollow/ranger-hale', 'ranger'),
 });
 
 /** Brandt, the miller (the apron, the cap): in front of the miller's house */
 export const millerBrandt: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/miller-brandt', name: MILLER.name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+  id: 'pine-hollow/miller-brandt', name: NPC_NAMES.miller, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
   defaults: {}, rig: { clips: NPC_CLIPS }, prepare: loadCodeParts,
   build: person('pine-hollow/miller-brandt', 'miller'),
 });
 
 /** Mott, the trader (the fur hat, the red coat): at his stall — his swaps and the errand */
 export const traderMott: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/trader-mott', name: TRADER.name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+  id: 'pine-hollow/trader-mott', name: NPC_NAMES.trader, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
   defaults: {}, rig: { clips: NPC_CLIPS }, prepare: loadCodeParts,
   build: person('pine-hollow/trader-mott', 'trader'),
 });
