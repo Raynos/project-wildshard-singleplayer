@@ -29,8 +29,9 @@ The engine is untouched. `LevelSpec.look` stays `() => Promise<LookStrategy>` an
    call in `loadout.ts`), `pluginLoad.ts` (`app.loadLevel`) and the grid's regional world
    (`shardProductFromAdmission(request.admitted, scope)`, the same cached product its `ShardContext` gets).
 4. **Discovery** (`scripts/authored-manifest.mjs`): generated `render` / called `roster` bindings forward the product
-   through `callWithProduct` (game/shard/manifest), which accepts a zero-argument export too, so shards opt in by adding
-   the parameter.
+   through a `callWithProduct` helper emitted in the generated file (type-only import, so an older revision's build that
+   meets the file in a mirror still loads), which accepts a zero-argument export too: shards opt in by adding the
+   parameter.
 
 Data only (G454): the product is read-only data the game passes down; no shard callback crosses into a host, and the
 hosts' signatures (`graphDaySkyBackdrop({ source })`, `prepareFacetedGround(ctx, source, …)`) do not change. The look

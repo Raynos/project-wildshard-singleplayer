@@ -703,12 +703,6 @@ export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetada
 };
 /** Validate authored metadata, resolve literal bundled image imports and compose
  * the unchanged native boot owners. Missing source images refuse admission. */
-/**
- * A generated discovery binding's call into a shard's look or roster factory with the shard's product
- * (scripts/authored-manifest.mjs). A factory that takes no product is accepted as it is.
- */
-export function callWithProduct<T>(make: (product: ShardProduct) => T, product: ShardProduct): T { return make(product); }
-
 export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: AuthoredShardBindings,
   native: Parameters<typeof defineShard>[1], images: Readonly<Record<string, string>>): ShardManifest {
   const {bindings: _declaredBindings, boot: bootData, ...data} = parseManifestMetadata(input, slug);

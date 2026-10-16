@@ -53,7 +53,8 @@ describe('Driftwood and Pine looks read the product, not shard.config', () => {
     for (const slug of ['driftwood-isle', 'pine-hollow', 'far-reach', 'sunscar-dunes']) {
       const source = authoredManifestSource(root, slug);
       expect(source).toContain('render: async (product) => callWithProduct(');
-      expect(source).toContain('import { callWithProduct, defineAuthoredShard }');
+      expect(source).toContain('const callWithProduct = ');
+      expect(source).toContain("import type { ShardProduct } from '../../game/shardfile/shardProduct';");
     }
     expect(authoredManifestSource(root, 'sunscar-dunes')).toContain('roster: async (product) => callWithProduct(');
     expect(authoredManifestSource(root, 'driftwood-isle')).toContain('roster: async () => (await import("./roster"))["ROSTER"]');
