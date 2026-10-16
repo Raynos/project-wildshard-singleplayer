@@ -19,7 +19,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { validateFrameFloorArgs } from './frame-floor-args.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
-import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
+import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
@@ -442,7 +442,7 @@ async function measureShard(driver, shard, deadline) {
           const cell = state.cells.find(row => row.instance === plan.to);
           if (!cell) throw new Error('Floor entry cell missing');
           const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
-          const entries = await driver.evaluate(`(async () => { const response = await fetch(${JSON.stringify(path)}); if (!response.ok) throw new Error('Floor entry declaration unavailable'); return (await response.json()).entryways; })()`);
+          const entries = await driver.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(path)})`);
           plan = floorGridPortalPlan(plan, cell, entries);
         }
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.

@@ -1,5 +1,31 @@
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 
+/** Browser-serialized reader: format 2 moves the original entryway rows into world/edge.
+ * Verify that one declared section rather than treating its absent root field as a flat road. */
+export async function readFloorGridEntryways(path) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error('Floor entry declaration unavailable');
+  const index = await response.json();
+  if (index.format === undefined) return index.entryways;
+  if (index.format !== 'wildshard.shardfile' || index.formatVersion !== 2 || !Array.isArray(index.sections) || index.sections.length > 256)
+    throw new Error('Unsupported floor entry descriptor');
+  const matches = index.sections.filter(row => row.name === 'world/edge');
+  if (matches.length === 0) return undefined;
+  const [section] = matches;
+  if (matches.length !== 1 || section.path !== 'sections/world/edge.json' || section.schema !== 'wildshard:world/edge@1'
+    || !Number.isSafeInteger(section.bytes) || section.bytes <= 0 || section.bytes > 25_000_000 || !/^[a-f0-9]{64}$/u.test(section.hash))
+    throw new Error('Invalid floor entry section');
+  const source = await fetch(new URL(section.path, new URL(path, location.href)));
+  if (!source.ok) throw new Error('Floor entry section unavailable');
+  const bytes = new Uint8Array(await source.arrayBuffer());
+  if (bytes.length !== section.bytes) throw new Error('Floor entry section size mismatch');
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), value => value.toString(16).padStart(2, '0')).join('');
+  if (hash !== section.hash) throw new Error('Floor entry section hash mismatch');
+  const payload = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  if (payload.entryways !== undefined && !Array.isArray(payload.entryways)) throw new Error('Invalid floor entryways');
+  return payload.entryways;
+}
+
 /** Follow the declared portal landing or socket-lift approach instead of guessing a flat entry waypoint. */
 export function floorGridPortalPlan(plan, cell, entryways) {
   if (plan.from !== null || plan.start === undefined || !Array.isArray(entryways)) return plan;
@@ -33,7 +59,7 @@ export async function gridFloorDeclaredPlan(page, state, plan) {
   const cell = state.cells.find(row => row.instance === plan.to);
   if (!cell) throw new Error('Floor entry cell missing');
   const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
-  const entries = await page.evaluate(`(async () => { const response = await fetch(${JSON.stringify(path)}); if (!response.ok) throw new Error('Floor entry declaration unavailable'); return (await response.json()).entryways; })()`);
+  const entries = await page.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(path)})`);
   return floorGridPortalPlan(plan, cell, entries);
 }
 

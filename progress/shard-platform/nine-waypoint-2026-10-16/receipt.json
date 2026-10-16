@@ -1,0 +1,226 @@
+{
+  "schema": 1,
+  "firstBadCommit": "4f0408eddc970d3640bc0e725198ce12aecd17eb",
+  "classification": "harness descriptor incompatibility; no game travel regression established",
+  "originalFailure": {
+    "source": "07181ab18023c647fb4d7fd3a71d1ca0fd8d825f",
+    "proof": ".git/proofs/20261016T075238-sp-x4-g451-final-98262.log",
+    "elapsedSeconds": 385.8,
+    "waypoint": "0/1",
+    "feet": [
+      555.9,
+      125,
+      -535.4
+    ],
+    "current": "nine-dragon-stack",
+    "pageErrors": 0
+  },
+  "entrywaysEqual": true,
+  "transport": [
+    {
+      "sha": "68cd273ea",
+      "version": {
+        "build": "68cd273-mvazqi7r",
+        "time": "2026-10-16T13:15:51.557Z"
+      },
+      "format": "monolithic",
+      "rootEntryways": 4,
+      "section": null,
+      "oldReaderWaypointCount": 2
+    },
+    {
+      "sha": "07181ab18",
+      "version": {
+        "build": "07181ab-mvazt6ag",
+        "time": "2026-10-16T13:17:56.075Z"
+      },
+      "format": "wildshard.shardfile",
+      "rootEntryways": null,
+      "section": {
+        "bytes": 18800,
+        "hash": "2da8ac91f73b53c3865218afb2647988803e2c7aa653d042322ff1ad0df96e26",
+        "name": "world/edge",
+        "path": "sections/world/edge.json",
+        "schema": "wildshard:world/edge@1"
+      },
+      "oldReaderWaypointCount": 1
+    }
+  ],
+  "results": [
+    {
+      "sha": "68cd273ea",
+      "code": 3,
+      "complete": false,
+      "error": "The title never showed INFINITE WILDSHARD",
+      "errors": [],
+      "scenarios": [],
+      "lastRoute": null
+    },
+    {
+      "sha": "07181ab18",
+      "code": 2,
+      "complete": true,
+      "error": null,
+      "errors": [],
+      "scenarios": [
+        {
+          "plan": {
+            "name": "template-interior",
+            "from": "driftwood-isle",
+            "to": "template-2",
+            "start": {
+              "x": 0,
+              "z": 230
+            },
+            "waypoints": [
+              {
+                "x": 0,
+                "z": 277.5
+              },
+              {
+                "x": 277.5,
+                "z": 277.5
+              },
+              {
+                "x": 277.5,
+                "z": 555
+              },
+              {
+                "x": 325,
+                "z": 555
+              }
+            ],
+            "requiredResidents": [
+              "template-2"
+            ]
+          },
+          "elapsedSeconds": 48.539,
+          "current": "template-2",
+          "gameplayReady": true
+        },
+        {
+          "plan": {
+            "name": "template-return",
+            "from": "template-2",
+            "to": "driftwood-isle",
+            "waypoints": [
+              {
+                "x": 277.5,
+                "z": 555
+              },
+              {
+                "x": 277.5,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 230
+              }
+            ],
+            "requiredResidents": []
+          },
+          "elapsedSeconds": 53.83,
+          "current": "driftwood-isle",
+          "gameplayReady": true
+        },
+        {
+          "plan": {
+            "name": "nine-dragon-stack-road-entry",
+            "from": null,
+            "to": "nine-dragon-stack",
+            "movement": "road-hover",
+            "start": {
+              "x": 555,
+              "z": -277.5
+            },
+            "waypoints": [
+              {
+                "id": "portal.north",
+                "x": 555,
+                "y": 0,
+                "z": -319
+              },
+              {
+                "id": "portal.square.arrival",
+                "x": 555.95,
+                "y": 125,
+                "z": -547.5
+              }
+            ],
+            "requiredResidents": [
+              "nine-dragon-stack"
+            ],
+            "finishOnArrival": false,
+            "portal": {
+              "road": {
+                "id": "portal.north",
+                "x": 555,
+                "y": 0,
+                "z": -319
+              },
+              "destination": {
+                "id": "portal.square.arrival",
+                "x": 555.95,
+                "y": 125,
+                "z": -547.5
+              }
+            }
+          },
+          "elapsedSeconds": 18.235,
+          "portal": {
+            "roadSeen": true,
+            "landed": true
+          },
+          "current": "nine-dragon-stack",
+          "gameplayReady": true
+        }
+      ],
+      "lastRoute": {
+        "stop": {
+          "leg": "nine-dragon-stack-road-entry",
+          "phase": "destination-standing",
+          "waypoint": 2,
+          "target": null
+        },
+        "current": "nine-dragon-stack",
+        "feet": {
+          "x": 555.9681620042542,
+          "y": 125.02007395698456,
+          "z": -547.5857632971158
+        },
+        "gameplayReady": true
+      }
+    }
+  ],
+  "matchedPairComplete": false,
+  "currentFunctionalPass": true,
+  "oldControlLimitation": "Fresh v1 control stopped before title: Driftwood props was still preparing at the 90-second title deadline; zero page errors. Historical 68cd milestone receipt remains the passing v1 route evidence.",
+  "protocol": {
+    "surface": "iPhone 17 Pro Simulator Safari",
+    "frames": 120,
+    "settleSeconds": 2,
+    "developer": true,
+    "muted": true,
+    "gridBootPrograms": "off",
+    "routePrefix": [
+      "template-interior",
+      "template-return",
+      "nine-dragon-stack-road-entry"
+    ],
+    "glObserver": "off",
+    "adaptations": [
+      "borrow stock pinned build",
+      "absolute harness imports",
+      "verified format-2 entryway reader"
+    ],
+    "limitations": [
+      "Functional route comparison only, no quiet window or FPS credit.",
+      "Simulator is not a physical iPhone.",
+      "No game code or route deadline changed."
+    ]
+  }
+}
