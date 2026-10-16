@@ -1,6 +1,7 @@
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import * as v from 'valibot';
-import { MarmotBrain, MarmotContinuation } from '../creatures/marmotBrain';
+import { ForagerContinuation as MarmotContinuation } from '@wildshard/format/ambientLife';
+import { marmotColonies } from '../creatures/marmotBrain';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -118,7 +119,7 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
 export interface NalatiHostCreatures {
   readonly hunt: StalkerBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
   readonly scare: (x: number, z: number, r?: number) => void;
-  readonly raid: HeadlessSheepRaid; readonly marmots: MarmotBrain;
+  readonly raid: HeadlessSheepRaid; readonly marmots: ReturnType<typeof marmotColonies>;
   readonly spawnElite: (kind: 'leopard' | 'kokbori', x: number, z: number, yaw: number, variant: string) => NalatiHuntBody;
   /** Adoption uses the existing manager stream and identity allocator, followed by the shipping place/scale order. */
   readonly spawnBondedHorse: (x: number, z: number, yaw: number, argymaq: boolean) => NalatiHuntBody;
@@ -223,7 +224,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     }
     return brain;
   });
-  const marmots = new MarmotBrain(SEED, { heightAt: floor.heightAt, normalY: (x, z) => floor.normalAt(x, z)[1] });
+  const marmots = marmotColonies(SEED);
   marmots.restore(ports.bake.marmots);
   const whistle = (x: number, z: number): void => {
     for (let i = 0; i < GROUP_MAX; i++) {
@@ -510,7 +511,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     for (let i = 0; i < BODY_MAX; i++) { const w = wildWolves[i]; if (w === undefined) break; if (w.alive) wolves.push(w); }
     pushWildMovers(bodies, player.x, player.z, pushTrample);
     for (let i = 0; i < FLOCK_MAX; i++) { const f = flocks[i]; if (f === undefined) break; f.update(dt, host.clock.now, player, wild.v, wolves); }
-    marmots.update(dt, player, wild.v, env.playerCrouched, whistle);
+    const alarm = marmots.update(dt, player, wild.v > 5, env.playerCrouched); if (alarm !== null) whistle(alarm.x, alarm.z);
     for (let i = 0; i < GROUP_MAX; i++) {
       const h = groups.herds[i]; if (h === undefined) break;
       if (h.stampeding) for (let j = 0; j < GROUP_MAX; j++) { const p = groups.packs[j]; if (p === undefined) break; p.scare(h.cx, h.cz, 20); }

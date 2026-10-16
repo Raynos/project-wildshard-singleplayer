@@ -17,7 +17,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
-import { AmbientForager, foragerState, type ForagerState, type ForagerMotion } from '@wildshard/engine/ai/ambientForager';
+import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { AmbientFlock, type AmbientFlockBird, type AmbientFlockPlayer } from '@wildshard/engine/ai/ambientFlock';
 import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
 import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
@@ -54,10 +54,8 @@ export interface AmbientLife {
   readonly busy: boolean;
 }
 
-interface Hare extends ForagerState { slot: number; pose: WildPose; motion: ForagerMotion; retry: number }
 /** a kill: when the ravens come, the skinning, its scavenge site (-1 waiting, -2 they came and went unseen) */
 interface Carcass { a: Animal; killT: number; comeT: number; harvestT: number; site: number; dimmed: boolean }
-const TAU = Math.PI * 2;
 
 export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHost<Birds>): AmbientLife | null {
   if (h.trimShadows) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (ambient memory trim)
@@ -73,10 +71,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   h.swapBirds(h.birds,game.renderer);h.birds=null;
   const cam = game.camera;
   const fwd = new THREE.Vector3();
-  const inView = (x: number, z: number, cos = 0.45): boolean => {
-    const dx = x - cam.position.x, dz = z - cam.position.z, d = Math.hypot(dx, dz) || 1;
-    return (dx * fwd.x + dz * fwd.z) / d > cos;
-  };
 
   // ── the birds: three ambient flock rows (the ravens at a kill, the owl on a snag top, the woodpecker on the bark) ──
   const ravens = new AmbientFlock(sc.flock), owl = new AmbientFlock(data.sentinel.flock, data.sentinel.perches), wood = new AmbientFlock(data.trunkForager.flock, data.trunkForager.perches);
@@ -163,44 +157,18 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   const reader: AmbientFlockPlayer = { get x() { return player.position.x; }, get y() { return player.position.y; }, get z() { return player.position.z; },
     get fast() { return player.sprinting; }, get light() { return night; }, get fx() { return fwd.x; }, get fz() { return fwd.z; }, get toward() { return guide.target(); } };
 
-  const hareMayDraw=(distance:number,seen:boolean):boolean=>distance<=data.forager.range&&(distance<=data.forager.visibleRange||seen);
-  // ── the hares ──
-  const hares: Hare[] = Array.from({ length: data.forager.count }, (_, i) => ({ ...foragerState(0, 0, 0), slot: i, pose: newPose(data.forager.model), retry: 0, motion: { y: -999, hind: 0, fore: 0, pitch: 0 } }));
-  for (const hr of hares) hr.pose.scale = data.forager.scale;
-  const forager = new AmbientForager(data.forager.policy, rng, h.trees);
-  const seatHare = (hr: Hare, rMin: number, rMax: number, hidden: boolean): boolean => {
-    const pp = player.position;
-    for (let k = 0; k < 24; k++) {
-      const ang = rng.range(0, TAU), r = rng.range(rMin, rMax), x = pp.x + Math.cos(ang) * r, z = pp.z + Math.sin(ang) * r;
-      if (hidden && inView(x, z, 0.2) && r < 90) continue;
-      if (!forager.canStep(x, z)) continue;
-      hr.x = x; hr.z = z; hr.yaw = rng.range(0, TAU); hr.mode = 'graze'; hr.timer = rng.range(1, 4); hr.t = 1; hr.dur = 1; hr.sit = 0;
-      hr.pose.x = x; hr.pose.y = heightAt(x, z); hr.pose.z = z; hr.pose.yaw = hr.yaw;
-      return true;
-    }
-    return false;
-  };
-  hares.forEach((hr) => { if (!seatHare(hr, 25, 80, false)) { hr.x = 1e5; hr.z = 1e5; } });
-  // Re-seating is the ambient population's placement/visibility work, even when its brain is held.
-  const prepareHare = (hr: Hare, dt: number): boolean => {
-    const pp = player.position;
-    const d = Math.hypot(hr.x - pp.x, hr.z - pp.z);
-    if (!hareMayDraw(d, inView(hr.x, hr.z, 0.3))) {
-      hr.retry -= dt;
-      if (hr.retry > 0) return false;
-      if (!seatHare(hr, 45, 85, true)) { hr.retry = 2; hr.x = 1e5; hr.z = 1e5; return false; }
-    }
-    return true;
-  };
-  const updateHare = (hr: Hare, dt: number): void => {
-    forager.step(hr, hr.motion, dt, player.position, player.sprinting);
-    const p = hr.pose, motion = hr.motion;
-    p.x = hr.x; p.y = heightAt(hr.x, hr.z) + motion.y; p.z = hr.z; p.yaw = hr.yaw; p.roll = 0;
+  // ── the hares: a roaming forager population round the player, drawn into the wildlife mesh ──
+  const hares = new ForagerPopulation(data.forager, data.seed, h.trees).roam(reader), harePose = newPose(data.forager.model);
+  harePose.scale = data.forager.scale;
+  const drawHares = (): void => { for (let i = 0; i < 256; i++) {
+    const hr = hares.rows[i], p = harePose, motion = hares.motion[i];
+    if (hr === undefined || motion === undefined) break;
+    if (hares.shown[i] !== 1) continue;
+    p.x = hr.x; p.y = heightAt(hr.x, hr.z) + motion.y; p.z = hr.z; p.yaw = hr.yaw;
     p.a0 = motion.hind; p.a1 = motion.fore; p.pitch = motion.pitch;
-    p.a2 = hr.headPitch - hr.sit * 0.2; p.a3 = hr.ears; p.b1 = hr.mode === 'alert' ? Math.sin(now() * 1.3 + hr.slot) * 0.5 : 0;
+    p.a2 = hr.headPitch - hr.sit * 0.2; p.a3 = hr.ears; p.b1 = hr.mode === 'alert' ? Math.sin(now() * 1.3 + i) * 0.5 : 0;
     wild.add(p);
-  };
-
+  } };
 
   // ── the skinning beat (F2) ──
   const BEAT = data.harvest;
@@ -294,22 +262,13 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     const ambientDt = scheduler.systemDt(ambient, dt);
     if (ambientDt > 0) { updateCarcasses(now()); guide.update(ambientDt, 0, () => night < 0.5 && !h.inCombat()); }
     for (let i = 0; i < 3; i++) { const f = flocks[i]; if (f === undefined) break; f.update(ambientDt, reader); drawFlock(f); }
-    for (const hr of hares) {
-      if (!prepareHare(hr, dt)) { scheduler.forget(hr); continue; }
-      const tickDt = scheduler.takeBrainDtAt('fx', hr, hr.x === 1e5 ? player.position : { x: hr.x, y: hr.pose.y, z: hr.z });
-      if (tickDt > 0) updateHare(hr, tickDt);
-      else if (hr.x !== 1e5) {
-        const distance = Math.hypot(hr.x - player.position.x, hr.z - player.position.z);
-        // The fx clock may hold the brain; it must not make a previously culled hare drawable.
-        if (hareMayDraw(distance, inView(hr.x, hr.z, 0.3))) wild.add(hr.pose);
-      }
-    }
+    hares.update(dt, reader, player.sprinting); drawHares();
     wild.commit();
   } });
 
   const life: AmbientLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
   const probe = {
-    wild, ravens: ravens.birds, owl: owl.birds[0], wood: wood.birds[0], guides: crumbs.flock.birds, hares, carcasses,
+    wild, ravens: ravens.birds, owl: owl.birds[0], wood: wood.birds[0], guides: crumbs.flock.birds, hares: hares.rows, carcasses,
     /** a breadcrumb flock now (captures); the place it heads for */
     crumbs: () => guide.attempt(true),
     /** the owl onto a perch near you now (captures; set the clock to night first), or onto the snag nearest (x, z) */

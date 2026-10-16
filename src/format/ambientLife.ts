@@ -21,6 +21,22 @@ export const ForagerPolicySchema=v.strictObject({
   posture:v.strictObject({graze:posture,alert:posture,flee:posture,sentry:v.exactOptional(posture),hide:v.exactOptional(posture)}),
 });
 export type ForagerPolicyRows=v.InferOutput<typeof ForagerPolicySchema>;
+/** One forager population (`@wildshard/engine/ai/ambientForager#ForagerPopulation`): `count` rows at most, clock ids
+ *  `<id>:<n>`, placed as `colonies` round burrow sites (size per site, ring radius, home offset, first timer) or `roam`ing
+ *  round the viewer (seat / re-seat rings, draw range, visible range, re-seat retry, view cosines [draw, seat], blind range). */
+export const ForagerPopulationSchema=v.strictObject({id,count,policy:ForagerPolicySchema,place:v.variant('kind',[
+  v.strictObject({kind:v.literal('colonies'),size:v.tuple([count,count]),radius:range,home:finite,timer:range}),
+  v.strictObject({kind:v.literal('roam'),seat:range,reseat:range,range:positive,visibleRange:positive,retry:positive,view:v.tuple([finite,finite,positive])})])});
+export type ForagerPopulationRows=v.InferOutput<typeof ForagerPopulationSchema>;
+const uint=v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),frame=v.pipe(v.number(),v.integer(),v.minValue(-1)),nonneg=v.pipe(finite,v.minValue(0));
+const clock=v.strictObject({elapsed:nonneg,credit:nonneg,frame,dt:nonneg,last:finite,due:v.boolean(),tickFrame:frame});
+/** A population's saved state: rows (state 0 graze, 1 sentry / alert, 2 flee, 3 hide), its Rng and band clocks. */
+export const ForagerContinuation=v.strictObject({
+  rows:v.pipe(v.array(v.strictObject({x:finite,z:finite,bx:finite,bz:finite,yaw:finite,stand:finite,sink:finite,state:v.picklist([0,1,2,3]),t:finite,tx:finite,tz:finite})),v.maxLength(256)),acc:nonneg,
+  rng:v.strictObject({version:v.literal(1),state:uint,initial:uint,scrambledFork:v.boolean()}),
+  bands:v.strictObject({rates:uint,time:nonneg,frame:v.pipe(v.number(),v.integer(),v.minValue(0)),frameDt:nonneg,
+    rows:v.pipe(v.array(v.strictObject({id:v.string(),rate:v.literal('fx'),brain:clock,body:clock})),v.maxLength(256))})});
+export type ForagerSnapshot=v.InferOutput<typeof ForagerContinuation>;
 const share=v.pipe(finite,v.minValue(0),v.maxValue(1));
 const offset=v.tuple([finite,finite,finite]);
 const channel=v.union([v.picklist(['flap','fold','head','legs','peck','body']),finite]);
@@ -70,7 +86,7 @@ export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-comm
   /** visit flocks and their baked perches: the night sentinel on snag tops, the day trunk forager on bark sections (r, weight w) */
   sentinel:v.strictObject({flock:AmbientFlockSchema,perches:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite})),v.maxLength(4096))}),
   trunkForager:v.strictObject({flock:AmbientFlockSchema,perches:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:positive,w:positive})),v.maxLength(4096))}),
-  forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive,policy:ForagerPolicySchema}),
+  forager:v.strictObject({model,scale:positive,...ForagerPopulationSchema.entries}),
   guide:v.strictObject({flock:AmbientFlockSchema,policy:v.strictObject({distance:v.literal('centre'),min:positive,max:positive,schedule:v.strictObject({kind:v.literal('periodic'),initial:finite,period:range})})}),
   harvest:v.strictObject({len:positive,kneelIn:positive,cuts:v.pipe(v.array(positive),v.maxLength(8)),rise:positive}),
   system:v.strictObject({id,ambient:id,after:v.pipe(v.array(id),v.maxLength(16)),before:v.pipe(v.array(id),v.maxLength(16))}),

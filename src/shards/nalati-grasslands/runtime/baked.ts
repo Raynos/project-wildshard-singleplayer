@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { MarmotContinuation, type MarmotSnapshot } from '../creatures/marmotBrain';
+import { ForagerContinuation as MarmotContinuation, type ForagerSnapshot as MarmotSnapshot } from '@wildshard/format/ambientLife';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it. */

@@ -26,8 +26,8 @@ import { painterlyAnimalMaterial } from '../look/creatureMaterial';
  * out of sight for 10–18 s, then peeks back up.
  */
 
-import type { ForagerState as Marmot } from '@wildshard/engine/ai/ambientForager';
-import { MarmotBrain, type MarmotSnapshot } from './marmotBrain';
+import type { ForagerSnapshot } from '@wildshard/format/ambientLife';
+import { marmotColonies, marmotSites } from './marmotBrain';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, 'YXZ'), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 
@@ -73,19 +73,18 @@ export function buildMarmotGeometry(): THREE.BufferGeometry {
 export class Marmots {
   mesh!: THREE.InstancedMesh;
   onWhistle?: ((x: number, z: number) => void) | undefined;
-  readonly rules: MarmotBrain;
-  private initial: MarmotSnapshot | null = null;
+  readonly rules: ReturnType<typeof marmotColonies>;
+  private initial: ForagerSnapshot | null = null;
   /** Native bake metadata captured before the first Wildlife frame, never a later pose relabelled as tick zero. */
-  get tickZero(): MarmotSnapshot { if (this.initial === null) throw new Error('Marmots have not been built'); return this.initial; }
-  private readonly list: Marmot[];
+  get tickZero(): ForagerSnapshot { if (this.initial === null) throw new Error('Marmots have not been built'); return this.initial; }
 
-  constructor(private readonly sky: Sky, seed: number) { this.rules = new MarmotBrain(seed, { heightAt, normalY: (x, z) => normalAt(x, z)[1] }); this.list = this.rules.rows; }
+  constructor(private readonly sky: Sky, seed: number) { this.rules = marmotColonies(seed); }
 
-  build(sites: { x: number; z: number }[], perSite = 5): this {
-    this.rules.build(sites, perSite); this.initial = this.rules.snapshot();
+  build(sites: { x: number; z: number }[]): this {
+    const list = this.rules.colonies(sites).rows; this.initial = this.rules.snapshot();
     const mat = painterlyAnimalMaterial(this.sky);
-    this.mesh = new THREE.InstancedMesh(buildMarmotGeometry(), mat, Math.max(1, this.list.length));
-    this.mesh.count = this.list.length;
+    this.mesh = new THREE.InstancedMesh(buildMarmotGeometry(), mat, Math.max(1, list.length));
+    this.mesh.count = list.length;
     this.mesh.castShadow = false; this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = false;
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -95,13 +94,14 @@ export class Marmots {
   }
 
   update(dt: number, player: THREE.Vector3, playerSpeed: number, crouched: boolean): void {
-    this.rules.update(dt, player, playerSpeed, crouched, this.onWhistle);
+    const alarm = this.rules.update(dt, player, playerSpeed > 5, crouched);
+    if (alarm !== null) this.onWhistle?.(alarm.x, alarm.z);
     this.write(true);
   }
 
   private write(scheduled = false): void {
-    this.list.forEach((m, i) => {
-      if (scheduled && this.rules.poseDue[i] !== 1) return;
+    this.rules.rows.forEach((m, i) => {
+      if (scheduled && this.rules.due[i] !== 1) return;
       const g = heightAt(m.x, m.z);
       _e.set(-m.sit * 1.25, m.yaw, 0);
       _q.setFromEuler(_e);
@@ -114,7 +114,6 @@ export class Marmots {
 
   /** burrow sites: `n` spots on open, gentle ground inside the given box, seeded */
   static scatter(seed: number, n: number, box: { x0: number; x1: number; z0: number; z1: number }): { x: number; z: number }[] {
-    return MarmotBrain.scatter(seed, n, box, { heightAt, normalY: (x, z) => normalAt(x, z)[1] });
+    return marmotSites(seed, n, box, (x, z) => normalAt(x, z)[1]);
   }
 }
-

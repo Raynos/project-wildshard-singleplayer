@@ -5700,9 +5700,24 @@ The constructor takes the row, the caller's seeded `Rng` and the planted
 trees (data); `canStep(x, z)` answers the `ground` rule. No callback
 crosses it (G454).
 
-Users: Pine Hollow's hares (`custom/ambientLife` `forager.policy`: hop,
-away) and Nalati's marmot colonies (`creatures/marmotForager.json`: walk,
-home, sentries that whistle).
+`ForagerPopulation` owns a whole population from one
+`ForagerPopulationSchema` row (`id`, `count` bound, `policy`, `place`):
+the rows and their motion, the fx band clocks (ids `<id>:<n>`) and a
+private `Rng` from the caller's seed. `place.kind: 'colonies'` seats
+`size` foragers round each burrow site (`colonies(sites)`); `'roam'`
+seats `count` round the viewer (`roam(viewer)`) and re-seats any that
+leave `range` (or `visibleRange` while behind the view) on the `reseat`
+ring, out of sight. `update(dt, viewer, fast, crouched)` steps the due
+rows (`due[i]`), marks the drawable ones (`shown[i]`) and returns the
+sentry that raised the alarm (every awake row then bolts) or null; the
+caller draws from `rows` and `motion`. `snapshot()` / `restore()` save it
+as `@wildshard/format/ambientLife#ForagerContinuation` (row keys `x z bx bz
+yaw stand sink state t tx tz`, the Rng and the clocks).
+
+Users: Pine Hollow's hares (`custom/ambientLife` `forager`: hop, away,
+roaming) and Nalati's marmot colonies (`creatures/marmotForager.json`:
+walk, home, sentries that whistle, colonies, saved in the bake and the
+headless state).
 
 ### Water surfaces (G466 H7)
 

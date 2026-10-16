@@ -12,13 +12,16 @@
  *   - the scare radius is `scare[0]` (walking), `scare[1]` (fast) or `crouched`; a sentry sees `sentry.sight` times
  *     as far, and with `sentry.alarm` the first sentry that sees the player raises the alarm (`step` returns true; the
  *     caller sends its population home with `bolt`).
- * Users: Pine Hollow's hares (hop, away), Nalati's marmot colonies (walk, home, sentries).
+ * `ForagerPopulation` owns a population of them (rows, band clocks, private Rng, placement, save / restore).
+ * Users: Pine Hollow's hares (hop, away, roaming), Nalati's marmot colonies (walk, home, sentries, saved).
  */
-import type { Rng } from '../core/rng';
+import * as v from 'valibot';
+import { Rng } from '../core/rng';
+import { BodyBandClocks, DEFAULT_TICK_RATES, bandAt } from '../sim/bands';
 import { cabinMask, inChunk, normalAt, pondMask, streamAt, waterLevel } from '../world/Heightfield';
 import { terrainHeight } from '../world/terrainHeight';
 import type { TreeInstance } from '../world/forest/placement';
-import type { ForagerPolicyRows } from '@wildshard/format/ambientLife';
+import { ForagerContinuation, type ForagerPolicyRows, type ForagerPopulationRows, type ForagerSnapshot } from '@wildshard/format/ambientLife';
 
 export type ForagerMode = 'graze' | 'sentry' | 'alert' | 'flee' | 'hide';
 /** One forager's caller-owned state (`foragerState` makes one). `sit` 0..1 is up on the hind legs, `sink` 0..1 down
@@ -160,5 +163,109 @@ export class AmbientForager {
     }
     if (e.to === 'home') s.sink += ((s.mode === 'hide' ? 1 : 0) - s.sink) * Math.min(1, dt * e.sink);
     return alarm;
+  }
+}
+
+const MAX = 256, FX = DEFAULT_TICK_RATES.find(([id]) => id === 'fx')?.[1];
+if (FX === undefined) throw new Error('Missing canonical forager FX rate');
+const MODES = ['graze', 'sentry', 'flee', 'hide'] as const, STATE = { graze: 0, sentry: 1, alert: 1, flee: 2, hide: 3 } as const;
+/** where the population is watched from: the player on the ground and the view's forward (fx, fz; a roaming population reads it) */
+export interface ForagerViewer extends ForagerPlayer { readonly fx?: number; readonly fz?: number }
+type Roam = Extract<ForagerPopulationRows['place'], { kind: 'roam' }>;
+
+/** One forager population (`@wildshard/format/ambientLife#ForagerPopulationSchema`): its rows on the fx band clocks
+ *  and a private Rng, placed as fixed `colonies` round burrow sites or `roam`ing round the viewer (re-seated out of
+ *  sight once out of range or behind). `update` steps the due rows (`due[i]`), marks the drawable ones (`shown[i]`)
+ *  and returns the sentry that raised the alarm (every awake row then bolts); the caller draws. */
+export class ForagerPopulation {
+  readonly rows: ForagerState[] = [];
+  readonly motion: ForagerMotion[] = [];
+  readonly due = new Uint8Array(MAX);
+  readonly shown = new Uint8Array(MAX);
+  readonly brain: AmbientForager;
+  private readonly active = new Uint8Array(MAX);
+  private readonly retry = new Float32Array(MAX);
+  private readonly bands = new BodyBandClocks();
+  private readonly rng: Rng;
+  private readonly ids: string[];
+  readonly row: ForagerPopulationRows;
+  constructor(row: ForagerPopulationRows, seed: number, trees: readonly TreeInstance[] = []) {
+    this.row = row; this.rng = new Rng(seed); this.brain = new AmbientForager(row.policy, this.rng, trees);
+    this.ids = Array.from({ length: row.count }, (_, index) => `${row.id}:${String(index)}`);
+  }
+  private add(s: ForagerState): void {
+    if (this.rows.length >= this.row.count) throw new RangeError('Forager population bound exceeded');
+    this.rows.push(s); this.motion.push({ y: 0, hind: 0, fore: 0, pitch: 0 });
+  }
+  /** colonies: `size` foragers round each burrow site, each with its own home by the hole */
+  colonies(sites: readonly { x: number; z: number }[]): this {
+    const p = this.row.place, rng = this.rng;
+    if (p.kind !== 'colonies') throw new Error('Not a colony population');
+    for (const s of sites) for (let i = 0, n = rng.int(...p.size); i < n; i++) {
+      const a = rng.range(0, TAU), r = rng.range(...p.radius), x = s.x + Math.cos(a) * r, z = s.z + Math.sin(a) * r;
+      this.add({ ...foragerState(x, z, rng.range(0, TAU), s.x + Math.cos(a) * p.home, s.z + Math.sin(a) * p.home), timer: rng.range(...p.timer) });
+    }
+    return this;
+  }
+  /** roam: `count` foragers seated round the viewer (one with no open ground waits far off) */
+  roam(viewer: ForagerViewer): this {
+    const p = this.row.place;
+    if (p.kind !== 'roam') throw new Error('Not a roaming population');
+    for (let i = 0; i < this.row.count; i++) { const s = foragerState(1e5, 1e5, 0); this.add(s); this.seat(s, p, p.seat, viewer, false); }
+    return this;
+  }
+  private static seen(x: number, z: number, viewer: ForagerViewer, cos: number): boolean {
+    const dx = x - viewer.x, dz = z - viewer.z, d = Math.hypot(dx, dz) || 1;
+    return (dx * (viewer.fx ?? 0) + dz * (viewer.fz ?? 0)) / d > cos;
+  }
+  private seat(s: ForagerState, p: Roam, ring: readonly [number, number], viewer: ForagerViewer, hidden: boolean): boolean {
+    const rng = this.rng;
+    for (let k = 0; k < 24; k++) {
+      const a = rng.range(0, TAU), r = rng.range(...ring), x = viewer.x + Math.cos(a) * r, z = viewer.z + Math.sin(a) * r;
+      if ((hidden && r < p.view[2] && ForagerPopulation.seen(x, z, viewer, p.view[1])) || !this.brain.canStep(x, z)) continue;
+      Object.assign(s, foragerState(x, z, rng.range(0, TAU)), { timer: rng.range(1, 4) });
+      return true;
+    }
+    return false;
+  }
+  /** One frame: re-seat the roaming rows out of sight, step the rows the fx band clocks say are due. */
+  update(dt: number, viewer: ForagerViewer, fast: boolean, crouched = false): ForagerState | null {
+    const roam = this.row.place.kind === 'roam' ? this.row.place : null;
+    this.bands.beginTick(dt);
+    let alarm: ForagerState | null = null;
+    for (let i = 0; i < MAX; i++) {
+      const s = this.rows[i], motion = this.motion[i], id = this.ids[i];
+      if (s === undefined || motion === undefined || id === undefined) break;
+      this.due[i] = 0; this.active[i] = 0;
+      let d = Math.hypot(s.x - viewer.x, s.z - viewer.z);
+      if (roam !== null && !(d <= roam.range && (d <= roam.visibleRange || ForagerPopulation.seen(s.x, s.z, viewer, roam.view[0])))) {
+        this.shown[i] = 0; this.bands.forget(id);
+        if ((this.retry[i] = (this.retry[i] ?? 0) - dt) > 0) continue;
+        if (!this.seat(s, roam, roam.reseat, viewer, true)) { this.retry[i] = roam.retry; s.x = 1e5; s.z = 1e5; continue; }
+        d = Math.hypot(s.x - viewer.x, s.z - viewer.z);
+      }
+      this.shown[i] = 1;
+      const step = this.bands.takeBrainDt(id, 'fx', d, false);
+      if (FX === undefined || bandAt(FX, d)?.brainHz === 'paused') continue;
+      this.active[i] = 1;
+      if (step <= 0) continue;
+      this.due[i] = 1;
+      if (this.brain.step(s, motion, step, viewer, fast, crouched) && alarm === null) alarm = s;
+    }
+    if (alarm !== null) for (let i = 0; i < MAX; i++) { const s = this.rows[i]; if (s === undefined) break; if (this.active[i] === 1) this.brain.bolt(s, viewer); }
+    return alarm;
+  }
+  snapshot(): ForagerSnapshot {
+    const rows = this.rows.map((m) => ({ x: m.x, z: m.z, bx: m.bx, bz: m.bz, yaw: m.yaw, stand: m.sit, sink: m.sink, state: STATE[m.mode], t: m.timer, tx: m.tx, tz: m.tz }));
+    return v.parse(ForagerContinuation, { rows, acc: 0, rng: this.rng.snapshot(), bands: this.bands.snapshot() });
+  }
+  restore(input: unknown): void {
+    const saved = v.parse(ForagerContinuation, input);
+    if (saved.rng.initial !== this.rng.snapshot().initial) throw new RangeError('Forager seed mismatch');
+    if ((this.rows.length > 0 && saved.rows.length !== this.rows.length) || saved.rows.length > this.row.count) throw new RangeError('Forager population identity mismatch');
+    if (saved.bands.frame > 0 && saved.bands.rows.length !== saved.rows.length) throw new RangeError('Missing forager clocks');
+    this.bands.restore(saved.bands, new Set(this.ids.slice(0, saved.rows.length))); this.rng.restore(saved.rng);
+    this.rows.length = 0; this.motion.length = 0; this.due.fill(0); this.active.fill(0);
+    for (const r of saved.rows) this.add({ ...foragerState(r.x, r.z, r.yaw, r.bx, r.bz), mode: MODES[r.state], sit: r.stand, sink: r.sink, timer: r.t, tx: r.tx, tz: r.tz });
   }
 }
