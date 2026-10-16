@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {scriptScenarioMetrics,scriptScenarioReceipt} from '../scripts/script-scenario-metrics.mjs';
-import {netLineReport,platformLineFile} from '../scripts/shard-net-lines.mjs';
+import {netLineReport,platformLineFile,sourceLineDelta} from '../scripts/shard-net-lines.mjs';
 import type {DecisionTrace} from '../src/engine/script/decision';
 
 test('scenario metrics require matching actual section bytes and script identity',()=>{
@@ -36,4 +36,13 @@ test('net lines subtract platform growth once and retain increases and missing e
  expect(platformLineFile('src/game/tests/example.ts')).toBe(false);
  expect(platformLineFile('src/game/example.test.ts')).toBe(false);
  expect(platformLineFile('src/game/types.d.ts')).toBe(false);
+});
+
+
+test('since-noon source cuts retain growth and refuse mixed-unit or absent credit',()=>{
+ const baseline={since:'2026-10-16T12:00:00Z',revision:'sealed',basis:'source',customLines:{one:100,two:50}} as const;
+ expect(sourceLineDelta({one:{customLines:90,basis:'source'},two:{customLines:55,basis:'source'}},baseline)).toMatchObject({
+  basis:'source',totalRemoved:5,shards:{one:{before:100,after:90,removed:10},two:{before:50,after:55,removed:-5}}});
+ expect(sourceLineDelta({one:{customLines:10,basis:'output'}},baseline)).toMatchObject({totalRemoved:null,
+  shards:{one:{before:100,after:null,removed:null},two:{before:50,after:null,removed:null}}});
 });

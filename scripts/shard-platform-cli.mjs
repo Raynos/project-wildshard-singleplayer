@@ -29,15 +29,16 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const scriptReceipts=process.argv.filter(value=>value.startsWith('--script-receipt=')).map(value=>value.slice('--script-receipt='.length));
     try {report=await outputReport(ROOT,{build,products,...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
     finally {console.log=log;console.info=info;}
-    const {rows,measures,failures,progress,netLines}=report;
+    const {rows,measures,failures,progress,netLines,dailyLines}=report;
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  custom sections / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
         const m3=row.m3===null?'native':`${(100*row.m3.fraction).toFixed(1)}% ${row.m3.basis}`;
         const ready=Object.entries(row.gridReady.criteria).map(([name,value])=>`${name}:${value.verdict}`).join(', ');
-        const metrics=row.scriptMetrics;
+        const metrics=row.scriptMetrics,delta=row.linesRemovedSince12Z;
+        console.log(`  ${slug} custom lines removed since ${dailyLines.since}: ${delta?.removed??'unknown'} (source ruler ${delta?.before??'unknown'} -> ${delta?.after??'unknown'}; baseline ${dailyLines.revision})`);
         console.log(`  ${slug} scripts: ${metrics.status}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}`);
         for(const scenario of metrics.scenarios)console.log(`    ${scenario.script} / ${scenario.scenario}: calls ${scenario.calls}, coarse fuel total/max ${scenario.fuel}/${scenario.maxFuel}, refusals ${scenario.refusals}; ${scenario.path} sha256:${scenario.receiptHash}`);
         for(const script of metrics.scripts.filter(value=>!value.measured))console.log(`    ${script.id}: fuel/calls unknown (no matching scenario receipt)`);
@@ -61,6 +62,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         for(const [slug,row] of Object.entries(wave.shards))console.log(`  ${slug}: ${row.before} -> ${row.after??'unknown'} (${row.basis}), cut ${row.cut??'unknown'}`);
         for(const [layer,row] of Object.entries(wave.layers))console.log(`  ${layer}: ${row.before} -> ${row.after}, growth ${row.growth}`);
       }
+      console.log('Since-noon counts use the source ruler on both dates, including ownership/ruler corrections. Output closure never supplies a cut; negative removed lines mean growth.');
       console.log('Platform growth includes all concurrent engine/game/SDK work and build tools, once per wave; historical source and current output/source units differ. Net lines never change custom % or gate.');
     }
     if (process.argv.includes('--check')) {

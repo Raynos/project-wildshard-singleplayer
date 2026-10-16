@@ -7,3 +7,7 @@ export function netLineReport(current:Record<string,{customLines:number;basis:st
  shards:Record<string,{before:number;after:number|null;basis:string;cut:number|null}>;
  layers:Record<string,{before:number;after:number;growth:number}>;customCut:number|null;platformGrowth:number;netCut:number|null;
 }[];
+export interface SourceLineBaseline {since:string;revision:string;basis:'source';customLines:Record<string,number>}
+export function sourceLineDelta(current:Record<string,{customLines:number;basis:string}|undefined>,baseline:SourceLineBaseline):{
+ since:string;revision:string;basis:string;shards:Record<string,{before:number;after:number|null;removed:number|null}>;totalRemoved:number|null;
+};

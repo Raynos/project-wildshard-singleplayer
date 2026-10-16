@@ -44,3 +44,17 @@ export function netLineReport(current,baselines,platform) {
       enforcement:'report-only',shards,layers,customCut,platformGrowth,netCut:customCut===null?null:customCut-platformGrowth};
   });
 }
+
+/** A fixed-time source comparison never substitutes an output count when a
+ * shard closes. Increases stay negative; missing or mixed-unit rows stay unknown.
+ * @param {Record<string,{customLines:number,basis:string}|undefined>} current
+ * @param {import('./shard-net-lines.mjs').SourceLineBaseline} baseline */
+export function sourceLineDelta(current,baseline) {
+  const shards=Object.fromEntries(Object.entries(baseline.customLines).map(([slug,before])=>{
+    const row=current[slug],after=row?.basis==='source'?row.customLines:null;
+    return [slug,{before,after,removed:after===null?null:before-after}];
+  }));
+  const rows=Object.values(shards);
+  return {since:baseline.since,revision:baseline.revision,basis:'source',shards,
+    totalRemoved:rows.some(row=>row.removed===null)?null:rows.reduce((sum,row)=>sum+(row.removed??0),0)};
+}
