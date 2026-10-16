@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./worldTargets": "./worldTargets.ts",
     "./decisionPublication": "./decisionPublication.ts",
     "./decisionBindings": "./decisionBindings.ts",
     "./moverLifecycle": "./moverLifecycle.ts",

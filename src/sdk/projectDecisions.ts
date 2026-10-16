@@ -6,6 +6,8 @@ import type { OutputFile } from '@wildshard/format/outputIndex';
 import { compileDecisionScripts, readDecisionSources, type DecisionBuildOptions } from './buildDecisionScripts';
 import { outputDecisionScripts } from './outputProduct';
 import { emitPlatformSections } from './platformSections';
+import { parseWorldTargets } from '@wildshard/format/worldTargets';
+import { hashImmutableBytes } from './immutable';
 import type { EmittedSections } from './sections';
 import type { NamedBlob } from './blobs';
 
@@ -22,7 +24,11 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   if (rows.length === 0 && authored.size === 0) return { ...(platform === undefined ? {} : { platform }), blobs: [], replaced: new Set() };
   const moveEntry = platform?.sections.find(row => row.name === 'actors/moves'), moveBytes = moveEntry === undefined ? undefined : platform?.files.get(moveEntry.path);
   const moves = moveBytes === undefined ? [] : parseActorMoves(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(moveBytes)));
-  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves), authored, options);
+  const targetEntry = platform?.sections.find(row => row.name === 'world/targets'), targetBytes = targetEntry === undefined ? undefined : platform?.files.get(targetEntry.path);
+  if (targetEntry !== undefined && targetBytes === undefined) throw new Error('Missing declared world target section bytes');
+  if (targetEntry !== undefined && targetBytes !== undefined && (targetBytes.length !== targetEntry.bytes || hashImmutableBytes(targetBytes) !== targetEntry.hash)) throw new Error('World target section hash or size mismatch');
+  const worldTargets = targetBytes === undefined ? undefined : parseWorldTargets(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(targetBytes)));
+  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets), authored, options);
   if (rows.length === 0) return { ...(platform === undefined ? {} : { platform }), blobs: [], replaced: new Set() };
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];
   const files = new Map(platform?.files);

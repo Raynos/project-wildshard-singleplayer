@@ -14,12 +14,16 @@ export type StrikeShape =
   | { kind: 'ring'; inner: number; outer: number }
   | { kind: 'wedge'; length: number; halfAngle: number }
   | { kind: 'point'; radius: number; exclusive?: boolean }
-  | { kind: 'sphere'; radius: number };
+  | { kind: 'sphere'; radius: number }
+  | { kind: 'cone3d'; length: number; halfAngle: number }
+  | { kind: 'ray3d'; length: number; radius: number };
 export interface StrikeContext {
   readonly actor: StrikeActor; readonly target: BrainPoint;
   readonly airborne?: boolean;
   readonly origin?: BrainPoint;
   readonly ringRadius?: number;
+  /** Actual three-dimensional aim for point contacts; never inferred from actor yaw. */
+  readonly direction?: BrainPoint;
   canReach: () => boolean;
   hit: (spec: StrikeSpec) => void;
 }
@@ -155,6 +159,19 @@ export class StrikeRunner {
   }
   private containsShape(shape: StrikeShape, spec: StrikeSpec, ctx: StrikeContext, d: number, scale: number, origin: BrainPoint): boolean {
     const { actor: a, target: p } = ctx;
+    if (shape.kind === 'cone3d' || shape.kind === 'ray3d') {
+      const dir = ctx.direction;
+      if (dir === undefined) return false;
+      const x = p.x - origin.x, y = p.y - origin.y, z = p.z - origin.z;
+      const dot = x * dir.x + y * dir.y + z * dir.z;
+      if (shape.kind === 'cone3d') {
+        const length = Math.hypot(x, y, z);
+        return length <= shape.length * scale && (length < 1e-3
+          || dot / (length * Math.max(Math.hypot(dir.x, dir.y, dir.z), 1e-6)) >= Math.cos(shape.halfAngle));
+      }
+      return dot >= 0 && dot <= shape.length * scale
+        && Math.hypot(x - dir.x * dot, y - dir.y * dot, z - dir.z * dot) <= shape.radius * scale;
+    }
     if (shape.kind === 'sphere') return Math.hypot(p.x - origin.x, p.y - origin.y, p.z - origin.z) <= shape.radius * scale;
     if (shape.kind === 'lane') {
       if (d >= spec.range * scale) return false;

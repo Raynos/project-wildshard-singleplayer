@@ -7499,3 +7499,26 @@ Hybrid page play installs its runtime-bound updraft rows on the existing
 impulse owner in `fixed.pre`, with the actual player position and board state.
 The runtime presents the wind and winch; their force and completion bindings
 live in the platform. Gust target scanning remains a separate KS2 adoption.
+
+### World contact section (KA6)
+
+`world/targets` holds `{targets, spots}`. Targets name a weapon and immutable
+XYZ/radius, one cone/all or ray/nearest scan law, flag conditions and ordered
+move/contact rules. Contact numbers are landing ordinals within the move.
+Effects select declared interactions, durable flags and hints; `caught` is
+independent of effect acceptance. Rays borrow the landing's actual reach and
+width (light and heavy retain distinct ranges). Nearest geometry is selected before gates,
+so an unresponsive front target never exposes another one behind it.
+
+`WorldTargetHost` in `@wildshard/game/shardfile/worldTargets` uses
+`StrikeRunner.contact`, with full 3D cone/ray aim. Attach it through the
+existing `ContactFamily.bindWorldTargets` or `HeldMeleeWeapon.bindWorldTargets`
+landing owner. It adds no step, input, guest, body or clock. Platform quest
+installation lends its existing interaction/flag/hint owners; shards supply
+only the section data. Sky gust and Signal lash are the adoption consumers.
+
+`worldTargetSpots` in `@wildshard/format/worldTargets` resolves named immutable
+XYZ/yaw points for the move owner. `buildDecisionRegistries` accepts that
+same section as its third argument; compiler and runtime must both pass it.
+The writer and full validator check target move/contact and flag/interaction
+identities; worker admission transports the same validated section.

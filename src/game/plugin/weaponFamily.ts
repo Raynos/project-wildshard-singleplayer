@@ -3,7 +3,7 @@ import { bindMeleeContacts } from './simulation';
 import { createClientChannels, bindClientChannelInputs, createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { type Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
-import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
+import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget, WorldContactDispatcher } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -474,6 +474,8 @@ export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContact
   }
   bindSecondary(start: (family: ContactFamily<T>) => number | null, charge: number): void { this.secondary = start; this.chargeSeconds = charge; }
   aimAt(targets: readonly ContactWorldTarget[]): void { this.worldTargets = targets; }
+  /** Platform contact policy attaches to the existing immediate/delayed landing owner. */
+  bindWorldTargets(owner: WorldContactDispatcher | null): void { this.moves.bindWorldTargets(owner); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     const row = this.binding.row;

@@ -4,6 +4,7 @@ import type { CreatureStrikeSchema } from './creatures';
 import type { ActorMoves } from './actorMoves';
 import type { DecisionScriptRow } from './decisionScripts';
 import type { WorldPhysics } from './worldPhysics';
+import type { WorldTargets } from './worldTargets';
 
 type Rows = Shardfile['rows'];
 type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
@@ -32,6 +33,8 @@ export interface PlatformSections {
   'world/spawn': Pick<Shardfile, 'spawn'>;
   /** new (P2b): common raw native physics, read alongside owner metadata */
   'world/physics': WorldPhysics;
+  /** new (KA6): immutable strike targets and named movement/perch points. */
+  'world/targets': WorldTargets;
   'world/days': { readonly rows: Pick<Rows, 'days'> };
   'world/weather': { readonly rows: Pick<Rows, 'weather'> };
   'look/look': Pick<Shardfile, 'look' | 'presentation'>;

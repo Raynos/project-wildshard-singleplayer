@@ -6,6 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
 import { decisionModuleContracts, decisionScriptsFromSections, type ScriptContract } from '@wildshard/format/scriptContract';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
+import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { structuralGridEvidence } from '@wildshard/format/gridReadiness';
 import { assetCost, offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
@@ -64,7 +65,7 @@ export interface OutputProductOptions {
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
 /** The platform sections a decision row resolves against: its rows and the moves they bind. */
-export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/moves'] as const;
+export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/moves', 'world/targets'] as const;
 /** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
 export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = DECISION_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
   const payloads = new Map<string, unknown>();
@@ -81,9 +82,20 @@ export function outputPlatformPayloads(platform: EmittedSections | undefined, na
 export function outputDecisionScripts(platform?: EmittedSections): DecisionScripts {
   return decisionScriptsFromSections(outputPlatformPayloads(platform, ['sim/scripts']));
 }
+function checkWorldTargets(source: Shardfile, input: unknown): void {
+  if (input === undefined) return;
+  const errors = worldTargetRules(parseWorldTargets(input), source);
+  if (errors.length > 0) throw new Error(errors.join('; '));
+}
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
   const scripts = outputDecisionScripts(options.platform), source = admitProduct(input,assets,'warn',scripts);
+  const targetEntry = options.platform?.sections.find(row => row.name === 'world/targets');
+  if (targetEntry !== undefined) {
+    const bytes = options.platform?.files.get(targetEntry.path);
+    if (bytes === undefined || bytes.length !== targetEntry.bytes || hashImmutableBytes(bytes) !== targetEntry.hash) throw new Error('World target section hash or size mismatch');
+    checkWorldTargets(source, readJson(bytes));
+  }
   for(const issue of performanceTargetIssues(source,'warn'))console.warn(`Output budget report-only (G453): ${issue.metric}: ${issue.actual} exceeds ${issue.limit}`);
   source.files.sort((a,b)=>a.hash.localeCompare(b.hash));
   source.tiles.sort((a,b)=>a.lod-b.lod||a.x-b.x||a.z-b.z);
@@ -151,6 +163,7 @@ export function validateOutputProduct(destination: string): {index:OutputIndex; 
   const walk=(folder:string):void=>{for(const name of readdirSync(resolve(destination,folder))){const path=folder===''?name:`${folder}/${name}`,stat=lstatSync(resolve(destination,path));if(stat.isDirectory())walk(path);else if(!stat.isFile()||!listed.has(path))throw new Error(`Unlisted output file: ${path}`);}};
   walk('');
   const shard=admitProduct(assembleOutputShardfile(index,payloads),assets,'warn',scripts);
+  checkWorldTargets(shard, payloads.get('world/targets'));
   if(hashImmutableBytes(jsonBytes(shard))!==index.build.sourceHash)throw new Error('Output sections differ from the declared source hash');
   return{index,shard,assets};
 }

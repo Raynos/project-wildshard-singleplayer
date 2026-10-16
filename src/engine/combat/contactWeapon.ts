@@ -94,6 +94,11 @@ export class HeldWeaponClock {
 export interface ContactScanTarget extends WeaponContactTarget { readonly position: Vector3; readonly hittable?: boolean }
 /** Something in the world a lane move can reach (a lever, a brazier): `react` says whether it answered. */
 export interface ContactWorldTarget { readonly at: Vector3; readonly radius: number; crack: (heavy: boolean, second: boolean) => boolean }
+/** An actual landing's identity and aim, sampled by the existing contact owner. */
+export interface WorldContactRequest { readonly weapon: string; readonly move: string; readonly contact: number; readonly reach: number; readonly width: number; readonly from: Vector3; readonly dir: Vector3 }
+export interface WorldContactHit { readonly at: Vector3; readonly radius: number }
+/** A platform-owned data dispatcher; no extra weapon, timer or input lane is installed. */
+export interface WorldContactDispatcher { contact: (request: WorldContactRequest) => WorldContactHit | null }
 /**
  * One move as a row: the clock lane it claims and for how long, its contact shape, and its contacts in landing order.
  * A `cone` lands on every live body within `reach` m and `size` rad of the aim; a `lane` on the first body the `body`
@@ -121,7 +126,7 @@ export interface ContactFamilyPorts<T extends ContactScanTarget> {
   readonly react?: (target: T) => WeaponContactTarget;
   readonly fired?: () => void;
   readonly struck?: (actorId: string, killed: boolean) => void;
-  readonly caught?: (target: ContactWorldTarget, second: boolean) => void;
+  readonly caught?: (target: WorldContactHit, second: boolean) => void;
 }
 
 /**
@@ -141,11 +146,14 @@ export class ContactFamily<T extends ContactScanTarget = ContactScanTarget> {
   private readonly ports: ContactFamilyPorts<T>;
   private readonly overflow = new RangeError('Contact targets exceed the admitted contact scan');
   private readonly accepted = (id: string, killed: boolean): void => { this.ports.struck?.(id, killed); };
+  private worldContacts: WorldContactDispatcher | null = null;
   constructor(moves: readonly ContactMoveRow[], ports: ContactFamilyPorts<T>) { this.moves = moves; this.ports = ports; this.host = new ContactWeaponHost(request => ports.hit(request)); }
   get cooldown(): number { return this.host.primary; }
   set cooldown(value: number) { this.host.primary = value; }
   get secondaryCooldown(): number { return this.host.secondary; }
   set secondaryCooldown(value: number) { this.host.secondary = value; }
+  /** Attach the admitted world contacts to this existing owner's landing phase. Null restores its legacy roster. */
+  bindWorldTargets(owner: WorldContactDispatcher | null): void { this.worldContacts = owner; }
   /** The move's row (a missing move is a programming error). */
   row(move: number): ContactMoveRow { const row = this.moves[move]; if (row === undefined) throw new RangeError(`No contact move ${move}`); return row; }
   /** Claims the move's cooldown lane: false while it runs. */
@@ -179,13 +187,18 @@ export class ContactFamily<T extends ContactScanTarget = ContactScanTarget> {
   land(move: number, k: number, from: Vector3, dir: Vector3): number {
     const row = this.row(move), contact = row.hits[k];
     if (contact === undefined) throw new RangeError(`No contact ${k} on move ${move}`);
-    if (row.shape === 'cone') return this.cone(row, contact, from, dir);
+    if (row.shape === 'cone') {
+      const struck = this.cone(row, contact, from, dir);
+      this.worldContacts?.contact({ weapon: contact.weaponId, move: contact.moveId, contact: k, reach: row.reach, width: row.size, from, dir });
+      return struck;
+    }
     const react = (port: T): WeaponContactTarget => this.ports.react?.(port) ?? port;
     const hit = this.ports.body?.(from, dir, row.reach) ?? null;
     if (hit?.port.hittable === true) { this.strike(react(hit.port), move, k, hit.point, dir, from); this.ports.fired?.(); return 1; }
     const lane = this.nearest(row, from, dir);
     if (lane !== null) { this.strike(react(lane.port), move, k, lane.point, dir, from); this.ports.fired?.(); return 1; }
-    const caught = this.crackWorld(from, dir, row.reach, k > 0);
+    const caught = this.worldContacts === null ? this.crackWorld(from, dir, row.reach, k > 0)
+      : this.worldContacts.contact({ weapon: contact.weaponId, move: contact.moveId, contact: k, reach: row.reach, width: row.size, from, dir });
     if (caught !== null) this.ports.caught?.(caught, k > 0);
     return 0;
   }
