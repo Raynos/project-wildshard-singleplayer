@@ -8,10 +8,10 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Adventure } from '../quest/adventure';
 import { TRADER_NAME } from '../quest/TraderStall';
 import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound } from './finds';
-import { buyGood, goodById, goodState, maxHealthOf, type Good } from './shop';
+import { buyGood, goodById, goodState, type Good } from './shop';
 
 /** The island's authored counter and bag rows, supplied to the common loot mechanism. */
-export async function driftwoodLootPresentation(o: { adventure: Adventure; owned: Owned; audio: Audio; scope: Scope; toast: (text: string) => void; hold: (on: boolean) => void }): Promise<LootPresentation> {
+export async function driftwoodLootPresentation(o: { adventure: Pick<Adventure, 'flags' | 'trader'>; owned: Owned; health: { readonly attributes: { readonly maxHealth: number } }; audio: { readonly voices: Pick<Audio['voices'], 'play'> }; scope: Scope; toast: (text: string) => void; hold: (on: boolean) => void }): Promise<LootPresentation> {
   const { adventure: adv, owned } = o;
   const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
   const sfx = new InteractSfx(o.audio);
@@ -23,7 +23,7 @@ export async function driftwoodLootPresentation(o: { adventure: Adventure; owned
     charted: () => owned.has('sea-chart'), marks: () => seaChartMarks(adv.flags),
     chime: () => { sfx.interact('chime', undefined, { gain: 0.55 }); },
     finds: () => driftwoodFinds(adv.flags, owned),
-    gear: (purse) => ({ sharpen: owned.sharpen, health: { max: maxHealthOf(owned), hearts: owned.hearts },
+    gear: (purse) => ({ sharpen: owned.sharpen, health: { max: o.health.attributes.maxHealth, hearts: owned.hearts },
       charms: { owned: owned.charms, next: nextCharmAt(seaGlassFound(adv.flags).filter(Boolean).length) },
       cosmetics: [cosmetic('captain-hat', 'hat', 'The Drowned Captain'), cosmetic('cape', 'cape', `${TRADER_NAME}'s counter`)], coins: purse.coins }),
     shop: (purse) => {

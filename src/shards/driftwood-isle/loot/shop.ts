@@ -2,17 +2,14 @@
  * The trader's goods (E314 stage 2, project/archive/2026-09-30-driftwood-loot.md — Jake's picks 2026-09-30): six permanent things, each
  * bought once, BUY only (no selling), in the order the shop card flips through them. Pure: the shop screen
  * (src/shards/driftwood-isle/loot/ShopPanel.ts) renders `goodState`, `buyGood` spends the purse and grants the Owned id, and the effects read
- * Owned through `swordMul` / `maxHealthOf` (src/game/loot/install.ts wires them into the swords and main.ts's health).
+ * Owned through the live EffectService binding (loot/effects.ts); the Bag borrows that player's health.
  *
  *   goodState(good, owned, coins)  → 'owned' | 'locked' (a II before its I) | 'short' (too few coins) | 'buy'
  *   buyGood(good, owned, purse)    → true when bought (coins taken, the id granted); false changes nothing
- *   swordMul(owned.sharpen)        → 1 · 1.25 · 1.5 (Whetstone I / II: sword damage +25 % / +50 %, both swords)
- *   maxHealthOf(owned)             → 100 · 120 · 140 (Sturdy Heart I / II), +10 with the first sea glass charm (stage 3)
  */
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { driftwoodAttributes } from './effects';
-import { DRIFTWOOD_EFFECTS, GOODS } from '../data/economy';
+import { GOODS } from '../data/economy';
 
 /**
  * PRICES — coins are capped per enemy (Bounty.ts), so the island holds a fixed purse: one full clear of Driftwood is
@@ -33,8 +30,6 @@ export interface Good {
   needs?: OwnedId;
 }
 
-export const goodsTotal = (): number => GOODS.reduce((s, g) => s + g.price, 0);
-
 export type GoodState = 'owned' | 'locked' | 'short' | 'buy';
 
 export interface OwnedView { has: (id: OwnedId) => boolean }
@@ -53,12 +48,3 @@ export function buyGood(g: Good, owned: OwnedView & { grant: (id: OwnedId) => bo
 }
 
 export const goodById = (id: OwnedId): Good | undefined => GOODS.find((g) => g.id === id);
-
-/** the sword's damage multiplier for the whetstones owned (0 · 1 · 2) */
-export const swordMul = (sharpen: number): number => DRIFTWOOD_EFFECTS.find((def) => def.id === (sharpen >= 2 ? 'effect.whetstone.2' : sharpen >= 1 ? 'effect.whetstone.1' : ''))?.modifiers[0]?.value ?? 1;
-
-export const BASE_HEALTH = 100;
-/** max health: 100, +20 a sturdy heart (120 · 140), +10 for the first sea glass charm (the chime at 5 pieces, stage 3) */
-export function maxHealthOf(owned: OwnedView): number {
-  return driftwoodAttributes(owned).attributes['maxHealth'] ?? BASE_HEALTH;
-}

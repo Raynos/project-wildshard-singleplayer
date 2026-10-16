@@ -1,7 +1,7 @@
-import { DRIFTWOOD_EFFECTS, DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from '../data/economy';
+import { DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from '../data/economy';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { EffectService, selectEffectGrants } from '@wildshard/engine/combat/effects/EffectService';
-import type { EffectId, EffectTarget, AttributeSet } from '@wildshard/engine/combat/effects/types';
+import { selectEffectGrants, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import type { EffectId, EffectTarget } from '@wildshard/engine/combat/effects/types';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
 
@@ -12,14 +12,6 @@ export function driftwoodPlayerGrants(owned: OwnedEffects): { id: EffectId; stac
 }
 export function driftwoodWeaponGrants(owned: OwnedEffects): { id: EffectId }[] {
   return selectEffectGrants(DRIFTWOOD_WEAPON_GRANTS, id => owned.has(id));
-}
-/** Pure legacy reads derive from the same rows while their presentation consumers move. */
-export function driftwoodAttributes(owned: OwnedEffects): { attributes: AttributeSet; tags: readonly string[] } {
-  const player: EffectTarget = { attributes: { maxHealth: 100, dodgeCooldownMul: 1 } };
-  const weapon: EffectTarget = { attributes: { damage: 1, heavyDamageMul: 1 } };
-  const effects = new EffectService(DRIFTWOOD_EFFECTS);
-  effects.sync(player, driftwoodPlayerGrants(owned)); effects.sync(weapon, driftwoodWeaponGrants(owned));
-  return { attributes: { ...player.attributes, ...weapon.attributes }, tags: player.effectTags ?? [] };
 }
 export function bindDriftwoodEffects(o: {
   effects: EffectService; scope: Scope; owned: OwnedEffects & { onChange: (fn: () => void) => () => void };

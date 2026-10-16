@@ -43,7 +43,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   installKeepsakes({ owner: ctx, onDeath: (run, order) => { onCreatureDeath(ctx, () => h.animals.animals, run, order); },
     owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
     body: h.bodyShadow ?? null, swords, effectsManaged: true });
-  const presentation = await driftwoodLootPresentation({ adventure, owned: h.owned, audio: h.audio, scope: ctx.scope,
+  const presentation = await driftwoodLootPresentation({ adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
     toast: (text) => { h.hud.toast(text); }, hold: new QuestViews(ctx).panelHold({ hud: h.hud, weapons: h.weapons, menu: h.menu,
       nolock: h.nolock, touchUi: h.touchUi, restartOnClose: true,
       stow: on => { h.weapons.stowed = on; }, resume: () => { h.weapons.setEnabled(!player.swimming); } }) });
