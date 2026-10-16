@@ -1,4 +1,5 @@
-import { installNativeMelee, trustedLevel } from '@wildshard/game/plugin/simulation';
+import { installNativeItems } from '@wildshard/game/plugin/nativeItems';
+import { trustedLevel } from '@wildshard/game/plugin/simulation';
 import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
@@ -59,7 +60,11 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
         ['captain.dead', () => { /* The native encounter already owns death. */ }]]) }, context.restoring);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
     const input = bindHeadlessCommands(context), { fact, coins } = input.ledger;
-    const held = installNativeMelee(host, shard.items.rows, NATIVE_SWORDS, { alarm: () => island.alarm(), staggered: (actor, strength, running) => island.staggered(actor, strength, running), input: input.melee });
+    if (context.combat === undefined) throw new Error('Driftwood requires its native combat frame');
+    host.events.answer('item.reaction', reaction => {
+      if (reaction.kind === 'alarm') island.alarm(); else island.staggered(reaction.actor, reaction.strength, reaction.running); return reaction;
+    }, host.scope);
+    const held = installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: NATIVE_SWORDS });
     // the kill hooks: the sailor's flag and the kill feats' ledger facts
     installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, fact);
     // the quest and its interactables at the page's points: `script` commands on `driftwood.interact` (runtime/quest.ts)

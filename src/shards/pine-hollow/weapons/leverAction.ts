@@ -1,6 +1,6 @@
-import * as v from 'valibot';
+import type * as v from 'valibot';
 import { RangedAction, type RangedCycleEvent } from '@wildshard/engine/combat/Firearm';
-import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { parseNativeFirearmProfile, type FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { AR15 } from '../data/firearmProfile';
@@ -24,11 +24,8 @@ export const LEVER_PROFILE: FirearmProfile = {
 
 /** Admit only the per-round lever/hitscan law this native owner actually hosts, before allocating or reading RNG. */
 export function parseLeverProfile(input: unknown): v.InferOutput<typeof FirearmWeaponProfileSchema> & { lever: NonNullable<v.InferOutput<typeof FirearmWeaponProfileSchema>['lever']> } {
-  const row = v.parse(FirearmWeaponProfileSchema, input);
-  if (row.action !== 'lever' || row.reloadMode !== 'perRound' || row.lever === undefined || row.projectile.kind !== 'bullet' || row.projectile.delivery !== 'hitscan'
-    || row.bloomShot !== 0 || row.bloomMax !== 0 || row.interval !== row.lever.cycleDelay + row.lever.cycleTime
-    || row.projectile.speed !== 0 || row.projectile.radius !== 0 || row.projectile.pool !== 1 || row.projectile.substeps !== 1
-    || row.projectile.flight.gravity !== 0 || row.projectile.flight.drag !== 0 || row.projectile.flight.windCoupling !== 0) throw new Error('Unhosted Pine lever profile');
+  const row = parseNativeFirearmProfile(input, 'lever');
+  if (row.lever === undefined) throw new Error('Missing lever profile');
   return { ...row, lever: row.lever };
 }
 

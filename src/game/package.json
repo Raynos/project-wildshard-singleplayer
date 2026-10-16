@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./plugin/nativeItems": "./plugin/nativeItems.ts",
     "./shardfile/nativePlan": "./shardfile/nativePlan.ts",
     "./shardfile/worldTargets": "./shardfile/worldTargets.ts",
     "./shardfile/decisions": "./shardfile/decisions.ts",

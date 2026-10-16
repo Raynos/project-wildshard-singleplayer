@@ -108,18 +108,13 @@
       "src/shards/pine-hollow/runtime/pack.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/rainShelter.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/rangedVolumes.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/roster.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/species/herdShelter.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/species/limbRig.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/trader.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/weapons/ammunition.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/weapons/gustClock.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/weapons/headlessCrossbow.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/weapons/headlessLever.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/weapons/headlessLongbow.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/weapons/headlessRanged.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/weapons/motion.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/sunscar-dunes/runtime/headless.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
     }
   },
@@ -152,7 +147,7 @@
     "sim-in-runtime/nalati-grasslands": 25,
     "sim-in-runtime/nine-dragon-stack": 9,
     "sim-in-runtime/pastel-plain": 0,
-    "sim-in-runtime/pine-hollow": 28,
+    "sim-in-runtime/pine-hollow": 23,
     "sim-in-runtime/sunscar-dunes": 1
   },
   "debugRows": {

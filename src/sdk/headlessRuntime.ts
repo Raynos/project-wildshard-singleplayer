@@ -1,3 +1,4 @@
+import { createNativeCombatFrame, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import { ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -21,6 +22,7 @@ export interface HeadlessRuntimePreparation { shard: Shardfile; assets: Readonly
 export type HeadlessRuntimeInput = Omit<HeadlessRuntimePreparation, 'product'> & { readonly product?: ShardProduct };
 /** Current tick inputs and buffered effects; only a completed tick publishes them to the parent. */
 export interface HeadlessRuntimeInstallation {
+  readonly combat?: NativeCombatFrame;
   restoring: boolean;
   /** Strictly decoded continuation; reinstall its dynamic actor roster before native restore. Never step here. */
   snapshot?: Readonly<SimSnapshot>;
@@ -144,7 +146,8 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   const plan = await prepareNativeRuntime(preparation, entry);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
-  const context: HeadlessRuntimeInstallation = { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, emit: effect => { effects.push(effect); } };
+  const combat = createNativeCombatFrame();
+  const context: HeadlessRuntimeInstallation = { combat, restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, emit: effect => { effects.push(effect); } };
   const ports = { ...plan.ports, rapier: preparation.rapier };
   let installing: SimHost | undefined;
   let host: SimHost;
@@ -157,7 +160,7 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   } catch (error) { installing?.dispose(); throw error; }
   const lend = (input: readonly HeadlessCommand[]): void => {
     if (input.some(command => command.kind === 'interact')) throw new Error('Authored interaction commands require the data-only owner');
-    commands = input; effects = []; };
+    fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   return {
     host, lend,
     get effects() { return effects; },
@@ -345,4 +348,22 @@ export function createNativeBakeReader<E extends object>(input: unknown, options
       return result;
     },
   };
+}
+
+/** Fill the borrowed combat frame before the tick. All attacks retain tape order; held ranged input uses the first
+ * hold, melee and movement use the last player command (including release), script values use the last matching row. */
+export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readonly HeadlessCommand[]): void {
+  if (commands.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
+  frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
+  frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0;
+  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null;
+  for (const command of commands) {
+    if (command.kind === 'script') frame.scripts.set(command.actorId, command.value);
+    if (command.kind !== 'player') continue;
+    if (command.attack !== undefined) frame.attacks.push(command.attack.targetId);
+    if (frame.heavy === null && command.heavy !== undefined) frame.heavy = command.heavy;
+    frame.moveX = command.moveX; frame.moveZ = command.moveZ; frame.yaw = command.yaw;
+    frame.melee.attack = command.attack?.targetId ?? null; frame.melee.heavy = command.heavy !== undefined;
+    frame.melee.heavyTarget = command.heavy?.targetId ?? null;
+  }
 }

@@ -5,7 +5,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import { advanceKingPose, newPose, type KingPose, type KingPoseRest } from '../combat/kingRig';
 import { readKingCollisionBake } from './kingCollisionBake';
-import { bindRangedVolumes } from './rangedVolumes';
+import { bindNativeRangedVolumes } from '@wildshard/game/plugin/nativeItems';
 import raw from '../data/kingCollision.generated.json' with { type: 'json' };
 
 const MAX_KINGS = 512; // The roster's same bounded live-body capacity, including unlisted encounter bodies.
@@ -127,11 +127,7 @@ export function installKingPoseKeeper(host: SimHost): {
       const entry: Entry = { body, pose, hits: { head: new Vector3(), rear: new Vector3(), front: new Vector3(), left: new Vector3(), right: new Vector3() }, near: false };
       sample(entry);
       body.bindVolumes(pose);
-      bindRangedVolumes(body, {
-        headWorld: out => out.copy(entry.hits.head),
-        bodyCapsule: (rear, front) => { rear.copy(entry.hits.rear); front.copy(entry.hits.front); },
-        foreCapsule: (left, right) => { left.copy(entry.hits.left); right.copy(entry.hits.right); return true; },
-      });
+      bindNativeRangedVolumes(host, body.entityId, entry.hits);
       entries.push(entry); byId.set(body.entityId, entry);
       body.ribsWorld = out => { pose.publish('chest'); return pose.jointPoint('chest', ribs, out); };
       body.publishKingHead = () => { pose.publish(); };

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./nativeItems": "./nativeItems.ts",
     "./audioBank": "./audioBank.ts",
     "./nativeRuntimePlan": "./nativeRuntimePlan.ts",
     "./worldTargets": "./worldTargets.ts",

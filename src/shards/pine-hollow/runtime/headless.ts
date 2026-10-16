@@ -1,7 +1,8 @@
+import { installNativeItems, observeNativeCombatMotion, type NativeCombatFrame, type NativeBoltItem, type NativeBowItem, type NativeCycleItem } from '@wildshard/game/plugin/nativeItems';
+import type { ShardItems } from '@wildshard/format/items';
 import { PINE_TERRAIN } from '../data/terrainBindings';
 import * as v from 'valibot';
-import { parseCrossbowProfile } from '../weapons/crossbow/profiles';
-import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { BowWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
@@ -13,10 +14,6 @@ import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
 import { installPineKing, KING_RECORD } from './king';
-import { installPineCrossbow } from './weapons/headlessCrossbow';
-import { installPineLever } from './weapons/headlessLever';
-import { parseLeverProfile } from '../weapons/leverAction';
-import { installPineLongbow } from './weapons/headlessLongbow';
 import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
 import { bindNativeLoadout, trustedLevel } from '@wildshard/game/plugin/simulation';
 import { PINE_NATIVE_LOADOUT, PINE_WEAPON, WEAPON_COMMAND, LOADOUT_STEP, LEVER_FLAG } from '../data/nativeLoadout';
@@ -32,8 +29,6 @@ import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
 import { installPineNight } from './nightPopulation';
 import { PINE_LODGE } from './lodge';
-import { installPineRangedMotion } from './weapons/motion';
-import { boltFlight } from '../loadout/ammo';
 import type { PineWeatherMode } from '../world/weatherProfile';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
@@ -73,13 +68,13 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, rapier }) => {
   const row = shard.items.rows.find(item => item.id === 'weapon.longbow');
   if (row?.kind !== 'weapon' || row.family !== 'bow') throw new Error('Missing admitted Pine bow profile');
-  const bowProfile = v.parse(BowWeaponProfileSchema, row.profile);
+  v.parse(BowWeaponProfileSchema, row.profile);
   const crossbowRow = shard.items.rows.find(item => item.id === 'weapon.crossbow');
   if (crossbowRow?.kind !== 'weapon' || crossbowRow.family !== 'firearm') throw new Error('Missing admitted Pine crossbow profile');
-  const crossbowProfile = parseCrossbowProfile(crossbowRow.profile);
+  parseNativeFirearmProfile(crossbowRow.profile, 'bolt');
   const leverRow = shard.items.rows.find(item => item.id === 'weapon.lever');
   if (leverRow?.kind !== 'weapon' || leverRow.family !== 'firearm') throw new Error('Missing admitted Pine lever profile');
-  const leverProfile = parseLeverProfile(leverRow.profile);
+  parseNativeFirearmProfile(leverRow.profile, 'lever');
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
   const nav = readNavmesh(navBytes, `Pine headless needs its baked navmesh (${PINE_NAVMESH_ASSET})`, () => 0);
@@ -91,20 +86,15 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
     try { addPineWorld(fresh, bake, isStandaloneEdgeWall); fresh.step(); return proveTerrainEntries(fresh.physics, shard.entryways, heightAt, ENTRY_WALK); } finally { fresh.dispose(); }
   }, install: (host, context) => {
-    const input = bindHeadlessCommands(context);
-    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, crossbowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
-      shots: input.shots, heavy: input.heavy, pick: () => input.lastScript(WEAPON_COMMAND, null),
-      aim: () => { const value = input.lastScript(AIM_COMMAND, null); return value === null ? AIM_MIDDLE : aimShare(value); }, interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
+    const input = bindHeadlessCommands(context), combat = context.combat;
+    if (combat === undefined) throw new Error('Pine requires its native combat frame');
+    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+      interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
 
 export interface PineInstall {
-  /** Actual admitted bolt declaration; same default row for standalone fixtures. */
-  readonly crossbowProfile?: ReturnType<typeof parseCrossbowProfile>;
-  /** Admitted numeric lever row; isolated fixtures retain the exact authored default. */
-  readonly leverProfile?: ReturnType<typeof parseLeverProfile>;
-  /** Admitted numeric bow row; isolated native fixtures use the same authored default. */
-  readonly bowProfile?: v.InferOutput<typeof BowWeaponProfileSchema>;
+  readonly combat: NativeCombatFrame; readonly items: ShardItems;
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
   readonly director: () => DirectorLane;
   /** Independent admitted night population handler; placement and roster owners remain native. */
@@ -122,14 +112,6 @@ export interface PineInstall {
   readonly weatherMode?: PineWeatherMode;
   /** the platform's fact effect (the page feat law files committed flags and creature deaths) */
   readonly fact?: (name: string, entity: string) => void;
-  /** the tick's trigger pulls on the held weapon (the bodies they are aimed at; absent: none) */
-  readonly shots?: () => readonly string[];
-  /** the tick's HEAVY hold (the longbow's draw; null when up; absent: never held) */
-  readonly heavy?: () => { readonly targetId?: string | undefined } | null;
-  /** the tick's weapon pick (a PINE_ITEMS slot; null: none; absent: never) */
-  readonly pick?: () => number | null;
-  /** the tick's aim share along a shot's target body (`pine.aim`, weapons/headlessRanged.ts; absent: its middle) */
-  readonly aim?: () => number;
   /** the shard's declared quest rows (absent: PINE_QUESTS, the shardfile's own) */
   readonly quests?: PineQuestPorts['quests'];
   /** the tick's quest prompt presses (`pine.interact` script commands; absent: none) */
@@ -138,8 +120,8 @@ export interface PineInstall {
 
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
 export function installPine(host: SimHost, parts: PineInstall): {
-  roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: ReturnType<typeof installPineCrossbow>;
-  lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof bindNativeLoadout<0 | 1 | 2>>;
+  roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: NativeBoltItem;
+  lever: NativeCycleItem; longbow: NativeBowItem; loadout: ReturnType<typeof bindNativeLoadout<0 | 1 | 2>>;
   quest: ReturnType<typeof installHollowQuest>;
   air: ReturnType<typeof installPineAir>;
   thralls: ReturnType<typeof installPineNight>;
@@ -155,42 +137,47 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // the elites' step first (the page's elites tick before its creature manager), on the roster's lair bodies
   let roster: ReturnType<typeof installPineRoster> | null = null;
   let quest: ReturnType<typeof installHollowQuest> | null = null;
-  const live = (): ReturnType<typeof installPineRoster> => { if (roster === null) throw new Error('Pine roster is not installed'); return roster; };
-  const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? [], heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
-    retire: a => { live().retire(a); }, dusk, night });
+  const installedRoster = (): ReturnType<typeof installPineRoster> => { if (roster === null) throw new Error('Pine roster is not installed'); return roster; };
+  const noBodies: ReturnType<ReturnType<typeof installPineRoster>['bodies']> = [];
+  const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? noBodies, heightAt, spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant),
+    retire: a => { installedRoster().retire(a); }, dusk, night });
   // the King's steps next (the page ticks him after the elites, before its creature manager), before any live spawn
-  const king = installPineKing(host, { heightAt, parked: () => live().parked(), adoptParked: (id, x, z, yaw) => live().adoptParked(id, x, z, yaw),
-    spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => live().spawnLoose(kind, x, z, yaw, variant),
-    retire: a => { live().retire(a); }, find: id => live().actor(id), night,
+  const king = installPineKing(host, { heightAt, parked: () => installedRoster().parked(), adoptParked: (id, x, z, yaw) => installedRoster().adoptParked(id, x, z, yaw),
+    spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => installedRoster().spawnLoose(kind, x, z, yaw, variant),
+    retire: a => { installedRoster().retire(a); }, find: id => installedRoster().actor(id), night,
     grantTrophy: () => { if (quest === null) throw new Error('Pine quest pack is not installed'); quest.pack.add('amber-resin', 3); } });
   // the player's loadout and weapons, locked through the King's intro: installed before the roster (a restoring roster
   // reinstalls its live spawns at install, and the host keeps every adapter in registration order). Their afterBodies
   // work follows the creature manager, as on the page; the loadout swaps before every weapon updates. The roster's King
   // publication comes last, matching render propagation after equipment's cached-pose queries.
-  const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null);
+  const frame = parts.combat;
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
   const loadout = bindNativeLoadout(host, PINE_NATIVE_LOADOUT, {
     owned: slot => slot === PINE_WEAPON.crossbow || (slot === PINE_WEAPON.lever && host.flags.has(LEVER_FLAG))
       || (slot === PINE_WEAPON.longbow && host.flags.has(KING_RECORD.paid)),
     locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
-    ...(parts.aim === undefined ? {} : { aim: parts.aim }), step: { id: LOADOUT_STEP, phase: 'afterBodies', pick: () => {
-      const picked = parts.pick?.() ?? null, took = quest?.takeRifle() ?? false;
+    step: { id: LOADOUT_STEP, phase: 'afterBodies', pick: () => {
+      const picked = frame.scripts.get(WEAPON_COMMAND) ?? null, took = quest?.takeRifle() ?? false;
       return picked ?? (took ? PINE_WEAPON.lever : null);
     } },
   });
-  // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
-  const { bodies, aim } = loadout;
-  const speedFactor = installPineRangedMotion(host);
-  // The air callback is registered after quest, but all weapon flight runs after bodies. They read that same owner.
+  // Input is published after the loadout swap and before all three item owners, in their original order.
+  host.onStep('pine.combat-input', () => {
+    frame.aim = aimShare(frame.scripts.get(AIM_COMMAND) ?? AIM_MIDDLE); frame.live.clear();
+    for (let index = 0; index < 32; index++) { const slot = PINE_NATIVE_LOADOUT.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) frame.live.add(slot); }
+  }, undefined, 'afterBodies');
+  observeNativeCombatMotion(host, frame, 7.2);
   let air: ReturnType<typeof installPineAir> | null = null;
   const atmosphere = (): ReturnType<typeof installPineAir> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
-  let ammunition: PineAmmunition | null = null;
-  const crossbow = installPineCrossbow(host, { ...(parts.crossbowProfile === undefined ? {} : { profile: parts.crossbowProfile }), shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
-    ammunition: () => ammunition?.selected ?? 'iron', flight: kind => boltFlight(kind, atmosphere().weather.rain) });
-  const lever = installPineLever(host, { ...(parts.leverProfile === undefined ? {} : { profile: parts.leverProfile }), shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
-  const longbow = installPineLongbow(host, { ...(parts.bowProfile === undefined ? {} : { profile: parts.bowProfile }), heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,
-    wind: { vecAt: (x, z, out) => atmosphere().wind.vecAt(x, z, out) } });
-  const ammunitionOwner = new PineAmmunition({ crossbow, lever, longbow }); ammunition = ammunitionOwner;
+  const declared = (id: string) => {
+    const item = parts.items.rows.find(row => row.id === id);
+    if (item?.kind !== 'weapon' || item.ranged === undefined || item.profile === undefined) throw new Error('Missing native ranged item row');
+    return { policy: item.ranged, profile: item.profile };
+  };
+  const crossbow = installNativeItems(host, frame, { kind: 'bolt', ...declared('weapon.crossbow') });
+  const lever = installNativeItems(host, frame, { kind: 'cycle', ...declared('weapon.lever') });
+  const longbow = installNativeItems(host, frame, { kind: 'bow', ...declared('weapon.longbow') });
+  const ammunitionOwner = new PineAmmunition({ crossbow, lever, longbow }, frame);
   host.onStep('pine.ammunition', () => { ammunitionOwner.update(); }, undefined, 'afterBodies');
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
@@ -200,9 +187,9 @@ export function installPine(host: SimHost, parts: PineInstall): {
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster
   // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
-  const thralls = installPineNight(host, parts.nightDirector(), { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
-    retire: actor => { live().retire(actor); }, find: id => live().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
-  air = installPineAir(host, () => day.phase, parts.weatherMode);
+  const thralls = installPineNight(host, parts.nightDirector(), { night, heightAt, spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant),
+    retire: actor => { installedRoster().retire(actor); }, find: id => installedRoster().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
+  air = installPineAir(host, () => day.phase, parts.weatherMode, frame);
   const shelter = installPineRainShelter(host, () => roster?.hunt.herds ?? [], bake.shelterTrees, () => atmosphere().weather.rain);
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved,
     wanderGoal: herd => shelter.wanderGoal(herd, atmosphere().weather.rain) });

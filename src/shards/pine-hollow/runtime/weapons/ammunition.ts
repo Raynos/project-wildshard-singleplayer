@@ -1,3 +1,4 @@
+import type { NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import * as v from 'valibot';
 import { Quiver, POUCH_MAX, type AmmoKind, type BoltKind } from '../../loadout/ammo';
 import { LONGBOW_LOOSE } from '../../weapons/longbowFlight';
@@ -16,7 +17,8 @@ export interface PineAmmunitionPorts {
 export class PineAmmunition {
   private readonly quiver = new Quiver();
   private readonly ports: PineAmmunitionPorts;
-  constructor(ports: PineAmmunitionPorts) { this.ports = ports; }
+  private readonly frame: NativeCombatFrame | undefined;
+  constructor(ports: PineAmmunitionPorts, frame?: NativeCombatFrame) { this.ports = ports; this.frame = frame; }
   get selected(): BoltKind { return this.quiver.selected; }
   count(kind: AmmoKind): number {
     return kind === 'cartridge' ? this.ports.lever.store.reserve + this.ports.lever.act.rounds
@@ -33,6 +35,7 @@ export class PineAmmunition {
     const state = this.ports.crossbow.state, n = this.quiver.select(kind, state.quiver);
     if (n === null) return;
     state.quiver = n; state.loaded = n > 0 && state.loaded;
+    if (this.frame !== undefined) this.frame.ammo = kind;
   }
   cycle(): void { this.loadKind(this.quiver.next()); }
   /** Called after weapon updates, exactly where the page stashes/falls back after an exhausted special stack. */
@@ -49,7 +52,7 @@ export class PineAmmunition {
   prepareRestore(value: unknown): () => void {
     const saved = v.parse(PINE_AMMO_SAVED, value === undefined ? { selected: 'iron', iron: this.ports.crossbow.state.quiver, pitch: 0, broadhead: 0 } : value);
     if (saved[saved.selected] !== this.ports.crossbow.state.quiver) throw new RangeError('Pine selected ammunition disagrees with its weapon');
-    return () => { this.quiver.selected = saved.selected; Object.assign(this.quiver.counts, { iron: saved.iron, pitch: saved.pitch, broadhead: saved.broadhead }); };
+    return () => { this.quiver.selected = saved.selected; Object.assign(this.quiver.counts, { iron: saved.iron, pitch: saved.pitch, broadhead: saved.broadhead }); if (this.frame !== undefined) this.frame.ammo = saved.selected; };
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
 }

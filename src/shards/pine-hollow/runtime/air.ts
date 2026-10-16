@@ -1,3 +1,4 @@
+import type { NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import * as v from 'valibot';
 import { TickScheduler } from '@wildshard/engine/app/scheduler';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -54,9 +55,11 @@ export class PineAir {
 
 /** Native ownership boundary: one weather/gust continuation, stepped after quest clock changes and before weapons.
  * The caller registers it in that order. Restoring is silent and validates the whole continuation before committing. */
-export function installPineAir(host: SimHost, dayPhase: () => number, mode?: PineWeatherMode): PineAir {
+export function installPineAir(host: SimHost, dayPhase: () => number, mode?: PineWeatherMode, frame?: NativeCombatFrame): PineAir {
   const air = new PineAir({ seed: host.level.seed, ...(mode === undefined ? {} : { mode }) });
-  host.onStep('pine.air', dt => { air.step(dt, dayPhase()); }, {
+  if (frame !== undefined) frame.wind = { clock: air.wind.current,
+    field: { x: -0.55, z: 0.83, frontLength: 150, frontSpeed: 11, secondaryLength: 0.61 * 150 }, base: 1.2, scale: 7 };
+  host.onStep('pine.air', dt => { air.step(dt, dayPhase()); if (frame !== undefined) frame.rain = air.weather.rain; }, {
     snapshot: () => air.snapshot(), restore: saved => { air.restore(saved); },
   });
   return air;

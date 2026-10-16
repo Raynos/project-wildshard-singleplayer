@@ -1,5 +1,5 @@
-import * as v from 'valibot';
-import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import type * as v from 'valibot';
+import { parseNativeFirearmProfile, type FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { CROSSBOW_WEAPON_PROFILE } from '../../data/crossbowProfile';
 
 /** The existing flight/view profile with admitted launch/contact clocks; view and stuck-bolt dressing remain native. */
@@ -12,12 +12,7 @@ export interface CrossbowProfile {
 }
 /** Refuse fields this native single-bolt owner cannot host before allocations or gameplay RNG. */
 export function parseCrossbowProfile(input: unknown): v.InferOutput<typeof FirearmWeaponProfileSchema> {
-  const p = v.parse(FirearmWeaponProfileSchema, input);
-  if (p.action !== 'bolt' || p.magazine !== 1 || p.reloadMode !== 'single' || p.lever !== undefined ||
-    p.projectile.kind !== 'bolt' || p.projectile.delivery !== 'flight' || p.projectile.speed <= 0 || p.projectile.radius <= 0 || p.projectile.muzzle === undefined ||
-    p.spreadAxisScale === undefined || p.projectile.flight.windCoupling !== 0 || p.range !== 310 ||
-    p.bloomShot !== 0 || p.bloomMax !== 0 || p.movingSpread !== 0 || p.movingAimReduction !== 0) throw new Error('Unsupported native Pine single-bolt profile');
-  return p;
+  return parseNativeFirearmProfile(input, 'bolt');
 }
 /** Project the same admitted row into the shipping renderer-free flight law and page owner without replacing its view. */
 export function crossbowProfile(input: unknown): CrossbowProfile {

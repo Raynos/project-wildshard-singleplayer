@@ -1,3 +1,4 @@
+import { NativeRangedRowSchema } from './nativeItems';
 import * as v from 'valibot';
 import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
 import { isJsonData } from './json';
@@ -21,7 +22,7 @@ const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), 
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
 const secondary = v.strictObject({ action: name, code: v.exactOptional(v.picklist([3, 4])), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
-  profile: v.exactOptional(WeaponProfileSchema), contacts: v.exactOptional(MeleeContactsSchema),
+  profile: v.exactOptional(WeaponProfileSchema), ranged: v.exactOptional(NativeRangedRowSchema), contacts: v.exactOptional(MeleeContactsSchema),
   secondary: v.exactOptional(secondary), native: v.exactOptional(NativeMeleeRowSchema),
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
@@ -119,7 +120,8 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
     return contact === undefined || (row.native?.mode === 'timed') !== (contact.lands.length > 0)
       || action.hook !== null && (row.hook === null || row.secondary?.code !== action.hook || row.secondary.move !== action.move);
   })))) errors.push('native melee actions resolve admitted contacts and script hooks');
-  const nativeSteps = weapons.flatMap(row => row.native === undefined ? [] : [row.native.step]);
+  const nativeSteps = weapons.flatMap(row => [...(row.native === undefined ? [] : [row.native.step]), ...(row.ranged === undefined ? [] : [row.ranged.step])]);
+  if (weapons.some(row => row.ranged !== undefined && (row.native !== undefined || (row.profile?.family !== 'bow' && row.profile?.family !== 'firearm')))) errors.push('native ranged requires its admitted weapon profile');
   if (new Set(nativeSteps).size !== nativeSteps.length) errors.push('unique native melee steps');
   if (items.rows.some((row) => row.kind === 'tool' && row.action === null && row.hook !== null)) errors.push('native tools have no script hook');
   if (items.contexts.some((ctx) => baselineContexts.has(ctx.id))) errors.push('baseline context is referenced rather than redeclared');

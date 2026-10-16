@@ -1,3 +1,4 @@
+import { createNativeCombatFrame, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads Pine's native bakes and the native physics module.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed gameplay checkpoints are compressed native save wires.
@@ -11,7 +12,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { parseNavmesh, type Navmesh } from '../../../src/engine/physics/navmesh';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
-import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
+import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
@@ -21,12 +22,12 @@ import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../../src/shards/pine-hollow/data/nativeLoadout';
-import { LEVER_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLever';
-import { CROSSBOW_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessCrossbow';
 import { AIM_COMMAND, AIM_RIBS } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+
+const LEVER_STEP = 'pine.lever', CROSSBOW_STEP = 'pine.crossbow';
 
 /**
  * Pine Hollow's whole-shard witness (E435 §C / SF72), on its trusted renderer-free entry `runtime/headless.ts`, composed as
@@ -44,7 +45,7 @@ const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [pat
 const EYE = 1.68;
 
 /** One authoritative session: the host, the tick's lent commands and its committed effects. */
-interface Session { host: SimHost; tape: readonly HeadlessCommand[]; effects: HeadlessEffect[]; tick: HeadlessEffect[] }
+interface Session { combat: NativeCombatFrame; host: SimHost; tape: readonly HeadlessCommand[]; effects: HeadlessEffect[]; tick: HeadlessEffect[] }
 const requireValue = <T>(value: T | undefined | null, message: string): T => { if (value === undefined || value === null) throw new Error(message); return value; };
 /** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts). */
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
@@ -53,10 +54,10 @@ export function pineRapier(): Promise<Rapier> { return loadRapier(readFileSync(n
 export async function pinePlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/pine-hollow') }); }
 
 function context(session: Omit<Session, 'host'>, saved?: SimSnapshot): HeadlessRuntimeInstallation {
-  return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };
+  return { combat: session.combat, restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };
 }
 function boot(plan: HeadlessRuntimePlan, rapier: Rapier): Session {
-  const session = { tape: [] as readonly HeadlessCommand[], effects: [] as HeadlessEffect[], tick: [] as HeadlessEffect[] };
+  const session = { combat: createNativeCombatFrame(), tape: [] as readonly HeadlessCommand[], effects: [] as HeadlessEffect[], tick: [] as HeadlessEffect[] };
   const host = createSimHost(plan.level, { ...plan.ports, rapier });
   plan.install(host, context(session));
   if (session.tick.length > 0) throw new Error('Installation emitted gameplay effects');
@@ -64,14 +65,14 @@ function boot(plan: HeadlessRuntimePlan, rapier: Rapier): Session {
 }
 /** A session restored from a snapshot wire (the replay leg). */
 export function restore(plan: HeadlessRuntimePlan, rapier: Rapier, saved: SimSnapshot): Session {
-  const session = { tape: [] as readonly HeadlessCommand[], effects: [] as HeadlessEffect[], tick: [] as HeadlessEffect[] }, ports = { ...plan.ports, rapier };
+  const session = { combat: createNativeCombatFrame(), tape: [] as readonly HeadlessCommand[], effects: [] as HeadlessEffect[], tick: [] as HeadlessEffect[] }, ports = { ...plan.ports, rapier };
   const host = restoreSimHost(plan.level, ports, saved, fresh => { if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, context(session, saved)); });
   if (session.tick.length > 0) throw new Error('Restore emitted gameplay effects');
   return Object.assign(session, { host });
 }
 /** One tick as the trusted adapter runs it (its last `player` command steps the host); only a completed tick commits its effects. */
 function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessEffect[] {
-  session.tape = commands; session.tick = [];
+  fillNativeCombatFrame(session.combat, commands); session.tape = commands; session.tick = [];
   try {
     let player: HeadlessCommand | undefined;
     for (const command of commands) if (command.kind === 'player') player = command;

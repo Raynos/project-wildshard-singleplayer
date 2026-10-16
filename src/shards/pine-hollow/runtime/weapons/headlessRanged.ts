@@ -1,28 +1,17 @@
-import { createNativeTargetQueries } from '@wildshard/game/plugin/simulation';
-import { Vector3 } from 'three';
+import { nativeRangedAim, nativeRangedHit } from '@wildshard/game/plugin/nativeItems';
+import type { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { rangedVolumes } from '../rangedVolumes';
 
 /** The page Player's eye over its feet (player/Player.ts EYE): every aim line starts there. */
 export const EYE = 1.68;
 /** A body's hit along a ray: the body, head or not, the distance along the ray, the point (the result is reused). */
 export interface BodyHit { body: AnimalSim | null; head: boolean; distance: number; point: Vector3 }
 
-type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
-const hasRibs = (body: AnimalSim): body is RibBody => 'ribsWorld' in body && typeof body.ribsWorld === 'function';
-
-const targetQueries = createNativeTargetQueries<AnimalSim>({ pose: rangedVolumes });
-const _a = new Vector3(), _b = new Vector3();
-/**
- * A shot against the creatures' hitboxes (physics/creatures.ts CreatureBodies: a head ball, main capsule and optional chest capsule per live,
- * unhidden body: the Ghost Stag's fade and a parked King take none), from the host body's own head and body capsule
- * (AnimalSim.headWorld / bodyCapsule): the nearest along the ray within `max`, or null.
- */
-export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, dir: Vector3, max: number): BodyHit | null {
-  return targetQueries.ray(bodies, origin, dir, max);
+/** Existing proof utility delegates to the native item's one published-volume reader. */
+export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, direction: Vector3, max: number): BodyHit | null {
+  return nativeRangedHit(bodies, origin, direction, max);
 }
-
 /** The `script` command that says where on the body the tick's shots are aimed: its value is the share along the target's
  *  body capsule, from its rear end (0) to its front end (1; a King's ribcage is at 0.75); no command, its middle. */
 export const AIM_COMMAND = 'pine.aim';
@@ -36,12 +25,5 @@ export const aimShare = (value: number): number => (value === AIM_RIBS ? AIM_RIB
 /** The player's eye (`eye`) and the unit aim line from it to the point `along` the target's body capsule (`fwd`; its middle by
  *  default): the tape aims at a point of a body where the page aims along the camera. */
 export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vector3, along = AIM_MIDDLE): void {
-  const p = host.player.position;
-  eye.set(p.x, p.y + EYE, p.z);
-  target.bodyCapsule(_a, _b);
-  // the middle in its own arithmetic (the half-sum), so a tape that names no aim flies exactly as before
-  if (along === AIM_RIBS && hasRibs(target)) target.ribsWorld(fwd);
-  else if (along === AIM_MIDDLE) fwd.addVectors(_a, _b).multiplyScalar(0.5);
-  else fwd.copy(_a).lerp(_b, along);
-  fwd.sub(eye).normalize();
+  nativeRangedAim(host, target, eye, fwd, along);
 }

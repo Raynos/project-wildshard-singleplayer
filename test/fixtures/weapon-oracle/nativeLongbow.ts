@@ -1,4 +1,5 @@
-import { BOW_PROFILE } from '../../data/bowProfile';
+// Frozen native installer at 28bc7527b, before data-frame adoption. Test oracle only.
+import { BOW_PROFILE } from '../../../src/shards/pine-hollow/data/bowProfile';
 import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -10,7 +11,7 @@ import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildsha
 import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
-import { EYE, aimAt, bodyHit, type BodyHit } from './headlessRanged';
+import { EYE, aimAt, bodyHit, type BodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
 
 /** The longbow's fixed-step id; its continuation is the draw, the quiver, the aim and every arrow in flight. */
 export const LONGBOW_STEP = 'pine.longbow';

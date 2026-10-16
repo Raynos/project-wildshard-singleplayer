@@ -7682,3 +7682,23 @@ attenuation and tap IDs, tries the native sampled shot first, and executes the
 existing phrase only after sample refusal. Construction needs no AudioContext
 or browser; only the supplied native mixer performs playback. Frozen legacy
 sound banks remain unchanged.
+
+### Native item rows and combat input
+
+`game/plugin/nativeItems` installs renderer-free ranged or swept items with
+`installNativeItems(host, frame, row)`. Its policies and profiles are data only;
+`format/nativeItems` bounds contact, flight, stopped-shaft and ammunition rows.
+Pine's bow, bolt and cycling firearm and Driftwood's swept kit use this entry.
+The existing `RangedAction`, `BowDraw`, projectile/contact and swept-melee laws
+retain their clocks and each item's existing continuation id and payload.
+
+The SDK owns one mutable `NativeCombatFrame` per native resident and refills it
+at `lend()`: all attacks in tape order, first ranged heavy hold, last melee and
+movement input (including release), and last value per script actor. It is
+transient input, never a second saved owner. Existing world owners publish
+numeric weather/wind and synchronized contact points; item rows receive no
+shard functions. `observeNativeCombatMotion` samples the actual pre-motor
+boundary and refuses unavailable delegated motion. Swept items synchronously
+ask `item.reaction` for the world's existing alarm/stagger consequences, keeping
+their original order. `bindNativeRangedVolumes` borrows numeric published points
+separately from live joint queries; it retains actors only weakly.

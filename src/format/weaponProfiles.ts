@@ -147,3 +147,21 @@ export const NativeMeleeRowSchema = v.pipe(v.strictObject({
 export type NativeMeleeRow = AuthoredContact<v.InferOutput<typeof NativeMeleeRowSchema>>;
 /** Refuse malformed owner policies before allocating contacts or registering a step. */
 export function parseNativeMeleeRow(input: unknown): v.InferOutput<typeof NativeMeleeRowSchema> { return v.parse(NativeMeleeRowSchema, input); }
+
+/** Admit only the supported native single-bolt or per-round hitscan law, before allocation or RNG. */
+export function parseNativeFirearmProfile(input: unknown, mode: 'bolt' | 'lever'): v.InferOutput<typeof FirearmWeaponProfileSchema> {
+  if (mode === 'bolt') {
+    const p = v.parse(FirearmWeaponProfileSchema, input);
+  if (p.action !== 'bolt' || p.magazine !== 1 || p.reloadMode !== 'single' || p.lever !== undefined ||
+    p.projectile.kind !== 'bolt' || p.projectile.delivery !== 'flight' || p.projectile.speed <= 0 || p.projectile.radius <= 0 || p.projectile.muzzle === undefined ||
+    p.spreadAxisScale === undefined || p.projectile.flight.windCoupling !== 0 || p.range !== 310 ||
+    p.bloomShot !== 0 || p.bloomMax !== 0 || p.movingSpread !== 0 || p.movingAimReduction !== 0) throw new Error('Unsupported native single-bolt profile');
+  return p;
+  }
+  const row = v.parse(FirearmWeaponProfileSchema, input);
+  if (row.action !== 'lever' || row.reloadMode !== 'perRound' || row.lever === undefined || row.projectile.kind !== 'bullet' || row.projectile.delivery !== 'hitscan'
+    || row.bloomShot !== 0 || row.bloomMax !== 0 || row.interval !== row.lever.cycleDelay + row.lever.cycleTime
+    || row.projectile.speed !== 0 || row.projectile.radius !== 0 || row.projectile.pool !== 1 || row.projectile.substeps !== 1
+    || row.projectile.flight.gravity !== 0 || row.projectile.flight.drag !== 0 || row.projectile.flight.windCoupling !== 0) throw new Error('Unsupported native per-round profile');
+  return { ...row, lever: row.lever };
+}

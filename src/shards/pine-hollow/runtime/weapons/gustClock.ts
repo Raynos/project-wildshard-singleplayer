@@ -13,27 +13,28 @@ const INVALID_DELTA = new RangeError('Invalid gust clock delta');
  * is wired, native rain/render-clock parity remains a named outcome difference. */
 export class PineGustClock {
   private readonly boost: () => number;
-  private time = 0;
-  private gust = 0.5;
+  private readonly state = { time: 0, gust: 0.5 };
+  /** Borrowed numeric publication; restore keeps its identity. */
+  get current(): Readonly<{ time: number; gust: number }> { return this.state; }
   constructor(boost: () => number) { this.boost = boost; }
 
   advance(dt: number): void {
     if (!Number.isFinite(dt) || dt < 0) throw INVALID_DELTA;
-    this.time += dt;
-    this.gust = clockGust(this.time, this.boost());
+    this.state.time += dt;
+    this.state.gust = clockGust(this.state.time, this.boost());
   }
 
   /** Matches longbowProfile's arithmetic and preserves the supplied vector's Y component. */
   vecAt(x: number, z: number, out: Vector3): Vector3 {
-    const speed = 1.2 + 7 * fieldGustAt(x, z, this.time, this.gust, FIELD);
+    const speed = 1.2 + 7 * fieldGustAt(x, z, this.state.time, this.state.gust, FIELD);
     out.x = FIELD.x * speed; out.z = FIELD.z * speed;
     return out;
   }
 
-  snapshot(): GustSnapshot { return { version: 1, time: this.time, gust: this.gust }; }
+  snapshot(): GustSnapshot { return { version: 1, time: this.state.time, gust: this.state.gust }; }
   prepareRestore(value: unknown): () => void {
     const saved = v.parse(Saved, value);
-    return () => { this.time = saved.time; this.gust = saved.gust; };
+    return () => { this.state.time = saved.time; this.state.gust = saved.gust; };
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
 }
