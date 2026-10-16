@@ -232,7 +232,7 @@ export const ManifestMetadataSchema = v.strictObject({
   regionalSimCost: v.exactOptional(v.strictObject({residentMB: number, rev: text, device: text, evidence: text})),
   spawns: v.exactOptional(v.pipe(v.array(v.strictObject({kind: text, count: number, variants: v.exactOptional(strings),
     anchor: v.exactOptional(v.strictObject({x: number, z: number, rMin: number, rMax: number})), canopy: v.boolean(), trailBand: v.tuple([number, number])})), v.maxLength(256))),
-  audio: v.strictObject({ambience: text, score: text, bed: v.exactOptional(text), samples: v.exactOptional(v.strictObject({loopGains: v.record(text, number)}))}),
+  audio: v.strictObject({ambience: text, score: text, catalogue:v.exactOptional(v.literal(true)), bed: v.exactOptional(text), samples: v.exactOptional(v.strictObject({loopGains: v.record(text, number)}))}),
   api: v.literal(1), slug: v.pipe(text, v.regex(/^(?:_[a-z]+|[a-z][a-z0-9-]*)$/u)),
   order: number, status: v.picklist(['live', 'experimental', 'earlyAccess', 'hidden']),
   name: text, label: text, seed: v.pipe(number, v.integer()),

@@ -7729,3 +7729,13 @@ boundary and refuses unavailable delegated motion. Swept items synchronously
 ask `item.reaction` for the world's existing alarm/stagger consequences, keeping
 their original order. `bindNativeRangedVolumes` borrows numeric published points
 separately from live joint queries; it retains actors only weakly.
+
+### Declared catalogue boot bindings (G466 C8)
+
+Authored manifest `audio.catalogue: true` binds the existing native catalogue
+preload and boot inventory. Both read the verified `audio/audio` section;
+explicit native preload/inventory bindings retain precedence. The same reader
+serves Pine and Driftwood without a shard audio-files facade. It borrows a
+temporary product scope, releases it before returning, and keeps only plain
+catalogue rows. Recording order, style selection and the shared sprite cache
+continue through `createCatalogueAudio`.

@@ -227,7 +227,8 @@
       }
     },
     "ambience": "ambience.driftwood",
-    "score": "score.driftwood"
+    "score": "score.driftwood",
+    "catalogue": true
   },
   "blender": {
     "area": {
@@ -344,10 +345,6 @@
       "export": "ROSTER",
       "call": false
     },
-    "audioPreload": {
-      "module": "./runtime/audio/files",
-      "export": "createDriftwoodAudio"
-    },
     "posesLoader": {
       "module": "./runtime/boot/poses",
       "export": "poses"
@@ -360,10 +357,6 @@
       "sources": {
         "module": "./runtime/boot/sources",
         "export": "bootSources"
-      },
-      "audio": {
-        "module": "./runtime/audio/files",
-        "export": "BOOT_AUDIO"
       },
       "lateReads": {
         "module": "./runtime/boot/lateReads",

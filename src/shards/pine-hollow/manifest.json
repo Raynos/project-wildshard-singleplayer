@@ -310,7 +310,8 @@
       }
     },
     "ambience": "ambience.pine",
-    "score": "score.pine"
+    "score": "score.pine",
+    "catalogue": true
   },
   "boot": {
     "viewmodelSets": [
@@ -754,10 +755,6 @@
       "export": "ROSTER",
       "call": false
     },
-    "audioPreload": {
-      "module": "./runtime/audio/files",
-      "export": "createPineAudio"
-    },
     "posesLoader": {
       "module": "./runtime/boot/poses",
       "export": "poses"
@@ -770,10 +767,6 @@
       "sources": {
         "module": "./runtime/boot/files",
         "export": "bootSources"
-      },
-      "audio": {
-        "module": "./runtime/audio/files",
-        "export": "BOOT_AUDIO"
       },
       "bakedUnread": {
         "module": "./runtime/boot/files",

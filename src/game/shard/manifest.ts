@@ -713,6 +713,12 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     return url;
   };
   const { mapPalette: palette, audioBindings, bootBindings, treeFactory, forestQueries, tierPolicy, ...bindings } = rows;
+  const preload=audioBindings?.preload??(data.audio.catalogue===true?async()=>{
+    const {productAudioCatalogue}=await import('../shardfile/audioCatalogue');return productAudioCatalogue(slug);
+  }:undefined);
+  const audioFiles=bootBindings?.audio??(data.audio.catalogue===true?async()=>{
+    const {productAudioFiles}=await import('../shardfile/audioCatalogue');return productAudioFiles(slug);
+  }:undefined);
   const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
   const factory = treeFactory ?? data.trees.factory;
   if (factory === undefined) throw new Error('Manifest trees have no declared factory');
@@ -729,8 +735,8 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   return defineShard({ ...bindings, ...data, slug, trees, spawns,
     ...(data.forest === undefined ? {} : {forest: {...data.forest, ...forestQueries}}),
     ...(tiers === undefined ? {} : {tiers}),
-    audio: {...data.audio, ...audioBindings},
-    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, explore: { art: [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] } } }),
+    audio: {...data.audio, ...audioBindings, ...(preload===undefined?{}:{preload})},
+    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, ...(audioFiles===undefined?{}:{audio:audioFiles}), explore: { art: [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] } } }),
     card: { thumb: image(data.card.thumb), portrait: image(data.card.portrait), landscape: image(data.card.landscape) },
     sky: { ...data.sky, ...(data.sky.hdri === undefined ? {} : { hdri: image(data.sky.hdri) }) },
     minimap: { ...data.minimap, image: image(data.minimap.image), ...(palette === undefined ? {} : { palette }) },
