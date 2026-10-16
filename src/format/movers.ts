@@ -11,7 +11,7 @@ const quaternion = v.pipe(v.strictObject({ x: finite, y: finite, z: finite, w: f
 const box = v.strictObject({ x: coordinate, y: coordinate, z: coordinate, hx: positive, hy: positive, hz: positive, rot: quaternion });
 const chain = v.strictObject({ segments: v.pipe(v.array(v.strictObject({ x: coordinate, y: coordinate, z: coordinate, rot: quaternion, hz: positive })), v.minLength(2), v.maxLength(40)), hx: positive, hy: positive, mass: v.pipe(finite, v.minValue(0.1), v.maxValue(1000)) });
 /** Physics owns the primitive; an admitted script owns its pose/activation. All colliders are numeric, local boxes. */
-export const MoversSchema = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), kind: v.picklist(['platform', 'chain', 'static', 'channel']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), atEnd: v.exactOptional(MoverAtEndSchema), restoreFrom: v.exactOptional(MoverRestoreFromSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(96)) })), v.maxLength(32));
+export const MoversSchema = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), execution: v.exactOptional(v.literal('native')), kind: v.picklist(['platform', 'chain', 'static', 'channel']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), atEnd: v.exactOptional(MoverAtEndSchema), restoreFrom: v.exactOptional(MoverRestoreFromSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(96)) })), v.maxLength(32));
 /** Validated mover declarations; no render object, collision callback or authored TypeScript occurs in the format. */
 export type MoverData = v.InferOutput<typeof MoversSchema>;
 /** Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything. */
@@ -21,6 +21,7 @@ export function parseMovers(input: unknown): MoverData {
   if (data.reduce((n, m) => n + (m.chain?.segments.length ?? 0), 0) > 40) throw new Error('Mover chain body cap');
   for (const m of data) {
     if (m.kind === 'chain' ? m.chain === undefined || m.boxes.length > 0 : m.chain !== undefined || (m.kind === 'channel' ? m.boxes.length > 0 : m.boxes.length === 0)) throw new Error('Mover primitive shape');
+    if (m.execution === 'native' && (m.driver === undefined || m.trigger === undefined)) throw new Error('Native mover requires admitted motion');
     if (m.kind === 'channel' && m.driver?.kind !== 'track') throw new Error('Channel mover requires its declared track');
     if (m.restoreFrom !== undefined && (m.atEnd?.field !== 5 || m.atEnd.equals !== 1 || m.track?.loop !== 'once'
       || !(m.driver?.kind === 'track' || m.driver?.kind === 'winch' && m.driver.mode === 'hinge'))) throw new Error('Mover restore requires an admitted one-shot endpoint');
@@ -31,7 +32,7 @@ export function parseMovers(input: unknown): MoverData {
       const lowered = lowerMoverMotion({ ...(track === undefined ? {} : { track }), trigger, driver }, row);
       if (lowered.module !== row.module || JSON.stringify(lowered.input) !== JSON.stringify(row.input)) throw new Error('Mover motion and executable ABI disagree');
     }
-    return driver?.kind === 'track' || driver?.kind === 'pendulum' || row.restoreFrom !== undefined ? row : compiled;
+    return row.execution === 'native' || driver?.kind === 'track' || driver?.kind === 'pendulum' || row.restoreFrom !== undefined ? row : compiled;
   });
 }
 

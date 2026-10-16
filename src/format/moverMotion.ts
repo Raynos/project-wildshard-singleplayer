@@ -47,6 +47,15 @@ export const MoverMotionSchema = v.strictObject({
 export type MoverMotion = v.InferOutput<typeof MoverMotionSchema>;
 /** Validated stop keys from an ordinary three.js AnimationClip. */
 export type MoverTrack = v.InferOutput<typeof MoverTrackSchema>;
+/** A reversible seated track with bounded bank blending and clock-driven surface motion. */
+export const MoverTransitSchema = v.strictObject({ kind: v.literal('transit'),
+  from: point, to: point, landings: v.tuple([point, point]), seconds: bounded(0.005, 3600),
+  water: bounded(-250, 250), bankRamp: bounded(0, 100), seat: bounded(-10, 10), yaw: bounded(-Math.PI, Math.PI),
+  bob: v.tuple([bounded(0, 10), bounded(0, 1)]),
+  pitch: v.tuple([bounded(0, 10), bounded(0, 1)]), roll: v.tuple([bounded(0, 10), bounded(0, 1), bounded(-10, 10)]),
+});
+/** Surface-track data consumed by the same engine mechanic as fixed platform motion. */
+export type MoverTransit = v.InferOutput<typeof MoverTransitSchema>;
 /** Derive the executable guest and parameters; unsupported clip/driver/trigger combinations fail closed. */
 export function lowerMoverMotion(input: unknown, rest: { at: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number } }): { module: string; input: number[] } {
   const motion = v.parse(MoverMotionSchema, input), { driver, trigger, track } = motion;

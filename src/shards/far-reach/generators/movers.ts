@@ -38,16 +38,16 @@ export function captureSkyMovers(module: string, isletModule: string): MoverData
     const rot = inverse.multiply(d.rot === undefined ? new Quaternion().setFromEuler(new Euler(0, d.yaw ?? 0, 0)) : new Quaternion(d.rot.x, d.rot.y, d.rot.z, d.rot.w));
     return { x: p.x, y: p.y, z: p.z, hx: d.hx, hy: d.hy, hz: d.hz, rot: { x: rot.x, y: rot.y, z: rot.z, w: rot.w } };
   });
-  const spans = SPANS.filter((s) => s.kind === 'rope').map((span, i) => new Mover(body(span.id), { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: span.id, entity: 8001 + i, kind: 'static', at: zero, euler: zero, enabled: true, boxes: boxes(saggedColliders(span), zero) }));
+  const spans = SPANS.filter((s) => s.kind === 'rope').map((span, i) => new Mover(body(span.id), { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: span.id, execution: 'native', entity: 8001 + i, kind: 'static', at: zero, euler: zero, enabled: true, boxes: boxes(saggedColliders(span), zero) }));
   const at = { x: FALLEN_BRIDGE.x0, y: FALLEN_BRIDGE.y, z: FALLEN_BRIDGE.z0 }, yaw = Math.atan2(-(FALLEN_BRIDGE.x1 - FALLEN_BRIDGE.x0), -(FALLEN_BRIDGE.z1 - FALLEN_BRIDGE.z0)), id = 'far.winch.bridge', speed = 0.55, duration = -FALLEN_ANGLE / speed;
   const object = body(id); object.rotation.set(FALLEN_ANGLE, yaw, 0, 'YXZ');
   // The hinge's local pitch animation is independent of its fixed world yaw.
   const turn = new RotationStops(`${id}.quaternion`, [0, duration], [Math.sin(FALLEN_ANGLE / 2), 0, 0, Math.cos(FALLEN_ANGLE / 2), 0, 0, 0, 1]);
-  const winch = new Mover(object, { clip: new AnimationClip('raise', duration, [turn]), trigger: { kind: 'interact', permission: 3 }, driver: { kind: 'winch', mode: 'hinge', speed } }).toMoverData({ id, entity: 8010, kind: 'platform', atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: FLAGS.raised, action: 'end' }, at, euler: { x: FALLEN_ANGLE, y: yaw, z: 0 }, enabled: false, boxes: boxes([deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], at, yaw) });
-  const islets = RISING_ISLETS.map((entry, i) => ride(isletId(entry), entry.rest, entry.dock, entry.travel, false).toMoverData({ id: isletId(entry), entity: 8020 + i, kind: 'platform', at: { ...entry.rest }, euler: zero, enabled: true, boxes: isletBoxes() }));
+  const winch = new Mover(object, { clip: new AnimationClip('raise', duration, [turn]), trigger: { kind: 'interact', permission: 3 }, driver: { kind: 'winch', mode: 'hinge', speed } }).toMoverData({ id, execution: 'native', entity: 8010, kind: 'platform', atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: FLAGS.raised, action: 'end' }, at, euler: { x: FALLEN_ANGLE, y: yaw, z: 0 }, enabled: false, boxes: boxes([deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], at, yaw) });
+  const islets = RISING_ISLETS.map((entry, i) => ride(isletId(entry), entry.rest, entry.dock, entry.travel, false).toMoverData({ id: isletId(entry), execution: 'native', entity: 8020 + i, kind: 'platform', at: { ...entry.rest }, euler: zero, enabled: true, boxes: isletBoxes() }));
   const gates = RISING_ISLETS.map((entry, i) => {
     const g = entry.gateBar, gateAt = { x: g.x, y: g.y, z: g.z }, gate = gateId(entry);
-    return ride(gate, gateAt, gateAt, entry.travel, true).toMoverData({ id: gate, entity: 8030 + i, kind: 'static', at: gateAt, euler: zero, enabled: false, boxes: [{ x: 0, y: 0, z: 0, hx: g.hx, hy: g.hy, hz: g.hz, rot: { x: 0, y: 0, z: 0, w: 1 } }] });
+    return ride(gate, gateAt, gateAt, entry.travel, true).toMoverData({ id: gate, execution: 'native', entity: 8030 + i, kind: 'static', at: gateAt, euler: zero, enabled: false, boxes: [{ x: 0, y: 0, z: 0, hx: g.hx, hy: g.hy, hz: g.hz, rot: { x: 0, y: 0, z: 0, w: 1 } }] });
   });
   const rows = [...spans, winch, ...islets, ...gates];
   if (rows.some(row => row.module !== (row.id.startsWith('far.islet.') ? isletModule : module))) throw new Error('Compiled fixed driver hash changed');

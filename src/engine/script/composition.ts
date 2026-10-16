@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { MoverMechanic, type NativeMoverMotion } from '../sim/moverMotion';
 import { ScriptWorld, SCRIPT_OP, type ScriptEntity, type ScriptEffect, type EffectTransaction } from './effects';
 import { ScriptHost, type ScriptHostOptions, type ScriptCall } from './host';
 import type { ScriptModule } from './lane';
@@ -9,7 +10,7 @@ export interface ScriptRole {
   snapshot: () => string; restore: (saved: string) => void;
 }
 /** Per-binding cadence shares the single host's global fixed-tick allowances. */
-export interface ScheduledScriptBinding { module: string; entity: number; divisor: number }
+export interface ScheduledScriptBinding { module: string; entity: number; divisor: number; motion?: NativeMoverMotion }
 /** Input is prepared before the tick starts; committed requests are handled only after successful validation. */
 export interface ScriptSchedule {
   id: string; role: string; bindings: readonly ScheduledScriptBinding[];
@@ -73,6 +74,7 @@ export class ScriptComposition {
   private readonly schedules: readonly ScriptSchedule[];
   private readonly contract: string;
   private readonly transientModules: ReadonlySet<string>;
+  private readonly mechanics = new Map<string, MoverMechanic>();
   constructor(options: ScriptCompositionOptions) {
     if (options.roles.length > 128 || options.schedules.length > 10000 || new Set(options.roles.map(role => role.id)).size !== options.roles.length
       || new Set(options.roles.map(role => role.world)).size !== options.roles.length || options.roles.some(role => role.id.length === 0)) throw new Error('Invalid script role identities');
@@ -88,6 +90,7 @@ export class ScriptComposition {
       if (keys.has(key) || !modules.has(binding.module) || this.world.role(binding.entity)?.id !== schedule.role
         || !Number.isInteger(binding.divisor) || binding.divisor < 1 || 60 % binding.divisor !== 0) throw new Error('Invalid composed script binding');
       keys.add(key);
+      if (binding.motion !== undefined) this.mechanics.set(key, new MoverMechanic(binding.motion));
       if (keys.size > 10000) throw new Error('Script binding count allowance');
     }
     const transient = options.transientModules ?? [];
@@ -102,7 +105,7 @@ export class ScriptComposition {
     } });
     for (const module of [...options.modules].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
     this.contract = JSON.stringify({ roles: this.roles.map(role => ({ id: role.id, events: role.events })),
-      schedules: this.schedules.map(schedule => ({ id: schedule.id, role: schedule.role, bindings: schedule.bindings })),
+      schedules: this.schedules.map(schedule => ({ id: schedule.id, role: schedule.role, bindings: schedule.bindings.map(({ motion: _motion, ...binding }) => binding) })),
       modules: options.modules.map(module => ({ ...module, bytes: Array.from(module.bytes) })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
       maxEntities: options.maxEntities, limits: this.host.limits,
       ...(transient.length === 0 ? {} : { transientModules: [...transient].sort() }) });
@@ -123,7 +126,16 @@ export class ScriptComposition {
     const pending = this.host.beginTick(tick, { targets, consume }), calls: ScriptCall[] = [];
     for (const { schedule, binding, input } of due) {
       const events = pending.flatMap(event => event.target === binding.entity ? [event.type, event.target, event.value, 0, 0, 0] : []);
-      const call = this.host.call(binding.module, binding.entity, input, events); calls.push(call); schedule.committed(binding, call);
+      const mechanic = this.mechanics.get(`${binding.module}:${binding.entity}`);
+      let call: ScriptCall;
+      if (mechanic === undefined) call = this.host.call(binding.module, binding.entity, input, events);
+      else {
+        const entity = this.world.entity(binding.entity); if (entity === undefined) throw new Error('Missing native mover entity');
+        const next = mechanic.step(entity, { tick, dt: input[1] ?? 0, action: input[2] ?? 0, permission: input[4] ?? 0 });
+        this.world.prepare(next.effects, binding.entity, 0, 0).commit();
+        call = { ok: true, effects: next.effects, events: [], fuel: 0, reason: undefined, disabled: false };
+      }
+      calls.push(call); schedule.committed(binding, call);
     }
     return calls;
   }

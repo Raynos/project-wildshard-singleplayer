@@ -1,6 +1,7 @@
 [
   {
     "id": "far.rope.windmill",
+    "execution": "native",
     "entity": 8001,
     "kind": "static",
     "at": {
@@ -743,6 +744,7 @@
   },
   {
     "id": "far.rope.grove",
+    "execution": "native",
     "entity": 8002,
     "kind": "static",
     "at": {
@@ -1359,6 +1361,7 @@
   },
   {
     "id": "far.rope.ruin",
+    "execution": "native",
     "entity": 8003,
     "kind": "static",
     "at": {
@@ -2185,6 +2188,7 @@
   },
   {
     "id": "far.winch.bridge",
+    "execution": "native",
     "entity": 8010,
     "kind": "platform",
     "atEnd": {
@@ -2291,6 +2295,7 @@
   },
   {
     "id": "far.islet.north",
+    "execution": "native",
     "entity": 8020,
     "kind": "platform",
     "at": {
@@ -2437,6 +2442,7 @@
   },
   {
     "id": "far.islet.east",
+    "execution": "native",
     "entity": 8021,
     "kind": "platform",
     "at": {
@@ -2583,6 +2589,7 @@
   },
   {
     "id": "far.islet.south",
+    "execution": "native",
     "entity": 8022,
     "kind": "platform",
     "at": {
@@ -2729,6 +2736,7 @@
   },
   {
     "id": "far.islet.west",
+    "execution": "native",
     "entity": 8023,
     "kind": "platform",
     "at": {
@@ -2875,6 +2883,7 @@
   },
   {
     "id": "far.islet.north.gate",
+    "execution": "native",
     "entity": 8030,
     "kind": "static",
     "at": {
@@ -2951,6 +2960,7 @@
   },
   {
     "id": "far.islet.east.gate",
+    "execution": "native",
     "entity": 8031,
     "kind": "static",
     "at": {
@@ -3027,6 +3037,7 @@
   },
   {
     "id": "far.islet.south.gate",
+    "execution": "native",
     "entity": 8032,
     "kind": "static",
     "at": {
@@ -3103,6 +3114,7 @@
   },
   {
     "id": "far.islet.west.gate",
+    "execution": "native",
     "entity": 8033,
     "kind": "static",
     "at": {

@@ -23,8 +23,8 @@ export function captureDriftwoodMovers(boatModule: string, bridgeModule: string)
   const boat = new Group(); boat.name = 'driftwood.boat'; boat.position.set(BOAT.x, SEA, BOAT.z);
   const bridge = new Group(); bridge.name = 'driftwood.bridge';
   const rows = [
-    new Mover(boat, { trigger: { kind: 'always' }, driver: { kind: 'waves', damping: seaDamp(SEA - ground(BOAT.x, BOAT.z)), waves: [[...a], [...b], [...c], [...d]] } }).toMoverData({ id: boat.name, entity: 7001, kind: 'platform', at: { x: BOAT.x, y: SEA, z: BOAT.z }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes }),
-    new Mover(bridge, { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: bridge.name, entity: 7002, kind: 'chain', at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], chain: { segments: ropeBridgeSegments(BRIDGE, ground), hx: 0.85, hy: 0.05, mass: 14 } }),
+    new Mover(boat, { trigger: { kind: 'always' }, driver: { kind: 'waves', damping: seaDamp(SEA - ground(BOAT.x, BOAT.z)), waves: [[...a], [...b], [...c], [...d]] } }).toMoverData({ id: boat.name, execution: 'native', entity: 7001, kind: 'platform', at: { x: BOAT.x, y: SEA, z: BOAT.z }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes }),
+    new Mover(bridge, { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: bridge.name, execution: 'native', entity: 7002, kind: 'chain', at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], chain: { segments: ropeBridgeSegments(BRIDGE, ground), hx: 0.85, hy: 0.05, mass: 14 } }),
   ];
   if (rows[0]?.module !== boatModule || rows[1]?.module !== bridgeModule) throw new Error('Compiled fixed driver hash changed');
   return rows;

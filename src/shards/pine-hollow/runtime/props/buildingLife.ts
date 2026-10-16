@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import { MoverMechanic } from '@wildshard/engine/sim/moverMotion';
 import { floorAtRects, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -80,12 +81,12 @@ export class BuildingLife {
   tick(dt: number, t: number, eye: THREE.Vector3, lamps: number): void {
     const look = this.lifeLook;
     for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
-    for (const d of this.doors) {
+    for (let i = 0; i < 128; i++) {
+      const d = this.doors[i]; if (d === undefined) break;
       const target = d.open ? 1 : 0;
       if (d.t === target) continue;
-      d.t = Math.max(0, Math.min(1, d.t + Math.sign(target - d.t) * dt / look.door.seconds));
-      const e = d.t < 0.5 ? 2 * d.t * d.t : 1 - (-2 * d.t + 2) ** 2 / 2; // ease in-out
-      d.pivot.rotation.y = -e * look.door.angle;
+      const pose = MoverMechanic.hinge(d.t, target, dt, look.door.seconds, look.door.angle);
+      d.t = pose.progress; d.pivot.rotation.y = pose.angle;
     }
     this.gain.fire = look.fire[0] + look.fire[1] * lamps; this.gain.lamp = look.lamp[0] + look.lamp[1] * lamps;
     this.lights.step(t, eye, this.gain);
@@ -108,7 +109,7 @@ export class BuildingLife {
     for (const fn of this.doorListeners) fn(d.interactable, d.open);
   }
   /** a door: swung, collided, prompted */
-  _door(d: BuildingDoor): void { this.doors.push(d); this.interactables.push(d.interactable); }
+  _door(d: BuildingDoor): void { if (this.doors.length >= 128) throw new Error('Building door capacity'); this.doors.push(d); this.interactables.push(d.interactable); }
   /** a light of its own that flickers */
   _fire(f: SiteFlicker): void { this.lights.addFlicker(f); }
   /** an emissive material lit by the clock, at `full` by night */

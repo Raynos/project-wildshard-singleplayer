@@ -7898,3 +7898,25 @@ slot, UI and menu metadata, sound cues, hit-stop and ranged feel. `readItemEquip
 row or presentation. It takes no factories or callbacks, and installs no service, state, input or save owner.
 Pine's three ranged weapons and Driftwood's swords use the same reader. Authored tables may run entirely in
 `generators/`, while the page reads their emitted `combat/items` section. Pickup creation remains outside the data.
+
+### Native track-row movers (G466 H5)
+
+`engine/sim/moverMotion.MoverMechanic` evaluates admitted stop/driver rows
+without a guest call. It takes numeric entity state and the existing caller's
+clock, command and permission, returning a detached next entity and effects.
+The existing mover host validates and commits those effects before publishing
+colliders, views and endpoint events. It owns no physics, timer or save adapter.
+
+A `world/movers` row may select `execution: 'native'`; its declared motion must
+still lower to the exact admitted module/input contract. Sky's twelve movers
+and Driftwood's boat/bridge use this path. Existing module bytes remain admitted
+for continuation compatibility; no Wasm executes for these motion bindings.
+The composed scheduler preserves execution order, entity fields, role ownership
+and the old continuation envelope. Unmarked rows retain their guest execution.
+
+The same mechanic admits a bounded reversible surface track: endpoints, landing
+points, duration, bank blend, seated offset and clock-driven surface waves.
+Its carry result is data (riding, position, heading, visibility and arrival),
+so the client borrows its real rider/view and keeps only model/audio/UI work.
+Pine's canoe uses this track; its hinged doors use the mechanic's reversible
+quadratic phase. Neither path introduces an authored update callback.

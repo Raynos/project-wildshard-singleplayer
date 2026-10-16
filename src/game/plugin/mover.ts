@@ -21,6 +21,7 @@ import { KinematicMover, type MoverPose } from "@wildshard/engine/physics/mover"
 import { RopeChain } from "@wildshard/engine/physics/ropeChain";
 import { MOVER_FIELDS, MOVER_FIELD_RANGES, moverScriptEntities } from "../shardfile/movers";
 import { MoverLifecycle, MoverLifecycleStateSchema, moverEndState, type MoverEndEvent } from '@wildshard/engine/sim/moverLifecycle';
+import { MoverMechanic, type NativeMoverMotion } from '@wildshard/engine/sim/moverMotion';
 import { parseMovers, type MoverData } from "@wildshard/format/movers";
 
 /** One declared entryway as the shardfile states it (a midpoint opening on an edge). */
@@ -173,6 +174,16 @@ export interface MoverActivationPorts {
 }
 /** The shared script host already owns modules, entity handles and one beginTick per fixed step. */
 export interface MoverPorts { physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
+function nativeMotion(row: MoverData[number]): NativeMoverMotion {
+  if (row.driver === undefined || row.trigger === undefined) throw new Error('Missing admitted native mover motion');
+  return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }) };
+}
+function continuationRows(rows: MoverData): MoverData {
+  return rows.map(({ execution: _execution, ...source }) => {
+    const { track: _track, driver, trigger: _trigger, ...compiled } = source;
+    return driver?.kind === 'track' || driver?.kind === 'pendulum' || source.restoreFrom !== undefined ? source : compiled;
+  });
+}
 /** Native handle identity is restored before reconnecting to the replacement world. */
 export interface MoverBodyState { id: string; handle: number }
 const continuation = v.strictObject({ lifecycle: v.exactOptional(MoverLifecycleStateSchema), pending: v.pipe(v.array(v.tuple([v.string(), v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3))])), v.maxLength(32)),
@@ -194,8 +205,10 @@ export class MoverRuntime {
   private readonly lifecycle: MoverLifecycle;
   private seedLifecycleOnReconnect = false;
   private readonly activation: MoverActivationPorts;
+  private readonly mechanics = new Map<string, MoverMechanic>();
   constructor(data: MoverData, ports: MoverPorts) {
     this.data = parseMovers(data); this.host = ports.host; this.activation = ports.activation ?? {};
+    for (const row of this.data) if (row.execution === 'native') this.mechanics.set(row.id, new MoverMechanic(nativeMotion(row)));
     this.lifecycle = new MoverLifecycle(this.data.map(row => ({ id: row.id,
       ...(row.atEnd === undefined ? {} : { atEnd: row.atEnd }), ...(row.restoreFrom === undefined ? {} : { restoreFrom: row.restoreFrom }) })));
     if (ports.restoring !== true && this.data.some(row => row.restoreFrom !== undefined) && ports.restoreFlags === undefined) throw new Error('Mover restore requires saved flag data');
@@ -267,8 +280,13 @@ export class MoverRuntime {
   /** Fixed.pre after beginTick, before physics; parameter data and current state are explicit ABI input. */
   step(tick: number, permissions: ReadonlyMap<string, number> = new Map()): void {
     for (const m of this.data) {
-      const call = this.host.call(m.module, m.entity, this.scriptInput(m.id, tick, permissions.get(m.id) ?? 0));
-      this.publish(m.id, call.ok);
+      const input = this.scriptInput(m.id, tick, permissions.get(m.id) ?? 0), mechanic = this.mechanics.get(m.id);
+      if (mechanic === undefined) { const call = this.host.call(m.module, m.entity, input); this.publish(m.id, call.ok); }
+      else {
+        const entity = this.host.world.entity(m.entity); if (entity === undefined) throw new Error('Missing native mover');
+        const next = mechanic.step(entity, { tick, dt: 1 / 60, action: input[2] ?? 0, permission: input[4] ?? 0 });
+        this.host.world.prepare(next.effects, m.entity, 0, 0).commit(); this.publish(m.id, true);
+      }
     }
   }
   /** Read the admitted committed endpoint without consulting a render pose. */
@@ -420,7 +438,8 @@ export class MoverScriptDriver {
     if (this.resetIds.size !== resetIds.length || resetIds.some(id => !this.data.some(row => row.id === id))) throw new Error('Invalid transient mover identity');
     this.transientModules = [...new Set(this.data.filter(row => this.resetIds.has(row.id)).map(row => row.module))].sort();
     if (this.data.some(row => !this.resetIds.has(row.id) && this.transientModules.includes(row.module))) throw new Error('Lift module cannot own persistent movers');
-    this.contract = JSON.stringify(resetIds.length === 0 ? this.data : { data: this.data, resetIds: [...resetIds].sort() });
+    const savedRows = continuationRows(this.data);
+    this.contract = JSON.stringify(resetIds.length === 0 ? savedRows : { data: savedRows, resetIds: [...resetIds].sort() });
     this.world = new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities(this.data));
   }
   /** No events cross into mover entity fields from the numeric/brain role. */
@@ -428,7 +447,8 @@ export class MoverScriptDriver {
   /** Every due call runs under the existing one beginTick; the runtime only publishes admitted collision poses. */
   schedule(runtime: () => MoverRuntime, permissions: () => ReadonlyMap<string, number> = () => new Map()): ScriptSchedule {
     const rows = new Map(this.data.map(row => [row.entity, row]));
-    return { id: 'mover', role: 'mover', bindings: this.data.map(row => ({ module: row.module, entity: row.entity, divisor: 1 })),
+    return { id: 'mover', role: 'mover', bindings: this.data.map(row => ({ module: row.module, entity: row.entity, divisor: 1,
+      ...(row.execution === 'native' ? { motion: nativeMotion(row) } : {}) })),
       input: (binding, tick) => {
         const row = rows.get(binding.entity); if (row === undefined) throw new Error('Missing mover binding');
         return runtime().scriptInput(row.id, tick, permissions().get(row.id) ?? 0);

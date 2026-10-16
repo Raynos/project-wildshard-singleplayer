@@ -1,6 +1,7 @@
 [
   {
     "id": "driftwood.boat",
+    "execution": "native",
     "entity": 7001,
     "kind": "platform",
     "at": {
@@ -162,6 +163,7 @@
   },
   {
     "id": "driftwood.bridge",
+    "execution": "native",
     "entity": 7002,
     "kind": "chain",
     "at": {
