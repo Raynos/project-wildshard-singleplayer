@@ -90,7 +90,7 @@ export function propShapeGeometry(views: ReadonlyMap<string, WholeGeometryView>,
 }
 
 const floorKinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
-const floorPlace = v.strictObject({ x: num, y: num, z: num, nx: num, ny: num, nz: num, rot: num, scale: num, r: num, g: num, b: num });
+const floorPlace = v.strictObject({ x: num, y: num, z: num, nx: num, ny: num, nz: num, rot: num, scale: num, r: num, g: num, b: num, matrix: v.pipe(v.array(num), v.length(16)) });
 const floorList = v.pipe(v.array(floorPlace), v.maxLength(40_000)), count = v.pipe(v.number(), v.integer(), v.minValue(0));
 /** Exact ordered layouts; malformed records, count mismatches and oversized floors refuse. */
 export const FloorRowsSchema = v.pipe(v.strictObject({ counts: v.tuple([count, count, count, count, count, count]),

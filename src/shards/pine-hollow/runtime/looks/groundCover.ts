@@ -21,7 +21,7 @@ import { pineMappedLook, setPineLookParam } from './graphLooks';
  */
 
 /** Retained per-instance facts; matrices and tints still use the existing instanced draw. */
-export interface Placement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }
+export interface Placement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number; matrix: readonly number[] }
 export type UnderPlacements = Record<'ferns' | 'shrubs' | 'litter' | 'stones' | 'moss' | 'reeds', Placement[]>;
 
 /** A ground-cover kind (the engine placement's kinds). */
@@ -81,7 +81,6 @@ export function groundCoverCells(): { readonly size: 32; readonly pad: 2.5; read
   return { size: 32, pad: 2.5, far: TIER_CONFIG.undergrowthFar + 2 };
 }
 
-const UP = new THREE.Vector3(0, 1, 0);
 /** the most graphs a field wears (one per kind) */
 const GRAPHS_MAX = 6;
 
@@ -160,16 +159,6 @@ export class GroundCover {
 function isCoverMaterial(m: THREE.Material): m is GroundCoverMaterial {
   const map: unknown = Reflect.get(m, 'map');
   return (map === null || map instanceof THREE.Texture) && typeof Reflect.get(m, 'roughness') === 'number';
-}
-
-const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _n = new THREE.Vector3();
-
-/** a copy's transform: tilted to the ground's normal, turned about it, scaled */
-export function groundCoverMatrix(it: Placement, target = new THREE.Matrix4()): THREE.Matrix4 {
-  _n.set(it.nx, it.ny, it.nz);
-  _q2.setFromUnitVectors(UP, _n);
-  _q.setFromAxisAngle(UP, it.rot).premultiply(_q2);
-  return target.compose(_p.set(it.x, it.y, it.z), _q, _s.set(it.scale, it.scale, it.scale));
 }
 
 function canvasTexture(c: HTMLCanvasElement): THREE.CanvasTexture {

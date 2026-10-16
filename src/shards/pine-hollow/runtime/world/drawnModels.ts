@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import { groundCoverCells, groundCoverMatrix as matrixOf, type Placement as UnderPlacement } from '../looks/groundCover';
+import { groundCoverCells, type Placement as UnderPlacement } from '../looks/groundCover';
 import type { Undergrowth } from '../../world/undergrowth';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from '../../world/treeSet';
@@ -62,7 +62,7 @@ export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: 
       if (entry === undefined) continue;
       const [model, kind] = entry, items: readonly UnderPlacement[] = under.layout[kind];
       if (items.length === 0) continue;
-      await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: matrixOf(it), color: new THREE.Color(it.r, it.g, it.b) })),
+      await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: new THREE.Matrix4().fromArray(it.matrix), color: new THREE.Color(it.r, it.g, it.b) })),
         { ctx, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group }, due);
     }
   }

@@ -1,4 +1,14 @@
+import { Matrix4, Quaternion, Vector3 } from 'three';
+
 const FLOOR_KINDS = 6, MAX_FLOOR_RECORDS = 40_000;
+const up = new Vector3(0, 1, 0), q = new Quaternion(), q2 = new Quaternion(), p = new Vector3(), s = new Vector3(), normal = new Vector3();
+/** The former page composer, evaluated after decoding the exact shipping quantised facts. */
+function floorMatrix(it) {
+  normal.set(it.nx, it.ny, it.nz);
+  q2.setFromUnitVectors(up, normal);
+  q.setFromAxisAngle(up, it.rot).premultiply(q2);
+  return new Matrix4().compose(p.set(it.x, it.y, it.z), q, s.set(it.scale, it.scale, it.scale)).elements;
+}
 /** Decode the existing authored binary once during authoring, retaining every quantised value. */
 export function decodeFloorRecords(bytes, expectedCounts) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -16,9 +26,10 @@ export function decodeFloorRecords(bytes, expectedCounts) {
     const kind = kinds[i], tint = tints[i]; if (kind === undefined || tint === undefined) throw new Error('[undergrowth] missing kind or tint');
     const nx = view.getInt8(offset + 8) / 127, nz = view.getInt8(offset + 9) / 127, hue = view.getUint8(offset + 11) / 255;
     const mix = (a, b) => a + (b - a) * hue;
-    layout[kind].push({ x: view.getUint16(offset, true) / 65535 * 500 - 250, y: view.getUint16(offset + 2, true) / 65535 * 256 - 128, z: view.getUint16(offset + 4, true) / 65535 * 500 - 250,
+    const row = { x: view.getUint16(offset, true) / 65535 * 500 - 250, y: view.getUint16(offset + 2, true) / 65535 * 256 - 128, z: view.getUint16(offset + 4, true) / 65535 * 500 - 250,
       nx, ny: Math.sqrt(1 - nx * nx - nz * nz), nz, rot: view.getUint16(offset + 6, true) / 65535 * (2 * Math.PI), scale: .5 + view.getUint8(offset + 10) / 200,
-      r: mix(tint[0], tint[1]), g: mix(tint[2], tint[3]), b: mix(tint[4], tint[5]) });
+      r: mix(tint[0], tint[1]), g: mix(tint[2], tint[3]), b: mix(tint[4], tint[5]) };
+    layout[kind].push({ ...row, matrix: floorMatrix(row) });
     offset += 12;
   }
   return layout;
