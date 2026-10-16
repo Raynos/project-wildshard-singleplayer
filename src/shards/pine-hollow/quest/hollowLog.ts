@@ -7,6 +7,7 @@
  */
 import * as THREE from 'three';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { yawLocal } from '@wildshard/engine/world/yawFrame';
 
 export const HOLLOW_LOG = { x: 112, z: -86, yaw: 0.35, len: 11, R: 1.6, r: 1.3 };
 
@@ -33,6 +34,5 @@ export function hollowLogSite(): HollowLog {
 
 /** inside the bore (the bed's floor function) */
 export function insideHollowLog(x: number, z: number): boolean {
-  const c = Math.cos(HOLLOW_LOG.yaw), s = Math.sin(HOLLOW_LOG.yaw), dx = x - HOLLOW_LOG.x, dz = z - HOLLOW_LOG.z;
-  return Math.abs(dx * c - dz * s) < HOLLOW_LOG.len / 2 && Math.abs(dx * s + dz * c) < HOLLOW_LOG.r * 0.8;
+  const [lx, lz] = yawLocal(HOLLOW_LOG, x, z); return Math.abs(lx) < HOLLOW_LOG.len / 2 && Math.abs(lz) < HOLLOW_LOG.r * 0.8;
 }
