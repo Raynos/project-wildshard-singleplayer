@@ -88,6 +88,12 @@ new ones P2b lands first:
 | `world/physics` | the `prepareRuntimePlan` baked-physics rows | `WorldPhysicsSchema` (sp-x6, `@wildshard/format/worldPhysics`) | `data/physics.generated.json` imports |
 | `sim/native-world` | the `prepareRuntimePlan` native-world rows | P2b | `data/nativeWorld.ts` imports |
 
+`ui/level` (sp-x1, P3) holds the level metadata (`{ manifest }`, `LevelSectionSchema` in `@wildshard/format/level`),
+moved out of `ui/card` (sp-x5 moves the mapping); its `PlatformSections` row is structural until `level.ts` lands, then
+x1 types it from that module. The catalog carries `identity { slug, revision }` and `runtime.filesHash`; the loader
+selects the runtime module only after the product's identity and inventory match them, and nothing evaluates on the
+title screen. The three non-ported shards keep source discovery until their migration.
+
 Note on names: the design's P2b row said "Sky's `combat/strikes` rows". `combat/strikes` is already today's
 `rows.strikes` (player-weapon strikes, the Template uses it). The Roc's rows are creature strikes with a different
 schema, so they get `actors/strikes`.

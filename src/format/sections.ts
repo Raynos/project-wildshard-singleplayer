@@ -59,7 +59,9 @@ export interface PlatformSections {
   'sim/client-channels': Pick<Shardfile, 'clientChannels'>;
   'sim/plumbing': Pick<Shardfile, 'plumbing'>;
   'audio/audio': Pick<Shardfile, 'audio'>;
-  'ui/card': Pick<Shardfile, 'accent' | 'manifest'>;
+  'ui/card': Pick<Shardfile, 'accent'>;
+  /** the level metadata the catalog joins before publication (sp-x1, `LevelSectionSchema` in `./level`, moved out of `ui/card`) */
+  'ui/level': { readonly manifest: NonNullable<Shardfile['manifest']> };
   'ui/ui': Pick<Shardfile, 'ui' | 'targets'>;
   'ui/compendium': { readonly rows: Pick<Rows, 'compendiums'> };
   /** new (P2b): the shard's player-facing strings, key → text, read through `ShardProduct.strings(keys)` */
