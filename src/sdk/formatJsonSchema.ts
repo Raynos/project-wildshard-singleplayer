@@ -54,7 +54,9 @@ import { NavigationSchema } from '@wildshard/format/navigation';
 import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
-import { ClientChannelsSchema, ClientChannelProgramSchema } from '@wildshard/format/clientChannels';
+import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema } from '@wildshard/format/clientChannels';
+
+import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
 import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } from '@wildshard/format/runtimeCost';
 import { RuntimeSchema } from '@wildshard/format/runtime';
@@ -202,6 +204,8 @@ const wireRoots = {
   'clientScripts.ClientScripts': ClientScriptsSchema,
   'clientChannels.ClientChannels': ClientChannelsSchema,
   'clientChannels.ClientChannelProgram': ClientChannelProgramSchema,
+  'clientChannels.PrivateScene': PrivateSceneSchema,
+  'ambientLife.ForestLife': ForestLifeSchema,
   'runtimeCost.MemoryMeasurement': MemoryMeasurementSchema,
   'runtimeCost.RuntimeCost': RuntimeCostSchema,
   'runtimeCost.RegionalSimCost': RegionalSimCostSchema,
@@ -267,11 +271,12 @@ wireChecks.set(DirectorStagesSchema.pipe[1], '@wildshard/format/directorStages#D
  * Convert an author schema with the official converter, refusing every unrecognised custom check or transform.
  * The extracted format checks have explicit bridges. Plumbing's cross-field checks remain named mandatory
  * admission checks; Valibot string bounds use UTF-16 code units, unlike JSON Schema's Unicode code points.
+ * The custom-section bridge uses draft-07; existing wire documents keep draft-2020-12.
  * This structural document never replaces the defining format parser's admission verdict.
  */
-export function formatJsonSchema(schema: GenericSchema): FormatJsonSchema {
+export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'draft-2020-12' = 'draft-2020-12'): FormatJsonSchema {
   return toJsonSchema(schema, {
-    target: 'draft-2020-12', errorMode: 'throw', typeMode: 'output',
+    target, errorMode: 'throw', typeMode: 'output',
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       if (valibotAction === EdgeProfileSchema.pipe[1]) {

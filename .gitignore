@@ -1892,3 +1892,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Retained mover rows emitted by the official fixed-driver compiler.
 !src/shards/driftwood-isle/data/movers.generated.json
 !src/shards/far-reach/data/movers.generated.json
+
+# Canonical runtime section validators copied by the official schema producer.
+/src/shards/pine-hollow/generators/sectionSchemas.generated.ts

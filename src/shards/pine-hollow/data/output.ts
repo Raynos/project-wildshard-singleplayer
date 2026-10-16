@@ -1,9 +1,5 @@
-import * as v from 'valibot';
-import {defineSection,emitDefinedSections} from '@wildshard/sdk/sections';
 import {parseAmbientLife} from '@wildshard/format/ambientLife';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
-import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS} from './outputSchemas';
 import pickups from './skinPickups.json' with {type:'json'};
 import {PINE_FEATS,PINE_BAG_ITEMS} from './questInventory';
 import {PINE_LIFE} from './ambientLife';
@@ -61,15 +57,10 @@ function withGeometryCosts(row:(typeof client.blobs)[number]){
  return {...row,options:{decoded:trophies.rows.bytes,gpu:trophies.rows.bytes,
   triangles:trophies.rows.geometries.reduce((sum,geometry)=>sum+geometry.count/3,0),draws:trophies.rows.geometries.length}};
 }
-const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT={
  blobs:[...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...crags.blobs,...streams.blobs,
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.module}`,options:{script:{abi:0 as const}}},
  {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
- custom:emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
-  const value=values[name];
-  if(!isJsonData(value))throw new Error(`Non-JSON Pine section: ${name}`);
-  return defineSection(name,schema,v.parse(schema,value));
- })),
+ custom:values,
 };

@@ -14804,6 +14804,34 @@
       "catalogueDependencies": [
         "pine-ambient-birds"
       ]
+    },
+    {
+      "id": "pine-section-schemas",
+      "shard": null,
+      "entry": "scripts/bake-section-schemas.mjs",
+      "command": [
+        "--import",
+        "./scripts/shard-platform-format.mjs",
+        "scripts/bake-section-schemas.mjs",
+        "pine-hollow"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bake-section-schemas.mjs",
+        "scripts/shard-platform-format.mjs",
+        "src/format",
+        "src/sdk/package.json",
+        "src/sdk/formatJsonSchema.ts",
+        "src/shards/pine-hollow/runtime/sections.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/generators/sectionSchemas.generated.ts"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/generators/sectionSchemas.generated.ts"
+      ]
     }
   ]
 }

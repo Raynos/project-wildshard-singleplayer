@@ -6693,6 +6693,19 @@ asynchronous validation and non-JSON values; it never coerces data, supplies
 defaults or removes unknown properties. Runtime custom-section readers keep
 their own local schema; the authoring SDK never enters the play graph.
 
+
+For migrated custom sections, declare `SECTIONS` only in
+`runtime/sections.ts`. The official section-schema producer copies that
+schema-only registry into ignored `generators/sectionSchemas.generated.ts`
+and derives draft-07 structural documents with
+`formatJsonSchema(schema, 'draft-07')`. The default format-schema target
+remains draft-2020-12. The authoring entry imports the generated bridge,
+never `runtime/`. Relative, dynamic or non-schema package imports refuse.
+The producer and copied-runtime proof keep the defining Valibot checks;
+disk admission uses the derived structural schema. Unknown predicates and
+transforms still refuse conversion. The generation cache binds the bridge
+to the registry and public format sources; `pnpm gen` regenerates it.
+
 ### Built shard discovery catalog (P3)
 
 `@wildshard/sdk/outputCatalog.writeOutputCatalog(outRoot, entries)` writes

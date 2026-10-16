@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
-import { SECTIONS as AUTHOR_SECTIONS } from '../src/shards/pine-hollow/data/outputSchemas';
+import { SECTIONS as AUTHOR_SECTIONS } from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
 import rows from '../src/shards/pine-hollow/data/skinPickups.json' with { type: 'json' };
 
 const name = 'custom/skinPickups';
