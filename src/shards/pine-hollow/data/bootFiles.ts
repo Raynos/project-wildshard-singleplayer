@@ -223,7 +223,6 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.phone.url,
           ...painted.urls,
           floor.url,
-          "/assets/pine-hollow/creatures/thrall-extras.phone.glb",
           "/assets/pine-hollow/baked/rain.phone.bin"
         ],
         "desktop": [
@@ -239,7 +238,6 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.desktop.url,
           ...painted.urls,
           floor.url,
-          "/assets/pine-hollow/creatures/thrall-extras.glb",
           "/assets/pine-hollow/baked/rain.bin"
         ]
       }

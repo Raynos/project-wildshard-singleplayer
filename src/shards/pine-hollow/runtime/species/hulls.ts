@@ -2,6 +2,7 @@ import type * as THREE from 'three';
 import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import { TIER } from '@wildshard/engine/core/tier';
 import { riggedHulls } from '@wildshard/sdk/looks/riggedHulls';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import coatPages from '../../data/coatPages.generated.json' with { type: 'json' };
 import { PINE_HULLS } from '../../data/creatureHulls';
 import { pineCoatUrl, pineCreatureRigUrl } from './rigs';
@@ -16,9 +17,10 @@ const COAT_PAGES: Readonly<Record<string, { image: string }>> = { ...coatPages.t
 const thrallParts = new Map<string, THREE.BufferGeometry>();
 let partsLoading: Promise<void> | null = null;
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
-/** the thralls' baked parts for this tier, once (a failed load leaves the thralls on their bare hulls) */
-function loadThrallParts(): Promise<void> {
-  partsLoading ??= loadRigFile(TIER === 'phone' ? '/assets/pine-hollow/creatures/thrall-extras.phone.glb' : '/assets/pine-hollow/creatures/thrall-extras.glb')
+/** the thralls' baked parts for this tier (the product's named blobs), once (a failed load leaves the thralls on their bare
+ *  hulls) */
+function loadThrallParts(product: ShardProduct): Promise<void> {
+  partsLoading ??= loadRigFile(product.url(TIER === 'phone' ? 'models/creatures/thrall-extras.phone.glb' : 'models/creatures/thrall-extras.glb'))
     .then((gltf) => { rigRoot(gltf).traverse((o) => { if (isMesh(o)) thrallParts.set(o.name, o.geometry); }); return undefined; })
     .catch((e: unknown) => { console.error('[pine-hollow] the thralls\' baked eyes and ferns did not load:', e); });
   return partsLoading;
@@ -30,7 +32,11 @@ const PINE_CREATURES = riggedHulls(PINE_HULLS, {
 });
 
 /** every Pine Hollow rig, loaded (the animals boot step: every rig, before a herd spawns); the thralls' parts first, so a
- *  loaded rig always finds them */
-export const preloadPineCreatures = (): Promise<void> => loadThrallParts().then(PINE_CREATURES.preload);
+ *  loaded rig always finds them. The thralls' parts are named blobs of the first-party product the world shares (a species
+ *  look's preload takes no arguments, so it loads that product itself). */
+export async function preloadPineCreatures(): Promise<void> {
+  await loadThrallParts(await (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct('pine-hollow'));
+  await PINE_CREATURES.preload();
+}
 /** the rigged hull for (kind, variant) bound to the variant's bones; null → keep the procedural mesh */
 export const skinPineHull: typeof PINE_CREATURES.skin = PINE_CREATURES.skin;
