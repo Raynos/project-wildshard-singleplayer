@@ -1,5 +1,5 @@
 import { Rng } from '@wildshard/engine/core/rng';
-import { sampleCreatureGroup } from '@wildshard/game/plugin/brain';
+import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
 import { enemyCount } from '../creatures/tables';
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
@@ -60,19 +60,11 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
   }
   if(practice!==null){out.push({ kind: 'crab', variant: 'small', x: practice.x, z: practice.z, yaw: 0, herd: herds++, practice: true });
   at.push({ x: practice.x, z: practice.z });kinds.push('crab');}
-  // grove density: neighbours within 10 m
-  const score = palms.map((p) => palms.filter((q) => q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10).length);
-  const order = palms.map((_, i) => i).filter((i) => (score[i] ?? 0) >= 3).sort((a, b) => (score[b] ?? 0) - (score[a] ?? 0));
-  const centres: { x: number; z: number }[] = [];
-  for (let k = 0; k < Math.min(order.length, MAX_PALMS); k++) {
-    const p = palms[order[k] ?? -1];
-    if (p === undefined) continue;
-    if (centres.length >= troops) break;
-    if (Math.hypot(p.x - spawn.x, p.z - spawn.z) < 60) continue;
-    if (Math.hypot(p.x - WRECK_SITE.x, p.z - WRECK_SITE.z) < 30) continue;
-    if (centres.some((c) => Math.hypot(c.x - p.x, c.z - p.z) < 45)) continue;
-    centres.push(p);
-  }
+  const centres = selectCreatureSites(palms, { count: troops, separation: 45 }, p => {
+    if (Math.hypot(p.x - spawn.x, p.z - spawn.z) < 60 || Math.hypot(p.x - WRECK_SITE.x, p.z - WRECK_SITE.z) < 30) return null;
+    const density = palms.filter(q => q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10).length;
+    return density >= 3 ? density : null;
+  }).map(row => row.site);
   for (let k = 0; k < Math.min(centres.length, troops, MAX_GROUP); k++) {
     const c = centres[k]; if (c === undefined) continue;
     const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);

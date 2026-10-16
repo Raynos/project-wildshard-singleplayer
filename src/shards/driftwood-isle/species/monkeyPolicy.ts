@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { selectCreatureSites } from '@wildshard/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
 
@@ -33,18 +34,11 @@ export interface MonkeyStrikePorts<A extends AnimalSim> extends DriftwoodContact
 }
 
 export function pickPerch<A extends AnimalSim>(a: A, c: MonkeyPerchPorts<A>, minD: number, maxD: number, awayFrom?: A['position']): number {
-  const P = c.world.perches; if (P === undefined || P.length === 0) return -1;
-  let best = -1, bestScore = -Infinity;
-  for (let i = 0; i < P.length; i++) {
-    const p = P[i]; if (p === undefined) continue;
-    const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-    if (d < minD || d > maxD) continue;
+  return selectCreatureSites(c.world.perches ?? [], { count: 1, origin: a.position, minDistance: minD, maxDistance: maxD }, (p, i, d) => {
     const taken = c.herd?.some((h) => h !== a && h.alive && h.mem['perch'] === i) ? 1 : 0;
     const away = awayFrom ? Math.hypot(p.x - awayFrom.x, p.z - awayFrom.z) : 0;
-    const score = away * 0.5 - d * 0.3 - taken * 30 + c.rng.next() * 3;
-    if (score > bestScore) { bestScore = score; best = i; }
-  }
-  return best;
+    return away * 0.5 - d * 0.3 - taken * 30 + c.rng.next() * 3;
+  }).at(0)?.index ?? -1;
 }
 export function setPerch<A extends AnimalSim>(a: A, c: MonkeyPerchPorts<A>, i: number): void {
   const m = a.mem as MonkeyMem;

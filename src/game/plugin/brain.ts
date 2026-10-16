@@ -226,6 +226,41 @@ export function sampleCreatureGroup<K extends string>(row: CreatureGroupSpec<K>,
   return samples;
 }
 
+/**
+ * Rank at most 1024 borrowed sites, keeping source order on tied scores. Range admission precedes the caller's
+ * score callback; greedy spacing follows ranking. Null rejects a site. No random stream or actor is owned here.
+ */
+export function selectCreatureSites<T extends { readonly x: number; readonly z: number } | { readonly position: { readonly x: number; readonly z: number } }>(sites: readonly T[],
+  options: { readonly count: number; readonly origin?: { readonly x: number; readonly z: number }; readonly minDistance?: number; readonly maxDistance?: number; readonly separation?: number },
+  score: (site: T, index: number, distance: number) => number | null): { readonly site: T; readonly index: number }[] {
+  const point = (site: T): { readonly x: number; readonly z: number } => 'position' in site ? site.position : site;
+  const min = options.minDistance ?? 0, max = options.maxDistance ?? Infinity, gap = options.separation ?? 0, origin = options.origin;
+  if (sites.length > 1024 || !Number.isSafeInteger(options.count) || options.count < 0 || options.count > 16
+    || !Number.isFinite(min) || min < 0 || (options.maxDistance !== undefined && !Number.isFinite(max)) || max < min || !Number.isFinite(gap) || gap < 0
+    || (origin === undefined && (options.minDistance !== undefined || options.maxDistance !== undefined))
+    || (origin !== undefined && (!Number.isFinite(origin.x) || !Number.isFinite(origin.z)))
+    || sites.some(site => { const p = point(site); return !Number.isFinite(p.x) || !Number.isFinite(p.z); })) throw new RangeError('Invalid creature site selection');
+  const ranked: { site: T; index: number; score: number }[] = [];
+  for (let i = 0; i < 1024; i++) {
+    const site = sites[i]; if (site === undefined) break;
+    const p = point(site), distance = origin === undefined ? 0 : Math.hypot(p.x - origin.x, p.z - origin.z);
+    if (distance < min || distance > max) continue;
+    const value = score(site, i, distance);
+    if (value === null) continue;
+    if (!Number.isFinite(value)) throw new RangeError('Invalid creature site score');
+    ranked.push({ site, index: i, score: value });
+  }
+  ranked.sort((a, b) => b.score - a.score || a.index - b.index);
+  const selected: { site: T; index: number }[] = [];
+  for (let i = 0; i < 1024 && selected.length < options.count; i++) {
+    const row = ranked[i]; if (row === undefined) break;
+    const p = point(row.site);
+    if (selected.some(other => { const q = point(other.site); return Math.hypot(q.x - p.x, q.z - p.z) < gap; })) continue;
+    selected.push({ site: row.site, index: row.index });
+  }
+  return selected;
+}
+
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
 export function speciesResolver(rows: ShardRows): (speciesId: string, variantId: string) => AnimalSimSpec {
   const catalogue = new Map(rows.species.map((row) => [row.id, row]));

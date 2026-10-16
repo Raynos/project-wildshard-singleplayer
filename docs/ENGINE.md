@@ -6593,6 +6593,19 @@ the same alternating swing and knee law with zero rest/brace terms,
 1.7 knee folding and caller-owned attack bend. The rest of its pose stays
 with the native caller.
 
+**Creature site selection (G441).** `game/plugin/brain.selectCreatureSites`
+ranks up to 1024 borrowed points or positioned actors. Range admission
+precedes ordered caller scoring; `null` rejects a site, equal scores keep
+source order, and greedy minimum spacing follows ranking. It returns
+original site/index pairs for up to 16 choices, adding no RNG or actor
+owner. Invalid bounds or coordinates refuse before scoring. Driftwood
+keeps perch occupancy/escape weights and grove density/exclusion policy.
+The named W3 match is Nalati `creatures/Wildlife.ts#nearestWolf` and
+`#nearestFoal`: select one live positioned actor within the caller radius
+with negative distance as its score; keep the original body identity and
+pack/herd ownership. Pending credit is rechecked at the end of W3.
+
+
 **Creature group sampling (G441).** `game/plugin/brain.sampleCreatureGroup`
 accepts a `CreatureGroupSpec` and returns ordered `CreatureGroupSample`
 poses. Groups are bounded to 16 members; indexed sources borrow up to
