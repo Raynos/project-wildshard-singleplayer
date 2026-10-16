@@ -12,12 +12,12 @@
  *   'live' to run the clock; ?tod / ?clock win
  */
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
-import { facetedDayBackdrop } from '../runtime/looks/facetedDayBackdrop';
-import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from '../data/skyLook';
-import source from '../shard.config';
-import { DRIFTWOOD_FACETED_DAY } from './dayKeys';
+import { facetedDayBackdrop } from '../looks/facetedDayBackdrop';
+import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from '../../data/skyLook';
+import source from '../../shard.config.ts';
+import { DRIFTWOOD_FACETED_DAY } from '../../look/dayKeys';
 import { MIDDAY_SKY } from './stylizedSky';
-import cumulusPuffs from '../data/cumulusPuffs.json' with { type: 'json' };
+import cumulusPuffs from '../../data/cumulusPuffs.json' with { type: 'json' };
 import { dayLight, rampFog } from './toon';
 
 /** the whole cycle in seconds (E147, the user: "72 minutes is too big … 48 is good"; it was 24 min, as BotW's) */

@@ -333,7 +333,7 @@
       "export": "GROUND"
     },
     "render": {
-      "module": "./look/render",
+      "module": "./runtime/look/render",
       "export": "shardRender"
     },
     "load": {

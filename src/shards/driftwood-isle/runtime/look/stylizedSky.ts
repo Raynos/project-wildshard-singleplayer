@@ -15,8 +15,8 @@
  *   planet (Sky.ts renderOrder −12/−11), which therefore sits crisp IN FRONT of the clouds, as in the mockups.
  */
 import * as THREE from 'three';
-import type { SkyPalette as PlatformSkyPalette } from '../runtime/looks/facetedSky';
-import { MIDDAY_SKY_ROWS } from '../data/skyPalette';
+import type { SkyPalette as PlatformSkyPalette } from '../looks/facetedSky';
+import { MIDDAY_SKY_ROWS } from '../../data/skyPalette';
 
 /** the sky's day palette (linear, pre-tonemap); DayNight lerps these per preset */
 export type SkyPalette = PlatformSkyPalette;

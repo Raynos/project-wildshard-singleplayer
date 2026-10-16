@@ -33,7 +33,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildTier } from '@wildshard/engine/core/tier';
 import { OCEAN } from '../world/sites';
 import { OCEAN_FILES } from '../data/oceanFiles';
-import { dayLight } from '../look/toon';
+import { dayLight } from '../runtime/look/toon';
 
 /** this build's baked sea, loaded: the grid is 2.75 m fine on desktop, 4 m on the phone (57 k -> 30 k verts; tiers.ts
  *  oceanCell), and the sea floor's heights */

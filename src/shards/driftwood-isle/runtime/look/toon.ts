@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
-import { DAY_LIGHT, RAMP_FOG } from '../data/toonLook';
+import { DAY_LIGHT, RAMP_FOG } from '../../data/toonLook';
 import type { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 
 /** the day light the clock turns (look/backdrop.ts); the sea sets its caustics' level */

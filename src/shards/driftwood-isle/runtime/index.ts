@@ -18,7 +18,7 @@ import { installDriftwoodLoadout } from './loadout';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import source from '../shard.config';
 import { FP_ARMS_MATERIALS } from '../data/fpArmsLook';
-import { followToon } from '../look/toon';
+import { followToon } from './look/toon';
 
 type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 

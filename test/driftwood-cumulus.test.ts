@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import puffs from '../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
 import { cumulusPuffs } from '../src/shards/driftwood-isle/generators/cumulus';
 import { FacetedSky } from '../src/shards/driftwood-isle/runtime/looks/facetedSky';
-import { MIDDAY_SKY } from '../src/shards/driftwood-isle/look/stylizedSky';
+import { MIDDAY_SKY } from '../src/shards/driftwood-isle/runtime/look/stylizedSky';
 
 it('keeps the baked cumulus rows in step with their generator', () => {
   expect(puffs).toEqual(cumulusPuffs());

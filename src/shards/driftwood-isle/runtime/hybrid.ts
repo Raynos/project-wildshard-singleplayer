@@ -13,7 +13,7 @@ import { setWaterfallLooks } from '../world/Waterfall';
 import { setSmokeLook } from './looks/smokeColumn';
 import { setFireflyLook } from '../world/Shrine';
 import { setReefLook } from '../models/reef';
-import { followToon } from '../look/toon';
+import { followToon } from './look/toon';
 import { setShrinePoolLook } from '../models/shrine';
 import { setPoolLook } from '../world/Cove';
 import { setOceanLook } from './looks/facetedOcean';

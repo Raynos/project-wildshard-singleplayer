@@ -5,13 +5,13 @@
  * (generators/facetedGround.ts, data/groundFiles.ts) and laid by runtime/looks/facetedGround.ts in the ground's graph toon
  * materials, which `prepareGround` (the look's `prepareWorld`) compiles and lends first.
  */
-import { facetedGroundPainter, prepareFacetedGround } from '../runtime/looks/facetedGround';
+import { facetedGroundPainter, prepareFacetedGround } from '../looks/facetedGround';
 import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
-import source from '../shard.config';
+import source from '../../shard.config.ts';
 import { followToon } from './toon';
-import { GROUND_LOOK } from '../data/groundLook';
-import { GROUND_FILES } from '../data/groundFiles';
-import { KIT_LENDS } from '../data/kitLook';
+import { GROUND_LOOK } from '../../data/groundLook';
+import { GROUND_FILES } from '../../data/groundFiles';
+import { KIT_LENDS } from '../../data/kitLook';
 
 /** The ground's and the kit's graph materials compiled under the world's scope before it builds (the look's `prepareWorld`). */
 export function prepareGround(context: WorldLookContext): Promise<void> { return prepareFacetedGround(context, source, GROUND_LOOK, followToon, KIT_LENDS); }

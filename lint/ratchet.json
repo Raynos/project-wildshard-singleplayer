@@ -301,11 +301,11 @@
     "src/shards/driftwood-isle/discovery.generated.ts": 3,
     "src/shards/driftwood-isle/runtime/fpArms.ts": 1,
     "src/shards/driftwood-isle/loadout/rows.ts": 1,
-    "src/shards/driftwood-isle/look/backdrop.ts": 3,
+    "src/shards/driftwood-isle/runtime/look/backdrop.ts": 3,
     "src/shards/driftwood-isle/look/dayKeys.ts": 2,
-    "src/shards/driftwood-isle/look/stylizedSky.ts": 1,
-    "src/shards/driftwood-isle/look/terrainPainter.ts": 4,
-    "src/shards/driftwood-isle/look/toon.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/stylizedSky.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/terrainPainter.ts": 4,
+    "src/shards/driftwood-isle/runtime/look/toon.ts": 1,
     "src/shards/driftwood-isle/loot/effects.ts": 1,
     "src/shards/driftwood-isle/loot/finds.ts": 2,
     "src/shards/driftwood-isle/loot/keepsakes.ts": 3,
@@ -858,8 +858,8 @@
     "src/shards/driftwood-isle/runtime/fauna.ts": 1,
     "src/shards/driftwood-isle/runtime/finalePresentation.ts": 5,
     "src/shards/driftwood-isle/runtime/headless.ts": 6,
-    "src/shards/driftwood-isle/runtime/hybrid.ts": 21,
-    "src/shards/driftwood-isle/runtime/index.ts": 13,
+    "src/shards/driftwood-isle/runtime/hybrid.ts": 20,
+    "src/shards/driftwood-isle/runtime/index.ts": 12,
     "src/shards/driftwood-isle/runtime/keeper.ts": 13,
     "src/shards/driftwood-isle/runtime/kills.ts": 1,
     "src/shards/driftwood-isle/runtime/loadout.ts": 5,
@@ -999,7 +999,11 @@
     "src/shards/pine-hollow/runtime/boot/gpuTable.ts": 2,
     "src/shards/pine-hollow/runtime/boot/handsGeometry.ts": 1,
     "src/shards/pine-hollow/runtime/boot/poses.ts": 2,
-    "src/shards/driftwood-isle/runtime/fpArms.ts": 1
+    "src/shards/driftwood-isle/runtime/fpArms.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/backdrop.ts": 4,
+    "src/shards/driftwood-isle/runtime/look/stylizedSky.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/terrainPainter.ts": 4,
+    "src/shards/driftwood-isle/runtime/look/toon.ts": 1
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/bag.ts": 1,
@@ -1070,10 +1074,10 @@
     "src/shards/driftwood-isle/generators/trailside.ts": 4,
     "src/shards/driftwood-isle/generators/trophyPlaques.ts": 2,
     "src/shards/driftwood-isle/loadout/rows.ts": 3,
-    "src/shards/driftwood-isle/look/backdrop.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/backdrop.ts": 1,
     "src/shards/driftwood-isle/look/dayKeys.ts": 2,
-    "src/shards/driftwood-isle/look/render.ts": 1,
-    "src/shards/driftwood-isle/look/terrainPainter.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/render.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/terrainPainter.ts": 1,
     "src/shards/driftwood-isle/loot/effects.ts": 4,
     "src/shards/driftwood-isle/loot/keepsakes.ts": 10,
     "src/shards/driftwood-isle/loot/presentation.ts": 3,
@@ -1742,7 +1746,8 @@
     "src/shards/sunscar-dunes/weapons/rows.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
     "src/shards/sunscar-dunes/world/build.ts": 2,
-    "src/shards/sunscar-dunes/world/places.ts": 1
+    "src/shards/sunscar-dunes/world/places.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/toon.ts": 1
   },
   "wildshard/shard-game-imports": {
     "src/shards/_template/manifest.ts": 1,
@@ -2048,7 +2053,8 @@
     "src/shards/sunscar-dunes/world/baked.ts": 1,
     "src/shards/sunscar-dunes/world/build.ts": 2,
     "src/shards/sunscar-dunes/world/meshes.ts": 1,
-    "src/shards/sunscar-dunes/world/places.ts": 1
+    "src/shards/sunscar-dunes/world/places.ts": 1,
+    "src/shards/driftwood-isle/runtime/look/toon.ts": 1
   },
   "wildshard/shard-sandbox": {
     "src/shards/driftwood-isle/boot/sources.ts": 2,
