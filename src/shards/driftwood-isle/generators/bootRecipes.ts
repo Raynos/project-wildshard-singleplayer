@@ -1,10 +1,10 @@
-import { ISLAND_PLAN_FILES as PLAN_FILES } from './islandPlanFiles';
-import { REEF_FILES } from './reefFiles';
-import { GROUND_FILES } from './groundFiles';
-import { OCEAN_FILES } from './oceanFiles';
-import { PALM_FILES } from './palmFiles';
-import { HIBISCUS_FILES } from './hibiscusFiles';
-import { ISLAND_COVER_FILES } from './islandCoverFiles';
+import { ISLAND_PLAN_FILES as PLAN_FILES } from '../data/islandPlanFiles';
+import { REEF_FILES } from '../data/reefFiles';
+import { GROUND_FILES } from '../data/groundFiles';
+import { OCEAN_FILES } from '../data/oceanFiles';
+import { PALM_FILES } from '../data/palmFiles';
+import { HIBISCUS_FILES } from '../data/hibiscusFiles';
+import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
 /** Ordered retained boot and late inventory selections. */
 export const DRIFTWOOD_BOOT_FILES = {
   "empty": {

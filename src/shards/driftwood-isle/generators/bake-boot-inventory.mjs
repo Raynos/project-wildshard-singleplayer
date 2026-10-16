@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { driftwoodBootInventory } from './bootInventory.ts';
+import { driftwoodCapturePoses } from './capturePoses.ts';
 import * as v from 'valibot';
 
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -34,4 +35,5 @@ const writer = byteWriter(process.argv.includes('--check'), 'driftwood-boot-inve
 for (const [name, rows] of Object.entries(driftwoodBootInventory(ordered))) {
   writer.put(resolve(root, `src/shards/driftwood-isle/data/boot-${name}.generated.json`), jsonBytes(rows));
 }
+writer.put(resolve(root, 'src/shards/driftwood-isle/data/boot-poses.generated.json'), jsonBytes(driftwoodCapturePoses()));
 writer.finish();

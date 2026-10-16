@@ -345,10 +345,6 @@
       "export": "ROSTER",
       "call": false
     },
-    "posesLoader": {
-      "module": "./runtime/boot/poses",
-      "export": "poses"
-    },
     "boot": {
       "files": {
         "module": "./data/boot-files.generated.json",
@@ -373,6 +369,10 @@
     },
     "ktx2": {
       "module": "./ktx2.generated"
+    },
+    "poses": {
+      "module": "./data/boot-poses.generated.json",
+      "export": "default"
     }
   },
   "captureProbes": [

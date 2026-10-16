@@ -281,3 +281,12 @@ export function parseManifestMetadata(input: unknown, expectedSlug?: string): Ma
   if (expectedSlug !== undefined && identity !== expectedSlug) throw new Error('Manifest identity differs from its folder');
   return data;
 }
+
+const captureVector = v.strictTuple([number, number, number]);
+const capturePoses = v.record(text, v.strictObject({ eye: captureVector, yaw: number, pitch: number,
+  feet: v.exactOptional(captureVector), mockup: v.string(), frame: v.string(),
+  probe: v.exactOptional(v.strictObject({ name: v.exactOptional(v.string()), x: v.exactOptional(number),
+    y: v.exactOptional(number), z: v.exactOptional(number), yaw: v.exactOptional(number), pitch: v.exactOptional(number) })),
+}));
+/** Admit manifest-bound diagnostic pose JSON without weakening fixed-size vector checks. */
+export function parseCapturePoses(input: unknown): v.InferOutput<typeof capturePoses> { return v.parse(capturePoses, input); }

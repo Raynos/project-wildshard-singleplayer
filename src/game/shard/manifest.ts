@@ -11,7 +11,7 @@ import type { LookReplaceContext, LookStrategy } from '@wildshard/engine/render/
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { HudBand } from '@wildshard/engine/ui/hudSlots';
 import type { MinimapPalette } from '@wildshard/engine/ui/Minimap';
-import { mapPalette, parseManifestMetadata, type ManifestMetadata, type MapPaletteRow } from '@wildshard/format/minimap';
+import { mapPalette, parseManifestMetadata, parseCapturePoses, type ManifestMetadata, type MapPaletteRow } from '@wildshard/format/minimap';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildshard/engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -692,8 +692,9 @@ export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): Ch
 }
 
 /** The generated discovery root lends only native/generated fields. */
-export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetadata | 'trees'> & {
+export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetadata | 'trees' | 'poses'> & {
   readonly spawns?: ShardManifestRows['spawns'];
+  readonly poses?: unknown;
   readonly mapPalette?: MapPaletteRow;
   readonly audioBindings?: Pick<NonNullable<ShardManifest['audio']>, 'cues' | 'preload'>;
   readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads' | 'bakedUnread' | 'audio'>;
@@ -712,7 +713,7 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     if (url === undefined) throw new Error('Manifest source image is not bundled');
     return url;
   };
-  const { mapPalette: palette, audioBindings, bootBindings, treeFactory, forestQueries, tierPolicy, ...bindings } = rows;
+  const { mapPalette: palette, audioBindings, bootBindings, treeFactory, forestQueries, tierPolicy, poses, ...bindings } = rows;
   const preload=audioBindings?.preload??(data.audio.catalogue===true?async()=>{
     const {productAudioCatalogue}=await import('../shardfile/audioCatalogue');return productAudioCatalogue(slug);
   }:undefined);
@@ -733,6 +734,7 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   })();
   if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
   return defineShard({ ...bindings, ...data, slug, trees, spawns,
+    ...(poses === undefined ? {} : { poses: parseCapturePoses(poses) }),
     ...(data.forest === undefined ? {} : {forest: {...data.forest, ...forestQueries}}),
     ...(tiers === undefined ? {} : {tiers}),
     audio: {...data.audio, ...audioBindings, ...(preload===undefined?{}:{preload})},

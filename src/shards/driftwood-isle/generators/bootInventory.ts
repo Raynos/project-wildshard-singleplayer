@@ -1,7 +1,7 @@
 import { resolveBootFiles, resolveBootSources } from '@wildshard/engine/boot/filePolicy';
 import type { BootModeRows } from '@wildshard/engine/level/spec';
 import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
-import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../data/bootFiles';
+import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from './bootRecipes';
 import { GPU_FILES } from '../ktx2.generated';
 
 /** Resolve the original recipes once, preserving source order, duplicates and texture fallbacks. */

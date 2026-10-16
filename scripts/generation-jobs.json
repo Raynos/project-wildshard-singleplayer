@@ -15,7 +15,7 @@
       "inputRoots": [
         "src/shards/driftwood-isle/generators/bake-boot-inventory.mjs",
         "src/shards/driftwood-isle/generators/bootInventory.ts",
-        "src/shards/driftwood-isle/data/bootFiles.ts",
+        "src/shards/driftwood-isle/generators/bootRecipes.ts",
         "src/shards/driftwood-isle/data/islandPlanFiles.ts",
         "src/shards/driftwood-isle/data/reefFiles.ts",
         "src/shards/driftwood-isle/data/groundFiles.ts",
@@ -43,17 +43,29 @@
         "public/assets/lut",
         "public/assets/gpu/horizon",
         "public/assets/gpu/models/driftwood-blender",
-        "public/assets/gpu/models/driftwood-hero"
+        "public/assets/gpu/models/driftwood-hero",
+        "src/shards/driftwood-isle/generators/capturePoses.ts",
+        "src/shards/driftwood-isle/generators/groundRows.ts",
+        "src/shards/driftwood-isle/generators/groundField.ts",
+        "src/shards/driftwood-isle/generators/landscape.ts",
+        "src/shards/driftwood-isle/generators/landscapeNoise.ts",
+        "src/shards/driftwood-isle/data/landscapeRows.ts",
+        "src/shards/driftwood-isle/manifest.json",
+        "src/format/contentBounds.ts",
+        "src/format/bakedTerrainBytes.ts",
+        "src/format/bakedTerrainSampling.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/boot-sources.generated.json",
         "src/shards/driftwood-isle/data/boot-files.generated.json",
-        "src/shards/driftwood-isle/data/boot-lateReads.generated.json"
+        "src/shards/driftwood-isle/data/boot-lateReads.generated.json",
+        "src/shards/driftwood-isle/data/boot-poses.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/data/boot-sources.generated.json",
         "src/shards/driftwood-isle/data/boot-files.generated.json",
-        "src/shards/driftwood-isle/data/boot-lateReads.generated.json"
+        "src/shards/driftwood-isle/data/boot-lateReads.generated.json",
+        "src/shards/driftwood-isle/data/boot-poses.generated.json"
       ],
       "platform": "portable"
     },

@@ -4220,6 +4220,9 @@ instead of installing application asset-table services. Bootstrap inventory
 producers precede manifest consumers; output declarations break the cycle
 where those consumers produce a file in the same inventory. Generation
 still refuses if a declared output fails to publish.
+Terrain-dependent diagnostic poses can use the authored manifest `poses`
+binding with compiler-emitted JSON: the native lattice and datum are sampled
+offline, and `defineShard` returns independent copies through its dev API.
 
 These are native level boot rows, not a second untrusted asset-admission
 path. A compiled shardfile's files must still pass its content and cost

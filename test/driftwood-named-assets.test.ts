@@ -4,7 +4,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { driftwoodBlobName, readDriftwoodBlob } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import lateReadRows from '../src/shards/driftwood-isle/data/boot-lateReads.generated.json' with { type: 'json' };
 import { resolveBootFiles, bootLateReads } from '../src/engine/boot/filePolicy';
-import { DRIFTWOOD_BOOT_FILES } from '../src/shards/driftwood-isle/data/bootFiles';
+import { DRIFTWOOD_BOOT_FILES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
 
 test('Driftwood aliases resolve only listed named product bytes, with no public URL fallback', async () => {

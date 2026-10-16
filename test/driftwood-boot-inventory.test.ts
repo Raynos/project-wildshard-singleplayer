@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { driftwoodBootInventory } from '../src/shards/driftwood-isle/generators/bootInventory';
-import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/data/bootFiles';
+import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
 import { bootFileList, bootLateReads, bootSourceFiles, resolveBootFiles, resolveBootSources } from '../src/engine/boot/filePolicy';
 import sources from '../src/shards/driftwood-isle/data/boot-sources.generated.json' with { type: 'json' };
@@ -63,7 +63,7 @@ test('boot JSON is generated before every offline manifest consumer and copied i
   expect(consumers.length).toBeGreaterThan(0);
   for (const job of consumers) {
     expect(jobs.indexOf(job)).toBeGreaterThan(bootstrap);
-    for (const name of ['files', 'sources', 'lateReads']) {
+    for (const name of ['files', 'sources', 'lateReads', 'poses']) {
       const output = `src/shards/driftwood-isle/data/boot-${name}.generated.json`;
       expect(job.inputRoots.some(root => output === root || output.startsWith(`${root}/`))).toBe(true);
     }

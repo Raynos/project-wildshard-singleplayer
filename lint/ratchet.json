@@ -958,7 +958,6 @@
     "src/shards/driftwood-isle/runtime/boot/palmGeometry.ts": 1,
     "src/shards/driftwood-isle/runtime/boot/reefGeometry.ts": 1,
     "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts": 2,
-    "src/shards/driftwood-isle/runtime/boot/poses.ts": 1,
     "src/shards/driftwood-isle/runtime/models/reefRock.ts": 1,
     "src/shards/driftwood-isle/runtime/models/shoreBoulder.ts": 1,
     "src/shards/driftwood-isle/runtime/models/smallRock.ts": 1,
