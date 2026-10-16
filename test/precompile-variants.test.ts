@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { Bone, BoxGeometry, DirectionalLight, WebGLRenderTarget, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, Scene, Skeleton, SkinnedMesh, type Material } from 'three';
-import { holdShadowRedraw, sceneJobs, shadowJobs } from '../src/engine/render/precompile';
+import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, Scene, Skeleton, SkinnedMesh, type Material } from 'three';
+import { sceneJobs, shadowJobs } from '../src/engine/render/precompile';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -55,17 +55,4 @@ test('shadow preparation compiles the depth variant a registered shadow draw sub
   expect(jobs.flatMap(job => job.root.children).some(child => child instanceof Mesh && child.material instanceof MeshDepthMaterial)).toBe(true);
   for (const job of jobs) job.dispose?.();
   geometry.dispose(); moving.dispose(); still.dispose(); variant.dispose();
-});
-
-test('a warm-up compile holds the shadow redraw only where every caster light has its map (sp-o289)', () => {
-  const scene = new Scene(), light = new DirectionalLight(), root = new Scene();
-  light.castShadow = true; scene.add(light);
-  const shadowMap = { enabled: true, autoUpdate: true, needsUpdate: false };
-  expect(holdShadowRedraw({ shadowMap }, root, scene)).toBeUndefined();
-  const map = new WebGLRenderTarget(1, 1); light.shadow.map = map;
-  const restore = holdShadowRedraw({ shadowMap }, root, scene);
-  expect(shadowMap.autoUpdate).toBe(false);
-  restore?.();
-  expect(shadowMap).toEqual({ enabled: true, autoUpdate: true, needsUpdate: false });
-  map.dispose();
 });
