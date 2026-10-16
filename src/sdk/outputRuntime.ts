@@ -3,9 +3,11 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, rmSync, wr
 // oxlint-disable-next-line import/no-nodejs-modules -- Runtime inventory paths are local project-relative paths.
 import { dirname, relative, resolve, sep } from 'node:path';
 import { parseSync } from 'vite';
+import * as v from 'valibot';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
+import { runtimeMirrorIssues, type RuntimeMirror } from './runtimeMirrors';
 
 export interface RuntimeCopyFile { readonly path: string; readonly hash: string; readonly bytes: number; readonly lines: number }
 export interface RuntimeCopy { readonly files: readonly RuntimeCopyFile[]; readonly lines: number; readonly entry?: 'runtime/index.ts' }
@@ -14,6 +16,35 @@ export interface RuntimeCopy { readonly files: readonly RuntimeCopyFile[]; reado
  * to check are relative to the author project, including the runtime/ prefix. */
 export interface RuntimeCopyOptions {
   readonly check: (path: string, source: string) => readonly { readonly message: string }[];
+}
+
+function syncSchema(input: unknown): input is v.GenericSchema {
+  return typeof input === 'object' && input !== null && 'kind' in input && input.kind === 'schema'
+    && 'type' in input && typeof input.type === 'string' && 'reference' in input && typeof input.reference === 'function'
+    && 'expects' in input && typeof input.expects === 'string' && 'async' in input && input.async === false
+    && '~run' in input && typeof input['~run'] === 'function';
+}
+
+/** Build step 5 checks the copied module namespaces, never source-side substitutes.
+ * Orchestration imports these TS modules only after the boundary check. Every
+ * custom section must have its matching runtime schema; every declared schema
+ * must have emitted data. Mirrors reuse the defining canonical comparer. */
+export function validateRuntimeData(sections: ReadonlyMap<string, unknown>,
+  copiedSections: Readonly<Record<string, unknown>> | undefined,
+  mirrors: readonly RuntimeMirror[], copiedConstants: Readonly<Record<string, unknown>> | undefined): void {
+  const custom = [...sections.keys()].filter(name => name.startsWith('custom/'));
+  const registry = copiedSections?.['SECTIONS'];
+  if (custom.length > 0 && (typeof registry !== 'object' || registry === null || Array.isArray(registry))) throw new Error('Custom sections require runtime/sections.ts SECTIONS');
+  const entries = typeof registry === 'object' && registry !== null && !Array.isArray(registry) ? Object.entries(registry) : [];
+  for (const [name, schema] of entries) {
+    if (!name.startsWith('custom/') || !sections.has(name)) throw new Error(`Runtime schema has no emitted custom section: ${name}`);
+    if (!syncSchema(schema)) throw new Error(`Runtime section needs a synchronous Valibot schema: ${name}`);
+    v.parse(schema, sections.get(name));
+  }
+  for (const name of custom) if (!entries.some(([key]) => key === name)) throw new Error(`Custom section has no runtime schema: ${name}`);
+  if (mirrors.length > 0 && copiedConstants === undefined) throw new Error('Declared mirrors require runtime/const.ts');
+  const issues = runtimeMirrorIssues(mirrors, copiedConstants ?? {});
+  if (issues.length > 0) throw new Error(issues.join('\n'));
 }
 
 /** Parser comment ranges preserve strings, regexes and template literal text.

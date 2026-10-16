@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned output fixtures live under ./tmp.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned fixture paths.
 import { join, resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
@@ -15,10 +15,10 @@ function directory(): string {
 }
 function entry(slug: string, order: number): OutputCatalogEntry {
   const image = `${slug}/blobs/image/${'a'.repeat(64)}.webp`;
-  return { slug, index: new TextEncoder().encode(`{"identity":{"slug":"${slug}"}}\n`),
+  return { slug, identity: { slug, revision: 1 }, index: new TextEncoder().encode(`{"identity":{"slug":"${slug}"}}\n`),
     card: { name: slug, label: '(0, 0)', biome: 'Forest', blurb: 'A playable shard.', order, status: 'live',
       thumb: image, portrait: image, landscape: image, accent: 'pink' },
-    placement: { instance: slug, grid: [order, 0], size: [500, 500, 500] }, runtime: { entry: 'runtime/index.ts' } };
+    placement: { instance: slug, grid: [order, 0], size: [500, 500, 500] }, runtime: { entry: 'runtime/index.ts', files: [{path:'runtime/index.ts',hash:'b'.repeat(64),bytes:12,lines:1}] } };
 }
 it('writes stable ordering and exact index hashes without mutating the input', () => {
   const destination = directory(), alpha = entry('alpha', 2), beta = entry('beta', 1), entries = [alpha, beta];
@@ -32,8 +32,8 @@ it('writes stable ordering and exact index hashes without mutating the input', (
   expect(changed.shards[0]?.index.hash).not.toBe(catalog.shards[0]?.index.hash);
 });
 it('supports a data-only template and rejects duplicates, escapes and executable metadata before writing', () => {
-  const destination = directory(), template = entry('_template', 0);
-  template.runtime = null; template.card.thumb = 'data:image/svg+xml,%3Csvg/%3E';
+  const destination = directory(), original = entry('_template', 0);
+  const template = { ...original, runtime: null, identity: { slug: 'template', revision: 1 }, card: { ...original.card, thumb: 'data:image/svg+xml,%3Csvg/%3E' } };
   const catalog = writeOutputCatalog(destination, [template]);
   expect(catalog.shards[0]?.runtime).toBeNull();
   expect(() => writeOutputCatalog(destination, [template, template])).toThrow('Duplicate');
@@ -42,4 +42,5 @@ it('supports a data-only template and rejects duplicates, escapes and executable
   expect(() => writeOutputCatalog(destination, [{ ...entry('alpha', 1), card: { ...template.card, thumb: '/src/shards/alpha/thumb.jpg' } }])).toThrow();
   expect(() => parseShardCatalog({ ...catalog, execute: () => true })).toThrow('JSON data');
   expect(parseShardCatalog(JSON.parse(readFileSync(join(destination, 'catalog.json'), 'utf8')))).toEqual(catalog);
+  expect(readdirSync(destination)).toEqual(['catalog.json']);
 });

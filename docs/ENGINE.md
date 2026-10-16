@@ -6779,3 +6779,38 @@ The original SDK `nativeBodySpecSchema`, `nativeGroundSchema` and
 `nativeColliderSchema` now delegate to defining parsers in
 `@wildshard/format/nativePhysics`. Their admission and decoded return APIs
 stay unchanged; buffer decoding and native installation stay in the SDK.
+
+### Catalog boot and compiled runtime identity (P3)
+
+`format/level.LevelSectionSchema` holds `{manifest}` with the existing
+plain level metadata schema. `ui/card` keeps title presentation separate
+from level configuration; code-valued discovery bindings belong to the
+copied runtime's optional `discovery()` export, not JSON evaluation.
+`game/shard/catalogBoot.prepareCatalogBoot` is an async publication
+barrier: all level reads and identity checks finish before a caller
+installs the result. It does not evaluate play code for title discovery.
+
+The composition root's `outputRuntimeRegistry` pairs the literal
+`/out/*/runtime/index.ts` lazy glob with the corresponding emitted index
+runtime inventories. `compileCatalogRegistry` fingerprints sorted
+`[path,hash,bytes,lines]` tuples using
+`format/shardCatalog.runtimeInventoryBytes`; the catalog writer uses the
+same representation. `loadCatalogRuntime` checks identity/revision and
+catalog, compiled and admitted-product inventory hashes before evaluating
+code, refusing an incompatible offline product. Native runtime entry
+selection stays separate from this page entry. The catalog writer
+regenerates the complete list, writes it in an owned temporary directory,
+and renames `catalog.json` atomically; readers see a complete old or new
+catalog. Build orchestration serializes publication of each output root.
+This spike leaves live discovery on its existing path until runtime
+closure, level emission and the full asynchronous composition are wired.
+
+Build orchestration also calls
+`sdk/outputRuntime.validateRuntimeData(sections, copiedSections,
+mirrors, copiedConstants)` with the namespaces imported from checked
+output `runtime/sections.ts` and `runtime/const.ts`. It requires a
+synchronous Valibot schema for every custom section, refuses undeclared
+schema keys, and parses emitted values with those schemas. Declared
+constant mirrors use the defining `runtimeMirrorIssues` comparer. These
+are build-time proofs; client runtime code is compiled into the app and
+never imported from a remote JavaScript URL.

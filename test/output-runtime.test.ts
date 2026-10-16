@@ -3,7 +3,9 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, 
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths stay under the owned tmp directory.
 import { dirname, join, resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
-import { runtimeCodeLines, writeRuntimeFiles } from '@wildshard/sdk/outputRuntime';
+import * as v from 'valibot';
+import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
+import { runtimeCodeLines, validateRuntimeData, writeRuntimeFiles } from '@wildshard/sdk/outputRuntime';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { codeLines } from '../scripts/shard-platform.mjs';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
@@ -62,4 +64,17 @@ it('supports data-only projects and refuses incomplete entries and overlapping o
   put(project, 'runtime/helper.ts', 'export const x = 1;');
   expect(() => writeRuntimeFiles(project, output, { check })).toThrow('runtime/index.ts');
   expect(() => writeRuntimeFiles(project, join(project, 'out'), { check })).toThrow('separate');
+});
+
+it('checks copied custom registries and constants against the emitted data before boot', () => {
+  const sections = new Map<string, unknown>([['custom/probe',[1,2]],['ui/card',{}]]);
+  const registry = { SECTIONS: { 'custom/probe': v.array(v.number()) } };
+  const mirrors = [defineMirror('COUNT',2)];
+  expect(() => validateRuntimeData(sections,registry,mirrors,{COUNT:2})).not.toThrow();
+  expect(() => validateRuntimeData(sections,undefined,mirrors,{COUNT:2})).toThrow('SECTIONS');
+  expect(() => validateRuntimeData(sections,{SECTIONS:{}},mirrors,{COUNT:2})).toThrow('no runtime schema');
+  expect(() => validateRuntimeData(sections,{SECTIONS:{'custom/probe':v.string()}},mirrors,{COUNT:2})).toThrow();
+  expect(() => validateRuntimeData(new Map(),registry,[],{})).toThrow('no emitted custom section');
+  expect(() => validateRuntimeData(sections,registry,mirrors,{COUNT:3})).toThrow('COUNT');
+  expect(() => validateRuntimeData(sections,registry,mirrors,undefined)).toThrow('runtime/const.ts');
 });

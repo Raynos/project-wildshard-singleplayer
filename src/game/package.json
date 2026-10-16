@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shard/catalogBoot": "./shard/catalogBoot.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
     "./systems/looks/grassField": "./systems/looks/grassField.ts",
     "./systems/looks/particles": "./systems/looks/particles.ts",
