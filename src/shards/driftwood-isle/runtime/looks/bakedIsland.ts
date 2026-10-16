@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
-import ISLAND_TERRAIN_CLIP from '../../data/islandClips.generated.json' with { type: 'json' };
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 
@@ -43,8 +42,11 @@ export function islandLooks(): IslandLooks {
   return lent;
 }
 
+/** The authored grid's retained index runs (the product's `custom/islandClips`). */
+export interface IslandTerrainClip { readonly sourceVertices: number; readonly sourceIndices: number; readonly outputIndices: number; readonly ranges: readonly { readonly start: number; readonly count: number }[] }
+
 /** Install the authored grid's retained index runs; another topology is not this island bake. */
-export function clipGridTerrain(mesh: THREE.Mesh): void {
+export function clipGridTerrain(mesh: THREE.Mesh, ISLAND_TERRAIN_CLIP: IslandTerrainClip): void {
   const geometry = mesh.geometry, source = geometry.getIndex();
   if (source === null || source.count !== ISLAND_TERRAIN_CLIP.sourceIndices || geometry.getAttribute('position').count !== ISLAND_TERRAIN_CLIP.sourceVertices || ISLAND_TERRAIN_CLIP.ranges.length > 512) throw new Error('Baked island terrain topology differs; rebuild its declared clipping facts');
   const out = new Uint32Array(ISLAND_TERRAIN_CLIP.outputIndices); let offset = 0;

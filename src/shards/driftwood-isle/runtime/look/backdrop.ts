@@ -17,7 +17,7 @@ import { facetedDayBackdrop } from '../looks/facetedDayBackdrop';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from '../const';
 import { DRIFTWOOD_FACETED_DAY } from '../../look/dayKeys';
 import { MIDDAY_SKY } from './stylizedSky';
-import cumulusPuffs from '../../data/cumulusPuffs.json' with { type: 'json' };
+import { SECTIONS } from '../sections';
 import { dayLight, rampFog } from './toon';
 
 /** the whole cycle in seconds (E147, the user: "72 minutes is too big … 48 is good"; it was 24 min, as BotW's) */
@@ -25,5 +25,5 @@ const CYCLE_S = 48 * 60;
 
 /** The backdrop over the island's built output: its sky graphs compile from the product's look materials. */
 export const stylizedBackdrop = (product: ShardProduct): SkyBackdropFactory => facetedDayBackdrop({
-  name: 'driftwood-isle', day: DRIFTWOOD_FACETED_DAY, sky: { looks: { source: product.shardfile, dome: SKY_DOME_LOOK, clouds: SKY_CLOUD_LOOK }, palette: MIDDAY_SKY, puffs: cumulusPuffs }, light: dayLight, fog: rampFog, cycleSeconds: CYCLE_S,
+  name: 'driftwood-isle', day: DRIFTWOOD_FACETED_DAY, sky: { looks: { source: product.shardfile, dome: SKY_DOME_LOOK, clouds: SKY_CLOUD_LOOK }, palette: MIDDAY_SKY, puffs: product.section('custom/cumulusPuffs', SECTIONS) }, light: dayLight, fog: rampFog, cycleSeconds: CYCLE_S,
 });

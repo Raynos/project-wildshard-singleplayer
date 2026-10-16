@@ -46,6 +46,7 @@ import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } fro
 import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain } from './coverTint';
+import { driftwoodRows } from '../runtime/boot/rows';
 import { clipGridTerrain, droppedPlacements, islandLooks, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, usedPlacements, type IslandLooks, type IslandProto } from '../runtime/looks/bakedIsland';
 import { coverAttributes } from '../runtime/looks/coverGrid';
 import { slicer } from '@wildshard/engine/boot/plan';
@@ -213,7 +214,7 @@ export class BlenderIsland {
     const unclaimed = await this.placeModels(models, f, plan, meta, protos, { cast: propsMat, cover: coverMat, big: bigMat });
 
     // ── hide what the area replaces ──
-    clipGridTerrain(ctx.terrain);
+    clipGridTerrain(ctx.terrain, driftwoodRows('custom/islandClips'));
     await slice();
     if (ctx.palms) {
       // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area

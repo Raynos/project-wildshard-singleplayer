@@ -19,6 +19,7 @@ import { setCreatureLooks } from './looks/creatureLooks';
 import { setCoverLooks } from './looks/streamedCover';
 import { setIslandLooks } from './looks/bakedIsland';
 import { setGullLook } from '../world/Gulls';
+import { admitDriftwoodRows } from './boot/rows';
 
 // The static transitional world belongs to the resident, not a single entered play scope; its motion binds the admitted
 // product's boat and bridge movers to their real rendered/native owners (one resident per admitted product).
@@ -48,6 +49,7 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // built in code only on a miss
       // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts, data/fireflyLook.ts, data/reefLook.ts,
       // data/poolLook.ts, data/oceanLook.ts, data/gullGraphLook.ts, data/creatureLook.ts, data/islandLook.ts), owned by the resident; the toon graphs follow the day clock's toon tunables once a frame
+      admitDriftwoodRows(context.product); // the client rows the world's models read (custom sections, W2b)
       const built = await residentWorld(context).load(context, async (owner) => {
         const { materials, setParam, setTexture, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, context.product.shardfile, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK, ...COVER_LOOKS, ...Object.values(CREATURE_LOOKS), ...Object.values(ISLAND_LOOKS)]);
         const follow = followToon(toon);

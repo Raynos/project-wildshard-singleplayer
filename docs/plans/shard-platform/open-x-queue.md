@@ -254,3 +254,15 @@ reader adoption; this table grants no extra section or byte headroom.
 | W2 Pine paintedTextures section exit | `custom/paintedTextures` | Replace the private paint metadata with platform texture and atlas entries. | sp-x5 / W2 client rewire |
 | W2 Pine trophyMounts section exit | `custom/trophyMounts` | Replace packed geometry metadata with platform geometry/model-library rows. | sp-x5 / W2 client rewire |
 | W2 Pine crossbowPool section exit | `custom/crossbowPool` | Replace the pool and hierarchy bundle with platform model/client-scene rows. | sp-x5 / W2 client rewire |
+
+## W2b Driftwood client custom-section exits (G453)
+
+Driftwood's client rows (sp-o277, W2b): runtime/ reads them from the product
+through `runtime/sections.ts`; each name retires with the platform section
+that replaces it, and grants no extra section or byte headroom.
+
+| Exit row | Current section | Retirement | Owner |
+|---|---|---|---|
+| W2 Driftwood cumulusPuffs section exit | `custom/cumulusPuffs` | Move the cumulus ring into the platform sky / look section. | W2b client rewire |
+| W2 Driftwood islandClips section exit | `custom/islandClips` | Emit the terrain clip runs with the platform terrain / baked-island section. | W2b client rewire |
+| W2 Driftwood fixedLayouts section exit | `custom/fixedLayouts` | Move chime slots and hut / lookout colliders, anchors and floors into platform model-library and collider rows. | W2b client rewire |

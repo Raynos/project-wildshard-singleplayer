@@ -3,12 +3,13 @@ import { Mesh, PlaneGeometry } from 'three';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { clipGridTerrain } from '../src/shards/driftwood-isle/runtime/looks/bakedIsland';
 import { inArea } from '../src/shards/driftwood-isle/world/blenderArea';
+import clip from '../src/shards/driftwood-isle/data/islandClips.generated.json' with { type: 'json' };
 
 it('retains native terrain outside the baked island without replacing vertex channels', () => {
   const geometry = new PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2);
   try {
     const position = geometry.getAttribute('position'), normal = geometry.getAttribute('normal'), before = geometry.getIndex()?.count ?? 0;
-    clipGridTerrain(new Mesh(geometry));
+    clipGridTerrain(new Mesh(geometry), clip);
     const index = geometry.getIndex(); if (index === null) throw new Error('Retained index missing');
     expect(geometry.getAttribute('position')).toBe(position); expect(geometry.getAttribute('normal')).toBe(normal);
     expect(index.count).toBeGreaterThan(0); expect(index.count).toBeLessThan(before);
@@ -19,6 +20,6 @@ it('retains native terrain outside the baked island without replacing vertex cha
     }
     expect(inside).toBe(false);
     const other = new PlaneGeometry(2, 2);
-    try { expect(() => clipGridTerrain(new Mesh(other))).toThrow('terrain topology differs'); } finally { other.dispose(); }
+    try { expect(() => clipGridTerrain(new Mesh(other), clip)).toThrow('terrain topology differs'); } finally { other.dispose(); }
   } finally { geometry.dispose(); }
 });

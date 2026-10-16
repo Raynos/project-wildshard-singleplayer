@@ -2,6 +2,7 @@ import { resourceScope } from '@wildshard/engine/app/resources';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { SECTIONS } from '../sections';
+import { admitDriftwoodRows } from './rows';
 
 /** Legacy labels identify existing authored parts; only the product decides their named bytes and URLs. */
 export function driftwoodBlobName(product: ShardProduct, label: string): string {
@@ -13,7 +14,9 @@ export function driftwoodBlobName(product: ShardProduct, label: string): string 
 /** Renderer services stay behind the explicit page/Explorer load, outside offline geometry authoring. */
 export async function loadDriftwoodProduct(owner: Scope = resourceScope()): Promise<ShardProduct> {
   const { loadFirstPartyProduct } = await import('@wildshard/game/shardfile/runtimeProduct');
-  return loadFirstPartyProduct('driftwood-isle', owner);
+  const product = await loadFirstPartyProduct('driftwood-isle', owner);
+  admitDriftwoodRows(product);
+  return product;
 }
 
 /** Both world owners and cold Explorer cards read the same verified immutable product content. */
