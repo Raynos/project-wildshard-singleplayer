@@ -13,17 +13,13 @@
  *   - A save that finished before this existed, or a reload during the hold, gets a toast once per session, out of
  *     combat (nothing hostile within 25 m). The menu's Achievements tab has a "Driftwood complete" row any time.
  */
-import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '@wildshard/game/complete/ShardComplete';
 import { findChunk } from '@wildshard/game/shard/registry';
 import { travel } from '@wildshard/game/travel/travel';
-import { DRIFTWOOD_PLACES } from '../data/discovery';
 import { QUEST_DONE } from '../data/questStory';
-import { COMPLETE_CONTENT as CONTENT } from '../data/completion';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
-export const SEEN_COMPLETE = CONTENT.seenFlag;
 
 /** what the card reads of the shard's achievements (src/game/Progress.ts satisfies it) */
 export interface CompleteProgress {
@@ -54,7 +50,7 @@ export function fmtPlayTime(s: number): string {
 }
 
 export function installComplete<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: CompleteProgress | undefined): Complete {
-  const { flags } = adv;
+  const { flags, content } = adv, CONTENT = content.complete;
   const card = new ShardComplete();
   const shardName = findChunk(w.chunk.slug)?.name ?? CONTENT.shardName;
   const next = w.chunk.next === undefined ? undefined : findChunk(w.chunk.next);
@@ -62,7 +58,7 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   // ── the finds, resolved to world coordinates once ──
   const glass: Spot[] = CONTENT.glass.points.map(([x, z], i) => ({ label: CONTENT.glass.label, short: CONTENT.glass.short, flag: `${CONTENT.glass.flagPrefix}${i + 1}`, ...adv.place({ poi: 'world', x, z }) }));
   const extras: Spot[] = CONTENT.extras.map(({ at, ...row }) => ({ ...row, ...adv.place(at) }));
-  const places: Spot[] = DRIFTWOOD_PLACES.map((d) => { const p = adv.place(d.at); return { label: d.completeLabel, short: d.label, flag: `seen:${d.id}`, x: p.x, z: p.z }; });
+  const places: Spot[] = content.places.map((d) => { const p = adv.place(d.at); return { label: d.completeLabel, short: d.label, flag: `seen:${d.id}`, x: p.x, z: p.z }; });
   const left = (list: Spot[]): Spot[] => list.filter((s) => !flags.has(s.flag));
 
   const todo = (): string[] => {
@@ -82,14 +78,14 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   const data = (): ShardCompleteData => {
     const rows = progress?.rows ?? [];
     const got = glass.length - left(glass).length, seen = places.length - left(places).length;
-    const shards = SHARD_FLAGS.filter((f) => flags.has(f)).length;
-    const glassN = Math.max(SEA_GLASS_COUNT, glass.length);
+    const shards = content.shardFlags.filter((f) => flags.has(f)).length;
+    const glassN = Math.max(content.glassCount, glass.length);
     return {
       ...CONTENT.card, title: shardName,
       stats: [
         { label: CONTENT.stats.time, value: fmtPlayTime(progress?.playS ?? 0) },
         { label: CONTENT.stats.achievements, value: `${progress?.earnedCount ?? 0} / ${rows.length}`, frac: rows.length > 0 ? (progress?.earnedCount ?? 0) / rows.length : 0 },
-        { label: CONTENT.stats.shards, value: `${shards} / ${SHARD_FLAGS.length}`, frac: shards / SHARD_FLAGS.length },
+        { label: CONTENT.stats.shards, value: `${shards} / ${content.shardFlags.length}`, frac: shards / content.shardFlags.length },
         { label: CONTENT.stats.glass, value: `${got} / ${glassN}`, frac: got / Math.max(1, glassN) },
         { label: CONTENT.stats.places, value: `${seen} / ${places.length}`, frac: seen / Math.max(1, places.length) },
         { label: CONTENT.stats.title, value: progress?.title?.title ?? CONTENT.titleFallback },
@@ -108,7 +104,7 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   };
   const open = (): void => {
     if (card.isOpen) return;
-    flags.set(SEEN_COMPLETE);
+    flags.set(CONTENT.seenFlag);
     if (document.pointerLockElement) document.exitPointerLock();
     w.player.carried = true; w.player.velocity.set(0, 0, 0);
     w.setViewmodel?.(false);
@@ -139,13 +135,13 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   w.game.onUpdate((_dt, t) => {
     if (offered || t - checkT < CONTENT.pollSeconds) return;
     checkT = t;
-    if (!flags.has(QUEST_DONE) || flags.has(SEEN_COMPLETE) || w.player.carried || card.isOpen || hostileNear()) return;
+    if (!flags.has(QUEST_DONE) || flags.has(CONTENT.seenFlag) || w.player.carried || card.isOpen || hostileNear()) return;
     offered = true;
     w.hud.toast(`${shardName}${CONTENT.toastSuffix}`);
   }, 'shard.driftwood-isle.installComplete');
 
   return {
-    showAfterReward: () => { if (flags.has(SEEN_COMPLETE)) return false; open(); return true; },
+    showAfterReward: () => { if (flags.has(CONTENT.seenFlag)) return false; open(); return true; },
     open,
     get up() { return card.isOpen; },
     leftMarkers: () => [...left(glass), ...left(extras), ...left(places)].map((s) => ({ id: s.flag, label: s.short, short: s.short, x: s.x, z: s.z })),

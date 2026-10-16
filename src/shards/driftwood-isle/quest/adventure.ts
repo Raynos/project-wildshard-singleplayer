@@ -26,7 +26,7 @@ import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { installFeats } from './Feats';
 import { installPlaces } from './Places';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
-import { GUIDE } from '../data/discovery';
+import { parseAdventureContent, type AdventureContent } from '../runtime/quest/content';
 import { installDirectorFinale, type Finale } from '../runtime/finalePresentation';
 import { installComplete, type Complete, type CompleteProgress } from './Complete';
 import { installEcology } from './Ecology';
@@ -78,6 +78,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
 }
 
 export interface Adventure {
+  readonly content: AdventureContent;
   flags: Flags;
   kit: Interactables;
   /** the quest spine (A1): quest state, objective line, the castaway — set once installed */
@@ -116,6 +117,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const scope = ctx.scope, declaration = ctx.product.shardfile; // the admitted declaration (W2b: never shard.config)
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
+  const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
 
@@ -134,7 +136,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       ['pickup', () => { w.music.sting('pickup'); }],
     ]) });
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
+  const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = bindDriftwoodFacts(ctx, declaration, w.progress?.rows ?? [], w.progress, w.chunk.slug);
   adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
@@ -175,7 +177,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
   if (w.gulls) {
-    const gulls = w.gulls, guide = new PlaceGuide({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...GUIDE } },
+    const gulls = w.gulls, guide = new PlaceGuide({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...content.guide } },
       { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
         fly: (target: { readonly x: number; readonly z: number }) => gulls.guide(w.player.position, target.x, target.z) });
     flags.onChange((flag, on) => { if (on && !flag.startsWith('plate:')) guide.progressed(); });

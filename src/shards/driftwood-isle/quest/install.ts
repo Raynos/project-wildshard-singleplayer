@@ -34,7 +34,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   shell.hooks.adventureFlags = () => adventure.flags.all.slice().sort();
   placeDriftwoodPlaces(adventure.place, [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
     ...(d.trailside?.placed ?? []), ...(d.seabed?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed],
-    { wreck: [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])] });
+    { wreck: [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])] }, adventure.content.places);
   const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
   const effects = ctx.app.effects, health = ctx.app.player;
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');

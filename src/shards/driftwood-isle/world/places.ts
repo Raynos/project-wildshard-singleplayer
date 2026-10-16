@@ -15,7 +15,7 @@
 import type { Placed } from '@wildshard/engine/models/place';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { Place } from '@wildshard/engine/world/interact/types';
-import { DRIFTWOOD_PLACES } from '../data/discovery';
+import type { AdventureContent } from '../runtime/quest/content';
 
 const FILE = 'src/shards/driftwood-isle/world/places.ts';
 
@@ -47,9 +47,9 @@ const SETS: readonly PlaceSet[] = [
  * Register the named places' sets from what the shard placed (`placed`: every placement the world made, null where a
  * builder did not run) and the sets built from a site (`explicit`).
  */
-export function placeDriftwoodPlaces(resolve: (p: Place) => { x: number; z: number }, placed: readonly (Placed | null | undefined)[], explicit: Readonly<Record<string, readonly Placed[]>>): void {
+export function placeDriftwoodPlaces(resolve: (p: Place) => { x: number; z: number }, placed: readonly (Placed | null | undefined)[], explicit: Readonly<Record<string, readonly Placed[]>>, places: AdventureContent['places']): void {
   registerPlaceSets(SETS, { file: FILE, members: s => {
-    const def = DRIFTWOOD_PLACES.find((d) => `driftwood-isle/${d.id}` === s.place);
+    const def = places.find((d) => `driftwood-isle/${d.id}` === s.place);
     if (def === undefined) throw new Error(`places: no named place ${s.place}`);
     if (s.explicit !== undefined) return { whole: explicit[s.explicit] ?? [] };
     return { near: { placed, ...resolve(def.at), r: def.r, mode: 'bounds' } };

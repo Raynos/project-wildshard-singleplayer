@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { COMPLETE_CONTENT } from '../src/shards/driftwood-isle/data/completion';
+import { COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables';
-import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 
 test('completion finds retain the kit order, flags and authored placement frames', () => {
   const glass = [], extras = [];

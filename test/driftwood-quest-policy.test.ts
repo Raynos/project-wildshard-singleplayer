@@ -5,7 +5,7 @@ import policy from '../src/shards/driftwood-isle/data/nativeQuest.json' with { t
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER } from '../src/shards/driftwood-isle/world/sites';
 import { islandCoveSpec } from '../src/shards/driftwood-isle/generators/coveLayout';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables';
-import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 
 const cave = islandCoveSpec().cave;
 const nativeFrames = { hut: HUT, lookout: LOOKOUT, shrine: SHRINE,

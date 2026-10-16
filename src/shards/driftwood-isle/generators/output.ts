@@ -1,3 +1,6 @@
+import { COMPLETE_CONTENT } from './completion';
+import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
+import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
 import { DRIFTWOOD_MODES } from './modes';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -25,7 +28,8 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 const placed = enemyPlacements();
-const placements = emitNamedBlobs([nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
+const placements = emitNamedBlobs([nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ complete: COMPLETE_CONTENT, places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
+  nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
 export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };
 /** Strict output copies prove the same constants the source mirror fixture checks. */

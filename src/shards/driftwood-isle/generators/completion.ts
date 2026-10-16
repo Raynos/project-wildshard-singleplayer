@@ -1,5 +1,5 @@
 /** Authored completion card content. Native progress, safety and card actions stay in quest/Complete. */
-import { SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from './interactables';
+import { SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from '../data/interactables';
 
 export const COMPLETE_CONTENT = {
   seenFlag: 'seen:complete',
