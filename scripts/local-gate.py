@@ -15,6 +15,11 @@ import sys
 import time
 
 
+def needs_script_products(tests):
+    """Disk scenarios consume published products, never author/compiler fallbacks."""
+    return any(re.fullmatch(r'test/scripts/[^/]+\.test\.ts', path) for path in tests)
+
+
 def main():
     inside = os.environ.get('WS_GATE_REPO')
     root = Path(inside) if inside else Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
@@ -80,6 +85,9 @@ def main():
                        stdout=subprocess.PIPE, text=True)
         tests = json.loads(selected.stdout.strip().splitlines()[-1])
         if tests:
+            if needs_script_products(tests):
+                run('scenario-products', ['node', 'scripts/build-shardfiles.mjs', '--reuse'])
+                env['WS_TEST_PRODUCTS_SHA'] = sha
             run('vitest', ['pnpm', 'exec', 'vitest', 'run', *tests])
         # Vercel's `pnpm build`, under the gate's own lease (heavy-lane.py RESOURCES) so it never queues behind a lane's
         # build. Its leading `pnpm gen` repeats the first step on the same tree, so the gate runs the rest of the

@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native fixtures require the official format-2 outputs before workers start.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the official writer with the same Node binary as the test worker.
-import { execPath } from 'node:process';
+import { env, execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The trusted worker entry is a local platform-selected file.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- No network or browser enters the authoritative simulation.
@@ -31,7 +31,10 @@ const cases = [
 ] as const;
 
 beforeAll(() => {
-  execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
+  const built = env['WS_TEST_PRODUCTS_SHA'];
+  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
+    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
+  }
 }, 120_000);
 
 // Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
