@@ -31,7 +31,9 @@
       "src/engine/ui/perfLap.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
     },
-    "shardfile/custom-sections": {},
+    "shardfile/custom-sections": {
+      "driftwood-isle/custom/assets": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood asset URL registry exit"
+    },
     "shardfile/sim-in-runtime": {
       "src/shards/driftwood-isle/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/driftwood-isle/runtime/captain.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -116,8 +118,8 @@
     "custom-sections/_template/bytes": 0,
     "custom-sections/blender-template/count": 0,
     "custom-sections/blender-template/bytes": 0,
-    "custom-sections/driftwood-isle/count": 0,
-    "custom-sections/driftwood-isle/bytes": 0,
+    "custom-sections/driftwood-isle/count": 1,
+    "custom-sections/driftwood-isle/bytes": 13013,
     "custom-sections/far-reach/count": 0,
     "custom-sections/far-reach/bytes": 0,
     "custom-sections/ink-cel-valley/count": 0,
