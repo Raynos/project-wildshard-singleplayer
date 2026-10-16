@@ -18,5 +18,5 @@ G437 wins since 03:45Z: DW first frame 183 → 16.7 ms (`b5fab36ec`); late shade
 **End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlap. Look (Jake): Pine sluice is flat low-poly.
 **G439 refs:** DONE.
 
-**For wildshard-v:** lanes are hitting the -10 floor (DW wrappers dry, Pine native chain dry); W2 pace will fall further. The design (`2ead9dfa1`) recommends P0–P4 on Codex tonight (Q6 option 2); lifting the G447 hold would put lanes back on big work. G447 hold applied; keep `f0ca1f1c8` until the output ruler lands (recommended). G442 closed.
+**For wildshard-v:** evidence for lifting G447: Pine's plugin import runs parseShardfile of every graph table synchronously (99.6 ms hitch on the road, likely the ~1 s cold Pine stall); the design's build-time validation removes it. lanes are hitting the -10 floor (DW wrappers dry, Pine native chain dry); W2 pace will fall further. The design (`2ead9dfa1`) recommends P0–P4 on Codex tonight (Q6 option 2); lifting the G447 hold would put lanes back on big work. G447 hold applied; keep `f0ca1f1c8` until the output ruler lands (recommended). G442 closed.
 Paused rows: SF22, SF57, SF67.
