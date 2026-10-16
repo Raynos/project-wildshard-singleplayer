@@ -5676,22 +5676,6 @@ returned last time. `materialKeyWalks` counts the material parts
 computed; `test/graph-split-keys.test.ts` pins that each part moves
 only with what it depends on and that the key equals the row-off key.
 
-### Direct block writes (E435)
-
-`NodeUniformBuffers.directWrites` (through
-`EngineNodesHandler.directBlockWrites`; the Developer Debug row
-**Direct block writes**, Performance, `graphBlockWrites`, live,
-default off) compares a block slot's number, boolean, `Vector2/3/4`,
-`Color`, `Matrix3` or `Matrix4` against the block's own floats and
-writes it there in one pass, instead of comparing a kept copy through
-`equals` and copying through `copy` / `toArray`. The floats are the
-uploaded bytes, so a change below float precision uploads nothing the
-GPU lacks; dirty slots still coalesce into one `bufferSubData` span.
-Any other value (typed arrays, unknown objects) keeps the generic
-path, and a slot written directly drops its kept copy so a later
-row-off draw rewrites it once. `test/node-uniform-bindings.test.ts`
-runs the coalescing test both ways and pins the toggle.
-
 `physics/bodies.DynamicBodySlots<T>` is the bounded slot/lifecycle owner for
 existing dynamic bodies: ordered reuse, source identity, age/rest clocks,
 optional flight landing and the exact native handle continuation. Rows choose
