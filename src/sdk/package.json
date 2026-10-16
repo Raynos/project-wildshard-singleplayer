@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./outputRuntime": "./outputRuntime.ts",
     "./outputCatalog": "./outputCatalog.ts",
     "./playerModeData": "./playerModeData.ts",
     "./runtime/movers": "./runtime/movers.ts",
@@ -166,6 +167,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./outputRuntime": {
+        "types": "./dist/types/sdk/outputRuntime.d.ts",
+        "default": "./dist/outputRuntime.js"
+      },
       "./outputCatalog": {
         "types": "./dist/types/sdk/outputCatalog.d.ts",
         "default": "./dist/outputCatalog.js"

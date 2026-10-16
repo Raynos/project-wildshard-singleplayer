@@ -6722,3 +6722,20 @@ image blobs relative to the catalog; data-image thumbnails support the
 data-only Template. Source `/src/` paths cannot leak into discovery.
 This is the catalog contract/emitter prerequisite; the live discovery
 switch follows the output writer and closed-runtime migration.
+
+### Verbatim runtime output (P3)
+
+`@wildshard/sdk/outputRuntime.writeRuntimeFiles(project, destination,
+{check})` copies only the project's `runtime/**/*.ts` bytes, including
+local declarations, into the owned output's `runtime/`. The required
+checker receives project-relative paths and decoded source; build
+orchestration supplies the repository boundary checker and migration
+policy. The published SDK does not depend on repository lint scripts.
+All checks finish before output replacement. Symlinks, non-TS files,
+overlapping author/output directories and a nonempty runtime missing
+`index.ts` refuse. Removed source files cannot linger in the new copy.
+The result inventories paths, exact SHA-256, bytes and nonblank code lines
+with parser-recognised comments removed, plus total lines and the optional
+entry. Source bytes, import spelling and line endings remain unchanged;
+there is no closure walk outside `runtime/`. `runtimeCodeLines` exposes
+that same parser/comment counting law for author tools.
