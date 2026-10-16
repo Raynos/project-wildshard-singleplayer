@@ -7140,7 +7140,7 @@ commands in the same commit, so no shipped reader lacks its catalog.
 Header slots 5–7 are reserved zero. The admitted row supplies slot counts;
 there are no hidden capacity fields. View command ids start at 100.
 
-`engine/script/decision` defines the renderer-free `DecisionHost` contract:
+`engine/script/decision` implements the renderer-free `DecisionHost`:
 `enqueue(binding,event)`, consecutive 60 Hz `step(tick)`, logical
 `snapshot`/`restore`, named `state`, and per-binding `metrics`. Decision
 calls stage validated commands and proposed state until the next fixed
@@ -7148,8 +7148,29 @@ step. Snapshots include staged calls, pending events, timers and RNG;
 restore validates everything and re-prepares staged transactions without
 entering Wasm. Engine adapters supply read/list queries and a read-only
 `prepare` returning an atomic, non-throwing commit. Optional trace observers
-are tooling ports, never shard-authored callbacks. KA2 supplies the actual
-host implementation; these interfaces do not create an interpreter.
+are tooling ports, never shard-authored callbacks. The authoritative world
+adapter checks actual actor ownership and row-specific field bounds during
+`prepare`; it must not mutate the world until its non-throwing commit.
+
+Construct with resolved declarations/bindings, verified module bytes keyed
+by their content address, a two-u32 seed and the engine world adapter. One
+instance per module key (eight maximum) rewinds its initialized memory and
+mutable globals before each binding call. AS `__start`, when exported, runs
+once before `ws_init`; neither runs during restore. Parameters use sorted
+name order, state slots authored order. Actor/player slots require one
+binding per script/owner with a nonzero `self`. The sim host refuses view
+scripts until their first real client user supplies that implementation.
+
+Calls consume at most 16 queued events and emit 32 commands, four spawns
+and eight timer writes. A decision tick caps 64 calls and 128 commands.
+Reads/list writes enforce declarations, observed handles and memory bounds;
+list scratch holds at most 96 f64 values (32 three-coordinate path points).
+The production handle path reuses IO views, command pools and scratch;
+tooling traces and logical snapshots copy their observations explicitly.
+Fuel defaults to 400k/call and 2M/decision tick; optional limits stop at
+2M/call and 8M/tick. A refusal preserves durable slots, RNG and world, and
+three failures disable the binding until a declared start/restart. Timers,
+seeded RNG, queued events and validated next-step calls all survive saves.
 
 ### Decision-script scenario core
 
@@ -7205,4 +7226,3 @@ records an allowance. Template is closed for all three rules. The native
 Blender Template, Ink Cel Valley and Pastel Plain products are closed for
 `runtime-standalone`; their remaining build/discovery bridges retain the
 existing shrink-only ceilings. New files still start at zero everywhere.
-
