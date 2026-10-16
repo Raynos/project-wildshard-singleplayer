@@ -1,12 +1,12 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**On the G445 source ruler (`f0ca1f1c8`, census at `61f8f4271`): Pine 90.56 %, DW 83.03 %, Sky 92.12 %, Signal 43.52 %** (Nalati 105.9, Nine 77.0). Unknown-owner files now 52 / 69 / 68 / 55 (Pine/DW/Sky/Signal), flagged. Old ruler at 01:00Z: Pine 66.32, DW 56.20, Sky 9.58, Signal 9.73.
-Pine/DW (G445 ruler): C1 3777/3876 · C2 2470/2373 · C3 156/0 · C4 3801/1769 · C5 1995/1323 · C6 2592/896 · C7 13/503 · C8 1024/1757 · C9 3389/1756.
-Since 01:00Z: King phasedBoss `fcf93f28c` (Pine −133), code parts `b90bb35a2` (−104), DW arm rig `e3b00d153` (−138), plant kit `1d333bfe7` (−125), Pine bakes o254 (−76), HerdShelter `ea61b9044` (−57).
+**01:55Z `8aaec0d0e` (G445 source ruler): Pine 90.18 %, DW 82.58 %, Sky 92.12 %, Signal 43.52 %** (census `61f8f4271`: 90.56 / 83.03). Unknown owners 52 / 69 / 68 / 55, flagged. Old ruler at 01:00Z: Pine 66.32, DW 56.20.
+Pine/DW: C1 3776/3832 · C2 2469/2355 · C3 156/0 · C4 3759/1758 · C5 1995/1323 · C6 2555/903 · C7 13/503 · C8 1024/1742 · C9 3389/1761.
+Since 01:00Z: King phasedBoss `fcf93f28c` (−133), code parts `b90bb35a2` (−104), DW arm rig `e3b00d153` (−138), plant kit `1d333bfe7` (−125), Pine bakes (−76), HerdShelter `ea61b9044` (−57), King pose `192fc91bc` (−30); index cleaner `a6a7ab584`.
 
 **Lanes (G432 Opus; Claude weekly 20 %; Codex 5 + pusher):**
-- Opus: o253 DW bakes (fireflies, Cove, gull); o254 Pine bakes; o255 King pose onto NativeCreaturePose (old saves load, witness rebake). 3 slots held (no free visual target).
-- Codex: x7 maps batch 5 then Pine content; x4 DW C6/C8; x5 DW C5; x1 Pine weapon channel rows; x6 DW Enemies/captain; x8 Pine page/native dedup (HerdShelter `ea61b9044` −57).
+- Opus: o253 DW bakes (fireflies, Cove, gull). o255 done (King pose). 4 slots held: W2 visual targets surveyed out; W1 conversion on G447 hold.
+- Codex: x1 Pine weapons; x4 DW wrappers; x5 Pine combat/install; x6 DW creature lift; x7 tooling/maps; x8 Pine page/native dedup.
 - Slots: check = x1 x5 x8 · check2 = x4 x6 x7 · check3 = Opus + measure.
 
 **Rulings:** offline bakes are honest (`1c125707c`); content rows replacing runtime search were honest; G448 now bars hand-converting data/ to JSON, so no new data tables until the design lands.
