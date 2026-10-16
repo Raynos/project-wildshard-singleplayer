@@ -36,3 +36,8 @@ export const OCEAN_NO_DRY: readonly [number, number, number, number] = [1e9, 1e9
 
 /** the sea-floor texture's resolution (texels per side; generators/oceanGrid.ts bakes it) */
 export const SEA_RES = 512;
+
+/** the sea as a water-surface row (G466 H7, @wildshard/sdk/looks/waterSurface; world/Ocean.ts draws it) */
+export const OCEAN_SURFACE = { look: OCEAN_LOOK, name: OCEAN_LOOK, renderOrder: 4, culled: false, waves: true,
+  bind: { clock: 'clock', waterHalf: 'waterHalf', chunkHalf: 'chunkHalf' },
+  floor: { texture: 'tSea', res: SEA_RES, foamReach: 3, foamBand: 0.3 }, dry: { prefix: 'dry', slots: OCEAN_DRY_SLOTS, none: OCEAN_NO_DRY } } as const;

@@ -21,7 +21,7 @@ import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE } from './meleeProfile'
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
 import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
 import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE, TRADER_BINDINGS, TRADER_PARTS, TRADER_SCENE } from './npcScenes';
-import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
+import { OCEAN_LOOK } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
 import { TROPHY_LAYOUT } from './trophyLayout';
 import { SHRINE_SITES } from './shrineSites';
@@ -46,9 +46,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('POOL_LOOK', POOL_LOOK),
   defineMirror('SHRINE_POOL_LOOK', SHRINE_POOL_LOOK),
   defineMirror('OCEAN_LOOK', OCEAN_LOOK),
-  defineMirror('OCEAN_DRY_SLOTS', OCEAN_DRY_SLOTS),
-  defineMirror('OCEAN_NO_DRY', OCEAN_NO_DRY),
-  defineMirror('SEA_RES', SEA_RES),
   defineMirror('GULL_GRAPH_LOOK', GULL_GRAPH_LOOK),
   defineMirror('CREATURE_LOOKS', CREATURE_LOOKS),
   defineMirror('COVER_LOOKS', COVER_LOOKS),

@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
+import { WaterSurfaceSchema } from '@wildshard/format/water';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -87,6 +88,8 @@ export const SECTIONS = {
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
   /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/sdk/looks/ambientFlock) */
   'custom/gullFlock': AmbientFlockSchema,
+  /** the sea's water-surface row and its baked grid per tier and floor (data/oceanLook.ts, data/oceanFiles.ts; world/Ocean.ts) */
+  'custom/oceanSurface': v.strictObject({ surface: WaterSurfaceSchema, files: v.strictObject({ level: number, phone: text, desktop: text, floor: text }) }),
   'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) }),
 } as const;
 

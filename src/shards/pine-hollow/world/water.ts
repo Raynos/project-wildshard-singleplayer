@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import { POND, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { WaterView } from '@wildshard/engine/world/water/view';
-import { WATER_LOOKS, type WaterLook } from '../data/waterLook';
+import { WaterSurface } from '@wildshard/sdk/looks/waterSurface';
+import { WATER_LOOKS, WATER_SURFACES, type WaterLook } from '../data/waterLook';
 import { pineLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 
 /**
@@ -24,8 +25,12 @@ export function waterReflect(view: WaterView): void {
   for (const id of LOOKS) setPineLookParam(id, 'topDown', view === 'top-down' ? 1 : 0);
 }
 
-/** a water look; `setWaterFade` scales its alpha */
-export function pineWater(look: WaterLook): THREE.Material { return pineLook(WATER_LOOKS[look]); }
+/** a drawn water surface (data/waterLook.ts WATER_SURFACES) of `geometry` on the water-surface host */
+export function pineWaterSurface(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry): THREE.Mesh {
+  const row = WATER_SURFACES[kind];
+  return new WaterSurface(row, { material: pineLook(row.look) }).draw(geometry).mesh;
+}
+/** scale a water look's alpha */
 export function setWaterFade(look: WaterLook, fade: number): void { setPineLookParam(WATER_LOOKS[look], 'fade', fade); }
 
 function lendWaterRipples(ripples: THREE.Texture): void {
@@ -50,6 +55,6 @@ export async function dressPineWater(game: Pick<Game, 'scene' | 'rootScene'>): P
   lendWaterRipples(ripples);
   setPineLookTexture(WATER_LOOKS.pond, 'skyline', skyline);
   setPineLookParam(WATER_LOOKS.pond, 'skyC', [POND.x, POND.z, waterLevel(), 1]);
-  mesh.material = pineWater('pond');
+  mesh.material = pineLook(WATER_LOOKS.pond);
   if (old instanceof THREE.Material) old.dispose();
 }

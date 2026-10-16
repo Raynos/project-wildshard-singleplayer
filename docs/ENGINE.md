@@ -5665,6 +5665,35 @@ Users: Pine Hollow's hares (`custom/ambientLife` `forager.policy`: hop,
 away) and Nalati's marmot colonies (`creatures/marmotForager.json`: walk,
 home, sentries that whistle).
 
+### Water surfaces (G466 H7)
+
+`@wildshard/sdk/looks/waterSurface` is the water-surface host: one water body
+drawn on a look.materials graph from a row
+(`@wildshard/format/water#WaterSurfaceSchema`). `new WaterSurface(row, look)`
+validates the row; `look` is the compiled graph (`material`, plus `param` /
+`texture` writers for a row that feeds params or a floor;
+`waterSurfaceLook(runtimeLookMaterials(...), id)` makes one).
+`draw(geometry, { level, floor, dry, params, lent })` draws the baked grid at
+its level; `foamAround(boxes)` stamps foam rings round every collider box that
+pierces the surface; `update(dt)` feeds the bound params once a frame.
+
+The row names the graph (`look`), the mesh `name`, `renderOrder`, `culled`
+and `waves` (the engine's `waveClock` follows this surface's clock, so boats
+and swimmers ride the drawn swell), `bind` (the graph params the host
+writes: `clock`, `waterHalf` from `waterExtent`, and at draw `chunkHalf`),
+static `params`, an optional `floor` (a
+`res`² RG half-float texture over the chunk: R = the baked floor height,
+G = the foam proximity, reach `foamReach` m, for boxes within `foamBand` m of
+the level) and `dry` sockets (`prefix` + index, `slots`, the empty rectangle
+`none`). A draw adds what only the run knows: the level, the baked floor's
+heights, dry rectangles, params and `lent` uniforms (read each frame into
+the named params). No callback crosses it (G454).
+
+Users: Driftwood's faceted sea (`custom/oceanSurface`: data/oceanLook.ts
+OCEAN_SURFACE and the baked grid and floor, data/oceanFiles.ts; grid, floor,
+foam, four dry sockets, waves) and Pine Hollow's creek and waterfall, beaver
+pool, dam trickle and rain puddles (data/waterLook.ts WATER_SURFACES).
+
 `bindDirectorActions(...).validate(saved)` checks the installed immutable
 stage contract and cursor without mutating its lane or calling native ports.
 Use it before an aggregate encounter restore applies any body effects.

@@ -27,6 +27,13 @@ export const WATER_LOOKS = { pond: 'pine-water-pond', creek: 'pine-water-creek',
 
 export type WaterLook = keyof typeof WATER_LOOKS;
 
+/** the drawn surfaces as water-surface rows (G466 H7, @wildshard/sdk/looks/waterSurface; world/water.ts draws them): the
+ *  creek, fall and plunge ring after the pond, the beaver pool with it, the dam's trickle, the rain's puddles */
+export const WATER_SURFACES = {
+  creek: { look: WATER_LOOKS.creek, name: 'creek-waterfall', renderOrder: 6 }, pool: { look: WATER_LOOKS.creek, name: 'beaver-pool', renderOrder: 5 },
+  trickle: { look: WATER_LOOKS.trickle, name: 'beaver-pool-trickle', renderOrder: 6 }, puddle: { look: WATER_LOOKS.puddle, name: 'puddles', renderOrder: 4 },
+} as const;
+
 /** the skyline texture's encoding: R = occluder top above the water (/ top m), G = its distance (/ dist m), B = the
  *  bank's albedo where the ground is the occluder (/ bank; 0 = a tree crown, drawn with the forest's albedo) */
 export const SKYLINE = { top: 80, dist: 400, bins: 512, bank: 0.5, earth: 0.12, rock: 0.3 } as const;

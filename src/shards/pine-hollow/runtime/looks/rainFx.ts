@@ -6,7 +6,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { pondMask, streamAt } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { pineWater, setWaterFade } from '../../world/water';
+import { pineWaterSurface, setWaterFade } from '../../world/water';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import { rainCurtainGeometry, stepRainFall, type RainFallRow } from '@wildshard/game/systems/looks/rainCurtain';
@@ -191,11 +191,7 @@ export class RainFx {
     // the bake leaves out the normals; the puddle look (../../data/waterLook.ts) maps world x / z and sits on the ground
     const geo = this.o.baked.puddles;
     geo.computeVertexNormals();
-    geo.computeBoundingSphere();
-    const mesh = new THREE.Mesh(geo, pineWater('puddle'));
-    mesh.name = 'puddles';
-    mesh.receiveShadow = true; // the creek's flags: the same water program
-    mesh.renderOrder = 4;
+    const mesh = pineWaterSurface('puddle', geo);
     mesh.visible = false;
     return mesh;
   }

@@ -15,11 +15,8 @@ export const REEF_LOOK = 'driftwood-reef';
 /** the look.materials ids the cove's pools and the ring shrine's pool wear (data/poolLook.ts) */
 export const POOL_LOOK = 'driftwood-cove-pool';
 export const SHRINE_POOL_LOOK = 'driftwood-shrine-pool';
-/** the sea's look.materials id, its dry-socket slots, the empty dry rectangle and the sea-floor texture size (data/oceanLook.ts) */
+/** the sea's look.materials id (data/oceanLook.ts) */
 export const OCEAN_LOOK = 'driftwood-ocean';
-export const OCEAN_DRY_SLOTS = 4;
-export const OCEAN_NO_DRY = [1e9, 1e9, -1e9, -1e9] as const;
-export const SEA_RES = 512;
 /** the look.materials id the gulls wear (data/gullGraphLook.ts) */
 export const GULL_GRAPH_LOOK = 'driftwood-gulls';
 /** the creature body looks (data/creatureLook.ts) */

@@ -34,3 +34,27 @@ const body = v.variant('kind', [
 export const WaterSchema = v.pipe(v.array(body), v.maxLength(64), v.check((rows) => new Set(rows.map((row) => row.id)).size === rows.length && rows.every((row, i) => row.kind === 'sea' ? i === rows.length - 1 : row.id !== 'sea'), 'unique water ids and sea last'));
 /** A serialisable water section for pools, seas and streams, defaulting to [] in the full format. */
 export type ShardWater = v.InferOutput<typeof WaterSchema>;
+
+const param = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
+const literal = v.union([v.number(), v.pipe(v.array(v.number()), v.minLength(2), v.maxLength(4))]);
+/**
+ * A drawn water surface on a look.materials graph (G466 H7, `@wildshard/sdk/looks/waterSurface`): which graph it wears,
+ * how it draws, the graph params the host feeds (`bind`: the wave clock, the open water's half-extent, the chunk's half), its static params, an optional baked floor texture (R = floor height; G = the foam
+ * proximity the host stamps round standing colliders) and its dry rectangles' sockets. Data only (G454).
+ */
+export const WaterSurfaceSchema = v.strictObject({
+  look: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+  name: v.pipe(v.string(), v.maxLength(64)),
+  renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(16)),
+  culled: v.optional(v.boolean(), true),
+  /** the engine's wave clock (the boats, swimmers and debris) follows this surface's clock */
+  waves: v.optional(v.boolean(), false),
+  bind: v.optional(v.strictObject({ clock: v.optional(param), waterHalf: v.optional(param), chunkHalf: v.optional(param) }), {}),
+  params: v.optional(v.record(param, literal), {}),
+  floor: v.optional(v.strictObject({ texture: param, res: v.pipe(v.number(), v.integer(), v.minValue(16), v.maxValue(2048)), foamReach: v.pipe(v.number(), v.minValue(0.1), v.maxValue(32)), foamBand: v.pipe(v.number(), v.minValue(0), v.maxValue(8)) })),
+  dry: v.optional(v.strictObject({ prefix: param, slots: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)), none: v.tuple([v.number(), v.number(), v.number(), v.number()]) })),
+});
+/** A validated water-surface row. */
+export type WaterSurfaceRow = v.InferOutput<typeof WaterSurfaceSchema>;
+/** Validate a water-surface row. */
+export function parseWaterSurface(input: unknown): WaterSurfaceRow { return v.parse(WaterSurfaceSchema, input); }

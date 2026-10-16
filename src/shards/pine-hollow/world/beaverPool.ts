@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineWater, setWaterFade } from './water';
+import { pineWaterSurface, setWaterFade } from './water';
 import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { loadSiteTimbers } from '../runtime/world/timberSites';
@@ -50,7 +50,7 @@ export class BeaverPool {
     const still = views.get('pine-pool-still'), trickle = views.get('pine-pool-trickle');
     if (still === undefined || trickle === undefined) throw new Error('[pool] admitted water draws missing');
     this.still = this.buildStill(still.geometry.clone());
-    this.trickle = this.buildTrickle(trickle.geometry.clone());
+    this.trickle = pineWaterSurface('trickle', trickle.geometry.clone()); // the channel's line under the dam, a few cm over the bed (baked)
     this.group.add(this.still, this.trickle);
     this.group.name = 'beaver-pool';
     this.apply();
@@ -98,19 +98,6 @@ export class BeaverPool {
   /** the pool's still surface on the pond surface's grid (baked: the cells in the pool's reach, not always above its water) */
   private buildStill(geo: THREE.BufferGeometry): THREE.Mesh {
     this.ground = Float32Array.from(v.parse(v.array(v.pipe(v.number(), v.finite())), authored.poolGround));
-    const mesh = new THREE.Mesh(geo, pineWater('creek'));
-    mesh.name = 'beaver-pool';
-    mesh.receiveShadow = true;
-    mesh.renderOrder = 5;                                                   // with the pond
-    return mesh;
-  }
-
-  /** the trickle: the channel's line from the riffle's crest to under the dam, a few cm over the bed (baked) */
-  private buildTrickle(geo: THREE.BufferGeometry): THREE.Mesh {
-    const mesh = new THREE.Mesh(geo, pineWater('trickle'));
-    mesh.name = 'beaver-pool-trickle';
-    mesh.receiveShadow = true;
-    mesh.renderOrder = 6;
-    return mesh;
+    return pineWaterSurface('pool', geo); // with the pond
   }
 }

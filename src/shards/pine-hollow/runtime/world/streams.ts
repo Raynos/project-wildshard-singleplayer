@@ -22,7 +22,7 @@ import { pineLook } from '../looks/graphLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineWater } from '../../world/water';
+import { pineWaterSurface } from '../../world/water';
 
 /** the most mist puffs the waterfall draws (../data/sprayPuffs.json bakes 11) */
 const MAX_SPRAY = 64;
@@ -43,14 +43,8 @@ export class PineStreams {
       if (original === undefined) throw new Error('[streams] original water draw missing from admitted world');
       return original;
     }).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
-    if (geometry !== null) {
-      // the creek's water look (../data/waterLook.ts): the gully's banks and the forest over them fill the low reflections
-      const water = this.water = new THREE.Mesh(geometry, pineWater('creek'));
-      water.name = 'creek-waterfall';
-      water.receiveShadow = true;
-      water.renderOrder = 6; // after the pond: the plunge ring lies on it
-      this.group.add(water);
-    }
+    // the creek's water look (../data/waterLook.ts): drawn after the pond, so the plunge ring lies on it
+    if (geometry !== null) this.group.add(this.water = pineWaterSurface('creek', geometry));
     this.spray = this.buildSpray();
     this.group.add(this.spray);
     return this;
