@@ -85,7 +85,7 @@ test('compressed instance transforms retain placements and refuse corrupt decode
   const geometry = new BoxGeometry(1, 2, 3), material = new MeshStandardMaterial();
   try {
     for (const exactInstances of [false, true]) {
-      const raw = staticGlb([{ geometry, material, exactInstances, instances: [new Matrix4().makeTranslation(4, 2, 1), new Matrix4().makeTranslation(-3, 0, 7)] }]);
+      const raw = staticGlb([{ geometry, material, ...(exactInstances ? { exactInstances: true as const } : {}), instances: [new Matrix4().makeTranslation(4, 2, 1), new Matrix4().makeTranslation(-3, 0, 7)] }]);
       const packed = compressGlb(raw), a: unknown[] = [], b: unknown[] = [];
       visitGlbTriangles(raw, triangle => { a.push(triangle); });
       visitGlbTriangles(packed, triangle => { b.push(triangle); });
