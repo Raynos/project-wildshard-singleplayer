@@ -34,7 +34,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
-import { AntlerKingFight, KING_KIND } from '../runtime/antlerKing';
+import { antlerKingFight, KING_KIND } from '../runtime/antlerKing';
 import { ANTLER_KING_PRESENTATION } from '../data/antlerKing';
 import { KINGS_CLEARING } from '../data/layout';
 import { PINE_PHASES } from '../look/dayKeys';
@@ -155,14 +155,11 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
   let forcedNight = false;
   const kingNight = (): boolean => forcedNight || ctx.night() > 0.5;
-  const king = installBossEncounter(ANTLER_KING_PRESENTATION, () => {
-    const fight = new AntlerKingFight(ctx, entered === undefined ? undefined : install => {
-      installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
-    }, body === undefined ? undefined : () => {
-      const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;
-    });
-    fight.prewarm(); return fight;
-  }, {
+  const king = installBossEncounter(ANTLER_KING_PRESENTATION, () => antlerKingFight(ctx, entered === undefined ? undefined : install => {
+    installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
+  }, body === undefined ? undefined : () => {
+    const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;
+  }), {
     game, player, scope: app.levelScope, chunkId: 'pine-hollow', interactables: h.interactables,
     ...(persistence === undefined ? {} : { persistence: persistence.bosses }),
     reward: { model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'), grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); }, trophy: () => { ctx.addItem('amber-resin', 3); } },
@@ -213,7 +210,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   else installEnteredRuntimeService(entered, (scope) => { registerPineLap(lap, scope); });
 
   return {
-    weatherHold: () => king.fight.weatherHold,
+    weatherHold: () => king.fight.sealK,
     onPlayerDeath: () => { const target = app.player; if (target !== null) app.effects?.remove(target, 'effect.stun'); introLock = false; legs(); return king.onPlayerDeath(); },
     isElite: isPineElite,
     useSfx: (s) => { sfx = s; },

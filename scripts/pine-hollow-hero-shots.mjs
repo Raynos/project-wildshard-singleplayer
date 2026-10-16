@@ -44,7 +44,7 @@ try {
         const v = window.__cv; if (!v) return;
         cam.position.set(v.cam[0], v.cam[1], v.cam[2]);
         let at = v.at;
-        if (v.atKing) { const k = window.__antlerKing?.fight?.king; if (k) at = [k.position.x + (v.kOff?.[0] ?? 0), k.position.y + v.atKing, k.position.z + (v.kOff?.[1] ?? 0)]; }
+        if (v.atKing) { const k = window.__antlerKing?.fight?.body; if (k) at = [k.position.x + (v.kOff?.[0] ?? 0), k.position.y + v.atKing, k.position.z + (v.kOff?.[1] ?? 0)]; }
         cam.lookAt(at[0], at[1], at[2]);
         if (Math.abs(cam.fov - v.fov) > 0.01) { cam.fov = v.fov; cam.far = Math.max(cam.far, 6000); cam.updateProjectionMatrix(); }
         for (const c of cam.children) c.visible = false;

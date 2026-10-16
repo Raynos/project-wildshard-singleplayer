@@ -84,6 +84,15 @@ export function makeKingKit(sky: Sky): KingKit {
   };
 }
 
+/** one lantern off the kit: frame + glass, model scale (on his rack, or fallen and scaled by the fight) */
+export function kingLantern(kit: KingKit): THREE.Group {
+  const g = new THREE.Group();
+  const f = new THREE.Mesh(kit.frameGeo, kit.frameMat), gl = new THREE.Mesh(kit.glassGeo, kit.glassMat);
+  f.castShadow = false; gl.castShadow = false;
+  g.add(f, gl);
+  return g;
+}
+
 /** what the fight drives on the King's look */
 export interface KingLook {
   /** the three antler lanterns, while they hang (world position of lantern i) */
@@ -96,8 +105,6 @@ export interface KingLook {
   setGlow: (k: number) => void;
   /** 0 shut … 1 open (the ribs spread, the core flares); `t` for the breathing */
   setOpen: (k: number, t: number) => void;
-  /** a free-standing lantern (a fallen one): frame + glass, world scale */
-  makeLantern: () => THREE.Group;
   dispose: () => void;
 }
 
@@ -108,16 +115,9 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   if (!head || !chest) throw new Error('antler-king: the rig has no head / chest bone');
   const own: THREE.Object3D[] = [];
   const lanterns: THREE.Group[] = [];
-  const makeLantern = (): THREE.Group => {
-    const g = new THREE.Group();
-    const f = new THREE.Mesh(kit.frameGeo, kit.frameMat), gl = new THREE.Mesh(kit.glassGeo, kit.glassMat);
-    f.castShadow = false; gl.castShadow = false;
-    g.add(f, gl);
-    return g;
-  };
   const collision = bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive));
   for (const p of KING_LANTERNS) {
-    const l = makeLantern();
+    const l = kingLantern(kit);
     l.position.set(p[0] ?? 0, p[1] ?? 0, p[2] ?? 0);
     head.add(l); lanterns.push(l); own.push(l);
   }
@@ -152,7 +152,6 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
       kit.coreMat.emissiveIntensity = glow * (O.coreGlow[0] + O.coreGlow[1] * k);
       kit.ribMat.emissiveIntensity = glow * (O.ribGlow[0] + O.ribGlow[1] * k);
     },
-    makeLantern: () => { const l = makeLantern(); l.scale.setScalar(scale); return l; },
     dispose: () => { collision.dispose(); for (const o of own) o.removeFromParent(); },
   };
 }

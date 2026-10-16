@@ -1,8 +1,8 @@
 import { installEnteredKingBindings } from './kingLifetime';
-import { AntlerKingCore, KING_FOG_R, type KingLantern } from '../combat/kingFight';
+import { kingFight, type KingFight } from '../combat/kingFight';
+import { ANTLER_KING_FIGHT } from '../data/kingFight';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES } from '../combat/strikes';
-import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
@@ -24,7 +24,7 @@ import { Puffs } from '../combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { KING_FX_LOOKS } from '../data/kingFxLook';
 import { pineLook, setPineLookParam } from './looks/graphLooks';
-import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
+import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
 
@@ -87,9 +87,6 @@ export function registerKing(): void {
   registerSpecies(kingOwnSpecies(def));
 }
 
-/** the move the King's rig plays for the attack about to start (kingRig.ts ACT_*) */
-const act = (k: Animal, move: number): void => { k.mem['act'] = move; };
-
 /** The variant a thrall of `kind` is spawned as: the creature lane's registered 'thrall' (Pine registers one for elk and
  *  boar); a missing one is a content error, never a stand-in. */
 export function thrallVariant(kind: 'elk' | 'boar'): string {
@@ -106,230 +103,191 @@ class Dim {
 }
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color(), _fog = [0, 0, 0];
+/** the move the King's rig plays for the attack about to start (kingRig.ts ACT_*) */
+const ACTS = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE } as const;
 
 /**
- * The page's King: the shared renderer-free fight (combat/kingFight.ts, AntlerKingCore: the BossScript, his moves, the root
- * rings, the lanterns, the thralls, every roll from the level seed's King streams) plus its views: his model and its look
- * (glow, ribcage, lanterns on the rack), the tells, the fog wall and the thick air, the fight's one light, the puffs, the
- * impacts, and the declared body / thrall spawner of the page's creature manager.
+ * The page's King: the shared roaming phasedBoss fight (combat/kingFight.ts: the BossScript, his moves, the root rings, the
+ * lanterns, the thralls, every roll from the level seed's King streams) bound to its views: his model and its look (glow,
+ * ribcage, lanterns on the rack), the tells, the fog wall and the thick air, the fight's one light, the puffs, the impacts,
+ * and the declared body / thrall spawner of the page's creature manager. The King and a thrall of each kind are made at
+ * boot (their models and programs compile with the rest) and parked.
  */
-export class AntlerKingFight extends AntlerKingCore<Animal> {
-  look: KingLook | null = null;
-  private readonly kit: KingKit;
-  protected override readonly tellRing: GroundTell;
-  protected override readonly waves: { g: GroundTell; r: number; on: boolean; hit: boolean; delay: number }[];
-  protected override readonly lane: LaneCharge;
-  protected override readonly thrallLanes: LaneCharge[];
-  private readonly fallen: LanternView[] = [];
-  private readonly wall: THREE.Mesh;
-  private readonly puffs: Puffs;
-  private light: THREE.PointLight | null = null;
-  // the dimmers (the sky rewrites these every frame; the fight scales them after it)
-  private readonly dimFog = new Dim(); private readonly dimHemi = new Dim(); private readonly dimEnv = new Dim();
-  private readonly dimLights: Dim[] = [];
-  private readonly dimDome = [new Dim(), new Dim()];
-  private fogCol = new THREE.Color(); private fogLast = new THREE.Color(-1, -1, -1);
-  /** thralls parked at boot so their programs compile with the rest (never shown) */
-  private readonly parked: Animal[] = [];
-  private readonly spawner: Spawner<Animal> | null;
-
-  constructor(protected override readonly ctx: PineCtx, entered?: (install: () => () => void) => void, private readonly body?: () => Animal) {
-    super();
-    this.spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
-    const scene = ctx.game.scene;
-    this.kit = makeKingKit(ctx.sky);
-    this.tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
-    this.waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
-    this.lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, this.ctx.reach);
-    this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, this.ctx.reach));
-    // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
-    this.wall = new THREE.Mesh(new THREE.CylinderGeometry(KING_FOG_R, KING_FOG_R * 1.04, 22, 96, 1, true).translate(0, 11, 0), pineLook(KING_FX_LOOKS.fog));
-    this.wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); this.wall.visible = false; this.wall.frustumCulled = false; this.wall.renderOrder = 26;
-    this.wall.name = 'antler-king-fog-wall'; scene.add(this.wall);
-    this.puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
-    for (let i = 0; i < 3; i++) {
-      const group = new THREE.Group(); group.visible = false; scene.add(group);
-      // a fallen lantern's fire: the SDK's crossed streak quads stood upright (1.3 wide, 1.9 tall) in its flame graph
-      const fire = effectField({ name: 'antler-king-lantern-fire', shape: 'streak', count: 1 }, pineLook(KING_FX_LOOKS.flame)), flame = fire.object;
-      fire.place(_v.set(0, 0, 0), _w.set(0, 1, 0)); flame.scale.set(1.3, 1.3, 1.9); flame.visible = false; flame.renderOrder = 27; scene.add(flame);
-      this.fallen.push({ group, flame, ring: new GroundTell(scene, 'ring', EMBER), from: new THREE.Vector3() });
-    }
-    // the fight's one light: taken from the scene's LightPool at boot (a constant light count — no recompile), dark
-    // until the fight; released between fights so an elite's orb can borrow it
-    this.light = LightPool.for(scene).acquire(0xffa040, 0, 18, 1.6);
-    registerKing();
-    if (entered === undefined) kingDamage = (a, p) => this.damageMul(a, p);
-    for (const f of this.fallen) f.group.add(this.kitLantern());
-    // the sky rewrites the fog / lights every frame AFTER the updaters (Game.loop: updaters → sky.update → render), so the
-    // fight's thick air is laid on at the scene's render, on top of this frame's sky
-    if (entered === undefined) {
-      const prev = scene.onBeforeRender.bind(scene);
-      scene.onBeforeRender = (...args) => { this.atmosphere(); prev(...args); };
-    } else installEnteredKingBindings(scene, { read: () => kingDamage, write: (value) => { kingDamage = value; } },
-      (a: Animal, p: THREE.Vector3) => this.damageMul(a, p), () => { this.atmosphere(); }, entered);
-  }
-
-  /** boot: the King and a thrall of each kind made now (their models + programs compile with the rest), parked */
-  prewarm(): void {
-    const k = this.spawnKing();
-    // desktop's fur shells (tier furShells): made now on the parked King so their 8 programs compile at boot, not when
-    // he (or the first animal) first comes within shell range mid-fight; they stay parked, hidden, with him
-    if (TIER_CONFIG.furShells) { k.setShellLevel(8); k.setShellLevel(0); }
-    this.present = true; this.setPresent(false);
-    for (const kind of ['elk', 'boar'] as const) {
-      try {
-        const a = this.ctx.animals.spawn(kind, C.x, C.z, 0, thrallVariant(kind));
-        this.parkKing(a); this.parked.push(a);
-      } catch (e) { console.warn('[antler-king] a thrall did not build', e); }
-    }
-  }
-
-  private kitLantern(): THREE.Group {
-    const g = new THREE.Group();
-    g.add(new THREE.Mesh(this.kit.frameGeo, this.kit.frameMat), new THREE.Mesh(this.kit.glassGeo, this.kit.glassMat));
-    g.scale.setScalar(KING_VARIANT.scale[0]);
-    return g;
-  }
-
-  // ── the page's bodies ──
-  protected override groundAt(x: number, z: number): number { return heightAt(x, z); }
-  /** out of every list (AI, minimap, aim, hitboxes), hidden, but still in the scene */
-  protected override parkKing(a: Animal): void {
+export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => void) => void, body?: () => Animal): KingFight<Animal> {
+  const scene = ctx.game.scene, kit = makeKingKit(ctx.sky);
+  const spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
+  const tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
+  const waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
+  const lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, ctx.reach);
+  const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, ctx.reach));
+  // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
+  const R = ANTLER_KING_FIGHT.arena.fog;
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), pineLook(KING_FX_LOOKS.fog));
+  wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = 26;
+  wall.name = 'antler-king-fog-wall'; scene.add(wall);
+  const puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
+  const fallen: LanternView[] = [0, 1, 2].map(() => {
+    const group = new THREE.Group(); group.visible = false;
+    // a fallen lantern's fire: the SDK's crossed streak quads stood upright (1.3 wide, 1.9 tall) in its flame graph
+    const fire = effectField({ name: 'antler-king-lantern-fire', shape: 'streak', count: 1 }, pineLook(KING_FX_LOOKS.flame)), flame = fire.object;
+    fire.place(_v.set(0, 0, 0), _w.set(0, 1, 0)); flame.scale.set(1.3, 1.3, 1.9); flame.visible = false; flame.renderOrder = 27; scene.add(group, flame);
+    const lantern = kingLantern(kit); lantern.scale.setScalar(KING_VARIANT.scale[0]); group.add(lantern);
+    return { group, flame, ring: new GroundTell(scene, 'ring', EMBER), from: new THREE.Vector3() };
+  });
+  // the fight's one light: taken from the scene's LightPool at boot (a constant light count — no recompile), dark until the
+  // fight; released between fights so an elite's orb can borrow it
+  const pool = LightPool.for(scene);
+  let light: THREE.PointLight | null = pool.acquire(0xffa040, 0, 18, 1.6);
+  let look: KingLook | null = null;
+  registerKing();
+  const park = (a: Animal): void => {
     a.hidden = true; a.mesh.visible = false;
-    const i = this.ctx.animals.animals.indexOf(a); if (i !== -1) this.ctx.animals.animals.splice(i, 1);
-  }
-  protected override unparkKing(a: Animal): void {
-    a.hidden = false; a.mesh.visible = true;
-    if (!this.ctx.animals.animals.includes(a)) this.ctx.animals.animals.push(a);
-  }
-  protected override retireKing(k: Animal): void { this.look?.dispose(); this.look = null; retire(this.ctx.animals, k); }
-  protected override makeKing(): Animal {
-    const a = this.body === undefined ? this.ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden') : this.body();
-    pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 60, pinned: true }));
-    this.look = dressAntlerKing(a, this.kit);
-    // bark, not blood: splinters and embers where a bolt lands
-    const king = a.combatActor();
-    const onDamage = ({ req }: DamageDealt): void => {
-      if (req.target !== king) return;
-      const { point, dir } = req;
-      _w.copy(dir).negate();
-      Impacts.for(this.ctx.game).burst('wood', point, _w, 8);
-      if (this.onRibs(point)) Impacts.for(this.ctx.game).burst('sparks', point, _w, this.open > 0.5 ? 14 : 5);
-    };
-    if (this.ctx.onDamage === undefined) app.events.on('damage.dealt', onDamage, this.ctx.game.levelScope);
-    else this.ctx.onDamage(onDamage);
-    return a;
-  }
-  protected override spawnThrall(kind: 'elk' | 'boar', x: number, z: number, yaw: number): Animal {
-    const a = spawnThrallFrom(this.spawner, kind, x, z, yaw, () => this.ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
-    own(a);
-    return a;
-  }
-  protected override retireThrall(actor: Animal): void {
-    if (this.spawner === null) retire(this.ctx.animals, actor);
-    else this.spawner.retire(actor);
-  }
-  protected override onRibs(p: THREE.Vector3): boolean { const l = this.look; return l !== null && p.distanceTo(l.ribcageWorld(_v)) < l.ribcageRadius; }
+    const i = ctx.animals.animals.indexOf(a); if (i !== -1) ctx.animals.animals.splice(i, 1);
+  };
+  const fight: KingFight<Animal> = kingFight(ctx, {
+    groundAt: heightAt,
+    body: {
+      make: () => {
+        const a = body === undefined ? ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden') : body();
+        pinBrain(a); inspectBrain(a, () => ({ state: fight.mode, picks: [], brainHz: 60, pinned: true }));
+        const dressed = look = dressAntlerKing(a, kit);
+        // bark, not blood: splinters and embers where a bolt lands
+        const king = a.combatActor();
+        const onDamage = ({ req }: DamageDealt): void => {
+          if (req.target !== king) return;
+          const { point, dir } = req;
+          _w.copy(dir).negate();
+          Impacts.for(ctx.game).burst('wood', point, _w, 8);
+          if (point.distanceTo(dressed.ribcageWorld(_v)) < dressed.ribcageRadius) Impacts.for(ctx.game).burst('sparks', point, _w, fight.open > 0.5 ? 14 : 5);
+        };
+        if (ctx.onDamage === undefined) app.events.on('damage.dealt', onDamage, ctx.game.levelScope);
+        else ctx.onDamage(onDamage);
+        return a;
+      },
+      retire: k => { look?.dispose(); look = null; retire(ctx.animals, k); }, park,
+      unpark: a => { a.hidden = false; a.mesh.visible = true; if (!ctx.animals.animals.includes(a)) ctx.animals.animals.push(a); },
+    },
+    adds: {
+      spawn: (kind, x, z, yaw) => { const a = spawnThrallFrom(spawner, kind, x, z, yaw, () => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind))); own(a); return a; },
+      retire: a => { if (spawner === null) retire(ctx.animals, a); else spawner.retire(a); }, lanes: () => thrallLanes,
+    },
+    lane: () => lane, rings: () => waves,
+    weakPoint: p => look !== null && p.distanceTo(look.ribcageWorld(_v)) < look.ribcageRadius,
+    views: {
+      glow: v => { look?.setGlow(v); }, hung: on => { look?.setLanternsHung(on); },
+      focus: (k, out) => look === null ? out.copy(k.position) : look.ribcageWorld(out),
+      room: (dt, t) => { room(dt, t); },
+      light: on => {
+        if (on) light ??= pool.acquire(0xffa040, 0, 18, 1.6);
+        else if (light) { pool.release(light); light = null; }
+      },
+      action: (k, move) => { k.mem['act'] = ACTS[move]; }, roar: k => { voice(ctx.animals, 'bear_roar', k.position); },
+      burst: k => { Impacts.for(ctx.game).burst('dirt', _v.set(k.position.x, k.position.y + 0.3, k.position.z), _w.set(0, 1, 0), 24); },
+      hazard: (i, f, t, event) => {
+        const view = fallen[i]; if (view === undefined) return;
+        if (event === 'drop') { look?.lanternWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
+        else if (event === 'fall' || event === 'land') {
+          const u = f.fallT, from = view.from;
+          view.group.position.set(from.x + (f.x - from.x) * u, from.y + (f.y + 0.3 - from.y) * u * u + Math.sin(u * Math.PI) * 2, from.z + (f.z - from.z) * u);
+          view.group.rotation.set(u * 1.3, u * 2, u * 0.4);
+          if (event === 'land') { ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); Impacts.for(ctx.game).burst('sparks', _v.set(f.x, f.y + 0.3, f.z), _w.set(0, 1, 0), 16); }
+        } else if (event === 'burn') {
+          const ember = fight.darkK > 0 ? 1 - 0.5 * fight.darkK : 1;
+          view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);
+          setPineLookParam(KING_FX_LOOKS.flame, 'alpha', 0.95 * ember);
+          view.ring.setTime(t);
+          view.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
+        } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + 0.3, f.z); view.group.rotation.set(1.3, i, 0.4); }
+        else { view.group.visible = false; view.flame.visible = false; view.ring.hide(); }
+      },
+      add: (a, event) => {
+        if (event === 'in') puffs.burst(_v.set(a.position.x, heightAt(a.position.x, a.position.z) + 1, a.position.z), 2.5, 0.6, 0.6, 0.6);
+        else puffs.burst(_v.copy(a.position).setY(a.position.y + 1), 0.5, 2.5, 0.6, 0.7);
+      },
+      ring: (i, t, at) => {
+        const w = waves[i]; if (w === undefined) return;
+        if (at === null) w.g.hide(); else { w.g.setTime(t); w.g.ring(at.x, at.z, w.r, 0.95, 0.25); }
+      },
+      tell: tellRing,
+    },
+  });
 
-  // ── the views ──
-  protected override glowTo(v: number): void { this.look?.setGlow(v); }
-  protected override lanternsHung(on: boolean): void { this.look?.setLanternsHung(on); }
-  protected override introFocus(k: Animal, out: THREE.Vector3): THREE.Vector3 { return this.look === null ? out.copy(k.position) : this.look.ribcageWorld(out); }
-  protected override action(k: Animal, move: 'roar' | 'sweep' | 'strike' | 'brace'): void {
-    act(k, { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE }[move]);
-  }
-  protected override roar(k: Animal): void { voice(this.ctx.animals, 'bear_roar', k.position); }
-  protected override stompFx(k: Animal): void {
-    _v.set(k.position.x, k.position.y + 0.3, k.position.z);
-    Impacts.for(this.ctx.game).burst('dirt', _v, _w.set(0, 1, 0), 24);
-  }
-  protected override waveView(i: number, t: number, at: THREE.Vector3 | null): void {
-    const w = this.waves[i]; if (w === undefined) return;
-    if (at === null) { w.g.hide(); return; }
-    w.g.setTime(t); w.g.ring(at.x, at.z, w.r, 0.95, 0.25);
-  }
-  protected override thrallView(a: Animal, event: 'in' | 'out'): void {
-    if (event === 'in') this.puffs.burst(_v.set(a.position.x, heightAt(a.position.x, a.position.z) + 1, a.position.z), 2.5, 0.6, 0.6, 0.6);
-    else this.puffs.burst(_v.copy(a.position).setY(a.position.y + 1), 0.5, 2.5, 0.6, 0.7);
-  }
-  protected override lanternView(i: number, f: KingLantern, t: number, event: 'drop' | 'fall' | 'land' | 'burn' | 'out' | 'placed'): void {
-    const view = this.fallen[i]; if (view === undefined) return;
-    if (event === 'drop') { this.look?.lanternWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
-    else if (event === 'fall' || event === 'land') {
-      const u = f.fallT, from = view.from;
-      view.group.position.set(from.x + (f.x - from.x) * u, from.y + (f.y + 0.3 - from.y) * u * u + Math.sin(u * Math.PI) * 2, from.z + (f.z - from.z) * u);
-      view.group.rotation.set(u * 1.3, u * 2, u * 0.4);
-      if (event === 'land') { this.ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); Impacts.for(this.ctx.game).burst('sparks', _v.set(f.x, f.y + 0.3, f.z), _w.set(0, 1, 0), 16); }
-    } else if (event === 'burn') {
-      const ember = this.darkK > 0 ? 1 - 0.5 * this.darkK : 1;
-      view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);
-      setPineLookParam(KING_FX_LOOKS.flame, 'alpha', 0.95 * ember);
-      view.ring.setTime(t);
-      view.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
-    } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + 0.3, f.z); view.group.rotation.set(1.3, i, 0.4); }
-    else { view.group.visible = false; view.flame.visible = false; view.ring.hide(); }
-  }
-  /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame */
-  protected override room(dt: number, t: number): void {
-    const seal = 0.92 * this.sealK, fog = this.ctx.game.scene.fog;
-    setPineLookParam(KING_FX_LOOKS.fog, 'alpha', seal); this.wall.visible = seal > 0.01;
+  /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame (I–II: the ribcage's amber on the
+   *  stones; III: your lantern) */
+  function room(dt: number, t: number): void {
+    const seal = 0.92 * fight.sealK, fog = scene.fog;
+    setPineLookParam(KING_FX_LOOKS.fog, 'alpha', seal); wall.visible = seal > 0.01;
     // the wall is the scene fog's murk this frame
     if (fog instanceof THREE.Fog) setPineLookParam(KING_FX_LOOKS.fog, 'colour', _col.copy(fog.color).multiplyScalar(1.15).toArray(_fog));
-    this.puffs.update(dt, t);
-    const look = this.look;
-    if (this.king === null || look === null) return;
-    look.setOpen(Math.max(this.open, 0.35 * this.darkK), t);
-    this.updateLight();
+    puffs.update(dt, t);
+    if (fight.body === null || look === null) return;
+    look.setOpen(Math.max(fight.open, 0.35 * fight.darkK), t);
+    if (!light) return;
+    if (fight.darkK > 0.5) {
+      const c = ctx.game.camera.position;
+      light.position.set(c.x, c.y + 0.3, c.z); light.color.setRGB(1, 0.72, 0.4); light.distance = 16; light.intensity = 16 * fight.darkK;
+    } else {
+      look.ribcageWorld(light.position); light.position.y += 0.5; light.color.setRGB(1, 0.55, 0.18); light.distance = 20;
+      light.intensity = fight.won ? 0 : 30 * fight.glow * (0.6 + 0.8 * fight.open);
+    }
   }
-  protected override lightOn(): void { this.light ??= LightPool.for(this.ctx.game.scene).acquire(0xffa040, 0, 18, 1.6); }
-  protected override lightOff(): void { if (this.light) { LightPool.for(this.ctx.game.scene).release(this.light); this.light = null; } }
-  override victory(): void { super.victory(); this.look?.setOpen(0, 0); }
 
+  // the dimmers (the sky rewrites these every frame; the fight scales them after it)
+  const dimFog = new Dim(), dimHemi = new Dim(), dimEnv = new Dim(), dimLights: Dim[] = [], dimDome = [new Dim(), new Dim()];
+  const fogCol = new THREE.Color(), fogLast = new THREE.Color(-1, -1, -1);
   /** the fog closing (the seal) and the Last Light's dark, scaled on top of what the sky set this frame */
-  private atmosphere(): void {
-    const seal = this.sealK, dark = this.darkK;
-    if (seal <= 0 && dark <= 0 && this.fogLast.r < 0) return;
-    const sky = this.ctx.sky, scene = this.ctx.game.scene;
+  const atmosphere = (): void => {
+    const seal = fight.sealK, dark = fight.darkK;
+    if (seal <= 0 && dark <= 0 && fogLast.r < 0) return;
+    const sky = ctx.sky;
     // density: × 26 in the fight, × 76 in the dark (the night preset’s 0.0007 → ~0.018 / ~0.05)
-    fogUniforms.fogDistDensity.value = this.dimFog.apply(fogUniforms.fogDistDensity.value, 1 + 25 * seal + 50 * dark);
+    fogUniforms.fogDistDensity.value = dimFog.apply(fogUniforms.fogDistDensity.value, 1 + 25 * seal + 50 * dark);
     const fog = scene.fog;
     if (fog instanceof THREE.Fog) {
-      if (!fog.color.equals(this.fogLast)) this.fogCol.copy(fog.color);
-      fog.color.copy(_col.copy(this.fogCol).multiplyScalar(1 - 0.35 * seal - 0.55 * dark));
-      this.fogLast.copy(fog.color);
-      if (seal <= 0 && dark <= 0) { fog.color.copy(this.fogCol); this.fogLast.setRGB(-1, -1, -1); }
+      if (!fog.color.equals(fogLast)) fogCol.copy(fog.color);
+      fog.color.copy(_col.copy(fogCol).multiplyScalar(1 - 0.35 * seal - 0.55 * dark));
+      fogLast.copy(fog.color);
+      if (seal <= 0 && dark <= 0) { fog.color.copy(fogCol); fogLast.setRGB(-1, -1, -1); }
     }
-    const lk = 1 - 0.8 * dark;
-    sky.hemi.intensity = this.dimHemi.apply(sky.hemi.intensity, lk);
-    scene.environmentIntensity = this.dimEnv.apply(scene.environmentIntensity, 1 - 0.75 * dark);
+    sky.hemi.intensity = dimHemi.apply(sky.hemi.intensity, 1 - 0.8 * dark);
+    scene.environmentIntensity = dimEnv.apply(scene.environmentIntensity, 1 - 0.75 * dark);
     const dome = pineBackdrop(sky)?.dome.material;
     if (dome instanceof THREE.ShaderMaterial) {
       const ga = dome.uniforms['uGainA'], gb = dome.uniforms['uGainB'], dk = 1 - 0.85 * dark;
-      if (ga && typeof ga.value === 'number') ga.value = this.dimDome[0]?.apply(ga.value, dk) ?? ga.value;
-      if (gb && typeof gb.value === 'number') gb.value = this.dimDome[1]?.apply(gb.value, dk) ?? gb.value;
+      if (ga && typeof ga.value === 'number') ga.value = dimDome[0]?.apply(ga.value, dk) ?? ga.value;
+      if (gb && typeof gb.value === 'number') gb.value = dimDome[1]?.apply(gb.value, dk) ?? gb.value;
     }
     sky.csm.lights.forEach((l, i) => {
-      let dim = this.dimLights[i];
-      if (dim === undefined) { dim = new Dim(); this.dimLights[i] = dim; }
+      let dim = dimLights[i];
+      if (dim === undefined) { dim = new Dim(); dimLights[i] = dim; }
       l.intensity = dim.apply(l.intensity, 1 - 0.85 * dark);
     });
-  }
+  };
 
-  /** I–II: the ribcage's amber on the stones; III: your lantern */
-  private updateLight(): void {
-    const l = this.light, look = this.look;
-    if (!l || !look) return;
-    if (this.darkK > 0.5) {
-      const c = this.ctx.game.camera.position;
-      l.position.set(c.x, c.y + 0.3, c.z); l.color.setRGB(1, 0.72, 0.4); l.distance = 16; l.intensity = 16 * this.darkK;
-    } else {
-      look.ribcageWorld(l.position); l.position.y += 0.5; l.color.setRGB(1, 0.55, 0.18); l.distance = 20;
-      l.intensity = this.won ? 0 : 30 * this.glow * (0.6 + 0.8 * this.open);
-    }
+  const victory = fight.victory.bind(fight);
+  fight.victory = () => { victory(); look?.setOpen(0, 0); };
+  const damage = (a: Animal, p: THREE.Vector3): number => fight.damageMul(a, p);
+  // the sky rewrites the fog / lights every frame AFTER the updaters (Game.loop: updaters → sky.update → render), so the
+  // fight's thick air is laid on at the scene's render, on top of this frame's sky
+  if (entered === undefined) {
+    kingDamage = damage;
+    const prev = scene.onBeforeRender.bind(scene);
+    scene.onBeforeRender = (...args) => { atmosphere(); prev(...args); };
+  } else installEnteredKingBindings(scene, { read: () => kingDamage, write: (value) => { kingDamage = value; } }, damage, atmosphere, entered);
+
+  // boot: the King and a thrall of each kind made now (their models + programs compile with the rest), parked. Desktop's
+  // fur shells (tier furShells) are made on the parked King so their 8 programs compile at boot, not mid-fight.
+  const k = fight.spawn();
+  if (TIER_CONFIG.furShells) { k.setShellLevel(8); k.setShellLevel(0); }
+  fight.present = true; fight.setPresent(false);
+  for (const kind of ['elk', 'boar'] as const) {
+    try { park(ctx.animals.spawn(kind, C.x, C.z, 0, thrallVariant(kind))); }
+    catch (e) { console.warn('[antler-king] a thrall did not build', e); }
   }
+  return fight;
 }
 
 // ─────────────────────────────── the wiring ───────────────────────────────
 
 /** The page's encounter handle retains its actual King fight and bar for the existing combat owners. */
-export type AntlerKing = BossEncounter<AntlerKingFight>;
+export type AntlerKing = BossEncounter<KingFight<Animal>>;

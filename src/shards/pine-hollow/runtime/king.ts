@@ -5,7 +5,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
 import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 import { KINGS_CLEARING } from '../data/layout';
-import { AntlerKingCore, kingDormant, kingPresence, type KingCoreEnv } from '../combat/kingFight';
+import { kingDormant, kingFight, kingFightState, kingPresence, restoreKingFight, type KingCoreEnv, type KingFight } from '../combat/kingFight';
 import { Lane } from '../combat/lane';
 import { PINE_LANES } from '../combat/strikes';
 import type { PineHuntBody, PineParked } from './roster';
@@ -46,87 +46,68 @@ export interface PineKingPorts {
 /** Scratch for the page-rig cage centre. */
 const RIB_POINT = new Vector3();
 const silentTell = { setTime: (): void => undefined, ring: (): void => undefined, hide: (): void => undefined };
+const ACTS = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE } as const;
 
-/** The shared fight (combat/kingFight.ts) on the host's bodies, its views silent. */
-class HeadlessKing extends AntlerKingCore<PineHuntBody> {
-  protected override readonly ctx: KingCoreEnv<PineHuntBody>;
-  protected override readonly tellRing = silentTell;
-  protected override readonly waves = [0, 1].map(() => ({ r: 0, on: false, hit: false, delay: 0 }));
-  protected override readonly lane: Lane<PineHuntBody>;
-  protected override readonly thrallLanes: Lane<PineHuntBody>[];
-  /** the bodies made: his parked prewarm is used once (the page spawned it at boot and keeps it while he lives) */
-  private madeFirst = false;
-  private light = false;
-  private readonly ports: PineKingPorts;
-  constructor(host: SimHost, ports: PineKingPorts) {
-    super(host.level.seed);
-    this.ports = ports;
-    const reach = (a: PineHuntBody, target: { x: number; y: number; z: number }): boolean => canReach(a, target, host.physics);
-    const player = host.player;
-    this.ctx = {
-      reach,
-      player: { position: player.position, get onGround(): boolean { return host.playerFall.grounded; }, shove: (x, z, speed) => { host.shovePlayer(x, z, speed); } },
-      // ctx.hurt: blocked unless it reaches (or the move goes through walls), a blow the host knocks the player back from
-      hurt: (a, amount, throughWalls = false) => {
-        if (!throughWalls && !reach(a, player.position)) return;
-        host.combat.hit({ source: a.combatActor(), sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: player.health, amount,
-          point: a.position.clone(), dir: new Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
+/** The shared fight (combat/kingFight.ts) on the host's bodies, its views silent but for the page getters' forced reads.
+ *  `first` (his parked prewarm used once) and `light` ride beside the fight's state in the continuation. */
+function headlessKing(host: SimHost, ports: PineKingPorts): { fight: KingFight<PineHuntBody>; own: { first: boolean; light: boolean } } {
+  const own = { first: false, light: false };
+  const reach = (a: PineHuntBody, target: { x: number; y: number; z: number }): boolean => canReach(a, target, host.physics);
+  const player = host.player;
+  const env: KingCoreEnv<PineHuntBody> = {
+    reach,
+    player: { position: player.position, get onGround(): boolean { return host.playerFall.grounded; }, shove: (x, z, speed) => { host.shovePlayer(x, z, speed); } },
+    // ctx.hurt: blocked unless it reaches (or the move goes through walls), a blow the host knocks the player back from
+    hurt: (a, amount, throughWalls = false) => {
+      if (!throughWalls && !reach(a, player.position)) return;
+      host.combat.hit({ source: a.combatActor(), sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: player.health, amount,
+        point: a.position.clone(), dir: new Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
+    },
+    trauma: () => undefined, shot: () => undefined,
+  };
+  const lane = new Lane<PineHuntBody>(PINE_LANES.king, reach), waves = [0, 1].map(() => ({ r: 0, on: false, hit: false, delay: 0 }));
+  const thrallLanes = [0, 1, 2].map(() => new Lane<PineHuntBody>(PINE_LANES.thrall, reach));
+  const fight: KingFight<PineHuntBody> = kingFight(env, {
+    groundAt: (x, z) => ports.heightAt(x, z),
+    body: {
+      make: () => {
+        const row = ports.parked()[0];
+        if (row === undefined) throw new Error('Pine headless has no Antler King prewarm');
+        // the page's prewarm spawned him at the clearing's centre facing north (his first body); a fallen King's next night is
+        // the declared row (pine.antler-king: the clearing, yaw 0, 'warden') spawned live through the manager: the stream's
+        // rolls and memory draws, the next entity id. Either way he is pinned out of the manager's thinking.
+        const a = own.first ? ports.spawnLoose(row.kind, KINGS_CLEARING.x, KINGS_CLEARING.z, 0, row.variant)
+          : ports.adoptParked(row.id, KINGS_CLEARING.x, KINGS_CLEARING.z, 0);
+        own.first = true;
+        a.scripted = true;
+        return a;
       },
-      trauma: () => undefined, shot: () => undefined,
-    };
-    this.lane = new Lane<PineHuntBody>(PINE_LANES.king, reach);
-    this.thrallLanes = [0, 1, 2].map(() => new Lane<PineHuntBody>(PINE_LANES.thrall, reach));
-  }
-  protected override groundAt(x: number, z: number): number { return this.ports.heightAt(x, z); }
-  protected override makeKing(): PineHuntBody {
-    const row = this.ports.parked()[0];
-    if (row === undefined) throw new Error('Pine headless has no Antler King prewarm');
-    // the page's prewarm spawned him at the clearing's centre facing north (his first body); a fallen King's next night is
-    // the declared row (pine.antler-king: the clearing, yaw 0, 'warden') spawned live through the manager: the stream's
-    // rolls and memory draws, the next entity id. Either way he is pinned out of the manager's thinking.
-    const a = this.madeFirst ? this.ports.spawnLoose(row.kind, KINGS_CLEARING.x, KINGS_CLEARING.z, 0, row.variant)
-      : this.ports.adoptParked(row.id, KINGS_CLEARING.x, KINGS_CLEARING.z, 0);
-    this.madeFirst = true;
-    a.scripted = true;
-    return a;
-  }
-  protected override retireKing(k: PineHuntBody): void { this.ports.retire(k); }
-  /** The same forced chest-chain read as the page's cage getter, with its admitted radius. */
-  protected override onRibs(p: Vector3): boolean {
-    const k = this.king;
-    return k?.ribsWorld !== undefined && p.distanceTo(k.ribsWorld(RIB_POINT)) < pineBake().kingHit.radius * k.scale;
-  }
-  protected override parkKing(k: PineHuntBody): void { k.hidden = true; }
-  protected override unparkKing(k: PineHuntBody): void { k.hidden = false; }
-  protected override spawnThrall(kind: 'elk' | 'boar', x: number, z: number, yaw: number): PineHuntBody {
-    const a = this.ports.spawn(kind, x, z, yaw, 'thrall');
-    // combat/ctx.ts own: out of its herd, under the fight's control
-    a.herd = -1; a.state = SCRIPTED; a.scripted = true;
-    return a;
-  }
-  protected override retireThrall(a: PineHuntBody): void { this.ports.retire(a); }
-  protected override action(k: PineHuntBody, move: 'roar' | 'sweep' | 'strike' | 'brace'): void {
-    k.mem['act'] = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE }[move];
-  }
-  protected override introFocus(k: PineHuntBody, out: Vector3): Vector3 {
-    return k.ribsWorld?.(out) ?? out.copy(k.position);
-  }
-  protected override room(): void {
-    // The page's light samples the chest only before the final darkness phase moves it to the camera.
-    if (this.light && this.darkK <= 0.5) this.king?.ribsWorld?.(RIB_POINT);
-  }
-  protected override lightOn(): void { this.light = true; }
-  protected override lightOff(): void { this.light = false; }
-  protected override lanternView(_i: number, _f: unknown, _t: number, event: string): void {
-    // A dropped lantern's getWorldPosition forces the head's parent chain, even though its view is silent here.
-    if (event === 'drop') this.king?.publishKingHead?.();
-  }
-  protected override roar(): void { /* the voice: the page's */ }
-  /** the continuation's madeFirst rides beside the fight's state */
-  get first(): boolean { return this.madeFirst; }
-  set first(on: boolean) { this.madeFirst = on; }
-  get lightActive(): boolean { return this.light; }
-  set lightActive(on: boolean) { this.light = on; }
+      retire: k => { ports.retire(k); }, park: k => { k.hidden = true; }, unpark: k => { k.hidden = false; },
+    },
+    adds: {
+      spawn: (kind, x, z, yaw) => {
+        const a = ports.spawn(kind, x, z, yaw, 'thrall');
+        // combat/ctx.ts own: out of its herd, under the fight's control
+        a.herd = -1; a.state = SCRIPTED; a.scripted = true;
+        return a;
+      },
+      retire: a => { ports.retire(a); }, lanes: () => thrallLanes,
+    },
+    lane: () => lane, rings: () => waves,
+    // the same forced chest-chain read as the page's cage getter, with its admitted radius
+    weakPoint: p => { const k = fight.body; return k?.ribsWorld !== undefined && p.distanceTo(k.ribsWorld(RIB_POINT)) < pineBake().kingHit.radius * k.scale; },
+    views: {
+      glow: () => undefined, hung: () => undefined, focus: (k, out) => k.ribsWorld?.(out) ?? out.copy(k.position),
+      // the page's light samples the chest only before the final darkness phase moves it to the camera
+      room: () => { if (own.light && fight.darkK <= 0.5) fight.body?.ribsWorld?.(RIB_POINT); },
+      light: on => { own.light = on; },
+      action: (k, move) => { k.mem['act'] = ACTS[move]; }, roar: () => undefined, burst: () => undefined,
+      // a dropped lantern's getWorldPosition forces the head's parent chain, even though its view is silent here
+      hazard: (_i, _f, _t, event) => { if (event === 'drop') fight.body?.publishKingHead?.(); },
+      add: () => undefined, ring: () => undefined, tell: silentTell,
+    },
+  }, host.level.seed);
+  return { fight, own };
 }
 
 const finite = v.pipe(v.number(), v.finite());
@@ -169,23 +150,23 @@ function kingDefinition(trophy: () => void): BossDefinition {
  *
  * Browser-save interoperability remains separate from these host-owned flags and continuation.
  */
-export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: BossBrain; fight: AntlerKingCore<PineHuntBody>; locked: () => boolean;
+export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: BossBrain; fight: KingFight<PineHuntBody>; locked: () => boolean;
   rewardPoint: () => { x: number; y: number; z: number } | null; takeReward: (eye: { x: number; y: number; z: number }) => boolean } {
-  const fight = new HeadlessKing(host, ports), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
+  const { fight, own } = headlessKing(host, ports), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
   host.onStep(KING_PRESENCE_STEP, () => { if (brain.boss !== null) kingPresence(brain.boss, fight, player, ports.night() > 0.5); });
   // read at install (a restoring install's record is the brain's continuation, which restores over it)
   const record = bossFlagRecord(host.flags, KING_RECORD), saved = record.saved;
   let reward: { x: number; y: number; z: number } | null = null;
-  const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(ports.grantTrophy), script: fight, body: () => fight.king, shielded: () => fight.shielded,
+  const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(ports.grantTrophy), script: fight, body: () => fight.body, shielded: () => fight.shielded,
     fight: {
       // a parked King's `hidden` is the fight's (the body's own flag is no part of the host's entity record)
-      snapshot: () => ({ first: fight.first, lightActive: fight.lightActive, hidden: fight.king?.hidden === true, ...fight.fightState(b => b.entityId) }),
+      snapshot: () => ({ first: own.first, lightActive: own.light, hidden: fight.body?.hidden === true, ...kingFightState(fight, b => b.entityId) }),
       restore: value => {
         const { first, lightActive, hidden, ...state } = v.parse(Fight, value);
-        fight.first = first;
-        fight.lightActive = lightActive;
-        fight.restoreFight(state, id => ports.find(id));
-        if (fight.king !== null) fight.king.hidden = hidden;
+        own.first = first;
+        own.light = lightActive;
+        restoreKingFight(fight, state, id => ports.find(id));
+        if (fight.body !== null) fight.body.hidden = hidden;
       },
     }, saved, persist: record.persist,
     spawnReward: () => { const at = itemPickupFloor(host.physics, fight.rewardPoint()); reward = { x: at.x, y: at.y + ITEM_PICKUP_HOVER + 0.5, z: at.z }; } });
@@ -198,7 +179,7 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
   // his species' damage rule (the page's `damageMul`, the pipeline's order 50): the beat and the dormant King shrug a hit
   // off (×0.01), the open ribcage takes ×3 (shut ×0.6), the bark ×0.25
   host.events.answer('damage.modify', req => {
-    const k = fight.king;
+    const k = fight.body;
     if (req === null || k === null || req.target !== k.combatActor()) return req;
     return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
   }, host.scope, { order: 50 });

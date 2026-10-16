@@ -81,11 +81,11 @@ await step('zipline ride', () => page.evaluate(() => { const q = window.__pineQu
 
 // ── 2. the Antler King: phases I → III, his fall ──
 report.kingBootMs = await boot('boss=antler-king&bossGod=1');
-const king = (frac) => page.evaluate((f) => { const k = window.__antlerKing.fight.king; if (!k) return 'no king'; k.hp = Math.max(1, Math.round(k.maxHp * f)); return k.hp; }, frac);
+const king = (frac) => page.evaluate((f) => { const k = window.__antlerKing.fight.body; if (!k) return 'no king'; k.hp = Math.max(1, Math.round(k.maxHp * f)); return k.hp; }, frac);
 await step('King: into the stones (intro → phase I)', () => page.evaluate(() => { window.__wildshard.world.player.spawn(150, -14, 0); }), 7000);
 await step('King: phase II (Lanterns Fall)', () => king(0.55), 5000);
 await step('King: phase III (the Last Light)', () => king(0.25), 5000);
-await step('King: falls (back to the calm)', () => page.evaluate(() => { const k = window.__antlerKing.fight.king; if (k) { k.hp = 0; k.alive = false; } }), 6000);
+await step('King: falls (back to the calm)', () => page.evaluate(() => { const k = window.__antlerKing.fight.body; if (k) { k.hp = 0; k.alive = false; } }), 6000);
 
 // ── 3. the dawn ──
 report.dawnBootMs = await boot('quest=dawn');

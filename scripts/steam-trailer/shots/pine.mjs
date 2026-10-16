@@ -38,10 +38,10 @@ export const shots = [
       { t: 4, p: [-64, 1.5, 100], l: [-88, 12, 152], fov: 52 },
     ] } },
   // the Antler King at night, phase 2, a low push in
-  { name: 'p-king', shard: 'pine', url: `${P}&boss=antler-king&bossGod=1&bossPhase=2&from=18`, secs: 4, warm: 400, waitFor: 'Boolean(window.__antlerKing?.fight?.king)',
-    setup: `${NO_VIEWMODEL}(() => { const K = window.__antlerKing; const k = K.fight.king.position; window.__tr.setRig({ rel: true, ease: true, keys: [ { t: 0, p: [158, 1.6, -8], l: [k.x, k.y + 3.5, k.z], fov: 58 }, { t: 4, p: [155, 1.1, -14], l: [k.x, k.y + 4.2, k.z], fov: 50 } ] }); })();` },
-  { name: 'p-king-fp', shard: 'pine', url: `${P}&boss=antler-king&bossGod=1&bossPhase=2&from=18`, secs: 4, waitFor: 'Boolean(window.__antlerKing?.fight?.king)',
+  { name: 'p-king', shard: 'pine', url: `${P}&boss=antler-king&bossGod=1&bossPhase=2&from=18`, secs: 4, warm: 400, waitFor: 'Boolean(window.__antlerKing?.fight?.body)',
+    setup: `${NO_VIEWMODEL}(() => { const K = window.__antlerKing; const k = K.fight.body.position; window.__tr.setRig({ rel: true, ease: true, keys: [ { t: 0, p: [158, 1.6, -8], l: [k.x, k.y + 3.5, k.z], fov: 58 }, { t: 4, p: [155, 1.1, -14], l: [k.x, k.y + 4.2, k.z], fov: 50 } ] }); })();` },
+  { name: 'p-king-fp', shard: 'pine', url: `${P}&boss=antler-king&bossGod=1&bossPhase=2&from=18`, secs: 4, waitFor: 'Boolean(window.__antlerKing?.fight?.body)',
     setup: VIEWMODEL,
-    tick: (t, i, sb, step) => js(`(() => { const K = window.__antlerKing; const k = K.fight.king.position; const p = window.__wildshard.world.player; const want = Math.atan2(-(k.x - p.position.x), -(k.z - p.position.z)); let d = want - p.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); p.yaw += d * 0.1; const dy = k.y + 3.6 - (p.position.y + 1.65), dh = Math.hypot(k.x - p.position.x, k.z - p.position.z); p.pitch += (Math.atan2(dy, dh) - p.pitch) * 0.08; })();`,
+    tick: (t, i, sb, step) => js(`(() => { const K = window.__antlerKing; const k = K.fight.body.position; const p = window.__wildshard.world.player; const want = Math.atan2(-(k.x - p.position.x), -(k.z - p.position.z)); let d = want - p.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); p.yaw += d * 0.1; const dy = k.y + 3.6 - (p.position.y + 1.65), dh = Math.hypot(k.x - p.position.x, k.z - p.position.z); p.pitch += (Math.atan2(dy, dh) - p.pitch) * 0.08; })();`,
       (at(t, 1.0, step) || at(t, 2.6, step) ? 'window.__wildshard.world.weapons.tryFire();' : '')) },
 ];
