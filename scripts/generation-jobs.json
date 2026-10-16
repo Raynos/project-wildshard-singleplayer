@@ -14454,7 +14454,9 @@
         "public/assets/pine-hollow/painted/coatMap-324cb6219661fc884b0e90a9ab61f3e144e4ae053571d4edd08cba9227e6b4ae.png",
         "public/assets/pine-hollow/painted/coatNormal-57869c6dae002e2a57e29720fcfc994b5b9d260f55fbb878195ff1280ada1a80.png",
         "public/assets/pine-hollow/baked/trophies-ae6b7a974ecd.bin",
-        "public/assets/pine-hollow/baked/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb"
+        "public/assets/pine-hollow/baked/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb",
+        "src/shards/pine-hollow/data/handsPool.generated.json",
+        "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/0091f973a1b908e5c2edc993ce8eb20dbff93ffe4072b087b20277c6dafeed8c",
@@ -14465,6 +14467,7 @@
         "src/shards/pine-hollow/assets/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52",
         "src/shards/pine-hollow/assets/63cc5fc846ddcdd7930d069a1caafe6074d09f8cf4e305cc5e4c27e77b2c64bf",
         "src/shards/pine-hollow/assets/7f9bb07bdc290ded141e654f561af91bde6bda3c0142fb8f84d1b04fd27fac65",
+        "src/shards/pine-hollow/assets/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020",
         "src/shards/pine-hollow/assets/b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d",
         "src/shards/pine-hollow/assets/cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59",
         "src/shards/pine-hollow/assets/e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1",
@@ -14481,6 +14484,7 @@
         "src/shards/pine-hollow/assets/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52",
         "src/shards/pine-hollow/assets/63cc5fc846ddcdd7930d069a1caafe6074d09f8cf4e305cc5e4c27e77b2c64bf",
         "src/shards/pine-hollow/assets/7f9bb07bdc290ded141e654f561af91bde6bda3c0142fb8f84d1b04fd27fac65",
+        "src/shards/pine-hollow/assets/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020",
         "src/shards/pine-hollow/assets/b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d",
         "src/shards/pine-hollow/assets/cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59",
         "src/shards/pine-hollow/assets/e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1",

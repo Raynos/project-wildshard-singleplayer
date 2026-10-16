@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { BowShape, type BowView, type GripPose } from '@wildshard/engine/combat/view/bowProfile';
 import type { FistOpts } from '@wildshard/engine/player/nalatiArms';
 import type { ArmPaletteRow } from './gloveHands';
-import { BAKED_BOW, handsPart } from '../boot/handsGeometry';
+import { bakedBowRows, handsPart, type BakedBow } from '../boot/handsGeometry';
 
 /**
  * A stave bow in first person (SHARD-PLATFORM M3, the viewmodel system): one wooden stave that bends through its draw, its
@@ -60,13 +60,14 @@ export interface StaveBowLook {
 export interface GripPoseRow { readonly pos: readonly [number, number, number]; readonly aim: readonly [number, number, number]; readonly cant: number; readonly pitch: number }
 
 /** The bake's Longbow rows, checked against `look` (a look the pool was not baked with refuses). */
-function bakedBow(look: StaveBowLook): typeof BAKED_BOW {
-  if (JSON.stringify(look) !== BAKED_BOW.look) throw new Error('[pine-hollow hands] this stave bow is not baked: run src/shards/pine-hollow/generators/bake-hands-pool.mjs');
-  return BAKED_BOW;
+function bakedBow(look: StaveBowLook): BakedBow {
+  const rows = bakedBowRows();
+  if (JSON.stringify(look) !== rows.look) throw new Error('[pine-hollow hands] this stave bow is not baked: run src/shards/pine-hollow/generators/bake-hands-pool.mjs');
+  return rows;
 }
 /** The baked arrow for `look` (its loose copy, no uv): borrowed from the pool, never mutated or disposed. */
 export function arrowGeometry(look: ArrowLook): THREE.BufferGeometry {
-  if (JSON.stringify(look) !== BAKED_BOW.arrow) throw new Error('[pine-hollow hands] this arrow is not baked: run src/shards/pine-hollow/generators/bake-hands-pool.mjs');
+  if (JSON.stringify(look) !== bakedBowRows().arrow) throw new Error('[pine-hollow hands] this arrow is not baked: run src/shards/pine-hollow/generators/bake-hands-pool.mjs');
   return handsPart('bow-arrow');
 }
 
@@ -80,7 +81,7 @@ export class StaveBowMesh {
   readonly tipTop = new THREE.Vector3(); readonly tipBot = new THREE.Vector3(); readonly nock = new THREE.Vector3();
   private readonly shapeOwner: BowShape;
 
-  constructor(look: StaveBowLook, rest: THREE.BufferGeometry, rows: Pick<typeof BAKED_BOW, 'ringU' | 'ringSign' | 'limbVerts' | 'dynVerts' | 'sectionSamples'>) {
+  constructor(look: StaveBowLook, rest: THREE.BufferGeometry, rows: Pick<BakedBow, 'ringU' | 'ringSign' | 'limbVerts' | 'dynVerts' | 'sectionSamples'>) {
     this.dynVerts = rows.dynVerts;
     const { geometry, position, normal } = BowShape.prepareGeometry(rest);
     this.geometry = geometry;

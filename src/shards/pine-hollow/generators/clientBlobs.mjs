@@ -14,6 +14,8 @@ const trophies=json('data/trophyMounts.json');
 add('models/trophies/mounts.bin','bin',trophies.url);
 const details=json('data/leverDetails.json');
 add('models/held/lever-details.glb','glb',details.pool.url);
+const hands=json('data/handsPool.generated.json');
+add('models/held/hands.glb','glb',hands.pool.url);
 for(const stem of ['ironhide','ghostStag','blackpaw','imperialBull']){
  const row=json(`behaviour/${stem}.json`),bytes=Buffer.from(row.bytes,'base64');
  if(createHash('sha256').update(bytes).digest('hex')!==row.module)throw new Error(`Client script hash changed: ${stem}`);

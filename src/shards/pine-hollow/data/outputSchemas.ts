@@ -72,6 +72,12 @@ const mountPack = v.strictObject({ notice:text, url:text, sha256:text, rows:v.st
 const chalk = v.strictObject({ size:v.tuple([natural,natural]), outlines:v.record(text,rect), labels:v.record(text,rect) });
 const texture = v.strictObject({ url:text, srgb:v.boolean(), repeat:v.boolean() });
 const frame = v.strictObject({ program:Channels, inputs, outputs });
+const long = v.pipe(v.string(), v.maxLength(4096));
+const triple = v.tuple([number, number, number]);
+const numbers = v.pipe(v.array(number), v.maxLength(16384));
+const bakedHand = v.strictObject({ geometry: text, sleeve: v.nullable(text), wrist: triple, dir: triple });
+const bakedBow = v.strictObject({ sectionSamples: v.strictObject({ widths: numbers, ridges: numbers }), look: long, arrow: long,
+  ringU: numbers, ringSign: numbers, limbVerts: natural, dynVerts: natural, lWrist: triple, rWrist: triple, rHook: triple, rWristDir: triple });
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
 export const SECTIONS = {
@@ -89,4 +95,5 @@ export const SECTIONS = {
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture}),urls:strings,chalk}),
   'custom/trophyMounts':mountPack,
   'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema}),
+  'custom/handsPool':v.strictObject({pool,hands:v.record(long,bakedHand),bow:bakedBow}),
 } as const;

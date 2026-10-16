@@ -44,5 +44,18 @@
     }
   },
   "risesCloseAt": null,
-  "raises": []
+  "raises": [
+    {
+      "slug": "pine-hollow",
+      "from": {
+        "count": 13,
+        "bytes": 115310
+      },
+      "to": {
+        "count": 14,
+        "bytes": 136299
+      },
+      "why": "W2a sp-o280: custom/handsPool, the baked hand and Longbow rows the client read from data/handsPool.generated.json"
+    }
+  ]
 }

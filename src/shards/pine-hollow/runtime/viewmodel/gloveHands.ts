@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
 import type { ARM_PAL } from '@wildshard/engine/player/nalatiArms';
 import type { ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
-import { BAKED_HANDS, handsPart } from '../boot/handsGeometry';
+import { bakedHand, handsPart } from '../boot/handsGeometry';
 import { loadPainted, painted } from '../looks/paintedTextures';
 
 /**
@@ -85,7 +85,7 @@ export interface HandGeometry { geometry: THREE.BufferGeometry; sleeve: THREE.Bu
 const handKey = (look: GloveHandsLook, spec: HandSpec, free: boolean): string => JSON.stringify([look, spec, free]);
 /** One hand's baked geometry in `look`'s colours (see HandGeometry); a hand the pool was not baked with refuses. */
 export function handGeometry(look: GloveHandsLook, spec: HandSpec, free = false): HandGeometry {
-  const row = BAKED_HANDS[handKey(look, spec, free)];
+  const row = bakedHand(handKey(look, spec, free));
   if (row === undefined) throw new Error('[pine-hollow hands] this hand is not baked: run src/shards/pine-hollow/generators/bake-hands-pool.mjs');
   return { geometry: handsPart(row.geometry), sleeve: row.sleeve === null ? null : handsPart(row.sleeve), wrist: new THREE.Vector3().fromArray(row.wrist), dir: new THREE.Vector3().fromArray(row.dir) };
 }

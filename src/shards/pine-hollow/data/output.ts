@@ -18,6 +18,7 @@ import toolPlayback from './heldToolPlayback.json' with {type:'json'};
 import painted from './paintedTextures.generated.json' with {type:'json'};
 import trophies from './trophyMounts.json' with {type:'json'};
 import crossbow from './crossbowPool.generated.json' with {type:'json'};
+import hands from './handsPool.generated.json' with {type:'json'};
 import client from './clientBlobs.generated.json' with {type:'json'};
 import held from './heldBlobs.generated.json' with {type:'json'};
 import night from '../behaviour/night.generated.json' with {type:'json'};
@@ -37,6 +38,7 @@ const values:Readonly<Record<string,unknown>>={
  'custom/paintedTextures':{...painted,textures:Object.fromEntries(Object.entries(painted.textures).map(([key,row])=>[key,{...row,url:named(row.url)}])),urls:painted.urls.map(named)},
  'custom/trophyMounts':{...trophies,url:named(trophies.url)},
  'custom/crossbowPool':{...crossbow,pool:{...crossbow.pool,url:named(crossbow.pool.url)}},
+ 'custom/handsPool':{...hands,pool:{...hands.pool,url:named(hands.pool.url)}},
 };
 
 // Semantic host laws are kept in their defining public parsers. The serialized
