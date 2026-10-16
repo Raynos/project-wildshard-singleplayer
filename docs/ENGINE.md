@@ -5657,25 +5657,6 @@ to lit meshes. It leaves vertex placement, visible geometry and caster
 depth unchanged; clones retain it and parameter updates need no rebuild.
 Absent keeps the normal lookup. It is separate from vertex shadow:true.
 
-### Split program keys (E435)
-
-`EngineNodesHandler.splitKeys` (the Developer Debug row **Split
-program keys**, Performance, `graphSplitKeys`, live, default off)
-returns the same program key a graph draw asks for
-(`material.customProgramCacheKey()`, read on every draw to pick the
-material's warm object variant), kept as three parts instead of
-rebuilt and rehashed per draw. The material part (three's walk of the
-material's node children) is kept per `material.version`, as stock
-three keys a program, so swapping a node needs `needsUpdate`. The
-scene part (the scene context's lights, environment and fog hash plus
-the bound target's output transform) is kept per render call, light
-update, target, tone mapping and output space. Only the object part
-(receive-shadow, instancing, bone count, fog patch, layer fade) is
-compared per draw, and an unchanged draw returns the very string it
-returned last time. `materialKeyWalks` counts the material parts
-computed; `test/graph-split-keys.test.ts` pins that each part moves
-only with what it depends on and that the key equals the row-off key.
-
 `physics/bodies.DynamicBodySlots<T>` is the bounded slot/lifecycle owner for
 existing dynamic bodies: ordered reuse, source identity, age/rest clocks,
 optional flight landing and the exact native handle continuation. Rows choose
