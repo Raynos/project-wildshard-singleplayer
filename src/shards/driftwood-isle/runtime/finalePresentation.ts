@@ -22,8 +22,6 @@ import { prepareDriftwoodDirector } from './director';
 import stages from '../data/finaleStages.json' with { type: 'json' };
 import spots from '../data/spots.generated.json' with { type: 'json' };
 
-const ARENA = 22;
-
 export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3; rewardPose: { yaw: number; pitch: number; phase: number } }
 
 /** The finale reads only these quest, combat and presentation ports; a replay drives the shipping installer. */
@@ -65,7 +63,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     }
     catch (e) { console.error('[finale] the captain failed to spawn', e); flags.set('dead:captain'); return; }   // never strand the quest
     captain.herd = -1;
-    captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = ARENA;
+    captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = CAPTAIN_DEF.arena.r;
   };
   const encounter = new DrownedCaptain({ player: w.player, pool, events: app.events, flags, animal: () => captain, ui: bar });
   const scope = app.levelScope;

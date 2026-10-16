@@ -1,9 +1,12 @@
 import type { SimHost } from '../../../src/engine/sim';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
-import { driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
+import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
+import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { CableLayout } from '../../../src/sdk/movers';
+
+const { step: QUEST_STEP } = policy;
 
 type Point = readonly [number, number];
 const spots = driftwoodSpots();

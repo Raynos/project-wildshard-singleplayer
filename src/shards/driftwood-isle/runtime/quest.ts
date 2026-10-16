@@ -19,22 +19,10 @@ import { ZiplineDriver } from '@wildshard/sdk/movers';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
 
-/** The script command actor that carries Driftwood's [E] prompts (`{ kind: 'script', actorId: DRIFTWOOD_INTERACT, value }`). */
-export const DRIFTWOOD_INTERACT = 'driftwood.interact';
-/** The prompts a command's value names: Wendell's talk, the iron sword, the zipline, and `row + i` for the table's row `i`. */
-export const DRIFTWOOD_ACT = { talk: 0, sword: 1, zipline: 2, row: 100 } as const;
-/** The quest keeper's fixed-step id (the dropped key's point, the reward beat's clock, the flag feats' counts). */
-export const QUEST_STEP = 'driftwood.quest';
-/** The finale's last flag (runtime/finalePresentation.ts: the reward view's end). */
-export const REWARD_FLAG = 'seen:reward';
+/** Native command IDs, prompt/contact thresholds and limits are authored JSON. */
+import policy from '../data/nativeQuest.json' with { type: 'json' };
 
-/** Interactables.ts: the kit's prompt radius, its walk-in take radius (feet), the walk-in's height window and the plate slab. */
-const TOUCH_R = 1.1, TOUCH_DY = 2.2, PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
-/** Wendell's talk radius from his head (quest/Spine.ts TALK_R). */
-const TALK_R = 3.2;
-/** The iron sword's prompt (weapons/IronSword.ts): 2.6 m from the eye once no drowned sailor guards it. */
-const SWORD_R = 2.6;
-const MAX_ROWS = 64, MAX_BODIES = 64;
+const MAX_BODIES = 64; // Hard finite iteration bound; authored content does not widen it.
 const PLATE_SEES: readonly GroupName[] = ['PLAYER', 'ITEM'], anyOwner = (): boolean => true;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
@@ -109,8 +97,7 @@ const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject
 const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.unknown(), zipline: v.unknown(), reward: v.unknown(),
   barrel: v.nullable(v.strictObject({ handle: v.pipe(finite, v.integer(), v.minValue(0)), watch: Watch })) });
-/** the barrel body's collider owner (a plain value, so the snapshot's collider tags carry it) */
-const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
+
 
 /**
  * "The Sealed Ring" in the renderer-free host (SF72): the declared quest rows through the game's declared quest path
@@ -133,7 +120,7 @@ const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
  */
 export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: DriftwoodPack } {
   const { table, spots } = ports, flags = host.flags;
-  const rules: Rule[] = [...bindQuestTableSpots(table, spots.rows, flags, { rows: MAX_ROWS, items: MAX_ROWS, ordered: true }).values()];
+  const rules: Rule[] = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
   const pack = new DriftwoodPack();
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
@@ -147,7 +134,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   });
   host.usePlayerDriver({ input: command => {
     if (!rider.carried) return false;
-    if (command !== undefined && !flags.has(REWARD_FLAG)) host.player.yaw = command.yaw;
+    if (command !== undefined && !flags.has(policy.rewardFlag)) host.player.yaw = command.yaw;
     host.playerImpulse.set(0, 0, 0); rider.velocity.set(0, 0, 0); host.playerFall.grounded = false;
     return true;
   }, step: () => undefined });
@@ -162,10 +149,10 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     },
   });
   host.scope.onDispose(() => { reward.dispose(); });
-  const keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: PLATE_DEPTH, z: 0 };
+  const keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: policy.plate.depth, z: 0 };
   const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
   const feats=ports.feats.filter(f=>f.kind===undefined);
-  if(feats.length>MAX_ROWS||feats.some(f=>f.count>MAX_ROWS))throw new RangeError('Driftwood feats exceed their finite bound');
+  if(feats.length>policy.limits.rows||feats.some(f=>f.count>policy.limits.rows))throw new RangeError('Driftwood feats exceed their finite bound');
   let counts=Object.fromEntries(feats.map(feat=>[feat.id,0]));
   const flagRows=feats.map(feat=>DRIFTWOOD_FEAT_COUNTERS.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
   const counter=createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats,flags:flagRows,write:'each'},
@@ -183,23 +170,23 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   };
   /** Interactables.plateDown: a thin slab over the plate, a little inside its rim, against the player and items */
   const plateDown = (r: Rule, size: number): boolean => {
-    const h = Math.max(0.05, size / 2 - PLATE_INSET);
-    slab.x = r.spot.x; slab.y = r.spot.y + PLATE_DEPTH / 2; slab.z = r.spot.z; half.x = h; half.z = h;
+    const h = Math.max(0.05, size / 2 - policy.plate.inset);
+    slab.x = r.spot.x; slab.y = r.spot.y + policy.plate.depth / 2; slab.z = r.spot.z; half.x = h; half.z = h;
     return overlapBox(host.physics, slab, half, r.spot.yaw, PLATE_SEES, anyOwner);
   };
   let commit: ReturnType<typeof installDeclaredQuestHost>['run'] = () => { throw new Error('Native quest graph is not installed'); };
-  const transitions=bindInteractionTransitions(rules,flags,{rowLimit:MAX_ROWS,flagLimit:MAX_ROWS,
+  const transitions=bindInteractionTransitions(rules,flags,{rowLimit:policy.limits.rows,flagLimit:policy.limits.rows,
     commit:id=>commit(id),item:(id,n)=>{pack.add(id,n);},plate:plateDown,
     touched:r=>{const feet=host.player.position,dx=feet.x-r.spot.x,dz=feet.z-r.spot.z;
-      return dx*dx+dz*dz<TOUCH_R*TOUCH_R&&Math.abs(feet.y-r.spot.y)<TOUCH_DY;}});
+      return dx*dx+dz*dz<policy.touch.radius*policy.touch.radius&&Math.abs(feet.y-r.spot.y)<policy.touch.height;}});
   const picker = createHeadlessPromptPicker(host);
   const prompts = bindHeadlessPrompts(spots.promptRegistrations, id => {
-    if (id === 'castaway.talk') return { act: DRIFTWOOD_ACT.talk, position: spots.talk, radius: TALK_R };
-    if (id === 'iron-sword') return { act: DRIFTWOOD_ACT.sword, position: spots.sword, get radius() { return state.iron ? 0 : guarded() ? 1.4 : SWORD_R; } };
-    if (id === 'zipline') return { act: DRIFTWOOD_ACT.zipline, position: spots.zipline.prompt, get radius() { return zipline.isRiding ? 0 : spots.zipline.prompt.radius; } };
+    if (id === 'castaway.talk') return { act: policy.actions.talk, position: spots.talk, radius: policy.talkRadius };
+    if (id === 'iron-sword') return { act: policy.actions.sword, position: spots.sword, get radius() { return state.iron ? 0 : guarded() ? 1.4 : policy.swordRadius; } };
+    if (id === 'zipline') return { act: policy.actions.zipline, position: spots.zipline.prompt, get radius() { return zipline.isRiding ? 0 : spots.zipline.prompt.radius; } };
     const i = rules.findIndex(r => r.d.id === id), r = rules[i];
     if (r?.spot.prompt === undefined) return undefined;
-    const prompt: HeadlessPrompt = { act: DRIFTWOOD_ACT.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
+    const prompt: HeadlessPrompt = { act: policy.actions.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
     return prompt;
   });
   const interact = spots.promptRegistrations.flatMap((registration, index) => {
@@ -246,7 +233,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const lift = (p: { x: number; y: number; z: number }): { x: number; y: number; z: number } => { lifted.x = p.x; lifted.y = p.y + BARREL_HALF + 0.01; lifted.z = p.z; return lifted; };
   const spawnBarrel = (): void => {
     if (home === null) return;
-    barrel = service.spawn({ ...BARREL_BODY, owner: BARREL_OWNER }, lift(home), undefined, upright);
+    barrel = service.spawn({ ...BARREL_BODY, owner: policy.barrelOwner }, lift(home), undefined, upright);
     watch = new BarrelWatch(home, leash);
   };
   /** the barrel back at its start, upright, at rest (Interactables.sendHome) */
@@ -255,7 +242,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const sluiceRule = rules.find(r => r.d.kind === 'door' && r.d.latch === true && r.d.opensWhen !== undefined && r.spot.collider !== undefined);
   let sluice: Collider | null = null;
   const findSluice = (): void => { sluice = sluiceRule?.spot.collider === undefined ? null : bakedBox(host.physics, sluiceRule.spot.collider); };
-  host.onStep(QUEST_STEP, dt => {
+  host.onStep(policy.step, dt => {
     // the barrel first (Interactables.update: its pose from the body, then the never-jam rule; plates feel the body itself)
     const b = barrel;
     if (b !== null) {
@@ -271,7 +258,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     zipline.update(dt, rider);
     // Only the admitted script owns finale timing; the native quest/body clock keeps its original phase.
     ports.finale.update(dt);
-    reward.update(dt, flags.has(REWARD_FLAG));
+    reward.update(dt, flags.has(policy.rewardFlag));
   }, {
     snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), reward: reward.snapshot(), counts: { ...counts },
       barrel: barrel === null || watch === null ? null : barrelState(barrel.rb.handle, watch) }),
@@ -292,7 +279,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       if (adopt === null) return;
       const world = host.physics.world;
       if (!world.bodies.contains(adopt)) throw new Error('Saved Driftwood barrel has no native body');
-      const rb = world.getRigidBody(adopt), b = new Body(rb, rb.collider(0), { ...BARREL_BODY, owner: BARREL_OWNER }, 0);
+      const rb = world.getRigidBody(adopt), b = new Body(rb, rb.collider(0), { ...BARREL_BODY, owner: policy.barrelOwner }, 0);
       service.list.push(b); barrel = b; adopt = null;
     },
   });

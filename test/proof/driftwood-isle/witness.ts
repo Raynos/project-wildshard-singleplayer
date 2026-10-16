@@ -8,7 +8,8 @@ import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/runtime/captain';
-import { DRIFTWOOD_ACT, DRIFTWOOD_INTERACT, driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
+import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
+import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
@@ -19,6 +20,8 @@ import { TickCommandSchema, TickEffectSchema, type HeadlessCommand, type Headles
 import { canonicalSimDigest } from '../../fake/simState';
 import { simMismatchError } from '../../fake/simMismatch';
 import { playDriftwood } from './tape';
+
+const { actions: DRIFTWOOD_ACT, actor: DRIFTWOOD_INTERACT, step: QUEST_STEP } = policy;
 
 export const ENTRY = 'runtime/headless.ts';
 const ROOT = new URL('../../../', import.meta.url), MODULE = new URL(`src/shards/driftwood-isle/${ENTRY}`, ROOT).href;
