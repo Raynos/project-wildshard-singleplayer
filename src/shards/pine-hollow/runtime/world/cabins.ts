@@ -25,7 +25,7 @@ import { finishWeld, place, weld, type Placed } from '@wildshard/engine/models/p
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Cabins, CabinBuilding, CabinPropKind } from '../../world/homestead';
+import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
 import { pineModels } from './context';
 import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';
 import { huntingLodge } from '../models/huntingLodge';

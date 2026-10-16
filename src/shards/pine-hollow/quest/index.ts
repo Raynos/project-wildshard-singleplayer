@@ -58,7 +58,7 @@ import source from '../shard.config';
  * Dev: `?quest=ranger|pond|ridge|zip|den|stag|king|dawn|done` (beats.ts), `?resetquest`, `window.__pineQuest`.
  */
 import * as THREE from 'three';
-import type { Cabins } from '../world/homestead';
+import type { Cabins } from '../runtime/world/homestead';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import { SKINS } from '../runtime/loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';

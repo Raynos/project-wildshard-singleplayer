@@ -31,7 +31,7 @@ import { admitPaintedTextures } from './looks/paintedTextures';
 import { crossbowHeldRows } from './items/boltCrossbow';
 import { leverHeldRows } from './items/leverFirearm';
 import { crossbowDisplayModel } from './weapons/crossbow/display';
-import { Cabins } from '../world/homestead';
+import { Cabins } from './world/homestead';
 import { updatePineForest } from '../world/treeFactory';
 import { lendPineLooks } from './looks/graphLooks';
 import { dressPineWater } from '../world/water';

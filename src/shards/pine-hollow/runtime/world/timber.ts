@@ -13,7 +13,7 @@ import type * as THREE from 'three';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryModel';
-import { cabinMats, type Mats, type MatKey } from '../../world/homestead';
+import { cabinMats, type Mats, type MatKey } from './homestead';
 import { TIMBER_DRAWS, TIMBER_GLASS } from '../../data/timberDraws';
 import type { TimberRow } from '../../world/timberBake';
 import { timberDraw } from './timberSites';

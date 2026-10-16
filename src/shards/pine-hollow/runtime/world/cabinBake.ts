@@ -18,7 +18,7 @@ import { BakedBuildingAssembly, NO_BUILDING_OWNER, type BakedBuildingOwner, type
 import { CABIN_BUILD } from '../props/cabinBuild';
 import rows from '../../data/cabins.json' with { type: 'json' };
 import { CabinRowsSchema, type CabinRows, type BakedBuilding, type KitMat, type PropKind } from '../../world/logKit';
-import type { Mats } from '../../world/homestead';
+import type { Mats } from './homestead';
 
 /** Unchanged native owner rows, parsed strictly once. */
 export const CABIN_ROWS: CabinRows = v.parse(CabinRowsSchema, rows);

@@ -1,25 +1,25 @@
 import { memoUntilDisposed } from '@wildshard/engine/app/cachedAssets';
-import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
-import { BuildingLife } from '../runtime/props/buildingLife';
+import { BuildingLife } from '../props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineSetCap } from '../runtime/debug/options';
-import { loadPainted } from '../runtime/looks/paintedTextures';
-import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS } from '../data/cabinLook';
-import { HEARTH_LOOKS } from '../data/hearthLook';
-import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
-import type { PropPart } from '../runtime/models/logCabin';
-import { PROP_KINDS, type PropKind, type BakedBuilding } from './logKit';
-import { pineModels } from '../runtime/world/context';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
-import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from '../runtime/world/cabinBake';
+import { pineSetCap } from '../debug/options';
+import { loadPainted } from '../looks/paintedTextures';
+import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS } from '../../data/cabinLook';
+import { HEARTH_LOOKS } from '../../data/hearthLook';
+import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
+import type { PropPart } from '../models/logCabin';
+import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
+import { pineModels } from './context';
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../../data/cabinAssembly';
+import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
  * Pine Hollow's homestead: the three log cabins and the mill hamlet's five buildings, as a living place (E347: its log kit
@@ -95,7 +95,11 @@ async function loadMats(sky: Sky): Promise<Mats> {
   return m;
 }
 
-/** the phone's pooled cabin lights (PH-L3) */
+/** the phone's pooled cabin lights (PH-L3): at most this many */
+const MAX_SHARED_LIGHTS = 4;
+/** the four prop kinds; most buildings (3 cabins + the hamlet's 5 today), parts per prop scan and copies of one kind at
+ *  one building (each throws past it) */
+const PROP_KIND_COUNT = 4, MAX_BUILDINGS = 16, MAX_PROP_PARTS = 16, MAX_PROP_COPIES = 64;
 
 
 // ───────────────────────────── the homestead ─────────────────────────────
@@ -169,21 +173,25 @@ export class Cabins extends BuildingLife implements BuildingOwner {
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadRigFile('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadRigFile('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadRigFile('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadRigFile('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
     ]), loadCabinBake(pineModels(this.sky))]);
     const props: Record<PropKind, PropPart[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
-    if (geometries !== null) for (const [index, kind] of PROP_KINDS.entries()) {
-      const scan = scans[index], row = authored.cabinProps[kind];
-      if (scan === undefined) throw new Error('Cabin material recipe missing');
-      props[kind] = prepModel(scan.scene, this.sky).map(part => ({ geometry: geometries.geometry(row.name), material: part.material, matrix: new THREE.Matrix4().fromArray(row.matrix) }));
+    if (geometries !== null) for (let index = 0; index < Math.min(PROP_KINDS.length, PROP_KIND_COUNT); index++) {
+      const scan = scans[index], kind = PROP_KINDS[index];
+      if (scan === undefined || kind === undefined) throw new Error('Cabin material recipe missing');
+      const row = authored.cabinProps[kind];
+      props[kind] = prepModel(rigRoot(scan), this.sky).map(part => ({ geometry: geometries.geometry(row.name), material: part.material, matrix: new THREE.Matrix4().fromArray(row.matrix) }));
     }
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
-    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < CABIN_LIGHT.count; k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay));
+    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < Math.min(CABIN_LIGHT.count, MAX_SHARED_LIGHTS); k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay));
     if (geometries === null) return { group: this.group, interactables: this.interactables };
-    this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene, geometries };
-    const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };
+    const models = { firePit: rigRoot(firePitGltf), lantern: rigRoot(lanternGltf) };
+    this.loaded = { mats, props, firePit: models.firePit, lantern: models.lantern, geometries };
     const hamlet = CABIN_ROWS.hamlet;
     const ordered = [...CABIN_ROWS.buildings.filter(row => !row.hamlet), ...CABIN_ROWS.buildings.filter(row => row.hamlet)];
-    for (const row of ordered) {
+    if (ordered.length > MAX_BUILDINGS) throw new Error(`[cabins] ${String(ordered.length)} buildings is over ${String(MAX_BUILDINGS)}`);
+    for (let i = 0; i < Math.min(ordered.length, MAX_BUILDINGS); i++) {
+      const row = ordered[i];
+      if (row === undefined) continue;
       if (row.hamlet && this.cluster === null) {
         if (hamlet === null) throw new Error('Hamlet building requires its authored cluster');
         this.cluster = new THREE.Group(); this.cluster.name = 'cabin-cluster'; this.cluster.position.set(...hamlet.at); this.cluster.updateMatrixWorld(true); this.clusterPad = hamlet.pad;
@@ -195,7 +203,16 @@ export class Cabins extends BuildingLife implements BuildingOwner {
         this.group.add(b.root);
         if (b.casters !== null) {
           const toRoot = b.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();
-          for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of b.props[k]) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
+          for (let ki = 0; ki < Math.min(PROP_KINDS.length, PROP_KIND_COUNT); ki++) {
+            const k = PROP_KINDS[ki];
+            if (k === undefined) continue;
+            const parts = props[k], copies = b.props[k];
+            if (parts.length > MAX_PROP_PARTS || copies.length > MAX_PROP_COPIES) throw new Error(`[cabins] ${row.id}'s ${k}: ${String(parts.length)} parts × ${String(copies.length)} copies is over ${String(MAX_PROP_PARTS)} × ${String(MAX_PROP_COPIES)}`);
+            for (let p = 0; p < Math.min(parts.length, MAX_PROP_PARTS); p++) for (let c = 0; c < Math.min(copies.length, MAX_PROP_COPIES); c++) {
+              const part = parts[p], mat = copies[c];
+              if (part !== undefined && mat !== undefined) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
+            }
+          }
         }
       }
       this.buildings.push({ id: row.id, index: row.index, site: row, owner: b, weld: b.weldBuild() });
@@ -230,18 +247,19 @@ export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
 
 /** A model library's LOD file's node tree alone (for `prepModel`): what a scan model's loader reads. */
 export async function loadLodNodes(id: string): Promise<THREE.Object3D> {
-  return (await loadLod(id)).scene;
+  return rigRoot(await loadLod(id));
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */
 const isPropMesh = (node: THREE.Object3D): node is THREE.Mesh => 'isMesh' in node;
-export function prepModel(scene: THREE.Object3D, sky: Sky): PropPart[] {
-  scene.updateMatrixWorld(true);
+export function prepModel(root: THREE.Object3D, sky: Sky): PropPart[] {
+  root.updateMatrixWorld(true);
   const out: PropPart[] = [];
-  scene.traverse((node) => {
+  const sharpen = (texture: THREE.Texture | null): void => { if (texture) texture.anisotropy = 8; };
+  root.traverse((node) => {
     if (!isPropMesh(node)) return;
     const mat = node.material as THREE.MeshStandardMaterial;
-    for (const texture of [mat.map, mat.normalMap, mat.roughnessMap, mat.aoMap]) if (texture) texture.anisotropy = 8;
+    sharpen(mat.map); sharpen(mat.normalMap); sharpen(mat.roughnessMap); sharpen(mat.aoMap);
     sky.setupMaterial(mat);
     out.push({ geometry: node.geometry, material: mat, matrix: node.matrixWorld.clone() });
   });

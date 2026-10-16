@@ -34,7 +34,7 @@ import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Cabins } from '../../world/homestead';
+import type { Cabins } from './homestead';
 import { loadPainted } from '../looks/paintedTextures';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';

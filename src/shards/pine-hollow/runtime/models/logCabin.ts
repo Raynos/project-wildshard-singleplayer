@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import { UnitParts, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
-import type { Cabins } from '../../world/homestead';
+import type { Cabins } from '../world/homestead';
 import { CABIN_ROWS, LogBuilding, NO_OWNER } from '../world/cabinBake';
 import { PROP_KINDS } from '../../world/logKit';
 

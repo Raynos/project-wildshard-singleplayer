@@ -12,7 +12,7 @@
 import type * as THREE from 'three';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import { loadSiteTimbers, propShapeGeometry } from '../world/timberSites';
-import { loadLodNodes, prepModel } from '../../world/homestead';
+import { loadLodNodes, prepModel } from '../world/homestead';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 
 /** a copy collides once this much of it shows above the ground (P3); lower ones the capsule's autostep walks over */
