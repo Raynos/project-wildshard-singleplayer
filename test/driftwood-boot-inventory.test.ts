@@ -1,4 +1,7 @@
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual cold producer prerequisite order.
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { driftwoodBootInventory } from '../src/shards/driftwood-isle/generators/bootInventory';
 import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/data/bootFiles';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
@@ -6,6 +9,7 @@ import { bootFileList, bootLateReads, bootSourceFiles, resolveBootFiles, resolve
 import sources from '../src/shards/driftwood-isle/data/boot-sources.generated.json' with { type: 'json' };
 import files from '../src/shards/driftwood-isle/data/boot-files.generated.json' with { type: 'json' };
 import lateReads from '../src/shards/driftwood-isle/data/boot-lateReads.generated.json' with { type: 'json' };
+import { ISLAND_PLAN_FILES } from '../src/shards/driftwood-isle/data/islandPlanFiles';
 
 test('offline boot rows preserve ordered sources and filtered late reads for all four choices', () => {
   expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory());
@@ -41,4 +45,27 @@ test('offline recipes use supplied file facts without installing application ser
   expect(resolveBootFiles(recipes, 'image', 'phone', 'img', table, inputs)).toEqual(['/offline/a.phone.webp']);
   expect(resolveBootFiles(recipes, 'image', 'phone', 'ktx2', table, inputs)).toEqual(['/offline/a.ktx2']);
   expect(resolveBootFiles(recipes, 'image', 'phone', 'img', table, { inventory: {} })).toEqual([]);
+});
+
+test('declared published plans are selected before their geometry job materializes them', () => {
+  const compiled = driftwoodBootInventory({ [ISLAND_PLAN_FILES.phone.url]: true, [ISLAND_PLAN_FILES.desktop.url]: true });
+  for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
+    expect(bootLateReads(compiled.lateReads, tier, mode)).toEqual([ISLAND_PLAN_FILES[tier].url]);
+  }
+});
+
+test('boot JSON is generated before every offline manifest consumer and copied into its input closure', () => {
+  const { jobs } = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), command: v.array(v.string()), inputRoots: v.array(v.string()) })) }),
+    JSON.parse(readFileSync(new URL('../scripts/generation-jobs.json', import.meta.url), 'utf8')));
+  const bootstrap = jobs.findIndex(job => job.id === 'driftwood-boot-inventory');
+  expect(bootstrap).toBeGreaterThanOrEqual(0);
+  const consumers = jobs.filter(job => job.command.includes('./scripts/generation-level.mjs') && job.command.includes('--generation-shard=driftwood-isle'));
+  expect(consumers.length).toBeGreaterThan(0);
+  for (const job of consumers) {
+    expect(jobs.indexOf(job)).toBeGreaterThan(bootstrap);
+    for (const name of ['files', 'sources', 'lateReads']) {
+      const output = `src/shards/driftwood-isle/data/boot-${name}.generated.json`;
+      expect(job.inputRoots.some(root => output === root || output.startsWith(`${root}/`))).toBe(true);
+    }
+  }
 });

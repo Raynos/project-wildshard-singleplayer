@@ -4213,9 +4213,13 @@ contract; `bootSourceFiles` and `bootLateReads` select the exact mode
 also accepts compiled sources. Generators bind these JSON rows through
 authored manifest boot bindings before admission, including background
 prefetch, with no runtime recipe tables or per-shard selector callbacks.
-Offline recipe compilers may pass real file-size facts through
-`BootFileInputs.inventory`; presence and phone fallbacks use those facts
-instead of installing application asset-table services.
+Offline recipe compilers may pass file-presence facts through
+`BootFileInputs.inventory`: retained file sizes or `true` for guaranteed
+admitted producer outputs. Presence and phone fallbacks use those facts
+instead of installing application asset-table services. Bootstrap inventory
+producers precede manifest consumers; output declarations break the cycle
+where those consumers produce a file in the same inventory. Generation
+still refuses if a declared output fails to publish.
 
 These are native level boot rows, not a second untrusted asset-admission
 path. A compiled shardfile's files must still pass its content and cost

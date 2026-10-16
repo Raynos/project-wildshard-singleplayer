@@ -7,7 +7,7 @@ import type { ChunkFiles } from './bytes';
 
 interface FilePolicy { phone: (url: string) => string; gpu: (url: string) => string; layer: (url: string) => string; pbr: (id: string) => string[] }
 /** Pure asset-name resolution for node-safe manifest file lists. */
-export function filePolicy(tier: Tier, mode: TexMode, table: Ktx2Table, inventory: Readonly<Record<string, number>> = publicBytes()): FilePolicy {
+export function filePolicy(tier: Tier, mode: TexMode, table: Ktx2Table, inventory: Readonly<Record<string, number | true>> = publicBytes()): FilePolicy {
   const files = { ...ENGINE_GPU_FILES[tier], ...table[tier] };
   const phone = (url: string): string => {
     if (tier !== 'phone') return url;
@@ -67,8 +67,8 @@ export interface BootFileRecipe {
 }
 /** External immutable inventories and aliases, supplied by the same build/runtime owner as the GPU table. */
 export interface BootFileInputs {
-  /** Offline producers pass their real public-file facts instead of installing app services. */
-  readonly inventory?: Readonly<Record<string, number>>;
+  /** Offline presence facts: retained file sizes or guaranteed declared build outputs. */
+  readonly inventory?: Readonly<Record<string, number | true>>;
   readonly pages?: Readonly<Record<string, Readonly<Record<Tier, Readonly<Record<string, { readonly image: string }>>>>>>;
   readonly aliases?: Readonly<Record<string, Readonly<Record<string, string>>>>;
 }

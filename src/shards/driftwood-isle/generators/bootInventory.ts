@@ -5,7 +5,7 @@ import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../data/bootFiles'
 import { GPU_FILES } from '../ktx2.generated';
 
 /** Resolve the original recipes once, preserving source order, duplicates and texture fallbacks. */
-export function driftwoodBootInventory(inventory?: Readonly<Record<string, number>>): {
+export function driftwoodBootInventory(inventory?: Readonly<Record<string, number | true>>): {
   sources: BootModeRows<ChunkFiles>; files: BootModeRows<readonly string[]>; lateReads: BootModeRows<readonly string[]>;
 } {
   const inputs = inventory === undefined ? {} : { inventory };
