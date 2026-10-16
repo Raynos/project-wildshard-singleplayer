@@ -10,6 +10,8 @@ export const ENGINE_STRINGS = {
   "s_graph_inline_reads_note": "E435 · sp-o285: each graph draw reads its shared uniform holders in place instead of through three's per-node update dispatch; still read every draw. Off until a quiet Safari frame floor shows the gain. Live",
   "s_graph_split_keys": "Split program keys",
   "s_graph_split_keys_note": "E435 · sp-o286: each graph draw's program key keeps its material part per material version and its scene part per render call, so an unchanged draw reuses last draw's key instead of rebuilding it. Off until a quiet Safari frame floor shows the gain. Live",
+  "s_graph_block_writes": "Direct block writes",
+  "s_graph_block_writes_note": "E435 · sp-o286: each graph draw compares and writes its uniform block values straight into the block's floats in one pass, instead of through a kept copy's equals and copy. Off until a quiet Safari frame floor shows the gain. Live",
   "s_graph_materials": "Graph materials",
   "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",
   "s_build_pacing": "Build pacing in play",

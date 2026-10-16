@@ -44,8 +44,9 @@ test('keeps extensions first, removes only the stock matrix and preserves custom
   expect(untouched.vertexShader).toBe(original);
 });
 
-test('coalesces dirty slots while retaining padding, unchanged gaps and live array edits', () => {
+test.each([false, true])('coalesces dirty slots while retaining padding, unchanged gaps and live array edits (direct writes %s)', (direct) => {
   const gl = new Gl(), blocks = new NodeUniformBuffers(gl), program: WebGLProgram = {};
+  blocks.directWrites = direct;
   const a = {value: 1}, vector = {value: new Vector3(2, 3, 4)}, b = {value: 5};
   const matrix = {value: new Matrix3().set(1, 2, 3, 4, 5, 6, 7, 8, 9)};
   const array = {value: [10, 11]}, typed = {value: new Float32Array([12, 13, 14, 15])};
@@ -89,4 +90,36 @@ test('retains consecutive bindings while still uploading live changes and restor
   expect(gl.bindings.get(23)).toBe(buffer); expect(gl.baseCalls).toBe(5);
   blocks.release(render); blocks.bind(first, [render]);
   expect(gl.bindings.get(23)).not.toBe(buffer); expect(gl.baseCalls).toBe(6);
+});
+
+// Debug ▸ Performance ▸ Direct block writes (sp-o286): a write skipped or made in place never leaves the buffer stale,
+// including across a toggle of the row.
+test('direct block writes upload exactly what changed and survive the row toggling', () => {
+  const gl = new Gl(), blocks = new NodeUniformBuffers(gl), program: WebGLProgram = {};
+  const matrix = { value: new Matrix4() }, vector = { value: new Vector3(1, 2, 3) }, scalar = { value: 0.5 };
+  const group: BlockGroup = { name: 'object', uniforms: [matrix, vector, scalar] };
+  blocks.directWrites = true;
+  blocks.bind(program, [group]);
+  const buffer = gl.bindings.get(23);
+  if (buffer === undefined || buffer === null) throw new Error('Missing buffer');
+  const uploads = gl.values.get(buffer);
+  expect(gl.writes).toBe(1);
+  blocks.bind(program, [group]);
+  expect(gl.writes).toBe(1);
+  // a change below float precision uploads nothing: the GPU already holds those bytes
+  scalar.value = 0.5 + 1e-12; blocks.bind(program, [group]);
+  expect(gl.writes).toBe(1);
+  matrix.value.makeTranslation(4, 5, 6); blocks.bind(program, [group]);
+  expect(gl.writes).toBe(2);
+  expect(uploads?.get(0)?.slice(12, 15)).toEqual([4, 5, 6]);
+  // row off: the stale kept copy (identity) must not hide the change back to it
+  blocks.directWrites = false; matrix.value.identity(); blocks.bind(program, [group]);
+  expect(gl.writes).toBe(3);
+  expect(uploads?.get(0)?.slice(12, 16)).toEqual([0, 0, 0, 1]);
+  // row on again: values written by the generic path are already in the floats
+  blocks.directWrites = true; blocks.bind(program, [group]);
+  expect(gl.writes).toBe(3);
+  vector.value.set(7, 8, 9); blocks.bind(program, [group]);
+  expect(gl.writes).toBe(4);
+  expect(uploads?.get(64)?.slice(0, 3)).toEqual([7, 8, 9]);
 });
