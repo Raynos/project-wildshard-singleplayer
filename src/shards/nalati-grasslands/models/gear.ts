@@ -6,9 +6,11 @@
  * drawing the held ones; each card is a separate build by the weapon's own builder on its own materials, put back in the
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
-import type * as THREE from 'three';
-import { BOW } from '@wildshard/game/weapons/starterBowProfile';
-import { arrowMaterial, bowSpecimen, buildArrowGeometry, type BowStyle } from '../weapons/recurve';
+import * as THREE from 'three';
+import { BOW, type BowStyle } from '@wildshard/game/weapons/starterBowProfile';
+import { RECURVE } from '../weapons/loadout';
+import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { rifleSpecimen } from '../runtime/weapons/magazineFirearm';
 import { buildSabre } from '../runtime/weapons/Sabre';
 import { buildJavelin, buildSpear, type SpearParts } from '../runtime/weapons/Spear';
@@ -34,7 +36,7 @@ export interface BowParams { readonly style: BowStyle }
 
 /**
  * The composite recurve (horn-and-sinew, painterly): the braced bow and the left glove on it — the bow's one mesh as the
- * viewmodel builds it (`Bow.bowSpecimen`). Variants: its paints — the recurve, the Golden Bow's gold (the same bow once the
+ * viewmodel borrows it (`heldBowDisplay` over the baked recurve's rows). Variants: its paints — the recurve, the Golden Bow's gold (the same bow once the
  * Golden King's reward is taken, GoldenBow.ts `apply`) and the Sky-Wolf skin (Kokbori's drop, nalatiSkins.ts).
  */
 export const bow: ModelDef<BowParams> = defineModel<BowParams>({
@@ -45,19 +47,25 @@ export const bow: ModelDef<BowParams> = defineModel<BowParams>({
     { id: 'golden', label: 'Golden Bow', params: { style: 'golden' } },
     { id: 'sky-wolf', label: 'Sky-Wolf', params: { style: 'sky-wolf' } },
   ],
-  build: (ctx, p) => ctx.once(`gear:bow:${p.style}`, () => bowSpecimen(ctx.sky, p.style)).clone(),
+  build: (ctx, p) => {
+    const made = ctx.once(`gear:bow:${p.style}`, async () => { const { rows, model } = await loadHeldBow(RECURVE); return heldBowDisplay(ctx.sky, rows, model, p.style); });
+    return loadingSpecimen('nalati-grasslands/bow', [0.05, 0.6, 0.05], async () => (await made).clone());
+  },
 });
 
 /**
  * The arrow (E348): a birch shaft with a red cresting band, an iron leaf head and three barred feathers, 0.8 m — the bow's
- * `buildArrowGeometry` on its own copy of the arrows' painterly material (`arrowMaterial`). Every arrow loosed, flying or
+ * baked arrow on its own copy of the arrows' painterly material (`heldBowArrow`). Every arrow loosed, flying or
  * stuck in the world, is one instanced draw (Projectiles.ts); the quiver holds BOW.quiver.
  */
 export const arrow: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/arrow', name: 'Arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: {},
   specimenYaw: Math.PI / 2, // side on: the shaft runs across the card
-  build: (ctx) => [lit(ctx.once('gear:arrow', buildArrowGeometry), ctx.once('gear:arrow-material', () => arrowMaterial(ctx.sky)))],
+  build: (ctx) => {
+    const made = ctx.once('gear:arrow', async () => { const { rows, model } = await loadHeldBow(RECURVE); return heldBowArrow(ctx.sky, rows, model); });
+    return loadingSpecimen('nalati-grasslands/arrow', [0.02, 0.02, 0.8], async () => { const a = await made, m = new THREE.Mesh(a.geometry, a.material); m.castShadow = true; m.receiveShadow = true; return m; });
+  },
 });
 
 /**

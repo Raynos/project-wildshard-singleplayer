@@ -17,9 +17,12 @@ import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { RangedFrame, type RangedFrameRow, type RangedTraceRow } from '@wildshard/engine/render/viewmodelFeel';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import * as v from 'valibot';
 import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldMaterialRow, type HeldModelRows } from './heldFirearm';
+import { createModelLibrary } from './geometry';
 import { createClientScene } from './ui';
 import { HeldPlayback } from './weaponFamily';
 
@@ -350,15 +353,21 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
 /**
  * The bow draw on rows (H3): a baked stave bow for the platform `Bow` (its draw, loose, arrows and pose stay the engine's).
  * The shard passes numbers and its bake's rows, never a callback; this host builds the view, the arrow kind and the wind.
- * The stave bends on the engine's analytic curve (`BowShape`) from the bake's `look`; the parts are borrowed from
- * `model.geometry` by `rows.parts` (the stave carries the left fist; never mutated or disposed).
+ * The stave bends on the engine's analytic curve (`BowShape`) from the bake's `look` (an optional `tipKink` for a recurve's
+ * ears, `backScale` for a flat back, `tipInset` / `tipOffset` for the string's anchors, `nockX` for the nock's line); the
+ * parts are borrowed from `model.geometry` by `rows.parts` (the stave carries the left fist; never mutated or disposed).
+ * Materials are the viewmodels' lit rows or painterly ones; the wind is a gust row or the steppe's wind; `styles` names a
+ * colour channel on the stave per paint (the first the base), which `setStyle` swaps in. Users: Pine's longbow, Nalati's
+ * recurve (and its Golden Bow and Sky-Wolf paints). A shard's baked rows file loads with `loadHeldBow(url)`.
  *
+ *   const { rows, model } = await loadHeldBow(url);
  *   new Bow(world, targets, { row, profile: heldBowProfile(BASE, rows, model) });
  */
 const finite = v.pipe(v.number(), v.finite());
 /** The stave's look as the bake serialised it (the numbers the bend reads; its colours stay in the bake). */
 const StaveLookSchema = v.looseObject({ gripH: finite, limbW: finite, nockL: finite, kappaRest: finite, kappaDraw: finite, braceZ: finite, drawLen: finite,
-  arrowX: finite, arrowY: finite, radial: finite, stringRadial: finite, stringR: finite, serving: finite, rightRoll: finite });
+  arrowX: finite, arrowY: finite, radial: finite, stringRadial: finite, stringR: finite, serving: finite, rightRoll: finite,
+  tipKink: v.exactOptional(finite), nockX: v.exactOptional(finite), backScale: v.optional(finite, 0.55), tipInset: v.optional(finite, 0.014), tipOffset: v.optional(finite, 0.004) });
 const ArrowLookSchema = v.looseObject({ length: finite });
 /** A grip pose as data: the bow's place and aim point in rig space, its cant and pitch. */
 export interface HeldBowPoseRow { readonly pos: Triple; readonly aim: Triple; readonly cant: number; readonly pitch: number }
@@ -369,15 +378,57 @@ export interface HeldBowBake {
   readonly sectionSamples: { readonly widths: readonly number[]; readonly ridges: readonly number[] };
   readonly lWrist: readonly number[]; readonly rWrist: readonly number[]; readonly rHook: readonly number[]; readonly rWristDir: readonly number[];
 }
-/** The bow's rows: the bake, its part names, its two materials, the arrow's flight / stick / pool numbers, the wind's pull, the poses. */
+/** A bow material: the viewmodels' lit program from a look row, or the painterly one (vertex colours; `transparent` for the
+ *  viewmodel's depth-clear pass, dropped on a world card). */
+export type HeldBowMaterialRow = HeldLitRow | { readonly name: string; readonly painterly: { readonly rim?: number; readonly bands?: number; readonly shade?: number; readonly transparent?: boolean } };
+/** The bow's rows: the bake, its part names, its two materials, the arrow's flight / stick / pool numbers, the wind's pull, the
+ *  poses and the stave's paints by style. */
 export interface HeldBowRows {
   readonly bake: HeldBowBake;
   readonly parts: { readonly stave: string; readonly nocked: string; readonly rightFist: string; readonly leftSleeve: string; readonly rightSleeve: string; readonly arrow: string };
-  readonly materials: { readonly bow: HeldLitRow; readonly arrow: HeldLitRow };
+  readonly materials: { readonly bow: HeldBowMaterialRow; readonly arrow: HeldBowMaterialRow };
   readonly arrow: { readonly gravity: number; readonly drag: number; readonly windCoupling: number; readonly bury: number; readonly recover: number; readonly maxFlying: number; readonly maxStuck: number };
-  /** the wind on an arrow: `base` + `gust` × the engine's gust field (m/s), along the world wind */
-  readonly wind: { readonly base: number; readonly gust: number };
+  /** the wind on an arrow: `base` + `gust` × the engine's gust field (m/s) along the world wind, or the steppe's own wind */
+  readonly wind: { readonly base: number; readonly gust: number } | { readonly field: 'steppe' };
   readonly poses: Readonly<Record<keyof BowProfile['poses'], HeldBowPoseRow>>;
+  /** style → the stave's colour channel (the first is the base, painted on every new view) */
+  readonly styles?: Readonly<Record<string, string>>;
+}
+const triple = v.tuple([finite, finite, finite]), numbers = v.pipe(v.array(finite), v.maxLength(65536));
+const PoseSchema = v.strictObject({ pos: triple, aim: triple, cant: finite, pitch: finite });
+const PainterlySchema = v.strictObject({ rim: v.exactOptional(finite), bands: v.exactOptional(finite), shade: v.exactOptional(finite), transparent: v.exactOptional(v.boolean()) });
+const MaterialSchema = v.strictObject({ name: v.string(), painterly: PainterlySchema });
+/** The bow's rows as a shard's bake writes them (painterly materials; a lit row is built in code). */
+const HeldBowRowsSchema = v.strictObject({
+  bake: v.strictObject({ look: v.string(), arrow: v.string(), ringU: numbers, ringSign: numbers, limbVerts: finite, dynVerts: finite,
+    sectionSamples: v.strictObject({ widths: numbers, ridges: numbers }), lWrist: triple, rWrist: triple, rHook: triple, rWristDir: triple }),
+  parts: v.strictObject({ stave: v.string(), nocked: v.string(), rightFist: v.string(), leftSleeve: v.string(), rightSleeve: v.string(), arrow: v.string() }),
+  materials: v.strictObject({ bow: MaterialSchema, arrow: MaterialSchema }),
+  arrow: v.strictObject({ gravity: finite, drag: finite, windCoupling: finite, bury: finite, recover: finite, maxFlying: finite, maxStuck: finite }),
+  wind: v.union([v.strictObject({ base: finite, gust: finite }), v.strictObject({ field: v.literal('steppe') })]),
+  poses: v.strictObject({ rest: PoseSchema, drawn: PoseSchema, restPort: PoseSchema, drawnPort: PoseSchema, aim: PoseSchema, aimPort: PoseSchema }),
+  styles: v.exactOptional(v.pipe(v.record(v.string(), v.string()), v.check(r => Object.keys(r).length > 0 && Object.keys(r).length <= 8, 'one to eight styles'))),
+});
+const names = v.pipe(v.array(v.pipe(v.string(), v.maxLength(256))), v.maxLength(32));
+const PoolSchema = v.strictObject({ url: v.pipe(v.string(), v.maxLength(512)), parts: names, channels: v.exactOptional(v.pipe(v.array(v.strictObject({
+  name: v.string(), source: v.string(), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(names) })), v.maxLength(8))) });
+const HeldBowFileSchema = v.strictObject({ pool: PoolSchema, bow: HeldBowRowsSchema });
+const bowLoads = new Map<string, Promise<{ readonly rows: HeldBowRows; readonly model: HeldFirearmModel }>>();
+/** A baked bow from its rows file (a shard's bake writes it: the pool GLB's url, parts and paint channels, and the bow's
+ *  rows), fetched once per url, parsed strictly (an unknown or missing field refuses) and its parts preloaded. */
+export function loadHeldBow(url: string): Promise<{ readonly rows: HeldBowRows; readonly model: HeldFirearmModel }> {
+  const known = bowLoads.get(url);
+  if (known !== undefined) return known;
+  const load = (async () => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Held bow: ${url} did not load`);
+    const json: unknown = await response.json(), { pool, bow } = v.parse(HeldBowFileSchema, json);
+    const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [pool] }, `[held bow ${url}]`);
+    await library.preload();
+    return { rows: bow, model: { geometry: new Map(pool.parts.map(id => [id, need(library.geometry(id, { borrow: true }), `bow part ${id}`)])) } };
+  })();
+  bowLoads.set(url, load);
+  return load;
 }
 /** The profile's numbers: all but what the rows build (the view, arrow, wind, poses, the arrow's rest and length). */
 export type HeldBowBase = Omit<BowProfile, 'build' | 'arrow' | 'wind' | 'poses' | 'arrowX' | 'arrowY' | 'arrowLength'>;
@@ -386,27 +437,41 @@ type HeldLitRow = Extract<HeldMaterialRow, { readonly look: unknown }>;
 const part = (model: HeldFirearmModel, id: string): THREE.BufferGeometry => need(model.geometry?.get(id), `bow part ${id}`);
 const staveLook = (rows: HeldBowRows) => v.parse(StaveLookSchema, JSON.parse(rows.bake.look));
 const arrowLength = (rows: HeldBowRows): number => v.parse(ArrowLookSchema, JSON.parse(rows.bake.arrow)).length;
-const bowMaterial = (sky: Sky, row: HeldLitRow): THREE.MeshPhysicalMaterial => viewmodelRowMaterial(sky, row.name, row.look);
+function bowMaterial(sky: Sky, row: HeldBowMaterialRow, card = false): THREE.Material {
+  if ('look' in row) return viewmodelRowMaterial(sky, row.name, row.look);
+  const { transparent = false, ...look } = row.painterly, mat = painterlyMaterial(sky, { ...look, transparent: transparent && !card, depthWrite: true });
+  mat.name = row.name;
+  return mat;
+}
 const gripPose = (r: HeldBowPoseRow): GripPose => ({ pos: new THREE.Vector3(...r.pos), aim: new THREE.Vector3(...r.aim), cant: r.cant, pitch: r.pitch });
 /** The stave + string over the baked rest geometry; the first `dynVerts` vertices are rewritten by `shape(draw, nock)`. */
 function staveMesh(rows: HeldBowRows, model: HeldFirearmModel): BowView['mesh'] {
-  const look = staveLook(rows), b = rows.bake;
-  const { geometry, position, normal } = BowShape.prepareGeometry(part(model, rows.parts.stave));
+  const look = staveLook(rows), b = rows.bake, rest = part(model, rows.parts.stave);
+  const { geometry, position, normal } = BowShape.prepareGeometry(rest);
   const tipTop = new THREE.Vector3(), tipBot = new THREE.Vector3(), nock = new THREE.Vector3();
   const bend = new BowShape({ ringU: b.ringU, ringSign: b.ringSign, limbVerts: b.limbVerts, dynVerts: b.dynVerts, sectionSamples: b.sectionSamples,
-    curve: look, radial: look.radial, backScale: 0.55, tipArc: look.gripH + look.limbW + look.nockL - 0.014, tipOffset: 0.004,
-    nockX: look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
+    curve: look, radial: look.radial, backScale: look.backScale, tipArc: look.gripH + look.limbW + look.nockL - look.tipInset, tipOffset: look.tipOffset,
+    nockX: look.nockX ?? look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
     stringRadial: look.stringRadial, stringRadius: look.stringR, serving: look.serving }, { position, normal, tipTop, tipBot, nock });
   bend.shape(0, 0);
-  return { geometry, nock, shape: (p, n) => { bend.shape(p, n); } };
+  const styles = rows.styles;
+  if (styles === undefined) return { geometry, nock, shape: (p, n) => { bend.shape(p, n); } };
+  /** borrow the style's channel from the rest part as the colour (never written) */
+  const repaint = (style: string): void => {
+    const channel = styles[style], colour = channel === undefined ? undefined : rest.getAttribute(channel);
+    if (!(colour instanceof THREE.BufferAttribute) || colour.count !== position.count) throw new Error(`Held bow: no paint for style ${style}`);
+    geometry.setAttribute('color', colour);
+  };
+  repaint(need(Object.keys(styles)[0], 'base style'));
+  return { geometry, nock, shape: (p, n) => { bend.shape(p, n); }, repaint };
 }
 /** The platform bow's profile from the base numbers and the rows (the view, arrow and wind strategies are this host's). */
 export function heldBowProfile(base: HeldBowBase, rows: HeldBowRows, model: HeldFirearmModel): BowProfile {
   const look = staveLook(rows), b = rows.bake, p = rows.poses, vec = (t: readonly number[]) => new THREE.Vector3().fromArray(t);
-  const { base: still, gust } = rows.wind, a = rows.arrow;
+  const w = rows.wind, a = rows.arrow;
   return { ...base, arrowX: look.arrowX, arrowY: look.arrowY, arrowLength: arrowLength(rows),
     poses: { rest: gripPose(p.rest), drawn: gripPose(p.drawn), restPort: gripPose(p.restPort), drawnPort: gripPose(p.drawnPort), aim: gripPose(p.aim), aimPort: gripPose(p.aimPort) },
-    wind: { vecAt: (x, z, out) => { const s = still + gust * windGustAt(x, z); out.x = WIND_DIR.x * s; out.z = WIND_DIR.z * s; return out; } },
+    wind: 'field' in w ? steppeWind : { vecAt: (x, z, out) => { const s = w.base + w.gust * windGustAt(x, z); out.x = WIND_DIR.x * s; out.z = WIND_DIR.z * s; return out; } },
     arrow: (sky): ProjectileKind => ({ geometry: part(model, rows.parts.arrow), material: bowMaterial(sky, rows.materials.arrow), length: arrowLength(rows),
       gravity: a.gravity, drag: a.drag, windCoupling: a.windCoupling, bury: a.bury, recover: a.recover, maxFlying: a.maxFlying, maxStuck: a.maxStuck }),
     build: sky => {
@@ -415,13 +480,15 @@ export function heldBowProfile(base: HeldBowBase, rows: HeldBowRows, model: Held
         lWrist: vec(b.lWrist), rWrist: vec(b.rWrist), rHook: vec(b.rHook), rWristDir, roll: new THREE.Quaternion().setFromAxisAngle(rWristDir, look.rightRoll) };
     } };
 }
-/** The Model Explorer's card: the braced stave with the left fist on it, on its own material. */
-export function heldBowDisplay(sky: Sky, rows: HeldBowRows, model: HeldFirearmModel): THREE.Group {
-  const m = new THREE.Mesh(staveMesh(rows, model).geometry, bowMaterial(sky, rows.materials.bow));
+/** The Model Explorer's card: the braced stave with the left fist on it in a style's paint, on its own (opaque) material. */
+export function heldBowDisplay(sky: Sky, rows: HeldBowRows, model: HeldFirearmModel, paint?: string): THREE.Group {
+  const stave = staveMesh(rows, model);
+  if (paint !== undefined) stave.repaint?.(paint);
+  const m = new THREE.Mesh(stave.geometry, bowMaterial(sky, rows.materials.bow, true));
   m.castShadow = true; m.receiveShadow = true;
   return new THREE.Group().add(m);
 }
 /** The arrow alone (its geometry borrowed, its material fresh): the Model Explorer's arrow card. */
 export function heldBowArrow(sky: Sky, rows: HeldBowRows, model: HeldFirearmModel): { geometry: THREE.BufferGeometry; material: THREE.Material } {
-  return { geometry: part(model, rows.parts.arrow), material: bowMaterial(sky, rows.materials.arrow) };
+  return { geometry: part(model, rows.parts.arrow), material: bowMaterial(sky, rows.materials.arrow, true) };
 }

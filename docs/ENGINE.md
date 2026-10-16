@@ -3694,11 +3694,16 @@ Pine's crossbow.
 H3's bow draw (same module): `heldBowProfile(base, rows, model)` returns the platform `Bow`'s profile for a baked stave
 bow, so the shard passes no `build` / `arrow` / `wind` callback. `rows.bake` is the bake's bow row (its serialised
 `look` and `arrow`, the stave's rings, dynamic vertex counts, section samples and the fists' wrist / hook points); the
-stave bends on `BowShape`'s analytic curve from that look. `rows.parts` names the borrowed parts in `model.geometry`
+stave bends on `BowShape`'s analytic curve from that look (optional `tipKink` for a recurve's ears, `backScale`,
+`tipInset` / `tipOffset` for the string anchors, `nockX`). `rows.parts` names the borrowed parts in `model.geometry`
 (stave with the left fist, nocked arrow, right fist, sleeves, loose arrow); `rows.materials` the bow's and the arrows'
-lit rows; `rows.arrow` the arrow kind's flight, bury, recover and pools; `rows.wind` the pull (`base + gust ×
-windGustAt`, along `WIND_DIR`); `rows.poses` the six grip poses as triples. `heldBowDisplay` / `heldBowArrow` are the
-Model Explorer cards. User: Pine's longbow. Nalati's recurve still builds its view in code (a later row: bake it).
+lit rows or painterly ones (`{ name, painterly: { rim, bands, shade, transparent } }`, opaque on a card); `rows.arrow`
+the arrow kind's flight, bury, recover and pools; `rows.wind` the pull (`base + gust × windGustAt`, along `WIND_DIR`, or
+`{ field: 'steppe' }` for the steppe's wind); `rows.poses` the six grip poses as triples; `rows.styles` (optional) style →
+a colour channel on the stave, the first the base: `Bow.setStyle` swaps the channel in (borrowed, never written).
+`loadHeldBow(url)` fetches a shard's baked rows file once per url (`{ pool: { url, parts, channels }, bow }`), parses it
+strictly and preloads the pool. `heldBowDisplay(sky, rows, model, paint?)` / `heldBowArrow` are the Model Explorer cards.
+Users: Pine's longbow; Nalati's recurve with its Golden Bow and Sky-Wolf paints (generators/recurvePool.ts).
 
 `@wildshard/engine/combat/contactWeapon` defines the renderer-free
 `ContactWeaponHost` and `HeldWeaponClock`. Signal's lash and Sky's fan consume

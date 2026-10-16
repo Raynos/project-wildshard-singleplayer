@@ -9573,6 +9573,39 @@
       ]
     },
     {
+      "id": "nalati-recurve-pool",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
+        "src/shards/nalati-grasslands/generators/recurvePool.ts",
+        "src/shards/nalati-grasslands/data/bowProfile.ts",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
+        "public/assets/nalati/baked/recurve-pool.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
+        "public/assets/nalati/baked/recurve-pool.json"
+      ]
+    },
+    {
       "id": "nine-physics-placements",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/physicsPlacements.ts",
