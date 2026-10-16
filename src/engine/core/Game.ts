@@ -809,8 +809,8 @@ export class Game {
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
     const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
       : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
-    // sp-o100: a paced page that does not isolate (desktop) keeps each warm-up slice inside its drawn frame's headroom
-    const sliceMs = !isolateImageUploads && this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
+    // Both browser families use the existing live slice; boot retains its larger bound.
+    const sliceMs = this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
     const shaderStart = diagnosticNow();
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);

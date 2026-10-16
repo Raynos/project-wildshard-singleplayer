@@ -867,8 +867,9 @@ Live WebKit shader preparation separates drawable compile jobs and settles one p
 Incomplete links yield before retrying completion; ready links resolve in the same slice, then yield.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
-A two-sided material can still issue two variants; one native query can still overshoot. Desktop and
-initial boot retain their ordinary job grouping and time budget.
+A two-sided material can still issue two variants; one native query can still overshoot. Paced live world
+preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
+ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.
 
 For a running WebKit game, `Game.warmEnteredFrame` supplies `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
