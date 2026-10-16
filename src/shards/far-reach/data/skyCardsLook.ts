@@ -1,7 +1,7 @@
 import type { CardAttributeRow, CardGroupRow } from '@wildshard/sdk/looks/cardField';
 
 /**
- * The shapes of Sky Reach's baked camera-facing cards (generators/skyCards.ts → data/skyCards.ts): the cumulus field and
+ * The shapes of Sky Reach's baked camera-facing cards (generators/skyCards.ts bakeSkyCards, run by the sky-dressing job): the cumulus field and
  * the sun's glow. Their graphs and card fields are built at build time (generators/skyCardsLook.ts,
  * generators/sunGlowLook.ts) into data/skyDressing.generated.json.
  */
@@ -18,7 +18,7 @@ export interface SkyCardField<P extends string> {
   readonly attributes: Readonly<Record<string, CardAttributeRow>>;
 }
 
-/** The baked cards (generators/skyCards.ts → data/skyCards.ts): the cumulus field and the sun's glow. */
+/** The baked cards (generators/skyCards.ts bakeSkyCards, run by the sky-dressing job): the cumulus field and the sun's glow. */
 export interface SkyCardRows {
   readonly cumulus: SkyCardField<'cumulus'>;
   readonly sunGlow: CardGroupRow<SunGlowProgram>;

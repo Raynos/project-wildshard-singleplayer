@@ -16,8 +16,8 @@ export function cardFloats(values: ArrayLike<number>): string {
 }
 
 /**
- * Build-time only (SHARD-PLATFORM M3): baked by generators/bake-sky-world.mjs into data/skyCards.ts (typed rows); the client
- * (look/render.ts) builds the cards with @wildshard/sdk/looks/cardField and the programs in data/skyCardsLook.ts.
+ * Build-time only (SHARD-PLATFORM M3): the sky-dressing job (generators/skyDressing.ts) runs it into
+ * data/skyDressing.generated.json; the client (look/render.ts) builds the cards from that with @wildshard/sdk/looks/cardField.
  *
  * - The cumulus field (E392): camera-facing painted puffs over the cloud sea, below the decks (the tops stay under the
  *   islands' rims, so a view across the archipelago never looks through a cloud), seeded: every load grows the same sky.

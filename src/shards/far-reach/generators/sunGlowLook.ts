@@ -1,6 +1,6 @@
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
 import type { CardGroupRow } from '@wildshard/sdk/looks/cardField';
-import { SKY_CARDS } from '../data/skyCards';
+import { bakeSkyCards } from './skyCards';
 import type { SunGlowProgram } from '../data/skyCardsLook';
 import { fieldCards } from './skyCardsLook';
 
@@ -78,4 +78,4 @@ function glowField(row: CardGroupRow<SunGlowProgram>): CardGroupRow<'sunGlow'> &
     attributes: { aCard: { size: 4, float32: floats(card) }, aPulse: { size: 4, float32: floats(pulse) }, aMix: { size: 3, float32: floats(mix) } } }), distance: first === undefined ? 820 : num(first, 'uDist', 820) };
 }
 /** The sun's glow field (its graph: `sunGlowGraph(SKY_SUN, SUN_GLOW_FIELD.distance)`). */
-export const SUN_GLOW_FIELD = glowField(SKY_CARDS.sunGlow);
+export const SUN_GLOW_FIELD = glowField(bakeSkyCards().sunGlow);

@@ -5,7 +5,7 @@ import type { SkyCardField } from '../data/skyCardsLook';
 
 /**
  * Sky Reach's camera-facing cards (SHARD-PLATFORM M3: SF59 material graphs over fields built by
- * @wildshard/sdk/looks/cardField; the cards' numbers are the bake in data/skyCards.ts, generators/skyCards.ts). Built at
+ * @wildshard/sdk/looks/cardField; the cards' numbers are generators/skyCards.ts bakeSkyCards). Built at
  * build time into data/skyDressing.generated.json (generators/skyDressing.ts).
  *
  * The sun's glow and light shafts (E392) are baked here too (`sunGlow`), drawn by their material graph (generators/sunGlowLook.ts).

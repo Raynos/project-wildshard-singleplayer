@@ -1,7 +1,7 @@
 import type { GraphIr } from '@wildshard/format/materialGraph';
 import type { CardGroupRow } from '@wildshard/sdk/looks/cardField';
 import { SKY_SUN } from '../data/skyLook';
-import { SKY_CARDS } from '../data/skyCards';
+import { bakeSkyCards } from './skyCards';
 import { skyDomeGraph } from './skyDomeLook';
 import { SEA_DISCS, SEA_LAYERS, paintedMaelstromGraph, paintedSeaGraph } from './cloudSeaLook';
 import { cumulusGraph, fieldCards } from './skyCardsLook';
@@ -42,6 +42,6 @@ export function skyDressingRows(): SkyDressingRows {
     maelstrom: { graph: paintedMaelstromGraph('far.maelstrom'), disc: SEA_DISCS.paintedMaelstrom },
     seas: [{ graph: paintedSeaGraph('far.cloudsea', SEA_LAYERS.lower.gain, SEA_LAYERS.lower.crown), disc: SEA_DISCS.paintedSea },
       { graph: paintedSeaGraph('far.cloudsea', SEA_LAYERS.upper.gain, SEA_LAYERS.upper.crown), disc: SEA_DISCS.paintedSeaUpper }],
-    cumulus: { graph: cumulusGraph(SKY_SUN, 'far.cumulus'), cards: fieldCards(SKY_CARDS.cumulus) },
+    cumulus: { graph: cumulusGraph(SKY_SUN, 'far.cumulus'), cards: fieldCards(bakeSkyCards().cumulus) },
   };
 }
