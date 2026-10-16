@@ -3,7 +3,7 @@ import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { EnemyWorld } from '@wildshard/engine/entities/species/registry';
 import { createMemoryActionBrain, createNativeSpeciesContext } from '@wildshard/game/plugin/brain';
 import type { SimValue } from '@wildshard/engine/sim';
-import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
+import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from '../species/monkeyPolicy';
 import { createCaptainBrain } from '../species/captainPolicy';
 import { MONKEY_ACTIONS } from '../data/speciesActions';
@@ -22,9 +22,9 @@ type EnemyBrainPorts = Parameters<typeof createNativeSpeciesContext<EnemyWorld<H
  * tokens, reach by the physics line of sight, and a strike landing on the player as PlayerHurt.creature files it, only
  * inside the 70° strike arc (Driftwood's fight is telegraphed) and with a clear line.
  */
-export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: readonly HuntBody[] | null, shared: EnemyBrainPorts): EnemyBrain {
+export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: readonly HuntBody[] | null, shared: EnemyBrainPorts, brains: SpeciesBrains): EnemyBrain {
   const context = createNativeSpeciesContext(shared, actor, herd, label);
-  const actions = driftwoodSpeciesBrains.actions(kind, actor);
+  const actions = brains.actions(kind, actor);
   if (actions !== null) return context.bind(context.observation, actions, actions);
   const ports = Object.assign(context.observation, {
     pickPerch: (a: HuntBody, min: number, max: number, away?: Vector3): number => pickPerch(a, ports, min, max, away),
@@ -32,8 +32,8 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
   });
   type Ports = typeof ports;
   const wrap = (brain: { think: (c: Ports) => void; act: (c: Ports) => void }, policy: { snapshot: () => SimValue; restore: (value: SimValue) => void }): EnemyBrain => context.bind(ports, brain, policy);
-  if (driftwoodSpeciesBrains.kinds.has(kind)) {
-    const decision = driftwoodSpeciesBrains.decision(kind, actor), policy = decision.policy;
+  if (brains.kinds.has(kind)) {
+    const decision = brains.decision(kind, actor), policy = decision.policy;
     switch (decision.archetype) {
       case 'perch-hunter': return wrap(createMemoryActionBrain<HuntBody, Ports>(actor, MONKEY_ACTIONS, { decide: (_a, c) => { decision.policy.think(c); }, effects: new Map([['bite', biteMonkey], ['throw', throwMonkeyCoconut]]) }), policy);
       case 'skirmisher': case 'guardian': case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': throw new Error('Unknown admitted Driftwood enemy decision');

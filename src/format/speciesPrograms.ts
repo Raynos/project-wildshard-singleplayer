@@ -1,5 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { SpeciesBrainSchema } from './speciesBrain';
+import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(10000000));
 const nonnegative = v.pipe(finite, v.minValue(0));
@@ -40,9 +42,20 @@ export const SpeciesSchema = v.strictObject({
 /** Callback-free gameplay metadata; rendering and policy ownership are admitted separately. */
 export type SpeciesData = v.InferOutput<typeof SpeciesSchema>;
 export function readSpecies(input: unknown): SpeciesData { return v.parse(SpeciesSchema, input); }
+/** One existing SpeciesBrains owner receives these admitted policy/body rows and strike definitions. */
+export const SpeciesProgramSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Species program must be plain JSON'), v.strictObject({
+  species: v.pipe(v.array(v.strictObject({ ...SpeciesSchema.entries, brain: v.exactOptional(SpeciesBrainSchema),
+    body: v.exactOptional(CreatureBodyRecipeSchema) })), v.maxLength(256)),
+  strikes: v.pipe(v.array(CreatureStrikeSchema), v.maxLength(256)),
+  modules: v.exactOptional(v.record(v.pipe(v.string(), v.minLength(1), v.maxLength(128)), v.pipe(v.string(), v.maxLength(400000)))),
+}), v.check(value => new Set(value.species.map(row => row.kind)).size === value.species.length
+  && new Set(value.strikes.map(row => row.id)).size === value.strikes.length, 'Unique program kinds and strikes'));
+export type SpeciesProgramData = v.InferOutput<typeof SpeciesProgramSchema>;
+export function readSpeciesProgram(input: unknown): SpeciesProgramData { return v.parse(SpeciesProgramSchema, input); }
+
 /** Page and native registration order is authored explicitly; empty sides install no rows. */
 export const SpeciesProgramsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Species programs must be plain JSON'),
-  v.strictObject({ page: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), native: v.pipe(v.array(SpeciesSchema), v.maxLength(256)) }),
+  v.strictObject({ page: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), native: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), program: v.exactOptional(SpeciesProgramSchema) }),
   v.check(value => [value.page, value.native].every(rows => new Set(rows.map(row => row.kind)).size === rows.length), 'Unique species kinds per owner'));
 export type SpeciesPrograms = v.InferOutput<typeof SpeciesProgramsSchema>;
 export function readSpeciesPrograms(input: unknown): SpeciesPrograms { return v.parse(SpeciesProgramsSchema, input); }

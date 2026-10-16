@@ -1,7 +1,4 @@
-import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { animateCrab } from './crabPose';
-import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
-import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
@@ -39,13 +36,10 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
   return dot < -0.5 ? 0.5 : 1;
 }
 
-const callbacks = driftwoodSpeciesBrains.bind('crab');
-
-export const CRAB: SpeciesRow = { ...ENEMY_SPECIES_METADATA.crab, ...callbacks };
 
 export const CRAB_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'crab.v1', clips: [], sockets: ['body', 'head'] },
-  id: 'driftwood.look.crab', species: CRAB.id, kind: 'crab',
+  id: 'driftwood.look.crab', species: 'creature.crab', kind: 'crab',
   fur: NO_FUR,
   rig: 'custom',
   // the lofted shell, claws and legs, baked offline (generators/creatureBodies.ts, the big crab's claws a quarter larger)

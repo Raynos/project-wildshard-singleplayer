@@ -8016,3 +8016,18 @@ transaction or random owner. Missing/malformed tables and executable selectors
 refuse. `economy/loot.economy.tables` carries these build-emitted declarations.
 `rollLoot` defaults to the fixed zero draw for deterministic awards; supplying a
 random stream keeps the existing weighted selection and count draw order.
+
+### Build-emitted species brain and body programmes
+
+`actors/species-programs.program` optionally supplies ordered `species`,
+`strikes` and hashed script `modules` to the existing `SpeciesBrains` owner.
+`readSpeciesProgram` admits callback-free gameplay metadata plus optional
+`brain` and `body` declarations, refusing duplicate kinds or strike ids.
+`SpeciesBrainSchema` in `@wildshard/format/speciesBrain` is also the defining
+policy union for native runtime plans; extracting it changes no admission.
+
+Build-time authoring may resolve presets and labels before emitting these rows.
+Page kit registration and native installation consume the verified product;
+their body, clock, contact and save owners retain their original order. A
+species without a brain still requires its existing local policy adapter.
+The programme does not install an extra host or construct replacement bodies.

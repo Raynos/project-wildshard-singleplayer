@@ -1,3 +1,5 @@
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import { DRIFTWOOD_NATIVE_HUNT } from '../data/nativeHunt';
 import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
 import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
@@ -49,6 +51,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
+  readonly program: SpeciesProgramData;
   readonly placement: NativeEnemyPlacements;
   readonly fauna: ReadonlyMap<string, HuntSpecies>;
   readonly keeper: NativeKeeperRows;
@@ -139,6 +142,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** Publish only after body contacts and equipment, at the page render boundary. */
   publishPoses: () => void;
 } {
+  const brains = speciesBrains(ports.program.species, ports.program.strikes, ports.program.modules);
   // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
   const FULL_ROSTER = new Error('Driftwood ecology roster exceeds its native bound');
   const { bake, specs, keeper: roster } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
@@ -193,7 +197,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
   const join = (body: IslandBody, actor: HuntBody): void => {
     if (body.kind === 'sailor' && actor.levelGround) actor.groundHeight = holdFloor;
-    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts);
+    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains);
   };
   const { draw } = intake;
   const place = (body: IslandBody): void => { join(body, intake.arrive(body)); };

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { bakeSpecies } from '../src/sdk/bake/species';
 import { species } from '../src/sdk/species';
-import { readSpeciesPrograms } from '../src/format/speciesPrograms';
+import { readSpeciesPrograms, readSpeciesProgram } from '../src/format/speciesPrograms';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../src/shards/driftwood-isle/generators/speciesPrograms';
 import { speciesWithLook } from '../src/engine/entities/species/look';
@@ -10,6 +10,7 @@ import { pineLooks } from '../src/shards/pine-hollow/species/looks';
 import { ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK } from '../src/shards/driftwood-isle/species/fauna';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { PINE_BOAR, PINE_SPECIES, pineDeer, pineElk } from '../src/shards/pine-hollow/generators/speciesRows';
+import { speciesBrains } from '../src/sdk/speciesBrains';
 import { BOAR } from '../src/game/systems/species/boar';
 
 test('both populations admit the same gameplay fields without visual or callback metadata', () => {
@@ -41,4 +42,19 @@ test('both emitted populations keep the original resolved visual variants', () =
     expect(current.variants, row.id).toEqual(old.variants);
     expect(current.spawnOnly, row.id).toEqual(old.spawnOnly);
   }
+});
+
+
+test('published brain/body programs bind the existing owner and refuse executable or ambiguous rows', () => {
+  const program = readSpeciesPrograms(structuredClone(DRIFTWOOD_SPECIES_PROGRAMS)).program;
+  if (program === undefined) throw new Error('Missing emitted enemy program');
+  expect(program.species.map(row => row.kind)).toEqual(['crab', 'monkey', 'sailor', 'captain']);
+  const owner = speciesBrains(program.species, program.strikes, program.modules);
+  expect([...owner.kinds]).toEqual(['crab', 'monkey', 'sailor']);
+  for (const kind of ['crab', 'sailor']) expect(typeof owner.bind(kind).act).toBe('function');
+  expect(() => owner.bind('monkey')).toThrow('trusted native body adapter');
+  expect(program.species[0]?.body?.kind).toBe('animal');
+  expect(() => readSpeciesProgram({ ...program, species: [...program.species, program.species[0]] })).toThrow();
+  expect(() => readSpeciesProgram({ ...program, strikes: [...program.strikes, program.strikes[0]] })).toThrow();
+  expect(() => readSpeciesProgram({ ...program, modules: { unsafe: () => undefined } })).toThrow();
 });

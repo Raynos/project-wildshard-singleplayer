@@ -1,7 +1,7 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import { DRIFTWOOD_STRIKE_ROWS } from './strikes';
-import { CRAB_ACTIONS, SAILOR_ACTIONS } from './speciesActions';
-import { MONKEY_VARIANTS } from '../species/monkeyVariants';
+import { DRIFTWOOD_STRIKE_ROWS } from '../data/strikes';
+import { CRAB_ACTIONS, SAILOR_ACTIONS } from '../data/speciesActions';
+import { MONKEY_VARIANTS } from './monkeyVariants';
 import { CRAB_BRAIN_PROFILE, SAILOR_BRAIN_PROFILE, MONKEY_BRAIN_PROFILE } from './brains';
 
 /** One authored gameplay definition per enemy; renderer and native policies retain their own callbacks. */

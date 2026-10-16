@@ -1,7 +1,5 @@
-import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
-import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
+import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { animateMonkey } from './monkeyPose';
-import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -38,7 +36,7 @@ import { MONKEY_ACTIONS } from '../data/speciesActions';
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
 
-const callbacks = driftwoodSpeciesBrains.bind('monkey', (actor, decision, ctx) => {
+export function monkeyCallbacks(brains: SpeciesBrains): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
   if (decision.archetype !== 'perch-hunter') throw new Error('Driftwood monkey requires its authored perch guardian row');
   if (ctx === undefined) throw new Error('Driftwood monkey requires its first callback context');
   let current = ctx;
@@ -50,13 +48,11 @@ const callbacks = driftwoodSpeciesBrains.bind('monkey', (actor, decision, ctx) =
   return createMemoryActionBrain<Animal, ThinkCtx>(actor, MONKEY_ACTIONS, { decide: (_actor, context) => {
     current = context; Object.assign(ports, context); decision.policy.think(ports);
   }, effects: new Map([['bite', biteMonkey], ['throw', throwMonkeyCoconut]]) });
-});
-
-export const MONKEY: SpeciesRow = { ...ENEMY_SPECIES_METADATA.monkey, ...callbacks };
+}); }
 
 export const MONKEY_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'monkey.v1', clips: [], sockets: ['body', 'head'] },
-  id: 'driftwood.look.monkey', species: MONKEY.id, kind: 'monkey',
+  id: 'driftwood.look.monkey', species: 'creature.monkey', kind: 'monkey',
   fur: NO_FUR,
   rig: 'custom',
   // the lofted body, baked offline (generators/creatureBodies.ts, the elder's grey coat included)

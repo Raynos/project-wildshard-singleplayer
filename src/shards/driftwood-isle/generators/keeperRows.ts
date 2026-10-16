@@ -1,6 +1,6 @@
 import { Rng } from '@wildshard/engine/core/rng';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
-import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
+import { ENEMY_SPECIES_METADATA } from './enemySpecies';
 import { BOAR } from '@wildshard/game/systems/species/boar';
 import { BEAR } from '@wildshard/game/systems/species/bear';
 import physics from '../data/physics.generated.json' with { type: 'json' };

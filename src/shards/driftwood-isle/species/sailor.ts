@@ -1,8 +1,5 @@
-import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
-import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import { animateSailor } from './sailorPose';
 import { creatureBody, preloadCreatureBodies } from './bodies';
-import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 
@@ -45,13 +42,10 @@ export function preloadSailorHead(): Promise<void> { return preloadCreatureBodie
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
 
-const callbacks = driftwoodSpeciesBrains.bind('sailor');
-
-export const SAILOR: SpeciesRow = { ...ENEMY_SPECIES_METADATA.sailor, ...callbacks };
 
 export const SAILOR_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'sailor.v1', clips: [], sockets: ['body', 'head'] },
-  id: 'driftwood.look.sailor', species: SAILOR.id, kind: 'sailor',
+  id: 'driftwood.look.sailor', species: 'creature.sailor', kind: 'sailor',
   standMem: { init: 1, rise: 1 }, // it waits sunk under the wreck's deck until woken: the Explorer shows it risen
   fur: NO_FUR,
   rig: 'custom',

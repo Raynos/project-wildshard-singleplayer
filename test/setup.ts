@@ -53,7 +53,8 @@ installKitProps();
 const { readLootTables, registerLootTable } = await import('../src/game/loot/tables');
 const { default: loot } = await import('../src/shards/driftwood-isle/data/loot.generated.json');
 for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
-const { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } = await import('../src/shards/driftwood-isle/species/install');
+const { DRIFTWOOD_LOOKS } = await import('../src/shards/driftwood-isle/species/install');
+const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
 for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look));

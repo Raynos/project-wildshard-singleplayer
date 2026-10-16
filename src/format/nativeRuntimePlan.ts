@@ -1,12 +1,8 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { SpeciesBrainSchema } from './speciesBrain';
 import { BossOwnerRowSchema } from './bossProfiles';
 import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures';
-import { GrazerSchema, ChallengeGrazerSchema } from './grazers';
-import { DiverSchema, PatrolDiverSchema } from './flyers';
-import { ScriptSpeciesSchema } from './speciesScripts';
-import { StalkerSchema, SkirmisherSchema, GuardianSchema, GuardianPatternsSchema, PerchHunterSchema } from './brains';
-import { BorrowedDecisionSchema } from './decisionScripts';
 import { ScriptBindingsSchema } from './scripts';
 import { StateSchema } from './state';
 
@@ -17,26 +13,13 @@ const pair = v.tuple([number, number]);
 const triple = v.tuple([number, number, number]);
 // Body-home order is part of the existing diver continuation contract.
 const home = v.strictObject({ x: number, z: number, r: number, y: number });
-const brain = v.union([
-  v.strictObject({ archetype: v.literal('grazer'), data: GrazerSchema.options[0] }),
-  v.strictObject({ archetype: v.literal('grazer'), data: GrazerSchema.options[1], phaseSlots: count }),
-  v.strictObject({ archetype: v.literal('diver'), data: DiverSchema }),
-  v.strictObject({ archetype: v.literal('decision'), data: BorrowedDecisionSchema }),
-  v.strictObject({ archetype: v.literal('challenge-grazer'), data: ChallengeGrazerSchema, phaseSlots: count }),
-  v.strictObject({ archetype: v.literal('patrol-diver'), data: PatrolDiverSchema }),
-  v.strictObject({ archetype: v.literal('script'), data: ScriptSpeciesSchema }),
-  v.strictObject({ archetype: v.literal('stalker'), data: StalkerSchema }),
-  v.strictObject({ archetype: v.literal('skirmisher'), data: SkirmisherSchema }),
-  v.strictObject({ archetype: v.literal('guardian'), data: v.union([GuardianSchema, GuardianPatternsSchema]) }),
-  v.strictObject({ archetype: v.literal('perch-hunter'), data: PerchHunterSchema }),
-]);
 // Existing gameplay-only species attributes pass through unchanged. The outer
 // JSON check refuses callbacks/accessors; the species owner admits its policy.
 const variant = v.objectWithRest({ id: key, label: key, weight: number,
   rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), scale: pair }, v.unknown());
 const species = v.objectWithRest({ id: key, kind: key, label: key,
   variants: v.pipe(v.array(variant), v.minLength(1), v.maxLength(64)),
-  brain: v.exactOptional(brain), body: v.exactOptional(CreatureBodyRecipeSchema) }, v.unknown());
+  brain: v.exactOptional(SpeciesBrainSchema), body: v.exactOptional(CreatureBodyRecipeSchema) }, v.unknown());
 const population = v.objectWithRest({ program: v.strictObject({
   species: v.pipe(v.array(species), v.maxLength(256)), strikes: v.pipe(v.array(CreatureStrikeSchema), v.maxLength(256)),
   modules: v.exactOptional(v.record(key, v.pipe(v.string(), v.maxLength(400000)))) }),

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./speciesBrain": "./speciesBrain.ts",
     "./speciesPrograms": "./speciesPrograms.ts",
     "./lootEconomy": "./lootEconomy.ts",
     "./compendiumRows": "./compendiumRows.ts",

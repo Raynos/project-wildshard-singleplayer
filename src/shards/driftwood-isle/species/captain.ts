@@ -1,6 +1,4 @@
-import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { animateCaptain } from './captainPose';
-import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { bindCreatureBrain } from '@wildshard/game/plugin/brain';
@@ -38,17 +36,12 @@ function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
   return { ...creatureBody('captain', 'captain'), ...(map ? { map, selfLight: 0.5 } : {}), facetJitter: 0 };
 }
 
-// ── animation (the sailor's rig language, heavier) ────────────────────────────────────────
-
-
-
-
-export const CAPTAIN: SpeciesRow = { ...ENEMY_SPECIES_METADATA.captain, ...bindCreatureBrain(createCaptainBrain).callbacks };
+export const captainCallbacks = bindCreatureBrain(createCaptainBrain).callbacks;
 
 /** the captain's look over a mesh (the page's by default; a test passes its own) */
 export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { return {
   rigContract: { skeleton: 'captain.v1', clips: [], sockets: ['body', 'head'] },
-  id: 'driftwood.look.captain', species: CAPTAIN.id, kind: 'captain',
+  id: 'driftwood.look.captain', species: 'creature.captain', kind: 'captain',
   standMem: { init: 1, rise: 1 }, // it waits sunk in its pool until woken: the Explorer shows it risen
   fur: NO_FUR,
   rig: 'custom',
