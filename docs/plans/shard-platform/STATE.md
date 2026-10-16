@@ -6,18 +6,18 @@ Since 01:00Z: King on SDK phasedBoss `fcf93f28c` (Pine −133), Pine code parts 
 
 **Lanes (G432 Opus; Claude weekly 20 %; Codex 5 + pusher):**
 - Opus: o253 DW bakes (fireflies, Cove, gull); o254 Pine bakes; o255 King pose onto NativeCreaturePose (old saves load, witness rebake). Two slots held: no non-overlapping visual target.
-- Codex: x7 G445 ruler change, then re-measure; x4 Sky data/ conversion (G446); x5 Signal data/ conversion (G446); x1 Pine weapon channel rows; x6 DW Enemies/captain; x8 Pine page/native dedup (HerdShelter `ea61b9044` −57).
+- Codex: x7 maps batch 5 then Pine content; x4 DW C6/C8; x5 DW C5; x1 Pine weapon channel rows; x6 DW Enemies/captain; x8 Pine page/native dedup (HerdShelter `ea61b9044` −57).
 - Slots: check = x1 x5 x8 · check2 = x4 x6 x7 · check3 = Opus + measure.
 
 **Rulings:** offline bakes are honest (`1c125707c`): fixed geometry built by shard generators, loaded through a shared intake. Content rows replacing runtime search are honest, but under G445 only as JSON.
 
 **G445 (01:30Z):** only JSON counts as data. x7 changes the ruler first (data/*.ts counted, GLSL rule kept, one ceiling rebase) and re-measures every shard. Every lane and Opus lane is told: content rows are JSON only. Then the conversion wave: declaration-only TS tables → JSON split by shard across Codex lanes, then data/ logic → runtime/ or hosts. W1 (Sky, Signal) reopens.
-**G446:** generators/ stays TS and uncounted if nothing the game runs imports it; W1 conversion runs tonight in parallel (build-only data/*.ts → generators/, game-read tables → JSON via shard.json, data/ logic → host or runtime/), target 90/10; Pine/DW data/ conversion becomes W3 rows.
+**G447 HOLD (02:00Z):** the ruler must measure the BUILT shardfile; design due ~03:30Z. G446 conversion stopped (x4, x5, o256 told to stop at a clean point or delete drafts). x7's source-side ruler `f0ca1f1c8` landed BEFORE the hold (data/*.ts counted; no gate fails); left in place, not extended: revert only if the design says so.
 
-**Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G446.
+**Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G447.
 
 **End-of-plan lists:** memory: Pine cabin props, DW piers, map correction `bf2f3fcb2`, weak image cache. Perf: graph per-draw CPU. UI: DW finale "THE SEALED RING · OPENED" overlaps the quest banner (pre-existing). Pine King/fallen witness hashes mismatched before `fcf93f28c` (o255 rebakes).
 **G439 refs:** DONE.
 
-**For wildshard-v:** G446 in progress (x4 Sky, x5 Signal). G445 in progress (ruler first, then JSON conversion). G443/G444 in force. G442 closed.
+**For wildshard-v:** G447 hold applied; one question: keep or revert `f0ca1f1c8` until the output ruler lands? I recommend keep (W2 deltas stay comparable, nothing fails). G443/G444 in force. G442 closed.
 Paused rows: SF22, SF57, SF67.
