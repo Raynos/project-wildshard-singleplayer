@@ -19,7 +19,7 @@ import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } 
 // --shard=<slug>[,<slug>] builds only those shards: another shard's product stays only while its key still matches,
 // else it is removed, so a one-shard preview never serves a stale product of a changed shard.
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
- * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean}} options */
+ * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean|'closed'}} options */
 export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = false } = {}) {
   if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
   const outputRoot = resolve(root, 'out');
@@ -53,9 +53,9 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
     if (map !== undefined && map.image !== `/assets/${entry.name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${entry.name}`);
     if (map !== undefined) await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);
-    const issues = catalog ? runtimeIssues(project) : [];
+    const issues = catalog || copyRuntime === 'closed' ? runtimeIssues(project) : [];
     runtimeReport.push({ slug: entry.name, runtime: issues.length > 0 ? 'source' : 'output', issues });
-    const flags = [...(copyRuntime || catalog && issues.length === 0 ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`])];
+    const flags = [...(copyRuntime === true || (catalog || copyRuntime === 'closed') && issues.length === 0 ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`])];
     // --no-placeholders (G348): a first-party product keeps its own bytes; its near / far views come from the repo bakes
     // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
@@ -79,6 +79,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
   }
+  if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
   console.info(`wildshard build: ${count} shardfile project(s)`);
   if (stale.length > 0) {
     const message = `wildshard build: the baked map of ${stale.join(', ')} does not match its world (SF66); rebake: node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=${stale.join(',')}`;

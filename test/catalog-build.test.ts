@@ -105,3 +105,14 @@ it('marks an escaping runtime as source without copied-runtime credit', async ()
   expect(existsSync(resolve(output, 'beta/runtime/index.ts'))).toBe(false);
   expect(readFileSync(resolve(output, 'catalog-report.json'), 'utf8')).toContain('../data/native');
 });
+
+it('copies only closed runtimes without publishing or depending on catalog metadata', async () => {
+  const root = await fixture(), calls: string[][] = [];
+  put(root, 'src/shards/beta/runtime/index.ts', "import '../data/native';\n");
+  await buildShardfiles(root, { strict: true, copyRuntime: 'closed', build: builder(calls) });
+  expect(calls.map(call => call[0])).toEqual(['build', 'build']);
+  expect(calls.map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
+  expect(existsSync(resolve(root, 'out/alpha/runtime/index.ts'))).toBe(true);
+  expect(existsSync(resolve(root, 'out/beta/runtime/index.ts'))).toBe(false);
+  expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
+});
