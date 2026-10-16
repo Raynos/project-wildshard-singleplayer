@@ -3,8 +3,21 @@
  * law for the page's interactables kit (world/interact/Interactables.ts) and a headless runtime's barrel (SF72).
  */
 import type { BodySpec } from '../../physics/bodies';
+import type { Physics } from '../../physics/Physics';
+import type { GroupName } from '../../physics/groups';
+import { overlapBox } from '../../physics/overlap';
 
 interface V3 { x: number; y: number; z: number }
+
+const PLATE_SEES: readonly GroupName[] = ['PLAYER', 'ITEM'];
+const anyOwner = (): boolean => true;
+/** Contact slab shared by drawn and native pressure plates; callers retain owner filtering and query dimensions. */
+export function plateOverlap(physics: Physics, position: V3, yaw: number, size: number,
+  policy: { readonly inset?: number; readonly depth?: number; readonly sees?: readonly GroupName[]; readonly accepts?: (owner: unknown) => boolean } = {}): boolean {
+  const depth = policy.depth ?? 0.1, half = Math.max(0.05, size / 2 - (policy.inset ?? 0.1));
+  return overlapBox(physics, { x: position.x, y: position.y + depth / 2, z: position.z }, { x: half, y: depth, z: half },
+    yaw, policy.sees ?? PLATE_SEES, policy.accepts ?? anyOwner);
+}
 
 /** The barrel's radius and half height (m). */
 export const BARREL_R = 0.38, BARREL_HALF = 0.475;
@@ -21,7 +34,7 @@ export const BARREL_BODY = {
 } as const satisfies Omit<BodySpec, 'owner'>;
 
 /** A BarrelWatch's continuation (BarrelWatch.state). */
-export interface BarrelWatchState { lost: number; wedge: number; from: V3 }
+export type BarrelWatchState = ReturnType<BarrelWatch['state']>;
 
 export interface BarrelEnv {
   /** feet and the velocity the player is asking for (Player.velocity: what the input wants, even against a wall) */
@@ -93,7 +106,7 @@ export class BarrelWatch {
   clear(): void { this.lost = 0; this.wedge = 0; }
 
   /** Its clocks and the push window's start, as plain values (a headless continuation). */
-  state(): BarrelWatchState { return { lost: this.lost, wedge: this.wedge, from: { ...this.from } }; }
+  state(): { lost: number; wedge: number; from: { x: number; y: number; z: number } } { return { lost: this.lost, wedge: this.wedge, from: { ...this.from } }; }
   /** Exactly the saved clocks back. */
   restore(saved: BarrelWatchState): void {
     this.lost = saved.lost; this.wedge = saved.wedge; this.from.x = saved.from.x; this.from.y = saved.from.y; this.from.z = saved.from.z;

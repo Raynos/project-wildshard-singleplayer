@@ -5470,6 +5470,12 @@ second argument of `Interactables.build` applies the same binder; absent keeps
 the existing placement resolver. Moving keys, barrels and native body/save
 ownership remain with their original runtime owners.
 
+`plateOverlap` in `engine/world/interact/barrel` shares the renderer-free
+pressure-plate slab query between the drawn kit and native quests. Its default
+inset/depth are 0.1 m and it sees player/item bodies; optional dimensions,
+collision groups and an owner predicate preserve the caller's plate policy.
+It reads current physics without installing a body, clock or state owner.
+
 
 Client numeric presentation loans: `createClientChannels(program).bindNumeric(rows,
 targets)` binds up to 32 copied outputs to explicit one- or two-field visual

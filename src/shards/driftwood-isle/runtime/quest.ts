@@ -1,10 +1,9 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
-import { Bodies, Body, overlapBox } from '@wildshard/engine/physics/bodies';
+import { Bodies, Body } from '@wildshard/engine/physics/bodies';
 import type { Collider } from '@dimforge/rapier3d-simd';
-import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
-import type { GroupName } from '@wildshard/engine/physics/groups';
+import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, plateOverlap, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -23,7 +22,6 @@ import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistratio
 import policy from '../data/nativeQuest.json' with { type: 'json' };
 
 const MAX_BODIES = 64; // Hard finite iteration bound; authored content does not widen it.
-const PLATE_SEES: readonly GroupName[] = ['PLAYER', 'ITEM'], anyOwner = (): boolean => true;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
 const Row = v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: finite, prompt: v.optional(v.strictObject(xyz)),
@@ -82,12 +80,6 @@ function bakedBox(physics: SimHost['physics'], c: { x: number; z: number; hw: nu
   const found = hits[0];
   if (found === undefined) throw new Error('Driftwood\'s baked world has no collider for a kit box');
   return found;
-}
-
-/** A barrel's continuation as plain snapshot data. */
-function barrelState(handle: number, watch: BarrelWatch): { handle: number; watch: { lost: number; wedge: number; from: { x: number; y: number; z: number } } } {
-  const { lost, wedge, from } = watch.state();
-  return { handle, watch: { lost, wedge, from: { x: from.x, y: from.y, z: from.z } } };
 }
 
 /** One table row with its flag spellings made once (the step reads them every tick). */
@@ -149,7 +141,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     },
   });
   host.scope.onDispose(() => { reward.dispose(); });
-  const keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: policy.plate.depth, z: 0 };
+  const keyPrompt = { x: 0, y: 0, z: 0 };
   const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
   const feats=ports.feats.filter(f=>f.kind===undefined);
   if(feats.length>policy.limits.rows||feats.some(f=>f.count>policy.limits.rows))throw new RangeError('Driftwood feats exceed their finite bound');
@@ -168,15 +160,9 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     for (let i = 0; i < MAX_BODIES; i++) { const b = list[i]; if (b === undefined) break; if (b.kind === 'sailor' && b.actor?.alive === true) return true; }
     return false;
   };
-  /** Interactables.plateDown: a thin slab over the plate, a little inside its rim, against the player and items */
-  const plateDown = (r: Rule, size: number): boolean => {
-    const h = Math.max(0.05, size / 2 - policy.plate.inset);
-    slab.x = r.spot.x; slab.y = r.spot.y + policy.plate.depth / 2; slab.z = r.spot.z; half.x = h; half.z = h;
-    return overlapBox(host.physics, slab, half, r.spot.yaw, PLATE_SEES, anyOwner);
-  };
   let commit: ReturnType<typeof installDeclaredQuestHost>['run'] = () => { throw new Error('Native quest graph is not installed'); };
   const transitions=bindInteractionTransitions(rules,flags,{rowLimit:policy.limits.rows,flagLimit:policy.limits.rows,
-    commit:id=>commit(id),item:(id,n)=>{pack.add(id,n);},plate:plateDown,
+    commit:id=>commit(id),item:(id,n)=>{pack.add(id,n);},plate:(row,size)=>plateOverlap(host.physics,row.spot,row.spot.yaw,size,policy.plate),
     touched:r=>{const feet=host.player.position,dx=feet.x-r.spot.x,dz=feet.z-r.spot.z;
       return dx*dx+dz*dz<policy.touch.radius*policy.touch.radius&&Math.abs(feet.y-r.spot.y)<policy.touch.height;}});
   const picker = createHeadlessPromptPicker(host);
@@ -261,7 +247,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     reward.update(dt, flags.has(policy.rewardFlag));
   }, {
     snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), reward: reward.snapshot(), counts: { ...counts },
-      barrel: barrel === null || watch === null ? null : barrelState(barrel.rb.handle, watch) }),
+      barrel: barrel === null || watch === null ? null : { handle: barrel.rb.handle, watch: watch.state() } }),
     restore: value => {
       const saved = v.parse(Saved, value);
       zipline.restore(saved.zipline);

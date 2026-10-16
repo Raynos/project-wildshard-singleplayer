@@ -30,8 +30,8 @@ import { boxInFrame, type BoxSpec as Collider } from '../../physics/box';
 import { boxDesc, type Piece } from '../registry';
 import type { Physics } from '../../physics/Physics';
 import type { GroupName } from '../../physics/groups';
-import { overlapBox, type Body } from '../../physics/bodies';
-import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, type BarrelEnv } from './barrel';
+import type { Body } from '../../physics/bodies';
+import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, plateOverlap, type BarrelEnv } from './barrel';
 import { waterLevel } from '../Heightfield';
 import { test, bindInteractionState, type Flags } from './flags';
 import { bindInteractPlacements, autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
@@ -110,8 +110,6 @@ export class Live {
 }
 
 const PLAYER_R = 0.35;
-/** a plate feels what overlaps a slab this far inside its rim and this deep over it (feet, a barrel's base) */
-const PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
 const _m = new THREE.Matrix4(), _local = new THREE.Matrix4(), _c = new THREE.Color(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _v = new THREE.Vector3(), _e = new THREE.Euler();
 const OFF: Collider = { x: 0, z: 0, hw: 0, hd: 0, rot: 0, yTop: -1e6, yBottom: -1e6 + 1 };
 const _bp = { x: 0, y: 0, z: 0 }, _bq = { x: 0, y: 0, z: 0, w: 1 };
@@ -655,11 +653,8 @@ const anyOwner = (): boolean => true;
  * its rim, against the player's capsule (`by: 'player'`), a barrel's body (`'barrel'`) or either / any item (`'any'`).
  */
 export function plateDown(physics: Physics, lv: { position: { x: number; y: number; z: number }; yaw: number }, size: number, by: 'player' | 'barrel' | 'any'): boolean {
-  const h = Math.max(0.05, size / 2 - PLATE_INSET);
-  const at = { x: lv.position.x, y: lv.position.y + PLATE_DEPTH / 2, z: lv.position.z }, half = { x: h, y: PLATE_DEPTH, z: h };
-  return by === 'player' ? overlapBox(physics, at, half, lv.yaw, SEES_PLAYER, anyOwner)
-    : by === 'barrel' ? overlapBox(physics, at, half, lv.yaw, SEES_ITEM, isBarrel)
-      : overlapBox(physics, at, half, lv.yaw, SEES_ANY, anyOwner);
+  return plateOverlap(physics, lv.position, lv.yaw, size, { sees: by === 'player' ? SEES_PLAYER : by === 'barrel' ? SEES_ITEM : SEES_ANY,
+    accepts: by === 'barrel' ? isBarrel : anyOwner });
 }
 
 function ease(x: number): number { return x * x * (3 - 2 * x); }
