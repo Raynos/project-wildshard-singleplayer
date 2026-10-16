@@ -65,6 +65,7 @@ import { pineFinishEffect } from '../loadout/effects';
 import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
+import { parseTradeCatalogue } from './trader';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
 /** A weapon's declared profile from the built `combat/items` section (data/items.ts attaches it at build). */
@@ -98,8 +99,9 @@ export class PineHollow extends ShardPlugin {
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
+    const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trades.json'))));
     const packKinds = readItemInventory(ctx.product.section('combat/items').items).kinds;
-    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(FINISH_CARDS) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? mottLine(id) : null } };
+    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(FINISH_CARDS) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? mottLine(trades, id) : null } };
     const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');

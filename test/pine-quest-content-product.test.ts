@@ -3,6 +3,7 @@ import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { PINE_QUESTS } from '../src/shards/pine-hollow/data/quests';
+import { parseTradeCatalogue } from '../src/shards/pine-hollow/runtime/trader';
 import { pineQuestContent } from '../src/shards/pine-hollow/quest/content';
 import { RANGER, MILLER, TRADER } from '../src/shards/pine-hollow/quest/wardensHollow';
 
@@ -20,7 +21,11 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   const loaded = await readProjectAssets('src/shards/pine-hollow');
   expect(hash(loaded.shard.quests)).toBe(originals.quests);
   expect(hash(PINE_QUESTS)).toBe(originals.quests);
-  expect(hash(pineQuestContent(CONTRACTS))).toBe(originals.content);
+  const named = loaded.output.namedFiles?.find(file => file.name === 'quests/trades.json');
+  const bytes = named === undefined ? undefined : loaded.assets.get(named.hash);
+  if (bytes === undefined) throw new Error('The product must publish its barter catalogue');
+  const trades = parseTradeCatalogue(JSON.parse(new TextDecoder().decode(bytes)));
+  expect(hash(pineQuestContent(CONTRACTS, trades))).toBe(originals.content);
   for (const [id, npc] of Object.entries({ ranger: RANGER, miller: MILLER, trader: TRADER })) {
     const declared = loaded.shard.questNpcs?.find(row => row.npc.id === id);
     if (declared === undefined) throw new Error(`Missing admitted NPC: ${id}`);

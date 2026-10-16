@@ -29,6 +29,7 @@ import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
 import { installPineNight } from './nightPopulation';
 import { PINE_LODGE, parseContractCatalogue } from './lodge';
+import { parseTradeCatalogue } from './trader';
 import type { PineWeatherMode } from '../world/weatherProfile';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
@@ -75,6 +76,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const leverRow = shard.items.rows.find(item => item.id === 'weapon.lever');
   if (leverRow?.kind !== 'weapon' || leverRow.family !== 'firearm') throw new Error('Missing admitted Pine lever profile');
   parseNativeFirearmProfile(leverRow.profile, 'lever');
+  const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/contracts.json'))));
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
@@ -89,13 +91,14 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   }, install: (host, context) => {
     const input = bindHeadlessCommands(context), combat = context.combat;
     if (combat === undefined) throw new Error('Pine requires its native combat frame');
-    installPine(host, { contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+    installPine(host, { trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
       interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
 
 export interface PineInstall {
   readonly contracts: PineQuestPorts['contracts'];
+  readonly trades: PineQuestPorts['trades'];
   readonly population: PineRosterPorts['population'];
   readonly combat: NativeCombatFrame; readonly items: ShardItems;
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
@@ -185,7 +188,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
-  quest = installHollowQuest(host, { inventory: readItemInventory(parts.items), contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
+  quest = installHollowQuest(host, { inventory: readItemInventory(parts.items), trades: parts.trades, contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster

@@ -73,6 +73,7 @@ export interface PineQuestDay { phase: number; readonly night: number }
 export interface PineQuestPorts {
   readonly inventory: NativeInventoryProfile<string>;
   readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
+  readonly trades: ConstructorParameters<typeof PineTrader>[0]['catalogue'];
   /** USE on the King's pending orb, after the quest's modal ownership check. */
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
   readonly quests: QuestData;
@@ -175,7 +176,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     miller: people.find(person => person.kind === 'miller'), trader: people.find(person => person.kind === 'trader') };
   let hollowAsh = false;
   let tradeSkins = new Set<PineTradeSkin>();
-  const trader = new PineTrader({ pack, owns: skin => skin === 'hollow-ash' && hollowAsh || [...tradeSkins].some(owned => owned === skin),
+  const trader = new PineTrader({ catalogue: ports.trades, pack, owns: skin => skin === 'hollow-ash' && hollowAsh || [...tradeSkins].some(owned => owned === skin),
     room: (kind, n) => ports.ammunition?.room(kind, n) ?? false,
     addBolts: ports.addBolts,
     addAmmo: (kind, n) => { if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n); },

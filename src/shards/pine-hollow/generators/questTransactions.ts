@@ -1,5 +1,5 @@
 import { CONTRACT_ROWS } from './contractRows';
-import { TRADES } from '../data/trades';
+import { TRADES } from './trades';
 import { WEAPON_FINISHES } from '../data/weaponFinishes';
 import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 

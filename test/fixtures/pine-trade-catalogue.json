@@ -1,0 +1,283 @@
+{
+  "goods": [
+    {
+      "id": "bolts-hide",
+      "name": "A quiver of bolts ×10",
+      "does": "Fletched with goose, straight as a promise",
+      "icon": "bolt",
+      "price": 0,
+      "tile": "Bolts ×10",
+      "trade": {
+        "id": "bolts-hide",
+        "label": "A quiver of bolts ×10",
+        "short": "Bolts",
+        "blurb": "Fletched with goose, straight as a promise",
+        "give": [
+          {
+            "item": "deer-hide",
+            "n": 2
+          }
+        ],
+        "get": {
+          "bolts": 10
+        }
+      },
+      "cost": [
+        {
+          "item": "deer-hide",
+          "n": 2,
+          "text": "2 deer hides"
+        }
+      ]
+    },
+    {
+      "id": "pitch-bolts",
+      "name": "Pitch-tipped bolts ×10",
+      "does": "Resin-sealed heads, they fly true in the rain",
+      "icon": "bolt",
+      "price": 0,
+      "tile": "Pitch bolts ×10",
+      "trade": {
+        "id": "pitch-bolts",
+        "label": "Pitch-tipped bolts ×10",
+        "short": "Pitch bolts",
+        "blurb": "Resin-sealed heads, they fly true in the rain",
+        "give": [
+          {
+            "item": "amber-resin",
+            "n": 3
+          }
+        ],
+        "get": {
+          "ammo": "pitch",
+          "n": 10
+        }
+      },
+      "cost": [
+        {
+          "item": "amber-resin",
+          "n": 3,
+          "text": "3 amber resin"
+        }
+      ]
+    },
+    {
+      "id": "broadheads",
+      "name": "Broadhead bolts ×8",
+      "does": "Wide steel heads, they cut deep in deer and boar",
+      "icon": "bolt",
+      "price": 0,
+      "tile": "Broadheads ×8",
+      "trade": {
+        "id": "broadheads",
+        "label": "Broadhead bolts ×8",
+        "short": "Broadheads",
+        "blurb": "Wide steel heads, they cut deep in deer and boar",
+        "give": [
+          {
+            "item": "boar-hide",
+            "n": 1
+          },
+          {
+            "item": "amber-resin",
+            "n": 2
+          }
+        ],
+        "get": {
+          "ammo": "broadhead",
+          "n": 8
+        }
+      },
+      "cost": [
+        {
+          "item": "boar-hide",
+          "n": 1,
+          "text": "1 boar hide"
+        },
+        {
+          "item": "amber-resin",
+          "n": 2,
+          "text": "2 amber resin"
+        }
+      ]
+    },
+    {
+      "id": "cartridges",
+      "name": "Rifle cartridges ×14",
+      "does": ".30-30, a waxed-paper box of Mott's own",
+      "icon": "rifle",
+      "price": 0,
+      "tile": "Cartridges ×14",
+      "trade": {
+        "id": "cartridges",
+        "label": "Rifle cartridges ×14",
+        "short": "Cartridges",
+        "blurb": ".30-30, a waxed-paper box of Mott's own",
+        "give": [
+          {
+            "item": "venison",
+            "n": 2
+          },
+          {
+            "item": "amber-resin",
+            "n": 1
+          }
+        ],
+        "get": {
+          "ammo": "cartridge",
+          "n": 14
+        }
+      },
+      "cost": [
+        {
+          "item": "venison",
+          "n": 2,
+          "text": "2 venison"
+        },
+        {
+          "item": "amber-resin",
+          "n": 1,
+          "text": "1 amber resin"
+        }
+      ]
+    },
+    {
+      "id": "arrows",
+      "name": "Goose-fletched arrows ×10",
+      "does": "Ash shafts, for a longbow, if you have one",
+      "icon": "longbow",
+      "price": 0,
+      "tile": "Arrows ×10",
+      "trade": {
+        "id": "arrows",
+        "label": "Goose-fletched arrows ×10",
+        "short": "Arrows",
+        "blurb": "Ash shafts, for a longbow, if you have one",
+        "give": [
+          {
+            "item": "deer-hide",
+            "n": 1
+          },
+          {
+            "item": "amber-resin",
+            "n": 1
+          }
+        ],
+        "get": {
+          "ammo": "arrow",
+          "n": 10
+        }
+      },
+      "cost": [
+        {
+          "item": "deer-hide",
+          "n": 1,
+          "text": "1 deer hide"
+        },
+        {
+          "item": "amber-resin",
+          "n": 1,
+          "text": "1 amber resin"
+        }
+      ]
+    },
+    {
+      "id": "hollow-ash",
+      "name": "Hollow Ash crossbow finish",
+      "does": "Charred ash, cold light in the cracks",
+      "icon": "crossbow",
+      "price": 0,
+      "tile": "Crossbow finish",
+      "trade": {
+        "id": "hollow-ash",
+        "label": "Hollow Ash crossbow finish",
+        "short": "Crossbow finish",
+        "blurb": "Charred ash, cold light in the cracks",
+        "give": [
+          {
+            "item": "bear-pelt",
+            "n": 1
+          },
+          {
+            "item": "amber-resin",
+            "n": 6
+          }
+        ],
+        "get": {
+          "skin": "hollow-ash"
+        },
+        "once": true
+      },
+      "cost": [
+        {
+          "item": "bear-pelt",
+          "n": 1,
+          "text": "1 bear pelt"
+        },
+        {
+          "item": "amber-resin",
+          "n": 6,
+          "text": "6 amber resin"
+        }
+      ]
+    },
+    {
+      "id": "scarback",
+      "name": "Scarback Furnace rifle finish",
+      "does": "Forge-black steel, molten light through the vents",
+      "icon": "rifle",
+      "price": 0,
+      "tile": "Rifle finish",
+      "trade": {
+        "id": "scarback",
+        "label": "Scarback Furnace rifle finish",
+        "short": "Rifle finish",
+        "blurb": "Forge-black steel, molten light through the vents",
+        "give": [
+          {
+            "item": "boar-tusk",
+            "n": 2
+          },
+          {
+            "item": "lodge-ribbon",
+            "n": 3
+          },
+          {
+            "item": "amber-resin",
+            "n": 8
+          }
+        ],
+        "get": {
+          "skin": "scarback-furnace"
+        },
+        "once": true
+      },
+      "cost": [
+        {
+          "item": "boar-tusk",
+          "n": 2,
+          "text": "2 boar tusks"
+        },
+        {
+          "item": "lodge-ribbon",
+          "n": 3,
+          "text": "3 lodge ribbons"
+        },
+        {
+          "item": "amber-resin",
+          "n": 8,
+          "text": "8 amber resin"
+        }
+      ]
+    }
+  ],
+  "lines": {
+    "venison": "Cartridges",
+    "deer-hide": "Bolts · arrows",
+    "boar-hide": "Broadheads",
+    "boar-tusk": "Rifle finish",
+    "bear-pelt": "Crossbow finish",
+    "amber-resin": "Most trades",
+    "lodge-ribbon": "Rifle finish"
+  }
+}

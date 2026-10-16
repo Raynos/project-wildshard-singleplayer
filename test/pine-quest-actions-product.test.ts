@@ -9,7 +9,7 @@ import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
 import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/shards/pine-hollow/quest/contracts';
 import { tradeState } from '../src/shards/pine-hollow/quest/trades';
-import { TRADES } from '../src/shards/pine-hollow/data/trades';
+import { TRADES } from '../src/shards/pine-hollow/generators/trades';
 
 const admitted = new Map<string, QuestPageInteractionsData>();
 // Frozen from the original play-read tables before moving their assembly to build time.

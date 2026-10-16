@@ -75,8 +75,8 @@ import { preloadNpcModels } from '../runtime/quest/npcModels';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import { pineBenchPose } from './benchPose';
-import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood } from './trades';
-import type { TradeItem } from '../data/trades';
+import { tradeCost, tradeShopState, type Room } from './trades';
+import { parseTradeCatalogue, type TradeItem, type TradeGood } from '../runtime/trader';
 import { BoardPanel, CountChip } from './ui';
 import { CanoeRide } from './rides';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
@@ -129,6 +129,7 @@ async function loadQuest() {
   return { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+  const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const canoeRow = v.parse(MoverTransitSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('movers/canoe.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
@@ -292,8 +293,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // the platform draws the stall (SF28; the G87 sheet since G181): the goods and the rules are declared here
   const trade = ui.view('trade', (scope) => {
     const panel = new ShopPanel<TradeGood>({
-      trader: 'Mott', place: 'Pine Hollow', goods: TRADE_GOODS, verb: 'Trade',
-      state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g.trade, pack),
+      trader: 'Mott', place: 'Pine Hollow', goods: trades.goods, verb: 'Trade',
+      state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g, pack),
       scope,
     });
     panel.onBuy = ({ trade: t }) => transactions.run(`trade.${t.id}`);
@@ -479,7 +480,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     if (quest.current?.id === 'dawn') runDawn();
   };
   const debug = {
-    flags, quest, board, kit, stag, thralls, people, content: pineQuestContent(contracts),
+    flags, quest, board, kit, stag, thralls, people, content: pineQuestContent(contracts, trades),
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, cables, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
