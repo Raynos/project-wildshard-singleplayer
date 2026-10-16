@@ -2,7 +2,7 @@ import type * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { SECTIONS } from '../sections';
 
-type RowSection = Exclude<keyof typeof SECTIONS, 'custom/assets'>;
+type RowSection = keyof typeof SECTIONS;
 let admitted: ShardProduct | null = null;
 
 /** The island's admitted product, for the model hooks that hold no product (Explorer cards, colliders, slot geometry):

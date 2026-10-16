@@ -1,4 +1,3 @@
-import { FIXED_MODEL_FILES } from './modelFiles';
 import { GROUND_FILES } from './groundFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { PALM_FILES } from './palmFiles';
@@ -17,7 +16,6 @@ const records = (files: Readonly<Record<string, string>>): Record<string, string
 /** Author-only projection. The client mirrors logical names, never the
  * authoring URL tables. Boot policy retains its original shared/public reads. */
 export const DRIFTWOOD_FILE_MIRRORS = {
-  FIXED_MODEL_FILES: records(FIXED_MODEL_FILES),
   GROUND_FILES: records(GROUND_FILES),
   HIBISCUS_FILES: { phone: records(HIBISCUS_FILES.phone), desktop: records(HIBISCUS_FILES.desktop) },
   PALM_FILES: { phone: records(PALM_FILES.phone), desktop: records(PALM_FILES.desktop) },

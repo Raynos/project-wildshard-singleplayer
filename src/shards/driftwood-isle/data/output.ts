@@ -1,3 +1,4 @@
+import { FIXED_MODEL_FILES } from './modelFiles';
 import * as v from 'valibot';
 import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
 import fixed from './fixedBlobs.generated.json' with { type: 'json' };
@@ -24,6 +25,13 @@ for (const manifest of manifests) for (const [url, declared] of Object.entries(m
   if (name === undefined || (previous !== undefined && previous !== name)) throw new Error('Asset URL has conflicting or missing content');
   byUrl[url] = name;
 }
+/** Stable draw slots are authored asset-index aliases, resolved only after product admission. */
+export const DRIFTWOOD_FIXED_SOURCES = Object.fromEntries(Object.entries(FIXED_MODEL_FILES).map(([slot, url]) => {
+  const name = byUrl[url];
+  if (name === undefined) throw new Error(`Missing fixed source: ${slot}`);
+  return [slot, name];
+}));
+for (const [slot, name] of Object.entries(DRIFTWOOD_FIXED_SOURCES)) byUrl[`fixed:${slot}`] = name;
 const AssetsSchema = v.strictObject({
   byUrl: v.record(v.pipe(v.string(), v.maxLength(512)), v.pipe(v.string(), v.maxLength(240))),
 });

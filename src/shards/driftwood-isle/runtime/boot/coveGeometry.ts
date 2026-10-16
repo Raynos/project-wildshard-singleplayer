@@ -1,16 +1,15 @@
 import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { FIXED_MODEL_FILES } from '../const';
+import { fixedGeometryHandle as modelGeometry } from './modelGeometry';
 import { driftwoodRows } from './rows';
 import { coveSpecKey, type CoveSpec } from '../../world/coveLayout';
 
 const templates = {
-  structure: modelGeometry(FIXED_MODEL_FILES.coveStructure),
-  rocks: modelGeometry(FIXED_MODEL_FILES.coveRocks),
-  glow: modelGeometry(FIXED_MODEL_FILES.coveGlow),
-  pools: modelGeometry(FIXED_MODEL_FILES.covePools),
+  structure: modelGeometry('coveStructure'),
+  rocks: modelGeometry('coveRocks'),
+  glow: modelGeometry('coveGlow'),
+  pools: modelGeometry('covePools'),
 };
 
 /** the cave's baked facts, from the admitted product (`custom/fixedLayouts`, from data/coveBake.json) */
@@ -18,12 +17,12 @@ const bake = () => driftwoodRows('custom/fixedLayouts').cove;
 type CoveBake = ReturnType<typeof bake>;
 
 /** Explicit intake; a fixture can admit these same immutable templates without fetch. */
-export async function loadCoveGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
+export async function loadCoveGeometry(bytes: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
   await Promise.all([
-    templates.structure.load(bytes?.get(FIXED_MODEL_FILES.coveStructure)),
-    templates.rocks.load(bytes?.get(FIXED_MODEL_FILES.coveRocks)),
-    templates.glow.load(bytes?.get(FIXED_MODEL_FILES.coveGlow)),
-    templates.pools.load(bytes?.get(FIXED_MODEL_FILES.covePools)),
+    templates.structure.load(bytes.get('coveStructure')),
+    templates.rocks.load(bytes.get('coveRocks')),
+    templates.glow.load(bytes.get('coveGlow')),
+    templates.pools.load(bytes.get('covePools')),
   ]);
 }
 

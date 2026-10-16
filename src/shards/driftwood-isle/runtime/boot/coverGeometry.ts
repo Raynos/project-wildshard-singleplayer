@@ -1,29 +1,29 @@
+import { fixedGeometryHandle } from './modelGeometry';
 import type { BufferGeometry } from 'three';
 import { createOwnedGeometryBatch } from '@wildshard/engine/models/ownedGeometry';
-import { FIXED_MODEL_FILES } from '../const';
 
 const preload = createOwnedGeometryBatch();
-const modelGeometry = preload.geometry;
+const modelGeometry = (slot: string, channels?: Readonly<Record<string, string>>) => fixedGeometryHandle(slot, channels, preload);
 
 /** Immutable templates; runtime instance channels are attached only to independent copies. */
 const templates = {
-  tuft: modelGeometry(FIXED_MODEL_FILES.coverTuft),
-  fern: modelGeometry(FIXED_MODEL_FILES.coverFern),
-  hibiscus: modelGeometry(FIXED_MODEL_FILES.coverHibiscus),
-  daisy: modelGeometry(FIXED_MODEL_FILES.coverDaisy),
-  pebble: modelGeometry(FIXED_MODEL_FILES.coverPebble),
-  shells: modelGeometry(FIXED_MODEL_FILES.coverShells),
-  starfish: modelGeometry(FIXED_MODEL_FILES.coverStarfish),
-  bush: modelGeometry(FIXED_MODEL_FILES.coverBush),
-  tuftFar: modelGeometry(FIXED_MODEL_FILES.coverTuftFar),
-  fernFar: modelGeometry(FIXED_MODEL_FILES.coverFernFar),
-  hibiscusFar: modelGeometry(FIXED_MODEL_FILES.coverHibiscusFar),
-  daisyFar: modelGeometry(FIXED_MODEL_FILES.coverDaisyFar),
-  bushFar: modelGeometry(FIXED_MODEL_FILES.coverBushFar),
+  tuft: modelGeometry('coverTuft'),
+  fern: modelGeometry('coverFern'),
+  hibiscus: modelGeometry('coverHibiscus'),
+  daisy: modelGeometry('coverDaisy'),
+  pebble: modelGeometry('coverPebble'),
+  shells: modelGeometry('coverShells'),
+  starfish: modelGeometry('coverStarfish'),
+  bush: modelGeometry('coverBush'),
+  tuftFar: modelGeometry('coverTuftFar'),
+  fernFar: modelGeometry('coverFernFar'),
+  hibiscusFar: modelGeometry('coverHibiscusFar'),
+  daisyFar: modelGeometry('coverDaisyFar'),
+  bushFar: modelGeometry('coverBushFar'),
 };
 
 /** Explicit boot intake, including the same bytes-only path for portable fixtures. */
-export async function loadCoverGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
+export async function loadCoverGeometry(bytes: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
   await preload.load(bytes);
 }
 

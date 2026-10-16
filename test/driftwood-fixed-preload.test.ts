@@ -1,12 +1,35 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry } from 'three';
-import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/runtime/const';
+import { DRIFTWOOD_FIXED_SOURCES as FIXED_MODEL_FILES, DRIFTWOOD_ASSET_NAMES } from '../src/shards/driftwood-isle/data/output';
+import { admitDriftwoodFixtureRows, admitDriftwoodFixtureAliases } from './fixtures/driftwoodRows';
 import { loadFixedGeometry, fixedGeometryReady, WENDELL_HEAD_GEOMETRY, HAT_GEOMETRY, DUNE_LOGS_GEOMETRY, PIER_GEOMETRIES } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
 import { copyCoverGeometry } from '../src/shards/driftwood-isle/runtime/boot/coverGeometry';
 
+it('declares inert handles before admission and refuses unresolved slot data', async () => {
+  const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));
+  try {
+    await expect(loadFixedGeometry(new Map())).rejects.toThrow('before its product is admitted');
+    expect(fixedGeometryReady()).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  } finally { fetch.mockRestore(); }
+});
+
+it('refuses a replaced slot before template intake or URL fallback', async () => {
+  const aliases = { ...DRIFTWOOD_ASSET_NAMES }, fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));
+  delete aliases['fixed:hat']; aliases['fixed:unowned'] = 'models/fixed/hat.glb';
+  admitDriftwoodFixtureAliases(aliases);
+  try {
+    await expect(loadFixedGeometry(new Map())).rejects.toThrow('Undeclared fixed draw slots');
+    expect(fixedGeometryReady()).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  } finally { fetch.mockRestore(); admitDriftwoodFixtureRows(); }
+});
+
 it('preloads fixed and cover handles from admitted geometry without fetching', async () => {
+  admitDriftwoodFixtureRows();
   const source = new BoxGeometry(), fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));
   try {
+    await expect(loadFixedGeometry(new Map())).rejects.toThrow('Missing Driftwood source draw');
     await loadFixedGeometry(new Map(Object.values(FIXED_MODEL_FILES).map(url => [url, source])));
     expect(fixedGeometryReady()).toBe(true); expect(fetch).not.toHaveBeenCalled();
     const copies = [WENDELL_HEAD_GEOMETRY.copy(), HAT_GEOMETRY.copy(), DUNE_LOGS_GEOMETRY.take(), ...Object.values(copyCoverGeometry())];

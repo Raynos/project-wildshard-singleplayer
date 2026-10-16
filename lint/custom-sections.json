@@ -104,6 +104,18 @@
         "bytes": 197173
       },
       "why": "W2b sp-o283: custom/fixedLayouts gains the shrine's two admitted site layouts and the trophy plaques' vertex ranges the client read from data/shrineBake.json and data/trophySlots.json"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 6,
+        "bytes": 197173
+      },
+      "to": {
+        "count": 6,
+        "bytes": 202261
+      },
+      "why": "G465: replace the 86 fixed-source runtime mirror with admitted asset-index aliases; includes o293's three committed entry-deck sources"
     }
   ]
 }
