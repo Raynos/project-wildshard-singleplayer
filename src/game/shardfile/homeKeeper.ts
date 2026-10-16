@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
@@ -224,6 +224,9 @@ export function createNativeCreatureRoster<B extends {
   materialize: (body: B, recipe: SimSpawn, structure: boolean) => void;
   arrive: (body: B) => void;
   draw: (body: B, consumeMemory?: boolean) => void;
+  /** Replay authored memory-adoption checkpoints, then continue at the declared stream. Preflight is effect-free. */
+  adopt: (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
+    stream: Readonly<RngState>, adopt: (actor: NonNullable<B['actor']>, x: number, z: number) => void) => void;
   retarget: (body: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
     x: number, z: number, allocate: () => { id: string; yaw: number }) => B & { herd: number };
   bindBodyStep: (callbacks: { before: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
@@ -266,6 +269,24 @@ export function createNativeCreatureRoster<B extends {
     item.recipe.scale = ports.rng.range(item.range[0], item.range[1]); ports.rng.next(); item.recipe.seed = ports.rng.next();
     if (consumeMemory) { ports.rng.next(); ports.rng.next(); ports.rng.next(); }
   };
+  const adopt = (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
+    stream: Readonly<RngState>, remember: (actor: NonNullable<B['actor']>, x: number, z: number) => void): void => {
+    const check = new Rng(0), initial = ports.rng.snapshot(), ids = new Set<string>();
+    const validate = (state: Readonly<RngState>): void => {
+      check.restore(state);
+      if (state.initial !== initial.initial || state.scrambledFork !== initial.scrambledFork) throw new Error('Foreign native adoption stream');
+    };
+    if (rows.length > 1024) throw new Error('Native adoption roster exceeds its bound');
+    validate(stream);
+    const ready = rows.map(row => {
+      const item = byId.get(row.id), actor = item?.actor;
+      if (row.id.length === 0 || row.id.length > 128 || ids.has(row.id) || actor === null || actor === undefined
+        || !Number.isFinite(row.x) || !Number.isFinite(row.z) || (row.seed !== undefined && row.seed !== item?.recipe.seed)) throw new Error('Invalid native adoption row');
+      ids.add(row.id); validate(row.stream); return { row, actor };
+    });
+    for (const { row, actor } of ready) { ports.rng.restore(row.stream); remember(actor, row.x, row.z); }
+    ports.rng.restore(stream);
+  };
   const retarget = (item: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
     x: number, z: number, allocate: () => { id: string; yaw: number }): B & { herd: number } => {
     if (variant === undefined) throw new Error('Missing native creature variant');
@@ -295,5 +316,5 @@ export function createNativeCreatureRoster<B extends {
     const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
     materialize(item, item.recipe, level ?? found.structure);
   };
-  return { body, spec, byId, floor, materialize, arrive, draw, retarget, bindBodyStep, reinstall };
+  return { body, spec, byId, floor, materialize, arrive, draw, adopt, retarget, bindBodyStep, reinstall };
 }

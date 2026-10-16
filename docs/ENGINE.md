@@ -5915,6 +5915,13 @@ caller retains poses, herd membership, policies, death/respawn scheduling
 and its existing save envelope. `retarget` reuses a cold recipe slot; it
 creates no actor until `arrive` or `materialize`. `reinstall` restores the
 original adapter placement and structure flag without drawing RNG.
+`adopt(rows, stream, remember)` preflights at most 1,024 unique live body
+identities, optional recipe seeds, finite points and valid checkpoints on
+the owned RNG before calling any memory owner. It restores each declared
+checkpoint in row order, lends the actor and point to `remember`, and
+continues at the final stream. No actor, memory or save owner is replaced.
+Nalati's `runtime/headlessCreatures.ts` adopted-stream boot loop is the
+G441 W3 user of this replay; its callbacks and save envelope stay native.
 `creatureFloor` defaults to the existing ground-material heightfield rule;
 its explicit `any` policy treats every heightfield hit as terrain.
 

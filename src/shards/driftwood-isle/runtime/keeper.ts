@@ -30,13 +30,11 @@ import type { DriftwoodBake } from './baked';
 import { RespawnQueue } from './ecology';
 import { RESPAWN } from '../data/ecology';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
-import { faunaPlacement, faunaSpecies } from './fauna';
+import { faunaSpecies } from './fauna';
+import { DRIFTWOOD_NATIVE_FAUNA } from '../data/nativeFauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
 export const ISLAND_STEP = 'driftwood.island';
-/** The fauna's anchor searches' draws on the creature stream before the first enemy (the four sounders and two bears;
- *  test/shards/driftwood-isle/physics-bake.test.ts reads them off the bake). */
-export const FAUNA_DRAWS = 148;
 /** The load-time roster (13 fauna + 21 enemies). */
 const BODY_COUNT = 34;
 /** The native roster bound, including ecological returns and the captain in his reserved slot. */
@@ -98,7 +96,7 @@ const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.st
 /**
  * Driftwood Isle's creatures in a renderer-free host (SF72), as the shipping AnimalManager and creatures/Enemies.ts keep
  * them. The 13 fauna (four sounders and two bears) come from their baked recipes at the spawns, yaws and herd centres
- * their anchor searches drew off the creature stream `Rng(seed + 31)` (runtime/fauna.ts); each fauna body's memory takes
+ * their anchor searches drew off the creature stream `Rng(seed + 31)` (data/nativeFauna.ts); each fauna body's memory takes
  * the three draws after its seed (HuntBrain.adopt), and the stream then stands exactly past those 148 draws. The 21
  * enemies are placed by `placeEnemies` (crab groups, the practice crab, three monkey troops, the sailor in the hold), each
  * with the manager's spawn draws from that stream (a monkey's variant roll, then scale, rig seed, body seed, and the three
@@ -218,19 +216,16 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const enemyBody = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number): IslandBody =>
     ({ ...intake.body(id, kind, variant, herd, at, yaw), brain: null });
   const fauna = bake.actors.filter(actor => actor.kind === 'boar' || actor.kind === 'bear');
-  const herdBase = new Set(fauna.map(actor => actor.herd)).size;
-  // the fauna's spawns, yaws and herd centres as the anchor searches drew them off the creature stream (runtime/fauna.ts)
-  const stream = faunaPlacement(ports.seed, fauna);
-  if (stream.draws !== FAUNA_DRAWS || stream.centres.length !== herdBase) throw new Error('Driftwood fauna placement diverges from the stream');
-  const spawnOf = (id: string): { x: number; z: number; yaw: number; at: number } => {
-    const at = stream.spawns.get(id); if (at === undefined) throw new Error(`Driftwood fauna ${id} has no stream placement`); return at;
-  };
+  const boot = DRIFTWOOD_NATIVE_FAUNA, herdBase = boot.centres.length;
+  if (ports.seed !== boot.seed || fauna.length !== boot.rows.length || fauna.some((actor, i) => {
+    const row = boot.rows[i]; return row === undefined || row.id !== actor.id || row.herd !== actor.herd || row.seed !== actor.seed;
+  })) throw new Error('Driftwood fauna placement diverges from the authored boot');
   const faunaBody = (actor: (typeof fauna)[number]): IslandBody => {
-    const at = spawnOf(actor.id);
+    const at = boot.rows.find(row => row.id === actor.id); if (at === undefined) throw new Error(`Missing authored fauna ${actor.id}`);
     return { ...intake.body(actor.id, actor.kind, actor.variant, actor.herd, at, at.yaw, [actor.scale, actor.scale], actor), brain: null };
   };
-  // the manager's herds in its order: the fauna's at their drawn centres, then the enemies'
-  bake.herds.slice(0, herdBase).forEach((h, i) => { const c = stream.centres[i]; if (c !== undefined) hunt.addHerd(h.kind, c[0], c[1]); });
+  // The manager's herds retain their original order and authored boot centres.
+  bake.herds.slice(0, herdBase).forEach((h, i) => { const c = boot.centres[i]; if (c !== undefined) hunt.addHerd(h.kind, c[0], c[1]); });
   placed.centres.forEach((c, i) => { hunt.addHerd(bake.herds[herdBase + i]?.kind ?? 'crab', c.x, c.z); });
   if (hunt.herds.length !== bake.herds.length) throw new Error('Driftwood herds diverge from the bake');
 
@@ -249,17 +244,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const tracked = { speed: 0, prev: new Vector3(), seen: false };
   if (saved === undefined) {
     fauna.forEach(actor => { const body = faunaBody(actor); arrive(body); bodies.push(body); });
-    // the fauna's anchor searches drew these from the creature stream before the first enemy; each body's memory took the
-    // three draws after its seed (HuntBrain.adopt at its spawn point)
-    const adoptAt = new Map(bodies.map(b => [spawnOf(b.id).at, b] as const));
-    let drawn = 0;
-    for (let i = 0; i < FAUNA_DRAWS; i++) {
-      if (i < drawn) continue;
-      rng.next(); drawn = i + 1;
-      const body = adoptAt.get(i), a = body?.actor ?? null;
-      if (body !== undefined && a !== null) { hunt.adopt(a, body.recipe.at.x, body.recipe.at.z); drawn += 3; }
-    }
-    if (drawn !== FAUNA_DRAWS || bodies.some(b => b.actor === null || hunt.memory(b.actor) === undefined)) throw new Error('Driftwood fauna memories diverge from the stream');
+    intake.adopt(boot.rows, boot.stream, (actor, x, z) => { hunt.adopt(actor, x, z); });
+    if (bodies.some(b => b.actor === null || hunt.memory(b.actor) === undefined)) throw new Error('Driftwood fauna memories diverge from the stream');
     placed.enemies.forEach((row, i) => {
       const id = `creature:${String(fauna.length + i)}`;
       const variant = row.variant ?? new WeightedTable({ mode: 'weighted', rows: variants(row.kind).map(r => ({ item: r, weight: r.weight })) }).pick(undefined, rng.next())?.item.id;
