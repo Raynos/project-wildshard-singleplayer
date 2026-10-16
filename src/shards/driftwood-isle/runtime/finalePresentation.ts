@@ -15,10 +15,9 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
 import { DrownedCaptain } from '../combat/captain';
-import { CAPTAIN_ARENA_R, CAPTAIN_ID, CAPTAIN_NAME } from './const';
+import { CAPTAIN_ARENA_R, CAPTAIN_ID, CAPTAIN_NAME, FINALE_REWARD } from './const';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from './director';
-import spots from '../data/spots.generated.json' with { type: 'json' };
 
 export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3; rewardPose: { yaw: number; pitch: number; phase: number } }
 
@@ -44,7 +43,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   let captain: AdvAnimal | null = null;
 
   // The page and native reward controller share the author-only placement row.
-  const target = spots.reward, rewardAt = new THREE.Vector3(target.x, target.y, target.z);
+  const target = FINALE_REWARD, rewardAt = new THREE.Vector3(target.x, target.y, target.z);
 
   adv.setAnchor('shrine.reward', { x: rewardAt.x, y: rewardAt.y, z: rewardAt.z });   // the quest's last marker
 

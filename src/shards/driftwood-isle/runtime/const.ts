@@ -187,3 +187,5 @@ export const DECK_SLAB = 0.55;
 export const TROPHY_LAYOUT = { ids: ['bear', 'boar'], gap: 0.8, width: 0.34, height: 0.43, thickness: 0.03, mountY: 0.235, panelOffset: 0.018 } as const;
 /** the ring shrine's two authored sites, the island's and the Explorer specimen's (data/shrineSites.ts) */
 export const SHRINE_SITES = { world: { x: -98, z: 108, rot: 2.51 }, specimen: { x: 0, z: 0, rot: 0 } } as const;
+/** the finale's reward spot on the shrine knoll (data/spots.generated.json `reward`) */
+export const FINALE_REWARD = { x: -96.21572111113656, y: 9.568160017513259, z: 105.52632596242425, yaw: 2.5132741228718345, pitch: 0.6632251157578453, phase: 0.745 } as const;
