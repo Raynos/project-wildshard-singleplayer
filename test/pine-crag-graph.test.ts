@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
-import { CRAG_GRAPHS, CRAG_LOOK, CRAG_TEXTURES } from '../src/shards/pine-hollow/data/cragLook';
+import { CRAG_LOOK, CRAG_TEXTURES } from '../src/shards/pine-hollow/data/cragLook';
+import { CRAG_GRAPHS } from '../src/shards/pine-hollow/generators/cragGraphs';
 
 test("Pine's crag graph validates in its budget and compiles a lit, sun-reach-scaled granite with lent textures", () => {
   const graph = CRAG_GRAPHS[CRAG_LOOK];

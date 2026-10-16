@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
-import { FOREST_GRAPHS, FOREST_LOOKS, FOREST_TEXTURES } from '../src/shards/pine-hollow/data/forestLook';
+import { FOREST_LOOKS, FOREST_TEXTURES } from '../src/shards/pine-hollow/data/forestLook';
+import { FOREST_GRAPHS } from '../src/shards/pine-hollow/generators/forestGraphs';
 
 test("Pine's forest graphs validate in their budgets and compile swayed, dissolving trees with lent textures", () => {
   const lent: Record<string, readonly string[]> = {

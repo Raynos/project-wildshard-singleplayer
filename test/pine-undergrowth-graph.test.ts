@@ -4,7 +4,8 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
 import { Scope } from '../src/engine/app/scope';
 import { validateGraph } from '../src/format/materialGraph';
-import { UNDER_GRAPHS, UNDER_LOOK } from '../src/shards/pine-hollow/data/undergrowthLook';
+import { UNDER_LOOK } from '../src/shards/pine-hollow/data/undergrowthLook';
+import { UNDER_GRAPHS } from '../src/shards/pine-hollow/generators/undergrowthGraphs';
 
 test("Pine's undergrowth graph validates in its budget and compiles a swaying, cut, shadow-casting foliage material", () => {
   // every kind borrows the same compiled graph

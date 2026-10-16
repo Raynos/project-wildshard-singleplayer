@@ -4,7 +4,8 @@ import { PhysicalLightingModel, TextureNode } from 'three/webgpu';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { WATER_GRAPHS, WATER_LOOKS } from '../src/shards/pine-hollow/data/waterLook';
+import { WATER_LOOKS } from '../src/shards/pine-hollow/data/waterLook';
+import { WATER_GRAPHS } from '../src/shards/pine-hollow/generators/waterGraphs';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

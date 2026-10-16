@@ -1,22 +1,22 @@
 import type { GraphIr } from '@wildshard/format/materialGraph';
 import { CABIN_DOOR_GRAPHS, CABIN_MOSS_GRAPHS } from './cabinGraphs';
-import { CAVE_SHAFT_GRAPHS } from '../data/caveShaftLook';
-import { CRAG_GRAPHS } from '../data/cragLook';
-import { FOREST_GRAPHS } from '../data/forestLook';
-import { HEARTH_GRAPHS } from '../data/hearthLook';
-import { KING_FX_GRAPHS } from '../data/kingFxLook';
-import { SKY_GRAPHS } from '../data/skyLook';
-import { SPRAY_GRAPHS } from '../data/streamLook';
-import { UNDER_GRAPHS } from '../data/undergrowthLook';
-import { RAIN_GRAPHS } from '../data/weatherLook';
-import { WATER_GRAPHS } from '../data/waterLook';
-import { WILDLIFE_GRAPHS } from '../data/wildlifeLook';
+import { CAVE_SHAFT_GRAPHS } from './caveShaftGraphs';
+import { CRAG_GRAPHS } from './cragGraphs';
+import { FOREST_GRAPHS } from './forestGraphs';
+import { HEARTH_GRAPHS } from './hearthGraphs';
+import { KING_FX_GRAPHS } from './kingFxGraphs';
+import { SKY_GRAPHS } from './skyGraphs';
+import { SPRAY_GRAPHS } from './streamGraphs';
+import { UNDER_GRAPHS } from './undergrowthGraphs';
+import { RAIN_GRAPHS } from './weatherGraphs';
+import { WATER_GRAPHS } from './waterGraphs';
+import { WILDLIFE_GRAPHS } from './wildlifeGraphs';
 
 /**
- * Every SF59 material graph Pine Hollow's runtime draws its own meshes in, by look.materials id: the cabin doors,
- * roofs and stone (./cabinGraphs.ts), the hearth particles, the cave's shaft, the crags' granite, the waterfall's
- * spray, the water, the Antler King fight's fog wall and fallen-lantern flames, the rain's splashes and lens drops and
- * the forest floor's undergrowth. runtime/index.ts compiles them all before the streams build.
+ * Every SF59 material graph Pine Hollow's runtime draws its own meshes in, by look.materials id (each built by its
+ * ./*Graphs.ts): the cabin doors, roofs and stone, the hearth particles, the cave's shaft, the crags' granite, the
+ * waterfall's spray, the water, the Antler King fight's fog wall and fallen-lantern flames, the rain's splashes and lens
+ * drops and the forest floor's undergrowth. runtime/index.ts compiles them all before the streams build.
  */
 export const PINE_GRAPHS: Readonly<Record<string, GraphIr>> = { ...CABIN_DOOR_GRAPHS, ...CABIN_MOSS_GRAPHS, ...HEARTH_GRAPHS, ...CAVE_SHAFT_GRAPHS, ...CRAG_GRAPHS, ...SPRAY_GRAPHS, ...KING_FX_GRAPHS, ...RAIN_GRAPHS, ...UNDER_GRAPHS, ...WATER_GRAPHS };
 

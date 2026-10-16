@@ -5,7 +5,7 @@ import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { materialTextureRefs } from '../src/format/materials';
 import { clientGraphs } from '../src/game/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
-import { SKY_GRAPHS } from '../src/shards/pine-hollow/data/skyLook';
+import { SKY_GRAPHS } from '../src/shards/pine-hollow/generators/skyGraphs';
 
 const LENT: GraphIr = { version: 1, kind: 'material', model: 'unlit',
   params: { key: { type: 'texture', value: 'slot', role: 'lent' } },
