@@ -3,7 +3,7 @@ import { CROSSBOW_GEOMETRY } from '../../../boot/crossbowGeometry';
 import rows from '../../../data/crossbowPool.generated.json' with {type:'json'};
 import { viewmodelTexSet, makeCord, makeBoltAtlas, viewmodelMaterial, viewmodelRowMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbow as BoltCrossbowWeapon } from '../../items/boltCrossbow';
+import { BoltCrossbow as BoltCrossbowWeapon, type BoltCrossbowParts, type BoltCrossbowView } from '../../items/boltCrossbow';
 import { WeaponHands, coatSet, holdDef, loadCoatTextures, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
 import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from '../../../data/handsLook';
 import { CROSSBOW_MATERIALS, CROSSBOW_TILING } from '../../../data/heldLook';
@@ -113,7 +113,12 @@ export async function prepareCrossbowHands(due: () => Promise<void> | null): Pro
   const wait = due(); if (wait !== null) await wait;
 }
 
+type CrossbowArguments = ConstructorParameters<typeof BoltCrossbowWeapon<CrossbowProfile>>;
 /** Pine's crossbow: the row bound to the platform's bolt crossbow (`new Crossbow(world, targets, { row })`). */
-export const Crossbow = crossbowType({ profile: CROSSBOW_PROFILE, parts: buildCrossbow, hands: crossbowHands, flight: boltFlightStep, view: CROSSBOW_VIEW });
+export class Crossbow extends BoltCrossbowWeapon<CrossbowProfile> {
+  constructor(world: CrossbowArguments[0], targets: CrossbowArguments[1], opts: Pick<CrossbowArguments[2], 'row' | 'allowUnlocked'> & { profile?: CrossbowProfile }) {
+    super(world, targets, { ...opts, profile: opts.profile ?? CROSSBOW_PROFILE, parts: buildCrossbow, hands: crossbowHands, flight: boltFlightStep, view: CROSSBOW_VIEW });
+  }
+}
 /** A built Pine crossbow. */
 export type CrossbowWeapon = BoltCrossbowWeapon<CrossbowProfile>;

@@ -27,7 +27,7 @@ import * as THREE from 'three';
  * ADS = iron sights at a real eye relief: model rotation 0, the eye on the comb (`view.sight.eyeZ`) on the sight line; FOV
  * hip → ADS through `fovForAspect`; the cycle pulls the rifle off the eye.
  *
- *   export const LeverRifle = leverFirearmType({ profile: LEVER_PROFILE, build, cartridge, action, hands, view: LEVER_VIEW });
+ *   The named LeverRifle constructor supplies the authored profile, build, cartridge, action, hands and view.
  *   const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked, woodFrom });
  */
 
@@ -401,35 +401,4 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   }
 
 
-}
-
-/** A shard's lever-action as a row: its default profile, model and cartridge builders, action, hands and view. `B` is the
- *  shard's own construction options its builder reads (a model to build from, a viewmodel to borrow a texture from). */
-export interface LeverFirearmRow<P extends LeverFirearmProfile, B extends object> {
-  readonly profile: P;
-  readonly build: (sky: Sky, opts: B) => LeverFirearmBuild;
-  readonly cartridge: (live: boolean) => THREE.BufferGeometry;
-  readonly action: (store: { reserve: number }) => LeverFirearmAction;
-  readonly hands: LeverFirearmHandsKit;
-  readonly view: LeverFirearmView;
-}
-/** Construction of a row-bound lever-action: its equipment row, an optional profile, the muzzle light and the shard's own. */
-export type LeverFirearmRowOptions<P extends LeverFirearmProfile, B extends object> = RangedOptions & { profile?: P; muzzleLight?: boolean } & B;
-/** The constructor a row binds: `new LeverRifle(world, targets, { row })`, as every other held weapon is built. */
-export interface LeverFirearmType<P extends LeverFirearmProfile, B extends object> {
-  new (world: RangedWorld, targets: Targets | undefined, opts: LeverFirearmRowOptions<P, B>): LeverFirearm<P>;
-  readonly prototype: LeverFirearm<P>;
-}
-/**
- * Bind a shard's row to the family (SHARD-PLATFORM SF36): the shard writes data and a model, never a subclass.
- *
- *   export const LeverRifle = leverFirearmType({ profile: LEVER_PROFILE, build, cartridge, action, hands, view: LEVER_VIEW });
- *   const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked, woodFrom });
- */
-export function leverFirearmType<P extends LeverFirearmProfile, B extends object>(row: LeverFirearmRow<P, B>): LeverFirearmType<P, B> {
-  return class extends LeverFirearm<P> {
-    constructor(world: RangedWorld, targets: Targets | undefined, opts: LeverFirearmRowOptions<P, B>) {
-      super(world, targets, { ...opts, profile: opts.profile ?? row.profile, build: (sky) => row.build(sky, opts), cartridge: row.cartridge, action: row.action, hands: row.hands, view: row.view });
-    }
-  };
 }

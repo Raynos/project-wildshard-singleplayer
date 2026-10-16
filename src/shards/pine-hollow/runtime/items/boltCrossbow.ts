@@ -36,7 +36,7 @@ import * as THREE from 'three';
  * ADS = true iron sights, not a zoom: the camera looks straight down the bolt, the pose solved per (aspect, fov, scale)
  * from the parts and `view.ads`, with the rear peep (`view.peep`) faded in on the eye → tip line.
  *
- *   export const Crossbow = crossbowType({ profile: CROSSBOW_PROFILE, parts: buildCrossbow, hands: crossbowHands, flight: boltFlightStep, view: CROSSBOW_VIEW });
+ *   The named Crossbow constructor supplies the authored profile, parts, hands, flight and view.
  *   const crossbow = new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked });
  *   game.onUpdate((dt, t) => crossbow.update(dt, t));   // register AFTER player.update
  *
@@ -407,35 +407,4 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   /** flying bolt count (for debugging / HUD) */
   get inFlight(): number { let n = 0; for (const b of this.bolts) if (b.active) n++; return n; }
   get stuckCount(): number { return this.presentation.stuckCount; }
-}
-
-/** A shard's crossbow as a row: its default profile, parts and hands builders, flight law and view. */
-export interface BoltCrossbowRow<P extends BoltCrossbowProfile> {
-  readonly profile: P;
-  readonly parts: BoltCrossbowOptions<P>['parts'];
-  readonly hands?: BoltCrossbowOptions<P>['hands'];
-  readonly flight: BoltFlightStep<P>;
-  readonly view: BoltCrossbowView;
-}
-/** Construction of a row-bound crossbow: its equipment row and an optional profile over the row's. */
-export interface BoltCrossbowRowOptions<P extends BoltCrossbowProfile> extends RangedOptions {
-  profile?: P;
-}
-/** The constructor a row binds: `new Crossbow(world, targets, { row })`, as every other held weapon is built. */
-export interface BoltCrossbowType<P extends BoltCrossbowProfile> {
-  new (world: RangedWorld, targets: Targets | undefined, opts: BoltCrossbowRowOptions<P>): BoltCrossbow<P>;
-  readonly prototype: BoltCrossbow<P>;
-}
-/**
- * Bind a shard's row to the family (SHARD-PLATFORM SF36): the shard writes data and a model, never a subclass.
- *
- *   export const Crossbow = crossbowType({ profile: CROSSBOW_PROFILE, parts: buildCrossbow, hands: crossbowHands, flight: boltFlightStep, view: CROSSBOW_VIEW });
- *   const crossbow = new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked });
- */
-export function crossbowType<P extends BoltCrossbowProfile>(row: BoltCrossbowRow<P>): BoltCrossbowType<P> {
-  return class extends BoltCrossbow<P> {
-    constructor(world: RangedWorld, targets: Targets | undefined, opts: BoltCrossbowRowOptions<P>) {
-      super(world, targets, { ...opts, profile: opts.profile ?? row.profile, parts: row.parts, ...(row.hands ? { hands: row.hands } : {}), flight: row.flight, view: row.view });
-    }
-  };
 }

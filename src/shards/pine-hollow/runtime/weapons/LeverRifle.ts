@@ -1,7 +1,7 @@
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, weaponDisplay, type TexSet } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
+import { LeverFirearm as LeverFirearmWeapon, type LeverFirearmHandsKit, type LeverFirearmView } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { WeaponHands, gripPose, holdDef } from '../viewmodel/gloveHands';
 import { HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
@@ -161,14 +161,14 @@ function requireLeverModel(): LeverModel {
   return modelReady;
 }
 
+type LeverArguments = ConstructorParameters<typeof LeverFirearmWeapon<FirearmProfile>>;
 /** Pine's lever-action: the row bound to the platform's lever firearm (`new LeverRifle(world, targets, { row })`). */
-export const LeverRifle = leverFirearmType<FirearmProfile, LeverBuildOptions>({
-  profile: LEVER_PROFILE,
-  build: (sky: Sky, opts: LeverBuildOptions): LeverFirearmBuild => buildLever(sky, opts.model ?? requireLeverModel()),
-  cartridge: cartridgeGeometry,
-  action: (store) => new LeverAction(store),
-  hands: LEVER_HANDS,
-  view: LEVER_VIEW,
-});
+export class LeverRifle extends LeverFirearmWeapon<FirearmProfile> {
+  constructor(world: LeverArguments[0], targets: LeverArguments[1], opts: Pick<LeverArguments[2], 'row' | 'allowUnlocked' | 'muzzleLight'> & { profile?: FirearmProfile } & LeverBuildOptions) {
+    super(world, targets, { ...opts, profile: opts.profile ?? LEVER_PROFILE,
+      build: sky => buildLever(sky, opts.model ?? requireLeverModel()), cartridge: cartridgeGeometry,
+      action: store => new LeverAction(store), hands: LEVER_HANDS, view: LEVER_VIEW });
+  }
+}
 /** A built Pine lever-action. */
 export type LeverRifleWeapon = LeverFirearmWeapon<FirearmProfile>;
