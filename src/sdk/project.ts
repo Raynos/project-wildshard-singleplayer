@@ -31,6 +31,7 @@ import type { RuntimeMirror } from './runtimeMirrors';
 import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './outputRuntime';
 import { readManifestSource, type ProjectManifestSource } from './projectManifest';
 import { projectDecisionOptions } from './projectDecisions';
+import { projectDecisionBudget } from './projectPolicy';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -80,7 +81,7 @@ async function projectModule(project: string, decisionLegacyLines?: number): Pro
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
   const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
-  const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output'], { source: shard, options: projectDecisionOptions(loaded['buildOptions'], decisionLegacyLines) });
+  const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output'], { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);

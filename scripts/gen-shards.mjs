@@ -6,6 +6,7 @@ import ts from '@typescript/typescript6';
 import { shardManifestPath, authoredManifestSource } from './authored-manifest.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { legacyInventory, legacyPrimary } from './legacy-shards.mjs';
+import { genDecisionPolicies } from './gen-decision-policy.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
 export function manifestClosure(root) {
@@ -44,7 +45,7 @@ export function manifestClosure(root) {
 
 export function shardFolders(root) {
   return readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && (existsSync(resolve(root, 'src/shards', entry.name, 'manifest.ts')) || existsSync(resolve(root, 'src/shards', entry.name, 'manifest.json'))))
+    .filter((entry) => entry.isDirectory() && ['manifest.ts', 'manifest.json'].some(file => existsSync(resolve(root, 'src/shards', entry.name, file))))
     .map((entry) => entry.name).sort();
 }
 
@@ -172,6 +173,7 @@ export function manifestContract(root, closure, fields = false) {
 
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardWords(root, check, shard);
+  genDecisionPolicies(root, check, initializeMissing);
   for (const slug of shardFolders(root)) {
     if (!existsSync(resolve(root, `src/shards/${slug}/manifest.json`))) continue;
     const path = resolve(root, shardManifestPath(root, slug)), source = authoredManifestSource(root, slug);

@@ -7,7 +7,7 @@ import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
-import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';
+import { performanceTargetIssues } from './reportCard';
 import { packProjectMap } from './projectMap';
 import { readBoundedFile } from './sourceReader';
 import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
@@ -15,9 +15,10 @@ import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 
 /** Refuse the same target overages as the author CLI; warning policy belongs only to trusted checkout callers. */
 export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
-  if (!performanceTargetIssues(source, policy).some(issue => issue.severity === 'refusal')) return;
-  const unmeasured = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
-  throw new Error(performanceReportLines(performanceReport(source, unmeasured, policy)).join('\n'));
+  const issues = performanceTargetIssues(source, policy).filter(issue => issue.severity === 'refusal');
+  if (issues.length === 0) return;
+  // Execution has not run yet; report only the targets actually checked.
+  throw new Error(issues.map(issue => `REFUSAL: ${issue.metric}: ${issue.actual} > ${issue.limit}`).join('\n'));
 }
 
 /** Admit declared costs and actual immutable bytes through the browser's defining contracts, without a config loader. */

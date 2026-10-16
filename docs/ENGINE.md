@@ -7548,3 +7548,16 @@ strike saves remain with their owners. Restore validates before mutation,
 enters no Wasm and emits no gameplay edge. This authority seam alone does
 not remove a species' existing controller: the page/native adopter must
 hand it over before its old policy can be deleted.
+
+### Project decision budgets (KA3)
+
+The v1 author compiler runs only for declared `sim/scripts` rows. ABI0-only
+sources keep their existing intake and do not require a decision ceiling.
+Root `gen-shards` emits `.wildshard/build-policy.json` from the same sealed
+legacy inventory and exclusions used by the ruler. SDK project intake reads
+that bounded portable policy, so direct `buildProject` and `readProjectAssets`
+calls enforce the same ten-percent ceiling as the root CLI. The SDK imports
+no repository policy module. Standalone v1 projects still declare an explicit
+`buildOptions.asLineCeiling`; generated code never counts as authored AS.
+Early asset target errors report target checks alone; execution sample
+requirements are checked only after the real simulation measurement.
