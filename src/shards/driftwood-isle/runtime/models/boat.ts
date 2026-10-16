@@ -16,18 +16,10 @@ import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeomet
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BOAT_LAYOUT } from '../const';
-import { boatStation as authoredBoatStation } from '../world/boatFrame';
 
 export const LENGTH = BOAT_LAYOUT.length, BEAM = BOAT_LAYOUT.beam;
 /** the floor boards' top over the waterline (own y): where you stand in it */
 export const BOAT_FLOOR = BOAT_LAYOUT.floor;
-export const BOAT_DECK_T = BOAT_LAYOUT.deckThickness;
-
-/** a hull station, bow (t = 0, −z) → transom (t = 1); y = 0 is the waterline */
-export interface BoatStation { t: number; z: number; w: number; sheer: number; keel: number; floor: number }
-export function boatStation(t: number): BoatStation {
-  return authoredBoatStation(t);
-}
 
 /**
  * PHYSICS P4, own space: the four gunwale / bow / stern walls (they keep you in the boat once you're in, and keep a

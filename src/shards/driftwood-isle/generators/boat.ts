@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { beam, log, plank, rope, sagLine } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { BOAT_LAYOUT, type BoatStation } from '../data/boatLayout';
-import { boatStation } from '../runtime/world/boatFrame';
+import { BOAT_LAYOUT } from '../data/boatLayout';
+import { boatStation, type BoatStation } from './boatFrame';
 
 const LENGTH = BOAT_LAYOUT.length, BOAT_FLOOR = BOAT_LAYOUT.floor, BOAT_DECK_T = BOAT_LAYOUT.deckThickness;
 

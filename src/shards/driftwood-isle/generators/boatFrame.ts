@@ -1,9 +1,9 @@
-import { BOAT_LAYOUT } from '../const';
+import { BOAT_LAYOUT } from '../data/boatLayout';
 
-/** one hull station (mirrors data/boatLayout.ts BoatStation) */
+/** One offline hull station used by the retained boat and mooring recipes. */
 export interface BoatStation { t: number; z: number; w: number; sheer: number; keel: number; floor: number }
 
-/** The retained authored hull equation; moving it out of the live model is not a custom-runtime cut. */
+/** The retained hull equation, evaluated only by the offline mesh recipes. */
 export function boatStation(t: number): BoatStation {
   const W = BOAT_LAYOUT.beam / 2 - 0.03, FLOOR = BOAT_LAYOUT.floor, DECK_T = BOAT_LAYOUT.deckThickness;
   const fore = Math.min(1, t / 0.42), aft = Math.max(0, (t - 0.55) / 0.45);
