@@ -39,7 +39,6 @@ import { loadPainted } from '../looks/paintedTextures';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
-import { STONE_KINDS, standingStone } from '../models/standingStone';
 import { heroModel } from '../models/waystone';
 import { caveArch, openCaveArch } from '../models/caveArch';
 import { loadTimber, type Floor } from './timber';
@@ -148,8 +147,8 @@ export class PineLandmarks {
     const sites = authored.landmarks;
     if (sites.stones.length > MAX_STONE_ROWS) throw new Error(`[landmarks] ${String(sites.stones.length)} standing-stone rows is over ${String(MAX_STONE_ROWS)}`);
     for (let i = 0; i < Math.min(sites.stones.length, MAX_STONE_ROWS); i++) {
-      const row = sites.stones[i], kind = row === undefined ? undefined : STONE_KINDS.find(value => value === row.kind);
-      if (row && kind) await add(standingStone, kind, row.places, { variant: kind });
+      const row = sites.stones[i], kind = row === undefined ? undefined : PINE_HERO_IDS.find(value => value === row.kind);
+      if (row && kind) await add(heroModel(kind), kind, row.places, { variant: kind });
     }
     // Deck support remains the live timber owner's; the base terrain site is authored.
     const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));

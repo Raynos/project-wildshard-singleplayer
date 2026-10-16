@@ -35,11 +35,9 @@ import authored from '../../data/timberWorld.generated.json' with { type: 'json'
 import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
-import { CRAG_LOD, useCragKit } from './cragKit';
+import { useCragKit } from './cragKit';
 import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
-import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
-import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
-import { SCREE_MODULES, scree as screeFan } from '../models/scree';
+import { CRAG_MODELS } from '../models/cragCliff';
 import { CAVE_LOOK, CRAG_LOOK } from '../const';
 import { pineLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
@@ -87,9 +85,6 @@ function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): TH
 
 /** most of the world's own batch instances (the face skin's tiles, the cave, its hood; throws past it) */
 const MAX_OWN = 64;
-
-/** LOD / range per kind (m, camera to the instance less half its radius): the kit's models' (world/cragKit.ts) */
-const LOD = CRAG_LOD;
 
 /** the kit's vertex colour and tint UV, as the granite's graph reads them (../data/cragLook.ts) */
 const KIT_ATTRS = { position: { source: 'position', size: 3 }, normal: { source: 'normal', size: 3 }, aCdata: { source: 'color', size: 4, fill: 1 }, aCtint: { source: 'uv', size: 2, fill: 0 } } as const;
@@ -177,7 +172,7 @@ export class PineCrags {
 
     // the modules, as models: every place call adds its (variant, level) geometries and its copies to the one batch
     const of = (ids: readonly string[]): CragPlace[] => places.filter((p) => ids.includes(p.id) && this.kit.has(p.id));
-    const byKind = [of(CLIFF_MODULES), of(BOULDER_MODULES), of(SCREE_MODULES)] as const;
+    const byKind = CRAG_MODELS.map((row) => of(row.modules));
     if (this.mat && (plan.length > 0 || byKind.some((l) => l.length > 0))) {
       const capacity=assembly.reserve;
       const bm = this.batch = new THREE.BatchedMesh(capacity.instances,capacity.vertices,capacity.indices,this.mat);
@@ -202,9 +197,7 @@ export class PineCrags {
         await placed.registered;
         if (placed.colliders.length > 0) await yieldTask();
       };
-      await placeKind(cragCliff, byKind[0], LOD.bigFar);
-      await placeKind(cragBoulder, byKind[1], LOD.smallFar);
-      await placeKind(screeFan, byKind[2], LOD.screeFar);
+      for (let k = 0; k < 3; k++) { const row = CRAG_MODELS[k]; if (row) await placeKind(row.model, byKind[k] ?? [], row.far); } // the three crag rows
     }
     const bm = this.batch;
     if (bm) {

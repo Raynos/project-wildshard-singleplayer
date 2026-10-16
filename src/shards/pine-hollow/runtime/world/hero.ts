@@ -2,8 +2,7 @@
  * How Pine Hollow loads its image-to-3D hero props for their models (E315 M2; PINE-HOLLOW-REMASTER PH-B3): TRELLIS.2
  * generations built by scripts/img2mesh/build_props.py into public/assets/models/pine-hollow-hero/ — `<id>/<id>.glb`
  * (LOD0), its `.phone.glb` (the boot's swap) and `<id>-lod1/<id>-lod1.glb` — PBR kept, filtered and prepared by the
- * shard's sky. The models (../models/standingStone.ts, waystone.ts, beaverDam.ts, canoe.ts, contractBoard.ts,
- * caveArch.ts) draw LOD0 near (with its shadow) and LOD1 past their own distance (no shadow: a few pixels there).
+ * shard's sky. The models (the hero rows of ../models/waystone.ts, and caveArch.ts) draw LOD0 near (with its shadow) and LOD1 past their own distance (no shadow: a few pixels there).
  */
 import * as THREE from 'three';
 import { loadLodPairInto, lodPairOf, vertexHull, type GlbPart } from '@wildshard/engine/models/glb';
