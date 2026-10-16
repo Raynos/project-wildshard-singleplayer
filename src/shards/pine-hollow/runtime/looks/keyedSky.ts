@@ -3,7 +3,7 @@ import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdr
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { DayClock } from '@wildshard/sdk/looks/dayClock';
-import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
+import { driveDayAir, driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/sdk/looks/graphDaySky';
 import { overcastOver } from '@wildshard/sdk/looks/overcast';
 import * as THREE from 'three';
@@ -104,6 +104,8 @@ export class KeyedSky {
   private sun = new THREE.Vector3();
   private moon = new THREE.Vector3();
   private fogCol = new THREE.Color();
+  /** the air's frame (`driveDayAir`), refilled every frame */
+  private readonly air = { fog: this.fogCol, body: this.sun, cloudBody: this.sun, fade: 0, above: 0, discScale: 1, haloK: 1 };
   private resident = new Map<string, Resident>();
   private loading = new Map<string, Promise<Resident | null>>();
   private blobs = new Map<string, Promise<{ color: Blob; gain: Blob }>>();
@@ -314,29 +316,13 @@ export class KeyedSky {
     const shade = 1 + (this.style.nightShadow - 1) * this.night;
     for (let i = 0; i < Math.min(T.lights.length, 4); i++) { const l = T.lights[i]; if (l !== undefined) l.shadow.intensity = shade; }
     T.sunColor.copy(C.light).multiplyScalar(Math.max(0.05, fade * C.lightI / 3.8));
-    this.scene.environmentIntensity = C.env;
-    if (!T.underwater()) {
-      T.fog.color.copy(this.fogCol);
-      T.fogU.fogSunColor.value.copy(C.fogSun);
-      T.fogU.fogDistDensity.value = C.fogDist;
-      T.fogU.fogHeightDensity.value = C.fogHeight;
-    }
-    // the disc (the god-ray source) and its corona: the moon is smaller; neither shows through the ground
-    const above = THREE.MathUtils.smoothstep(lightDir.y, -0.03, 0.02);
-    // the moon comes and goes by size, not colour: a darkened disc would read as a black dot on the dusk sky
-    (T.disc.material as THREE.MeshBasicMaterial).color.copy(C.disc).multiplyScalar(above);
-    T.disc.scale.setScalar((day ? 1 : 0.6 * Math.max(1e-3, fade)) * Math.max(1e-3, 1 - ov));
-    if (T.halo) { T.halo.material.color.copy(C.halo); T.halo.material.opacity = C.haloO * above * (day ? 1 : fade); }
-    T.cloud.uSunDir.value.copy(day || this.night < 0.5 ? this.sun : this.moon);
-    T.cloud.uSunColor.value.copy(C.cloudSun); T.cloud.uCloudLit.value.copy(C.cloudLit); T.cloud.uCloudAlpha.value = C.cloudA;
-    T.far.uHazeCol.value.copy(C.far); T.far.uSeaSky.value.copy(C.far).multiplyScalar(1.1); T.far.uSeaSun.value.copy(C.light).multiplyScalar(Math.max(0.1, fade)); T.far.uSeaSunDir.value.copy(lightDir);
-    if (post) {
-      post.vol.setSun(lightDir, tmpC.copy(C.volColor).multiplyScalar(Math.max(0.15, fade)));
-      post.vol.setFogColor(this.fogCol);
-      post.vol.setStrength(C.vol);
-      if (post.rays) post.rays.blendMode.opacity.value = C.rays * above;
-      if (post.hueSat) post.hueSat.saturation = C.sat;
-    }
+    // the disc (the god-ray source) and its corona: the moon is smaller and comes and goes by size, not colour (a darkened
+    // disc reads as a black dot on the dusk sky); neither shows through the ground
+    const air = this.air;
+    air.body = lightDir; air.cloudBody = day || this.night < 0.5 ? this.sun : this.moon; air.fade = fade; air.haloK = day ? 1 : fade;
+    air.above = THREE.MathUtils.smoothstep(lightDir.y, -0.03, 0.02);
+    air.discScale = (day ? 1 : 0.6 * Math.max(1e-3, fade)) * Math.max(1e-3, 1 - ov);
+    driveDayAir(T, post, this.scene, C, air);
   }
 }
 

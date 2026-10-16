@@ -1,4 +1,4 @@
-import type { SkyBackdropTargets } from '@wildshard/engine/render/look';
+import type { SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import * as THREE from 'three';
@@ -50,4 +50,60 @@ export function driveDayLight<S extends DayLookSchema>(T: SkyBackdropTargets, da
   T.hemi.color.copy(row.hemiSky); T.hemi.groundColor.copy(row.hemiGround); T.hemi.intensity = row.hemiI;
   T.fogU.fogSunDir.value.copy(dir);
   return fade;
+}
+
+/** The air a keyed day preset sets beside its key light (field names as a day-look schema declares them, live colours). */
+export interface DayAirRow {
+  /** scene.environmentIntensity; the fog's sun in-scatter colour and its distance / height densities */
+  readonly env: number; readonly fogSun: THREE.Color; readonly fogDist: number; readonly fogHeight: number;
+  /** the disc's colour, the corona sprite's colour and opacity */
+  readonly disc: THREE.Color; readonly halo: THREE.Color; readonly haloO: number;
+  /** the cloud layer: its tint toward the light, its lit / shade multiplier, its opacity */
+  readonly cloudSun: THREE.Color; readonly cloudLit: THREE.Color; readonly cloudA: number;
+  /** the far ridges' haze, and the key light's colour (the far sea's glint) */
+  readonly far: THREE.Color; readonly light: THREE.Color;
+  /** the volumetric shafts' colour and strength, the god rays' opacity, the grade's saturation */
+  readonly volColor: THREE.Color; readonly vol: number; readonly rays: number; readonly sat: number;
+}
+
+/** This frame's light body as the air reads it (a caller keeps one and refills it: nothing allocated a frame). */
+export interface DayAirFrame {
+  /** the fog's colour (the sky's horizon of the hour) */
+  readonly fog: THREE.Color;
+  /** the light body (the sun by day, the moon by night) and the direction the cloud layer is lit from */
+  readonly body: THREE.Vector3; readonly cloudBody: THREE.Vector3;
+  /** `driveDayLight`'s fade, the body above the horizon (0 … 1), the disc's scale and the corona's share of its opacity */
+  readonly fade: number; readonly above: number; readonly discScale: number; readonly haloK: number;
+}
+
+const airTint = new THREE.Color();
+/**
+ * The air at the hour (beside `driveDayLight`): the scene's image-based light, the fog (its colour, sun in-scatter and
+ * densities; left alone while the eye is under water, where the atmosphere owns it), the disc and its corona, the cloud
+ * layer, the far ridges' haze and sea glint, and the post chain's shafts, god rays and saturation. Uniforms, colours and
+ * intensities only: no program changes. Pine Hollow's keyed sky is its user; G441's W3 match is Nalati's `look/skyRig.ts`
+ * `apply` (its environment, fog, disc, corona and cloud-light writes).
+ */
+export function driveDayAir(T: SkyBackdropTargets, post: SkyBackdropPost | null, scene: { environmentIntensity: number }, row: DayAirRow, f: DayAirFrame): void {
+  scene.environmentIntensity = row.env;
+  if (!T.underwater()) {
+    T.fog.color.copy(f.fog);
+    T.fogU.fogSunColor.value.copy(row.fogSun);
+    T.fogU.fogDistDensity.value = row.fogDist;
+    T.fogU.fogHeightDensity.value = row.fogHeight;
+  }
+  (T.disc.material as THREE.MeshBasicMaterial).color.copy(row.disc).multiplyScalar(f.above);
+  T.disc.scale.setScalar(f.discScale);
+  if (T.halo) { T.halo.material.color.copy(row.halo); T.halo.material.opacity = row.haloO * f.above * f.haloK; }
+  T.cloud.uSunDir.value.copy(f.cloudBody);
+  T.cloud.uSunColor.value.copy(row.cloudSun); T.cloud.uCloudLit.value.copy(row.cloudLit); T.cloud.uCloudAlpha.value = row.cloudA;
+  T.far.uHazeCol.value.copy(row.far); T.far.uSeaSky.value.copy(row.far).multiplyScalar(1.1);
+  T.far.uSeaSun.value.copy(row.light).multiplyScalar(Math.max(0.1, f.fade)); T.far.uSeaSunDir.value.copy(f.body);
+  if (post) {
+    post.vol.setSun(f.body, airTint.copy(row.volColor).multiplyScalar(Math.max(0.15, f.fade)));
+    post.vol.setFogColor(f.fog);
+    post.vol.setStrength(row.vol);
+    if (post.rays) post.rays.blendMode.opacity.value = row.rays * f.above;
+    if (post.hueSat) post.hueSat.saturation = row.sat;
+  }
 }

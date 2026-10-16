@@ -2217,6 +2217,16 @@ their GPU bytes. The shard's `build(context, graphs)` returns a `DaySkyBody`: it
 (`runDayClock`) and frame (`drive(targets, post, snap)`), plus what it holds beyond them. Pine Hollow's keyed sky
 (`runtime/looks/keyedSky.ts`) and Driftwood's faceted day (`runtime/looks/facetedDayBackdrop.ts`) are its users.
 
+**Day air (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/daySky` (`src/sdk/looks/daySky.ts`) `driveDayAir(targets,
+post, scene, row, frame)` writes the air a keyed day preset sets beside its key light (`driveDayLight`): the scene's
+`environmentIntensity`, the fog's colour, sun in-scatter and distance / height densities (left alone under water), the
+disc's colour and scale, the corona's colour and opacity, the cloud layer, the far ridges' haze and sea glint, and the
+post chain's shafts, god rays and saturation. `DayAirRow` names the preset's fields (`env`, `fogSun`, `fogDist`,
+`fogHeight`, `disc`, `halo`, `haloO`, `cloudSun`, `cloudLit`, `cloudA`, `far`, `light`, `volColor`, `vol`, `rays`,
+`sat`); `DayAirFrame` is the caller's reused frame (fog colour, light body, cloud light direction, fade, above-horizon
+share, disc scale, corona share). Uniforms only, no program changes. Pine Hollow's keyed sky is its user; G441's W3 match
+is Nalati `look/skyRig.ts` `SkyRig.apply`, whose environment, fog, disc, corona and cloud-light writes move onto it.
+
 **Overcast rows (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/overcast` (`src/sdk/looks/overcast.ts`)
 `overcastOver(look, rows, s, level)` lays a cloud deck `s` (0 … 1) over the hour's blended look in place from
 `OvercastRow` data: `scale` (× 1 + by·s, optionally through a smoothstep `curve`), `add`, `atLeast`, `grey` (toward the
