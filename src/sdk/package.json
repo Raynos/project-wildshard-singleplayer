@@ -126,7 +126,8 @@
     "./productOutput": "./productOutput.ts",
     "./projectMap": "./projectMap.ts",
     "./random": "./random.ts",
-    "./looks/posedInstances": "./looks/posedInstances.ts"
+    "./looks/posedInstances": "./looks/posedInstances.ts",
+    "./looks/streamedInstances": "./looks/streamedInstances.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

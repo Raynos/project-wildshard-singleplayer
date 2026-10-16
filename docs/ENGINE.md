@@ -5996,6 +5996,27 @@ clocks and visibility decisions. Pine wildlife is the current user; G441
 registers Nalati `creatures/flock.ts` (`iAnim`, `writeInstances`, `useRig`)
 as its W3 adopter, rechecked at the end of W3.
 
+### Cell-streamed instances
+
+`src/sdk/looks/streamedInstances.ts` holds the bookkeeping of a scatter
+streamed round a viewer. `CellWindow<T>(size, build)` keys square cells,
+builds a cell's contents once through `build`, keeps at most `cacheMax`
+of them (oldest dropped first) and lists the cells within a radius,
+nearest first (`within`). `instanceTier(parent, name, geometry, material,
+cap, attrs, { coloured, castShadow })` makes an `InstanceTier`: two
+InstancedMeshes on twin geometries (the model's attributes shared, the
+per-instance matrices, colours and declared attributes each their own).
+`begin`, write into `arrays()` at `n`, then `upload(bytes)` marks only the
+written instances, a byte budget at a time, and `swap` shows the set in
+one frame. Both meshes start visible at count 0, so the boot creates
+their GPU buffers. What a cell holds, which instances show and what each
+attribute means stay the caller's. Driftwood's streamed ground cover
+(`runtime/looks/streamedCover.ts`) is the current user; its per-cell
+generation, far tier, slope reach and upload budget stay in the shard.
+G441 registers Nalati `world/dressing/layer.ts#DressLayer` (its 24 m cell
+buckets and range walk, the cull's front-of-buffer copy, count and
+upload) as the W3 adopter, rechecked at the end of W3.
+
 ### Ordered model placement batches
 
 `src/engine/models/placementBatch.ts` provides `ModelPlacementBatch` over

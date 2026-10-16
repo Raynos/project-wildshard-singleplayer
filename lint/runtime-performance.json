@@ -2870,67 +2870,11 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:bfd03176be867c2e7130b404f1d150459c4b3e834a6567aaad6d4a0acc9a68d8": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:1dd79ecdb2a61ad1d402da23952c041912c90ee7696d8558b211640c4de9fdd2": {
-      "count": 2,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:078803819dbe98d1ecfd13ff437fd829c805bd2761caa07ba23c9ae65feec111": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:0bbe8dd979684e28bf82438e75ca04d48e089e1afb2f8865078123c75add78eb": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:10c703a5d652eb9972dbe3708d4ccd5078100b9063bbb4cc3ab3fdd65609267e": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:c2321bb6787d91cf05407b602572de19ca4f7cd6b4cba52159af63cd2cfe14c4": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:dda743abc5cb6caf6bd6986d096c3517b096fecc3b9df73d9aac176d3c2a464e": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:07f5b0836de459fe1976c00d019122819250e0a18055d83c9fa688bb0c59c1cf": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:ccd9097d46d2a8e79408aecaff9e153dd908c5f7b1f3f6db0a74d4ffad548068": {
-      "count": 2,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:85d597650982b93e8c8d2d7db02b1f6106ba5a787d0abe558f42fefc18ac21f8": {
-      "count": 1,
-      "row": "SF46"
-    },
     "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:515f06355cf2153de0d81e6dcf2ed9444af052fc37cc60751a7b6225f110c726": {
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:d59d612ca02c29c26e04792ce54dd75f798ab07eab7d0c880ff130ba72e0756e": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
-      "count": 2,
-      "row": "SF46"
-    },
     "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:8eec9d919e6a25b4ef043b9e88db3b3798c7db03713164e8ce537498a23ac1e3": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:117f8fd5e0480719e3f21e1b561fb806b0a1885bebf03a733c353a2c77d70a65": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:2e51104290a38a831a1a5185c0fde8856e09b6e1a09fc21a06e7e24b4ce430c8": {
       "count": 1,
       "row": "SF46"
     },
@@ -2943,14 +2887,6 @@
       "row": "SF46"
     },
     "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:bf1f4ab07a9f4d12cde6d71930025e82fa3b90a0536547ced179bdb2422849f1": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:f2c78c65a8410b15995c227e1338a4061ada307953e85f91d2c05f61518aad5c": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:frame-allocation:70c1b080591e602a876c6281b6bb313569e576557dbfc45df0d7eef407d7264c": {
       "count": 1,
       "row": "SF46"
     },
@@ -2994,7 +2930,7 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:8de4a07f9193286920222ebe7400c9646144e8bd86374112f4e60e946042cc5d": {
+    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:64063d284b592b291ac6109f39155f6042290962992098e579d05c82f0e421aa": {
       "count": 1,
       "row": "SF46"
     },
@@ -3006,15 +2942,7 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:414f47a2ca30ebcd19bc4f14d3a5cff19539706e9498ac9a1b1df3706bd6412b": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:bdf277438abfdbd1073c69a91b0818913496dd9d0273cf41561cac2d42e12679": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:4c815c663216110a445c5b0932d8cc892d855d09235d928f454046b1c5ccd0d7": {
+    "src/shards/driftwood-isle/runtime/looks/streamedCover.ts:unbounded-loop:b7cca5aa7ac0485ef2aa818a84149bdd82d727eda7753903e80e564b1a042cf8": {
       "count": 1,
       "row": "SF46"
     },

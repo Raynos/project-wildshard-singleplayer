@@ -76,7 +76,6 @@ export const ON_CONTRACT = [
  */
 export const DONE = {
   'driftwood-isle': {
-    'src/shards/driftwood-isle/runtime/looks/streamedCover.ts': { why: "a scatter field streamed round the viewer (world, §1; SHARD-PLATFORM M3, moved from Driftwood's world/GroundCover.ts, whose dune logs stay drift-log models drawnInto their mesh): its plant kinds have no fixed copies for place() to count", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/runtime/looks/reefBed.ts': { why: "a sea floor's reef weld: every copy of its kinds in one mesh, the models placed drawnInto it (SHARD-PLATFORM M3, moved from Driftwood's world/Seabed.ts, whose entry still covers its frozen legacy copy)", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/runtime/props/mooringLines.ts': { why: "a moored hull's lines: world geometry between a placed hull's cleats and the shore's posts, one static mesh so the post ends never bob (SHARD-PLATFORM M3, moved from Driftwood's world/Boat.ts, whose entry still covers its frozen legacy copy)", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/runtime/looks/instancedTiles.ts': { why: "a baked island's placements drawn instanced per tile set (SHARD-PLATFORM M3, moved from Driftwood's world/islandInstances.ts, whose legacy copy keeps its entry; G144 / G173): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
@@ -166,6 +165,7 @@ export const DONE = {
     'src/engine/world/Boundary.ts': { why: "the shard's edge — cliffs, walls, the sea wall: world, welded to the ground", counts: { mergeGeometries: 6 } },
     'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
+    'src/sdk/looks/streamedInstances.ts': { why: "a scatter field streamed round the viewer (world, §1; SHARD-PLATFORM W2, the twin instance tier moved from Driftwood's runtime/looks/streamedCover.ts): its streamed kinds have no fixed copies for place() to count", counts: { InstancedMesh: 1 } },
     'src/game/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
     'src/sdk/bake/kinds.ts': { why: "SF72: the offline bake folds a shard's code-built world piece into instanced kinds (build time only, never in the client): world", counts: { InstancedMesh: 1 } },
     'src/game/shardfile/bakedKinds.ts': { why: "SF72: a shard's baked world piece drawn from its bake, one InstancedMesh per kind on the bake's own transforms (world, like the bake it draws)", counts: { InstancedMesh: 1 } },
