@@ -5,7 +5,7 @@ import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
 import { readLootTables, registerLootTable } from '@wildshard/game/loot/tables';
 import { driftwoodWorld } from '../world/build';
 import { PRACTICE_CRAB } from '../data/layout';
-import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from './tables';
+import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { driftwoodSpeciesRows } from './rows';
 import { Enemies } from './Enemies';
 import { CAPTAIN_LOOK } from '../species/captain';
@@ -15,11 +15,12 @@ import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLo
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export function installDriftwoodCreatures(ctx: ShardContext): void {
   const section = ctx.product.section('actors/species-programs'), program = section.program;
-  if (program === undefined) throw new Error('Driftwood requires its admitted species program');
+  const respawn = section.spawns?.find(row => row.id === 'spawn.driftwood.practice')?.respawn;
+  if (program === undefined || respawn === undefined) throw new Error('Driftwood requires its admitted creature recipes');
   ctx.rows.species([...driftwoodSpeciesRows(program), ...section.page]);
   // the boar and bear from the bake; every creature on the graph toon look, the Drowned Captain on his painted coat
   ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look))));
-  ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
+  ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);
   for (const row of loot) registerLootTable(row, ctx.scope);
@@ -31,7 +32,7 @@ export function installDriftwoodCreatures(ctx: ShardContext): void {
   const ready = (animals: AnimalManager): void => {
     previousReady?.(animals);
     const built = driftwoodWorld(shell);
-    enemies = new Enemies(animals, { scope: ctx.scope, scene: world.game.scene, sky: world.sky,
+    enemies = new Enemies(animals, { respawn, scope: ctx.scope, scene: world.game.scene, sky: world.sky,
       palms: built.palmSpecs, wreck: built.wreck, crabSites: built.cove?.crabSites ?? [], practice: PRACTICE_CRAB }).build();
     shell.objects['enemies'] = enemies;
   };

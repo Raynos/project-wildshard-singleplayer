@@ -1,6 +1,5 @@
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
-import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
-import { DRIFTWOOD_NATIVE_HUNT } from '../data/nativeHunt';
+import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
 import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import { createNativeCreaturePoses } from '@wildshard/game/plugin/animation';
@@ -20,7 +19,6 @@ import { Bodies } from '@wildshard/engine/physics/bodies';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
@@ -35,8 +33,6 @@ const BODY_COUNT = 34;
 const ROSTER = 256; // bounded native ecology roster, captain fixed in slot 34
 /** The captain's one variant's scale range (species/captain.ts; the headless test holds them equal). */
 export const CAPTAIN_SCALE: readonly [number, number] = [1.35, 1.35];
-/** manifest.ts `fight` (E297: telegraphed melee, two attack tokens); the headless test holds them equal. */
-const { delay: PRACTICE_BACK, away: PRACTICE_AWAY } = DRIFTWOOD_PRACTICE.respawn;
 /** AnimalView.fadeOut: a dead practice crab's shell fades 1.5 s before the new one is placed (Enemies.tickPractice). */
 const SHELL_FADE = 1.5;
 /** terrainField.normalAt's central-difference step (m). */
@@ -51,7 +47,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
-  readonly program: SpeciesProgramData;
+  readonly population: SpeciesPrograms;
   readonly placement: NativeEnemyPlacements;
   readonly fauna: ReadonlyMap<string, HuntSpecies>;
   readonly keeper: NativeKeeperRows;
@@ -142,7 +138,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** Publish only after body contacts and equipment, at the page render boundary. */
   publishPoses: () => void;
 } {
-  const brains = speciesBrains(ports.program.species, ports.program.strikes, ports.program.modules);
+  const { program, hunt: settings, spawns } = ports.population;
+  const practiceRule = spawns?.find(row => row.id === 'spawn.driftwood.practice')?.respawn;
+  if (program === undefined || settings === undefined || practiceRule === undefined) throw new Error('Driftwood requires its admitted creature recipes');
+  const brains = speciesBrains(program.species, program.strikes, program.modules);
   // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
   const FULL_ROSTER = new Error('Driftwood ecology roster exceeds its native bound');
   const { bake, specs, keeper: roster } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
@@ -161,7 +160,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     cabinMask: () => 0, streamAt: () => null, pond: () => null, sea: () => true, wetAt: () => false,
     trees: () => [], treeless: () => true, terrain: () => true,
   };
-  const { hunt, reach } = createNativeHunt(host, DRIFTWOOD_NATIVE_HUNT, { rng, ground, nav: ports.nav, species: ports.fauna });
+  const { hunt, reach } = createNativeHunt(host, settings, { rng, ground, nav: ports.nav, species: ports.fauna });
   const habitat = bake.habitat;
   if (ports.seed !== ports.placement.seed) throw new Error('Enemy placements require their authored seed');
   const PRACTICE_AT = ports.placement.practice, stream = new Rng(0); stream.restore(ports.placement.native.stream);
@@ -303,7 +302,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       if (body.brain === null && a.alive && a.position.distanceToSquared(player) < 36) clearBody(a, player);
     },
   });
-  const continuation = huntRosterContinuation(hunt, DRIFTWOOD_NATIVE_HUNT, { rng, bodies: () => bodies, actor: body => body.actor,
+  const continuation = huntRosterContinuation(hunt, settings, { rng, bodies: () => bodies, actor: body => body.actor,
     participates: body => body.brain === null, noise: tracked, sight });
   const keep = (): void => { host.onStep(ISLAND_STEP, dt => {
     // the coconuts' bodies after the host's world step (Bodies' fixed 'post' phase)
@@ -318,7 +317,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (crab === null || crab.alive || practice.body === null) return;
     practice.dead += dt;
     if (practice.fade >= 0) practice.fade += dt;
-    if (practice.dead < PRACTICE_BACK || Math.hypot(player.x - PRACTICE_AT.x, player.z - PRACTICE_AT.z) < PRACTICE_AWAY) return;
+    if (practice.dead < practiceRule.delay || Math.hypot(player.x - PRACTICE_AT.x, player.z - PRACTICE_AT.z) < practiceRule.away) return;
     if (practice.fade < 0) { practice.fade = 0; return; }
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {

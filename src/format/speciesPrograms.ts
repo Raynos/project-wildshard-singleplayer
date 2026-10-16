@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { SpawnTablesSchema } from './spawnTables';
 import { isJsonData } from './json';
 import { SpeciesBrainSchema } from './speciesBrain';
 import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures';
@@ -22,6 +23,15 @@ const tuning = v.strictObject({
   panicDist: nonnegative, runSpeed: nonnegative, trotSpeed: nonnegative, fleeMinTime: nonnegative, fleeUntil: nonnegative,
   fleeUntilMax: nonnegative, fleeMaxTime: nonnegative, lookBack: nonnegative, waryTime: nonnegative, waryBoost: nonnegative,
   herdAlertRadius: nonnegative, herdBoltDelayMin: nonnegative, herdBoltDelayMax: nonnegative, impactSpook: nonnegative, impactAlert: nonnegative,
+  stalk: v.exactOptional(stalk),
+});
+const optionalTuning = v.strictObject({
+  hp: v.exactOptional(nonnegative), sightRange: v.exactOptional(nonnegative), sightRangeGraze: v.exactOptional(nonnegative), sightCone: v.exactOptional(nonnegative), hearStill: v.exactOptional(nonnegative),
+  hearCrouch: v.exactOptional(nonnegative), hearWalk: v.exactOptional(nonnegative), hearSprint: v.exactOptional(nonnegative), noticeRate: v.exactOptional(nonnegative), forgetRate: v.exactOptional(nonnegative),
+  alertAt: v.exactOptional(nonnegative), boltAt: v.exactOptional(nonnegative), freezeMin: v.exactOptional(nonnegative), freezeMax: v.exactOptional(nonnegative), relaxAfter: v.exactOptional(nonnegative),
+  panicDist: v.exactOptional(nonnegative), runSpeed: v.exactOptional(nonnegative), trotSpeed: v.exactOptional(nonnegative), fleeMinTime: v.exactOptional(nonnegative), fleeUntil: v.exactOptional(nonnegative),
+  fleeUntilMax: v.exactOptional(nonnegative), fleeMaxTime: v.exactOptional(nonnegative), lookBack: v.exactOptional(nonnegative), waryTime: v.exactOptional(nonnegative), waryBoost: v.exactOptional(nonnegative),
+  herdAlertRadius: v.exactOptional(nonnegative), herdBoltDelayMin: v.exactOptional(nonnegative), herdBoltDelayMax: v.exactOptional(nonnegative), impactSpook: v.exactOptional(nonnegative), impactAlert: v.exactOptional(nonnegative),
   stalk: v.exactOptional(stalk),
 });
 const flight = v.strictObject({ altitude: finite, above: v.exactOptional(v.picklist(['ground', 'world'])),
@@ -53,9 +63,24 @@ export const SpeciesProgramSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Spe
 export type SpeciesProgramData = v.InferOutput<typeof SpeciesProgramSchema>;
 export function readSpeciesProgram(input: unknown): SpeciesProgramData { return v.parse(SpeciesProgramSchema, input); }
 
+const names = v.pipe(v.array(id), v.maxLength(64));
+const tag = v.custom<`${string}.${string}`>(value => typeof value === 'string' && value.length <= 128 && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value));
+/** Settings for the existing native hunt and continuation owners; no callbacks or replacement clock. */
+export const NativeHuntSchema = v.strictObject({
+  limit: v.pipe(positive, v.integer(), v.maxValue(1024)), player: v.picklist(['host', 'origin']),
+  fight: v.strictObject({ telegraphed: v.exactOptional(v.boolean()), attackers: v.exactOptional(v.pipe(positive, v.integer(), v.maxValue(1024))),
+    maxHitDamage: v.exactOptional(nonnegative), capExempt: v.exactOptional(names),
+    input: v.exactOptional(v.strictObject({ bufferMs: nonnegative, coyoteMs: nonnegative })) }),
+  tuning: v.exactOptional(v.record(id, optionalTuning)),
+  bands: v.strictObject({ states: names, scripted: v.exactOptional(v.boolean()), legacyKinds: names }),
+  hit: v.strictObject({ namespace: id, tags: v.pipe(v.array(tag), v.maxLength(32)) }), memoryFields: v.exactOptional(names),
+});
+export type NativeHuntData = v.InferOutput<typeof NativeHuntSchema>;
+
 /** Page and native registration order is authored explicitly; empty sides install no rows. */
 export const SpeciesProgramsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Species programs must be plain JSON'),
-  v.strictObject({ page: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), native: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), program: v.exactOptional(SpeciesProgramSchema) }),
+  v.strictObject({ page: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), native: v.pipe(v.array(SpeciesSchema), v.maxLength(256)), program: v.exactOptional(SpeciesProgramSchema),
+    spawns: v.exactOptional(SpawnTablesSchema), hunt: v.exactOptional(NativeHuntSchema) }),
   v.check(value => [value.page, value.native].every(rows => new Set(rows.map(row => row.kind)).size === rows.length), 'Unique species kinds per owner'));
 export type SpeciesPrograms = v.InferOutput<typeof SpeciesProgramsSchema>;
 export function readSpeciesPrograms(input: unknown): SpeciesPrograms { return v.parse(SpeciesProgramsSchema, input); }

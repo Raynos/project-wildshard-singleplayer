@@ -326,7 +326,7 @@
       "export": "DRIFTWOOD_RUNTIME_COST"
     },
     "spawns": {
-      "module": "./data/fauna",
+      "module": "./generators/fauna",
       "export": "DRIFTWOOD_FAUNA_PLANS"
     },
     "ground": {

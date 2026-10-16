@@ -52,7 +52,14 @@ export function authoredManifestSource(root, slug) {
     ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${slug}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
     : value(b.budgets);
   const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];
-  for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'tierPolicy', 'pondClip', 'spawns']) if (b[key]) rows.push(`${key}: ${value(b[key])}`);
+  for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'tierPolicy', 'pondClip']) if (b[key]) rows.push(`${key}: ${value(b[key])}`);
+  if (b.spawns) {
+    const path = modulePath(b.spawns.module);
+    const spawns = path.startsWith('./generators/')
+      ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-spawns.mjs'), resolve(root, `src/shards/${slug}`, path.endsWith('.ts') ? path : `${path}.ts`), b.spawns.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
+      : value(b.spawns);
+    rows.push(`spawns: ${spawns}`);
+  }
   if (b.navigation) { const id = value(b.navigation);rows.push(`navigation: { row: ${id}.navigation, url: ${id}.url }`); }
   if (b.audioCues || b.audioPreload) rows.push(`audioBindings: { ${[...(b.audioCues ? [`cues: ${value(b.audioCues)}`] : []), ...(b.audioPreload ? [`preload: async () => ${lazy(b.audioPreload, true)}`] : [])].join(', ')} }`);
   if (b.treeFactory) rows.push(`treeFactory: async () => ${lazy(b.treeFactory, false)}`);

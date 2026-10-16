@@ -1,14 +1,9 @@
-import type { SpawnTableRow, Spawner } from '@wildshard/engine/ai/encounters';
+import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { retire } from './ctx';
 
-/** Each-mode keeps the scheduler's existing species choice and consumes no extra random draw. */
-export const PINE_SPAWNS: readonly SpawnTableRow[] = [{ id: 'pine.spawn.thrall', table: { mode: 'each', rows: [
-  { item: { kind: 'elk', variant: 'thrall' }, weight: 1, when: (ctx) => ctx.kind === 'elk' },
-  { item: { kind: 'boar', variant: 'thrall' }, weight: 1, when: (ctx) => ctx.kind === 'boar' },
-] } }];
 
 export function thrallSpawner(animals: AnimalManager, create: (kind: 'elk' | 'boar', x: number, z: number, yaw: number) => Animal): Spawner<Animal> | null {
   const scope = app.levelScope;

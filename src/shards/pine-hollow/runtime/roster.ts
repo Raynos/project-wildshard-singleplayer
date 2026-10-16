@@ -1,11 +1,10 @@
 import * as v from 'valibot';
-import type { SpeciesData } from '@wildshard/format/speciesPrograms';
+import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
-import { PINE_NATIVE_HUNT } from '../data/nativeHunt';
 import { createNativeCreatureRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -37,7 +36,7 @@ export interface PineBody { readonly id: string; readonly kind: string; readonly
 /** A parked prewarm body (runtime/antlerKing.ts `prewarm`): its id and rolled recipe, no host body until the King's script calls it. */
 export interface PineParked { readonly id: string; readonly kind: string; readonly variant: string; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number }
 export interface PineRosterPorts {
-  readonly species: readonly SpeciesData[];
+  readonly population: SpeciesPrograms;
   readonly bake: PineBake;
   /** The rain keeper's goal from the same weather reading, lent before the roster starts thinking. */
   readonly wanderGoal?: (herd: number) => { x: number; z: number; r: number } | null;
@@ -100,6 +99,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   /** a body this roster made (listed or not) by entity id */
   actor: (id: string) => PineHuntBody | null;
 } {
+  const settings = ports.population.hunt;
+  if (settings === undefined) throw new Error('Pine requires its admitted hunt settings');
   const { bake, grid } = ports, rng = new Rng(PINE_HERD_STREAM), player = host.player.position;
   const kingPose = installKingPoseKeeper(host);
   // the page's distance bands (engine/sim/bands.ts, Pine overrides no tier ticks): the scheduler's 'ai' rate for the herds
@@ -108,8 +109,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   // spawn, and on a restoring host before the host restores its clocks.
   const kingRow = bake.parked[0];
   if (kingRow?.kind !== PINE_KING_KIND) throw new Error('Pine bake has no Antler King prewarm');
-  const species = new Map(ports.species.map(row => [row.kind, row]));
-  const { hunt, reach } = createNativeHunt(host, PINE_NATIVE_HUNT, { rng, ground: pineHuntGround(grid), nav: ports.nav, species,
+  const species = new Map(ports.population.native.map(row => [row.kind, row]));
+  const { hunt, reach } = createNativeHunt(host, settings, { rng, ground: pineHuntGround(grid), nav: ports.nav, species,
     ...(ports.wanderGoal === undefined ? {} : { wanderGoal: ports.wanderGoal }), present: body => !('hidden' in body) || body.hidden !== true });
   // the shared native roster (G454 rows): the bake's first spec per kind.variant, the manager's spawn ray and creature floor
   // over the page's terrain grid (the host's ground), every kind adopted by the hunting brain, no turn cap, a restoring
@@ -186,7 +187,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
 
   booted = true;
   const speed = { seen: false, prev: new Vector3(), speed: 0 };
-  const continuation = huntRosterContinuation(hunt, PINE_NATIVE_HUNT, { rng, bodies: () => list, actor: body => body.actor, noise: speed, sight: seen });
+  const continuation = huntRosterContinuation(hunt, settings, { rng, bodies: () => list, actor: body => body.actor, noise: speed, sight: seen });
   const cadence = hunt.bindRoster({ limit: LIVE_MAX, order: 'combined', at: i => list[i], actor: body => body.actor,
     id: body => body.id, player, noise: speed, sight: seen, reach,
     brainDt: (id, urgent) => host.brainDt(id, urgent) });

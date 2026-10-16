@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./spawnTables": "./spawnTables.ts",
     "./speciesBrain": "./speciesBrain.ts",
     "./speciesPrograms": "./speciesPrograms.ts",
     "./lootEconomy": "./lootEconomy.ts",

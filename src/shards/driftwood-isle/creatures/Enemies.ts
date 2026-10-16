@@ -17,7 +17,6 @@ import * as v from 'valibot';
 import { EnemyPlacementsSchema, type EnemyPlacements } from '../runtime/sections';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import { TIER } from '@wildshard/engine/core/tier';
-import { DRIFTWOOD_PRACTICE } from './tables';
 import { COCONUT_R, COCONUTS, Coconuts } from '../combat/coconuts';
 import { preloadSailorHead } from '../species/sailor';
 
@@ -46,6 +45,7 @@ import { preloadSailorHead } from '../species/sailor';
  */
 
 export interface EnemiesOpts {
+  respawn: { readonly delay: number; readonly away: number };
   scene: THREE.Scene;
   scope?: Scope;
   sky: Sky;
@@ -53,11 +53,10 @@ export interface EnemiesOpts {
   wreck?: { floorHeightAt: (x: number, z: number) => number | undefined } | null;
   crabSites?: { x: number; z: number }[];
   /** E308: where the lone practice crab lives — one small reef crab on the path at the pier's foot, the first enemy a new
-   *  player meets; it comes back PRACTICE_BACK s after it dies, once you are PRACTICE_AWAY m off */
+   *  player meets; the admitted respawn delay and distance gate its return */
   practice?: { x: number; z: number };
 }
 
-const { delay: PRACTICE_BACK, away: PRACTICE_AWAY } = DRIFTWOOD_PRACTICE.respawn;
 
 const G = 9.81;
 /** the sea surface a coconut floats on: the still level + the swell, where the ground is under water */
@@ -94,7 +93,7 @@ export class Enemies {
   private get drops(): ParticlePool { if (this.dropPool === null) throw new Error('Enemies not built'); return this.dropPool; }
   private dActive = 0;
   private sailors: { a: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
-  /** the practice crab now (E308; a new one after each death, see PRACTICE_BACK), and s since it died */
+  /** the practice crab now (E308; a new one after its admitted respawn delay), and s since it died */
   practiceCrab: Animal | null = null;
   private practiceDead = 0;
   private playerPos = new THREE.Vector3();
@@ -185,12 +184,12 @@ export class Enemies {
     this.placed.crabs++;
   }
 
-  /** a dead practice crab comes back PRACTICE_BACK s on, while you are PRACTICE_AWAY m off: its shell fades, a new one is placed */
+  /** a dead practice crab returns after the admitted delay, while the player is far enough away: its shell fades, a new one is placed */
   private tickPractice(dt: number, playerPos: THREE.Vector3): void {
     const c = this.practiceCrab, at = this.opts.practice;
     if (c === null || at === undefined || c.alive) return;
     this.practiceDead += dt;
-    if (this.practiceDead < PRACTICE_BACK || Math.hypot(playerPos.x - at.x, playerPos.z - at.z) < PRACTICE_AWAY) return;
+    if (this.practiceDead < this.opts.respawn.delay || Math.hypot(playerPos.x - at.x, playerPos.z - at.z) < this.opts.respawn.away) return;
     if (!c.hidden) { c.fadeOut(); return; } // a crab leaves no carcass of its own (no corpseFade): the old shell goes first
     this.placePracticeCrab();
   }

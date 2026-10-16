@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The Node fixture checks real authored and emitted asset files.
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the bounded build-only binding process.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the same Node binary for the bounded build fixture.
+import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files in this isolated source export.
 import { resolve } from 'node:path';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
@@ -14,11 +18,34 @@ import templateProduct from '../src/shards/_template/shard.config';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
 import { MANIFEST as blender } from '../src/shards/blender-template/discovery.generated';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
+import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
 describe('authored JSON discovery', () => {
+  test('embeds checked spawn plans without importing their generator at runtime', () => {
+    const source = authoredManifestSource(root, 'driftwood-isle');
+    expect(driftwood.spawns).toEqual(DRIFTWOOD_FAUNA_PLANS);
+    expect(source).toContain(`spawns: ${JSON.stringify(DRIFTWOOD_FAUNA_PLANS)}`);
+    expect(source).not.toMatch(/from ["']\.\/(?:generators|data)\/fauna["']/u);
+  });
+  test('refuses malformed spawn plans and imports outside the generator directory', () => {
+    mkdirSync(resolve(root, 'tmp'), {recursive: true});
+    const scratch = mkdtempSync(resolve(root, 'tmp/manifest-spawns-'));
+    const generators = resolve(scratch, 'generators'), entry = resolve(generators, 'fauna.ts');
+    mkdirSync(generators);
+    const read = () => execFileSync(execPath, [resolve(root, 'scripts/manifest-spawns.mjs'), entry, 'plans'], {encoding: 'utf8', timeout: 10_000, stdio: 'pipe'});
+    try {
+      writeFileSync(entry, 'export const plans = [{ kind: "boar", count: 1 }];');
+      expect(read).toThrow();
+      writeFileSync(entry, 'import "node:fs"; export const plans = [];');
+      expect(read).toThrow(/local generator TypeScript/u);
+      writeFileSync(resolve(scratch, 'outside.ts'), 'export const plans = [];');
+      writeFileSync(entry, 'export { plans } from "../outside.ts";');
+      expect(read).toThrow(/bounded generators directory/u);
+    } finally { rmSync(scratch, {recursive: true}); }
+  });
   for (const manifest of [sky, signal, template, pine, driftwood, blender]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
     const row = parseManifestMetadata(metadata(manifest.slug));
     expect(manifest.name).toBe(row.name); expect(manifest.spawn).toEqual(row.spawn);

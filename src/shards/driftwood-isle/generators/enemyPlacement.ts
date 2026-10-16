@@ -4,7 +4,7 @@ import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/engine/core/rng';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
-import { ENEMY_COUNTS } from '../data/fauna';
+import { ENEMY_COUNTS } from './fauna';
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
  *  spelled here because the manifest imports views; test/shards/driftwood-isle/physics-bake.test.ts holds them equal. */

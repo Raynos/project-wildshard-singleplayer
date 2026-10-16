@@ -8122,3 +8122,29 @@ source-basis progress inventory, including component spans and sole-user
 charges, after resolving every consumer. Filter its returned map only
 then. Its `measurement: source` label never supplies output percentages
 or closure credit for a shard whose runtime is still unclosed.
+
+### Declared spawn tables and native hunt settings
+
+`actors/species-programs.spawns` contains bounded each/weighted tables with
+ordered kind/variant items, weights and fixed or inclusive count ranges.
+Optional `when.kind` and `when.tags` are conjunctive gates: every named tag
+must be present. `@wildshard/format/spawnTables.readSpawnTables` refuses
+callbacks, duplicate ids and reversed counts before registration.
+
+`@wildshard/engine/ai/encounters.declaredSpawnTables(input)` admits those rows
+and binds their gates to the existing EncounterRegistry/WeightedTable path.
+Selection and count draws retain their original order and consume the caller's
+stream; each-mode fixed counts consume no draws. Optional respawn delay/distance
+are data for the existing caller-owned lifecycle, not a new scheduler.
+
+The catalogue's optional `hunt` uses `NativeHuntSchema` in
+`@wildshard/format/speciesPrograms`: existing native bands, fight/tuning,
+contact tags and continuation memory fields. Pine and Driftwood emit both
+sets at build time. Their native owners read the admitted hunt settings;
+the existing bodies, cadence, random streams and save envelopes stay owned
+by NativeHunt and each shard's roster.
+
+Until catalogue activation replaces discovery, a declared `spawns` binding in
+`generators/` executes only at generation time. Its local bounded TS graph is
+checked against the canonical ui/level spawns schema and embedded as a literal;
+the shipping discovery imports no generator and never falls back to source.

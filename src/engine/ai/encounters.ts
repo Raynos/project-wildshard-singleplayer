@@ -1,3 +1,4 @@
+import { readSpawnTables } from '@wildshard/format/spawnTables';
 import type { Scope } from '../app/scope';
 import { WeightedTable, type TableSpec } from './weighted';
 
@@ -10,6 +11,14 @@ export interface SpawnPoint { x: number; z: number; yaw: number }
 export interface Spawner<T> {
   spawn: (context: SpawnContext, point: SpawnPoint, next: () => number) => T[];
   retire: (actor: T) => void;
+}
+/** Admit data gates into the existing ordered table mechanism, before any registration or random draw. */
+export function declaredSpawnTables(input: unknown): SpawnTableRow[] {
+  return readSpawnTables(input).map(row => ({ id: row.id, table: { mode: row.table.mode, rows: row.table.rows.map(({ when, ...entry }) => {
+    if (when === undefined) return entry;
+    return Object.assign(entry, { when: (context: SpawnContext) => (when.kind === undefined || context.kind === when.kind)
+      && (when.tags === undefined || when.tags.every(tag => context.tags.includes(tag))) });
+  }) } }));
 }
 interface SpawnRegistration { row: SpawnTableRow; scope: Scope }
 interface RuntimeRegistration { id: string; brain: object; scope: Scope }

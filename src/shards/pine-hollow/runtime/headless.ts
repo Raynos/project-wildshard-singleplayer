@@ -89,14 +89,14 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   }, install: (host, context) => {
     const input = bindHeadlessCommands(context), combat = context.combat;
     if (combat === undefined) throw new Error('Pine requires its native combat frame');
-    installPine(host, { contracts, species: product.section('actors/species-programs').native, bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+    installPine(host, { contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
       interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
 
 export interface PineInstall {
   readonly contracts: PineQuestPorts['contracts'];
-  readonly species: PineRosterPorts['species'];
+  readonly population: PineRosterPorts['population'];
   readonly combat: NativeCombatFrame; readonly items: ShardItems;
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
   readonly director: () => DirectorLane;
@@ -194,7 +194,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
     retire: actor => { installedRoster().retire(actor); }, find: id => installedRoster().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
   air = installPineAir(host, () => day.phase, parts.weatherMode, frame);
   const shelter = installPineRainShelter(host, () => roster?.hunt.herds ?? [], bake.shelterTrees, () => atmosphere().weather.rain);
-  roster = installPineRoster(host, { species: parts.species, bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved,
+  roster = installPineRoster(host, { population: parts.population, bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved,
     wanderGoal: herd => shelter.wanderGoal(herd, atmosphere().weather.rain) });
   elites.initialize();
   return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air, thralls, ammunition: ammunitionOwner };

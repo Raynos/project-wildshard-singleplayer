@@ -662,6 +662,8 @@
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
         "src/format/minimap.ts",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
@@ -1661,7 +1663,9 @@
         "public/assets/horizon/driftwood-isle-day.webp",
         "public/assets/horizon/driftwood-isle-night.webp",
         "scripts/named-blob-output.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/reefLayout.generated.json",
@@ -1754,7 +1758,9 @@
         "public/assets/horizon/driftwood-isle-day.webp",
         "public/assets/horizon/driftwood-isle-night.webp",
         "scripts/named-blob-output.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/ground-239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6.glb",
@@ -1804,7 +1810,9 @@
         "public/assets/driftwood-isle/map/top.webp",
         "public/assets/horizon/driftwood-isle-day.webp",
         "public/assets/horizon/driftwood-isle-night.webp",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb",
@@ -5426,7 +5434,9 @@
         "public/assets/horizon/pine-hollow-night-phone.webp",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
@@ -5692,7 +5702,9 @@
         "pnpm-workspace.yaml",
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/bodies.bin",
@@ -5879,7 +5891,9 @@
         "budgets",
         "scripts/bake-output.mjs",
         "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/places.bin",
@@ -5954,7 +5968,9 @@
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/far-reach/rigs/storm-roc.glb",
@@ -5999,7 +6015,9 @@
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/winch-house.glb",
@@ -13370,7 +13388,9 @@
         "src/shards/far-reach/generators/bridgeRest.ts",
         "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/mill-rest.glb"
@@ -13510,7 +13530,9 @@
         "src/shards/far-reach/generators/bridgeRest.ts",
         "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/millRest.generated.json"
@@ -14620,7 +14642,9 @@
         "public/assets/horizon/driftwood-isle-day.webp",
         "public/assets/horizon/driftwood-isle-night.webp",
         "scripts/named-blob-output.mjs",
-        "scripts/manifest-budget.mjs"
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/islandDressing.generated.json",

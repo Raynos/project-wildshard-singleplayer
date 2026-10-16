@@ -1,4 +1,4 @@
-import { DRIFTWOOD_FAUNA_TUNING } from '../data/fauna';
+import { DRIFTWOOD_FAUNA_TUNING } from './fauna';
 import { deriveSpecies } from '@wildshard/engine/ai/species';
 import { BEAR } from '@wildshard/game/systems/species/bear';
 import { BOAR, BOAR_TUNING } from '@wildshard/game/systems/species/boar';

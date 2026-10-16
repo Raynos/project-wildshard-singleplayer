@@ -7,7 +7,7 @@ import { runtimeAudio, installRuntimeScore } from '@wildshard/game/plugin/audio'
 import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
-import { PINE_SPAWNS } from '../combat/spawns';
+import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks } from '../species/looks';
 import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
 import { installPineCompendium } from './compendium/install';
@@ -165,7 +165,7 @@ export class PineHollow extends ShardPlugin {
     registerKing();
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks());
-    ctx.rows.spawnTable(PINE_SPAWNS);
+    ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
     const inventory = ctx.product.section('custom/questInventory', SECTIONS);
     ctx.rows.item(inventory.items);
     ctx.rows.feat(inventory.feats);
