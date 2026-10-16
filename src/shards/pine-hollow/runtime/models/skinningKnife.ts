@@ -19,7 +19,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { HeldTool, heldToolSpecimen, type HeldToolRow } from '../kit/heldTool';
-import { KNIFE_LOOK } from '../../data/skinningKnifeLook';
+import { KNIFE_LOOK } from '../const';
 import { SECTIONS } from '../sections';
 
 /** the Blender knife's file */

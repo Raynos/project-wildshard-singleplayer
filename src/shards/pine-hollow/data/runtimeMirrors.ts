@@ -18,8 +18,15 @@ import { BOW_PROFILE } from './bowProfile';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { FINISH_CARDS } from './finishCards';
 
+import { KNIFE_LOOK } from './skinningKnifeLook';
+import CROSSBOW_DISPLAY_REST from './crossbowDisplay.json' with { type: 'json' };
+import SPRAY_PUFFS from './sprayPuffs.json' with { type: 'json' };
+
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
+  defineMirror('KNIFE_LOOK', KNIFE_LOOK),
+  defineMirror('CROSSBOW_DISPLAY_REST', CROSSBOW_DISPLAY_REST),
+  defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),
   defineMirror('ARROW_MATERIAL', ARROW_MATERIAL),
   defineMirror('LONGBOW_ARROW', LONGBOW_ARROW),
   defineMirror('LONGBOW_LOOK', LONGBOW_LOOK),

@@ -17,8 +17,7 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import SPRAY from '../../data/sprayPuffs.json' with { type: 'json' };
-import { SPRAY_LOOK } from '../const';
+import { SPRAY_LOOK, SPRAY_PUFFS as SPRAY } from '../const';
 import { pineLook } from '../looks/graphLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';

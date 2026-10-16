@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import { isMesh, weaponDisplay } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import rest from '../../../data/crossbowDisplay.json' with { type: 'json' };
+import { CROSSBOW_DISPLAY_REST as rest } from '../../const';
 
 /** most rest rows the display JSON may hold (the crossbow's children; throws past it) */
 const MAX_REST_ROWS = 64;
