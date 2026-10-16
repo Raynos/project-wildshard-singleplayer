@@ -1,16 +1,10 @@
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
 
 /**
- * Pine Hollow's running water as data (PH-L9; SHARD-PLATFORM M3, W2 C2): the waterfall's spray puffs (where they rise, how
- * many, how big) and their SF59 material graph (the shardfile's look.materials, compiled by runtime/index.ts and worn by
- * world/streams.ts's instanced quads).
+ * Pine Hollow's running water as data (PH-L9; SHARD-PLATFORM M3, W2 C2): the waterfall's spray puffs' SF59 material graph
+ * (the shardfile's look.materials, compiled by runtime/index.ts and worn by world/streams.ts's instanced quads; their
+ * anchors and seeds are baked, ../generators/sprayPuffs.ts).
  */
-
-/** The spray's anchors: at the foot of the fall's face, and over the plunge (lifted `lift` m off the pond). */
-export const SPRAY_ANCHORS = {
-  faceFoot: { n: 5, size: 4.5, rise: 3.5 },
-  plunge: { n: 6, size: 5.5, rise: 3, lift: 0.3 },
-} as const;
 
 /** the look.materials id the spray wears */
 export const SPRAY_LOOK = 'pine-waterfall-spray';
