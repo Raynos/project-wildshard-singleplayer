@@ -49,7 +49,7 @@ import { ToonLook } from '../families/toon';
 import { toonGraph } from './presets';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
-import { retargetableTexture } from '../nodes/engineNodesHandler';
+import { nodeBuildSharing, retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
 import { instanceTransformNode } from '../nodes/nodeInstancing';
@@ -952,7 +952,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const mappedFactor = (base: Node<'float'>, slot: 'roughnessMap' | 'aoMap'): Node<'float'> => Fn((builder: NodeBuilder): Node<'float'> => {
     const map: unknown = Reflect.get(builder.material, slot);
     if (!(map instanceof THREE.Texture)) return base;
-    const sample = texture(map);
+    // Shared builds (nodeBuildSharing): a clone reuses this build, so the drawn material's own map is read per draw.
+    const sample = nodeBuildSharing() ? new ConvertNode<'vec4'>(materialReference(slot, 'texture'), 'vec4') : texture(map);
     return slot === 'roughnessMap' ? base.mul(sample.g)
       : base.mul(sample.r.sub(1).mul(new ConvertNode<'float'>(materialReference('aoMapIntensity', 'float'), 'float')).add(1));
   })();

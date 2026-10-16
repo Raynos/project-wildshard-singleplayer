@@ -44,7 +44,7 @@
  */
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
-import { ConvertNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { ConvertNode, MeshBasicNodeMaterial, Node as BaseNode, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
@@ -293,6 +293,91 @@ function nodeObjectKey(object: unknown): string {
 
 const PROGRAM_KEY = 'engine-nodes';
 
+/**
+ * One node build kept for reuse (build sharing, E435, Debug ▸ Performance ▸ Shared graph builds): three runs the whole node
+ * builder for every material that has no program of its own yet, even a clone whose node graph (and so its native
+ * program) is the very same objects as a material built a moment ago. A clone (a graph's borrowed-map variant,
+ * `bindGraphMeshMap`) then reuses the first build's GLSL and its node uniforms, which already read per-draw material
+ * state (maps, factors) through material references. Each material still gets its own classic fog / light uniforms and its
+ * own uniform-block groups, so disposal and block buffers stay per material.
+ */
+interface SharedBuild {
+  readonly vertexShader: string;
+  readonly fragmentShader: string;
+  /** the build's node uniforms under their final (canonical) names */
+  readonly uniforms: readonly (readonly [string, unknown])[];
+  /** each uniform block's name and members; every material gets fresh UniformsGroup objects for them */
+  readonly groups: readonly { readonly name: string; readonly uniforms: readonly unknown[] }[];
+  readonly updateNodes: unknown;
+  readonly bufferAttributes: readonly unknown[];
+}
+let sharing = false;
+/** whether builds are shared (the Debug row): a graph that reads material state at build time reads it per draw instead */
+export function nodeBuildSharing(): boolean { return sharing; }
+
+/** the classic uniforms the stock handler gives every node program (WebGLNodesHandler.updateShaderParameters) */
+const CLASSIC_UNIFORMS: ReadonlySet<string> = new Set(['fogColor', 'fogNear', 'fogFar', 'envMapIntensity', ...Object.keys(THREE.UniformsLib.lights)]);
+function classicUniforms(): Record<string, unknown> {
+  return { fogColor: { value: new THREE.Color() }, fogNear: { value: 0 }, fogFar: { value: 0 }, envMapIntensity: { value: 0 }, ...THREE.UniformsUtils.clone(THREE.UniformsLib.lights) };
+}
+/** objects that are not plain JSON get a stable per-object id in a share key */
+const keyIds = new WeakMap<object, number>();
+let nextKeyId = 0;
+function keyPart(value: unknown): string {
+  if (typeof value !== 'object' || value === null) return String(value);
+  if (Object.getPrototypeOf(value) === Object.prototype || Array.isArray(value)) return JSON.stringify(value);
+  let id = keyIds.get(value);
+  if (id === undefined) { id = nextKeyId++; keyIds.set(value, id); }
+  return `#${String(id)}`;
+}
+/**
+ * Where a build may be shared: the material's first node slot (shared by every clone: NodeMaterial.copy keeps the nodes)
+ * and a key covering every renderer program parameter, so equal keys imply three's own equal program key (whose
+ * material part hashes node identities). Layer frames and bound fog reach per-material objects at build time: never shared.
+ */
+export function buildShareKey(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): { readonly root: object; readonly key: string } | null {
+  if (!(material instanceof NodeMaterial) || material.userData['graphDepthVariant'] === true) return null;
+  if (layerFrameOf(material) !== null || materialNodeFogOf(material) !== undefined) return null;
+  let root: object | null = null;
+  for (const name of Object.getOwnPropertyNames(material)) {
+    if (name.startsWith('_')) continue;
+    const value: unknown = Reflect.get(material, name);
+    if (typeof value === 'object' && value !== null && Reflect.get(value, 'isNode') === true) { root = value; break; }
+  }
+  if (root === null) return null;
+  const parts: string[] = [object.type];
+  for (const [name, value] of Object.entries(parameters)) if (name !== 'uniforms') parts.push(name, keyPart(value));
+  return { root, key: parts.join('\u0001') };
+}
+/** a geometry, typed as three's default geometry (`instanceof` alone narrows to `BufferGeometry<any>`) */
+function isGeometry(value: unknown): value is THREE.BufferGeometry { return value instanceof THREE.BufferGeometry; }
+/** a uniform block entry's members (a NodeUniform, or a list of them) */
+const blockMembers = (entry: unknown): readonly unknown[] => Array.isArray(entry) ? entry : [entry];
+/**
+ * Whether a build captured state of its own material in a node it made (a node newer than `firstNode`): a texture or value
+ * read off the material at build time rather than through a per-draw material reference, or a reference pinned to it.
+ * Such a build is never shared: a clone would draw the first material's map.
+ */
+function buildCapturesMaterial(material: THREE.Material, nodes: readonly unknown[], updateNodes: unknown, firstNode: number): boolean {
+  const owned = new Set<unknown>(), values = new Set<unknown>();
+  const updates: readonly unknown[] = Array.isArray(updateNodes) ? updateNodes : updateNodes instanceof Set ? [...updateNodes.values()] : [];
+  for (const node of updates) {
+    if (typeof node !== 'object' || node === null) continue;
+    if (Reflect.get(node, 'object') === material || Reflect.get(node, 'material') === material) return true;
+    if (Reflect.has(node, 'reference')) owned.add(Reflect.get(node, 'node'));
+  }
+  for (const name of Object.getOwnPropertyNames(material)) {
+    const value: unknown = Reflect.get(material, name);
+    if (typeof value === 'object' && value !== null && Reflect.get(value, 'isNode') !== true) values.add(value);
+  }
+  for (const node of [...nodes, ...updates]) {
+    if (typeof node !== 'object' || node === null || owned.has(node)) continue;
+    const id: unknown = Reflect.get(node, 'id');
+    if (typeof id === 'number' && id > firstNode && values.has(Reflect.get(node, 'value'))) return true;
+  }
+  return false;
+}
+
 /** three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` */
 export class EngineNodesHandler extends WebGLNodesHandler {
   /** the engine epilogue, in order, after the output transform (fog first; then whatever the engine appends) */
@@ -305,6 +390,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly drawEntries = new WeakMap<THREE.Material, DrawEntry>();
   /** ms spent in the node builder (JS), summed */
   buildMs = 0;
+  /** builds served from a clone's earlier build (`shareBuilds`), and the ms they took */
+  sharedBuilds = 0;
+  sharedMs = 0;
+  /** shared builds per node graph (its first node slot) and program key; null: that build captured its material */
+  private readonly buildShares = new WeakMap<object, Map<string, SharedBuild | null>>();
+  /** materials whose disposal a shared build hooked (a shared build never runs the stock build's own dispose hook) */
+  private readonly sharedDisposal = new WeakSet<THREE.Material>();
   private real: Renderer | null = null;
   private warnedLevelFog = false;
   /** the node programs' uniform blocks, bound per draw (`nodeUniformBuffers.ts`; null without a WebGL 2 context) */
@@ -561,9 +653,20 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
   }
 
+  /**
+   * Share node builds between materials with one node graph (E435, the Debug row Shared graph builds; default off): a
+   * clone drawn with a program key its graph already built reuses that build instead of running the node builder again.
+   */
+  get shareBuilds(): boolean { return sharing; }
+  set shareBuilds(on: boolean) { sharing = on; }
+
   /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
+    const share = sharing ? buildShareKey(material, object, parameters) : null;
+    const shares = share === null ? undefined : this.buildShares.get(share.root), known = share === null ? undefined : shares?.get(share.key);
+    if (known !== undefined && known !== null) { this.reuseBuild(material, object, parameters, known, t0); return; }
+    const firstNode = share === null ? 0 : new BaseNode().id;
     if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
     else super.build(material, object, parameters);
     parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object, parameters.extensionMultiDraw);
@@ -577,22 +680,74 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
-    // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
-    // program under that key: the program lands at the map's current size
     const builder: unknown = Reflect.get(material, '_latestBuilder');
-    const properties: unknown = this.classicRenderer().properties.get(material);
-    const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
-    const pending = this.pendingBuilds.get(material) ?? [];
     const updateNodes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'updateNodes') : undefined;
     const uniformsGroups = classicModelUniform(parameters, internals(this).collectUniformsGroups(builder).filter(isBlockGroup));
     stableBufferNames(builder, parameters, uniformsGroups);
+    if (share !== null && known === undefined && typeof builder === 'object' && builder !== null) {
+      const map = shares ?? new Map<string, SharedBuild | null>();
+      this.buildShares.set(share.root, map);
+      map.set(share.key, this.sharedBuild(material, builder, parameters, uniformsGroups, updateNodes, firstNode));
+    }
+    this.fileBuild(material, parameters, uniformsGroups, updateNodes, typeof builder === 'object' && builder !== null);
+  }
+
+  /** what a clone needs of this build (null: the build captured state of its own material, `buildCapturesMaterial`) */
+  private sharedBuild(material: THREE.Material, builder: object, parameters: THREE.WebGLProgramParametersWithUniforms,
+    groups: readonly BlockGroup[], updateNodes: unknown, firstNode: number): SharedBuild | null {
+    const uniforms: (readonly [string, unknown])[] = Object.entries(parameters.uniforms).filter(([name]) => !CLASSIC_UNIFORMS.has(name));
+    const members = groups.flatMap(group => group.uniforms.flatMap(blockMembers));
+    const inputs: unknown[] = [...uniforms.map(([, entry]) => entry), ...members];
+    const nodes = inputs.map((entry): unknown => typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'node') : undefined);
+    if (buildCapturesMaterial(material, nodes, updateNodes, firstNode)) return null;
+    const attributes: unknown = Reflect.get(builder, 'bufferAttributes');
+    return { vertexShader: parameters.vertexShader, fragmentShader: parameters.fragmentShader, uniforms,
+      groups: groups.map(group => ({ name: group.name, uniforms: group.uniforms.slice() })), updateNodes,
+      bufferAttributes: Array.isArray(attributes) ? attributes.map((entry: unknown) => entry) : [] };
+  }
+
+  /** a clone's build from its graph's shared build: the same GLSL and node uniforms, its own classic uniforms and block groups */
+  private reuseBuild(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms, shared: SharedBuild, t0: number): void {
+    const self = internals(this);
+    this.frame.material = material; this.frame.object = object;
+    parameters.isRawShaderMaterial = true; parameters.glslVersion = THREE.GLSL3;
+    parameters.vertexShader = shared.vertexShader; parameters.fragmentShader = shared.fragmentShader;
+    const uniforms = classicUniforms();
+    for (const [name, entry] of shared.uniforms) uniforms[name] = entry;
+    Reflect.set(parameters, 'uniforms', uniforms);
+    const geometry: unknown = Reflect.get(object, 'geometry');
+    if (isGeometry(geometry)) self.updateGeometryAttributes({ bufferAttributes: shared.bufferAttributes }, geometry);
+    const groups: BlockGroup[] = shared.groups.map(row => {
+      const group = new THREE.UniformsGroup(); Reflect.set(group, 'name', row.name); Reflect.set(group, 'uniforms', [...row.uniforms]);
+      if (!isBlockGroup(group)) throw new Error('Shared node build lost a uniform block');
+      return group;
+    });
+    // the stock build's dispose hook (its node uniforms, groups and block buffers go with the material), once per material
+    if (!this.sharedDisposal.has(material)) {
+      this.sharedDisposal.add(material);
+      const lifetime = new Scope('graph:shared-build');
+      lifetime.listenOnceEmitter(material, 'dispose', () => { this.sharedDisposal.delete(material); this.disposeMaterial(material); lifetime.dispose(); });
+    }
+    self.updateNodes(shared.updateNodes);
+    this.fileBuild(material, parameters, groups, shared.updateNodes, true);
+    this.sharedMs += diagnosticNow() - t0;
+    this.sharedBuilds++;
+  }
+
+  /** file a build to be paired with the program the renderer acquires for it, and leave the stock fallback its runtime view */
+  private fileBuild(material: THREE.Material, parameters: THREE.WebGLProgramParametersWithUniforms, uniformsGroups: BlockGroup[], updateNodes: unknown, fallback: boolean): void {
+    // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
+    // program under that key: the program lands at the map's current size
+    const properties: unknown = this.classicRenderer().properties.get(material);
+    const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
+    const pending = this.pendingBuilds.get(material) ?? [];
     pending.push({ uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
     // view, not the builder's graph caches, source strings, scene and geometry.
-    if (typeof builder === 'object' && builder !== null) {
+    if (fallback) {
       const uniformGroups: Record<string, { uniforms: { nodeUniform: unknown }[] }> = {};
-      for (const group of uniformsGroups) if (isBlockGroup(group)) {
+      for (const group of uniformsGroups) {
         uniformGroups[group.name] = { uniforms: group.uniforms.map((nodeUniform: unknown) => ({ nodeUniform })) };
       }
       Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms: { vertex: [], fragment: [] }, updateNodes });
