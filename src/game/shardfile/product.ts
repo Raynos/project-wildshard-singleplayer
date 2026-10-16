@@ -13,7 +13,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { carryOutputDescriptor, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
+import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
@@ -179,8 +179,14 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   if (receipt !== null) acceptValidatedCost(source, worst, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && isOutputIndex(visited.source) && version(visited.source) === SHARDFILE_VERSION) {
-    const previous = await resolveDescriptor(visited.source, { ...options, offline: true });
-    assertStateCompatibility(parseStateLineage(previous), source);
+    let previous: unknown;
+    try { previous = await resolveDescriptor(visited.source, { ...options, offline: true }); }
+    catch (error) {
+      // An old index can outlive its immutable sections. It is no longer an admitted offline copy;
+      // the online descriptor above must complete admission and replace it, just like a first visit.
+      if (!(error instanceof IncompleteOutputCacheError)) throw error;
+    }
+    if (previous !== undefined) assertStateCompatibility(parseStateLineage(previous), source);
   }
   options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];

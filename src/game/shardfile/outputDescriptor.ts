@@ -26,6 +26,11 @@ export interface OutputDescriptor {
 const descriptors = new WeakMap<object, OutputDescriptor>();
 const buildValidated = new WeakSet();
 
+/** A visited index is not an offline copy when any of its section bytes were evicted. */
+export class IncompleteOutputCacheError extends Error {
+  constructor() { super('Shardfile needs a connection: incomplete section cache'); this.name = 'IncompleteOutputCacheError'; }
+}
+
 /** Only the exact root verified against the build receipt has the schema-output proof. */
 export function isBuildValidatedOutput(value: unknown): value is Shardfile {
   return typeof value === 'object' && value !== null && buildValidated.has(value);
@@ -61,7 +66,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
     let bytes = await reader.cached?.(section.hash);
     if (bytes === null || bytes === undefined) {
-      if (reader.offline) throw new Error('Visited shardfile has an incomplete section cache');
+      if (reader.offline) throw new IncompleteOutputCacheError();
       bytes = await reader.read(section.path, section.bytes);
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Shardfile section hash or size mismatch');
       if (reader.store === undefined || !await reader.store(section.hash, bytes)) cached = false;

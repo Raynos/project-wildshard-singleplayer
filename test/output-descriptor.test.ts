@@ -11,8 +11,9 @@ import { outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
 const hash = (bytes: Uint8Array): Promise<string> => Promise.resolve(hashImmutableBytes(bytes));
-function fixture(blob = false): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
-  const source = emptyShardfile({ slug: 'loader-fixture', name: 'Loader', author: 'Test', revision: 1, seed: 1 });
+function fixture(blob = false, spawnX = 0, revision = 1): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
+  const source = emptyShardfile({ slug: 'loader-fixture', name: 'Loader', author: 'Test', revision, seed: 1 });
+  source.spawn.x = spawnX;
   const wires = new Map<string, Uint8Array>();
   if (blob) {
     const bytes = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(bytes);
@@ -76,6 +77,38 @@ test('admission preserves v2 addressing across parser copies and offline section
   const section = index.sections[0]; if (section === undefined) throw new Error('Missing section');
   store.bytes.delete(section.hash);
   await expect(readProductDescriptor(offline)).rejects.toThrow('incomplete section cache');
+});
+
+test('an evicted section of an older visit refetches online and replaces the offline record', async () => {
+  const old = fixture(), current = fixture(false, 4), store = cacheStore();
+  const oldOptions = options(old.wires, store.cache);
+  await admitProduct(await readProductDescriptor(oldOptions), oldOptions);
+  const section = old.index.sections.find(value => value.name === 'world/spawn');
+  if (section === undefined) throw new Error('Missing spawn section');
+  store.bytes.delete(section.hash);
+  const offline = { ...oldOptions, offline: true, fetch: () => Promise.reject(new Error('Offline network')) };
+  await expect(readProductDescriptor(offline)).rejects.toThrow('needs a connection');
+  await expect(admitProduct(null, offline)).rejects.toThrow('needs a connection');
+  expect(store.product()?.source).toEqual(old.index); // No partial publication.
+
+  const online = options(current.wires, store.cache), fetch = online.fetch, requests: string[] = [];
+  online.fetch = url => { requests.push(url); return fetch(url); };
+  const admitted = await admitProduct(await readProductDescriptor(online), online);
+  expect(requests).toContain(`${base}shard.json`);
+  expect(requests).toContain(`${base}${section.path}`);
+  expect(admitted.source).toEqual(current.source);
+  expect(store.product()?.source).toEqual(current.index);
+  expect(await readProductDescriptor(offline)).toEqual(current.source);
+  expect((await admitProduct(null, offline)).source).toEqual(current.source);
+});
+
+test('a complete older visit still enforces saved-state compatibility', async () => {
+  const visited = fixture(false, 0, 2), older = fixture(), store = cacheStore();
+  const savedOptions = options(visited.wires, store.cache);
+  await admitProduct(await readProductDescriptor(savedOptions), savedOptions);
+  const downgrade = options(older.wires, store.cache);
+  await expect(admitProduct(await readProductDescriptor(downgrade), downgrade)).rejects.toThrow('revisions cannot move backwards');
+  expect(store.product()?.source).toEqual(visited.index);
 });
 
 test('index, section integrity and path/version refusals happen before any host or blob read', async () => {
