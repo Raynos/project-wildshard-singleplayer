@@ -816,6 +816,9 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       // AS remains a separate source visibility column: its shipped executable
       // form is Wasm and never adds TS lines to the runtime numerator.
       row.assemblyScriptLines = authoredFiles[slug].filter(path => path.endsWith('.as') && !RULES.tests.test(path)).reduce((sum, path) => sum + count(path), 0);
+      // Authored generator TS is visible independently; it never changes M3.
+      row.generatorTsLines = authoredFiles[slug].filter(path => path.startsWith(`src/shards/${slug}/generators/`)
+        && RULES.typescript.test(path) && !path.endsWith('.d.ts') && !RULES.tests.test(path)).reduce((sum,path)=>sum+count(path),0);
       row.customSectionBytes = outputs[slug].customSectionBytes;
       row.customSections = outputs[slug].customSections;
       row.measurement = 'built-output';
@@ -870,7 +873,7 @@ export function sourceProgressLines(root = ROOT, products = resolve(root,'out'))
   const rows=countOutput(root,false,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true,products);
   return Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{basis:'source',
     customLines:row.conversion.customRuntimeLines,legacyLines:row.conversion.legacyLines,
-    assemblyScriptLines:row.assemblyScriptLines,assemblyScriptBudget:row.assemblyScriptBudget}]));
+    assemblyScriptLines:row.assemblyScriptLines,generatorTsLines:row.generatorTsLines,assemblyScriptBudget:row.assemblyScriptBudget}]));
 }
 /** Headless availability is reported separately from the custom/frozen measure. */
 export function milestoneFlags(_slug, _row, root = ROOT) {

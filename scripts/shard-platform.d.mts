@@ -18,6 +18,8 @@ export interface ConversionMeasure {
 export interface CustomSource {path:string;ownerPath?:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
 export interface ShardLines {
   measurement?:'built-output';
+  /** Authored source generators/ TS/TSX, excluding tests, declarations and registered outputs; report-only. */
+  generatorTsLines:number;
   customSectionBytes?:number;
   customSections?:{name:string;bytes:number}[];
   oneUserBuildTools?:{lines:number;files:{path:string;lines:number;bytes:number}[]};
@@ -34,7 +36,7 @@ export function shardLines(root?: string, includeSources?: boolean): Record<stri
 /** Strict output-only P4 measure; never falls back to an authoring closure. */
 export function outputShardLines(root?:string,includeSources?:boolean,products?:string,only?:string[]|null):Record<string,ShardLines>;
 /** G458 labelled source estimate only; never supplies output % or badges. */
-export function sourceProgressLines(root?:string,products?:string):Record<string,{basis:'source';customLines:number;legacyLines:number|null;assemblyScriptLines:number;assemblyScriptBudget:ShardLines['assemblyScriptBudget']}>;
+export function sourceProgressLines(root?:string,products?:string):Record<string,{basis:'source';customLines:number;legacyLines:number|null;assemblyScriptLines:number;generatorTsLines:number;assemblyScriptBudget:ShardLines['assemblyScriptBudget']}>;
 export function milestoneFlags(slug: string, row: ShardLines, root?: string): MilestoneFlags;
 export function checkShares(recorded: ShardPlatformList, lines: Record<string, ShardLines>): string[];
 
