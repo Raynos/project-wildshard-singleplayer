@@ -86,7 +86,8 @@
         "src/shards/driftwood-isle/generators/economy.ts",
         "src/shards/driftwood-isle/generators/finds.ts",
         "src/shards/driftwood-isle/data/discovery.ts",
-        "src/shards/driftwood-isle/data/interactables.ts"
+        "src/shards/driftwood-isle/data/interactables.ts",
+        "src/shards/driftwood-isle/data/keepsakes.json"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/loot.generated.json"

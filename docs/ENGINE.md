@@ -8007,3 +8007,12 @@ existing scope lifetime. Restore-only fields are never written during evaluation
 Pine's weather projections and Nalati's storm-look projection are the two live
 users. Their generators emit ordinary client-channel JSON; neither playback
 path imports the build-time expression authoring.
+
+`readLootTables(input)` in `game/loot/tables` admits ordered economy table data
+before registration. Each row selects one kind, an optional exact variant and
+optional unowned suppression; count ranges, weights and selection mode remain
+inputs to the existing WeightedTable. It introduces no reward, registry, clock,
+transaction or random owner. Missing/malformed tables and executable selectors
+refuse. `economy/loot.economy.tables` carries these build-emitted declarations.
+`rollLoot` defaults to the fixed zero draw for deterministic awards; supplying a
+random stream keeps the existing weighted selection and count draw order.

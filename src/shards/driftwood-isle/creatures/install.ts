@@ -2,7 +2,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } from '../species/install';
 import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
-import { installDriftwoodLootTables, DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../loot/tables';
+import { readLootTables, registerLootTable } from '@wildshard/game/loot/tables';
 import { driftwoodWorld } from '../world/build';
 import { PRACTICE_CRAB } from '../data/layout';
 import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from './tables';
@@ -17,8 +17,9 @@ export function installDriftwoodCreatures(ctx: ShardContext, species = DRIFTWOOD
   // the boar and bear from the bake; every creature on the graph toon look, the Drowned Captain on his painted coat
   ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look))));
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
-  ctx.rows.lootTable([DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES]);
-  installDriftwoodLootTables(ctx.scope);
+  const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
+  ctx.rows.lootTable(loot);
+  for (const row of loot) registerLootTable(row, ctx.scope);
   const shell = ctx.game.runtime;
   if (shell === undefined) throw new Error('Driftwood creatures require the world host');
   if (shell.world === null) throw new Error('Driftwood creatures require a built world');

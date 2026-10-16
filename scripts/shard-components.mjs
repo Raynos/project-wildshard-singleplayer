@@ -78,6 +78,7 @@ const questOwners=new Set([
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
+  ['src/game/loot/tables.ts#readLootTables', 'C6'],
   ['src/format/lootEconomy.ts', 'C6'],
   ['src/game/shard/declaredRows.ts#EconomyGrant', 'C6'],
   ['src/game/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],

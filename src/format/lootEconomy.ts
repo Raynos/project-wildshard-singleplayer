@@ -20,8 +20,29 @@ const goodSchema = v.strictObject({ id: key, name: text, does: text, icon: v.pic
 const grantSchema = v.strictObject({ id: effectId, key, unless: v.exactOptional(v.pipe(v.array(key), v.maxLength(32))), stacks: v.exactOptional(v.pipe(positive, v.maxValue(1024))) });
 const grants = v.pipe(v.array(grantSchema), v.maxLength(128));
 const sticker = { label: text, icon: v.picklist(['talon', 'tusk', 'hat', 'necklace']), prize: v.exactOptional(v.pipe(v.array(text), v.maxLength(16))) };
+/** Bounded data selectors lower to the existing weighted-table predicate and count laws. */
+export const LootTablesSchema = v.pipe(v.array(v.strictObject({ id: key, domain: v.picklist(['coins', 'trophies']),
+  table: v.strictObject({ mode: v.picklist(['weighted', 'each']), rows: v.pipe(v.array(v.strictObject({
+    item: key, weight: v.pipe(finite, v.minValue(0)), count: v.exactOptional(v.union([count, v.tuple([count, count])])),
+    match: v.strictObject({ kind: key, variant: v.exactOptional(key), unowned: v.exactOptional(v.boolean()) }),
+  })), v.maxLength(256)) }) })), v.maxLength(16));
+/** Ordered count ranges and unique registration identities are checked before any table is installed. */
+function lootTableRules(rows: v.InferOutput<typeof LootTablesSchema>): string[] {
+  const errors: string[] = [];
+  if (new Set(rows.map(row => row.id)).size !== rows.length) errors.push('unique loot table ids');
+  if (rows.some(row => row.table.rows.some(entry => entry.count !== undefined && typeof entry.count !== 'number' && entry.count[0] > entry.count[1]))) errors.push('ordered loot count ranges');
+  return errors;
+}
+/** Detached data admission; predicates, getters, unknown fields and invalid ranges never become callbacks. */
+export function parseLootTables(input: unknown): v.InferOutput<typeof LootTablesSchema> {
+  if (!isJsonData(input)) throw new TypeError('JSON-only loot tables');
+  const rows = v.parse(LootTablesSchema, input);
+  if (lootTableRules(rows).length > 0) throw new TypeError('Invalid loot table references or ranges');
+  return rows;
+}
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
 export const LootEconomySchema = v.strictObject({
+  tables: v.exactOptional(LootTablesSchema),
   effects: v.pipe(v.array(effectSchema), v.maxLength(128)), goods: v.pipe(v.array(goodSchema), v.maxLength(64)),
   grants: v.strictObject({ player: grants, worn: grants, weapons: grants }),
   finds: v.strictObject({ counters: v.pipe(v.array(v.strictObject({ label: text, flags })), v.maxLength(32)),
@@ -35,6 +56,7 @@ export type LootEconomy = v.InferOutput<typeof LootEconomySchema>;
 /** Cross-row references are also part of the defining RowsSchema admission. */
 export function lootEconomyRules(row: LootEconomy): string[] {
   const errors: string[] = [], effects = new Set(row.effects.map(effect => effect.id)), goods = new Set(row.goods.map(good => good.id));
+  if (row.tables !== undefined) errors.push(...lootTableRules(row.tables));
   if (effects.size !== row.effects.length || goods.size !== row.goods.length) errors.push('unique economy effects and goods');
   if (row.goods.some(good => good.needs !== undefined && (!goods.has(good.needs) || good.needs === good.id))) errors.push('economy good prerequisite');
   if ([...row.grants.player, ...row.grants.worn, ...row.grants.weapons].some(grant => !effects.has(grant.id))

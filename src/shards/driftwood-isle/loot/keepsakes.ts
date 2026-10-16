@@ -39,7 +39,7 @@ import KEEPSAKE_CONTENT from '../data/keepsakes.json' with { type: 'json' };
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { islandTrophies, type TrophyDropId } from './tables';
+import { rollLoot } from '@wildshard/game/loot/tables';
 import { seaGlassChime, SeaGlassChime } from '../runtime/models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../runtime/models/trophyPlaques';
 import { buildCaptainHat, buildSailclothCape } from '../runtime/models/captainHat';
@@ -52,10 +52,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { seaGlassFound } from './finds';
 import { charmsFor, chimeCount, nightGlow } from './perks';
 
-/** which death drops which keepsake (while you don't own it) */
-export function trophyFor(a: { kind: string; variant?: string | undefined }): TrophyDropId | null {
-  return islandTrophies(a)[0] ?? null;
-}
+type TrophyDropId = keyof typeof KEEPSAKE_PICKUPS;
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
 export interface KeepsakeHost<A extends KeepsakeAnimal> {
@@ -154,8 +151,8 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   });
   const killed = (a: A): void => {
     if (practiceRoom.open) return;
-    const id = trophyFor(a);
-    if (id === null || owned.has(id)) return;
+    const id = rollLoot('trophies', a).map(drop => drop.item).find((item): item is TrophyDropId => Object.hasOwn(KEEPSAKE_PICKUPS, item));
+    if (id === undefined || owned.has(id)) return;
     if (id === 'captain-hat') {
       // he sinks into the spring pool: the hat lands on your side of it, a step and a half toward where he fell
       const pp = h.player.position, d = Math.hypot(a.position.x - pp.x, a.position.z - pp.z), k = d > 1e-3 ? Math.min(1, 1.5 / d) : 0;
