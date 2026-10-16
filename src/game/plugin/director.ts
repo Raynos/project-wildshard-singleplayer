@@ -248,6 +248,17 @@ export function bindDirectorActions(data: unknown, spec: DirectorActionHostSpec)
   };
 }
 
+/** Native observations and one publication policy; named emits consume only admitted numeric payloads. */
+export interface DirectorScriptStagePorts {
+  readonly observe: () => Readonly<Record<string, number>>;
+  readonly publish?: (action: DirectorAction, source?: Readonly<DirectorEvent>) => void;
+  readonly emits?: {
+    /** Matching requires a real same-key AS event; optional also permits bootstrap actions. */
+    readonly source: 'matching' | 'optional';
+    readonly actions: ReadonlyMap<string, (value: number) => void>;
+  };
+}
+
 /** External-clock stage installation with an admitted AS escape handler. The native lane owns elapsed time,
  * quotas and typed observations; ordered output events select authored stage actions without a second scheduler.
  * Publication also carries the admitted AS event for bounded native parameters; row actions retain their authored values.
@@ -256,14 +267,9 @@ export class DirectorScriptStageLane {
   private readonly definition: DirectorStagesData;
   private readonly stages: DirectorStageLane;
   private readonly script: DirectorLane;
-  private readonly ports: {
-    readonly observe: () => Readonly<Record<string, number>>;
-    readonly publish: (action: DirectorAction, source?: Readonly<DirectorEvent>) => void;
-  };
-  constructor(data: unknown, script: DirectorLane, ports: {
-    readonly observe: () => Readonly<Record<string, number>>;
-    readonly publish: (action: DirectorAction, source?: Readonly<DirectorEvent>) => void;
-  }, restoring = false, initialDt = 0) {
+  private readonly ports: DirectorScriptStagePorts;
+  private readonly emits: DirectorScriptStagePorts['emits'];
+  constructor(data: unknown, script: DirectorLane, ports: DirectorScriptStagePorts, restoring = false, initialDt = 0) {
     if (!Number.isFinite(initialDt) || initialDt < 0 || initialDt > 1) throw new Error('Invalid director initial delta');
     this.definition = structuredClone(parseDirectorStages(data));
     if (this.definition.script !== script.data.module) throw new Error('Stage escape handler hash mismatch');
@@ -272,6 +278,14 @@ export class DirectorScriptStageLane {
       if (!binding.startsWith('event:') || !outputs.some(event => binding === `event:${event.key}`)) throw new Error('Undeclared stage handler output');
     }
     if (outputs.some(event => !Object.values(this.definition.inputs).includes(`event:${event.key}`))) throw new Error('Unbound stage handler output');
+    const emits = ports.emits;
+    if (emits !== undefined) {
+      if (ports.publish !== undefined || !['matching', 'optional'].includes(emits.source) || emits.actions.size > 64) throw new Error('Invalid director emit bindings');
+      const actions = new Map(emits.actions);
+      if ([...actions.values()].some(run => typeof run !== 'function') || this.definition.stages.some(stage => stage.do.some(action =>
+        !('emit' in action) || action.value !== 0 || !actions.has(action.emit)))) throw new Error('Unbound director emit action');
+      this.emits = { source: emits.source, actions };
+    } else if (typeof ports.publish !== 'function') throw new Error('Missing director publication owner');
     this.stages = new DirectorStageLane({ ...this.definition, script: null });
     this.script = script; this.ports = ports;
     if (!restoring) {
@@ -300,7 +314,19 @@ export class DirectorScriptStageLane {
   private deliver(events: readonly DirectorEvent[]): void {
     for (const event of events) this.publish(this.stages.step(this.stages.tick + 1, this.observation(event)), event);
   }
-  private publish(actions: readonly DirectorAction[], source?: Readonly<DirectorEvent>): void { for (const action of actions) this.ports.publish(action, source); }
+  private publish(actions: readonly DirectorAction[], source?: Readonly<DirectorEvent>): void {
+    for (const action of actions) {
+      const emits = this.emits;
+      if (emits === undefined) {
+        if (this.ports.publish === undefined) throw new Error('Missing director publication owner');
+        this.ports.publish(action, source); continue;
+      }
+      if (!('emit' in action) || action.value !== 0 || emits.source === 'matching' && (source === undefined || source.key !== action.emit)) throw new Error('Invalid director emit source');
+      const run = emits.actions.get(action.emit);
+      if (run === undefined) throw new Error('Unbound director emit action');
+      run(source?.value ?? 0);
+    }
+  }
 }
 
 /** Encounter rows select transitions for native bosses; clocks, body callbacks, rewards and views stay BossBrain's.

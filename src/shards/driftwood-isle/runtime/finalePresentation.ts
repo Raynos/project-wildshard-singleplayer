@@ -43,7 +43,7 @@ export interface FinaleWorld<A extends AdvAnimal> {
 }
 interface FinaleRecipe extends Finale {
   observe: () => Readonly<Record<string, number>>;
-  publish: (key: string) => void;
+  emits: ReadonlyMap<string, (value: number) => void>;
   step: (dt: number) => void;
 }
 function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, app: FinaleHost): FinaleRecipe {
@@ -89,19 +89,6 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     app.events.on('player.died', () => { encounter.onPlayerDeath(); }, scope);
     scope.onDispose(() => { bar.root.remove(); });
   }
-  const awake = (): void => { encounter.wake(); };
-
-  const changed = (f: string, on: boolean): void => {
-    if (!on) return;
-    if (f === 'used:altar') {
-      spawn(); awake();
-      w.hud.toast('The pool boils — the Drowned Captain rises!');
-      w.music.combat?.(1);
-    }
-    if (f === 'dead:captain') { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); }
-  };
-
-
   // ── per frame: wake on approach, the boss bar, the reward view ──
   let started = false, completed = false;
   const rewardPose = { yaw: Math.atan2(-planet.x, -planet.z), pitch: Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1)), phase: GOLDEN };
@@ -119,14 +106,16 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   return { captain: () => captain, rewardAt, rewardPose,
     observe: () => ({ altar: Number(flags.has('used:altar')), dead: Number(flags.has('dead:captain')), seen: Number(flags.has('seen:reward')),
       'player-x': w.player.position.x, 'player-z': w.player.position.z, 'reward-x': rewardAt.x, 'reward-z': rewardAt.z }),
-    publish: (key) => {
-      if (key === 'captain.restore') spawn();
-      else if (key === 'captain.wake') changed('used:altar', true);
-      else if (key === 'captain.dead') changed('dead:captain', true);
-      else if (key === 'reward.start') started = true;
-      else if (key === 'reward.finish') { completed = true; flags.set('seen:reward'); }
-      else throw new Error('Unknown finale director event');
-    },
+    emits: new Map<string, (value: number) => void>([
+      ['captain.restore', spawn],
+      ['captain.wake', () => {
+        spawn(); encounter.wake();
+        w.hud.toast('The pool boils — the Drowned Captain rises!'); w.music.combat?.(1);
+      }],
+      ['captain.dead', () => { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); }],
+      ['reward.start', () => { started = true; }],
+      ['reward.finish', () => { completed = true; flags.set('seen:reward'); }],
+    ]),
     step: dt => { reward.update(dt, completed); },
   };
 }
@@ -136,10 +125,8 @@ export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdve
   const recipe = finaleRecipe(adv, w, app), scope = context.scope;
   const create = await prepareDriftwoodDirector();
   if (scope.disposed) throw new Error('Finale scope left during admission');
-  const clock = scope.run(() => new DirectorScriptStageLane(stages, create(), { observe: recipe.observe, publish: action => {
-    if (!('emit' in action) || action.value !== 0) throw new Error('Invalid finale stage action');
-    recipe.publish(action.emit);
-  } }));
+  const clock = scope.run(() => new DirectorScriptStageLane(stages, create(), { observe: recipe.observe,
+    emits: { source: 'optional', actions: recipe.emits } }));
   scope.onDispose(adv.flags.onChange((flag, on) => {
     if (on && (flag === 'used:altar' || flag === 'dead:captain')) clock.changed();
   }));

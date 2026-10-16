@@ -6351,3 +6351,19 @@ binding used by admitted species: its first think or act constructs once,
 later calls receive the current context, and `live` reports ownership
 without allocating a brain. Captain and existing admitted ground species
 share this binder; no clock, decision or random draw runs at binding time.
+
+### Scripted director named emit bindings
+
+`src/game/plugin/director.ts#DirectorScriptStageLane` also accepts
+`DirectorScriptStagePorts` with `emits: {source, actions}` instead of
+`publish`. The copied action map has at most 64 named callbacks. Every
+row action must be an emit with literal value zero and a bound name,
+preflighted before the script initializes. `source: 'matching'` requires a
+real AS event with the same key; `'optional'` retains bootstrap publication.
+Callbacks receive the admitted event payload (zero for bootstrap). Native
+callbacks retain spawn, clock, reward and flag authority; quiet restore and
+legacy publication are unchanged.
+
+Driftwood's finale uses these bindings. The G441 W3 adopters are Nalati
+`runtime/raidDirector.ts` and `runtime/ghostVolleyDirector.ts`, whose matching
+event checks and named native clock/shoot callbacks move onto this policy.
