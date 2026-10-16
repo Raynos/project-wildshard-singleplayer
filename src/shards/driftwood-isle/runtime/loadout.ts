@@ -1,7 +1,8 @@
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import type { Group, Material } from 'three';
 import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from './boot/fixedGeometry';
-import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE, FP_ARMS_MATERIALS, IRON_SWORD_SCENE } from './const';
+import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE, FP_ARMS_MATERIALS } from './const';
+import { driftwoodRows } from './boot/rows';
 import { bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -39,7 +40,7 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
 export function buildIronSwordDisplay(materials: ReadonlyMap<string, Material>): Group {
   const blade = materials.get(FP_ARMS_MATERIALS.pickupBlade), fittings = materials.get(FP_ARMS_MATERIALS.pickupFittings);
   if (blade === undefined || fittings === undefined) throw new Error('Iron sword display requires its graph materials');
-  const made=createClientScene(IRON_SWORD_SCENE,{
+  const made=createClientScene(driftwoodRows('custom/fixedLayouts').ironSword,{
     geometry:id=>{if(id==='blade')return IRON_SWORD_BLADE_GEOMETRY.copy();if(id==='fittings')return IRON_SWORD_FITTINGS_GEOMETRY.copy();throw new Error('Unknown declared iron sword geometry');},
     materials: new Map([['blade', blade], ['fittings', fittings]]),
   });

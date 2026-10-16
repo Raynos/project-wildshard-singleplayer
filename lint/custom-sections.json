@@ -188,6 +188,18 @@
         "bytes": 513192
       },
       "why": "G463 approved C1: fixedLayouts admits the existing four entry decks and both foliage tiers (+264978 B); clientSections and the entry-deck decoder run only in generators, with no runtime JS copy or new section."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 8,
+        "bytes": 513192
+      },
+      "to": {
+        "count": 8,
+        "bytes": 513764
+      },
+      "why": "G465 C9: admit the existing iron-sword pickup recipe in fixedLayouts (+572 B), deleting its const mirror and using the existing strict scene reader; no new section or host."
     }
   ]
 }

@@ -9,7 +9,6 @@ import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
 import { GROUND_LOOK } from './groundLook';
 import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
-import ironSwordScene from './ironSwordScene.json' with { type: 'json' };
 import spots from './spots.generated.json' with { type: 'json' };
 import ziplineRows from './zipline.generated.json' with { type: 'json' };
 import { ISLAND_LOOKS } from './islandLook';
@@ -58,7 +57,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('RAMP_FOG', RAMP_FOG),
   defineMirror('DRIFTWOOD_MELEE_PROFILE', DRIFTWOOD_MELEE_PROFILE),
   defineMirror('DRIFTWOOD_IRON_PROFILE', DRIFTWOOD_IRON_PROFILE),
-  defineMirror('IRON_SWORD_SCENE', ironSwordScene),
   defineMirror('SHORE_ROCK', SHORE_ROCK),
   defineMirror('REEF_ROCK', REEF_ROCK),
   defineMirror('BOAT_LAYOUT', BOAT_LAYOUT),

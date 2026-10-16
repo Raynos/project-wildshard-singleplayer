@@ -95,20 +95,6 @@ export const DRIFTWOOD_MELEE_PROFILE = {
   sweep: { rays: 5, extensions: [0.12, 0.24, 0.36, 0.48], step: 0.09, maxSamples: 6, maxHits: 8 },
 } as const;
 export const DRIFTWOOD_IRON_PROFILE = { ...DRIFTWOOD_MELEE_PROFILE, damage: 28 } as const;
-/** the iron sword's world pickup scene: its blade and fittings on the borrowed graph materials (data/ironSwordScene.json) */
-export const IRON_SWORD_SCENE = {
-  version: 1,
-  root: 'pickup',
-  nodes: [
-    { kind: 'group', id: 'pickup', children: ['blade', 'fittings'] },
-    { kind: 'mesh', id: 'blade', geometry: 'blade', material: 'blade', missing: 'empty', position: [0, -0.36, 0], castShadow: true, receiveShadow: true },
-    { kind: 'mesh', id: 'fittings', geometry: 'fittings', material: 'fittings', missing: 'empty', position: [0, -0.36, 0], castShadow: true, receiveShadow: true },
-  ],
-  materials: [
-    { kind: 'port', id: 'blade', source: 'blade' },
-    { kind: 'port', id: 'fittings', source: 'fittings' },
-  ],
-} as const;
 /** the shore boulders' granite and the reef rocks' weedier basalt (data/rockProfiles.ts) */
 export const SHORE_ROCK = {
   foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',
