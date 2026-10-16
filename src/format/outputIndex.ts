@@ -7,6 +7,9 @@ import { RowsSchema } from './rows';
 import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema } from './shardSections';
 import { SHARDFILE_VERSION } from './version';
 import { isJsonData } from './json';
+import { PLATFORM_DATA_SECTIONS } from './platformDataSections';
+import { CreatureStrikeSchema } from './creatures';
+import type { PlatformSectionName } from './sections';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 const path = v.pipe(v.string(), v.maxLength(240), v.regex(/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/u));
@@ -27,9 +30,10 @@ export const OutputIndexSchema = v.strictObject({
 export type OutputIndex = v.InferOutput<typeof OutputIndexSchema>;
 export type OutputFile = OutputIndex['files'][number];
 export type OutputSection = OutputIndex['sections'][number];
-interface SectionMapping { readonly name: string; readonly fields: readonly (keyof Shardfile)[]; readonly row?: keyof Shardfile['rows']; readonly spawns?: true; }
+interface SectionMapping { readonly name: PlatformSectionName; readonly fields: readonly (keyof Shardfile)[]; readonly row?: keyof Shardfile['rows']; readonly spawns?: true; }
 /** Root-key envelopes preserve optional-field absence and every existing host's values. */
-export const OUTPUT_SECTIONS: readonly SectionMapping[] = [
+const ROW_SECTION_NAMES = {species:'actors/species',strikes:'combat/strikes',loot:'economy/loot',days:'world/days',weather:'world/weather',looks:'look/materials',compendiums:'ui/compendium'} as const;
+const OUTPUT_SECTION_FIELDS = [
   {name:'world/tiles',fields:['tiles','far','near']},
   {name:'world/terrain',fields:['terrain','nativeGround']},
   {name:'world/edge',fields:['edge','entryways']},
@@ -61,10 +65,16 @@ export const OUTPUT_SECTIONS: readonly SectionMapping[] = [
   {name:'sim/client-channels',fields:['clientChannels']},
   {name:'sim/plumbing',fields:['plumbing']},
   {name:'audio/audio',fields:['audio']},
-  {name:'ui/card',fields:['accent','manifest']},
+  {name:'ui/card',fields:['accent']},
+  {name:'ui/level',fields:['manifest']},
   {name:'ui/ui',fields:['ui','targets']},
-  ...(['species','strikes','loot','days','weather','looks','compendiums'] as const).map(row => ({name:({species:'actors/species',strikes:'combat/strikes',loot:'economy/loot',days:'world/days',weather:'world/weather',looks:'look/materials',compendiums:'ui/compendium'})[row],fields:[],row})),
-];
+  ...(['species','strikes','loot','days','weather','looks','compendiums'] as const).map(row => ({name:ROW_SECTION_NAMES[row],fields:[],row})),
+] as const satisfies readonly SectionMapping[];
+/** Existing host-field envelopes, plus independently authored platform schemas. */
+export const OUTPUT_SECTIONS:readonly SectionMapping[]=OUTPUT_SECTION_FIELDS;
+const OUTPUT_DATA_SECTIONS={...PLATFORM_DATA_SECTIONS,'actors/strikes':{schema:v.array(CreatureStrikeSchema)}} as const;
+/** Compile-time coverage is checked against the public platform-section registry. */
+export type OutputPlatformSectionName=(typeof OUTPUT_SECTION_FIELDS)[number]['name']|keyof typeof OUTPUT_DATA_SECTIONS;
 /** Detect the explicit disk envelope, including unsupported versions that must refuse. */
 export function isOutputIndex(input: unknown): boolean { return typeof input === 'object' && input !== null && 'format' in input && input.format === 'wildshard.shardfile'; }
 /** Parse the supported major and refuse duplicate, escaping or noncanonical inventory paths. */
@@ -81,7 +91,7 @@ export function parseOutputIndex(input: unknown): OutputIndex {
     names.add(entry.name);
     if (entry.name.startsWith('custom/')) {
       if (entry.schema !== `schemas/${entry.name}.schema.json` || !index.schemas.some(row => row.path === entry.schema)) throw new Error('Custom section needs its listed schema');
-    } else if (!OUTPUT_SECTIONS.some(row => row.name === entry.name) || entry.schema !== `wildshard:${entry.name}@1`) throw new Error('Unknown platform section schema');
+    } else if ((!OUTPUT_SECTIONS.some(row => row.name === entry.name) && !isPlatformDataSection(entry.name)) || entry.schema !== `wildshard:${entry.name}@1`) throw new Error('Unknown platform section schema');
   }
   for (const entry of index.schemas) if (!index.sections.some(row => row.schema === entry.path)) throw new Error('Unreferenced custom schema');
   const refs = new Set<string>(), logical = new Set<string>();
@@ -100,6 +110,10 @@ export function outputBlobPath(file: Pick<OutputFile, 'kind' | 'hash' | 'path'>)
   if (!extensions[file.kind].some(ext => file.path === `blobs/${file.kind}/${file.hash}.${ext}`)) throw new Error('Blob path differs from its kind and hash');
   return file.path;
 }
+/** Whether a section is an independently authored plain platform value. */
+export function isPlatformDataSection(name:string):name is keyof typeof OUTPUT_DATA_SECTIONS{return Object.hasOwn(OUTPUT_DATA_SECTIONS,name);}
+/** Validate both legacy envelopes and independently authored platform values. */
+export function validateOutputSection(name:string,value:unknown):unknown{return isPlatformDataSection(name)?v.parse(OUTPUT_DATA_SECTIONS[name].schema,value):parseOutputSection(name,value);}
 /** Deterministic platform section values; custom author sections are added separately. */
 export function outputSectionPayloads(source: Shardfile): ReadonlyMap<string, unknown> {
   const result = new Map<string, unknown>();
@@ -127,14 +141,19 @@ export function parseOutputSection(name: string, input: unknown): Record<string,
   if (mapping.spawns === true) return {runtime:v.parse(v.strictObject({spawns:RuntimeSpawnsSchema}),Reflect.get(input,'runtime'))};
   return Object.fromEntries(Object.entries(input));
 }
-/** Reconstruct the unchanged admitted host model; no transport metadata leaks into it. */
-export function assembleOutputShardfile(input: unknown, sections: ReadonlyMap<string, unknown>): Shardfile {
-  const index = parseOutputIndex(input), result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,commons: _commons,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {entry:index.runtime.entry,...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
+/** Reconstruct host fields without transport metadata. Only an exact build-pinned
+ * validation receipt may bypass section parsing; untrusted readers use the
+ * checked wrapper below, which also parses the complete host model. */
+export function assembleOutputFields(index: OutputIndex, sections: ReadonlyMap<string, unknown>, checkSections = true): Record<string, unknown> {
+  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,commons: _commons,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {entry:index.runtime.entry,...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
   if (sections.size !== index.sections.length || index.sections.some(entry => !sections.has(entry.name))) throw new Error('Missing or surplus output section');
   const rows: Record<string, unknown> = {};
   for (const entry of index.sections) {
     if (entry.name.startsWith('custom/')) continue;
-    const value = parseOutputSection(entry.name, sections.get(entry.name));
+    if (isPlatformDataSection(entry.name)) {if(checkSections)v.parse(OUTPUT_DATA_SECTIONS[entry.name].schema,sections.get(entry.name));continue;}
+    const payload=sections.get(entry.name);
+    if(typeof payload!=='object'||payload===null||Array.isArray(payload))throw new Error('Output section envelope must be an object');
+    const value = checkSections ? parseOutputSection(entry.name,payload) : payload;
     for (const [key, data] of Object.entries(value)) {
       if (key === 'rows') Object.assign(rows,data);
       else if (key === 'runtime') Object.assign(result['runtime'] ?? {},data);
@@ -142,5 +161,8 @@ export function assembleOutputShardfile(input: unknown, sections: ReadonlyMap<st
     }
   }
   result['rows'] = rows;
-  return parseShardfile(result);
+  return result;
 }
+/** The default untrusted reader always checks sections and the full host schema. */
+export function assembleOutputShardfile(input: unknown, sections: ReadonlyMap<string, unknown>): Shardfile {return parseShardfile(assembleOutputFields(parseOutputIndex(input),sections));}
+

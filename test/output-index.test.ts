@@ -1,7 +1,10 @@
-import { expect, it } from 'vitest';
+import { expect, expectTypeOf, it } from 'vitest';
+import type { PlatformSectionName } from '@wildshard/format/sections';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex } from '@wildshard/format/outputIndex';
+import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, type OutputPlatformSectionName } from '@wildshard/format/outputIndex';
+
+it('covers every public platform section name',()=>{expectTypeOf<OutputPlatformSectionName>().toEqualTypeOf<PlatformSectionName>();});
 
 it('roundtrips every platform field without transport metadata', () => {
   const source = emptyShardfile({slug:'index-test',name:'Index',author:'Test',revision:1,seed:9});
