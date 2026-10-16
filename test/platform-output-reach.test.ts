@@ -42,3 +42,13 @@ it('rejects unknown section hosts and absent outputs instead of measuring source
   expect(()=>outputShardLines(root)).toThrow('built output missing');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('attributes declared moves and decisions to their defining sim hosts',()=>{
+ const roots=sectionHostImports([{name:'actors/moves'},{name:'sim/scripts'}]);
+ expect(roots).toContain('engine/ai/moves');
+ expect(roots).toContain('ActorMoveRunner');
+ expect(roots).toContain('format/actorMoves');
+ expect(roots).toContain('engine/script/decision');
+ expect(roots).toContain('DecisionHost');
+ expect(roots).toContain('format/decisionScripts');
+});
