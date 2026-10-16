@@ -17,12 +17,17 @@ Done before this table: `dev/` (`396777351`), `models/` (`d42fa9f7a`).
 | world/cragKit.ts | the Ridge's granite kit for the crag models |
 | world/heroFiles.ts | the hero props' file table (drawing) |
 | world/undergrowthKit.ts | the forest-floor plants as their models read them |
-| species/looks.ts | a look over a species' look fields on Pine's hulls |
 | species/rigs.ts | the rigged hull files |
 | weapons/Longbow.ts | the longbow's presentation |
 | weapons/longbowView.ts | the arrow's view geometry |
 | loadout/finishes.ts | the Bag's FINISHES row (UI) |
 | loadout/skins.ts | authored material finishes (looks) |
+
+Landed in `000e91270` without species/looks.ts: moved, it would raise shard-game-plugins 2 → 4 (runtime/ may import
+only trusted game facades), so it stays until its game imports go through one.
+
+Then, with one small edit each (`4533df34f`): world/hero.ts (anisotropy set per map, no fresh array loop) and
+world/streams.ts (the spray loop under a literal cap, MAX_SPRAY 64 over the bake's 11).
 
 ## Stays: sim (reached from runtime/headless.ts)
 
@@ -42,5 +47,7 @@ weather · species/bodies, thrall.
 | File | Blocker |
 |---|---|
 | world/timberBake.ts, world/undergrowth.ts, world/logKit.ts | read by generators (build time) |
-| world/homestead.ts, crags.ts, landmarks.ts, cabins.ts, props.ts, drawnModels.ts, treeFactory.ts, timber.ts, timberSites.ts, hero.ts, streams.ts, beaverPool.ts, cragBake.ts, context.ts | runtime-performance sites (raw scene / renderer, unbounded loops, frame allocations) need their own honest edits |
+| world/homestead.ts, crags.ts, landmarks.ts, cabins.ts, props.ts, drawnModels.ts, treeFactory.ts, timber.ts, timberSites.ts, cragBake.ts, context.ts | runtime-performance sites (raw scene / renderer, unbounded loops, frame allocations) need their own honest edits |
 | combat/fxKit.ts, species/hulls.ts, weapons/crossbow/display.ts, quest/npcModels.ts | same |
+| world/beaverPool.ts | writes `beaverPoolLevel` (the pool's water level other code reads): check it is presentation only first |
+| species/looks.ts | shard-game-plugins would rise (above) |
