@@ -14077,7 +14077,7 @@
         "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
         "src/shards/pine-hollow/generators/handsPool.ts",
         "src/shards/pine-hollow/data/handsLook.ts",
-        "src/shards/pine-hollow/data/longbowLook.ts",
+        "src/shards/pine-hollow/generators/longbowLook.ts",
         "src/shards/pine-hollow/runtime/viewmodel",
         "scripts/bake-loader.mjs",
         "package.json",

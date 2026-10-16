@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import { BowShape, type BowProfile, type BowView, type GripPose } from '@wildshard/engine/combat/view/bowProfile';
 import { RangedAction } from '@wildshard/engine/combat/Firearm';
 import { ProjectileContact } from '@wildshard/engine/combat/projectileContact';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
-import { ProjectilePresentation } from '@wildshard/engine/combat/view/projectile';
-import { FOV_ADS, FOV_HIP, impactSurfaceOf, isMesh, prepareWeaponView, Puffs, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { ProjectilePresentation, type ProjectileKind } from '@wildshard/engine/combat/view/projectile';
+import { FOV_ADS, FOV_HIP, impactSurfaceOf, isMesh, prepareWeaponView, Puffs, viewmodelRowMaterial, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
@@ -16,7 +17,9 @@ import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { RangedFrame, type RangedFrameRow, type RangedTraceRow } from '@wildshard/engine/render/viewmodelFeel';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldModelRows } from './heldFirearm';
+import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
+import * as v from 'valibot';
+import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldMaterialRow, type HeldModelRows } from './heldFirearm';
 import { createClientScene } from './ui';
 import { HeldPlayback } from './weaponFamily';
 
@@ -340,4 +343,85 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     if (!quiet) { this.puffs.emit(point, dir, surface); this.onImpact?.(surface, point); }
     if (stick) this.presentation.stick(point, dir, b.roll, b.mod.material ?? this.boltMat, b.traced, bury, rideOn);
   }
+}
+
+// ───────────────────────────── the bow draw ─────────────────────────────
+
+/**
+ * The bow draw on rows (H3): a baked stave bow for the platform `Bow` (its draw, loose, arrows and pose stay the engine's).
+ * The shard passes numbers and its bake's rows, never a callback; this host builds the view, the arrow kind and the wind.
+ * The stave bends on the engine's analytic curve (`BowShape`) from the bake's `look`; the parts are borrowed from
+ * `model.geometry` by `rows.parts` (the stave carries the left fist; never mutated or disposed).
+ *
+ *   new Bow(world, targets, { row, profile: heldBowProfile(BASE, rows, model) });
+ */
+const finite = v.pipe(v.number(), v.finite());
+/** The stave's look as the bake serialised it (the numbers the bend reads; its colours stay in the bake). */
+const StaveLookSchema = v.looseObject({ gripH: finite, limbW: finite, nockL: finite, kappaRest: finite, kappaDraw: finite, braceZ: finite, drawLen: finite,
+  arrowX: finite, arrowY: finite, radial: finite, stringRadial: finite, stringR: finite, serving: finite, rightRoll: finite });
+const ArrowLookSchema = v.looseObject({ length: finite });
+/** A grip pose as data: the bow's place and aim point in rig space, its cant and pitch. */
+export interface HeldBowPoseRow { readonly pos: Triple; readonly aim: Triple; readonly cant: number; readonly pitch: number }
+/** A baked stave bow's rows (the shard's bake emits them): its look and arrow as serialised JSON, the stave's rings, its
+ *  dynamic vertex counts and section samples, and the fists' wrist, hook and roll-axis points. */
+export interface HeldBowBake {
+  readonly look: string; readonly arrow: string; readonly ringU: readonly number[]; readonly ringSign: readonly number[]; readonly limbVerts: number; readonly dynVerts: number;
+  readonly sectionSamples: { readonly widths: readonly number[]; readonly ridges: readonly number[] };
+  readonly lWrist: readonly number[]; readonly rWrist: readonly number[]; readonly rHook: readonly number[]; readonly rWristDir: readonly number[];
+}
+/** The bow's rows: the bake, its part names, its two materials, the arrow's flight / stick / pool numbers, the wind's pull, the poses. */
+export interface HeldBowRows {
+  readonly bake: HeldBowBake;
+  readonly parts: { readonly stave: string; readonly nocked: string; readonly rightFist: string; readonly leftSleeve: string; readonly rightSleeve: string; readonly arrow: string };
+  readonly materials: { readonly bow: HeldLitRow; readonly arrow: HeldLitRow };
+  readonly arrow: { readonly gravity: number; readonly drag: number; readonly windCoupling: number; readonly bury: number; readonly recover: number; readonly maxFlying: number; readonly maxStuck: number };
+  /** the wind on an arrow: `base` + `gust` × the engine's gust field (m/s), along the world wind */
+  readonly wind: { readonly base: number; readonly gust: number };
+  readonly poses: Readonly<Record<keyof BowProfile['poses'], HeldBowPoseRow>>;
+}
+/** The profile's numbers: all but what the rows build (the view, arrow, wind, poses, the arrow's rest and length). */
+export type HeldBowBase = Omit<BowProfile, 'build' | 'arrow' | 'wind' | 'poses' | 'arrowX' | 'arrowY' | 'arrowLength'>;
+
+type HeldLitRow = Extract<HeldMaterialRow, { readonly look: unknown }>;
+const part = (model: HeldFirearmModel, id: string): THREE.BufferGeometry => need(model.geometry?.get(id), `bow part ${id}`);
+const staveLook = (rows: HeldBowRows) => v.parse(StaveLookSchema, JSON.parse(rows.bake.look));
+const arrowLength = (rows: HeldBowRows): number => v.parse(ArrowLookSchema, JSON.parse(rows.bake.arrow)).length;
+const bowMaterial = (sky: Sky, row: HeldLitRow): THREE.MeshPhysicalMaterial => viewmodelRowMaterial(sky, row.name, row.look);
+const gripPose = (r: HeldBowPoseRow): GripPose => ({ pos: new THREE.Vector3(...r.pos), aim: new THREE.Vector3(...r.aim), cant: r.cant, pitch: r.pitch });
+/** The stave + string over the baked rest geometry; the first `dynVerts` vertices are rewritten by `shape(draw, nock)`. */
+function staveMesh(rows: HeldBowRows, model: HeldFirearmModel): BowView['mesh'] {
+  const look = staveLook(rows), b = rows.bake;
+  const { geometry, position, normal } = BowShape.prepareGeometry(part(model, rows.parts.stave));
+  const tipTop = new THREE.Vector3(), tipBot = new THREE.Vector3(), nock = new THREE.Vector3();
+  const bend = new BowShape({ ringU: b.ringU, ringSign: b.ringSign, limbVerts: b.limbVerts, dynVerts: b.dynVerts, sectionSamples: b.sectionSamples,
+    curve: look, radial: look.radial, backScale: 0.55, tipArc: look.gripH + look.limbW + look.nockL - 0.014, tipOffset: 0.004,
+    nockX: look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
+    stringRadial: look.stringRadial, stringRadius: look.stringR, serving: look.serving }, { position, normal, tipTop, tipBot, nock });
+  bend.shape(0, 0);
+  return { geometry, nock, shape: (p, n) => { bend.shape(p, n); } };
+}
+/** The platform bow's profile from the base numbers and the rows (the view, arrow and wind strategies are this host's). */
+export function heldBowProfile(base: HeldBowBase, rows: HeldBowRows, model: HeldFirearmModel): BowProfile {
+  const look = staveLook(rows), b = rows.bake, p = rows.poses, vec = (t: readonly number[]) => new THREE.Vector3().fromArray(t);
+  const { base: still, gust } = rows.wind, a = rows.arrow;
+  return { ...base, arrowX: look.arrowX, arrowY: look.arrowY, arrowLength: arrowLength(rows),
+    poses: { rest: gripPose(p.rest), drawn: gripPose(p.drawn), restPort: gripPose(p.restPort), drawnPort: gripPose(p.drawnPort), aim: gripPose(p.aim), aimPort: gripPose(p.aimPort) },
+    wind: { vecAt: (x, z, out) => { const s = still + gust * windGustAt(x, z); out.x = WIND_DIR.x * s; out.z = WIND_DIR.z * s; return out; } },
+    arrow: (sky): ProjectileKind => ({ geometry: part(model, rows.parts.arrow), material: bowMaterial(sky, rows.materials.arrow), length: arrowLength(rows),
+      gravity: a.gravity, drag: a.drag, windCoupling: a.windCoupling, bury: a.bury, recover: a.recover, maxFlying: a.maxFlying, maxStuck: a.maxStuck }),
+    build: sky => {
+      const mat = bowMaterial(sky, rows.materials.bow), rWristDir = vec(b.rWristDir), mesh = (id: string) => new THREE.Mesh(part(model, id), mat);
+      return { mat, mesh: staveMesh(rows, model), nocked: mesh(rows.parts.nocked), rHand: mesh(rows.parts.rightFist), lSleeve: mesh(rows.parts.leftSleeve), rSleeve: mesh(rows.parts.rightSleeve),
+        lWrist: vec(b.lWrist), rWrist: vec(b.rWrist), rHook: vec(b.rHook), rWristDir, roll: new THREE.Quaternion().setFromAxisAngle(rWristDir, look.rightRoll) };
+    } };
+}
+/** The Model Explorer's card: the braced stave with the left fist on it, on its own material. */
+export function heldBowDisplay(sky: Sky, rows: HeldBowRows, model: HeldFirearmModel): THREE.Group {
+  const m = new THREE.Mesh(staveMesh(rows, model).geometry, bowMaterial(sky, rows.materials.bow));
+  m.castShadow = true; m.receiveShadow = true;
+  return new THREE.Group().add(m);
+}
+/** The arrow alone (its geometry borrowed, its material fresh): the Model Explorer's arrow card. */
+export function heldBowArrow(sky: Sky, rows: HeldBowRows, model: HeldFirearmModel): { geometry: THREE.BufferGeometry; material: THREE.Material } {
+  return { geometry: part(model, rows.parts.arrow), material: bowMaterial(sky, rows.materials.arrow) };
 }

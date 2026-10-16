@@ -60,7 +60,7 @@ import { installWeather, loadPineRain } from '../world/weather';
 import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
-import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
+import { pineLongbow } from './weapons/longbowView';
 import { readItemEquipment, readItemAmmunition } from '@wildshard/game/plugin/nativeItems';
 import { pineFinishEffect } from '../loadout/effects';
 import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
@@ -181,7 +181,7 @@ export class PineHollow extends ShardPlugin {
     rt.buildEquipment = runtimeEquipment([
       { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },
       { slot: 'rifle', create: (targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld }) },
-      { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
+      { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: pineLongbow(), allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
       if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');
       bindRuntimeEquipment(ctx, ctx.product.shardfile, [

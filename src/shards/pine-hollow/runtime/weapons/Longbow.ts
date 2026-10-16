@@ -1,3 +1,2 @@
-/** Pine's longbow presentation; the plugin builds the shared Bow with its authored profile. */
+/** Pine's longbow numbers a sim may read (no view code here: the held rows are ./longbowView.ts). */
 export const QUIVER_MAX = 20;
-export const AIM_ZOOM = 1.6, AIM_VM_ZOOM = 0.85, AIM_SWAY = 0.5, AIM_SPREAD = 0.5, AIM_IN = 10;

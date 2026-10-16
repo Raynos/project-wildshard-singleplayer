@@ -5,7 +5,7 @@
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
 import { crossbowModel, crossbowRows, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
-import { heldLauncherBolt, heldLauncherDisplay } from '@wildshard/game/plugin/heldLauncher';
+import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay } from '@wildshard/game/plugin/heldLauncher';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
@@ -13,7 +13,7 @@ import { pineSkinRows, PINE_FINISH_VARIANTS, preparePineFinishes } from '../load
 import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
 import { QUIVER_MAX } from '../weapons/Longbow';
-import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../weapons/longbowView';
+import { longbowModel, longbowRows } from '../weapons/longbowView';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/shards/pine-hollow/models/gear.ts';
@@ -47,12 +47,12 @@ export const leverAction: ModelDef<GearSkinParams> = defineModel<GearSkinParams>
 
 /**
  * The Warden's longbow: a yew self-bow, horn nocks, a linen string, the grip bound with amber set in it — the braced stave
- * and the left glove on it, as `displayModel` shows it (`Longbow.longbowSpecimen`, on its own material).
+ * and the left glove on it, as `displayModel` shows it (`heldBowDisplay` over the longbow's rows, on its own material).
  */
 export const wardensLongbow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/wardens-longbow', name: "Warden's longbow", category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
-  build: (ctx) => ctx.once('gear:wardens-longbow', () => longbowSpecimen(ctx.sky)).clone(),
+  build: (ctx) => ctx.once('gear:wardens-longbow', () => heldBowDisplay(ctx.sky, longbowRows(), longbowModel())).clone(),
 });
 
 /**
@@ -72,14 +72,14 @@ export const crossbowBolt: ModelDef<object> = defineModel<object>({
 
 /**
  * The longbow's arrow (E348): an ash shaft, a sinew-bound bodkin head, three grey-goose feathers with a white cock
- * feather, 0.76 m — the longbow's `buildArrowGeometry` on its own copy of the arrows' material (`arrowMaterial`). Every
+ * feather, 0.76 m — the baked arrow on its own copy of the arrows' material (`heldBowArrow`). Every
  * arrow loosed, flying or stuck, is one instanced draw (Projectiles.ts); the quiver holds QUIVER_MAX.
  */
 export const longbowArrow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/longbow-arrow', name: 'Longbow arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: {},
   specimenYaw: Math.PI / 2,
-  build: (ctx) => [ctx.once('gear:longbow-arrow-part', () => ({ geometry: buildArrowGeometry(), material: arrowMaterial(ctx.sky), castShadow: true, receiveShadow: true }))],
+  build: (ctx) => [ctx.once('gear:longbow-arrow-part', () => ({ ...heldBowArrow(ctx.sky, longbowRows(), longbowModel()), castShadow: true, receiveShadow: true }))],
 });
 
 /** the Hollow's kit (src/main.ts): the crossbow (1), the lever-action (2, the cabin pickup), the longbow (3, the King's

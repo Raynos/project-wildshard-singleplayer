@@ -222,7 +222,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/kit/heldTool.ts', 'C6'],
   ['src/shards/pine-hollow/runtime/rangedVolumes.ts', 'C6'],
   ['src/shards/pine-hollow/runtime/viewmodel/gloveHands.ts', 'C6'],
-  ['src/shards/pine-hollow/runtime/viewmodel/staveBow.ts', 'C6'],
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
   ['src/engine/core/assets.ts#gltfLoader', 'C9'],
   ['src/engine/core/assets.ts#loadGLTF', 'C9'],

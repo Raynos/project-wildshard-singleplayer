@@ -10,8 +10,7 @@ import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import { SPRAY_LOOK } from './streamLook';
 import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHollow';
 
-import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
-import { BOW_PROFILE } from './bowProfile';
+import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
 import { FINISH_CARDS } from './finishCards';
 
 import { KNIFE_LOOK } from './skinningKnifeLook';
@@ -25,11 +24,8 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CROSSBOW_DISPLAY_REST', CROSSBOW_DISPLAY_REST),
   defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),
   defineMirror('ARROW_MATERIAL', ARROW_MATERIAL),
-  defineMirror('LONGBOW_ARROW', LONGBOW_ARROW),
   defineMirror('LONGBOW_MATERIAL', LONGBOW_MATERIAL),
   defineMirror('LONGBOW_POSES', LONGBOW_POSES),
-  defineMirror('ARROW_FLIGHT', BOW_PROFILE.flight),
-  defineMirror('ARROW_MAX_FLYING', BOW_PROFILE.pool),
   defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
   defineMirror('NPC_NAMES', { ranger: RANGER_DIALOGUE.name, miller: MILLER_DIALOGUE.name, trader: TRADER_DIALOGUE.name }),

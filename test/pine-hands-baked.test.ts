@@ -1,11 +1,9 @@
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
 import { HUNTER_HANDS } from '../src/shards/pine-hollow/data/handsLook';
-import { longbowLook, StaveBowLookSchema } from '../src/shards/pine-hollow/runtime/viewmodel/staveBow';
-import * as handsGeometry from '../src/shards/pine-hollow/runtime/boot/handsGeometry';
-import { LONGBOW_LOOK } from '../src/shards/pine-hollow/data/longbowLook';
+import { LONGBOW_LOOK, StaveBowLookSchema } from '../src/shards/pine-hollow/generators/longbowLook';
 import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/items/leverPresentation';
 import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 
@@ -24,16 +22,11 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
       expect(hands[JSON.stringify([HUNTER_HANDS, spec, spec.elbow !== undefined])], side).toBeDefined();
     }
   }
+  // the held bow draw (heldLauncher heldBowProfile) reads the bake's serialised look and arrow
   expect(pool.bow.look).toBe(JSON.stringify(LONGBOW_LOOK));
-  const admitted = vi.spyOn(handsGeometry, 'bakedBowRows').mockReturnValue(pool.bow);
-  try {
-    expect(longbowLook()).toEqual(LONGBOW_LOOK);
-    expect(JSON.stringify(longbowLook())).toBe(pool.bow.look);
-    expect(() => v.parse(StaveBowLookSchema, { ...LONGBOW_LOOK, gripH: Infinity })).toThrow();
-    expect(() => v.parse(StaveBowLookSchema, { ...LONGBOW_LOOK, extra: true })).toThrow();
-    admitted.mockReturnValue({ ...pool.bow, look: '{"gripH":"bad"}' });
-    expect(longbowLook).toThrow();
-  } finally { admitted.mockRestore(); }
+  expect(v.parse(StaveBowLookSchema, JSON.parse(pool.bow.look))).toEqual(LONGBOW_LOOK);
+  expect(() => v.parse(StaveBowLookSchema, { ...LONGBOW_LOOK, gripH: Infinity })).toThrow();
+  expect(() => v.parse(StaveBowLookSchema, { ...LONGBOW_LOOK, extra: true })).toThrow();
   expect(pool.bow.arrow).toBe(JSON.stringify(LONGBOW_LOOK.arrow));
   expect(loaded.output.namedFiles?.some(file => file.name === pool.pool.url)).toBe(true);
 }, 30000);

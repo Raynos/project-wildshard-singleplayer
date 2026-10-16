@@ -48,11 +48,7 @@ export const CAVE_LOOK = {
   drips: { color: 0xcfd8dc, size: 0.045, opacity: 0.85, period: 1.7, periodStep: 0.53, kinds: 5, phaseStep: 0.37, gravity: 9.8, hang: 0.04, minDrop: 0.2 },
 } as const;
 
-/** Client-only longbow look, grip and flight mirrors; native profiles keep their original owners. */
-/** The arrow: an ash shaft, a sinew-bound bodkin head, three grey-goose feathers (a white cock feather). */
-export const LONGBOW_ARROW = {
-  length: 0.76, shaft: 0xc9a878, shaftDark: 0x8a6a46, binding: 0x4a3622, head: 0x3c3e42, feather: 0x8e8a84, featherBar: 0xe6e0d4,
-} as const;
+/** Client-only longbow material and grip mirrors; native profiles keep their original owners. */
 /** The Longbow's material (the viewmodels' shared lit program): waxed yew, leather, linen. */
 export const LONGBOW_MATERIAL = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
 /** The arrows' material (the viewmodels' shared lit program, vertex colours × the 1×1 fillers): ash, sinew, feathers. */
@@ -68,9 +64,6 @@ export const LONGBOW_POSES = {
   aim: { pos: [0.1, -0.22, -1.15], aim: [0.02, -0.052, -7], cant: -0.22, pitch: 0 },
   aimPort: { pos: [0.04, -0.19, -1.15], aim: [0.02, -0.052, -8], cant: -0.16, pitch: 0 },
 } as const;
-
-export const ARROW_FLIGHT = { gravity: 6, drag: 0.014, windCoupling: 0.25 };
-export const ARROW_MAX_FLYING = 8;
 
 /** Authored GEAR order and source wording; the shared locker supplies live locked/worn state. */
 export const FINISH_CARDS = [

@@ -3691,6 +3691,15 @@ glow sizes are `rows.tracer`. `boltMod: HeldBolt` is plain data: flight multipli
 `heldLauncherDisplay(sky, rows, model)` pose a copy at `rows.displayRest`; `heldLauncherBolt` is the bolt card. User:
 Pine's crossbow.
 
+H3's bow draw (same module): `heldBowProfile(base, rows, model)` returns the platform `Bow`'s profile for a baked stave
+bow, so the shard passes no `build` / `arrow` / `wind` callback. `rows.bake` is the bake's bow row (its serialised
+`look` and `arrow`, the stave's rings, dynamic vertex counts, section samples and the fists' wrist / hook points); the
+stave bends on `BowShape`'s analytic curve from that look. `rows.parts` names the borrowed parts in `model.geometry`
+(stave with the left fist, nocked arrow, right fist, sleeves, loose arrow); `rows.materials` the bow's and the arrows'
+lit rows; `rows.arrow` the arrow kind's flight, bury, recover and pools; `rows.wind` the pull (`base + gust ×
+windGustAt`, along `WIND_DIR`); `rows.poses` the six grip poses as triples. `heldBowDisplay` / `heldBowArrow` are the
+Model Explorer cards. User: Pine's longbow. Nalati's recurve still builds its view in code (a later row: bake it).
+
 `@wildshard/engine/combat/contactWeapon` defines the renderer-free
 `ContactWeaponHost` and `HeldWeaponClock`. Signal's lash and Sky's fan consume
 these same clocks, contact-shape arithmetic and ordered pipeline responses.

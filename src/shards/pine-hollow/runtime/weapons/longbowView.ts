@@ -1,44 +1,26 @@
-import * as THREE from 'three';
-import type { ProjectileKind } from '@wildshard/engine/combat/view/projectile';
-import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { BowView } from '@wildshard/sdk/weapons/bowProfile';
-import { arrowGeometry, bowPoses, longbowLook, staveBowSpecimen, staveBowView } from '../viewmodel/staveBow';
-import { ARROW_FLIGHT, ARROW_MAX_FLYING, ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_MATERIAL, LONGBOW_POSES } from '../const';
+import type { BowProfile } from '@wildshard/engine/combat/view/bowProfile';
+import type { HeldFirearmModel } from '@wildshard/game/plugin/heldFirearm';
+import { heldBowProfile, type HeldBowRows } from '@wildshard/game/plugin/heldLauncher';
+import { BOW } from '@wildshard/game/weapons/starterBowProfile';
+import { BOW_PROFILE } from '../../data/bowProfile';
+import { LONGBOW_LOOSE } from '../../weapons/longbowFlight';
+import { bakedBowRows, handsPart } from '../boot/handsGeometry';
+import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from '../const';
 
-/** The arrow's length (TIP at the origin, shaft along +Z — Projectiles.ts's convention). */
-export const ARROW_LEN = LONGBOW_ARROW.length;
-/** The arrow: an ash shaft, a sinew-bound bodkin head, three grey-goose feathers (data/longbowLook.ts LONGBOW_ARROW). */
-export function buildArrowGeometry(): THREE.BufferGeometry { return arrowGeometry(LONGBOW_ARROW); }
-
-/** the arrows' one material, on the viewmodels' shared lit program (the world pool's; E348: the Model Explorer's arrow card makes its own) */
-export function arrowMaterial(sky: Sky): THREE.MeshPhysicalMaterial { return viewmodelMaterial(sky, 'longbow-arrow', ARROW_MATERIAL); }
-
-/** the arrow as a `Projectiles` kind: one instanced material for every arrow in flight or stuck in the world */
-export function arrowKind(sky: Sky): ProjectileKind {
-  const material = arrowMaterial(sky);
-  return { geometry: buildArrowGeometry(), material, length: ARROW_LEN, ...ARROW_FLIGHT, bury: 0.09, recover: 0.7, maxFlying: ARROW_MAX_FLYING, maxStuck: 48 };
+/** The Warden's longbow in first person: rows on the held bow draw (`@wildshard/game/plugin/heldLauncher`, H3) over the
+ *  baked stave (generators/handsPool.ts, `custom/handsPool`'s `bow`); the draw, loose and arrows are the platform Bow's. */
+const PARTS = { stave: 'bow-stave', nocked: 'bow-arrow-nocked', rightFist: 'bow-right-fist', leftSleeve: 'bow-left-sleeve', rightSleeve: 'bow-right-sleeve', arrow: 'bow-arrow' } as const;
+/** The longbow's rows (load time: the bake is read from the admitted held pool). */
+export function longbowRows(): HeldBowRows {
+  return { bake: bakedBowRows(), parts: PARTS, materials: { bow: { name: 'longbow', look: LONGBOW_MATERIAL }, arrow: { name: 'longbow-arrow', look: ARROW_MATERIAL } },
+    arrow: { ...BOW_PROFILE.flight, bury: 0.09, recover: 0.7, maxFlying: BOW_PROFILE.pool, maxStuck: 48 }, wind: { base: 1.2, gust: 7 }, poses: LONGBOW_POSES };
 }
-
-/** The Longbow's grip poses in rig space (data/longbowLook.ts LONGBOW_POSES). */
-export const POSE = bowPoses(LONGBOW_POSES);
-
-/** the longbow's one material: the viewmodels' shared lit program (vertex colours × the 1×1 fillers) — waxed yew, leather, linen */
-function longbowMaterial(sky: Sky): THREE.MeshPhysicalMaterial { return viewmodelMaterial(sky, 'longbow', LONGBOW_MATERIAL); }
-
-/**
- * The Model Explorer's card (src/shards/pine-hollow/runtime/models/gear.ts): what `displayModel` shows — the braced stave and the
- * left glove on it (the bow's one mesh) — built as the viewmodel builds it on its own material, without a bow in your hands.
- */
-export function longbowSpecimen(sky: Sky): THREE.Group {
-  const m = new THREE.Mesh(staveBowSpecimen(longbowLook()), longbowMaterial(sky));
-  m.castShadow = true; m.receiveShadow = true;
-  const g = new THREE.Group();
-  g.add(m);
-  return g;
-}
-
-/** The held Longbow's view: the yew stave, its string and arrow, the hunter's gloved hands (@wildshard/sdk/viewmodel/staveBow). */
-export function buildLongbow(sky: Sky): BowView {
-  return staveBowView(longbowLook(), longbowMaterial(sky));
+/** The longbow's baked parts (borrowed from the preloaded held pool). */
+export function longbowModel(): HeldFirearmModel { return { geometry: new Map(Object.values(PARTS).map(id => [id, handsPart(id)])) }; }
+/** The Warden's longbow profile: the authored clocks and loose, the starter bow's feel, the rows' view, arrow and wind. */
+export function pineLongbow(): BowProfile {
+  return heldBowProfile({ ...BOW, draw: BOW_PROFILE.draw, loose: { ...BOW_PROFILE.spread, muzzle: BOW_PROFILE.muzzle },
+    projectile: { ...BOW_PROFILE.flight, maxFlying: BOW_PROFILE.pool, substeps: BOW_PROFILE.substeps, lifetime: BOW_PROFILE.lifetime }, parent: 'weapon.bow', ...LONGBOW_LOOSE,
+    swayMax: 1.4 * (Math.PI / 180), aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, inspectZ: -1.4, inspectHidesArms: true, transparentParts: true,
+  }, longbowRows(), longbowModel());
 }

@@ -5,16 +5,15 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { lin } from '@wildshard/engine/math/color';
 import { ARM_PAL, gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import type { ArmPaletteKey, ArmPaletteRow, GloveHandsLook, HandSpec } from '../runtime/viewmodel/gloveHands';
-import type { ArrowLook, StaveBowLook } from '../runtime/viewmodel/staveBow';
+import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from './longbowLook';
 import { BUCKSKIN, HUNTER_HANDS } from '../data/handsLook';
-import { LONGBOW_LOOK } from '../data/longbowLook';
 
 /**
  * Pine Hollow's first-person hands, baked (SHARD-PLATFORM, sp-o190): every gloved hand a weapon holds (the crossbow's and
  * the lever-action's: HAND_SPECS, each its weapon's HandHold spec verbatim; test/pine-hands-baked.test.ts keeps them equal) and the Longbow's parts (the stave's painted rings with the left fist on it,
  * the right fist, both rider sleeves, the arrow loose and nocked), built once here with the engine's arm builder
- * (nalatiArms) in the hunter's palette and written as one rest-geometry pool. The runtime (runtime/viewmodel/gloveHands.ts,
- * staveBow.ts) borrows them by part name; it no longer builds a hand.
+ * (nalatiArms) in the hunter's palette and written as one rest-geometry pool. The runtime (runtime/viewmodel/gloveHands.ts and
+ * the held bow draw, heldLauncher heldBowProfile) borrows them by part name; it no longer builds a hand.
  */
 
 type V3 = [number, number, number];
