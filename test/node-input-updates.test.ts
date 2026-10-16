@@ -48,7 +48,10 @@ test('inline graph reads keep same-pass edits, custom readers and object-relativ
     if (typeof update !== 'function') throw new Error('Missing stock reference updater'); Reflect.apply(update, node, []);
   };
   initialize(reference, owner); initialize(materialRead, material); initialize(objectRead, first);
-  const value = (node: ReferenceNode<'float', unknown>): unknown => Reflect.get(node.node ?? {}, 'value');
+  const value = (node: object): unknown => {
+    const inner: unknown = Reflect.get(node, 'node');
+    return typeof inner === 'object' && inner !== null ? Reflect.get(inner, 'value') : undefined;
+  };
   const custom = uniform(0).onObjectUpdate(() => { owner.value++; return owner.value; });
   updates.beginRender(); const nodes = [reference, materialRead, objectRead];
   Reflect.set(frame, 'object', first); updates.update(nodes);
