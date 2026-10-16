@@ -66,7 +66,7 @@ import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS } from '../loadout/effects';
 import { pineFinishEffects, pineFinishes, finishPick } from './loadout/finishes';
-import { pineSkins, pineSkinRows, loadPineFinishes, skinPickups, type SkinId } from './loadout/skins';
+import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
 import { isPineItem } from '../items';
@@ -226,7 +226,7 @@ export class PineHollow extends ShardPlugin {
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
     };
-    const skinDrops = new ClaimedPickupRoster<SkinId>(skinPickups(ctx.product.section('custom/skinPickups', SECTIONS)), {
+    const skinDrops = new ClaimedPickupRoster<SkinId>(ctx.product.section('custom/skinPickups', SECTIONS), {
       scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
       model: id => { const skin = pineSkins()[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },

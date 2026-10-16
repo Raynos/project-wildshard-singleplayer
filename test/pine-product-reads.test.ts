@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
-import { skinPickups } from '../src/shards/pine-hollow/runtime/loadout/skins';
 import { PH_SHOTS, isPhShot } from '../src/shards/pine-hollow/runtime/audio/sfx';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
@@ -15,7 +14,7 @@ test('Pine client reads resolve against the emitted output', async () => {
     if (bytes === undefined) throw new Error(`Pine output has no ${name}`);
     return v.parse(SECTIONS[name], JSON.parse(new TextDecoder().decode(bytes)));
   };
-  const rows = skinPickups(value('custom/skinPickups'));
+  const rows = value('custom/skinPickups');
   expect(Object.keys(rows).sort()).toEqual(['blackpaw', 'ghost-stag', 'hollow-ash', 'imperial', 'ironhide', 'scarback-furnace', 'warden']);
   const inventory = value('custom/questInventory');
   expect(inventory.feats.length).toBeGreaterThan(0);

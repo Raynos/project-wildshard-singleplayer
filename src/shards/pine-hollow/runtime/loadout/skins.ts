@@ -5,23 +5,9 @@ import * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { codePart } from '../world/codeParts';
-import type { InferOutput } from 'valibot';
-import type { ClaimedPickupRow } from '@wildshard/game/loot/runtime';
-import type { SECTIONS } from '../sections';
 
 /** Pine's authored material finishes and legendary sources; application and ownership are generic. */
 export type SkinId = 'ghost-stag' | 'hollow-ash' | 'ironhide' | 'scarback-furnace' | 'blackpaw' | 'imperial' | 'warden';
-
-/** The product's `custom/skinPickups` rows (one per finish that drops) as the claimed-pickup roster's rows. */
-export function skinPickups(rows: InferOutput<(typeof SECTIONS)['custom/skinPickups']>): Readonly<Record<SkinId, ClaimedPickupRow>> {
-  const row = (id: SkinId): ClaimedPickupRow => {
-    const found = rows[id];
-    if (found === undefined) throw new Error(`Pine skin pickups: custom/skinPickups has no ${id}`);
-    return found;
-  };
-  return { 'ghost-stag': row('ghost-stag'), 'hollow-ash': row('hollow-ash'), ironhide: row('ironhide'), 'scarback-furnace': row('scarback-furnace'),
-    blackpaw: row('blackpaw'), imperial: row('imperial'), warden: row('warden') };
-}
 
 const finishId = v.picklist(['ghost-stag', 'hollow-ash', 'ironhide', 'scarback-furnace', 'blackpaw', 'imperial', 'warden']);
 const finite = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.maxLength(512));

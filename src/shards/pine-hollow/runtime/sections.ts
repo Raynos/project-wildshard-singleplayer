@@ -35,7 +35,8 @@ const bakedBow = v.strictObject({ sectionSamples: v.strictObject({ widths: numbe
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
 export const SECTIONS = {
-  'custom/skinPickups':v.record(text,skinPickup),
+  'custom/skinPickups':v.strictObject({ 'ghost-stag':skinPickup, 'hollow-ash':skinPickup, ironhide:skinPickup,
+    blackpaw:skinPickup, imperial:skinPickup, warden:skinPickup, 'scarback-furnace':skinPickup }),
   'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
   'custom/ambientLife':ForestLifeSchema,
   'custom/heldPlayback':v.strictObject({crossbow:Channels,lever:Channels,crossbowParts:Channels,leverParts:Channels}),
