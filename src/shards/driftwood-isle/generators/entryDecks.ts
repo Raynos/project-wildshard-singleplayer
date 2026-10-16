@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import generated from './entryDecks.generated.json' with { type: 'json' };
-import { DRY_ENTRIES } from './entryRows';
+import generated from '../data/entryDecks.generated.json' with { type: 'json' };
+import { DRY_ENTRIES } from '../data/entryRows';
 
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.minValue(0.005), v.maxValue(500));
@@ -14,8 +14,8 @@ const row = v.strictObject({ edge: v.picklist(DRY_ENTRIES), rect, slab, placemen
 const transport = v.pipe(v.strictObject({ notice: v.pipe(v.string(), v.startsWith('DO NOT EDIT:')),
   rows: v.pipe(v.array(row), v.length(4)) }),
   v.check(value => value.rows.every((item, index) => item.edge === DRY_ENTRIES[index]), 'original entry order'));
-/** Refuse invalid cached placements before the existing geometry factory reads them. */
-function decodeEntryDecks(source: unknown): v.InferOutput<typeof row>[] {
+/** At build time, refuse invalid cached placements before canonical section publication. */
+export function decodeEntryDecks(source: unknown): v.InferOutput<typeof row>[] {
   return v.parse(transport, source).rows;
 }
 /** Original dry footprints, foam slabs and seabed-derived column placements. */

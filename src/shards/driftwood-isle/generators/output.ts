@@ -11,7 +11,7 @@ import { enemyPlacements } from './enemyPlacement';
 import { keeperRows } from './keeperRows';
 import { emitDefinedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../data/output';
-import { DRIFTWOOD_CLIENT_SECTIONS } from '../data/clientSections';
+import { DRIFTWOOD_CLIENT_SECTIONS } from './clientSections';
 import { RUNTIME_MIRRORS } from '../data/runtimeMirrors';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;

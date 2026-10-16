@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
 import { DRIFTWOOD_OUTPUT, DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/data/output';
-import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/data/clientSections';
+import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 
 /** Real published GLB source bytes with the same admitted asset and layout rows as the product writer. */
 export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createShardProduct>> {

@@ -176,6 +176,18 @@
         "bytes": 248214
       },
       "why": "G465 C9: emit the two existing NPC rest recipes and binding names in fixedLayouts (+2388 B), deleting six const copies and their mirror checks; no new section or host."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 8,
+        "bytes": 248214
+      },
+      "to": {
+        "count": 8,
+        "bytes": 513192
+      },
+      "why": "G463 approved C1: fixedLayouts admits the existing four entry decks and both foliage tiers (+264978 B); clientSections and the entry-deck decoder run only in generators, with no runtime JS copy or new section."
     }
   ]
 }

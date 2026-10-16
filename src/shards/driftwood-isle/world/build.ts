@@ -1,5 +1,4 @@
 import { driftwoodRows } from '../runtime/boot/rows';
-import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
@@ -40,14 +39,10 @@ import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { onDeck } from './entryDeck';
-import { ENTRY_DECKS } from '../data/entryDecks';
 import { entryDeck } from '../runtime/models/entryDeck';
 import { loadFixedGeometry } from '../runtime/boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
-
-// Imported recipes survive world disposal; only each build owns mutable native lists.
-type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? AuthoredFoliage<T[K]> : T[K] };
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -83,7 +78,8 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress?: StepProgress): Promise<DriftwoodWorld> {
-  const lowered = G164_LOWERED;
+  const lowered = G164_LOWERED, fixed = driftwoodRows('custom/fixedLayouts');
+  if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }, , coverGrid, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
@@ -96,7 +92,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
   // G170: the ocean is clipped out under each whole road deck (the socket and its landing), not only the socket
   const deckRows = lowered.landings.map(({ edge }) => {
-    const row = ENTRY_DECKS.find(deck => deck.edge === edge);
+    const row = fixed.entryDecks.find(deck => deck.edge === edge);
     if (row === undefined) throw new Error('Missing admitted entry deck');
     return row;
   }), decks = deckRows.map(({ rect }) => rect);
@@ -143,8 +139,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     const jetty = new Pier(sky, i + 1).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
   }
   await slice();
-  if (FOLIAGE.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
-  const foliage: AuthoredFoliage<typeof FOLIAGE.tiers.phone> = FOLIAGE.tiers[game.tier];
+  if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
+  const foliage = fixed.foliage.tiers[game.tier];
   const bushes = await stages.build('Bushes', () => placeIslandBushes(sky, foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stages.build('Gulls', () => gullFlock([

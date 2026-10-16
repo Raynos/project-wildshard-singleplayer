@@ -42,6 +42,22 @@ const cove = v.strictObject({
   catalogue: v.strictObject({ placements: v.pipe(v.array(v.strictObject({ x: number, y: number, z: number, params: v.strictObject({ r: number, squash: number, moss: number }) })), v.maxLength(512)),
     boxes: v.pipe(v.array(number), v.maxLength(8192)) }),
 });
+const deckFinite = v.pipe(number, v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
+const deckExtent = v.pipe(deckFinite, v.minValue(0.005), v.maxValue(500));
+// Ordered entry decks retain their exact original socket/slab/column contracts.
+const entryDeck = <E extends 'north' | 'east' | 'south' | 'west'>(edge: E) => v.strictObject({ edge: v.literal(edge),
+  rect: v.strictObject({ minX: deckFinite, minZ: deckFinite, maxX: deckFinite, maxZ: deckFinite }),
+  slab: v.strictObject({ x: deckFinite, z: deckFinite, hw: deckExtent, hd: deckExtent, rot: v.literal(0), yTop: v.literal(0), yBottom: v.literal(-0.55) }),
+  placement: v.strictObject({ x: deckFinite, y: v.literal(0), z: deckFinite, yaw: deckFinite, params: v.strictObject({ run: v.literal(16.5), bed: v.pipe(deckFinite, v.minValue(-14), v.maxValue(-0.4)) }) }),
+});
+const palm = { h: number, lean: number, leanDir: number, rot: number, fronds: natural };
+const bush = { r: number, flowers: v.boolean() };
+const foliageTier = v.strictObject({
+  palms: v.strictObject({ specs: v.pipe(v.array(v.strictObject({ x: number, z: number, ...palm })), v.maxLength(1024)),
+    placements: v.pipe(v.array(v.strictObject({ ...point.entries, params: v.strictObject(palm) })), v.maxLength(1024)) }),
+  bushes: v.strictObject({ specs: v.pipe(v.array(v.strictObject({ x: number, z: number, ...bush })), v.maxLength(1024)),
+    placements: v.pipe(v.array(v.strictObject({ ...point.entries, params: v.strictObject({ ...bush, phase: number }) })), v.maxLength(1024)) }),
+});
 const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
@@ -54,8 +70,10 @@ export const SECTIONS = {
   'custom/cumulusPuffs': v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024)),
   /** the native terrain's retained index runs around the baked island (generators/islandClips.ts) */
   'custom/islandClips': v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs }),
-  /** the fixed models' baked layouts: the chime's draw slots, the hut's, lookout's and shrine's colliders, anchors and floors */
+  /** Entry decks, tiered foliage and fixed models: draw slots, colliders, anchors and floors. */
   'custom/fixedLayouts': v.strictObject({
+    entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
+    foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }) }),
     /** All seven authored pier collider sets, keyed to the exact primitive parameters. */
     piers: v.pipe(v.array(v.strictObject({ paramKey: v.pipe(v.string(), v.maxLength(4096)), colliders: v.pipe(v.array(v.variant('kind', [
       v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: v.exactOptional(v.nullable(number)), rot: v.exactOptional(v.strictObject({ x: number, y: number, z: number, w: number })) }),
