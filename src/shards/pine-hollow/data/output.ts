@@ -61,8 +61,8 @@ const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT={
  blobs:[...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,
- {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.module}`},
- {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`}],
+ {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.module}`,options:{script:{abi:0 as const}}},
+ {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
  custom:emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
   const value=values[name];
   if(!isJsonData(value))throw new Error(`Non-JSON Pine section: ${name}`);
