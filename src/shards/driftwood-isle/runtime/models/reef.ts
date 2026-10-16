@@ -48,35 +48,23 @@ export function reefMaterial(ctx: ModelContext): { material: THREE.Material; uni
   });
 }
 
-const reefBuild = (kind: ReefKind) => (ctx: ModelContext, p: ReefParams): ReturnType<typeof reefSpecimen> => reefSpecimen(kind, p, reefMaterial(ctx).material);
+/** The three cards differ only in their existing metadata and authored specimen rows. */
+const CARDS = {
+  coral: { id: 'coral', name: 'Coral clump' },
+  weed: { id: 'seaweed', name: 'Seaweed bed' },
+  star: { id: 'reef-starfish', name: 'Reef starfish' },
+} as const;
 
-export const coral = defineModel<ReefParams>({
-  id: 'driftwood-isle/coral', name: 'Coral clump', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/reef.ts',
-  // the specimen is the first variant (a brain coral); the lagoon's copies draw their shape from the stream
-  defaults: REEF_SPECIMENS.coral.defaults,
-  variants: REEF_SPECIMENS.coral.variants,
-  seed: 0x5ea1 ^ 0xc0,
-  build: reefBuild('coral'),
-});
+function reefModel(kind: ReefKind) {
+  const card = CARDS[kind], rows = REEF_SPECIMENS[kind];
+  return defineModel<ReefParams>({
+    id: `driftwood-isle/${card.id}`, name: card.name, category: 'nature', pipeline: 'code',
+    file: 'src/shards/driftwood-isle/runtime/models/reef.ts', defaults: rows.defaults, variants: rows.variants,
+    seed: 0x5ea1 ^ 0xc0,
+    build: (ctx, p) => reefSpecimen(kind, p, reefMaterial(ctx).material),
+  });
+}
 
-export const seaweed = defineModel<ReefParams>({
-  id: 'driftwood-isle/seaweed', name: 'Seaweed bed', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/reef.ts',
-  defaults: REEF_SPECIMENS.weed.defaults,
-  variants: REEF_SPECIMENS.weed.variants,
-  seed: 0x5ea1 ^ 0xc0,
-  build: reefBuild('weed'),
-});
-
-export const reefStarfish = defineModel<ReefParams>({
-  id: 'driftwood-isle/reef-starfish', name: 'Reef starfish', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/reef.ts',
-  defaults: REEF_SPECIMENS.star.defaults,
-  variants: REEF_SPECIMENS.star.variants,
-  seed: 0x5ea1 ^ 0xc0,
-  build: reefBuild('star'),
-});
-
-/** the model of each scatter kind */
-export const REEF = { coral, weed: seaweed, star: reefStarfish } as const;
+/** The model of each scatter kind, retaining its original order and exported identities. */
+export const REEF = { coral: reefModel('coral'), weed: reefModel('weed'), star: reefModel('star') } as const;
+export const { coral, weed: seaweed, star: reefStarfish } = REEF;
