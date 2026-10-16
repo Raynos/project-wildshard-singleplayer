@@ -30,7 +30,7 @@ import { Bushes } from './Bushes';
 import { Gulls } from './Gulls';
 import { Trailside } from './Trailside';
 import { RopeBridge } from './RopeBridge';
-import { Seabed } from './Seabed';
+import { buildSeabed, type Seabed } from './Seabed';
 import { Palms, type PalmSpec } from './Palms';
 import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
@@ -173,7 +173,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
   const bridge = await stages.build('Rope bridge', () => new RopeBridge(sky, BRIDGE).place(registry), { values: value => value.colliders });
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  const seabed = await stages.build('Seabed', () => new Seabed(sky).build(), { objects: value => [value.mesh, value.fish] });
+  const seabed = await stages.build('Seabed', () => buildSeabed(sky), { objects: value => [value.mesh, value.fish] });
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   const palmSpecs = [...foliage.palms.specs];
   await stages.next('Palm placement');
