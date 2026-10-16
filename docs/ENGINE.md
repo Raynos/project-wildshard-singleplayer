@@ -5887,7 +5887,10 @@ existing normal scale, map repeats and other presentation factors.
 
 **Authored posed draws.** `@wildshard/game/plugin/geometry#posedAssets`
 reads one identity-space GLB mesh, its declared Float32 shader channels,
-contiguous per-kind index ranges and the original atlas. It lends one
+contiguous per-kind index ranges and the original atlas: `atlasModel` (a GLB
+whose material carries it) or `atlas` (its own KTX2 file, a product's named
+blob, loaded with `ktx2File` and sampled as the glTF atlas: flipY false,
+repeat, anisotropy 4, sRGB); exactly one of the two. It lends one
 attribute/index set to the live view and Explorer wrappers: cards change
 only drawRange and their own instance pose. Missing channels, repeated
 kinds, gaps and out-of-range indices refuse before the view is installed.
