@@ -6251,6 +6251,11 @@ against [x, z] corners (false under three). Pure scalar math: no clocks, heights
 pair. Users: declared pool water (`world/water/declared.ts`), Pine's cave interior (its passage frame and dry
 footprint) and Driftwood's sea cave floor.
 
+**Instanced quads.** `src/sdk/looks/cardField.ts#instancedQuad(quad, attributes)` draws a quad (index, position and
+uv shared, never copied) once per instance with the caller's named `InstancedBufferAttribute`s; the instance count
+is the first attribute's. `cardGroup` feeds its baked card rows through it; Pine's baked buildings feed their
+seeded smoke and spark clouds the same way.
+
 **Actor-memory actions (G441).** `game/plugin/brain` defines
 `createMemoryActionBrain` and `MemoryActionRows`. The bounded row names an
 existing numeric state field, its inspection labels, and ordered body-step

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { flatPositions, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '@wildshard/engine/models/weld';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
+import { instancedQuad } from '@wildshard/sdk/looks/cardField';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { BuildingDoor, BuildingFloor, BuildingSwing } from './buildingLife';
@@ -402,14 +403,8 @@ export class BakedBuildingAssembly<K extends string, P extends string> {
 
 /** a particle cloud: one instanced quad per seed row (`aSeed`), posed by its look's graph */
 function particles(mat: THREE.Material, seeds: THREE.BufferGeometry, bounds: BakedBuildingLook['particles']): THREE.Mesh {
-  const geo = new THREE.InstancedBufferGeometry();
-  const quad = new THREE.PlaneGeometry(1, 1);
-  geo.setAttribute('position', quad.getAttribute('position'));
-  geo.setAttribute('uv', quad.getAttribute('uv'));
-  geo.setIndex(quad.index);
   const seed = seeds.getAttribute('seed');
-  geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(Float32Array.from({ length: seed.count * 4 }, (_, i) => seed.getComponent(Math.floor(i / 4), i % 4)), 4));
-  geo.instanceCount = seed.count;
+  const geo = instancedQuad(new THREE.PlaneGeometry(1, 1), { aSeed: new THREE.InstancedBufferAttribute(Float32Array.from({ length: seed.count * 4 }, (_, i) => seed.getComponent(Math.floor(i / 4), i % 4)), 4) });
   geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(...bounds.center), bounds.radius);
   return new THREE.Mesh(geo, mat);
 }

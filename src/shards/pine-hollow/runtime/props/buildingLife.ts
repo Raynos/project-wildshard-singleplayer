@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import type { BoxSpec } from '@wildshard/engine/physics/box';
+import { floorAtRects, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { SiteLights, type LightSite, type SiteFlicker, type SiteLightsLook, type SiteWave } from '@wildshard/engine/fx/SiteLights';
@@ -86,14 +86,7 @@ export class BuildingLife {
   }
 
   /** world y of a floor / deck under (x, z), if inside one */
-  floorHeightAt(x: number, z: number): number | undefined {
-    for (const f of this.floors) {
-      const c = Math.cos(f.rot), s = Math.sin(f.rot);
-      const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
-      if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) return f.y;
-    }
-    return undefined;
-  }
+  floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'first'); }
 
   /** Per frame, the eye at `eye`, the night's `lamps` (0 day … 1 night): wheels, the shared lights, doors, flicker, glass, swings. */
   tick(dt: number, t: number, eye: THREE.Vector3, lamps: number): void {
