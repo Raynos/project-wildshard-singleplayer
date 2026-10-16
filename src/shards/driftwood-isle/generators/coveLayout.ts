@@ -1,6 +1,7 @@
 /** One authored layout and floor law for the offline mesh and live collision owner. */
 import { WORLD_DROP } from '../data/landscapeRows';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
+import type { FloorRect } from '@wildshard/engine/physics/box';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }
@@ -45,13 +46,18 @@ export function coveHalfWidth(lz: number): number { return lz < PASS.z0 ? ANTE.h
 export function coveCeil(lz: number): number { return lz < PASS.z0 ? ANTE.ceil : lz < PASS.z1 ? PASS.ceil : ALC.ceil; }
 
 export function coveWorld(cave: CoveSpec['cave'], lx: number, lz: number): [number, number] { return yawWorld(cave, lx, lz); }
-/** Numeric layout identity, independent of object property order. */
-export function coveSpecKey(spec: CoveSpec): string {
-  const { cave: c, caveBounds: b, fall: f } = spec;
-  return [spec.pools.length, ...spec.pools.flatMap(p => [p.x, p.z, p.r]),
-    spec.crabSites.length, ...spec.crabSites.flatMap(p => [p.x, p.z]),
-    ...f.top, ...f.foot, f.width, c.x, c.z, c.yaw, c.w, c.h, c.depth,
-    b.x, b.z, b.r, b.yMin, b.yMax].join(',');
+/**
+ * The cave's walkable floor as engine FloorRect rows (world space, read with floorAtRects 'first'): from 0.3 m before the
+ * mouth to the back wall, 0.1 m wider than the passage each side, the antechamber, the ramp through the passage and the
+ * raised alcove. Where the width and the floor change at different depths the strip splits, so each rect has one width.
+ */
+export function coveFloors(cave: CoveSpec['cave']): FloorRect[] {
+  const slope = (ALC_FLOOR - ANTE_FLOOR) / (RAMP.z1 - RAMP.z0);
+  const strip = (z0: number, z1: number, hw: number): FloorRect => {
+    const mid = (z0 + z1) / 2, [x, z] = coveWorld(cave, 0, mid), y = coveFloorAt(mid), ramp = mid > RAMP.z0 && mid < RAMP.z1;
+    return { x, z, hw: hw + 0.1, hd: (z1 - z0) / 2, y, rot: cave.yaw, ...(ramp ? { slope } : {}) };
+  };
+  return [strip(-0.3, PASS.z0, ANTE.hw), strip(PASS.z0, RAMP.z0, PASS.hw), strip(RAMP.z0, PASS.z1, PASS.hw), strip(PASS.z1, RAMP.z1, ALC.hw), strip(RAMP.z1, cave.depth, ALC.hw)];
 }
   /** the island layout: pools on the cove flats, the cascade down the crag, the sea cave in the notch at the crag foot */
 export function islandCoveSpec(): CoveSpec {

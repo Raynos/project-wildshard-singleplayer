@@ -177,7 +177,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await stages.next('Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
-  const cove = new Cove(sky).place(registry, Cove.forIsland());
+  const cove = new Cove(sky).place(registry);
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('Cove');

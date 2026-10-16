@@ -1,7 +1,8 @@
-import { coveFloorAt as admittedFloor, coveHalfWidth as admittedWidth } from '../src/shards/driftwood-isle/world/Cove';
+import { floorAtRects } from '../src/engine/physics/box';
+import { yawLocal } from '../src/engine/world/yawFrame';
 import { beforeAll, expect, it } from 'vitest';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { coveColliderDescs, copyCoveGeometry, islandCoveSpec as admittedCoveSpec } from '../src/shards/driftwood-isle/runtime/boot/coveGeometry';
+import { coveColliderDescs, coveFloors, islandCoveSpec as admittedCoveSpec } from '../src/shards/driftwood-isle/runtime/boot/coveGeometry';
 import { coveFloorAt, islandCoveSpec, coveHalfWidth, STEPS } from '../src/shards/driftwood-isle/generators/coveLayout';
 
 beforeAll(admitDriftwoodFixtureRows);
@@ -16,21 +17,23 @@ it('admits the stair as real ascending treads between the native cave floors', (
   expect(rows.every(row=>row.surface==='rock')).toBe(true);
 });
 
-it('lends independent collider facts and refuses an unbaked cave layout', () => {
+it('lends independent collider facts', () => {
   const first=coveColliderDescs(),second=coveColliderDescs();
   const a=first.find(row=>row.kind==='box'),b=second.find(row=>row.kind==='box');
   if(a===undefined||b===undefined)throw new Error('Cave lacks a wall');
   const x=b.x;a.x+=1;expect(b.x).toBe(x);
-  const spec=islandCoveSpec();
-  expect(()=>copyCoveGeometry({...spec,cave:{...spec.cave,x:spec.cave.x+1}})).toThrow('layout changed');
 });
 
-it('reads the authored cave and continuous floor law from its admitted data', () => {
+it('reads the authored cave and its baked floor rects, which keep the floor law', () => {
   expect(admittedCoveSpec()).toEqual(islandCoveSpec());
-  for (let i = -100; i <= 1000; i++) {
-    const z = i / 100;
-    expect(admittedFloor(z)).toBe(coveFloorAt(z));
-    expect(admittedWidth(z)).toBe(coveHalfWidth(z));
+  const cave = islandCoveSpec().cave, floors = coveFloors();
+  // off the strips' seams (a seam is a line: the law's strict bounds there are a measure-zero difference)
+  for (let i = -60; i <= 60; i++) for (let j = -80; j <= 1000; j++) {
+    const x = cave.x + i / 20 + 0.0013, z = cave.z + j / 100 + 0.0017, [lx, lz] = yawLocal(cave, x, z);
+    const law = lz < -0.3 || lz > cave.depth || Math.abs(lx) > coveHalfWidth(lz) + 0.1 ? undefined : coveFloorAt(lz);
+    const got = floorAtRects(floors, x, z, 'first');
+    if (law === undefined) expect(got).toBeUndefined();
+    else expect(got).toBeCloseTo(law, 12);
   }
   const changed = admittedCoveSpec(); changed.cave.x += 1;
   expect(admittedCoveSpec()).toEqual(islandCoveSpec());

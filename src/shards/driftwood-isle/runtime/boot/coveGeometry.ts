@@ -19,14 +19,8 @@ export type CaveBounds = CoveSpec['caveBounds'];
 export type CoveAnchor = CoveBake['native']['anchors'][string];
 /** Fresh authored layout from the admitted static model section. */
 export function islandCoveSpec(): CoveSpec { return structuredClone(bake().spec); }
-export function coveFloorFacts(): CoveBake['floor'] { return bake().floor; }
-function coveSpecKey(spec: CoveSpec): string {
-  const { cave: c, caveBounds: b, fall: f } = spec;
-  return [spec.pools.length, ...spec.pools.flatMap(p => [p.x, p.z, p.r]),
-    spec.crabSites.length, ...spec.crabSites.flatMap(p => [p.x, p.z]),
-    ...f.top, ...f.foot, f.width, c.x, c.z, c.yaw, c.w, c.h, c.depth,
-    b.x, b.z, b.r, b.yMin, b.yMax].join(',');
-}
+/** The cave's walkable floor as baked FloorRect rows (generators/coveLayout.ts `coveFloors`). */
+export function coveFloors(): CoveBake['floors'] { return bake().floors; }
 
 /** Explicit intake; a fixture can admit these same immutable templates without fetch. */
 export async function loadCoveGeometry(bytes: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
@@ -38,14 +32,13 @@ export async function loadCoveGeometry(bytes: ReadonlyMap<string, Uint8Array | B
   ]);
 }
 
-/** The authored island is one admitted layout. Refuse a different spec rather than draw geometry with mismatched collision. */
-export function copyCoveGeometry(spec: CoveSpec): {
+/** The authored island's one baked layout: fresh copies of its geometry with the catalogue and native facts it was baked with. */
+export function copyCoveGeometry(): {
   geometry: Record<keyof typeof templates, BufferGeometry>;
   catalogue: CoveBake['catalogue'];
   native: CoveBake['native'];
 } {
-  const { specKey, catalogue, native } = bake();
-  if (coveSpecKey(spec) !== specKey) throw new Error('Cove layout changed; regenerate its fixed geometry');
+  const { catalogue, native } = bake();
   return {
     geometry: {
       structure: templates.structure.copy(), rocks: templates.rocks.copy(),

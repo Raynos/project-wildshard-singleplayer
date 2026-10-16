@@ -16,8 +16,8 @@
  * `drawnInto` the smooth-rock mesh they are welded in. `place` registers the cove's own piece (`cove`: drawn, its
  * colliders and floors; no card); the Wreck cove set (src/shards/driftwood-isle/world/places.ts) lists these rocks.
  *
- *   const cove = new Cove(sky).place(registry, Cove.forIsland());   // the game: piece `cove` (world) + the reef rocks' card
- *   const cove = new Cove(sky).build(Cove.forIsland());                          // a dev page / the navmesh bake: not registered
+ *   const cove = new Cove(sky).place(registry);                     // the game: piece `cove` (world) + the reef rocks' card
+ *   const cove = new Cove(sky).build();                                          // a dev page / the navmesh bake: not registered
  *   scene.add(cove.group); its registry piece.push(...cove.colliders);
  *   player.platforms.push((x, z) => cove.floorHeightAt(x, z));      // the cave floor (antechamber, ramp, alcove)
  *   game.onUpdate((dt) => cove.update(dt));
@@ -30,17 +30,16 @@
  * `caveBounds` {x, z, r, yMin, yMax} (the cave reverb) — also on `Cove.forIsland()` for the ambience.
  */
 import * as THREE from 'three';
-import { copyCoveGeometry, coveColliderDescs, coveFloorFacts, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from '../runtime/boot/coveGeometry';
+import { copyCoveGeometry, coveColliderDescs, coveFloors, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from '../runtime/boot/coveGeometry';
 import { waterfall } from '../runtime/world/Waterfall';
 import { rockMaterial } from './rockKit';
 import { reefRock } from '../runtime/models/shoreBoulder';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { yawLocal } from '@wildshard/engine/world/yawFrame';
 import { POOL_LOOK } from '../data/poolLook';
 
 let poolLook: { material: THREE.Material; follow: () => void } | null = null;
@@ -52,17 +51,6 @@ export function setPoolLook(materials: ReadonlyMap<string, THREE.Material>, foll
   poolLook = { material, follow };
 }
 
-export function coveFloorAt(lz: number): number {
-  const f = coveFloorFacts();
-  if (lz < f.ramp0) return f.ante;
-  if (lz > f.ramp1) return f.alc;
-  return f.ante + ((lz - f.ramp0) / (f.ramp1 - f.ramp0)) * (f.alc - f.ante);
-}
-export function coveHalfWidth(lz: number): number {
-  const f = coveFloorFacts();
-  return lz < f.pass0 ? f.anteWidth : lz < f.pass1 ? f.passWidth : f.alcWidth;
-}
-
 export class Cove {
   group = new THREE.Group();
   colliders: Collider[] = [];
@@ -71,7 +59,6 @@ export class Cove {
   caveBounds: CaveBounds = { x: 0, z: 0, r: 0, yMin: 0, yMax: 0 };
   /** the pools' toon look follows the day clock once a frame (their ripple runs on the graph's own frame clock) */
   private follow: (() => void) | null = null;
-  private cave: CoveSpec['cave'] = { x: 0, z: 0, yaw: 0, w: 0, h: 0, depth: 0 };
   /** Registration facts borrow the existing baked reef draw; no retained matrix/box copies. */
   private catalogue: ReturnType<typeof copyCoveGeometry>['catalogue'] = {placements:[],boxes:[]};
   private cuts: ReturnType<typeof copyCoveGeometry>['native']['cuts'] = [];
@@ -87,8 +74,8 @@ export class Cove {
    * The game's: build it, register the cove (piece `cove`: the sea cave, the pools and the cascade are world, drawn and
    * colliding as always — no card) and its reef rocks' placements (drawnInto their mesh; `placed`, the Wreck cove set's).
    */
-  place(registry: WorldRegistry, spec: CoveSpec): this {
-    this.build(spec);
+  place(registry: WorldRegistry): this {
+    this.build();
     registry.add({ id: 'cove', name: 'Wreck cove', category: 'nature', file: 'src/shards/driftwood-isle/world/Cove.ts', object: this.group, colliders: this.colliderDescs(), surface: 'rock',
       floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true });
     if (this.rockMesh !== null && this.catalogue.placements.length > 0) {
@@ -98,10 +85,10 @@ export class Cove {
     return this;
   }
 
-  build(spec: CoveSpec): this {
-    const built = copyCoveGeometry(spec);
+  /** the baked layout (`Cove.forIsland()`): its geometry, colliders, anchors and crab sites */
+  build(): this {
+    const spec = islandCoveSpec(), built = copyCoveGeometry();
     this.crabSites = spec.crabSites;
-    this.cave = spec.cave;
     this.caveBounds = spec.caveBounds;
     this.catalogue = built.catalogue;
     this.colliders=structuredClone(built.native.colliders);
@@ -155,13 +142,8 @@ export class Cove {
     return structuredClone(this.cuts);
   }
 
-  /** the cave's walkable floor under (x, z), else undefined */
-  floorHeightAt(x: number, z: number): number | undefined {
-    const [lx, lz] = yawLocal(this.cave, x, z);
-    if (lz < -0.3 || lz > this.cave.depth) return undefined;
-    if (Math.abs(lx) > coveHalfWidth(lz) + 0.1) return undefined;
-    return coveFloorAt(lz);
-  }
+  /** the cave's walkable floor under (x, z), else undefined (its baked rects: antechamber, ramp, alcove) */
+  floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(coveFloors(), x, z, 'first'); }
 
   update(_dt: number): void {
     this.follow?.();
