@@ -21,7 +21,7 @@ const options = v.strictObject({
   meshopt: v.exactOptional(v.boolean()), critical: v.exactOptional(v.boolean()), dependencies: v.exactOptional(v.array(v.string())),
 });
 const declaration = v.strictObject({
-  name: v.string(), kind: v.picklist(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile']),
+  name: v.string(), kind: v.picklist(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile', 'json']),
   source: v.string(), options: v.exactOptional(options),
 });
 const output = v.strictObject({
@@ -129,7 +129,7 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
   for (const blob of blobs) {
     emitNamedBlobs([blob]);
     const file = blob.file, name = file.name;
-    if (name === undefined || file.kind === 'json') throw new Error('Named source blob needs a binary kind and name');
+    if (name === undefined) throw new Error('Named source blob needs a name');
     const claimed = names.get(name);
     if (claimed !== undefined && claimed !== file.hash) throw new Error('Blob logical name has conflicting content');
     const existing = files.get(file.hash), common = source.requires.commons.includes(file.hash);

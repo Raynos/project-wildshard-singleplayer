@@ -48,6 +48,7 @@ export function out_count(): i32 { return 0; }
 export function on_tick(): void {}
 `);
   writeFileSync(resolve(path, 'body.bin'), binary);
+  writeFileSync(resolve(path, 'bake.json'), JSON.stringify({ places: [[1, 2, 3]] }));
   writeFileSync(resolve(path, 'quest.wasm'), wasm);
   writeFileSync(resolve(path, 'shard.config.ts'), `
 import * as v from 'valibot';
@@ -58,6 +59,7 @@ export default ${JSON.stringify(source())};
 const named = emitNamedBlobs([nameBlob('behaviour/quest.wasm', 'wasm', new Uint8Array(${JSON.stringify([...wasm])}), { script: { abi: 0 } })]);
 export const output = {
  blobs: [{ name: 'models/body.bin', kind: 'bin', source: 'body.bin' },
+         { name: 'world/bake.json', kind: 'json', source: 'bake.json' },
          { name: 'behaviour/quest.wasm', kind: 'wasm', source: 'quest.wasm', options: { script: { abi: 0 } } }],
  namedFiles: named.files, assets: named.assets,
  custom: emitDefinedSections([defineSection('custom/reward', v.strictObject({ amount: v.number() }), { amount: 3 })]),
@@ -67,10 +69,14 @@ export const mirrors = [{ name: 'REWARD', value: { amount: 3 } }];
 `);
   const loaded = await readProjectAssets(path);
   expect(loaded.mirrors).toEqual([{ name: 'REWARD', value: { amount: 3 } }]);
-  expect(loaded.output.namedFiles?.map(row => row.name)).toEqual(['models/body.bin', 'behaviour/quest.wasm']);
+  expect(loaded.output.namedFiles?.map(row => row.name)).toEqual(['models/body.bin', 'world/bake.json', 'behaviour/quest.wasm']);
   await buildProject(path, destination, { client: null });
   const checked = validateOutputProduct(destination);
   expect(checked.index.formatVersion).toBe(2);
+  const bake = checked.index.files.find(row => row.name === 'world/bake.json');
+  expect(bake?.kind).toBe('json');
+  if (bake === undefined) throw new Error('Missing named JSON bake');
+  expect(JSON.parse(readFileSync(resolve(destination, bake.path), 'utf8'))).toEqual({ places: [[1, 2, 3]] });
   expect(checked.index.files.find(row => row.name === 'behaviour/quest.wasm')?.kind).toBe('wasm');
   expect(checked.index.sections.map(row => row.name)).toEqual(expect.arrayContaining(['custom/reward', 'ui/strings']));
   expect(readFileSync(resolve(destination, 'sections/ui/strings.json'), 'utf8')).toContain('Hello');

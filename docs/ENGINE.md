@@ -6848,7 +6848,11 @@ admits binary assets, derives their content hash, measured minimum costs
 and `blobs/<kind>/<hash>.<extension>` path. Logical names remain in the
 index. `emitNamedBlobs(rows)` revalidates the bytes and returns sorted
 `files` and an `assets` map for output admission; duplicate names, aliases,
-mutated bytes and understated costs refuse. JSON values use sections.
+mutated bytes and understated costs refuse. Host configuration uses sections;
+large client-only JSON bakes may use named `json` blobs. Admission checks
+fatal UTF-8 and JSON syntax, and the existing async consumer must parse
+the verified `product.file(name)` bytes with its strict defining schema.
+Textual glTF cannot enter as a JSON blob.
 
 `readNamedBlob(project, name, source, kind, options)` reads bounded local
 files after resolving symlinks within the project. Textual `.gltf` sources

@@ -7,8 +7,8 @@ import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
 import { compileGltfSource } from './bake/gltfSource';
 import { compressGlb } from './bake/glbCompression';
 
-/** JSON belongs to sections; these named bytes occupy a kind-specific content-addressed blob path. */
-export type NamedBlobKind = Exclude<OutputFile['kind'], 'json'>;
+/** Named assets, including lazily read JSON bakes, occupy kind-specific content-addressed paths. */
+export type NamedBlobKind = OutputFile['kind'];
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
 export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[] }
 /** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
@@ -21,7 +21,7 @@ export interface EmittedBlobs { readonly files: readonly OutputFile[]; readonly 
 const MAX_BYTES = 25_000_000;
 const logicalName = /^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u;
 const reference = /^(?:commons:)?[a-f0-9]{64}$/u;
-const kinds = new Set<NamedBlobKind>(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile']);
+const kinds = new Set<NamedBlobKind>(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile', 'json']);
 
 function assertName(name: string): void {
   if (name.length > 240 || !logicalName.test(name) || name.split('/').some(part => part === '.' || part === '..')) throw new Error('Blob logical name must be a bounded relative path');
@@ -49,7 +49,7 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
   if (!kinds.has(kind)) throw new Error('Unsupported named blob kind');
   if (input.length === 0 || input.length > MAX_BYTES) throw new Error('Blob exceeds its wire byte cap');
   const bytes = Uint8Array.from(input), suffix = extension(kind, bytes);
-  if (kind === 'bin' && isTextGltf(bytes)) throw new Error('Text glTF must compile to GLB, never a binary blob');
+  if ((kind === 'bin' || kind === 'json') && isTextGltf(bytes)) throw new Error('Text glTF must compile to GLB, never a JSON or binary blob');
   if (kind !== 'wasm' && options.script !== undefined) throw new Error('Script contract requires a Wasm blob');
   const actual = assetCost(kind === 'bin' || kind === 'tile' ? 'binary' : kind, bytes, options.script);
   const costs = { decoded: options.decoded ?? actual.decoded, gpu: options.gpu ?? actual.gpu, triangles: options.triangles ?? actual.triangles, draws: options.draws ?? actual.draws };
@@ -104,7 +104,6 @@ export function emitNamedBlobs(blobs: readonly NamedBlob[]): EmittedBlobs {
   const files: OutputFile[] = [], assets = new Map<string, Uint8Array>(), names = new Set<string>();
   for (const row of blobs) {
     if (row.file.name === undefined) throw new Error('Named blob needs its logical name');
-    if (row.file.kind === 'json') throw new Error('JSON belongs to sections');
     const checked = nameBlob(row.file.name, row.file.kind, row.bytes, { ...row.file, ...(row.script === undefined ? {} : { script: row.script }) });
     if (encodeCanonicalJson(checked.file) !== encodeCanonicalJson(row.file)) throw new Error('Named blob changed after admission');
     if (names.has(row.file.name) || assets.has(row.file.hash)) throw new Error('Duplicate blob name or content reference');

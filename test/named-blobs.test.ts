@@ -75,3 +75,12 @@ test('named source intake refuses remote resources and project escapes including
     await expect(readNamedBlob(project, 'models/outside.glb', 'outside.gltf', 'glb')).rejects.toThrow('escapes');
   } finally { rmSync(scratch, { recursive: true }); }
 });
+
+test('named JSON bakes keep exact bytes and reject malformed data and disguised glTF', () => {
+  const bytes = jsonBytes({ places: [[1, 2, 3]] }), blob = nameBlob('world/places.json', 'json', bytes);
+  expect(blob.file).toMatchObject({ kind: 'json', decoded: bytes.length, gpu: 0 });
+  expect(emitNamedBlobs([blob]).assets.get(blob.file.hash)).toEqual(bytes);
+  expect(() => nameBlob('bad.json', 'json', new TextEncoder().encode('{'))).toThrow();
+  expect(() => nameBlob('bad.json', 'json', new Uint8Array([255]))).toThrow();
+  expect(() => nameBlob('model.json', 'json', jsonBytes(gltf()))).toThrow('compile to GLB');
+});
