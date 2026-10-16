@@ -348,6 +348,42 @@
           "night": {
             "scene": "night"
           }
+        },
+        "debugPin": {
+          "id": "pineScore",
+          "label": "Pine Hollow score",
+          "storage": "debug.plugin.pine-hollow.pineScore",
+          "legacy": "pineScore",
+          "initial": "auto",
+          "choices": [
+            {
+              "value": "auto",
+              "text": "Auto"
+            },
+            {
+              "value": "night",
+              "text": "Night"
+            },
+            {
+              "value": "boss",
+              "text": "Boss I"
+            },
+            {
+              "value": "boss-2",
+              "text": "Boss II"
+            },
+            {
+              "value": "boss-3",
+              "text": "Boss III"
+            },
+            {
+              "value": "dawn",
+              "text": "Dawn sting"
+            }
+          ],
+          "ask": "E357",
+          "reviewBy": "2026-12-30",
+          "note": "E357: pin the scene, boss layers or reward sting."
         }
       },
       "minFade": 0,

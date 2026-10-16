@@ -38,7 +38,7 @@ import { antlerKingFight, KING_KIND } from '../runtime/antlerKing';
 import { ANTLER_KING_PRESENTATION } from '../data/antlerKing';
 import { KINGS_CLEARING } from '../data/layout';
 import { PINE_PHASES } from '../look/dayKeys';
-import { pineScore } from '../runtime/audio/score';
+import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { kingTick } from './kingFight';
 
@@ -167,7 +167,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
     skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
     toast: ctx.toast, feed: ctx.feed, pickupHum: on => { h.audio.pickupHum(on); },
-    score: () => pineScore(h.music, requireAudioProfile(source.audio.music, 'score.pine')), ambientScene: () => kingNight() ? 'night' : 'day', scorePhase: fight => fight.phase,
+    score: () => CatalogueScore.get(h.music, requireAudioProfile(source.audio.music, 'score.pine'),undefined,undefined,false), ambientScene: () => kingNight() ? 'night' : 'day', scorePhase: fight => fight.phase,
     advance: (boss, fight, dt, t) => { kingTick(boss, fight, player.position, kingNight(), dt, t); },
   });
   if (params.get('boss') === KING_KIND) {

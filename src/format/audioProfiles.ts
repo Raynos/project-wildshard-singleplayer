@@ -1,3 +1,4 @@
+import { PlumbingSchema } from './plumbing';
 import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -36,9 +37,18 @@ export const AudioMixSchema = v.strictObject({values:mixValues(256),levels:mixVa
   shade:v.exactOptional(v.tuple([mixExpr,mixExpr]))});
 export type AudioMixRecipe = v.InferOutput<typeof AudioMixSchema>;
 
+/** One existing reload Debug choice and its saved/legacy pin values. */
+export const AudioScorePinSchema = v.pipe(v.strictObject({id, label:id,
+  storage:id, legacy:v.exactOptional(id), initial:id,
+  choices:v.pipe(v.array(v.strictObject({value:id,text:id})),v.minLength(2),v.maxLength(16)),
+  ask:PlumbingSchema.pipe[0].entries.debug.pipe[0].item.entries.ask,
+  reviewBy:v.pipe(v.string(),v.regex(/^\d{4}-\d{2}-\d{2}$/u)),note:id,
+}),v.check(row=>new Set(row.choices.map(choice=>choice.value)).size===row.choices.length&&row.choices.some(choice=>choice.value===row.initial),'unique score pins and declared default'));
+export type AudioScorePin = v.InferOutput<typeof AudioScorePinSchema>;
+
 /** Bounded music catalogue selection; the engine keeps today's bar-grid calm/tension/boss stem decoding. */
 export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: list, bootSlots: list,
-  lifecycle:v.exactOptional(v.strictObject({persistent:v.boolean(),dispose:v.boolean(),logChanges:v.boolean(),bossScene:v.exactOptional(id),
+  lifecycle:v.exactOptional(v.strictObject({persistent:v.boolean(),dispose:v.boolean(),logChanges:v.boolean(),debugPin:v.exactOptional(AudioScorePinSchema),bossScene:v.exactOptional(id),
     deckSting:v.exactOptional(v.strictObject({exceptSlot:id,delay:v.pipe(finite,v.minValue(0),v.maxValue(60))})),
     pins:v.pipe(v.record(id,v.strictObject({scene:v.exactOptional(id),phase:v.exactOptional(v.picklist([1,2,3])),sting:v.exactOptional(v.picklist(['chunk','death','pickup','dawn']))})),v.check(rows=>Object.keys(rows).length<=32))})),
   synthLead: v.picklist(['pluck', 'marimba']), minFade: v.pipe(finite, v.minValue(0), v.maxValue(60)),

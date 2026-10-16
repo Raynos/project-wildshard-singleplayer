@@ -1,3 +1,5 @@
+import { CatalogueScore } from './SetScore';
+import type { Music } from './Music';
 import type { AudioData } from '@wildshard/format/audio';
 import { DeclaredSoundBank, type DeclaredBankAudio } from './declaredBank';
 import type { Scope } from '../app/scope';
@@ -32,12 +34,23 @@ export interface DeclaredAudioPorts {
     zones?: ((profile: AudioZoneProfile, scope: Scope) => void) | undefined;
   } | undefined;
 }
+/** Native score owners supplied by the mixer; the declaration supplies all content policy. */
+export interface DeclaredScorePorts {audio:Pick<Audio,'onLevelBank'>;music:Music;scope:Scope;beforeBind?:()=>void}
+function scorePorts(ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts):ports is DeclaredScorePorts {
+  return 'music' in ports&&'residentBank' in ports.music&&'onLevelBank' in ports.audio;
+}
+/** Score-only phase uses the existing catalogue and keeps native bank and entered lifetimes separate. */
+export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredScorePorts,phase:'score'):CatalogueScore;
 /** Bank-only phase preserves separately owned cue and ambience lifetimes. */
 export function installDeclaredAudio(data:AudioData,ports:{audio:DeclaredBankAudio;scope:Scope},phase:'voices'):DeclaredSoundBank;
 export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts):void;
 /** Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. */
-export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope},phase?:'voices'):void|DeclaredSoundBank {
+export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts,phase?:'voices'|'score'):void|DeclaredSoundBank|CatalogueScore {
   if(ports.scope.disposed)throw new Error('Audio scope is disposed');
+  if(phase==='score'){
+    if(!scorePorts(ports)||data.music===undefined)throw new Error('Missing declared score ports or profile');
+    return CatalogueScore.install(ports.audio,ports.music,ports.scope,data.music,'beforeBind' in ports?{beforeBind:ports.beforeBind}:{});
+  }
   if(phase==='voices'){
     if(!('voices' in ports.audio))throw new Error('Missing declared bank ports');
     return new DeclaredSoundBank(ports.audio,data,ports.scope);

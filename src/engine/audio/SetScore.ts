@@ -1,3 +1,4 @@
+import { jsonSlot } from '../saves/slots';
 import { musicManifests } from '../boot/tables';
 import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase, type StyleBank } from './Stems';
 import type { Audio } from './Audio';
@@ -162,13 +163,20 @@ export class SetScore<Scene> implements ScoreSource {
 const residentCatalogueScores=new WeakMap<Music,Map<string,CatalogueScore>>();
 
 export class CatalogueScore implements ScoreSource {
+  /** Resolve a declared reload pin, preserving device-over-legacy precedence and invalid-value refusal. */
+  static pin(profile:AudioMusicProfile):string|undefined {
+    const pin=profile.lifecycle?.debugPin;if(pin===undefined)return undefined;
+    const saved=jsonSlot(pin.storage,'device').read(),legacy=jsonSlot('settings','global').read();
+    const value=saved??(pin.legacy!==undefined&&legacy!==null&&typeof legacy==='object'&&!Array.isArray(legacy)?legacy[pin.legacy]:undefined);
+    return pin.choices.find(choice=>choice.value===value)?.value??pin.initial;
+  }
   private deckSting:StemSting|undefined;
   /** Reuse an authored resident score only when its lifecycle explicitly declares that policy. */
   static get(music:Music,profile:AudioMusicProfile,pin?:()=>string,scope?:Scope,rebind=true):CatalogueScore {
     const policy=profile.lifecycle;if(policy===undefined)throw new Error('Missing score lifecycle');
     const existing=policy.persistent?residentCatalogueScores.get(music)?.get(profile.id):undefined;
     if(existing!==undefined){if(rebind)existing.bindProfile(profile);return existing;}
-    const source=new CatalogueScore(music,profile,scope),initial=pin===undefined?undefined:policy.pins[pin()];
+    const source=new CatalogueScore(music,profile,scope),selected=pin===undefined?CatalogueScore.pin(profile):pin(),initial=selected===undefined?undefined:policy.pins[selected];
     if(initial?.scene!==undefined)source.sceneName=initial.scene;if(initial?.phase!==undefined)source.phase=initial.phase;source.deckSting=initial?.sting;
     const bank=music.residentBank();if(bank!==undefined)source.useStyleBank(bank);
     if(policy.persistent){music.setScore(profile.id,source);let sources=residentCatalogueScores.get(music);if(sources===undefined){sources=new Map();residentCatalogueScores.set(music,sources);}sources.set(profile.id,source);}

@@ -1,6 +1,5 @@
-import { runtimeAudio, audioObserverSystems } from '@wildshard/game/plugin/audio';
+import { runtimeAudio, audioObserverSystems, installRuntimeScore } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -17,7 +16,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   if (shell?.world === undefined || shell.world === null || shell.play === null) throw new Error('Driftwood audio requires its play host');
   const { game, sky, player } = shell.world, { audio, music } = shell.play;
   const declared = ctx.product.shardfile.audio, audioRows = runtimeAudio(ctx, declared);
-  CatalogueScore.install(audio, music, ctx.scope, requireAudioProfile(audioRows.music, 'score.driftwood'));
+  installRuntimeScore(ctx,audio,music);
   const SHRINE = SHRINE_SITES.world;
   const declaredSea = ctx.product.shardfile.water.find(body => body.kind === 'sea');
   if (declaredSea?.kind !== 'sea') throw new Error('Driftwood audio requires its admitted sea');

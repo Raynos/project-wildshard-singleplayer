@@ -1,3 +1,6 @@
+import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
+import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
+import type { Music } from '@wildshard/engine/audio/Music';
 import { createAudioObserver, type AudioObservationPorts } from '@wildshard/engine/audio/audioProfiles';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/combat/cues';
@@ -5,7 +8,7 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { AudioData } from '@wildshard/format/audio';
 import type { GameServices, ShardContext } from './context';
-import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import { installSilentScore } from '../systems/audio/silentScore';
 import { crossbowFire, dryFire, boltImpact, reload } from "../systems/audio/crossbowSounds";
 import { rifleFire, rifleReload } from "../systems/audio/firearmSounds";
@@ -111,4 +114,20 @@ export function audioObserverSystems(rows:NonNullable<AudioData['observations']>
   const controllers=new Map(rows.map(row=>[row.id,createAudioObserver(row,ports)]));
   return {systems:rows.map(row=>({id:row.id,phase:'update',after:row.after,before:row.before,run:(dt,t)=>{controllers.get(row.id)?.run(dt,t);}})),
     value:(system,id)=>{const controller=controllers.get(system);if(controller===undefined)throw new Error('Missing audio observation system');return controller.state(id);}};
+}
+
+/** Install declared score banks with the resident catalogue's entered-scope policy and existing reload pin. */
+export function installRuntimeScore(context:ShardContext,audio:Audio,music:Music):void {
+  const rows=runtimeAudio(context,context.product.shardfile.audio),profile=rows.music;
+  if(profile?.lifecycle===undefined)throw new Error('Missing declared score lifecycle');
+  const retained=profile.lifecycle.persistent&&retainsRuntimeServices(context),pin=profile.lifecycle.debugPin;
+  let registerDebug=true;
+  const install=(scope:Scope):void=>{
+    const score=installDeclaredAudio(rows,{audio,music,scope,beforeBind:()=>{
+      if(registerDebug&&pin!==undefined)context.debugRow({...pin,group:'audio',initial:CatalogueScore.pin(profile)??pin.initial,reload:true,change:()=>undefined});
+    }},'score');
+    registerDebug=false;
+    if(retained){const bank=music.residentBank();if(bank!==undefined)score.useStyleBank(bank);}
+  };
+  if(profile.lifecycle.persistent)installEnteredRuntimeService(context,install);else install(context.scope);
 }
