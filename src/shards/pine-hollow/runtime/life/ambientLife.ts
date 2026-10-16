@@ -7,7 +7,6 @@ import { audioRandom } from '@wildshard/engine/audio/util';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
-import { cabinMask, inChunk, normalAt, pondMask, streamAt, waterLevel } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -21,7 +20,7 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
-import { BodylessForager, type BodylessForagerState, type ForagerMotion } from './bodylessForager';
+import { AmbientForager, foragerState, type ForagerState, type ForagerMotion } from '@wildshard/engine/ai/ambientForager';
 import { TrunkProbe } from './trunkProbe';
 import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
 import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
@@ -75,7 +74,7 @@ interface Bird {
   /** where it stands / perches (ground or branch height) */
   gy: number;
 }
-interface Hare extends BodylessForagerState { slot: number; pose: WildPose; motion: ForagerMotion; retry: number }
+interface Hare extends ForagerState { slot: number; pose: WildPose; motion: ForagerMotion; retry: number }
 
 interface Carcass { a: Animal; killT: number; comeT: number; harvestT: number; visit: RavenVisit; ravens: Bird[]; feedLeft: number; leaveT: number; dimmed: boolean }
 
@@ -125,15 +124,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     return out;
   };
   const scratch: TreeInstance[] = [];
-  /** open, dry, gentle ground a hare can sit on (not a trunk, a cabin pad, the pond or the creek) */
-  const groundOk = (x: number, z: number): boolean => {
-    if (!inChunk(x, z, 20)) return false;
-    const y = heightAt(x, z);
-    if (y < waterLevel() + 0.35 || pondMask(x, z) > 0.02 || cabinMask(x, z) > 0.05 || streamAt(x, z) !== null) return false;
-    if (normalAt(x, z)[1] < 0.86) return false;
-    for (const t of treesNear(x, z, 3, scratch)) if (Math.hypot(t.x - x, t.z - z) < t.r + 0.45) return false;
-    return true;
-  };
   /** a perch tree near (x, z) between rMin and rMax metres: `pick` scores a candidate (higher is better; ≤ 0 = no) */
   const perchTree = (x: number, z: number, rMin: number, rMax: number, pick: (t: TreeInstance, d: number) => number): TreeInstance | null => {
     let best: TreeInstance | null = null, bs = 0;
@@ -521,17 +511,15 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   }
 
   // ── the hares ──
-  const hares: Hare[] = Array.from({ length: N_HARE }, (_, i) => ({
-    slot: SLOT.hare + i, pose: newPose(KIND.hare), mode: 'graze', x: 0, z: 0, yaw: 0, fx: 0, fz: 0, tx: 0, tz: 0, t: 1, dur: 1, h: 0,
-    timer: 0, fleeLeft: 0, zig: 0, retry: 0, headPitch: 0.5, ears: 0.2, sit: 0, motion: { y: -999, hind: 0, fore: 0, pitch: 0 },
-  }));
+  const hares: Hare[] = Array.from({ length: N_HARE }, (_, i) => ({ ...foragerState(0, 0, 0), slot: SLOT.hare + i, pose: newPose(KIND.hare), retry: 0, motion: { y: -999, hind: 0, fore: 0, pitch: 0 } }));
   for (const hr of hares) hr.pose.scale = data.forager.scale;
+  const forager = new AmbientForager(data.forager.policy, rng, h.trees);
   const seatHare = (hr: Hare, rMin: number, rMax: number, hidden: boolean): boolean => {
     const pp = player.position;
     for (let k = 0; k < 24; k++) {
       const ang = rng.range(0, TAU), r = rng.range(rMin, rMax), x = pp.x + Math.cos(ang) * r, z = pp.z + Math.sin(ang) * r;
       if (hidden && inView(x, z, 0.2) && r < 90) continue;
-      if (!groundOk(x, z)) continue;
+      if (!forager.canStep(x, z)) continue;
       hr.x = x; hr.z = z; hr.yaw = rng.range(0, TAU); hr.mode = 'graze'; hr.timer = rng.range(1, 4); hr.t = 1; hr.dur = 1; hr.sit = 0;
       hr.pose.x = x; hr.pose.y = heightAt(x, z); hr.pose.z = z; hr.pose.yaw = hr.yaw;
       return true;
@@ -550,11 +538,10 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     }
     return true;
   };
-  const forager = new BodylessForager(data.forager.policy, rng, { heightAt, canStep: groundOk });
   const updateHare = (hr: Hare, dt: number): void => {
     forager.step(hr, hr.motion, dt, player.position, player.sprinting);
     const p = hr.pose, motion = hr.motion;
-    p.x = hr.x; p.y = motion.y; p.z = hr.z; p.yaw = hr.yaw; p.roll = 0;
+    p.x = hr.x; p.y = heightAt(hr.x, hr.z) + motion.y; p.z = hr.z; p.yaw = hr.yaw; p.roll = 0;
     p.a0 = motion.hind; p.a1 = motion.fore; p.pitch = motion.pitch;
     p.a2 = hr.headPitch - hr.sit * 0.2; p.a3 = hr.ears; p.b1 = hr.mode === 'alert' ? Math.sin(now() * 1.3 + hr.slot) * 0.5 : 0;
     wild.add(p);

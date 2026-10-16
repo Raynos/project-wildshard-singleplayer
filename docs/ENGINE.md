@@ -5624,6 +5624,35 @@ Users: Driftwood's gulls (`custom/gullFlock`, data/gullsLook.ts GULL_FLOCK,
 perched on the pier, boat, rocks and sand) and Pine Hollow's breadcrumb
 ravens (`custom/ambientLife` `guide.flock`, hidden until a guide pass).
 
+### Ambient foragers (G466 H6)
+
+`@wildshard/engine/ai/ambientForager` is the ground sibling of the flock:
+small render-free animals that feed, keep watch and bolt, from one row
+(`@wildshard/format/ambientLife#ForagerPolicySchema`). The caller owns the
+population, its placement, band clocks, save and draw; it makes each state
+with `foragerState(x, z, yaw, homeX, homeZ)` and calls
+`forager.step(state, motion, dt, player, fast, crouched)` once a scheduled
+tick. `motion` gets the hop lift (add the ground height), hind / fore leg
+swing and body pitch; the state's `sit` (up on the hind legs) and `sink`
+(down the burrow) drive the pose. `step` returns true when a sentry raised
+the alarm; `forager.bolt(state, player)` then sends the rest running.
+
+The row holds the scare radii (`scare` walking / fast, `crouched`), the
+alert margins and pauses, `grazing` (`gait: 'hop'` turns and short hops,
+or `gait: 'walk'` a shuffle to points near home), `escape` (`to: 'away'`
+zig-zag bounds for `distance` metres, or `to: 'home'` a run home, hidden for
+`hide` seconds, peeking up once the player is `emerge` away), `sentry`
+(chance, duration, sight multiplier, `alarm`), `posture` rows per mode and
+`ground` (where a forager may step: chunk margin, height above water, pond
+and cabin mask ceilings, creeks, slope, trunk clearance; `null` anywhere).
+The constructor takes the row, the caller's seeded `Rng` and the planted
+trees (data); `canStep(x, z)` answers the `ground` rule. No callback
+crosses it (G454).
+
+Users: Pine Hollow's hares (`custom/ambientLife` `forager.policy`: hop,
+away) and Nalati's marmot colonies (`creatures/marmotForager.json`: walk,
+home, sentries that whistle).
+
 `bindDirectorActions(...).validate(saved)` checks the installed immutable
 stage contract and cursor without mutating its lane or calling native ports.
 Use it before an aggregate encounter restore applies any body effects.

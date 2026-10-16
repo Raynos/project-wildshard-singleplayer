@@ -430,6 +430,7 @@
     "./ai/huntPattern": "./ai/huntPattern.ts",
     "./ai/ambientFlight": "./ai/ambientFlight.ts",
     "./ai/ambientFlock": "./ai/ambientFlock.ts",
+    "./ai/ambientForager": "./ai/ambientForager.ts",
     "./player/heldHandParts": "./player/heldHandParts.ts"
   }
 }

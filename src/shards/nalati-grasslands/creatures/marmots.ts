@@ -26,7 +26,8 @@ import { painterlyAnimalMaterial } from '../look/creatureMaterial';
  * out of sight for 10–18 s, then peeks back up.
  */
 
-import { MarmotBrain, type MarmotState as Marmot, type MarmotSnapshot } from './marmotBrain';
+import type { ForagerState as Marmot } from '@wildshard/engine/ai/ambientForager';
+import { MarmotBrain, type MarmotSnapshot } from './marmotBrain';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, 'YXZ'), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 
@@ -102,7 +103,7 @@ export class Marmots {
     this.list.forEach((m, i) => {
       if (scheduled && this.rules.poseDue[i] !== 1) return;
       const g = heightAt(m.x, m.z);
-      _e.set(-m.stand * 1.25, m.yaw, 0);
+      _e.set(-m.sit * 1.25, m.yaw, 0);
       _q.setFromEuler(_e);
       _p.set(m.x, g - m.sink * 0.45, m.z);
       _s.setScalar(1);

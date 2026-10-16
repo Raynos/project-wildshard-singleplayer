@@ -6,14 +6,19 @@ const positive=v.pipe(finite,v.minValue(0.001),v.maxValue(100000));
 const count=v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(256));
 const model=v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(31));
 const range=v.pipe(v.tuple([finite,finite]),v.check(pair=>pair[0]<=pair[1]));
-const posture=v.tuple([finite,finite,finite,finite,finite,finite]);
 const burst=v.strictObject({phase:v.pipe(v.array(positive),v.minLength(2),v.maxLength(3)),amplitude:finite,foldPhase:finite,foldAmplitude:finite,rest:v.tuple([finite,finite]),rates:v.tuple([positive,positive]),glide:range,beats:v.pipe(v.tuple([count,count]),v.check(pair=>pair[0]<=pair[1]&&pair[1]<=64))});
-/** Bodyless grazing/alert/escape policy, independent of renderer and clock ownership. */
+const posture=v.tuple([finite,finite,finite,finite,finite,finite]);
+/** One ambient forager row (G466 H6, `@wildshard/engine/ai/ambientForager`): grazing gait, scare radii, sentries and the
+ *  escape (zig-zag bounds away, or a run home and down the burrow). Posture rows: [sit, rate, head pitch, rate, ears, rate]. */
 export const ForagerPolicySchema=v.strictObject({
-  scare:range,alertMargin:positive,releaseMargin:positive,fleeDistance:range,fleePause:range,alertPause:range,grazePause:range,settlePause:range,turn:range,
-  grazing:v.strictObject({chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),length:range,duration:positive,height:positive}),
-  escape:v.strictObject({length:positive,duration:positive,height:positive,zigSteps:v.tuple([count,count]),spread:range,steer:positive}),
-  posture:v.strictObject({graze:posture,alert:posture,flee:posture}),
+  scare:range,crouched:v.exactOptional(positive),alertMargin:finite,releaseMargin:finite,alertPause:range,grazePause:range,settlePause:range,turn:range,
+  grazing:v.variant('gait',[v.strictObject({gait:v.literal('hop'),chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),length:range,duration:positive,height:positive}),v.strictObject({gait:v.literal('walk'),speed:positive,wander:range})]),
+  escape:v.variant('to',[v.strictObject({to:v.literal('away'),distance:range,pause:range,length:positive,duration:positive,height:positive,zigSteps:v.tuple([count,count]),spread:range,steer:positive}),
+    v.strictObject({to:v.literal('home'),speed:positive,reach:positive,hide:range,emerge:positive,sink:positive})]),
+  /** where a forager may step (null: anywhere): chunk margin, height above water, pond / cabin mask ceilings, creeks, min normal y, trunk clearance */
+  ground:v.nullable(v.strictObject({margin:finite,aboveWater:finite,pond:finite,cabin:finite,stream:v.boolean(),slope:finite,trunk:finite})),
+  sentry:v.nullable(v.strictObject({chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),duration:range,sight:positive,alarm:v.boolean()})),
+  posture:v.strictObject({graze:posture,alert:posture,flee:posture,sentry:v.exactOptional(posture),hide:v.exactOptional(posture)}),
 });
 export type ForagerPolicyRows=v.InferOutput<typeof ForagerPolicySchema>;
 const share=v.pipe(finite,v.minValue(0),v.maxValue(1));
