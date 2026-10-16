@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./decisionScripts": "./decisionScripts.ts",
     "./scriptAbiV1": "./scriptAbiV1.ts",
     "./level": "./level.ts",
     "./outputIndex": "./outputIndex.ts",

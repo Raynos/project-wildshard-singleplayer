@@ -1,6 +1,7 @@
 import type * as v from 'valibot';
 import type { Shardfile } from './shardSchema';
 import type { CreatureStrikeSchema } from './creatures';
+import type { DecisionScriptRow } from './decisionScripts';
 import type { WorldPhysics } from './worldPhysics';
 
 type Rows = Shardfile['rows'];
@@ -53,6 +54,8 @@ export interface PlatformSections {
   'state/state': Pick<Shardfile, 'state'>;
   'state/migrations': Pick<Shardfile, 'migrations'>;
   'state/modes': Pick<Shardfile, 'modes'>;
+  /** new (KA1): admitted v1 decisions, independent of the retained v0 hash/binding envelope */
+  'sim/scripts': readonly DecisionScriptRow[];
   'sim/sim': Pick<Shardfile, 'sim'>;
   'sim/hooks': Pick<Shardfile, 'hooks'>;
   'sim/client-scripts': Pick<Shardfile, 'clientScripts'>;

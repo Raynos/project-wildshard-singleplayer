@@ -7233,3 +7233,34 @@ Player-scoped flags stay separate. Actor fields must be declared;
 `ScenarioActor.fieldBounds` optionally supplies min/max/integer rules
 (absent bounds declare a finite f64 fixture field). Full-batch refusal
 leaves all observations unchanged, including during staged-save replay.
+
+### Decision-script section admission (KA1)
+
+`format/decisionScripts.DecisionScriptsSchema` defines the plain
+`sim/scripts` platform section. `parseDecisionScripts` rejects non-JSON
+input before reading properties. Rows declare ABI `1.0`, an immutable
+`blobs/wasm/<hash>.wasm`, authored `.as` source, encounter/quest/zone or
+`{shard:true}` binding, capabilities, local aliases, state and parameters.
+The registry and SDK `emitPlatformSections` share this defining schema.
+
+Local admission bounds modules, IO dimensions and fixed pages; verifies
+side-specific events/reads/commands, 1/2/5/10 Hz tick subscriptions, typed
+state defaults/ranges and generated identifiers. View slots are `local`;
+simulation slots are binding/actor/player scoped. Lists are named in the
+same `reads` capability list as scalar reads. `scriptV1Identifier` refuses
+reserved names and the row refuses aliases that collide after conversion.
+
+`decisionScriptRules(rows, references)` requires facts from admitted
+platform registries: module ABI/pages, each named reference, binding ids,
+and consecutive `script:<id>` migrations reaching the latest state version.
+It never treats aliases in the script itself as evidence of a real target.
+A3/A6 supply those real registries while building/resolving scripts; missing
+registries refuse. Byte admission uses `admitScript(bytes,1)` and the v1
+compiler contract; existing v0 bindings remain separate until their Z row.
+
+`@wildshard/sdk/decisionBindingMap.decisionBindingMap(row, registries)` is
+the common generated-binding/resolver/scenario map. It uses authoritative
+per-kind positive handles and refuses missing, duplicate or unsafe ids.
+Actor handles are never allocated from alias order or hashes. Timers alone
+are local sorted names with 1-based ids; parameters sort by name and state
+slots retain authored order. The inverse maps provide readable labels.

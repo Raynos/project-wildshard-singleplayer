@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",
     "./outputCatalogScan": "./outputCatalogScan.ts",
     "./projectManifest": "./projectManifest.ts",

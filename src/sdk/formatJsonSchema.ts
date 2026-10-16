@@ -31,6 +31,7 @@ import { PhasedDiverSchema, PhasedFlyerSchema } from '@wildshard/format/phasedFl
 import { PresentationSchema } from '@wildshard/format/presentation';
 import { MeshCollisionSchema } from '@wildshard/format/meshCollision';
 import { ScriptBindingsSchema } from '@wildshard/format/scripts';
+import { DecisionScriptsSchema } from '@wildshard/format/decisionScripts';
 import { HooksSchema } from '@wildshard/format/hooks';
 import { TerrainSchema } from '@wildshard/format/terrain';
 import { WaterSchema } from '@wildshard/format/water';
@@ -169,6 +170,7 @@ const wireRoots = {
   'presentation.Presentation': PresentationSchema,
   'meshCollision.MeshCollision': MeshCollisionSchema,
   'scripts.ScriptBindings': ScriptBindingsSchema,
+  'decisionScripts.DecisionScripts': DecisionScriptsSchema,
   'hooks.Hooks': HooksSchema,
   'terrain.Terrain': TerrainSchema,
   'water.Water': WaterSchema,
