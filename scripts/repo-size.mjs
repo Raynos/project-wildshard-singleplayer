@@ -19,7 +19,7 @@ const POLICY = 'scripts/storage-policy.json';
 const OID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/u;
 const ZERO = /^0+$/u;
 /** The policy may lower these, never raise them. */
-const CEILINGS = { maxBlobBytes: MB, maxPreviewBytes: 250_000, maxBoardBytes: 500_000, maxPushBytes: 10 * MB, maxWeeklyBytes: 100 * MB };
+const CEILINGS = { maxBlobBytes: MB, maxJsonBlobBytes: 5 * MB, maxPreviewBytes: 250_000, maxBoardBytes: 500_000, maxPushBytes: 10 * MB, maxWeeklyBytes: 100 * MB };
 /** Shipped bytes: the website, the native app resources and each shard's content-addressed runtime assets. */
 const RUNTIME_ROOTS = ['public/', 'android/app/src/main/res/', 'ios/App/App/Assets.xcassets/'];
 const SHARD_ASSETS = /^src\/shards\/[^/]+\/assets\//u;
@@ -36,7 +36,7 @@ const TEXT = new Set(['ts', 'tsx', 'mts', 'cts', 'js', 'jsx', 'mjs', 'cjs', 'jso
   'vert', 'frag', 'as', 'lock', 'log', 'tex', 'gitignore', 'gitattributes', 'npmrc', 'nvmrc', 'editorconfig', 'env']);
 
 /**
- * @typedef {{ maxBlobBytes: number, maxPreviewBytes: number, maxBoardBytes: number, maxPushBytes: number,
+ * @typedef {{ maxBlobBytes: number, maxJsonBlobBytes: number, maxPreviewBytes: number, maxBoardBytes: number, maxPushBytes: number,
  *   maxWeeklyBytes: number, migrationBase: string | null, pins: Map<string, Pin> }} Policy
  * @typedef {{ path: string, oid: string, bytes: number, kind: 'runtime' | 'input', purpose: string }} Pin
  * @typedef {{ mode: string, oid: string, oldMode: string, oldOid: string, status: string, path: string }} Change
@@ -106,7 +106,9 @@ function parsePolicy(value, known) {
     }
     return given;
   };
-  const caps = { maxBlobBytes: cap('maxBlobBytes'), maxPreviewBytes: cap('maxPreviewBytes'), maxBoardBytes: cap('maxBoardBytes'),
+  // JSON gets its own, larger blob cap (Jake, 2026-10-16); a policy without it uses the plain blob cap.
+  const blob = cap('maxBlobBytes');
+  const caps = { maxBlobBytes: blob, maxJsonBlobBytes: fields.maxJsonBlobBytes === undefined ? blob : cap('maxJsonBlobBytes'), maxPreviewBytes: cap('maxPreviewBytes'), maxBoardBytes: cap('maxBoardBytes'),
     maxPushBytes: cap('maxPushBytes'), maxWeeklyBytes: cap('maxWeeklyBytes') };
   const base = fields.migrationBase;
   if (base !== undefined && (typeof base !== 'string' || !OID.test(base))) throw new Error(`${POLICY}: migrationBase must be a full commit id`);
@@ -338,10 +340,11 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
         errors.push(`${path}: forbidden outside public/: ${forbiddenHint(path)}`);
         continue;
       }
-      if (bytes > policy.maxBlobBytes && !pinned) {
+      const blobCap = path.endsWith('.json') ? policy.maxJsonBlobBytes : policy.maxBlobBytes;
+      if (bytes > blobCap && !pinned) {
         const advice = runtime ? 'a shipped file this big needs an exact pin' : 'shrink it or keep it outside Git; an exact build/test input may be pinned';
         const pinLine = `{"path": "${path}", "oid": "${oid}", "bytes": ${bytes}, "kind": "${runtime ? 'runtime' : 'input'}", "purpose": "<why>"}`;
-        errors.push(`${path}: ${mb(bytes)} is over the ${mb(policy.maxBlobBytes)} blob cap; ${advice} in ${POLICY}: ${pinLine}`);
+        errors.push(`${path}: ${mb(bytes)} is over the ${mb(blobCap)} blob cap; ${advice} in ${POLICY}: ${pinLine}`);
         continue;
       }
       if (runtime || pinned) continue;

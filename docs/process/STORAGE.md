@@ -16,7 +16,7 @@ may lower a cap, never raise one.
 
 | Rule | Limit |
 | --- | --- |
-| One blob | 1 MB, unless exactly pinned |
+| One blob | 1 MB, unless exactly pinned; **JSON 5 MB** (Jake, 2026-10-16: *"Make the blob limit 5mb for JSON and commit it"*) |
 | A preview image (`.png` / `.jpg` / `.webp` / `.avif` outside the runtime roots) | 250 KB |
 | A board (`*board*`, `*sheet*`, `contact*` in the file name) | 500 KB |
 | New binary bytes outside the runtime roots waiting to push (and per push) | 10 MB |

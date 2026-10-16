@@ -94,7 +94,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **Strict means strict**: no `any`, no `!`, no `@ts-ignore`, no `as unknown as`, no blanket `oxlint-disable`. Fix the
   type, never the gate.
 - Never open a shared file for writing before you've read it. No tree-wide destructive git.
-- **Storage policy** → [docs/process/STORAGE.md](docs/process/STORAGE.md): blobs ≤ 1 MB, preview images ≤ 250 KB
+- **Storage policy** → [docs/process/STORAGE.md](docs/process/STORAGE.md): blobs ≤ 1 MB (JSON ≤ 5 MB), preview images ≤ 250 KB
   (boards 500 KB, JPEG / WebP), no video / audio / archives / `.jsonl` / PDF / `.blend` outside `public/`, at most
   10 MB of new binary per push, and a 100 MB a week warning (advisory) outside the runtime roots (Jake, 2026-10-15). `scripts/repo-size.mjs`
   enforces it in pre-commit, pre-push (every outgoing commit) and CI; a big shipped file needs an exact pin.

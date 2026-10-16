@@ -87,6 +87,16 @@ it('checks the private index, not the shared one or the working tree', () => {
   expect(f.checker().checkIndex().changed).toBe(0);
 });
 
+it('JSON gets its own blob cap; other files keep the plain one', () => {
+  const f = fixture();
+  f.policy({ maxJsonBlobBytes: 5_000_000 });
+  f.commit();
+  f.stage('src/shards/pine-hollow/data/rows.json', `[${'0,'.repeat(1_000_000)}0]`);
+  expect(f.checker().checkIndex().changed).toBeGreaterThan(0);
+  f.stage('art/raw.bin', binary(1_000_001));
+  expect(() => f.checker().checkIndex()).toThrow(/art\/raw\.bin: 1\.00 MB is over the 1\.00 MB blob cap/u);
+});
+
 it('refuses generated paths, media outside public/, the removed progress guards and disguised binaries', () => {
   const f = fixture();
   f.commit();

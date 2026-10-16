@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "maxBlobBytes": 1000000,
+  "maxJsonBlobBytes": 5000000,
   "maxPreviewBytes": 250000,
   "maxBoardBytes": 500000,
   "maxPushBytes": 10000000,
