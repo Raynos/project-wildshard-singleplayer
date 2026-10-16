@@ -31,7 +31,29 @@ export async function gpuBisect(frames) {
   const run = async (variant, off, on) => { off(); try { await wait(400); return { variant, ...(await measure()) }; } finally { on(); await wait(200); } };
   const meshes = (o) => { let n = 0; o.traverseVisible((c) => { if (c.isMesh || c.isInstancedMesh || c.isPoints || c.isLine) n++; }); return n; };
   const label = (o) => `${o.name !== "" ? o.name : o.type}${o.userData?.tag ? `#${o.userData.tag}` : ''}`;
-  const rows = [{ variant: 'baseline', ...(await measure()) }];
+  // sp-o276: what the frame draws, by material type and program (no GL queries; three's own bookkeeping)
+  const census = () => {
+    const byType = new Map(), materials = new Set(); let draws = 0;
+    root.traverseVisible((c) => {
+      if (!(c.isMesh || c.isInstancedMesh || c.isPoints || c.isLine || c.isSkinnedMesh)) return;
+      const list = Array.isArray(c.material) ? c.material : [c.material];
+      for (const m of list) { if (!m) continue; materials.add(m); draws++; const k = `${m.type}${c.castShadow ? '+cast' : ''}`; byType.set(k, (byType.get(k) ?? 0) + 1); }
+    });
+    return { draws, materials: materials.size, programs: g.renderer.info.programs?.length ?? -1, byType: Object.fromEntries([...byType].sort((a, b) => b[1] - a[1]).slice(0, 12)) };
+  };
+  // sp-o276: GL calls per drawn frame on the game's own context (counted for 30 frames, then unwrapped)
+  const glCensus = async () => {
+    const gl = g.renderer.getContext(), names = ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'useProgram', 'bufferSubData', 'bufferData', 'bindBufferBase', 'bindTexture', 'uniformMatrix4fv', 'uniformMatrix3fv', 'uniform4fv', 'uniform3fv', 'uniform1f', 'uniform1i', 'bindFramebuffer', 'texImage2D', 'texSubImage2D'];
+    const counts = Object.fromEntries(names.map((n) => [n, 0])); let ubo = 0;
+    for (const n of names) { const f = gl[n]; if (typeof f !== 'function') continue; gl[n] = function counted(...a) { counts[n]++; if (n === 'bufferSubData' && a[0] === gl.UNIFORM_BUFFER) ubo++; return f.apply(this, a); }; }
+    const start = g.frameCount; await new Promise((resolve) => { const t = () => { if (g.frameCount - start >= 30) resolve(); else requestAnimationFrame(t); }; requestAnimationFrame(t); });
+    const drawn = g.frameCount - start;
+    for (const n of names) delete gl[n];
+    return { ...Object.fromEntries(Object.entries(counts).filter(([, v]) => v > 0).map(([k, v]) => [k, Math.round(v / drawn)])), uboSubData: Math.round(ubo / drawn) };
+  };
+  const rows = [{ variant: 'baseline', ...(await measure()), census: { ...census(), gl: await glCensus() } }];
+  // the viewmodel (a camera child: the root-child scan skips the camera)
+  for (const child of g.camera.children) if (child.visible && meshes(child) > 0) rows.push({ ...(await run(`hide camera/${label(child)}`, () => { child.visible = false; }, () => { child.visible = true; })), meshes: meshes(child) });
   // post passes (the first scene render stays)
   const passes = g.composer.passes;
   for (const [i, pass] of passes.entries()) {
@@ -53,5 +75,46 @@ export async function gpuBisect(frames) {
   candidates.sort((a, b) => b.n - a.n);
   for (const c of candidates.slice(0, 20)) rows.push({ ...(await run(`hide ${c.path}`, () => { c.o.visible = false; }, () => { c.o.visible = true; })), meshes: c.n });
   rows.push({ variant: 'baseline again', ...(await measure()) });
+  return rows;
+}
+
+/**
+ * sp-o276: what the frames right after a pose change do (diagnostic, no timing credit). Called with no settle after a
+ * teleport; records `frames` drawn frames: interval, game work, draw calls and the heavy GL calls of each, unwrapped after.
+ * @param {number} frames
+ */
+export async function settleTrace(frames) {
+  const g = window.__wildshard.world.game, gl = g.renderer.getContext();
+  const heavy = ['texImage2D', 'texSubImage2D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'texStorage2D', 'generateMipmap', 'bufferData', 'bufferSubData', 'linkProgram', 'compileShader', 'getProgramParameter', 'readPixels', 'bindFramebuffer', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'useProgram', 'clear'];
+  let cur = {}, bytes = 0;
+  for (const n of heavy) {
+    const f = gl[n]; if (typeof f !== 'function') continue;
+    gl[n] = function traced(...a) { cur[n] = (cur[n] ?? 0) + 1; if (n === 'bufferData' && a[1] && typeof a[1] === 'object' && 'byteLength' in a[1]) bytes += a[1].byteLength; return f.apply(this, a); };
+  }
+  const rows = [], r = g.renderer, ownRender = Object.hasOwn(r, 'renderBufferDirect') ? r.renderBufferDirect : null, ownMain = Object.hasOwn(r, 'render') ? r.render : null;
+  let owners = new Map(), passes = [];
+  const owner = (o) => { const path = []; for (let c = o; c && path.length < 3; c = c.parent) if (c.name) path.unshift(c.name); return path.join('/') || o.type; };
+  const draw = r.renderBufferDirect, main = r.render;
+  r.renderBufferDirect = function renderBufferDirect(camera, scene, geometry, material, object, group) { const k = `${owner(object)} [${camera.type === 'OrthographicCamera' ? 'shadow' : 'view'}]`; owners.set(k, (owners.get(k) ?? 0) + 1); return draw.call(this, camera, scene, geometry, material, object, group); };
+  r.render = function render(scene, camera) { const t = r.getRenderTarget(); passes.push(`${scene.name === '' ? scene.type : scene.name}:${camera.name === '' ? camera.type : camera.name} to ${t ? `${t.width}x${t.height}` : 'screen'}`); return main.call(this, scene, camera); };
+  try {
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('settle trace stalled')), 60000);
+      let count = g.frameCount, last = -1;
+      const tick = (t) => {
+        if (g.frameCount !== count) {
+          if (last >= 0) rows.push({ ms: Math.round((t - last) * 10) / 10, work: Math.round(g.workMs[(g.frameI + g.frameMs.length - 1) % g.frameMs.length] * 10) / 10, calls: g.lastFrame.calls, gl: cur, bufferBytes: bytes, passes, owners: Object.fromEntries([...owners].sort((a, b) => b[1] - a[1]).slice(0, 14)) });
+          cur = {}; bytes = 0; owners = new Map(); passes = []; count = g.frameCount; last = t;
+        }
+        if (rows.length < frames) { requestAnimationFrame(tick); return; }
+        clearTimeout(timeout); resolve();
+      };
+      requestAnimationFrame(tick);
+    });
+  } finally {
+    for (const n of heavy) delete gl[n];
+    if (ownRender === null) delete r.renderBufferDirect; else r.renderBufferDirect = ownRender;
+    if (ownMain === null) delete r.render; else r.render = ownMain;
+  }
   return rows;
 }

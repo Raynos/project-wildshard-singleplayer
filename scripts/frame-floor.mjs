@@ -25,7 +25,7 @@ import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
-import { gpuBisect } from './frame-floor-gpu-bisect.mjs';
+import { gpuBisect, settleTrace } from './frame-floor-gpu-bisect.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from './public-grid.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
@@ -70,14 +70,16 @@ const travelGl = glObserver === 'on' ? GL_INIT : '';
 // op-hitch23: opt-in desktop CPU attribution of each grid travel leg (CDP sampling profiler + Long Task entries); the raw
 // .cpuprofile goes to the named scratch folder, a per-long-task inclusive summary goes in the row. Diagnostic: no timing credit.
 const cpuProfileDir = flag('cpu-profile', '');
-if (cpuProfileDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(cpuProfileDir))) throw new Error('--cpu-profile=<existing dir> profiles desktop grid travel legs only');
+if (cpuProfileDir !== '' && (surface !== 'desktop' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(cpuProfileDir))) throw new Error('--cpu-profile=<existing dir> profiles desktop grid travel legs and standalone standing poses only');
 const safariProfileDir = flag('safari-profile', '');
-if (safariProfileDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
+if (safariProfileDir !== '' && (surface !== 'sim' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
 // sp-o3: `--gpu-bisect` measures each grid route's interior again with one post pass, the shadow update or one heavy
 // scene subtree switched off at a time (scripts/frame-floor-gpu-bisect.mjs): a render-shaped standing miss attributed
 // without GPU timer queries, which WebKit lacks. Diagnostic only, no timing credit; the graded interior row is taken first.
+// sp-o276: a standalone shard's worst standing pose gets the same bisect (plus a GL census of draws, programs, uniform
+// uploads), after a settle trace: 240 frames straight after a teleport, each with its GL calls, render passes and draw owners.
 const gpuBisectOn = args.includes('--gpu-bisect');
-if (gpuBisectOn && gridScenario === 'baseline') throw new Error('--gpu-bisect attributes grid route interiors only');
+// sp-o276: a standalone shard's worst standing pose is bisected too (grid routes keep their interiors).
 // op-hitch27: opt-in GL-call timing on BOTH surfaces (`--gl-time`): the heavy WebGL calls (uploads, shader compile / link
 // queries, draws) are timed per frame, and each long frame of a whole-drive row carries its GL split, so a Simulator
 // long frame says whether it was an image upload, a program link, a synchronous readback/query or a first draw. Diagnostic: no timing credit.
@@ -371,7 +373,7 @@ async function standingSample(driver, pose) {
     if (driver.profile && started !== null) raw = await driver.profile.stop();
   }
   assertStandingPosition(pose, result);
-  if (raw !== undefined) await saveProfileMaps(raw);
+  if (raw !== undefined) { await saveProfileMaps(raw); writeFileSync(join(cpuProfileDir, `${pose.name}-${Date.now()}.cpuprofile`), JSON.stringify(raw)); }
   const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
   const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
   const { glFrames, ...value } = result;
@@ -432,6 +434,21 @@ async function measureShard(driver, shard, deadline) {
       const result = await standingSample(driver, pose);
       rows.push(result);
       console.log(`${surface} ${shard} ${pose.name}: ${result.medianFps} fps, p95 ${result.p95Ms} ms, p99 ${result.p99Ms} ms — ${rows.at(-1).pass ? 'PASS' : 'FAIL'}`);
+    }
+    if (gpuBisectOn && shard !== 'grid') {
+      const worst = [...rows].sort((a, b) => b.p95Ms - a.p95Ms)[0];
+      const pose = worst === spawnRow ? meta.spawn : heaviest.find((r) => r.pose.name === worst.pose?.name)?.pose ?? meta.spawn;
+      const away = heaviest.find((r) => r.pose.name !== pose.name)?.pose;
+      if (away !== undefined) { await driver.evaluate(`window.__wildshard.pose(${JSON.stringify(away)})`); await sleep(settleMs); }
+      await driver.evaluate(`window.__wildshard.pose(${JSON.stringify(pose)})`);
+      worst.settleTrace = await driver.evaluate(`(${settleTrace.toString()})(240)`, 120000);
+      const slow = worst.settleTrace.map((r, i) => ({ i, ...r })).filter((r) => r.ms > 36);
+      console.log(`  settle: ${worst.settleTrace.length} frames, ${slow.length} over 36 ms; last slow at frame ${slow.at(-1)?.i ?? -1}`);
+      for (const r of slow.slice(0, 30)) console.log(`   #${r.i} ${r.ms} ms work ${r.work} calls ${r.calls} buf ${r.bufferBytes} ${JSON.stringify(r.gl)}\n     passes ${r.passes.join(' ')}\n     owners ${JSON.stringify(r.owners)}`);
+      const calm = worst.settleTrace.find((r) => r.ms < 34);
+      if (calm !== undefined) console.log(`   calm ${calm.ms} ms calls ${calm.calls}\n     passes ${calm.passes.join(' ')}\n     owners ${JSON.stringify(calm.owners)}`);
+      worst.gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
+      for (const v of worst.gpuBisect) console.log(`  bisect ${v.variant}: p50 ${v.p50Ms} p95 ${v.p95Ms} work ${v.workP95Ms} calls ${v.calls}${v.census ? ` ${JSON.stringify(v.census)}` : ''}`);
     }
     if (shard === 'grid' && gridScenario !== 'baseline') {
       // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
