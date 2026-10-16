@@ -15,7 +15,7 @@ G437 wins since 03:45Z: DW first frame 183 → 16.7 ms (`b5fab36ec`); late shade
 
 **Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G449 (G449: runtime/ standalone; no new runtime→shard imports).
 
-**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlap. Look (Jake): Pine creek sluice is flat low-poly (c4b9ba6b3).
+**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlap. Look (Jake): Pine sluice is flat low-poly.
 **G439 refs:** DONE.
 
 **For wildshard-v:** lanes are hitting the -10 floor (DW wrappers dry, Pine native chain dry); W2 pace will fall further. The design (`2ead9dfa1`) recommends P0–P4 on Codex tonight (Q6 option 2); lifting the G447 hold would put lanes back on big work. G447 hold applied; keep `f0ca1f1c8` until the output ruler lands (recommended). G442 closed.
