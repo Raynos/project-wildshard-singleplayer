@@ -20,6 +20,7 @@ import { waitMaterialPreparations } from './materialPreparation';
 import { prepareSceneResources } from './scenePreparation';
 import { readbackPreparation } from './readbackPreparation';
 import { postTriangle } from './postPreparation';
+import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -74,6 +75,8 @@ export interface CompileJob {
   kind?: string;
   /** Detached compile lights; their shadow storage ends with this warm. */
   lights?: CompileLights;
+  /** Configure a shared, per-draw-configured material (a graph shadow-depth variant) just before this job compiles. */
+  prepare?: () => void;
 }
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
@@ -119,7 +122,8 @@ function exclusiveMaterials(scene: THREE.Scene, excluded: ReadonlySet<THREE.Obje
   return materials;
 }
 
-function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6): CompileJob[] {
+function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6,
+  resolve?: ShadowDepthResolver): CompileJob[] {
   const state = exteriorLighting.get(scene);
   if (state === undefined) return [];
   const target = new THREE.Scene();
@@ -137,7 +141,7 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
   const excludedMaterials = new Set<THREE.Material>();
   for (const root of state.roots) root.traverse(object => { for (const material of materialsOf(object)) if (!materials.has(material)) excludedMaterials.add(material); });
   const jobs = roots === undefined
-    ? [...exterior, ...familyCompileJobs(scene, rt, per, excludedMaterials), ...(shadows ? shadowJobs(scene, rt, per, state.roots) : [])]
+    ? [...exterior, ...familyCompileJobs(scene, rt, per, excludedMaterials), ...(shadows ? shadowJobs(scene, rt, per, state.roots, resolve) : [])]
     : exterior;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
   for (const job of jobs) if (job.target === scene) { job.target = target; job.lights = lights; }
@@ -386,10 +390,12 @@ function disposerOf(resources: Iterable<{ dispose: () => void }>): () => void {
  * draws with no fog (renderBufferDirect's empty scene) and the main scene's lights.
  * `excludedRoots` omits casters whose owned subtree cannot draw in the requested exterior frame.
  */
-export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, excludedRoots?: ReadonlySet<THREE.Object3D>): CompileJob[] {
+export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, excludedRoots?: ReadonlySet<THREE.Object3D>,
+  resolve?: ShadowDepthResolver): CompileJob[] {
   const flip: Record<number, THREE.Side> = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
   const seen = new Set<string>();
   const clones: THREE.Object3D[] = [];
+  const graphDepths: { copy: THREE.Object3D; prepare: () => void }[] = [];
   const temporary = new Set<THREE.Material>();
   compileObjects(scene, (o) => {
     const mesh = o as MeshLike;
@@ -405,9 +411,23 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
         const disp = mat.displacementMap && mat.displacementScale !== 0 ? mat.displacementMap : null;
         const alphaTest = mat.alphaToCoverage ? 0.5 : mat.alphaTest;
         key = `depth|${mat.map ? `m${mat.map.channel}` : ''}|${mat.alphaMap ? `a${mat.alphaMap.channel}` : ''}|${alphaTest > 0 ? 't' : ''}|${side}|${disp ? `d${disp.channel}` : ''}|${ok}`;
-        if (seen.has(key)) continue;
-        depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map: mat.map ?? null, alphaMap: mat.alphaMap ?? null, alphaTest, side, displacementMap: disp, displacementScale: mat.displacementScale, displacementBias: mat.displacementBias });
-        temporary.add(depth);
+        // sp-o289: a renderer whose shadow draw swaps this material's depth (a vertex-moving graph) gets that variant,
+        // configured from the same stock depth material, per source material: its program is its own.
+        const graphKey = resolve === undefined ? key : `${mat.uuid}|${key}`;
+        if (seen.has(key) && seen.has(graphKey)) continue;
+        const stock = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map: mat.map ?? null, alphaMap: mat.alphaMap ?? null, alphaTest, side, displacementMap: disp, displacementScale: mat.displacementScale, displacementBias: mat.displacementBias });
+        temporary.add(stock);
+        if (resolve !== undefined && resolve(m, stock) !== null) {
+          if (seen.has(graphKey)) continue;
+          seen.add(graphKey);
+          const copy = standIn(mesh);
+          // The variant is shared by its source's casters and reconfigured per draw: configure it at compile time.
+          const prepare = (): void => { const variant = resolve(m, stock); if (variant !== null) copy.material = variant; };
+          prepare();
+          graphDepths.push({ copy, prepare });
+          continue;
+        }
+        depth = stock;
       }
       if (seen.has(key)) continue;
       seen.add(key);
@@ -433,6 +453,12 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
     const root = new THREE.Group();
     for (const c of clones.slice(i, i + per)) root.add(c);
     jobs.push({ label: engineString('s_2a96df75489f', [i]), root, target: scene, rt, fogOff: true });
+  }
+  // One job each: a graph depth variant is configured for its caster just before its compile.
+  for (const [i, { copy, prepare }] of graphDepths.entries()) {
+    const root = new THREE.Group();
+    root.add(copy);
+    jobs.push({ label: engineString('s_2a96df75489f', [clones.length + i]), root, target: scene, rt, fogOff: true, prepare });
   }
   const first = jobs[0];
   if (first !== undefined) first.dispose = disposerOf([...temporary, box, white]);
@@ -729,6 +755,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
       renderer.setRenderTarget(job.rt);
       job.lights?.prepare();
+      job.prepare?.();
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
     } finally {
@@ -899,6 +926,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const scene = game.rootScene;
     const rt = game.composer.inputBuffer;
     const policy = game.level.boot.shaders;
+    // sp-o289: the shadow pass's own depth substitutes (graph shadow-depth variants), where a back-end registered them
+    const depthVariants = shadowDepthResolver(game.renderer);
     const single = options.isolateImageUploads === true || options.sliceMs !== undefined;
     const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
@@ -910,17 +939,17 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     for (const job of jobs) job.kind = job.root.children.some(clone => materialsOf(clone).some(material => entered.has(material))) ? 'scene-entered' : 'scene-other';
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
     if (policy?.scene !== false) jobs.push(...kinded('family', familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
-    if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots)));
+    if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)));
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(...kinded('background', [bg])); else bg?.dispose?.();
     if (policy?.post !== false) jobs.push(...kinded('post', postJobs(game.composer, rt, single ? 1 : Number.POSITIVE_INFINITY)));
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
-      ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots)) : [];
+      ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
-    if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per)));
+    if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants)));
     const owner = options.owner ?? resourceScope();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);

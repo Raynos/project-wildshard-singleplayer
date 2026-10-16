@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshStandardMaterial, Scene, Skeleton, SkinnedMesh } from 'three';
-import { sceneJobs } from '../src/engine/render/precompile';
+import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, Scene, Skeleton, SkinnedMesh, type Material } from 'three';
+import { sceneJobs, shadowJobs } from '../src/engine/render/precompile';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -31,4 +31,28 @@ test('preparation covers distinct skin array lengths without splitting instance 
   expect(copies.filter(copy => copy instanceof InstancedMesh)).toHaveLength(1);
   first.skeleton.dispose(); second.skeleton.dispose(); small.dispose(); large.dispose();
   geometry.dispose(); material.dispose();
+});
+
+test('shadow preparation compiles the depth variant a registered shadow draw substitutes (sp-o289)', () => {
+  const scene = new Scene(), geometry = new BoxGeometry(), moving = new MeshStandardMaterial(), still = new MeshStandardMaterial();
+  const a = new Mesh(geometry, moving), b = new Mesh(geometry, moving), c = new Mesh(geometry, still);
+  for (const mesh of [a, b, c]) mesh.castShadow = true;
+  scene.add(a, b, c);
+  const variant = new MeshBasicMaterial(), stocks: MeshDepthMaterial[] = [];
+  const resolve = (source: Material, stock: MeshDepthMaterial): Material | null => {
+    if (source !== moving) return null;
+    stocks.push(stock); variant.side = stock.side; return variant;
+  };
+  const jobs = shadowJobs(scene, null, 6, undefined, resolve);
+  const prepared = jobs.filter(job => job.prepare !== undefined);
+  expect(prepared).toHaveLength(1);
+  const copy = prepared[0]?.root.children[0];
+  if (!(copy instanceof Mesh)) throw new Error('graph depth job has no caster');
+  variant.side = 0; prepared[0]?.prepare?.();
+  expect(copy.material).toBe(variant);
+  expect(variant.side).toBe(stocks.at(-1)?.side);
+  // the still material keeps a stock depth caster
+  expect(jobs.flatMap(job => job.root.children).some(child => child instanceof Mesh && child.material instanceof MeshDepthMaterial)).toBe(true);
+  for (const job of jobs) job.dispose?.();
+  geometry.dispose(); moving.dispose(); still.dispose(); variant.dispose();
 });
