@@ -1427,6 +1427,7 @@ export interface PageQuestStagePorts {
   readonly actor?: (id: string) => { readonly alive: boolean } | null;
   readonly observations?: ReadonlyMap<string, () => boolean>;
   readonly bindings?: ReadonlyMap<string, readonly DirectorActionBinding[]>;
+  readonly motion?: Pick<MoverRuntime, 'atEnd'> & Partial<Pick<MoverRuntime, 'pose'>>;
 }
 /** Advance a declared event stage; tick stages are registered with the page owner. */
 export interface PageQuestStages { readonly advance: (id: string) => void }
@@ -1440,10 +1441,21 @@ export function bindPageQuestStages(ctx: Pick<ShardContext, 'system'>, source: P
       const actor = ports.actor;
       if (actor === undefined) throw new Error('Quest stage needs its live actor owner');
       observations.set(row.binding, () => row.actors.length > 0 && row.actors.every(id => actor(id)?.alive === false));
-    } else {
+    } else if (row.kind === 'owner') {
       const owner = ports.observations?.get(row.owner);
       if (owner === undefined) throw new Error(`Unbound page quest observation ${row.owner}`);
       observations.set(row.binding, owner);
+    } else if (row.kind === 'mover') {
+      const motion = ports.motion;
+      if (motion === undefined) throw new Error(`Unbound page quest mover ${row.mover}`);
+      const pose = motion.pose?.bind(motion);
+      if (row.state === 'enabled' && pose === undefined) throw new Error(`Missing page mover pose ${row.mover}`);
+      const read = row.state === 'at-end' ? () => motion.atEnd(row.mover) : () => {
+        if (pose === undefined) throw new Error('Missing page mover pose'); return pose(row.mover).enabled;
+      };
+      read(); observations.set(row.binding, read);
+    } else {
+      throw new Error(`Quest ${row.kind} observation needs its native mechanic owner`);
     }
   }
   const observe = (binding: string): boolean => {
@@ -1477,7 +1489,7 @@ export interface QuestPageStageBindings {
 export function bindBorrowedPageQuestStages(ctx:Pick<ShardContext,'system'>,source:Pick<Shardfile,'questHost'>,
   flags:Pick<Flags,'has'|'set'>,rows:QuestPageStageBindings,owners:ReadonlyMap<string,unknown>,
   actor:(id:string)=>{readonly alive:boolean}|null,
-  published?:{readonly motion?:Pick<MoverRuntime,'atEnd'|'drainEndEvents'|'data'>;readonly toast?:(text:string)=>void}):PageQuestStages {
+  published?:{readonly motion?:Pick<MoverRuntime,'atEnd'|'drainEndEvents'|'data'>&Partial<Pick<MoverRuntime,'pose'>>;readonly toast?:(text:string)=>void}):PageQuestStages {
   const host=source.questHost;if(host===undefined||host===null)throw new Error('Missing admitted page quest host');
   const ids=new Set(host.stages.map(stage=>stage.row.id));
   for(const list of [rows.observations??[],rows.actions??[],rows.events??[],rows.movers??[]])if(list.length>64)throw new Error('Unbounded page stage bindings');
@@ -1504,7 +1516,7 @@ export function bindBorrowedPageQuestStages(ctx:Pick<ShardContext,'system'>,sour
     const field=readBorrowedOwner(owners,row);if(field===null||field.value!==null&&typeof field.value!=='function')throw new Error('Missing page stage event');
     return {field,id:row.id};
   });
-  const stages=bindPageQuestStages(ctx,source,{flags,actor,observations,bindings});
+  const stages=bindPageQuestStages(ctx,source,{flags,actor,observations,bindings,...(motion===undefined?{}:{motion})});
   if(moverRows.length>0&&motion!==undefined)ctx.system({id:`${host.graph.step}.mover-endpoints`,phase:'fixed.post',run:()=>{
     for(const event of motion.drainEndEvents()){
       const row=moverRows.find(entry=>entry.mover===event.mover);if(row===undefined||!event.atEnd)continue;

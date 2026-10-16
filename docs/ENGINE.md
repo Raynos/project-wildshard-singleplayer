@@ -7630,3 +7630,17 @@ strike once when the actual admitted range and reach permit, while keeping
 its flight motion until replaced. Its saved move includes that request edge.
 The script must declare the strike capability and id; completion comes from
 the same live strike runner. No periodic guest polling is required.
+
+### Quest mechanic bindings (H2)
+
+Quest-host observations can name actual mover endpoints/enabled state, cables,
+flags or existing native timers. Command routes can name mover commands, cable
+start or flag writes. `QuestHostPorts.mechanics` lends the installed platform
+owners; admission refuses unknown ids before registering saved steps. Stage
+spawn actions resolve named installed encounters, retaining quiet restore.
+
+`QuestCableOwner.state(id)` returns live `{riding, atEnd}` and refuses unknown
+ids; `start(id)` queues on that same owner. It exposes no clock or save methods.
+Sky mover and Signal encounter bindings use these data-only paths. Legacy owner
+maps remain explicit only while Pine/DW migrate; no mechanic row falls back to
+one. Cable installation and its continuation stay with the traversal component.

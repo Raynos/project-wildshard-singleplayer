@@ -10,7 +10,7 @@ export const QUEST_HOST = {
   actors: { ids: ROOST_IDS, error: 'Sky Reach installs its quest after the roost rays' },
   observations: [
     { binding: 'event:quest.roost-down', kind: 'all-dead', actors: ROOST_IDS },
-    { binding: 'event:quest.winch-up', kind: 'owner', owner: 'winch-up' },
+    { binding: 'event:quest.winch-up', kind: 'mover', mover: 'far.winch.bridge', state: 'at-end' },
   ],
   stages: [
     { row: SKY_QUEST_STAGES.roost, initial: SKY_QUEST_STAGE_INITIAL.roost, tick: true },
@@ -21,6 +21,6 @@ export const QUEST_HOST = {
     inputs: { roost: `flag:${FLAGS.roost}`, vanes: `flag:${FLAGS.vanes}`, up: 'event:quest.winch-up' }, routes: [
       { value: SKY_ACT.talk, spot: 'keeper', when: 'true', action: { kind: 'row', id: 'talk' } },
       { value: SKY_ACT.notes, spot: 'notes', when: 'true', action: { kind: 'row', id: 'notes' } },
-      { value: SKY_ACT.winch, spot: 'winch', when: '!up && roost && vanes', action: { kind: 'owner', id: 'winch' } },
+      { value: SKY_ACT.winch, spot: 'winch', when: '!up && roost && vanes', action: { kind: 'mover', mover: 'far.winch.bridge', command: 1 } },
     ] },
 };

@@ -57,8 +57,7 @@ const motion = v.objectWithRest({ systemId: key, skipPrefix: v.exactOptional(key
   rules: v.strictObject({ fields: v.record(key, pair), archetypes: v.pipe(v.array(count), v.maxLength(1024)),
     events: v.pipe(v.array(count), v.maxLength(1024)), maxEntities: count }),
   permissions: v.pipe(v.array(v.strictObject({ mover: key, flags: v.pipe(v.array(v.strictObject({ name: key, bit: count })), v.maxLength(16)) })), v.maxLength(64)),
-  observations: v.pipe(v.array(v.strictObject({ name: key, mover: key, atEnd: v.exactOptional(v.boolean()) })), v.maxLength(64)),
-  actions: v.pipe(v.array(v.strictObject({ name: key, mover: key, command: v.picklist([1, 2, 3]) })), v.maxLength(64)) }, v.unknown());
+}, v.unknown());
 const recipe = v.strictObject({
   population: v.strictObject({ rows: population, sources: v.picklist(['actors', 'actors+bosses']), seed: v.picklist(['identity', 'declared']), owner: BossOwnerRowSchema }),
   terrain: v.picklist(['none', 'collider']), floor: v.exactOptional(v.literal('solids')),
@@ -67,7 +66,7 @@ const recipe = v.strictObject({
   motion: v.exactOptional(motion),
   runtime: v.strictObject({ weapon: v.strictObject({ id: key, stowOnBoard: v.exactOptional(v.boolean()), questWorld: v.exactOptional(v.boolean()), worldReactionAction: v.exactOptional(count) }),
     quest: v.strictObject({ spots: v.union([v.literal('metadata'), v.strictObject({ interact: v.pipe(v.array(spot), v.maxLength(4096)), crack: v.pipe(v.array(spot), v.maxLength(4096)) })]),
-      crack: v.exactOptional(v.boolean()), summons: v.pipe(v.array(v.strictObject({ director: key, spawn: key })), v.maxLength(64)) }),
+      crack: v.exactOptional(v.boolean()) }),
     columns: v.exactOptional(v.boolean()), entries: v.exactOptional(entry) }) });
 
 /** Select the existing held-melee native interpreter using admitted data only.

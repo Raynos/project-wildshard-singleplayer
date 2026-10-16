@@ -8,6 +8,7 @@ import { prepareNativePopulation, type NativePopulationRows } from '../shardfile
 import { parseQuestWorldReactions, type QuestWorldReactionsData } from '@wildshard/format/questInteractions';
 import { installQuestGraph, type QuestGraphPorts } from './quests';
 import { parseQuestHost, type QuestHostRow } from '@wildshard/format/questHost';
+import { parseBossOwnerRow } from '@wildshard/format/bossProfiles';
 import type { QuestData } from '@wildshard/format/quests';
 import { compileDirectorWhen, evaluateDirectorWhen } from '@wildshard/format/directorWhen';
 import { weaponContactDistance, type ContactWorldTarget, ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
@@ -140,15 +141,13 @@ interface RuntimeWorldRecipe {
     readonly composition: Omit<DeclaredMoverComposition['content'], 'identity'>; readonly rules: ShardScriptPorts['rules'];
     readonly itemRole?: NonNullable<DeclaredMoverComposition['declarations']>[number]['row'];
     readonly permissions: readonly { readonly mover: string; readonly flags: readonly { readonly name: string; readonly bit: number }[] }[];
-    readonly observations: readonly { readonly name: string; readonly mover: string; readonly atEnd?: boolean }[];
-    readonly actions: readonly { readonly name: string; readonly mover: string; readonly command: 1 | 2 | 3 }[];
   };
 }
 /** Shared native world preparation: declarations select static collision, spawn and optional scripted motion on the same host. */
 export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: RuntimeWorldRecipe, sections: ReadonlyMap<string, unknown> = outputDescriptor(shard)?.sections ?? new Map()): Promise<{
   level: SimLevel; ports: { ground: false; heightAt: (x: number, z: number) => number };
   install: (host: SimHost, context: { restoring: boolean; emit: Parameters<typeof ledgerPorts>[0]; snapshot?: Parameters<ReturnType<typeof prepareNativePopulation>['install']>[2] }) => ReturnType<ReturnType<typeof prepareNativePopulation>['install']> & { ledger: ReturnType<typeof ledgerPorts>; hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
-    hookTick: () => number; observations: ReadonlyMap<string, () => boolean>; actions: ReadonlyMap<string, () => void> };
+    hookTick: () => number; motion?: MoverRuntime };
 }> {
   const { pieces } = v.parse(v.object({ pieces: v.unknown() }), baked);
   const terrain = recipe.terrain === 'collider' ? admittedTerrain(shard, assets) : undefined;
@@ -160,10 +159,8 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
   const row = recipe.motion, data = row === undefined ? [] : shard.movers.filter(value => row.skipPrefix === undefined || !value.id.startsWith(row.skipPrefix));
   const modules = row === undefined ? new Map<string, Uint8Array>() : new Map(await verifiedMoverModules(assets, data));
   if (row?.itemRole !== undefined) for (const [name, bytes] of await declaredItemScriptBindings(shard.items, 'actor.player').modules(assets)) modules.set(name, bytes);
-  if (row !== undefined && [row.permissions, row.observations, row.actions].some(rows => rows.length > 64
-    || rows.some(value => !data.some(declaration => declaration.id === value.mover)))) throw new Error('Unbound native world motion rows');
-  if (row !== undefined && (new Set(row.observations.map(value => value.name)).size !== row.observations.length
-    || new Set(row.actions.map(value => value.name)).size !== row.actions.length)) throw new Error('Duplicate native world bindings');
+  if (row !== undefined && (row.permissions.length > 64
+    || row.permissions.some(value => !data.some(declaration => declaration.id === value.mover)))) throw new Error('Unbound native world motion rows');
   const policy = recipe.population;
   const actors = policy.sources === 'actors+bosses' ? (() => { const rows = readRuntimeWorldMetadata(baked, true); return [...rows.actors, ...rows.bosses]; })() : readRuntimeWorldMetadata(baked).actors;
   const population = prepareNativePopulation(policy.seed === 'identity' ? { ...policy.rows, seed: shard.identity.seed } : policy.rows, actors, policy.owner);
@@ -172,19 +169,13 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     if (!restoring) addBakedWorld(host, pieces, terrain?.bytes);
     if (recipe.floor === 'solids') host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const environment = (() => {
-      const observations = new Map<string, () => boolean>(), actions = new Map<string, () => void>();
-      if (row === undefined) return { hooks: new Map(), hookTick: () => -1, observations, actions };
+      if (row === undefined) return { hooks: new Map(), hookTick: () => -1 };
       const items = declaredItemScriptBindings(shard.items, host.player.id);
       const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
         declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
       { id: row.systemId, restoring, restoreFlags: new Set(host.flags.all), drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
-      for (const binding of row.observations) {
-        if (binding.atEnd === true) motion.atEnd(binding.mover); // Preflight the admitted endpoint.
-        observations.set(binding.name, () => binding.atEnd === true ? motion.atEnd(binding.mover) : motion.pose(binding.mover).enabled);
-      }
-      if (row.observations.some(binding => binding.atEnd === true)) host.onStep(`${row.systemId}.endpoints`, () => { motion.drainEndEvents(); });
-      for (const binding of row.actions) actions.set(binding.name, () => { motion.command(binding.mover, binding.command); });
-      return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
+      if (shard.questHost?.observations.some(binding => binding.kind === 'mover' && binding.state === 'at-end')) host.onStep(`${row.systemId}.endpoints`, () => { motion.drainEndEvents(); });
+      return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, motion };
     })();
     const ledger = ledgerPorts(context.emit);
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot, borrowedDecisionAuthority(shard, assets, sections, {
@@ -196,8 +187,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
 export interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
   readonly runtime: {
     readonly weapon: { readonly id: string; readonly stowOnBoard?: boolean; readonly questWorld?: boolean; readonly worldReactionAction?: number };
-    readonly quest: { readonly spots: 'metadata' | QuestGraphPorts['spots']; readonly crack?: boolean;
-      readonly summons: readonly { readonly director: string; readonly spawn: string }[] };
+    readonly quest: { readonly spots: 'metadata' | QuestGraphPorts['spots']; readonly crack?: boolean };
     readonly columns?: boolean;
     readonly entries?: TerrainEntryWalk;
   };
@@ -226,7 +216,6 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
   const metadata = row.quest.spots === 'metadata' ? readRuntimeWorldMetadata(baked, true) : undefined;
   const spots = metadata?.spots ?? row.quest.spots;
   if (spots === 'metadata') throw new Error('Missing admitted native quest spots');
-  if (row.quest.summons.length > 64 || new Set(row.quest.summons.map(value => value.director)).size !== row.quest.summons.length) throw new Error('Invalid native director bindings');
   const plan: NativeRuntimePlan = { level: world.level, ports: world.ports, install: (host, context) => {
     const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
     const reactions = ownsTargets || row.weapon.worldReactionAction === undefined ? undefined : (() => {
@@ -250,8 +239,8 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
         if (command.kind !== 'script') return undefined;
         if (command.actorId === undefined || command.value === undefined || !Number.isFinite(command.value)) throw new Error('Invalid admitted native script command');
         return { actorId: command.actorId, value: command.value };
-      }), observations: environment.observations, actions: environment.actions,
-      directorActions: new Map(row.quest.summons.map(binding => [binding.director, [{ action: { spawn: binding.spawn }, run: encounter.summon }]])),
+      }), mechanics: { ...(environment.motion === undefined ? {} : { motion: environment.motion }),
+        encounters: new Map([[parseBossOwnerRow(recipe.population.owner).actor, encounter]]) },
     });
     if (ownsTargets) bindNativeWorldTargets(host, melee, questRuntime, targets, context.emit);
     if (row.columns) bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).columns(shard.modes?.traverse ?? [], () => host.player.position, () => host.playerBoard.on,
@@ -1240,14 +1229,55 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
   return { family, cracked: () => cracked };
 }
 
+/** A named cable service lends its existing driver, fixed step and continuation. Missing ids must refuse in state. */
+export interface QuestCableOwner {
+  readonly state: (id: string) => { readonly riding: boolean; readonly atEnd: boolean };
+  readonly start: (id: string) => void;
+}
+/** Platform-installed mechanics, never per-shard callback maps. This host constructs no replacement owners. */
+export interface QuestMechanics {
+  readonly motion?: Pick<MoverRuntime, 'data' | 'atEnd' | 'pose' | 'command'>;
+  readonly cables?: QuestCableOwner;
+  readonly encounters?: ReadonlyMap<string, { readonly summon: () => void }>;
+}
+
 /** Actual native owners borrowed by an admitted quest host; no body, mover or encounter is constructed here. */
 export interface QuestHostPorts extends Omit<QuestGraphPorts, 'drive' | 'summon'> {
   /** Boolean observations such as a mover's enabled pose, keyed by the authored owner id. */
-  readonly observations: ReadonlyMap<string, () => boolean>;
+  readonly observations?: ReadonlyMap<string, () => boolean>;
   /** Accepted external commands delivered to their original native owner. */
-  readonly actions: ReadonlyMap<string, () => void>;
+  readonly actions?: ReadonlyMap<string, () => void>;
   /** Stage actions retain their native effect owner, keyed by director id. Flag actions are bound automatically. */
-  readonly directorActions: ReadonlyMap<string, readonly DirectorActionBinding[]>;
+  readonly directorActions?: ReadonlyMap<string, readonly DirectorActionBinding[]>;
+  readonly mechanics?: QuestMechanics;
+}
+
+function questObservation(host: SimHost, row: QuestHostRow['observations'][number], ports: QuestHostPorts): () => boolean {
+  switch (row.kind) {
+    case 'all-dead': return () => row.actors.every(id => host.entities.get(id)?.alive === false);
+    case 'owner': {
+      const read = ports.observations?.get(row.owner);
+      if (read === undefined) throw new Error(`Unbound quest observation ${row.owner}`);
+      return read;
+    }
+    case 'timer': {
+      if (!Object.hasOwn(host.state.timers, row.timer)) throw new Error(`Unbound quest timer ${row.timer}`);
+      return () => { const left = host.state.timers[row.timer]; if (left === undefined || !Number.isFinite(left) || left < 0) throw new Error('Invalid quest timer'); return left === 0; };
+    }
+    case 'cable': {
+      const cables = ports.mechanics?.cables;
+      if (cables === undefined) throw new Error(`Unbound quest cable ${row.cable}`);
+      cables.state(row.cable);
+      return () => row.state === 'riding' ? cables.state(row.cable).riding : cables.state(row.cable).atEnd;
+    }
+    case 'mover': {
+      const motion = ports.mechanics?.motion;
+      if (motion === undefined || !motion.data.some(value => value.id === row.mover)) throw new Error(`Unbound quest mover ${row.mover}`);
+      if (row.state === 'at-end') { motion.atEnd(row.mover); return () => motion.atEnd(row.mover); }
+      motion.pose(row.mover); return () => motion.pose(row.mover).enabled;
+    }
+    default: throw new Error('Unsupported quest observation');
+  }
 }
 
 /** Compose an admitted quest graph, bounded command routes and ordered director stages on their original fixed steps.
@@ -1257,23 +1287,24 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
   const row = parseQuestHost(input);
   if (ports.prompts !== undefined && ports.prompts.length > 1024) throw new Error('Quest prompt roster exceeds its finite bound');
   if (row.actors.ids.some(id => host.entities.get(id) === undefined)) throw new Error(row.actors.error);
-  const observations = new Map<string, () => boolean>();
-  const actions = new Map<string, () => void>();
-  for (const observation of row.observations) {
-    if (observation.kind === 'all-dead') {
-      observations.set(observation.binding, () => observation.actors.every(id => host.entities.get(id)?.alive === false));
-    } else {
-      const owner = ports.observations.get(observation.owner);
-      if (owner === undefined) throw new Error(`Unbound quest observation ${observation.owner}`);
-      observations.set(observation.binding, owner);
-    }
-  }
+  const observations = new Map(row.observations.map(observation => [observation.binding, questObservation(host, observation, ports)]));
+  const actions = new Map<number, () => void>();
   for (const route of row.commands.routes) {
     if (!(ports.prompts === undefined ? [...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)] : ports.prompts.map(prompt => prompt.id)).includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
     if (route.action.kind === 'owner') {
-      const owner = ports.actions.get(route.action.id);
+      const owner = ports.actions?.get(route.action.id);
       if (owner === undefined) throw new Error(`Unbound quest command ${route.action.id}`);
-      actions.set(route.action.id, owner);
+      actions.set(route.value, owner);
+    } else if (route.action.kind === 'mover') {
+      const action = route.action, motion = ports.mechanics?.motion;
+      if (motion === undefined || !motion.data.some(value => value.id === action.mover)) throw new Error(`Unbound quest mover ${action.mover}`);
+      actions.set(route.value, () => { motion.command(action.mover, action.command); });
+    } else if (route.action.kind === 'cable') {
+      const action = route.action, cables = ports.mechanics?.cables;
+      if (cables === undefined) throw new Error(`Unbound quest cable ${action.cable}`);
+      cables.state(action.cable); actions.set(route.value, () => { cables.start(action.cable); });
+    } else if (route.action.kind === 'flag') {
+      const action = route.action; actions.set(route.value, () => { host.flags.set(action.flag, action.value); });
     }
   }
   const observe = (binding: string): boolean => {
@@ -1282,7 +1313,12 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     return owner();
   };
   const stages = row.stages.map(stage => ({ row: stage, lane: bindDirectorActions(stage.row, {
-    flags: host.flags, observe, bindings: ports.directorActions.get(stage.row.id) ?? [],
+    flags: host.flags, observe, bindings: ports.directorActions?.get(stage.row.id) ?? stage.row.stages.flatMap(entry => entry.do.flatMap(action => {
+      if (!('spawn' in action)) return [];
+      const encounter = ports.mechanics?.encounters?.get(action.spawn);
+      if (encounter === undefined) throw new Error(`Unbound quest encounter ${action.spawn}`);
+      return [{ action, run: () => { encounter.summon(); } }];
+    })),
     initial: stage.seed !== undefined && host.flags.has(stage.seed.flag) ? stage.seed.initial : stage.initial,
   }) }));
   const requests = new Map(row.summons.map(request => {
@@ -1312,7 +1348,7 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
       const values = Object.fromEntries(Object.entries(row.commands.inputs).map(([key, binding]) => [key, binding.startsWith('flag:') ? host.flags.has(binding.slice(5)) : observe(binding)]));
       if (!evaluateDirectorWhen(route.condition, values)) continue;
       if (route.action.kind === 'row') graph.run(route.action.id);
-      else actions.get(route.action.id)?.();
+      else actions.get(route.value)?.();
     }
     for (const stage of stages) if (stage.row.tick) stage.lane.advance();
   });

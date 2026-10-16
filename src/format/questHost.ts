@@ -18,6 +18,9 @@ const raw = v.strictObject({
   observations: v.pipe(v.array(v.variant('kind', [
     v.strictObject({ binding: name, kind: v.literal('all-dead'), actors: names }),
     v.strictObject({ binding: name, kind: v.literal('owner'), owner: name }),
+    v.strictObject({ binding: name, kind: v.literal('mover'), mover: name, state: v.picklist(['at-end', 'enabled']) }),
+    v.strictObject({ binding: name, kind: v.literal('cable'), cable: name, state: v.picklist(['riding', 'at-end']) }),
+    v.strictObject({ binding: name, kind: v.literal('timer'), timer: name }),
   ])), v.maxLength(64)),
   stages: v.pipe(v.array(v.strictObject({
     row: DirectorStagesSchema, initial,
@@ -31,7 +34,10 @@ const raw = v.strictObject({
     routes: v.pipe(v.array(v.strictObject({
       value: v.pipe(v.number(), v.safeInteger(), v.minValue(0)), spot: name,
       when: v.pipe(v.string(), v.minLength(1), v.maxLength(1024)),
-      action: v.variant('kind', [v.strictObject({ kind: v.literal('row'), id: name }), v.strictObject({ kind: v.literal('owner'), id: name })]),
+      action: v.variant('kind', [v.strictObject({ kind: v.literal('row'), id: name }), v.strictObject({ kind: v.literal('owner'), id: name }),
+        v.strictObject({ kind: v.literal('mover'), mover: name, command: v.picklist([1, 2, 3]) }),
+        v.strictObject({ kind: v.literal('cable'), cable: name, command: v.literal('start') }),
+        v.strictObject({ kind: v.literal('flag'), flag: name, value: v.boolean() })]),
     })), v.maxLength(64)),
   }),
 });
@@ -69,7 +75,8 @@ export function questHostRules(row: QuestHostRow): readonly string[] {
   for (const action of row.graph.actions) if (!row.interactions.rows.some(entry => entry.id === action.row) || !row.summons.some(request => request.target === action.summon)) errors.push('Declared quest graph action');
   for (const route of row.commands.routes) {
     try { compileDirectorWhen(route.when, Object.keys(row.commands.inputs)); } catch { errors.push('Bounded quest command condition'); }
-    if (route.action.kind === 'row' && !row.interactions.rows.some(entry => entry.id === route.action.id)) errors.push('Declared quest command row');
+    const action = route.action;
+    if (action.kind === 'row' && !row.interactions.rows.some(entry => entry.id === action.id)) errors.push('Declared quest command row');
   }
   const interactionIds=new Set(row.interactions.rows.map(entry=>entry.id)),marks=new Set(row.interactions.marks.map(mark=>mark.id));
   for(const action of row.page?.actions??[]) {
@@ -108,6 +115,7 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
     check(entry.sets ?? []); if (entry.when !== undefined) check(reads(entry.when));
   }
   for (const binding of [...Object.values(row.commands.inputs), ...row.stages.flatMap(stage => Object.values(stage.row.inputs))]) if (binding.startsWith('flag:')) check([binding.slice(5)]);
+  for (const route of row.commands.routes) if (route.action.kind === 'flag') check([route.action.flag]);
   for (const stage of row.stages) {
     if (stage.seed !== undefined) check([stage.seed.flag]);
     for (const command of stage.row.stages.flatMap(entry => entry.do)) if ('flag' in command) check([command.flag.key]);
