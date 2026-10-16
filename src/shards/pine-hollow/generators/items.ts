@@ -1,7 +1,7 @@
-import { LEVER_WEAPON_PROFILE } from './leverProfile';
-import { CROSSBOW_WEAPON_PROFILE } from './crossbowProfile';
-import { BOW_PROFILE } from './bowProfile';
-import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
+import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
+import { CROSSBOW_WEAPON_PROFILE } from '../data/crossbowProfile';
+import { BOW_PROFILE } from '../data/bowProfile';
+import { CROSSBOW, LEVER, LONGBOW } from './equipment';
 
 /** These contacts are bounded placeholders: the trusted native projectile families own flight, damage and reload. */
 const contact = (id: string) => ({ id, damage: 0, cooldown: 1, range: 0.01, width: 0.01, tags: [], effect: null });
@@ -12,7 +12,7 @@ export const PINE_ITEMS = { version: 1, rows: [
   { row: LONGBOW, family: 'bow', context: 'weapon.bow' },
 ].map(({ row, family, context }) => {
   if (typeof row.ui.icon !== 'string') throw new Error('Pine items need their authored icon and swap glyph');
-  const declared = { id: row.id, kind: 'weapon', family, slot: `declared.${row.id}`, context,
+  const declared = { id: row.id, kind: 'weapon', family, equipment: row, slot: `declared.${row.id}`, context,
     ui: { name: row.ui.name, icon: row.ui.icon, swapIcon: row.ui.swapIcon, blurb: row.meta.blurb },
     view: { recipe: row.id === LONGBOW.id ? 'pine-hollow.longbow' : row.id === CROSSBOW.id ? 'pine-hollow.crossbow' : row.id === LEVER.id ? 'pine-hollow.lever' : family, colour: '#ffffff', position: [0, 0, 0], rotation: [0, 0, 0] }, hook: null,
     ranged: { step: row.id === CROSSBOW.id ? 'pine.crossbow' : row.id === LEVER.id ? 'pine.lever' : 'pine.longbow', slot: row.id === CROSSBOW.id ? 0 : row.id === LEVER.id ? 1 : 2, eye: 1.68, extent: row.id === LONGBOW.id ? 330 : 310, floor: -150, radius: row.id === LONGBOW.id ? 0.02 : 0.03,

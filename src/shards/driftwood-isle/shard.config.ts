@@ -4,7 +4,7 @@ import { DRIFTWOOD_QUESTS } from './data/quests';
 import { QUEST_NPCS } from './data/questNpcs';
 import { QUEST_HOST } from './data/questHost';
 import { DRIFTWOOD_LEDGER } from './data/ledger';
-import { DRIFTWOOD_SWORDS } from './data/items';
+import DRIFTWOOD_SWORDS from './data/items.generated.json' with { type: 'json' };
 import { DRIFTWOOD_SPAWNS } from './data/spawns';
 import { DRIFTWOOD_MODES } from './data/modes';
 import AUDIO from './data/audio.generated.json' with { type: 'json' };

@@ -7799,3 +7799,10 @@ page phase. `snapshot`/`restore` retain the driver's existing continuation
 inside each caller's old save envelope, without a new clock/save owner or
 restore effects. Pine and Driftwood adopt this same owner in page and
 native paths; only their model assembly and sounds/hints remain local.
+
+`combat/items` weapon rows may include strict `equipment` presentation data: the original equipment id and legacy
+slot, UI and menu metadata, sound cues, hit-stop and ranged feel. `readItemEquipment(items, id)` from
+`@wildshard/game/plugin/nativeItems` reads that admitted row and returns an `EquipmentRow`; it refuses a missing
+row or presentation. It takes no factories or callbacks, and installs no service, state, input or save owner.
+Pine's three ranged weapons and Driftwood's swords use the same reader. Authored tables may run entirely in
+`generators/`, while the page reads their emitted `combat/items` section. Pickup creation remains outside the data.

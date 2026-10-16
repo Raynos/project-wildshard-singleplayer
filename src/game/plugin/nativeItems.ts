@@ -1,3 +1,5 @@
+import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
+import { parseItems } from '@wildshard/format/items';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -324,4 +326,18 @@ export function installNativeItems(host: SimHost, frame: NativeCombatFrame, inpu
   if (input.kind === 'bow') return bowItem(host, frame, row, input.profile);
   if (input.kind === 'cycle') return cycleItem(host, frame, row, input.profile);
   return boltItem(host, frame, row, input.profile);
+}
+
+/** Resolve admitted equipment metadata without factories, callbacks or a second state owner.
+ * Native constructors keep their profile and pickup service; this supplies only portable presentation. */
+export function readItemEquipment(input: unknown, id: string): EquipmentRow {
+  const item = parseItems(input).rows.find(row => row.id === id);
+  if (item?.kind !== 'weapon' || item.equipment === undefined) throw new Error(`Missing declared equipment presentation: ${id}`);
+  const { id: equipmentId, cues, ...presentation } = item.equipment;
+  const cueId = (value: string): `cue.${string}` => `cue.${value.slice(4)}`;
+  return { ...presentation, id: `weapon.${equipmentId.slice(7)}`,
+    ...(cues === undefined ? {} : { cues: { fire: cueId(cues.fire), reload: cueId(cues.reload), impact: cueId(cues.impact),
+      ...(cues.dry === undefined ? {} : { dry: cueId(cues.dry) }), ...(cues.hit === undefined ? {} : { hit: cueId(cues.hit) }),
+      ...(cues.heavy === undefined ? {} : { heavy: cueId(cues.heavy) }),
+      ...(cues.charge === undefined ? {} : { charge: Object.fromEntries(Object.entries(cues.charge).map(([phase, value]) => [phase, cueId(value)])) }) } }) };
 }

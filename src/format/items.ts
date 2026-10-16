@@ -21,7 +21,28 @@ const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.max
 const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), v.maxValue(10000)), cooldown: duration,
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
 const secondary = v.strictObject({ action: name, code: v.exactOptional(v.picklist([3, 4])), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
+/** Portable equipment presentation. World pickups remain owned by their existing service. */
+const equipmentIcon = v.picklist(['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel',
+  'sword', 'deer', 'elk', 'boar', 'bear', 'ghost', 'ironhide', 'meat', 'hide', 'tusk', 'antlers', 'bolt', 'claw', 'shell', 'coconut', 'coin', 'seaglass', 'rope', 'whetstone', 'chart', 'bearclaw', 'boartusk', 'crossbow', 'rifle', 'lever', 'longbow', 'hat', 'cape', 'charm', 'necklace', 'glyph', 'purse', 'talon', 'leopard', 'wolf', 'eagle', 'rider', 'horse', 'grapple']);
+const equipmentNumber = v.pipe(finite, v.minValue(0), v.maxValue(10000));
+const cue = v.pipe(v.string(), v.regex(/^cue\.[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
+const equipment = v.strictObject({ id: v.pipe(v.string(), v.regex(/^weapon\.[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128)),
+  legacySlot: v.exactOptional(v.picklist(['crossbow', 'sword', 'rifle', 'sword-iron', 'bow', 'sabre', 'spear', 'empty'])),
+  ui: v.strictObject({ name: text, icon: equipmentIcon, swapIcon: v.pipe(text, v.maxLength(512)),
+    touch: v.picklist(['melee', 'bow', 'ranged', 'throwing']), lockOn: v.boolean(), melee: v.boolean(), tracers: v.boolean(),
+    inputContext: v.exactOptional(name), swapName: v.exactOptional(text), huntersEye: v.exactOptional(v.boolean()),
+    ammo: v.exactOptional(v.strictObject({ label: text, segments: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(1024)),
+      magazine: v.exactOptional(v.boolean()), bagLabel: v.exactOptional(text), bagLabelFor: v.exactOptional(text) })) }),
+  meta: v.strictObject({ name: text, icon: equipmentIcon, blurb: text, category: name }),
+  cues: v.exactOptional(v.strictObject({ fire: cue, reload: cue, impact: cue, dry: v.exactOptional(cue), hit: v.exactOptional(cue),
+    heavy: v.exactOptional(cue), charge: v.exactOptional(v.record(name, cue)) })),
+  hitStop: v.exactOptional(v.strictObject({ body: equipmentNumber, head: equipmentNumber, kill: equipmentNumber })),
+  rangedFeel: v.exactOptional(v.strictObject({ kick: v.strictObject({ body: equipmentNumber, head: equipmentNumber, kill: equipmentNumber, side: equipmentNumber, killSide: equipmentNumber }),
+    trauma: v.strictObject({ kill: equipmentNumber, head: equipmentNumber, killKinds: v.pipe(v.array(name), v.maxLength(64)), headKinds: v.pipe(v.array(name), v.maxLength(64)) }) })),
+  tags: v.exactOptional(v.pipe(v.array(tag), v.maxLength(32))),
+});
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
+  equipment: v.exactOptional(equipment),
   profile: v.exactOptional(WeaponProfileSchema), ranged: v.exactOptional(NativeRangedRowSchema), contacts: v.exactOptional(MeleeContactsSchema),
   secondary: v.exactOptional(secondary), native: v.exactOptional(NativeMeleeRowSchema),
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });

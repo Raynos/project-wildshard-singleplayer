@@ -1,3 +1,4 @@
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import type { Material } from 'three';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -18,8 +19,8 @@ export function ironSwordDrop(shell: ShardRuntime): IronSwordPickup | null { ret
 export function driftwoodLoadoutRows(world: World, shell: ShardRuntime, materials: ReadonlyMap<string, Material>, source: Pick<ShardContext['product']['shardfile'], 'items'>): readonly [MeleeProfile, MeleeProfile] {
   const declaredWood = source.items.rows[0], declaredIron = source.items.rows[1];
   if (declaredWood?.kind !== 'weapon' || declaredIron?.kind !== 'weapon' || declaredWood.profile?.family !== 'melee' || declaredIron.profile?.family !== 'melee') throw new Error('Driftwood declares both swords');
-  const wood = applyMeleeCombatProfile(SWORD_WOOD, declaredWood.profile);
-  const iron: MeleeProfile = { ...applyMeleeCombatProfile(SWORD_IRON, declaredIron.profile), pickup: {
+  const wood = applyMeleeCombatProfile({ ...SWORD_WOOD, ...readItemEquipment(source.items, declaredWood.id) }, declaredWood.profile);
+  const iron: MeleeProfile = { ...applyMeleeCombatProfile({ ...SWORD_IRON, ...readItemEquipment(source.items, declaredIron.id) }, declaredIron.profile), pickup: {
     owned: 'iron-sword', prompt: 'Take iron sword', toast: 'Iron sword acquired · 1/2 to switch, Q to swap',
     create: (at, prompt) => {
       if (at !== 'wreck.deck') throw new Error(`Unknown iron sword pickup site: ${at}`);

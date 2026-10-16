@@ -3,6 +3,65 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "pine-hollow-items",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-items.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-items.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "scripts/bake-output.mjs",
+        "src/shards/pine-hollow/generators/bake-items.mjs",
+        "src/shards/pine-hollow/generators/items.ts",
+        "src/shards/pine-hollow/generators/equipment.ts",
+        "src/shards/pine-hollow/data/leverProfile.ts",
+        "src/shards/pine-hollow/data/crossbowProfile.ts",
+        "src/shards/pine-hollow/data/bowProfile.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/items.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/items.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "driftwood-isle-items",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-items.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-items.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "scripts/bake-output.mjs",
+        "src/shards/driftwood-isle/generators/bake-items.mjs",
+        "src/shards/driftwood-isle/generators/items.ts",
+        "src/shards/driftwood-isle/data/meleeProfile.ts"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/items.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/items.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "pine-hollow-audio",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-audio.mjs",

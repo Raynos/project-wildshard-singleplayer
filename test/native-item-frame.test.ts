@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
 import { fillNativeCombatFrame } from '../src/sdk/headlessRuntime';
 import { parseItems } from '../src/format/items';
-import { PINE_ITEMS } from '../src/shards/pine-hollow/data/items';
+import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 import { PineGustClock } from '../src/shards/pine-hollow/runtime/weapons/gustClock';
 import { boltFlight } from '../src/shards/pine-hollow/loadout/ammo';
 import { installPineCrossbow } from './fixtures/weapon-oracle/headlessCrossbow';
@@ -101,8 +101,8 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
 }, 30_000);
 
 test('the second native user keeps swept phases, synchronous reaction order and its saved wire', async () => {
-  const [{ DRIFTWOOD_SWORDS }, { default: policy }, { installNativeMelee }] = await Promise.all([
-    import('../src/shards/driftwood-isle/data/items'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/simulation'),
+  const [{ default: DRIFTWOOD_SWORDS }, { default: policy }, { installNativeMelee }] = await Promise.all([
+    import('../src/shards/driftwood-isle/data/items.generated.json'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/simulation'),
   ]);
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const level = fixtureLevel(-1.6);

@@ -62,7 +62,7 @@ import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRif
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
-import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { AMMO_ROWS, pineFinishEffect } from '../loadout/effects';
 import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
@@ -176,6 +176,8 @@ export class PineHollow extends ShardPlugin {
     if (world === null) throw new Error('Pine equipment needs a world');
     await Promise.all([preloadHeldGeometry(ctx.product), preloadKingKit()]);
     await preloadLeverModel(ctx.product);
+    const items = ctx.product.section('combat/items').items;
+    const CROSSBOW = readItemEquipment(items, 'weapon.crossbow'), LEVER = readItemEquipment(items, 'weapon.lever'), LONGBOW = readItemEquipment(items, 'weapon.longbow');
     const crossbowHeld = crossbowHeldRows(ctx.product), leverHeld = leverHeldRows(ctx.product);
     rt.buildEquipment = runtimeEquipment([
       { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },

@@ -7,7 +7,7 @@ import { runtimeEquipment, bindRuntimeEquipment } from '../src/game/plugin/headl
 import { INPUT_CONTEXTS } from '../src/game/inputContexts';
 import source from '../src/shards/pine-hollow/shard.config';
 import manifest from '../src/shards/pine-hollow/discovery.generated';
-import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/weapons/equipment';
+import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
 import { CROSSBOW_WEAPON_PROFILE } from '../src/shards/pine-hollow/data/crossbowProfile';
 import { LEVER_WEAPON_PROFILE } from '../src/shards/pine-hollow/data/leverProfile';
 import { BOW_PROFILE } from '../src/shards/pine-hollow/data/bowProfile';

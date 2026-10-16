@@ -9,7 +9,7 @@ import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHook
 
 
 
-import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
+
 
 /** Shared ranged presentation plus the charge lanes authored for this level. */
 
@@ -24,12 +24,12 @@ export interface PinePresentation { update: (dt: number, t: number) => void }
 
 export function installPinePresentation(o: { game: Game; weapons: EquipmentService; animals: AnimalManager; context?: ShardContext; makeTell: (color: THREE.Color) => ChargeTell }): PinePresentation {
   const { game, weapons, animals } = o;
-  const events = weapons.events;
+  const events = weapons.events, rows = [weapons.get('crossbow').row, weapons.get('rifle').row, weapons.get('bow').row];
   if (events) {
-    if (o.context === undefined) installRangedFeel(game, events, game.levelScope, (id) => [CROSSBOW, LEVER, LONGBOW].find((row) => row.id === id));
+    if (o.context === undefined) installRangedFeel(game, events, game.levelScope, (id) => rows.find((row) => row.id === id));
     else {
       const bindFeel = prepareRangedFeel(game);
-      installEnteredRuntimeService(o.context, (scope) => { bindFeel(events, scope, (id) => [CROSSBOW, LEVER, LONGBOW].find((row) => row.id === id)); });
+      installEnteredRuntimeService(o.context, (scope) => { bindFeel(events, scope, (id) => rows.find((row) => row.id === id)); });
     }
   }
   // ── the charge lanes of the wild bears and boars ──
