@@ -6137,6 +6137,18 @@ any recipe joint; `adopt(scalar)` resumes approximately from an older
 owner's saved scalar clock after the caller writes the current locals.
 Pine's Antler King (`runtime/kingPoseKeeper.ts`) uses all three.
 
+`game/plugin/animation.createNativeCreaturePoses` lends a bounded pose
+roster over admitted kind/variant recipe rows. Its `binding` supplies the
+existing creature intake's preflight and attachment ports; duplicate
+recipe rows retain last-match order. `get` lends the same numeric pose
+for caller-owned advance and quiet snapshot/restore; `delete` retires
+only its pose. `publish(at)` visits the caller's roster slots in order,
+so retired bodies and sparse slots do not publish. It adds no clock,
+save envelope, animation or publication phase. The G441 pending user is
+Nalati `runtime/headlessTaming.ts`'s addPose/retire/snapshot/restore roster
+with `runtime/tamingHorsePose.ts`; wind, mounted ownership, old transform
+envelopes and the manager's sampling cadence remain caller-owned.
+
 G441 pending second user: Nalati's `runtime/tamingHorsePose.ts` will adopt
 the numeric joint/scalar/root lifecycle and continuation. Nalati retains
 its wind overlay, body cadence, dynamic scale and old saved transform

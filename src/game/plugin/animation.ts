@@ -653,3 +653,41 @@ export function attachNativeCreaturePose(actor: AnimalSim, recipe: NativeCreatur
   actor.bindVolumes(pose);
   return { pose, body: Object.assign(actor, { hidden: false, sampleTerrain: (): void => { pose.sampleTerrain(); } }) };
 }
+
+/**
+ * Bounded native pose ownership for an existing creature roster. Recipe rows retain last-match order;
+ * attachment, retirement and publication happen only when the caller's roster asks. No clock or save owner is added.
+ * Callers keep their saved envelope and use the borrowed poses' quiet snapshot/restore methods unchanged.
+ */
+export function createNativeCreaturePoses(rows: readonly { readonly kind: string; readonly variant: string; readonly pose: NativeCreaturePoseRecipe }[],
+  limit: number, animations: ReadonlyMap<string, (context: AnimalRigContext) => void> = new Map()): {
+    readonly binding: {
+      readonly preflight: (body: { readonly kind: string; readonly variant: string }) => void;
+      readonly attach: (actor: AnimalSim, body: { readonly id: string; readonly kind: string; readonly variant: string }) => ReturnType<typeof attachNativeCreaturePose>['body'];
+    };
+    readonly get: (id: string) => NativeCreaturePose | undefined;
+    readonly delete: (id: string) => void;
+    readonly publish: (at: (index: number) => string | null | undefined) => void;
+  } {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1024 || rows.length > 4096) throw new RangeError('Invalid native pose roster bound');
+  const recipes = new Map<string, Map<string, NativeCreaturePoseRecipe>>(), poses = new Map<string, NativeCreaturePose>();
+  for (const row of rows) {
+    let group = recipes.get(row.kind);
+    if (group === undefined) { group = new Map(); recipes.set(row.kind, group); }
+    group.set(row.variant, row.pose);
+  }
+  const recipe = (body: { readonly kind: string; readonly variant: string }): NativeCreaturePoseRecipe => {
+    const value = recipes.get(body.kind)?.get(body.variant);
+    if (value === undefined) throw new Error('Missing native creature pose recipe');
+    return value;
+  };
+  return {
+    binding: { preflight: body => { recipe(body); }, attach: (actor, body) => {
+      if (!poses.has(body.id) && poses.size >= limit) throw new RangeError('Native pose roster exceeds its bound');
+      const attached = attachNativeCreaturePose(actor, recipe(body), animations.get(body.kind));
+      poses.set(body.id, attached.pose); return attached.body;
+    } },
+    get: id => poses.get(id), delete: id => { poses.delete(id); },
+    publish: at => { for (let i = 0; i < limit; i++) { const id = at(i); if (id !== null && id !== undefined) poses.get(id)?.publish(); } },
+  };
+}

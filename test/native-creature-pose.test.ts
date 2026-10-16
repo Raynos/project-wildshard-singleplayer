@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
+import { createNativeCreaturePoses, NativeCreaturePose, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
 
 const recipe: NativeCreaturePoseRecipe = { custom: true, joints: [
   { name: 'body', parent: -1, position: [0, 1, 0], order: 'YXZ', scale: [1, 1, 1] },
@@ -48,4 +48,32 @@ test('native poses keep contact publication separate and restore quietly before 
   expect(front.distanceTo(rear)).toBeGreaterThan(0);
   expect(() => new NativeCreaturePose(actor(), recipe)).toThrow('custom pose');
   expect(() => new NativeCreaturePose(actor(), { ...recipe, joints: recipe.joints.slice(0, 1) }, advanceHead)).toThrow('volume joint');
+});
+
+test('a bounded pose roster keeps attachment, publication and retirement under the existing owner', () => {
+  let calls = 0;
+  const animate = (c: Parameters<NonNullable<ConstructorParameters<typeof NativeCreaturePose>[2]>>[0]): void => {
+    calls++; const head = c.bones['head']; if (head !== undefined) head.position.x = 2;
+  };
+  const stale: NativeCreaturePoseRecipe = { custom: true, joints: recipe.joints.slice(0, 1) };
+  const poses = createNativeCreaturePoses([{ kind: 'hunter', variant: 'common', pose: stale },
+    { kind: 'hunter', variant: 'common', pose: recipe }], 1, new Map([['hunter', animate]]));
+  const row = { id: 'first', kind: 'hunter', variant: 'common' }, body = actor();
+  expect(() => poses.binding.preflight({ ...row, variant: 'missing' })).toThrow('recipe');
+  poses.binding.preflight(row); expect(calls).toBe(0);
+  expect(poses.binding.attach(body, row)).toBe(body);
+  const pose = poses.get(row.id); if (pose === undefined) throw new Error('Missing attached pose');
+  const before = new Vector3(), after = new Vector3(); pose.headWorld(before);
+  body.position.x += 5; pose.advance(.1, 1, true); pose.headWorld(after);
+  expect(after.equals(before)).toBe(true);
+  const wire = pose.snapshot(), callsBeforeRestore = calls;
+  pose.restore(wire); expect(calls).toBe(callsBeforeRestore);
+  expect(() => pose.restore('{}')).toThrow(); expect(pose.snapshot()).toBe(wire);
+  const order: number[] = []; poses.publish(i => { order.push(i); return row.id; }); pose.headWorld(after);
+  expect(order).toEqual([0]); expect(after.x).toBeGreaterThan(before.x);
+  const next = actor(); expect(() => poses.binding.attach(next, { ...row, id: 'next' })).toThrow('bound');
+  expect(Object.hasOwn(next, 'hidden')).toBe(false);
+  poses.delete(row.id); expect(poses.get(row.id)).toBeUndefined();
+  poses.binding.attach(next, { ...row, id: 'next' }); expect(poses.get('next')).toBeDefined();
+  expect(() => createNativeCreaturePoses([], 0)).toThrow('bound');
 });
