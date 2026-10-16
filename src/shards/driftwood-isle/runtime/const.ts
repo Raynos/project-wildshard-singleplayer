@@ -82,19 +82,6 @@ export const DAY_LIGHT = {
   uCloudTime: 0,
 } as const;
 export const RAMP_FOG = { start: 180, end: 1700, near: [0.5, 0.6, 0.98], zenith: [0.055, 0.2, 0.78] } as const;
-/** the wooden and iron swords' combat profiles the declared items must carry (data/meleeProfile.ts) */
-export const DRIFTWOOD_MELEE_PROFILE = {
-  family: 'melee', damage: 12, reach: 2.2, swingScale: 1,
-  cooldown: 0.08, comboGap: 0.6, chainLag: 0.02, heavyCharge: 0.45,
-  moves: { combo: [
-    { windup: 0.07, slashEnd: 0.235, total: 0.35, damage: 1, stagger: 0, sweep: 1 },
-    { windup: 0.06, slashEnd: 0.22, total: 0.34, damage: 1, stagger: 0, sweep: -1 },
-    { windup: 0.1, slashEnd: 0.28, total: 0.44, damage: 1.3333333333333333, stagger: 0.25, sweep: 0.5 },
-  ], heavy: { windup: 0.06, slashEnd: 0.3, total: 0.62, damage: 2, stagger: 1, sweep: 0.35 } },
-  lunge: { range: 4, heavyRange: 5, cone: 0.4363323129985824, stop: 1.1, speed: 22, minTime: 0.08, maxTime: 0.15 },
-  sweep: { rays: 5, extensions: [0.12, 0.24, 0.36, 0.48], step: 0.09, maxSamples: 6, maxHits: 8 },
-} as const;
-export const DRIFTWOOD_IRON_PROFILE = { ...DRIFTWOOD_MELEE_PROFILE, damage: 28 } as const;
 /** the shore boulders' granite and the reef rocks' weedier basalt (data/rockProfiles.ts) */
 export const SHORE_ROCK = {
   foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',

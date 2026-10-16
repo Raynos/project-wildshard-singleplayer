@@ -12,7 +12,7 @@ import { modelContext, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { islandKnobs } from '../tiers';
+import { driftwoodTierShadows } from '../runtime/boot/rows';
 import { hibiscusBush, type HibiscusBushParams } from '../runtime/models/hibiscusBush';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { loadHibiscusWorld } from '../runtime/boot/hibiscusGeometry';
@@ -27,7 +27,7 @@ export async function placeIslandBushes(sky: Sky, rows: { readonly specs: readon
   const batch = await loadHibiscusWorld(specs.length); await due();
   const mesh = new THREE.Mesh(batch.geometry, lowPolyLookMaterial(sky));
   mesh.name = hibiscusBush.id;
-  mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true;
+  mesh.castShadow = driftwoodTierShadows().bush; mesh.receiveShadow = true;
   mesh.userData['islandDressingClipped'] = true;
   const placed = place(hibiscusBush, placements, { ctx: modelContext(sky), draw: 'merged', registry, piece: { id: 'bushes' }, drawnInto: { object: mesh, boxes: batch.boxes } });
   // Empty scatters keep the existing empty mesh handle.

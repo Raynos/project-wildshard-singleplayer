@@ -1,3 +1,4 @@
+import { buildTier } from '@wildshard/engine/core/tier';
 import type * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { SECTIONS } from '../sections';
@@ -14,3 +15,6 @@ export function driftwoodRows<K extends RowSection>(name: K): v.InferOutput<(typ
   if (admitted === null) throw new Error(`Driftwood reads ${name} before its product is admitted`);
   return admitted.section(name, SECTIONS);
 }
+
+/** Only live view shadow choices remain; geometry counts and dimensions compile offline. */
+export function driftwoodTierShadows(): { bush: boolean; boulder: boolean } { return driftwoodRows('custom/fixedLayouts').shadowTiers[buildTier()]; }

@@ -72,6 +72,7 @@ export const SECTIONS = {
   'custom/islandClips': v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs }),
   /** Entry decks, tiered foliage and fixed models: draw slots, colliders, anchors and floors. */
   'custom/fixedLayouts': v.strictObject({
+    shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
     ironSword: PrivateSceneSchema,
     entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
     foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }) }),

@@ -1,6 +1,6 @@
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
-import { islandKnobs } from '../tiers';
+import { islandKnobs } from './tiers';
 import type * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { _buildAs } from '@wildshard/engine/core/tier';

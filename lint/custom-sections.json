@@ -200,6 +200,18 @@
         "bytes": 513764
       },
       "why": "G465 C9: admit the existing iron-sword pickup recipe in fixedLayouts (+572 B), deleting its const mirror and using the existing strict scene reader; no new section or host."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 8,
+        "bytes": 513764
+      },
+      "to": {
+        "count": 8,
+        "bytes": 513857
+      },
+      "why": "G468 C9: the fixedLayouts shadow tier flags (+93 B) replace the deleted runtime/tiers module; remaining tier authoring runs only in generators. Cover templates share the existing admitted fixed batch; no new section or host."
     }
   ]
 }

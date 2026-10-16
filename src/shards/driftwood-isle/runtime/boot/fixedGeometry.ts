@@ -1,5 +1,4 @@
 import { loadTrailsideGeometry } from './trailsideGeometry';
-import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
 import { createOwnedGeometryBatch, type OwnedGeometry as ModelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readProductGeometry, readNamedFixedGeometry, fixedGeometrySources, fixedGeometryHandle } from './modelGeometry';
@@ -7,6 +6,11 @@ import type { BufferGeometry } from 'three';
 
 const preload = createOwnedGeometryBatch();
 const modelGeometry = (slot: string, channels?: Readonly<Record<string, string>>) => fixedGeometryHandle(slot, channels, preload);
+
+/** The admitted fixed source slots share one owned batch; each view receives mutable copies. */
+const coverKinds = ['tuft','fern','hibiscus','daisy','pebble','shells','starfish','bush','tuftFar','fernFar','hibiscusFar','daisyFar','bushFar'] as const;
+const coverTemplates = new Map(coverKinds.map(kind => [kind, modelGeometry(`cover${kind.charAt(0).toUpperCase()}${kind.slice(1)}`)]));
+export function copyCoverGeometry(): Record<string, BufferGeometry> { return Object.fromEntries([...coverTemplates].map(([kind, geometry]) => [kind, geometry.copy()])); }
 
 /** Prepared head; the original talk rig borrows a mutable copy, without a second source download or runtime fitter. */
 export const WENDELL_HEAD_GEOMETRY = modelGeometry('wendellHead');
@@ -127,7 +131,6 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     preload.load(slots),
     loadTrailsideGeometry(slots),
     loadCoveGeometry(slots),
-    loadCoverGeometry(slots),
   ]);
   ready = true;
   } finally { product?.release(); }

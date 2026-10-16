@@ -17,9 +17,8 @@
  * No URL switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
-import { DUNE_LOGS_GEOMETRY } from '../runtime/boot/fixedGeometry';
+import { DUNE_LOGS_GEOMETRY, copyCoverGeometry } from '../runtime/boot/fixedGeometry';
 import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
-import { copyCoverGeometry } from '../runtime/boot/coverGeometry';
 import { GROUND_COVER } from '../data/coverLook';
 import { CoverGrid } from './coverTint';
 import { driftLog } from '../runtime/models/cargo';

@@ -2,8 +2,10 @@ import { expect, test } from 'vitest';
 import { runtimeMirrorIssues } from '../src/sdk/runtimeMirrors';
 import { RUNTIME_MIRRORS } from '../src/shards/driftwood-isle/data/runtimeMirrors';
 import * as runtimeConst from '../src/shards/driftwood-isle/runtime/const';
-import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/tiers';
-import { ISLAND_KNOBS as RUNTIME_ISLAND_KNOBS } from '../src/shards/driftwood-isle/runtime/tiers';
+import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
+import { driftwoodTierShadows, driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { _buildAs } from '../src/engine/core/tier';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/data/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/data/output';
 
@@ -12,9 +14,16 @@ test('Driftwood runtime/const.ts mirrors data/ exactly', () => {
   expect(runtimeMirrorIssues(RUNTIME_MIRRORS, runtimeConst)).toEqual([]);
 });
 
-// The runtime models read runtime/tiers.ts; the build-time generators still read the legacy root tiers.ts.
-test('Driftwood runtime/tiers.ts mirrors the root tier knobs exactly', () => {
-  expect(RUNTIME_ISLAND_KNOBS).toEqual(ISLAND_KNOBS);
+test('admitted shadow tiers retain both original view choices', () => {
+  admitDriftwoodFixtureRows();
+  const rows = driftwoodRows('custom/fixedLayouts').shadowTiers;
+  try {
+    for (const tier of ['phone','desktop'] as const) {
+      _buildAs(tier);
+      expect(driftwoodTierShadows()).toBe(rows[tier]);
+      expect(driftwoodTierShadows()).toEqual({bush:ISLAND_KNOBS[tier].bushShadows,boulder:ISLAND_KNOBS[tier].boulderShadows});
+    }
+  } finally { _buildAs(null); }
 });
 
 test('all 86 named fixed draws retain the assembler identities and admitted blobs', () => {

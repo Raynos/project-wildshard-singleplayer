@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { islandKnobs } from '../tiers';
+import { driftwoodTierShadows } from '../boot/rows';
 import { copyHibiscusVariant, loadHibiscusVariants, hibiscusVariantsReady } from '../boot/hibiscusGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 
@@ -36,9 +36,9 @@ export const hibiscusBush = defineModel<HibiscusBushParams>({
   seed: 0x5ea1 ^ 0xb5 ^ 0xe116,
   // the shared kit material (no program of its own) and the swaying shadow pass; the shadows are the tier's call
   prepare: loadHibiscusVariants,
-  build: (ctx, p) => hibiscusVariantsReady() ? [{ geometry: copyHibiscusVariant(p), material: lowPolyLookMaterial(ctx.sky), castShadow: islandKnobs().bushShadows, receiveShadow: true }] : loadingSpecimen('driftwood-isle/hibiscus-bush', [p.r * 2, p.r * 2, p.r * 2], async () => {
+  build: (ctx, p) => hibiscusVariantsReady() ? [{ geometry: copyHibiscusVariant(p), material: lowPolyLookMaterial(ctx.sky), castShadow: driftwoodTierShadows().bush, receiveShadow: true }] : loadingSpecimen('driftwood-isle/hibiscus-bush', [p.r * 2, p.r * 2, p.r * 2], async () => {
     await loadHibiscusVariants();
     const mesh = new THREE.Mesh(copyHibiscusVariant(p), lowPolyLookMaterial(ctx.sky));
-    mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true; return mesh;
+    mesh.castShadow = driftwoodTierShadows().bush; mesh.receiveShadow = true; return mesh;
   }),
 });

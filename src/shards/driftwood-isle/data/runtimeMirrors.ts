@@ -14,7 +14,6 @@ import ziplineRows from './zipline.generated.json' with { type: 'json' };
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK } from './islandRows';
 import { KIT_LENDS } from './kitLook';
-import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE } from './meleeProfile';
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
 import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
 import { OCEAN_LOOK } from './oceanLook';
@@ -55,8 +54,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('MIDDAY_SKY_ROWS', MIDDAY_SKY_ROWS),
   defineMirror('DAY_LIGHT', DAY_LIGHT),
   defineMirror('RAMP_FOG', RAMP_FOG),
-  defineMirror('DRIFTWOOD_MELEE_PROFILE', DRIFTWOOD_MELEE_PROFILE),
-  defineMirror('DRIFTWOOD_IRON_PROFILE', DRIFTWOOD_IRON_PROFILE),
   defineMirror('SHORE_ROCK', SHORE_ROCK),
   defineMirror('REEF_ROCK', REEF_ROCK),
   defineMirror('BOAT_LAYOUT', BOAT_LAYOUT),

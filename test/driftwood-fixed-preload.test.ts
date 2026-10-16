@@ -2,8 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { BoxGeometry } from 'three';
 import { DRIFTWOOD_FIXED_SOURCES as FIXED_MODEL_FILES, DRIFTWOOD_ASSET_NAMES } from '../src/shards/driftwood-isle/data/output';
 import { admitDriftwoodFixtureRows, admitDriftwoodFixtureAliases } from './fixtures/driftwoodRows';
-import { loadFixedGeometry, fixedGeometryReady, WENDELL_HEAD_GEOMETRY, HAT_GEOMETRY, DUNE_LOGS_GEOMETRY, PIER_GEOMETRIES } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
-import { copyCoverGeometry } from '../src/shards/driftwood-isle/runtime/boot/coverGeometry';
+import { loadFixedGeometry, fixedGeometryReady, WENDELL_HEAD_GEOMETRY, HAT_GEOMETRY, DUNE_LOGS_GEOMETRY, PIER_GEOMETRIES, copyCoverGeometry } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
 
 it('declares inert handles before admission and refuses unresolved slot data', async () => {
   const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));

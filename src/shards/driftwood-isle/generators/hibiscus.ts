@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { swayByHeight } from '@wildshard/engine/world/wind';
-import { islandKnobs } from '../tiers';
+import { islandKnobs } from './tiers';
 import type { HibiscusBushParams } from '../runtime/models/hibiscusBush';
 
 const col = (h: string): THREE.Color => new THREE.Color(h);

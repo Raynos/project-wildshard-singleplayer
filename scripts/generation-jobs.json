@@ -456,7 +456,7 @@
         "src/shards/driftwood-isle/data/questInventory.ts",
         "src/shards/driftwood-isle/data/interactables.ts",
         "src/shards/driftwood-isle/data/questStory.ts",
-        "src/shards/driftwood-isle/data/meleeProfile.ts"
+        "src/shards/driftwood-isle/generators/meleeProfile.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/items.generated.json"

@@ -14,7 +14,7 @@
 import type { Rng } from '@wildshard/engine/core/rng';
 import { rockGeometry, rockMaterial, rockSpecimen, type RockOpts } from '../../world/rockKit';
 import { REEF_ROCK, SHORE_ROCK } from '../const';
-import { islandKnobs } from '../tiers';
+import { driftwoodTierShadows } from '../boot/rows';
 import { defineModel, type ModelDef, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
 
 export interface ShoreBoulderParams { readonly r: number; readonly squash: number }
@@ -35,7 +35,7 @@ function rockModel<P extends { readonly r: number }>(row: RockRow<P>): ModelDef<
   const id = `driftwood-isle/${row.id}`;
   const parts = (...[ctx, p, rng]: Parameters<ModelDef<P>['build']>): ModelPart[] => [{
     geometry: rockGeometry(p.r, rng, row.opts(p, rng)), material: rockMaterial(ctx.sky),
-    castShadow: row.tierShadow === undefined || islandKnobs().boulderShadows, receiveShadow: true,
+    castShadow: row.tierShadow === undefined || driftwoodTierShadows().boulder, receiveShadow: true,
   }];
   return defineModel<P>({
     id, name: row.name, category: 'nature', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/shoreBoulder.ts', surface: 'rock',

@@ -8,7 +8,7 @@ import {HeightfieldBinding,bindHeightfield,inChunk} from '@wildshard/engine/worl
 import {terrainHeight} from '@wildshard/engine/world/terrainHeight';
 import manifest from '../discovery.generated';
 import {OCEAN} from '../world/sites';
-import {ISLAND_KNOBS} from '../tiers.ts';
+import {ISLAND_KNOBS} from './tiers.ts';
 import {oceanGridGlb,seaFloor} from './oceanGrid.ts';
 import {driftwoodGroundBytes} from './groundRows.ts';
 

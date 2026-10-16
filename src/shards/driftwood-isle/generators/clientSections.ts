@@ -1,3 +1,4 @@
+import { ISLAND_KNOBS } from './tiers';
 import { ENTRY_DECKS } from './entryDecks';
 import ironSword from '../data/ironSwordScene.json' with {type:'json'};
 import npcScenes from '../data/npcScenes.generated.json' with {type:'json'};
@@ -25,7 +26,7 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/islandClips', value:islandClips},
   {name:'custom/gullFlock', value:GULL_FLOCK},
   {name:'custom/oceanSurface', value:{surface:OCEAN_SURFACE, files:OCEAN_FILES}},
-  {name:'custom/fixedLayouts', value:{ironSword, entryDecks:ENTRY_DECKS, foliage:{seed:foliage.seed,tiers:foliage.tiers}, npcScenes, chimeSlots, gullPerches:foliageRows['gullPerches'], cove:coveBake, shrine:shrineBake, trophySlots:trophySlotsBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
+  {name:'custom/fixedLayouts', value:{shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), ironSword, entryDecks:ENTRY_DECKS, foliage:{seed:foliage.seed,tiers:foliage.tiers}, npcScenes, chimeSlots, gullPerches:foliageRows['gullPerches'], cove:coveBake, shrine:shrineBake, trophySlots:trophySlotsBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
   {name:'custom/trailside', value:trailside},
   {name:'custom/questRows', value:{feats:DRIFTWOOD_FEATS, items:DRIFTWOOD_ITEMS}},
 ];

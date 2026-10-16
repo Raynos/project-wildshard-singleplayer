@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { PalmParams } from '../runtime/models/palm';
-import { islandKnobs } from '../tiers';
+import { islandKnobs } from './tiers';
 
 const C = {
   trunk: new THREE.Color('#8a6a48'), ring: new THREE.Color('#6d5238'),
