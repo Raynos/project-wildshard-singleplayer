@@ -7344,3 +7344,12 @@ The public steering kernels also serve the existing raptor/phased brains during 
 `@wildshard/engine/sim/moverLifecycle` observes committed fixed-step fields and retains edge latches plus a bounded 64-event FIFO. `MoverRuntime.drainEndEvents()` returns `{mover, atEnd}` edges for the platform's declared signal routes; drain each fixed step. These are distinct from the actor `move.done` ABI event. Snapshot/restore retains undelivered events and refuses incompatible declarations atomically.
 
 Fresh installations pass saved flag DATA as `restoreFlags: ReadonlySet<string>` through `installDeclaredMovers` or native `MoverScriptDriver.install`. `moverEndState` resolves an admitted track's final pose and stopped progress without executing its guest or advancing time. The platform validates the whole replacement state before publishing it and seeds endpoint latches without emitting a completion, quest write or reward. Native checkpoint restore keeps its own world/guest continuation and lifecycle latches; it does not rerun durable flag restoration. Existing movers without these rows retain their current command/physics law.
+
+### Decision binding registries (KA6)
+
+`@wildshard/format/decisionBindings` defines `decisionBindingMap` and
+`buildDecisionRegistries(source, moves)` for generated glue and the simulation.
+Actor and catalogue handles follow sorted real row identities; field handles
+retain their declared numeric IDs. The player is reserved at
+`DECISION_PLAYER_HANDLE`, never allocated from an alias. Missing platform
+namespaces refuse; legacy v0 actor handles are unchanged.

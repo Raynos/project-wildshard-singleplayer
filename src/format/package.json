@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./decisionBindings": "./decisionBindings.ts",
     "./moverLifecycle": "./moverLifecycle.ts",
     "./gridReadiness": "./gridReadiness.ts",
     "./actorMoves": "./actorMoves.ts",

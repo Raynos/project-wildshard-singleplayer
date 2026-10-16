@@ -27,3 +27,26 @@ it('refuses missing targets, unsafe handles and duplicate real or alias identiti
   expect(() => decisionBindingMap(row, { actors: new Map([['actor.last', 7], ['actor.first', 7]]) })).toThrow('duplicate');
   expect(() => decisionBindingMap({ ...row, actors: { a: 'actor.first', b: 'actor.first' } }, { actors: new Map([['actor.first', 7]]) })).toThrow('alias handle');
 });
+
+it('builds identical compiler and sim handles from real catalogue rows, never aliases or spawn order', async () => {
+  const { buildDecisionRegistries, DECISION_PLAYER_HANDLE } = await import('@wildshard/format/decisionBindings');
+  const { emptyShardfile } = await import('../src/sdk/author');
+  const source = emptyShardfile({ slug: 'binding-test', name: 'Binding', author: 'Test', seed: 2, revision: 1 });
+  const spawn = (id: string) => ({ id, species: 'animal', variant: 'animal', brain: null, strike: null, seed: 1, scale: 1, at: [0, 0, 0] as [number, number, number], yaw: 0 });
+  source.creatures.spawns = [spawn('actor.last'), spawn('actor.first')];
+  source.state.shared = [
+    { id: 89, name: 'phase', type: 'i32', privacy: 'public', default: 0, min: 0, max: 3 },
+    { id: 42, name: 'secret', type: 'bool', privacy: 'host', default: false },
+  ];
+  const registry = buildDecisionRegistries(source, []);
+  expect([...registry.actors ?? []]).toEqual([['actor.first', 1], ['actor.last', 2]]);
+  expect([...registry.fields ?? []]).toEqual([['phase', 89]]);
+  expect(registry.actors?.has('actor.player')).toBe(false);
+  expect(DECISION_PLAYER_HANDLE).toBe(0x7fffffff);
+  expect(decisionBindingMap(script(), registry).ids.actors).toEqual({ alpha: 1, zebra: 2 });
+  source.creatures.spawns.reverse();
+  expect(decisionBindingMap(script(), buildDecisionRegistries(source, []))).toEqual(decisionBindingMap(script(), registry));
+  expect(() => decisionBindingMap({ ...script(), impulses: { shove: 'fake' } }, registry)).toThrow('Missing impulses');
+  source.creatures.spawns.push(spawn('actor.first'));
+  expect(() => buildDecisionRegistries(source, [])).toThrow('Duplicate');
+});
