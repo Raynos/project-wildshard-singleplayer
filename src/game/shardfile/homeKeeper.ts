@@ -199,17 +199,23 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
     boss: boss === null ? null : { draw: () => drawBody(boss), free: () => { freeBody(boss); }, actor: () => boss.actor } };
 }
 
-/** Baked native creature intake. Callers retain pose/policy, herd membership, ecology and their save envelope.
+/** Mutable identity/recipe slot owned by a native roster; a retired slot keeps its recipe with no live actor. */
+export interface NativeCreatureSlot<A extends AnimalSim = AnimalSim> {
+  id: string; kind: string; variant: string; herd: number; readonly recipe: SimSpawn;
+  range: readonly [number, number]; actor: A | null;
+}
+
+/** Baked native creature intake. Callers retain pose/policy, herd ownership, ecology and their save envelope.
  * Spawn draws use the supplied stream in scale/rig-seed/body-seed/memory order; reinstall never draws.
  * The registry owns kind/variant admission and structure-aware placement, not a shard's decision schedule. */
-export function createNativeCreatureRoster<B extends {
-  id: string; kind: string; variant: string; readonly recipe: SimSpawn;
-  range: readonly [number, number]; actor: AnimalSim | null;
-}>(host: SimHost, ports: {
+export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: SimHost, ports: {
   readonly specs: Iterable<AnimalSimSpec>;
   readonly variants: ReadonlyMap<string, readonly { readonly id: string; readonly scale: readonly [number, number] }[]>;
   readonly rng: Rng; readonly spawnY: number; readonly attackTurnCap: number;
   readonly heightfield?: 'ground' | 'any';
+  /** Optional existing herd owner; joining/retiring updates the same member arrays. */
+  readonly herds?: { readonly herds: readonly { readonly members: NonNullable<B['actor']>[] }[]; addHerd: (kind: string, x: number, z: number) => number };
+  readonly retired?: (body: B) => void;
   readonly preflight?: (body: B) => void;
   readonly attach: (native: AnimalSim, body: B) => NonNullable<B['actor']>;
   readonly joined: (body: B, actor: NonNullable<B['actor']>) => void;
@@ -224,6 +230,12 @@ export function createNativeCreatureRoster<B extends {
   materialize: (body: B, recipe: SimSpawn, structure: boolean) => void;
   arrive: (body: B) => void;
   draw: (body: B, consumeMemory?: boolean) => void;
+  /** Retire an owned live identity and detach its herd membership before caller cleanup. Never draws. */
+  retire: (body: B) => void;
+  /** Retire a pending predecessor only when its owned actor is still present and dead. */
+  retireDead: (id: string | undefined) => void;
+  /** Refill the same recipe slot: retire, allocate, replace its herd, draw, then arrive. */
+  refill: (body: B, allocate: () => string, home: { readonly x: number; readonly z: number }) => void;
   /** Replay authored memory-adoption checkpoints, then continue at the declared stream. Preflight is effect-free. */
   adopt: (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
     stream: Readonly<RngState>, adopt: (actor: NonNullable<B['actor']>, x: number, z: number) => void) => void;
@@ -259,7 +271,7 @@ export function createNativeCreatureRoster<B extends {
     actor.levelGround = structure;
     if (structure) actor.groundHeight = (x, z, fromY) => ports.ground?.(item, x, z, fromY) ?? floor(x, z, fromY);
     actor.attackTurnCap = ports.attackTurnCap;
-    item.actor = actor; byId.set(item.id, item); ports.joined(item, actor);
+    item.actor = actor; byId.set(item.id, item); ports.herds?.herds[item.herd]?.members.push(actor); ports.joined(item, actor);
   };
   const arrive = (item: B): void => {
     const at = item.recipe.at, found = sample(at.x, at.z, Math.max(ports.spawnY, host.groundHeightAt(at.x, at.z)) + 1);
@@ -268,6 +280,28 @@ export function createNativeCreatureRoster<B extends {
   const draw = (item: B, consumeMemory = true): void => {
     item.recipe.scale = ports.rng.range(item.range[0], item.range[1]); ports.rng.next(); item.recipe.seed = ports.rng.next();
     if (consumeMemory) { ports.rng.next(); ports.rng.next(); ports.rng.next(); }
+  };
+  const release = (item: B, detach: boolean): void => {
+    const actor = item.actor, members = ports.herds?.herds[item.herd]?.members;
+    if (actor === null || byId.get(item.id) !== item || (members !== undefined && members.length > 1024)) throw new Error('Foreign native roster retirement');
+    const at = detach ? members?.indexOf(actor) ?? -1 : -1; if (at >= 0) members?.splice(at, 1);
+    byId.delete(item.id); host.retire(item.id); ports.retired?.(item); item.actor = null;
+  };
+  const retire = (item: B): void => { release(item, true); };
+  const retireDead = (id: string | undefined): void => {
+    const item = id === undefined ? undefined : byId.get(id);
+    if (item?.actor !== null && item?.actor !== undefined && !item.actor.alive) retire(item);
+  };
+  const refill = (item: B, allocate: () => string, home: { readonly x: number; readonly z: number }): void => {
+    const herds = ports.herds;
+    if (herds === undefined || !Number.isFinite(home.x) || !Number.isFinite(home.z) || (herds.herds[item.herd]?.members.length ?? 0) > 1) throw new Error('Invalid native roster replacement');
+    ports.preflight?.(item); release(item, false);
+    const id = allocate();
+    if (id.length === 0 || id.length > 128 || byId.has(id)) throw new Error('Invalid native replacement identity');
+    item.id = id; item.recipe.id = id;
+    const old = herds.herds[item.herd]; if (old !== undefined) old.members.length = 0;
+    item.herd = herds.addHerd(item.kind, home.x, home.z);
+    draw(item); arrive(item);
   };
   const adopt = (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
     stream: Readonly<RngState>, remember: (actor: NonNullable<B['actor']>, x: number, z: number) => void): void => {
@@ -316,5 +350,5 @@ export function createNativeCreatureRoster<B extends {
     const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
     materialize(item, item.recipe, level ?? found.structure);
   };
-  return { body, spec, byId, floor, materialize, arrive, draw, adopt, retarget, bindBodyStep, reinstall };
+  return { body, spec, byId, floor, materialize, arrive, draw, retire, retireDead, refill, adopt, retarget, bindBodyStep, reinstall };
 }

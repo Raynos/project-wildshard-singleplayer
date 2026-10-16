@@ -5930,6 +5930,20 @@ checkpoint in row order, lends the actor and point to `remember`, and
 continues at the final stream. No actor, memory or save owner is replaced.
 Nalati's `runtime/headlessCreatures.ts` adopted-stream boot loop is the
 G441 W3 user of this replay; its callbacks and save envelope stay native.
+`NativeCreatureSlot<A>` names the same mutable identity, variant, herd,
+recipe, scale range and nullable owned actor used by this intake.
+Optional `herds` borrows the existing herd arrays and allocator: attachment
+joins before `joined`. `retire` admits only the exact registered slot,
+detaches its member (bounded to 1,024), retires the native identity, calls
+`retired`, and clears the actor without drawing RNG. `retireDead(id)` skips
+missing or living predecessors. `refill` requires a singleton home herd
+and retires the
+old identity while retaining membership until the caller allocates its
+new ID, clears its old herd, creates its new home herd, then draws and
+arrives with the same recipe object. The caller retains clocks and saves.
+Nalati `runtime/headlessCreatures.ts#retireBondedHorse` and `retireElite`
+are the G441 W3 retirement match; their hidden/parked flags, continuation
+records and policy cleanup remain caller-owned.
 `creatureFloor` defaults to the existing ground-material heightfield rule;
 its explicit `any` policy treats every heightfield hit as terrain.
 
