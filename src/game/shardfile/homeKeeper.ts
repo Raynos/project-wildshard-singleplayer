@@ -88,6 +88,7 @@ const Value: v.GenericSchema<SimValue> = v.lazy(() => v.union([v.null(), v.boole
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 /** A saved trusted recipe's placement; the spec is this build's bake, so a changed spec refuses at the host's restore. */
 const Placed = v.object({ id: v.string(), seed: finite, scale: finite, at: v.strictObject({ x: finite, y: finite, z: finite }), yaw: finite });
+const NativeRecipe = v.looseObject({ ...Placed.entries, spec: v.looseObject({ kind: v.string(), variant: v.string() }) });
 const Saved = v.strictObject({ version: v.literal(1), rng: Stream, tokens: v.array(v.string()),
   homes: v.array(v.strictObject({ id: v.string(), wait: finite, live: v.boolean(), policy: v.nullable(v.string()) })),
   boss: v.nullable(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })) });
@@ -205,6 +206,36 @@ export interface NativeCreatureSlot<A extends AnimalSim = AnimalSim> {
   range: readonly [number, number]; actor: A | null;
 }
 
+/** Immutable baked kind/variant lookup and the existing dynamic-actor placement wire.
+ * `first` retains the first baked recipe; the default `last` retains the latest.
+ * Reading validates the actor identity and finite placement, without spawning or drawing RNG.
+ */
+export function nativeCreatureRecipes(specs: Iterable<AnimalSimSpec>, duplicates: 'first' | 'last' = 'last'): {
+  readonly spec: (kind: string, variant: string) => AnimalSimSpec;
+  readonly read: (saved: { readonly adapters: readonly { readonly id: string; readonly state: unknown }[] }, id: string) => v.InferOutput<typeof NativeRecipe>;
+} {
+  const recipes = new Map<string, Map<string, AnimalSimSpec>>();
+  for (const known of specs) {
+    let group = recipes.get(known.kind);
+    if (group === undefined) { group = new Map(); recipes.set(known.kind, group); }
+    if (duplicates === 'last' || !group.has(known.variant)) group.set(known.variant, known);
+  }
+  return {
+    spec: (kind: string, variant: string): AnimalSimSpec => {
+      const known = recipes.get(kind)?.get(variant);
+      if (known === undefined) throw new Error(`Missing native creature recipe: ${kind}.${variant}`);
+      return known;
+    },
+    read: (saved: { readonly adapters: readonly { readonly id: string; readonly state: unknown }[] }, id: string): v.InferOutput<typeof NativeRecipe> => {
+      const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${id}`)?.state;
+      if (typeof contract !== 'string') throw new Error(`Missing saved native creature ${id}`);
+      const recipe = v.parse(NativeRecipe, JSON.parse(contract));
+      if (recipe.id !== id) throw new Error(`Incompatible saved native creature ${id}`);
+      return recipe;
+    },
+  };
+}
+
 /** Baked native creature intake. Callers retain pose/policy, herd ownership, ecology and their save envelope.
  * Spawn draws use the supplied stream in scale/rig-seed/body-seed/memory order; reinstall never draws.
  * The registry owns kind/variant admission and structure-aware placement, not a shard's decision schedule. */
@@ -245,19 +276,10 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     after: (body: B, actor: NonNullable<B['actor']>, dt: number) => void }) => void;
   reinstall: (body: B, saved: Readonly<SimSnapshot>) => void;
 } {
-  const recipes = new Map<string, Map<string, AnimalSimSpec>>(), byId = new Map<string, B>();
-  for (const known of ports.specs) {
-    let group = recipes.get(known.kind);
-    if (group === undefined) { group = new Map(); recipes.set(known.kind, group); }
-    group.set(known.variant, known);
-  }
+  const recipes = nativeCreatureRecipes(ports.specs), byId = new Map<string, B>();
   const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), ports.heightfield);
   const floor = (x: number, z: number, fromY: number): number => sample(x, z, fromY).y;
-  const spec = (kind: string, variant: string): AnimalSimSpec => {
-    const known = recipes.get(kind)?.get(variant);
-    if (known === undefined) throw new Error(`Missing native creature recipe: ${kind}.${variant}`);
-    return known;
-  };
+  const spec = recipes.spec;
   const body = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number,
     range?: readonly [number, number], authored?: { seed: number; scale: number }) => {
     const scale = range ?? ports.variants.get(kind)?.find(row => row.id === variant)?.scale;
@@ -340,10 +362,7 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     after: (id, actor, dt) => { const item = byId.get(id); if (item?.actor === actor) callbacks.after(item, item.actor, dt); },
   }); };
   const reinstall = (item: B, saved: Readonly<SimSnapshot>): void => {
-    const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${item.id}`)?.state;
-    if (typeof contract !== 'string') throw new Error(`Missing saved native creature ${item.id}`);
-    const recipe = v.parse(Placed, JSON.parse(contract));
-    if (recipe.id !== item.id) throw new Error(`Incompatible saved native creature ${item.id}`);
+    const recipe = recipes.read(saved, item.id);
     item.recipe.yaw = recipe.yaw; item.recipe.seed = recipe.seed; item.recipe.scale = recipe.scale;
     Object.assign(item.recipe.at, recipe.at);
     const found = sample(recipe.at.x, recipe.at.z, recipe.at.y + 1);

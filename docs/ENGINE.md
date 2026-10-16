@@ -6539,3 +6539,13 @@ clock, RNG, actor memory or save state and allocates nothing per frame.
 Driftwood captain and sailor poses consume it. Nalati
 `species/balbal.ts#animateBalbal` is the named W3 user of the same layered
 arm/body/knee envelope; emergence, grind and tremor remain caller-owned.
+
+`game/shardfile/homeKeeper.nativeCreatureRecipes(specs, duplicates?)` is the
+shared baked kind/variant registry and saved `runtime.actor.<id>` reader.
+Duplicate policy defaults to `last`; `first` keeps the earliest baked spec.
+`spec(kind, variant)` refuses absent recipes. `read(saved, id)` checks the
+serialized actor identity, finite placement and kind/variant names before
+returning the decoded contract. It never spawns, draws RNG or mutates a
+roster. Pine uses first-match lookup across actors then parked recipes;
+the existing native creature intake retains last-match lookup. Each
+caller keeps its placement, hunt, pose and versioned continuation owners.

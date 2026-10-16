@@ -5,7 +5,7 @@ import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/Animal
 import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
 import { PINE_NATIVE_HUNT } from '../data/nativeHunt';
-import { creatureFloor as structureFloor } from '@wildshard/game/shardfile/homeKeeper';
+import { creatureFloor as structureFloor, nativeCreatureRecipes } from '@wildshard/game/shardfile/homeKeeper';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites } from '../combat/eliteRoster';
@@ -58,9 +58,6 @@ const Saved = v.strictObject({ version: v.literal(3), rng: Stream, clock: finite
   next: v.pipe(v.number(), v.integer(), v.minValue(BODY_COUNT)),
   bodies: v.pipe(v.array(v.strictObject({ id: v.string(), kind: v.string(), seen: v.boolean(), memory: Memory })), v.maxLength(LIVE_MAX)),
   herds: v.array(v.tuple([finite, finite])) });
-const Point = v.strictObject({ x: finite, y: finite, z: finite });
-/** The host's own recipe of a live spawn (SimHost.spawn's `runtime.actor.<id>` contract), checked before it is reinstalled. */
-const Recipe = v.looseObject({ id: v.string(), spec: v.looseObject({ kind: v.string(), variant: v.string() }), seed: finite, scale: finite, at: Point, yaw: finite });
 /**
  * Pine Hollow's creature manager in a renderer-free host (SF72), as the shipping AnimalManager builds and thinks it. The boot
  * roster comes from the one creature stream `Rng(1337 + 31)` in the page's exact order, every id, kind, variant, seed and scale
@@ -120,27 +117,20 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   const list: PineBody[] = [], parked: PineParked[] = [];
   const baked = new Map(bake.actors.map(a => [a.id, a] as const)), bakedParked = new Map(bake.parked.map(a => [a.id, a] as const));
   let next = 0, booted = false;
-  /** the bake's recipe for a kind and variant (every body of one kind and variant reads the same row) */
-  const recipeOf = (kind: string, variant: string): AnimalSimSpec => {
-    // the King's prewarm rows carry his own recipe and the thralls' (the page parks them; a live thrall or King reads them)
-    const row = bake.actors.find(a => a.kind === kind && a.variant === variant) ?? bake.parked.find(a => a.kind === kind && a.variant === variant);
-    if (row === undefined) throw new Error(`Pine bake has no ${kind} '${variant}' to spawn live`);
-    return row.spec;
-  };
+  const recipes = nativeCreatureRecipes([...bake.actors, ...bake.parked].map(row => row.spec), 'first');
   /** creatureFloor: the first WORLD hit under `fromY`; the terrain when it is the ground's heightfield (or nothing). */
   const creatureFloor = structureFloor(host, heightAt);
   const rolls = (kind: string, variant: string | string[] | undefined): { id: string; spec: AnimalSimSpec; seed: number; scale: number; variant: string } => {
     const r = spawnRolls(rng, kind, variant, list.some(b => b.actor.kind === kind && b.actor.rarity === 'legendary' && b.actor.alive), species);
     const id = `creature:${String(next++)}`;
     // a live spawn takes the next id past the load-time list, with the recipe the bake read for its kind and variant
-    if (booted) return { id, spec: recipeOf(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
+    if (booted) return { id, spec: recipes.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
     const row = baked.get(id) ?? bakedParked.get(id);
     if (row === undefined) {
       // only a herd body that rolled an elite's identity is missing from the load-time list (the boot swap retired it): its
       // recipe is that identity's, which the elite at its lair carries
-      const same = isEliteVariant(kind, r.variant.id) ? bake.actors.find(a => a.kind === kind && a.variant === r.variant.id) : undefined;
-      if (same === undefined) throw new Error(`Pine roster diverges from the page at ${id}`);
-      return { id, spec: same.spec, seed: r.seed, scale: r.scale, variant: r.variant.id };
+      if (!isEliteVariant(kind, r.variant.id)) throw new Error(`Pine roster diverges from the page at ${id}`);
+      return { id, spec: recipes.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
     }
     // the bake is the page's own roll: a divergent draw anywhere refuses the roster rather than simulating another world
     if (row.kind !== kind || row.variant !== r.variant.id || row.seed !== r.seed || row.scale !== r.scale) throw new Error(`Pine roster diverges from the page at ${id}`);
@@ -236,11 +226,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     // keeps out of it (the Antler King's: his species thinks nothing, the fight drives him)
     saved.entities.forEach(({ id }) => {
       if (host.entities.has(id)) return;
-      const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${id}`)?.state;
-      if (typeof contract !== 'string') throw new Error(`Missing saved Pine body ${id}`);
-      const checked = v.parse(Recipe, JSON.parse(contract)), b = kept.get(id), kind = b?.kind ?? checked.spec.kind;
-      if (checked.id !== id) throw new Error(`Incompatible saved Pine body ${id}`);
-      const a = materialize({ id, spec: recipeOf(kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, kind, b !== undefined, true);
+      const checked = recipes.read(saved, id), b = kept.get(id), kind = b?.kind ?? checked.spec.kind;
+      const a = materialize({ id, spec: recipes.spec(kind, checked.spec.variant), seed: checked.seed, scale: checked.scale, at: { ...checked.at }, yaw: checked.yaw }, kind, b !== undefined, true);
       if (b !== undefined) hunt.adopt(a, checked.at.x, checked.at.z); // its memory: the continuation overwrites it and the stream it drew from
     });
     if (keeper.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible Pine roster continuation');
