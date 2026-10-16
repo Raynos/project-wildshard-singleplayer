@@ -96,11 +96,11 @@ export class ForestAmbience {
     this.spots = [...(o.spots ?? [])];
     this.routing = new AmbienceMix(audio,profile,{
       random:audioRandom,scope:this.scope,...(o.scope===undefined?{}:{zoneScope:this.scope}),heightAt:o.heightAt,sea:0,
-      sample:{available:()=>this.sfx.available,load:id=>this.sfx.bed(requireAudioProfile(this.bedNames.get(id),'forest bed')),drop:id=>{this.sfx.dropBed(requireAudioProfile(this.bedNames.get(id),'forest bed'));}},
+      sample:{available:()=>this.sfx.catalogue.available,load:id=>this.sfx.catalogue.bed(requireAudioProfile(this.bedNames.get(id),'forest bed')),drop:id=>{this.sfx.catalogue.dropBed(requireAudioProfile(this.bedNames.get(id),'forest bed'));}},
       sampleLive:ids=>{this.diag.beds=ids;},
       floors:{cabins:o.cabins},sites:{cabins:CABIN_SITES},circles:{pond:()=>hasPond()?POND:undefined},spots:{spots:()=>this.spots},pointLists:{fire:()=>o.cabins?.firePits??[]},
       inputs:{rawNight:()=>this.night,rawDawn:()=>this.dawn,rawRain:()=>this.rain,thr:()=>this.thrallLevel()},
-      listener:(x,y,z,yaw)=>{this.sfx.setListener(x,y,z,yaw);},
+      listener:(x,y,z,yaw)=>{this.sfx.playback.listener(x,y,z,yaw);},
       shot:(family,options)=>{if(family!=='thrall_call')throw new Error('Unknown forest scheduled sample');return this.sfx.shot(family,options);},
       diagnostic:(id,value)=>{if(!(id in this.diag)||id==='beds'||id==='sends')throw new Error('Unknown forest diagnostic');Reflect.set(this.diag,id,value);},
       roomWeight:(id,value)=>{this.diag.sends[requireAudioProfile(this.roomNames.get(id),'forest room')]=value;},
