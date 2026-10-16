@@ -28,6 +28,30 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | W3a / W3b | Nalati / Nine play folders into runtime/ | L / L | Codex (W3) | open |
 | Z1 | Delete v1 monolith reader, legacy discovery, `runtime/source.ts`; ratchets become errors | S | Codex | open |
 
+## W1 spike rows (G457, 2026-10-16; design `progress/shard-platform/wasm-api-design-2026-10-16/README.md` §8)
+
+They start at the W2 close (05:00Z 10-17). KA1–KA4 touch only the platform, so a Codex lane that runs out of W2 work starts
+them early. The ids carry a `K` so they don't collide with the shardfile rows above. Each row's bar is the design's §8 proof column.
+
+| Row | What | Size | Lane | State |
+|---|---|---|---|---|
+| KA1 | `scriptAbiV1.ts` op tables (events, reads, commands, layout) + `scripts` section v1 schema + rules + admission contract parameter | M | Codex (sp-x1 overflow) | open |
+| KA2 | `DecisionHost`: IO block, rewind, platform slots, seeded per-binding stream, timers, event queue, 10 Hz scheduler, command transaction, `onFail`, zero-alloc hot path, metrics; coarse fuel (G457) | L | Codex | open |
+| KA3 | SDK `ws.ts` core lib, bindings + glue generator, `wildshard build` compiles and checks the AS budget, logical save records + `script:<id>` migration scope | M | Codex | open |
+| KA4 | Scenario harness `@wildshard/sdk/scriptScenario` + gate mapping | M | Codex | open |
+| KA5 | Engine moves library + `actors/moves` section (orbit, stalk, dive, climb, takeoff, rise/lie, ring-run, burrow); the raptor/phased patterns leave the engine (G457) | L | Codex, Opus checks motion | open |
+| KA6 | Game wiring: encounter/quest/zone bindings, events in, commands to mechanics, replication; one strike-targets host in the sim (G457) | M | Codex | open |
+| KA7 | Movers become an engine mechanic (G457's NEXT row) | M | Codex | open |
+| KS1 | `roc.as` + Roc row + moves + scenario; delete `raptor` and `ROC_BRAIN` | S | Opus | open |
+| KS2 | Sky sim out of `runtime/` (gust strike targets, winch mover `at-end` + `restoreFrom`, platform updraft; `fanGust.as` → held-melee row) | M | Codex | open |
+| KS3 | Gale wall → lane telegraph presenter row | S | Opus | open |
+| KS4 | `matriarch.as` + row + moves + scenario; delete `phased` | S | Opus | open |
+| KS5 | `skitterer.as` → v1 at 10 Hz on burrow / ring-run + scenario | S | Opus | open |
+| KS6 | Signal sim out of TS: drop the `world/build.ts` flag writes, lash cracks through strike targets, bucket `restoreFrom` | S | Codex | open |
+| KR1 | Ruler and report: AS column beside custom %, net lines, script metrics row | S | Codex | open |
+| KP1 | Milestone proof: both shards' sim from the built shardfile alone (`prove`), then the soak and frame floor | S | Opus | open |
+| KT2 | = T2 above (Template reference Wasm encounter), built on KA1–KA4 | M | Codex | open |
+
 ## Part A: open engineering, assigned
 
 | Row | What remains | Size | Lane |
