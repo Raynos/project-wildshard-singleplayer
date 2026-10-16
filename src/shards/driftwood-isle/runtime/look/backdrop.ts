@@ -14,7 +14,7 @@
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
 import { facetedDayBackdrop } from '../looks/facetedDayBackdrop';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from '../../data/skyLook';
-import source from '../../shard.config.ts';
+import source from '../../shard.config';
 import { DRIFTWOOD_FACETED_DAY } from '../../look/dayKeys';
 import { MIDDAY_SKY } from './stylizedSky';
 import cumulusPuffs from '../../data/cumulusPuffs.json' with { type: 'json' };

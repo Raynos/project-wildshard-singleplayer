@@ -7,7 +7,7 @@
  */
 import { facetedGroundPainter, prepareFacetedGround } from '../looks/facetedGround';
 import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
-import source from '../../shard.config.ts';
+import source from '../../shard.config';
 import { followToon } from './toon';
 import { GROUND_LOOK } from '../../data/groundLook';
 import { GROUND_FILES } from '../../data/groundFiles';
