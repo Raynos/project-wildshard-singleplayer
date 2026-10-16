@@ -44,7 +44,6 @@ import { SECTIONS } from '../sections';
 /** the stand-in's size: the elk ×2.6 → ~3.9 m at the shoulder, ~7 m to the antler tips */
 export const KING_SCALE = KING_COAT.scale[0];
 export const KING_ANTLER_SCALE = KING_COAT.traits.antlerScale;
-export const KING_HP = KING_COAT.hp;
 
 /** the coat (../data/antlerKingLook.ts `KING_COAT`): bark-dark hide, moss on the mane and the rump, pale weathered antlers */
 export const KING_VARIANT: VariantDef = {

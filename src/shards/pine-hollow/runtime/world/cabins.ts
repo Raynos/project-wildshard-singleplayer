@@ -27,8 +27,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins, CabinBuilding } from './homestead';
 import { pineModels } from './context';
-import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';
-import { HAMLET_MODELS as HAMLET } from '../models/hamletShed';
+import { CABIN_VARIANTS, HAMLET_MODELS as HAMLET, logCabin, useCabins } from '../models/logCabin';
 import { PROP_MODELS as PROPS } from '../models/woodenCrate';
 import { DRAWN_INTO_MODELS as DRAWN_INTO } from '../models/stoneFirePit';
 

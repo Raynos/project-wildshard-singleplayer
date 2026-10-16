@@ -1,7 +1,7 @@
 /**
- * The log cabin (E315 M2; PINE-HOLLOW-REMASTER): the Hollow's three, one variant each — the ranger's cabin in the Hollow,
- * the east cabin, the ridge cabin — as models, and the hamlet's five (./huntingLodge.ts, ./traderStall.ts,
- * ./millersHouse.ts, ./watermill.ts, ./hamletShed.ts) through the same two calls.
+ * Pine Hollow's log buildings as rows (E315 M2; PINE-HOLLOW-REMASTER PH-B3 / C6, G465): the Hollow's three cabins, one
+ * variant each — the ranger's cabin in the Hollow, the east cabin, the ridge cabin — and the mill hamlet's five buildings
+ * (the lodge, the trader's stall, the miller's house, the watermill, the shed), one model each, through the same two calls.
  *
  * G285: every log building is an offline bake (../generators/logCabin.ts builds it where it stands, the page assembles the
  * record, ../world/cabinBake.ts). The homestead (../world/homestead.ts `Cabins.build`) assembles each building; `place`
@@ -12,7 +12,7 @@
  */
 import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
+import { defineModel, type ModelBuild, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { UnitParts, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { Cabins } from '../world/homestead';
 import { CABIN_ROWS, LogBuilding, NO_OWNER } from '../world/cabinBake';
@@ -92,21 +92,29 @@ export function buildingSpecimen(ctx: ModelContext, id: string): ModelBuild {
   return cb.root;
 }
 
-// ───────────────────────────── the log cabin ─────────────────────────────
+// ───────────────────────────── the buildings as rows ─────────────────────────────
 
-export const CABIN_VARIANTS = ['hollow', 'east', 'ridge'] as const;
+/** a row with variants is the cabins (bake ids `cabin-<site + 1>`); one without is a hamlet building (its bake id) */
+const ROWS: readonly { readonly id: string; readonly name: string; readonly variants?: readonly (readonly [string, string])[] }[] = [
+  { id: 'log-cabin', name: 'Log cabin', variants: [['hollow', "The ranger's (the Hollow)"], ['east', 'East'], ['ridge', 'Ridge']] },
+  { id: 'hunting-lodge', name: 'Hunting lodge' }, { id: 'trader-stall', name: "Trader's stall" },
+  { id: 'millers-house', name: "Miller's house" }, { id: 'watermill', name: 'Watermill' }, { id: 'hamlet-shed', name: 'Hamlet shed' },
+];
 
 export interface LogCabinParams { readonly site: number }
+type Building = ModelDef<LogCabinParams>;
 
-export const logCabin = defineModel<LogCabinParams>({
-  id: 'pine-hollow/log-cabin', name: 'Log cabin', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/pine-hollow/models/logCabin.ts', surface: 'wood',
-  defaults: { site: 0 },
-  variants: [
-    { id: 'hollow', label: "The ranger's (the Hollow)", params: { site: 0 } },
-    { id: 'east', label: 'East', params: { site: 1 } },
-    { id: 'ridge', label: 'Ridge', params: { site: 2 } },
-  ],
-  build: (ctx, p) => buildingSpecimen(ctx, `cabin-${p.site + 1}`),
-  weld: (ctx, p) => builtBuilding(ctx, `cabin-${p.site + 1}`),
-});
+/** Every log building's model by its row id: `place` welds the hamlet's five into one set, dropped with distance. */
+export const HAMLET_MODELS: Readonly<Record<string, Building>> = Object.fromEntries(ROWS.map((r) => {
+  const bakeId = (site: number): string => (r.variants ? `cabin-${site + 1}` : r.id);
+  return [r.id, defineModel<LogCabinParams>({
+    id: `pine-hollow/${r.id}`, name: r.name, category: 'buildings', pipeline: 'code', file: 'src/shards/pine-hollow/runtime/models/logCabin.ts', surface: 'wood', defaults: { site: 0 },
+    ...(r.variants ? { variants: r.variants.map(([id, label], site) => ({ id, label, params: { site } })) } : {}),
+    build: (ctx, p) => buildingSpecimen(ctx, bakeId(p.site)), weld: (ctx, p) => builtBuilding(ctx, bakeId(p.site)),
+  })];
+}));
+const cabin = HAMLET_MODELS['log-cabin'];
+if (cabin === undefined) throw new Error('[cabins] no log-cabin row');
+export const logCabin: Building = cabin;
+/** the cabins' variant ids by site */
+export const CABIN_VARIANTS: readonly string[] = ROWS[0]?.variants?.map(([id]) => id) ?? [];

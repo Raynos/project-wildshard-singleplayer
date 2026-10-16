@@ -14,7 +14,6 @@ const reader = createNativeBakeReader(baked, { label: 'Pine', resolution: PINE_G
 /** Strict native world with the original King hit volumes and tree shelter metadata. */
 export type PineBake = ReturnType<typeof reader.read>;
 export type PineSolid = PineBake['solids'][number];
-export type PineBakedActor = PineBake['actors'][number];
 /** Independent collider admission uses the same original shape and query-owner law. */
 export const parsePineSolid = reader.solid;
 /** Decode once; invalid products never publish a cached value. */
