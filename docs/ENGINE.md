@@ -6903,6 +6903,13 @@ Schemas. Unlisted files, symlinks, unknown majors, changed section bytes
 and understated costs refuse. Logical blob names remain in the index.
 Validation receipts pin the validator, assembled source and exact index.
 
+The format-2 writer adds `gridReady` structural evidence to that same
+receipt after full on-disk asset admission. The defining
+`format/gridReadiness.structuralGridEvidence` records L0 baked-tile presence,
+four edge profiles, all four y=0 midpoint openings and their full 8 x 15 m
+terrain/mesh/socket/prop/collider/water clearance, and the HUD palette accent.
+
+
 Runtime copies may import only installed public exports of
 `@wildshard/engine`, `@wildshard/game`, `@wildshard/sdk`,
 `@wildshard/format`, exported Three.js modules and the Valibot root, or

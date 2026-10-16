@@ -7,6 +7,7 @@ import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseO
 import { decisionModuleContracts, decisionScriptsFromSections, type ScriptContract } from '@wildshard/format/scriptContract';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { structuralGridEvidence } from '@wildshard/format/gridReadiness';
 import { assetCost, offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { isTerrainTileData } from '@wildshard/format/terrainTileBytes';
@@ -121,7 +122,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   put(destination,'shard.json',jsonBytes(index));
   validateOutputProduct(destination);
   const cost = preflightDeclaredCosts(source,offlineMemoryAdmission('warn')).worst;
-  put(destination,'validation.json',jsonBytes({revision:validationRevision(),sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost}));
+  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,gridReady:structuralGridEvidence(source)}));
   return index;
 }
 /** Validate format, exact file inventory, bytes/kinds and platform/custom schemas.

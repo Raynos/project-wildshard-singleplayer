@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./gridReadiness": "./gridReadiness.ts",
     "./actorMoves": "./actorMoves.ts",
     "./scriptContract": "./scriptContract.ts",
     "./decisionScripts": "./decisionScripts.ts",

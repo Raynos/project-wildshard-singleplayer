@@ -1,7 +1,7 @@
 import { afterEach, expect, it } from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- The output validator fixture owns its generated directory.
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync, existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files inside the owned output directory.
 import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -23,6 +23,10 @@ it('writes deterministic sections and revalidates a custom schema from disk',()=
  writeOutputProduct(shard,new Map(),first,{custom,platform});writeOutputProduct(shard,new Map(),second,{custom,platform});
  expect(readFileSync(resolve(first,'shard.json'))).toEqual(readFileSync(resolve(second,'shard.json')));
  expect(validateOutputProduct(first).shard).toEqual(shard);
+ const evidence:unknown=JSON.parse(readFileSync(resolve(first,'validation.json'),'utf8'));
+ expect(evidence).toMatchObject({indexHash:hashImmutableBytes(readFileSync(resolve(first,'shard.json'))),gridReady:{version:1,criteria:{
+   bakedTiles:{verdict:'fail'},edgeProfile:{verdict:'pass'},fourEntryways:{verdict:'pass'},hudAccent:{verdict:'pass'},
+ }}});
  const path=resolve(first,'schemas/custom/wind.schema.json');writeFileSync(path,'{}\n');
  expect(()=>validateOutputProduct(first)).toThrow(/hash|size/u);
 });
@@ -55,4 +59,11 @@ it('allows only installed public runtime packages and copied TypeScript targets'
  expect(()=>validateRuntimeImports(directory,'runtime/index.ts',"import x from '../data/x';")).toThrow();
  expect(()=>validateRuntimeImports(directory,'runtime/index.ts',"import x from './other.json';")).toThrow();
  expect(()=>validateRuntimeImports(directory,'runtime/index.ts',"import('node:fs');")).toThrow();
+});
+
+it('does not publish grid evidence before entry admission succeeds',()=>{
+ const shard=source(),directory=output();
+ const invalid={...shard,entryways:shard.entryways.map(({edge,at})=>({edge,at,width:7}))};
+ expect(()=>writeOutputProduct(invalid,new Map(),directory)).toThrow(/entryway|8 metres/u);
+ expect(existsSync(resolve(directory,'validation.json'))).toBe(false);
 });
