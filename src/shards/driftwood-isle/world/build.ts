@@ -26,7 +26,7 @@ import { hut as hutModel, hutOrigin, hutLayout } from '../models/hut';
 import { lookout as lookoutModel, lookoutOrigin, lookoutLayout } from '../models/lookout';
 import { Wreck } from './Wreck';
 import { Shrine } from './Shrine';
-import { Bushes } from './Bushes';
+import { placeIslandBushes } from './Bushes';
 import { Gulls } from './Gulls';
 import { Trailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
@@ -51,7 +51,7 @@ type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? Autho
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Awaited<ReturnType<typeof placeShoreBoulders>> | null;
-  hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Bushes | null;
+  hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
   gulls: Gulls | null; trailside: Trailside | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Palms | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
@@ -152,7 +152,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await slice();
   if (FOLIAGE.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage: AuthoredFoliage<typeof FOLIAGE.tiers.phone> = FOLIAGE.tiers[game.tier];
-  const bushes = await stages.build('Bushes', () => new Bushes(sky).placeSliced(foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
+  const bushes = await stages.build('Bushes', () => placeIslandBushes(sky, foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stages.build('Gulls', () => new Gulls().build({
     perches: [
