@@ -238,7 +238,7 @@
   "bindings": {
     "accent": "sand",
     "budgets": {
-      "module": "./budgets",
+      "module": "./data/budgets",
       "export": "BUDGETS"
     }
   }

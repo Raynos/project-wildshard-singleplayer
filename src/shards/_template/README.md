@@ -5,15 +5,15 @@ shardfile project; see [SHARDS.md](../../../docs/SHARDS.md)
 and [SHARDFILE.md](../../../docs/SHARDFILE.md). Install `@wildshard/sdk`, edit the
 identity via the documented `shard.config.ts` entry (follow its import to
 `generators/product.ts`), then run `wildshard build <folder>` and
-`wildshard validate <folder>`. The prepared copy includes its immutable assets. Cheap CPU outputs are
+`wildshard validate out/_template`. The prepared copy includes its immutable assets. Cheap CPU outputs are
 regenerated from retained authoring sources through SHA256-pinned cache jobs;
 curated skins and the frozen map raster remain author inputs.
 
 `data/` declares terrain, props, exported creature skins, brains, encounters, items,
 water, look, HUD, audio, ledger and interactions. `behaviour/` holds admitted numeric
-AssemblyScript for the door and item hooks; `quests/` declares the adventure. Stable
+AssemblyScript for the door and item hooks; `data/quests.ts` declares the adventure. Stable
 state-field IDs and item handles preserve the script ABI across declaration reorder.
-`generators/` and `layout.ts` are build-time source metadata, never client runtime. `generators/cell.ts` fills the
+`generators/` and `data/layout.ts` are build-time source metadata, never client runtime. `generators/cell.ts` fills the
 500 m cell (G220): a road from each entry socket to a square loop around the yard, a set piece just inside each entry
 (north gate, south container yard, east signal mast, west covered drive), four hub corners outside the loop and lamp
 posts, all dev-map boxes on ground the terrain levels to y = 0. `generators/districts.ts` (pass 2) fills the plane between
@@ -25,7 +25,17 @@ The first-party manifest keeps the canonical `_template` slug, grey picker art a
 `template-solo` save identity, and points at `/shardfiles/_template/shard.json`.
 The existing Game admits the product before its normal world/kit/play stages, sharing
 one player, physics world, fixed-step driver and HUD. There is no custom runtime chunk.
-A copied author project does not need the platform picker manifest or budget metadata.
+`shard.config.ts` includes build-time `data/card.ts` metadata and an explicit
+`output` block for named blob inputs. Budgets live in `data/` too. Root
+`manifest.json` is a temporary discovery bridge only: P3 catalog activation
+removes it, together with the generated discovery module. Runtime code never
+imports `data/card.ts`. Keep bridge metadata synchronized until that switch.
+
+A copied author project does not need a custom runtime. If one is necessary,
+use `runtime/index.ts`, `runtime/sections.ts` for custom-section schemas and
+`runtime/const.ts` for local constants; every runtime import stays inside that
+folder or names a public platform module. Read content through the admitted
+product. Build-time code never imports `runtime/`.
 
 Four native proofs under `test/proof/_template/` cover boot, 10,000 fixed ticks,
 checkpoint replay and ledger dedupe. Weapon input/replay and HUD regressions use the
@@ -36,7 +46,7 @@ The complete author-only producer is `generators/build-product.mjs`. It
 uses the same declaration, admission and immutable writer as the normal
 SDK build. `assets/map.webp` and `data/productMap.json` freeze the authored
 map raster and its official stamp; refresh them together after an official
-map bake. The live stale-map gate still checks `look/map.baked.json` and
+map bake. The live stale-map gate still checks `data/productMap.json` and
 the public raster. The generation catalogue pins every complete product byte for restoration.
 Output removal still requires a fresh complete-product clean room, preserving
 every admission refusal and the official stale-map gate.

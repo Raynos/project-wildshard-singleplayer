@@ -58,18 +58,18 @@ Before marking a shard done:
 ## Quickstart
 
 Run `pnpm gen` in this repository before copying `src/shards/_template/`.
-Alternatively, run `wildshard new <folder> <slug>`. Install the SDK,
+Alternatively, run `wildshard new <folder> [slug]`. Install the SDK,
 then build and validate before adding content. Add one bounded tile/library/script
 slice at a time and check its report row before the next slice. Build-time generators
 may allocate freely; shipped data and scripts use the admitted platform systems.
 
 Shared build-time packs use the [commons catalogue](COMMONS.md); runtime imports cannot reach commons code.
 
-SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`, `quests/`,
+SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`,
 `assets/` and optional trusted transition `runtime/`. A pure shardfile project requires
 `shard.config.ts` and `README.md`; it does not require `plugin.ts`. The template is a complete declaration-only SDK project. Its manifest supplies picker
 metadata and points at its built shardfile; there is no template runtime chunk.
-Build output goes in git-ignored `public/shardfiles/`. Placement is platform data in
+Build output goes in git-ignored `out/<slug>/`: a v2 index, JSON sections and named hash blobs. Placement is platform data in
 `src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
 and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
 
@@ -209,61 +209,32 @@ cp -R test/shards/_template test/shards/<slug>        # the headless contract te
 
 Then, in the copy:
 
-1. `manifest.ts`: set `slug: '<slug>'` (it must equal the folder name), `name`, `blurb`, `biome`, a fresh `seed`,
-   `order` (after the existing shards), and `status: 'experimental'`. Rename `TEMPLATE` and the plugin class.
+1. Edit identity and picker metadata in `data/card.ts`, keeping the temporary root `manifest.json` discovery
+   bridge synchronized until P3 catalog activation. A fresh `wildshard new` project starts with only a build-time identity.
 2. Rename every `template.*` id (systems, events, actions, rows, save keys, Debug rows) to your own prefix. Ids are
    global: two shards with the same row id collide.
-3. Delete what you won't use. The template has one of everything on purpose; a real shard lists only the mechanisms
-   and verbs it runs.
-4. `pnpm gen --shard=<slug>` regenerates `src/game/shard/shards.generated.ts` (git-ignored) and only your lint vocabulary entry.
-   Your shard is now in the registry. `node scripts/gen-shards.mjs --shard=<slug> --check` checks that scoped entry and the runtime tables.
-5. `pnpm exec tsc --noEmit -p .` and `pnpm exec vitest run test/shards/<slug>` must pass before you go on.
+3. Keep only the platform rows and admitted behaviors your world uses; quest graphs live in `data/`.
+   `shard.config.ts` assembles the declaration and its `output` block names source blobs and emitted sections.
+   Build to `out/<slug>/`, then validate it.
+4. New projects have no custom runtime. If needed, add client-only `runtime/index.ts`, `runtime/sections.ts`
+   and `runtime/const.ts`; runtime imports never reach shard source data or assets.
+5. Build, run focused tests and boot standalone before publishing. The catalog/registry build owns app discovery;
+   build-time data never enters it as executable imports.
 
-A folder whose name starts with `_` is hidden: it gets no title card and no layout check. Yours must not.
+Template's underscore keeps it hidden from the ordinary picker; its reference source layout is still checked.
 
-### Small check exports on the shared machine
+### Checks on the shared machine
 
-For typecheck, lint and unit tests, export committed code without copying the large asset directories.
-Run this from the repository root; it creates a fresh private directory, records the exact HEAD, and
-symlinks `public`, `art`, `progress` and `node_modules` to the checkout:
-
-```bash
-python3 - <<'PY'
-from pathlib import Path
-import subprocess, tarfile, tempfile
-
-source = Path.cwd()
-sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-target = Path(tempfile.mkdtemp(prefix='wildshard-check-'))
-linked = ['public', 'art', 'progress', 'node_modules']
-paths = [p for p in subprocess.check_output(
-    ['git', 'ls-tree', '--name-only', sha], text=True).splitlines() if p not in linked]
-archive = subprocess.Popen(['git', 'archive', sha, '--', *paths], stdout=subprocess.PIPE)
-with tarfile.open(fileobj=archive.stdout, mode='r|') as tree:
-    tree.extractall(target)
-if archive.wait() != 0:
-    raise RuntimeError('check export failed')
-for name in linked:
-    (target / name).symlink_to(source / name, target_is_directory=True)
-(target / 'base-sha').write_text(sha + '\n')
-print(target)
-PY
-```
-
-Change directory to the printed path. Copy only the files you authored into that export when checking
-an uncommitted candidate, then initialize its ignored generated tables and run the checks:
+Check committed candidates in the shared build mirror; never copy or export the
+repository. For example:
 
 ```bash
-pnpm gen
-pnpm exec tsc --noEmit -p .
-pnpm exec oxlint
-pnpm exec vitest run test/shards/<slug>
+node scripts/build-mirror.mjs run HEAD --slot check3 -- pnpm exec tsc --noEmit
 ```
 
-This avoids the multi-gigabyte `public/` copy. The linked assets are the shared checkout's files;
-do asset generation in your own lane. A slim check export is unit-check evidence, not an isolated asset
-snapshot for deployment or parity. Runtime checks use a committed candidate SHA:
-`node scripts/parity.mjs --export=<candidate-sha> --lane=m5 --shards=<slug> --tiers=phone`.
+Use a focused test file for the changed behavior. For a standalone boot use the
+stock `scripts/serve-build.sh --rev SHA --shard SLUG`; it releases the mirror
+before serving. Every browser goes through `scripts/browser-lane.sh`.
 
 ## 2. The folder layout
 
@@ -271,6 +242,31 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 `src/shards/**`. A file or folder outside this list fails it.
 
 <!-- generated:shard-layout (node scripts/gen-shard-layout-doc.mjs, from lint/shard-layout.json) -->
+**Reference source layout (new projects and Template)**
+
+Everything outside optional `runtime/` is build-time. The product is `out/<slug>/`, outside the source folder.
+
+| Required file | What it holds |
+|---|---|
+| `shard.config.ts` | build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/ |
+| `README.md` | what the shard declares, its custom code and why, budgets, look, open work (its plan rows) |
+
+| Folder | What goes in it |
+|---|---|
+| `data/` | build-time TypeScript authoring rows, layouts, schemas and card metadata; evaluated by the SDK into output JSON, never imported by runtime/ |
+| `generators/` | build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional) |
+| `behaviour/` | AssemblyScript entity and director scripts |
+| `assets/` | source assets consumed by the build |
+| `blender/` | the shard's retained Blender build sources and offline rig checks (build-time only; optional) |
+| `runtime/` | optional client-only trusted TS: index.ts, const.ts and sections.ts; imports only its own runtime/ or public platform modules and reads the admitted output |
+| `test/` | optional source tests; never copied into the shipped product |
+
+`runtime/sections.ts` defines custom-section schemas; `runtime/const.ts` holds local constants. Pure-output projects, including Template, have no runtime folder.
+
+Template temporarily retains only root `manifest.json` for discovery; P3 catalog activation removes that bridge.
+
+**Transition layout (existing shards only)**
+
 **Required files**
 
 | File | What it holds |
@@ -290,7 +286,9 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `strings.ts` | every player-facing string (§11) |
 | `layout.ts` | every coordinate: sites, trails, spawn points |
 | `debug.ts` | your Debug rows |
-| `shard.config.ts` | the SDK project source that builds shard.json (SHARD-PLATFORM SF7b) |
+| `shard.config.ts` | build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/ |
+| `manifest.json` | temporary authored discovery metadata for transition shards; catalog activation replaces it with emitted ui/level |
+| `discovery.generated.ts` | temporary generated discovery bridge; never hand-edit or commit it |
 
 **Folders**
 
@@ -313,8 +311,8 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `playground/` | playgrounds (optional) |
 | `design/` | the shard's design pack: `design.md` and `spec.json` (optional; E406) |
 | `generators/` | build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional) |
-| `data/` | the shard's content rows and layouts as serialisable values (JSON-able, no functions, no three.js or DOM): `sim-no-render` and the row ratchet hold it (SHARD-PLATFORM SP5; optional) |
-| `runtime/` | the shard's own runtime code that no approved system covers yet: the custom share the 80/20 split counts (SHARD-PLATFORM SP5; optional) |
+| `data/` | build-time TypeScript authoring rows, layouts, schemas and card metadata; evaluated by the SDK into output JSON, never imported by runtime/ |
+| `runtime/` | optional client-only trusted TS: index.ts, const.ts and sections.ts; imports only its own runtime/ or public platform modules and reads the admitted output |
 | `behaviour/` | AssemblyScript entity and director scripts |
 | `quests/` | serialisable quest graphs and dialogue trees |
 | `assets/` | source assets consumed by the build |

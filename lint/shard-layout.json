@@ -126,9 +126,12 @@
     "playground/": "playgrounds (optional)",
     "design/": "the shard's design pack: `design.md` and `spec.json` (optional; E406)",
     "generators/": "build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional)",
-    "data/": "the shard's content rows and layouts as serialisable values (JSON-able, no functions, no three.js or DOM): `sim-no-render` and the row ratchet hold it (SHARD-PLATFORM SP5; optional)",
-    "runtime/": "the shard's own runtime code that no approved system covers yet: the custom share the 80/20 split counts (SHARD-PLATFORM SP5; optional)",
-    "shard.config.ts": "the SDK project source that builds shard.json (SHARD-PLATFORM SF7b)",
+    "data/": "build-time TypeScript authoring rows, layouts, schemas and card metadata; evaluated by the SDK into output JSON, never imported by runtime/",
+    "runtime/": "optional client-only trusted TS: index.ts, const.ts and sections.ts; imports only its own runtime/ or public platform modules and reads the admitted output",
+    "test/": "optional source tests; never copied into the shipped product",
+    "shard.config.ts": "build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/",
+    "manifest.json": "temporary authored discovery metadata for transition shards; catalog activation replaces it with emitted ui/level",
+    "discovery.generated.ts": "temporary generated discovery bridge; never hand-edit or commit it",
     "behaviour/": "AssemblyScript entity and director scripts",
     "quests/": "serialisable quest graphs and dialogue trees",
     "assets/": "source assets consumed by the build",
@@ -137,6 +140,12 @@
   "dataHomes": {
     "budgets.ts": "data/budgets.ts",
     "budgetCeilings.ts": "data/budgetCeilings.ts"
+  },
+  "sourceLayout": {
+    "requiredFiles": ["shard.config.ts", "README.md"],
+    "allowedFiles": [],
+    "folders": ["data", "generators", "behaviour", "assets", "blender", "runtime", "test"],
+    "bridges": { "_template": ["manifest.json"] }
   },
   "shardfileRequiredFiles": [
     "shard.config.ts",

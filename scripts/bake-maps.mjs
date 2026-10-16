@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
-import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapStampPath, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
 
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
 const root = resolve(import.meta.dirname, '..');
@@ -29,7 +29,7 @@ const only = option('shards')?.split(',');
 const keep = option('keep');
 const TILE = 1000, HEIGHT = 900, OUT = 1000;
 
-const stampPath = (dir) => join(dir, 'look', 'map.baked.json');
+const stampPath = mapStampPath;
 const todo = mapShards(root).filter(({ slug, dir }) => {
   // G320: a map with "from" (its world GLB) is baked by scripts/bake-map-glb.mjs in Node, never from the game page
   if (mapSettings(dir).from !== null) return false;
@@ -182,7 +182,7 @@ try {
       writeFileSync(colourPng, Buffer.from(out.colour.slice(out.colour.indexOf(',') + 1), 'base64'));
       if (typeof heightResult === 'string') writeFileSync(heightPng, Buffer.from(heightResult.slice(heightResult.indexOf(',') + 1), 'base64'));
       const imageDir = join(root, 'public/assets', slug, 'map'), webp = join(imageDir, 'top.webp');
-      mkdirSync(imageDir, { recursive: true }); mkdirSync(join(dir, 'look'), { recursive: true });
+      mkdirSync(imageDir, { recursive: true });
       if (settings.style === null || typeof heightResult !== 'string') throw new Error(`${slug}: no look/map.json "style" (the colour table) or no height pass`);
       writeFileSync(stylePath, JSON.stringify(settings.style));
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPng, heightPng, stylePath, webp, String(OUT)], { stdio: 'inherit' });

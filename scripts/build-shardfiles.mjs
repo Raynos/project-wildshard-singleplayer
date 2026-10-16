@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
-import { mapTilesHash, verifyMapPixels } from './map-hash.mjs';
+import { mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
@@ -35,7 +35,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const project = resolve(projects, entry.name);
     if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) continue;
     const started = performance.now();
-    const stamp = resolve(project, 'look/map.baked.json');
+    const stamp = mapStampPath(project);
     if (!existsSync(stamp) || JSON.parse(readFileSync(stamp, 'utf8')).tilesHash !== mapTilesHash(project)) stale.push(entry.name);
     const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
     if (map !== undefined && map.image !== `/assets/${entry.name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${entry.name}`);

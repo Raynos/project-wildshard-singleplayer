@@ -14,7 +14,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { NodeIO } from '@gltf-transform/core';
-import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapStampPath, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
 
 const SIDE = 2000, OUT = 1000, PPM = SIDE / MAP_METRES, BG = [0.16, 0.18, 0.2];
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -96,7 +96,7 @@ export async function rasterizeGlb(glbPath, clip) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const root = resolve(import.meta.dirname, '..');
   const only = option('shards')?.split(','), keep = option('keep');
-  const stampPath = (dir) => join(dir, 'look', 'map.baked.json');
+  const stampPath = mapStampPath;
   const todo = mapShards(root).filter(({ slug, dir }) => {
     if (mapSettings(dir).from === null) return false;
     if (only) return only.includes(slug);

@@ -20,7 +20,17 @@ export function layoutBlock(layout) {
     if (typeof text !== 'string' || text.trim() === '') throw new Error(`lint/shard-layout.json: ${name} has no description (describe["${name}"])`);
     return `| \`${name}\` | ${text} |`;
   };
-  return [OPEN, '**Required files**', '', '| File | What it holds |', '|---|---|', ...layout.requiredFiles.map(row), '',
+  const source = layout.sourceLayout;
+  const reference = source === undefined ? [] : [
+    '**Reference source layout (new projects and Template)**', '',
+    'Everything outside optional `runtime/` is build-time. The product is `out/<slug>/`, outside the source folder.', '',
+    '| Required file | What it holds |', '|---|---|', ...source.requiredFiles.map(row), '',
+    '| Folder | What goes in it |', '|---|---|', ...source.folders.map(folder => row(`${folder}/`)), '',
+    '`runtime/sections.ts` defines custom-section schemas; `runtime/const.ts` holds local constants. Pure-output projects, including Template, have no runtime folder.', '',
+    'Template temporarily retains only root `manifest.json` for discovery; P3 catalog activation removes that bridge.', '',
+    '**Transition layout (existing shards only)**', '',
+  ];
+  return [OPEN, ...reference, '**Required files**', '', '| File | What it holds |', '|---|---|', ...layout.requiredFiles.map(row), '',
     '**Allowed files**', '', '| File | What it holds |', '|---|---|', ...layout.allowedFiles.map(row), '',
     '**Folders**', '', '| Folder | What goes in it |', '|---|---|', ...layout.folders.map((f) => row(`${f}/`)), CLOSE].join('\n');
 }

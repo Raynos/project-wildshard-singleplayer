@@ -65,7 +65,10 @@ export async function runCli(args: readonly string[], options: { readonly runtim
     const result = await synthProject(resolve(input));
     console.info(`synthesized ${result.path} (${result.hash})`); return;
   }
-  if (command === 'new') { newProject(resolve(input), input.split('/').reverse().find((part) => part !== '') ?? ''); return; }
+  if (command === 'new') {
+    if (buildFlag !== undefined) throw new Error('usage: wildshard new <project> [slug]');
+    newProject(resolve(input), output ?? input.split('/').reverse().find((part) => part !== '') ?? ''); return;
+  }
   if (command === 'dev') {
     const port = output === undefined ? 0 : Number(output);
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('dev port must be 0..65535');

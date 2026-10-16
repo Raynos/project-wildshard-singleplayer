@@ -36,6 +36,15 @@ export const DEFAULT_MAP_INPUTS = ['shard.config.ts', 'layout.ts', 'world', 'gen
 /** the full cell the bake covers: CHUNK_SIZE (src/engine/core/config.ts) metres square, centred on the origin */
 export const MAP_METRES = 500;
 
+export function mapSettingsPath(shardDir) {
+  const source = join(shardDir, 'data', 'map.json');
+  return existsSync(source) ? source : join(shardDir, 'look', 'map.json');
+}
+/** Source-layout projects keep their stamp in data/; old projects retain look/. */
+export function mapStampPath(shardDir) {
+  return existsSync(join(shardDir, 'data', 'map.json')) ? join(shardDir, 'data', 'productMap.json') : join(shardDir, 'look', 'map.baked.json');
+}
+
 /**
  * A shard's own map settings, src/shards/<slug>/look/map.json (optional): "inputs" (paths that place its world, in place of
  * DEFAULT_MAP_INPUTS) and "hide" (mesh name patterns the bake leaves out, a trailing * a prefix: a cloud sea over the
@@ -50,7 +59,7 @@ export const MAP_METRES = 500;
  * @param {string} shardDir @returns {{inputs: string[], hide: string[], heightHide: string[], keep: string[], hideStanding: string[], clipBelow: number | null, clipAbove: number | null, style: ({kind: string} & Record<string, unknown>) | null, from: string | null}}
  */
 export function mapSettings(shardDir) {
-  const own = join(shardDir, 'look', 'map.json');
+  const own = mapSettingsPath(shardDir);
   if (!existsSync(own)) return { inputs: DEFAULT_MAP_INPUTS, hide: [], heightHide: [], keep: [], hideStanding: [], clipBelow: null, clipAbove: null, style: null, from: null };
   const parsed = JSON.parse(readFileSync(own, 'utf8'));
   const list = (key) => {
@@ -76,7 +85,7 @@ export const mapInputs = (shardDir) => mapSettings(shardDir).inputs;
  * @param {string} shardDir @returns {string[]} */
 export function mapInputRoots(shardDir) {
   const root = resolve(shardDir);
-  return [...mapInputs(root), 'look/map.json'].map(input => resolve(join(root, input)));
+  return [...mapInputs(root).map(input => resolve(join(root, input))), resolve(mapSettingsPath(root))];
 }
 
 /** @param {string} dir @param {string[]} out */
@@ -121,10 +130,11 @@ export async function writeMapStamp(shardDir, image, stamp) {
   const authoredImage = join(shardDir, 'assets', 'map.webp');
   if (existsSync(companion) !== existsSync(authoredImage)) throw new Error(`${shardDir}: incomplete authored map companion`);
   const bytes = `${JSON.stringify(stamp, null, 2)}\n`;
-  mkdirSync(join(shardDir, 'look'), { recursive: true });
+  const stampPath = mapStampPath(shardDir);
+  mkdirSync(join(shardDir, stampPath === companion ? 'data' : 'look'), { recursive: true });
   if (existsSync(companion)) {
     copyFileSync(image, authoredImage);
     writeFileSync(companion, bytes);
   }
-  writeFileSync(join(shardDir, 'look', 'map.baked.json'), bytes);
+  writeFileSync(stampPath, bytes);
 }

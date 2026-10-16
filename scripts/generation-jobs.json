@@ -10103,8 +10103,7 @@
         "src/shards/_template/data/ui.ts",
         "src/shards/_template/data/water.ts",
         "src/shards/_template/generators/build-product.mjs",
-        "src/shards/_template/generators/product.ts",
-        "src/shards/_template/quests/adventure.ts"
+        "src/shards/_template/generators/product.ts"
       ],
       "outputs": [
         "src/shards/_template/.wildshard/product/0176cb7141da53ad785f70bef6b889ac5370ec6d0026a340a78ae4834dd94658",
@@ -10447,7 +10446,7 @@
         "src/shards/_template/.wildshard/product/f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c": "f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c",
         "src/shards/_template/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e": "faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/_template/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31": "fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
-        "src/shards/_template/.wildshard/product/shard.json": "d01716c3dc26207f3f867067a3d66151dd1154a86276f09103943592726fb9aa"
+        "src/shards/_template/.wildshard/product/shard.json": "b4d6f62c6d7a274f3688370fb4fd111f72254429e5430d9e6dd5f6b313b01dbd"
       }
     },
     {

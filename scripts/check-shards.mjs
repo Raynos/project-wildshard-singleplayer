@@ -17,6 +17,15 @@ export function checkShardLayout(entries, config, readManifest, runtimeBaseline 
   for (const [slug, names] of Object.entries(entries)) {
     const primary = frozen.shards[slug]?.primary ?? slug;
     if (names.includes('runtime/') && !Object.hasOwn(runtimeBaseline, primary)) failures.push(`${slug}/runtime/: custom runtime is reserved for transition shards in lint/shard-platform.json`);
+    const sourceLayout = config.sourceLayout;
+    if (sourceLayout && names.includes('shard.config.ts') && (slug === '_template' || !names.some(name => ['manifest.ts', 'manifest.json'].includes(name)))) {
+      const allowed = new Set([...sourceLayout.requiredFiles, ...sourceLayout.allowedFiles, ...sourceLayout.folders.map(name => `${name}/`), ...(sourceLayout.bridges[slug] ?? [])]);
+      // dataHomes are synthetic nested entries, not extra source-root files.
+      // Discovery is generated only while the explicit manifest bridge exists.
+      for (const name of names) if (!allowed.has(name) && !dataHomes.has(name) && !(name === 'discovery.generated.ts' && allowed.has('manifest.json'))) failures.push(`${slug}/${name}: outside the standalone source layout`);
+      for (const name of sourceLayout.requiredFiles) if (!names.includes(name)) failures.push(`${slug}: missing required ${name}`);
+      continue;
+    }
     if (slug.startsWith('_')) continue;
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
     const legacy = config.legacy[primary] ?? { entries: [], missing: [] };
@@ -69,7 +78,8 @@ export function shardEntries(paths, selected, homes = []) {
 }
 
 // Only the registered, flat content-addressed product transport is generated
-// storage. Unknown files, source modules, symlinks and other hidden folders still
+// storage, beside the SDK writer's informational validation receipt. Unknown
+// files, source modules, symlinks and other hidden folders still
 // belong to the source layout check. Staged paths retain the pure layout policy.
 function generatedProduct(root, slug) {
   if (!existsSync(resolve(root, 'scripts/generation-jobs.json'))) return false;
@@ -79,7 +89,7 @@ function generatedProduct(root, slug) {
   if (homes.length !== 1 || home?.isDirectory() !== true) return false;
   const prefix = `${base}/product/`;
   const files = readdirSync(resolve(root, prefix), { withFileTypes: true });
-  if (files.length === 0 || files.some(file => !file.isFile() || !/^(?:[a-f0-9]{64}|shard\.json)$/u.test(file.name))) return false;
+  if (files.length === 0 || files.some(file => !file.isFile() || !/^(?:[a-f0-9]{64}|shard\.json|validation\.json)$/u.test(file.name))) return false;
   const catalog = JSON.parse(readFileSync(resolve(root, 'scripts/generation-jobs.json'), 'utf8'));
   if (catalog.schema !== 'generation-jobs/1' || !Array.isArray(catalog.jobs)) return false;
   const outputs = new Set();
@@ -91,7 +101,7 @@ function generatedProduct(root, slug) {
     for (const [file, hash] of Object.entries(pins)) if (file.startsWith(prefix) &&
         job.outputs.includes(file) && typeof hash === 'string' && /^[a-f0-9]{64}$/u.test(hash)) outputs.add(file);
   }
-  return files.every(file => outputs.has(prefix + file.name));
+  return files.every(file => file.name === 'validation.json' || outputs.has(prefix + file.name));
 }
 
 /** @param {string} root @param {Set<string>} [selected] */
