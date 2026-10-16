@@ -1,3 +1,4 @@
+import { glbBuffers } from './glbBuffers';
 import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds';
 import { indexRecordingAac } from '@wildshard/format/aacIndex';
 import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
@@ -61,11 +62,8 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     if (view.getUint32(24 + length, true) !== 0x004e4942 || n % 4 !== 0 || 28 + length + n !== bytes.length) throw new Error('invalid GLB binary chunk');
     binaryBytes = n;
   }
-  for (const buffer of list(doc['buffers'] ?? [])) {
-    const b = object(buffer); if (b['uri'] !== undefined || count(b['byteLength'], MAX_BYTES) > binaryBytes) throw new Error('external or truncated GLB buffer');
-  }
-  const views = list(doc['bufferViews'] ?? []).map(object);
-  for (const b of views) if (count(b['buffer'] ?? 0, 0) !== 0 || count(b['byteOffset'] ?? 0, MAX_BYTES) + count(b['byteLength'], MAX_BYTES) > binaryBytes) throw new Error('GLB buffer view outside buffer');
+  const data = glbBuffers(doc, bytes.subarray(28 + length, 28 + length + binaryBytes)), views = data.views;
+  const accessorBytes = new DataView(data.bytes.buffer, data.bytes.byteOffset, data.bytes.byteLength);
   let gpu = 0, elements = 0;
   const accessors = list(doc['accessors'] ?? []).map((entry) => {
     const a = object(entry), components: Record<string, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16, MAT3: 9, MAT2: 4 };
@@ -80,12 +78,12 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     gpu += n * size; return { n, type: a['type'], component: a['componentType'], offset: count(bufferView['byteOffset'] ?? 0, MAX_BYTES) + offset, stride, width, dimension, normalized: a['normalized'] === true };
   });
   const read = (a: typeof accessors[number], row: number, component: number): number => {
-    const at = 28 + length + a.offset + row * a.stride + component * a.width;
+    const at = a.offset + row * a.stride + component * a.width;
     switch (a.component) {
-      case 5121: return view.getUint8(at);
-      case 5123: return view.getUint16(at, true);
-      case 5125: return view.getUint32(at, true);
-      case 5126: return view.getFloat32(at, true);
+      case 5121: return accessorBytes.getUint8(at);
+      case 5123: return accessorBytes.getUint16(at, true);
+      case 5125: return accessorBytes.getUint32(at, true);
+      case 5126: return accessorBytes.getFloat32(at, true);
       default: throw new Error('unsupported GLB rig component');
     }
   };
@@ -233,9 +231,9 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     triangles += cost.triangles; draws += cost.draws * 2;
     if (estimate !== undefined) { estimate.layers += cost.layers; estimate.blendedLayers += cost.blendedLayers; estimate.maskedLayers += cost.maskedLayers; }
   }
-  if (length + binaryBytes + instanceCpu + rigCpu > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
+  if (length + binaryBytes + data.decoded + instanceCpu + rigCpu > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
   if (visit !== undefined) visitGlbGeometry({ nodes, meshes, accessors, parents, read }, visit);
-  return { decoded: length + binaryBytes + instanceCpu + rigCpu, gpu, triangles, draws };
+  return { decoded: length + binaryBytes + data.decoded + instanceCpu + rigCpu, gpu, triangles, draws };
 }
 
 /** Parse bounded KTX2 headers and mip ranges; absent GPU support retains the full RGBA transcode bound. */

@@ -7147,3 +7147,23 @@ The constructor port takes the real host, never a substitute Wasm runner.
 The disk `scenario(slug,id,options)` wrapper and built-Wasm sample follow
 KA2 and the v1 script-row admission schema; this core makes no claim that
 those pending integrations have passed.
+
+### Lossless named GLB compression
+
+`readNamedBlob(project, name, source, 'glb', {meshopt:true})` encodes
+buffer views with `EXT_meshopt_compression` at build time. Project output
+blob declarations accept the same `options.meshopt` flag. This is lossless:
+there is no quantization, welding, index reordering, scene or material
+change. Already compressed GLBs are admitted unchanged, without a flag.
+The output stays a named `blobs/glb/<hash>.glb`; the existing engine
+meshopt-capable GLTFLoader decodes it.
+
+`format/glbBuffers` checks physical BIN ranges, declared virtual fallback
+buffers, modes, strides, filters and aggregate decoded caps before decoding.
+The existing parser then validates positions, indices, skin, animation and
+triangle accounting against those decoded bytes. Compressed wire bytes
+and decoded resident costs remain distinct. The format layer's sole codec
+exception is this defining module importing the already-pinned
+`meshoptimizer/decoder` (1.2.0): server-safe pure Wasm needed for decoded-byte
+admission, not a schema bypass. Its initialization is awaited once; each
+view is decoded once per admission and reused by all subsequent checks.

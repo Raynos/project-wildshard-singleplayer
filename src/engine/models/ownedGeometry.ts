@@ -23,14 +23,16 @@ export interface OwnedGeometry {
 export function createOwnedGeometry(url: string, channels: Readonly<Record<string, string>> = {}): OwnedGeometry {
   let template: BufferGeometry | undefined, pending: Promise<void> | undefined;
   const load = async (bytes?: Uint8Array): Promise<void> => {
-    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([
+      import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js'),
+    ]);
     let input = bytes;
     if (input === undefined) {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Baked model load failed: ${url} (${response.status})`);
       input = new Uint8Array(await response.arrayBuffer());
     }
-    const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(input).buffer, '');
+    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(input).buffer, '');
     const meshes: Mesh[] = [];
     gltf.scene.traverse(node => { if (isGeometryMesh(node)) meshes.push(node); });
     try {

@@ -129,3 +129,12 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   producer. Cold generation and missing-file warm restoration pass.
   Cached build outputs add no Git binary or shipped download in this
   prerequisite; runtime consumer migration remains separate.
+
+- 2026-10-16 named-blob meshopt pilot: Driftwood's live trolley GLB
+  is 14,100 → 7,468 B raw (-6,632 B); gzip-9 is 3,859 → 4,142 B
+  (+283 B). Lossless buffer-view encoding preserves every decoded
+  attribute/index; no quantization, scene, material or collider change.
+  The named output is `blobs/glb/b0e0cfd44c9313e3df748b141911e88e2e1bd99dd24f269853a35502de9d0b6c.glb`.
+  Phone boot has no errors; the close trolley pair matches. Existing
+  compressed Pine birds (192,080 B) and trees (2,702,644 B) now pass
+  decoded-byte admission without changing or re-encoding their bytes.

@@ -60,6 +60,10 @@ test('named source intake refuses remote resources and project escapes including
     symlinkSync(resolve(scratch, 'outside.bin'), resolve(project, 'escape.bin'));
     const blob = await readNamedBlob(project, 'models/triangle.glb', 'model.gltf', 'glb');
     expect(blob.file.kind).toBe('glb');
+    const packed = await readNamedBlob(project, 'models/triangle.glb', 'model.gltf', 'glb', { meshopt: true });
+    expect(packed.file.hash).not.toBe(blob.file.hash);
+    expect(parseGlb(packed.bytes)).toMatchObject({ gpu: blob.file.gpu, triangles: blob.file.triangles, draws: blob.file.draws });
+    await expect(readNamedBlob(project, 'bad.bin', 'geometry.bin', 'bin', { meshopt: true })).rejects.toThrow('GLB');
     await expect(readNamedBlob(project, 'escape.bin', '../outside.bin', 'bin')).rejects.toThrow('escapes');
     await expect(readNamedBlob(project, 'escape.bin', 'escape.bin', 'bin')).rejects.toThrow('escapes');
     await expect(readNamedBlob(project, 'model.bin', 'model.gltf', 'bin')).rejects.toThrow('GLB');

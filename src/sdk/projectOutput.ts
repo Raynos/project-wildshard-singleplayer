@@ -14,7 +14,7 @@ const emitted = v.strictObject({ sections: OutputIndexSchema.entries.sections, f
 const options = v.strictObject({
   decoded: v.exactOptional(ShardNaturalSchema), gpu: v.exactOptional(ShardNaturalSchema),
   triangles: v.exactOptional(ShardNaturalSchema), draws: v.exactOptional(ShardNaturalSchema),
-  critical: v.exactOptional(v.boolean()), dependencies: v.exactOptional(v.array(v.string())),
+  meshopt: v.exactOptional(v.boolean()), critical: v.exactOptional(v.boolean()), dependencies: v.exactOptional(v.array(v.string())),
 });
 const declaration = v.strictObject({
   name: v.string(), kind: v.picklist(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile']),

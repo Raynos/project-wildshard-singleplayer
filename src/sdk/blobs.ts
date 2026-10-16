@@ -4,11 +4,14 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath, type OutputFile } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
 import { compileGltfSource } from './bake/gltfSource';
+import { compressGlb } from './bake/glbCompression';
 
 /** JSON belongs to sections; these named bytes occupy a kind-specific content-addressed blob path. */
 export type NamedBlobKind = Exclude<OutputFile['kind'], 'json'>;
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
 export interface BlobOptions extends Partial<AssetCost> { readonly critical?: boolean; readonly dependencies?: readonly string[] }
+/** Explicit build-only source transformation; compressed input is always admitted without needing this option. */
+export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */
 export interface NamedBlob { readonly file: OutputFile; readonly bytes: Uint8Array }
 /** The writer merges declarations into admission before emitting these immutable assets. */
@@ -59,7 +62,7 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
 
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;
  * an escape (including through a symlink), remote URI or unsupported extension refuses before publication. */
-export async function readNamedBlob(project: string, name: string, source: string, kind: NamedBlobKind, options: BlobOptions = {}): Promise<NamedBlob> {
+export async function readNamedBlob(project: string, name: string, source: string, kind: NamedBlobKind, options: BlobSourceOptions = {}): Promise<NamedBlob> {
   const [fileSystem, pathTools, { readBoundedFile }] = await Promise.all([
     // oxlint-disable-next-line import/no-nodejs-modules -- Only explicit CLI file intake loads filesystem access.
     import('node:fs'),
@@ -76,11 +79,17 @@ export async function readNamedBlob(project: string, name: string, source: strin
     return file;
   };
   const file = contained(root, source), bytes = readBoundedFile(file, MAX_BYTES);
+  if (options.meshopt !== undefined && typeof options.meshopt !== 'boolean') throw new Error('Invalid meshopt compression option');
+  if (options.meshopt === true && kind !== 'glb') throw new Error('Meshopt compression requires a GLB blob');
+  const admit = (value: Uint8Array): NamedBlob => {
+    if (options.meshopt !== true) return nameBlob(name, kind, value, options);
+    return nameBlob(name, kind, compressGlb(value), options);
+  };
   if (source.toLowerCase().endsWith('.gltf')) {
     if (kind !== 'glb') throw new Error('Text glTF must compile to a GLB blob');
-    return nameBlob(name, kind, await compileGltfSource(bytes, uri => readBoundedFile(contained(pathTools.dirname(file), uri), MAX_BYTES)), options);
+    return admit(await compileGltfSource(bytes, uri => readBoundedFile(contained(pathTools.dirname(file), uri), MAX_BYTES)));
   }
-  return nameBlob(name, kind, bytes, options);
+  return admit(bytes);
 }
 
 /** Revalidate every owned entry before returning sorted declarations/assets. One hash has one logical name;

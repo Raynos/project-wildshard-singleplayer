@@ -19,7 +19,7 @@ export async function runWildshard(args) {
       if (id === 'vite') return { id: import.meta.resolve('vite'), external: true };
       if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
       return null;
-    } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sdk/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u] } } });
+    } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sdk/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u], output: { codeSplitting: false } } } });
     const output = Array.isArray(result) ? result.at(0) : result;
     if (output === undefined || !('output' in output)) throw new Error('Author CLI build produced no output');
     const chunks = output.output.filter((chunk) => chunk.type === 'chunk');
