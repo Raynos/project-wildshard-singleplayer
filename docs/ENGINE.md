@@ -6394,3 +6394,18 @@ legacy publication are unchanged.
 Driftwood's finale uses these bindings. The G441 W3 adopters are Nalati
 `runtime/raidDirector.ts` and `runtime/ghostVolleyDirector.ts`, whose matching
 event checks and named native clock/shoot callbacks move onto this policy.
+
+### Native elite rule continuation
+
+`game/eliteSystem#EliteCore.snapshot()` copies lair clocks, records and ordered
+entry state; script, body, lane and RNG continuations remain caller-owned.
+`prepareRestore(value)` checks all rows and the installed ID order before
+returning a quiet commit. The commit refuses if the installed entry references
+changed after preparation, and invokes no script, hook, persistence write or
+random source. Untouched last-hit clocks retain the historical null wire value.
+
+`EliteCoreContinuationSchema.entries` composes these fields into a caller's
+strict versioned envelope. Its top-level parser can also project those core
+fields directly from that envelope; nested rows remain strict. Pine retains
+its version-four envelope. W3 Nalati `runtime/headlessElites.ts` adopts the
+same codec, keeping its three-ID whitelist, tuple length and body/phase checks.

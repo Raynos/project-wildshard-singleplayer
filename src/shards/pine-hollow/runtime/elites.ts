@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
-import { EliteCore, memoryElitePersistence, type EliteCoreRule } from '@wildshard/game/eliteSystem';
+import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence, type EliteCoreRule } from '@wildshard/game/eliteSystem';
 import { PINE_ELITE_ANIMALS } from '../combat/eliteRoster';
 import { pineEliteScripts, type PineEliteScript, type PineEliteWorld } from '../combat/eliteScripts';
 import { Lane } from '../combat/lane';
@@ -20,15 +20,10 @@ const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: f
 const Runner = v.strictObject({ version: finite, phase: v.picklist(['idle', 'windup', 'active', 'recover', 'cooldown']), currentId: v.nullable(v.string()), hit: v.boolean(),
   elapsed: finite, speedMul: finite, clock: finite, deadlines: v.array(v.strictObject({ id: v.string(), at: finite })), scores: v.array(v.strictObject({ id: v.string(), score: finite })),
   x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite });
-const Lair = v.strictObject({ timer: finite, discovered: v.boolean(), skinTaken: v.boolean(), kills: finite, retired: v.boolean() });
-const Entry = v.strictObject({ id: v.string(), state: v.picklist(['absent', 'idle', 'aware', 'engaged', 'leash', 'dead', 'broken', 'retired']), timer: finite, waitDusk: v.boolean(),
-  discovered: v.boolean(), bannerArmed: v.boolean(), farT: finite, phase2: v.boolean(), beatT: finite, lockHp: finite, seenSig: v.boolean(), leashT: finite,
-  lastHit: v.nullable(finite), forced: v.boolean() });
 const Script = v.strictObject({ id: v.string(), animal: v.nullable(v.string()), mode: v.string(), fields: v.record(v.string(), v.union([finite, v.boolean(), v.null()])),
   lanes: v.array(v.strictObject({ tellT: finite, runner: Runner })), rngs: v.array(Stream) });
 const Root = v.strictObject({ t: v.pipe(finite, v.minValue(0)), x: finite, y: finite, z: finite });
-const Saved = v.strictObject({ version: v.literal(4), clocks: v.strictObject({ saveT: finite, lastDusk: v.boolean() }), records: v.record(v.string(), Lair),
-  entries: v.array(Entry), scripts: v.array(Script), stun: v.nullable(Root) });
+const Saved = v.strictObject({ version: v.literal(4), ...EliteCoreContinuationSchema.entries, scripts: v.array(Script), stun: v.nullable(Root) });
 
 export interface PineElitesPorts {
   /** the roster's bodies (runtime/roster.ts): the four lair elites stand among them, spawned and scripted at install */
@@ -121,19 +116,13 @@ export function installPineElites(host: SimHost, ports: PineElitesPorts): {
     root.t -= dt; if (root.t <= 0) root = null;
   };
   host.onStep(ELITES_STEP, dt => { rootFeet(dt); rules.update(dt, host.clock.now); }, {
-    snapshot: () => ({ version: 4, clocks: rules.clocks(), records: Object.fromEntries(Object.entries(rules.records()).map(([id, r]) => [id, { timer: r.timer, discovered: r.discovered, skinTaken: r.skinTaken, kills: r.kills, retired: r.retired }])),
-      entries: rules.entries.map(e => ({ id: e.script.def.id, state: e.state, timer: e.timer, waitDusk: e.waitDusk, discovered: e.discovered, bannerArmed: e.bannerArmed,
-        farT: e.farT, phase2: e.phase2, beatT: e.beatT, lockHp: e.lockHp, seenSig: e.seenSig, leashT: e.leashT, lastHit: e.lastHit === -Infinity ? null : e.lastHit, forced: e.forced })),
+    snapshot: () => ({ version: 4, ...rules.snapshot(),
       stun: root === null ? null : { ...root },
       scripts: scripts.map(s => ({ id: s.def.id, animal: s.animal?.entityId ?? null, mode: s.brainState, fields: s.fields(), lanes: s.lanes().map(l => { const { tellT, runner } = l.snapshot(); return { tellT, runner: { ...runner, deadlines: runner.deadlines.map(d => ({ id: d.id, at: d.at })), scores: runner.scores.map(r => ({ id: r.id, score: r.score })) } }; }), rngs: s.rngs().map(r => { const x = r.snapshot(); return { version: x.version, state: x.state, initial: x.initial, scrambledFork: x.scrambledFork }; }) })) }),
     restore: value => {
       const state = v.parse(Saved, value);
-      if (state.entries.length !== rules.entries.length || state.scripts.length !== scripts.length || state.scripts.some((saved, i) => scripts[i]?.def.id !== saved.id)) throw new Error('Incompatible Pine elites continuation');
-      rules.restoreClocks(state.clocks, state.records); root = state.stun === null ? null : { ...state.stun };
-      state.entries.forEach((saved, i) => {
-        const e = rules.entries[i]; if (e?.script.def.id !== saved.id) throw new Error('Incompatible Pine elites continuation');
-        const { id: _id, lastHit, ...rest } = saved; Object.assign(e, rest, { lastHit: lastHit ?? -Infinity });
-      });
+      if (state.scripts.length !== scripts.length || state.scripts.some((saved, i) => scripts[i]?.def.id !== saved.id)) throw new Error('Incompatible Pine elites continuation');
+      rules.prepareRestore(state)(); root = state.stun === null ? null : { ...state.stun };
       state.scripts.forEach((saved, i) => {
         const s = scripts[i], lanes = s?.lanes(), rngs = s?.rngs();
         if (s === undefined || lanes === undefined || rngs === undefined || s.def.id !== saved.id || saved.lanes.length !== lanes.length || saved.rngs.length !== rngs.length) throw new Error('Incompatible Pine elites continuation');

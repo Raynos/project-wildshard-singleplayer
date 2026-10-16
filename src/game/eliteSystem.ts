@@ -15,6 +15,8 @@
  * renderer-free host's continuation.
  */
 
+import * as v from 'valibot';
+
 export type EliteCoreRule = 'always' | 'dusk' | 'night' | 'storm';
 
 /** The fields of an elite's definition the rules read. */
@@ -77,6 +79,19 @@ export interface EliteCoreEntry<S extends EliteCoreScript = EliteCoreScript> {
 
 /** One lair's persisted record (the page's 'ws.elites.v1' row). */
 export interface EliteCoreRecord { timer: number; discovered: boolean; skinTaken: boolean; kills: number; retired: boolean }
+const continuationNumber = v.pipe(v.number(), v.finite());
+const lairContinuation = v.strictObject({ timer: continuationNumber, discovered: v.boolean(), skinTaken: v.boolean(), kills: continuationNumber, retired: v.boolean() });
+const entryContinuation = v.strictObject({ id: v.string(), state: v.picklist(['absent', 'idle', 'aware', 'engaged', 'leash', 'dead', 'broken', 'retired']),
+  timer: continuationNumber, waitDusk: v.boolean(), discovered: v.boolean(), bannerArmed: v.boolean(), farT: continuationNumber,
+  phase2: v.boolean(), beatT: continuationNumber, lockHp: continuationNumber, seenSig: v.boolean(), leashT: continuationNumber,
+  lastHit: v.nullable(continuationNumber), forced: v.boolean() });
+/** Compose these core fields into the caller's strict versioned envelope; script/body/strike state stays with that caller.
+ * The top-level object also accepts that envelope directly, projecting only the core fields. Nested rows stay strict. */
+export const EliteCoreContinuationSchema = v.object({ clocks: v.strictObject({ saveT: continuationNumber, lastDusk: v.boolean() }),
+  records: v.record(v.string(), lairContinuation), entries: v.array(entryContinuation) });
+/** Detached lair rules state, with a null last-hit value representing the untouched negative-infinity clock. */
+export type EliteCoreContinuation = v.InferOutput<typeof EliteCoreContinuationSchema>;
+
 export interface EliteCorePersistence {
   read: (slug: string) => Record<string, EliteCoreRecord>;
   write: (value: Record<string, EliteCoreRecord>, slug: string) => void;
@@ -272,6 +287,30 @@ export class EliteCore<S extends EliteCoreScript> {
     const s = this.saved[e.script.def.id]; if (s) s.retired = true;
     this.hooks.retired?.(e);
     this.save();
+  }
+
+  /** Copy the lair rules only, preserving their historical wire field order and null last-hit sentinel. */
+  snapshot(): EliteCoreContinuation {
+    return { clocks: this.clocks(), records: Object.fromEntries(Object.entries(this.saved).map(([id, row]) => [id,
+      { timer: row.timer, discovered: row.discovered, skinTaken: row.skinTaken, kills: row.kills, retired: row.retired }])),
+      entries: this.entries.map(e => ({ id: e.script.def.id, state: e.state, timer: e.timer, waitDusk: e.waitDusk, discovered: e.discovered, bannerArmed: e.bannerArmed,
+        farT: e.farT, phase2: e.phase2, beatT: e.beatT, lockHp: e.lockHp, seenSig: e.seenSig, leashT: e.leashT, lastHit: e.lastHit === -Infinity ? null : e.lastHit, forced: e.forced })) };
+  }
+  /** Validate the complete ordered lair roster before returning a quiet commit. No script, hook, persistence write or RNG runs.
+   * Prepare alongside caller-owned script/body validation; invoke only after all participants have admitted the save. */
+  prepareRestore(value: unknown): () => void {
+    const state = v.parse(EliteCoreContinuationSchema, value), entries = [...this.entries];
+    if (state.entries.length !== entries.length || state.entries.some((row, i) => row.id !== entries[i]?.script.def.id)) throw new Error('Incompatible elite core continuation');
+    return () => {
+      if (this.entries.length !== entries.length || entries.some((entry, i) => this.entries[i] !== entry)) throw new Error('Elite core roster changed during restore');
+      this.restoreClocks(state.clocks, state.records);
+      state.entries.forEach((row, i) => {
+        const entry = entries[i];
+        if (entry === undefined) throw new Error('Missing admitted elite entry');
+        const { id: _id, lastHit, ...rest } = row;
+        Object.assign(entry, rest, { lastHit: lastHit ?? -Infinity });
+      });
+    };
   }
 
   /** The rules' own clocks for a continuation (the entries and the records ride beside them). */
