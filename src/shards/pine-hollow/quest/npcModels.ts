@@ -12,7 +12,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  * its stand-in until the model has loaded, then swaps this in (Debug ▸ Pine Hollow people = Stand-ins keeps them).
  *
  *   await preloadNpcModels();                 // the quest's install: every person behind the loading screen
- *   const r = npcRig(kind);                   // null until loaded → { mesh (SkinnedMesh), pose(dt, t, s), lanternAt }
+ *   const r = npcModels.rig(kind, sky);       // null until loaded → { mesh (SkinnedMesh), pose(dt, t, s), lanternAt }
  *
  * The hull, skin weights and bind frames are baked offline through SDK skinnedGlb. The page keeps npcRig.ts's
  * (E322 F-M3, Jake picked B; the upper-body-only rig A went with its Debug row) — legs, a clavicle and an upper-arm twist,
@@ -25,38 +25,17 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
+import type { StandInRig } from '../runtime/npc/standInPerson';
 import skins from '../data/npcSkins.generated.json' with { type: 'json' };
 import { legBones, legPose, LEG_BONE_NAMES, type LegBuilt } from '@wildshard/game/systems/npc/npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
-/** the file each tier loads (Node-safe: the boot manifest may declare them) */
-export function npcModelUrl(kind: NpcKind, tier: 'phone' | 'desktop' = TIER): string {
-  return skins[kind][tier].url;
-}
-
 const isSkin = (node: THREE.Object3D): node is THREE.SkinnedMesh => node instanceof THREE.SkinnedMesh;
 interface Source { rig: LegBuilt; map: THREE.Texture | null; normalMap: THREE.Texture | null }
 
-export interface NpcRig {
-  mesh: THREE.SkinnedMesh;
-  /** the head's world point after posing (the talk prompt / bark) */
-  readonly height: number;
-  /** the ranger's lantern (mesh-local, rides the right hand), or null */
-  readonly lanternAt: THREE.Vector3 | null;
-  /** the right hand bone (a glow for the lantern hangs off it) */
-  readonly handR: THREE.Bone;
-  /**
-   * pose the rig: `talk` 0 … 1 (eased by the caller), `point` 0 … 1 toward `pointYaw` (radians, mesh-local; 0 = ahead),
-   * `look` the head's yaw toward the player (mesh-local); `walk` 0 … 1 blends the walk clip in (npcRig.ts's legs) at
-   * `phase` (0 … 1 of its cycle: advance it by distance / `walkCycle`)
-   */
-  pose: (t: number, talk: number, point: number, pointYaw: number, look: number, walk?: number, phase?: number) => void;
-  /** m/s at which the walk's feet stay planted */
-  readonly walkSpeed: number;
-  /** metres travelled per walk cycle */
-  readonly walkCycle: number;
-}
+/** The figure's existing rig contract, with its measured head height. */
+export type NpcRig = StandInRig & { readonly height: number };
 
 /**
  * The people's models: loaded once each, shared by every figure. The page has one (`npcModels`); a test builds its own with
@@ -71,7 +50,7 @@ export class NpcModels {
   /** Required baked intake; missing or invalid skins refuse, with no runtime fitting. */
   load(kind: NpcKind): Promise<Source | null> {
     return this.sources.load(kind, async () => {
-        const [gltf, appearance] = await Promise.all([this.loadFile(npcModelUrl(kind)), this.loadFile(skins[kind][TIER].material)]);
+        const [gltf, appearance] = await Promise.all([this.loadFile(skins[kind][TIER].url), this.loadFile(skins[kind][TIER].material)]);
         const meshes: THREE.SkinnedMesh[] = [];
         gltf.scene.traverse(node => { if (isSkin(node)) meshes.push(node); });
         const mesh = meshes[0];
@@ -134,8 +113,4 @@ export class NpcModels {
 
 /** the page's people */
 export const npcModels = new NpcModels();
-/** Required baked intake; missing or invalid skins refuse, with no runtime fitting. */
-export function loadNpcModel(kind: NpcKind): Promise<Source | null> { return npcModels.load(kind); }
 export function preloadNpcModels(): Promise<void> { return npcModels.preload(); }
-/** a skinned instance of `kind`'s model, or null until it has loaded */
-export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null { return npcModels.rig(kind, sky); }
