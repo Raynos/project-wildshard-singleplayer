@@ -1,4 +1,5 @@
 import { memoUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
@@ -6,7 +7,6 @@ import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { flattenGlbParts, loadLodGlb } from '../runtime/kit/lodGlb';
 import { BuildingLife } from '../runtime/props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -184,7 +184,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
     // the seven PBR sets, the six models and the bake in one round of fetches
     const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
-      loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadLodGlb('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadLodGlb('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadLodGlb('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadLodGlb('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
+      loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadRigFile('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadRigFile('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadRigFile('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadRigFile('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
     ]), loadCabinBake(pineModels(this.sky))]);
     const props: Record<PropKind, PropPart[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
     if (geometries !== null) for (const [index, kind] of PROP_KINDS.entries()) {
@@ -240,12 +240,22 @@ export class Cabins extends BuildingLife implements BuildingOwner {
 
 // ───────────────────────────── glTF helpers ─────────────────────────────
 
-/** a model library's LOD glTF (@wildshard/sdk/kit/lodGlb) */
+/** A model library's LOD file, through the shared loader and its declared material aliases. */
 export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
-  return loadLodGlb(`/assets/models/${id}/${id}_lod.glb`, authored.propMaterials);
+  return loadRigFile(`/assets/models/${id}/${id}_lod.glb`, authored.propMaterials);
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */
+const isPropMesh = (node: THREE.Object3D): node is THREE.Mesh => 'isMesh' in node;
 export function prepModel(scene: THREE.Object3D, sky: Sky): PropPart[] {
-  return flattenGlbParts(scene, (m) => { sky.setupMaterial(m); });
+  scene.updateMatrixWorld(true);
+  const out: PropPart[] = [];
+  scene.traverse((node) => {
+    if (!isPropMesh(node)) return;
+    const mat = node.material as THREE.MeshStandardMaterial;
+    for (const texture of [mat.map, mat.normalMap, mat.roughnessMap, mat.aoMap]) if (texture) texture.anisotropy = 8;
+    sky.setupMaterial(mat);
+    out.push({ geometry: node.geometry, material: mat, matrix: node.matrixWorld.clone() });
+  });
+  return out;
 }

@@ -1539,6 +1539,10 @@ The credits "Music: MiniMax-Music3" and "Powered by Stability AI" are licence co
 | `AnimMachine`, `AnimMachineDef`, `AnimState`, `ClipChannel` | the state machine a brain or a viewmodel drives |
 | `RigContract`, `RigRef`, `RigInstance`, `RigBake`, `ClipName`, `SocketName`, `AnimService` | the contract a species, NPC or viewmodel declares |
 
+`loadRigFile(url, aliases?)` can lend a file's dependency aliases by resolved URL pathname.
+Alias and ordinary dependency URLs still pass through the default loading manager's tier and pack routing;
+the aliases use a private manager and never replace the session's resolver.
+
 `ClipName` is `idle · walk · run · attack · hit · die · turn · swim · fly`, optionally with `.suffix`. A raw
 `new AnimationMixer` outside `src/engine/anim` is a lint error (`wildshard/no-raw-animation-mixer`). The template's blob
 declares its contract on its look row:

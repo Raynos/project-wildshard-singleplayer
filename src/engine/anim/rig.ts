@@ -1,4 +1,4 @@
-import { type AnimationClip, type Object3D, BufferGeometry, InstancedBufferAttribute, InstancedMesh, SkinnedMesh } from 'three';
+import { type AnimationClip, type Object3D, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { labelObjectTree } from '../render/gpuLabels';
@@ -25,10 +25,17 @@ export interface RigInstance {
 export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 
 let loader: GLTFLoader | undefined;
-/** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser. */
-export async function loadRigFile(url: string): Promise<GLTF> {
+/** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.
+ * Optional resource aliases match the resolved URL pathname; both aliases and
+ * ordinary dependencies retain the default manager's tier/pack resolution. */
+export async function loadRigFile(url: string, aliases: Readonly<Record<string, string>> = {}): Promise<GLTF> {
   loader ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const gltf = await loader.loadAsync(url);
+  const read = Object.keys(aliases).length === 0 ? loader : new GLTFLoader(new LoadingManager()).setMeshoptDecoder(MeshoptDecoder);
+  if (read !== loader) read.manager.setURLModifier(path => {
+    const served = DefaultLoadingManager.resolveURL(path), key = new URL(served, location.href).pathname;
+    return DefaultLoadingManager.resolveURL(aliases[key] ?? path);
+  });
+  const gltf = await read.loadAsync(url);
   applyExactInstanceMatrices(gltf.scene);
   labelObjectTree(gltf.scene, 'engine/loadRigFile', url);
   return gltf;
