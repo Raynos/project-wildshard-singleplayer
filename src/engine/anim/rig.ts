@@ -31,10 +31,21 @@ let loader: GLTFLoader | undefined;
 export async function loadRigFile(url: string, aliases: Readonly<Record<string, string>> = {}): Promise<GLTF> {
   loader ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const read = Object.keys(aliases).length === 0 ? loader : new GLTFLoader(new LoadingManager()).setMeshoptDecoder(MeshoptDecoder);
-  if (read !== loader) read.manager.setURLModifier(path => {
-    const served = DefaultLoadingManager.resolveURL(path), key = new URL(served, location.href).pathname;
-    return DefaultLoadingManager.resolveURL(aliases[key] ?? path);
-  });
+  if (read !== loader) {
+    const page = new URL(location.href), original = new URL(url, page);
+    // Aliased glTFs can declare root-relative images. Three needs an absolute
+    // original base to resolve those, rather than appending /assets twice.
+    if (original.protocol === 'http:' || original.protocol === 'https:') read.setResourcePath(new URL('.', original).href);
+    read.manager.setURLModifier(path => {
+      const resolved = new URL(path, page);
+      // The tier/pack tables use local paths; preserve that routing after Three
+      // has resolved dependencies. External, data and blob URLs stay untouched.
+      const request = (resolved.protocol === 'http:' || resolved.protocol === 'https:') && resolved.origin === page.origin
+        ? `${resolved.pathname}${resolved.search}${resolved.hash}` : path;
+      const served = DefaultLoadingManager.resolveURL(request), key = new URL(served, page).pathname;
+      return DefaultLoadingManager.resolveURL(aliases[key] ?? request);
+    });
+  }
   const gltf = await read.loadAsync(url);
   applyExactInstanceMatrices(gltf.scene);
   labelObjectTree(gltf.scene, 'engine/loadRigFile', url);
