@@ -1,12 +1,12 @@
 type NativeEffectId = `effect.${string}`;
 type NativeTag = `${string}.${string}`;
-interface NativeEffectRow {
+export interface NativeEffectRow {
   id: NativeEffectId; kind: 'permanent'; tags: readonly NativeTag[];
   modifiers: readonly { attr: string; op: 'add' | 'mul' | 'override'; value: number }[];
   grants?: readonly NativeTag[]; stacking: 'none' | { max: number }; group?: string; removes?: readonly NativeEffectId[];
 }
 type GoodId = 'whetstone-1' | 'whetstone-2' | 'heart-1' | 'heart-2' | 'sea-chart' | 'cape';
-interface GoodRow { id: GoodId; name: string; does: string; icon: 'whetstone' | 'heart' | 'chart' | 'cape'; price: number; needs?: GoodId }
+export interface GoodRow { id: GoodId; name: string; does: string; icon: 'whetstone' | 'heart' | 'chart' | 'cape'; price: number; needs?: GoodId }
 
 const permanent = (id: NativeEffectId, modifiers: NativeEffectRow['modifiers'] = [], grants: NativeEffectRow['grants'] = []): NativeEffectRow =>
   ({ id, kind: 'permanent', tags: [], modifiers, grants, stacking: 'none' });
