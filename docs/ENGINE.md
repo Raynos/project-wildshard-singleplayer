@@ -7243,3 +7243,31 @@ per-kind positive handles and refuses missing, duplicate or unsafe ids.
 Actor handles are never allocated from alias order or hashes. Timers alone
 are local sorted names with 1-based ids; parameters sort by name and state
 slots retain authored order. The inverse maps provide readable labels.
+
+
+### Decision module byte contracts
+
+`format/scriptContract` defines `ScriptContract`: `{ abi: 0 }` for the
+legacy host, or `{ abi: 1, pages }` for a fixed one-to-four-page decision
+module. `admitScriptContract` checks the declared ABI, instrumentation and
+exact fixed memory without executing the guest. `assetCost` and
+`assetOverdraw` require this explicit contract for Wasm.
+
+`nameBlob` / `readNamedBlob` accept `options.script`; `NamedBlob` retains
+that build-only contract across revalidation. It never adds an ABI field
+to the output index. Format-2 emission and disk/browser admission derive
+v1 contracts only from the verified `sim/scripts` section and exact
+`blobs/wasm/<hash>.wasm` inventory paths. A legacy Wasm file declaration
+retains its v0 contract when no decision row names it. Missing v1 rows,
+page disagreement, mixed legacy/decision hosts and conflicting module
+contracts refuse. Sim decision modules belong to critical; view decision
+modules belong to the library. Both charge live and initial memory images
+at their fixed page count, once per module, before budget admission.
+
+`outputDecisionScripts(platform)` verifies emitted section hash/size and
+reads its rows for author-side admission. `admitProduct` and
+`validateProject` accept these rows explicitly; the project admission
+callback receives them as its fourth argument. The full
+`validateShardfileAssets` validator accepts them after its optional device
+arguments. Browser products obtain the same rows from their checked output
+descriptor; no byte-sniffing or opaque Wasm fallback is used.

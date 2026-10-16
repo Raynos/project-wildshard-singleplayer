@@ -11,7 +11,7 @@ export function liftShard(bytes: Uint8Array, hash: string) {
   shard.entryways = shard.entryways.map(entry => entry.edge === 'north' ? { ...entry, kind: 'socketLift', lift } : entry);
   shard.spawn = { x: 0, y: 25, z: 195, yaw: 0 };
   shard.sim.scripts = [hash]; shard.critical = [hash];
-  shard.files = [{ hash, kind: 'wasm', critical: true, compressed: bytes.length, ...assetCost('wasm', bytes), dependencies: [] }];
+  shard.files = [{ hash, kind: 'wasm', critical: true, compressed: bytes.length, ...assetCost('wasm', bytes, { abi: 0 }), dependencies: [] }];
   shard.budgets.sim = { resident: 1_000_000, compressed: bytes.length };
   shard.movers = parseMovers([{ id: 'entry.lift', entity: 1001, module: hash, kind: 'platform', at: { x: 0, y: 0, z: 230 }, euler: { x: 0, y: 0, z: 0 }, enabled: true,
     boxes: [{ x: 0, y: -0.25, z: 0, hx: 4, hy: 0.25, hz: 5, rot: { x: 0, y: 0, z: 0, w: 1 } }], input: [0, 0, 230, 0, 25, 205, 10, 0],

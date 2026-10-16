@@ -18,7 +18,8 @@ import process from 'node:process';
 import { buildBehaviourProject } from './buildBehaviour';
 import { synthProject } from './synth';
 import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
-import { validateOutputProduct } from './outputProduct';
+import { decisionModuleContracts } from '@wildshard/format/scriptContract';
+import { outputDecisionScripts, validateOutputProduct } from './outputProduct';
 import type { RuntimeCopyOptions } from './outputRuntime';
 import type { ProjectManifestSource } from './projectManifest';
 import { ShardCatalogPlacementsSchema } from '@wildshard/format/shardCatalog';
@@ -102,14 +103,15 @@ export async function runCli(args: readonly string[], options: { readonly runtim
       const checked = validateOutputProduct(folder);
       console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`); return;
     }
-    const { shard, assets } = await readProjectAssets(resolve(input), undefined, options.manifest);
+    const { shard, assets, output: extensions } = await readProjectAssets(resolve(input), undefined, options.manifest);
+    const scripts = outputDecisionScripts(extensions.platform), contracts = decisionModuleContracts(scripts, shard.files);
     const project = resolve(input), policy = projectPerformancePolicy(project, shard);
-    validateProject(shard, assets, project);
+    validateProject(shard, assets, project, scripts);
     let layers = 0, blended = 0, masked = 0;
     const kinds = new Map(shard.files.map((file) => [file.hash, file.kind]));
     for (const [hash, bytes] of assets) {
       const kind = kinds.get(hash) ?? 'commons';
-      const estimate = assetOverdraw(kind, bytes); layers += estimate.layers; blended += estimate.blendedLayers; masked += estimate.maskedLayers;
+      const estimate = assetOverdraw(kind, bytes, kind === 'wasm' ? contracts.get(hash) ?? { abi: 0 } : undefined); layers += estimate.layers; blended += estimate.blendedLayers; masked += estimate.maskedLayers;
     }
     console.info(`advisory asset raster layers: ${layers.toFixed(2)} total, ${blended.toFixed(2)} blended, ${masked.toFixed(2)} alpha-tested (primitive bounds; before culling/occlusion, not measured screen overdraw)`);
     if (shard.runtime !== null) { printReport(shard, unmeasured, policy); console.info(`validated ${shard.identity.slug} v${shard.version}: native execution/entries UNMEASURED (trusted browser proof required)`); return; }

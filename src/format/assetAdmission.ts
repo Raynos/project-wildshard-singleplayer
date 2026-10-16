@@ -1,3 +1,5 @@
+import { admitScriptContract, decisionModuleContracts } from './scriptContract';
+import type { DecisionScripts } from './decisionScripts';
 import type { TextureTranscodeSupport } from './contentBounds';
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
@@ -77,9 +79,12 @@ export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmissi
 }
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
-export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission, textures?: TextureTranscodeSupport): Shardfile {
+export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission, textures?: TextureTranscodeSupport, scripts: readonly DecisionScripts[number][] = []): Shardfile {
   preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
+  const contracts = decisionModuleContracts(scripts, s.files);
+  const legacyModules = new Set([...s.sim.scripts, ...s.clientScripts.bindings.map(row => row.module), ...s.movers.map(row => row.module)]);
+  if ([...contracts.keys()].some(hash => legacyModules.has(hash))) throw new Error('Decision module cannot also use a legacy script host');
   preflightAssetGraph(s);
   const declared = preflightDeclaredCosts(s, memory).commons;
   const closure = (roots: readonly string[]): Set<string> => {
@@ -112,8 +117,10 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   }
   for (const f of s.files) {
     const bytes = assets.get(f.hash); if (bytes === undefined || bytes.length !== f.compressed || contentHash(bytes) !== f.hash) throw new Error('file hash or wire size mismatch');
-    const actual = assetCost(f.kind, bytes);
-    if (f.kind === 'wasm') admissions.set(f.hash, admitScript(bytes));
+    // A legacy shardfile Wasm declaration is v0 unless an exact sim/scripts row declares v1.
+    const contract = contracts.get(f.hash) ?? { abi: 0 as const };
+    const actual = assetCost(f.kind, bytes, f.kind === 'wasm' ? contract : undefined);
+    if (f.kind === 'wasm') admissions.set(f.hash, admitScriptContract(bytes, contract));
     if (actual.decoded > f.decoded || actual.gpu > f.gpu || actual.triangles > f.triangles || actual.draws > f.draws) throw new Error('asset cost declaration understated');
     if ((propMaterials !== undefined || s.props?.splat !== undefined) && propModels.has(f.hash)) {
       checkTileMaterialNames(propMaterials, s.props?.splat, bytes);
@@ -167,25 +174,37 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     let admission = admissions.get(module);
     if (admission === undefined) {
       const bytes = assets.get(module); if (bytes === undefined) throw new Error('unavailable script');
-      admission = admitScript(bytes); admissions.set(module, admission);
+      admission = admitScript(bytes, 0); admissions.set(module, admission);
     }
     // One guest per module: live, last-good and in-flight copies at the admitted growth ceiling.
     scriptMemory += admission.maximumPages * 65536 * 3;
   }
-  if (s.sim.scripts.length > SCRIPT_LIMITS.instances || scriptMemory > SCRIPT_LIMITS.memoryBytes || criticalResident + scriptMemory > s.budgets.sim.resident || criticalResident + scriptMemory > s.serverBudget.memory) throw new Error('script memory budget understated or above host cap');
+  let decisionSim = 0, decisionView = 0;
+  for (const [hash, contract] of contracts) {
+    if (scripts.some(row => row.module === `blobs/wasm/${hash}.wasm` && row.side === 'sim')) {
+      if (!critical.has(hash) || library.has(hash)) throw new Error('Decision sim module must be critical, outside the render library');
+      decisionSim += contract.pages * 65536 * 2;
+    } else {
+      if (!library.has(hash) || critical.has(hash)) throw new Error('Decision view module must be in the render library only');
+      decisionView += contract.pages * 65536 * 2;
+    }
+  }
+  scriptMemory += decisionSim;
+  if (s.sim.scripts.length + new Set(scripts.filter(row => row.side === 'sim').map(row => row.module)).size > SCRIPT_LIMITS.instances || scriptMemory > SCRIPT_LIMITS.memoryBytes || criticalResident + scriptMemory > s.budgets.sim.resident || criticalResident + scriptMemory > s.serverBudget.memory) throw new Error('script memory budget understated or above host cap');
   let clientMemory = 0;
   const clientModules = new Set(s.clientScripts.bindings.map((binding) => binding.module));
   for (const module of clientModules) {
     let admission = admissions.get(module);
     if (admission === undefined) {
       const bytes = assets.get(module); if (bytes === undefined) throw new Error('unavailable client script');
-      admission = admitScript(bytes); admissions.set(module, admission);
+      admission = admitScript(bytes, 0); admissions.set(module, admission);
     }
     clientMemory += admission.maximumPages * 65536 * 3;
   }
+  clientMemory += decisionView;
   const clientViews = clientScriptViewCost(s.clientScripts);
   const libraryResident = sum(s.library).resident + clientMemory + clientViews.decoded + clientViews.gpu;
-  if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || libraryResident > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
+  if (clientModules.size + new Set(scripts.filter(row => row.side === 'view').map(row => row.module)).size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || libraryResident > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
   if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
   const cost = worstContentCost(textureLibrarySource(s, assets, textures), commons);
   if (!acceptsTotal(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);

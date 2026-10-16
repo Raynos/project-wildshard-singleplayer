@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./actorMoves": "./actorMoves.ts",
+    "./scriptContract": "./scriptContract.ts",
     "./decisionScripts": "./decisionScripts.ts",
     "./scriptAbiV1": "./scriptAbiV1.ts",
     "./level": "./level.ts",

@@ -1,3 +1,4 @@
+import { admitScriptContract, type ScriptContract } from './scriptContract';
 import { glbBuffers } from './glbBuffers';
 import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds';
 import { indexRecordingAac } from '@wildshard/format/aacIndex';
@@ -42,11 +43,11 @@ export function parseGlb(bytes: Uint8Array): AssetCost { return parseGlbData(byt
 /** Inspect exact static triangles only after the bounded GLB parser admits the complete payload. */
 export function visitGlbTriangles(bytes: Uint8Array, visit: (triangle: readonly GlbVertex[]) => void): void { parseGlbData(bytes, visit); }
 /** Shared byte-derived raster estimate; no author-supplied overdraw number is accepted. */
-export function assetOverdraw(requestedKind: string, bytes: Uint8Array): OverdrawEstimate {
+export function assetOverdraw(requestedKind: string, bytes: Uint8Array, script?: ScriptContract): OverdrawEstimate {
   const kind = requestedKind === 'commons' ? commonsKind(bytes) : requestedKind;
   const estimate: OverdrawEstimate = { layers: 0, blendedLayers: 0, maskedLayers: 0, basis: 'primitive-bounds' };
   if (kind === 'glb') parseGlbData(bytes, undefined, estimate);
-  else { assetCost(kind, bytes); if (isTerrainTileData(bytes)) estimate.layers = 1; }
+  else { assetCost(kind, bytes, script); if (isTerrainTileData(bytes)) estimate.layers = 1; }
   return estimate;
 }
 function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]) => void, estimate?: OverdrawEstimate): AssetCost {
@@ -288,7 +289,7 @@ function commonsKind(bytes: Uint8Array): 'ktx2' | 'glb' | 'audio' | 'binary' {
     : bytes[0] === 82 || new TextDecoder().decode(bytes.subarray(4, 8)) === 'ftyp' ? 'audio' : 'binary';
 }
 /** Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. */
-export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
+export function assetCost(requestedKind: string, bytes: Uint8Array, script?: ScriptContract): AssetCost {
   const kind = requestedKind === 'commons' ? commonsKind(bytes) : requestedKind;
   if (kind === 'image') { const image = parseImageAsset(bytes); return { decoded: image.decoded, gpu: image.gpu, triangles: 0, draws: 0 }; }
   if (kind === 'glb') return parseGlb(bytes);
@@ -299,7 +300,10 @@ export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
   if (kind === 'binary' && isTerrainTileData(bytes)) return terrainTileCost(decodeTerrainTile(bytes));
   if (kind === 'binary' && isMeshCollisionData(bytes)) return meshCollisionCost(decodeMeshCollision(bytes));
   if (kind === 'json') { json(bytes); return { decoded: bytes.length, gpu: 0, triangles: 0, draws: 0 }; }
-  if (kind === 'wasm' && (bytes.length > 262_144 || !WebAssembly.validate(Uint8Array.from(bytes)))) throw new Error('invalid or oversized Wasm');
+  if (kind === 'wasm') {
+    if (script === undefined) throw new Error('Wasm needs an explicit script contract');
+    admitScriptContract(bytes, script);
+  }
   return { decoded: bytes.length, gpu: 0, triangles: 0, draws: 0 };
 }
 

@@ -1,3 +1,4 @@
+import type { ScriptContract } from '@wildshard/format/scriptContract';
 import { assetCost, type AssetCost } from '@wildshard/format/product';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
@@ -9,11 +10,11 @@ import { compressGlb } from './bake/glbCompression';
 /** JSON belongs to sections; these named bytes occupy a kind-specific content-addressed blob path. */
 export type NamedBlobKind = Exclude<OutputFile['kind'], 'json'>;
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
-export interface BlobOptions extends Partial<AssetCost> { readonly critical?: boolean; readonly dependencies?: readonly string[] }
+export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[] }
 /** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
 export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */
-export interface NamedBlob { readonly file: OutputFile; readonly bytes: Uint8Array }
+export interface NamedBlob { readonly file: OutputFile; readonly bytes: Uint8Array; readonly script?: ScriptContract }
 /** The writer merges declarations into admission before emitting these immutable assets. */
 export interface EmittedBlobs { readonly files: readonly OutputFile[]; readonly assets: ReadonlyMap<string, Uint8Array> }
 
@@ -49,7 +50,8 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
   if (input.length === 0 || input.length > MAX_BYTES) throw new Error('Blob exceeds its wire byte cap');
   const bytes = Uint8Array.from(input), suffix = extension(kind, bytes);
   if (kind === 'bin' && isTextGltf(bytes)) throw new Error('Text glTF must compile to GLB, never a binary blob');
-  const actual = assetCost(kind === 'bin' || kind === 'tile' ? 'binary' : kind, bytes);
+  if (kind !== 'wasm' && options.script !== undefined) throw new Error('Script contract requires a Wasm blob');
+  const actual = assetCost(kind === 'bin' || kind === 'tile' ? 'binary' : kind, bytes, options.script);
   const costs = { decoded: options.decoded ?? actual.decoded, gpu: options.gpu ?? actual.gpu, triangles: options.triangles ?? actual.triangles, draws: options.draws ?? actual.draws };
   for (const key of ['decoded', 'gpu', 'triangles', 'draws'] as const) if (!Number.isSafeInteger(costs[key]) || costs[key] < actual[key]) throw new Error('Blob costs cannot understate actual bytes or geometry');
   const dependencies = [...options.dependencies ?? []];
@@ -57,7 +59,7 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
   const hash = hashImmutableBytes(bytes);
   const file: OutputFile = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies };
   outputBlobPath(file);
-  return { file, bytes };
+  return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
 }
 
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;
@@ -103,7 +105,7 @@ export function emitNamedBlobs(blobs: readonly NamedBlob[]): EmittedBlobs {
   for (const row of blobs) {
     if (row.file.name === undefined) throw new Error('Named blob needs its logical name');
     if (row.file.kind === 'json') throw new Error('JSON belongs to sections');
-    const checked = nameBlob(row.file.name, row.file.kind, row.bytes, row.file);
+    const checked = nameBlob(row.file.name, row.file.kind, row.bytes, { ...row.file, ...(row.script === undefined ? {} : { script: row.script }) });
     if (encodeCanonicalJson(checked.file) !== encodeCanonicalJson(row.file)) throw new Error('Named blob changed after admission');
     if (names.has(row.file.name) || assets.has(row.file.hash)) throw new Error('Duplicate blob name or content reference');
     names.add(row.file.name); files.push(checked.file); assets.set(row.file.hash, checked.bytes);

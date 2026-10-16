@@ -11,7 +11,7 @@ import { compileGltfSource } from '../src/sdk/bake/gltfSource';
 import { parseGlb } from '../src/sdk/assets';
 import { NodeIO } from '@gltf-transform/core';
 
-const wasm = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
+const wasm = new Uint8Array([1, 2, 3]);
 const position = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]);
 const indices = new Uint16Array([0, 1, 2]);
 const gltf = (uri = 'geometry.bin') => ({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0 }],
@@ -22,10 +22,10 @@ const gltf = (uri = 'geometry.bin') => ({ asset: { version: '2.0' }, scene: 0, s
 const jsonBytes = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
 test('named blobs derive hash paths/costs, own their bytes and refuse ambiguous or changed entries', () => {
-  const source = Uint8Array.from(wasm), blob = nameBlob('behaviour/director.wasm', 'wasm', source, { critical: true });
+  const source = Uint8Array.from(wasm), blob = nameBlob('behaviour/director.bin', 'bin', source, { critical: true });
   source.fill(255);
   expect(blob.bytes).toEqual(wasm);
-  expect(blob.file).toMatchObject({ name: 'behaviour/director.wasm', path: `blobs/wasm/${hashImmutableBytes(wasm)}.wasm`, critical: true });
+  expect(blob.file).toMatchObject({ name: 'behaviour/director.bin', path: `blobs/bin/${hashImmutableBytes(wasm)}.bin`, critical: true });
   const emitted = emitNamedBlobs([blob]);
   expect(emitted.assets.get(blob.file.hash)).toEqual(wasm);
   expect(emitted.files).toEqual([blob.file]);
@@ -34,7 +34,7 @@ test('named blobs derive hash paths/costs, own their bytes and refuse ambiguous 
   expect(() => nameBlob('bad.bin', 'bin', wasm, { decoded: 0 })).toThrow('understate');
   expect(() => nameBlob('model.bin', 'bin', jsonBytes(gltf()))).toThrow('compile to GLB');
   expect(() => emitNamedBlobs([blob, blob])).toThrow('Duplicate');
-  expect(() => emitNamedBlobs([blob, nameBlob('alias.wasm', 'wasm', wasm)])).toThrow('Duplicate');
+  expect(() => emitNamedBlobs([blob, nameBlob('alias.bin', 'bin', wasm)])).toThrow('Duplicate');
   blob.bytes.fill(0);
   expect(() => emitNamedBlobs([blob])).toThrow();
 });

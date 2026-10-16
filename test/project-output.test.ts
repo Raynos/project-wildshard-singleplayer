@@ -55,10 +55,10 @@ import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
 export default ${JSON.stringify(source())};
-const named = emitNamedBlobs([nameBlob('behaviour/quest.wasm', 'wasm', new Uint8Array(${JSON.stringify([...wasm])}))]);
+const named = emitNamedBlobs([nameBlob('behaviour/quest.wasm', 'wasm', new Uint8Array(${JSON.stringify([...wasm])}), { script: { abi: 0 } })]);
 export const output = {
  blobs: [{ name: 'models/body.bin', kind: 'bin', source: 'body.bin' },
-         { name: 'behaviour/quest.wasm', kind: 'wasm', source: 'quest.wasm' }],
+         { name: 'behaviour/quest.wasm', kind: 'wasm', source: 'quest.wasm', options: { script: { abi: 0 } } }],
  namedFiles: named.files, assets: named.assets,
  custom: emitDefinedSections([defineSection('custom/reward', v.strictObject({ amount: v.number() }), { amount: 3 })]),
  platform: emitPlatformSections(new Map([['ui/strings', { hello: 'Hello' }]]))

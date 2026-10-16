@@ -4,6 +4,8 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } 
 // oxlint-disable-next-line import/no-nodejs-modules -- Product paths are validated relative paths, never URLs.
 import { dirname, resolve } from 'node:path';
 import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
+import { decisionModuleContracts, decisionScriptsFromSections, type ScriptContract } from '@wildshard/format/scriptContract';
+import type { DecisionScripts } from '@wildshard/format/decisionScripts';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { assetCost, offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
@@ -46,10 +48,10 @@ function blobExtension(kind: OutputFile['kind'], bytes: Uint8Array): string {
   }
   return kind;
 }
-function inspectBlob(file: OutputFile, bytes: Uint8Array): void {
+function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContract): void {
   const legacy = file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind;
   if (blobKind(legacy,bytes) !== file.kind || !file.path.endsWith(`.${blobExtension(file.kind,bytes)}`)) throw new Error('Output blob bytes differ from their declared kind');
-  const cost = assetCost(legacy,bytes);
+  const cost = assetCost(legacy,bytes,script);
   if ((['decoded','gpu','triangles','draws'] as const).some(key => cost[key] > file[key])) throw new Error('Output blob understates parsed costs');
 }
 function put(destination: string, path: string, bytes: Uint8Array): void { const target = resolve(destination,path); mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes); }
@@ -60,9 +62,21 @@ export interface OutputProductOptions {
   readonly namedFiles?: readonly OutputFile[];
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
+/** Read the canonical platform decision payload only after checking its emitted hash and size. */
+export function outputDecisionScripts(platform?: EmittedSections): DecisionScripts {
+  const payloads = new Map<string, unknown>();
+  for (const entry of platform?.sections ?? []) {
+    if (entry.name !== 'sim/scripts') continue;
+    if (payloads.has(entry.name)) throw new Error('Duplicate decision script section');
+    const bytes = platform?.files.get(entry.path);
+    if (bytes === undefined || bytes.length !== entry.bytes || hashImmutableBytes(bytes) !== entry.hash) throw new Error('Decision script section hash or size mismatch');
+    payloads.set(entry.name, readJson(bytes));
+  }
+  return decisionScriptsFromSections(payloads);
+}
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
-  const source = admitProduct(input,assets,'warn');
+  const scripts = outputDecisionScripts(options.platform), source = admitProduct(input,assets,'warn',scripts);
   for(const issue of performanceTargetIssues(source,'warn'))console.warn(`Output budget report-only (G453): ${issue.metric}: ${issue.actual} exceeds ${issue.limit}`);
   source.files.sort((a,b)=>a.hash.localeCompare(b.hash));
   source.tiles.sort((a,b)=>a.lod-b.lod||a.x-b.x||a.z-b.z);
@@ -124,11 +138,12 @@ export function validateOutputProduct(destination: string): {index:OutputIndex; 
   };
   for(const entry of index.schemas){const bytes=read(entry);readJson(bytes);schemaBytes.set(entry.path,bytes);}
   for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);if(entry.name.startsWith('custom/')){const schema=schemaBytes.get(entry.schema);if(schema===undefined)throw new Error('Missing custom schema');validateDefinedSection(schema,value);}else validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
-  for(const entry of index.files){const bytes=read({path:entry.path,hash:entry.hash,bytes:entry.compressed});inspectBlob(entry,bytes);assets.set(`${entry.commons===true?'commons:':''}${entry.hash}`,bytes);if(index.requires.commons.includes(entry.hash))assets.set(`commons:${entry.hash}`,bytes);}
+  const scripts = decisionScriptsFromSections(payloads), contracts = decisionModuleContracts(scripts, index.files);
+  for(const entry of index.files){const bytes=read({path:entry.path,hash:entry.hash,bytes:entry.compressed});inspectBlob(entry,bytes,entry.kind === 'wasm' ? contracts.get(entry.hash) ?? {abi:0} : undefined);assets.set(`${entry.commons===true?'commons:':''}${entry.hash}`,bytes);if(index.requires.commons.includes(entry.hash))assets.set(`commons:${entry.hash}`,bytes);}
   for(const entry of index.runtime?.files??[])validateRuntimeImports(destination,entry.path,new TextDecoder('utf-8',{fatal:true}).decode(read(entry)));
   const walk=(folder:string):void=>{for(const name of readdirSync(resolve(destination,folder))){const path=folder===''?name:`${folder}/${name}`,stat=lstatSync(resolve(destination,path));if(stat.isDirectory())walk(path);else if(!stat.isFile()||!listed.has(path))throw new Error(`Unlisted output file: ${path}`);}};
   walk('');
-  const shard=admitProduct(assembleOutputShardfile(index,payloads),assets,'warn');
+  const shard=admitProduct(assembleOutputShardfile(index,payloads),assets,'warn',scripts);
   if(hashImmutableBytes(jsonBytes(shard))!==index.build.sourceHash)throw new Error('Output sections differ from the declared source hash');
   return{index,shard,assets};
 }

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ScriptContractSchema, decisionModuleContracts } from '@wildshard/format/scriptContract';
 import { OutputIndexSchema, type OutputFile } from '@wildshard/format/outputIndex';
 import { ShardNaturalSchema } from '@wildshard/format/shardSections';
 import { parseShardfile, type Shardfile } from './shardfile';
@@ -6,7 +7,7 @@ import { readNamedBlob, emitNamedBlobs, nameBlob, type NamedBlob } from './blobs
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { defineMirror, type RuntimeMirror } from './runtimeMirrors';
 import type { EmittedSections } from './sections';
-import type { OutputProductOptions } from './outputProduct';
+import { outputDecisionScripts, type OutputProductOptions } from './outputProduct';
 
 const bytes = v.custom<Uint8Array>(value => value instanceof Uint8Array);
 const assetMap = v.map(v.string(), bytes);
@@ -14,6 +15,7 @@ const emitted = v.strictObject({ sections: OutputIndexSchema.entries.sections, f
 const options = v.strictObject({
   decoded: v.exactOptional(ShardNaturalSchema), gpu: v.exactOptional(ShardNaturalSchema),
   triangles: v.exactOptional(ShardNaturalSchema), draws: v.exactOptional(ShardNaturalSchema),
+  script: v.exactOptional(ScriptContractSchema),
   meshopt: v.exactOptional(v.boolean()), critical: v.exactOptional(v.boolean()), dependencies: v.exactOptional(v.array(v.string())),
 });
 const declaration = v.strictObject({
@@ -54,13 +56,18 @@ function ownedSections(input: EmittedSections): EmittedSections {
 export async function prepareProjectOutput(project: string, input: unknown): Promise<PreparedProjectOutput> {
   const parsed = v.parse(output, input === undefined ? {} : input), blobs: NamedBlob[] = [], overlays: OutputFile[] = [];
   for (const row of parsed.blobs) blobs.push(await readNamedBlob(project, row.name, row.source, row.kind, row.options));
+  const inventory = [...parsed.namedFiles, ...blobs.map(row => row.file)];
+  // Other rows may name files already declared by the root source; full product admission resolves those.
+  const scripts = outputDecisionScripts(parsed.platform).filter(row => inventory.some(file => file.path === row.module));
+  const contracts = decisionModuleContracts(scripts, inventory);
   for (const file of parsed.namedFiles) {
     const value = parsed.assets.get(file.hash);
     if (value === undefined) overlays.push(file);
     else {
-      const checked = emitNamedBlobs([{ file, bytes: value }]), owned = checked.assets.get(file.hash);
+      const script = file.kind === 'wasm' ? contracts.get(file.hash) ?? { abi: 0 as const } : undefined;
+      const checked = emitNamedBlobs([{ file, bytes: value, ...(script === undefined ? {} : { script }) }]), owned = checked.assets.get(file.hash);
       if (owned === undefined) throw new Error('Named output asset was not admitted');
-      blobs.push({ file, bytes: owned });
+      blobs.push({ file, bytes: owned, ...(script === undefined ? {} : { script }) });
     }
   }
   return { blobs, assets: ownedAssets(parsed.assets), options: {
@@ -120,16 +127,20 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     let overlay: OutputFile;
     if (existing !== undefined) {
       if (existing.kind !== (file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind) || existing.compressed !== blob.bytes.length) throw new Error('Blob kind or size differs from admitted declaration');
-      overlay = nameBlob(name, file.kind, blob.bytes, existing).file;
+      overlay = nameBlob(name, file.kind, blob.bytes, { ...existing, ...(blob.script === undefined ? {} : { script: blob.script }) }).file;
     } else if (common) {
       const cost = source.requires.commonsCosts[file.hash];
       if (cost === undefined || source.requires.commonsWire[file.hash] !== blob.bytes.length) throw new Error('Blob differs from admitted commons');
-      overlay = { ...nameBlob(name, file.kind, blob.bytes, cost).file, commons: true };
+      overlay = { ...nameBlob(name, file.kind, blob.bytes, { ...cost, ...(blob.script === undefined ? {} : { script: blob.script }) }).file, commons: true };
     } else {
       const { name: _name, path: _path, kind, ...metadata } = file;
       const added = { ...metadata, kind: kind === 'bin' || kind === 'tile' ? 'binary' as const : kind };
-      source.files.push(added); files.set(file.hash, added); source.library.push(file.hash);
-      if (file.critical) source.critical.push(file.hash);
+      source.files.push(added); files.set(file.hash, added);
+      if (file.critical) {
+        source.critical.push(file.hash);
+        source.budgets.sim.compressed += file.compressed;
+        source.budgets.sim.resident += file.decoded + file.gpu;
+      } else source.library.push(file.hash);
       overlay = file;
     }
     const old = named.get(file.hash);
