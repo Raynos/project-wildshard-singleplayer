@@ -8,19 +8,22 @@
  */
 import { defineModel, type ModelContext, type ModelPart, type ModelDef } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { CARGO_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CARGO_GEOMETRY, DRIFT_LOG_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 
-type Template = (typeof CARGO_GEOMETRY)[keyof typeof CARGO_GEOMETRY];
-/** A prepared specimen's baked lone copy, scaled without changing its template. */
-function specimen(ctx: ModelContext, id: string, kind: keyof typeof CARGO_GEOMETRY, k = 1): readonly ModelPart[] {
-  const template: Template = CARGO_GEOMETRY[kind];
-  return [{ geometry: ctx.once(`${id}:${kind}:${k}`, () => (k === 1 ? template.copy() : template.copy().scale(k, k, k))),
-    material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
+/** Every wooden card copies the same prepared template before applying its authored scale. */
+function specimen(ctx: ModelContext, key: string, template: { copy: () => ModelPart['geometry'] }, sx = 1, sy = sx, sz = sy): readonly ModelPart[] {
+  return [{ geometry: ctx.once(key, () => {
+    const geometry = template.copy();
+    return sx === 1 && sy === 1 && sz === 1 ? geometry : geometry.scale(sx, sy, sz);
+  }), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
+}
+function cargoSpecimen(ctx: ModelContext, id: string, kind: keyof typeof CARGO_GEOMETRY, k = 1): readonly ModelPart[] {
+  return specimen(ctx, `${id}:${kind}:${k}`, CARGO_GEOMETRY[kind], k);
 }
 
 /** Existing card differences, with one preparation and catalog declaration for the cargo family. */
-function cargoModel<P extends object>(row: Pick<ModelDef<P>, 'id' | 'name' | 'defaults' | 'variants' | 'build'>): ModelDef<P> {
-  return defineModel({ ...row, category: 'props', pipeline: 'code', surface: 'wood',
+function cargoModel<P extends object>(row: Pick<ModelDef<P>, 'id' | 'name' | 'defaults' | 'variants' | 'build'> & { readonly category?: 'props' | 'nature' }): ModelDef<P> {
+  return defineModel({ ...row, category: row.category ?? 'props', pipeline: 'code', surface: 'wood',
     file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', prepare: loadFixedGeometry });
 }
 
@@ -30,8 +33,8 @@ export const barrel = cargoModel<BarrelParams>({
   defaults: { lying: false },
   variants: [{ id: 'standing', label: 'Standing', params: {} }, { id: 'lying', label: 'Lying', params: { lying: true } }],
   // the specimen: a standing barrel's foot on the origin (its centre 0.45 up), a lying one's side on it
-  build: (ctx, p) => p.lying ? specimen(ctx, 'driftwood-isle/barrel', 'lying')
-    : specimen(ctx, 'driftwood-isle/barrel', 'barrel'),
+  build: (ctx, p) => p.lying ? cargoSpecimen(ctx, 'driftwood-isle/barrel', 'lying')
+    : cargoSpecimen(ctx, 'driftwood-isle/barrel', 'barrel'),
 });
 
 export interface CrateParams { readonly size: number; readonly broken: boolean }
@@ -42,7 +45,7 @@ export const crate = cargoModel<CrateParams>({
     { id: 'big', label: 'Big', params: {} }, { id: 'small', label: 'Small', params: { size: 0.55 } },
     { id: 'broken', label: 'Broken', params: { size: 0.7, broken: true } },
   ],
-  build: (ctx, p) => specimen(ctx, 'driftwood-isle/crate', p.broken ? 'broken' : 'crate',
+  build: (ctx, p) => cargoSpecimen(ctx, 'driftwood-isle/crate', p.broken ? 'broken' : 'crate',
     p.size / (p.broken ? 0.7 : 0.8)),
 });
 
@@ -50,5 +53,33 @@ export interface CoilParams { readonly r: number }
 export const ropeCoil = cargoModel<CoilParams>({
   id: 'driftwood-isle/rope-coil', name: 'Rope coil',
   defaults: { r: 0.3 },
-  build: (ctx, p) => specimen(ctx, 'driftwood-isle/rope-coil', 'coil', p.r / 0.3),
+  build: (ctx, p) => cargoSpecimen(ctx, 'driftwood-isle/rope-coil', 'coil', p.r / 0.3),
+});
+
+export interface DriftLogParams {
+  /** length, metres */
+  readonly len: number;
+  /** radius at either end */
+  readonly r0: number;
+  readonly r1: number;
+  /** body tone (0–2) */
+  readonly tone: number;
+}
+
+/** each tone's baked template and the log it was baked at (generators/driftLogs.ts DRIFT_SPECIMENS) */
+const DRIFT_LOG_TEMPLATES = [
+  { kind: 'long', len: 4, r0: 0.26 }, { kind: 'short', len: 2.6, r0: 0.18 }, { kind: 'pale', len: 4, r0: 0.26 },
+] as const;
+
+export const driftLog = cargoModel<DriftLogParams>({
+  id: 'driftwood-isle/drift-log', name: 'Drift log', category: 'nature',
+  defaults: { len: 4, r0: 0.26, r1: 0.19, tone: 0 },
+  variants: [
+    { id: 'long', label: 'Long', params: {} }, { id: 'short', label: 'Short', params: { len: 2.6, r0: 0.18, r1: 0.12, tone: 1 } },
+    { id: 'pale', label: 'Pale', params: { tone: 2 } },
+  ],
+  build: (ctx, p) => {
+    const t = DRIFT_LOG_TEMPLATES[((Math.round(p.tone) % 3) + 3) % 3] ?? DRIFT_LOG_TEMPLATES[0], sx = p.len / t.len, sr = p.r0 / t.r0;
+    return specimen(ctx, `driftwood-isle/drift-log:${t.kind}:${sx}:${sr}`, DRIFT_LOG_GEOMETRY[t.kind], sx, sr, sr);
+  },
 });
