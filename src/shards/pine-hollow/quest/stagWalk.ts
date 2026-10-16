@@ -27,15 +27,21 @@ export class StagWalk {
   /** is the apparition out (staring, trotting or between bends)? */
   get out(): boolean { return this.mode !== 'none'; }
 
-  /** One step. `on`: the beat is current and it is night. `at`: where the apparition stands (null: its bend). */
-  step(dt: number, on: boolean, player: { x: number; z: number }, at: { x: number; z: number } | null = null): StagStep {
+  /** Admit appearance before a page actor integrates motion; native callers use step alone. This does not advance time. */
+  begin(on: boolean, player: { x: number; z: number }): StagStep {
     if (!on) { const was = this.out; this.i = 0; this.mode = 'none'; return was ? { kind: 'vanish', done: false } : null; }
-    let appeared: StagStep = null;
     if (!this.out) {
       const first = STAG_PATH[0];
       if (first === undefined || dist(player.x, player.z, first[0], first[1]) > STAG_FIRST) return null;
-      this.appear(0); appeared = { kind: 'appear', first: true };
+      this.appear(0); return { kind: 'appear', first: true };
     }
+    return null;
+  }
+
+  /** One step. `on`: the beat is current and it is night. `at`: where the apparition stands (null: its bend). */
+  step(dt: number, on: boolean, player: { x: number; z: number }, at: { x: number; z: number } | null = null): StagStep {
+    const appeared = this.begin(on, player);
+    if (!on || !this.out) return appeared;
     this.t += dt;
     if (this.mode === 'stare') {
       const bend = STAG_PATH[this.i], end = STAG_PATH[STAG_PATH.length - 1];

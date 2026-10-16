@@ -10,26 +10,22 @@
  */
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { Puffs } from '../combat/fxKit';
 import { headingTo } from '../combat/combatMath';
-import { voice } from '../combat/ctx';
-import { STAG_FIRST, STAG_GONE, STAG_NEAR, STAG_PATH, STAG_TROT } from './stagWalk';
+import { StagWalk, STAG_PATH } from './stagWalk';
 
 // the walk's road and lengths are the renderer-free walk's (stagWalk.ts), which the headless quest runs alone
-const NEAR = STAG_NEAR, TROT = STAG_TROT, GONE = STAG_GONE;
+type StagBody = Pick<Animal, 'position' | 'yaw' | 'herd' | 'setDrawLod' | 'update' | 'sampleTerrain' | 'setMotion' | 'lookTarget' | 'lookWeight' | 'place' | 'mesh' | 'alive' | 'hidden'>;
 
 export class StagLead {
-  private a: Animal | null = null;
-  private i = 0;
-  private mode: 'none' | 'stare' | 'trot' | 'gone' = 'none';
-  private t = 0;
+  private a: StagBody | null = null;
+  private readonly walk = new StagWalk();
   private readonly puffs: Puffs;
   private readonly _v = new THREE.Vector3();
   onDone?: () => void;
   onAppear?: (first: boolean) => void;
 
-  constructor(scene: THREE.Scene, private readonly animals: AnimalManager) {
+  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }) {
     this.puffs = new Puffs(scene, new THREE.Color(0.75, 1.6, 2.0), 3);
   }
 
@@ -40,36 +36,27 @@ export class StagLead {
   /** per frame. `on` = the beat is current and it is night; off → the apparition leaves (a burst) */
   update(dt: number, t: number, on: boolean, player: THREE.Vector3): void {
     this.puffs.update(dt, t);
-    if (!on) { if (this.a) this.vanish(false); this.i = 0; this.mode = 'none'; return; }
-    const first = STAG_PATH[0];
-    if (!this.a) {
-      if (first === undefined || Math.hypot(player.x - first[0], player.z - first[1]) > STAG_FIRST) return;
-      this.appear(0, player, true);
-    }
+    const began = this.walk.begin(on, player);
+    if (began?.kind === 'vanish') this.vanish(false);
+    if (began?.kind === 'appear') this.appear(0, player, true);
     const a = this.a;
     if (!a) return;
-    this.t += dt;
     a.update(dt, t, true);
     if (Math.floor(t * 10) !== Math.floor((t - dt) * 10)) a.sampleTerrain();
-    const d = Math.hypot(player.x - a.position.x, player.z - a.position.z);
-    if (this.mode === 'stare') {
+    if (this.walk.mode === 'stare') {
       a.setMotion(headingTo(a.position.x, a.position.z, player.x, player.z), 0, 3);
       a.lookTarget.copy(player); a.lookWeight = 1;
-      // you came near — or ran past it along the road (you are nearer the clearing than it is): it moves on
-      const end = STAG_PATH[STAG_PATH.length - 1];
-      const past = end !== undefined && Math.hypot(player.x - end[0], player.z - end[1]) + 4 < Math.hypot(a.position.x - end[0], a.position.z - end[1]);
-      if (d < NEAR || past) { this.mode = 'trot'; this.t = 0; }
-    } else if (this.mode === 'trot') {
-      const next = STAG_PATH[this.i + 1] ?? STAG_PATH[this.i];
+    } else if (this.walk.mode === 'trot') {
+      const next = STAG_PATH[this.walk.i + 1] ?? STAG_PATH[this.walk.i];
       if (next) a.setMotion(headingTo(a.position.x, a.position.z, next[0], next[1]), 4.5, 4);
       a.lookWeight = 0;
-      if (this.t > TROT) this.fade();
-    } else if (this.mode === 'gone' && this.t > GONE) {
-      this.appear(this.i, player, false);
     }
+    const event = this.walk.step(dt, on, player, a.position);
+    if (event?.kind === 'appear') this.appear(this.walk.i, player, false);
+    else if (event !== null) { this.fade(); if (event.kind === 'vanish') this.vanish(event.done); }
   }
 
-  private spawnAt(x: number, z: number, yaw: number): Animal {
+  private spawnAt(x: number, z: number, yaw: number): StagBody {
     const a = this.animals.spawn('deer', x, z, yaw, 'ghost');
     // out of the manager's hands: its list is the hitbox / aim assist / minimap / AI
     const k = this.animals.animals.indexOf(a); if (k !== -1) this.animals.animals.splice(k, 1);
@@ -83,7 +70,6 @@ export class StagLead {
     const yaw = headingTo(p[0], p[1], player.x, player.z);
     if (this.a) { this.a.place(p[0], p[1], yaw); this.a.mesh.visible = true; } else this.a = this.spawnAt(p[0], p[1], yaw);
     this.a.sampleTerrain();
-    this.i = i; this.mode = 'stare'; this.t = 0;
     this.puffs.burst(this._v.copy(this.a.position).setY(this.a.position.y + 1.1), 2.6, 0.7, 0.55, 0.7);
     this.onAppear?.(first);
   }
@@ -91,10 +77,8 @@ export class StagLead {
   private fade(): void {
     const a = this.a; if (!a) return;
     this.puffs.burst(this._v.copy(a.position).setY(a.position.y + 1.1), 0.6, 3.2, 0.7, 0.95);
-    voice(this.animals, 'deer_call', a.position);
+    this.animals.onSound?.('deer_call', a.position);
     a.mesh.visible = false; a.setMotion(a.yaw, 0, 1);
-    if (this.i + 1 >= STAG_PATH.length) { this.vanish(true); return; }
-    this.i++; this.mode = 'gone'; this.t = 0;
   }
 
   /** gone for good: out of the scene (done = it reached the clearing) */
@@ -102,7 +86,7 @@ export class StagLead {
     const a = this.a; if (!a) return;
     if (a.mesh.visible) this.puffs.burst(this._v.copy(a.position).setY(a.position.y + 1.1), 0.6, 3.2, 0.7, 0.95);
     a.alive = false; a.hidden = true; a.mesh.visible = false; a.mesh.removeFromParent();
-    this.a = null; this.mode = 'none';
+    this.a = null;
     if (done) this.onDone?.();
   }
 }
