@@ -772,6 +772,16 @@
       },
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/systems/viewmodel/rigArms.ts",
+      "shard": "nine-dragon-stack",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nine first-person arm rig (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
     }
   ]
 }

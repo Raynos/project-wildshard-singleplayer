@@ -1,6 +1,6 @@
 import type { ClipChannel } from '@wildshard/engine/anim/channel';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
-import { loadRigFile, bindRig, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
+import { loadRigFile, bindRig, type ClipName, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
 import { memoUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { app } from '@wildshard/engine/app/runtime';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -13,10 +13,12 @@ import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 //                   (the mockups' look) and the world camera is wider there (~94–100°). Scaling the rig's camera-space x
 //                   and y by tan(world fov / 2) / tan(70° / 2), z kept, draws it exactly as a 70° camera would, so the
 //                   world's FOV kicks (dodge, the heavy's punch) leave the arms still
-//   RigArms         a baked arm rig (a GLB like scripts/blender/driftwood-isle/fp-arms: one skinned `arms` mesh, the
+//   RigArms         a baked arm rig (a GLB like the castaway fp-arms bake: one skinned `arms` mesh, the
 //                   weapons as children of R_weapon, the clips' metadata in vm_root's extras) played on the two
 //                   channels, or — `swim` — its looping swim clips blended by speed with the stroke's phase set from outside
 //   swordArmsOf     a RigArms as the engine Sword's animated rig (Sword.ts `SwordArms`)
+//   RigArmsOptions  the rig's clip aliases (default ARM_CLIPS + SWIM_CLIPS), held moves, walk rate and look lag; Driftwood's
+//                   castaway arms use the defaults, Nine's ink rig (G441, W3) its own row
 import {
   type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
 } from 'three';
@@ -50,6 +52,17 @@ async function rigScene(url: string): Promise<{ scene: Object3D; animations: Ani
   return { scene: cloneSkeleton(f.scene), animations: f.animations };
 }
 
+/** a rig's clip aliases, the moves that hold their last pose (each arm), the walk weight's rate (1/s) and the look lag
+ *  (rad per rad/s of look, clamped to ± `max`) */
+export interface RigArmsOptions {
+  readonly aliases?: Readonly<Partial<Record<ClipName, string>>>;
+  readonly holdRight?: readonly string[];
+  readonly holdLeft?: readonly string[];
+  readonly walkRate?: number;
+  readonly lag?: { readonly max: number; readonly pitch: number; readonly yaw: number };
+}
+const DEFAULTS = { aliases: { ...ARM_CLIPS, ...SWIM_CLIPS }, holdRight: ['charge', 'sheathe', 'sheathed'], holdLeft: [], walkRate: 6, lag: { max: 0.05, pitch: 0.01, yaw: 0.012 } };
+
 export interface RigState {
   /** 0 standing … 1 full walk */
   speed: number;
@@ -75,9 +88,11 @@ export class RigArms {
   private blade0 = 0.012;
   private blade1 = 0.53;
   private readonly m = new Matrix4();
+  private readonly o: Required<RigArmsOptions>;
 
   /** `swim`: the swim clips only (no channels): swimStroke / swimTread blended by `swim()` */
-  private constructor(scene: Object3D, clips: AnimationClip[], readonly swimming: boolean, contract: RigContract, bake: RigBake) {
+  private constructor(scene: Object3D, clips: AnimationClip[], readonly swimming: boolean, contract: RigContract, bake: RigBake, options: RigArmsOptions) {
+    this.o = { ...DEFAULTS, ...options };
     const vm = scene.getObjectByName('vm_root') ?? scene;
     if (vm.userData['rig'] !== contract.skeleton) throw new Error(`[anim] arm rig skeleton mismatch: ${String(vm.userData['rig'])}`);
     this.meta = vm.userData as RigMeta;
@@ -86,7 +101,7 @@ export class RigArms {
       if (o.name !== '') this.nodes.set(o.name, o);
       if (isMesh(o)) o.frustumCulled = false;
     });
-    const aliases = { ...ARM_CLIPS, ...SWIM_CLIPS };
+    const aliases = this.o.aliases;
     const rig = bindRig(this.root, clips, contract, bake);
     const loops = armClipNames(aliases).filter((name) => this.meta.clips[aliases[name] ?? name]?.loop === true);
     this.mixer = new AnimMachine({ states: {}, loops }, rig, app.levelScope ?? undefined);
@@ -100,9 +115,9 @@ export class RigArms {
     this.mixer.update(0);
   }
 
-  static async load(url: string, contract: RigContract, bake: RigBake, swimming = false): Promise<RigArms> {
+  static async load(url: string, contract: RigContract, bake: RigBake, swimming = false, options: RigArmsOptions = {}): Promise<RigArms> {
     const { scene, animations } = await rigScene(url);
-    return new RigArms(scene, animations, swimming, contract, bake);
+    return new RigArms(scene, animations, swimming, contract, bake, options);
   }
 
   /** every mesh of the rig: the skinned arms, the weapons */
@@ -119,13 +134,20 @@ export class RigArms {
     if (b !== undefined) { this.blade0 = b.bladeBase; this.blade1 = b.bladeTip; }
   }
 
-  /** start a right-arm move (crossfade `fade` s); 'charge' and 'sheathe' hold their last pose until the next play */
+  /** start a right-arm move (crossfade `fade` s); the held moves (default 'charge', 'sheathe') keep their last pose */
   play(name: string, fade = 0.1): void {
     const a = this.actions.get(name);
     if (a === undefined || this.right === null) return;
-    this.right.play(a, name, fade, name === 'charge' || name === 'sheathe' || name === 'sheathed');
+    this.right.play(a, name, fade, this.o.holdRight.includes(name));
     this.moveName = name;
     this.moveT = 0;
+  }
+
+  /** a left-arm pose (its held moves keep their last pose), or 'idle' to fade back to the base loop */
+  playLeft(name: string, fade = 0.1): void {
+    if (name === 'idle') { this.left?.release(fade); return; }
+    const a = this.actions.get(name);
+    if (a !== undefined) this.left?.play(a, name, fade, this.o.holdLeft.includes(name));
   }
 
   /** the current right move and how long it has run */
@@ -144,7 +166,7 @@ export class RigArms {
 
   /** the sword channels: the walk, the look lag, the moves */
   update(dt: number, s: RigState): void {
-    this.walkW += (Math.min(1, Math.max(0, s.speed)) - this.walkW) * Math.min(1, dt * 6);
+    this.walkW += (Math.min(1, Math.max(0, s.speed)) - this.walkW) * Math.min(1, dt * this.o.walkRate);
     this.right?.update(dt, this.walkW, s.walkPhase);
     this.left?.update(dt, this.walkW, s.walkPhase === undefined ? undefined : s.walkPhase + Math.PI);
     this.mixer.update(dt);
@@ -153,8 +175,8 @@ export class RigArms {
       if (this.right?.top === null) this.moveName = null;
     }
     // look lag: the whole rig trails the view a little
-    const lag = s.lookVel;
-    this.root.rotation.set(Math.max(-0.05, Math.min(0.05, lag.y * 0.01)), Math.max(-0.05, Math.min(0.05, -lag.x * 0.012)), 0);
+    const lag = s.lookVel, L = this.o.lag;
+    this.root.rotation.set(Math.max(-L.max, Math.min(L.max, lag.y * L.pitch)), Math.max(-L.max, Math.min(L.max, -lag.x * L.yaw)), 0);
   }
 
   /** the swim clips: `stroke` 0 (treading water) … 1 (the breaststroke), the stroke at `phase` (0..1 of a cycle) */

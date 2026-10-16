@@ -6024,6 +6024,26 @@ G441 registers Nalati `world/dressing/layer.ts#DressLayer` (its 24 m cell
 buckets and range walk, the cull's front-of-buffer copy, count and
 upload) as the W3 adopter, rechecked at the end of W3.
 
+### First-person arm rigs
+
+`src/game/systems/viewmodel/rigArms.ts` plays a baked skinned arm rig
+(one GLB: the arms, weapons under `R_weapon`, clip metadata in `vm_root`'s
+extras). `RigArms.load(url, contract, bake, swimming, options)` parses a
+URL once and skeleton-clones it per rig, binds the clips through the
+`RigArmsOptions.aliases` (default ARM_CLIPS + SWIM_CLIPS) and plays a
+right and a left channel: a base loop (idle to walk by speed) under
+crossfading one-shot moves. `play` / `playLeft` start a move (the
+`holdRight` / `holdLeft` moves keep their last pose; `playLeft('idle')`
+fades back), `update` drives the walk weight (`walkRate`) and the
+clamped look lag (`lag`), `blade` reads the weapon's blade in root space
+and `swim` blends the swim loops. `swordArmsOf` adapts a rig to the
+engine Sword's `SwordArms` (move-to-clip map, `vmScale` projection,
+framing, blade). Driftwood's toon arms use the defaults. G441 registers
+Nine `runtime/viewmodel/fpArmsRig.ts#FpArmsRig` (its parse, `vm_root`
+intake, channels, play / playLeft holds, walk and lag, blade) and
+`vm/arms.ts#jianArms` (its clip map, projection and blade composition)
+as the W3 adopter, rechecked at the end of W3.
+
 ### Ordered model placement batches
 
 `src/engine/models/placementBatch.ts` provides `ModelPlacementBatch` over
