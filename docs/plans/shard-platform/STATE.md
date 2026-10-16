@@ -16,9 +16,9 @@
 | C8 audio (+H4, H10) | x4 | 940 | 1,740 |
 | C9 boot glue, escapes, const.ts deletion, P4 re-base | x7 | 2,094 | 2,332 |
 
-**Since noon:** measured cuts landed (DW ≈ −400, Pine ≈ −400, Sky ≈ −90), but const-mirror commits added +221 Pine / +371 DW, which C9 deletes. KR1 net lines are report-only; platform growth is accepted (G466 (7)).
+**G468 (Jake 18:55, `f783bb736`):** every commit deletes a whole runtime file or module with its data path in the same commit (aim ~150+ net, no admit-only); parity per ~5-commit batch; a board only when the look changes; DW first (DW 53.1 % needs ~390/h); x1 joins C5/C4 after the C7 fixes. Relayed to all ten lanes 19:0x.
 
-**Visual:** each C1/C2 batch ships a labelled phone board, sent to wildshard-v. A short Opus host review runs at each component's close.
+**Visual:** A short Opus host review runs at each component's close.
 
 **G467:** Pine logCabin.ts stays (a working generator); generators are not custom code (no column, no re-base, build-time code may live in generators/).
 Paused: SF22 SF57 SF67.
