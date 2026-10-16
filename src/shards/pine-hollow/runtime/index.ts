@@ -2,7 +2,7 @@ import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import SKIN_PICKUPS from '../data/skinPickups.json' with { type: 'json' };
 import { CROSSBOW_GEOMETRY } from '../boot/crossbowGeometry';
 import { preloadKingKit } from '../models/antlerKing';
-import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../shard.config';
@@ -11,7 +11,6 @@ import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/h
 import { CROSSBOW_WEAPON_PROFILE } from '../data/crossbowProfile';
 import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
 import { BOW_PROFILE } from '../data/bowProfile';
-import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
 import { PINE_SPAWNS } from '../combat/spawns';
@@ -134,7 +133,8 @@ export class PineHollow extends ShardPlugin {
             return on;
           } });
       }
-      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { installPineLandmarkUpdate(ctx, game, fn); } });
+      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: retainsRuntimeServices(ctx)
+        ? fn => { installEnteredRuntimeUpdate(ctx, { id: 'pine.landmarks', phase: 'update', run: fn }); } : fn => { game.onUpdate(fn, 'pine.landmarks'); } });
       const cave = landmarks.crags?.cave;
       if (cave) { cutTerrain(world.physics, cave.terrainCuts()); await world.terrain.punchSliced(cave.holeTest(), slicer(30).due); }
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
