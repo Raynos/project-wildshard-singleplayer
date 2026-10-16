@@ -24,5 +24,6 @@
 
 **Stopped by G465 (default-off rows, to delete):** phone bloom `bdff6fb33` (x7 deletes it). Done earlier today: Pine desktop KTX2 `3316af68e` (road passes, memory −630 MB), frame-floor Debug isolation `0132d7935`, visited-cache ship fix `e17581f78`, graph memo fix `cb77a4059`.
 
+**For wildshard-v (pick for Jake):** Pine generators/logCabin.ts (1,335 lines, biggest Pine file). A) freeze the bake: commit per-building geometry blobs (~5–9 MB binary, near the 10 MB push cap), a ~60-line reader, delete the generator (net ≈ −1,300 shard lines; later edits happen in Blender on the GLB; the source survives in git history). B) full Blender port (3–5 h, moves ~1,100 lines to scripts/blender, small KR1 gain). Rec: A. Notes in tmp/sp-o296/NOTES.txt.
 **KS1/KS4 notes:** takeoff needs altitude + perch; ready range borrows the strike's observation.range (optional ready.strike id); the platform publishes move.done.
 Paused: SF22 SF57 SF67.
