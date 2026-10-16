@@ -264,12 +264,6 @@ export class GullFlock {
     this.group.add(posed.mesh);
   }
 
-  /** The one instanced draw (after `build`). */
-  get mesh(): THREE.InstancedMesh {
-    if (this.posed === null) throw new Error('GullFlock: not built');
-    return this.posed.mesh;
-  }
-
   // ─────────────── behaviour ───────────────
   private flockAt(i: number): Flock {
     const f = this.flocks[i];
@@ -528,13 +522,8 @@ export class GullFlock {
   /** every gull's pose and its rig channel (flap, head yaw, wing fold, leg tuck) into the posed draw */
   private draw(): void {
     const posed = this.posed;
-    if (posed === null) return;
-    posed.begin();
-    for (let i = 0; i < 40; i++) { // a flock is at most 40 gulls (build)
-      const g = this.gulls[i];
-      if (g === undefined) break;
-      posed.add(g.x, g.y, g.z, g.pitch, g.yaw, g.roll, GULL_SCALE, g.flap, g.head, g.fold, g.legs);
-    }
-    posed.commit();
+    posed?.begin();
+    for (let i = 0; i < 40; i++) { const g = this.gulls[i]; if (g === undefined) break; posed?.add(g.x, g.y, g.z, g.pitch, g.yaw, g.roll, GULL_SCALE, g.flap, g.head, g.fold, g.legs); } // ≤ 40 gulls (build)
+    posed?.commit();
   }
 }
