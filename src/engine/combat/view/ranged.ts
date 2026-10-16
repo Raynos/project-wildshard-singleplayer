@@ -416,3 +416,27 @@ export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeomet
   if (caster !== null) group.add(caster); else for (const mesh of group.children) mesh.castShadow = true;
   return group;
 }
+
+/** Prepare an owned held tree for the existing transparent viewmodel queue.
+ * Geometry/material identities stay borrowed; only missing vertex colours and
+ * the shipping queue/shadow flags are written. Clearer and flash exceptions are
+ * explicit borrowed handles, never inferred from names or material appearance. */
+export function prepareWeaponView(root: THREE.Object3D, options: {
+  readonly clearer?: THREE.Mesh;
+  readonly flash?: { readonly meshes: readonly THREE.Mesh[]; readonly material: THREE.Material };
+} = {}): void {
+  const meshes: THREE.Mesh[] = [];
+  root.traverse(part => { if (isMesh(part)) meshes.push(part); });
+  const { clearer, flash } = options;
+  if (meshes.length > 256 || (flash?.meshes.length ?? 0) > 8
+    || clearer !== undefined && !meshes.includes(clearer)
+    || flash?.meshes.some(mesh => !meshes.includes(mesh))) throw new Error('Invalid held view roster');
+  for (const mesh of meshes) {
+    mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = mesh !== clearer;
+    if (mesh === clearer) continue;
+    mesh.renderOrder = flash?.meshes.includes(mesh) === true ? 1001 : 1000;
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    if (materials.some(material => material.vertexColors)) whiteColors(mesh.geometry);
+    for (const material of materials) { material.transparent = true; if (material !== flash?.material) material.depthWrite = true; }
+  }
+}

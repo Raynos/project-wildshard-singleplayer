@@ -10,7 +10,7 @@ import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { stepBrass, brassRoster, ejectBrass, type BrassCase } from '@wildshard/engine/combat/view/brass';
 import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, weaponDisplay, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, whiteColors, FOV_HIP, FOV_ADS, prepareWeaponView, weaponDisplay, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
@@ -256,14 +256,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
-    this.model.traverse((m) => {
-      if (!isMesh(m)) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
-      if (m === clearer) return;
-      m.renderOrder = this.flash.quads.includes(m) ? 1001 : 1000;
-      if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
-      for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; if (mat !== flashMat) mat.depthWrite = true; }
-    });
+    prepareWeaponView(this.model, { clearer, flash: { meshes: this.flash.quads, material: flashMat } });
 
     whiteColors(this.caseGeo);
     this.brass.push(...brassRoster(this.game.scene, this.caseGeo, this.brassMat, this.view.brass.count));

@@ -12,7 +12,7 @@ import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
-import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, isMesh, whiteColors, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, prepareWeaponView, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -283,13 +283,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.tipLocal.copy(p.tipLocal); this.tipModel.copy(p.tipModel); this.nockZ = p.nockZ;
 
     // The engine owns the shared depth clear at 999; models remain at 1000 in the transparent queue.
-    this.model.traverse((m) => {
-      if (!isMesh(m)) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true;
-      m.renderOrder = 1000;
-      if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
-      for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
-    });
+    prepareWeaponView(this.model);
     this.model.scale.setScalar(this.view.hip.scale);
   }
 

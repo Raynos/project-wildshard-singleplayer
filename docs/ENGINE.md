@@ -6179,3 +6179,19 @@ Driftwood keeps its existing payload and metadata. The W3 counterpart is
 Nalati `species/bodies.ts`: normalize its contiguous channel/group rows
 at intake, then replace its private body-part, bone and dimension copying;
 its lane decoding, family keys and painterly materials stay unchanged.
+
+### Held weapon queue preparation (G441)
+
+`src/engine/combat/view/ranged.ts#prepareWeaponView(root, options)` prepares
+up to 256 borrowed held meshes for the shipping transparent queue. It
+retains geometry/material identity, transforms, visibility and authored
+colour channels; vertex-coloured materials get the existing white channel
+only when missing. It sets culling off, cast-shadow off and receive-shadow
+on, with ordinary order 1000 and explicit flash meshes at 1001. An optional
+borrowed clearer keeps its authored order (999) and material untouched,
+with receive-shadow off. An explicit flash material keeps its depth-write
+policy; other materials become transparent with depth-write on. Crossed
+clearer/flash handles and flash rosters over eight refuse before mutation.
+The function allocates no geometry/material and installs no services.
+Pine crossbow and lever adopt now; the G441 W3 match is Nalati
+`runtime/weapons/magazineFirearm.ts#buildViewmodel`.
