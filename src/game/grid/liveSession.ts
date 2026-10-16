@@ -47,7 +47,7 @@ import { GridWallet, stowGridMount, type GridLoadout } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
+import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';
@@ -635,14 +635,8 @@ export class LiveGridSession {
     if (manifest === undefined || declaration === null || manifest.trustedRuntime === undefined) throw new GridCellWaitingError('Missing declared trusted regional entry');
     const page = this.page.runtimePage?.();
     if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
-    const load = manifest.load;
-    if (load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
-    const registered = manifest.trustedRuntime;
-    const entry: TrustedRuntimeEntry = { ...registered, load: async () => {
-      const loaded = await load(), resolve = loaded.resolveTrustedRuntime;
-      if (resolve === undefined) throw new Error('Trusted plugin module does not resolve its declared entry');
-      return { default: resolve(registered.entry) };
-    } }, textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
+    if (manifest.load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
+    const entry = manifestRuntimeEntry(manifest), textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
     const { slug: identity } = entry;
     if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);

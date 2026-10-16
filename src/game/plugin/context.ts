@@ -175,6 +175,18 @@ export interface TrustedRuntimeEntry {
   readonly entry: string;
   readonly load: () => Promise<{ default: new () => ShardPlugin }>;
 }
+/** The manifest's registered module adapter, shared by loading preparation and ordinary regional admission.
+ * Importing resolves the same explicit entry; no plugin is constructed and no gameplay hook runs here. */
+export function manifestRuntimeEntry(manifest: Pick<ShardManifest, 'load' | 'trustedRuntime'>): TrustedRuntimeEntry {
+  const registered = manifest.trustedRuntime, load = manifest.load;
+  if (registered === undefined) throw new Error('Missing declared trusted regional entry');
+  if (load === undefined) throw new Error('Missing trusted first-party loader');
+  return { ...registered, load: async () => {
+    const loaded = await load(), resolve = loaded.resolveTrustedRuntime;
+    if (resolve === undefined) throw new Error('Trusted plugin module does not resolve its declared entry');
+    return { default: resolve(registered.entry) };
+  } };
+}
 /** Resolve only explicitly registered first-party code. Neighbour preparation may import it without running hooks. */
 export async function prepareTrustedRuntime(declaration: RuntimeDeclaration, slug: string, firstParty: boolean,
   entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {

@@ -18,6 +18,7 @@ import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { GridCell } from './assembly';
 import type { GridEdgeObservations, GridEdgeSource } from './edgeProfiles';
 import type { ShardEntryways } from '@wildshard/format/entryways';
+import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 import { findShard } from '../shard/registry';
 import { bakesTerrain } from '../shard/terrainBake';
 
@@ -62,8 +63,10 @@ function observe(entries: ShardEntryways, water: number | undefined, geometry: '
 
 /** Admitted products and immutable transport can be supplied by the owning composition without replacing modules. */
 export interface GridEdgeReaderPorts {
-  product: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways } }; release?: () => void }> | null;
+  product: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways; runtime?: RuntimeDeclaration | null } }; release?: () => void }> | null;
   fetch: (url: string) => Promise<Response>;
+  /** Loading-stage module preparation while the already-admitted product lease is still held. */
+  prepare?: (source: { readonly runtime?: RuntimeDeclaration | null }) => Promise<void>;
 }
 
 /** Read one cell's edge source from its shard's own data. */
@@ -74,6 +77,7 @@ export async function readGridEdges(cell: GridCell, reader: GridEdgeReaderPorts)
     const lease = await product;
     try {
       const source = lease.admitted.source;
+      await reader.prepare?.(source);
       // Admitting a product opens only its declared entries; it does not invent ground around a structures-only world.
       const geometry = manifest?.ground.structures === true && manifest.ground.terrain === undefined ? 'void' : 'ground';
       return { kind: 'declared', profiles: structuredClone(source.edge), observations: observe(source.entryways, water, geometry) };

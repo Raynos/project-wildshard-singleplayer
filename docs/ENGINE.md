@@ -3001,6 +3001,13 @@ The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.
 
+The grid's initial admitted-edge stage also awaits each declared module through
+`manifestRuntimeEntry` and `prepareTrustedRuntime`, while the product lease is
+held and the loading panel is still up. This evaluates the registered module
+without constructing its runtime or running hooks. Later regional admission
+uses the same adapter and ordinary module cache. A preload failure is logged;
+normal admission retains its validation, refusal and retry authority.
+
 `Game.preparePostPass(pass)` serializes additions to a live compound display
 shader. It links a temporary material while the original keeps drawing, then
 publishes the prepared sources onto that same original material and acquires

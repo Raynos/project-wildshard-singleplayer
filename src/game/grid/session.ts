@@ -40,7 +40,7 @@ import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type Pla
 import { GridAssembly, type GridCell } from './assembly';
 import { yieldGridAdmission } from './admissionYield';
 import { DEVSERVER, gridMode } from './menu';
-import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
+import { gridCells, pageGridInstance, pageMode, manifestRuntimeEntry, prepareTrustedRuntime } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';
@@ -304,7 +304,15 @@ export class GridSession {
     const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
-        const edge = await readGridEdges(cell, { product: slug => gridShardfileProduct(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
+        const edge = await readGridEdges(cell, { product: slug => gridShardfileProduct(slug, { allocator, scope: host.scope }), fetch: url => fetch(url),
+          prepare: async source => {
+            if (source.runtime === undefined || source.runtime === null || host.scope.disposed) return;
+            const manifest = findShard(cell.slug);
+            if (manifest === undefined) return;
+            // Evaluate modules under the loading panel. Ordinary admission still owns refusals and retries.
+            try { await prepareTrustedRuntime(source.runtime, cell.slug, true, [manifestRuntimeEntry(manifest)]); }
+            catch (error) { console.warn(`[grid] ${cell.instance} runtime preparation failed:`, error); }
+          } });
         const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes: jsonResidentBytes(edge), distance: 0, needed: true });
         if (claim === null) throw new Error('Grid edge metadata residency deferred');
         host.scope.onDispose(() => { claim.release(); }); return edge;
@@ -314,6 +322,7 @@ export class GridSession {
         return { kind: 'declared', profiles: { north: empty, east: empty, south: empty, west: empty }, observations: { north: closed, east: closed, south: closed, west: closed } };
       }
     });
+    if (host.scope.disposed) throw new Error('Grid session left during cell preparation');
     // rt3-crossing: the 40-strip platform generation was one main-thread task (11.8 s at 4x CPU, the cold start's long
     // park under "Weapons · HUD"); generate it here in slices between paints, then construct with the finished strips
     const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, () => yieldGridAdmission(host.scope)));
