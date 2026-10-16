@@ -61,8 +61,8 @@ export const DRIFTWOOD_BOOT_FILES = {
   "records": {
     "source": {
       "urls": {
-        phone: ["/assets/models/driftwood-blender/island.json", "/assets/models/driftwood-blender/placements.bin", PLAN_FILES.phone.url],
-        desktop: ["/assets/models/driftwood-blender/island.json", "/assets/models/driftwood-blender/placements.bin", PLAN_FILES.desktop.url]
+        phone: ["/assets/models/driftwood-blender/placements.bin", PLAN_FILES.phone.url],
+        desktop: ["/assets/models/driftwood-blender/placements.bin", PLAN_FILES.desktop.url]
       }
     }
   },

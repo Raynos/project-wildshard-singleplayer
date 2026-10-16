@@ -180,7 +180,7 @@ interface IslandPlacementPlan { version:1;used:number;sets:{casters:number[][];c
 export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean):IslandPlacementPlan {
   const look=phone?ISLAND_TIERS.phone:ISLAND_TIERS.desktop,used=islandUsed(f,meta,phone);
   const sets=placementSets(f,meta.protos,used,area,{casterTiles:look.casterTiles,coverTiles:look.coverTiles,...ISLAND_LOOK.names});
-  const local=ISLAND_FACTS.map(fact=>!fact.present?undefined:fact.empty?new THREE.Box3():new THREE.Box3(new THREE.Vector3(fact.min.x,fact.min.y,fact.min.z),new THREE.Vector3(fact.max.x,fact.max.y,fact.max.z)));
+  const local=ISLAND_FACTS.protos.map(fact=>!fact.present?undefined:fact.empty?new THREE.Box3():new THREE.Box3(new THREE.Vector3(fact.min.x,fact.min.y,fact.min.z),new THREE.Vector3(fact.max.x,fact.max.y,fact.max.z)));
   const families=new Map<CoveFamily,IslandFamily>();
   const claim=new Map<string,IslandBox>(),spot=(x:number,z:number)=>`${x},${z}`;
   for(const original of meta.colliders){const c={...original,yTop:original.yTop-WORLD_DROP,yBottom:original.yBottom-WORLD_DROP};claim.set(spot(Math.fround(c.x),Math.fround(c.z)),c);}
@@ -196,7 +196,7 @@ export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean)
     const own=claim.get(spot(t.x,t.z));if(own!==undefined){entry.colliders.push(own);claim.delete(spot(t.x,t.z));}
   }
   const smallRocks=sets.apart.map(i=>{
-    const o=i*10,pi=f[o]??0,sc=f[o+8]??1,{half,top}=ISLAND_FACTS[pi]??{half:0.4,top:0.25};
+    const o=i*10,pi=f[o]??0,sc=f[o+8]??1,{half,top}=ISLAND_FACTS.protos[pi]??{half:0.4,top:0.25};
     t.set(f[o+1]??0,f[o+2]??0,f[o+3]??0);q.set(f[o+4]??0,f[o+5]??0,f[o+6]??0,f[o+7]??1);
     const r=(half*sc)/1.1,sq=THREE.MathUtils.clamp((top*sc)/(0.92*r),0.4,0.9);
     return{x:t.x,y:t.y,z:t.z,matrix:m.compose(t,q,scale.set(1,1,1)).toArray(),params:{r,sq}};

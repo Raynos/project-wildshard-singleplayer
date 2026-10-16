@@ -15,7 +15,8 @@ import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
  * - island.glb: the area's terrain in 2×2 tiles (vertex colour + a planar lightmap UV) and ~60 prototypes (palms, faceted
  *   rocks, ferns, hibiscus, bushes, flowers, grass, beach grass, shells, starfish, pebbles, driftwood) whose vertex colour
  *   alpha is their Cycles-baked AO; meshopt-compressed.
- * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + island.json (colliders, extra palms, bake notes):
+ * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + the plan and facts baked from island.json
+ *   (colliders, extra palms, bake notes; generators/islandCover.ts, generators/islandFacts.ts, never read at runtime):
  *   each prototype is uploaded once and its copies placed instanced through the engine (`place`, one model per family,
  *   src/shards/driftwood-isle/runtime/models/cove.ts; G144 / G173, E435: the merged tiles held a world-space copy of every vertex,
  *   ~104 MB). The phone builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is a
@@ -64,16 +65,6 @@ const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are th
 /** the tier's cover share and reaches (data/islandRows.ts) */
 const TIER_LOOK = TIER === 'phone' ? ISLAND_TIERS.phone : ISLAND_TIERS.desktop;
 
-export interface IslandMeta {
-  version: number;
-  protos: { name: string; kind: string; tris: number }[];
-  placements: number;
-  mustDraw: number;
-  colliders: Collider[];
-  extraPalms: PalmSpec[];
-  bake: { bounceGain: number; refSun: [number, number, number] };
-}
-
 export interface BlenderIslandCtx {
   scene: THREE.Scene;
   sky: Sky;
@@ -119,7 +110,6 @@ export class BlenderIsland {
   static readonly area = area;
   group = new THREE.Group();
   private looks!: IslandLooks;
-  private meta!: IslandMeta;
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
     const island = new BlenderIsland();
@@ -136,20 +126,16 @@ export class BlenderIsland {
       const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
-    const [gltf, meta, place, ao, bounce, plan, protoFile] = await Promise.all([
+    const [gltf, place, ao, bounce, plan, protoFile] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
-      fetch(`${BASE}island.json`).then((r) => r.json() as Promise<IslandMeta>),
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(), readDriftwoodBlob('world/island/protos.glb'),
     ]);
     const coverGrid = CoverGrid.get();
     if(coverGrid===null||plan.used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
-    // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles,
-    // every placement and every collider box), so it stays on the dropped terrain exactly
+    // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles and every placement here,
+    // its collider boxes in the plan's bake), so it stays on the dropped terrain exactly
     const drop = WORLD_DROP;
-    for (const c of meta.colliders) { c.yTop -= drop; c.yBottom -= drop; }
-    if(meta.protos.length!==ISLAND_FACTS.length||meta.protos.some((p,i)=>p.name!==ISLAND_FACTS[i]?.name))throw new Error('Blender prototype metadata changed; regenerate island facts');
-    this.meta = meta;
     for (const t of [ao, bounce]) { t.flipY = false; t.colorSpace = THREE.NoColorSpace; t.channel = 0; t.anisotropy = 4; t.needsUpdate = true; }
 
     // ── materials: the graph toon looks the runtime lent (data/islandLook.ts), the bake's maps lent to the terrain's and the
@@ -169,7 +155,7 @@ export class BlenderIsland {
     const models = modelContext(ctx.sky);
     const found: THREE.Mesh[] = [], terrainTiles: THREE.Mesh[] = [];
     gltf.scene.traverse((o) => { if (isMesh(o)) found.push(o); });
-    const protoNames = new Set(meta.protos.map((p) => `${ISLAND_LOOK.protoPrefix}${p.name}`));
+    const protoNames = new Set(ISLAND_FACTS.protos.map((p) => `${ISLAND_LOOK.protoPrefix}${p.name}`));
     for (const o of found) {
       if (protoNames.has(o.name)) continue;
       // a terrain tile — the 1 m grid on desktop, the 2 m one (terrainlo_*) on the phone; keep its node transform (meshopt's
@@ -201,7 +187,7 @@ export class BlenderIsland {
     }
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
-    const unclaimed = await this.placeModels(models, new Float32Array(place), plan, meta, protos, { cast: propsMat, cover: coverMat, big: bigMat });
+    const unclaimed = await this.placeModels(models, new Float32Array(place), plan, protos, { cast: propsMat, cover: coverMat, big: bigMat });
 
     // ── hide what the area replaces ──
     clipGridTerrain(ctx.terrain, driftwoodRows('custom/islandClips'));
@@ -222,7 +208,7 @@ export class BlenderIsland {
 
     // ── gameplay ──
     ctx.registry.add({ id: 'cove-unclaimed', name: 'Cove rocks', category: 'nature', file: 'src/shards/driftwood-isle/world/BlenderIsland.ts', colliders: unclaimed.map((c) => boxDesc(c, 'wood')), surface: 'wood', solidFloor: false });
-    ctx.palmSpecs.push(...meta.extraPalms);
+    ctx.palmSpecs.push(...ISLAND_FACTS.extraPalms);
     this.update(ctx.sky);
   }
 
@@ -240,7 +226,7 @@ export class BlenderIsland {
    * pieces), each the box the P2 bridge mirrored (`boxDesc`: the same centre, half extents and turn) in 'wood', as the
    * bridge tagged it. Returns the boxes no copy claims (none: they would stay on the bridge).
    */
-  private async placeModels(models:ModelContext,f:Float32Array,plan:v.InferOutput<typeof placementPlan>,meta:IslandMeta,protos:ReadonlyMap<string,THREE.BufferGeometry>,materials:Readonly<Record<CoveLook,THREE.Material>>):Promise<Collider[]> {
+  private async placeModels(models:ModelContext,f:Float32Array,plan:v.InferOutput<typeof placementPlan>,protos:ReadonlyMap<string,THREE.BufferGeometry>,materials:Readonly<Record<CoveLook,THREE.Material>>):Promise<Collider[]> {
     coveProtos(models,{protos,materials});
     const slice=slicer(),cell={size:16,pad:4},sky=models.sky,view=new THREE.Frustum(),pv=new THREE.Matrix4(),box=new THREE.Box3(),ball=new THREE.Sphere();
     // a caster is drawn while the camera or any shadow cascade sees its box (padded 4 m: the frusta are a frame old), so no
@@ -256,7 +242,7 @@ export class BlenderIsland {
       const placements=row.indices.map(i=>{
         const o=i*10,x=f[o+1]??0,y=(f[o+2]??0)-WORLD_DROP,z=f[o+3]??0,sc=f[o+8]??1,t=f[o+9]??1;
         const matrix=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(f[o+4]??0,f[o+5]??0,f[o+6]??0,f[o+7]??1),new THREE.Vector3(sc,sc,sc));
-        return {x,y,z,matrix,color:new THREE.Color(t,t,t),variant:meta.protos[f[o]??0]?.name??''};
+        return {x,y,z,matrix,color:new THREE.Color(t,t,t),variant:ISLAND_FACTS.protos[f[o]??0]?.name??''};
       });
       const placed:{p:Placed|null}={p:null};
       placed.p=await placeSliced(COVE_MODELS[row.key],placements,{ctx:models,draw:'instanced',parent:this.group,cull:culls[coveLook(row.key)](placed),piece:{id:`cove-${row.key}`,...(row.colliders.length>0?{colliders:row.colliders.map(c=>boxDesc(c,'wood'))}:{})}},slice.due);
@@ -267,8 +253,8 @@ export class BlenderIsland {
 
   /** per frame: the baked bounce follows the live sun (colour × intensity × elevation over the bake's reference) */
   update(sky: Sky): void {
-    const level = sunBounceLevel(sky, this.meta.bake.refSun[1]);
+    const level = sunBounceLevel(sky, ISLAND_FACTS.bake.sunY);
     if (level === null) return;
-    this.looks.param(ISLAND_LOOKS.terrain, 'bounce', level / this.meta.bake.bounceGain);
+    this.looks.param(ISLAND_LOOKS.terrain, 'bounce', level / ISLAND_FACTS.bake.bounceGain);
   }
 }

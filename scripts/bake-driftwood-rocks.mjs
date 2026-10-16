@@ -22,7 +22,7 @@ const small = [];
 for (let i = 0; i < meta.mustDraw; i++) {
   const o = i * 10, pi = f[o] ?? 0;
   if (!/^smallrock\d+$/u.test(meta.protos[pi]?.name ?? '')) continue;
-  const sc = f[o + 8] ?? 1, { half, top } = facts[pi] ?? { half: 0.4, top: 0.25 }, r = half * sc / 1.1;
+  const sc = f[o + 8] ?? 1, { half, top } = facts.protos[pi] ?? { half: 0.4, top: 0.25 }, r = half * sc / 1.1;
   small.push({ r, sq: Math.min(0.9, Math.max(0.4, top * sc / (0.92 * r))) });
 }
 // These models only lend the material identity; no shader is compiled by an author build.

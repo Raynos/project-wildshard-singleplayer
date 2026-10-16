@@ -14,7 +14,10 @@ export function prototypeFacts(name:string,proto:IslandProto|undefined):ProtoFac
 /** The native Blender GLB and LOD recipe are the sole authority for these cheap metadata rows. */
 export async function islandPrototypeFacts(readAsset:(url:string)=>Uint8Array):Promise<Uint8Array> {
  const base='/assets/models/driftwood-blender/';
- const meta=v.parse(v.object({protos:v.array(v.object({name:v.string()})),lod:v.record(v.string(),v.number())}),JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
+ const n=v.pipe(v.number(),v.finite()),palm=v.object({x:n,z:n,h:n,lean:n,leanDir:n,rot:n,fronds:n});
+ const meta=v.parse(v.object({protos:v.array(v.object({name:v.string()})),lod:v.record(v.string(),v.number()),extraPalms:v.array(palm),bake:v.object({bounceGain:n,refSun:v.tuple([n,n,n])})}),JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
  const protos=await islandProtos(readAsset(`${base}island.glb`),meta);
- return new TextEncoder().encode(`${JSON.stringify(meta.protos.map((p,i)=>prototypeFacts(p.name,protos[i])))}\n`);
+ // everything the runtime reads of island.json (G467): the prototype facts, the extra palms the monkeys climb, and the
+ // bounce bake's gain and reference sun height
+ return new TextEncoder().encode(`${JSON.stringify({protos:meta.protos.map((p,i)=>prototypeFacts(p.name,protos[i])),extraPalms:meta.extraPalms,bake:{bounceGain:meta.bake.bounceGain,sunY:meta.bake.refSun[1]}})}\n`);
 }
