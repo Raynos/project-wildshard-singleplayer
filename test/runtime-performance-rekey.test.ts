@@ -39,3 +39,43 @@ test('rekeys real edited or moved sites without new kind or row allowance', () =
     expect(check({ [newSite]: { count: 2, row: 'C3' } })).not.toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test('only consumed verbatim platform sites pay newly visible runtime debt', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync('tmp/runtime-platform-move-');
+  const baselineRoot = join(root, 'before'), candidateRoot = join(root, 'after');
+  const oldFile = 'src/game/life.ts', newFile = 'src/shards/example/runtime/life.ts';
+  const original = 'export function update(items) { for (const item of items) consume(item); }';
+  const edited = 'export function update(items) { for (const item of items) changed(item); }';
+  const before = { about: 'reviewed', baselineAt: 'fixed', sites: {} };
+  const put = (base: string, file: string, source: string) => { const path = join(base, file); mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, source); };
+  put(baselineRoot, oldFile, original);
+  put(baselineRoot, 'lint/runtime-performance.json', JSON.stringify(before));
+  const check = (source: string, options: { retain?: boolean; duplicate?: boolean; count?: number; proof?: boolean } = {}) => {
+    put(candidateRoot, oldFile, options.retain === true ? original : '');
+    put(candidateRoot, newFile, source);
+    const sites: Record<string, { count: number; row: string }> = {};
+    const issues = runtimePerformanceSites(source, newFile);
+    if (!issues.some(row => row.kind === 'unbounded-loop')) throw new Error('Fixture needs a loop');
+    for (const issue of issues) {
+      const key = `${newFile}:${issue.kind}:${issue.site}`;
+      sites[key] ??= { count: 0, row: 'H1' }; sites[key].count += options.count ?? 1;
+    }
+    if (options.duplicate === true) {
+      const second = 'src/shards/example/runtime/copy.ts';
+      put(candidateRoot, second, source);
+      for (const issue of issues) sites[`${second}:${issue.kind}:${issue.site}`] = { count: 1, row: 'H1' };
+    }
+    put(candidateRoot, 'lint/runtime-performance.json', JSON.stringify({ ...before, sites }));
+    return comparePlatformList('lint/runtime-performance.json', join(baselineRoot, 'lint/runtime-performance.json'), join(candidateRoot, 'lint/runtime-performance.json'), options.proof === false ? undefined : { baselineRoot, candidateRoot });
+  };
+  try {
+    expect(check(original)).toEqual([]);
+    expect(check(original, { retain: true })).not.toEqual([]);
+    expect(check(edited)).not.toEqual([]);
+    expect(check(original, { proof: false })).not.toEqual([]);
+    expect(check(original, { duplicate: true })).not.toEqual([]);
+    expect(check(original, { count: 2 })).not.toEqual([]);
+    expect(check(`${original} export function tick() { return new Set(); }`)).not.toEqual([]);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
