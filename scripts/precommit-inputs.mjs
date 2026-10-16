@@ -9,10 +9,10 @@ import { discoverGeneration, generateShardJob } from './generate.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
 
-/** A warm mirror still needs newly declared cheap outputs before resolving typed imports. */
+/** A warm mirror needs missing declared build outputs before resolving typed imports. */
 export async function prepareMissingCheapInputs(root = resolve(import.meta.dirname, '..')) {
   for (const job of discoverGeneration(root).jobs) {
-    const outputs = job.buildTimeOutputs ?? [];
+    const outputs = [...(job.buildTimeOutputs ?? []), ...Object.keys(job.buildOutputs ?? {})];
     if (outputs.some(file => !existsSync(resolve(root, file)))) {
       await generateShardJob(root, job, { restore: true, restoreOutputs: outputs });
     }

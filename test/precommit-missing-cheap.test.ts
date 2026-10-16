@@ -10,16 +10,19 @@ import { prepareMissingCheapInputs } from '../scripts/precommit-inputs.mjs';
 test('a warm mirror fills missing cheap outputs in catalogue order and retains real producer failures', async () => {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'precommit-cheap-')));
   const put = (file: string, bytes: string): void => { writeFileSync(join(root, file), bytes); };
-  const entry = 'scripts/bake-cheap.mjs', consumer = 'scripts/bake-consumer.mjs', pinned = 'scripts/bake-retained.mjs';
+  const entry = 'scripts/bake-cheap.mjs', consumer = 'scripts/bake-consumer.mjs', pinned = 'scripts/bake-retained.mjs', generated = 'scripts/bake-pinned.mjs';
   try {
     mkdirSync(join(root, 'scripts')); mkdirSync(join(root, 'src/shards'), { recursive: true });
     put(entry, "import{writeFileSync}from'node:fs';writeFileSync('first.json','42');writeFileSync('second.json','43');");
     put(consumer, "import{readFileSync,writeFileSync}from'node:fs';writeFileSync('consumer.json',readFileSync('first.json'));");
     put(pinned, "throw Error('a retained producer must not run');");
+    put('retained.json', 'present');
+    put(generated, "import{writeFileSync}from'node:fs';writeFileSync('pinned.json','42');");
     const jobs = [
       { id: 'cheap', entry, outputs: ['first.json', 'second.json'], buildTimeOutputs: ['first.json', 'second.json'], inputRoots: [entry] },
       { id: 'consumer', entry: consumer, outputs: ['consumer.json'], buildTimeOutputs: ['consumer.json'], inputRoots: [consumer, 'first.json'] },
       { id: 'retained', entry: pinned, outputs: ['retained.json'], inputRoots: [pinned], buildOutputs: { 'retained.json': '0'.repeat(64) } },
+      { id: 'pinned', entry: generated, outputs: ['pinned.json'], inputRoots: [generated], buildOutputs: { 'pinned.json': '73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049' } },
     ];
     const declared = [];
     for (const job of jobs) declared.push({ ...job, shard: null, command: [job.entry], platform: 'portable' });
@@ -27,11 +30,15 @@ test('a warm mirror fills missing cheap outputs in catalogue order and retains r
     await prepareMissingCheapInputs(root);
     expect(readFileSync(join(root, 'consumer.json'), 'utf8')).toBe('42');
     expect(readFileSync(join(root, 'second.json'), 'utf8')).toBe('43');
-    expect(existsSync(join(root, 'retained.json'))).toBe(false);
+    expect(readFileSync(join(root, 'retained.json'), 'utf8')).toBe('present');
+    expect(readFileSync(join(root, 'pinned.json'), 'utf8')).toBe('42');
     put(entry, "throw Error('missing cheap producer failed');");
     await prepareMissingCheapInputs(root); // Present outputs skip the producer even when its source changed.
     rmSync(join(root, 'second.json'));
     await expect(prepareMissingCheapInputs(root)).rejects.toThrow();
     expect(existsSync(join(root, 'second.json'))).toBe(false);
+    put('second.json', '43');
+    put('scripts/generation-jobs.json', JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT', jobs: [{ ...declared[0], buildOutputs: { 'first.json': '0'.repeat(64) } }, ...declared.slice(1)] }));
+    await expect(prepareMissingCheapInputs(root)).rejects.toThrow('Invalid cheap build outputs');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
