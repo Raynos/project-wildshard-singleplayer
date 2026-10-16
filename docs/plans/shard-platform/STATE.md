@@ -15,7 +15,7 @@ Biggest: DW fauna boot rows `4d5696fe2` (−39), captain brain `9ddef8bb5` (−2
 **End-of-plan lists:** memory (G433/G434): Pine cabin props (+1.47 MB), DW piers (+6.58 MB), map correction `bf2f3fcb2`, weak image cache. Perf (G436): graph per-draw CPU, DW cover/kit graph cost. UI: DW finale "THE SEALED RING · OPENED" overlaps the quest banner (pre-existing).
 **G439 refs:** DONE. **New platform features (G438):** yawFrame, instancedQuad, memoUntilDisposed (o246); ZiplineTrolley (o248); memory-action brain + bindCreatureBrain (x6); selectEffectGrants (x4); floorAtRects rows (x8); HitscanPresentation (x1); director emits (x5).
 
-**Waves:** W2 → W3 starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G442.
+**Waves (G443):** W2 closes at 17:00Z 10-16 (noon Cancun) wherever it stands, or earlier at ≤ 20 % + G420; then STATE gets the final numbers, Pine/DW leftovers become W3 rows and W3 (Nalati + Nine) starts. No W3 prep before then. In force: G415–G443.
 
-**For wildshard-v (needs Jake):** every Opus lane reports the big remaining modules (Pine buildings/cave/trophy wall/leg IK, DW streamed cover/ocean/island) are shard-specific with no second user, so they cannot honestly move under G441. Recommendation: keep W2 running on bakes + content rows, and let Jake decide at Pine/DW ~40 % whether W3 starts there (W3 ports then add the second users). G442 closed.
+**For wildshard-v:** G443 received and in force (W2 closes 17:00Z 10-16); that answers the ~40 % question. Offline bakes are paying: o250 DW −144 (`1d333bfe7`, `68b2fca1b`); x7 Pine compendium rows −60 (`4bb555103`). Lanes stay on the biggest cuts until noon. G442 closed.
 Paused rows: SF22, SF57, SF67.
