@@ -6,7 +6,6 @@ import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { BuildingLife } from '../runtime/props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -104,7 +103,6 @@ async function loadMats(sky: Sky): Promise<Mats> {
 
 /** a prop kind the buildings set about (E315 M2: each is a model — src/shards/pine-hollow/models/) */
 export type CabinPropKind = PropKind;
-export const CABIN_PROP_KINDS: readonly CabinPropKind[] = PROP_KINDS;
 
 /**
  * One building as its model sees it (E315 M2 / E347): which (the 3 cabins in CABIN_SITES order, then the extras), where it
@@ -165,7 +163,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
    * task: the cabins, then the hamlet (its root posed at its centre). Nothing is drawn merged yet: `placeCabins` places
    * their models. A bake that did not load leaves no buildings (a page fault).
    */
-  async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
+  async build(): Promise<{ group: THREE.Group; interactables: Interactable[] }> {
     // the seven PBR sets, the six models and the bake in one round of fetches
     const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadRigFile('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadRigFile('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadRigFile('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadRigFile('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
@@ -180,7 +178,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
     if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < CABIN_LIGHT.count; k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay));
-    if (geometries === null) return { group: this.group, colliders: this.colliders, interactables: this.interactables };
+    if (geometries === null) return { group: this.group, interactables: this.interactables };
     this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene, geometries };
     const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };
     const hamlet = CABIN_ROWS.hamlet;
@@ -206,7 +204,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
       else this.cabinCount++;
     }
     if (this.cluster !== null) this.group.add(this.cluster);
-    return { group: this.group, colliders: this.colliders, interactables: this.interactables };
+    return { group: this.group, interactables: this.interactables };
   }
 
   /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) — not the cluster's buildings */

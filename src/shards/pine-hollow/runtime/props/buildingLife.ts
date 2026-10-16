@@ -44,7 +44,6 @@ const wave = (t: number, seed: number, w: BuildingWave): number => Math.sin(t * 
 export class BuildingLife {
   /** radians per second of every wheel (0 stops them) */
   wheelSpeed = 0.55;
-  colliders: BoxSpec[] = [];
   interactables: Interactable[] = [];
   firePits: { x: number; y: number; z: number }[] = [];
   private readonly lifeLook: BuildingLifeLook;
@@ -109,7 +108,7 @@ export class BuildingLife {
     for (const fn of this.doorListeners) fn(d.interactable, d.open);
   }
   /** a door: swung, collided, prompted */
-  _door(d: BuildingDoor): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
+  _door(d: BuildingDoor): void { this.doors.push(d); this.interactables.push(d.interactable); }
   /** a light of its own that flickers */
   _fire(f: SiteFlicker): void { this.lights.addFlicker(f); }
   /** an emissive material lit by the clock, at `full` by night */
@@ -120,8 +119,6 @@ export class BuildingLife {
   _floor(f: BuildingFloor): void { this.floors.push(f); }
   /** a wheel turning about its x axis */
   _wheel(o: THREE.Object3D): void { this.wheels.push(o); }
-  /** a legacy box */
-  _collider(c: BoxSpec): void { this.colliders.push(c); }
   /** a fire pit's position (audio / warmth) */
   _firePit(at: { x: number; y: number; z: number }): void { this.firePits.push(at); }
   /** a site the shared lights may visit (in visiting order of registration) */

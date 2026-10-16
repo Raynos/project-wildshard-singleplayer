@@ -76,7 +76,6 @@ export class PineWeather extends Weather<PineWeatherState> {
   super(PINE_WEATHER, new Rng(opts.seed ^ 0x3e7a));
   this.setMode(opts.mode ?? 'live');
  }
- get untilRain(): number { return this.state === 'clear' ? this.phaseLen - this.phaseT + PINE_WEATHER_LEN.overcast[0] : this.state === 'overcast' ? this.phaseLen - this.phaseT : 0; }
 }
 
 /** Preserve Pine's authored decimal increments and the dry pitch-bolt row. */

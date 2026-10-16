@@ -31,7 +31,6 @@ const Skin = v.strictObject({ bin: v.string(), bytes: num, tiles: v.array(Tile) 
 export const CragRowsSchema = v.strictObject({ places: v.array(Place), skin: v.strictObject({ phone: Skin, desktop: Skin }) });
 export type CragRows = v.InferOutput<typeof CragRowsSchema>;
 type Tier = keyof CragRows['skin'];
-export type SkinRows = CragRows['skin'][Tier];
 
 /** the bake's rows, parsed strictly once */
 export const CRAG_ROWS: CragRows = v.parse(CragRowsSchema, cragJson);

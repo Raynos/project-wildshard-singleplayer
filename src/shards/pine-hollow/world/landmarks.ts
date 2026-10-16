@@ -201,7 +201,6 @@ export class PineLandmarks {
     const pos = this.glow?.geometry.getAttribute('position');
     if (pos && this.anchors) { const a = this.anchors[id]; pos.setY(i, on ? a.position.y : -1e4); pos.needsUpdate = true; }
   }
-  isLit(id: WaystoneId): boolean { return this.lit[id]; }
 
   floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'highest'); }
 
