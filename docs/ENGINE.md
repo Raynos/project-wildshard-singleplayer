@@ -6739,3 +6739,21 @@ with parser-recognised comments removed, plus total lines and the optional
 entry. Source bytes, import spelling and line endings remain unchanged;
 there is no closure walk outside `runtime/`. `runtimeCodeLines` exposes
 that same parser/comment counting law for author tools.
+
+### Split shardfile loading (P1b)
+
+`game/shardfile/product.readProductDescriptor` reads either the transitional
+v1 monolith or the v2 index. An optional trusted `descriptorHash` checks the
+exact index bytes before section requests. The reader fetches sections in
+parallel, verifies every section's declared size and SHA-256, and assembles
+the existing `Shardfile` through `format/outputIndex`'s field schemas.
+Today's complete hosts receive all sections. Custom section values remain
+available in `game/shardfile/outputDescriptor.outputDescriptor(source)`.
+
+`outputBlobUrl(source, ref, base)` resolves declared references through the
+validated v2 kind/hash paths; v1 retains bare hash URLs. `ClientAssets` and
+admission use the same builder. Transport metadata follows parser copies
+without adding fields to the host model. Offline products retain the v2 index
+plus hash-checked section bytes in the existing content cache. Publication
+requires all section and asset bytes; missing or corrupt sections refuse
+before a host is built. Existing v1 caches keep their version-reader policy.

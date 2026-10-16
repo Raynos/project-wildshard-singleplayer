@@ -1,4 +1,5 @@
 import { boundedResponse, type ProductOptions } from './product';
+import { outputBlobUrl } from './outputDescriptor';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Release admitted transport copies after decoding; revisiting a tile rechecks immutable bytes from cache or the product. */
@@ -21,7 +22,7 @@ export class ClientAssets {
     let bytes = await this.options.cache?.asset(base, hash), downloaded = false;
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');
-      bytes = await boundedResponse(await this.options.fetch(new URL(hash, base).href), cap);
+      bytes = await boundedResponse(await this.options.fetch(outputBlobUrl(this.source, ref, base)), cap);
       downloaded = true;
     }
     if (bytes.length !== cap || await this.options.hash(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');

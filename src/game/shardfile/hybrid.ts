@@ -305,6 +305,7 @@ export async function prepareHybridShard(declaredSource: Shardfile, options: Pro
     const { slug: publishedIdentity } = published.identity, { slug: expectedIdentity } = source.identity;
     if (publishedIdentity !== expectedIdentity || published.identity.revision !== source.identity.revision || published.runtime?.entry !== source.runtime.entry) throw new Error('Built hybrid descriptor differs from its trusted identity');
     source = published;
+    provideHybridDeclaration(source);
   }
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
   // The data client announces only when it will actually build a simulation. An empty trusted transition runs its

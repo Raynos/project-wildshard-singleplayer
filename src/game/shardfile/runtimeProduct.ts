@@ -3,12 +3,12 @@ import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
+import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
-import { boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
+import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
-import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
@@ -91,12 +91,7 @@ const descriptors = new Map<string, Promise<Shardfile>>();
 
 /** Read a first-party product's built descriptor (`<base>shard.json`, or the visited copy offline) and parse it. */
 function readDescriptor(options: ProductOptions): Promise<Shardfile> {
-  return (async () => {
-    const visited = options.offline ? await options.cache?.product(options.base) : undefined;
-    if (options.offline && visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
-    const input: unknown = options.offline ? visited?.source : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await options.fetch(new URL('shard.json', options.base).href), SHARDFILE_ADMISSION_LIMITS.sourceBytes)));
-    return parseShardfile(input);
-  })();
+  return readProductDescriptor(options);
 }
 
 /**
@@ -130,7 +125,9 @@ export function slugRuntimeProduct(slug: string): RuntimeProduct | null {
 export function runtimeProduct(source: Shardfile): RuntimeProduct {
   const slug = source.identity.slug, admitted = admittedRuntimeProduct(slug);
   if (admitted !== null) return admitted;
-  return ownedRuntimeProduct(source, new ClientAssets(source, new Map(), browserShardfileOptions(productBase(slug), true)),
+  const declaration = declared.get(slug);
+  const published = declaration !== undefined && outputDescriptor(declaration) !== undefined ? declaration : source;
+  return ownedRuntimeProduct(published, new ClientAssets(published, new Map(), browserShardfileOptions(productBase(slug), true)),
     refs => Promise.resolve([...refs]));
 }
 

@@ -11,6 +11,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
+import { carryOutputDescriptor, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
@@ -40,6 +41,8 @@ export interface ProductProgress {
 export interface ProductOptions {
   /** Trusted probe-filtered device support; authored content cannot select its charge. */
   textures?: TextureTranscodeSupport;
+  /** Optional catalogue SHA-256 of the exact index/monolith wire bytes. */
+  descriptorHash?: string;
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
@@ -113,6 +116,36 @@ export async function boundedResponse(response: Response, maximum: number, read?
   for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
   return bytes;
 }
+function resolveDescriptor(input: unknown, options: ProductOptions): Promise<unknown> {
+  const base = new URL('.', options.base).href, cache = options.cache;
+  return resolveOutputDescriptor(input, {
+    offline: options.offline, hash: options.hash,
+    read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
+    ...(cache === undefined ? {} : {
+      cached: (hash: string) => cache.asset(base, hash),
+      store: async (hash: string, bytes: Uint8Array) => await cache.putAsset(base, hash, bytes) !== false,
+    }),
+  });
+}
+
+/** Read a built v1 monolith or v2 index, verifying the catalogue hash before any section fetch. */
+export async function readProductDescriptor(options: ProductOptions): Promise<Shardfile> {
+  const base = new URL('.', options.base).href;
+  const visited = options.offline ? await options.cache?.product(base) : undefined;
+  if (options.offline && (visited === null || visited === undefined || (options.firstParty && !visited.firstParty))) throw new Error('Shardfile has not been visited offline');
+  let input: unknown = visited?.source;
+  if (!options.offline) {
+    const bytes = await boundedResponse(await options.fetch(new URL('shard.json', base).href), limits.sourceBytes);
+    if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
+    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  }
+  const assembled = await resolveDescriptor(input, options);
+  preflightShardfile(assembled);
+  const source = parseShardfile(assembled);
+  carryOutputDescriptor(assembled, source);
+  return source;
+}
+
 /** SHA-256 over an owned ArrayBuffer, usable by WebKit without Node or SDK dependencies. */
 export async function browserContentHash(bytes: Uint8Array): Promise<string> {
   const input = bytes.buffer instanceof ArrayBuffer && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength
@@ -127,7 +160,9 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const visited = await options.cache?.product(base);
   if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
-  const raw = cached?.source ?? input;
+  const raw = await resolveDescriptor(cached?.source ?? input, options);
+  const wire = cached?.source ?? (typeof input === 'object' && input !== null && 'files' in input && Array.isArray(input.files)
+    ? outputDescriptor({ files: input.files })?.index ?? input : input);
   preflightShardfile(raw);
   const versions: ProductVersions = options.versions ?? { current: SHARDFILE_VERSION, previous: SHARDFILE_PREVIOUS_VERSION,
     readers: new Map<string | 0, (source: unknown) => Shardfile>([[SHARDFILE_VERSION, parseShardfile], [SHARDFILE_PREVIOUS_VERSION, readLegacyCache]]) };
@@ -136,6 +171,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const revision = version(raw), reader = versions.readers.get(revision);
   if (reader === undefined || (revision !== versions.current && !(revision === versions.previous && previousRevision === currentRevision - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  carryOutputDescriptor(raw, source);
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
   const revisionKey = validationRevision();
@@ -146,7 +182,10 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const worst = receipt?.worst ?? preflightDeclaredCosts(source, options.memory).worst;
   if (receipt !== null) acceptValidatedCost(source, worst, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
-  if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) assertStateCompatibility(parseStateLineage(visited.source), source);
+  if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) {
+    const previous = await resolveDescriptor(visited.source, { ...options, offline: true });
+    assertStateCompatibility(parseStateLineage(previous), source);
+  }
   options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   // Reserve the complete product first, then overlap at most four immutable transports. Validation and
@@ -172,7 +211,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
       progress('assets', `Fetching ${hash.slice(0, 12)}`);
-      bytes = await boundedResponse(await options.fetch(new URL(hash, base).href), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
+      bytes = await boundedResponse(await options.fetch(outputBlobUrl(source, source.files.some(file => file.hash === hash) ? hash : `commons:${hash}`, base)), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
     } else { bytesRead += bytes.length; progress('assets', `Cached ${hash.slice(0, 12)}`); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     progress('hash', `Verifying ${hash.slice(0, 12)}`);
@@ -203,9 +242,10 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     deviceLibraryCost(source, assets, options.textures), options.memory);
   if (!options.offline && options.cache !== undefined) {
     progress('cache', 'Saving verified offline assets');
-    const cache = options.cache, release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')));
+    const cache = options.cache, descriptor = outputDescriptor(source);
+    const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(descriptor?.index.sections.map(section => section.hash) ?? []));
     try {
-      let complete = true;
+      let complete = descriptor?.cached ?? true;
       for (const [ref, bytes] of assets) {
         const hash = ref.replace(/^commons:/u, '');
         if (verifiedCached.has(hash)) continue; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
@@ -220,7 +260,8 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
         // Repair that miss, then recheck durable presence just as for a newly fetched file.
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
       }
-      if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty, ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, worst } }) });
+      for (const section of descriptor?.index.sections ?? []) if (!await present(section.hash, section.bytes)) complete = false;
+      if (complete) await cache.putProduct(base, { source: wire, firstParty: options.firstParty, ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, worst } }) });
     } finally { release?.(); }
   }
   progress('complete', 'Product admitted');
