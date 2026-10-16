@@ -26,7 +26,7 @@ import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
 import { isStandaloneEdgeWall } from '@wildshard/engine/physics/terrain';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
-import { ENTRY_WALK } from '../data/entryWalk';
+import ENTRY_WALK from '../data/entryWalk.json' with { type: 'json' }; // the entry proof's capsule walk, walk m in from each edge
 import { installPineAir } from './air';
 import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';

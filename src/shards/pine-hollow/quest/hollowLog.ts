@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { yawLocal } from '@wildshard/engine/world/yawFrame';
-import { HOLLOW_LOG_SHAPE } from '../data/hollowLog';
+import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 
 export const HOLLOW_LOG = { x: 112, z: -86, yaw: 0.35, ...HOLLOW_LOG_SHAPE };
 

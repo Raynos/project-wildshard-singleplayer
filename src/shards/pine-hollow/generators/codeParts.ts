@@ -15,7 +15,7 @@ import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/
 import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
-import { HOLLOW_LOG_SHAPE } from '../data/hollowLog';
+import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import { BEAR_CAVE } from '../data/layout';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
