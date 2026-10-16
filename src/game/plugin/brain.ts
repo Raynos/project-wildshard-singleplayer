@@ -2,7 +2,7 @@ import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import { StalkerBrain } from "@wildshard/engine/ai/stalker";
 import { huntMemoryCodec } from "@wildshard/engine/ai/huntPattern";
-import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig } from "@wildshard/engine/ai/hunt";
+import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig, type HuntSpecies } from "@wildshard/engine/ai/hunt";
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
 import type { SimStrike, SimValue, SimHost } from "@wildshard/engine/sim";
@@ -1245,7 +1245,8 @@ export interface NativeHuntRow {
 /** Keep the native manager's existing clocks, charge source, navigation and terrain cadence. */
 export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
   readonly rng: Rng; readonly ground: HuntGround; readonly nav: HuntNav | null;
-  readonly species: NonNullable<HuntConfig['species']>;
+  /** Each kind's species row, as data: a kind missing from the table refuses at its first read. */
+  readonly species: ReadonlyMap<string, HuntSpecies>;
   readonly wanderGoal?: (herd: number) => { x: number; z: number; r: number } | null;
   readonly present?: (actor: AnimalSim) => boolean;
 }): { readonly hunt: StalkerBrain<HuntBody>; readonly reach: (actor: HuntBody, point: Vector3) => boolean } {
@@ -1253,7 +1254,8 @@ export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
   host.useBodyBands({ rate: body => body.driven || (row.bands.scripted === true && body.scripted) || row.bands.states.includes(body.state) ? 'always'
     : row.bands.legacyKinds.includes(body.kind) ? 'legacy' : 'ai', ...(ports.present === undefined ? {} : { present: ports.present }) });
   const reach = (actor: HuntBody, point: Vector3): boolean => canReach(actor, point, host.physics);
-  const hunt = new StalkerBrain<HuntBody>({ pattern: 'hunt', config: { rng: ports.rng, fight: row.fight, faunaTuning: () => row.tuning, species: ports.species },
+  const hunt = new StalkerBrain<HuntBody>({ pattern: 'hunt', config: { rng: ports.rng, fight: row.fight, faunaTuning: () => row.tuning, species: kind => {
+      const known = ports.species.get(kind); if (known === undefined) throw new Error(`Native hunt has no species row '${kind}'`); return known; } },
     ports: { ground: ports.ground, nav: () => ports.nav, reach, wanderGoal: actor => ports.wanderGoal?.(actor.herd) ?? null, unaware: () => false,
       now: () => host.clock.now * 1000, sound: () => undefined,
       charge: (actor, damage) => { host.combat.hit({ source: 'env', sourceTags: [`${row.hit.namespace}.${actor.kind}`, ...row.hit.tags], target: host.player.health,

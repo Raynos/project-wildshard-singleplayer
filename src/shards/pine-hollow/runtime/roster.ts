@@ -121,7 +121,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   /** creatureFloor: the first WORLD hit under `fromY`; the terrain when it is the ground's heightfield (or nothing). */
   const creatureFloor = structureFloor(host, heightAt);
   const rolls = (kind: string, variant: string | string[] | undefined): { id: string; spec: AnimalSimSpec; seed: number; scale: number; variant: string } => {
-    const r = spawnRolls(rng, kind, variant, list.some(b => b.actor.kind === kind && b.actor.rarity === 'legendary' && b.actor.alive), species);
+    const r = spawnRolls(rng, kind, variant, list.some(b => b.actor.kind === kind && b.actor.rarity === 'legendary' && b.actor.alive), known => {
+      const row = species.get(known); if (row === undefined) throw new Error(`Pine has no creature row '${known}'`); return row; });
     const id = `creature:${String(next++)}`;
     // a live spawn takes the next id past the load-time list, with the recipe the bake read for its kind and variant
     if (booted) return { id, spec: recipes.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };

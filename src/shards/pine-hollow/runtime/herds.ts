@@ -37,15 +37,14 @@ export function pineHuntGround(grid: BakedGrid, trees: readonly TreeInstance[] =
 export const PINE_KING_KIND = 'antler-king';
 
 /**
- * Pine's creature rows as the manager's spawn rolls and hunting brain read them, renderer-free (SF72; `spawnRolls`'
+ * Pine's creature rows (a kind-keyed table) as the manager's spawn rolls and hunting brain read them, renderer-free (SF72; `spawnRolls`'
  * species seam and `HuntConfig.species`): the kit's deer, the kit's elk with Pine's thrall (species/rows.ts pineElk), Pine's
  * boar and bear, and the Antler King's one variant (`king`: his scale is the baked body's, models/antlerKing.ts KING_VARIANT).
  * The kit's deer and elk rows are public game modules for this (`@wildshard/game/systems/species/deer` / `elk`, beside
  * bear and boar): a renderer-free host reads the rows the page registers, never the global registry.
  */
-export function pineSpawnSpecies(king: VariantDef): (kind: string) => VariantTable & HuntSpecies {
+export function pineSpawnSpecies(king: VariantDef): ReadonlyMap<string, VariantTable & HuntSpecies> {
   const elk = { ...ELK, spawnOnly: [PINE_ELK_THRALL] };
-  const rows = new Map<string, VariantTable & HuntSpecies>([['deer', DEER], ['elk', elk], ['boar', PINE_BOAR], ['bear', PINE_BEAR],
+  return new Map<string, VariantTable & HuntSpecies>([['deer', DEER], ['elk', elk], ['boar', PINE_BOAR], ['bear', PINE_BEAR],
     [PINE_KING_KIND, { ...ELK, kind: PINE_KING_KIND, variants: [king], aggressive: true }]]);
-  return (kind) => { const row = rows.get(kind); if (row === undefined) throw new Error(`Pine has no creature row '${kind}'`); return row; };
 }

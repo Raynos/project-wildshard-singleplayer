@@ -30,7 +30,7 @@ import type { DriftwoodBake } from './baked';
 import { RespawnQueue } from './ecology';
 import { RESPAWN } from '../data/ecology';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
-import { faunaSpecies } from './fauna';
+import { FAUNA_SPECIES } from './fauna';
 import { DRIFTWOOD_NATIVE_FAUNA } from '../data/nativeFauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
@@ -164,7 +164,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     cabinMask: () => 0, streamAt: () => null, pond: () => null, sea: () => true, wetAt: () => false,
     trees: () => [], treeless: () => true, terrain: () => true,
   };
-  const { hunt, reach } = createNativeHunt(host, DRIFTWOOD_NATIVE_HUNT, { rng, ground, nav: ports.nav, species: faunaSpecies });
+  const { hunt, reach } = createNativeHunt(host, DRIFTWOOD_NATIVE_HUNT, { rng, ground, nav: ports.nav, species: FAUNA_SPECIES });
   const habitat = bake.habitat;
   const placed = placeEnemies({ seed: ports.seed, crabSites: habitat.crabSites, palms: habitat.perchBases, heightAt, waterLevel: ports.waterLevel });
   // the coconuts (combat/coconuts.ts, as Enemies.ts throws them): bodies in the host's world, spun from the placement
