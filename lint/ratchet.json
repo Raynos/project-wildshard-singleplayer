@@ -32,7 +32,20 @@
       "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
     },
     "shardfile/custom-sections": {
-      "driftwood-isle/custom/assets": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood asset URL registry exit"
+      "driftwood-isle/custom/assets": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood asset URL registry exit",
+      "pine-hollow/custom/skinPickups": "docs/plans/shard-platform/open-x-queue.md#W2 Pine skinPickups section exit",
+      "pine-hollow/custom/questInventory": "docs/plans/shard-platform/open-x-queue.md#W2 Pine questInventory section exit",
+      "pine-hollow/custom/ambientLife": "docs/plans/shard-platform/open-x-queue.md#W2 Pine ambientLife section exit",
+      "pine-hollow/custom/eliteBrains": "docs/plans/shard-platform/open-x-queue.md#W2 Pine eliteBrains section exit",
+      "pine-hollow/custom/heldPlayback": "docs/plans/shard-platform/open-x-queue.md#W2 Pine heldPlayback section exit",
+      "pine-hollow/custom/heldInputs": "docs/plans/shard-platform/open-x-queue.md#W2 Pine heldInputs section exit",
+      "pine-hollow/custom/heldSights": "docs/plans/shard-platform/open-x-queue.md#W2 Pine heldSights section exit",
+      "pine-hollow/custom/leverPlayback": "docs/plans/shard-platform/open-x-queue.md#W2 Pine leverPlayback section exit",
+      "pine-hollow/custom/leverDetails": "docs/plans/shard-platform/open-x-queue.md#W2 Pine leverDetails section exit",
+      "pine-hollow/custom/heldToolPlayback": "docs/plans/shard-platform/open-x-queue.md#W2 Pine heldToolPlayback section exit",
+      "pine-hollow/custom/paintedTextures": "docs/plans/shard-platform/open-x-queue.md#W2 Pine paintedTextures section exit",
+      "pine-hollow/custom/trophyMounts": "docs/plans/shard-platform/open-x-queue.md#W2 Pine trophyMounts section exit",
+      "pine-hollow/custom/crossbowPool": "docs/plans/shard-platform/open-x-queue.md#W2 Pine crossbowPool section exit"
     },
     "shardfile/sim-in-runtime": {
       "src/shards/driftwood-isle/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -130,8 +143,8 @@
     "custom-sections/nine-dragon-stack/bytes": 0,
     "custom-sections/pastel-plain/count": 0,
     "custom-sections/pastel-plain/bytes": 0,
-    "custom-sections/pine-hollow/count": 0,
-    "custom-sections/pine-hollow/bytes": 0,
+    "custom-sections/pine-hollow/count": 13,
+    "custom-sections/pine-hollow/bytes": 115310,
     "custom-sections/sunscar-dunes/count": 0,
     "custom-sections/sunscar-dunes/bytes": 0,
     "sim-in-runtime/_template": 0,

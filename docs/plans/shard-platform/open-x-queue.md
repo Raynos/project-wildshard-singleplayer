@@ -209,3 +209,24 @@ outside-author battery · S20 grid-wide director events · S22 commons quest / d
 | Exit row | Current section | Retirement | Owner |
 |---|---|---|---|
 | W2 Driftwood asset URL registry exit | `custom/assets` | Replace legacy URL lookups with direct logical names in platform model, texture and boot inventories; delete the registry when no client URL adapter remains. | sp-x5 / W2 rewire |
+
+## W2 client custom-section exits (G453)
+
+The initial Pine bridge is shrink-only: each name retires with its client
+reader adoption; this table grants no extra section or byte headroom.
+
+| Exit row | Current section | Retirement | Owner |
+|---|---|---|---|
+| W2 Pine skinPickups section exit | `custom/skinPickups` | Move pickup options into the platform item/pickup section. | sp-x5 / W2 client rewire |
+| W2 Pine questInventory section exit | `custom/questInventory` | Use platform items and quest achievement declarations directly. | sp-x5 / W2 client rewire |
+| W2 Pine ambientLife section exit | `custom/ambientLife` | Replace the private community bundle with platform ambient-life declarations. | sp-x5 / W2 client rewire |
+| W2 Pine eliteBrains section exit | `custom/eliteBrains` | Emit the shared elite brain declarations in the platform brain section. | sp-x5 / W2 client rewire |
+| W2 Pine heldPlayback section exit | `custom/heldPlayback` | Move held programs into the platform client-channel declaration inventory. | sp-x5 / W2 client rewire |
+| W2 Pine heldInputs section exit | `custom/heldInputs` | Move equipment observation bindings into platform held-input rows. | sp-x5 / W2 client rewire |
+| W2 Pine heldSights section exit | `custom/heldSights` | Move sight and cord programs into the platform client-channel inventory. | sp-x5 / W2 client rewire |
+| W2 Pine leverPlayback section exit | `custom/leverPlayback` | Move lever programs and named output bindings into platform held rows. | sp-x5 / W2 client rewire |
+| W2 Pine leverDetails section exit | `custom/leverDetails` | Replace private pool metadata with the named model-library section. | sp-x5 / W2 client rewire |
+| W2 Pine heldToolPlayback section exit | `custom/heldToolPlayback` | Move tool playback into the platform held-channel section. | sp-x5 / W2 client rewire |
+| W2 Pine paintedTextures section exit | `custom/paintedTextures` | Replace the private paint metadata with platform texture and atlas entries. | sp-x5 / W2 client rewire |
+| W2 Pine trophyMounts section exit | `custom/trophyMounts` | Replace packed geometry metadata with platform geometry/model-library rows. | sp-x5 / W2 client rewire |
+| W2 Pine crossbowPool section exit | `custom/crossbowPool` | Replace the pool and hierarchy bundle with platform model/client-scene rows. | sp-x5 / W2 client rewire |
