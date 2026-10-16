@@ -3,16 +3,14 @@ import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import inputs from '../../data/heldInputs.json' with { type: 'json' };
 import leverPlayback from '../../data/leverPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
-import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
+import { RangedFrame, HitscanPresentation } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { stepBrass, brassRoster, ejectBrass, type BrassCase } from '@wildshard/engine/combat/view/brass';
 import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, whiteColors, FOV_HIP, FOV_ADS, prepareWeaponView, weaponDisplay, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { whiteColors, FOV_HIP, FOV_ADS, prepareWeaponView, weaponDisplay, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
-import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
@@ -127,8 +125,7 @@ export interface LeverFirearmOptions<P extends LeverFirearmProfile> extends Rang
 }
 
 
-const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
-const _q = new THREE.Quaternion();
+const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v2 = new THREE.Vector3();
 
 /** A lever firearm: the shard's model, hands, action and rows on the platform's trigger, hitscan, cycle, gate, brass and pose. */
 export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> extends Firearm {
@@ -156,7 +153,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   /** what the action tells the view and the sounds */
   private readonly hooks: LeverFirearmHooks = {
     cycle: () => { this.equipEvents?.emit('weapon.action', { id: this.row.id, phase: 'cycle' }); this.onCycle?.(); },
-    eject: () => { this.ejectCase(); },
+    eject: () => { this.effects.eject(); },
     chambered: () => { this.syncState(); },
     reloadStart: () => { this.state.reloadProgress = 0; this.syncState(); this.onReloadStart?.(); },
     round: () => { this.equipEvents?.emit('weapon.reload', { id: this.row.id, phase: 'round' }); this.onRoundIn?.(); },
@@ -173,19 +170,13 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   /** Read-only model observations borrowed by the admitted hand playback. */
   readonly gate: THREE.Vector3;
   private readonly lever: THREE.Mesh; private readonly hammer: THREE.Mesh; private readonly bolt: THREE.Mesh; private readonly round: THREE.Mesh;
-  private readonly flash: RangedFlash; private readonly flashLight: THREE.PointLight;
+  private readonly effects: HitscanPresentation;
   private readonly displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3; rot?: THREE.Euler }[] = [];
-  private readonly brass: BrassCase[] = [];
-  private readonly brassMat: THREE.MeshPhysicalMaterial;
-  private readonly caseGeo: THREE.BufferGeometry;
-  private readonly tracers: RangedTrace[] = []; private readonly paintTracer = (trace: RangedTrace, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, _camera, resolution, this.tracerLife); };
-  private readonly puffs = new Puffs();
-  private readonly hitMuzzle: [number,number,number] = [...RANGED_HIT.lever.muzzle];
   /** the shard's hands on the model (LeverFirearmOptions.hands), null without */
   private hands: LeverFirearmHands | null = null;
   private readonly makeHands: ((model: THREE.Group) => LeverFirearmHandsBuilt) | null;
   readonly leverPivot: THREE.Vector3;
-  private readonly hammerPivot: THREE.Vector3; private readonly port: THREE.Vector3;
+  private readonly hammerPivot: THREE.Vector3;
   /** the right hand's grips: at rest (the shard's), at the gate (the shard's, relative to the round's base), through a
    *  cycle, held at the gate, and the blend posed */
   private readonly grips: { rest: LeverGrip; gate: LeverGrip; out: LeverGrip };
@@ -220,52 +211,53 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.grips = { rest: kit.grip(), gate: kit.grip(), out: kit.grip() };
     this.tracerLife = opts.view.tracer.time;
     this.hip = { ...opts.view.hip }; this.cyclePose = { ...opts.view.cyclePose };
-    this.hammerPivot = new THREE.Vector3(...opts.view.hammerPivot); this.port = new THREE.Vector3(...opts.view.port);
+    this.hammerPivot = new THREE.Vector3(...opts.view.hammerPivot);
     this.makeHands = kit.make(world.sky);
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.ranged' } };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.setAimSource(() => this.player.sampleAimCommand());
-    this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
-    this.flash = new RangedFlash(this.view.flash, RANGED_FLASH.lever, this.view.sight, this.flashLight);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.feel = new RangedFrame(RANGED_FRAME.lever, this.player, FOV_HIP, FOV_ADS);
+    this.effects = new HitscanPresentation(this.feel, this.game.scene, this.model, this.game.camera, {
+      flash: { profile: this.view.flash, shape: RANGED_FLASH.lever, colour: 0xffb060 }, muzzle: this.view.sight,
+      brass: { profile: this.view.brass, port: this.view.port, ejection: RANGED_BRASS.lever },
+      tracer: { count: this.view.tracer.count, row: RANGED_TRACE.segment }, hitMuzzle: RANGED_HIT.lever.muzzle,
+    }, opts.muzzleLight);
 
     const { brassMat, woodMat, steelMat, parts, beadGeo } = opts.build(this.sky);
-    this.brassMat = brassMat;
     this.gate = parts.gate;
     this.leverPivot = parts.leverPivot.clone();
     // the stock is its own draw: sighted, the wrist and comb sit under the eye (a flat brown plane across the view) — hidden
     this.stock = new THREE.Mesh(parts.stock, woodMat);
-    const meshW = new THREE.Mesh(parts.wood, woodMat), meshS = new THREE.Mesh(parts.steel, steelMat), meshB = new THREE.Mesh(beadGeo, this.brassMat);
+    const meshW = new THREE.Mesh(parts.wood, woodMat), meshS = new THREE.Mesh(parts.steel, steelMat), meshB = new THREE.Mesh(beadGeo, brassMat);
     this.model.add(meshW, this.stock, meshS, meshB);
     // ── animated: the lever (in its pivot's frame), the hammer, the bolt, the cartridge being thumbed in ──
     this.lever = new THREE.Mesh(parts.lever, steelMat); this.lever.position.copy(parts.leverPivot);
     this.hammer = new THREE.Mesh(parts.hammer, steelMat); this.hammer.position.copy(this.hammerPivot); this.hammer.rotation.x = this.view.lever.hammerCocked;
     this.bolt = new THREE.Mesh(parts.bolt, steelMat);
-    this.caseGeo = opts.cartridge(false);
-    this.round = new THREE.Mesh(opts.cartridge(true), this.brassMat); this.round.visible = false;
+    const caseGeo = opts.cartridge(false);
+    this.round = new THREE.Mesh(opts.cartridge(true), brassMat); this.round.visible = false;
     this.model.add(this.lever, this.hammer, this.bolt, this.round);
-    this.displayParts.push({ geo: parts.wood, mat: woodMat }, { geo: parts.stock, mat: woodMat }, { geo: parts.steel, mat: steelMat }, { geo: beadGeo, mat: this.brassMat },
+    this.displayParts.push({ geo: parts.wood, mat: woodMat }, { geo: parts.stock, mat: woodMat }, { geo: parts.steel, mat: steelMat }, { geo: beadGeo, mat: brassMat },
       { geo: parts.lever, mat: steelMat, pos: parts.leverPivot.clone() }, { geo: parts.hammer, mat: steelMat, pos: this.hammerPivot.clone(), rot: new THREE.Euler(this.view.lever.hammerDown, 0, 0) }, { geo: parts.bolt, mat: steelMat });
 
-    const flashMat = this.flash.build(this.model);
+    const flashMat = this.effects.flash.build(this.model);
 
     // depth clear + render after the world (Crossbow.ts / Rifle.ts)
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
-    prepareWeaponView(this.model, { clearer, flash: { meshes: this.flash.quads, material: flashMat } });
+    prepareWeaponView(this.model, { clearer, flash: { meshes: this.effects.flash.quads, material: flashMat } });
 
-    whiteColors(this.caseGeo);
-    this.brass.push(...brassRoster(this.game.scene, this.caseGeo, this.brassMat, this.view.brass.count));
-    this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.segment, this.view.tracer.count));
+    whiteColors(caseGeo);
+    this.effects.prepare(caseGeo, brassMat);
 
     const cam = this.game.camera;
     this.game.viewmodel.mountOwnPass(this.model, cam); // its own depth clear; staged while its cell prepares (op-hitch41)
     if (!cam.parent) this.game.scene.add(cam);
-    this.game.scene.add(this.puffs.points);
+    this.effects.mount();
 
     this.syncState();
     this.buildHands();
@@ -342,10 +334,10 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   protected override fire(): void {
     this.act.dropHammer();
     this.feel.shot(this.view.kick);
-    this.flash.fire(this.model, app.rng.stream('cosmetic'));
+    this.effects.flash.fire(this.model, app.rng.stream('cosmetic'));
     this.syncState();
     this.onFire?.();
-    this.hitscan();
+    this.effects.hit(this, this.targets, this.profile, 0, this.player.speedFactor, this.time);
   }
 
   private startCycle(): void { this.act.throwLever(); this.hooks.cycle(); }
@@ -355,18 +347,9 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   /** the aim line is the camera forward, hip or sighted */
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
-  private hitscan(): void {
-    const muzzle = this.hitMuzzle; muzzle[2] = this.view.sight.muzzleZ;
-    this.feel.publishHitscan(this, this.targets, this.profile, 0, this.player.speedFactor, this.model, muzzle, this.time, this.tracers, this.puffs, _d, _v3);
-  }
-
   /** A world-space copy for the cabin pickup / the skin drops: the same geometry, its own copies of the materials (one
    *  program), hammer down. */
   displayModel(): THREE.Group { return weaponDisplay(this.displayParts, { mode: 'merged', sky: this.sky }); }
-
-  private ejectCase(): void {
-    ejectBrass(this.brass, RANGED_BRASS.lever, this.model, this.game.camera, this.port, this.view.brass.life, _v1, _v2, _v3, _q);
-  }
 
   // ── per frame ──
   update(dt: number, t: number): void {
@@ -379,7 +362,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.animateAction(t, dt);
 
     // muzzle flash
-    this.flash.advance(dt, this.model);
+    this.effects.flash.advance(dt, this.model);
 
     const s = this.state;
     const frame = this.frameInputs;
@@ -401,8 +384,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
-    stepBrass(this.brass, dt);
-    this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
+    this.effects.publish(dt, t, this.game.renderer, this.tracerLife);
   }
 
   /** the action's clock: the recoil beat → the lever cycle → idle; the reload's rounds */

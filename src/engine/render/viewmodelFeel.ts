@@ -1,8 +1,10 @@
-import { Vector2, Vector3, DynamicDrawUsage, InstancedInterleavedBuffer, InterleavedBufferAttribute, Color, Group, Mesh, MeshBasicMaterial, PlaneGeometry, AdditiveBlending, DoubleSide, type Object3D, type PointLight, type Scene, type WebGLRenderer, type PerspectiveCamera } from 'three';
+import { Vector2, Vector3, DynamicDrawUsage, InstancedInterleavedBuffer, InterleavedBufferAttribute, Color, Group, Mesh, MeshBasicMaterial, PlaneGeometry, AdditiveBlending, DoubleSide, Quaternion, PointLight, type BufferGeometry, type Material, type Object3D, type Scene, type WebGLRenderer, type PerspectiveCamera } from 'three';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { worldHit, type Puffs } from '../combat/view/ranged';
+import { worldHit, Puffs } from '../combat/view/ranged';
+import { LightPool } from '../fx/LightPool';
+import { brassRoster, ejectBrass, stepBrass, type BrassCase, type BrassEjectionRow } from '../combat/view/brass';
 import { ads } from '../combat/blocks/ads';
 import { fovForAspect } from '../combat/blocks/melee';
 import { worldTime } from '../core/time';
@@ -306,5 +308,60 @@ export class RangedFlash {
   private place(model: Object3D): void {
     model.updateWorldMatrix(true, false);
     model.localToWorld(this.light.position.set(0, this.shape.lightY, this.muzzle.muzzleZ + this.shape.lightZ));
+  }
+}
+
+/** Declared effect allocations; all live flash/brass values remain borrowed. */
+export interface HitscanPresentationRow {
+  readonly flash: { readonly profile: RangedFlashProfile; readonly shape: RangedFlashShape; readonly colour: number };
+  readonly muzzle: { readonly muzzleZ: number };
+  readonly brass: { readonly profile: { readonly count: number; readonly life: number }; readonly port: readonly [number, number, number]; readonly ejection: BrassEjectionRow };
+  readonly tracer: { readonly count: number; readonly row: RangedTraceRow };
+  readonly hitMuzzle: readonly [number, number, number];
+}
+/** Composes the existing flash, cases, traces and impact puffs without advancing an action.
+ * Geometry/materials and the held model/camera are borrowed. Call each phase at its
+ * original weapon boundary: build flash, prepare rosters, attach puffs, then fire,
+ * hit/eject and after-pose publication. No reload, damage or random stream is owned.
+ */
+export class HitscanPresentation {
+  readonly flash: RangedFlash;
+  readonly puffs = new Puffs();
+  private cases: BrassCase[] = [];
+  private traces: RangedTrace[] = [];
+  private readonly port: Vector3;
+  private readonly hitMuzzle: [number, number, number];
+  private readonly a = new Vector3(); private readonly b = new Vector3(); private readonly c = new Vector3();
+  private readonly rotation = new Quaternion();
+  private life = 1;
+  private readonly paint = (trace: RangedTrace, time: number, camera: PerspectiveCamera, resolution: Vector2): void => { trace.publish(time, camera, resolution, this.life); };
+  private readonly frame: RangedFrame; private readonly scene: Scene; private readonly model: Object3D;
+  private readonly camera: PerspectiveCamera; private readonly row: HitscanPresentationRow;
+  constructor(frame: RangedFrame, scene: Scene, model: Object3D,
+    camera: PerspectiveCamera, row: HitscanPresentationRow, muzzleLight = true) {
+    this.frame = frame; this.scene = scene; this.model = model; this.camera = camera; this.row = row;
+    const light = muzzleLight ? LightPool.for(scene).acquire(row.flash.colour, 0, 8, 2) : new PointLight(row.flash.colour, 0, 8, 2);
+    this.flash = new RangedFlash(row.flash.profile, row.flash.shape, row.muzzle, light);
+    this.port = new Vector3(...row.brass.port); this.hitMuzzle = [...row.hitMuzzle];
+  }
+  /** Allocate the same bounded rosters once, retaining the original borrowed backing. */
+  prepare(geometry: BufferGeometry, material: Material): void {
+    if (this.cases.length > 0 || this.traces.length > 0) throw new Error('Hitscan effects already prepared');
+    this.cases = brassRoster(this.scene, geometry, material, this.row.brass.profile.count);
+    this.traces = RangedTrace.roster(this.scene, this.row.tracer.row, this.row.tracer.count);
+  }
+  /** Attach at the original scene insertion phase, after mounting the held model. */
+  mount(): void { this.scene.add(this.puffs.points); }
+  hit(weapon: Weapon, targets: Targets | undefined, profile: HitscanProfile, bloom: number, speedFactor: number, time: number): void {
+    this.hitMuzzle[2] = this.row.muzzle.muzzleZ;
+    this.frame.publishHitscan(weapon, targets, profile, bloom, speedFactor, this.model, this.hitMuzzle, time, this.traces, this.puffs, this.a, this.b);
+  }
+  eject(): void {
+    ejectBrass(this.cases, this.row.brass.ejection, this.model, this.camera, this.port, this.row.brass.profile.life, this.a, this.b, this.c, this.rotation);
+  }
+  /** Preserve case integration before puff/trace publication and the caller's source time. */
+  publish(dt: number, time: number, renderer: Parameters<Puffs['update']>[1], tracerLife: number): void {
+    this.life = tracerLife; stepBrass(this.cases, dt);
+    this.frame.presentEffects(dt, time, renderer, this.camera, this.puffs, this.traces, this.paint);
   }
 }

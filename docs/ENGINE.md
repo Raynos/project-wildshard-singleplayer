@@ -6281,3 +6281,18 @@ the last matching numeric value. Every read samples the current tape and
 refuses more than 1024 commands. Filtered arrays and melee input are borrowed
 scratch, never saved between ticks. Pine and Driftwood use this wiring
 without changing their controller install, restore, clock or effect order.
+
+### Hitscan effect presentation
+
+`src/engine/render/viewmodelFeel.ts#HitscanPresentation` composes the existing
+`RangedFlash`, `RangedFrame`, brass, segment tracers and impact puffs from a
+`HitscanPresentationRow`. Profiles, muzzle source, geometry and materials
+are borrowed; counts use the existing 128-slot caps. Construct the flash/light
+at boot, call `flash.build(model)` at the original mesh phase, `prepare` once
+for cases/traces and `mount` at the original puff insertion phase. The caller
+keeps firing/reload/action/pose phases: `flash.fire`, `hit`, `eject`,
+`flash.advance`, then after pose `publish`. Publication integrates cases before
+puffs/traces, with the live tracer lifetime and caller time. No action, damage,
+physics service or random stream is replaced. G441's pending W3 adopter is
+Nalati `runtime/weapons/magazineFirearm.ts`: allocation, hitscan/ejection and
+final publication; its bloom, magazine/reload and callbacks stay local.
