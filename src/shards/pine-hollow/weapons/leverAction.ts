@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { RangedAction, type RangedCycleEvent } from '@wildshard/engine/combat/Firearm';
 import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
@@ -31,108 +32,16 @@ export function parseLeverProfile(input: unknown): v.InferOutput<typeof FirearmW
   return { ...row, lever: row.lever };
 }
 
-/** idle; the beat between the shot and the throw; the lever's throw; a reload through the gate */
-export type LeverPhase = 'idle' | 'beat' | 'cycle' | 'reload';
-/** What the action tells its owner as it runs (the page's view and sounds; a headless runtime ignores most). */
-export interface LeverHooks {
-  /** the lever is thrown (a cycle starts) */
-  cycle: () => void;
-  /** the spent case leaves the port (a third into the throw) */
-  eject: () => void;
-  /** the throw is done: the chamber took a round from the tube, if it had one */
-  chambered: () => void;
-  /** a reload started (a trigger on an empty gun, `R`, or the auto reload) */
-  reloadStart: () => void;
-  /** a cartridge went through the gate */
-  round: () => void;
-  /** the reload is done */
-  reloadEnd: () => void;
-}
+/** Existing page effect names; the data-only host yields them at the original phase boundaries. */
+export type LeverHooks = Readonly<Record<RangedCycleEvent, () => void>>;
 
-/**
- * THE LEVER-ACTION'S ACTION, renderer-free (SF72): the page's LeverRifle (runtime/weapons/LeverRifle.ts) and the headless
- * lever (runtime/weapons/headlessLever.ts) both run their rifle through it. The profile's magazine minus one in the tube + one chambered. A
- * shot fires the chambered round and drops the hammer; after the profile's cycleDelay the lever is thrown (cycleTime: the case leaves a
- * third of the way through, the hammer cocks at a fifth, and the lever closes chambering the next round from the tube). No
- * second shot until the cycle is done. A reload goes THROUGH THE GATE, ONE ROUND AT A TIME (ROUND_TIME each, the first
- * RELOAD_IN after it starts); a trigger pull mid-reload stops it after the round in hand; a gun run dry is cycled at the end
- * to chamber one. The reserve lives on the owner's store (the page's HUD state; a pickup adds to it).
- */
-export class LeverAction {
-  tube: number; chambered = true; caseInChamber = false; hammerCocked = true;
-  phase: LeverPhase = 'idle'; phaseT = 0;
-  /** reload: rounds pushed this reload, the rounds it means to push, whether to stop after the round in hand, whether the
-   *  gun was run dry (chamber at the end) */
-  fed = 0; planned = 0; stopAfter = false; dryAtStart = false;
-  /** 0..1 through the reload's rounds */
-  reloadProgress = 0;
-  readonly store: { reserve: number };
-  readonly profile: ReturnType<typeof parseLeverProfile>;
-  readonly tubeMax: number;
+/** Pine's profile/save compatibility bridge; cycling and per-round transfer belong to RangedAction. */
+export class LeverAction extends RangedAction.Cycle {
   constructor(store: { reserve: number }, input: unknown = LEVER_WEAPON_PROFILE) {
-    this.profile = parseLeverProfile(input); this.tubeMax = this.profile.magazine - 1;
-    this.tube = this.tubeMax; this.store = store;
+    const profile = parseLeverProfile(input);
+    super(store, { magazine: profile.magazine, reload: profile.reload, ...profile.lever });
   }
-
-  /** rounds in the gun (the tube and the chamber) */
-  get rounds(): number { return this.tube + (this.chambered ? 1 : 0); }
-  /** 0..1 through the lever's throw (0 when it is shut) */
-  get cycleU(): number { return this.phase === 'cycle' ? Math.min(1, Math.max(0, this.phaseT / this.profile.lever.cycleTime)) : 0; }
-
-  /** the chambered round goes: the hammer drops, the case stays in the chamber until the throw */
-  dropHammer(): void { this.chambered = false; this.caseInChamber = true; this.hammerCocked = false; this.phase = 'beat'; this.phaseT = 0; }
-  /** the lever is thrown (the hook is the owner's to call: a dry pull throws it at once) */
-  throwLever(): void { this.phase = 'cycle'; this.phaseT = 0; }
-  /** a trigger pull while reloading: stop after the round in hand (once there is anything to fire) */
-  triggerWhileReloading(): void { if (this.fed > 0 || this.tube > 0 || this.chambered) this.stopAfter = true; }
-  /** start a reload, when idle with room in the tube and a reserve: false when refused */
-  beginReload(): boolean {
-    if (this.phase !== 'idle' || this.tube >= this.tubeMax || this.store.reserve <= 0) return false;
-    this.phase = 'reload'; this.phaseT = 0; this.fed = 0; this.stopAfter = false; this.dryAtStart = !this.chambered;
-    this.planned = Math.min(this.tubeMax - this.tube, this.store.reserve);
-    this.reloadProgress = 0;
-    return true;
-  }
-  /** an idle, empty gun with a reserve (the owner adds its own window: the dry pull's delay, held and enabled) */
-  get wantsAutoReload(): boolean { return this.phase === 'idle' && !this.chambered && this.tube === 0 && this.store.reserve > 0; }
-
-  /** One step of `dt` s: the beat, the throw, the reload, else (idle) the auto reload when `autoDue` (the owner's window, read
-   *  before the step: nothing in an idle step changes it). */
-  step(dt: number, autoDue: boolean, hooks: LeverHooks): void {
-    this.phaseT += dt;
-    if (this.phase === 'beat') { if (this.phaseT >= this.profile.lever.cycleDelay) { this.throwLever(); hooks.cycle(); } }
-    else if (this.phase === 'cycle') {
-      const u = this.phaseT / this.profile.lever.cycleTime;
-      if (this.caseInChamber && u >= this.profile.lever.ejectAt) { this.caseInChamber = false; hooks.eject(); }
-      if (u >= this.profile.lever.cockAt) this.hammerCocked = true;
-      if (u >= 1) {
-        if (!(this.chambered || this.tube <= 0)) {
-          this.tube--; this.chambered = true;
-        }
-        this.phase = 'idle'; this.phaseT = 0;
-        hooks.chambered();
-      }
-    } else if (this.phase === 'reload') this.reloadStep(hooks);
-    else if (autoDue && this.beginReload()) hooks.reloadStart();
-  }
-
-  private reloadStep(hooks: LeverHooks): void {
-    const inT = this.phaseT - this.profile.lever.reloadIn;
-    const done = Math.max(0, Math.floor(inT / this.profile.reload));
-    for (let round = 0; round < 1024; round++) {
-      if (this.fed >= Math.min(done, this.planned)) break;
-      if (!(this.tube >= this.tubeMax || this.store.reserve <= 0)) {
-        this.tube++; this.store.reserve--;
-      }
-      this.fed++;
-      hooks.round();
-      if (this.stopAfter || this.tube >= this.tubeMax || this.store.reserve <= 0) { this.planned = this.fed; break; }
-    }
-    this.reloadProgress = this.planned > 0 ? Math.min(1, Math.max(0, inT) / (this.profile.reload * this.planned)) : 1;
-    if (this.fed >= this.planned && inT >= this.profile.reload * this.planned) {
-      this.phase = 'idle'; this.phaseT = 0; this.reloadProgress = 0;
-      hooks.reloadEnd();
-      if (this.dryAtStart && !this.chambered && this.tube > 0) { this.throwLever(); hooks.cycle(); } // run dry: work the lever to chamber one
-    }
+  step(dt: number, autoDue: boolean, hooks?: LeverHooks): void {
+    for (const event of this.events(dt, autoDue)) hooks?.[event]();
   }
 }

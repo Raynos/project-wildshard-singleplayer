@@ -7,15 +7,13 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { LeverAction, parseLeverProfile, type LeverHooks } from '../../weapons/leverAction';
+import { LeverAction, parseLeverProfile } from '../../weapons/leverAction';
 import { aimAt, bodyHit } from './headlessRanged';
 
 /** The lever-action's fixed-step id; its continuation is the action, the reserve and the dry pull's clock. */
 export const LEVER_STEP = 'pine.lever';
 /** The most shots a tick reads (the tick's command allowance). */
 const MAX_SHOTS = 1024, NO_SHOTS: readonly string[] = [];
-/** A headless rifle tells no one how its action runs (the page's view and sounds hang off these). */
-const QUIET: LeverHooks = { cycle: () => undefined, eject: () => undefined, chambered: () => undefined, reloadStart: () => undefined, round: () => undefined, reloadEnd: () => undefined };
 
 const finite = v.pipe(v.number(), v.finite()), count = v.pipe(v.number(), v.integer(), v.minValue(0));
 
@@ -87,7 +85,7 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
       if (target !== undefined) pull(target);
     }
     sinceEmpty += dt;
-    act.step(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < profile.lever.autoReloadClose && ports.enabled(), QUIET);
+    act.step(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < profile.lever.autoReloadClose && ports.enabled());
   }, {
     snapshot: () => ({ tube: act.tube, chambered: act.chambered, caseInChamber: act.caseInChamber, hammerCocked: act.hammerCocked, phase: act.phase, phaseT: act.phaseT,
       fed: act.fed, planned: act.planned, stopAfter: act.stopAfter, dryAtStart: act.dryAtStart, reloadProgress: act.reloadProgress, reserve: store.reserve, sinceEmpty }),

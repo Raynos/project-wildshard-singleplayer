@@ -5580,7 +5580,7 @@ only their fire/fade clock. It preserves four cosmetic RNG draws and caller phas
 `engine/combat/Firearm.RangedReload` supplies quiver/magazine begin/progress/finish
 through the existing state envelope; callbacks keep the weapon receiver. Progress
 uses the explicit duration/scale; transfer and completion keep the original ammo
-and reserve rules. The lever's per-round action remains its existing owner.
+and reserve rules. Per-round/cycle policies use `RangedAction.Cycle` below.
 
 ### Quest view lifetimes
 
@@ -7602,3 +7602,16 @@ edge. Defaults retain the original geometric altitude and contact completion.
 `MoverBakeSchema.output` selects `typescript` (the default) or `json`. The
 existing mover compiler emits the same captured rows as `data/movers.ts`
 or `data/movers.generated.json`; fixed driver admission is unchanged.
+
+### Per-round ranged cycles
+
+`engine/combat/Firearm.ts#RangedAction.Cycle` takes borrowed reserve data
+and a `RangedCycleRow`: magazine size, round/reload-entry durations, cycle
+delay/duration and normalized ejection/cocking phases. It owns the tube,
+chamber, hammer, reload progress and phase clocks; it accepts no hooks.
+`events(dt, autoDue)` yields `cycle`, `eject`, `chambered`, `reloadStart`,
+`round` and `reloadEnd` in source-clock order. Consume the iterator fully:
+it suspends at each effect boundary, so an observer can inspect or interrupt
+the exact intermediate state before the next transition. Each reload step
+feeds at most 1,024 rounds. Snapshots and restore versions remain with the
+caller; constructing or restoring fields never emits a phase event.

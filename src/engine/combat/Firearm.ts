@@ -7,7 +7,7 @@ type RangedPort = Pick<Weapon, 'onDry' | 'onReloadStart' | 'onReloadEnd'> & {
 };
 const finite = v.pipe(v.number(), v.finite());
 
-/** Declared quiver or magazine transfer; the lever's per-round action remains its own controller. */
+/** Declared quiver or magazine transfer; per-round cycling uses RangedAction.Cycle. */
 export interface RangedReloadRow { readonly mode: 'quiver' | 'magazine' }
 /** One source-clock reload progress and transfer owner, using the existing weapon/save envelope. */
 export class RangedReload {
@@ -48,8 +48,74 @@ export interface RangedActionRow extends RangedReloadRow {
   readonly maximum: number; readonly interval: number; readonly reload: number; readonly autoReload: number;
   readonly autoFrom: 'shot' | 'empty';
 }
+/** Per-round loading and cycling coefficients, in seconds and normalized cycle phases. */
+export interface RangedCycleRow {
+  readonly magazine: number; readonly reload: number; readonly reloadIn: number;
+  readonly cycleDelay: number; readonly cycleTime: number; readonly ejectAt: number; readonly cockAt: number;
+}
+/** An ordered phase notification; the host accepts no presentation callbacks. */
+export type RangedCycleEvent = 'cycle' | 'eject' | 'chambered' | 'reloadStart' | 'round' | 'reloadEnd';
+
+/** Mutable ammunition/phase data under the caller's existing save envelope. */
+class CyclingAction {
+  tube: number; chambered = true; caseInChamber = false; hammerCocked = true;
+  phase: 'idle' | 'beat' | 'cycle' | 'reload' = 'idle'; phaseT = 0;
+  fed = 0; planned = 0; stopAfter = false; dryAtStart = false; reloadProgress = 0;
+  readonly tubeMax: number;
+  readonly store: { reserve: number };
+  private readonly row: RangedCycleRow;
+  constructor(store: { reserve: number }, row: RangedCycleRow) {
+    if (!Number.isInteger(row.magazine) || row.magazine < 1 || row.magazine > 65536
+      || ![row.reload, row.reloadIn, row.cycleDelay, row.cycleTime, row.ejectAt, row.cockAt].every(value => Number.isFinite(value) && value >= 0 && value <= 86400)
+      || row.reload === 0 || row.cycleTime === 0 || row.ejectAt > 1 || row.cockAt > 1) throw new RangeError('Invalid ranged cycle row');
+    this.store = store; this.row = row; this.tubeMax = row.magazine - 1; this.tube = this.tubeMax;
+  }
+  get rounds(): number { return this.tube + Number(this.chambered); }
+  get cycleU(): number { return this.phase === 'cycle' ? Math.min(1, Math.max(0, this.phaseT / this.row.cycleTime)) : 0; }
+  dropHammer(): void { this.chambered = false; this.caseInChamber = true; this.hammerCocked = false; this.phase = 'beat'; this.phaseT = 0; }
+  throwLever(): void { this.phase = 'cycle'; this.phaseT = 0; }
+  triggerWhileReloading(): void { if (this.fed > 0 || this.tube > 0 || this.chambered) this.stopAfter = true; }
+  beginReload(): boolean {
+    if (this.phase !== 'idle' || this.tube >= this.tubeMax || this.store.reserve <= 0) return false;
+    this.phase = 'reload'; this.phaseT = 0; this.fed = 0; this.stopAfter = false; this.dryAtStart = !this.chambered;
+    this.planned = Math.min(this.tubeMax - this.tube, this.store.reserve); this.reloadProgress = 0;
+    return true;
+  }
+  get wantsAutoReload(): boolean { return this.phase === 'idle' && !this.chambered && this.tube === 0 && this.store.reserve > 0; }
+  /** Iteration advances state only as far as each effect boundary, preserving observer/reentrant timing. */
+  *events(dt: number, autoDue: boolean): Generator<RangedCycleEvent, void, undefined> {
+    this.phaseT += dt;
+    if (this.phase === 'beat') { if (this.phaseT >= this.row.cycleDelay) { this.throwLever(); yield 'cycle'; } }
+    else if (this.phase === 'cycle') {
+      const u = this.phaseT / this.row.cycleTime;
+      if (this.caseInChamber && u >= this.row.ejectAt) { this.caseInChamber = false; yield 'eject'; }
+      if (u >= this.row.cockAt) this.hammerCocked = true;
+      if (u >= 1) {
+        if (!(this.chambered || this.tube <= 0)) { this.tube--; this.chambered = true; }
+        this.phase = 'idle'; this.phaseT = 0; yield 'chambered';
+      }
+    } else if (this.phase === 'reload') yield* this.reloadEvents();
+    else if (autoDue && this.beginReload()) yield 'reloadStart';
+  }
+  private *reloadEvents(): Generator<RangedCycleEvent, void, undefined> {
+    const inT = this.phaseT - this.row.reloadIn, done = Math.max(0, Math.floor(inT / this.row.reload));
+    for (let round = 0; round < 1024; round++) {
+      if (this.fed >= Math.min(done, this.planned)) break;
+      if (!(this.tube >= this.tubeMax || this.store.reserve <= 0)) { this.tube++; this.store.reserve--; }
+      this.fed++; yield 'round';
+      if (this.stopAfter || this.tube >= this.tubeMax || this.store.reserve <= 0) { this.planned = this.fed; break; }
+    }
+    this.reloadProgress = this.planned > 0 ? Math.min(1, Math.max(0, inT) / (this.row.reload * this.planned)) : 1;
+    if (this.fed >= this.planned && inT >= this.row.reload * this.planned) {
+      this.phase = 'idle'; this.phaseT = 0; this.reloadProgress = 0; yield 'reloadEnd';
+      if (this.dryAtStart && !this.chambered && this.tube > 0) { this.throwLever(); yield 'cycle'; }
+    }
+  }
+}
 /** Trigger, cooldown and automatic reload owner, composing the existing transfer controller. */
 export class RangedAction {
+  /** Data-only per-round cycle owner; callers consume phase events on their original clock. */
+  static readonly Cycle = CyclingAction;
   private static readonly clocks = v.object({ reloadT: finite, cooldown: finite, sinceFire: finite });
   private cooldown = 0;
   private sinceAction = 99;
