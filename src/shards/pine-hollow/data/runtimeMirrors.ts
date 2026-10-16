@@ -21,12 +21,9 @@ import { KNIFE_LOOK } from './skinningKnifeLook';
 import CROSSBOW_DISPLAY_REST from './crossbowDisplay.json' with { type: 'json' };
 import SPRAY_PUFFS from './sprayPuffs.json' with { type: 'json' };
 
-import { TIMBER_DRAWS, TIMBER_GLASS } from './timberDraws';
 
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
-  defineMirror('TIMBER_DRAWS', TIMBER_DRAWS),
-  defineMirror('TIMBER_GLASS', TIMBER_GLASS),
   defineMirror('KNIFE_LOOK', KNIFE_LOOK),
   defineMirror('CROSSBOW_DISPLAY_REST', CROSSBOW_DISPLAY_REST),
   defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),

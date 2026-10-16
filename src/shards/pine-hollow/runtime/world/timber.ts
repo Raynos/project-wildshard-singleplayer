@@ -13,8 +13,8 @@ import type * as THREE from 'three';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryModel';
-import { cabinMats, type Mats, type MatKey } from './homestead';
-import { TIMBER_DRAWS, TIMBER_GLASS } from '../const';
+import { cabinMats, loadCabinRows, type CabinRowsSchema, type Mats, type MatKey } from './homestead';
+import type { InferOutput } from 'valibot';
 import type { TimberRow } from '../../world/timberBake';
 import { timberDraw } from './timberSites';
 
@@ -25,6 +25,7 @@ export interface Floor { x: number; z: number; rot: number; hw: number; hd: numb
 export interface TimberCopy { readonly identity: string; readonly row: TimberRow }
 
 const MATS = 'pine-hollow/timber:mats', DETAIL = 1, FAR = 2;
+let admitted: Pick<InferOutput<typeof CabinRowsSchema>, 'TIMBER_DRAWS' | 'TIMBER_GLASS'> | null = null;
 /** most part rows a copy's bake holds (one per material; throws past it) */
 const MAX_PARTS = 32;
 /** most meshes or shadow proxies one welded copy finishes (throws past it) */
@@ -32,7 +33,8 @@ const MAX_MESHES = 64;
 
 /** Load the timber's materials (the cabins') into this shard's context. */
 export async function loadTimber(ctx: ModelContext): Promise<void> {
-  const mats = await cabinMats(ctx.sky);
+  const [mats, rows] = await Promise.all([cabinMats(ctx.sky), loadCabinRows()]);
+  admitted = rows;
   ctx.once(MATS, () => mats);
 }
 
@@ -40,6 +42,8 @@ export const timberMats = (ctx: ModelContext): Mats => ctx.once<Mats>(MATS, () =
 
 /** a copy's draws: a library geometry per material its bake drew, then its glass (a detail draw of its own) */
 function draws({ identity, row }: TimberCopy): LibraryDraw<MatKey | 'glass'>[] {
+  if (admitted === null) throw new Error('[timber] loadTimber(ctx) before reading draw flags');
+  const { TIMBER_DRAWS, TIMBER_GLASS } = admitted;
   const parts: LibraryDraw<MatKey | 'glass'>[] = [];
   const rows = row.parts;
   if (rows.length > MAX_PARTS) throw new Error(`[timber] ${identity}: ${String(rows.length)} part rows, over ${String(MAX_PARTS)}`);

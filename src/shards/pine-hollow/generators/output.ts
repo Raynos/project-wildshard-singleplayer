@@ -3,6 +3,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from '../data/cabinLook';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
 import { HEARTH_LOOKS } from '../data/hearthLook';
+import { TIMBER_DRAWS, TIMBER_GLASS } from '../data/timberDraws';
 import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
 import { PINE_OUTPUT } from '../data/output';
 import { RUNTIME_MIRRORS } from '../data/runtimeMirrors';
@@ -13,7 +14,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 }
 
 const clientJson=emitNamedBlobs([nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
- CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,
+ CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,
 }))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */

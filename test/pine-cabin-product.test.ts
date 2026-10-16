@@ -5,6 +5,7 @@ import { output } from '../src/shards/pine-hollow/generators/output';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from '../src/shards/pine-hollow/data/cabinLook';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../src/shards/pine-hollow/data/cabinAssembly';
 import { HEARTH_LOOKS } from '../src/shards/pine-hollow/data/hearthLook';
+import { TIMBER_DRAWS, TIMBER_GLASS } from '../src/shards/pine-hollow/data/timberDraws';
 
 test('admitted cabin JSON retains every authored material and life value and rejects malformed rows', () => {
   const file = output.namedFiles.find(row => row.name === 'world/cabins.json');
@@ -12,7 +13,7 @@ test('admitted cabin JSON retains every authored material and life value and rej
   if (bytes === undefined) throw new Error('Missing named cabin JSON');
   const rows = v.parse(CabinRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
   expect(rows).toEqual({ CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE, CABIN_PBR,
-    CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT, HEARTH_LOOKS });
+    CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT, HEARTH_LOOKS, TIMBER_DRAWS, TIMBER_GLASS });
   expect(() => v.parse(CabinRowsSchema, { ...rows, extra: true })).toThrow();
   expect(() => v.parse(CabinRowsSchema, { ...rows, CABIN_LIFE: { ...rows.CABIN_LIFE, fire: [0.7] } })).toThrow();
   expect(() => v.parse(CabinRowsSchema, { ...rows, CABIN_PBR: [] })).toThrow();

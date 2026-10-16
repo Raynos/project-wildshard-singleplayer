@@ -65,6 +65,8 @@ const materialRow = v.strictObject({ color: number, roughness: number, metalness
   transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(number), envMapIntensity: v.exactOptional(number),
   emissiveIntensity: v.exactOptional(number), emissive: v.exactOptional(number), side: v.exactOptional(v.picklist([0, 1, 2])),
   depthWrite: v.exactOptional(v.boolean()), vertexColors: v.exactOptional(v.boolean()) });
+const timberDraw = v.strictObject({ depth: v.picklist(['proxy', 'near']), receiveShadow: v.boolean(),
+  castShadow: v.exactOptional(v.boolean()), until: v.exactOptional(number) });
 /** Client-only author rows: unknown fields, malformed vectors and unbounded lists refuse before construction. */
 export const CabinRowsSchema = v.strictObject({
   CABIN_DOOR_LOOK: v.string(), CABIN_MOSS_LOOKS: v.strictObject({ roof: v.string(), stone: v.string() }),
@@ -75,6 +77,9 @@ export const CabinRowsSchema = v.strictObject({
   CABIN_PBR: v.pipe(v.array(v.strictObject({ key: v.picklist(['log', 'roof', 'beam', 'deck', 'door', 'stone', 'bark']),
     scan: v.string(), color: triple, normal: pair })), v.length(7)),
   CABIN_MATERIALS: v.strictObject({ endGrain: materialRow, chink: materialRow, glass: materialRow, iron: materialRow, cloth: materialRow, char: materialRow }),
+  TIMBER_DRAWS: v.strictObject({ log: timberDraw, endGrain: timberDraw, chink: timberDraw, roof: timberDraw, beam: timberDraw, deck: timberDraw,
+    door: timberDraw, stone: timberDraw, bark: timberDraw, iron: timberDraw, cloth: timberDraw, char: timberDraw }),
+  TIMBER_GLASS: v.strictObject({ renderOrder: number, receiveShadow: v.boolean() }),
   CABIN_GLASS_EMISSIVE: triple, CABIN_LIGHT: v.strictObject({ count: number, color: number, intensity: number, distance: number, decay: number }),
 });
 type CabinRows = v.InferOutput<typeof CabinRowsSchema>;
