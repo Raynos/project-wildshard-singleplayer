@@ -5,6 +5,7 @@ import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';
 import { readStrikeState } from './strikeState';
+import { orbitSteering, stalkSteering, diveSteering, takeoffSteering, riseSteering } from './moves';
 
 /** Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s. */
 export interface OrbitDiverSpec {
@@ -481,25 +482,23 @@ export class DiverBrain<A extends AnimalSim> {
     if (this.mode === 'circle' && this.takeoff > 0) {
       // a slow rise off the perch, swinging round onto the player and leaning into the swing (eased in as it drops off)
       this.takeoff = Math.max(0, this.takeoff - ctx.dt);
-      const k = 1 - this.takeoff / takeoff.seconds;
-      const want = this.yawTo(p.x, p.z), off = Math.atan2(Math.sin(want - a.yaw), Math.cos(want - a.yaw));
-      a.mem[fields.lean] = -Math.max(-takeoff.bank, Math.min(takeoff.bank, off * 1.2)) * Math.min(1, k * 4);
-      ctx.flight.steer(a, want, takeoff.speed * k, perch.y + (row.altitude - perch.y) * k, takeoff.turn);
+      const move = takeoffSteering({ altitude: row.altitude, bank: takeoff.bank, speed: takeoff.speed, turn: takeoff.turn, ground: false }, a, p, perch.y, 1 - this.takeoff / takeoff.seconds);
+      a.mem[fields.lean] = move.bank;
+      const m = move.steering; ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
       return;
     }
     a.mem[fields.lean] = 0;
     if (this.mode === 'circle' || this.mode === 'rest') {
       this.angle += (ctx.dt * speeds.circle) / lap.r;
       const o = row.orbit;
-      ctx.flight.steer(a, this.yawTo(o.x + Math.cos(this.angle) * o.r, o.z + Math.sin(this.angle) * o.r), o.speed, row.altitude, turns.circle);
+      const m = orbitSteering({ center: [o.x, o.z], r: o.r, y: row.altitude, speed: o.speed, turn: turns.circle, ground: false }, a, this.angle);
+      ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
       return;
     }
     if (this.mode === 'stalk') {
-      const d = Math.hypot(p.x - a.position.x, p.z - a.position.z), stalk = row.stalk, want = stalk.standOff;
-      const heading = stalk.retreat && d < want ? this.yawTo(p.x, p.z) + Math.PI : this.yawTo(p.x, p.z);
-      ctx.flight.steer(a, heading, stalk.speed ?? Math.min(speeds.stalk, Math.abs(d - want) * 1.5), this.raptorHold(plan, p), turns.stalk);
-      const ready = stalk.ready.kind === 'over' ? d < stalk.ready.radius && Math.abs(a.position.y - this.raptorHold(plan, p)) < stalk.ready.height
-        : stalk.ready.kind === 'band' ? Math.abs(d - want) < stalk.ready.tolerance : d < spec.range;
+      const stalk = row.stalk, move = stalkSteering({ standOff: stalk.standOff, retreat: stalk.retreat, ready: stalk.ready,
+        constantSpeed: stalk.speed !== null, speed: stalk.speed ?? speeds.stalk, altitude: this.raptorHold(plan, p), turn: turns.stalk, ground: false }, a, p, spec.range);
+      const m = move.steering, ready = move.ready; ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
       if (ready && ctx.reach(a) && ctx.claim(a)) { this.aim = this.yawTo(p.x, p.z); this.strikes.start(spec, a, this.chest); this.current = spec; this.windup = 0; this.mode = 'strike'; }
       return;
     }
@@ -607,7 +606,8 @@ export class DiverBrain<A extends AnimalSim> {
     this.clock += ctx.dt; this.wait -= ctx.dt;
     if (!fight) {
       const d = s.dormant;
-      ctx.flight.steer(a, a.yaw + d.yawLead, rise > 0 ? d.speed : 0, d.from + (d.to - d.from) * rise, d.turn); return;
+      const m = riseSteering({ ...d, ground: false }, a, rise);
+      ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn); return;
     }
     if (this.state === 'grounded') {
       const target = this.phasedContext(ctx, ctx.player); this.strikes.update(ctx.dt, target);
@@ -618,8 +618,8 @@ export class DiverBrain<A extends AnimalSim> {
     const strike = this.phasedContext(ctx, this.chest); this.strikes.update(ctx.dt, strike);
     const high = s.altitudes[phase] ?? s.altitudes[0] ?? 0;
     if (this.state === 'dive') {
-      const d3 = a.position.distanceTo(this.chest);
-      ctx.flight.steer(a, this.yawTo(this.chest.x, this.chest.z), s.diveSpeed, Math.max(s.skim, Math.min(high, d3 * s.diveSlope)), s.turns.dive);
+      const m = diveSteering({ speed: s.diveSpeed, slope: s.diveSlope, skim: s.skim, altitude: high, aimHeight: 0, turn: s.turns.dive, ground: false }, a, this.chest);
+      ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
       if (!this.strikes.busy && !this.struck) { const next = this.strikes.pick(p.dive, strike); if (next !== null) this.strikes.start(next, a, this.chest); }
       if ((this.struck && !this.strikes.busy) || this.clock > s.diveMaxSeconds) { this.mode = 'climb'; this.clock = 0; }
       return;
@@ -629,8 +629,8 @@ export class DiverBrain<A extends AnimalSim> {
       if (this.clock > s.climbSeconds) { this.mode = 'circle'; this.wait = s.restSeconds[phase] ?? 4; }
       return;
     }
-    const around = Math.atan2(a.position.x - s.center.x, a.position.z - s.center.z) + s.orbitLead;
-    ctx.flight.steer(a, this.yawTo(s.center.x + Math.sin(around) * s.circleRadius, s.center.z + Math.cos(around) * s.circleRadius), s.speed, high, s.turns.circle);
+    const m = orbitSteering({ center: [s.center.x, s.center.z], r: s.circleRadius, y: high, lead: s.orbitLead, speed: s.speed, turn: s.turns.circle, ground: false }, a, 0);
+    ctx.flight.steer(a, m.yaw, m.speed, m.altitude, m.turn);
   }
   private windStT = 0;
   private windStoopT = 0;

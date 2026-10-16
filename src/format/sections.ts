@@ -1,6 +1,7 @@
 import type * as v from 'valibot';
 import type { Shardfile } from './shardSchema';
 import type { CreatureStrikeSchema } from './creatures';
+import type { ActorMoves } from './actorMoves';
 import type { DecisionScriptRow } from './decisionScripts';
 import type { WorldPhysics } from './worldPhysics';
 
@@ -36,6 +37,8 @@ export interface PlatformSections {
   'look/look': Pick<Shardfile, 'look' | 'presentation'>;
   'look/map': Pick<Shardfile, 'map'>;
   'look/materials': { readonly rows: Pick<Rows, 'looks'> };
+  /** new (KA5): sim-side steering mechanics, independently selected by decisions. */
+  'actors/moves': ActorMoves;
   'actors/creatures': Pick<Shardfile, 'creatures'>;
   'actors/crowds': Pick<Shardfile, 'crowds'>;
   'actors/npcs': Pick<Shardfile, 'questNpcs'>;

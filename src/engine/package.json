@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ai/moves": "./ai/moves.ts",
     "./script/decision": "./script/decision.ts",
     "./render/programRetention": "./render/programRetention.ts",
     "./models/placementBatch": "./models/placementBatch.ts",

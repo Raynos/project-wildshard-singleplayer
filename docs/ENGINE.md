@@ -7271,3 +7271,12 @@ callback receives them as its fourth argument. The full
 `validateShardfileAssets` validator accepts them after its optional device
 arguments. Browser products obtain the same rows from their checked output
 descriptor; no byte-sniffing or opaque Wasm fallback is used.
+
+
+### Fixed-step actor moves (KA5)
+
+`@wildshard/format/actorMoves` defines the plain `actors/moves` section: bounded, uniquely named orbit, stalk, dive, climb, takeoff/perch, rise/lie, ring-run and burrow/surface rows. `actorMoveRules` resolves perch spots, strike ids and pose fields against actual platform registries. The defining schema is emitted with the format schemas.
+
+`@wildshard/engine/ai/moves.ActorMoveRunner` runs one admitted move at 60 Hz from data observations and emits steering, bank, normalized field, strike and one-shot completion requests. The platform applies requests through its existing flight, collision and strike owners, then publishes `move.done`; the runner never moves a body or damages a target itself. Missing targets, named perches, strike range or field values refuse before clocks change. `snapshot`/`restore` retain the declaration identity, clocks, orbit angle and completion latch without invoking motion or repeating completed effects.
+
+The public steering kernels also serve the existing raptor/phased brains during the Wasm transition; their encounter decisions remain until KS1/KS4 replace them. No phase policy, renderer, shard callbacks or random source enters this library. A stalk declares exactly one of `above`/`altitude`; range readiness borrows the admitted strike range. Takeoff explicitly declares its destination altitude and named perch. Dive contact is authoritative `reach`, with the declared strike requested once; a timeout completes with `ok=false`. Orbit and ring-run continue until replaced, timed/ready moves finish once.
