@@ -12,13 +12,14 @@ import { MANIFEST as signal } from '../src/shards/sunscar-dunes/discovery.genera
 import { MANIFEST as template } from '../src/shards/_template/discovery.generated';
 import templateProduct from '../src/shards/_template/shard.config';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
+import { MANIFEST as blender } from '../src/shards/blender-template/discovery.generated';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
 describe('authored JSON discovery', () => {
-  for (const manifest of [sky, signal, template, pine, driftwood]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
+  for (const manifest of [sky, signal, template, pine, driftwood, blender]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
     const row = parseManifestMetadata(metadata(manifest.slug));
     expect(manifest.name).toBe(row.name); expect(manifest.spawn).toEqual(row.spawn);
     expect(manifest.bounds).toEqual(row.bounds); expect(manifest.sky).toEqual(row.sky);
@@ -31,7 +32,7 @@ describe('authored JSON discovery', () => {
     }
     expect(manifest.card.thumb).toBeTruthy(); expect(manifest.card.portrait).toBeTruthy(); expect(manifest.card.landscape).toBeTruthy();
     expect(existsSync(resolve(root, 'public', row.minimap.image.slice(1)))).toBe(true);
-    expect(manifest.load === undefined).toBe(manifest.slug === '_template');
+    expect(manifest.load === undefined).toBe(row.bindings.load === undefined);
   });
   test('refuses malformed authored data and unresolved source assets', () => {
     const row = parseManifestMetadata(metadata('far-reach'));
