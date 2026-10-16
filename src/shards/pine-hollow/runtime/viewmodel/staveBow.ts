@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { BowShape, type BowView, type GripPose } from '@wildshard/engine/combat/view/bowProfile';
 import type { FistOpts } from '@wildshard/engine/player/nalatiArms';
 import type { ArmPaletteRow } from './gloveHands';
-import { BAKED_BOW, handsPart } from '../../boot/handsGeometry';
+import { BAKED_BOW, handsPart } from '../boot/handsGeometry';
 
 /**
  * A stave bow in first person (SHARD-PLATFORM M3, the viewmodel system): one wooden stave that bends through its draw, its

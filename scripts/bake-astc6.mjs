@@ -12,8 +12,8 @@
 // KTX2Loader uploads them as RGBA_ASTC_6x6 without a transcode). The desktop keeps bake-ktx2's set.
 //
 // Output: public/assets/pine-hollow/astc6/<the 4×4 file's path under /assets/gpu>-<sha256[:8]>.{ktx2,glb,gltf} (Pine's own
-// folder, outside /assets/gpu, which bake-ktx2.mjs owns and prunes) and src/shards/pine-hollow/boot/astc6/ktx2.generated.ts:
-// served URL → 6×6 stand-in, the overlay src/shards/pine-hollow/boot/gpuTable.ts lays over the phone table when the trim
+// folder, outside /assets/gpu, which bake-ktx2.mjs owns and prunes) and src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts:
+// served URL → 6×6 stand-in, the overlay src/shards/pine-hollow/runtime/boot/gpuTable.ts lays over the phone table when the trim
 // is on. Content-addressed and cached (scripts/bake-astc6.cache.json): a rerun encodes only what changed.
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-astc6.mjs [--jobs=6] [--force]
@@ -29,7 +29,7 @@ const PUB = resolve(ROOT, 'public');
 const OUT = resolve(PUB, 'assets/pine-hollow/astc6');
 const LIST_FILE = resolve(ROOT, 'scripts/bake-astc6.list.json');
 const CACHE_FILE = resolve(ROOT, 'scripts/bake-astc6.cache.json');
-const TABLE_FILE = resolve(ROOT, 'src/shards/pine-hollow/boot/astc6/ktx2.generated.ts');
+const TABLE_FILE = resolve(ROOT, 'src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts');
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const JOBS = Number(flag('jobs', '6'));

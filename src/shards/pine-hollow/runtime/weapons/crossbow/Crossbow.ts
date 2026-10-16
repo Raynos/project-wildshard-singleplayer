@@ -1,5 +1,5 @@
 import { createClientScene } from '@wildshard/game/plugin/ui';
-import { CROSSBOW_GEOMETRY } from '../../../boot/crossbowGeometry';
+import { CROSSBOW_GEOMETRY } from '../../boot/crossbowGeometry';
 import rows from '../../../data/crossbowPool.generated.json' with {type:'json'};
 import { viewmodelTexSet, makeCord, makeBoltAtlas, viewmodelMaterial, viewmodelRowMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

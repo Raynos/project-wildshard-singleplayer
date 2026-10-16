@@ -1,5 +1,5 @@
 import type { BufferGeometry } from 'three';
-import rows from '../data/handsPool.generated.json' with {type:'json'};
+import rows from '../../data/handsPool.generated.json' with {type:'json'};
 import { CROSSBOW_GEOMETRY } from './crossbowGeometry';
 /** A baked hand: its part names, its sleeve's start in grip space and the wrist's bend there. */
 export interface BakedHand { readonly geometry: string; readonly sleeve: string | null; readonly wrist: readonly number[]; readonly dir: readonly number[] }

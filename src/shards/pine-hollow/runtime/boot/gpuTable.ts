@@ -1,5 +1,5 @@
-import { GPU_FILES } from '../ktx2.generated';
-import { pineMemoryTrim } from '../runtime/debug/options';
+import { GPU_FILES } from '../../ktx2.generated';
+import { pineMemoryTrim } from '../debug/options';
 import { ASTC6_PHONE } from './astc6/ktx2.generated';
 import { usePineGpuFiles } from './files';
 

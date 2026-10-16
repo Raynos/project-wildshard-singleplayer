@@ -1,6 +1,6 @@
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import SKIN_PICKUPS from '../data/skinPickups.json' with { type: 'json' };
-import { CROSSBOW_GEOMETRY } from '../boot/crossbowGeometry';
+import { CROSSBOW_GEOMETRY } from './boot/crossbowGeometry';
 import { preloadKingKit } from '../models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';

@@ -758,16 +758,16 @@
       "export": "createPineAudio"
     },
     "posesLoader": {
-      "module": "./boot/poses",
+      "module": "./runtime/boot/poses",
       "export": "poses"
     },
     "boot": {
       "files": {
-        "module": "./boot/files",
+        "module": "./runtime/boot/files",
         "export": "bootFiles"
       },
       "sources": {
-        "module": "./boot/files",
+        "module": "./runtime/boot/files",
         "export": "bootSources"
       },
       "audio": {
@@ -775,7 +775,7 @@
         "export": "BOOT_AUDIO"
       },
       "bakedUnread": {
-        "module": "./boot/files",
+        "module": "./runtime/boot/files",
         "export": "BAKED_UNREAD"
       }
     },
@@ -796,7 +796,7 @@
       "export": "inBeaverPool"
     },
     "ktx2": {
-      "module": "./boot/gpuTable",
+      "module": "./runtime/boot/gpuTable",
       "export": "pineKtx2"
     }
   },

@@ -16,7 +16,7 @@
       "src/shards/far-reach/data/liftModule.ts"
     ],
     "scripts/bake-astc6.mjs": [
-      "src/shards/pine-hollow/boot/astc6/ktx2.generated.ts"
+      "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts"
     ],
     "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs": [
       "src/shards/sunscar-dunes/data/striderRig.baked.ts"

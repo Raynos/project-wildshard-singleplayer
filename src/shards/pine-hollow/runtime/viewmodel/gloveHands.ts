@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
 import type { ARM_PAL } from '@wildshard/engine/player/nalatiArms';
 import type { ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
-import { BAKED_HANDS, handsPart } from '../../boot/handsGeometry';
+import { BAKED_HANDS, handsPart } from '../boot/handsGeometry';
 import { loadPainted, painted } from '../looks/paintedTextures';
 
 /**

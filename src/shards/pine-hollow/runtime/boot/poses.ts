@@ -1,5 +1,5 @@
-import data from '../manifest.json' with { type: 'json' };
-import { GROUND } from '../world/terrain';
+import data from '../../manifest.json' with { type: 'json' };
+import { GROUND } from '../../world/terrain';
 
 interface CapturePose { probe: typeof data.captureProbes[number]; eye: readonly [number, number, number]; yaw: number; pitch: number; mockup: string; frame: string }
 /** Keep the terrain-dependent diagnostic eyes at their existing height. */
