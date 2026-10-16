@@ -3,6 +3,7 @@ import { ISLAND_FAMILIES } from './audioPlayback';
 import { ISLAND_SURFACES } from './audioSurfaces';
 import { COVER_LOOKS } from './coverLook';
 import { BOAT_LAYOUT } from './boatLayout';
+import { CASTAWAY_SMOKE } from './castawayLook';
 import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
 import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
@@ -14,6 +15,9 @@ import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK } from './islandRows';
 import { KIT_LENDS } from './kitLook';
 import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE } from './meleeProfile';
+import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS } from './npcFocus';
+import { CASTAWAY_POSE } from './npcPose';
+import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE } from './npcScenes';
 import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
 import { REEF_LOOK } from './reefLook';
@@ -59,4 +63,11 @@ export const RUNTIME_MIRRORS = [
   defineMirror('BOAT_LAYOUT', BOAT_LAYOUT),
   defineMirror('COUNTER_TOP', COUNTER_TOP),
   defineMirror('ISLAND_LOOK', ISLAND_LOOK),
+  defineMirror('CASTAWAY_SCENE', CASTAWAY_SCENE),
+  defineMirror('CASTAWAY_PARTS', CASTAWAY_PARTS),
+  defineMirror('CASTAWAY_BINDINGS', CASTAWAY_BINDINGS),
+  defineMirror('CASTAWAY_POSE', CASTAWAY_POSE),
+  defineMirror('CASTAWAY_HEAD_FOCUS', CASTAWAY_HEAD_FOCUS),
+  defineMirror('CASTAWAY_FACING', CASTAWAY_FACING),
+  defineMirror('CASTAWAY_SMOKE', CASTAWAY_SMOKE),
 ];
