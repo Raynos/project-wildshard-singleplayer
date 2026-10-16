@@ -1,4 +1,4 @@
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { memoUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
@@ -65,10 +65,7 @@ export type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 
 const matsCache = new WeakMap<Sky, Promise<Mats>>();
 /** the cabins' PBR materials, loaded once per sky and shared (PH-B3: the landmarks build with the same set — no new programs) */
 export function cabinMats(sky: Sky): Promise<Mats> {
-  let p = matsCache.get(sky);
-  if (p === undefined) { p = loadMats(sky); matsCache.set(sky, p);
-    const cached = p; void cacheUntilDisposed(cached, () => { if (matsCache.get(sky) === cached) matsCache.delete(sky); }); }
-  return p;
+  return memoUntilDisposed(matsCache, sky, () => loadMats(sky));
 }
 
 async function loadMats(sky: Sky): Promise<Mats> {

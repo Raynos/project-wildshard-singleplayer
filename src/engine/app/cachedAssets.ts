@@ -61,6 +61,22 @@ export function cacheUntilDisposed<T>(value: T, invalidate: () => void): T {
   return value;
 }
 
+/** A keyed memo `memoUntilDisposed` keeps values in (a Map or a WeakMap). */
+export interface DisposalMemo<K, V> { readonly get: (key: K) => V | undefined; readonly set: (key: K, value: V) => unknown; readonly delete: (key: K) => unknown }
+
+/**
+ * `memo`'s value for `key`, made by `make()` on a miss and kept until any resource it owns retires (`cacheUntilDisposed`;
+ * a promise is tracked once it settles, and a rejected one is forgotten so the next call retries). A newer value under
+ * the same key is never evicted by an older one's retirement.
+ */
+export function memoUntilDisposed<K, V>(memo: DisposalMemo<K, V>, key: K, make: () => V): V {
+  const kept = memo.get(key);
+  if (kept !== undefined) return kept;
+  const made = make();
+  memo.set(key, made);
+  return cacheUntilDisposed(made, () => { if (memo.get(key) === made) memo.delete(key); });
+}
+
 /** Keyed borrowed resources: share acquisition, forget retired values, and retry failures without caching them. */
 export class ResourceMemo<K extends string, V extends object> {
   private readonly ready = new Map<K, V>();

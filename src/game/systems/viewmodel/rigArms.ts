@@ -1,7 +1,7 @@
 import type { ClipChannel } from '@wildshard/engine/anim/channel';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import { loadRigFile, bindRig, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
-import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { memoUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { app } from '@wildshard/engine/app/runtime';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
@@ -45,14 +45,8 @@ const isMesh = (o: Object3D): o is Mesh => 'isMesh' in o;
 /** one parse per URL per shard; every rig is a skeleton clone of it (the same geometry, so the same GPU buffers) */
 const parsed = new Map<string, Promise<{ scene: Object3D; animations: AnimationClip[] }>>();
 async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
-  let p = parsed.get(url);
-  if (p === undefined) {
-    p = loadRigFile(url).then((g) => ({ scene: retainCachedResources(g.scene), animations: g.animations }));
-    const pending = p; void cacheUntilDisposed(pending, () => { if (parsed.get(url) === pending) parsed.delete(url); });
-    parsed.set(url, p);
-    void p.catch(() => { parsed.delete(url); }); // a failed fetch can retry
-  }
-  const f = await p;
+  // a failed fetch is forgotten, so it can retry
+  const f = await memoUntilDisposed(parsed, url, () => loadRigFile(url).then((g) => ({ scene: retainCachedResources(g.scene), animations: g.animations })));
   return { scene: cloneSkeleton(f.scene), animations: f.animations };
 }
 

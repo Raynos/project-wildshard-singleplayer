@@ -6196,6 +6196,11 @@ The G441 W3 user is Nalati `species/hulls.ts#CreatureRigs`: replace its
 ready/loading maps and disposal invalidation while preserving coat adoption,
 preload policy, generated rig decoding and existing failure behaviour.
 
+**One-value disposal memo.** `cachedAssets#memoUntilDisposed(memo, key, make)` is the single-map form: it returns
+the Map / WeakMap's value for `key`, else makes, stores and tracks it with `cacheUntilDisposed`, so a retired
+value (or a rejected promise) is forgotten and the next call makes it afresh; an older value's retirement never
+evicts a newer one. The viewmodel's rig-file parse and Pine's cabin material set use it.
+
 ### Bow shape publication (G441)
 
 `src/engine/combat/view/bowProfile.ts#BowShape` rewrites bounded dynamic
