@@ -23,10 +23,9 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin } from '../runtime/models/shrine';
-import type { ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
-import { FIREFLY_LOOK } from '../data/fireflyLook';
-import { SHRINE_FIREFLIES_GEOMETRY } from '../runtime/boot/fixedGeometry';
+import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin, type ShrineAnchor, type ShrineParams } from '../models/shrine';
+import { FIREFLY_LOOK } from '../const';
+import { SHRINE_FIREFLIES_GEOMETRY } from '../boot/fixedGeometry';
 
 export interface ShrineSpec { x: number; z: number; rot: number }
 

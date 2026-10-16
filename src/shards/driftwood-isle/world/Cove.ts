@@ -32,7 +32,7 @@
 import * as THREE from 'three';
 import { copyCoveGeometry, coveColliderDescs } from '../runtime/boot/coveGeometry';
 import { coveFloorAt, coveHalfWidth, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from './coveLayout';
-import { waterfall } from './Waterfall';
+import { waterfall } from '../runtime/world/Waterfall';
 import { rockMaterial } from './rockKit';
 import { reefRock } from '../runtime/models/reefRock';
 import { modelContext } from '@wildshard/engine/models/model';

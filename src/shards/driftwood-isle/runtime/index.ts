@@ -1,9 +1,9 @@
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
-import { STRINGS } from '../strings';
+import { STRINGS } from './strings';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
-import { islandSystems } from '../world/systems';
+import { islandSystems } from './world/systems';
 import { installDriftwoodAudio } from './audio/install';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { driftwoodDirectorBytes } from './director';

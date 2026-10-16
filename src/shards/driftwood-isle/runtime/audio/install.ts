@@ -5,12 +5,10 @@ import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
-import { SHRINE } from '../../world/sites';
-import { LOWERED_SEA } from '../../world/sea';
 import { driftwoodWorld } from '../../world/build';
 import { Cove } from '../../world/Cove';
 import { IslandSfx } from './sfx';
-import { ISLAND_SURFACES } from '../const';
+import { ISLAND_SURFACES, SHRINE_SITES } from '../const';
 import { createIslandAmbience } from './ambience';
 
 /** Runs in level.play after the shell supplies its host. Constructors make no cosmetic draws. */
@@ -20,10 +18,13 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const { game, sky, player } = shell.world, { audio, music } = shell.play;
   const declared = ctx.product.shardfile.audio, audioRows = runtimeAudio(ctx, declared);
   CatalogueScore.install(audio, music, ctx.scope, requireAudioProfile(audioRows.music, 'score.driftwood'));
+  const SHRINE = SHRINE_SITES.world;
+  const declaredSea = ctx.product.shardfile.water.find(body => body.kind === 'sea');
+  if (declaredSea?.kind !== 'sea') throw new Error('Driftwood audio requires its admitted sea');
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
   const shrineHum = built.shrine === null ? null : audio.loopEmitter(requireAudioProfile(audioRows.emitters?.['shrine'],'shrine emitter'),requireAudioProfile(audioRows.loopGraphs,'audio loop graphs'),{position:{x:SHRINE.x,y:heightAt(SHRINE.x,SHRINE.z)+2.5,z:SHRINE.z},duck:gain=>{music.duck(gain);}});
   const islandSfx = new IslandSfx(audio, declared, ctx.scope);
-  const sea = LOWERED_SEA; // SF46 (G164): the lowered sea at road height
+  const sea = declaredSea.level; // SF46 (G164): the lowered sea at road height
   const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
   const ambience = createIslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
   const cues = createCueRouter(audioRows.routing.filter(route => route.bus === 'audio'), {

@@ -238,7 +238,7 @@ const reviewedW2Owners = new Map([
   ['src/game/shard/retainedHooks.ts#installEnteredRuntimeUpdate', 'C9'],
   ['src/game/shard/runtimeVariant.ts#gridPage', 'C9'],
   ['src/shards/driftwood-isle/sim/baked.ts', 'C9'],
-  ['src/shards/driftwood-isle/strings.ts', 'C9'],
+  ['src/shards/driftwood-isle/runtime/strings.ts', 'C9'],
   ['src/shards/driftwood-isle/tiers.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/debug/options.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/dev/perfLap.ts', 'C9'],

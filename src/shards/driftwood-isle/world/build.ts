@@ -25,7 +25,7 @@ import { placeShoreBoulders, scatterShoreBoulders } from './Boulders';
 import { hut as hutModel, hutOrigin, hutLayout } from '../runtime/models/hut';
 import { lookout as lookoutModel, lookoutOrigin, lookoutLayout } from '../runtime/models/lookout';
 import { Wreck } from './Wreck';
-import { Shrine } from './Shrine';
+import { Shrine } from '../runtime/world/Shrine';
 import { placeIslandBushes } from './Bushes';
 import { Gulls } from '../runtime/world/Gulls';
 import { buildTrailside } from './Trailside';

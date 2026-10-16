@@ -10,8 +10,8 @@
  *   scene.add(fall);
  */
 import * as THREE from 'three';
-import { CASCADE_LOOKS } from '../data/waterfallLook';
-import { WATERFALL_PUFFS_GEOMETRY, WATERFALL_RINGS_GEOMETRY, WATERFALL_SHEET_GEOMETRY } from '../runtime/boot/fixedGeometry';
+import { CASCADE_LOOKS } from '../const';
+import { WATERFALL_PUFFS_GEOMETRY, WATERFALL_RINGS_GEOMETRY, WATERFALL_SHEET_GEOMETRY } from '../boot/fixedGeometry';
 
 /** the compiled graphs the three draws wear */
 interface CascadeMaterials { readonly curtain: THREE.Material; readonly pool: THREE.Material; readonly puffs: THREE.Material }
