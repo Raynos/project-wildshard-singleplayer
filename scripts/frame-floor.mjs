@@ -119,7 +119,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && gridScenario === 'milestone') throw new Error('Milestone floor requires Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time] [--frame-timeline] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time] [--frame-timeline] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -768,12 +768,16 @@ async function main() {
   const scratch = join(resolvePath(flag('scratch-dir', '/private/tmp/sp-lanes/frame-floor')), `frame-floor-${runId}`);
   mkdirSync(scratch, { recursive: true });
   const results = [], temporary = [];
-  let base;
+  let base, ownedServer = true;
   try {
     // --serve-shard=<slug>: build only that shard's product (serve-build --shard), for a standalone row when another
     // shard's product does not build at this commit
     const serveShard = flag('serve-shard', '');
-    base = await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1', ...(devserverBuild ? ['--devserver'] : []), ...(serveShard === '' ? [] : ['--shard', serveShard])], { cwd: scratch });
+    // --serve-base=<url>: measure an already-served preview of --rev (scripts/serve-build.sh, kept running by its
+    // owner), so back-to-back A/B rows in a quiet window build nothing; its build id is still checked below (sp-o286)
+    const serveBase = flag('serve-base', '');
+    if (serveBase !== '') ownedServer = false;
+    base = serveBase !== '' ? (serveBase.endsWith('/') ? serveBase : `${serveBase}/`) : await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1', ...(devserverBuild ? ['--devserver'] : []), ...(serveShard === '' ? [] : ['--shard', serveShard])], { cwd: scratch });
     const version = await (await fetch(`${base}version.json`)).json();
     if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error(`Preview build id does not match ${sha}: ${JSON.stringify(version)}`);
     // Safari cannot inject a pre-navigation script with its inspector protocol. Add pins to a COPY of the clean
@@ -804,7 +808,7 @@ async function main() {
     console.log(`Baseline ${output}: ${elapsedSeconds.toFixed(1)} seconds, complete=${record.complete}, pass=${record.pass}`);
     process.exitCode = record.complete ? record.pass ? 0 : 2 : 3;
   } finally {
-    if (base) await run(join(ROOT, 'scripts/serve-build.sh'), ['stop', new URL(base).port], { cwd: scratch });
+    if (base && ownedServer) await run(join(ROOT, 'scripts/serve-build.sh'), ['stop', new URL(base).port], { cwd: scratch });
     for (const out of temporary) rmSync(out, { force: true });
     rmSync(scratch, { recursive: true, force: true });
   }
