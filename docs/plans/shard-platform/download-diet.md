@@ -160,3 +160,11 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   | `models/held/lever-details.glb` | plain | 62,596 → 62,596 | 6,100 → 6,100 |
   | `models/held/crossbow-pool.glb` | plain | 542,748 → 542,748 | 83,632 → 83,632 |
   | `models/king/kit.glb` | plain | 123,000 → 123,000 | 15,267 → 15,267 |
+
+- 2026-10-16 Driftwood per-file gzip re-evaluation: 21 of 112 GLBs use
+  meshopt; 91 retain plain source bytes. The 423 decoded views and
+  scene/accessor/material/skin/animation rows match. Re-emission and
+  full on-disk validation pass. Gzip-9 is 8,126,582 B, down 1,158,085 B
+  from the all-meshopt sweep and 1,404,146 B from plain sources. Raw
+  output is 23,109,744 B. Every choice and both candidate sizes are
+  logged in [the per-file receipt](../../../progress/shard-platform/driftwood-gzip-choices/README.md).
