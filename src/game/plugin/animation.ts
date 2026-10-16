@@ -6,6 +6,24 @@ import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRi
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
+/** Native angular response; input/output wrapping and a speed cap are independent policies. */
+export interface NpcFacingProfile {
+  readonly rate: number;
+  readonly maxSpeed?: number;
+  readonly wrapTarget?: boolean;
+  readonly wrapOutput?: boolean;
+}
+/** Advance one caller-owned yaw using its existing frame; acceptance and body placement stay native. */
+export function stepNpcFacing(current: number, target: number, profile: NpcFacingProfile, dt: number): number {
+  if (!Number.isFinite(current) || !Number.isFinite(target) || !Number.isFinite(dt) || dt < 0 || !Number.isFinite(profile.rate) || profile.rate < 0
+    || profile.maxSpeed !== undefined && (!Number.isFinite(profile.maxSpeed) || profile.maxSpeed < 0)) throw new RangeError('Invalid NPC facing frame');
+  const wanted = profile.wrapTarget === true ? Math.atan2(Math.sin(target), Math.cos(target)) : target;
+  const delta = wanted - current;
+  let step = Math.atan2(Math.sin(delta), Math.cos(delta)) * (1 - Math.exp(-profile.rate * dt));
+  if (profile.maxSpeed !== undefined) step = Math.max(-profile.maxSpeed * dt, Math.min(profile.maxSpeed * dt, step));
+  const next = current + step;
+  return profile.wrapOutput === true ? Math.atan2(Math.sin(next), Math.cos(next)) : next;
+}
 /** Caller-owned transient attention; it does not replace an NPC's reading or save owner. */
 export interface NpcHeadFocusState { headYaw: number; headPitch: number; glanceT: number; glanceYaw: number; glancePitch: number }
 /** Numeric focus, idle cadence and response laws for an already-owned head pivot. */

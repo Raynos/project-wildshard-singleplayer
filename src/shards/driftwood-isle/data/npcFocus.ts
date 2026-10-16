@@ -1,4 +1,6 @@
-/** Existing focus/glance laws; body turns, gesture clocks and breath remain with each NPC. */
+/** Existing attention laws; gesture acceptance and clocks remain with each NPC. */
+export const CASTAWAY_FACING = { range: 6, rate: 3, maxSpeed: 2.2, wrapTarget: true, wrapOutput: true } as const;
+export const TRADER_FACING = { range: 6, rate: 3, maxSpeed: 2.2, wrapTarget: true, wrapOutput: true } as const;
 export const CASTAWAY_HEAD_FOCUS = {
   range: 9, yawLimit: 1.1, pitchLimit: .4, pitchScale: 1, eyeHeight: 1.6, minimumDistance: .5,
   response: 'linear', rate: 5, clampAfterOffset: false,

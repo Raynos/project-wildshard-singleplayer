@@ -25,11 +25,11 @@
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
-import { playClips, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { CASTAWAY_SCENE, CASTAWAY_PARTS, CASTAWAY_BINDINGS, CASTAWAY_MESHES } from '../data/npcScenes';
 import { CASTAWAY_POSE } from '../data/npcPose';
-import { CASTAWAY_HEAD_FOCUS } from '../data/npcFocus';
+import { CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING } from '../data/npcFocus';
 import { WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -42,9 +42,6 @@ const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 const NECK = 1.52;
 const NEAR_R = 85;
-const FACE_R = 6;          // m (feet to feet): inside this, or while talking, he turns his body to face you
-const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
-const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s)
 
 /** The original fitted head, prepared offline and lent through the existing fixed-model library. */
 export async function loadWendellFace(): Promise<THREE.BufferGeometry> {
@@ -123,9 +120,7 @@ export class Castaway {
     if (near !== this.figure.visible) { this.figure.visible = this.camp.visible = this.flames.visible = near; }
     // the body turns to face you when you come to talk (or while you do), and eases back to his idle facing after
     const toYou = Math.atan2(dx, dz);
-    const wantTurn = d < FACE_R || this.talking ? wrap(toYou - this.bodyYaw) : 0;
-    const dTurn = wrap(wantTurn - this.turn) * (1 - Math.exp(-TURN_K * dt));
-    this.turn = wrap(this.turn + THREE.MathUtils.clamp(dTurn, -TURN_MAX * dt, TURN_MAX * dt));
+    this.turn = stepNpcFacing(this.turn, d < CASTAWAY_FACING.range || this.talking ? toYou - this.bodyYaw : 0, CASTAWAY_FACING, dt);
     this.figure.rotation.y = this.turn;
     // the head leads: it turns toward you whenever you are near, on top of the body's turn
     const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - this.bodyYaw - this.turn;
@@ -144,4 +139,3 @@ export class Castaway {
   }
 }
 
-function wrap(a: number): number { return Math.atan2(Math.sin(a), Math.cos(a)); }

@@ -15,7 +15,7 @@
  *   - her head glances about (the goods, the path, the sea) and dips to the counter;
  *   - every ~8–12 s with nobody close she reaches down and straightens the goods on the counter;
  *   - the first time you come up the path (inside GREET_R) she beckons you over, once per approach;
- *   - she turns to face you (E129) inside FACE_R: the figure eases round at no more than TURN_MAX rad/s, the head
+ *   - she turns to face you (E129) inside TRADER_FACING.range: the figure eases round at no more than TURN_MAX rad/s, the head
  *     leading it, and eases back to her counter when you walk off; while you stand there she opens a hand toward her
  *     goods now and then ("take a look").
  * Her shop (E314 stage 2) is src/shards/driftwood-isle/quest/TraderStall.ts's prompt + src/shards/driftwood-isle/loot/ShopPanel.ts; `offer()` plays the "take a
@@ -24,22 +24,19 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
-import { playClips, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS, TRADER_MESHES } from '../data/npcScenes';
 import { TRADER_POSE } from '../data/npcPose';
-import { TRADER_HEAD_FOCUS } from '../data/npcFocus';
+import { TRADER_HEAD_FOCUS, TRADER_FACING } from '../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
 
 const NECK = 1.48;
 export const TRADER_NEAR_R = 85;   // past this she (and her counter) are not drawn: a few pixels at that range
-const FACE_R = 6;          // m (feet to feet): inside this she turns to face you
 const GREET_R = 11;        // m: coming inside this she beckons you over (once, until you go past REARM_R)
 const REARM_R = 18;
-const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
-const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s): Wendell's rates (E129)
 
 type Gesture = 'none' | 'beckon' | 'tidy' | 'offer';
 const GESTURE_S: Record<Gesture, number> = { none: 0, beckon: 2.4, tidy: 2.6, offer: 1.8 };
@@ -100,16 +97,14 @@ export class Trader {
     if (d > REARM_R) this.greeted = false;
     if (this.gesture !== 'none') { this.gT += dt; if (this.gT > GESTURE_S[this.gesture]) this.gesture = 'none'; }
     if (this.gesture === 'none') {
-      if (!this.greeted && d < GREET_R && d > FACE_R * 0.6) { this.greeted = true; this.start('beckon'); }
+      if (!this.greeted && d < GREET_R && d > TRADER_FACING.range * 0.6) { this.greeted = true; this.start('beckon'); }
       else if (d >= GREET_R) { this.idleT -= dt; if (this.idleT <= 0) { this.idleT = 8 + (Math.sin(t * 0.83) + 1) * 2; this.start('tidy'); } }
-      else if (d < FACE_R) { this.offerT -= dt; if (this.offerT <= 0) { this.offerT = 5 + (Math.sin(t * 1.31) + 1) * 1.5; this.start('offer'); } }
+      else if (d < TRADER_FACING.range) { this.offerT -= dt; if (this.offerT <= 0) { this.offerT = 5 + (Math.sin(t * 1.31) + 1) * 1.5; this.start('offer'); } }
     }
 
     // ── the figure turns to face you when you come close, and eases back to her counter after (E129) ──
     const toYou = Math.atan2(dx, dz);
-    const wantTurn = d < FACE_R && this.gesture !== 'tidy' ? wrap(toYou - bodyYaw) : 0;
-    const dTurn = wrap(wantTurn - this.turn) * (1 - Math.exp(-TURN_K * dt));
-    this.turn = wrap(this.turn + THREE.MathUtils.clamp(dTurn, -TURN_MAX * dt, TURN_MAX * dt));
+    this.turn = stepNpcFacing(this.turn, d < TRADER_FACING.range && this.gesture !== 'tidy' ? toYou - bodyYaw : 0, TRADER_FACING, dt);
     // ── the head leads: at you when you're near, else a glance about; down at the goods while she tidies them ──
     const g = this.gesture, gu = g === 'none' ? 0 : ease(this.gT / GESTURE_S[g]);
     const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - bodyYaw - this.turn;
@@ -132,5 +127,4 @@ function ease(u: number): number {
   return s * s * (3 - 2 * s);
 }
 
-function wrap(a: number): number { return Math.atan2(Math.sin(a), Math.cos(a)); }
 

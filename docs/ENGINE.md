@@ -6430,3 +6430,19 @@ the same existing channels/draws. `dispose` removes owned parts while keeping
 borrowed rig parents and backing. Pine retains its baked-key lookup,
 HandSpec/palette and grip-quaternion law. G441 pending W3 user: Nalati
 `runtime/weapons/javelinSpear.ts` fist/sleeve setup and wrist/elbow loop.
+
+### Native NPC facing
+
+`src/game/plugin/animation.ts#stepNpcFacing(current, target, profile, dt)`
+advances the caller's yaw by the wrapped shortest-angle difference and its
+exponential response. `NpcFacingProfile.rate` sets that response;
+`maxSpeed` optionally caps the angular step. `wrapTarget` and `wrapOutput`
+independently retain the native input and final-yaw policies. The helper
+allocates nothing and owns no acceptance predicate, clock, figure or save.
+
+Driftwood's Trader and Castaway lend their original range/talking/tidy
+predicates and their placed facing. The G441 W3 user is Nalati
+`src/shards/nalati-grasslands/models/npc/figureMotion.ts#stepNpcFigure`:
+its talking/near/idle target and 5 / 2.5 response use the uncapped policy
+without wrapping the accumulated output yaw. Orbit, head and arm pose
+remain native owners.
