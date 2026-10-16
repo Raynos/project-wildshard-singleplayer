@@ -423,6 +423,7 @@
     "./world/bakedTerrainField": "./world/bakedTerrainField.ts",
     "./boot/contentCacheWorker": "./boot/contentCacheWorker.ts",
     "./ai/huntPattern": "./ai/huntPattern.ts",
-    "./ai/ambientFlight": "./ai/ambientFlight.ts"
+    "./ai/ambientFlight": "./ai/ambientFlight.ts",
+    "./player/heldHandParts": "./player/heldHandParts.ts"
   }
 }

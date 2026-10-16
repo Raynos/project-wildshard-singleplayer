@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
 import type { ARM_PAL } from '@wildshard/engine/player/nalatiArms';
 import type { ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
 import { BAKED_HANDS, handsPart } from '../../boot/handsGeometry';
@@ -74,7 +75,6 @@ export interface HandSpec {
   coat?: boolean;
 }
 
-const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 /** A hand's geometry: `geometry` = the gloved fist in grip space, with its forearm merged in along the bent wrist — or,
  *  with a separate sleeve (`free`: aimed every frame; `spec.coat`: the coat, on its own material), the fist (+ the coat's
@@ -105,7 +105,6 @@ export const gripPose = (at: readonly [number, number, number], axis: readonly [
   ({ at: new THREE.Vector3(...at), axis: new THREE.Vector3(...axis).normalize(), palm: new THREE.Vector3(...palm).normalize() });
 
 const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3(), _m = new THREE.Matrix4();
-const _w = new THREE.Vector3(), _e = new THREE.Vector3(), _inv = new THREE.Matrix4();
 /** Grip space → model space: +Y along `axis`, the back of the hand (+X on a right hand, −X on a left) against `palm`, +Z
  *  (the forearm's side) completing the frame. */
 export function gripQuat(p: GripPose, mirror: boolean, out: THREE.Quaternion): THREE.Quaternion {
@@ -131,82 +130,24 @@ export const holdDef = (h: HandHold): HandDef => ({ spec: h.spec, pose: gripPose
  * the viewmodel's queue (transparent, render order 1000, after the depth clear), no shadow cast.
  */
 export class WeaponHands {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group;
   readonly left: THREE.Mesh; readonly right: THREE.Mesh;
   readonly rightSpec: HandSpec;
-  /** the free sleeves (HandSpec.elbow): mesh, its start in the fist's grip space, the elbow in camera space */
-  private readonly sleeves: { fist: THREE.Mesh; mesh: THREE.Mesh; wrist: THREE.Vector3; elbow: THREE.Vector3 }[] = [];
+  private readonly parts: HeldHandParts;
   private readonly q = new THREE.Quaternion();
-  /** every sleeve mesh (free or riding its fist) */
-  private readonly extra: THREE.Mesh[] = [];
-
-  /** `look`: the shard's colours; `coatMaterial`: the coat sleeves' (HandSpec.coat), else they fall back to `material` */
+  /** Geometry and palette admission stay local; assembly borrows the admitted backing. */
   constructor(look: GloveHandsLook, parent: THREE.Object3D, material: THREE.Material, left: HandDef, right: HandDef, coatMaterial: THREE.Material = material) {
-    this.group.name = 'weapon-hands';
-    this.group.userData['viewmodelOnly'] = true;
-    for (const m of [material, coatMaterial]) { m.transparent = true; m.depthWrite = true; }
     const lg = handGeometry(look, { ...left.spec, mirror: true }, left.spec.elbow !== undefined), rg = handGeometry(look, { ...right.spec, mirror: false }, right.spec.elbow !== undefined);
-    this.left = new THREE.Mesh(lg.geometry, material);
-    this.right = new THREE.Mesh(rg.geometry, material);
-    this.rightSpec = right.spec;
-    const meshes = [this.left, this.right];
-    this.left.name = 'hand-left'; this.right.name = 'hand-right';
-    for (const [fist, g, spec] of [[this.left, lg, left.spec], [this.right, rg, right.spec]] as const) {
-      if (g.sleeve === null) continue;
-      const mesh = new THREE.Mesh(g.sleeve, spec.coat === true ? coatMaterial : material);
-      mesh.name = `${fist.name}-sleeve`;
-      mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
-      mesh.userData['viewmodelOnly'] = true;
-      if (spec.elbow !== undefined) { this.sleeves.push({ fist, mesh, wrist: g.wrist, elbow: new THREE.Vector3(...spec.elbow) }); this.group.add(mesh); }
-      else { mesh.position.copy(g.wrist); mesh.quaternion.setFromUnitVectors(Y_AXIS, g.dir); fist.add(mesh); } // rigid: rides its fist
-      this.extra.push(mesh);
-    }
-    for (const m of meshes) {
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true; m.renderOrder = 1000;
-      m.userData['viewmodelOnly'] = true;
-      this.group.add(m);
-    }
-    this.placeLeft(left.pose);
-    this.placeRight(right.pose);
-    parent.add(this.group);
+    this.parts = new HeldHandParts(parent, [
+      { ...lg, name: 'hand-left', material, sleeveMaterial: left.spec.coat === true ? coatMaterial : material, elbow: left.spec.elbow },
+      { ...rg, name: 'hand-right', material, sleeveMaterial: right.spec.coat === true ? coatMaterial : material, elbow: right.spec.elbow },
+    ], { name: 'weapon-hands', viewmodelOnly: true, transparentMaterials: [material, coatMaterial] });
+    this.group = this.parts.group; this.left = this.parts.fist(0); this.right = this.parts.fist(1); this.rightSpec = right.spec;
+    this.placeLeft(left.pose); this.placeRight(right.pose);
   }
-
-  /** seat the left fist at `p` */
   placeLeft(p: GripPose): void { this.left.position.copy(p.at); gripQuat(p, true, this.q); this.left.quaternion.copy(this.q); }
-  /** seat the right fist at `p` */
   placeRight(p: GripPose): void { this.right.position.copy(p.at); gripQuat(p, false, this.q); this.right.quaternion.copy(this.q); }
-
-  /** aim the free sleeves: each from its fist's wrist at its elbow (camera space). `model` = the weapon's model, a child of
-   *  the camera, its pose for this frame set (its local matrix is refreshed here). */
-  aim(model: THREE.Object3D): void {
-    if (this.sleeves.length === 0 || !this.group.visible) return;
-    model.updateMatrix();
-    _inv.copy(model.matrix).invert();
-    for (const s of this.sleeves) {
-      const w = _w.copy(s.wrist).applyQuaternion(s.fist.quaternion).add(s.fist.position);
-      const d = _e.copy(s.elbow).applyMatrix4(_inv).sub(w).normalize();
-      s.mesh.position.copy(w);
-      s.mesh.quaternion.setFromUnitVectors(Y_AXIS, d);
-      s.mesh.visible = s.fist.visible;
-    }
-  }
-
-  /** the triangles and vertices the two hands add (a draw each) */
-  get cost(): { draws: number; tris: number; verts: number; bytes: number } {
-    let tris = 0, verts = 0, bytes = 0;
-    const meshes = [this.left, this.right, ...this.extra];
-    for (const m of meshes) {
-      const g = m.geometry, idx = g.getIndex();
-      tris += (idx ? idx.count : g.getAttribute('position').count) / 3;
-      verts += g.getAttribute('position').count;
-      for (const a of Object.values(g.attributes)) if (a instanceof THREE.BufferAttribute) bytes += a.array.byteLength;
-      if (idx) bytes += idx.array.byteLength;
-    }
-    return { draws: meshes.length, tris, verts, bytes };
-  }
-
-  /** take the hands off the weapon (their geometry is the pool's, borrowed: it stays) */
-  dispose(): void {
-    this.group.removeFromParent();
-  }
+  aim(model: THREE.Object3D): void { this.parts.aim(model); }
+  get cost(): { draws: number; tris: number; verts: number; bytes: number } { return this.parts.cost; }
+  dispose(): void { this.parts.dispose(); }
 }

@@ -6412,3 +6412,21 @@ strict versioned envelope. Its top-level parser can also project those core
 fields directly from that envelope; nested rows remain strict. Pine retains
 its version-four envelope. W3 Nalati `runtime/headlessElites.ts` adopts the
 same codec, keeping its three-ID whitelist, tuple length and body/phase checks.
+
+### Borrowed held hand parts
+
+`src/engine/player/heldHandParts.ts#HeldHandParts` assembles 1..8
+`HeldHandPartRow` fist/sleeve pairs from borrowed geometry and materials.
+It creates only meshes and an owned group; it never builds, copies or disposes
+geometry/material backing. Queue flags stay at 1000 with receive-shadow;
+`viewmodelOnly` tags and `transparentMaterials` are explicit opt-ins.
+`fist(index)` lends the stable mesh for the caller's original grip solve.
+A sleeve without an elbow rides its fist at the supplied wrist/direction.
+For free sleeves, `aim(model, scale?)` transforms camera-space elbows into the
+model and points each sleeve from its wrist. An optional borrowed `frame`
+uses an independently posed rig matrix; mutate live elbow vectors before
+publication and supply scale only when the original rig did. `cost` counts
+the same existing channels/draws. `dispose` removes owned parts while keeping
+borrowed rig parents and backing. Pine retains its baked-key lookup,
+HandSpec/palette and grip-quaternion law. G441 pending W3 user: Nalati
+`runtime/weapons/javelinSpear.ts` fist/sleeve setup and wrist/elbow loop.
