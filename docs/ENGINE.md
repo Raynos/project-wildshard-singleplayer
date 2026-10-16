@@ -815,7 +815,8 @@ export const bootFiles = (): readonly string[] => Object.values(bootSources('pho
 ```
 
 Boot helpers on `@wildshard/engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (yield inside a long build),
-`preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
+`preloadBakedTextures`, `loadBakedSky`, `skyHorizonColor` (an equirect sky's mean horizon row, the fog colour; the HDR
+sky and Pine Hollow's keyed sky keys), `loadLUT`, `fetchLut`, `LUT_SIZE`,
 `PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. For node-side tools and a
 manifest's creature and loot tables, the node-safe modules are `boot/filePolicy` (`filePolicy`), `boot/bytes`
 (`ChunkFiles`), `core/tier` (`Tier`), `boot/gpuFiles` (`TexMode`), `core/config` (`CHUNK_SIZE`, `CELL_HEIGHT` /

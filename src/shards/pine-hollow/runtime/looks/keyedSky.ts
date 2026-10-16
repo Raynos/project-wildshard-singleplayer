@@ -1,4 +1,4 @@
-import { loadBakedSky } from '@wildshard/engine/boot/bakedApi';
+import { loadBakedSky, skyHorizonColor } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -214,7 +214,7 @@ export class KeyedSky {
           const tex = await loadBakedSky(urls);
           tex.name = `${skyKeyFiles(this.style, this.keyRow(k)).color.replace(/^\/assets\//u, '')} + gain.png`;
           tex.wrapS = THREE.RepeatWrapping; // the equirect seam blends across u = 0 / 1
-          const horizon = horizonOf(tex);
+          const horizon = skyHorizonColor(tex);
           if (this.opts.packKeys) packSkyKeyRgb9e5(tex); // half the key's GPU bytes
           this.renderer.initTexture(tex); // upload now, not on the frame that first draws it
           tex.image.data = null;          // the GPU has it: drop the CPU copy (rebuild() decodes again after a context loss)
@@ -324,20 +324,6 @@ export class KeyedSky {
     air.discScale = (day ? 1 : 0.6 * Math.max(1e-3, fade)) * Math.max(1e-3, 1 - ov);
     driveDayAir(T, post, this.scene, C, air);
   }
-}
-
-/** the mean of the row just above the horizon (on the decoded half-float key) */
-function horizonOf(tex: THREE.DataTexture): THREE.Color {
-  const { width, height, data } = tex.image;
-  const out = new THREE.Color(0, 0, 0);
-  if (!(data instanceof Uint16Array)) return out;
-  const y = Math.floor(height * 0.47);
-  let n = 0;
-  for (let x = 0; x < width; x += 4) {
-    const i = (y * width + x) * 4;
-    out.r += THREE.DataUtils.fromHalfFloat(data[i] ?? 0); out.g += THREE.DataUtils.fromHalfFloat(data[i + 1] ?? 0); out.b += THREE.DataUtils.fromHalfFloat(data[i + 2] ?? 0); n++;
-  }
-  return out.multiplyScalar(1 / Math.max(1, n));
 }
 
 /** lay the weather over the blended preset (in place: the fog's multipliers, then the style's overcast rows); returns the

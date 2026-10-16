@@ -11,7 +11,7 @@ import { loadHDR } from '../core/assets';
 import { bakedBytes, bakedTexture, loadCommonBytes, preloadBakedTextures } from '../boot/bakedTextures';
 import { CLOUD_FIELD_N, cloudFieldPixels } from './cloudField';
 import { cloudTexture, ctx2d, giantTexture, planetTexture } from './skyTextures';
-import { CLOUD_FIELD_URL } from '../boot/bakedApi';
+import { CLOUD_FIELD_URL, skyHorizonColor } from '../boot/bakedApi';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { loadLUT } from './lut';
@@ -128,7 +128,7 @@ export class SkyBackdropView {
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
-    return baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
+    return baked ? new THREE.Color(...baked.horizon) : skyHorizonColor(hdr, true);
   }
 
   rebuildEnvironment(): void {
@@ -191,21 +191,6 @@ export class SkyBackdropView {
     const theta = (u - 0.5) * 2 * Math.PI, phi = (v - 0.5) * Math.PI;
     this.sunDir.set(Math.cos(theta) * Math.cos(phi), Math.sin(phi), Math.sin(theta) * Math.cos(phi)).normalize();
     if (this.sunDir.y < 0.12) { this.sunDir.y = 0.12; this.sunDir.normalize(); }
-  }
-
-  private sampleHorizon(hdr: THREE.DataTexture) {
-    const { width, height, data } = hdr.image as { width: number; height: number; data: Float32Array | Uint16Array };
-    const isHalf = data instanceof Uint16Array;
-    const px = (i: number) => (isHalf ? THREE.DataUtils.fromHalfFloat(data[i] as number) : (data[i] as number));
-    const c = new THREE.Color(0, 0, 0);
-    const y = Math.floor(height * 0.47); // just above the horizon line
-    let n = 0;
-    for (let x = 0; x < width; x += 4) { const i = (y * width + x) * 4; c.r += px(i); c.g += px(i + 1); c.b += px(i + 2); n++; }
-    c.multiplyScalar(1 / n);
-    // clamp very bright values so fog never blows out
-    const m = Math.max(c.r, c.g, c.b, 1e-3);
-    if (m > 1.1) c.multiplyScalar(1.1 / m);
-    return c;
   }
 
   buildSunDisc(): void {
