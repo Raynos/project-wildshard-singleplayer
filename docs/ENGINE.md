@@ -8031,3 +8031,14 @@ Page kit registration and native installation consume the verified product;
 their body, clock, contact and save owners retain their original order. A
 species without a brain still requires its existing local policy adapter.
 The programme does not install an extra host or construct replacement bodies.
+
+### Declared creature phrases (H10)
+
+`Synth.playPhrase` consumes bounded audio phrase data for both Driftwood's
+gull and Nalati's creature calls. Nalati compiles its call recipes into its
+audio section at build time; runtime keeps sample-first selection, call
+gaps, positional buses and the sheep's native amplitude-modulation graph.
+The producer hoists random arguments in authored order before each native
+sound operation, preserving the noise source's interleaved random draw.
+Supplied call times use the explicit `at` parameter rather than the host's
+current-time `t` value.

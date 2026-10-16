@@ -74,119 +74,19 @@ export class SteppeVoices {
 
   private call(kind: SteppeCall, t: number, bus: GainNode): void {
     const a = this.a;
-    switch (kind) {
-      case 'eagle_cry': { // Qyran: a golden eagle's thin high "kee-yeer" — a whistle that climbs, frays and falls, twice
-        const n = 1 + Math.floor(rnd(0, 1.7));
-        for (let i = 0; i < n; i++) {
-          const ti = t + i * rnd(0.42, 0.55), top = rnd(2300, 2700);
-          a.tone({ t: ti, type: 'sine', f0: top * 0.8, f1: top, glide: 0.06, gain: 0.5, attack: 0.02, hold: 0.08, decay: 0.05, vibrato: { rate: 34, depth: 60 }, out: bus });
-          a.tone({ t: ti + 0.14, type: 'sawtooth', f0: top, f1: top * 0.62, glide: 0.3, gain: 0.22, attack: 0.01, decay: 0.32, vibrato: { rate: 40, depth: 90 }, lowpass: 5200, out: bus });
-          a.burst({ t: ti, type: 'bandpass', freq: top * 1.4, q: 2.2, gain: 0.08, attack: 0.02, hold: 0.1, decay: 0.3, out: bus });
-        }
-        break;
-      }
-      case 'leopard_growl': { // Aqbars: a snow leopard's rasping hiss-growl — a dry sawing rumble, higher and thinner than a bear's, a spit of breath on top
-        const dur = rnd(0.55, 0.8);
-        a.tone({ t, type: 'sawtooth', f0: rnd(88, 104), f1: 70, glide: dur, gain: 0.6, attack: 0.04, hold: dur * 0.5, decay: dur * 0.45, vibrato: { rate: 24, depth: 12 }, lowpass: 700, out: bus });
-        a.burst({ t, type: 'bandpass', freq: 3200, freqEnd: 1800, q: 0.7, gain: 0.3, attack: 0.02, hold: dur * 0.3, decay: dur * 0.5, out: bus });
-        a.burst({ t, type: 'lowpass', freq: 600, gain: 0.35, attack: 0.03, hold: dur * 0.4, decay: dur * 0.5, rate: 0.8, out: bus });
-        break;
-      }
-      case 'wolf_howl': { // a long rising-holding-falling howl; one or two of the pack join in, a little later, higher or lower
-        const voices = 1 + Math.floor(rnd(0, 2.6));
-        for (let v = 0; v < voices; v++) {
-          const tv = t + (v === 0 ? 0 : rnd(0.5, 1.6)), k = v === 0 ? 1 : rnd(0.82, 1.22);
-          const rise = rnd(0.45, 0.7), hold = rnd(0.9, 1.5), fall = rnd(0.7, 1.1), top = rnd(560, 700) * k;
-          const g = v === 0 ? 0.55 : 0.3;
-          a.tone({ t: tv, type: 'sine', f0: top * 0.55, f1: top, glide: rise, gain: g, attack: 0.25, hold: rise + hold - 0.25, decay: 0.08, vibrato: { rate: 5, depth: 9 }, out: bus });
-          a.tone({ t: tv + rise + hold, type: 'sine', f0: top, f1: top * 0.62, glide: fall, gain: g, attack: 0.02, decay: fall, vibrato: { rate: 5, depth: 7 }, out: bus });
-          a.tone({ t: tv, type: 'triangle', f0: top * 1.1, f1: top * 2, glide: rise, gain: g * 0.12, attack: 0.3, hold: rise + hold - 0.3, decay: fall * 0.6, lowpass: 3000, out: bus });
-          a.burst({ t: tv, type: 'bandpass', freq: top * 1.4, q: 3, gain: g * 0.12, attack: 0.3, hold: rise + hold, decay: fall, out: bus });
-        }
-        break;
-      }
-      case 'wolf_snarl': { // a rattling growl through bared teeth
-        const dur = rnd(0.5, 0.8);
-        a.tone({ t, type: 'sawtooth', f0: rnd(105, 125), f1: 90, glide: dur, gain: 0.6, attack: 0.04, hold: dur * 0.6, decay: dur * 0.4, vibrato: { rate: 34, depth: 22 }, lowpass: 900, out: bus });
-        a.burst({ t, type: 'bandpass', freq: 700, q: 1.1, gain: 0.35, attack: 0.03, hold: dur * 0.6, decay: dur * 0.4, out: bus });
-        a.burst({ t: t + dur * 0.3, type: 'highpass', freq: 2600, gain: 0.08, attack: 0.05, hold: dur * 0.3, decay: 0.2, out: bus });
-        break;
-      }
-      case 'wolf_bite': { // jaws snapping shut: a hard click, a thump, a clipped growl
-        a.burst({ t, type: 'highpass', freq: 2200, gain: 0.7, decay: 0.035, out: bus });
-        a.burst({ t: t + 0.012, type: 'bandpass', freq: 1200, q: 1.5, gain: 0.4, decay: 0.05, out: bus });
-        a.tone({ t, type: 'sine', f0: 140, f1: 70, glide: 0.06, gain: 0.5, decay: 0.09, out: bus });
-        a.tone({ t: t + 0.05, type: 'sawtooth', f0: 120, f1: 95, glide: 0.2, gain: 0.35, attack: 0.02, decay: 0.22, vibrato: { rate: 30, depth: 18 }, lowpass: 800, out: bus });
-        break;
-      }
-      case 'wolf_yip': { // the scout's short excited yips
-        const n = 2 + Math.floor(rnd(0, 2));
-        for (let i = 0; i < n; i++) {
-          const ti = t + i * rnd(0.14, 0.2), f = rnd(900, 1150);
-          a.tone({ t: ti, type: 'sawtooth', f0: f * 0.8, f1: f * 1.3, glide: 0.05, gain: 0.35, attack: 0.008, hold: 0.03, decay: 0.07, lowpass: 3200, out: bus });
-          a.tone({ t: ti, type: 'sine', f0: f, f1: f * 1.2, glide: 0.06, gain: 0.3, attack: 0.008, decay: 0.09, out: bus });
-        }
-        break;
-      }
-      case 'wolf_yelp': case 'dog_yelp': { // hurt: a sharp high cry sliding down, then a whimper
-        const f = kind === 'dog_yelp' ? 1400 : 1150;
-        a.tone({ t, type: 'sawtooth', f0: f, f1: f * 0.5, glide: 0.32, gain: 0.55, attack: 0.01, hold: 0.04, decay: 0.3, vibrato: { rate: 26, depth: 40 }, lowpass: 3600, out: bus });
-        a.tone({ t: t + 0.36, type: 'sine', f0: f * 0.7, f1: f * 0.55, glide: 0.25, gain: 0.22, attack: 0.02, decay: 0.25, vibrato: { rate: 12, depth: 20 }, out: bus });
-        break;
-      }
-      case 'horse_neigh': { // the whinny: a high quavering cry falling in steps, then a nicker through the nose
-        const dur = rnd(1.0, 1.35), top = rnd(950, 1150);
-        a.tone({ t, type: 'sawtooth', f0: top * 0.8, f1: top, glide: 0.12, gain: 0.5, attack: 0.04, hold: 0.12, decay: 0.05, vibrato: { rate: 17, depth: 110 }, lowpass: 3800, out: bus });
-        a.tone({ t: t + 0.2, type: 'sawtooth', f0: top, f1: top * 0.45, glide: dur, gain: 0.45, attack: 0.02, hold: dur * 0.5, decay: dur * 0.5, vibrato: { rate: 15, depth: 90 }, lowpass: 3000, out: bus });
-        a.burst({ t, type: 'bandpass', freq: 2200, q: 0.8, gain: 0.14, attack: 0.05, hold: dur * 0.6, decay: dur * 0.4, out: bus });
-        const tn = t + 0.2 + dur;
-        for (let i = 0; i < 4; i++) a.tone({ t: tn + i * 0.07, type: 'sawtooth', f0: 170, f1: 140, glide: 0.06, gain: 0.25, attack: 0.01, decay: 0.06, lowpass: 900, out: bus });
-        a.burst({ t: tn, type: 'lowpass', freq: 700, gain: 0.25, attack: 0.02, hold: 0.2, decay: 0.15, out: bus });
-        break;
-      }
-      case 'horse_snort': { // a blast of air through flapping nostrils
-        for (let i = 0; i < 5; i++) a.burst({ t: t + i * 0.028, type: 'bandpass', freq: rnd(450, 700), q: 0.9, gain: 0.5 * (1 - i * 0.12), attack: 0.004, decay: 0.05, out: bus });
-        a.burst({ t, type: 'lowpass', freq: 1400, gain: 0.35, attack: 0.02, hold: 0.12, decay: 0.2, out: bus });
-        break;
-      }
-      case 'horse_squeal': { // a stallion's shrill squeal (the kick, the fight)
-        a.tone({ t, type: 'sawtooth', f0: 1300, f1: 1700, glide: 0.1, gain: 0.55, attack: 0.02, hold: 0.25, decay: 0.3, vibrato: { rate: 24, depth: 90 }, lowpass: 4200, out: bus });
-        a.tone({ t, type: 'square', f0: 650, f1: 820, glide: 0.1, gain: 0.15, attack: 0.02, hold: 0.25, decay: 0.3, lowpass: 2000, out: bus });
-        a.burst({ t, type: 'bandpass', freq: 2600, q: 1, gain: 0.2, attack: 0.02, hold: 0.25, decay: 0.3, out: bus });
-        break;
-      }
-      case 'dog_bark': { // one to three chesty barks
-        const n = 1 + Math.floor(rnd(0, 2.8));
-        for (let i = 0; i < n; i++) {
-          const ti = t + i * rnd(0.22, 0.32), f = rnd(420, 520);
-          a.tone({ t: ti, type: 'sawtooth', f0: f, f1: f * 0.6, glide: 0.1, gain: 0.55, attack: 0.008, hold: 0.03, decay: 0.1, lowpass: 2000, out: bus });
-          a.burst({ t: ti, type: 'bandpass', freq: 900, q: 0.8, gain: 0.4, attack: 0.005, hold: 0.02, decay: 0.09, out: bus });
-        }
-        break;
-      }
-      case 'sheep_bleat': { // "baa": a nasal tremolo, the voice wobbling
-        const dur = rnd(0.5, 0.85), f = rnd(300, 460);
-        const bleat = a.ctx.createGain(); bleat.gain.value = 1;
-        const lfo = ownAudioSource(a.ctx.createOscillator()); lfo.frequency.value = rnd(6.5, 8.5);
-        const lg = a.ctx.createGain(); lg.gain.value = 0.6;
-        lfo.connect(lg).connect(bleat.gain); lfo.start(t); lfo.stop(t + dur + 0.2);
-        const form = a.ctx.createBiquadFilter(); form.type = 'bandpass'; form.frequency.value = rnd(1000, 1300); form.Q.value = 1.2;
-        bleat.connect(form).connect(bus);
-        a.tone({ t, type: 'sawtooth', f0: f * 1.08, f1: f * 0.92, glide: dur, gain: 0.8, attack: 0.05, hold: dur * 0.6, decay: dur * 0.4, out: bleat });
-        a.tone({ t, type: 'sawtooth', f0: f * 1.08, f1: f * 0.92, glide: dur, gain: 0.2, attack: 0.05, hold: dur * 0.6, decay: dur * 0.4, lowpass: 900, out: bus });
-        break;
-      }
-      case 'marmot_whistle': { // the sentry's piercing alarm whistle, once or twice
-        const n = 1 + Math.floor(rnd(0, 1.7));
-        for (let i = 0; i < n; i++) {
-          const ti = t + i * rnd(0.3, 0.45), f = rnd(2700, 3100);
-          a.tone({ t: ti, type: 'sine', f0: f * 1.04, f1: f * 0.94, glide: 0.18, gain: 0.45, attack: 0.01, hold: 0.1, decay: 0.12, out: bus });
-          a.tone({ t: ti, type: 'sine', f0: f * 2.08, f1: f * 1.88, glide: 0.18, gain: 0.06, attack: 0.01, hold: 0.1, decay: 0.1, out: bus });
-        }
-        break;
-      }
-      default: break; // every SteppeCall has a case above
+    if (kind === 'sheep_bleat') {
+      const dur = rnd(0.5, 0.85), f = rnd(300, 460);
+      const bleat = a.ctx.createGain(); bleat.gain.value = 1;
+      const lfo = ownAudioSource(a.ctx.createOscillator()); lfo.frequency.value = rnd(6.5, 8.5);
+      const lg = a.ctx.createGain(); lg.gain.value = 0.6;
+      lfo.connect(lg).connect(bleat.gain); lfo.start(t); lfo.stop(t + dur + 0.2);
+      const form = a.ctx.createBiquadFilter(); form.type = 'bandpass'; form.frequency.value = rnd(1000, 1300); form.Q.value = 1.2;
+      bleat.connect(form).connect(bus);
+      a.tone({ t, type: 'sawtooth', f0: f * 1.08, f1: f * 0.92, glide: dur, gain: 0.8, attack: 0.05, hold: dur * 0.6, decay: dur * 0.4, out: bleat });
+      a.tone({ t, type: 'sawtooth', f0: f * 1.08, f1: f * 0.92, glide: dur, gain: 0.2, attack: 0.05, hold: dur * 0.6, decay: dur * 0.4, lowpass: 900, out: bus });
+      return;
     }
+    a.playPhrase(requireAudioProfile(source.audio.synth?.[kind],`nalati.call.${kind}`), bus, {at: t});
   }
 
   // ─────────────── weather (the storms) ───────────────

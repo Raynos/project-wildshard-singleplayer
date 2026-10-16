@@ -1,7 +1,8 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
+import {NALATI_CALL_PHRASES} from './audioPhrases';
 
 /** Existing Kazakh-folk calm/tension/boss catalogue, fallback order and steppe mixer data. */
-export const NALATI_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default',
+export const NALATI_AUDIO = parseAudioData({ synth:NALATI_CALL_PHRASES, cues: [], ambience: null, score: 'default',
   music: { id: 'score.nalati', base: 'steppe-grass', slots: ['steppe-grass', 'steppe-sky', 'steppe-snow', 'steppe-night', 'steppe-storm', 'steppe-king'], bootSlots: ['title', 'steppe-grass'],
     synthLead: 'pluck', minFade: 6, source: { dir: '/assets/music/nalati/', manifestKey: 'nalati' }, sets: {}, selectMode: 'all', selection: [
       { slots: ['steppe-king'], when: [{ field: 'boss', op: 'equals', value: 'king' }] },
