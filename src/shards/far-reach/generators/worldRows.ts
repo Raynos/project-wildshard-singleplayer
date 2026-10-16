@@ -1,7 +1,23 @@
-import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from './layout';
-import { STRINGS } from './strings';
-import { SKY_GROUND } from './groundScene.generated';
-import { SKY_ROUTES } from './routeScene.generated';
+import type { BakedPiece } from '../data/files';
+import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
+import winchHouse from '../data/winchHouse.json' with { type: 'json' };
+import roost from '../data/roost.json' with { type: 'json' };
+import docks from '../data/docks.json' with { type: 'json' };
+import crown from '../data/crown.json' with { type: 'json' };
+import mill from '../data/mill.json' with { type: 'json' };
+import bookStand from '../data/bookStand.json' with { type: 'json' };
+import knolls from '../data/knolls.json' with { type: 'json' };
+import geometries from '../data/geometries.json' with { type: 'json' };
+import isletRig from '../data/isletRig.json' with { type: 'json' };
+import dressing from '../data/dressing.json' with { type: 'json' };
+import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from '../data/layout';
+import { STRINGS } from '../data/strings';
+import { SKY_GROUND } from '../data/groundScene.generated';
+import { SKY_ROUTES } from '../data/routeScene.generated';
+/** Authored static kind, pose, material and collider rows, in their original preload order. */
+export const WORLD_BAKES = { 'winch-house': winchHouse, roost, docks, crown, mill: { ...mill, kinds: mill.kinds.map(kind => kind.name.startsWith('cloth-') ? Object.assign(structuredClone(kind), { look: 'mill-canvas' }) : kind) }, 'book-stand': bookStand,
+  knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
+
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /**
@@ -25,4 +41,9 @@ export const SKY_PIECES = [
   { id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, surface: 'stone' },
   { id: 'far.step.winch-house', name: STRINGS.winch, category: 'buildings', file: FILE, surface: 'stone', baked: 'winch-house', at: [WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z], node: 'far.step.winch-house' },
   { id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, surface: 'wood', baked: 'roost', node: 'far.roost.nest' },
-] as const;
+] as const satisfies readonly WorldPieceRow<BakedPiece>[];
+
+/** Fixed placements and baked paint assignment are emitted before client boot. */
+export function skyWorldRows(): { readonly bakes: typeof WORLD_BAKES; readonly pieces: typeof SKY_PIECES } {
+  return { bakes: WORLD_BAKES, pieces: SKY_PIECES };
+}

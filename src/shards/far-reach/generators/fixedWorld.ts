@@ -7,7 +7,7 @@ import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
 import { MILL_SCENE } from '../data/millScene.generated';
 import { CROWN_SCENE } from '../data/crownScene.generated';
-import { SKY_PIECES } from '../data/pieces';
+import { SKY_PIECES } from './worldRows';
 import { NOTES, WINCH, SUNREST, MILL } from '../data/layout';
 import { KEEPER_STAND } from '../data/keeperStand';
 import { BOOK_STAND } from '../data/bookStand';
