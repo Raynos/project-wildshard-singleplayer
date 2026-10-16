@@ -11,8 +11,7 @@ import { castaway } from './runtime/models/people';
 import { GEAR } from './runtime/models/gear';
 import { seaGlassChime } from './runtime/models/seaGlassChime';
 import { trophyPlaques } from './runtime/models/trophyPlaques';
-import { captainHat } from './runtime/models/captainHat';
-import { sailclothCape } from './runtime/models/sailclothCape';
+import { captainHat, sailclothCape } from './runtime/models/captainHat';
 
 export const ROSTER: readonly RosterEntry[] = [
   // the fauna (driftwood-isle.ts `fauna`), faceted low-poly in code here

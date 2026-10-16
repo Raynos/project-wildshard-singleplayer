@@ -15,32 +15,41 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { HAT_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { HAT_GEOMETRY, CAPE_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
 
-/** A fresh copy of the admitted offline hat; scaling never changes the shared template. */
+/** Both cosmetics keep their baked geometry, ordinary kit material and native socket space. */
+const GARMENTS = {
+  'captain-hat': { name: "Captain's hat", geometry: HAT_GEOMETRY, yaw: 0 },
+  'sailcloth-cape': { name: 'Sailcloth cape', geometry: CAPE_GEOMETRY, yaw: Math.PI },
+} as const;
+type Garment = keyof typeof GARMENTS;
+
+/** Fresh copies; worn/specimen scaling never changes the shared template. */
 export function captainHatGeometry(): THREE.BufferGeometry { return HAT_GEOMETRY.copy(); }
+export function sailclothCapeGeometry(): THREE.BufferGeometry { return CAPE_GEOMETRY.copy(); }
 
-/** the hat as one mesh (a pickup, a specimen, the worn hat) */
-export function buildCaptainHat(ctx: ModelContext): THREE.Mesh {
-  const m = new THREE.Mesh(captainHatGeometry(), lowPolyLookMaterial(ctx.sky));
-  m.name = 'captain-hat';
-  m.castShadow = true;
-  m.receiveShadow = true;
-  return m;
+function buildGarment(ctx: ModelContext, id: Garment): THREE.Mesh {
+  const mesh = new THREE.Mesh(GARMENTS[id].geometry.copy(), lowPolyLookMaterial(ctx.sky));
+  mesh.name = id; mesh.castShadow = true; mesh.receiveShadow = true;
+  return mesh;
 }
+/** Native pickup/socket factories retain their exact mesh names and flags. */
+export function buildCaptainHat(ctx: ModelContext): THREE.Mesh { return buildGarment(ctx, 'captain-hat'); }
+export function buildSailclothCape(ctx: ModelContext): THREE.Mesh { return buildGarment(ctx, 'sailcloth-cape'); }
 
-export interface CaptainHatParams {
-  /** uniform size (1 = the player's; the captain wears his at his own scale) */
-  readonly size: number;
+export interface CaptainHatParams { readonly size: number }
+export type SailclothCapeParams = CaptainHatParams;
+
+function garment(id: Garment) {
+  const row = GARMENTS[id];
+  return defineModel<CaptainHatParams>({
+    id: `driftwood-isle/${id}`, name: row.name, category: 'gear', pipeline: 'code',
+    file: 'src/shards/driftwood-isle/runtime/models/captainHat.ts', surface: 'felt',
+    prepare: loadFixedGeometry, defaults: { size: 1 }, specimenYaw: row.yaw,
+    build: (ctx, p): readonly ModelPart[] => [{
+      geometry: ctx.once(`${id}:${p.size}`, () => (p.size === 1 ? row.geometry.copy() : row.geometry.copy().scale(p.size, p.size, p.size))),
+      material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true,
+    }],
+  });
 }
-
-export const captainHat = defineModel<CaptainHatParams>({
-  id: 'driftwood-isle/captain-hat', name: "Captain's hat", category: 'gear', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/captainHat.ts', surface: 'felt',
-  prepare: loadFixedGeometry,
-  defaults: { size: 1 },
-  build: (ctx, p): readonly ModelPart[] => [{
-    geometry: ctx.once(`captain-hat:${p.size}`, () => (p.size === 1 ? captainHatGeometry() : captainHatGeometry().scale(p.size, p.size, p.size))),
-    material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true,
-  }],
-});
+export const captainHat = garment('captain-hat'), sailclothCape = garment('sailcloth-cape');
