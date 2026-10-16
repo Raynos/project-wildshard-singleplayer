@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { modelContext, type ModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { ReefBedRow } from './rows';
 
 /**
  * A sea floor's reef as rows (SHARD-PLATFORM M3, look-family rows; W2 C2 baked its scatter): a baked layout of reefs, beds
@@ -38,6 +37,9 @@ export interface ReefBedModels<P extends ReefBedParams> {
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
 /** A welded reef and its school (see the module comment). */
+/** what the bed reads off its row (data/seabedLook.ts SEABED; the scatter is baked): the weld's and the school's names */
+export interface ReefBedRow { readonly mesh: string; readonly piecePrefix: string; readonly fishMesh: string; readonly fishPiece: string }
+
 export class ReefBed<P extends ReefBedParams> {
   /** its placements (the named places' sets read them) */
   readonly placed: Placed[] = [];

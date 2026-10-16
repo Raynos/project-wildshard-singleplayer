@@ -3,7 +3,6 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/sdk/looks/streamedInstances';
-import type { StreamedCoverRow } from './rows';
 
 
 /**
@@ -46,6 +45,21 @@ export interface CoverLooks {
 let lent: CoverLooks | null = null;
 /** Lend the cover its compiled graphs (the shard's runtime, before its world builds). */
 export function setCoverLooks(looks: CoverLooks): void { lent = looks; }
+
+interface PerTier { readonly phone: number; readonly desktop: number }
+type Span = readonly [number, number];
+/** what the cover reads off its row (data/coverLook.ts GROUND_COVER; its plants are baked into the cells) */
+export interface StreamedCoverRow {
+  readonly cell: number; readonly refill: number; readonly cacheMin: number; readonly growShare: number;
+  readonly farRefill: number; readonly farSlack: number; readonly farIn: number; readonly eyeSlack: number;
+  readonly uploadBytes: number; readonly nearLag: number; readonly look: string; readonly meshPrefix: string;
+  readonly reachK: PerTier; readonly capK: PerTier; readonly farBudgetMs: PerTier;
+  readonly slopeReach: { readonly up: number; readonly lo: number; readonly hi: number; readonly fadeFrom: number; readonly fadeTo: number };
+  readonly kinds: readonly {
+    readonly name: string; readonly geometry: string; readonly cap: number; readonly reach: Span; readonly scale: Span;
+    readonly far?: { readonly geometry: string; readonly reach: Span; readonly cap: number; readonly keep: number };
+  }[];
+}
 
 /** What the cover needs. */
 export interface StreamedCoverOptions {

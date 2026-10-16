@@ -20,12 +20,52 @@
 import * as THREE from 'three';
 import type { SkyBackdropFactory, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
-import type { DayClock } from '@wildshard/sdk/looks/dayClock';
+import type { DayClock, DayClockStyle } from '@wildshard/sdk/looks/dayClock';
+import type { DayLookPreset } from '@wildshard/sdk/looks/dayLookPresets';
 import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import { graphDaySkyBackdrop } from '@wildshard/sdk/looks/graphDaySky';
 import type { FACETED_DAY_PRESET } from '../const';
-import type { FacetedDayPreset, FacetedDayStyle } from './rows';
 import { FacetedSky, type SkyPalette } from './facetedSky';
+
+/* the faceted day's row types (the runtime's own copies of data/facetedDayRows.ts's, G449) */
+type Rgb = readonly [number, number, number];
+/** a colour as data: an sRGB hex number or linear RGB */
+export type DayColour = number | Rgb;
+
+/** one keyed light preset, as data */
+export interface FacetedDayPresetRow {
+  readonly sky: {
+    readonly zenith: DayColour; readonly horizon: DayColour; readonly below: DayColour; readonly sunGlow: DayColour;
+    readonly cloudLit: DayColour; readonly cloudShade: DayColour; readonly night: number;
+  };
+  /** the light body (the sun by day, the moon by night): colour, intensity */
+  readonly light: DayColour; readonly lightI: number;
+  readonly hemiSky: DayColour; readonly hemiGround: DayColour; readonly hemiI: number;
+  readonly lift: DayColour; readonly rim: DayColour; readonly fogNear: DayColour; readonly fogSun: DayColour;
+  readonly disc: DayColour; readonly cloudShadow: number; readonly dusk: number;
+}
+
+/** a faceted day's row: the shared clock's row (presets, keyframes, arcs, curves) and the backdrop's numbers */
+export interface FacetedDayStyle extends DayClockStyle<typeof FACETED_DAY_PRESET> {
+  readonly presets: Readonly<Record<string, FacetedDayPresetRow>>;
+  /** the shadow light turns in steps of this many degrees */
+  readonly shadowStepDeg: number;
+  /** seconds between environment re-renders */
+  readonly envRefresh: number;
+  /** the PMREM cube size of the dome's environment */
+  readonly envSize: number;
+  /** the sun before the clock moves it (normalised) */
+  readonly startSun: Rgb;
+  /** the planet's lit-side haze: the horizon toward this colour, by this much by day */
+  readonly planetHaze: Rgb; readonly planetHazeDay: number;
+  /** the disc's scale by night */
+  readonly moonDisc: number;
+  /** the level's sun intensity this row's `lightI` is relative to */
+  readonly sunIBase: number;
+}
+
+/** one live preset (the row's colours as three.js colours) */
+export type FacetedDayPreset = DayLookPreset<typeof FACETED_DAY_PRESET>;
 
 /** a faceted day: the shared day clock over the shard's row */
 export type FacetedDay = DayClock<typeof FACETED_DAY_PRESET, FacetedDayStyle>;

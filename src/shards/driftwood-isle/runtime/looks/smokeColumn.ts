@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { SmokeColumnRow } from './rows';
 import { SMOKE_LOOK } from '../const';
 import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../boot/fixedGeometry';
 
@@ -21,6 +20,9 @@ export function setSmokeLook(materials: ReadonlyMap<string, THREE.Material>): vo
   if (material === undefined) throw new Error('Driftwood: look.materials lacks the smoke graph');
   look = material;
 }
+
+/** what the column reads off its smoke row (data/smokeLook.ts CASTAWAY_SMOKE; the rest is baked into its quads) */
+export interface SmokeColumnRow { readonly bounds: { readonly offset: readonly number[]; readonly radius: number }; readonly name: string; readonly renderOrder: number }
 
 /** A smoke column (one draw) rising from a fire in its parent's frame. */
 export class SmokeColumn {

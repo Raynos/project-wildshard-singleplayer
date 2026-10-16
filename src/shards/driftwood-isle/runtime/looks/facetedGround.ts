@@ -4,7 +4,6 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { FacetedGroundRow } from './rows';
 import { coverAttributes } from './coverGrid';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readDriftwoodBlob } from '../boot/blobAssets';
@@ -27,6 +26,9 @@ type ToonLookOf = Awaited<ReturnType<typeof runtimeLookMaterials>>['toon'];
 interface GroundLoan { readonly ground: THREE.Material; readonly slab: THREE.Material; readonly follow: () => void }
 /** the live loans, newest last (a world's scope removes its own) */
 const loans: GroundLoan[] = [];
+
+/** what the look reads off its ground row (data/groundLook.ts GROUND_LOOK; the grid itself is baked): its graphs' ids */
+export interface FacetedGroundRow { readonly materials: { readonly ground: string; readonly slab: string } }
 
 /** Compile the row's graph materials under the world's scope and lend them to the next ground built (a look's
  *  `prepareWorld`); `follow` makes their toon look track the shard's day clock once a frame. `kit` (variant → graph id)
