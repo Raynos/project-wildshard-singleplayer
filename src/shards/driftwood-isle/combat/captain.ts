@@ -15,7 +15,7 @@ export interface CaptainPorts {
 export interface CaptainEncounterState { boss: BossContinuation; attempt: boolean; waitForReturn: boolean }
 
 /** The authored fight owns its phases and rise/sink; the boss runtime owns encounter lifetime and UI. Renderer-free: the
- *  browser runs it under the boss bar, a headless host (runtime/captain.ts) with the silent presentation. */
+ *  browser runs it under the boss bar, a headless host (combat/captainEncounter.ts) with the silent presentation. */
 export class DrownedCaptain extends BossBrain {
   private readonly ports: CaptainPorts;
   private attempt = false;

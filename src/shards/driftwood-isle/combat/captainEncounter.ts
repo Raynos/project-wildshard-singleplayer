@@ -2,8 +2,8 @@ import * as v from 'valibot';
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { SimHost } from '@wildshard/engine/sim';
-import { DrownedCaptain } from '../combat/captain';
-import type { DriftwoodBake } from './baked';
+import { DrownedCaptain } from './captain';
+import type { DriftwoodBake } from '../world/baked';
 
 /** The captain encounter's fixed-step id. */
 export const CAPTAIN_STEP = 'driftwood.captain';

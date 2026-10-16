@@ -47,7 +47,7 @@ export interface DriftwoodQuestPorts {
   readonly spots: DriftwoodSpots;
   /** The admitted cable row; the native quest remains the sole carry owner. */
   readonly zipline: ConstructorParameters<typeof ZiplineDriver>[0];
-  /** the flag feats (quest/Feats.ts; the kill feats are runtime/kills.ts's) */
+  /** the flag feats (quest/Feats.ts; the kill feats are quest/kills.ts's) */
   readonly feats: Parameters<typeof createAchievementCounters>[0]['feats'];
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   readonly fact: (name: string, entity: string) => void;

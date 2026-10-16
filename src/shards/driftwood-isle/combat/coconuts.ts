@@ -43,7 +43,7 @@ const _v = new Vector3(), _q = new Quaternion(), _e = new Euler(), _vel = { x: 0
 
 /**
  * Driftwood's coconuts, view-free (PHYSICS P7), shared by the browser (creatures/Enemies.ts draws each slot from
- * `step`'s pose) and the renderer-free runtime (runtime/keeper.ts). A monkey's throw lobs one on a ballistic arc to land
+ * `step`'s pose) and the renderer-free runtime (creatures/keeper.ts). A monkey's throw lobs one on a ballistic arc to land
  * where the player stood in 0.8–1.5 s (the time grows with the range), spun from the placement stream. In flight it is
  * DEBRIS (the world only) and a hit is the ball passing within 0.45 m of the player's feet→head segment (8 damage, the
  * thrower's blow; it bounces off); a knock past 1.5 m/s, the sea or 3 s of flight is the landing, from which it is an ITEM

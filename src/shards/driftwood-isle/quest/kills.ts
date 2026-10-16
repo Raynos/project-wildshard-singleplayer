@@ -16,7 +16,7 @@ const count = v.pipe(v.number(), v.integer(), v.minValue(0));
 /**
  * Driftwood's kill hooks in a renderer-free host (SF72), as the page's adventure files them on 'actor.died'
  * (quest/adventure.ts `w.onDeath`): the drowned sailor's death sets `dead:sailor` (quest/Spine.ts; the captain's
- * `dead:captain` is runtime/captain.ts's), and every kill of a feat's kind counts toward it (quest/facts.ts
+ * `dead:captain` is combat/captainEncounter.ts's), and every kill of a feat's kind counts toward it (quest/facts.ts
  * `bindDriftwoodFacts.kill`): each new count up to the feat's total emits the stable ledger fact `driftwood.<id>` for
  * entity `<id>:<n>` (data/ledger.ts grants the achievement at its threshold). The counts start at 0 in a fresh run (the
  * page starts from the profile's ledger) and are exact continuation.

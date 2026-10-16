@@ -7,7 +7,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
-import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/runtime/captain';
+import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/combat/captainEncounter';
 import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';

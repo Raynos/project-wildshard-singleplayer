@@ -3,12 +3,12 @@ import { bindHeadlessCommands, installNativeCollision, type PrepareHeadlessRunti
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
 import { waveHeight } from '@wildshard/engine/world/waves';
-import { driftwoodBake, driftwoodSpecs } from './baked';
-import { installIsland } from './keeper';
-import { installCaptain } from './captain';
+import { driftwoodBake, driftwoodSpecs } from '../world/baked';
+import { installIsland } from '../creatures/keeper';
+import { installCaptain } from '../combat/captainEncounter';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from './director';
 import NATIVE_SWORDS from '../data/nativeSwords.json' with { type: 'json' };
-import { installDriftwoodKills } from './kills';
+import { installDriftwoodKills } from '../quest/kills';
 import { DRIFTWOOD_FEATS } from '../data/questInventory';
 import { DRIFTWOOD_INTERACT } from '../data/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from './quest';
@@ -24,10 +24,10 @@ export const DRIFTWOOD_DAY_START = 0.2 * (20 / 24), DRIFTWOOD_CYCLE_S = 48 * 60;
  * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the Node-canonical native
  * world (the island's heightfield as Rapier built it and every fixed WORLD collider; `ground: false`, the baked floor as
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
- * browser's baked navmesh), the monkeys' coconuts, the practice crab's return, ecological night respawns and exact restore (runtime/keeper.ts), and the
+ * browser's baked navmesh), the monkeys' coconuts, the practice crab's return, ecological night respawns and exact restore (creatures/keeper.ts), and the
  * Drowned Captain's finale (the altar's flag spawns and wakes him; his fight and encounter are the browser's own,
- * runtime/captain.ts), and the two swords on the swept melee family's own clock (light taps, held heavy, lunge/dodge;
- * runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, runtime/kills.ts), and
+ * combat/captainEncounter.ts), and the two swords on the swept melee family's own clock (light taps, held heavy, lunge/dodge;
+ * runtime/swords.ts), and the kill hooks (`dead:sailor` and the kill feats' ledger facts, quest/kills.ts), and
  * "The Sealed Ring" with the island's interactables at the page's baked points (`script` commands on `driftwood.interact`:
  * Wendell, the chest, the beacon, the hold key / pump / winch / strongbox, the shards, the plates and the sluice, the altar,
  * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).

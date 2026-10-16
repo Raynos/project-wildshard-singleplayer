@@ -22,14 +22,14 @@ import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { CRAB } from '../species/crab';
 import { SAILOR } from '../species/sailor';
 import { MONKEY_VARIANTS } from '../species/monkeyVariants';
-import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
+import { DRIFTWOOD_PRACTICE } from './tables';
 import { COCONUTS, Coconuts } from '../combat/coconuts';
-import { placeEnemies, PRACTICE_AT } from './placement';
-import { enemyBrain, type EnemyBrain } from './enemyBrains';
-import type { DriftwoodBake } from './baked';
-import { RespawnQueue } from './ecology';
+import { placeEnemies, PRACTICE_AT } from '../runtime/placement';
+import { enemyBrain, type EnemyBrain } from '../species/enemyBrains';
+import type { DriftwoodBake } from '../world/baked';
+import { RespawnQueue } from '../runtime/ecology';
 import { RESPAWN } from '../data/ecology';
-import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
+import { ISLAND_BOAR, ISLAND_BEAR } from './species';
 import { FAUNA_SPECIES } from './fauna';
 import { DRIFTWOOD_NATIVE_FAUNA } from '../data/nativeFauna';
 
@@ -110,13 +110,13 @@ const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.st
  * already decided this frame): a hunter that loses its line to the player, a fauna body hit without dying. The fauna decide through the hunting brain (the island's boar and bear rows, the manifest's fauna tuning,
  * the browser's baked navmesh for paths and wander targets, the manager's smoothed player speed), charge on the body
  * tick and land a charge as PlayerHurt.creature's blow; a hit turns, bolts or enrages them. The enemies run their
- * shipping policies (runtime/enemyBrains.ts) and strike every tick, steering and confined through the hunting brain over
+ * shipping policies (species/enemyBrains.ts) and strike every tick, steering and confined through the hunting brain over
  * the island (the baked floor, its normals, the open sea, no trees, no cabins). Every body holds the manager's two E297
  * attack tokens (swept when an attack is over). The practice crab comes back 45 s after it dies once the player is 30 m
  * off, after its 1.5 s shell fade: a fresh body in its slot (the manager's next entity id, six more draws), a new herd of one. A
  * monkey's throw releases a real coconut (combat/coconuts.ts, the browser's own rules) into the host's world through a
  * body service stepped around the host's world step; the continuation keeps each live slot and its native handle, and the
- * restored world's bodies are adopted back by handle. The finale's captain (`spawnCaptain`, runtime/captain.ts) joins the
+ * restored world's bodies are adopted back by handle. The finale's captain (`spawnCaptain`, combat/captainEncounter.ts) joins the
  * end of the list in the slot after the load-time bodies: the manager's next entity id, his spawn draws, his baked recipe
  * at his pool, his authored fight on the 'legacy' clock. Restore reinstalls exactly the saved roster (the captain
  * included) from its recipes before the host restores, with no stream draw kept.
