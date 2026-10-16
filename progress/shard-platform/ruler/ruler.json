@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "d125557a10d8ff7a3319e88affbd35e9159b37d5",
- "committedAt": "2026-10-16T18:22:06.000Z",
- "measuredAt": "2026-10-16T18:23:53.601Z",
+ "revision": "69115bfe34bd4e3b61b531c2d6264dd351088e85",
+ "committedAt": "2026-10-16T18:55:58.000Z",
+ "measuredAt": "2026-10-16T18:59:00.002Z",
  "basis": "source",
  "plan": {
-  "lower": 0.09993326805660364,
-  "upper": 0.433266601389937
+  "lower": 0.11636803602277616,
+  "upper": 0.44970136935610955
  },
  "m3": {
-  "cut": 13353,
+  "cut": 15549,
   "mustGo": 80171.5,
-  "fraction": 0.1665554467610061
+  "fraction": 0.19394672670462695
  },
  "m2": {
   "ready": 0,
@@ -26,9 +26,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 18575,
+   "custom": 18506,
    "legacy": 21305,
-   "pct": 87.2,
+   "pct": 86.9,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -44,9 +44,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 13985,
+   "custom": 13389,
    "legacy": 17167,
-   "pct": 81.5,
+   "pct": 78,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -62,9 +62,9 @@
    "name": "Sky Reach",
    "wave": "W1",
    "goal": 10,
-   "custom": 6112,
+   "custom": 5027,
    "legacy": 6777,
-   "pct": 90.2,
+   "pct": 74.2,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -80,9 +80,9 @@
    "name": "Signal Dunes",
    "wave": "W1",
    "goal": 10,
-   "custom": 2201,
+   "custom": 1790,
    "legacy": 4122,
-   "pct": 53.4,
+   "pct": 43.4,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -116,9 +116,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 16256,
+   "custom": 16221,
    "legacy": 21111,
-   "pct": 77,
+   "pct": 76.8,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -145,7 +145,7 @@
    "pine-hollow",
    "driftwood-isle"
   ],
-  "pct": 25.1
+  "pct": 27.4
  },
  "waves": [
   {
@@ -521,6 +521,19 @@
     "sunscar-dunes": 53.4,
     "nalati-grasslands": 104.5,
     "nine-dragon-stack": 77
+   }
+  },
+  {
+   "revision": "69115bfe34bd4e3b61b531c2d6264dd351088e85",
+   "at": "2026-10-16T18:55:58.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 86.9,
+    "driftwood-isle": 78,
+    "far-reach": 74.2,
+    "sunscar-dunes": 43.4,
+    "nalati-grasslands": 104.5,
+    "nine-dragon-stack": 76.8
    }
   }
  ],
