@@ -144,7 +144,9 @@ const _q2 = new THREE.Quaternion(), _qIdentity = new THREE.Quaternion(), _xAxis 
 /** an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) */
 export class ItemPickup {
   readonly group = new THREE.Group();
+  /** Public prompt view; a subclass may wrap it while the orb keeps its original proximity/take state. */
   readonly interactable: Interactable;
+  private readonly pickupInteraction: Interactable;
   readonly tier: PickupTier;
   onPickup?: (() => void) | undefined;
   /** the player stepped inside (true) / out of (false) the prompt radius — main.ts plays the hum */
@@ -254,12 +256,12 @@ export class ItemPickup {
     // the prompt loop measures from the CAMERA (eye height): the interact point sits a little above the item so the
     // radius reads as ground distance, like the door's `FLOOR + 1.0` point
     const radius = opts.radius ?? 1.8;
-    this.interactable = { position: new THREE.Vector3(at.x, at.y + HOVER + 0.5, at.z), radius, label: opts.prompt ?? engineString('s_81326a54c09c'), onInteract: () => this.take() };
+    this.pickupInteraction = this.interactable = { position: new THREE.Vector3(at.x, at.y + HOVER + 0.5, at.z), radius, label: opts.prompt ?? engineString('s_81326a54c09c'), onInteract: () => this.take() };
   }
 
   /** the prompt text after "[E]" */
-  get prompt(): string { return this.interactable.label; }
-  set prompt(v: string) { this.interactable.label = v; }
+  get prompt(): string { return this.pickupInteraction.label; }
+  set prompt(v: string) { this.pickupInteraction.label = v; }
 
   /** a mote on its helix: angle, radius 0.5–0.75 m (just outside the sphere), rising from the bottom */
   private spawnMote(i: number, anywhere: boolean): void {
@@ -280,7 +282,7 @@ export class ItemPickup {
     if (this.taken) return;
     this.taken = true;
     this.drop?.dispose(); this.drop = null;
-    this.interactable.radius = 0;
+    this.pickupInteraction.radius = 0;
     this.holder.visible = false;
     this.unglow();
     if (this.near) { this.near = false; this.onNear?.(false); }
@@ -297,7 +299,7 @@ export class ItemPickup {
   /** remove it from the scene and free its GPU resources (also used by `?weapon=rifle`, which unlocks the rifle at load) */
   dispose(): void {
     if (this.disposed) return;
-    this.disposed = true; this.taken = true; this.interactable.radius = 0;
+    this.disposed = true; this.taken = true; this.pickupInteraction.radius = 0;
     this.drop?.dispose(); this.drop = null;
     this.unglow();
     if (this.near) { this.near = false; this.onNear?.(false); }
@@ -317,8 +319,8 @@ export class ItemPickup {
 
     // approach: the eye's distance to the orb (the prompt radius is measured the same way)
     let dist = 99;
-    if (camera) { _eye.setFromMatrixPosition(camera.matrixWorld); _to.subVectors(_eye, this.interactable.position); dist = _to.length(); }
-    const inside = dist <= this.interactable.radius;
+    if (camera) { _eye.setFromMatrixPosition(camera.matrixWorld); _to.subVectors(_eye, this.pickupInteraction.position); dist = _to.length(); }
+    const inside = dist <= this.pickupInteraction.radius;
     if (inside !== this.near) { this.near = inside; this.onNear?.(inside); }
     // draw distance by tier (tier.ts): the item model is ~10 draws + its shadow casters, the orb 6 more — the AR-15 sits
     // inside cabin 1 and was drawn from every corner of the chunk. The light stays (a changing light count recompiles).
@@ -367,7 +369,7 @@ export class ItemPickup {
     const f = d.floor;
     this.group.position.set(f.x, f.y, f.z);
     this.light.position.set(f.x, f.y + HOVER, f.z);
-    this.interactable.position.set(f.x, f.y + HOVER + 0.5, f.z);
+    this.pickupInteraction.position.set(f.x, f.y + HOVER + 0.5, f.z);
     if (d.landed) this.drop = null;
   }
 

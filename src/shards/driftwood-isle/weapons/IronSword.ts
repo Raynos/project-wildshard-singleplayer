@@ -103,10 +103,9 @@ function rackAnchor(wreck: object): { x: number; y: number; z: number; yaw: numb
   return typeof x === 'number' && typeof y === 'number' && typeof z === 'number' ? { x, y, z, yaw: typeof yaw === 'number' ? yaw : 0 } : null;
 }
 
-export class IronSwordPickup {
-  readonly pickup: ItemPickup;
+export class IronSwordPickup extends ItemPickup {
   /** the "[E]" prompt: the pickup's, unless `guard` says why it can't be taken yet */
-  readonly interactable: Interactable;
+  declare readonly interactable: Interactable;
   /**
    * B4 / D6: while this returns a reason the sword can't be taken (the drowned sailor still guards it) the prompt shows
    * the reason and E does nothing but `onGuarded(reason)` — only at the rack (GUARDED_R) and as a weak prompt (E296: it
@@ -114,22 +113,22 @@ export class IronSwordPickup {
    */
   guard: (() => string | null) | null = null;
   onGuarded?: (reason: string) => void;
-  private light: THREE.PointLight;
+  private glowLight: THREE.PointLight;
   private halo: THREE.Sprite;
   private haloMat: THREE.SpriteMaterial;
   private floor: THREE.Vector3;
   private takeRadius: number;
-  private scene: THREE.Scene;
-  private readonly cosmetic = new Rng(COSMETIC_SEED);
-  private phase = this.cosmetic.next() * 7;
+  private glowScene: THREE.Scene;
+  private readonly phase: number;
   private gone = false;
 
   constructor(opts: IronSwordPickupOptions) {
-    this.scene = opts.scene;
-    this.floor = opts.position.clone(); this.floor.y += LIFT;
+    const cosmetic = new Rng(COSMETIC_SEED), phase = cosmetic.next() * 7;
+    const floor = opts.position.clone(); floor.y += LIFT;
+    super({ scene: opts.scene, item: buildIronSwordDisplay(opts.materials), position: floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => cosmetic.next() });
+    this.glowScene = opts.scene; this.floor = floor; this.phase = phase;
     this.takeRadius = opts.takeRadius ?? TAKE_R;
-    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.materials), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => this.cosmetic.next() });
-    const base = this.pickup.interactable, reason = (): string | null => this.guard?.() ?? null;
+    const base = this.interactable, reason = (): string | null => this.guard?.() ?? null;
     this.interactable = {
       position: base.position,
       get radius() { return reason() === null ? base.radius : Math.min(base.radius, GUARDED_R); },
@@ -138,8 +137,8 @@ export class IronSwordPickup {
       onInteract: () => { const r = reason(); if (r !== null) this.onGuarded?.(r); else base.onInteract(); },
     };
     // the warm glow: an amber point light over the deck (the orb's own is a short cyan one) and a big soft halo
-    this.light = LightPool.for(opts.scene).acquire(WARM, 18, 11, 1.6); // pooled (B7): released dark on pickup, never removed
-    this.light.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
+    this.glowLight = LightPool.for(opts.scene).acquire(WARM, 18, 11, 1.6); // pooled (B7): released dark on pickup, never removed
+    this.glowLight.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
     haloTex ??= cacheUntilDisposed(makeHalo(), () => { haloTex = null; });
     this.haloMat = new THREE.SpriteMaterial({ map: haloTex, color: WARM, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
     this.halo = new THREE.Sprite(this.haloMat);
@@ -149,44 +148,35 @@ export class IronSwordPickup {
     opts.scene.add(this.halo);
   }
 
-  get onPickup(): (() => void) | undefined { return this.pickup.onPickup; }
-  set onPickup(fn: (() => void) | undefined) { this.pickup.onPickup = fn; }
-  get taken(): boolean { return this.pickup.taken; }
-  /** the player stepped inside / out of the prompt radius (main.ts → audio.pickupHum) */
-  get onNear(): ((inside: boolean) => void) | undefined { return this.pickup.onNear; }
-  set onNear(fn: ((inside: boolean) => void) | undefined) { this.pickup.onNear = fn; }
-  /** pick it up now (E / walk-in): the orb bursts, `onPickup` fires; a no-op the second time */
-  take(): void { this.pickup.take(); }
-
-  dispose(): void {
-    this.pickup.dispose();
+  override dispose(): void {
+    super.dispose();
     this.removeGlow();
   }
   private removeGlow(): void {
     if (this.gone) return;
     this.gone = true;
-    this.scene.remove(this.halo);
-    LightPool.for(this.scene).release(this.light); // dark, still in the scene: a light-count change would recompile every lit program
+    this.glowScene.remove(this.halo);
+    LightPool.for(this.glowScene).release(this.glowLight); // dark, still in the scene: a light-count change would recompile every lit program
     this.haloMat.dispose();
   }
 
   /** `playerPos` = the player's feet: inside `takeRadius` of the floor point (and on its level) the sword is taken */
-  update(dt: number, t: number, renderer?: Renderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
-    this.pickup.update(dt, t, renderer, camera);
-    if (!this.pickup.taken) {
+  override update(dt: number, t: number, renderer?: Renderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
+    super.update(dt, t, renderer, camera);
+    if (!this.taken) {
       if (playerPos && this.takeRadius > 0 && (this.guard?.() ?? null) === null) {
         const dx = playerPos.x - this.floor.x, dz = playerPos.z - this.floor.z;
         if (dx * dx + dz * dz < this.takeRadius * this.takeRadius && Math.abs(playerPos.y - this.floor.y) < TAKE_DY + LIFT) this.take();
       }
       const tt = t + this.phase;
       const flick = 1 + Math.sin(tt * 2.2) * 0.1 + Math.sin(tt * 7.3) * 0.05;
-      this.light.intensity = 18 * flick;
+      this.glowLight.intensity = 18 * flick;
       this.haloMat.opacity = 0.5 * flick;
       return;
     }
     if (this.gone) return;
     // the burst: the glow flares and dies with the orb (ItemPickup's BURST_TIME is ~0.3 s)
-    this.light.intensity = Math.max(0, this.light.intensity - dt * 120);
+    this.glowLight.intensity = Math.max(0, this.glowLight.intensity - dt * 120);
     this.haloMat.opacity = Math.max(0, this.haloMat.opacity - dt * 2.5);
     this.halo.scale.addScalar(dt * 6);
     if (this.haloMat.opacity <= 0) this.removeGlow();
