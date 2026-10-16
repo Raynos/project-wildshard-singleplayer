@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./moverLifecycle": "./moverLifecycle.ts",
     "./gridReadiness": "./gridReadiness.ts",
     "./actorMoves": "./actorMoves.ts",
     "./scriptContract": "./scriptContract.ts",

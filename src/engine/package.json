@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./sim/moverLifecycle": "./sim/moverLifecycle.ts",
     "./ai/moves": "./ai/moves.ts",
     "./script/decision": "./script/decision.ts",
     "./render/programRetention": "./render/programRetention.ts",
