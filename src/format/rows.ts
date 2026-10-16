@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { sketchReference } from './sketch';
+import { JournalRowSchema, journalRowRules } from './compendiumRows';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));
@@ -40,12 +41,12 @@ const species = v.strictObject({ id, kind: id, label: text, aggressive: v.boolea
 const parameter = v.union([finite, v.boolean(), text, v.pipe(v.array(finite), v.maxLength(16))]);
 const look = v.strictObject({ id, species: id, recipe: id, material: v.optional(v.nullable(id), null), parameters: v.record(id, parameter),
   animation: v.strictObject({ recipe: id, parameters: v.record(id, parameter) }) });
-const compendium = v.strictObject({ id, className: id, title: text, tabs: v.pipe(v.array(v.strictObject({ id, label: text })), v.maxLength(16)), stamp: text,
+const basicCompendium = v.strictObject({ id, className: id, title: text, tabs: v.pipe(v.array(v.strictObject({ id, label: text })), v.maxLength(16)), stamp: text,
   stats: v.pipe(v.array(v.strictObject({ label: text, value: text })), v.maxLength(8)),
   entries: v.pipe(v.array(v.strictObject({ id, kind: v.literal('species'), tab: id, name: text, notes: text, sketch: v.pipe(text, v.check(sketchReference, 'bounded inert SVG data or admitted sketch hash')), species: id })), v.maxLength(256)) });
 const loot = v.strictObject({ id, gear: v.literal('purse.coins'), finds: v.null(), marks: v.null(), charted: v.boolean(), chime: id });
 const raw = v.strictObject({ strikes: v.pipe(v.array(strike), v.maxLength(256)), weather: v.pipe(v.array(weather), v.maxLength(16)), days: v.pipe(v.array(day), v.maxLength(16)),
-  species: v.pipe(v.array(species), v.maxLength(256)), looks: v.pipe(v.array(look), v.maxLength(256)), compendiums: v.pipe(v.array(compendium), v.maxLength(16)), loot: v.pipe(v.array(loot), v.maxLength(16)) });
+  species: v.pipe(v.array(species), v.maxLength(256)), looks: v.pipe(v.array(look), v.maxLength(256)), compendiums: v.pipe(v.array(v.union([basicCompendium, JournalRowSchema])), v.maxLength(16)), loot: v.pipe(v.array(loot), v.maxLength(16)) });
 /** Pure author rows: numeric weights, state output tables, clocks and registered view/presentation recipes. */
 export type ShardRows = v.InferOutput<typeof raw>;
 /** Reference, uniqueness and complete clock/weather transition rules for data rows. */
@@ -61,6 +62,7 @@ export function rowRules(rows: ShardRows): string[] {
   for (const s of rows.species) if (new Set(s.variants.map((r) => r.id)).size !== s.variants.length || s.variants.some((r) => r.scale[1] > 10)) errors.push('species variants');
   for (const l of rows.looks) if (!speciesIds.has(l.species)) errors.push('look species');
   for (const c of rows.compendiums) {
+    if ('kind' in c) { errors.push(...journalRowRules(c)); continue; }
     const tabs = new Set(c.tabs.map((t) => t.id));
     if (tabs.size !== c.tabs.length || new Set(c.entries.map((e) => e.id)).size !== c.entries.length || c.entries.some((e) => !tabs.has(e.tab) || !speciesIds.has(e.species))) errors.push('compendium references');
   }

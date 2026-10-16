@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { installCompendium, type CompendiumHost } from '@wildshard/game/compendium/install';
-import { PINE_HOLLOW_COMPENDIUM } from '../../compendium';
 import { TrophyWall, type TrophyWall as TrophyWallInstance } from './trophyWall';
 
 export function installPineCompendium(host: CompendiumHost): ReturnType<typeof installCompendium> {
   return installCompendium({ ...host, wall: (state, journal) => {
-    const def = PINE_HOLLOW_COMPENDIUM;
+    const def = state.def;
     let wall: TrophyWallInstance | null = null;
     const place = def.wall, root = place ? host.cabins?.roots[place.cabin] : undefined;
     if (place && root && (def.trophies ?? []).length > 0) {

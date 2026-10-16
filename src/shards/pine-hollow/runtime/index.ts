@@ -11,7 +11,7 @@ import { installEnteredPineVoices } from './audio/entered';
 import { PINE_SPAWNS } from '../combat/spawns';
 import { PINE_SPECIES, pineDeer, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
-import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
+import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
 import { installPineCompendium } from './compendium/install';
 import { ShardPlugin,type ShardContext } from '@wildshard/game/plugin/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
@@ -170,7 +170,7 @@ export class PineHollow extends ShardPlugin {
     const inventory = ctx.product.section('custom/questInventory', SECTIONS);
     ctx.rows.item(inventory.items);
     ctx.rows.feat(inventory.feats);
-    ctx.rows.compendium({ ...PINE_HOLLOW_COMPENDIUM, id: PINE_HOLLOW_COMPENDIUM.chunkId });
+    ctx.rows.compendium({ ...declaredProductCompendium(ctx.product, 'pine.journal'), id: 'pine.journal' });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
     await Promise.all([preloadHeldGeometry(ctx.product), preloadKingKit()]);

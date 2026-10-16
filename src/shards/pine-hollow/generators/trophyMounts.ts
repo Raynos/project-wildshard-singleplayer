@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from '../data/trophyWall';
+import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from './trophyWall';
 import { PINE_HULLS } from '../data/creatureHulls';
 import { producePineCoats, readCoatRig } from './coatProducer';
 

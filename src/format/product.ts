@@ -7,6 +7,7 @@ import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wi
 import { visitGlbGeometry, type GlbVertex } from "@wildshard/format/glbTriangles";
 import { projectedLayerCoverage, type OverdrawEstimate } from "@wildshard/format/overdraw";
 import { parseImageAsset } from "@wildshard/format/stillImage";
+import { journalImageRefs } from './compendiumRows';
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import type { ShardTerrain } from "@wildshard/format/terrain";
 import { assertMigrationCompatibility } from "@wildshard/format/migrations";
@@ -327,8 +328,12 @@ export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' 
     const shared = ref.startsWith('commons:') && source.requires.commons.includes(ref.slice(8));
     if (!library.has(ref) || (!shared && files.get(ref)?.kind !== 'audio')) throw new Error('Audio recordings must be declared audio in the charged library closure');
   }
-  for (const row of source.rows?.compendiums ?? []) for (const entry of row.entries) {
-    if (!entry.sketch.startsWith('data:') && !library.has(entry.sketch)) throw new Error('Compendium sketch hash must be in the charged library closure');
+  for (const row of source.rows?.compendiums ?? []) {
+    if ('kind' in row) {
+      for (const ref of journalImageRefs(row)) if (!library.has(ref) || files.get(ref)?.kind !== 'image') throw new Error('Journal image must be a declared image in the charged library closure');
+    } else for (const entry of row.entries) {
+      if (!entry.sketch.startsWith('data:') && !library.has(entry.sketch)) throw new Error('Compendium sketch hash must be in the charged library closure');
+    }
   }
   const reachable = closure([...source.library, ...source.critical, ...source.tiles.flatMap((tile) => tile.files), ...source.far?.files ?? [], ...nearPlaceholderRoots(source.near)]);
   if (source.files.some((file) => !reachable.has(file.hash)) || source.requires.commons.some((hash) => !reachable.has(`commons:${hash}`))) throw new Error('Orphan shardfile asset is not reachable from a bundle root');

@@ -189,7 +189,7 @@ export class Journal {
     if (s.state === 'taken' || (e.kind === 'place' && drawn)) head.append(el('ws-cmp-stamp', skin.stamp(e)));
     page.append(head);
     const plate = el(`ws-cmp-plate${drawn ? '' : ' sil'}${e.kind === 'place' ? ' place' : ''}`);
-    const src = drawn ? e.plate.sketch : e.kind === 'place' ? e.plate.sketch : silhouetteOf(e.plate.sketch);
+    const src = drawn ? e.plate.sketch : e.kind === 'place' ? e.plate.sketch : (e.plate.silhouette ?? silhouetteOf(e.plate.sketch));
     plate.append(image(src)); if (!drawn) plate.append(el('ws-cmp-q', '???', 'span'));
     const model = e.plate.model, onView = this.onViewModel;
     if (drawn && model && onView) {
@@ -221,7 +221,7 @@ export class Journal {
   private neighbour(e: EntryDef | undefined, dir: Dir): HTMLElement {
     if (!e) return el('ws-cmp-nb none');
     const s = this.state.stats(e.id), drawn = STATE_ORDER.indexOf(s.state) >= 2, named = s.state !== 'unknown';
-    const src = drawn || e.kind === 'place' ? e.plate.sketch : silhouetteOf(e.plate.sketch);
+    const src = drawn || e.kind === 'place' ? e.plate.sketch : (e.plate.silhouette ?? silhouetteOf(e.plate.sketch));
     const b = el(`ws-cmp-nb${drawn ? '' : ' sil'}${e.kind === 'place' ? ' place' : ''}`, '', 'button') as HTMLButtonElement;
     b.append(image(src), el('', named ? e.name : '???', 'span'));
     b.type = 'button'; b.dataset['dir'] = String(dir);
@@ -241,7 +241,7 @@ export class Journal {
       if (!e) continue;
       const s = this.state.stats(t.entry), got = s.state === 'taken', named = s.state !== 'unknown';
       const card = el(`ws-cmp-slot${got ? ' got' : ''}`, '', 'button') as HTMLButtonElement;
-      card.append(image(got ? e.plate.sketch : silhouetteOf(e.plate.sketch)), el('', named ? e.name : '???', 'b'), el('', got ? t.title : 'Not yet taken', 'span'));
+      card.append(image(got ? e.plate.sketch : (e.plate.silhouette ?? silhouetteOf(e.plate.sketch))), el('', named ? e.name : '???', 'b'), el('', got ? t.title : 'Not yet taken', 'span'));
       card.type = 'button';
       this.scope.listen(card, 'click', () => { this.goTo(t.entry); this.render(); });
       grid.append(card);

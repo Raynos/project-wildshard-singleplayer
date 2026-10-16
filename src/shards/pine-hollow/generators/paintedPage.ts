@@ -8,7 +8,7 @@
  * No game, no level, no shard runtime is loaded.
  */
 import { Rng } from '@wildshard/engine/core/rng';
-import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
+import { JOURNAL } from './journalContent';
 
 /** One encoded texture, as bake-pine-painted.mjs reads it back. */
 export interface PaintedBake { readonly dataUrl: string; readonly width: number; readonly height: number }
@@ -67,9 +67,9 @@ function load(src: string): Promise<HTMLImageElement> {
 async function bakePinePainted(seed: number, chalkAtlas: string, font: string): Promise<{ textures: Record<string, PaintedBake>; chalk: ChalkLayout }> {
   const face = new FontFace('WS Hand', `url(${font}) format("woff2")`, { weight: '600' });
   document.fonts.add(await face.load());
-  const img = await load(chalkAtlas), def = PINE_HOLLOW_COMPENDIUM, cells = def.skin.chalk?.cells;
-  if (cells === undefined) throw new Error('Pine compendium has no chalk cells');
-  const slots = def.trophies ?? [], outlines: Record<string, readonly number[]> = {}, labels: Record<string, readonly number[]> = {};
+  const img = await load(chalkAtlas), def = JOURNAL;
+  const cells: Readonly<Record<string, { x: number; y: number; w: number; h: number }>> = def.chalk.cells;
+  const slots = def.trophies, outlines: Record<string, readonly number[]> = {}, labels: Record<string, readonly number[]> = {};
   const canvas = document.createElement('canvas');
   [canvas.width, canvas.height] = SIZE;
   const ctx = canvas.getContext('2d');

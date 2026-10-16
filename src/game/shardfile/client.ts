@@ -20,7 +20,7 @@ import type { TerrainField } from '@wildshard/engine/level/data';
 import type { ShardContext } from "../plugin/context";
 import type { ShardPlayHost } from '../shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
-import { declaredCompendium, declaredDay, declaredLootPresentation, declaredWeather } from '../shard/declaredRows';
+import { declaredProductCompendium, declaredDay, declaredLootPresentation, declaredWeather } from '../shard/declaredRows';
 import { installCompendium } from '../compendium/install';
 import { installLoot } from '../loot/runtime';
 import { installDeclaredTargets } from '../shard/declaredTargets';
@@ -275,9 +275,7 @@ export class ShardfileClient {
     ctx.rows.species(source.rows.species.map((row) => ({ ...row, variants: row.variants.map((variant) => ({ ...variant, scale: [...variant.scale] })) })));
     ctx.rows.speciesLook(clientSpeciesLooks(source.rows, this.bindings.recipes, presentation.materials, this.skins));
     const sketches = compendiumSketches(source.rows, this.assets.retained);
-    for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredCompendium(row, source.rows, ctx.manifest.slug, ref => {
-      const sketch = sketches.get(ref); if (sketch === undefined) throw new Error('Missing admitted compendium sketch'); return sketch.data;
-    }) });
+    for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredProductCompendium(ctx.product, row.id, sketches) });
     ctx.rows.lootTable(source.rows.loot);
     runtime.hooks.animalsReady = (manager) => {
       for (const spawn of source.creatures.spawns) {

@@ -1,5 +1,6 @@
 import {parseAmbientLife} from '@wildshard/format/ambientLife';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
+import journal from './journalBlobs.generated.json' with {type:'json'};
 import pickups from './skinPickups.json' with {type:'json'};
 import {PINE_FEATS,PINE_BAG_ITEMS} from './questInventory';
 import {PINE_LIFE} from './ambientLife';
@@ -59,7 +60,7 @@ function withGeometryCosts(row:(typeof client.blobs)[number]){
 }
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT={
- blobs:[...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...crags.blobs,...streams.blobs,
+ blobs:[...journal.blobs,...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...crags.blobs,...streams.blobs,
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.module}`,options:{script:{abi:0 as const}}},
  {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
  custom:values,

@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest';
 import { CompendiumRules } from '../src/game/compendium/rules';
-import { PINE_HOLLOW_COMPENDIUM } from '../src/shards/pine-hollow/compendium';
+import * as v from 'valibot';
+import { JournalRowSchema } from '../src/format/compendiumRows';
+import { declaredCompendium } from '../src/game/shard/declaredRows';
+import { emptyShardfile } from '../src/sdk/author';
+import journalRows from '../src/shards/pine-hollow/data/journal.generated.json' with { type: 'json' };
+
+const row = v.parse(JournalRowSchema, journalRows.row);
+const PINE_HOLLOW_COMPENDIUM = declaredCompendium(row, emptyShardfile({slug:'journal-test',name:'Journal',author:'Test',revision:1,seed:1}).rows, row.chunkId, hash => `https://test.invalid/${hash}.webp`);
 
 test('authored journal pages retain elite matching and place discovery on the shared host', () => {
   const journal = new CompendiumRules(PINE_HOLLOW_COMPENDIUM);

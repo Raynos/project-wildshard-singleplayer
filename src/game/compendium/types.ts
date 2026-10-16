@@ -26,6 +26,8 @@ export const STATE_ORDER: readonly EntryState[] = ['unknown', 'discovered', 'see
 /** the plate: a sketch image (public path), and optionally the Explore creature viewer's model (catalog id + variant) */
 export interface Plate {
   sketch: string;
+  /** Explicit immutable silhouette; older URL plates retain their adjacent-file convention. */
+  silhouette?: string;
   /** the Explore 3D viewer's creature — `Journal.onViewModel` opens it when the host wires one */
   model?: { id: string; variant?: string };
 }

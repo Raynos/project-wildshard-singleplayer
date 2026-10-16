@@ -7874,3 +7874,27 @@ admitted ranged ammunition as page `AmmoRow` values and bounded target-damage
 coefficients. Optional presentation declares labels and pouch capacity; missing
 presentation refuses. Native flight remains additive in rain; page rows retain
 absolute wet multipliers for the existing weather owner. No save owner is added.
+
+### Product-backed rich compendiums (X-C5)
+
+`ui/compendium` retains its simple species/sketch rows and also admits a
+`kind: journal` row. `format/compendiumRows` defines bounded rich entries,
+variants and places, ordered icon selectors, stamp words, stat selectors,
+trophy references and wall placement. Publication checks tab/entry/trophy
+references and requires every sketch, explicit silhouette and chalk image
+in the charged image library. No authored display callback is serialized.
+
+`game/shard/declaredRows.declaredProductCompendium(product, id, sketches?)`
+resolves the admitted row and logical image names through that same product.
+The existing journal, discovery/save rules and trophy wall consume its output.
+Simple vector rows retain their admitted SVG map; rich images never synthesize
+adjacent silhouette URLs. The Template and Pine use the same defining host.
+Pine's authored journal/POI/trophy assembly runs only in its generators; its
+original chunk id, entry ids, text, images and display order remain data.
+
+`combat/items` weapon rows may include strict `equipment` presentation data: the original equipment id and legacy
+slot, UI and menu metadata, sound cues, hit-stop and ranged feel. `readItemEquipment(items, id)` from
+`@wildshard/game/plugin/nativeItems` reads that admitted row and returns an `EquipmentRow`; it refuses a missing
+row or presentation. It takes no factories or callbacks, and installs no service, state, input or save owner.
+Pine's three ranged weapons and Driftwood's swords use the same reader. Authored tables may run entirely in
+`generators/`, while the page reads their emitted `combat/items` section. Pickup creation remains outside the data.

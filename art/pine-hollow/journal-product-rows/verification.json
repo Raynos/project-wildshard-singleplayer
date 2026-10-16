@@ -1,0 +1,59 @@
+{
+  "comparison": {
+    "before": "48e8a099af2f09ab5a7b6dba5848804202b2e745",
+    "after": "c8dc56d743405d2e49960a951f893cfcf0653e9f",
+    "device": "Chrome iPhone 16 Pro emulation, portrait 402x874 DPR 3; muted",
+    "sampling": "Same captured parent localStorage restored unchanged; after world/kit/play boot, before opening journal; exposed GC; GL_INIT storage observer. Heap is one run, not a credited performance gain. No native process RSS measurement."
+  },
+  "before": {
+    "heapUsedBytes": 344749981,
+    "gpuObserved": [
+      {
+        "bufBytes": 43351764,
+        "rbBytes": 0,
+        "texBytes": 245577776,
+        "totalBytes": 288929540
+      }
+    ],
+    "tracked": {
+      "gpu": 288929540,
+      "ram": 198275714
+    },
+    "journalWireRequests": 0,
+    "journalDomImages": 0
+  },
+  "after": {
+    "heapUsedBytes": 292755625,
+    "gpuObserved": [
+      {
+        "bufBytes": 43351764,
+        "rbBytes": 0,
+        "texBytes": 245577768,
+        "totalBytes": 288929532
+      }
+    ],
+    "tracked": {
+      "gpu": 288929532,
+      "ram": 198274578
+    },
+    "journalWireRequests": 0,
+    "journalDomImages": 0
+  },
+  "deltaBytes": {
+    "heap": -51994356,
+    "gpu": -8,
+    "trackedRam": -1136
+  },
+  "journalImages": {
+    "bytes": 2047884,
+    "count": 51,
+    "failed": []
+  },
+  "bootPageErrors": {
+    "pine-hollow": 0,
+    "_template": 0
+  },
+  "declaredWorstGridBytes": 1365399750,
+  "verdict": "No material boot residency rise. Existing global G433 report-only admission; hashes, image headers, costs and caps unchanged.",
+  "phonePair": "phone-pair.jpg; before captured during opening fade, after settled; same restored Red Deer entry and unmodified image bytes."
+}

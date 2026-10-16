@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./compendiumRows": "./compendiumRows.ts",
     "./nativeItems": "./nativeItems.ts",
     "./audioBank": "./audioBank.ts",
     "./nativeRuntimePlan": "./nativeRuntimePlan.ts",

@@ -1913,3 +1913,8 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 /src/shards/driftwood-isle/data/items.generated.json
 /src/shards/driftwood-isle/data/boot-poses.generated.json
+
+# Pine compendium: official build-only publication.
+/src/shards/pine-hollow/assets/journal/
+/src/shards/pine-hollow/data/journal.generated.json
+/src/shards/pine-hollow/data/journalBlobs.generated.json

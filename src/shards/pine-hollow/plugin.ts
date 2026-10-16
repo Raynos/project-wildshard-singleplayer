@@ -19,7 +19,7 @@ export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
 export function preparePineHybrid(ctx: ShardContext,
   prepare?: typeof prepareTrustedHybrid): Promise<ShardPlugin> {
   return prepareStandaloneHybrid(ctx,{name:'Pine',
-    retainHomeRuntime:true,runtime:{entry:'runtime/index.ts',load:()=>import('./runtime/index')}},prepare);
+    retainHomeRuntime:true,stagesOwner:'runtime',runtime:{entry:'runtime/index.ts',load:()=>import('./runtime/index')}},prepare);
 }
 
 /** SF65 (G237–G239): SHARD SELECT's SHARDFILE admits the declared data (SF47 hybrid); LEGACY (the public entry) runs the

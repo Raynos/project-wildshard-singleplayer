@@ -48,7 +48,7 @@ const hosts = {
   'ui/card': [], // Discovery metadata; no per-shard executable implementation.
   'ui/level': [],
   'ui/ui': ['game/shard/declaredUi#mountDeclaredUi', 'game/shard/declaredTargets#installDeclaredTargets'],
-  'ui/compendium': ['game/shard/declaredRows#declaredCompendium'],
+  'ui/compendium': ['game/shard/declaredRows#declaredProductCompendium'],
   'ui/strings': [], // Read by an explicitly imported consumer, not executed.
 };
 

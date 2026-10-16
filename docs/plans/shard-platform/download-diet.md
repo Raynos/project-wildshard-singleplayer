@@ -185,3 +185,12 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   22,570,720 → 22,567,746 (-2,974 B). Both tiers retain distinct
   logical names. This author-output prerequisite keeps readers for
   the coordinated o280 integration; generated binaries stay cached.
+
+- 2026-10-16 Pine journal publication: the existing WebP pages, silhouettes
+  and chalk atlas become immutable named image blobs under `journal/`.
+  The producer preserves every source byte and emits a distinct silhouette
+  reference instead of deriving a neighbouring URL from a hashed filename.
+  No new artwork or geometry is downloaded; this moves the existing image
+  library into the charged product closure (the product cache starts cold
+  for the new URLs). The exact byte inventory is recorded in the landing
+  body; generated copies stay outside Git.
