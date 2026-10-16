@@ -4,7 +4,7 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { bindBorrowedMethod, HybridRuntimePlugin, type HybridRuntimeRows, type QuestCaptureRows } from '../src/game/plugin/headless';
 
 class Capture extends HybridRuntimePlugin {
-  protected get rows(): HybridRuntimeRows { throw new Error('Capture-only fixture has no world rows'); }
+  protected rows(): HybridRuntimeRows { throw new Error('Capture-only fixture has no world rows'); }
   protected build(): void { /* no world in this fixture */ }
   protected override arm(): never { throw new Error('Capture-only fixture has no weapon'); }
   protected override armed(): null { return null; }

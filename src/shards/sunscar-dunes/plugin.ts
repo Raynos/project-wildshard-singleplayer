@@ -2,7 +2,7 @@ import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
-import source from './runtime/source';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { lastLightAll } from './look/light';
@@ -31,8 +31,9 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   declare readonly whip: Bullwhip | null;
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-  protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } };
+  protected rows(_product: ShardProduct): HybridRuntimeRows { return { ...SIGNAL_RUNTIME_ROWS, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } }; }
   protected override async build(ctx: ShardContext): Promise<void> {
+    const source = ctx.product.shardfile;
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
     await prepareFireFx(ctx, source, DUNE_LIBRARY);
@@ -54,6 +55,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   /** Settle the actual quest look for its declared capture checkpoint. */
   settleQuestDusk(): void { const places = this.places; if (places !== null) setDusk(duskOf(places), true); }
   protected override async install(ctx: ShardContext): Promise<void> {
+    const source = ctx.product.shardfile;
     const places = this.places;
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.

@@ -6895,3 +6895,18 @@ paths, asset imports and computed imports refuse. G304 private-binary
 classification and G453 asset budget targets remain report-only; structural
 admission and truthful parsed costs remain enforced. Runtime copying and
 its data-boundary checks are supplied by the runtime output integration.
+
+### Product-built hybrid host rows (P2a step 5)
+
+`game/plugin/headless.HybridRuntimePlugin` calls its protected
+`rows(product: ShardProduct)` factory during `world()`, before strings
+and world construction, and retains the result for kit/play. The factory
+runs once per plugin; an absent product refuses before publication, and
+another product cannot replace an initialized plugin's rows. A refused
+factory publishes no partial rows and may be retried with a valid product.
+
+`HybridRuntimeRows` has no source field. All existing quest, held-item,
+channel, audio and population hosts receive the admitted product's
+`shardfile`; no second source parser is installed. Row factories can read
+platform sections synchronously at load time. Simulation declarations
+remain sections consumed by hosts, outside copied shard runtime code.

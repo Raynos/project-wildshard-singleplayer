@@ -4,7 +4,7 @@ import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
-import source from '../runtime/source';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
@@ -58,9 +58,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
-  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: SKY_LIBRARY.mappedLook } } };
+  protected rows(_product: ShardProduct): HybridRuntimeRows { return { ...SKY_RUNTIME_ROWS, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: SKY_LIBRARY.mappedLook } } }; }
 
   protected override async build(ctx: ShardContext): Promise<void> {
+    const source = ctx.product.shardfile;
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
@@ -95,6 +96,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     } }));
   }
   protected override async install(ctx: ShardContext): Promise<void> {
+    const source = ctx.product.shardfile;
     const { runtime: rt, position, quest } = this.pageEntry(ctx), built = this.built, fan = this.fan, motion = this.clientMotion, channels = this.clientChannels;
     if (built === null || fan === null || motion === null || channels === null || rt?.world === undefined || rt.world === null) throw new Error('Sky Reach: world and kit must run before play');
     const toast = (text: string): void => { rt.play?.hud.toast(text); };

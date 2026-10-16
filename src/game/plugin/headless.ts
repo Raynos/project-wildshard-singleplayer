@@ -23,6 +23,7 @@ import { Purse } from "../loot/Purse";
 import { installDeclaredItems, type DeclaredItems, type DeclaredItemPorts } from "../shardfile/items";
 import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
 import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
+import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from "../shardfile/runtimeState";
 
@@ -556,7 +557,6 @@ export interface HybridRuntimeRows {
   readonly encounters: Parameters<ShardContext['rows']['encounter']>[0];
   /** the flag the session's quest probe reports once `quest` is complete */
   readonly complete: string;
-  readonly source?: Shardfile;
   /** Install declared page motion after the saved quest, on its existing channel owner. */
   readonly clientMotion?: Parameters<ReturnType<typeof bindClientChannels>['installMovers']>[3];
   /** One declared held owner, installed at the original kit/equipment stage. */
@@ -664,7 +664,17 @@ export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { on
  * complete flag (from the `quest` that `install` set), then the debug name.
  */
 export abstract class HybridRuntimePlugin extends ShardPlugin {
-  protected abstract readonly rows: HybridRuntimeRows;
+  /** Assemble host rows from the admitted product at world time, once per plugin. */
+  protected abstract rows(product: ShardProduct): HybridRuntimeRows;
+  private rowState: { readonly product: ShardProduct; readonly source: Shardfile; readonly rows: HybridRuntimeRows } | null = null;
+  private get runtimeRows(): HybridRuntimeRows {
+    if (this.rowState === null) throw new Error('Hybrid rows require world preparation');
+    return this.rowState.rows;
+  }
+  private get runtimeSource(): Shardfile {
+    if (this.rowState === null) throw new Error('Hybrid source requires world preparation');
+    return this.rowState.source;
+  }
   /** The page's borrowed channel views and motion owner, retired with its scope. */
   protected clientChannels: ReturnType<typeof bindClientChannels> | null = null;
   protected clientMotion: Awaited<ReturnType<ReturnType<typeof bindClientChannels>['installMovers']>> | null = null;
@@ -695,12 +705,12 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** The actual primary held owner; no reconstructed presentation instance. */
   protected get heldMelee(): ReturnType<typeof createDeclaredHeldMelee> | null { return this.heldOwner; }
   private meleeOwners(ctx: ShardContext): ReadonlyMap<string, unknown> {
-    const borrowed = Object.entries(this.rows.owners ?? {});
+    const borrowed = Object.entries(this.runtimeRows.owners ?? {});
     if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid held owners');
     return new Map([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
   }
   private createMelee(ctx: ShardContext, contacts: unknown, targets?: HybridTargets, charge?: number): ReturnType<typeof createDeclaredHeldMelee> {
-    const row = this.rows.melee, create = this.heldFactory;
+    const row = this.runtimeRows.melee, create = this.heldFactory;
     if (row === undefined || create === null || this.heldOwner !== null) throw new Error('Declared held owner is not ready');
     if (row.targets === 'raycast' && targets === undefined) throw new Error('Held raycast needs its equipment targets');
     const owners = this.meleeOwners(ctx);
@@ -718,8 +728,8 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   }
   /** Complete the same held owner with hooks from the existing composed item/mover host. */
   protected bindHeldScripts(ctx: ShardContext, hooks: NonNullable<RuntimeItemPorts['hooks']>, tick: () => number): void {
-    const rows = this.rows.melee, source = this.rows.source, weapon = this.heldOwner, start = this.heldSecondary;
-    if (rows?.composed !== true || source === undefined || weapon === null || start === null) throw new Error('Declared held script binding is not ready');
+    const rows = this.runtimeRows.melee, source = this.runtimeSource, weapon = this.heldOwner, start = this.heldSecondary;
+    if (rows?.composed !== true || weapon === null || start === null) throw new Error('Declared held script binding is not ready');
     const primary = source.items.rows.find(row => row.id === source.items.loadout.primary);
     if (primary?.kind !== 'weapon' || primary.secondary === undefined) throw new Error('Held owner needs its admitted secondary');
     const secondary = primary.secondary, hook = hooks.get(primary.id);
@@ -748,10 +758,10 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   }
   /** Bind the existing fight at the shard's original population/quest phase. */
   protected async bindPageFight(ctx: ShardContext): Promise<ReturnType<typeof bindDeclaredFight>> {
-    const source = this.rows.source, row = this.rows.pageFight, definition = this.rows.fight;
-    if (source === undefined || row === undefined || definition === undefined) throw new Error('Missing declared page fight');
+    const source = this.runtimeSource, row = this.runtimeRows.pageFight, definition = this.runtimeRows.fight;
+    if (row === undefined || definition === undefined) throw new Error('Missing declared page fight');
     const { position, quest } = this.pageEntry(ctx);
-    const owners = new Map<string, unknown>([...Object.entries(this.rows.owners ?? {}), ['plugin', this]]);
+    const owners = new Map<string, unknown>([...Object.entries(this.runtimeRows.owners ?? {}), ['plugin', this]]);
     const armed = typeof row.armed === 'boolean' ? row.armed : readBorrowedOwner(owners, row.armed)?.value;
     if (typeof armed !== 'boolean') throw new Error('Page fight requires its owned armed field');
     const { bindDeclaredFight: bindFight } = await import('./ui');
@@ -774,9 +784,9 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   private pageStageFactory:typeof bindBorrowedPageQuestStages|null=null;
   /** Bind page stages with the resident flags and current borrowed owners. */
   protected bindPageStages(ctx:ShardContext,extra:Readonly<Record<string,unknown>>={}):PageQuestStages {
-    const source=this.rows.source,rows=this.rows.pageQuest?.stages,factory=this.pageStageFactory;
-    if(source===undefined||rows===undefined||factory===null)throw new Error('Missing page stage rows');
-    const owners=new Map<string,unknown>([...Object.entries(this.rows.owners??{}),['plugin',this],...Object.entries(extra)]);
+    const source=this.runtimeSource,rows=this.runtimeRows.pageQuest?.stages,factory=this.pageStageFactory;
+    if(rows===undefined||factory===null)throw new Error('Missing page stage rows');
+    const owners=new Map<string,unknown>([...Object.entries(this.runtimeRows.owners??{}),['plugin',this],...Object.entries(extra)]);
     if(owners.size>64||Object.hasOwn(extra,'plugin'))throw new Error('Invalid page stage owners');
     return factory(ctx,source,this.pageQuest.flags,rows,owners,this.actor.bind(this));
   }
@@ -807,8 +817,8 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** The primary weapon for `buildEquipment`. */
   protected arm(ctx: ShardContext, targets: HybridTargets): HybridWeapon {
     if (this.heldOwner !== null) return this.heldOwner;
-    const source = this.rows.source, rows = this.rows.melee;
-    if (source === undefined || rows === undefined) throw new Error('Missing declared held equipment');
+    const source = this.runtimeSource, rows = this.runtimeRows.melee;
+    if (rows === undefined) throw new Error('Missing declared held equipment');
     return bindRuntimeMelee(ctx, source, { presentation: rows.presentation, icon: name => {
       if (name !== rows.recipe.equipment.ui.icon) throw new Error('Unknown held equipment icon'); return rows.recipe.equipment.ui.icon;
     }, create: (_row, spec, ports) => this.createMelee(ctx, ports.contacts, targets, spec.charge) });
@@ -817,7 +827,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected armed(): HybridWeapon | null { return this.heldOwner; }
   /** The bodies the SF27 activation receipt reports. */
   protected witnessed(): readonly AnimalBody[] {
-    const row = this.rows.population?.witness;
+    const row = this.runtimeRows.population?.witness;
     if (row === undefined) return [];
     return 'groups' in row ? row.groups.flatMap(group => this.actors(group))
       : (this.populationHomes?.all() ?? []).filter(actor => row.kinds.includes(actor.kind));
@@ -825,14 +835,14 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** Actual retained actor under its declared placement id, never a reconstructed copy. */
   actor(id: string): AnimalBody | null { return this.populationHomes?.held(id) ?? this.populationHomes?.homes.find(home => home.id === id)?.animal ?? null; }
   protected actors(group: string): AnimalBody[] {
-    const rows = this.rows.population?.groups?.[group];
+    const rows = this.runtimeRows.population?.groups?.[group];
     if (rows === undefined) throw new Error('Unknown declared population group');
     return rows.flatMap(row => this.actor(row.id) ?? []);
   }
   protected populate(ctx: ShardContext, source: Shardfile, ports?: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null }): void;
   protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null }, pause: () => Promise<void>): Promise<void>;
   protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null } = {}, pause?: () => Promise<void>): void | Promise<void> {
-    const row = this.rows.population; if (row === undefined) throw new Error('Missing declared population installation');
+    const row = this.runtimeRows.population; if (row === undefined) throw new Error('Missing declared population installation');
     const installation: RuntimeHomePorts = { system: row.system,
       ...(row.held === undefined ? {} : { held: row.held }), ...(ports.spawned === undefined ? {} : { spawned: ports.spawned }),
       ...(row.bodyHomes === undefined ? {} : { bodyHomes: { rows: row.bodyHomes, authority: this.populationBrains } }),
@@ -850,20 +860,24 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected enter(_ctx: ShardContext): void { /* none by default */ }
 
   override async world(ctx: ShardContext): Promise<void> {
-    ctx.strings(this.rows.strings); await this.build(ctx);
-    if (this.rows.melee !== undefined) {
+    if (this.rowState === null) {
+      const source = ctx.product.shardfile, rows = this.rows(ctx.product);
+      this.rowState = { product: ctx.product, source, rows };
+    } else if (this.rowState.product !== ctx.product) throw new Error('Hybrid rows belong to another product');
+    ctx.strings(this.runtimeRows.strings); await this.build(ctx);
+    if (this.runtimeRows.melee !== undefined) {
       // Keep presentation out of renderer-free imports and use the existing phase/contact owner.
       const held = await import('./weaponFamily'); this.heldFactory = held.createDeclaredHeldMelee;
-      if (this.rows.melee.composed === true) this.heldSecondary = (await import('./simulation')).startMeleeSecondary;
+      if (this.runtimeRows.melee.composed === true) this.heldSecondary = (await import('./simulation')).startMeleeSecondary;
     }
-    const bounds = this.rows.boot?.bounds, runtime = ctx.game.runtime;
+    const bounds = this.runtimeRows.boot?.bounds, runtime = ctx.game.runtime;
     if (bounds !== undefined && runtime !== undefined) {
       if (![bounds.x0, bounds.x1, bounds.z0, bounds.z1, bounds.floor].every(Number.isFinite) || bounds.x0 >= bounds.x1 || bounds.z0 >= bounds.z1) throw new Error('Invalid declared runtime bounds');
       runtime.hooks.levelBounds = () => ({ ...bounds });
     }
   }
   override kit(ctx: ShardContext): void {
-    const rows = this.rows, rt = ctx.game.runtime;
+    const rows = this.runtimeRows, rt = ctx.game.runtime;
     if (!this.aliasesBound) {
       const aliases = new Map<string, () => unknown>();
       const add = (name: string, read: () => unknown): void => {
@@ -894,7 +908,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
     ctx.rows.encounter(rows.encounters);
     if (rows.melee?.stage === 'kit') {
-      const primary = rows.source?.items.rows.find(row => row.id === rows.source?.items.loadout.primary);
+      const primary = this.runtimeSource.items.rows.find(row => row.id === this.runtimeSource.items.loadout.primary);
       if (primary?.kind !== 'weapon' || primary.contacts === undefined) throw new Error('Held kit needs admitted contact rows');
       this.createMelee(ctx, primary.contacts);
     }
@@ -908,17 +922,16 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;
     if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); ctx.scope.onDispose(() => { weapon.model.removeFromParent(); }); this.dress(ctx, weapon); }
-    if (typeof this.rows.species !== 'function' && this.rows.species.shove === true) {
+    if (typeof this.runtimeRows.species !== 'function' && this.runtimeRows.species.shove === true) {
       const push = bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).directed;
       installEnteredRuntimeService(ctx, scope => { this.populationPush = push; scope.onDispose(() => { if (this.populationPush === push) this.populationPush = null; }); });
     }
-    const boot = this.rows.boot;
+    const boot = this.runtimeRows.boot;
     if (boot?.pitch !== undefined && rt?.world) {
       if (!Number.isFinite(boot.pitch)) throw new Error('Invalid declared entry pitch');
       rt.world.player.pitch = boot.pitch;
     }
-    const contexts = boot?.itemContexts === 'source' ? this.rows.source : boot?.itemContexts;
-    if (boot?.itemContexts === 'source' && contexts === undefined) throw new Error('Declared item contexts need their admitted source');
+    const contexts = boot?.itemContexts === 'source' ? this.runtimeSource : boot?.itemContexts;
     if (contexts !== undefined) bindRuntimeItemContexts(ctx, contexts);
     if (boot?.input !== undefined) {
       const { definition, description, hiddenMode } = boot.input;
@@ -926,18 +939,16 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       for (const [key, verb] of Object.entries(verbs)) if (typeof verb !== 'string') Reflect.set(verbs, key, { ...verb, show: () => ctx.app.state === 'play' && (hiddenMode === undefined || ctx.app.player?.mode !== hiddenMode) });
       this.input(ctx, { ...definition, ...(definition.touch === undefined ? {} : { touch: { ...definition.touch, verbs } }) }, description);
     }
-    const stowedMode = this.rows.melee?.stowedMode;
+    const stowedMode = this.runtimeRows.melee?.stowedMode;
     if (stowedMode !== undefined && this.heldOwner !== null) this.heldOwner.stowed = () => ctx.app.player?.mode === stowedMode;
     this.enter(ctx);
-    const audio = this.rows.audio ?? this.rows.source?.audio;
-    if (audio === undefined) throw new Error('Hybrid runtime needs its admitted audio rows');
-    installRuntimeAudio(ctx, audio, this.rows.cues);
+    const audio = this.runtimeRows.audio ?? this.runtimeSource.audio;
+    installRuntimeAudio(ctx, audio, this.runtimeRows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
-    const page = this.rows.pageQuest;
+    const page = this.runtimeRows.pageQuest;
     if (page !== undefined) {
-      const source = this.rows.source;
-      if (source === undefined) throw new Error('Page quest needs its admitted source');
-      const borrowed = Object.entries(this.rows.owners ?? {});
+      const source = this.runtimeSource;
+      const borrowed = Object.entries(this.runtimeRows.owners ?? {});
       if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid page quest owners');
       const owners = new Map<string, unknown>([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
       // Page presentation is never imported by the renderer-free native host.
@@ -953,17 +964,17 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       }));
       this.bindQuestCapture(page.data.capture ?? {}, installed.flags, calls);
     }
-    const motion = this.rows.clientMotion;
+    const motion = this.runtimeRows.clientMotion;
     if (motion !== undefined) {
-      const source = this.rows.source, channels = this.clientChannels;
-      if (source === undefined || channels === null || rt?.world === undefined || rt.world === null) throw new Error('Declared page motion needs its source, channels and world');
+      const source = this.runtimeSource, channels = this.clientChannels;
+      if (channels === null || rt?.world === undefined || rt.world === null) throw new Error('Declared page motion needs its source, channels and world');
       const { runtimeProduct } = await import('../shardfile/runtimeProduct');
       this.clientMotion = await channels.installMovers(ctx, rt.world, source, motion, this.pageQuest.flags, runtimeProduct(source).assets);
       if (ctx.scope.disposed) { this.clientMotion = null; throw new Error('Page motion scope ended during installation'); }
     }
     await this.install(ctx, loot);
-    if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.rows.complete] : [];
-    ctx.debug.expose(this.rows.expose, this);
+    if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.runtimeRows.complete] : [];
+    ctx.debug.expose(this.runtimeRows.expose, this);
   }
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
   brainWitness(): { id: string; kind: string; family: string | null }[] {
