@@ -33,7 +33,7 @@ import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, typ
 import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath, type HybridPageQuestRows, bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
-import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
 import { installPivotNpc, pivotNpcParts, type ModelFit, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
 import { parseQuestNpcBinding, type QuestNpcTalkBinding } from '@wildshard/format/npcs';
@@ -65,12 +65,9 @@ import { MemoryAdmission } from '@wildshard/format/product';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { contentCost } from '@wildshard/format/contentCost';
 import { CONTENT_CAPS, _applyChunkConstants } from '@wildshard/engine/core/config';
-import type { App } from '@wildshard/engine/app/app';
-import type { LevelSpec } from '@wildshard/engine/level/spec';
 import { configureLevel } from '@wildshard/engine/level/selection';
 import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
-import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 import { emptyLook } from '../shardfile/emptyLook';
 import { shardfileLook } from '../shardfile/look';
@@ -83,7 +80,6 @@ import { shardfileWater } from '../shardfile/water';
 import { clientResidency } from '../shardfile/clientResidency';
 import { firstPartyInstance } from '../grid/instances';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { preflightShardfile } from '@wildshard/format/preflight';
 
 
 
@@ -1991,22 +1987,6 @@ export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'sha
   } catch (error) { residency.dispose(); throw error; }
 }
 
-/** Validate before allocating a level. Content bindings belong to the full loader. */
-export function emptyShardfileSource(input: unknown): ShardManifest {
-  preflightShardfile(input);
-  if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
-  const source = parseShardfile(input);
-  if (source.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
-  if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
-  // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
-  const lut = source.look.grade.lut;
-  const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
-  const newContent = (source.directors?.length ?? 0) + source.movers.length + source.crowds.length + source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + source.audio.routing.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
-  if ((source.modes?.traverse.length ?? 0) > 0 || source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.navigation !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || source.audio.music !== undefined || source.audio.samples !== undefined || source.audio.zones !== undefined || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.filter((ref) => ref !== lut).length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
-  return sourceManifest(source);
-}
-
-
 /** Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. */
 export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
   const ownedOptions = withPageMemory(options, bindings);
@@ -2109,14 +2089,6 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   return selectSource(installed, true);
 }
 
-/** Project an empty shardfile into the same engine spec consumed by legacy sources. */
-export function shardfileLevelSpec(input: unknown): LevelSpec { return toLevelSpec(emptyShardfileSource(input)); }
-
-/** Load through an installed engine driver; the ordinary unloadLevel owns every resource. */
-export async function loadShardfile(app: App, input: unknown): Promise<void> {
-  await app.loadLevel(shardfileLevelSpec(input), {});
-}
-
 /** The prebuilt client's HTML supplies data, without a second boot loop or URL switch. */
 export async function configuredShardfile(document: Pick<Document, 'getElementById'>, options: ProductOptions): Promise<Shardfile | null> {
   const element = document.getElementById('ws-shardfile');
@@ -2127,16 +2099,6 @@ export async function configuredShardfile(document: Pick<Document, 'getElementBy
   const input: unknown = JSON.parse(text);
   if (!isOutputIndex(input)) throw new Error('Embedded shardfile requires a format-2 output');
   const source = await readProductInput(input, options);
-  return source;
-}
-
-/** Select a validated external source before the normal session starts. */
-export function installShardfileSource(input: unknown): ShardManifest {
-  const source = emptyShardfileSource(input);
-  installShards([source]);
-  game.shard = source;
-  _applyChunkConstants(source);
-  configureLevel(toLevelSpec(source));
   return source;
 }
 

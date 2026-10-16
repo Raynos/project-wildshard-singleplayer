@@ -703,12 +703,6 @@ export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetada
 };
 /** Validate authored metadata, resolve literal bundled image imports and compose
  * the unchanged native boot owners. Missing source images refuse admission. */
-/**
- * Kept for discovery files generated at 7c5ee6973..82fd5f039 that still sit in build-mirror slots: `pnpm gen`'s generation
- * step imports them before gen-shards rewrites them (today's generator emits its own helper). Delete after W2 closes.
- */
-export function callWithProduct<T>(make: (product: ShardProduct) => T, product: ShardProduct): T { return make(product); }
-
 export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: AuthoredShardBindings,
   native: Parameters<typeof defineShard>[1], images: Readonly<Record<string, string>>): ShardManifest {
   const {bindings: _declaredBindings, boot: bootData, ...data} = parseManifestMetadata(input, slug);

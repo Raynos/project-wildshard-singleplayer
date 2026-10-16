@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI accepts filesystem project/output paths.
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author proof tape is an explicit local input file.
 import { existsSync, readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { AuthorProofPlanSchema } from './tickProtocol';
-import { buildProject, newProject, projectAssets, readProjectAssets, validateProject } from './project';
-import { parseShardfile, ShardfileSchema, type Shardfile } from './shardfile';
+import { buildProject, newProject, readProjectAssets, validateProject } from './project';
+import { ShardfileSchema, type Shardfile } from './shardfile';
 import { devProject } from './dev';
 import { proveAuthorSimulation, measureSimulation, validateSimulation } from './headless';
 import { performanceReport, performanceReportLines, type PerformanceObservations } from './reportCard';
@@ -19,7 +19,6 @@ import { buildBehaviourProject } from './buildBehaviour';
 import { synthProject } from './synth';
 import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
 import { validateOutputProduct } from './outputProduct';
-import { isOutputIndex } from '@wildshard/format/outputIndex';
 import type { RuntimeCopyOptions } from './outputRuntime';
 import type { ProjectManifestSource } from './projectManifest';
 import { ShardCatalogPlacementsSchema } from '@wildshard/format/shardCatalog';
@@ -87,27 +86,24 @@ export async function runCli(args: readonly string[], options: { readonly runtim
     const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, ...(options.manifest === undefined ? {} : { manifest: options.manifest }), copyRuntime: flags.includes('--copy-runtime'), ...(options.runtimeCheck === undefined ? {} : { runtimeCheck: options.runtimeCheck }), ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'prove') {
+    if (input.endsWith('.json') && basename(input) !== 'shard.json') throw new Error('prove requires a format-2 shard.json or author project');
     if (output === undefined || buildFlag !== undefined) throw new Error('usage: wildshard prove <project|shard.json> <proof.json>');
-    const authored = input.endsWith('.json') ? undefined : await readProjectAssets(resolve(input), undefined, options.manifest);
-    const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));
-    const assets = authored?.assets ?? projectAssets(resolve(input, '..'), shard, 'product');
+    const built = input.endsWith('.json') || !existsSync(resolve(input, 'shard.config.ts'));
+    const { shard, assets } = built
+      ? validateOutputProduct(resolve(input.endsWith('.json') ? dirname(input) : input))
+      : await readProjectAssets(resolve(input), undefined, options.manifest);
     const plan = v.parse(AuthorProofPlanSchema, JSON.parse(readFileSync(resolve(output), 'utf8')));
     console.info(JSON.stringify(await proveAuthorSimulation(shard, assets, plan), null, 2)); return;
   }
   if (command === 'validate') {
+    if (input.endsWith('.json') && basename(input) !== 'shard.json') throw new Error('validate requires a format-2 shard.json or author project');
     const folder=resolve(input.endsWith('.json') ? dirname(input) : input);
-    if (existsSync(resolve(folder,'shard.json'))) {
-      const declaration=readShardfileSource(resolve(folder,'shard.json'));
-      if (isOutputIndex(declaration)) {
-        const checked=validateOutputProduct(folder);
-        console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`);return;
-      }
+    if (input.endsWith('.json') || existsSync(resolve(folder, 'shard.json'))) {
+      const checked = validateOutputProduct(folder);
+      console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`); return;
     }
-    const built = input.endsWith('.json');
-    const authored = built ? undefined : await readProjectAssets(resolve(input), undefined, options.manifest);
-    const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));
-    const assets = authored?.assets ?? projectAssets(resolve(input, '..'), shard, 'product');
-    const project = built ? resolve(input, '..') : resolve(input), policy = projectPerformancePolicy(project, shard);
+    const { shard, assets } = await readProjectAssets(resolve(input), undefined, options.manifest);
+    const project = resolve(input), policy = projectPerformancePolicy(project, shard);
     validateProject(shard, assets, project);
     let layers = 0, blended = 0, masked = 0;
     const kinds = new Map(shard.files.map((file) => [file.hash, file.kind]));
