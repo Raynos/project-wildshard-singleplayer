@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./nativeRuntimePlan": "./nativeRuntimePlan.ts",
     "./worldTargets": "./worldTargets.ts",
     "./decisionPublication": "./decisionPublication.ts",
     "./decisionBindings": "./decisionBindings.ts",

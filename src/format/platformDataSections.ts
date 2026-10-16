@@ -4,9 +4,11 @@ import { DecisionScriptsSchema, type DecisionScripts } from './decisionScripts';
 import { UiStringsSchema, type UiStrings } from './uiStrings';
 import { WorldPhysicsSchema, type WorldPhysics } from './worldPhysics';
 import { WorldTargetsSchema, type WorldTargets } from './worldTargets';
+import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRuntimePlan';
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'sim/runtime-plan': NativeRuntimePlanData;
   'actors/moves': ActorMoves;
   'sim/scripts': DecisionScripts;
   'ui/strings': UiStrings;
@@ -16,6 +18,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'sim/runtime-plan': { schema: NativeRuntimePlanSchema },
   'actors/moves': { schema: ActorMovesSchema },
   'sim/scripts': { schema: DecisionScriptsSchema },
   'ui/strings': { schema: UiStringsSchema },
@@ -32,6 +35,7 @@ export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): D
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;
 export function parsePlatformDataSection(name: 'world/physics', value: unknown): WorldPhysics;
 export function parsePlatformDataSection(name: 'world/targets', value: unknown): WorldTargets;
+export function parsePlatformDataSection(name: 'sim/runtime-plan', value: unknown): NativeRuntimePlanData;
 export function parsePlatformDataSection(name: PlatformDataSectionName, value: unknown): PlatformDataSections[PlatformDataSectionName];
 export function parsePlatformDataSection(name: PlatformDataSectionName, value: unknown): PlatformDataSections[PlatformDataSectionName] {
   return v.parse(PLATFORM_DATA_SECTIONS[name].schema, value);

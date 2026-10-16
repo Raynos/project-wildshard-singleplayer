@@ -7559,3 +7559,23 @@ including defaults, without changing them. Frame-floor replaces its saved
 Settings and clears persisted `debug.*` overrides before each page boot, then
 applies only its explicit picks. Each case records the effective choices;
 older previews without this diagnostic report `null`, never inferred values.
+
+### Native plan section selection (KS2)
+
+`sim/runtime-plan` selects the existing held-melee native interpreter with
+`{kind: "held-melee", recipe, baked}`. The defining schema in
+`format/nativeRuntimePlan` admits bounded plain data, not callbacks or module
+URLs. The build-only output sidecar emits it; client `runtime/` never loads
+the native recipe or world. Signal uses the same recipe shape as Sky.
+The schema carries authored director input order as `ownerInputs` and
+reconstructs native home fields in their original order, preserving the
+existing string-based save contracts across canonical JSON serialization.
+
+`game/shardfile/nativePlan.prepareProductRuntimePlan(product, assets)`
+requires a verified output descriptor, forwards its complete section map,
+and reads missing named blobs through the checked product reader. It calls
+the existing `prepareRuntimePlan`; installation, fixed steps, RNG, collision
+and save owners stay there. `sdk/headlessRuntime.prepareNativeRuntime`
+selects this section when no explicit legacy entry is supplied. A missing
+section refuses rather than selecting source code. The resident and worker
+reuse their existing tick, effect and snapshot boundaries.

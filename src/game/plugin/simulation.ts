@@ -189,7 +189,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot) };
   } };
 }
-interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
+export interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
   readonly runtime: {
     readonly weapon: { readonly id: string; readonly stowOnBoard?: boolean; readonly questWorld?: boolean; readonly worldReactionAction?: number };
     readonly quest: { readonly spots: 'metadata' | QuestGraphPorts['spots']; readonly crack?: boolean;

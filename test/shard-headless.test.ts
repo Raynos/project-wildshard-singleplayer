@@ -14,6 +14,8 @@ import { beforeAll, expect, it } from 'vitest';
 import { parseShardfile } from '../src/format/shardSchema';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { productHeadlessSections } from '../src/sdk/headlessSections';
 import template from '../src/shards/_template/shard.config';
 import pastel from '../src/shards/pastel-plain/shard.config';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
@@ -27,7 +29,7 @@ const cases = [
   ['_template', template, false], ['pastel-plain', pastel, false],
   ['driftwood-isle', driftwood, true], ['pine-hollow', pine, true],
   ['nalati-grasslands', nalati, true], ['nine-dragon-stack', nine, true],
-  ['sunscar-dunes', signal, true], ['far-reach', sky, true],
+  ['sunscar-dunes', signal, true], ['far-reach', sky, false],
 ] as const;
 
 beforeAll(() => {
@@ -42,7 +44,9 @@ for (const [slug, input, trusted] of cases) it(`${slug}: boots and advances a li
   const source = parseShardfile(input);
   const assets = new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/${slug}/assets/${file.hash}`))]));
   for (const hash of source.requires.commons) assets.set(`commons:${hash}`, Uint8Array.from(readFileSync(`public/commons/${hash}`)));
+  const product = await loadHeadlessProduct(`out/${slug}`);
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
+    ...(product.has('sim/runtime-plan') ? { sections: productHeadlessSections(product) } : {}),
     ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : (existsSync(`src/shards/${slug}/sim/headless.ts`) ? `src/shards/${slug}/sim/headless.ts` : `src/shards/${slug}/runtime/headless.ts`))).href } } : {}) });
   try {
     const first = decodeSimSnapshot((await sim.step()).snapshot);

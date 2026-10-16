@@ -5,6 +5,7 @@ import type { ActorMoves } from './actorMoves';
 import type { DecisionScriptRow } from './decisionScripts';
 import type { WorldPhysics } from './worldPhysics';
 import type { WorldTargets } from './worldTargets';
+import type { NativeRuntimePlanData } from './nativeRuntimePlan';
 
 type Rows = Shardfile['rows'];
 type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
@@ -21,6 +22,8 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  /** Existing native owners selected by admitted data, never client runtime code. */
+  'sim/runtime-plan': NativeRuntimePlanData;
   'world/tiles': Pick<Shardfile, 'tiles' | 'far' | 'near'>;
   'world/terrain': Pick<Shardfile, 'terrain' | 'nativeGround'>;
   'world/edge': Pick<Shardfile, 'edge' | 'entryways'>;

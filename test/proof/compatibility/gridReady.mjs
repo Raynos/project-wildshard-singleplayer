@@ -64,7 +64,9 @@ export async function proveTrustedGridReady(source, mode = DEVELOPER) {
       assert.equal(cell.slug, slug);
       assert.equal(allocator.has(`sim:${instance}`), true, 'Reserve before creating native physics'); loads++;
       if (snapshot !== undefined) restored++;
-      resident = await createTrustedHeadlessResident({ shard: source, assets, rapier }, { module }, snapshot);
+      const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.ts');
+      const product = await loadHeadlessProduct(`out/${slug}`);
+      resident = await createTrustedHeadlessResident({ shard: source, assets, rapier, product }, product.has('sim/runtime-plan') ? undefined : { module }, snapshot);
       assert.equal(resident.effects.length, 0, 'Admission emits no gameplay');
       return resident;
     },

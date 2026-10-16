@@ -11,6 +11,7 @@ import type { Shardfile } from './shardfile';
 import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
 
 /** Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL. */
 export interface TrustedHeadlessRuntime { module: string }
@@ -115,13 +116,10 @@ export interface TrustedHeadlessResident {
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
   dispose: () => void;
 }
-/**
- * Load the explicitly selected trusted entry (`TrustedHeadlessRuntime`, a local file module, never a shardfile URL) and
- * install its plan into a fresh host, or into a host restored from `snapshot`. The plan must keep the shard's identity;
- * installation must not emit effects. An object continuation (the grid's packed cache) goes through the same strict wire
- * decode as the worker's string, so no path restores from a live object. A failed install disposes the world it built.
- */
-export async function createTrustedHeadlessResident(provided: HeadlessRuntimeInput, entry: TrustedHeadlessRuntime, snapshot?: string | Readonly<SimSnapshot>): Promise<TrustedHeadlessResident> {
+/** Resolve the built native plan when entry is absent. An explicitly supplied
+ * legacy entry keeps its existing local-module law; missing declarations never
+ * fall back to a shard source path. Both paths verify product/level identity. */
+export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime): Promise<HeadlessRuntimePlan> {
   if (!/^[a-z0-9][a-z0-9-]*$/u.test(provided.shard.identity.slug)) throw new Error('Invalid native product identity');
   let product = provided.product;
   if (product === undefined) {
@@ -131,11 +129,19 @@ export async function createTrustedHeadlessResident(provided: HeadlessRuntimeInp
   const { slug: actualIdentity } = product, { slug: expectedIdentity } = provided.shard.identity;
   if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
   const preparation: HeadlessRuntimePreparation = { ...provided, product };
-  const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
-  if (!hasFactory(loaded)) throw new Error('Trusted runtime must export prepareHeadlessRuntime');
-  const plan = await loaded.prepareHeadlessRuntime(preparation);
+  const plan = entry === undefined ? await prepareProductRuntimePlan(product, provided.assets) : await (async () => {
+    const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
+    if (!hasFactory(loaded)) throw new Error('Trusted runtime must export prepareHeadlessRuntime');
+    return loaded.prepareHeadlessRuntime(preparation);
+  })();
   const identity = { id: preparation.shard.identity.slug, seed: preparation.shard.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
+  return plan;
+}
+/** Install the selected plan into one fresh or strictly restored native host.
+ * A failed install disposes its world; installation may emit no gameplay effects. */
+export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime, snapshot?: string | Readonly<SimSnapshot>): Promise<TrustedHeadlessResident> {
+  const plan = await prepareNativeRuntime(preparation, entry);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
   const context: HeadlessRuntimeInstallation = { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, emit: effect => { effects.push(effect); } };
@@ -170,7 +176,7 @@ export async function createTrustedHeadlessResident(provided: HeadlessRuntimeInp
   };
 }
 /** Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers). */
-export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeInput, entry: TrustedHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
+export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
   const resident = await createTrustedHeadlessResident(preparation, entry, snapshot), { host } = resident;
   return {
     step: input => { resident.step(input); },

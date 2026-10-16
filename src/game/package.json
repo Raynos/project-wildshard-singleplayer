@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/nativePlan": "./shardfile/nativePlan.ts",
     "./shardfile/worldTargets": "./shardfile/worldTargets.ts",
     "./shardfile/decisions": "./shardfile/decisions.ts",
     "./shardfile/outputDescriptor": "./shardfile/outputDescriptor.ts",
