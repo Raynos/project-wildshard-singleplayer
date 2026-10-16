@@ -138,3 +138,11 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   Phone boot has no errors; the close trolley pair matches. Existing
   compressed Pine birds (192,080 B) and trees (2,702,644 B) now pass
   decoded-byte admission without changing or re-encoding their bytes.
+
+- 2026-10-16 Driftwood named-geometry meshopt sweep: all 112 named GLBs
+  use the same lossless intake. Their 423 decoded views and scene,
+  accessor, material, skin and animation rows compare unchanged.
+  Raw GLB bytes are 29,296,160 → 15,001,096 (-14,295,064 B);
+  per-file gzip-9 totals are 9,530,728 → 9,284,667 (-246,061 B).
+  Logical names/URL aliases and all seven binary world payloads stay
+  unchanged. This transforms output bytes only, without new Git blobs.

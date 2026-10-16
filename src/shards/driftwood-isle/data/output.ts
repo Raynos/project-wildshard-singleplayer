@@ -30,7 +30,7 @@ const AssetsSchema = v.strictObject({
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */
 export const DRIFTWOOD_OUTPUT = {
   blobs: [...canonical.values()].map(row => {
-    if (row.name !== 'models/zipline/trolley.glb') return row;
+    if (row.kind !== 'glb') return row;
     const result = { ...row };
     return Object.assign(result, { options: { meshopt: true } });
   }),
