@@ -6,7 +6,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../../world/build';
-import { Cove } from '../../world/Cove';
+import { islandCoveSpec } from '../boot/coveGeometry';
 import { IslandSfx } from './sfx';
 import { ISLAND_SURFACES, SHRINE_SITES } from '../const';
 import { createIslandAmbience } from './ambience';
@@ -26,7 +26,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const islandSfx = new IslandSfx(audio, declared, ctx.scope);
   const sea = declaredSea.level; // SF46 (G164): the lowered sea at road height
   const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
-  const ambience = createIslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
+  const ambience = createIslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: islandCoveSpec() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
   const cues = createCueRouter(audioRows.routing.filter(route => route.bus === 'audio'), {
     voices: new Map(), bindings: declared.voiceBindings, owners: new Map<string, object>([['sfx', islandSfx], ['listener', player]]),
   });

@@ -2,7 +2,7 @@ import { Color } from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
 import { ISLAND } from '../data/layout';
-import { islandCoveSpec } from '../world/coveLayout';
+import { islandCoveSpec } from './coveLayout';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
 import { GROUND_COVER } from '../data/coverLook';
 import { DENSITY, type Site } from '../runtime/looks/coverSites';

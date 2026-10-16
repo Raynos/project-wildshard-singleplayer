@@ -24,6 +24,11 @@ const trophySlots = v.strictObject({ ranges: runs, boards: runs, empty: v.strict
 const trailPoint = { x: number, y: number, z: number };
 const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
 const cove = v.strictObject({
+  spec: v.strictObject({ pools: v.pipe(v.array(v.strictObject({ x: number, z: number, r: number })), v.maxLength(64)), crabSites: v.pipe(v.array(v.strictObject({ x: number, z: number })), v.maxLength(64)),
+    fall: v.strictObject({ top: v.tuple([number, number]), foot: v.tuple([number, number]), width: number }),
+    cave: v.strictObject({ x: number, z: number, yaw: number, w: number, h: number, depth: number }),
+    caveBounds: v.strictObject({ x: number, z: number, r: number, yMin: number, yMax: number }) }),
+  floor: v.strictObject({ ramp0: number, ramp1: number, ante: number, alc: number, pass0: number, pass1: number, anteWidth: number, passWidth: number, alcWidth: number }),
   specKey: v.pipe(v.string(), v.maxLength(4096)),
   native: v.strictObject({ colliders: boxes, anchors: v.record(text, anchor), descs: v.pipe(v.array(surfaced), v.maxLength(128)),
     cuts: v.pipe(v.array(v.strictObject({ x: number, z: number, hw: number, hd: number, yaw: number, below: number })), v.maxLength(16)) }),

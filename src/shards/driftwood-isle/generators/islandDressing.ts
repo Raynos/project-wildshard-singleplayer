@@ -111,7 +111,7 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
  binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field;
  const avoid=[{x:HUT.x,z:HUT.z,r:11},{x:LOOKOUT.x,z:LOOKOUT.z,r:12},{x:SHRINE.x,z:SHRINE.z,r:13},{x:WRECK.x,z:WRECK.z,r:14}];
  // Ground-cover logs use the cover's own POI exclusions, not the palm/bush scatter margins.
- const {islandCoveSpec}=await import('../world/coveLayout');const cave=islandCoveSpec().cave;
+ const {islandCoveSpec}=await import('./coveLayout');const cave=islandCoveSpec().cave;
  const logAvoid=[{x:HUT.x,z:HUT.z,r:9},{x:LOOKOUT.x,z:LOOKOUT.z,r:8},{x:SHRINE.x,z:SHRINE.z,r:9.5},{x:WRECK.x,z:WRECK.z,r:13},{x:cave.x,z:cave.z+cave.depth/2,r:8},{x:0,z:-151,r:3.2}];
  const logs=duneLogs(ground.heightAt,ground.trailDistance,logAvoid,0,manifest.seed);
  try{

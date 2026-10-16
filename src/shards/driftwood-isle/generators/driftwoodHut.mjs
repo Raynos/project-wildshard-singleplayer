@@ -7,7 +7,7 @@ import { driftwoodGroundSampler } from './groundSampling.ts';
 import { PLATEAU, HEADLAND } from '../data/landscapeRows.ts';
 import { hutBake } from './hut.ts';
 import { lookoutBake } from './lookout.ts';
-import { islandCoveSpec } from '../world/coveLayout.ts';
+import { islandCoveSpec } from './coveLayout.ts';
 
 const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };

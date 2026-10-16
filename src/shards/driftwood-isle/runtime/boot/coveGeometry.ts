@@ -3,7 +3,6 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { fixedGeometryHandle as modelGeometry } from './modelGeometry';
 import { driftwoodRows } from './rows';
-import { coveSpecKey, type CoveSpec } from '../../world/coveLayout';
 
 const templates = {
   structure: modelGeometry('coveStructure'),
@@ -15,6 +14,19 @@ const templates = {
 /** the cave's baked facts, from the admitted product (`custom/fixedLayouts`, from data/coveBake.json) */
 const bake = () => driftwoodRows('custom/fixedLayouts').cove;
 type CoveBake = ReturnType<typeof bake>;
+export type CoveSpec = CoveBake['spec'];
+export type CaveBounds = CoveSpec['caveBounds'];
+export type CoveAnchor = CoveBake['native']['anchors'][string];
+/** Fresh authored layout from the admitted static model section. */
+export function islandCoveSpec(): CoveSpec { return structuredClone(bake().spec); }
+export function coveFloorFacts(): CoveBake['floor'] { return bake().floor; }
+function coveSpecKey(spec: CoveSpec): string {
+  const { cave: c, caveBounds: b, fall: f } = spec;
+  return [spec.pools.length, ...spec.pools.flatMap(p => [p.x, p.z, p.r]),
+    spec.crabSites.length, ...spec.crabSites.flatMap(p => [p.x, p.z]),
+    ...f.top, ...f.foot, f.width, c.x, c.z, c.yaw, c.w, c.h, c.depth,
+    b.x, b.z, b.r, b.yMin, b.yMax].join(',');
+}
 
 /** Explicit intake; a fixture can admit these same immutable templates without fetch. */
 export async function loadCoveGeometry(bytes: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {

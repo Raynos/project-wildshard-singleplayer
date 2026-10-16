@@ -7,7 +7,7 @@ import { driftwoodGroundSampler } from './groundSampling.ts';
 import { coveGeometry } from './cove.ts';
 import { coveNative } from './coveNative.ts';
 import { cascadeGeometry } from './cascade.ts';
-import { coveSpecKey, islandCoveSpec } from '../world/coveLayout.ts';
+import { coveSpecKey, islandCoveSpec, RAMP, ANTE, PASS, ALC, ANTE_FLOOR, ALC_FLOOR } from './coveLayout.ts';
 
 export function originalCove() {
   const ground = driftwoodGroundSampler();
@@ -21,7 +21,7 @@ export function originalCove() {
       width: 2.2, ground, poolRadius: 2.3, steps: 3 });
     return {
       geometry: built.geometry, fall,
-      metadata: { specKey: coveSpecKey(spec), native:coveNative(spec,ground), catalogue: {
+      metadata: { spec, floor: { ramp0: RAMP.z0, ramp1: RAMP.z1, ante: ANTE_FLOOR, alc: ALC_FLOOR, pass0: PASS.z0, pass1: PASS.z1, anteWidth: ANTE.hw, passWidth: PASS.hw, alcWidth: ALC.hw }, specKey: coveSpecKey(spec), native:coveNative(spec,ground), catalogue: {
         placements: built.placements.map(row => {
           const at = new Vector3().setFromMatrixPosition(row.m);
           return { x:at.x,y:at.y,z:at.z,params:{r:row.r,squash:row.squash,moss:row.moss} };

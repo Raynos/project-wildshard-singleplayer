@@ -116,6 +116,18 @@
         "bytes": 202261
       },
       "why": "G465: replace the 86 fixed-source runtime mirror with admitted asset-index aliases; includes o293's three committed entry-deck sources"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 6,
+        "bytes": 202261
+      },
+      "to": {
+        "count": 6,
+        "bytes": 202842
+      },
+      "why": "G465: emit authored cave layout and floor tuning in the existing fixed layout section, deleting their live authoring reach"
     }
   ]
 }

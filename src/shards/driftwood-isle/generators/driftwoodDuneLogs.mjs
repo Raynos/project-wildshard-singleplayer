@@ -6,7 +6,7 @@ import { driftwoodGroundSampler } from './groundSampling.ts';
 import { SEED, TRAILS, PLATEAU, HEADLAND } from '../data/landscapeRows.ts';
 import { SHRINE_SITES } from '../data/shrineSites.ts';
 import { WRECK_SITES } from '../data/wreckSites.ts';
-import { islandCoveSpec } from '../world/coveLayout.ts';
+import { islandCoveSpec } from './coveLayout.ts';
 import { driftLogBox } from './driftLogs.ts';
 import { duneLogs } from './duneLogs.ts';
 

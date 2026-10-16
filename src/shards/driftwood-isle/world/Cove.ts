@@ -30,8 +30,7 @@
  * `caveBounds` {x, z, r, yMin, yMax} (the cave reverb) — also on `Cove.forIsland()` for the ambience.
  */
 import * as THREE from 'three';
-import { copyCoveGeometry, coveColliderDescs } from '../runtime/boot/coveGeometry';
-import { coveFloorAt, coveHalfWidth, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from './coveLayout';
+import { copyCoveGeometry, coveColliderDescs, coveFloorFacts, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from '../runtime/boot/coveGeometry';
 import { waterfall } from '../runtime/world/Waterfall';
 import { rockMaterial } from './rockKit';
 import { reefRock } from '../runtime/models/reefRock';
@@ -51,6 +50,17 @@ export function setPoolLook(materials: ReadonlyMap<string, THREE.Material>, foll
   const material = materials.get(POOL_LOOK);
   if (material === undefined) throw new Error('Driftwood: look.materials lacks the cove pool graph');
   poolLook = { material, follow };
+}
+
+export function coveFloorAt(lz: number): number {
+  const f = coveFloorFacts();
+  if (lz < f.ramp0) return f.ante;
+  if (lz > f.ramp1) return f.alc;
+  return f.ante + ((lz - f.ramp0) / (f.ramp1 - f.ramp0)) * (f.alc - f.ante);
+}
+export function coveHalfWidth(lz: number): number {
+  const f = coveFloorFacts();
+  return lz < f.pass0 ? f.anteWidth : lz < f.pass1 ? f.passWidth : f.alcWidth;
 }
 
 export class Cove {

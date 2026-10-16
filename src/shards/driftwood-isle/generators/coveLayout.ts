@@ -1,5 +1,5 @@
 /** One authored layout and floor law for the offline mesh and live collision owner. */
-import { WORLD_DROP } from './sea';
+import { WORLD_DROP } from '../data/landscapeRows';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }

@@ -1,6 +1,6 @@
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
-import { ANTE, PASS, ALC, STEPS, ANTE_FLOOR, ALC_FLOOR, CUT, BACKFILL, coveFloorAt, coveWorld, type CoveSpec, type CoveAnchor } from '../world/coveLayout';
+import { ANTE, PASS, ALC, STEPS, ANTE_FLOOR, ALC_FLOOR, CUT, BACKFILL, coveFloorAt, coveWorld, type CoveSpec, type CoveAnchor } from './coveLayout';
 
 /** Existing cave walls, floors, anchors and terrain cut, evaluated against the native authoring ground. */
 export function coveNative(spec:CoveSpec,heightAt:(x:number,z:number)=>number): {
