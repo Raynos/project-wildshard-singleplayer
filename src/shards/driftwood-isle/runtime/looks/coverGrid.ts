@@ -8,7 +8,7 @@ import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
  * (`top`), how much they hide seen from the side (`side`: their upright blades and fronds) and their mean colour (`rgb`).
  * The author fills it from its density rules and splats the cover it placed. The page borrows that validated file. Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
  * their graph mixes the facet towards the cover colour by how much of the ground the plants hide *from where you look*:
- * a little from above, nearly all of it at the grazing angle far ground is seen at (data/groundLook.ts `coverMix`: the
+ * a little from above, nearly all of it at the grazing angle far ground is seen at (generators/groundGraphs.ts `coverMix`: the
  * faceted ground's and the baked cove's terrain graphs). Each terrain declares the attributes zeroed when it builds
  * (`coverAttributes`) and `tintTerrain` fills them in place.
  *

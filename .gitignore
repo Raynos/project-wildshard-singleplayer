@@ -975,6 +975,7 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # Driftwood scene tiles and query terrain: cold build outputs.
 /src/shards/driftwood-isle/data/fixedTiles.generated.json
+/src/shards/driftwood-isle/data/lookMaterials.generated.json
 /src/shards/driftwood-isle/assets/00268188baf07b6a96e449add801904354513cc04ac0b8b45e3572d21c6b9157
 /src/shards/driftwood-isle/assets/0318cec04aeccd1db2e61064aab12c7e5b59edf2ec8595f414a6644d6486c4fe
 /src/shards/driftwood-isle/assets/12ae803ba3807ac8b9601a3782d152de389d08f5c34b9f23596609a6aa5b5c93

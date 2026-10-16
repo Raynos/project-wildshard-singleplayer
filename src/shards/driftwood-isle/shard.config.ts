@@ -18,9 +18,6 @@ import { FIREFLY_GRAPHS } from './data/fireflyLook';
 import { REEF_GRAPHS } from './data/reefLook';
 import { POOL_GRAPHS } from './data/poolLook';
 import { OCEAN_GRAPHS } from './data/oceanLook';
-import { GROUND_GRAPHS } from './data/groundLook';
-import { COVER_GRAPHS } from './data/coverLook';
-import { ISLAND_GRAPHS } from './data/islandLook';
 import { KIT_GRAPHS } from './data/kitLook';
 import { SKY_GRAPHS } from './data/skyLook';
 import { FP_ARMS_GRAPHS } from './data/fpArmsLook';
@@ -30,6 +27,7 @@ import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { MOVERS } from './data/movers';
 import { MOTION_FILES, MOTION_MEMORY } from './data/motion';
 import fixed from './data/fixedTiles.generated.json' with { type: 'json' };
+import lookGraphs from './data/lookMaterials.generated.json' with { type: 'json' };
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
 // SF46 edges (G93 / G99 / G164): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand on
@@ -64,7 +62,8 @@ export default parseShardfile({
   // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts);
   // the faceted ground and its slab, and the low-poly kit's variants (compiled by the look's prepareWorld before the ground builds, look/terrainPainter.ts)
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/index.ts)
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS, ...GROUND_GRAPHS, ...COVER_GRAPHS, ...ISLAND_GRAPHS, ...KIT_GRAPHS, ...FP_ARMS_GRAPHS, ...GULL_GRAPHS, ...CREATURE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  // W2c: the ground's, the cover's and the baked cove's graphs arrive as build-time JSON (generators/lookMaterials.ts)
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS, ...lookGraphs, ...KIT_GRAPHS, ...FP_ARMS_GRAPHS, ...GULL_GRAPHS, ...CREATURE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, questHost: QUEST_HOST, questNpcs: QUEST_NPCS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },

@@ -4,7 +4,7 @@ import { DENSITY, beach, ss, type Site } from '../runtime/looks/coverSites';
  * hibiscus, white daisies and mossy pebbles on the grass, sparse sun-bleached beach grass on the sand, and a thicker
  * fern understorey in the shrine jungle. So the island interior stops reading as empty planes.
  *
- * Drawn by runtime/looks/streamedCover.ts from the rows and graphs in data/coverLook.ts: one InstancedMesh per plant (two,
+ * Drawn by runtime/looks/streamedCover.ts from the rows in data/coverLook.ts and the graphs of generators/coverGraphs.ts: one InstancedMesh per plant (two,
  * E186: written and uploaded behind, swapped in one frame), refilled from 16 m cells round the viewer every 4 m, each
  * plant at its own edge in its kind's reach (E117: no ring, no pop), a far tier of stand-ins past the near set (E117
  * follow-up: "more distant cover"), plants on sloping ground keeping their reach further (E156 C), and the plants fading

@@ -13780,6 +13780,44 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-look-materials",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/lookMaterials.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/lookMaterials.ts",
+        "driftwoodLookMaterials",
+        "src/shards/driftwood-isle/data/lookMaterials.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format/materialGraph.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/driftwood-isle/data/coverLook.ts",
+        "src/shards/driftwood-isle/data/groundLook.ts",
+        "src/shards/driftwood-isle/data/islandLook.ts",
+        "src/shards/driftwood-isle/data/lookRows.ts",
+        "src/shards/driftwood-isle/generators/coverGraphs.ts",
+        "src/shards/driftwood-isle/generators/groundGraphs.ts",
+        "src/shards/driftwood-isle/generators/islandGraphs.ts",
+        "src/shards/driftwood-isle/generators/lookMaterials.ts"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/lookMaterials.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/lookMaterials.generated.json"
+      ]
+    },
+    {
       "id": "pine-fauna",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/fauna.ts",

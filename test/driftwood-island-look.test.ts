@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { validateGraph } from '../src/format/materialGraph';
-import { ISLAND_GRAPHS, ISLAND_LOOKS } from '../src/shards/driftwood-isle/data/islandLook';
+import { ISLAND_LOOKS } from '../src/shards/driftwood-isle/data/islandLook';
+import { ISLAND_GRAPHS } from '../src/shards/driftwood-isle/generators/islandGraphs';
 import source from '../src/shards/driftwood-isle/shard.config';
 
 describe('Driftwood baked cove graph looks', () => {
