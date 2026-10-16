@@ -6195,3 +6195,9 @@ clearer/flash handles and flash rosters over eight refuse before mutation.
 The function allocates no geometry/material and installs no services.
 Pine crossbow and lever adopt now; the G441 W3 match is Nalati
 `runtime/weapons/magazineFirearm.ts#buildViewmodel`.
+
+**Clip transform ports.** `game/plugin/animation.playClips` accepts named
+local transform ports in `ClipCtx.bones` (`AnimalRigJoint`), including
+existing bones, meshes and groups. The reader writes only position,
+rotation and scale; it creates no pivots, materials or animation clock.
+NPC gesture acceptance, timers and head focus stay with their owners.

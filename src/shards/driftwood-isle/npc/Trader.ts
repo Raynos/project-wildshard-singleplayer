@@ -24,7 +24,8 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
-import { stepNpcHeadFocus, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { playClips, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { TRADER_POSE } from '../data/npcPose';
 import { TRADER_HEAD_FOCUS } from '../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -53,6 +54,7 @@ export class Trader {
   private head = new THREE.Mesh();
   private upper = new THREE.Mesh();
   private fore = new THREE.Mesh();
+  private readonly pose: ClipCtx = { bones: {}, t: 0, phase: 0, speed: 0, alive: true, deathT: 0, attack: -1, mem: {} };
   private turn = 0;
   private readonly focus: NpcHeadFocusInput = { distance: 0, relativeYaw: 0, playerY: 0, headY: 0 };
   private readonly gaze = { headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: 0.1 };
@@ -83,6 +85,7 @@ export class Trader {
     this.fore.position.set(-0.03, ELBOW_Y, 0.02);
     this.upper.add(this.fore);
 
+    this.pose.bones = { figure: this.figure, head: this.head, upper: this.upper, fore: this.fore };
     this.figure.add(this.body, this.head, this.upper);
     this.group.add(this.figure);
     return this;
@@ -120,11 +123,6 @@ export class Trader {
     const wantTurn = d < FACE_R && this.gesture !== 'tidy' ? wrap(toYou - bodyYaw) : 0;
     const dTurn = wrap(wantTurn - this.turn) * (1 - Math.exp(-TURN_K * dt));
     this.turn = wrap(this.turn + THREE.MathUtils.clamp(dTurn, -TURN_MAX * dt, TURN_MAX * dt));
-    // weight from foot to foot: a slow sway and a small roll at her feet
-    const shift = Math.sin(t * 0.42);
-    this.figure.rotation.set(0, this.turn, shift * 0.018);
-    this.figure.position.x = shift * 0.012;
-
     // ── the head leads: at you when you're near, else a glance about; down at the goods while she tidies them ──
     const g = this.gesture, gu = g === 'none' ? 0 : ease(this.gT / GESTURE_S[g]);
     const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - bodyYaw - this.turn;
@@ -132,28 +130,12 @@ export class Trader {
     focus.overrideYaw = g === 'tidy' ? -0.25 : undefined; focus.overridePitch = g === 'tidy' ? 0.45 : undefined;
     focus.offsetYaw = g === 'offer' && d < GREET_R ? -0.35 * gu : 0; focus.offsetPitch = g === 'offer' && d < GREET_R ? 0.3 * gu : 0;
     stepNpcHeadFocus(this.gaze, TRADER_HEAD_FOCUS, focus, dt, t);
-    const breathe = Math.sin(t * 1.5 + 0.7);
-    this.head.rotation.set(this.gaze.headPitch + breathe * 0.02, this.gaze.headYaw, Math.sin(t * 0.55) * 0.05 - shift * 0.03);
-    this.head.position.y = NECK + breathe * 0.006;
-    this.body.scale.set(1, 1 + breathe * 0.006, 1);
-
-    // ── the right arm ──
-    // (shoulder: x < 0 swings it forward, z < 0 lifts it out to her right; elbow: x < 0 bends the forearm forward / up)
-    let sx = Math.sin(t * 1.1) * 0.05, sz = -0.1, sy = 0, ex = -0.12, lean = 0;
-    if (g === 'beckon') {
-      // arm up and out, forearm raised, the hand waving her in: "over here"
-      sx = -0.55 * gu; sz = -0.1 - 0.65 * gu; sy = 0.5 * gu;
-      ex = -0.12 - (1.5 + Math.sin(this.gT * 11) * 0.35) * gu;
-    } else if (g === 'tidy') {
-      // reach down and forward to the counter, set a thing straight, back
-      sx = -0.5 * gu; sz = -0.1 + 0.18 * gu; ex = -0.12 - 0.28 * gu + Math.sin(this.gT * 5) * 0.08 * gu; lean = 0.07 * gu;
-    } else if (g === 'offer') {
-      // an open hand toward her goods: "take a look"
-      sx = -0.7 * gu; sz = -0.1 - 0.25 * gu; sy = 0.3 * gu; ex = -0.12 - 0.35 * gu;
-    }
-    this.upper.rotation.set(sx, sy, sz);
-    this.fore.rotation.set(ex, 0, 0);
-    this.figure.rotation.x = lean;   // she leans over the counter to reach it
+    this.body.scale.set(1, 1 + Math.sin(t * 1.5 + 0.7) * 0.006, 1);
+    const pose = this.pose; pose.t = t; pose.phase = this.gT;
+    pose.mem['gesture'] = g === 'offer' ? 3 : g === 'tidy' ? 2 : g === 'beckon' ? 1 : 0;
+    pose.mem['weight'] = gu; pose.mem['turn'] = this.turn;
+    pose.mem['headPitch'] = this.gaze.headPitch; pose.mem['headYaw'] = this.gaze.headYaw;
+    playClips(TRADER_POSE, pose);
   }
 }
 

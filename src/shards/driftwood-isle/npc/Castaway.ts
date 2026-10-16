@@ -25,7 +25,8 @@
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
-import { stepNpcHeadFocus, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { playClips, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { CASTAWAY_POSE } from '../data/npcPose';
 import { CASTAWAY_HEAD_FOCUS } from '../data/npcFocus';
 import { WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -59,6 +60,7 @@ export class Castaway {
   private camp = new THREE.Mesh();
   /** body + head + arm: turns about his feet to face you (E129); the campfire is not in it */
   private readonly figure = new THREE.Group();
+  private readonly pose: ClipCtx = { bones: {}, t: 0, phase: 0, speed: 0, alive: true, deathT: 0, attack: -1, mem: {} };
   private turn = 0;   // the figure's yaw off his idle facing (rad)
   private head = new THREE.Mesh();
   private arm = new THREE.Mesh();
@@ -111,6 +113,7 @@ export class Castaway {
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
     const smoke = new SmokeColumn(CASTAWAY_SMOKE, f);
 
+    this.pose.bones = { head: this.head, arm: this.arm, flames: this.flames };
     this.figure.add(this.body, this.head, this.arm);
     this.group.name = 'npc-castaway';   // E304: the face capture finds him by name
     this.group.add(this.figure, this.camp, this.flames, smoke.mesh);
@@ -141,23 +144,16 @@ export class Castaway {
     const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - this.bodyYaw - this.turn;
     focus.playerY = player.y; focus.headY = gp.y + NECK + 0.1;
     stepNpcHeadFocus(this.gaze, CASTAWAY_HEAD_FOCUS, focus, dt, t);
-    const breathe = Math.sin(t * 1.6);
-    this.head.rotation.set(this.gaze.headPitch + breathe * 0.02, this.gaze.headYaw, Math.sin(t * 0.5) * 0.05);
-    this.head.position.y = NECK + breathe * 0.006;
-    this.body.scale.set(1, 1 + breathe * 0.006, 1);
-    // the arm: hangs and sways; a wave is a big overhead arc for 2.2 s
-    if (this.waveT >= 0) {
-      this.waveT += dt;
-      const up = Math.min(1, this.waveT * 4) * Math.min(1, Math.max(0, (2.2 - this.waveT) * 4));
-      this.arm.rotation.set(0, 0, -2.6 * up + Math.sin(this.waveT * 12) * 0.35 * up);
-      if (this.waveT > 2.2) this.waveT = -1;
-    } else {
-      this.arm.rotation.set(Math.sin(t * 1.1) * 0.05, 0, 0.08 + (this.talking ? Math.max(0, Math.sin(t * 2.3)) * 0.35 : 0));
-    }
+    this.body.scale.set(1, 1 + Math.sin(t * 1.6) * 0.006, 1);
+    const pose = this.pose; pose.t = t; pose.mem['waving'] = this.waveT >= 0 ? 1 : 0;
+    if (this.waveT >= 0) this.waveT += dt;
+    pose.phase = this.waveT; if (this.waveT > 2.2) this.waveT = -1;
+    pose.mem['talking'] = this.talking ? 1 : 0;
+    pose.mem['headPitch'] = this.gaze.headPitch; pose.mem['headYaw'] = this.gaze.headYaw;
+    playClips(CASTAWAY_POSE, pose);
     // flames flicker; smoke rises (only near enough to see it: 260 m covers the whole island)
     const fl = 1 + Math.sin(t * 13) * 0.1 + Math.sin(t * 31 + 2) * 0.06;
     this.flames.scale.set(1 + Math.sin(t * 17) * 0.05, fl, 1 + Math.cos(t * 19) * 0.05);
-    this.flames.rotation.y = t * 0.6;
   }
 }
 

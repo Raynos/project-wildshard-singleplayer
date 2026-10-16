@@ -232,7 +232,10 @@ export type ClipRow = {
 export type SpeciesClips = readonly ClipRow[];
 
 /** What a clip reads from the frame: a subset of the engine's rig animation context. */
-export type ClipCtx = Pick<RigAnimCtx, 'bones' | 't' | 'phase' | 'speed' | 'alive' | 'deathT' | 'attack' | 'mem'> & Partial<Pick<RigAnimCtx, 'dt'>>;
+export type ClipCtx = Pick<RigAnimCtx, 't' | 'phase' | 'speed' | 'alive' | 'deathT' | 'attack' | 'mem'> & Partial<Pick<RigAnimCtx, 'dt'>> & {
+  /** Existing bone, mesh or group pivots; clips write only their local transforms. */
+  bones: Record<string, AnimalRigJoint>;
+};
 
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
 
