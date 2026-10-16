@@ -36,15 +36,13 @@ export interface LeverFirearmProfile extends HitscanProfile { ads: { blend: numb
 
 /** The lever's cycle: idle (ready), the recoil beat before the throw, the throw, a reload through the gate. */
 export type LeverPhase = 'idle' | 'beat' | 'cycle' | 'reload';
-/** The action as its pure helpers see it: the tube, the chamber and the reserve. */
-export interface LeverActionState { tube: number; chambered: boolean; reserve: number }
 /** What the action tells its owner as it runs. */
 export interface LeverFirearmHooks {
   cycle: () => void; eject: () => void; chambered: () => void; reloadStart: () => void; round: () => void; reloadEnd: () => void;
 }
 /** The shard's lever action (renderer-free; its headless rifle runs the same one): the tube, the chamber, the cycle, the gate. */
 export interface LeverFirearmAction {
-  readonly action: LeverActionState; readonly rounds: number; readonly chambered: boolean; readonly tube: number;
+  readonly rounds: number; readonly chambered: boolean; readonly tube: number;
   readonly phase: LeverPhase; readonly phaseT: number; readonly cycleU: number; readonly hammerCocked: boolean;
   readonly wantsAutoReload: boolean; readonly fed: number; readonly planned: number; readonly reloadProgress: number;
   readonly dropHammer: () => void; readonly throwLever: () => void; readonly triggerWhileReloading: () => void;
@@ -312,8 +310,6 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     s.loaded = this.act.chambered;
     s.reloading = this.act.phase === 'reload';
   }
-  /** the action as the pure helpers see it */
-  get action(): LeverActionState { return this.act.action; }
   /** the action's phase (idle, the beat, the throw, a reload) */
   private get phase(): LeverPhase { return this.act.phase; }
   /** 0..1 through the lever's throw (0 when it is shut) */
