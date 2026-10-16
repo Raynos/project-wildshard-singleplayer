@@ -38,7 +38,7 @@ import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { StreamedCover, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
+import { StreamedCover, type StreamedCoverHooks } from '../runtime/looks/streamedCover';
 
 export interface GroundCoverOpts {
   sea: number;
@@ -60,22 +60,25 @@ const TINT: Readonly<Record<string, Tint>> = {
 const KIND_DENSITY = GROUND_COVER.kinds.map((k) => DENSITY[k.name] ?? (() => 0));
 const KIND_TINT = GROUND_COVER.kinds.map((k) => TINT[k.name] ?? null);
 
-export class GroundCover {
+export class GroundCover extends StreamedCover<Site> {
   /** its placements: the dune line's drift logs (the named places' sets read them) */
   readonly placed: Placed[] = [];
-  private readonly cover: StreamedCoverSet<Site>;
   /** E156: the Blender island's area once it has loaded — its own cover dresses it, so no plant of ours is placed there */
   private skip: BlenderArea | null = null;
   private readonly avoid: { x: number; z: number; r: number }[] = [];
   private readonly palmGrid = new Map<string, { x: number; z: number }[]>();
   private readonly groundColor = new THREE.Color();
   private readonly coverAt = coverSample();
-  private readonly sky: Sky;
-  private readonly opts: GroundCoverOpts;
-
-  constructor(sky: Sky, opts: GroundCoverOpts) {
-    this.sky = sky;
-    this.opts = opts;
+  constructor(private readonly sky: Sky, private readonly opts: GroundCoverOpts) {
+    const hooks: StreamedCoverHooks<Site> = {
+      newSite: () => ({ h: 0, slope: 0, nx: 0, ny: 1, nz: 0, td: 0, sd: 0, palm: 0 }),
+      site: (x, z, s) => this.sampleSite(x, z, s),
+      density: (ki, s) => (KIND_DENSITY[ki] ?? (() => 0))(s),
+      tinted: (ki) => (KIND_TINT[ki] ?? null) !== null,
+      tint: (ki, s, rng, out) => { KIND_TINT[ki]?.(s.h, rng, out); },
+      ground: (x, z, s, out, o) => this.ground(x, z, s, out, o),
+    };
+    super({ row: GROUND_COVER, geometry: copyCoverGeometry(), hooks, heightAt, seed: SEED });
     const cave = Cove.forIsland().cave;
     this.avoid = [
       { x: HUT.x, z: HUT.z, r: 9 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 8 }, { x: SHRINE.x, z: SHRINE.z, r: 9.5 },
@@ -87,21 +90,7 @@ export class GroundCover {
       const list = this.palmGrid.get(k);
       if (list) list.push(p); else this.palmGrid.set(k, [p]);
     }
-    const hooks: StreamedCoverHooks<Site> = {
-      newSite: () => ({ h: 0, slope: 0, nx: 0, ny: 1, nz: 0, td: 0, sd: 0, palm: 0 }),
-      site: (x, z, s) => this.site(x, z, s),
-      density: (ki, s) => (KIND_DENSITY[ki] ?? (() => 0))(s),
-      tinted: (ki) => (KIND_TINT[ki] ?? null) !== null,
-      tint: (ki, s, rng, out) => { KIND_TINT[ki]?.(s.h, rng, out); },
-      ground: (x, z, s, out, o) => this.ground(x, z, s, out, o),
-    };
-    this.cover = new StreamedCover({ row: GROUND_COVER, geometry: copyCoverGeometry(), hooks, heightAt, seed: SEED });
   }
-
-  /** the cover's meshes and the dune logs */
-  get group(): THREE.Group { return this.cover.group; }
-  /** measurements for scripts/popin-fly.mjs / stutter-run.mjs (also group.userData.stats) */
-  get stats(): StreamedCoverStats { return this.cover.stats; }
 
   /** 1 at a palm's foot, fading out by 3.5 m */
   private nearPalm(x: number, z: number): number {
@@ -115,7 +104,7 @@ export class GroundCover {
   }
 
   /** a candidate point: none in a POI's footprint, the Blender island's area, the water or on steep rock */
-  private site(x: number, z: number, s: Site): boolean {
+  private sampleSite(x: number, z: number, s: Site): boolean {
     if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) return false;
     const sk = this.skip;
     if (sk && x > sk.x0 && x < sk.x1 && z > sk.z0 && z < sk.z1) return false;
@@ -140,24 +129,19 @@ export class GroundCover {
     return y;
   }
 
-  build(): this {
-    this.cover.build();
+  override build(): this {
+    super.build();
     CoverGrid.create(...this.opts.grid);
     this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
   }
 
-  /** the viewer moved: refill, upload and swap the near and far sets */
-  update(dt: number, viewer: THREE.Vector3): void {
-    this.cover.update(dt, viewer);
-  }
-
   /** E156: the Blender island loaded — it dresses its own area, so the cells stop placing plants there (they were clipped
    *  in its shader, but each still took an instance and its vertices) */
   excludeArea(a: BlenderArea): void {
     this.skip = a;
-    this.cover.reset();
+    this.reset();
   }
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
