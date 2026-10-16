@@ -14,6 +14,7 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import { LEGACY_INVENTORY, legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
+import { checkSimRuntime } from './sim-in-runtime.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const EDGES_FILE = 'lint/layer-edges.json';
@@ -159,6 +160,8 @@ export function compareEdges(recorded, current) {
 const sorted = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
 
 function main(input) {
+  const simFailures=checkSimRuntime(ROOT);
+  if(simFailures.length>0){console.error(`check-graph (G453):\n  ${simFailures.join('\n  ')}`);return 1;}
   const sourceOnly = input.includes('--source-only');
   const argv = input.filter((arg) => arg !== '--source-only');
   const exists = (p) => existsSync(resolve(ROOT, p));
