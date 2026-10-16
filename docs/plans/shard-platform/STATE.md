@@ -1,11 +1,11 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**01:55Z `8aaec0d0e` (G445 source ruler): Pine 90.18 %, DW 82.58 %, Sky 92.12 %, Signal 43.52 %** (census `61f8f4271`: 90.56 / 83.03). Unknown owners 52 / 69 / 68 / 55, flagged. Old ruler at 01:00Z: Pine 66.32, DW 56.20.
-Pine/DW: C1 3776/3832 · C2 2469/2355 · C3 156/0 · C4 3759/1758 · C5 1995/1323 · C6 2555/903 · C7 13/503 · C8 1024/1742 · C9 3389/1761.
-Since 01:00Z: King phasedBoss `fcf93f28c` (−133), code parts `b90bb35a2` (−104), DW arm rig `e3b00d153` (−138), plant kit `1d333bfe7` (−125), Pine bakes (−76), HerdShelter `ea61b9044` (−57), King pose `192fc91bc` (−30); index cleaner `a6a7ab584`.
+**02:50Z `a9eec74c9` (G445 source ruler): Pine 89.53 %, DW 81.46 %, Sky 92.12 %, Signal 43.52 %** (01:55Z 90.18 / 82.58). Unknown owners 52 / 72 / 68 / 55 (3 new DW: x6 swing helpers, fixing). Old ruler at 01:00Z: Pine 66.32, DW 56.20.
+Pine/DW: C1 3748/3695 · C2 2464/2353 · C3 156/0 · C4 3762/1706 · C5 1985/1320 · C6 2507/899 · C7 13/503 · C8 984/1742 · C9 3379/1767. Pace ~500 lines/h (Pine −189, DW −269 in 55 min).
+Since 01:55Z: DW bakes o253 (−132) + o257 (−95), Pine Ghost Stag tines `e7dbfd2e0` (−22), DW swing/stride/lift hosts (−49), wrappers x4/x5/x7 (~−10 each). Design for G447 is committed (`2ead9dfa1`), awaiting Jake.
 
 **Lanes (G432 Opus; Claude weekly 20 %; Codex 5 + pusher):**
-- Opus: o253 DW bakes (fireflies, Cove, gull). o255 done (King pose). 4 slots held: W2 visual targets surveyed out; W1 conversion on G447 hold.
+- Opus: none running; all 5 held for the G447 design rows (S4/S5/W2c are Opus) and W3. Pine and DW bakes are surveyed out.
 - Codex: x1 Pine weapons; x4 DW wrappers; x5 Pine combat/install; x6 DW creature lift; x7 tooling/maps; x8 Pine page/native dedup.
 - Slots: check = x1 x5 x8 · check2 = x4 x6 x7 · check3 = Opus + measure.
 
