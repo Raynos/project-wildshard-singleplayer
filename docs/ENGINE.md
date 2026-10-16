@@ -3008,6 +3008,13 @@ without constructing its runtime or running hooks. Later regional admission
 uses the same adapter and ordinary module cache. A preload failure is logged;
 normal admission retains its validation, refusal and retry authority.
 
+The grid residency ledger indexes category totals, covered children and eligible
+eviction candidates. `coverageRemaining(parent, replacing?)` reads a sim claim's
+remaining coverage without materialising the sorted diagnostic table; `null`
+means no live sim. Removing a parent exposes retained children immediately.
+Admission still applies the same cost model, warning/refusal policy and
+farthest-first, id-tied two-phase eviction transaction.
+
 `Game.preparePostPass(pass)` serializes additions to a live compound display
 shader. It links a temporary material while the original keeps drawing, then
 publishes the prepared sources onto that same original material and acquires

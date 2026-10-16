@@ -52,6 +52,7 @@ export interface ResidencyLease {
 /** A frozen row of the allocator's table, for traces and readouts. */
 export interface ResidencyEntry { readonly id: string; readonly category: ResidencyCategory; readonly bytes: number; readonly owner: string; readonly distance: number; readonly needed: boolean; readonly refs: number; readonly holds: number; readonly accountedBytes: number; readonly coveredBy?: string }
 interface Entry { id: string; category: ResidencyCategory; bytes: number; owner: string; distance: number; needed: boolean; prepare: (() => ResidencyEviction | null) | undefined; refs: number; holds: number; generation: number; coveredBy: string | undefined; baseCredit: number }
+interface Coverage { bytes: number; commons: number; page: number; credit: number; children: Set<Entry> }
 
 const field = { l0: 'l0', l1: 'l1', far: 'far', near: 'near', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products', page: 'page' } as const;
 
@@ -62,6 +63,12 @@ export class ResidencyAllocator {
   private readonly entries_ = new Map<string, Entry>();
   /** Sim claims whose bytes are a measured whole page or matched runtime increment, the only claims a page component may be covered by. */
   private readonly measured = new Set<string>();
+  private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, near: 0, library: 0, sim: 0, commons: 0, product: 0, page: 0 };
+  private credit = 0;
+  private nearCount = 0;
+  private readonly coverage = new Map<string, Coverage>();
+  private readonly evictable = new Set<Entry>();
+  private evictionOrder: Entry[] | null = null;
 
   private readonly playing: number;
   private generation = 0;
@@ -89,7 +96,9 @@ export class ResidencyAllocator {
     const input = this.input(claim, new Set([id])), cost = contentCost(input);
     if (cost.playing > this.playing && !this.memory.accept({ stage: 'resident', owner: 'platform', id, claimedBytes: bytes,
       accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading, playingCap: this.playing, categories: input })) return null;
+    this.track(existing, -1);
     existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.coveredBy = coveredBy; existing.refs++;
+    this.track(existing, 1);
     return this.lease(existing);
   }
 
@@ -102,6 +111,7 @@ export class ResidencyAllocator {
     if (existing !== undefined) {
       if (existing.category !== claim.category || existing.bytes !== claim.bytes || existing.baseCredit !== baseCredit) throw new Error(`Residency claim ${claim.id} changed shape`);
       existing.refs++; existing.needed ||= claim.needed; existing.distance = Math.min(existing.distance, claim.distance);
+      this.refreshEviction(existing);
       return this.lease(existing);
     }
     const extra = { ...claim, baseCredit };
@@ -119,7 +129,9 @@ export class ResidencyAllocator {
     const sync = claim.evictSync;
     const prepare = claim.prepareEvict ?? (sync === undefined ? undefined : (): ResidencyEviction => ({ commit: sync, abort: () => undefined }));
     const entry: Entry = { id: claim.id, category: claim.category, bytes: claim.bytes, owner: claim.owner, distance: claim.distance, needed: claim.needed, prepare, refs: 1, holds: 0, generation: ++this.generation, coveredBy: claim.coveredBy, baseCredit };
-    this.entries_.set(entry.id, entry);
+    const children = this.coverage.get(entry.id);
+    if (children !== undefined) this.adjustCoverage(children, -1);
+    this.entries_.set(entry.id, entry); this.track(entry, 1); this.refreshEviction(entry);
     return this.lease(entry);
   }
 
@@ -145,10 +157,18 @@ export class ResidencyAllocator {
   /** True while the id is resident (held by at least one lease). */
   has(id: string): boolean { return this.entries_.has(id); }
 
-  private covered(entry: { coveredBy?: string | undefined }, omitted: ReadonlySet<string> = new Set()): boolean {
-    return entry.coveredBy !== undefined && !omitted.has(entry.coveredBy) && this.entries_.has(entry.coveredBy);
+  /** Remaining bytes of an existing sim's coverage, optionally replacing one child's allocation. */
+  coverageRemaining(id: string, replacing?: string): number | null {
+    const parent = this.entries_.get(id);
+    if (parent?.category !== 'sim') return null;
+    const previous = replacing === undefined ? undefined : this.entries_.get(replacing);
+    return parent.bytes - (this.coverage.get(id)?.bytes ?? 0) + (previous?.coveredBy === id ? previous.bytes : 0);
   }
-  private effectiveBytes(entry: { bytes: number; coveredBy?: string | undefined }, omitted: ReadonlySet<string> = new Set()): number {
+
+  private covered(entry: { coveredBy?: string | undefined }, omitted?: ReadonlySet<string>): boolean {
+    return entry.coveredBy !== undefined && omitted?.has(entry.coveredBy) !== true && this.entries_.has(entry.coveredBy);
+  }
+  private effectiveBytes(entry: { bytes: number; coveredBy?: string | undefined }, omitted?: ReadonlySet<string>): number {
     return this.covered(entry, omitted) ? 0 : entry.bytes;
   }
   private validateCoverage(id: string, category: ResidencyCategory, bytes: number, covering: string | undefined): void {
@@ -157,21 +177,60 @@ export class ResidencyAllocator {
     // Only a measured whole runtime (a `sim` claim) can contain other bytes: retained commons, or page components (SF57).
     if ((category !== 'commons' && category !== 'page') || parent?.category !== 'sim' || parent.coveredBy !== undefined || id === covering) throw new Error('Invalid runtime cache coverage');
     if (category === 'page' && !this.measured.has(covering)) throw new Error('Page coverage requires a measured whole-page claim');
-    const others = [...this.entries_.values()].filter(e => e.id !== id && e.coveredBy === covering).reduce((sum, e) => sum + e.bytes, 0);
-    if (others + bytes > parent.bytes) throw new Error('Runtime cache coverage exceeds its measured bytes');
+    const remaining = this.coverageRemaining(covering, id);
+    if (remaining === null || bytes > remaining) throw new Error('Runtime cache coverage exceeds its measured bytes');
   }
-  private input(extra?: ResidencyClaim & { baseCredit: number }, omitted: ReadonlySet<string> = new Set()): ContentCostInput {
-    const input: ContentCostInput = { l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: 0, overlap: CONTENT_CAPS.overlap };
-    let credit = 0, page = 0;
-    for (const e of this.entries_.values()) {
-      if (omitted.has(e.id)) continue;
-      if (e.category === 'page') { if (!this.covered(e, omitted)) { page += e.bytes; credit += e.baseCredit; } }
-      else { const key = field[e.category]; input[key] = (input[key] ?? 0) + this.effectiveBytes(e, omitted); }
+  private adjustCoverage(group: Coverage, sign: number): void {
+    this.totals.commons += sign * group.commons; this.totals.page += sign * group.page; this.credit += sign * group.credit;
+  }
+  private track(entry: Entry, sign: 1 | -1): void {
+    if (!this.covered(entry)) {
+      this.totals[entry.category] += sign * entry.bytes;
+      if (entry.category === 'page') this.credit += sign * entry.baseCredit;
+    }
+    if (entry.category === 'near') this.nearCount += sign;
+    const covering = entry.coveredBy;
+    if (covering === undefined) return;
+    let group = this.coverage.get(covering);
+    if (group === undefined) { group = { bytes: 0, commons: 0, page: 0, credit: 0, children: new Set() }; this.coverage.set(covering, group); }
+    if (sign === 1) group.children.add(entry); else group.children.delete(entry);
+    group.bytes += sign * entry.bytes;
+    if (entry.category === 'page') { group.page += sign * entry.bytes; group.credit += sign * entry.baseCredit; }
+    else group.commons += sign * entry.bytes;
+    if (group.children.size === 0) this.coverage.delete(covering);
+  }
+  private refreshEviction(entry: Entry): void {
+    // Only eligible claims enter the sorted index; distance/needed/hold changes invalidate its snapshot.
+    if (this.entries_.get(entry.id) === entry && !entry.needed && entry.holds === 0 && entry.prepare !== undefined) {
+      this.evictable.add(entry); this.evictionOrder = null;
+    } else if (this.evictable.delete(entry)) this.evictionOrder = null;
+  }
+  private input(extra?: ResidencyClaim & { baseCredit: number }, omitted?: ReadonlySet<string>): ContentCostInput {
+    const input: ContentCostInput = { l0: this.totals.l0, l1: this.totals.l1, far: this.totals.far, libraries: this.totals.library,
+      sims: this.totals.sim, commons: this.totals.commons, products: this.totals.product, overlap: CONTENT_CAPS.overlap };
+    let credit = this.credit, page = this.totals.page, near = this.totals.near, nearCount = this.nearCount;
+    if (omitted !== undefined) for (const id of omitted) {
+      const e = this.entries_.get(id);
+      if (e === undefined) continue;
+      if (e.category === 'near') nearCount--;
+      if (!this.covered(e)) {
+        if (e.category === 'page') { page -= e.bytes; credit -= e.baseCredit; }
+        else if (e.category === 'near') near -= e.bytes;
+        else { const key = field[e.category]; input[key] = (input[key] ?? 0) - e.bytes; }
+      }
+      // Removing a parent exposes only surviving children; omitted covered children contributed zero already.
+      const group = this.coverage.get(id);
+      if (group !== undefined) for (const child of group.children) if (!omitted.has(child.id)) {
+        if (child.category === 'page') { page += child.bytes; credit += child.baseCredit; }
+        else input.commons += child.bytes;
+      }
     }
     if (extra !== undefined) {
       if (extra.category === 'page') { if (!this.covered(extra, omitted)) { page += extra.bytes; credit += extra.baseCredit; } }
+      else if (extra.category === 'near') { nearCount++; near += extra.bytes; }
       else { const key = field[extra.category]; input[key] = (input[key] ?? 0) + this.effectiveBytes(extra, omitted); }
     }
+    if (nearCount > 0) input.near = near;
     if (credit > CONTENT_CAPS.engineBase) throw new Error('Page calibration exceeds the engine baseline');
     if (page > 0) { input.page = page; input.engineBase = CONTENT_CAPS.engineBase - credit; }
     return input;
@@ -182,7 +241,7 @@ export class ResidencyAllocator {
    * and evict nothing. Returns whether the claim now fits.
    */
   private evictFor(extra: ResidencyClaim & { baseCredit: number }): boolean {
-    const candidates = [...this.entries_.values()].filter((e) => !e.needed && e.holds === 0 && e.prepare !== undefined).sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
+    const candidates = this.evictionOrder ??= [...this.evictable].sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
     const prepared: { entry: Entry; eviction: ResidencyEviction }[] = []; const omitted = new Set<string>(); let enough = false;
     for (const entry of candidates) {
       const eviction = entry.prepare?.() ?? null; if (eviction === null) continue;
@@ -195,7 +254,9 @@ export class ResidencyAllocator {
   }
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
-    this.entries_.delete(entry.id); this.measured.delete(entry.id);
+    this.track(entry, -1); this.entries_.delete(entry.id); this.measured.delete(entry.id); this.refreshEviction(entry);
+    const children = this.coverage.get(entry.id);
+    if (children !== undefined) this.adjustCoverage(children, 1);
     // The table is already authoritative. Derive warning totals only when a resident report can consume them,
     // rather than re-walking every remaining cache allocation after each individual release.
     // Parent/page retirement can expose calibrated page coverage and must still validate that input immediately.
@@ -213,14 +274,15 @@ export class ResidencyAllocator {
         if (patch.coveredBy !== undefined) {
           const covering = patch.coveredBy ?? undefined;
           this.validateCoverage(entry.id, entry.category, entry.bytes, covering);
-          entry.coveredBy = covering;
+          this.track(entry, -1); entry.coveredBy = covering; this.track(entry, 1);
         }
         if (patch.needed !== undefined) entry.needed = patch.needed;
+        this.refreshEviction(entry);
       },
       hold: (): (() => void) => {
         if (!live()) return () => undefined;
-        entry.holds++; let held = true;
-        return () => { if (held) { held = false; entry.holds--; } };
+        entry.holds++; this.refreshEviction(entry); let held = true;
+        return () => { if (held) { held = false; entry.holds--; this.refreshEviction(entry); } };
       },
       release: (): void => {
         if (released) return; released = true;

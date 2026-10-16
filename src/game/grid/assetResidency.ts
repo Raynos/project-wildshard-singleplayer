@@ -56,10 +56,8 @@ export class AssetResidencyBridge implements AssetPort {
   // remain visible, independently charged allocations and must pass the normal shared admission policy.
   private coverage(bytes: number, preferred: string | undefined, id?: string): string | undefined {
     if (preferred === undefined) return undefined;
-    const entries = this.allocator.entries(), parent = entries.find(entry => entry.id === preferred);
-    if (parent?.category !== 'sim') return undefined;
-    const used = entries.reduce((sum, entry) => sum + (entry.id !== id && entry.coveredBy === preferred ? entry.bytes : 0), 0);
-    return used + bytes <= parent.bytes ? preferred : undefined;
+    const remaining = this.allocator.coverageRemaining(preferred, id);
+    return remaining !== null && bytes <= remaining ? preferred : undefined;
   }
   private reserve(bytes: number, kind: 'cpu' | 'gpu', covering: string | undefined): ResidencyLease {
     const lease = this.allocator.reserve({ id: `commons:retained:${String(++this.sequence)}:${kind}`, category: 'commons', owner: 'platform',

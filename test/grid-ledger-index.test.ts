@@ -1,0 +1,77 @@
+import { expect, test } from 'vitest';
+import * as v from 'valibot';
+import { ResidencyAllocator, type ResidencyClaim, type ResidencyLease } from '../src/game/grid/allocator';
+import { ReferenceResidencyAllocator } from './fixtures/grid/allocator-before';
+import { MemoryAdmission } from '../src/format/product';
+import { CONTENT_CAPS } from '../src/engine/core/config';
+import recorded from './fixtures/grid/pine-ledger-sequence.json' with { type: 'json' };
+
+type Ledger = Pick<ResidencyAllocator, 'reserve' | 'reservePageComponent' | 'markMeasuredPage' | 'cost' | 'entries' | 'has'>;
+function pair(playing?: number, developer = true) {
+  return [new ReferenceResidencyAllocator({ ...(playing === undefined ? {} : { playing }), memory: new MemoryAdmission(() => developer) }),
+    new ResidencyAllocator({ ...(playing === undefined ? {} : { playing }), memory: new MemoryAdmission(() => developer) })];
+}
+function same(ledgers: Ledger[]) {
+  expect(ledgers[1]?.cost()).toEqual(ledgers[0]?.cost());
+  expect(ledgers[1]?.entries()).toEqual(ledgers[0]?.entries());
+}
+function result<T>(run: () => T): T | string { try { return run(); } catch (error) { return String(error); } }
+const Claim = v.object({ id: v.string(), category: v.picklist(['l0', 'l1', 'far', 'near', 'library', 'sim', 'commons', 'product', 'page']),
+  bytes: v.number(), owner: v.string(), distance: v.number(), needed: v.boolean(), coveredBy: v.exactOptional(v.string()) });
+
+test('recorded Pine retained allocations keep every admission and total identical', () => {
+  const ledgers = pair(), parent = v.parse(Claim, recorded.parent), claims = v.parse(v.array(Claim), recorded.claims);
+  const held = ledgers.map(ledger => {
+    const lease = ledger.reserve(parent); ledger.markMeasuredPage(parent.id); return { lease, assets: [] as (ResidencyLease | null)[] };
+  });
+  same(ledgers);
+  for (const claim of claims) {
+    const decisions = ledgers.map((ledger, i) => {
+      const lease = ledger.reserve(claim); held[i]?.assets.push(lease); return lease !== null;
+    });
+    expect(decisions[1]).toBe(decisions[0]); same(ledgers);
+  }
+  // Retirement exposes still-retained covered allocations; the same parent id can later cover them again.
+  for (const row of held) row.lease?.release(); same(ledgers);
+  const again = ledgers.map(ledger => ledger.reserve(parent)); same(ledgers);
+  for (const row of held) for (const lease of row.assets) lease?.release(); same(ledgers);
+  for (const lease of again) lease?.release(); same(ledgers);
+  expect(ledgers[1]?.memory.reports()).toEqual(ledgers[0]?.memory.reports());
+}, 30_000);
+
+test.each([false, true])('indexed coverage, holds, ordering and refusal match the original (Developer %s)', developer => {
+  const ledgers = pair(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000, developer);
+  const leases = ledgers.map(() => new Map<string, ResidencyLease | null>()), unholds = ledgers.map(() => new Map<string, () => void>());
+  const events = ledgers.map(() => [] as string[]);
+  const run = (action: (ledger: Ledger, i: number) => unknown) => {
+    const outcomes = ledgers.map((ledger, i) => result(() => action(ledger, i)));
+    expect(outcomes[1]).toEqual(outcomes[0]); same(ledgers); expect(events[1]).toEqual(events[0]);
+    expect(ledgers[1]?.memory.reports()).toEqual(ledgers[0]?.memory.reports());
+  };
+  const reserve = (key: string, claim: ResidencyClaim, evict = false, refuses = false) => run((ledger, i) => {
+    const lease = ledger.reserve({ ...claim, ...(evict ? { prepareEvict: () => {
+      events[i]?.push(`prepare:${key}`);
+      return refuses ? null : { commit: () => { events[i]?.push(`commit:${key}`); }, abort: () => { events[i]?.push(`abort:${key}`); } };
+    } } : {}) }); leases[i]?.set(key, lease); return lease !== null;
+  });
+  const base = { category: 'far' as const, owner: 'test', distance: 10, needed: false, bytes: 100 };
+  reserve('a', { ...base, id: 'a' }, true); reserve('b', { ...base, id: 'b' }, true, true);
+  reserve('c', { ...base, id: 'c' }, true); reserve('near', { ...base, id: 'near', category: 'near', bytes: 0 });
+  run((_ledger, i) => { unholds[i]?.set('a', leases[i]?.get('a')?.hold() ?? (() => undefined)); });
+  run((_ledger, i) => { leases[i]?.get('c')?.update({ distance: 50, needed: true }); });
+  reserve('pressure', { ...base, id: 'pressure', bytes: 900, needed: true });
+  run((_ledger, i) => { unholds[i]?.get('a')?.(); leases[i]?.get('c')?.update({ needed: false }); });
+  reserve('pressure2', { ...base, id: 'pressure2', bytes: 600, needed: true });
+  run((_ledger, i) => { leases[i]?.get('pressure')?.release(); leases[i]?.get('pressure2')?.release(); });
+  reserve('parent', { ...base, id: 'parent', category: 'sim', bytes: 400, needed: true });
+  run(ledger => { if (ledger.has('parent')) ledger.markMeasuredPage('parent'); });
+  reserve('child', { ...base, id: 'child', category: 'commons', bytes: 200, coveredBy: 'parent' });
+  reserve('overflow', { ...base, id: 'overflow', category: 'commons', bytes: 500, coveredBy: 'parent' });
+  run((ledger, i) => { const lease = ledger.reservePageComponent('page', 100, 50, 'parent'); leases[i]?.set('page', lease); return lease !== null; });
+  run((_ledger, i) => { leases[i]?.get('child')?.update({ coveredBy: null }); });
+  run((_ledger, i) => { leases[i]?.get('child')?.update({ coveredBy: 'parent' }); });
+  run((ledger, i) => { const lease = ledger.reservePageComponent('page', 120, 60); leases[i]?.set('page2', lease); return lease !== null; });
+  run((_ledger, i) => { leases[i]?.get('parent')?.release(); });
+  reserve('parent2', { ...base, id: 'parent', category: 'sim', bytes: 400, needed: true });
+  run((_ledger, i) => { for (const lease of leases[i]?.values() ?? []) lease?.release(); });
+});
