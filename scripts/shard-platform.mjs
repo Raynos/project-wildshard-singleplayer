@@ -13,6 +13,8 @@ import { shardContent } from './shard-platform-content.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, componentWave, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
 import { generatorInventory } from './generator-inventory.mjs';
+import { outputRuntime } from './shard-platform-output.mjs';
+import { sectionHostImports } from './shard-platform-hosts.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -553,7 +555,8 @@ const SHELL_UI_CONTROL = new Set([
 const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
   || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
-export function shardLines(root = ROOT, includeSources = false) {
+/** @param {string} root @param {boolean} includeSources @param {string|null} products */
+export function shardLines(root = ROOT, includeSources = false, products = null) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
@@ -581,7 +584,8 @@ export function shardLines(root = ROOT, includeSources = false) {
     const folder = /^src\/shards\/([^/]+)\/data\/.*\.tsx?$/u.exec(path)?.[1];
     return folder !== undefined && !Object.hasOwn(frozen.shards, folder);
   };
-  const ignored = (path) => generated.has(path) && !primaryDataTs(path);
+  const ignored = (path) => products === null ? generated.has(path) && !primaryDataTs(path)
+    : !path.startsWith(`${relative(root, products).replaceAll('\\', '/')}/`) && generated.has(path);
   const parseCache = process.env.WS_SHARD_PARSE_CACHE;
   const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
@@ -624,15 +628,24 @@ export function shardLines(root = ROOT, includeSources = false) {
     if (!graphs.has(path)) graphs.set(path, info(path).specs.map(spec => resolveEdge(path, spec)));
     return graphs.get(path);
   };
-  const shardFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
+  const authoredFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name)).sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
-  const consumers = [...Object.entries(shardFiles), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
+  const outputs = products === null ? null : Object.fromEntries(Object.keys(authoredFiles).map(slug => [slug, outputRuntime(root, slug, products)]));
+  const prefixOf = slug => products === null ? `src/shards/${slug}/` : `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
+  const shardFiles = outputs === null ? authoredFiles : Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
+  const hostFiles = new Map();
+  if (outputs !== null) for (const [slug, output] of Object.entries(outputs)) {
+    const path = `${prefixOf(slug)}.section-hosts.ts`;
+    texts.set(path, sectionHostImports(output.sections)); probes.set(path, true);
+    hostFiles.set(slug, path);
+  }
+  const consumers = [...Object.entries(shardFiles).map(([slug, files]) => [slug, hostFiles.has(slug) ? [...files, hostFiles.get(slug)] : files]), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
   const moduleUsers = new Map();
   for (const [slug, files] of consumers) {
     // G312: templates are authoring fixtures, never an independent consumer of a platform system.
     if (slug === RULES.template) continue;
-    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path));
+    const prefix = prefixOf(slug), seen = new Set(), queue = files.filter(path => !RULES.tests.test(path));
     while (queue.length > 0) {
       const path = queue.pop();
       if (seen.has(path)) continue;
@@ -662,7 +675,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   for (const [slug, files] of consumers) {
     if (slug === RULES.template) continue;
     const rootFiles = new Set(files);
-    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path)).map(path => [path, null]);
+    const prefix = prefixOf(slug), seen = new Set(), queue = files.filter(path => !RULES.tests.test(path)).map(path => [path, null]);
     const follow = path => typeof path === 'string' && sourceFile.test(path) && !path.endsWith('.d.ts') && !RULES.tests.test(path) && exists(path)
       && (slug === SHELL_USER ? path.startsWith('src/') && !path.startsWith('src/shards/')
         : path.startsWith(prefix) || /^src\/(?:engine|game|sdk|commons)\//u.test(path));
@@ -739,7 +752,7 @@ export function shardLines(root = ROOT, includeSources = false) {
     }
   }
   const trustedRuntime = (slug, path) => {
-    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path];
+    const prefix = prefixOf(slug), seen = new Set(), queue = [path];
     while (queue.length > 0) {
       const current = queue.pop();
       if (seen.has(current)) continue;
@@ -759,15 +772,16 @@ export function shardLines(root = ROOT, includeSources = false) {
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
     const customSources = [], collectSources = includeSources || COMPONENT_SHARDS.includes(slug);
     for (const path of files) {
-      const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
+      const local = path.slice(prefixOf(slug).length), top = local.split('/')[0];
       const lines = count(path);
-      const dataManifest = local === 'manifest.ts' && declarationOnlyManifest(text(path), path);
+      const dataManifest = products === null && local === 'manifest.ts' && declarationOnlyManifest(text(path), path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
       if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)
         && !dataManifest && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) {
         shardRuntimeLines += lines;
-        if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines});
+        if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines,
+          ...(products === null ? {} : {ownerPath:`src/shards/${slug}/${local}`})});
       }
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
@@ -778,6 +792,14 @@ export function shardLines(root = ROOT, includeSources = false) {
       const trusted = trustedRuntime(slug, path);
       if (!path.endsWith('.as') && trusted) row.trustedRuntimeLines += lines;
       if (!path.endsWith('.as') && (top === 'runtime' || trusted)) row.runtimeLines += lines;
+    }
+    if (products !== null) {
+      // AS remains a separate source visibility column: its shipped executable
+      // form is Wasm and never adds TS lines to the runtime numerator.
+      row.assemblyScriptLines = authoredFiles[slug].filter(path => path.endsWith('.as') && !RULES.tests.test(path)).reduce((sum, path) => sum + count(path), 0);
+      row.customSectionBytes = outputs[slug].customSectionBytes;
+      row.customSections = outputs[slug].customSections;
+      row.measurement = 'built-output';
     }
     const pair = Object.entries(frozen.shards).find(([, legacy]) => legacy.primary === slug);
     let legacyLines = null;
@@ -811,6 +833,11 @@ export function shardLines(root = ROOT, includeSources = false) {
     out[slug] = row;
   }
   return out;
+}
+/** Authoritative P4 measure. Missing, partial or non-standalone copies refuse;
+ * authoring files never substitute for missing output or supply G294 users. */
+export function outputShardLines(root = ROOT, includeSources = false, products = resolve(root, 'out')) {
+  return shardLines(root, includeSources, products);
 }
 /** Headless availability is reported separately from the custom/frozen measure. */
 export function milestoneFlags(_slug, _row, root = ROOT) {

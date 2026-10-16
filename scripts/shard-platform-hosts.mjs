@@ -1,0 +1,65 @@
+// G450 §5: output sections supply the defining host exports as G294 roots.
+// This is a census table, not a runtime installer. No authoring import supplies
+// a runtime user. Metadata-only sections have no independent executable host.
+const hosts = {
+  'world/tiles': ['game/shardfile/clientViews#clientTileViews'],
+  'world/terrain': ['game/shardfile/clientGround#clientGround'],
+  'world/edge': ['game/shardfile/portalTraversal#createPortalTraversal'],
+  'world/collision': ['game/shardfile/collisionBindings#installShardfileColliders'],
+  'world/navigation': ['game/shardfile/productNavigation#installProductNavigation'],
+  'world/props': ['game/shardfile/props#propColliderDescriptors'],
+  'world/water': ['game/shardfile/clientWater#installClientWater', 'game/shardfile/water#shardfileWater'],
+  'world/movers': ['game/plugin/mover#installDeclaredMovers'],
+  'world/traversal': ['game/shardfile/portalTraversal#createPortalTraversal'],
+  'world/spawn': [], // Level admission metadata.
+  'world/physics': [], // Handed to the runtime's explicitly imported native host.
+  'world/days': ['game/shard/declaredRows#declaredDay'],
+  'world/weather': ['game/shard/declaredRows#declaredWeather'],
+  'look/look': ['game/shardfile/look#shardfileLook'],
+  'look/map': ['game/shardfile/mapImage#reserveMapImage'],
+  'look/materials': ['game/shardfile/clientMaterials#clientMaterials'],
+  'actors/creatures': ['game/shardfile/brainRuntime#installDeclaredBrains'],
+  'actors/crowds': ['game/shardfile/crowdRuntime#prepareDeclaredCrowds'],
+  'actors/npcs': ['game/plugin/simulation#installDeclaredQuestHost'],
+  'actors/species': ['game/shard/declaredRows#declaredSpeciesLook'],
+  'actors/spawns': ['game/shardfile/brainRuntime#installDeclaredBrains'],
+  'actors/strikes': [], // Consumed by the runtime's explicitly imported creature host.
+  'combat/items': ['game/shardfile/items#installDeclaredItems'],
+  'combat/encounters': ['game/plugin/simulation#createShardfileSim'],
+  'combat/strikes': ['game/plugin/simulation#createShardfileSim'],
+  'quests/quests': ['game/quest/declared#DeclaredQuests'],
+  'quests/host': ['game/plugin/simulation#installDeclaredQuestHost'],
+  'quests/directors': ['game/shardfile/directorClient#installDeclaredDirector'],
+  'economy/ledger': ['game/ledger#Ledger', 'game/ledger#installLedgerEmitter'],
+  'economy/loot': ['game/shard/declaredRows#declaredLootPresentation'],
+  'state/state': ['game/shardfile/scripts#numericScriptState'],
+  'state/migrations': ['game/shardfile/logicalState#logicalStateFromLane'],
+  'state/modes': ['engine/player/modes#playerModes'],
+  'sim/sim': ['game/shardfile/scripts#createShardfileScriptLane'],
+  'sim/hooks': ['game/shardfile/scripts#createShardfileScriptLane'],
+  'sim/client-scripts': ['game/shardfile/clientScripts#createShardfileClientScripts'],
+  'sim/client-channels': ['game/plugin/ui#ClientScriptViews'],
+  'sim/plumbing': ['game/shard/declaredPlumbing#installDeclaredPlumbing'],
+  'audio/audio': ['engine/audio/declared#installDeclaredAudio'],
+  'ui/card': [], // Discovery metadata; no per-shard executable implementation.
+  'ui/level': [],
+  'ui/ui': ['game/shard/declaredUi#mountDeclaredUi', 'game/shard/declaredTargets#installDeclaredTargets'],
+  'ui/compendium': ['game/shard/declaredRows#declaredCompendium'],
+  'ui/strings': [], // Read by an explicitly imported consumer, not executed.
+};
+
+/** A synthetic import list seeds named reach without becoming counted code.
+ * Unknown platform sections refuse so a new host cannot disappear from G294.
+ * @param {readonly {name:string}[]} sections */
+export function sectionHostImports(sections) {
+  const roots = new Set();
+  for (const section of sections) {
+    if (section.name.startsWith('custom/')) continue;
+    if (!Object.hasOwn(hosts, section.name)) throw new Error(`No output host attribution: ${section.name}`);
+    for (const host of hosts[section.name]) roots.add(host);
+  }
+  return [...roots].sort((a,b)=>a.localeCompare(b)).map((host, i) => {
+    const [module, name] = host.split('#');
+    return `import { ${name} as host${i} } from '../../src/${module}'; void host${i};`;
+  }).join('\n');
+}
