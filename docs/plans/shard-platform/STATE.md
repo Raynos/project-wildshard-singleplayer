@@ -2,10 +2,10 @@
 
 **Order (G450–G452):** rewire now (design rows P0–P4, then W2a/W2b) → W2 closes 05:00Z 10-17 (midnight Cancun) wherever it stands → W1 mini spike (Sky/Signal to ≤ 10 % on the output ruler, S1–S5) → W3 (Nalati + Nine) only after both ≤ 10 %. Never pause lanes. Codex full speed. Longer Pine loading OK.
 
-**Last measure 05:39Z `b203929fb` (G445 source ruler): Pine 89.92 %, DW 80.93 %, Sky 92.12 %, Signal 43.52 %.** The output ruler (P4) replaces it.
-Pine/DW: C1 3832/3661 · C2 2645/2352 · C3 148/0 · C4 3724/1679 · C5 1945/1311 · C6 2424/898 · C7 13/503 · C8 983/1739 · C9 3366/1750.
+**12:07Z `243310a9c` (G445 source ruler): Pine 85.65 %, DW 76.90 %, Sky 89.64 %, Signal 43.52 %** (05:39Z 89.92 / 80.93 / 92.12): look graphs moved to build time (W2c, S4). The output ruler (P4) replaces this ruler.
+Pine/DW: C1 3832/3609 · C2 1774/1727 · C3 148/0 · C4 3724/1664 · C5 1945/1311 · C6 2392/898 · C7 13/503 · C8 983/1739 · C9 3363/1750.
 
-**Lanes (G450, 11:15Z):** Codex: x4 P0 lint, then Pine load-time precompile · x5 P1 writer · x8 P1 loader · x6 P2b sections (`40db802bc`) · x1 P3 catalog (`1ce7644d3`) and runtime copy · x7 P4 output ruler + pusher. Opus: o258 P2a API spec · o259 S4 Sky/Signal graphs · o260 Pine W2c · o261 DW W2c · o262 S5 Sky/Signal world/. Rows: open-x-queue.md "Shardfile design rows".
+**Lanes (G450, 11:15Z):** Codex: x4 Pine load-time prewarm (default-off row) · x5 P1 writer · x8 P1 loader · x6 P2b sections (`40db802bc`) · x1 P3 catalog (`1ce7644d3`) and runtime copy · x7 P4 helpers, then W2b DW play folders into runtime/ + pusher. Opus: o258 P2a API spec · o259 S4 Sky/Signal graphs · o260 Pine W2c · o261 DW W2c · o262 S5 Sky/Signal world/. Rows: open-x-queue.md "Shardfile design rows".
 
 **fps (Jake's bar):** milestone `68cd273ea`: the ~1 s Pine stall is gone (`3efc0d81d`). Still failing: Pine Safari approach p95 72 ms (`54210bc02`, `ec3527529`; load-time precompile next); DW Safari work 6-7 → 15-18 ms, first cause `c5b1f0b2f` + later graph ports (receipt `06f180053`), Safari textureFlip −3 ms worst view (`85c777932`). Perf wins: DW first frame 183 → 17 ms, late links 0, road hitch 133 → 33 ms, UBO 24 → 13 uploads.
 Fixes: Pine grid entry `f542a4cfb`; grid KTX2 props `c5ef7b1c1`; cold-gen order `3e1f25d7b`; mirror dangling links `d5d5f9185`.
