@@ -22,5 +22,5 @@
 **Landed since G465 (measured net shard lines, 18:15Z):** DW ≈ −254 (x4 −71/−18, x7 −10/−39/−20/−21, x5 −44/−10/−11, o293 −10); Pine ≈ −305 (o294 −156, o295 −36+, x6 −4/−18/−59/−10/−9/−13); Sky −14 (x1 gust), Roc join pending (x8: −21 before dead-code removal, +31 build step to pay back). Ruler at `4cbcad71d` showed M3 16.0 %, which predates most of these.
 
 **For wildshard-v (pick for Jake):** Pine generators/logCabin.ts (1,335 lines, biggest Pine file). A) freeze the bake: commit per-building geometry blobs (~5–9 MB binary, near the 10 MB push cap), a ~60-line reader, delete the generator (net ≈ −1,300 shard lines; later edits happen in Blender on the GLB; the source survives in git history). B) full Blender port (3–5 h, moves ~1,100 lines to scripts/blender, small KR1 gain). Rec: A. Notes in tmp/sp-o296/NOTES.txt.
-**KS1/KS4 notes:** takeoff needs altitude + perch; ready range borrows the strike's observation.range (optional ready.strike id); the platform publishes move.done.
+**For wildshard-v:** Signal's +411 at `d125557a1` is a ruler gap, not new code. Sky's e54ca1cb1 now selects the native plan through the emitted sim/runtime-plan section, and the ruler has no host row for that section, so simulation/homeKeeper/brain/bossRow got charged to Signal alone. x7 is adding the attribution row.
 Paused: SF22 SF57 SF67.
