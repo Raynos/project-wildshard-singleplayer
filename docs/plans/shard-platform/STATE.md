@@ -14,10 +14,10 @@ Since 01:00Z: King phasedBoss `fcf93f28c` (Pine −133), code parts `b90bb35a2` 
 **G445 (01:30Z):** only JSON counts as data. x7 changes the ruler first (data/*.ts counted, GLSL rule kept, one ceiling rebase) and re-measures every shard. Every lane and Opus lane is told: content rows are JSON only. Then the conversion wave: declaration-only TS tables → JSON split by shard across Codex lanes, then data/ logic → runtime/ or hosts. W1 (Sky, Signal) reopens.
 **G447 HOLD (02:00Z):** the ruler must measure the BUILT shardfile; design due ~03:30Z. G446 conversion stopped (x4, x5, o256 told to stop at a clean point or delete drafts). x7's source-side ruler `f0ca1f1c8` landed BEFORE the hold (data/*.ts counted; no gate fails); left in place, not extended: revert only if the design says so.
 
-**Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G448.
+**Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G449 (G449: runtime/ standalone; no new runtime→shard imports).
 
 **End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlaps the quest banner. Pine King/fallen witness hashes mismatched before `fcf93f28c` (o255 rebakes).
 **G439 refs:** DONE.
 
-**For wildshard-v:** G448 applied (lanes told: no hand JSON, no new data tables; x6's unlanded JSON conversion dropped). G447 hold applied; one question: keep or revert `f0ca1f1c8` until the output ruler lands? I recommend keep (W2 deltas stay comparable, nothing fails). G443/G444 in force. G442 closed.
+**For wildshard-v:** G448/G449 applied. G447 hold applied; one question: keep or revert `f0ca1f1c8` until the output ruler lands? I recommend keep (W2 deltas stay comparable, nothing fails). G443/G444 in force. G442 closed.
 Paused rows: SF22, SF57, SF67.
