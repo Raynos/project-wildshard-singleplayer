@@ -21,8 +21,7 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
   const folder=resolve(products,slug), indexPath=resolve(folder,'shard.json');
   if(!existsSync(indexPath))throw new Error(`${slug}: built output missing; build out/<slug> before measuring`);
-  const index=parseOutputIndex(JSON.parse(readFileSync(indexPath,'utf8')));
-  if(index.identity.slug!==(slug==='_template'?'template':slug))throw new Error(`${slug}: output identity mismatch`);
+  const {index,sections,customSections,customSectionBytes}=outputSections(root,slug,products);
   const listed=new Set(), runtime=[];
   for(const entry of index.runtime?.files??[]) {
     if(!entry.path.startsWith('runtime/')||!entry.path.endsWith('.ts')||listed.has(entry.path))throw new Error(`${slug}: invalid runtime inventory: ${entry.path}`);
@@ -40,6 +39,20 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
   if(actual.length!==listed.size||actual.some(file=>!listed.has(file)))throw new Error(`${slug}: unlisted output runtime file`);
   const authoredRuntime=files(resolve(root,'src/shards',slug,'runtime')).filter(file=>file.endsWith('.ts')).map(file=>relative(resolve(root,'src/shards',slug),file).replaceAll('\\','/'));
   if(authoredRuntime.some(file=>!listed.has(file)))throw new Error(`${slug}: output omits authored runtime files`);
+
+  return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
+}
+
+
+/** Verified data-selected host roots do not require a closed client runtime.
+ * The source-progress caller builds these products first; absent products supply
+ * no data-selected user, and corrupt section bytes refuse rather than grant one.
+ * @param {string} root @param {string} slug @param {string} [products] */
+export function outputSections(root,slug,products=resolve(root,'out')) {
+  if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
+  const folder=resolve(products,slug), indexPath=resolve(folder,'shard.json');
+  const index=parseOutputIndex(JSON.parse(readFileSync(indexPath,'utf8')));
+  if(index.identity.slug!==(slug==='_template'?'template':slug))throw new Error(`${slug}: output identity mismatch`);
   let customSectionBytes=0;const sections=[],customSections=[];
   for(const section of index.sections) {
     const content=readFileSync(resolve(folder,section.path));
@@ -47,6 +60,5 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
     if(section.name.startsWith('custom/')){customSectionBytes+=content.length;customSections.push({name:section.name,bytes:content.length});}
     sections.push({name:section.name,value:JSON.parse(content.toString('utf8'))});
   }
-  return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
+  return {index,sections,customSections,customSectionBytes};
 }
-

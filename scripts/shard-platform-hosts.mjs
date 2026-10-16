@@ -36,6 +36,8 @@ const hosts = {
   'state/state': ['game/shardfile/scripts#numericScriptState'],
   'state/migrations': ['game/shardfile/logicalState#logicalStateFromLane'],
   'state/modes': ['engine/player/modes#playerModes'],
+  'sim/runtime-plan': ['game/shardfile/nativePlan#prepareProductRuntimePlan'],
+  'world/targets': ['game/shardfile/worldTargets#WorldTargetHost'],
   'sim/scripts': ['engine/script/decision#DecisionHost', 'format/decisionScripts#parseDecisionScripts'],
   'sim/sim': ['game/shardfile/scripts#createShardfileScriptLane'],
   'sim/hooks': ['game/shardfile/scripts#createShardfileScriptLane'],
@@ -52,8 +54,8 @@ const hosts = {
 
 /** A synthetic import list seeds named reach without becoming counted code.
  * Unknown platform sections refuse so a new host cannot disappear from G294.
- * @param {readonly {name:string}[]} sections */
-export function sectionHostImports(sections) {
+ * @param {readonly {name:string}[]} sections @param {string} sourcePrefix */
+export function sectionHostImports(sections, sourcePrefix = '../../src/') {
   const roots = new Set();
   for (const section of sections) {
     if (section.name.startsWith('custom/')) continue;
@@ -62,6 +64,6 @@ export function sectionHostImports(sections) {
   }
   return [...roots].sort((a,b)=>a.localeCompare(b)).map((host, i) => {
     const [module, name] = host.split('#');
-    return `import { ${name} as host${i} } from '../../src/${module}'; void host${i};`;
+    return `import { ${name} as host${i} } from '${sourcePrefix}${module}'; void host${i};`;
   }).join('\n');
 }

@@ -5,7 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {join,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small temporary test repository.
 import {tmpdir} from 'node:os';
-import {outputShardLines} from '../scripts/shard-platform.mjs';
+import {outputShardLines,sourceProgressLines} from '../scripts/shard-platform.mjs';
 import {sectionHostImports} from '../scripts/shard-platform-hosts.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
@@ -51,4 +51,25 @@ it('attributes declared moves and decisions to their defining sim hosts',()=>{
  expect(roots).toContain('engine/script/decision');
  expect(roots).toContain('DecisionHost');
  expect(roots).toContain('format/decisionScripts');
+});
+
+
+it('keeps a data-selected native plan as a real user after its wrapper is removed',()=>{
+ const root=mkdtempSync(join(tmpdir(),'platform-native-plan-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./plugin/simulation':'./plugin/simulation.ts'}}));
+  put('src/game/plugin/simulation.ts','export function prepareRuntimePlan() { return 1; }\nexport function unrelated() { return 2; }');
+  put('src/game/shardfile/nativePlan.ts',"import {prepareRuntimePlan} from '../plugin/simulation'; export function prepareProductRuntimePlan() { return prepareRuntimePlan(); }");
+  platformOutput(root,'sunscar-dunes',{'runtime/index.ts':"import {prepareRuntimePlan} from '@wildshard/game/plugin/simulation'; export const plan=prepareRuntimePlan();"});
+  platformOutput(root,'far-reach',{'runtime/index.ts':'export const view=1;'});
+  const before=sourceProgressLines(root)['sunscar-dunes']?.customLines;
+  platformOutput(root,'far-reach',{'runtime/index.ts':'export const view=1;'},{'sim/runtime-plan':'{}'});
+  expect(before).toBe(3);
+  expect(sourceProgressLines(root)['sunscar-dunes']?.customLines).toBe(1);
+  expect(outputShardLines(root)['sunscar-dunes']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).not.toContain('prepareRuntimePlan');
+  expect(sectionHostImports([{name:'sim/runtime-plan'}])).toContain('prepareProductRuntimePlan');
+  put('out/far-reach/sections/sim/runtime-plan.json','{"corrupt":true}');
+  expect(()=>sourceProgressLines(root)).toThrow('section hash/size mismatch');
+ }finally{rmSync(root,{recursive:true,force:true});}
 });

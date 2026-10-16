@@ -12,7 +12,7 @@ import { legacyInventory } from './legacy-shards.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
-import { outputRuntime } from './shard-platform-output.mjs';
+import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 
@@ -552,8 +552,8 @@ const SHELL_UI_CONTROL = new Set([
 const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
   || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
-/** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress */
-function countOutput(root, includeSources, products, slugs, sourceProgress = false) {
+/** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
+function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out')) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
@@ -648,14 +648,14 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     }
   }
   const outputs = Object.fromEntries(slugs.map(slug => [slug, sourceProgress
-    ? {runtime:authoredFiles[slug],sections:[],customSectionBytes:0,customSections:[]}
+    ? {runtime:authoredFiles[slug],sections:existsSync(resolve(sectionProducts,slug,'shard.json')) ? outputSections(root,slug,sectionProducts).sections : [],customSectionBytes:0,customSections:[]}
     : outputRuntime(root, slug, products)]));
   const prefixOf = slug => `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
   const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
   const hostFiles = new Map();
   for (const [slug, output] of Object.entries(outputs)) {
     const path = `${prefixOf(slug)}.section-hosts.ts`;
-    texts.set(path, sectionHostImports(output.sections)); probes.set(path, true);
+    texts.set(path, sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')); probes.set(path, true);
     hostFiles.set(slug, path);
   }
   const consumers = [...Object.entries(shardFiles).map(([slug, files]) => [slug, hostFiles.has(slug) ? [...files, hostFiles.get(slug)] : files]), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
@@ -866,8 +866,8 @@ export function shardLines(root = ROOT, includeSources = false) {
 /** G458 progress only. The canonical custom percentage remains unavailable for
  * unclosed shards. Preserve the predecessor's source/G294 law for this labelled
  * estimate rather than disguising the output/source unit change as a cut. */
-export function sourceProgressLines(root = ROOT) {
-  const rows=countOutput(root,false,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true);
+export function sourceProgressLines(root = ROOT, products = resolve(root,'out')) {
+  const rows=countOutput(root,false,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true,products);
   return Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{basis:'source',
     customLines:row.conversion.customRuntimeLines,legacyLines:row.conversion.legacyLines,
     assemblyScriptLines:row.assemblyScriptLines,assemblyScriptBudget:row.assemblyScriptBudget}]));
