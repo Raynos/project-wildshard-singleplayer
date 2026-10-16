@@ -26,7 +26,7 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | W2a / W2b | Pine / Driftwood rewire from data/ + play folders into runtime/ wholesale (counted) + assets into blobs | L / L | 2 Codex lanes each, after P1–P3 | open |
 | W2c | Pine cabinLook/keyedSkyRows, DW groundLook/coverLook emit graph JSON at build | M | sp-o260 (Pine), sp-o261 (DW) | in flight |
 | W3a / W3b | Nalati / Nine play folders into runtime/ | L / L | Codex (W3) | open |
-| Z1 | Delete v1 monolith reader, legacy discovery, `runtime/source.ts`; ratchets become errors | S | Codex | open |
+| Z1 | Delete v1 monolith reader, legacy discovery, `runtime/source.ts`; ratchets become errors | S | sp-x8 | open tail: `8475cc397` hardens the verified zero boundaries; `71f1792dc` removes unused monolith APIs and CLI v1 disk fallback (all 7 phone grid homes: 0 errors). Keep discovery/`defineAuthoredShard` until x1 source-mode activation and the last source-mode shard closes; keep Sky/Signal `runtime/source.ts` while world/build and models/gear consume them. Revisit on x1's activation SHA |
 
 ## W1 spike rows (G457, 2026-10-16; design `progress/shard-platform/wasm-api-design-2026-10-16/README.md` §8)
 
