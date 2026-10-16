@@ -40,6 +40,7 @@ export const SIGNAL_QUEST_PAGE_INTERACTIONS={prompts:[
   {id:'light.2',interaction:'light.2',before:[{kind:'visible',target:'fire.2',value:true},{kind:'call',target:'glow.2'},{kind:'label',target:'brazier.2',text:STRINGS.waymarkLit}],after:[{kind:'toast',text:STRINGS.waymarkLit,progress:{flags:['lit.0','lit.1','lit.2'],complete:STRINGS.allLit}}]},
   {id:'fire',interaction:'fire',denied:{unlit:STRINGS.fireHint},before:[{kind:'call',target:'catch-fire'}],after:[{kind:'call',target:'summon'}]},
 ],initial:[
+  {when:{all:[FLAG.lit]},effects:[{kind:'call',target:'catch-fire'}]},
   {when:{all:[FLAG.logbook]},effects:[{kind:'label',target:'logbook',text:STRINGS.logRead}]},
   {when:{all:[FLAG.oil]},effects:[{kind:'visible',target:'jar',value:false},{kind:'label',target:'well',text:STRINGS.oilTaken}]},
   {when:{all:[`${FLAG.brazierPrefix}0`]},effects:[{kind:'mark',target:'oiled.0',value:true},{kind:'mark',target:'lit.0',value:true},{kind:'visible',target:'oil.0',value:true},{kind:'visible',target:'fire.0',value:true},{kind:'call',target:'glow.0'},{kind:'label',target:'brazier.0',text:STRINGS.waymarkLit}]},

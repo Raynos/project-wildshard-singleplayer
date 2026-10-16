@@ -20,9 +20,9 @@ type ShardContext = Parameters<SignalDunesPlugin['world']>[0];
 /** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
 export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }
 
-/** The signal fire: the tower piece, the brazier interactable and the flicker. `light()` is idempotent. */
-export interface SignalFire { tower: TowerParts; brazier: Interactable; lit: boolean; onLight: (() => void) | null; light: () => void }
-export interface Brazier { parts: BrazierParts; spot: Interactable; oiled: boolean; lit: boolean; light: () => boolean }
+/** The signal fire's view and read-only state; admitted interactions own ignition. */
+export interface SignalFire { tower: TowerParts; brazier: Interactable; readonly lit: boolean; onLight: (() => void) | null }
+export interface Brazier { parts: BrazierParts; spot: Interactable; readonly oiled: boolean; readonly lit: boolean; light: () => boolean }
 export interface SignalWorld {
   fire: SignalFire; braziers: Brazier[]; well: WellParts & { readonly raised: boolean; pull: () => boolean; spot: Interactable };
   logbook: Interactable; crackables: Crackable[]; flags: Flags;
@@ -71,7 +71,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   const braziers: Brazier[] = BRAZIERS.map((_, i) => {
     const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildPlace('brazier',baked, i, pieces.colliders(`sunscar.brazier.${String(i)}`)));
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
-    const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, set oiled(value) { rules.mark(oiled, value); }, get lit() { return rules.has(lit); }, set lit(value) { rules.mark(lit, value); },
+    const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, get lit() { return rules.has(lit); },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it
       spot: createQuestPagePrompts(source,new Map([['parts',parts]]),[`brazier.${String(i)}`])[0],
       light: () => page(`light.${String(i)}`) };
@@ -82,20 +82,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
 
   // The signal fire on the tower deck: lit by hand once the three waymarks burn.
   const fireCaught = (caught: SignalFire): void => { caught.tower.fire.visible = true; caught.tower.light.intensity = TOWER_LIGHT; caught.brazier.label = STRINGS.lit; };
-  const fire: SignalFire = { tower, get lit() { return rules.has('fire'); }, set lit(value) { rules.mark('fire', value); }, onLight: null,
-    brazier: firePrompt,
-    // a load that finds the fire lit: it burns at once, whatever the transient waymarks say
-    light: () => {
-      if (rules.has('fire')) return;
-      rules.mark('fire'); fireCaught(fire); flags.set(FLAG.lit);
-      fire.onLight?.();
-    } };
+  const fire: SignalFire = { tower, get lit() { return rules.has('fire'); }, onLight: null, brazier: firePrompt };
   const presentation = bindQuestPageInteractions(source, { flags, rules,
     owners: new Map<string,unknown>([['world',{logbook,well,braziers,fire}],['commands',{catchFire:()=>{fireCaught(fire);}}]]),
     ...(interactables===undefined?{}:{interactables}),toast: text => { toast(ctx, text); } });
   page = presentation.run;
-
-  if (flags.has(FLAG.lit)) fire.light();
 
   const crackables = [...presentation.world.targets];
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop

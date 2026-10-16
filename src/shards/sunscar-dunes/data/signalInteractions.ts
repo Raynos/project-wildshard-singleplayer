@@ -28,7 +28,7 @@ const oiled = (i: number): string => `oiled.${String(i)}`, lit = (i: number): st
  * always an oiled one. Both hosts use the captured page prompt order and the client nearest/LOS picker.
  */
 export const SIGNAL_INTERACTIONS: SignalInteractionRows = {
-  marks: [{ id: 'raised', initial: { all: [FLAG.oil] } }, { id: 'fire' }, ...each(i => [{ id: oiled(i) }, { id: lit(i) }]).flat()],
+  marks: [{ id: 'raised', initial: { all: [FLAG.oil] } }, { id: 'fire', initial: { all: [FLAG.lit] } }, ...each(i => [{ id: oiled(i) }, { id: lit(i) }]).flat()],
   never: each(i => ({ all: [lit(i)], none: [oiled(i)] })),
   rows: [
     { id: 'talk', act: SIGNAL_ACT.talk, at: 'scout', needs: [{ none: [SCOUT_FLAG], else: 'already' }], sets: [SCOUT_FLAG] },
