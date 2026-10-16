@@ -1889,3 +1889,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/pine-hollow/assets/bird-blobs/
 /src/shards/pine-hollow/data/birdBlobs.generated.json
 /src/shards/pine-hollow/data/floorLayout.generated.json
+# Retained mover rows emitted by the official fixed-driver compiler.
+!src/shards/driftwood-isle/data/movers.generated.json

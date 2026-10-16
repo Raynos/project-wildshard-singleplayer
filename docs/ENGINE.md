@@ -7596,3 +7596,9 @@ adapter requires the real Matriarch adoption as well as the Roc.
 speed. A dive may follow `targetAltitude:true` (the target plus aimHeight)
 and `contactCompletes:false` when its existing strike owner supplies the end
 edge. Defaults retain the original geometric altitude and contact completion.
+
+### Mover compiler output format
+
+`MoverBakeSchema.output` selects `typescript` (the default) or `json`. The
+existing mover compiler emits the same captured rows as `data/movers.ts`
+or `data/movers.generated.json`; fixed driver admission is unchanged.

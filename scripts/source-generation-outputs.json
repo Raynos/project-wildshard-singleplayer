@@ -11,6 +11,7 @@
     ],
     "scripts/bake/movers.mjs": [
       "src/shards/driftwood-isle/data/movers.ts",
+      "src/shards/driftwood-isle/data/movers.generated.json",
       "src/shards/far-reach/data/movers.ts",
       "src/shards/far-reach/data/bridgeModule.ts",
       "src/shards/far-reach/data/liftModule.ts"

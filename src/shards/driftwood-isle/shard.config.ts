@@ -13,7 +13,7 @@ import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { DECLARED_SEA, WORLD_DROP } from './world/sea';
 import { ENTRY_LANDINGS } from './data/entryLandings';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
-import { MOVERS } from './data/movers';
+import MOVERS from './data/movers.generated.json' with { type: 'json' };
 import { MOTION_FILES, MOTION_MEMORY } from './data/motion';
 import fixed from './data/fixedTiles.generated.json' with { type: 'json' };
 import lookGraphs from './data/lookMaterials.generated.json' with { type: 'json' };

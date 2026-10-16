@@ -45,6 +45,7 @@ const exportName = v.pipe(v.string(), v.regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/u));
  */
 export const MoverBakeSchema = v.strictObject({
   capture: exportName,
+  output: v.optional(v.picklist(['typescript', 'json']), 'typescript'),
   modules: v.pipe(v.array(v.strictObject({
     file: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9-]*\.as$/u)),
     driver: v.picklist(['ride', 'hinge', 'waves', 'clip']),
