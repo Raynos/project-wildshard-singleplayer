@@ -43,8 +43,7 @@ import { kingTick } from './kingFight';
 
 import { registerPineLap } from '../dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { installPineCombatAttachments, installPineCombatCallbacks, installPineCombatObservers } from '../runtime/combatService';
+import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -178,7 +177,14 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     const phase = Number(params.get('bossPhase') ?? '1');
     if (phase > 1) king.boss.devStartAt(phase - 1);
   }
-  if (entered !== undefined) installPineCombatAttachments(entered, eliteUi, king.ui);
+  if (entered !== undefined) {
+    installEnteredRuntimeAttachment(entered, eliteUi.root);
+    installEnteredRuntimeAttachment(entered, king.ui.root);
+    installEnteredRuntimeService(entered, scope => {
+      eliteUi.setActive(true);
+      scope.onDispose(() => { eliteUi.setActive(false); });
+    });
+  }
 
   // dev: `?elite=<id>` — out now, you `&from=` m off it (toward the Hollow), facing it
   const eliteParam = params.get('elite');
@@ -196,15 +202,23 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
 
   // The shell split its original frame into world / creature / HUD passes. Lair spawns must
   // still precede the first world pass and creature sync, which installs their hitboxes.
-  installPineCombatCallbacks(entered, game, { id: 'elites', phase: 'update', before: ['main.world', 'engine.creatures.update', 'main.frame'], run: (dt, t) => {
+  const system: Parameters<ShardContext['system']>[0] = { id: 'elites', phase: 'update', before: ['main.world', 'engine.creatures.update', 'main.frame'], run: (dt, t) => {
     legs();
     feel.update(dt, t);
     if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King
     pineElites.update(dt, t);
     king.update(dt, t);
-  } }, () => { if (app.player !== null) app.effects?.remove(app.player, 'effect.stun'); player.carried = false; });
+  } };
+  if (entered === undefined) game.app.addSystem(system, game.levelScope);
+  else installEnteredRuntimeService(entered, scope => {
+    game.app.addSystem(system, scope);
+    scope.onDispose(() => { if (app.player !== null) app.effects?.remove(app.player, 'effect.stun'); player.carried = false; });
+  });
   if (entered === undefined) { for (const [name, observer] of Object.entries({ __pineElites: pineElites, __antlerKing: king })) game.levelScope.expose(window, name, observer); }
-  else installPineCombatObservers(entered, { elites: pineElites, king });
+  else {
+    installEnteredRuntimeObserver(entered, '__pineElites', pineElites);
+    installEnteredRuntimeObserver(entered, '__antlerKing', king);
+  }
   const lap = { game, player, animals, music: h.music, hud: h.hud, elites, king };
   if (entered === undefined) registerPineLap(lap); // E350 F-J1: the fps panel's PERF LAP
   else installEnteredRuntimeService(entered, (scope) => { registerPineLap(lap, scope); });
