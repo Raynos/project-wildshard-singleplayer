@@ -1,6 +1,6 @@
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import SKIN_PICKUPS from '../data/skinPickups.json' with { type: 'json' };
-import { CROSSBOW_GEOMETRY } from './boot/crossbowGeometry';
+import { preloadHeldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
@@ -32,6 +32,8 @@ import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/e
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
+import { crossbowHeldRows } from './items/boltCrossbow';
+import { leverHeldRows } from './items/leverFirearm';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { Cabins } from '../world/homestead';
 import { updatePineForest } from '../world/treeFactory';
@@ -171,11 +173,12 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.compendium({ ...PINE_HOLLOW_COMPENDIUM, id: PINE_HOLLOW_COMPENDIUM.chunkId });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
-    await Promise.all([CROSSBOW_GEOMETRY.preload(), preloadKingKit()]);
-    await preloadLeverModel();
+    await Promise.all([preloadHeldGeometry(ctx.product), preloadKingKit()]);
+    await preloadLeverModel(ctx.product);
+    const crossbowHeld = crossbowHeldRows(ctx.product), leverHeld = leverHeldRows(ctx.product);
     rt.buildEquipment = runtimeEquipment([
-      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock }) },
-      { slot: 'rifle', create: (targets, nolock) => new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock }) },
+      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld }) },
+      { slot: 'rifle', create: (targets, nolock) => new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld }) },
       { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
     ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
       if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');

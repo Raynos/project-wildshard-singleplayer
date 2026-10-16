@@ -1,6 +1,5 @@
 import { createClientScene } from '@wildshard/game/plugin/ui';
-import { CROSSBOW_GEOMETRY } from '../../boot/crossbowGeometry';
-import rows from '../../../data/crossbowPool.generated.json' with {type:'json'};
+import { crossbowHierarchy, heldGeometry } from '../../boot/crossbowGeometry';
 import { viewmodelTexSet, makeCord, makeBoltAtlas, viewmodelMaterial, viewmodelRowMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { BoltCrossbow as BoltCrossbowWeapon, type BoltCrossbowParts, type BoltCrossbowView } from '../../items/boltCrossbow';
@@ -46,7 +45,7 @@ const PEEP_R = 0.01, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring (CROSSBOW_V
  * parts) and the Model Explorer's bolt card (src/shards/pine-hollow/runtime/models/gear.ts: its own copy) are built by this.
  */
 export function buildBolt(sky: Sky): { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial } {
-  const geometry = CROSSBOW_GEOMETRY.geometry('loaded-bolt', {borrow:true});
+  const geometry = heldGeometry().geometry('loaded-bolt', {borrow:true});
   if (geometry === null) throw new Error('Crossbow bolt pool not ready');
   return { geometry, material: viewmodelRowMaterial(sky, 'xbow-bolt', { ...CROSSBOW_MATERIALS.bolt, side: THREE.DoubleSide }, { bolt: makeBoltAtlas() }) };
 }
@@ -66,7 +65,8 @@ export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; rea
   const mat = (id: Exclude<keyof typeof CROSSBOW_MATERIALS, 'bolt'>): THREE.MeshPhysicalMaterial => viewmodelRowMaterial(sky, `xbow-${id}`, CROSSBOW_MATERIALS[id], sets);
   const {material:boltMat} = buildBolt(sky), peepIron = mat('peep');
   const peepGlow = new THREE.MeshBasicMaterial({color:new THREE.Color(PEEP_CYAN),toneMapped:false,fog:false,opacity:.85});
-  const made=createClientScene(rows.hierarchy,{geometry:id=>CROSSBOW_GEOMETRY.geometry(id,{borrow:true}),
+  const pool=heldGeometry();
+  const made=createClientScene(crossbowHierarchy(),{geometry:id=>pool.geometry(id,{borrow:true}),
     objects:new Map([['peep',into.peep],['peep-ring',into.peepRing]]),
     materials:new Map<string, THREE.Material>([...(['wood','iron','prod','leather','cord','brass'] as const).map(id => [id, mat(id)] as const),['bolt',boltMat],['peep-iron',peepIron],['peep-glow',peepGlow]])});
   into.model.add(...made.root.children);
@@ -116,7 +116,7 @@ export async function prepareCrossbowHands(due: () => Promise<void> | null): Pro
 type CrossbowArguments = ConstructorParameters<typeof BoltCrossbowWeapon<CrossbowProfile>>;
 /** Pine's crossbow: the row bound to the platform's bolt crossbow (`new Crossbow(world, targets, { row })`). */
 export class Crossbow extends BoltCrossbowWeapon<CrossbowProfile> {
-  constructor(world: CrossbowArguments[0], targets: CrossbowArguments[1], opts: Pick<CrossbowArguments[2], 'row' | 'allowUnlocked'> & { profile?: CrossbowProfile }) {
+  constructor(world: CrossbowArguments[0], targets: CrossbowArguments[1], opts: Pick<CrossbowArguments[2], 'row' | 'allowUnlocked' | 'held'> & { profile?: CrossbowProfile }) {
     super(world, targets, { ...opts, profile: opts.profile ?? CROSSBOW_PROFILE, parts: buildCrossbow, hands: crossbowHands, flight: boltFlightStep, view: CROSSBOW_VIEW });
   }
 }

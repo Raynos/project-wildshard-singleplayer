@@ -8,9 +8,10 @@ import { LEVER_MATERIALS } from './heldLook';
 import { HANDS_MATERIAL, HUNTER_HANDS, LEVER_AUTO_RELOAD_CLOSE } from '../const';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
-import { createModelLibrary } from '@wildshard/game/plugin/geometry';
+import { createModelLibrary, type ModelLibrary } from '@wildshard/game/plugin/geometry';
 import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../items/leverPresentation';
-import details from '../../data/leverDetails.json' with { type: 'json' };
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { SECTIONS } from '../sections';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11), a row over the platform's lever firearm
@@ -31,7 +32,7 @@ import details from '../../data/leverDetails.json' with { type: 'json' };
  * the right), the hammer + spur, a round tapered barrel with a crowned muzzle over the magazine tube, the forend band and
  * the carbine's barrel band, the loop lever, the trigger, the tangs, an oiled-walnut forend and straight-grip stock with a
  * crescent buttplate, a semi-buckhorn rear sight on its base, the front ramp + blade (the gold bead stays this file's
- * sphere, the aim reference). `preloadLeverModel()` (main.ts, awaited by the weapon step) fetches it; a failed load refuses equipment boot loudly.
+ * sphere, the aim reference). `preloadLeverModel(ctx.product)` (runtime/index.ts, awaited by the weapon step) fetches it; a failed load refuses equipment boot loudly.
  * The same parts (the static steel, the forend, the stock, the lever / hammer about their pivots, the bolt), the same
  * seven draws and four materials ('lever-wood', 'lever-steel', 'lever-brass', + the flash), all on the viewmodels'
  * shared lit program (Crossbow.viewmodelMaterial) — the rifle compiles no program of its own. The skins restyle it by
@@ -71,16 +72,32 @@ const MODEL_PARTS = ['steel', 'forend', 'stock', 'lever', 'hammer', 'bolt'] as c
 type ModelPart = (typeof MODEL_PARTS)[number];
 /** the loaded model: plain float geometry per part (model space) + the two atlases */
 export interface LeverModel { geo: Record<ModelPart, THREE.BufferGeometry>; steel: TexSet; wood: TexSet }
-const LEVER_LIBRARY = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-  geometryPools: [{ url: LEVER_MODEL_URL, parts: MODEL_PARTS, native: { requireIndex: true, white: true, disposeSource: true },
-    atlases: [{ id: 'steel', part: 'steel', anisotropy: 8, refresh: true }, { id: 'wood', part: 'forend', anisotropy: 8, refresh: true }] }, details.pool],
-}, '[lever-action]');
+/** The model and the rifle details (`custom/leverDetails`: a named blob of the product) in one library, made by each
+ *  fresh preload from the admitted product; the last one made serves the details (`detailGeometry`). */
+function leverLibrary(product: ShardProduct): ModelLibrary<never, never> {
+  const { pool } = product.section('custom/leverDetails', SECTIONS);
+  return createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+    geometryPools: [{ url: LEVER_MODEL_URL, parts: MODEL_PARTS, native: { requireIndex: true, white: true, disposeSource: true },
+      atlases: [{ id: 'steel', part: 'steel', anisotropy: 8, refresh: true }, { id: 'wood', part: 'forend', anisotropy: 8, refresh: true }] },
+    { url: product.url(pool.url), parts: pool.parts }],
+  }, '[lever-action]');
+}
+let library: ModelLibrary<never, never> | null = null;
 let modelLoad: Promise<LeverModel> | null = null;
 let modelReady: LeverModel | null = null;
+function admittedLibrary(): ModelLibrary<never, never> {
+  if (library === null) throw new Error('Required lever-action model is not admitted');
+  return library;
+}
 
-/** Fetch and admit the required Blender model and rifle details before constructing equipment. */
-export function preloadLeverModel(): Promise<LeverModel> {
-  modelLoad ??= LEVER_LIBRARY.preload().then(() => {
+/** Fetch and admit the required Blender model and rifle details before constructing equipment. Without a product it
+ *  returns the load the shard's equipment step already started (the Model Explorer's card), else refuses. */
+export function preloadLeverModel(product?: ShardProduct): Promise<LeverModel> {
+  if (modelLoad !== null) return modelLoad;
+  if (product === undefined) return Promise.reject(new Error('Required lever-action model is not admitted'));
+  const LEVER_LIBRARY = leverLibrary(product);
+  library = LEVER_LIBRARY;
+  modelLoad = LEVER_LIBRARY.preload().then(() => {
       const part = (name: ModelPart): THREE.BufferGeometry => { const geometry = LEVER_LIBRARY.geometry(name, { borrow: true }); if (geometry === null) throw new Error(`Missing lever geometry ${name}`); return geometry; };
       const steel = LEVER_LIBRARY.atlas('steel'), wood = LEVER_LIBRARY.atlas('wood'); if (steel === null || wood === null) throw new Error('Missing lever PBR atlases');
       for (const name of ['sight-bead', 'round-live', 'round-case'] as const) if (LEVER_LIBRARY.geometry(name, { borrow: true }) === null) throw new Error(`Missing required rifle detail ${name}`);
@@ -123,7 +140,7 @@ export function leverSpecimen(sky: Sky, model: LeverModel): THREE.Group {
 
 /** Details are admitted through the same model library and handed out as owned clones. */
 function detailGeometry(name: string): THREE.BufferGeometry {
-  const geometry = LEVER_LIBRARY.geometry(name);
+  const geometry = admittedLibrary().geometry(name);
   if (geometry === null) throw new Error(`Missing required rifle detail ${name}`);
   return geometry;
 }
@@ -163,7 +180,7 @@ function requireLeverModel(): LeverModel {
 type LeverArguments = ConstructorParameters<typeof LeverFirearmWeapon<FirearmProfile>>;
 /** Pine's lever-action: the row bound to the platform's lever firearm (`new LeverRifle(world, targets, { row })`). */
 export class LeverRifle extends LeverFirearmWeapon<FirearmProfile> {
-  constructor(world: LeverArguments[0], targets: LeverArguments[1], opts: Pick<LeverArguments[2], 'row' | 'allowUnlocked' | 'muzzleLight'> & { profile?: FirearmProfile } & LeverBuildOptions) {
+  constructor(world: LeverArguments[0], targets: LeverArguments[1], opts: Pick<LeverArguments[2], 'row' | 'allowUnlocked' | 'muzzleLight' | 'held'> & { profile?: FirearmProfile } & LeverBuildOptions) {
     super(world, targets, { ...opts, profile: opts.profile ?? LEVER_PROFILE,
       build: sky => buildLever(sky, opts.model ?? requireLeverModel()), cartridge: cartridgeGeometry,
       action: store => new LeverAction(store), hands: LEVER_HANDS, view: LEVER_VIEW });

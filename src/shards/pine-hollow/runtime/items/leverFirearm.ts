@@ -1,7 +1,7 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
-import playback from '../../data/heldPlayback.json' with { type: 'json' };
-import inputs from '../../data/heldInputs.json' with { type: 'json' };
-import leverPlayback from '../../data/leverPlayback.json' with { type: 'json' };
+import type { InferOutput } from 'valibot';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { SECTIONS } from '../sections';
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, HitscanPresentation } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from './rangedFrame';
@@ -107,8 +107,27 @@ export interface LeverFirearmView {
   readonly cyclePose: { readonly px: number; readonly py: number; readonly pz: number; readonly rx: number; readonly ry: number; readonly rz: number };
 }
 
+type Section<K extends keyof typeof SECTIONS> = InferOutput<(typeof SECTIONS)[K]>;
+/** The lever's admitted playback rows: Pine's custom sections, read once from the product where the rifle is built. */
+export interface LeverHeldRows {
+  readonly playback: Section<'custom/heldPlayback'>;
+  readonly inputs: Section<'custom/heldInputs'>;
+  readonly lever: Section<'custom/leverPlayback'>;
+}
+/** The section's output rows as the playback binds them (a numeric path step names the same property key). */
+function boundOutputs(rows: Section<'custom/heldSights'>['sightOutputs']): { property: string; target: string; path: string[] }[] {
+  return rows.map(row => ({ property: row.property, target: row.target, path: row.path.map(String) }));
+}
+/** Read the lever's playback sections (load time, never in a frame loop). */
+export function leverHeldRows(product: ShardProduct): LeverHeldRows {
+  return { playback: product.section('custom/heldPlayback', SECTIONS), inputs: product.section('custom/heldInputs', SECTIONS),
+    lever: product.section('custom/leverPlayback', SECTIONS) };
+}
+
 export interface LeverFirearmOptions<P extends LeverFirearmProfile> extends RangedOptions {
   profile: P;
+  /** the playback, input and lever presentation rows (`leverHeldRows(ctx.product)`) */
+  held: LeverHeldRows;
   /** the rifle's model, built at the viewmodel's build from the scene's sky */
   build: (sky: Sky) => LeverFirearmBuild;
   /** a cartridge (tip at −Z); `live` has the bullet, an empty is the case alone */
@@ -257,16 +276,17 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.syncState();
     this.buildHands();
+    const { playback, inputs, lever: leverPlayback } = opts.held;
     this.posePlayback = new HeldPlayback({ frame: inputs.frames.lever.program, pose: playback.lever, parts: playback.leverParts, sight: leverPlayback.sight, cycle: leverPlayback.cycle, handAt: leverPlayback.handAt, handAxis: leverPlayback.handAxis, handPalm: leverPlayback.handPalm }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
     this.posePlayback.bindInputs('frame', inputs.frames.lever.inputs, new Map([['weapon', this]]));
-    this.posePlayback.bindOutputs('frame', inputs.frames.lever.outputs, new Map([['frame', this.poseFrame]]));
+    this.posePlayback.bindOutputs('frame', boundOutputs(inputs.frames.lever.outputs), new Map([['frame', this.poseFrame]]));
     this.posePlayback.bindInputs('pose', inputs.lever, new Map([['weapon', this]]));
     const owners = new Map([['weapon', this]]);
     this.posePlayback.bindInputs('parts', leverPlayback.partInputs, owners);
     for (let i = 0; i < 5; i++) {
       const row = leverPlayback.bindings[i]; if (row === undefined) throw new Error('Missing lever presentation binding');
       this.posePlayback.bindInputs(row.group, row.inputs, owners);
-      this.posePlayback.bindOutputs(row.group, row.outputs, new Map([['visual', row.target === 'sight' ? this.adsPose : row.target === 'cycle' ? this.partValues : this.grips.out]]));
+      this.posePlayback.bindOutputs(row.group, boundOutputs(row.outputs), new Map([['visual', row.target === 'sight' ? this.adsPose : row.target === 'cycle' ? this.partValues : this.grips.out]]));
     }
   }
 
