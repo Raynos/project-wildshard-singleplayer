@@ -5,7 +5,7 @@ Pine/DW (G445 ruler): C1 3777/3876 · C2 2470/2373 · C3 156/0 · C4 3801/1769 �
 Since 01:00Z: King phasedBoss `fcf93f28c` (Pine −133), code parts `b90bb35a2` (−104), DW arm rig `e3b00d153` (−138), plant kit `1d333bfe7` (−125), Pine bakes o254 (−76), HerdShelter `ea61b9044` (−57).
 
 **Lanes (G432 Opus; Claude weekly 20 %; Codex 5 + pusher):**
-- Opus: o253 DW bakes (fireflies, Cove, gull); o254 Pine bakes; o255 King pose onto NativeCreaturePose (old saves load, witness rebake). Two slots held: no non-overlapping visual target.
+- Opus: o253 DW bakes (fireflies, Cove, gull); o254 Pine bakes; o255 King pose onto NativeCreaturePose (old saves load, witness rebake). 3 slots held (no free visual target).
 - Codex: x7 maps batch 5 then Pine content; x4 DW C6/C8; x5 DW C5; x1 Pine weapon channel rows; x6 DW Enemies/captain; x8 Pine page/native dedup (HerdShelter `ea61b9044` −57).
 - Slots: check = x1 x5 x8 · check2 = x4 x6 x7 · check3 = Opus + measure.
 
@@ -16,7 +16,7 @@ Since 01:00Z: King phasedBoss `fcf93f28c` (Pine −133), code parts `b90bb35a2` 
 
 **Waves (G443/G444):** W2 closes 17:00Z 10-16 wherever it stands (or earlier at ≤ 20 % + G420); then final numbers here, leftovers → W3 rows, W3 starts, queue ordered by total lines dropped (G441 host ports first). G441 table checked 01:25Z: 78 entries / 43 rows, all consistent. No W3 prep before noon. In force: G415–G448.
 
-**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale "THE SEALED RING · OPENED" overlaps the quest banner (pre-existing). Pine King/fallen witness hashes mismatched before `fcf93f28c` (o255 rebakes).
+**End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlaps the quest banner. Pine King/fallen witness hashes mismatched before `fcf93f28c` (o255 rebakes).
 **G439 refs:** DONE.
 
 **For wildshard-v:** G448 applied (lanes told: no hand JSON, no new data tables; x6's unlanded JSON conversion dropped). G447 hold applied; one question: keep or revert `f0ca1f1c8` until the output ruler lands? I recommend keep (W2 deltas stay comparable, nothing fails). G443/G444 in force. G442 closed.
