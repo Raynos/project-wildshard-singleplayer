@@ -27,18 +27,22 @@ export const SHARD_FLAGS = ['shard:lookout', 'shard:wreck', 'shard:cave'] as con
 /** Durable per-piece sea-glass flag prefix. */
 export const SEA_GLASS_FLAG = 'glass:';   // + piece id, one per piece
 
-const GLASS: [number, number][] = [
+export const SEA_GLASS_POINTS: [number, number][] = [
   [-20, -146], [-30, -126], [-27, -92], [-9, -49], [15, -14], [58, 2], [100, 1], [41, 40],
   [67, 63], [-52, -31], [-73, 24], [-89, 71], [-138, -40], [28, 146], [118, -34],
 ];
 const COLORS = ['#7df0d0', '#8fd8ff', '#b7f59a', '#9fb8ff', '#f0f7a0'];
 
-const glass: PickupDef[] = GLASS.map(([x, z], i) => ({
+const glass: PickupDef[] = SEA_GLASS_POINTS.map(([x, z], i) => ({
   kind: 'pickup', id: `glass-${i + 1}`, look: 'seaglass', label: 'Sea glass', touch: true, // a flag only, no pack item (E318 row 13: FINDS is the one count)
   color: COLORS[i % COLORS.length] ?? '#7df0d0', at: { poi: 'world', x, z }, sets: [`${SEA_GLASS_FLAG}${i + 1}`],
 }));
 /** The original number of authored shore pickups. */
-export const SEA_GLASS_COUNT = GLASS.length;
+export const SEA_GLASS_COUNT = SEA_GLASS_POINTS.length;
+
+/** The authored reef find shared by the kit and completion content. */
+export const REEF_TREASURE: Extract<InteractTable['rows'][number], { kind: 'chest' }> = { kind: 'chest', id: 'reef-treasure', look: 'treasure', reach: 1.6, at: { poi: 'world', x: 232, z: 48 }, contents: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
+      toast: 'Sunken treasure!' };
 
 /** Existing native interactable placement rows, compiled by the shared quest-table authoring contract. */
 export const DRIFTWOOD_INTERACT: InteractTable = {
@@ -83,8 +87,7 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
       sets: ['quest:shrine-set'], toast: 'The shards lock into place — the ring wakes' },
 
     // ── A4: the dive treasure on the deepest shelf of the island (3 m, north-east of Wreck Cove — reach 1.6: dive for it), the vista bench on the plateau rim, the sea glass ──
-    { kind: 'chest', id: 'reef-treasure', look: 'treasure', reach: 1.6, at: { poi: 'world', x: 232, z: 48 }, contents: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
-      toast: 'Sunken treasure!' },
+    REEF_TREASURE,
     { kind: 'bench', id: 'vista-bench', label: 'Sit and take in the view', at: { poi: 'world', x: -46, z: -100, yaw: 2.8 }, toast: '' },   // on the plateau's south rim, over the lagoon, the pier and the boat
     ...glass,
   ],

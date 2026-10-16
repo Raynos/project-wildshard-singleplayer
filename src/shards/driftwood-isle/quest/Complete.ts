@@ -13,18 +13,17 @@
  *   - A save that finished before this existed, or a reload during the hold, gets a toast once per session, out of
  *     combat (nothing hostile within 25 m). The menu's Achievements tab has a "Driftwood complete" row any time.
  */
-import { SEA_GLASS_COUNT, SHARD_FLAGS, DRIFTWOOD_INTERACT } from '../data/interactables';
+import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '@wildshard/game/complete/ShardComplete';
 import { findChunk } from '@wildshard/game/shard/registry';
 import { travel } from '@wildshard/game/travel/travel';
 import { DRIFTWOOD_PLACES } from '../data/discovery';
 import { QUEST_DONE } from '../data/questStory';
+import { COMPLETE_CONTENT as CONTENT } from '../data/completion';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
-export const SEEN_COMPLETE = 'seen:complete';
-const SAFE_R = 25;   // the fallback toast waits until nothing hostile is this close
-const MAX_TODO = 7;  // chips on the card; the rest fold into "+N more"
+export const SEEN_COMPLETE = CONTENT.seenFlag;
 
 /** what the card reads of the shard's achievements (src/game/Progress.ts satisfies it) */
 export interface CompleteProgress {
@@ -46,7 +45,6 @@ export interface Complete {
 
 interface Spot { label: string; short: string; flag: string; x: number; z: number }
 
-const titleCase = (s: string): string => s.toLowerCase().replaceAll(/(^|[\s'’-])(\p{L})/gu, (_m: string, a: string, b: string) => a + b.toUpperCase()).replaceAll(/'S\b/g, "'s");
 
 export function fmtPlayTime(s: number): string {
   const m = Math.floor(s / 60);
@@ -58,18 +56,13 @@ export function fmtPlayTime(s: number): string {
 export function installComplete<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: CompleteProgress | undefined): Complete {
   const { flags } = adv;
   const card = new ShardComplete();
-  const shardName = findChunk(w.chunk.slug)?.name ?? 'Driftwood Isle';
+  const shardName = findChunk(w.chunk.slug)?.name ?? CONTENT.shardName;
   const next = w.chunk.next === undefined ? undefined : findChunk(w.chunk.next);
 
   // ── the finds, resolved to world coordinates once ──
-  const glass: Spot[] = [], extras: Spot[] = [];
-  for (const r of DRIFTWOOD_INTERACT.rows) {
-    if (r.kind === 'pickup' && r.look === 'seaglass') {
-      const f = r.sets?.[0], p = adv.place(r.at);
-      if (f !== undefined) glass.push({ label: 'Sea glass', short: 'SEA GLASS', flag: f, x: p.x, z: p.z });
-    } else if (r.id === 'reef-treasure') { const p = adv.place(r.at); extras.push({ label: 'The reef treasure', short: 'REEF TREASURE', flag: `open:${r.id}`, x: p.x, z: p.z }); }
-  }
-  const places: Spot[] = DRIFTWOOD_PLACES.map((d) => { const p = adv.place(d.at); return { label: titleCase(d.label), short: d.label, flag: `seen:${d.id}`, x: p.x, z: p.z }; });
+  const glass: Spot[] = CONTENT.glass.points.map(([x, z], i) => ({ label: CONTENT.glass.label, short: CONTENT.glass.short, flag: `${CONTENT.glass.flagPrefix}${i + 1}`, ...adv.place({ poi: 'world', x, z }) }));
+  const extras: Spot[] = CONTENT.extras.map(({ at, ...row }) => ({ ...row, ...adv.place(at) }));
+  const places: Spot[] = DRIFTWOOD_PLACES.map((d) => { const p = adv.place(d.at); return { label: d.completeLabel, short: d.label, flag: `seen:${d.id}`, x: p.x, z: p.z }; });
   const left = (list: Spot[]): Spot[] => list.filter((s) => !flags.has(s.flag));
 
   const todo = (): string[] => {
@@ -80,10 +73,10 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
     for (const s of left(places)) out.push(s.label);
     // the achievements not already covered by a find above (Beachcomber = the sea glass, Pearl Diver = the treasure)
     for (const r of progress?.rows ?? []) {
-      if (r.earned || r.def.event === 'glass' || r.def.event === 'treasure') continue;
+      if (r.earned || CONTENT.coveredEvents.includes(r.def.event ?? '')) continue;
       out.push(r.def.count > 1 ? `${r.def.name} ${r.count} / ${r.def.count}` : r.def.name);
     }
-    return out.length > MAX_TODO ? [...out.slice(0, MAX_TODO - 1), `+${out.length - MAX_TODO + 1} more`] : out;
+    return out.length > CONTENT.maximumTodo ? [...out.slice(0, CONTENT.maximumTodo - 1), `+${out.length - CONTENT.maximumTodo + 1} ${CONTENT.more}`] : out;
   };
 
   const data = (): ShardCompleteData => {
@@ -92,16 +85,14 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
     const shards = SHARD_FLAGS.filter((f) => flags.has(f)).length;
     const glassN = Math.max(SEA_GLASS_COUNT, glass.length);
     return {
-      kicker: 'The Sealed Ring · opened',
-      title: shardName,
-      flavour: ['Captain Brine is gone and the ring is open.', 'The island is still yours.'],
+      ...CONTENT.card, title: shardName,
       stats: [
-        { label: 'Time played', value: fmtPlayTime(progress?.playS ?? 0) },
-        { label: 'Achievements', value: `${progress?.earnedCount ?? 0} / ${rows.length}`, frac: rows.length > 0 ? (progress?.earnedCount ?? 0) / rows.length : 0 },
-        { label: 'Glyph shards', value: `${shards} / ${SHARD_FLAGS.length}`, frac: shards / SHARD_FLAGS.length },
-        { label: 'Sea glass', value: `${got} / ${glassN}`, frac: got / Math.max(1, glassN) },
-        { label: 'Places', value: `${seen} / ${places.length}`, frac: seen / Math.max(1, places.length) },
-        { label: 'Title', value: progress?.title?.title ?? 'None yet' },
+        { label: CONTENT.stats.time, value: fmtPlayTime(progress?.playS ?? 0) },
+        { label: CONTENT.stats.achievements, value: `${progress?.earnedCount ?? 0} / ${rows.length}`, frac: rows.length > 0 ? (progress?.earnedCount ?? 0) / rows.length : 0 },
+        { label: CONTENT.stats.shards, value: `${shards} / ${SHARD_FLAGS.length}`, frac: shards / SHARD_FLAGS.length },
+        { label: CONTENT.stats.glass, value: `${got} / ${glassN}`, frac: got / Math.max(1, glassN) },
+        { label: CONTENT.stats.places, value: `${seen} / ${places.length}`, frac: seen / Math.max(1, places.length) },
+        { label: CONTENT.stats.title, value: progress?.title?.title ?? CONTENT.titleFallback },
       ],
       todo: todo(),
       ...(next ? { next: next.name } : {}),
@@ -133,7 +124,7 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   // the menu row only exists once the quest is done
   const syncEntry = (): void => {
     if (!flags.has(QUEST_DONE)) { setCompleteEntry(null); return; }
-    setCompleteEntry({ label: `${shardName} complete`, sub: 'Your island · the time, the finds, what is still out there', open });
+    setCompleteEntry({ label: `${shardName} complete`, sub: CONTENT.menuSubtitle, open });
   };
   syncEntry();
   const offFlags = flags.onChange((f) => { if (f === QUEST_DONE) syncEntry(); });
@@ -143,14 +134,14 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   let offered = false, checkT = 0;
   const hostileNear = (): boolean => {
     const pp = w.player.position;
-    return (w.animals.animals ?? []).some((a) => a.alive && a.aggressive === true && Math.hypot(a.position.x - pp.x, a.position.z - pp.z) < SAFE_R);
+    return (w.animals.animals ?? []).some((a) => a.alive && a.aggressive === true && Math.hypot(a.position.x - pp.x, a.position.z - pp.z) < CONTENT.safeRadius);
   };
   w.game.onUpdate((_dt, t) => {
-    if (offered || t - checkT < 1) return;
+    if (offered || t - checkT < CONTENT.pollSeconds) return;
     checkT = t;
     if (!flags.has(QUEST_DONE) || flags.has(SEEN_COMPLETE) || w.player.carried || card.isOpen || hostileNear()) return;
     offered = true;
-    w.hud.toast(`${shardName} complete · open the menu to see your island`);
+    w.hud.toast(`${shardName}${CONTENT.toastSuffix}`);
   }, 'shard.driftwood-isle.installComplete');
 
   return {
