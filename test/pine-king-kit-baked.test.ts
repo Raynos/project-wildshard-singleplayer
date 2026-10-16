@@ -7,7 +7,7 @@ import { bakeKingKit } from '../src/shards/pine-hollow/generators/kingKit';
 import rows from '../src/shards/pine-hollow/data/kingKit.generated.json' with { type: 'json' };
 
 // The Antler King's lantern, ribcage and core and his lantern spots are baked (src/shards/pine-hollow/generators/kingKit.ts):
-// the page borrows the committed pool and refuses when it is missing. Editing KING_DRESS's kit rows, its rack row or his
+// the page borrows the committed pool and refuses when it is missing. Editing generators/kingKit.ts's kit rows, its rack row or his
 // hull means re-running bake-king-kit.mjs.
 test('the committed King kit is the bake of the current rows and hull', async () => {
   const rig = (tier: 'phone' | 'desktop'): Uint8Array => new Uint8Array(readFileSync(`public/assets/pine-hollow/creatures/antler-king-rig${tier === 'phone' ? '.phone' : ''}.rigged.glb`));

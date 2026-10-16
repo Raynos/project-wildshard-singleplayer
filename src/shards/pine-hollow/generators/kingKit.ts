@@ -2,21 +2,51 @@ import * as THREE from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readRigRest } from '@wildshard/sdk/bake/rig';
 import { buildPrimitive, mergePrimitives } from '@wildshard/sdk/kit/mergedPrimitives';
-import { KING_DRESS } from '../data/antlerKingLook';
 
 /**
  * The Antler King's kit, baked (SHARD-PLATFORM, sp-o208): the antler lantern (its iron frame and amber glass), the amber
- * ribcage and its burning core, built once here from KING_DRESS's primitive rows and written as one rest-geometry pool
+ * ribcage and its burning core, built once here from its primitive rows (KIT_ROWS below) and written as one rest-geometry pool
  * the page borrows (models/antlerKing.ts); and where his three lanterns hang on his hull (the same on both tiers): the rack's outermost
- * left and right points and the right beam's middle, read off the rigged hull's bind pose (KING_DRESS.rack). The page
+ * left and right points and the right beam's middle, read off the rigged hull's bind pose (KIT_ROWS.rack). The page
  * builds none of it and reads no hull vertex.
  */
 
 type V3 = [number, number, number];
 
+/** The kit's authored rows (model units, before his ×2.6 mesh scale; the ribs' radii and the bars' offsets are the old
+ *  code's values, RIB_R × √(1 − (y / (RIB_R × 1.25))²) and 0.075 × cos / sin of the quarter turns, printed exactly). */
+const KIT_ROWS = {
+  /** the lanterns hang off his hull's own rack : the rack's outermost left and right
+   *  points and the right beam's middle (the highest point about halfway out), over 0.25 above the head bone within
+   *  1.2 of it along z, each lantern 0.2 under its tine */
+  rack: { bone: 'head', above: 0.25, reachZ: 1.2, middle: { frac: 0.5, tol: 0.15 }, drop: 0.2 },
+  /** the lantern: a cap, a base, four bars, the hanging ring and its chain, ~0.3 × 0.16 (≈ 0.8 m on the King) */
+  frame: [
+    { kind: 'cone', args: [0.1, 0.08, 8], ops: [['translate', 0, 0.12, 0]] },
+    { kind: 'cylinder', args: [0.085, 0.09, 0.025, 8], ops: [['translate', 0, -0.1, 0]] },
+    { kind: 'box', args: [0.012, 0.2, 0.012], ops: [['translate', 0.053033008588991064, 0, 0.05303300858899106]] },
+    { kind: 'box', args: [0.012, 0.2, 0.012], ops: [['translate', -0.05303300858899106, 0, 0.053033008588991064]] },
+    { kind: 'box', args: [0.012, 0.2, 0.012], ops: [['translate', -0.05303300858899108, 0, -0.05303300858899106]] },
+    { kind: 'box', args: [0.012, 0.2, 0.012], ops: [['translate', 0.05303300858899105, 0, -0.05303300858899108]] },
+    { kind: 'torus', args: [0.03, 0.008, 5, 10], ops: [['translate', 0, 0.18, 0]] },
+    { kind: 'cylinder', args: [0.006, 0.006, 0.3, 4], ops: [['translate', 0, 0.33, 0]] },
+  ],
+  glass: { kind: 'cylinder', args: [0.062, 0.062, 0.17, 10] },
+  /** the ribs: five horizontal half-hoops round the front (+z), widest in the middle, then the sternum */
+  ribs: [
+    { kind: 'torus', args: [0.2938298827553113, 0.028, 5, 18, 3.141592653589793], ops: [['rotateX', 1.5707963267948966], ['translate', 0, -0.26, 0]] },
+    { kind: 'torus', args: [0.34465054765660824, 0.028, 5, 18, 3.141592653589793], ops: [['rotateX', 1.5707963267948966], ['translate', 0, -0.13, 0]] },
+    { kind: 'torus', args: [0.36, 0.028, 5, 18, 3.141592653589793], ops: [['rotateX', 1.5707963267948966], ['translate', 0, 0, 0]] },
+    { kind: 'torus', args: [0.34465054765660824, 0.028, 5, 18, 3.141592653589793], ops: [['rotateX', 1.5707963267948966], ['translate', 0, 0.13, 0]] },
+    { kind: 'torus', args: [0.2938298827553113, 0.028, 5, 18, 3.141592653589793], ops: [['rotateX', 1.5707963267948966], ['translate', 0, 0.26, 0]] },
+    { kind: 'cylinder', args: [0.03, 0.03, 0.6, 5], ops: [['translate', 0, 0, 0.3528]] },
+  ],
+  core: { kind: 'icosahedron', args: [0.2592, 1] },
+} as const;
+
 /** The hull's lantern spots in the rack bone's frame: [left, right, middle] (as the page once picked them off the hull). */
 function rackSpots(geometry: THREE.BufferGeometry, bones: readonly { readonly name: string; readonly pos: readonly number[] }[]): V3[] {
-  const row = KING_DRESS.rack, bone = bones.find((b) => b.name === row.bone);
+  const row = KIT_ROWS.rack, bone = bones.find((b) => b.name === row.bone);
   if (bone === undefined) throw new Error(`King kit: the hull has no ${row.bone} bone`);
   const [hx = 0, hy = 0, hz = 0] = bone.pos, P = geometry.getAttribute('position');
   const above = (i: number): boolean => P.getY(i) > hy + row.above && Math.abs(P.getZ(i) - hz) < row.reachZ;
@@ -38,7 +68,7 @@ function rackSpots(geometry: THREE.BufferGeometry, bones: readonly { readonly na
 
 /** The kit as one rest-geometry pool GLB, and the rows the page reads it by (the lantern spots). */
 export async function bakeKingKit(readRig: (tier: 'phone' | 'desktop') => Uint8Array): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: string[] }; lanterns: V3[] } }> {
-  const D = KING_DRESS;
+  const D = KIT_ROWS;
   const parts: [string, THREE.BufferGeometry][] = [
     ['king-lantern-frame', mergePrimitives(D.frame)], ['king-lantern-glass', buildPrimitive(D.glass)],
     ['king-ribs', mergePrimitives(D.ribs)], ['king-core', buildPrimitive(D.core)],
