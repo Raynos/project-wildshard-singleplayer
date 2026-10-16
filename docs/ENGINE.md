@@ -7174,3 +7174,12 @@ fuel/depth/finite guards as v0, with fixed memory of 1–4 pages and no
 page; `maximumPages` selects another fixed size up to four. Omitting `abi`
 preserves v0's one-page initial memory and 64-page maximum. Both versions
 use the pinned coarse G457 function/loop fuel instrumentation.
+### Closed shardfile boundaries (Z1)
+
+The P0 lint rules accept `closedShards` for completed migrations. These
+shards receive hard errors even if an obsolete per-file ratchet still
+records an allowance. Template is closed for all three rules. The native
+Blender Template, Ink Cel Valley and Pastel Plain products are closed for
+`runtime-standalone`; their remaining build/discovery bridges retain the
+existing shrink-only ceilings. New files still start at zero everywhere.
+

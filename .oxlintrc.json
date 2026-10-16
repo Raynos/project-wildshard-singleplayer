@@ -192,11 +192,11 @@
         "wildshard/no-level-identity": "error",
         // G143 / SF54: runtime/ reaches neither the kit nor build-time commons; paid down to 0 when the kit emptied (2026-10-08)
         "wildshard/runtime-commons": "error",
-        // G450: internally ratcheted against lint/ratchet.json; new files start at zero.
-        "wildshard/runtime-standalone": "error",
+        // G450/Z1: closed boundaries are hard errors; other paths remain shrink-only.
+        "wildshard/runtime-standalone": ["error", { "closedShards": ["_template", "blender-template", "ink-cel-valley", "pastel-plain"] }],
         "wildshard/no-shard-host-callback": "error",
-        "wildshard/no-build-time-import": "error",
-        "wildshard/no-runtime-in-build": "error",
+        "wildshard/no-build-time-import": ["error", { "closedShards": ["_template"] }],
+        "wildshard/no-runtime-in-build": ["error", { "closedShards": ["_template"] }],
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
         "wildshard/layer": "error",
         // G307/SF78: report-only until SF76 move-backs finish; run scripts/game-plugins.mjs --report.

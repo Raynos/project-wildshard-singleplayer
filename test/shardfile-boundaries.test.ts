@@ -63,14 +63,17 @@ test('ordinary oxlint honors the recorded ceiling and refuses growth; count mode
   const file = resolve(scratch, runtime), baseline = resolve(scratch, 'ratchet.json'), config = resolve(scratch, 'lint.json');
   mkdirSync(resolve(file, '..'), { recursive: true });
   writeFileSync(baseline, JSON.stringify({ 'wildshard/runtime-standalone': { [runtime]: 1 } }));
-  const run = (source: string, count: boolean) => {
+  const run = (source: string, count: boolean, closedShards: readonly string[] = []) => {
     writeFileSync(file, source);
-    writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(root, 'lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/runtime-standalone': ['error', { count }] } }));
+    writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(root, 'lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/runtime-standalone': ['error', { count, closedShards }] } }));
     return spawnSync(execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', config, '-f', 'json', '--no-ignore', file], { cwd: root, env: { ...env, WILDSHARD_RATCHET_FILE: baseline }, encoding: 'utf8' });
   };
   try {
     const old = "import '../data/a';", grown = `${old} import '../world/b';`;
     expect(run(old, false).status).toBe(0);
+    // A completed migration cannot regain an escape through a stale ceiling.
+    expect(run(old, false, ['sample']).status).toBe(1);
+    expect(run("import './local';", false, ['sample']).status).toBe(0);
     const raised = run(grown, false);
     expect(raised.status).toBe(1);
     expect(raised.stdout).toContain('runtime-standalone');

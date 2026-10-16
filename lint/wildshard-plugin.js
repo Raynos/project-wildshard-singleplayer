@@ -955,13 +955,15 @@ const shardHostCallback = {
 };
 const shardfileBoundaryRule = name => ({
   meta: { type: 'problem', docs: { description: `Shardfile source boundary: ${name} (G450)` },
-    schema: [{ type: 'object', properties: { count: { type: 'boolean' } }, additionalProperties: false }] },
+    schema: [{ type: 'object', properties: { count: { type: 'boolean' }, closedShards: { type: 'array', items: { type: 'string' }, uniqueItems: true } }, additionalProperties: false }] },
   create(context) {
     const file = pathOf(context);
     if (legacySourcePath(file) !== null) return {};
     const index = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
     const root = index === -1 ? REPO : context.filename.slice(0, index);
-    const limit = context.options[0]?.count === true ? 0 : shardfileDebt[`wildshard/${name}`]?.[file] ?? 0;
+    const slug = /^src\/shards\/([^/]+)\//u.exec(file)?.[1];
+    const closed = context.options[0]?.closedShards?.includes(slug) === true;
+    const limit = closed || context.options[0]?.count === true ? 0 : shardfileDebt[`wildshard/${name}`]?.[file] ?? 0;
     let count = 0;
     return shardfileBoundaryVisitors(root, file, name, (node, message) => {
       count += 1;
