@@ -1,13 +1,12 @@
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { viewmodelMaterial, type RangedWorld, type TexSet } from '@wildshard/engine/combat/view/ranged';
+import { viewmodelRowMaterial, type RangedWorld, type TexSet } from '@wildshard/engine/combat/view/ranged';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRow, type HeldModelRows } from '@wildshard/game/plugin/heldFirearm';
+import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldModelRows } from '@wildshard/game/plugin/heldFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { handGeometry, type HandHold } from '../viewmodel/gloveHands';
+import { bakedHandGeometry, handsPresentation } from '../boot/handsGeometry';
 import { LEVER_MATERIALS } from './heldLook';
-import { HANDS_MATERIAL, HUNTER_HANDS } from '../const';
 import { parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary, type ModelLibrary } from '@wildshard/game/plugin/geometry';
 import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../items/leverPresentation';
@@ -39,7 +38,7 @@ import type * as THREE from 'three';
  * sphere, the aim reference). `preloadLeverModel(ctx.product)` (runtime/index.ts, awaited by the weapon step) fetches it; a failed load refuses equipment boot loudly.
  * The same parts (the static steel, the forend, the stock, the lever / hammer about their pivots, the bolt), the same
  * seven draws and four materials ('lever-wood', 'lever-steel', 'lever-brass', + the flash), all on the viewmodels'
- * shared lit program (Crossbow.viewmodelMaterial) — the rifle compiles no program of its own. The skins restyle it by
+ * shared lit program (Crossbow.viewmodelRowMaterial) — the rifle compiles no program of its own. The skins restyle it by
  * those names. The cabin pickup (`displayModel`) draws with its own copies of the materials, so its orb's glow stays off
  * the rifle in your hands.
  *
@@ -150,10 +149,6 @@ export interface LeverHeldRows { readonly playback: Section<'custom/heldPlayback
 export function leverHeldRows(product: ShardProduct): LeverHeldRows {
   return { playback: product.section('custom/heldPlayback', SECTIONS), inputs: product.section('custom/heldInputs', SECTIONS), lever: product.section('custom/leverPlayback', SECTIONS) };
 }
-/** A gloved fist from its baked hold (the bake keys the spec with its mirror). */
-function hand(hold: HandHold, mirror: boolean): HeldHandRow {
-  return { ...handGeometry(HUNTER_HANDS, { ...hold.spec, mirror }, hold.spec.elbow !== undefined), at: hold.at, axis: hold.axis, palm: hold.palm };
-}
 const bound = <T>(row: T | undefined): T => { if (row === undefined) throw new Error('Missing lever presentation binding'); return row; };
 
 /** Pine's lever-action: the profile, the view, the model and the sections' playback rows on the held-firearm host. */
@@ -161,7 +156,7 @@ export function leverRifle(world: RangedWorld, targets: Targets | undefined, opt
   const { playback, inputs, lever } = opts.held, frame = inputs.frames.lever, rows = lever.bindings.slice(0, 5).map(bound), { profile, view } = leverSettings(opts.profile);
   return new HeldFirearm(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile, view,
     model: leverModel(opts.model ?? requireLeverModel()),
-    hands: { material: viewmodelMaterial(world.sky, 'hunter-hands', HANDS_MATERIAL), left: hand(LEVER_HAND_HOLDS.left, true), right: hand(LEVER_HAND_HOLDS.right, false), gate: LEVER_HAND_HOLDS.gate },
+    hands: { material: viewmodelRowMaterial(world.sky, 'hunter-hands', handsPresentation().hands), left: { ...bakedHandGeometry('lever-left'), ...LEVER_HAND_HOLDS.left }, right: { ...bakedHandGeometry('lever-right'), ...LEVER_HAND_HOLDS.right }, gate: LEVER_HAND_HOLDS.gate },
     rows: { ...LEVER_MODEL, mount: 'ownPass', gate: 'gate', round: 'round', brass: { geometry: 'round-case', material: 'brass' }, rotationReads: { hammerAngle: 'hammer' },
       playback: {
         groups: { frame: frame.program, pose: playback.lever, parts: playback.leverParts, sight: lever.sight, cycle: lever.cycle, handAt: lever.handAt, handAxis: lever.handAxis, handPalm: lever.handPalm },

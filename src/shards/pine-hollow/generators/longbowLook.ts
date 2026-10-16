@@ -3,7 +3,7 @@
 // amber, horn nocks, a linen string — its ash arrow and the hunter's gloved fists on it. The bake serialises this look into
 // `custom/handsPool`'s `bow` row; the held bow draw (@wildshard/game/plugin/heldLauncher heldBowProfile) reads it there.
 import * as v from 'valibot';
-import { HUNTER_HANDS } from '../data/handsLook';
+import { HUNTER_HANDS } from './handsLook';
 
 const finite = v.pipe(v.number(), v.finite()), pair = v.tuple([finite, finite]);
 /** The arrow's exact authored length and palette. */

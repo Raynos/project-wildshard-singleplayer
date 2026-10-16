@@ -4,16 +4,16 @@ import { heldBowProfile, type HeldBowRows } from '@wildshard/game/plugin/heldLau
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';
 import { BOW_PROFILE } from '../../data/bowProfile';
 import { LONGBOW_LOOSE } from '../../weapons/longbowFlight';
-import { bakedBowRows, handsPart } from '../boot/handsGeometry';
-import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from '../const';
+import { bakedBowRows, handsPart, handsPresentation } from '../boot/handsGeometry';
 
 /** The Warden's longbow in first person: rows on the held bow draw (`@wildshard/game/plugin/heldLauncher`, H3) over the
  *  baked stave (generators/handsPool.ts, `custom/handsPool`'s `bow`); the draw, loose and arrows are the platform Bow's. */
 const PARTS = { stave: 'bow-stave', nocked: 'bow-arrow-nocked', rightFist: 'bow-right-fist', leftSleeve: 'bow-left-sleeve', rightSleeve: 'bow-right-sleeve', arrow: 'bow-arrow' } as const;
 /** The longbow's rows (load time: the bake is read from the admitted held pool). */
 export function longbowRows(): HeldBowRows {
-  return { bake: bakedBowRows(), parts: PARTS, materials: { bow: { name: 'longbow', look: LONGBOW_MATERIAL }, arrow: { name: 'longbow-arrow', look: ARROW_MATERIAL } },
-    arrow: { ...BOW_PROFILE.flight, bury: 0.09, recover: 0.7, maxFlying: BOW_PROFILE.pool, maxStuck: 48 }, wind: { base: 1.2, gust: 7 }, poses: LONGBOW_POSES };
+  const presentation = handsPresentation();
+  return { bake: bakedBowRows(), parts: PARTS, materials: { bow: { name: 'longbow', look: presentation.bow }, arrow: { name: 'longbow-arrow', look: presentation.arrow } },
+    arrow: { ...BOW_PROFILE.flight, bury: 0.09, recover: 0.7, maxFlying: BOW_PROFILE.pool, maxStuck: 48 }, wind: { base: 1.2, gust: 7 }, poses: presentation.poses };
 }
 /** The longbow's baked parts (borrowed from the preloaded held pool). */
 export function longbowModel(): HeldFirearmModel { return { geometry: new Map(Object.values(PARTS).map(id => [id, handsPart(id)])) }; }

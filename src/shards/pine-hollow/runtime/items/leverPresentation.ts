@@ -1,6 +1,3 @@
-import type { HandHold } from '../viewmodel/gloveHands';
-import { BUCKSKIN } from '../const';
-
 /** Authored rifle presentation: metres, seconds and radians. Kick is 1.25 degrees.
  * Gameplay magazine/reserve and action timing remain in the admitted weapon profile.
  * The existing ranged/held owners consume these values without a new controller. */
@@ -15,9 +12,9 @@ export const LEVER_PRESENTATION = {
   cyclePose: { px: -0.03, py: 0.03, pz: 0, rx: 0.1, ry: 0.1, rz: -0.45 },
 } as const;
 
-/** Rest/gate holds retain property order: the existing hands bake keys these rows. */
-export const LEVER_HAND_HOLDS: { left: HandHold; right: HandHold; gate: Omit<HandHold, 'spec'> } = {
-  left: { spec: { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
-  right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
+/** The baked fists' placement and gate pose on the held-firearm host. */
+export const LEVER_HAND_HOLDS = {
+  left: { at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
+  right: { at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
   gate: { at: [0.03, -0.01, 0.03], axis: [0, 0, -1], palm: [-1, 0, 0] },
-};
+} as const;

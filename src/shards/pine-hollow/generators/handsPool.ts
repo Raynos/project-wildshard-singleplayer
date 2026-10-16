@@ -4,9 +4,9 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { lin } from '@wildshard/engine/math/color';
 import { ARM_PAL, gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
-import type { ArmPaletteKey, ArmPaletteRow, GloveHandsLook, HandSpec } from '../runtime/viewmodel/gloveHands';
 import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from './longbowLook';
-import { BUCKSKIN, HUNTER_HANDS } from '../data/handsLook';
+import { BUCKSKIN, HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL, type ArmPaletteKey, type ArmPaletteRow, type GloveHandsLook, type HandSpec } from './handsLook';
+import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowPresentation';
 import { CROSSBOW_HAND_HOLDS } from './crossbowRows';
 
 /**
@@ -425,5 +425,5 @@ export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
       restSphere: name === 'bow-stave' || sphere === null ? null : [sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius],
     } };
   }), 'pine-hands-pool');
-  return { glb, rows: { pool: { url: '/assets/pine-hollow/baked/hands-pool.glb', parts: [...parts.keys()] }, hands, bow } };
+  return { glb, rows: { pool: { url: '/assets/pine-hollow/baked/hands-pool.glb', parts: [...parts.keys()] }, hands, bow, presentation: { hands: HANDS_MATERIAL, coat: COAT_MATERIAL, bow: LONGBOW_MATERIAL, arrow: ARROW_MATERIAL, poses: LONGBOW_POSES } } };
 }

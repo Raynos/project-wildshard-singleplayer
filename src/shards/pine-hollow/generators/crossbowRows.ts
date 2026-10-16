@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BUCKSKIN } from '../data/handsLook';
+import { BUCKSKIN } from './handsLook';
 import displayRest from '../data/crossbowDisplay.json' with { type: 'json' };
 
 /**

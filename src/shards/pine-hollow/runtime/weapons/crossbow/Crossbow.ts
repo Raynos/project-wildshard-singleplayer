@@ -1,17 +1,15 @@
-import { bakedHandRows, crossbowData, crossbowHierarchy, heldGeometry, type CrossbowRows } from '../../boot/crossbowGeometry';
-import { viewmodelMaterial, viewmodelRowMaterial, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { crossbowData, crossbowHierarchy, heldGeometry, type CrossbowRows } from '../../boot/crossbowGeometry';
+import { viewmodelRowMaterial, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { HeldFirearmModel, HeldHandRow } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher, type HeldLauncherRows } from '@wildshard/game/plugin/heldLauncher';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { coatSet, loadCoatTextures } from '../../viewmodel/gloveHands';
-import { handsPart } from '../../boot/handsGeometry';
-import { COAT_MATERIAL, HANDS_MATERIAL } from '../../const';
+import { bakedHandGeometry, handsPresentation } from '../../boot/handsGeometry';
 import { SECTIONS } from '../../sections';
 import { crossbowProfile, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import type { InferOutput } from 'valibot';
-import * as THREE from 'three';
 
 /**
  * Crossbow — Pine Hollow's first-person hero weapon, rows on the held-launcher host (`@wildshard/game/plugin/heldLauncher`,
@@ -59,14 +57,13 @@ export async function prepareCrossbowHands(due: () => Promise<void> | null): Pro
 }
 /** A hold row on its baked hand (generators/handsPool.ts `hand-<part>`), borrowed from the held pool. */
 function hand({ part, ...hold }: CrossbowRows['hands']['left']): HeldHandRow {
-  const baked = Object.values(bakedHandRows().hands).find(row => row.geometry === `hand-${part}`); if (baked === undefined) throw new Error(`Crossbow hand ${part} is not baked`);
-  return { ...hold, geometry: handsPart(baked.geometry), sleeve: baked.sleeve === null ? null : handsPart(baked.sleeve), wrist: new THREE.Vector3().fromArray(baked.wrist), dir: new THREE.Vector3().fromArray(baked.dir) };
+  return { ...hold, ...bakedHandGeometry(part) };
 }
 /** Pine's crossbow: the profile, view, rows, parts and hands on the held-launcher host. */
 export function pineCrossbow(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: Held; profile: unknown }): CrossbowWeapon {
   return new HeldLauncher(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile: crossbowProfile(opts.profile), view: crossbowData().view,
     rows: crossbowRows(opts.held), model: crossbowModel(),
-    hands: { material: viewmodelMaterial(world.sky, 'hunter-hands', HANDS_MATERIAL), coatMaterial: viewmodelRowMaterial(world.sky, 'hunter-coat', COAT_MATERIAL, { coat: coatSet() }),
+    hands: { material: viewmodelRowMaterial(world.sky, 'hunter-hands', handsPresentation().hands), coatMaterial: viewmodelRowMaterial(world.sky, 'hunter-coat', handsPresentation().coat, { coat: coatSet() }),
       left: hand(crossbowData().hands.left), right: hand(crossbowData().hands.right) } });
 }
 /** A built Pine crossbow. */

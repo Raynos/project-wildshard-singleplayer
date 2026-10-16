@@ -35,6 +35,7 @@ const bakedBow = v.strictObject({ sectionSamples: v.strictObject({ widths: numbe
 const pair = v.tuple([number, number]), opt = v.exactOptional, flag = v.boolean();
 const look = v.strictObject({ set:opt(text), normalScale:opt(pair), color:opt(triple), roughness:number, metalness:number, envMapIntensity:opt(number), specularIntensity:opt(number),
   anisotropy:opt(number), anisotropyRotation:opt(number), emissive:opt(number), emissiveIntensity:opt(number), alphaTest:opt(number), vertexColors:opt(flag), forceSinglePass:opt(flag), side:opt(v.picklist([0,1,2])) });
+const bowPose = v.strictObject({ pos:triple, aim:triple, cant:number, pitch:number });
 const heldHand = v.strictObject({ part:text, at:triple, axis:triple, palm:triple, coat:flag, elbow:opt(triple) });
 /** The crossbow's rows on the held-launcher host (generators/crossbowRows.ts, written by the crossbow pool bake). */
 const crossbowRows = v.strictObject({
@@ -70,6 +71,7 @@ export const SECTIONS = {
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk}),
   'custom/trophyMounts':mountPack,
   'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema,rows:crossbowRows}),
-  'custom/handsPool':v.strictObject({pool,hands:v.record(long,bakedHand),bow:bakedBow}),
+  'custom/handsPool':v.strictObject({pool,hands:v.record(long,bakedHand),bow:bakedBow,presentation:v.strictObject({hands:look,coat:look,bow:look,arrow:look,
+    poses:v.strictObject({rest:bowPose,drawn:bowPose,restPort:bowPose,drawnPort:bowPose,aim:bowPose,aimPort:bowPose})})}),
   'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;

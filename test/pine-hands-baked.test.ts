@@ -2,9 +2,10 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
-import { HUNTER_HANDS } from '../src/shards/pine-hollow/data/handsLook';
+import { HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL } from '../src/shards/pine-hollow/generators/handsLook';
 import { LONGBOW_LOOK, StaveBowLookSchema } from '../src/shards/pine-hollow/generators/longbowLook';
 import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/items/leverPresentation';
+import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from '../src/shards/pine-hollow/generators/longbowPresentation';
 import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/generators/crossbowRows';
 
 // The hands are baked (src/shards/pine-hollow/generators/handsPool.ts) and reach the client as custom/handsPool: a weapon
@@ -16,12 +17,16 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
   if (bytes === undefined) throw new Error('Pine output has no custom/handsPool');
   const pool = v.parse(SECTIONS['custom/handsPool'], JSON.parse(new TextDecoder().decode(bytes)));
   const hands: Readonly<Record<string, unknown>> = pool.hands;
-  for (const hold of [CROSSBOW_HAND_HOLDS, LEVER_HAND_HOLDS]) {
-    for (const [side, mirror] of [['left', true], ['right', false]] as const) {
-      const spec = { ...hold[side].spec, mirror };
-      expect(hands[JSON.stringify([HUNTER_HANDS, spec, spec.elbow !== undefined])], side).toBeDefined();
-    }
+  for (const [side, mirror] of [['left', true], ['right', false]] as const) {
+    const spec = { ...CROSSBOW_HAND_HOLDS[side].spec, mirror };
+    expect(hands[JSON.stringify([HUNTER_HANDS, spec, spec.elbow !== undefined])], side).toBeDefined();
+    // The rifle reads the same baked part without recreating its palette/spec key at runtime.
+    expect(Object.values(pool.hands).find(hand => hand.geometry === `hand-lever-${side}`), side).toBeDefined();
+    expect(LEVER_HAND_HOLDS[side].at).toHaveLength(3);
   }
+  expect(pool.presentation).toEqual({hands:HANDS_MATERIAL,coat:COAT_MATERIAL,bow:LONGBOW_MATERIAL,arrow:ARROW_MATERIAL,poses:LONGBOW_POSES});
+  expect(() => v.parse(SECTIONS['custom/handsPool'], { ...pool, presentation: undefined })).toThrow();
+  expect(() => v.parse(SECTIONS['custom/handsPool'], { ...pool, presentation: { ...pool.presentation, extra: true } })).toThrow();
   // the crossbow's section hand rows name baked hands (runtime Crossbow.ts borrows them by part)
   const xbow = custom?.sections.find(entry => entry.name === 'custom/crossbowPool'), xbowBytes = xbow === undefined ? undefined : custom?.files.get(xbow.path);
   if (xbowBytes === undefined) throw new Error('Pine output has no custom/crossbowPool');

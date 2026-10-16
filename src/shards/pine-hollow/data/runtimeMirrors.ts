@@ -3,13 +3,11 @@ import { ANTLER_KING_FIGHT } from './kingFight';
 import { KING_FX_LOOKS } from './kingFxLook';
 import { KINGS_CLEARING, BEAR_CAVE } from './layout';
 import { WILDLIFE_LOOK } from './wildlifeLook';
-import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from './handsLook';
 
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import { SPRAY_LOOK } from './streamLook';
 import people from './questNpcs.generated.json' with { type: 'json' };
 
-import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
 import { FINISH_CARDS } from './finishCards';
 
 import { KNIFE_LOOK } from './skinningKnifeLook';
@@ -20,9 +18,6 @@ import SPRAY_PUFFS from './sprayPuffs.json' with { type: 'json' };
 export const RUNTIME_MIRRORS = [
   defineMirror('KNIFE_LOOK', KNIFE_LOOK),
   defineMirror('SPRAY_PUFFS', SPRAY_PUFFS),
-  defineMirror('ARROW_MATERIAL', ARROW_MATERIAL),
-  defineMirror('LONGBOW_MATERIAL', LONGBOW_MATERIAL),
-  defineMirror('LONGBOW_POSES', LONGBOW_POSES),
   defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
   defineMirror('NPC_NAMES', Object.fromEntries(people.rows.map(row => [row.npc.id, row.npc.name]))),
@@ -33,8 +28,4 @@ export const RUNTIME_MIRRORS = [
   defineMirror('KING_ARENA_FOG', ANTLER_KING_FIGHT.arena.fog),
   defineMirror('KING_FX_LOOKS', KING_FX_LOOKS),
   defineMirror('WILDLIFE_LOOK', WILDLIFE_LOOK),
-  defineMirror('BUCKSKIN', BUCKSKIN),
-  defineMirror('HUNTER_HANDS', HUNTER_HANDS),
-  defineMirror('HANDS_MATERIAL', HANDS_MATERIAL),
-  defineMirror('COAT_MATERIAL', COAT_MATERIAL),
 ];

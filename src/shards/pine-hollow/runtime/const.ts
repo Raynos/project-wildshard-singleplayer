@@ -12,23 +12,6 @@ export const KING_ARENA_FOG = 31;
 export const KING_FX_LOOKS = { fog: 'pine-king-fog', flame: 'pine-king-flame' } as const;
 /** the small wildlife's look.materials id (data/wildlifeLook.ts WILDLIFE_LOOK) */
 export const WILDLIFE_LOOK = 'pine-wildlife';
-/** the gloves' linear tint over the hunter palette (data/handsLook.ts BUCKSKIN) */
-export const BUCKSKIN: [number, number, number] = [3.2, 4.2, 6.0];
-/** the hunter's gloves and coat cuff palette (data/handsLook.ts HUNTER_HANDS, a GloveHandsLook) */
-export const HUNTER_HANDS = {
-  palette: {
-    leather: 0x6a4a30, leatherLight: 0x8a6646, leatherDark: 0x3a281a, leatherEdge: 0x4a3424, thread: 0xa89878,
-    fleece: 0x6e685e, fleeceShade: 0x524c44, fleeceDeep: 0x3a352f,
-    wool: 0x5e5038, woolShade: 0x3e3424, red: 0x4a3422, redDeep: 0x33251a, redLine: 0x2a1e14,
-  },
-  coatLip: 0x8a7650,
-  coatStitch: 0x2e2618,
-};
-/** the hands' material parameters (data/handsLook.ts HANDS_MATERIAL) */
-export const HANDS_MATERIAL = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
-/** the coat sleeve's material row (data/handsLook.ts COAT_MATERIAL) */
-export const COAT_MATERIAL = { set: 'coat', normalScale: [0.8, 0.8], roughness: 1, metalness: 0, envMapIntensity: 0.5, specularIntensity: 0.5 } as const;
-
 /** the cave mouth's frame (data/layout.ts BEAR_CAVE) */
 export const BEAR_CAVE = { x: 200, z: 200, rot: 0.7853981633974483 };
 /** the Explorer names (data/wardensHollow.ts dialogue names), without loading quest dialogue */
@@ -44,23 +27,6 @@ export const CAVE_LOOK = {
   surface: 'rock',
   shaft: { look: 'pine-cave-shaft', radialSegments: 20, heightSegments: 6, renderOrder: 7, gain: 0.2, sunBase: 0.4, sunGain: 2, floor: 0.02 },
   drips: { color: 0xcfd8dc, size: 0.045, opacity: 0.85, period: 1.7, periodStep: 0.53, kinds: 5, phaseStep: 0.37, gravity: 9.8, hang: 0.04, minDrop: 0.2 },
-} as const;
-
-/** Client-only longbow material and grip mirrors; native profiles keep their original owners. */
-/** The Longbow's material (the viewmodels' shared lit program): waxed yew, leather, linen. */
-export const LONGBOW_MATERIAL = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
-/** The arrows' material (the viewmodels' shared lit program, vertex colours × the 1×1 fillers): ash, sinew, feathers. */
-export const ARROW_MATERIAL = { roughness: 0.7, metalness: 0 };
-/* Poses in rig space (camera space / VM_SCALE), the starter bow's, re-seated for a bow twice as tall: rest = lowered and
- * canted across the body; drawn = the fist right of centre, the stave canted, the arrow converging on the crosshair ~6 m out. */
-/** The Longbow's grip poses. */
-export const LONGBOW_POSES = {
-  rest: { pos: [0.32, -0.46, -0.9], aim: [-0.1, 0.25, -4], cant: -0.78, pitch: -0.16 },
-  drawn: { pos: [0.2, -0.17, -1.12], aim: [0, 0, -5.5], cant: -0.3, pitch: 0 },
-  restPort: { pos: [0.16, -0.52, -0.92], aim: [-0.05, 0.12, -4], cant: -0.62, pitch: -0.14 },
-  drawnPort: { pos: [0.07, -0.1, -1.08], aim: [0, 0, -5.5], cant: -0.24, pitch: 0 },
-  aim: { pos: [0.1, -0.22, -1.15], aim: [0.02, -0.052, -7], cant: -0.22, pitch: 0 },
-  aimPort: { pos: [0.04, -0.19, -1.15], aim: [0.02, -0.052, -8], cant: -0.16, pitch: 0 },
 } as const;
 
 /** Authored GEAR order and source wording; the shared locker supplies live locked/worn state. */
