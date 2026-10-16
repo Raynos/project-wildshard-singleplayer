@@ -6910,3 +6910,13 @@ channel, audio and population hosts receive the admitted product's
 `shardfile`; no second source parser is installed. Row factories can read
 platform sections synchronously at load time. Simulation declarations
 remain sections consumed by hosts, outside copied shard runtime code.
+
+### Bundled output publication (P1)
+
+First-party builds publish every product under `out/<slug>` using the
+format-2 writer. The build cache uses a new content-key namespace and
+publishes complete directories by replacement. The app copies these
+products to `dist/shardfiles/<slug>`, excluding transitional runtime
+sources. It refuses missing or stale receipts, checking the validator,
+assembled-source and exact index hashes before bundling. SDK clients
+embed the same index and resolve sections relative to their document.

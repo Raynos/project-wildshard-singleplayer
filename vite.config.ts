@@ -14,6 +14,7 @@ import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';
 import { devserverFlags } from './vite/devserver';
 import { crossroadsRigPlugin } from './vite/crossroadsRig';
+import { outputProductsPlugin } from './vite/outputProducts';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
@@ -80,15 +81,17 @@ const nativePlugin = (): Plugin => ({
 });
 
 function buildValidationReceipts(revision: string): unknown[] {
-  const directory = 'public/shardfiles';
+  const directory = 'out';
   if (!existsSync(directory)) return [];
   const receipts: unknown[] = [];
-  for (const slug of readdirSync(directory).sort()) {
-    const receiptPath = join(directory, slug, 'validation.json'), sourcePath = join(directory, slug, 'shard.json');
-    if (!existsSync(receiptPath) || !existsSync(sourcePath)) continue;
-    const receipt: unknown = JSON.parse(readFileSync(receiptPath, 'utf8'));
-    if (typeof receipt === 'object' && receipt !== null && 'revision' in receipt && receipt.revision === revision && 'sourceHash' in receipt
-      && receipt.sourceHash === createHash('sha256').update(readFileSync(sourcePath)).digest('hex')) receipts.push(receipt);
+  for (const entry of readdirSync(directory,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))) {
+    if(!entry.isDirectory()||entry.name.startsWith('.'))continue;
+    const receiptPath=join(directory,entry.name,'validation.json'),sourcePath=join(directory,entry.name,'shard.json');
+    if(!existsSync(receiptPath)||!existsSync(sourcePath))throw new Error(`Missing output validation receipt: ${entry.name}`);
+    const bytes=readFileSync(sourcePath),index:unknown=JSON.parse(bytes.toString('utf8')),receipt:unknown=JSON.parse(readFileSync(receiptPath,'utf8'));
+    if(typeof index!=='object'||index===null||!('format' in index)||index.format!=='wildshard.shardfile'||!('formatVersion' in index)||index.formatVersion!==2||!('build' in index)||typeof index.build!=='object'||index.build===null||!('sourceHash' in index.build)||typeof index.build.sourceHash!=='string')throw new Error(`Invalid validated output index: ${entry.name}`);
+    if(typeof receipt!=='object'||receipt===null||!('revision' in receipt)||receipt.revision!==revision||!('indexHash' in receipt)||receipt.indexHash!==createHash('sha256').update(bytes).digest('hex')||!('sourceHash' in receipt)||receipt.sourceHash!==index.build.sourceHash)throw new Error(`Stale output validation receipt: ${entry.name}`);
+    receipts.push(receipt);
   }
   return receipts;
 }
@@ -115,6 +118,6 @@ export default defineConfig(({ mode, command }) => {
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [devserverFlags(false), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [devserverFlags(mode === 'devserver'), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
+    plugins: native ? [outputProductsPlugin(), devserverFlags(false), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [outputProductsPlugin(), devserverFlags(mode === 'devserver'), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
   };
 });

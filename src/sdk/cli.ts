@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI accepts filesystem project/output paths.
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author proof tape is an explicit local input file.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { AuthorProofPlanSchema } from './tickProtocol';
 import { buildProject, newProject, projectAssets, readProjectAssets, validateProject } from './project';
@@ -18,6 +18,8 @@ import process from 'node:process';
 import { buildBehaviourProject } from './buildBehaviour';
 import { synthProject } from './synth';
 import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
+import { validateOutputProduct } from './outputProduct';
+import { isOutputIndex } from '@wildshard/format/outputIndex';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -67,9 +69,9 @@ export async function runCli(args: readonly string[]): Promise<void> {
       console.info(`built ${files.length} native behaviour outputs`); return;
     }
     const flags = args.slice(3), mapPath = flags.find(flag => flag.startsWith('--map='))?.slice(6), tilesHash = flags.find(flag => flag.startsWith('--map-tiles-hash='))?.slice(17);
-    if (flags.some(flag => flag !== '--product-only' && flag !== '--no-placeholders' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
+    if (flags.some(flag => flag !== '--product-only' && flag !== '--no-placeholders' && flag !== '--format=2' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
     const map = mapPath === undefined || tilesHash === undefined ? undefined : { bytes: readBoundedFile(resolve(mapPath), STILL_IMAGE_LIMITS.bytes), tilesHash };
-    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'prove') {
     if (output === undefined || buildFlag !== undefined) throw new Error('usage: wildshard prove <project|shard.json> <proof.json>');
@@ -80,6 +82,14 @@ export async function runCli(args: readonly string[]): Promise<void> {
     console.info(JSON.stringify(await proveAuthorSimulation(shard, assets, plan), null, 2)); return;
   }
   if (command === 'validate') {
+    const folder=resolve(input.endsWith('.json') ? dirname(input) : input);
+    if (existsSync(resolve(folder,'shard.json'))) {
+      const declaration=readShardfileSource(resolve(folder,'shard.json'));
+      if (isOutputIndex(declaration)) {
+        const checked=validateOutputProduct(folder);
+        console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`);return;
+      }
+    }
     const built = input.endsWith('.json');
     const authored = built ? undefined : await readProjectAssets(resolve(input));
     const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));

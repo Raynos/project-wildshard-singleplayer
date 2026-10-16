@@ -3,13 +3,13 @@
 // SF66 (G247): a shard whose baked map (look/map.baked.json) no longer matches its world is refused in CI and on Vercel,
 // so a stale map never deploys; a local build only warns, since the rebake itself needs a served build of that world
 // (node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=<slug>). test/baked-maps.test.ts is the gate's check.
-import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapTilesHash, verifyMapPixels } from './map-hash.mjs';
-import { KEY_FILE, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
+import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
@@ -39,22 +39,23 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     // --no-placeholders (G348): a first-party product keeps its own bytes; its near / far views come from the repo bakes
     // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
-    const destination = resolve(root, 'public/shardfiles', entry.name);
+    const destination = resolve(root, 'out', entry.name);
     if (files === undefined) {
       // CI / Vercel overwrite the product in place: drop any fast-path stamp so it can never vouch for these bytes.
-      rmSync(resolve(destination, KEY_FILE), { force: true });
-      await build(['build', project, destination, '--product-only', '--no-placeholders', ...flags]); count++;
+      mkdirSync(resolve(root,'out'),{recursive:true});
+      const temporary=mkdtempSync(resolve(root,'out',`.build-${entry.name}-`));
+      try {await build(['build',project,temporary,'--product-only','--no-placeholders','--format=2',...flags]);publishProduct(temporary,destination);}finally{rmSync(temporary,{recursive:true,force:true});}
+      count++;
       continue;
     }
     const key = shardfileKey(files, entry.name, built, flags.map(flag => flag.replace(root, '<root>')));
     if (only !== undefined && !only.includes(entry.name)) {
-      let here = '';
-      try { here = readFileSync(resolve(destination, KEY_FILE), 'utf8').trim(); } catch { /* none */ }
+      const here = readBuildKey(destination);
       if (here !== key && existsSync(destination)) { rmSync(destination, { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} skipped (--shard), stale product removed`); }
       else console.info(`wildshard build: ${entry.name} skipped (--shard)${here === key ? ', product current' : ''}`);
       continue;
     }
-    const how = await reuseOrBuild({ slug: entry.name, key, destination, fresh: !reuse && only === undefined, build: out => build(['build', project, out, '--product-only', '--no-placeholders', ...flags]) });
+    const how = await reuseOrBuild({ slug: entry.name, key, destination, fresh: !reuse && only === undefined, build: out => build(['build', project, out, '--product-only', '--no-placeholders', '--format=2', ...flags]) });
     console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
   }

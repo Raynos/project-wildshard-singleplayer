@@ -1792,3 +1792,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/assets/a046356e204f5dc454bafb388cdd01b60789778a428eb9b43b49c4a4120a2f2b
 /src/shards/driftwood-isle/assets/f46535e8c9879d9dd99034069990a534923dc9239c2efa6bb069362e49f5b38f
 /src/shards/driftwood-isle/data/ziplineBlobs.generated.json
+
+/out/
