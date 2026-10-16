@@ -55,10 +55,17 @@ const context = v.variant('keysFrom', [
   v.strictObject({ id: name, keysFrom: v.literal('weapon.spear'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('throwing'), lockable: v.boolean() }),
 ]);
 const baselineContexts = new Set(['weapon.melee', 'weapon.ranged', 'weapon.bow', 'weapon.spear']);
+/** Saved inventory policy consumed unchanged by the existing native stacking/trade owner. */
+const inventory = v.pipe(v.strictObject({ kinds: v.pipe(v.array(name), v.minLength(1), v.maxLength(256)),
+  slots: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256)),
+  counts: v.strictObject({ min: finite, max: finite, integer: v.boolean(), complete: v.boolean() }),
+  quantity: v.picklist(['unchecked', 'positive-safe-integer']), snapshot: v.picklist(['order', 'roster']),
+  stackLimit: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER))), restoreError: text }),
+  v.check(row => new Set(row.kinds).size === row.kinds.length && row.counts.min <= row.counts.max, 'Unique inventory kinds and ordered count bounds'));
 const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
   contexts: v.pipe(v.array(context), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
-  loadout: v.strictObject({ primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
+  loadout: v.strictObject({ inventory: v.exactOptional(inventory), primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
 /** Admit an item's JSON-only contacts without copying its original event-lifetime tag arrays. */
 export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
   v.assert(v.custom(isJsonData, 'JSON-only melee contacts'), input);

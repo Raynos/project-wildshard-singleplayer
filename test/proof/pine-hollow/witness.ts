@@ -1,4 +1,4 @@
-import { createNativeCombatFrame, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
+import { createNativeCombatFrame, readItemInventory, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads Pine's native bakes and the native physics module.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed gameplay checkpoints are compressed native save wires.
@@ -16,7 +16,7 @@ import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessR
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
-import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
+import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/data/layout';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
@@ -490,7 +490,7 @@ async function collectGameplayProof(rapier: Rapier, from?: 'night') {
     if (!tape.walked || !session.host.flags.has(QUEST_DONE) || !session.host.flags.has(KING_RECORD.defeated)) throw new Error('King/dawn tape unfinished');
     const durable = ledger.state(), rows = Object.values(durable.facts), reopened = profile(local);
     if (JSON.stringify(reopened.state()) !== JSON.stringify(durable) || rows.some(row => reopened.record(row).status !== 'duplicate')) throw new Error('Gameplay ledger not durable/deduplicated');
-    const pack = v.parse(v.object({ pack: PinePackSchema }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;
+    const pack = v.parse(v.object({ pack: nativeInventorySchema(readItemInventory(source.items)) }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;
     return { status: 'passed', resumedFrom: from ?? 'spawn', ticksExecuted: session.host.state.tick - start.tick, tick: session.host.state.tick, alive: true, kingDefeated: true, dawn: session.host.flags.has('seen:dawn'),
       hash: digest(session.host), pack, resinCount: session.host.flags.count('resin:'), facts: rows.map(row => ({ name: row.name, entity: row.entity, tick: row.tick, origin: row.origin })),
       achievements: Object.values(durable.achievements), rules: source.ledger.length, gameplayEmissionProven: true, refusedWriteRetried: refused,

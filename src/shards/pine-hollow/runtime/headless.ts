@@ -1,4 +1,4 @@
-import { installNativeItems, observeNativeCombatMotion, type NativeCombatFrame, type NativeBoltItem, type NativeBowItem, type NativeCycleItem } from '@wildshard/game/plugin/nativeItems';
+import { installNativeItems, readItemInventory, observeNativeCombatMotion, type NativeCombatFrame, type NativeBoltItem, type NativeBowItem, type NativeCycleItem } from '@wildshard/game/plugin/nativeItems';
 import type { ShardItems } from '@wildshard/format/items';
 import { PINE_TERRAIN } from '../data/terrainBindings';
 import * as v from 'valibot';
@@ -185,7 +185,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
-  quest = installHollowQuest(host, { contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
+  quest = installHollowQuest(host, { inventory: readItemInventory(parts.items), contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster

@@ -8148,3 +8148,12 @@ Until catalogue activation replaces discovery, a declared `spawns` binding in
 `generators/` executes only at generation time. Its local bounded TS graph is
 checked against the canonical ui/level spawns schema and embedded as a literal;
 the shipping discovery imports no generator and never falls back to source.
+
+`combat/items.loadout.inventory` carries the bounded saved-pack policy consumed
+by `@wildshard/game/inventoryLaw.NativeInventory`: ordered kinds, slot/count
+bounds, quantity and snapshot modes, and the existing refusal message. The
+public `@wildshard/game/plugin/nativeItems.readItemInventory(items)` admits
+that data without a fallback. Callers keep their original save envelopes and
+use `nativeInventorySchema(policy)` before restoration; the shared stacking
+and trade laws remain the sole inventory state owner. Missing policy, repeated
+kinds, invalid slot bounds and reversed count bounds refuse before allocation.

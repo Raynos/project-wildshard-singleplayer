@@ -39,7 +39,7 @@ export function tradeState(t: Trade, pack: Pack, owns: (skin: string) => boolean
 }
 
 /** the Bag's PACK line under an item: what Mott gives for it ('Bolts · arrows'; resin, in nearly every swap: 'Most trades') */
-export function mottLine(item: TradeItem): string {
+export function mottLine(item: string): string {
   const uses = TRADES.filter((t) => t.give.some((g) => g.item === item));
   if (uses.length === 0) return 'Mott has no use for it';
   if (uses.length === TRADES.length) return 'Every trade';

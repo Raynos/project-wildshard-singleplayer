@@ -356,3 +356,10 @@ export function readItemAmmunition(input: unknown, id: string): ReadonlyMap<stri
     damage: { default: 1, kinds: Object.fromEntries(ammo.targets.map(kind => [kind, ammo.damage])) } }];
   }));
 }
+
+/** Read the admitted saved-pack policy; NativeInventory remains the only stacking/trade state owner. */
+export function readItemInventory(input: unknown): NonNullable<ReturnType<typeof parseItems>['loadout']['inventory']> {
+  const profile = parseItems(input).loadout.inventory;
+  if (profile === undefined) throw new Error('Missing declared inventory policy');
+  return profile;
+}

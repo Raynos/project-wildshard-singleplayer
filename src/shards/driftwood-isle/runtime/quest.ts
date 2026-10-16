@@ -11,9 +11,10 @@ import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
 import { installDeclaredQuestHost } from '@wildshard/game/plugin/simulation';
 import { createAchievementCounters } from '@wildshard/game/achievements';
-import { DRIFTWOOD_FEAT_COUNTERS, DRIFTWOOD_NATIVE_PACK } from '../data/questInventory';
+import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { NativeInventory } from '@wildshard/game/inventoryLaw';
+import { readItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { cableModes } from '@wildshard/engine/player/modes';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from '@wildshard/sdk/runtime/prompts';
@@ -109,7 +110,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const { table, spots } = ports, flags = host.flags;
   const rules = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
-  const pack = new NativeInventory<string>(DRIFTWOOD_NATIVE_PACK);
+  const pack = new NativeInventory(readItemInventory(ports.source.items));
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
   const cables = cableModes(host.scope), cableId = 'driftwood.zipline', rider = cables.nativeRider(cableId);

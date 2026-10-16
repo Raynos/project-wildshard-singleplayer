@@ -1,7 +1,11 @@
 import { expect, test } from 'vitest';
 import { NativeInventory } from '../src/game/inventoryLaw';
-import { DRIFTWOOD_NATIVE_PACK } from '../src/shards/driftwood-isle/data/questInventory';
-import { createPinePack } from '../src/shards/pine-hollow/runtime/pack';
+import { readItemInventory } from '../src/game/plugin/nativeItems';
+import PINE from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import DRIFTWOOD from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
+
+const DRIFTWOOD_NATIVE_PACK = readItemInventory(DRIFTWOOD);
+const createPinePack = () => new NativeInventory(readItemInventory(PINE));
 
 test('both native quest packs load old inventories and continue stacking/trading', () => {
   const drift = new NativeInventory<string>(DRIFTWOOD_NATIVE_PACK); drift.restore({ counts: { doubloon: 4, coconut: 2 }, order: ['coconut', 'doubloon'] });
@@ -21,4 +25,18 @@ test('native inventory refuses corrupt rosters, duplicate order and original bou
   const pine = createPinePack(); expect(() => pine.restore({ counts: { venison: 1_000_001 }, order: ['venison'] })).toThrow();
   expect(() => pine.restore({ counts: { venison: 1 }, order: [] })).toThrow();
   expect(() => pine.restore({ counts: { unknown: 1 }, order: ['unknown'] })).toThrow();
+});
+
+test('admitted item policies keep both exact native save laws and refuse malformed policy data', () => {
+  const pine = readItemInventory(PINE), drift = readItemInventory(DRIFTWOOD);
+  expect(pine).toEqual({ kinds: ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'], slots: 7,
+    counts: { min: -1_000_000, max: 1_000_000, integer: false, complete: false }, quantity: 'unchecked', snapshot: 'roster', restoreError: 'Incompatible Pine pack continuation' });
+  expect(drift).toEqual({ kinds: ['crab-meat', 'crab-claw', 'crab-shell', 'coconut', 'monkey-fur', 'silver-fur', 'doubloon'], slots: 12,
+    counts: { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true, complete: true }, quantity: 'positive-safe-integer', snapshot: 'order',
+    stackLimit: Number.MAX_SAFE_INTEGER, restoreError: 'Incompatible Driftwood pack continuation' });
+  for (const inventory of [{ ...pine, kinds: [] }, { ...pine, kinds: ['a', 'a'] }, { ...pine, slots: 0 }, { ...pine, slots: 257 },
+    { ...pine, counts: { ...pine.counts, min: 2, max: 1 } }, { ...pine, quantity: () => true }]) {
+    expect(() => readItemInventory({ ...PINE, loadout: { ...PINE.loadout, inventory } })).toThrow();
+  }
+  expect(() => readItemInventory({ ...PINE, loadout: { primary: PINE.loadout.primary, secondary: PINE.loadout.secondary, tools: PINE.loadout.tools } })).toThrow('Missing declared inventory policy');
 });

@@ -17,7 +17,7 @@ import { createPineFacts, isPineThrall } from '../quest/featLaw';
 import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
-import { createPinePack, PinePackSchema } from './pack';
+import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } from '@wildshard/game/inventoryLaw';
 import { PINE_READINGS } from '../data/readings';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
 import { eliteOf } from '../quest/contracts';
@@ -61,16 +61,17 @@ export function pineSpots(): PineSpots { return v.parse(Spots, baked); }
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const TradeSaved = v.strictObject({ modal: v.strictObject({ version: v.literal(1), open: v.boolean() }),
   skins: v.pipe(v.array(v.picklist(['hollow-ash', 'scarback-furnace'])), v.maxLength(2), v.check(skins => new Set(skins).size === skins.length)) });
-const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
+const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>) => v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
   dawn: v.pipe(v.string(), v.maxLength(1000000)), fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
-  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false),
+  pack: v.optional(pack, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false),
   trader: v.optional(TradeSaved), ammunition: v.optional(PINE_AMMO_SAVED) });
 
 /** The day clock the quest fast-forwards (the host's, PineDayNight's law). */
 export interface PineQuestDay { phase: number; readonly night: number }
 /** What the quest keeper is lent. */
 export interface PineQuestPorts {
+  readonly inventory: NativeInventoryProfile<string>;
   readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
   /** USE on the King's pending orb, after the quest's modal ownership check. */
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
@@ -96,7 +97,7 @@ export interface PineQuest {
   readonly quests: ReturnType<typeof installQuestGraph>['quests'];
   readonly stag: StagWalk;
   /** The page's authored seven-kind pack, shared add/trade law, silently restored with the quest. */
-  readonly pack: ReturnType<typeof createPinePack>;
+  readonly pack: NativeInventory<string>;
   /** the zipline carries the player (the page's weapons are off and stowed for the ride) */
   readonly riding: () => boolean;
   /** The dialogue modal owns use input and suppresses weapon actions until completion or cancellation. */
@@ -144,7 +145,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const { spots } = ports, flags = host.flags;
   if (RESIN_COUNT !== 30) throw new Error('Pine resin continuation requires its thirty authored drops');
   const table = pineTableFromPlacements(spots.rows), indexed = bindQuestTableSpots(table, spots.rows, flags);
-  const pack = createPinePack();
+  const pack = new NativeInventory(ports.inventory), Saved = questSaved(nativeInventorySchema(ports.inventory));
   const required = (id: string): Rule => {
     const row = indexed.get(id);
     if (row === undefined) throw new Error(`Missing Pine quest row ${id}`);
