@@ -90,8 +90,3 @@ export interface KeyedSkyStyle extends DayClockStyle<typeof SKY_PRESET> {
 export function skyKeyFiles(style: KeyedSkyStyle, key: SkyKeyRow): { color: string; gain: string } {
   return { color: style.keyFiles.color.replaceAll('{id}', key.id), gain: style.keyFiles.gain.replaceAll('{id}', key.id) };
 }
-
-/** Every key's baked pair, for the boot pack (the clock never fetches a key mid-play). */
-export function keyedSkyUrls(style: KeyedSkyStyle): string[] {
-  return Object.values(style.keys).flatMap((k) => { const f = skyKeyFiles(style, k); return [f.color, f.gain]; });
-}

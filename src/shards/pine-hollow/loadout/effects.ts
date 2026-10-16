@@ -9,9 +9,6 @@ export const AMMO_ROWS: readonly AmmoRow[] = [
 export const PINE_SOURCE_MULTIPLIERS: readonly SourceMulDef[] = [
   { id: 'source.broadhead', when: { sourceTags: ['ammo.broadhead'], targetTags: ['size.deer'] }, mul: 1.4 },
 ];
-export const PINE_AMMO_EFFECTS: readonly EffectDef[] = AMMO_ROWS.map((row) => ({
-  id: `effect.${row.id}`, kind: 'instant', stacking: 'none', tags: row.tags, modifiers: [],
-}));
 export const pineFinishEffect = (id: string, weapon: string): EffectDef => ({
   id: `effect.finish.${id}`, kind: 'permanent', stacking: 'none', tags: ['effect.cosmetic'], modifiers: [],
   grants: [`cosmetic.finish.${id}`], group: `finish.${weapon}`,

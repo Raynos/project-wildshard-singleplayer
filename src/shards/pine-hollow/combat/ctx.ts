@@ -49,21 +49,17 @@ export interface PineCtx {
 /** an animal a fight scripts from its own tick: the manager's senses / flee / charge loop leaves it alone */
 export const SCRIPTED: Animal['state'] = 'sidestep';
 
-const owned = new WeakSet<Animal>();
-
 /** take `a` under a fight's control: out of its herd, the manager's AI off, a hit leaves our state alone */
 export function own(a: Animal): void {
   a.herd = -1; a.state = SCRIPTED;
   // the manager's `damaged` pushes a hit animal into flee / charge; a scripted one keeps the state its fight gave it
   a.scripted = true;
-  owned.add(a);
 }
 /** hand `a` back to the manager's AI (a rival bull after the fight) */
-export function release(a: Animal): void { owned.delete(a); a.scripted = false; if (a.alive && a.state === SCRIPTED) a.state = 'alert'; }
+export function release(a: Animal): void { a.scripted = false; if (a.alive && a.state === SCRIPTED) a.state = 'alert'; }
 
 /** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist, AI) */
 export function retire(animals: AnimalManager, a: Animal): void {
-  owned.delete(a);
   animals.retire(a);
 }
 
