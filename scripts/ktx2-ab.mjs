@@ -9,7 +9,7 @@ import { debugSettings, harnessPins } from './debug-settings.mjs';
 // Wind, animals and the weapon's idle sway still differ between two page loads, so each shard is captured TWICE with the
 // images (`img`, `img2`): their difference is the run-to-run floor the KTX2 difference is read against (ktx2-ab-board.py).
 //
-//   node scripts/ktx2-ab.mjs --url=http://localhost:4760 --out=<dir> [--shards=pine-hollow,nalati-grasslands,driftwood-isle] [--modes=img,img2,ktx2] [--tier=phone|desktop]
+//   node scripts/ktx2-ab.mjs --url=http://localhost:4760 --out=<dir> [--shards=pine-hollow,nalati-grasslands,driftwood-isle] [--modes=img,img2,ktx2] [--tier=phone|desktop] [--viewport=phone]
 //
 // One headless Chromium on Metal, muted (`--mute-audio`, `mute=1`), closed at the end. Writes <out>/<shard>-<pose>-<mode>.png.
 import { readShards } from './shards.mjs';
@@ -25,6 +25,8 @@ const manifests = await readShards();
 const SHARDS = flag('shards', manifests.filter((m) => m.status === 'live' || m.status === 'earlyAccess').map((m) => m.slug).join(',')).split(',');
 const MODES = flag('modes', 'img,img2,ktx2').split(',');
 const TIER = flag('tier', 'phone');
+/** --viewport=phone: the iPhone portrait frame whatever the tier (a desktop-tier board for the phone-portrait review) */
+const VIEW = flag('viewport', TIER);
 mkdirSync(OUT, { recursive: true });
 
 /** per shard: the held time of day and the poses. `x, z, yaw` spawn the player (yaw faces (-sin, -cos)); `pitch` looks down */
@@ -64,7 +66,7 @@ try {
     const spec = SHARD[shard] ?? { q: 'tod=0.45', poses: [{ id: 'spawn', pitch: -0.05 }] };
     for (const mode of MODES) {
       const tex = mode.startsWith('img') ? 'img' : 'ktx2';
-      const ctx = await browser.newContext(TIER === 'phone'
+      const ctx = await browser.newContext(VIEW === 'phone'
         ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
         : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
       // the textures are a harness pin (`__wildshardHarness.textures`, G386), never a setting or URL switch; no background prefetch
