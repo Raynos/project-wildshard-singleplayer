@@ -1,6 +1,7 @@
 import {Rng} from '@wildshard/sdk/random';
 import {SEED} from '../data/landscapeRows';
 import type {BufferGeometry} from 'three';
+import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierParamsKey,pierSpecKey,type PierParams} from '../assets/contracts/pier';
 import {PIER_DEFAULTS,PIER_VARIANTS} from '../data/pierRows';
 import {LOWERED_SEA} from '../world/sea';
@@ -25,9 +26,11 @@ export function originalPiers():{geometry:Map<string,BufferGeometry>;rows:{id:st
  return {geometry,rows};
 }
 
+type PierColliderRow = (Omit<Extract<ColliderDesc,{kind:'box'}>,'yaw'> & {yaw?:number|null})
+ | (Omit<Extract<ColliderDesc,{kind:'hull'}>,'points'> & {points:number[]});
 /** Hull points were already rounded by the original Float32Array before publication. */
-function colliderRows(params:PierParams) {
- const rows=[];
+function colliderRows(params:PierParams):PierColliderRow[] {
+ const rows:PierColliderRow[]=[];
  for(const row of pierColliders(params)) {
   if(row.kind==='hull'){rows.push({...row,points:Array.from(row.points)});continue;}
   if(row.kind!=='box')throw new Error('Unexpected authored pier collider');
