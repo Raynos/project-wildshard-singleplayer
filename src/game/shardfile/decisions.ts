@@ -104,7 +104,7 @@ export class ShardDecisions {
     this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, actors: [...this.names], state: source.state,
       ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
       strikes: source.rows.strikes, quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
-    const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>();
+    const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>(), bodies = new Set<AnimalSim>();
     const bindings = this.rows.map((row, index) => {
       const map = decisionBindingMap(row, this.registries), actorIds = Object.values(map.ids.actors ?? {});
       for (const handle of actorIds) {
@@ -114,7 +114,9 @@ export class ShardDecisions {
         const runtime = source.runtime?.spawns;
         if (owners.has(name) || (borrowed ? spawn !== undefined || ![...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].some(value => value.id === name)
           : spawn?.brain !== null)) throw new Error('Decision actor has two controllers');
-        requireValue(sim.entities.get(name), 'absent actor');
+        const body = requireValue(sim.entities.get(name), 'absent actor');
+        if (bodies.has(body)) throw new Error('Decision body has two controllers');
+        bodies.add(body);
         owners.add(name); this.fieldActors.add(handle); sim.registerStrikeCatalogue(name, [...this.strikes.values()]);
       }
       if (row.commands.some(name => ['spawn', 'despawn', 'impulse', 'weather'].includes(name))) throw new Error('Decision mechanic has no admitted platform row owner');
@@ -144,19 +146,20 @@ export class ShardDecisions {
     this.host = new DecisionHost({ scripts, bindings, modules, seed: [source.identity.seed >>> 0, 0], world });
     for (const binding of bindings) { this.enabled.set(binding.id, false); this.host.setEnabled(binding.id, false); }
     for (const row of source.state.shared.filter(field => field.type !== 'string' && field.privacy === 'public')) for (const actor of this.fieldActors) {
-      const body = requireValue(this.actor(actor), 'field actor'), value = sim.borrowedActors?.has(body.entityId) === true ? body.mem[row.name] ?? Number(row.default) : Number(row.default);
+      const body = requireValue(this.actor(actor), 'field actor'), borrowed = sim.borrowedActors?.has(requireValue(this.actors.get(actor), 'field actor')) === true;
+      const value = borrowed ? body.mem[row.name] ?? Number(row.default) : Number(row.default);
       this.validateField(row.id, value);
       const values = this.fields.get(actor) ?? new Map<number, number>(); values.set(row.id, value); this.fields.set(actor, values);
-      if (sim.borrowedActors?.has(body.entityId) === true) body.mem[row.name] = value;
+      if (borrowed) body.mem[row.name] = value;
     }
     sim.scope.onDispose(sim.flags.onChange((name, on) => { const flag = this.registries.flags?.get(name); if (flag !== undefined) this.publish([12, flag, Number(on), 0, 0, 0]); }));
     sim.events.on('damage.dealt', ({ req, dealt }) => {
-      const actor = this.names.get(req.target.id); if (actor === undefined) return;
-      const by = req.source === 'env' ? 0 : this.names.get(req.source.id) ?? 0;
+      const actor = this.combatHandle(req.target.id); if (actor === undefined) return;
+      const by = req.source === 'env' ? 0 : this.combatHandle(req.source.id) ?? 0;
       this.publish([7, actor, by, dealt, this.read(5, actor, 0), 0]);
       if (by > 0) { const strike = this.striking.get(by); if (strike !== undefined) strike.hit = true; }
     }, sim.scope);
-    sim.events.on('actor.died', ({ actor, req }) => { const handle = this.names.get(actor.id); if (handle !== undefined) this.publish([9, handle, req.source === 'env' ? 0 : this.names.get(req.source.id) ?? 0, 0, 0, 0]); }, sim.scope);
+    sim.events.on('actor.died', ({ actor, req }) => { const handle = this.combatHandle(actor.id); if (handle !== undefined) this.publish([9, handle, req.source === 'env' ? 0 : this.combatHandle(req.source.id) ?? 0, 0, 0, 0]); }, sim.scope);
     sim.onStep('decision.declared', () => { this.events = []; this.lifecycle(); this.host.step(sim.state.tick); this.stepMoves(); }, {
       snapshot: () => this.snapshot(), restore: value => this.restore(value),
     });
@@ -164,6 +167,10 @@ export class ShardDecisions {
     if (!restoring) this.lifecycle();
   }
   private actor(handle: number) { const name = requireValue(this.actors.get(handle), 'unknown actor'); return name === this.sim.player.id ? undefined : requireValue(this.sim.entities.get(name), 'absent actor'); }
+  private combatHandle(id: string): number | undefined {
+    for (const [handle, name] of this.actors) if (this.sim.borrowedActors?.has(name) === true && this.sim.entities.get(name)?.combatActor().id === id) return handle;
+    return this.names.get(id);
+  }
   private position(handle: number) { return handle === DECISION_PLAYER_HANDLE ? this.sim.player.position : requireValue(this.actor(handle), 'actor position').position; }
   private name(kind: keyof DecisionRegistries, id: number): string { return requireValue(inverse(this.registries[kind]).get(id), `undeclared ${kind}`); }
   private inside(zone: string, actor: number): boolean {
@@ -230,7 +237,7 @@ export class ShardDecisions {
   }
   private fieldValue(actor: number, field: number): number {
     const body = this.actor(actor);
-    const value = body !== undefined && this.sim.borrowedActors?.has(body.entityId) === true
+    const value = body !== undefined && this.sim.borrowedActors?.has(requireValue(this.actors.get(actor), 'field actor')) === true
       ? body.mem[requireValue(this.source.state.shared.find(row => row.id === field && row.privacy === 'public' && row.type !== 'string'), 'public field').name]
       : this.fields.get(actor)?.get(field);
     const result = requireValue(value, 'unavailable public field'); this.validateField(field, result); return result;
@@ -238,7 +245,7 @@ export class ShardDecisions {
   private writeField(actor: number, field: number, value: number): void {
     this.fields.get(actor)?.set(field, value);
     const body = this.actor(actor);
-    if (body !== undefined && this.sim.borrowedActors?.has(body.entityId) === true)
+    if (body !== undefined && this.sim.borrowedActors?.has(requireValue(this.actors.get(actor), 'field actor')) === true)
       body.mem[requireValue(this.source.state.shared.find(row => row.id === field), 'public field').name] = value;
   }
   private moveStrike(actor: number, binding: number) {
@@ -334,7 +341,7 @@ export class ShardDecisions {
         ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }) });
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
       if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.writeField(handle, id, result.field.value); }
-      if (result.strike !== undefined && motion.target > 0) this.sim.startDeclaredStrike(actor.entityId, requireValue(this.actors.get(motion.target), 'move strike target'), result.strike);
+      if (result.strike !== undefined && motion.target > 0) this.sim.startDeclaredStrike(requireValue(this.actors.get(handle), 'move strike actor'), requireValue(this.actors.get(motion.target), 'move strike target'), result.strike);
       if (result.done !== undefined) { actor.setMotion(actor.yaw, 0); this.motions.delete(handle); this.host.enqueue(motion.binding, [10, handle, motion.move, Number(result.done), 0, 0]); }
     }
   }

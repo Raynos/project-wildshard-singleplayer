@@ -199,24 +199,37 @@ test('retained actors lend their actual body, public memory and strike owner wit
     actor.mem['phase'] = 2;
     const source = structuredClone(f.source);
     source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], bosses: [], actors: source.creatures.spawns.map(row => ({
-      id: row.id, kind: row.species, look: row.variant, at: [row.at[0], row.at[2]], yaw: row.yaw,
+      id: `retained.${row.id}`, kind: row.species, look: row.variant, at: [row.at[0], row.at[2]], yaw: row.yaw,
     })) } };
     source.creatures.spawns = [];
     const owner = sim.host;
+    const entities = new Map([...owner.entities].map(([id, body]) => [`retained.${id}`, body]));
+    const strikes = new Map<string, NonNullable<ReturnType<typeof owner.strikes.get>>>();
+    const actual = (id: string): string => {
+      const body = entities.get(id); if (body === undefined) throw new Error('Missing borrowed body'); return body.entityId;
+    };
+    const row = f.scripts[0]; if (row === undefined) throw new Error('Missing retained binding'); row.actors = { a: 'retained.actor.a', b: 'retained.actor.b' };
     const runtime: DecisionRuntime = { scope: owner.scope, events: owner.events, flags: owner.flags, physics: owner.physics,
-      player: owner.player, state: owner.state, slots: owner.slots, entities: owner.entities, strikes: owner.strikes,
-      borrowedActors: new Set(['actor.a', 'actor.b']), groundHeightAt: owner.groundHeightAt.bind(owner),
-      registerStrikeCatalogue: owner.registerStrikeCatalogue.bind(owner), startDeclaredStrike: owner.startDeclaredStrike.bind(owner),
+      player: owner.player, state: owner.state, slots: owner.slots, entities, strikes,
+      borrowedActors: new Set(entities.keys()), groundHeightAt: owner.groundHeightAt.bind(owner),
+      registerStrikeCatalogue: (id, specs) => {
+        owner.registerStrikeCatalogue(actual(id), specs);
+        const runner = owner.strikes.get(actual(id)); if (runner === undefined) throw new Error('Missing actual runner'); strikes.set(id, runner);
+      }, startDeclaredStrike: (from, to, strike) => owner.startDeclaredStrike(actual(from), actual(to), strike),
       onStep: owner.onStep.bind(owner) };
     expect(() => new ShardDecisions({ ...runtime, borrowedActors: new Set() }, source, f.assets, f.sections, new Map(), sim.quest)).toThrow('two controllers');
     const decisions = new ShardDecisions(runtime, source, f.assets, f.sections, new Map(), sim.quest);
-    const view = decisions.strikeObservation(actor.entityId);
+    const view = decisions.strikeObservation('retained.actor.a');
     expect(decisions.publication().fields).toContainEqual({ actor: 1, field: 89, value: 2 });
     for (let i = 0; i < 7; i++) owner.step();
     expect(actor.mem['phase']).toBe(1); expect(view.current?.id).toBe('bump');
     expect(view.state).toBe(owner.strikes.get(actor.entityId)?.state);
     expect(view.aim).toBe(owner.strikes.get(actor.entityId)?.yaw);
+    expect(runtime.strikes.get('retained.actor.a')).toBe(owner.strikes.get(actor.entityId));
     expect(owner.entities.get(actor.entityId)).toBe(actor); expect(owner.entities.size).toBe(2);
+    for (let i = 0; i < 3; i++) owner.step();
+    expect(owner.entities.get('actor.b')?.hp).toBe(93);
+    expect(decisions.host.snapshot().bindings[0]?.pending.some(event => event[0] === 7 && event[1] === 2 && event[2] === 1)).toBe(true);
     actor.mem['phase'] = 3;
     expect(decisions.publication().fields).toContainEqual({ actor: 1, field: 89, value: 3 });
     const saved = decisions.snapshot(), invoke = vi.spyOn(DecisionModule.prototype, 'invoke');
