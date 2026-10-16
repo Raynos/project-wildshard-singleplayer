@@ -9,7 +9,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SKY_SPAWNS } from '../data/spawns';
 import { SKY_LIFT_PROMPTS } from '../data/liftPrompts';
 import { SKY_MOVER_VIEWS } from '../data/moverViews';
-import { MOVERS } from '../data/movers';
+import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import { LIFT_MODULE } from '../data/liftModule';
 import { BRIDGE_MODULE } from '../data/bridgeModule';
 import isletRows from '../data/islets.generated.json' with { type: 'json' };

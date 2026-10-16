@@ -16,7 +16,7 @@ const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(valu
 const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
-const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs'];
+const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
 const sharedHelpers=new Set(['bake-check.mjs','bake-loader.mjs','bake-input-hashes.mjs','bake-output.mjs']);
 // `pnpm gen` writes these two tables before the generation step; producers read them (scripts/gen.mjs).
@@ -32,7 +32,11 @@ function postGenerationTable(root,catalog,file) {
   if(!file.startsWith('src/') || !/\.generated\./u.test(file) || file.endsWith('/ktx2.generated.ts') || preGenerationTables.has(file)) return false;
   const at=`${root}\0${catalog}`;
   if(!registeredOutputs.has(at)) {
-    try {registeredOutputs.set(at,new Set(discoverGeneration(root,catalog).jobs.flatMap(job=>job.outputs)));}
+    try {
+      // Retained source outputs (for example mover rows) exist before jobs run.
+      const source=v.parse(v.object({producers:v.record(path,v.array(path))}),JSON.parse(readFileSync(resolve(root,'scripts/source-generation-outputs.json'),'utf8')));
+      registeredOutputs.set(at,new Set([...discoverGeneration(root,catalog).jobs.flatMap(job=>job.outputs),...Object.values(source.producers).flat()]));
+    }
     catch {registeredOutputs.set(at,null);} // no readable catalogue: exclude nothing
   }
   const outputs=registeredOutputs.get(at);

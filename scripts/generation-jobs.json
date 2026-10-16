@@ -13637,7 +13637,7 @@
         "src/shards/far-reach/data/modes.ts",
         "src/shards/far-reach/data/moverBindings.ts",
         "src/shards/far-reach/data/moverViews.ts",
-        "src/shards/far-reach/data/movers.ts",
+        "src/shards/far-reach/data/movers.generated.json",
         "src/shards/far-reach/data/nativeMelee.ts",
         "src/shards/far-reach/data/navigation.generated.json",
         "src/shards/far-reach/data/props.json",

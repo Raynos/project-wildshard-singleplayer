@@ -11,7 +11,7 @@ import { FLAGS } from '../src/shards/far-reach/quests/flags';
 import { SIGNAL_RUNTIME_ROWS } from '../src/shards/sunscar-dunes/data/runtimeRows';
 import { MoverLifecycle } from '../src/engine/sim/moverLifecycle';
 import { parseMovers } from '../src/format/movers';
-import { MOVERS } from '../src/shards/far-reach/data/movers';
+import MOVERS from '../src/shards/far-reach/data/movers.generated.json' with { type: 'json' };
 import { STRINGS } from '../src/shards/far-reach/data/strings';
 import { SKY_RUNTIME_ROWS } from '../src/shards/far-reach/data/runtimeRows';
 
