@@ -35,10 +35,11 @@ registers the four plus the default creature calls; the composition root calls i
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
 Nalati and Pine runtime world hooks lazily import these defining modules. The kit `lookApi` loaders are removed.
-`stepRainFall(fall, row, dt, wind, rain)` (`game/systems/looks/rainCurtain`, W2 C2) is a curtain's frame of motion: the
-`RainFall` velocity (`RainFallRow.speed` down, `slant` × the wind) and world-anchored offset wrapped into the box round
-the eye (2 × `radius`), returning the index count drawn at that rain (`count` streaks, all from 0.91 on). Pine Hollow's
-rain is its user; G441's W3 match is Nalati `world/WeatherFX.ts` `update`'s curtain block.
+A curtain's frame of motion is data (W2 C2, H4): Pine Hollow's rain turns its curtain's velocity and wrapped offset,
+the splash and lens clocks and the lens's wetness through the numeric channel group `pine.rain`
+(`generators/rainChannels.ts`, private slots for the integrated values) over graph param roots
+(`@wildshard/sdk/looks/graphDaySky#graphParamRoots`); G441's W3 match is Nalati `world/WeatherFX.ts` `update`'s
+curtain block.
 
 The historical `@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` exports remain literally unchanged
 for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/{figureRig,figureMotion}` and Driftwood

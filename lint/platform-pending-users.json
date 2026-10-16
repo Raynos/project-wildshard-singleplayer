@@ -633,39 +633,6 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/systems/looks/rainCurtain.ts",
-      "export": "stepRainFall",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati rain curtain fall (G441)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
-      "module": "src/game/systems/looks/rainCurtain.ts",
-      "export": "RainFallRow",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati rain curtain fall (G441)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
-      "module": "src/game/systems/looks/rainCurtain.ts",
-      "export": "RainFall",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati rain curtain fall (G441)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
       "module": "src/engine/render/viewmodelFeel.ts",
       "export": "HitscanPresentation",
       "shard": "nalati-grasslands",

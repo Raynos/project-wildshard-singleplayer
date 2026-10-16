@@ -1,5 +1,6 @@
 import type { Material, Texture } from 'three';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import type { DaySkyGraphs } from '@wildshard/sdk/looks/graphDaySky';
 
 /**
  * Pine Hollow's compiled look.materials graphs (the hearth particles, data/hearthLook.ts; the cave shaft,
@@ -12,6 +13,12 @@ let looks: {
 
 /** lend the compiled looks (`runtimeLookMaterials`) */
 export function lendPineLooks(lent: NonNullable<typeof looks>): void { looks = lent; }
+
+/** the lent looks themselves (a channel group's graph param push); throws when none were lent */
+export function pineLooks(): Pick<DaySkyGraphs, 'setParam'> {
+  if (looks === null) throw new Error('[pine-hollow] no compiled looks');
+  return looks;
+}
 
 /** a compiled look by its look.materials id; throws when none was lent */
 export function pineLook(id: string): Material {

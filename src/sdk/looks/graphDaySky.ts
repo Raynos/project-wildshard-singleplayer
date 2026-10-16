@@ -101,8 +101,13 @@ export interface GraphDaySkySpec<K> {
 interface ClockOwner { phase: number; day: number; night: number; sunX: number; sunY: number; sunZ: number; moonX: number; moonY: number; moonZ: number }
 const AXES = ['x', 'y', 'z', 'w'];
 
-/** A plain numeric root per sky graph param the group's outputs name, and the push that moves them into the graphs. */
-function graphParamRoots(rows: unknown, group: string, ids: readonly string[]): { roots: Map<string, Record<string, number | Record<string, number>>>; push: (set: DaySkyGraphs['setParam']) => void } {
+/** A plain numeric root per graph param a numeric channel group's outputs name (target = a graph id in `ids`, path
+ *  `[param]` or `[param, x|y|z|w]`), to hand `installChannelPrograms` as owners, and the push that moves them into the
+ *  graphs (`setParam` of the compiled looks they live in) after each evaluation (the graph day sky's frame; Pine Hollow's
+ *  rain, over its lent looks). */
+export function graphParamRoots(rows: unknown, group: string, ids: readonly string[]): {
+  roots: Map<string, Record<string, number | Record<string, number>>>; push: (looks: Pick<DaySkyGraphs, 'setParam'>) => void;
+} {
   const roots = new Map<string, Record<string, number | Record<string, number>>>(), sizes = new Map<string, Map<string, number>>();
   for (const row of parseClientChannels(rows)) for (const out of row.numeric?.group === group ? row.numeric.outputs : []) {
     const [param, axis] = out.path;
@@ -116,17 +121,17 @@ function graphParamRoots(rows: unknown, group: string, ids: readonly string[]): 
     parts[axis] = 0; root[param] = parts;
     size.set(param, Math.max(size.get(param) ?? 0, at + 1));
   }
-  const pushes: ((set: DaySkyGraphs['setParam']) => void)[] = [];
+  const pushes: ((looks: Pick<DaySkyGraphs, 'setParam'>) => void)[] = [];
   for (const [id, root] of roots) for (const [param, size] of sizes.get(id) ?? []) {
     const out = Array.from({ length: size }, () => 0);
-    pushes.push((set) => {
+    pushes.push((looks) => {
       const v = root[param];
-      if (typeof v === 'number') { set(id, param, v); return; }
+      if (typeof v === 'number') { looks.setParam(id, param, v); return; }
       for (let i = 0; i < size; i++) out[i] = v?.[AXES[i] ?? 'x'] ?? 0;
-      set(id, param, out);
+      looks.setParam(id, param, out);
     });
   }
-  return { roots, push: (set) => { for (const push of pushes) push(set); } };
+  return { roots, push: (looks) => { for (const push of pushes) push(looks); } };
 }
 
 /** free a mesh's geometry and material(s) */
@@ -196,7 +201,7 @@ export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFac
       c.phase = clock.phase; c.day = clock.body === 'sun' ? 1 : 0; c.night = clock.night;
       c.sunX = sun.x; c.sunY = sun.y; c.sunZ = sun.z; c.moonX = moon.x; c.moonY = moon.y; c.moonZ = moon.z;
       channels.evaluate({ time: 0, delta: 0, values: {} });
-      params.push(graphs.setParam);
+      params.push(graphs);
     };
     clock.onSet = async () => { await body.prepare?.(); drive(true); env.refresh(); };
     const pass: OffscreenPass | undefined = source.kind === 'equirect' ? { scene: source.scene, camera: source.camera, target: source.target } : undefined;

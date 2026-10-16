@@ -9,8 +9,10 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { pineWaterSurface, setWaterFade } from '../../world/water';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
-import { rainCurtainGeometry, stepRainFall, type RainFallRow } from '@wildshard/game/systems/looks/rainCurtain';
-import { pineLook, setPineLookParam, setPineLookTexture } from './graphLooks';
+import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
+import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
+import { graphParamRoots } from '@wildshard/sdk/looks/graphDaySky';
+import { pineLook, pineLooks, setPineLookParam, setPineLookTexture } from './graphLooks';
 
 /**
  * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in
@@ -34,6 +36,8 @@ import { pineLook, setPineLookParam, setPineLookTexture } from './graphLooks';
  * one instanced draw; none under a roof or the hood, fewer under the crowns) and the lens drops (screen-space quads in
  * the `programs.lens` graph: they land while you face the open sky and bead, slide
  * and dry).
+ * THE PARAMS the three graphs turn each frame (the fall, the clocks, the alphas, the lens's wetness) are the numeric
+ * channel group `programs.channels` (generators/rainChannels.ts), over the frame's reading this fills (`seen`).
  *
  * A practice room (`practiceRoom.open`) has none of it. Draws: 0 while dry (all hidden); raining: the rain + the puddles +
  * the splashes + the lens = 4. Programs: +3 (the curtain, splash and lens graphs, compiled with the shard's other looks).
@@ -59,8 +63,8 @@ export async function loadRainBake(url: string, rows: PackedGeometryJson): Promi
   return { puddles: pack.geometry(0), crowns: pack.floats(1) };
 }
 
-/** The look.materials ids of the rain's graphs: the curtain, the splashes and the lens drops. */
-export interface RainFxPrograms { readonly rain: string; readonly splash: string; readonly lens: string }
+/** The look.materials ids of the rain's graphs (the curtain, the splashes and the lens drops) and their channel group. */
+export interface RainFxPrograms { readonly rain: string; readonly splash: string; readonly lens: string; readonly channels: string }
 
 /** A hood where no rain falls: a box in a frame at (x, z) turned by `rot` (lx across, lz in), under `top` (world y). */
 export interface RainHood { readonly x: number; readonly z: number; readonly rot: number; readonly hw: number; readonly lz0: number; readonly lz1: number; readonly top: number }
@@ -80,6 +84,8 @@ export interface RainFxOptions {
   programs: RainFxPrograms;
   baked: RainBake;
   hood?: RainHood;
+  /** the shardfile's client channel rows (the `programs.channels` group) */
+  channels: unknown;
 }
 
 /** The camera-local rain, the puddles, the splashes and the lens drops of a wooded level (see the module's comment). */
@@ -97,22 +103,18 @@ export class RainFx {
   /** the hood's frame (x, z, cos yaw, sin yaw) and box (half width, lz from, lz to, ceiling y); all 0 with none */
   private readonly cave = new THREE.Vector4();
   private readonly caveBox = new THREE.Vector4();
-  /** the curtain's wrapped world offset and fall velocity, and its fall as data */
-  private readonly fall = { offset: new THREE.Vector3(), velocity: new THREE.Vector3() };
-  private readonly fallRow: RainFallRow;
   private readonly rainCount: number;
+  /** the frame's reading the channel group reads, and its evaluation (which pushes the graphs' params) */
+  private readonly seen = { on: 0, rain: 0, dry: 0, cover: 0, lookY: 0, room: 0, radius: 0, slots: 0, windX: 0, windZ: 0 };
+  private frame!: (dt: number) => void;
+  private param!: (id: string, name: string) => number;
   /** the splashes at the feet */
   splashes!: THREE.Mesh;
   /** the drops on the lens */
   lens!: THREE.Mesh;
-  /** the splashes' clock (s): a slot's born time is on it */
-  private splashTime = 0;
   private splashAttr!: THREE.InstancedBufferAttribute;
   private splashNext = 0;
   private splashAcc = 0;
-  /** the lens drops' clock (s; three times as fast under a roof) and their smoothed exposure × slot share */
-  private lensClock = 0;
-  private lensWet = 0;
   private readonly eye = new THREE.Vector3();
   private readonly fwd = new THREE.Vector3(0, 0, -1);
   private readonly xrng: Rng;
@@ -124,7 +126,7 @@ export class RainFx {
     const hood = o.hood;
     if (hood) { this.cave.set(hood.x, hood.z, Math.cos(hood.rot), Math.sin(hood.rot)); this.caveBox.set(hood.hw, hood.lz0, hood.lz1, hood.top); }
     this.rainCount = o.phone ? o.look.streaks.phone : o.look.streaks.desktop;
-    this.fallRow = { count: this.rainCount, speed: 9.5, slant: 0.3, radius: o.phone ? 11 : 16 };
+    this.seen.radius = o.phone ? 11 : 16; this.seen.slots = o.phone ? o.look.lensDrops.phone : o.look.lensDrops.desktop;
     this.xrng = new Rng(o.seed ^ 0x7e11);
   }
 
@@ -137,6 +139,10 @@ export class RainFx {
     this.lens = this.buildLens();
     this.group.add(this.rain, this.puddles, this.splashes, this.lens);
     this.group.name = this.o.name;
+    const p = this.o.programs, params = graphParamRoots(this.o.channels, p.channels, [p.rain, p.splash, p.lens]);
+    const lane = installChannelPrograms(this.o.channels, p.channels, new Map<string, unknown>([['rain', this.seen], ...params.roots]));
+    this.frame = (dt) => { lane.evaluate({ time: 0, delta: dt, values: {} }); params.push(pineLooks()); };
+    this.param = (id, name) => { const v = params.roots.get(id)?.[name]; return typeof v === 'number' ? v : 0; };
     return this;
   }
 
@@ -181,6 +187,7 @@ export class RainFx {
     setPineLookParam(id, 'coverK', 1 / (2 * CHUNK_HALF));
     setPineLookParam(id, 'cave', this.cave.toArray());
     setPineLookParam(id, 'caveBox', this.caveBox.toArray());
+    setPineLookParam(id, 'radius', this.seen.radius);
     const m = new THREE.Mesh(rainCurtainGeometry(this.rainCount, this.o.seed, 'aSeed'), pineLook(id));
     m.frustumCulled = false; m.renderOrder = 20; m.visible = false; m.name = 'rain';
     return m;
@@ -219,7 +226,7 @@ export class RainFx {
 
   /** new splashes this frame round the eye (more in front of it), none where no rain lands, fewer under the crowns */
   private spawnSplashes(dt: number, rain: number): void {
-    const a = this.splashAttr, arr = a.array, n = a.count, rng = this.xrng, t = this.splashTime;
+    const a = this.splashAttr, arr = a.array, n = a.count, rng = this.xrng, t = this.param(this.o.programs.splash, 'time');
     this.splashAcc += dt * rain * (this.o.phone ? 70 : 110);
     const phys = app.physics;
     let wrote = false;
@@ -258,54 +265,25 @@ export class RainFx {
     return m;
   }
 
-  /** the drops land while the rain reaches the eye (facing the open sky: more looking up, none looking down) and dry off
-   *  three times as fast under a roof; ~6.8 drops at full exposure, as many as the slots hold at most */
-  private updateLens(dt: number, rain: number): void {
-    const dry = this.dryAt(this.eye.x, this.eye.y, this.eye.z), slots = this.o.phone ? this.o.look.lensDrops.phone : this.o.look.lensDrops.desktop;
-    const expose = dry ? 0 : rain * (1 - 0.7 * this.coverAt(this.eye.x, this.eye.z)) * THREE.MathUtils.smoothstep(this.fwd.y, -0.55, 0.25);
-    this.lensClock += dt * (dry ? 3 : 1);
-    this.lensWet += (expose * Math.min(1, 6.8 / slots) - this.lensWet) * Math.min(1, dt / 2.5);
-    setPineLookParam(this.o.programs.lens, 'clock', this.lensClock);
-    setPineLookParam(this.o.programs.lens, 'wet', this.lensWet);
-    this.lens.visible = this.lensWet > 0.002;
-  }
-
   // ─────────────────────────────── per frame ───────────────────────────────
-  private readonly v3 = [0, 0, 0];
-  /** (x, y, z) as a param's vec3 (one array, copied by the param setter) */
-  private xyz(x: number, y: number, z: number): number[] {
-    this.v3[0] = x; this.v3[1] = y; this.v3[2] = z;
-    return this.v3;
-  }
-
   /** `wind` the world wind (m/s, xz) for the slant, `cam` the view (the extras); the rain's tints are the fog's, in its graphs */
   update(dt: number, w: RainReading, wind: { x: number; z: number }, cam?: THREE.Camera): void {
     // the curtain is camera-local, so it would follow the eye into a practice room: none there, like the extras below
-    const rainOn = w.rain > 0.01 && !practiceRoom.open;
+    const room = practiceRoom.open, rainOn = w.rain > 0.01 && !room, s = this.seen;
+    if (cam && !room) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
+    s.on = Number(rainOn); s.rain = w.rain; s.room = Number(room); s.windX = wind.x; s.windZ = wind.z; s.lookY = this.fwd.y;
+    s.dry = Number(this.dryAt(this.eye.x, this.eye.y, this.eye.z)); s.cover = this.coverAt(this.eye.x, this.eye.z);
+    this.frame(dt);
     this.rain.visible = rainOn;
-    if (rainOn) {
-      const id = this.o.programs.rain, f = this.fall, drawn = stepRainFall(f, this.fallRow, dt, wind, w.rain);
-      setPineLookParam(id, 'velocity', this.xyz(f.velocity.x, f.velocity.y, f.velocity.z));
-      setPineLookParam(id, 'offset', this.xyz(f.offset.x, f.offset.y, f.offset.z));
-      setPineLookParam(id, 'radius', this.fallRow.radius);
-      setPineLookParam(id, 'length', 0.42 + 0.26 * w.rain);
-      setPineLookParam(id, 'alpha', 0.16 + 0.2 * w.rain);
-      this.rain.geometry.setDrawRange(0, drawn);
-    }
+    if (rainOn) this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6); // the streaks follow the intensity
     const puddles = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
     setWaterFade('puddle', puddles);
     this.puddles.visible = puddles > 0.01;
     // the extras — none in a practice room (its x / z is no spot on the level)
-    if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.lensWet = 0; return; }
-    if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
-    if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(this.o.programs.lens, 'aspect', cam.aspect); // the screen's shape
-    this.splashTime += dt;
-    setPineLookParam(this.o.programs.splash, 'time', this.splashTime);
     this.splashes.visible = rainOn;
-    if (rainOn) {
-      setPineLookParam(this.o.programs.splash, 'alpha', 0.24 + 0.26 * w.rain);
-      this.spawnSplashes(dt, w.rain);
-    }
-    this.updateLens(dt, rainOn ? w.rain : 0);
+    this.lens.visible = !room && this.param(this.o.programs.lens, 'wet') > 0.002;
+    if (room) return;
+    if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(this.o.programs.lens, 'aspect', cam.aspect); // the screen's shape
+    if (rainOn) this.spawnSplashes(dt, w.rain);
   }
 }

@@ -19,8 +19,9 @@ export const PINE_RAIN = {
 /** The bear cave's hood, where no rain falls (its frame is the layout's BEAR_CAVE). */
 export const PINE_CAVE_HOOD = { hw: 3.2, lz0: -1.4, lz1: 4.5, up: 5.6 } as const;
 
-/** the look.materials ids the rain's graphs are worn under: the curtain, the splashes at the feet, the drops on the lens */
-export const PINE_RAIN_PROGRAMS = { rain: 'pine-rain-curtain', splash: 'pine-rain-splash', lens: 'pine-rain-lens' } as const;
+/** the look.materials ids the rain's graphs are worn under (the curtain, the splashes at the feet, the drops on the lens)
+ *  and the numeric channel group that turns their params (generators/rainChannels.ts) */
+export const PINE_RAIN_PROGRAMS = { rain: 'pine-rain-curtain', splash: 'pine-rain-splash', lens: 'pine-rain-lens', channels: 'pine.rain' } as const;
 
 /** C7: in the rain the grazing herds drift in under the nearest big trees (the bear sits it out), and back out after. */
 export const PINE_HERD_SHELTER = { kinds: ['deer', 'elk', 'boar'], bigTree: 20, reach: 90, homeHold: 90, clear: 2.2, spotR: 3.5, homeR: 10, wet: 0.3, dry: 0.05 } as const;

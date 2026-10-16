@@ -1,17 +1,36 @@
-import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { stepRainFall } from '../src/game/systems/looks/rainCurtain';
+import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
+import { graphParamRoots } from '../src/sdk/looks/graphDaySky';
+import { PINE_RAIN_PROGRAMS } from '../src/shards/pine-hollow/data/weatherLook';
+import { pineRainChannels } from '../src/shards/pine-hollow/generators/rainChannels';
 
-describe('stepRainFall', () => {
-  it('slants the fall by the wind, wraps the offset into the box and counts the streaks drawn', () => {
-    const fall = { offset: new THREE.Vector3(), velocity: new THREE.Vector3() }, row = { count: 100, speed: 9.5, slant: 0.3, radius: 11 };
-    const drawn = stepRainFall(fall, row, 1, { x: 10, z: -10 }, 0.5);
-    expect(fall.velocity.toArray()).toEqual([3, -9.5, -3]);
-    expect(fall.offset.x).toBeCloseTo(3);
-    expect(fall.offset.y).toBeCloseTo(22 - 9.5);
-    expect(fall.offset.z).toBeCloseTo(22 - 3);
-    // The shipped ceil law keeps the extra streak at this floating-point boundary.
-    expect(drawn).toBe(56 * 6);
-    expect(stepRainFall(fall, row, 0, { x: 0, z: 0 }, 1)).toBe(600);
+const { rain, splash, lens, channels } = PINE_RAIN_PROGRAMS;
+function rig() {
+  const rows = pineRainChannels(), seen = { on: 1, rain: 0.5, dry: 0, cover: 0, lookY: 0.5, room: 0, radius: 11, slots: 14, windX: 10, windZ: -10 };
+  const params = graphParamRoots(rows, channels, [rain, splash, lens]), set: Record<string, unknown> = {};
+  const lane = installChannelPrograms(rows, channels, new Map<string, unknown>([['rain', seen], ...params.roots]));
+  const step = (dt: number): void => { lane.evaluate({ time: 0, delta: dt, values: {} }); params.push({ setParam: (id, name, value) => { set[`${id}.${name}`] = Array.isArray(value) ? [...value] : value; } }); };
+  return { seen, set, step };
+}
+
+describe('pine.rain channels', () => {
+  it('slants the fall by the wind and wraps the offset into the box round the eye', () => {
+    const { set, step } = rig();
+    step(1);
+    expect(set[`${rain}.velocity`]).toEqual([3, -9.5, -3]);
+    const offset = set[`${rain}.offset`];
+    if (!Array.isArray(offset)) throw new Error('no offset');
+    expect(offset[0]).toBeCloseTo(3); expect(offset[1]).toBeCloseTo(22 - 9.5); expect(offset[2]).toBeCloseTo(22 - 3);
+    expect(set[`${rain}.length`]).toBeCloseTo(0.55); expect(set[`${rain}.alpha`]).toBeCloseTo(0.26);
+  });
+  it('runs the lens clock three times as fast under a roof, dries the lens there and stops in a practice room', () => {
+    const { seen, set, step } = rig();
+    step(0.5);
+    const wet = 0.5 * (6.8 / 14) * 0.2; // exposure × slot share × min(1, dt / 2.5); facing up the look is fully open
+    expect(set[`${lens}.wet`]).toBeCloseTo(wet); expect(set[`${lens}.clock`]).toBeCloseTo(0.5); expect(set[`${splash}.time`]).toBeCloseTo(0.5);
+    seen.dry = 1; step(0.5);
+    expect(set[`${lens}.clock`]).toBeCloseTo(2); expect(set[`${lens}.wet`]).toBeCloseTo(wet * 0.8);
+    seen.room = 1; step(0.5);
+    expect(set[`${lens}.clock`]).toBeCloseTo(2); expect(set[`${lens}.wet`]).toBe(0); expect(set[`${splash}.time`]).toBeCloseTo(1);
   });
 });
