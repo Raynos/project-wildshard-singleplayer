@@ -43,7 +43,7 @@ import { loadUnderPlacements } from '../world/timberSites';
 import { pineModels } from '../world/context';
 import { Undergrowth } from '../world/undergrowth';
 import { Props } from '../world/props';
-import { PineStreams } from './world/streams';
+import { PineStreams } from '../world/streams';
 import { installPineLandmarks, type PineLandmarks } from '../world/landmarks';
 import { placeCabins } from '../world/cabins';
 import { placeDrawnModels } from '../world/drawnModels';

@@ -4,7 +4,7 @@
  * (src/shards/pine-hollow/world/crags.ts `placeCrags`), drawn in the crags' one BatchedMesh. Ankle-high: walked over, no collider.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { cragPart, CRAG_LOD } from '../world/cragKit';
+import { cragPart, CRAG_LOD } from '../../world/cragKit';
 
 export const SCREE_MODULES = ['scree-a', 'scree-b'] as const;
 

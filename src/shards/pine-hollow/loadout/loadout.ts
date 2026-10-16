@@ -24,7 +24,7 @@ import { PLAIN_BOLT, type BoltMod } from '../runtime/items/boltCrossbow';
 import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
 import { bindLongbowCharge } from './events';
 import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';
-import { QUIVER_MAX } from '../runtime/weapons/Longbow';
+import { QUIVER_MAX } from '../weapons/Longbow';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type { PineHollowSfx } from '../runtime/audio/sfx';

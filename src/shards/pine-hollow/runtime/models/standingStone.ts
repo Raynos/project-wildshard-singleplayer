@@ -6,8 +6,8 @@
  * collides as the hull of ≤ 180 of its LOD1's vertices.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { heroFar, heroHull, heroNear } from '../world/hero';
-import type { PineHeroId } from '../world/heroFiles';
+import { heroFar, heroHull, heroNear } from '../../world/hero';
+import type { PineHeroId } from '../../world/heroFiles';
 
 export const STONE_KINDS = ['stone-a', 'stone-b', 'stone-c'] as const satisfies readonly PineHeroId[];
 

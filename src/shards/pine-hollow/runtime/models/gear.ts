@@ -14,7 +14,7 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { PINE_FINISHES } from '../loadout/skins';
 import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { QUIVER_MAX } from '../weapons/Longbow';
+import { QUIVER_MAX } from '../../weapons/Longbow';
 import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../weapons/longbowView';
 import { skinningKnife } from './skinningKnife';
 

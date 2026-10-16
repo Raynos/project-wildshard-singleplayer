@@ -33,9 +33,9 @@
 import * as THREE from 'three';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { pineSetCap } from '../runtime/debug/options';
-import { PINE_CRAG_DIR } from '../runtime/world/heroFiles';
+import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
-import { CRAG_LOD, useCragKit } from '../runtime/world/cragKit';
+import { CRAG_LOD, useCragKit } from './cragKit';
 import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
 import { CLIFF_MODULES, cragCliff } from '../runtime/models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../runtime/models/cragBoulder';
