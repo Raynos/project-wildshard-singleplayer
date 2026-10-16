@@ -118,6 +118,21 @@ export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, sourc
   return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, migrate);
 }
 
+/** A typed JSON record on one declared state field. Legacy reads run only at first initialization;
+ * namespaces cannot escape the bound placement, and refused writes remain explicit boolean results. */
+export function bindRuntimeJsonRecord<S extends v.GenericSchema>(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
+  key: string, schema: S, legacyRead: () => v.InferOutput<S>, instance = source.identity.slug): {
+  readonly read: (namespace?: string) => v.InferOutput<S>; readonly write: (value: v.InferOutput<S>, namespace?: string) => boolean;
+} {
+  const field = bindRuntimeState(ctx, source, key, () => JSON.stringify(legacyRead()), instance);
+  const owner = (namespace: string): void => { if (namespace !== instance) throw new Error('JSON record belongs to another instance'); };
+  return { read: (namespace = instance) => {
+    owner(namespace);
+    const text = field.read(); if (typeof text !== 'string') throw new Error('Runtime JSON state must be a string');
+    const value: unknown = JSON.parse(text); return v.parse(schema, value);
+  }, write: (value, namespace = instance) => { owner(namespace); return field.write(JSON.stringify(v.parse(schema, value))); } };
+}
+
 /** Emit one declared fact for an entity; the platform ledger decides the grant. */
 export interface RuntimeFacts {
   (name: string, entity: string): LedgerReceipt;

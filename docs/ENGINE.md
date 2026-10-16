@@ -6519,3 +6519,13 @@ predicates and their placed facing. The G441 W3 user is Nalati
 its talking/near/idle target and 5 / 2.5 response use the uncapped policy
 without wrapping the accumulated output yaw. Orbit, head and arm pose
 remain native owners.
+
+
+`game/shardfile/hybridRows.bindRuntimeJsonRecord(ctx, source, key, schema,
+legacyRead, instance?)` binds a typed JSON record to one declared host state
+field. The legacy callback seeds that field only on its first initialization.
+Reads and writes validate through the supplied schema and refuse another
+instance namespace. Writes return the underlying durability result; callers
+retain their existing refusal policy. Pine uses this for its boss/elite saves.
+Nalati's W3 `runtime/persistence.ts#record` adopts the same path while keeping
+its explicit failed-write error and native schemas.
