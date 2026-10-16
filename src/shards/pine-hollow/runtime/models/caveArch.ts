@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import { heroFar, heroLod0, heroLod1, heroNear } from '../../world/hero';
+import { heroFar, heroLod0, heroLod1, heroNear } from '../world/hero';
 
 export interface CaveArchParams {
   /** as generated: the mouth shut (no cave behind it) */

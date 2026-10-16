@@ -5,7 +5,7 @@
  * LOD1 past it; collides as the hull of ≤ 180 of its LOD1's vertices (wood).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { heroFar, heroHull, heroNear } from '../../world/hero';
+import { heroFar, heroHull, heroNear } from '../world/hero';
 
 export const beaverDam = defineModel<Record<string, never>>({
   id: 'pine-hollow/beaver-dam', name: 'Beaver dam', category: 'nature', pipeline: 'trellis',

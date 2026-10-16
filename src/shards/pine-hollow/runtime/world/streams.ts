@@ -17,13 +17,13 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import SPRAY from '../data/sprayPuffs.json' with { type: 'json' };
-import { SPRAY_LOOK } from '../data/streamLook';
-import { pineLook } from '../runtime/looks/graphLooks';
-import { loadSiteTimbers } from './timberSites';
-import { pineModels } from './context';
+import SPRAY from '../../data/sprayPuffs.json' with { type: 'json' };
+import { SPRAY_LOOK } from '../../data/streamLook';
+import { pineLook } from '../looks/graphLooks';
+import { loadSiteTimbers } from '../../world/timberSites';
+import { pineModels } from '../../world/context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineWater } from './water';
+import { pineWater } from '../../world/water';
 
 /** the most mist puffs the waterfall draws (../data/sprayPuffs.json bakes 11) */
 const MAX_SPRAY = 64;

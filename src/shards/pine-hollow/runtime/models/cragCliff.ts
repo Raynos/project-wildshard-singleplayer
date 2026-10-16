@@ -10,7 +10,7 @@
  * lookout's ~26 m granite prow.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { cragHull, cragPart, CRAG_LOD } from '../../world/cragKit';
+import { cragHull, cragPart, CRAG_LOD } from '../world/cragKit';
 
 export const CLIFF_MODULES = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'hero'] as const;
 

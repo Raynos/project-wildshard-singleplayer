@@ -2,7 +2,7 @@
  * The waterfall's spray puffs, baked offline (SHARD-PLATFORM W2): a few soft puffs at the foot of the fall's face and over
  * the plunge (lifted off the pond), each with its instance origin, its `aSeed` (phase, period (s), sideways drift,
  * opacity) and its `aSize` (width, height, rise in metres) from a fixed golden-ratio walk. The page reads the rows
- * (../data/sprayPuffs.json) into its one instanced draw (../world/streams.ts); its graph is ../data/streamLook.ts.
+ * (../data/sprayPuffs.json) into its one instanced draw (../runtime/world/streams.ts); its graph is ../data/streamLook.ts.
  */
 import streamJson from '../data/streams.json' with { type: 'json' };
 

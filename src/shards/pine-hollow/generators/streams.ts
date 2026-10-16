@@ -4,7 +4,7 @@
  * page's heights and normals) and writes the one water mesh — the creek ribbon from the beaver dam to the slab's south
  * edge, the waterfall's sheet down the Ridge's face, the plunge ring on the pond — to
  * `public/assets/pine-hollow/baked/streams.bin` (zlib) + `../data/streams.json` (with the fall's plunge and face-foot
- * anchors); the page draws it (../world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
+ * anchors); the page draws it (../runtime/world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
  * the stale gate.
  */
 import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, POND, type XZ } from '../data/layout';

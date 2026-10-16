@@ -6,7 +6,7 @@
  * collides as the hull of ≤ 180 of its LOD1's vertices.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { heroFar, heroHull, heroNear } from '../../world/hero';
+import { heroFar, heroHull, heroNear } from '../world/hero';
 
 export const waystone = defineModel<Record<string, never>>({
   id: 'pine-hollow/waystone', name: 'Waystone lantern', category: 'props', pipeline: 'trellis',

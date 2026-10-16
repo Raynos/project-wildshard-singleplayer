@@ -4,7 +4,7 @@
 // installed (src/shards/pine-hollow/generators/bake-pine-crags.mjs `installPineGround`: the page's heights and normals), and writes the water mesh,
 // its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/streams.bin and its rows
 // (the binary's hash and size, the counts, the fall's anchors) to src/shards/pine-hollow/data/streams.json, which the page
-// reads (src/shards/pine-hollow/world/streams.ts). test/shards/pine-hollow/streams-bake.test.ts is the stale gate.
+// reads (src/shards/pine-hollow/runtime/world/streams.ts). test/shards/pine-hollow/streams-bake.test.ts is the stale gate.
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-streams.mjs
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';

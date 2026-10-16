@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
 
 /** LOD / range per kind (m, camera to the module less half its radius): the cliffs' full model near, their LOD1 to the slab's edge */

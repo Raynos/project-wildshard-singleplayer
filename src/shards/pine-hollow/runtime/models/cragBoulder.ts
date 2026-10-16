@@ -5,7 +5,7 @@
  * talus range; a copy collides as the hull of ≤ 60 of its LOD1's vertices.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { cragHull, cragPart, CRAG_LOD } from '../../world/cragKit';
+import { cragHull, cragPart, CRAG_LOD } from '../world/cragKit';
 
 export const BOULDER_MODULES = ['boulder-a', 'boulder-b', 'boulder-c'] as const;
 
