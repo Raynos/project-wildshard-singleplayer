@@ -21,7 +21,7 @@ import { PIER_PENNANT_AT } from '../data/layout';
 import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
-import { Boulders } from './Boulders';
+import { placeShoreBoulders, scatterShoreBoulders } from './Boulders';
 import { hut as hutModel, hutOrigin, hutLayout } from '../models/hut';
 import { lookout as lookoutModel, lookoutOrigin, lookoutLayout } from '../models/lookout';
 import { Wreck } from './Wreck';
@@ -50,7 +50,7 @@ type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? Autho
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
-  ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Boulders | null;
+  ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Awaited<ReturnType<typeof placeShoreBoulders>> | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Bushes | null;
   gulls: Gulls | null; trailside: Trailside | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Palms | null; cover: GroundCover | null;
@@ -130,9 +130,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   if (boat.ropes) game.scene.add(boat.ropes);
   await stages.next('Pier and boat');
   // faceted shore boulders along the beach
-  const rockSpecs = Boulders.scatterShore(manifest.seed);
+  const rockSpecs = scatterShoreBoulders(manifest.seed);
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-  const rocks = await stages.build('Shore boulders', () => new Boulders(sky).placeSliced(rockSpecs, registry, slice.due), { values: value => value.colliders });
+  const rocks = await stages.build('Shore boulders', () => placeShoreBoulders(sky, rockSpecs, registry, slice.due), { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
   const hut = await stages.build('Hut', () => placeModelSite(hutModel, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry, piece: { id: 'hut' } }), { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)

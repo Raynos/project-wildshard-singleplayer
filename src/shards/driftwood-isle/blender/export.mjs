@@ -27,7 +27,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const terrainLayout = await imp('src/shards/driftwood-isle/data/layout.ts');
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
-  const { Boulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
+  const { scatterShoreBoulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
   const { Trailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
   const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/models/hut.ts');
@@ -36,7 +36,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const { HUT } = island;
   if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
   const palms = FOLIAGE.tiers.desktop.palms.specs;
-  const rocks = Boulders.scatterShore(def.seed);
+  const rocks = scatterShoreBoulders(def.seed);
   const bushes = FOLIAGE.tiers.desktop.bushes.specs;
   const trailside = Trailside.forIsland();
 
