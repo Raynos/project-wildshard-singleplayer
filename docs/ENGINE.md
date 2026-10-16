@@ -1482,6 +1482,11 @@ listener/weather input. Floor, site and point ports remain real owners.
 | `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
+`audio/util.spatialAudio(position, listener, yaw, reach, scale, power = 1.4)`
+returns distance, gain and stereo pan, or null beyond the inclusive reach.
+It shares the creature-call and ambient-call spatial law while callers keep
+their own buses, filters, sample fallback and random streams.
+
 Paired music without boss layers uses the same bounded native AAC reader at
 48 kHz, including mono tension. Both stems enter one `Deck` at the same
 absolute start time and keep its existing independent gains, bar changes and

@@ -2,7 +2,7 @@ import type { AudioLoopEmitterRecipe, AudioSurfaceRecipe, AudioLoopGraph } from 
 import { SynthBeds } from './synth';
 import { LoopEmitter, type LoopEmitterPorts, type LoopEmitterVoice, AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
-import { loopAt, audioRandom, panFromYaw, WindGustBed } from './util';
+import { loopAt, audioRandom, spatialAudio, WindGustBed } from './util';
 import { PlayerVoices } from './playerVoices';
 import { AudioSurfaceMap, type AudioSurfacePorts, type StepSurface } from './surface';
 import { ownAudioSource } from './ownership';
@@ -405,11 +405,11 @@ export class Audio extends PlayerVoices {
   animal(kind: AnimalSound | (string & Record<never, never>), position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
     tap.sound?.(`animal:${kind}`);
     if (!this.g) return;
-    const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
-    const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
     const own = this.calls.get(kind);
     const [reach, scale] = own?.reach ?? [140, 9];
-    if (dist > reach) return;
+    const spatial = spatialAudio(position, listenerPos, yaw, reach, scale);
+    if (spatial === null) return;
+    const { dist, gain: att, pan } = spatial;
     const gap = own?.gap;
     if (gap !== undefined) {
       const now = this.ctx.currentTime;
@@ -417,8 +417,6 @@ export class Audio extends PlayerVoices {
       this.lastCall[kind] = now;
     }
     this.tally(kind);
-    const att = 1 / (1 + dist / scale) ** 1.4;
-    const pan = panFromYaw(dx, dz, yaw, 0.8, dist);
     // distance low-pass into a per-call bus
     const bus = this.ctx.createGain(); bus.gain.value = att;
     const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000 / (1 + dist / 25);

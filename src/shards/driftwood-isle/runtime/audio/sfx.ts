@@ -3,7 +3,7 @@ import { ISLAND_FAMILIES } from '../../data/audioPlayback';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { impact, renderPcm } from '@wildshard/engine/audio/gen';
-import { panFromYaw } from '@wildshard/engine/audio/util';
+import { spatialAudio } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
@@ -70,25 +70,17 @@ export class IslandSfx {
   }
   plunge(up:boolean):void {this.playback.play('plunge',{direction:up?'up':'down',up});}
 
-  /** a gull's squawk: the set's sampled `gull` take when it decoded, else two (sometimes three) rasping saw notes */
-  gullCall(pan = 0, gain = 1): void {
+  /** Original gull range/falloff on the shared spatial call law; ambient sample first, then its declared phrase. */
+  gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.audio.listenerYaw): void {
+    tap.sound?.('gullCallAt');
     const a = this.audio;
+    if (!a.ready) return;
+    const spatial = spatialAudio(position, listenerPos, yaw, 160, 14, 1.3);
+    if (spatial === null) return;
+    const { pan, gain } = spatial;
     tap.sound?.('gullCall');
-    if (!a.ready || a.shot('gull', { pan, gain, out: a.ambient })) return;
+    if (a.shot('gull', { pan, gain, out: a.ambient })) return;
     const phrase=source.audio.synth?.['gull'];if(phrase===undefined)throw new Error('Missing declared gull phrase');
     a.playPhrase(phrase,a.ambient,{pan,gain});
   }
-
-  /** gullCall positioned like `audio.animal()`: distance attenuation + a stereo pan from the listener yaw */
-  gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.audio.listenerYaw): void {
-    tap.sound?.('gullCallAt');
-    if (!this.audio.ready) return;
-    const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
-    const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
-    if (dist > 160) return;
-    const att = 1 / (1 + dist / 14) ** 1.3;
-    const pan = panFromYaw(dx, dz, yaw, 0.8, dist);
-    this.gullCall(pan, att);
-  }
 }
-

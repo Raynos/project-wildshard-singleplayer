@@ -1,6 +1,7 @@
 import { Scope } from '../app/scope';
 import type { Audio } from './Audio';
 import type { AudioData } from '@wildshard/format/audio';
+import type { Vector3 } from 'three';
 import { tap, ambientTick } from '../core/harnessTap';
 import { Rng } from '../core/rng';
 
@@ -14,6 +15,17 @@ export const audioRandom = (): number => draw();
 /** Player yaw's right vector, with the caller's original spread, distance metric and near cut (centred within `near` m). */
 export function panFromYaw(dx: number, dz: number, yaw: number, spread = 0.8, distance = Math.hypot(dx, dz), near = 0.5): number {
   return distance > near ? Math.max(-1, Math.min(1, (dx * Math.cos(yaw) - dz * Math.sin(yaw)) / distance)) * spread : 0;
+}
+
+/** Positional call gain/pan, before playback. Uses the original full 3D
+ * distance and inclusive reach; the caller retains its bus, filtering and RNG. */
+export function spatialAudio(position: Readonly<Pick<Vector3, 'x' | 'y' | 'z'>>,
+  listener: Readonly<Pick<Vector3, 'x' | 'y' | 'z'>>, yaw: number,
+  reach: number, scale: number, power = 1.4): { dist: number; gain: number; pan: number } | null {
+  const dx = position.x - listener.x, dz = position.z - listener.z, dy = position.y - listener.y;
+  const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
+  if (dist > reach) return null;
+  return { dist, gain: 1 / (1 + dist / scale) ** power, pan: panFromYaw(dx, dz, yaw, 0.8, dist) };
 }
 
 /** Start a loop at a cosmetic offset inside its authored loop region. */
