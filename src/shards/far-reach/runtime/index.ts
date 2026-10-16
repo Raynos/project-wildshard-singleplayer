@@ -108,7 +108,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.questWorld = page.world;
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     await worldBuildYield(ctx, 4);
-    const host = motion.scriptHost; this.bindHeldScripts(ctx, channels.hooks, () => host.currentTick);
+    const host = motion.scriptHost; this.bindHeldActions(ctx, channels.hooks, () => host.currentTick);
     if (flags.has(FLAGS.raised)) motion.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     rt.interactables.push(...channels.interactables);

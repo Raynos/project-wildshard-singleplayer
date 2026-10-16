@@ -11616,37 +11616,6 @@
       ]
     },
     {
-      "id": "sky-fan-gust",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/bake-fan-gust.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/far-reach/generators/bake-fan-gust.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/compileScript.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/shards/far-reach/behaviour/fanGust.as",
-        "src/shards/far-reach/data/fanGustModule.ts",
-        "src/shards/far-reach/generators/bake-fan-gust.mjs",
-        "src/shards/far-reach/generators/palette.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982"
-      ]
-    },
-    {
       "id": "sky-prepared-models",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/preparedModels.ts",
@@ -13519,7 +13488,6 @@
         "src/shards/far-reach/data/dressingLook.ts",
         "src/shards/far-reach/data/fallLook.ts",
         "src/shards/far-reach/data/fanContacts.ts",
-        "src/shards/far-reach/data/fanGustModule.ts",
         "src/shards/far-reach/data/graphKit.ts",
         "src/shards/far-reach/data/isleLook.ts",
         "src/shards/far-reach/data/isletDesign.ts",

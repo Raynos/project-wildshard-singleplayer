@@ -14,7 +14,8 @@ export interface ItemFamilyPorts { scope: Scope; runtime: ItemRuntime; input: Pi
   profile?: unknown;
   /** Admitted contact data and action selection supplied by the trusted loader. */
   contacts?: unknown;
-  secondary?: { readonly action: string; readonly code: 3 | 4; readonly move: number };
+  /** Omit code for a direct secondary contact; a code requires its actor-bound script hook. */
+  secondary?: { readonly action: string; readonly code?: 3 | 4; readonly move: number };
   hook?: ItemHook;
   /** An admitted static equipment model; the asset lease owns its shared geometry and materials. */
   model?: unknown;

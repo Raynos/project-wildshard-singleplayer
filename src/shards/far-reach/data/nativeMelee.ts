@@ -10,7 +10,7 @@ export const SKY_MELEE_HOST = {
   step: FAN_STEP, input:{attack:0,aimActor:FAN_AIM,scripts:[{actor:FAN_ACTOR,value:FAN_ACT.heavy,action:1},{actor:FAN_ACTOR,value:FAN_ACT.gust,action:2}]}, held:{action:1,mode:'after',continuation:{kind:'field',key:'hold'}}, eye: 1.68, mode: 'immediate', pitchLimit: FAN_PITCH_LIMIT, zeroAim: 'refuse',
   body: 'none', liveTargetsOnly: true, commandsAfterCool: true,
   actions: [{ action: 0, move: 0, aim: 'selected', hook: null }, { action: 1, move: 1, aim: 'facing', hook: null },
-    { action: 2, move: 2, aim: 'facing', hook: 3 }],
+    { action: 2, move: 2, aim: 'facing', hook: null }],
   continuation: { encoding: 'object', fields: [
     { key: 'cooldown', source: 'primary', min: 0 }, { key: 'gustCooldown', source: 'secondary', min: 0 },
   ] },

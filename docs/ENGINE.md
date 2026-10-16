@@ -7410,3 +7410,61 @@ subscriptions and counts all authored `.as`, including unused sources, without
 comments or blank lines. Generated code never counts. Root adapters supply the
 sealed `decisionLegacyLines` denominator (10 percent); standalone projects must
 declare `asLineCeiling`. No SDK module reads repository policy.
+
+### Direct held secondary contacts (KS2)
+
+A weapon's admitted `secondary: {action, move}` selects its secondary contact
+without a script. `hook` must be null. A declared `code` retains the existing
+actor-bound script requirement; missing hooks still refuse. Page held owners and
+the renderer-free melee owner claim the same contact-family cooldown and land
+in their original phase. The Sky fan uses this row instead of an item Wasm
+module; contact targets, damage and impulses remain on the existing owner.
+
+
+### Declared decision author compilation (KA3)
+
+`@wildshard/sdk/decisionScriptBindings.generateDecisionBindings(row, registries)`
+uses the defining format binding map to generate only declared constants,
+state/parameter accessors, reads, commands and subscribed event dispatch. The
+`@wildshard/sdk/as/ws` core owns the v1 IO layout and bounded list/command buffers.
+Guest sources stay virtual compiler inputs, outside the host TypeScript program.
+
+`@wildshard/sdk/buildDecisionScripts.compileDecisionScripts(rows, registries,
+authoredSources, options)` compiles and meters those inputs, then admits each
+module with its declared v1 page contract. `buildDecisionScripts` reads bounded
+project-owned `.as` files and refuses symlinks. The parser checks handler
+subscriptions and counts all authored `.as`, including unused sources, without
+comments or blank lines. Generated code never counts. Root adapters supply the
+sealed `decisionLegacyLines` denominator (10 percent); standalone projects must
+declare `asLineCeiling`. No SDK module reads repository policy.
+
+### Simulation decision wiring (KA6)
+
+`@wildshard/game/shardfile/decisions` defines `ShardDecisions` over one
+existing `SimHost`. `ShardfileSimPorts.sections` lends verified platform
+payloads; the ordinary page, grid regional host and isolated SDK worker
+all install the same v1 decisions. There is no author-module evaluator.
+
+Encounter, quest and region bindings enqueue start/stop events. Combat,
+flags, actor move/strike completion and KA7 mover endpoints enqueue ABI
+records for the next decision tick. A decision-owned encounter keeps its
+existing boss/checkpoint/reward owner and replaces only its default
+steering/strike policy. An actor with another brain refuses.
+
+All commands validate before the next fixed-step commit. Selected strikes
+use `SimHost.registerStrikeCatalogue` / `startDeclaredStrike` on the
+existing runner and contact pipeline. Logical snapshots include enabled
+bindings, queued/staged decisions, move clocks, public fields/channels and
+completion latches. Restore never enters Wasm. SDK worker observations
+include actual v1 fuel and call CPU, and refuse failed calls.
+
+`simulation.decisions.publication()` exposes numeric public actor fields,
+channels, cues and move/strike starts, detached from authoritative state.
+`publish(event)` and the native picker enqueue observations without
+synchronous script execution. `DecisionHost.setEnabled` suppresses periodic
+work while permitting explicit final inboxes to drain.
+
+Spawn/despawn, impulse and weather declarations currently refuse without
+an admitted mechanic owner. Named spots/perches also refuse until their
+platform section exists. The sim world-target contact section is the next
+KA6 slice; interaction prompts are not treated as strike targets.

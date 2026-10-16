@@ -19,7 +19,7 @@ const view = v.strictObject({ asset: v.exactOptional(v.pipe(v.string(), v.regex(
 const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.maxLength(512)), blurb: text });
 const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), v.maxValue(10000)), cooldown: duration,
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
-const secondary = v.strictObject({ action: name, code: v.picklist([3, 4]), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
+const secondary = v.strictObject({ action: name, code: v.exactOptional(v.picklist([3, 4])), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
   profile: v.exactOptional(WeaponProfileSchema), contacts: v.exactOptional(MeleeContactsSchema),
   secondary: v.exactOptional(secondary), native: v.exactOptional(NativeMeleeRowSchema),
@@ -112,8 +112,8 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
     || row.light.width !== row.heavy.width || row.light.width > Math.PI || row.light.effect !== null || row.heavy.effect !== null
     || row.light.tags.length !== row.heavy.tags.length || row.light.tags.some((value, index) => value !== row.heavy.tags[index]))))
     errors.push('cone slashes require one shared contact shape and tags');
-  if (weapons.some(row => row.secondary !== undefined && (row.hook === null
-    || row.contacts?.[row.secondary.move]?.lane !== 'secondary'))) errors.push('scripted secondary references an admitted hook and secondary contact');
+  if (weapons.some(row => row.secondary !== undefined && ((row.secondary.code === undefined) !== (row.hook === null)
+    || row.contacts?.[row.secondary.move]?.lane !== 'secondary'))) errors.push('secondary references its declared action mode and secondary contact');
   if (weapons.some(row => row.native !== undefined && (row.contacts === undefined || row.native.actions.some(action => {
     const contact = row.contacts?.[action.move];
     return contact === undefined || (row.native?.mode === 'timed') !== (contact.lands.length > 0)

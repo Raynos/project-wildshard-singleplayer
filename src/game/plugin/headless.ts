@@ -736,20 +736,22 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     }
     return weapon;
   }
-  /** Complete the same held owner with hooks from the existing composed item/mover host. */
-  protected bindHeldScripts(ctx: ShardContext, hooks: NonNullable<RuntimeItemPorts['hooks']>, tick: () => number): void {
+  /** Complete the same held owner with a declared direct action or its composed item hook. */
+  protected bindHeldActions(ctx: ShardContext, hooks: NonNullable<RuntimeItemPorts['hooks']>, tick: () => number): void {
     const rows = this.runtimeRows.melee, source = this.runtimeSource, weapon = this.heldOwner, start = this.heldSecondary;
     if (rows?.composed !== true || weapon === null || start === null) throw new Error('Declared held script binding is not ready');
     const primary = source.items.rows.find(row => row.id === source.items.loadout.primary);
     if (primary?.kind !== 'weapon' || primary.secondary === undefined) throw new Error('Held owner needs its admitted secondary');
     const secondary = primary.secondary, hook = hooks.get(primary.id);
-    if (hook === undefined) throw new Error('Held owner needs its admitted composed hook');
+    if (secondary.code !== undefined && hook === undefined) throw new Error('Held owner needs its admitted composed hook');
     const native = weapon.row;
     bindRuntimeMelee(ctx, source, { presentation: rows.presentation, icon: name => {
       if (name !== rows.recipe.equipment.ui.icon) throw new Error('Unknown held equipment icon'); return rows.recipe.equipment.ui.icon;
     }, hooks, create: (row, spec, ports) => {
-      if (ports.contacts === undefined || ports.secondary === undefined || ports.hook === undefined) throw new Error('Held owner needs contacts and its composed hook');
-      weapon.bindSecondary(family => start(family, hook, { tick: tick(), dt: 1 / 60, action: secondary.code, move: secondary.move }), spec.charge);
+      if (ports.contacts === undefined || ports.secondary === undefined) throw new Error('Held owner needs its admitted secondary contact');
+      const code = secondary.code;
+      weapon.bindSecondary(family => code === undefined ? (family.claim(secondary.move) ? secondary.move : null)
+        : start(family, hook ?? null, { tick: tick(), dt: 1 / 60, action: code, move: secondary.move }), spec.charge);
       weapon.row = { ...row, ...(rows.legacySlot === undefined ? {} : { legacySlot: rows.legacySlot }), meta: native.meta };
       return weapon;
     } });
