@@ -5,6 +5,17 @@ import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from '../data/layo
 import { FALLEN_ANGLE } from '../data/moverBindings';
 import { STRINGS } from '../data/strings';
 import { RISING_ISLETS } from './risingIslets';
+import { PALETTE } from './palette';
+
+type SceneMaterial = PrivateScene['materials'][number];
+/** The rope rails (faceted rope brown) and the hover decks' faint glass, declared here so the client builds no material of its
+ *  own: the glowing frame shows the path while you walk (E399), the plugin fills the glass in while you ride (`glass`). */
+const ROPE: SceneMaterial = { kind: 'standard', id: 'rails', properties: { color: PALETTE.rope, flatShading: true, roughness: 0.95, metalness: 0 } };
+const GLASS: SceneMaterial = { kind: 'standard', id: 'glass', properties: { color: PALETTE.glow, emissive: PALETTE.glow, emissiveIntensity: 0.25,
+  transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 } };
+/** The Explorer's bridge kit keeps its original vertex-coloured deck. */
+const KIT_DECK: SceneMaterial = { kind: 'standard', id: 'deck', properties: { color: 0xffffff, vertexColors: true, flatShading: false, roughness: 0.9, metalness: 0 } };
+const declared = (materials: readonly SceneMaterial[], own: readonly SceneMaterial[]): SceneMaterial[] => materials.map(row => own.find(entry => entry.id === row.id) ?? row);
 
 /** Place the static spans and board-only updraft in their original world frames. */
 export function skyRouteSource(): Uint8Array {
@@ -26,13 +37,14 @@ export function skyRouteSource(): Uint8Array {
       category: 'buildings', file: 'src/shards/far-reach/world/build.ts', surface: 'wood', ...(hover ? { mode: 'board' } : {}) });
     bindings.push({ piece: span.id, part: prefix + scene.root });
   }
-  const scene: PrivateScene = { version: 1, root: root.id, nodes, textures: [], materials: ['deck', 'posts', 'rails', 'glass', 'frame'].map(id => ({ kind: 'port', id, source: id })) };
+  const scene: PrivateScene = { version: 1, root: root.id, nodes, textures: [], materials: declared(['deck', 'posts', 'rails', 'glass', 'frame'].map(id => ({ kind: 'port', id, source: id })), [ROPE, GLASS]) };
   parsePrivateScene(scene);
   const fallenRow = BRIDGES.spans.find(row => row.id === FALLEN_BRIDGE.id), kitRow = BRIDGES.spans.find(row => row.id === 'kit');
   if (fallenRow === undefined || kitRow === undefined) throw new Error('Missing authored bridge scene');
-  const deck = parsePrivateScene(fallenRow.scene), kit = parsePrivateScene(kitRow.scene);
+  const deck = parsePrivateScene(fallenRow.scene), authoredKit = parsePrivateScene(kitRow.scene);
+  const kit: PrivateScene = { ...authoredKit, materials: declared(authoredKit.materials, [ROPE, KIT_DECK]) };
   const deckId = (id: string): string => id === deck.root ? 'deck' : `deck.${id}`;
-  const fallen: PrivateScene = { version: 1, root: 'fallen', materials: deck.materials, textures: deck.textures, nodes: [
+  const fallen: PrivateScene = { version: 1, root: 'fallen', materials: declared(deck.materials, [ROPE]), textures: deck.textures, nodes: [
     { kind: 'group', id: 'fallen', position: [FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0],
       rotation: [FALLEN_ANGLE, Math.atan2(-(FALLEN_BRIDGE.x1 - FALLEN_BRIDGE.x0), -(FALLEN_BRIDGE.z1 - FALLEN_BRIDGE.z0)), 0], order: 'YXZ', children: ['deck'] },
   ] };

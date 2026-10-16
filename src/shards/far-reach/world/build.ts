@@ -15,7 +15,6 @@ import { STRINGS } from '../data/strings';
 import { islandMesh, isleMaterial, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { WORLD } from './baked';
-import { PALETTE, flat } from './materials';
 import { routeScenePorts, vaneGeometry } from './shapes';
 import { towerMill } from './mill';
 import { BOOK_STAND } from '../data/bookStand';
@@ -82,12 +81,10 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pieces.scene(staticScene, staticRows.bindings, pause);
   await pause();
 
-  const rope = flat(PALETTE.rope);
-  // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
-  // frame shows the path; the plugin fills the glass in while you ride
-  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
-  const routePorts = routeScenePorts(rope, looks.deck, new Map<string, Material>([['glass', hoverDeck], ['frame', looks.frame]]));
-  const routes = createClientScene(SKY_ROUTE_SCENE, routePorts);
+  // the rope rails and the hover decks' faint glass are declared in the scene (generators/routeScene.ts, E399)
+  const routePorts = routeScenePorts(new Map<string, Material>([['deck', looks.deck], ['frame', looks.frame]]));
+  const routes = createClientScene(SKY_ROUTE_SCENE, routePorts), hoverDeck = routes.standardMaterial('glass');
+  if (hoverDeck === null) throw new Error('far-reach: the route scene lost its hover glass');
   await pieces.scene(routes, SKY_ROUTES.bindings, pause);
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the

@@ -1,6 +1,5 @@
 import { SKY_LIBRARY } from './meshes';
 import type { Material } from 'three';
-import dressing from '../data/dressing.json' with { type: 'json' };
 import { DRESSING_LOOKS } from '../data/dressingLook';
 
 /**
@@ -9,11 +8,6 @@ import { DRESSING_LOOKS } from '../data/dressingLook';
  * piece: `baked/dressing.glb` + `data/dressing.json`, its exact matrices and the flowers' colours in the GLB);
  * `world/baked.ts` draws it in the materials below (their edits are data/dressingLook.ts).
  */
-
-/** The hero boulders and the meadow's larger rocks, as discs (x, z, radius) for the meadow's short grass round them. */
-export function heroStoneDiscs(): [number, number, number][] {
-  return dressing.discs.map(([x = 0, z = 0, r = 0]) => [x, z, r]);
-}
 
 /**
  * A dressing kind's own material (its row's `dressing`, looked up in data/dressingLook.ts `DRESSING_LOOKS`), as the piece is

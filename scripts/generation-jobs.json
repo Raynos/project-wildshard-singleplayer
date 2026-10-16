@@ -1148,7 +1148,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/restScenes.generated.json"
@@ -1274,7 +1274,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/restPools.generated.json"
@@ -1401,7 +1401,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-winch.glb"
@@ -1528,7 +1528,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-0.glb"
@@ -1655,7 +1655,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-1.glb"
@@ -1782,7 +1782,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-2.glb"
@@ -1909,7 +1909,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-storm.glb"
@@ -3031,7 +3031,7 @@
         "src/sdk/spawns.ts",
         "src/shards/far-reach/assets/navigation-97a29a22f3827e4103059929276b2e6a6831f50bd5fc3b121abc11252f774f26",
         "src/shards/far-reach/generators/navigation.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/navigation.generated.json",
@@ -5046,7 +5046,7 @@
         "src/shards/far-reach",
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/world/materials.ts",
+        "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs"
       ],
       "outputs": [
@@ -5090,7 +5090,7 @@
         "src/shards/far-reach/data/restFiles.ts",
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/world/materials.ts",
+        "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs"
       ],
       "outputs": [
@@ -5195,7 +5195,7 @@
         "src/shards/far-reach/generators/physics.ts",
         "src/shards/far-reach/generators/physicsPlacements.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/physics.generated.json"
@@ -7390,7 +7390,7 @@
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/islets.generated.json"
@@ -7430,7 +7430,7 @@
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/islets.generated.ts"
@@ -9076,7 +9076,7 @@
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/physicsPlacements.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/physicsPlacements.generated.json"
@@ -9198,7 +9198,7 @@
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/bridgeColliders.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/bridgePhysics.generated.json"
@@ -11287,7 +11287,7 @@
         "src/shards/far-reach/behaviour/fanGust.as",
         "src/shards/far-reach/data/fanGustModule.ts",
         "src/shards/far-reach/generators/bake-fan-gust.mjs",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982"
@@ -11350,7 +11350,7 @@
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/prepared-models.glb"
@@ -11382,7 +11382,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/fanView.ts",
         "src/shards/far-reach/generators/heldPlayback.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/heldPlayback.generated.json"
@@ -11477,7 +11477,7 @@
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/models/wind-vane/post.glb"
@@ -11541,7 +11541,7 @@
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/models/wind-vane/rotor.glb"
@@ -11576,7 +11576,7 @@
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/trees.ts",
         "src/shards/far-reach/generators/crownInstances.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/crownInstances.generated.json"
@@ -11614,7 +11614,7 @@
         "src/shards/far-reach/data/skyMapSources.json",
         "src/shards/far-reach/generators/bake-sky-maps.ts",
         "src/shards/far-reach/generators/bake-sky-world.mjs",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/skyMaps.json"
@@ -11650,7 +11650,7 @@
         "src/shards/far-reach/data/isletRig.json",
         "src/shards/far-reach/data/islets.generated.json",
         "src/shards/far-reach/generators/isletMotion.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/isletMotion.generated.json"
@@ -11779,7 +11779,7 @@
         "src/shards/far-reach/generators/isletMotion.ts",
         "src/shards/far-reach/generators/isletScene.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/isletScenes.generated.json"
@@ -11910,7 +11910,7 @@
         "src/shards/far-reach/generators/isletMotion.ts",
         "src/shards/far-reach/generators/isletScene.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-islets.glb"
@@ -12461,7 +12461,7 @@
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/generators/bridgeRest.ts",
-        "src/shards/far-reach/world/materials.ts",
+        "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs"
       ],
       "outputs": [
@@ -12600,7 +12600,7 @@
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/generators/bridgeRest.ts",
-        "src/shards/far-reach/world/materials.ts",
+        "src/shards/far-reach/generators/palette.ts",
         "scripts/authored-manifest.mjs"
       ],
       "outputs": [
@@ -12739,7 +12739,7 @@
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/heroLibrary.generated.json"
@@ -13445,7 +13445,7 @@
         "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/generators/palette.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-books.glb"
