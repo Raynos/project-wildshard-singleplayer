@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { CONTRACTS } from './fixtures/pine-contracts';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { readProjectAssets } from '../src/sdk/project';
@@ -64,15 +65,15 @@ test('saved board and shop still decide acceptance, with costs before grants and
     ['ammo', { add(kind: string, n: number) { events.push(`ammo:${kind}:${String(n)}`); } }],
     ['voice', { current: null }], ['points', { trader: new Vector3() }],
   ]) });
-  const board = newBoard(), original = board.slots[0];
+  const board = newBoard(CONTRACTS), original = board.slots[0];
   if (original === undefined) throw new Error('Missing initial contract');
-  expect(claim(board, 0)).toBe(null); expect(events).toEqual([]);
+  expect(claim(CONTRACTS, board, 0)).toBe(null); expect(events).toEqual([]);
   for (let i = 0; i < 3; i++) recordKill(board, { kind: 'deer', elite: null, thrall: false });
   let raw = ''; const store = { getItem: () => raw, setItem: (_key: string, value: string) => { raw = value; } };
-  saveBoard(board, store); const restored = loadBoard(store);
-  expect(claim(restored, 0)).not.toBe(null); page.run(`contract.${original.kind}.${original.target}`);
+  saveBoard(board, store); const restored = loadBoard(CONTRACTS, store);
+  expect(claim(CONTRACTS, restored, 0)).not.toBe(null); page.run(`contract.${original.kind}.${original.target}`);
   expect(events).toEqual(['add:lodge-ribbon:1', 'bolts:10']); saveBoard(restored, store);
-  expect(claim(loadBoard(store), 0)).toBe(null);
+  expect(claim(CONTRACTS, loadBoard(CONTRACTS, store), 0)).toBe(null);
   events.length = 0;
   const trade = TRADES.find(row => row.id === 'broadheads');
   if (trade === undefined) throw new Error('Missing trade');

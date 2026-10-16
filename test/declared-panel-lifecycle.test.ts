@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { CONTRACTS } from './fixtures/pine-contracts';
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { DeclaredPanel } from '../src/sdk/panels';
@@ -8,14 +9,14 @@ import { nameBox } from '../src/shards/nalati-grasslands/ride/HorseNamePrompt';
 import { cleanHorseName } from '../src/shards/nalati-grasslands/ride/horseNames';
 
 test('the persistent lodge board retains its frame, payouts, keys and scoped row listeners', () => {
-  const scope = new Scope('board-lifecycle'), board = newBoard(), events: string[] = [], panel = new BoardPanel(() => board, scope);
+  const scope = new Scope('board-lifecycle'), board = newBoard(CONTRACTS), events: string[] = [], panel = new BoardPanel(() => board, scope);
   const first = board.slots[0];
   if (first === undefined) throw new Error('Missing first contract');
   first.have = first.need;
   panel.onOpen = () => { events.push(`open:${panel.isOpen}`); };
   panel.onClose = () => { events.push(`close:${panel.isOpen}`); };
-  panel.onClaim = i => { events.push(`claim:${i}`); expect(claim(board, i)).not.toBeNull(); };
-  panel.onReroll = i => { events.push(`tear:${i}`); reroll(board, i); };
+  panel.onClaim = i => { events.push(`claim:${i}`); expect(claim(CONTRACTS, board, i)).not.toBeNull(); };
+  panel.onReroll = i => { events.push(`tear:${i}`); reroll(CONTRACTS, board, i); };
   try {
     const root = panel.root;
     expect(root.isConnected).toBe(true); expect(panel.isOpen).toBe(false);

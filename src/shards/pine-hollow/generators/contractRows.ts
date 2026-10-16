@@ -67,3 +67,8 @@ export const CONTRACT_ROWS: readonly ContractRow[] = [
   if (row === null) throw new Error(`Invalid authored contract ${kind}.${target}`);
   return { id: `contract.${kind}.${target}`, kind, target, need: row.need, title: row.title, goal: row.goal, reward: row.reward };
 });
+
+/** The finite catalogue ships as named product data; live board progress is never baked. */
+export function contractCatalogue(): { species: typeof SPECIES; rarity: typeof RARITY; elites: typeof ELITE_TARGETS; eliteIds: readonly string[]; rows: typeof CONTRACT_ROWS } {
+  return { species: SPECIES, rarity: RARITY, elites: ELITE_TARGETS, eliteIds: ELITES, rows: CONTRACT_ROWS };
+}

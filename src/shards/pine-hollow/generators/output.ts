@@ -1,3 +1,4 @@
+import { contractCatalogue } from './contractRows';
 import { PINE_CANOE } from './canoe';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
@@ -31,6 +32,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 }
 
 const clientJson=emitNamedBlobs([
+  nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue()))),
   nameBlob('movers/canoe.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_CANOE))),
   ...([['quests/mill-door.json', PINE_MILL_DOOR], ['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>
     nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(rows))))),

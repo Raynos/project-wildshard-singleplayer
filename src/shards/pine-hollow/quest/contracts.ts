@@ -15,12 +15,12 @@
  * The draw is deterministic: contract number `serial` is a hash of the serial, so the sequence is the same for every
  * player and a reload never rerolls anything. Nothing reads the clock.
  *
- *   const board = loadBoard(store);             // store = localStorage (or a Map in tests)
+ *   const board = loadBoard(contracts, store);             // store = localStorage (or a Map in tests)
  *   recordKill(board, { kind, variant, rarity, elite, thrall })  → the slots it advanced
- *   claim(board, i) → the reward, or null when slot i is not filled;  reroll(board, i);  saveBoard(board, store)
+ *   claim(contracts, board, i) → the reward, or null when slot i is not filled;  reroll(contracts, board, i);  saveBoard(board, store)
  */
 
-import { SPECIES, RARITY, ELITE_TARGETS, CONTRACT_ROWS, type ContractKind, type Reward } from '../data/contractRows';
+import type { ContractCatalogue, ContractKind, Reward } from '../runtime/lodge';
 
 export interface Contract {
   /** the draw number (unique, increasing) */
@@ -40,12 +40,11 @@ export interface Board { next: number; slots: Contract[]; claimed: number; strea
 /** a kill as the board sees it */
 export interface KillInfo { kind: string; variant?: string | undefined; rarity?: string | undefined; elite: string | null; thrall: boolean }
 
-const ELITES = Object.keys(ELITE_TARGETS);
 const RARITY_RANK: Record<string, number> = { common: 0, uncommon: 1, rare: 2, legendary: 3 };
 
 /** the elite id a (kind, variant) kill is, or null */
-export function eliteOf(kind: string, variant: string | undefined): string | null {
-  for (const [id, e] of Object.entries(ELITE_TARGETS)) if (e.kind === kind && e.variant === variant) return id;
+export function eliteOf(contracts: ContractCatalogue, kind: string, variant: string | undefined): string | null {
+  for (const [id, e] of Object.entries(contracts.elites)) if (e.kind === kind && e.variant === variant) return id;
   return null;
 }
 
@@ -63,31 +62,31 @@ const pick = <T>(list: readonly T[], r: number): T => {
   return v;
 };
 
-export function contractFor(serial: number, kind: ContractKind, target: string): Contract | null {
-  const row = CONTRACT_ROWS.find((offer) => offer.kind === kind && offer.target === target);
+export function contractFor(contracts: ContractCatalogue, serial: number, kind: ContractKind, target: string): Contract | null {
+  const row = contracts.rows.find((offer) => offer.kind === kind && offer.target === target);
   return row === undefined ? null : { serial, kind, target, have: 0, need: row.need, title: row.title, goal: row.goal,
     reward: { ...row.reward, items: row.reward.items.map((item) => ({ id: item.id, n: item.n })) } };
 }
 
 /** contract number `serial`, avoiding a (kind, target) already on the board. Serial 0 is always a deer contract (an easy start). */
-export function draw(serial: number, taken: readonly Contract[] = []): Contract {
+export function draw(contracts: ContractCatalogue, serial: number, taken: readonly Contract[] = []): Contract {
   const clash = (c: Contract): boolean => taken.some((t) => t.kind === c.kind && t.target === c.target);
   for (let salt = 0; salt < 24; salt++) {
     const r = rand(serial, salt), r2 = rand(serial, salt + 101);
     const kind: ContractKind = serial === 0 ? 'species' : r < 0.45 ? 'species' : r < 0.65 ? 'rarity' : r < 0.8 ? 'elite' : 'thrall';
-    const target = kind === 'species' ? (serial === 0 ? 'deer' : pick(SPECIES, r2).id) : kind === 'rarity' ? pick(RARITY, r2).id : kind === 'elite' ? pick(ELITES, r2) : 'thrall';
-    const c = contractFor(serial, kind, target);
+    const target = kind === 'species' ? (serial === 0 ? 'deer' : pick(contracts.species, r2).id) : kind === 'rarity' ? pick(contracts.rarity, r2).id : kind === 'elite' ? pick(contracts.eliteIds, r2) : 'thrall';
+    const c = contractFor(contracts, serial, kind, target);
     if (c && !clash(c)) return c;
   }
   // every salt clashed (cannot happen with 3 slots and this many targets)
-  const any = contractFor(serial, 'thrall', 'thrall');
+  const any = contractFor(contracts, serial, 'thrall', 'thrall');
   if (!any) throw new Error('contracts: no thrall contract');
   return any;
 }
 
-export function newBoard(): Board {
+export function newBoard(contracts: ContractCatalogue): Board {
   const slots: Contract[] = [];
-  for (let i = 0; i < 3; i++) slots.push(draw(i, slots));
+  for (let i = 0; i < 3; i++) slots.push(draw(contracts, i, slots));
   return { next: 3, slots, claimed: 0, streak: 0, best: 0 };
 }
 
@@ -112,21 +111,21 @@ export function recordKill(b: Board, k: KillInfo): number[] {
 export const isFilled = (c: Contract): boolean => c.have >= c.need;
 
 /** claim slot `i`: its reward (the third claim ever adds the Hollow Ash finish), the next contract drawn into the slot */
-export function claim(b: Board, i: number): Reward | null {
+export function claim(contracts: ContractCatalogue, b: Board, i: number): Reward | null {
   const c = b.slots[i];
   if (c === undefined || !isFilled(c)) return null;
   b.claimed++; b.streak++; b.best = Math.max(b.best, b.streak);
   const reward: Reward = { items: c.reward.items.map((x) => ({ ...x })), bolts: c.reward.bolts };
   if (b.claimed === 3) reward.skin = 'hollow-ash';
-  b.slots[i] = draw(b.next++, b.slots.filter((_, j) => j !== i));
+  b.slots[i] = draw(contracts, b.next++, b.slots.filter((_, j) => j !== i));
   return reward;
 }
 
 /** tear slot `i` down: a fresh contract in its place, the streak back to 0 */
-export function reroll(b: Board, i: number): void {
+export function reroll(contracts: ContractCatalogue, b: Board, i: number): void {
   if (b.slots[i] === undefined) return;
   b.streak = 0;
-  b.slots[i] = draw(b.next++, b.slots.filter((_, j) => j !== i));
+  b.slots[i] = draw(contracts, b.next++, b.slots.filter((_, j) => j !== i));
 }
 
 // ── persistence (per shard, 'lodge') ──
@@ -139,15 +138,15 @@ const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.
 
 /** the saved board, or a new one: each slot is rebuilt from its serial, kind and target (the words and the reward come
  *  from today's tables) and keeps only its progress */
-export function loadBoard(store: KV | null): Board {
+export function loadBoard(contracts: ContractCatalogue, store: KV | null): Board {
   const raw = ((): unknown => { try { return JSON.parse(store?.getItem(BOARD_STORE) ?? 'null'); } catch { return null; } })();
-  if (!isObj(raw) || !Array.isArray(raw['slots']) || raw['slots'].length !== 3) return newBoard();
+  if (!isObj(raw) || !Array.isArray(raw['slots']) || raw['slots'].length !== 3) return newBoard(contracts);
   const slots: Contract[] = [];
   for (const s of raw['slots']) {
-    if (!isObj(s)) return newBoard();
+    if (!isObj(s)) return newBoard(contracts);
     const serial = num(s['serial'], 0), kind = s['kind'], target = s['target'];
-    const c = (kind === 'species' || kind === 'rarity' || kind === 'elite' || kind === 'thrall') && typeof target === 'string' ? contractFor(serial, kind, target) : null;
-    const slot = c ?? draw(serial, slots);
+    const c = (kind === 'species' || kind === 'rarity' || kind === 'elite' || kind === 'thrall') && typeof target === 'string' ? contractFor(contracts, serial, kind, target) : null;
+    const slot = c ?? draw(contracts, serial, slots);
     slot.have = Math.max(0, Math.min(slot.need, Math.floor(num(s['have'], 0))));
     slots.push(slot);
   }

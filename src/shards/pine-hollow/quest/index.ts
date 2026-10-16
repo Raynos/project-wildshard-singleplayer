@@ -1,3 +1,4 @@
+import { parseContractCatalogue } from '../runtime/lodge';
 import { MoverTransitSchema } from '@wildshard/format/moverMotion';
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
@@ -86,7 +87,7 @@ import { NightThralls } from './nightThralls';
 import { preparePineNightDirector } from '../runtime/nightDirector';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
-import { PINE_QUEST_CONTENT } from './content';
+import { pineQuestContent } from './content';
 import { BeaverPool } from '../world/beaverPool';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
@@ -128,6 +129,7 @@ async function loadQuest() {
   return { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+  const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const canoeRow = v.parse(MoverTransitSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('movers/canoe.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
   const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));
@@ -253,7 +255,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const store = { getItem: (_key: string): string => String(lodge.read()), setItem: (_key: string, raw: string): void => {
     v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
   } };
-  const board: Board = loadBoard(store);
+  const board: Board = loadBoard(contracts, store);
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
@@ -262,7 +264,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const boardUi = ui.view('board', (scope) => {
     const panel = new BoardPanel(() => board, scope);
     panel.onClaim = (i) => {
-      const contract = board.slots[i], r = claim(board, i);
+      const contract = board.slots[i], r = claim(contracts, board, i);
       if (!r || contract === undefined) return;
       transactions.run(`contract.${contract.kind}.${contract.target}`);
       if (r.skin) transactions.run('contract.finish');
@@ -271,7 +273,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       featFacts.event('streak', board.streak);
       hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
     };
-    panel.onReroll = (i) => { reroll(board, i); saveBoard(board, store); kitSfx.interact('door'); };
+    panel.onReroll = (i) => { reroll(contracts, board, i); saveBoard(board, store); kitSfx.interact('door'); };
     return panel;
   });
   const bs = contractBoardSite();
@@ -317,7 +319,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── kills: the King, thralls, the contracts ──
   const killed = bindQuestDeathEffects(PINE_PAGE_DEATH_EFFECTS, { flags, kill: featFacts.kill, event: featFacts.event,
     calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
-      const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(a.kind, a.variant), thrall: isPineThrall(a) });
+      const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(contracts, a.kind, a.variant), thrall: isPineThrall(a) });
       if (moved.length === 0) return;
       saveBoard(board, store);
       for (const i of moved) {
@@ -477,7 +479,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     if (quest.current?.id === 'dawn') runDawn();
   };
   const debug = {
-    flags, quest, board, kit, stag, thralls, people, content: PINE_QUEST_CONTENT,
+    flags, quest, board, kit, stag, thralls, people, content: pineQuestContent(contracts),
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, cables, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,

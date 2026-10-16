@@ -71,6 +71,7 @@ const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.intege
 export interface PineQuestDay { phase: number; readonly night: number }
 /** What the quest keeper is lent. */
 export interface PineQuestPorts {
+  readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
   /** USE on the King's pending orb, after the quest's modal ownership check. */
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
   readonly quests: QuestData;
@@ -234,7 +235,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
 
   let counts: Record<string, number> = {};
   const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
-  const lodge = new PineLodge({ prompt: boardPrompt, radius: boardPrompt.radius,
+  const lodge = new PineLodge({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius,
     addItem: (id, n) => { pack.add(id, n); }, addBolts: ports.addBolts, ownSkin: () => { hollowAsh = true; },
     streak: total => { feats.event('streak', total); } });
   const initialLodge = lodge.snapshot();
@@ -275,7 +276,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   host.scope.onDispose(offFlags);
   const killed = bindQuestDeathEffects(PINE_DEATH_EFFECTS, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
-      lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(body.kind, body.variant), thrall: isPineThrall(body) });
+      lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(ports.contracts, body.kind, body.variant), thrall: isPineThrall(body) });
     }]]) });
   host.events.on('actor.died', ({ actor }) => {
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);

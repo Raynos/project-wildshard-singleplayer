@@ -1,8 +1,32 @@
 import * as v from 'valibot';
 import { claim, contractFor, newBoard, recordKill, reroll, type Board, type KillInfo } from '../quest/contracts';
-import { CONTRACT_ROWS, type Reward } from '../data/contractRows';
 
 const integer = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
+const contractText = v.pipe(v.string(), v.minLength(1), v.maxLength(400));
+const contractCount = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
+const contractKind = v.picklist(['species', 'rarity', 'elite', 'thrall']);
+const contractReward = v.strictObject({ items: v.pipe(v.array(v.strictObject({ id: v.picklist(['lodge-ribbon', 'amber-resin']), n: contractCount })), v.maxLength(2)),
+  bolts: integer, skin: v.exactOptional(v.literal('hollow-ash')) });
+const catalogueSchema = v.strictObject({
+  species: v.pipe(v.array(v.strictObject({ id: contractText, plural: contractText, need: contractCount, title: contractText })), v.minLength(1), v.maxLength(16)),
+  rarity: v.pipe(v.array(v.strictObject({ id: contractText, need: contractCount, title: contractText })), v.minLength(1), v.maxLength(16)),
+  elites: v.record(contractText, v.strictObject({ name: contractText, kind: contractText, variant: contractText })),
+  eliteIds: v.pipe(v.array(contractText), v.minLength(1), v.maxLength(16)),
+  rows: v.pipe(v.array(v.strictObject({ id: contractText, kind: contractKind, target: contractText, need: contractCount,
+    title: contractText, goal: contractText, reward: contractReward })), v.minLength(1), v.maxLength(64)),
+});
+/** Admit this product's offers once; serial draws and saved progress remain live. */
+export function parseContractCatalogue(input: unknown): ContractCatalogue {
+  const catalogue = v.parse(catalogueSchema, input);
+  if (new Set(catalogue.eliteIds).size !== catalogue.eliteIds.length
+    || catalogue.eliteIds.length !== Object.keys(catalogue.elites).length
+    || catalogue.eliteIds.some(id => catalogue.elites[id] === undefined)) throw new Error('Invalid Pine elite catalogue order');
+  return catalogue;
+}
+export type ContractCatalogue = v.InferOutput<typeof catalogueSchema>;
+export type ContractKind = v.InferOutput<typeof contractKind>;
+export type Reward = v.InferOutput<typeof contractReward>;
+
 const BoardState = v.strictObject({ next: integer,
   slots: v.pipe(v.array(v.strictObject({ serial: integer, kind: v.picklist(['species', 'rarity', 'elite', 'thrall']), target: v.string(), have: integer })), v.length(3)),
   claimed: integer, streak: integer, best: integer });
@@ -16,6 +40,7 @@ export const PINE_LODGE_ACT = { open: 0, close: 1, claim0: 10, claim1: 11, claim
 
 /** The page reward order, with presentation omitted. Ownership of inventory, quiver, skins and facts stays with callers. */
 export interface PineLodgePorts {
+  readonly contracts: ContractCatalogue;
   readonly prompt: Point;
   readonly radius: number;
   readonly addItem: (id: 'lodge-ribbon' | 'amber-resin', count: number) => void;
@@ -24,10 +49,10 @@ export interface PineLodgePorts {
   readonly streak: (count: number) => void;
 }
 
-function boardFrom(value: unknown): Board {
+function boardFrom(contracts: ContractCatalogue, value: unknown): Board {
   const saved = v.parse(BoardState, value);
   const slots = saved.slots.map(slot => {
-    const authored = contractFor(slot.serial, slot.kind, slot.target);
+    const authored = contractFor(contracts, slot.serial, slot.kind, slot.target);
     if (authored === null || slot.have > authored.need) throw new RangeError('Invalid Pine lodge contract');
     return { ...authored, have: slot.have };
   });
@@ -42,12 +67,12 @@ function boardFrom(value: unknown): Board {
 /** Renderer-free keeper for the authored contract law. Restore is bounded, silent and atomic; words/rewards are rebuilt
  * from today's authored table, never accepted from a save. Every real death advances the same overlapping slots. */
 export class PineLodge {
-  private board: Board = newBoard();
+  private board: Board;
   private opened = false;
   private readonly ports: PineLodgePorts;
   constructor(ports: PineLodgePorts) {
-    this.ports = ports;
-    if (CONTRACT_ROWS.some(row => row.reward.items.length > 2)) throw new RangeError('Pine lodge reward allowance changed');
+    this.ports = ports; this.board = newBoard(ports.contracts);
+    if (ports.contracts.rows.some(row => row.reward.items.length > 2)) throw new RangeError('Pine lodge reward allowance changed');
     if (![ports.prompt.x, ports.prompt.y, ports.prompt.z, ports.radius].every(Number.isFinite) || ports.radius <= 0) {
       throw new RangeError('Invalid Pine lodge prompt');
     }
@@ -66,8 +91,8 @@ export class PineLodge {
     const tearing = value >= PINE_LODGE_ACT.tear0 && value <= PINE_LODGE_ACT.tear2;
     if (!claiming && !tearing) return;
     if (this.board.next === Number.MAX_SAFE_INTEGER) throw new RangeError('Pine lodge draw capacity exhausted');
-    if (tearing) { reroll(this.board, value - PINE_LODGE_ACT.tear0); return; }
-    const reward = claim(this.board, value - PINE_LODGE_ACT.claim0);
+    if (tearing) { reroll(this.ports.contracts, this.board, value - PINE_LODGE_ACT.tear0); return; }
+    const reward = claim(this.ports.contracts, this.board, value - PINE_LODGE_ACT.claim0);
     if (reward !== null) this.pay(reward);
   }
   private pay(reward: Reward): void {
@@ -82,7 +107,7 @@ export class PineLodge {
       claimed: b.claimed, streak: b.streak, best: b.best } };
   }
   prepareRestore(value: unknown): () => void {
-    const saved = v.parse(Saved, value), board = boardFrom(saved.board);
+    const saved = v.parse(Saved, value), board = boardFrom(this.ports.contracts, saved.board);
     return () => { this.board = board; this.opened = saved.open; };
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
