@@ -14,6 +14,7 @@ import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
 import ironSwordScene from './ironSwordScene.json' with { type: 'json' };
 import spots from './spots.generated.json' with { type: 'json' };
+import ziplineRows from './zipline.generated.json' with { type: 'json' };
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK } from './islandRows';
 import { KIT_LENDS } from './kitLook';
@@ -98,4 +99,5 @@ export const RUNTIME_MIRRORS = [
   defineMirror('REEF_SPECIMENS', REEF_SPECIMENS),
   defineMirror('TRAIL_SPECIMEN_ROWS', TRAIL_SPECIMEN_ROWS),
   defineMirror('TRAIL_SPECIMENS', TRAIL_SPECIMENS),
+  defineMirror('ZIPLINE_ROWS', ziplineRows),
 ];

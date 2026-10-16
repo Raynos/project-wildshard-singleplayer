@@ -3,7 +3,7 @@ import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { CableLayout } from '@wildshard/sdk/movers';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import rows from '../../data/zipline.generated.json';
+import { ZIPLINE_ROWS as rows } from '../const';
 import { readDriftwoodBlob } from '../boot/blobAssets';
 
 const world = modelGeometry(rows.world), specimen = modelGeometry(rows.specimen);
@@ -25,7 +25,8 @@ export function ziplineGeometry(lay: CableLayout): { rig: ReturnType<typeof worl
   return { rig: world.copy(), trolley: trolley.copy() };
 }
 
-export type ZiplineParams = typeof rows.specimenLayout;
+interface Point { x: number; y: number; z: number }
+export interface ZiplineParams { top: Point; bottom: Point }
 export const zipline = defineModel<ZiplineParams>({
   id: 'driftwood-isle/zipline', name: 'Zipline', category: 'buildings', pipeline: 'code',
   file: 'src/shards/driftwood-isle/runtime/models/zipline.ts', surface: 'planks',
