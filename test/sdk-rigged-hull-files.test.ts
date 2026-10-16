@@ -6,7 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { riggedHullMap, riggedHulls, type RiggedHullFamilyRow } from '@wildshard/sdk/looks/riggedHulls';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
 import { PINE_HULLS } from '../src/shards/pine-hollow/data/creatureHulls';
-import { pineCoatUrl, pineRigFiles } from '../src/shards/pine-hollow/runtime/species/rigs';
+import { pineBirdFiles, pineCoatUrl, pineRigFiles } from '../src/shards/pine-hollow/runtime/species/rigs';
 
 afterEach(() => { vi.restoreAllMocks(); });
 
@@ -68,4 +68,10 @@ it('keeps every baked coat\'s cache key on the rig\'s original public path', () 
   }
   expect(pineCoatUrl('bear-black', 'bear', 'black', 'phone')).toBe('procedural:/assets/pine-hollow/creatures/bear-black.phone.bear.black.coat.png');
   expect(pineCoatUrl('boar', 'boar', 'thrall', 'desktop')).toBe('procedural:/assets/pine-hollow/creatures/boar.boar.thrall.coat.png');
+});
+
+it('names Pine\'s bird blobs as the producer does (generators/birdBlobs.mjs), per tier', () => {
+  const product = { url: (name: string): string => `/shardfiles/pine-hollow/${name}` };
+  expect(pineBirdFiles(product, 'phone')).toEqual({ geometry: '/shardfiles/pine-hollow/models/life/birds-rest.phone.glb', atlas: '/shardfiles/pine-hollow/models/life/birds.phone.base.ktx2' });
+  expect(pineBirdFiles(product, 'desktop')).toEqual({ geometry: '/shardfiles/pine-hollow/models/life/birds-rest.glb', atlas: '/shardfiles/pine-hollow/models/life/birds.base.ktx2' });
 });

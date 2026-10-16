@@ -2,7 +2,6 @@ import treeRest from './treeRest.generated.json' with {type:'json'};
 import painted from './paintedTextures.generated.json' with {type:'json'};
 import skins from './npcSkins.generated.json' with {type:'json'};
 import floor from './floor.generated.json' with { type: 'json' };
-import birds from './ambientBirds.generated.json' with {type:'json'};
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
 export const PINE_BOOT_FILES = {
   "skyHdr": {
@@ -216,8 +215,6 @@ export const PINE_BOOT_FILES = {
           "/assets/horizon/pine-hollow-night-phone.webp",
           "/assets/pine-hollow/weapons/lever-rifle.glb",
           "/assets/pine-hollow/weapons/skinning-knife.glb",
-          birds.geometry,
-          birds.atlasModel,
           "/assets/pine-hollow/npcs/ranger.glb", skins.ranger.phone.url,
           "/assets/pine-hollow/npcs/trader.glb", skins.trader.phone.url,
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.phone.url,
@@ -231,8 +228,6 @@ export const PINE_BOOT_FILES = {
           "/assets/horizon/pine-hollow-night.webp",
           "/assets/pine-hollow/weapons/lever-rifle.glb",
           "/assets/pine-hollow/weapons/skinning-knife.glb",
-          birds.geometry,
-          birds.atlasModel,
           "/assets/pine-hollow/npcs/ranger.glb", skins.ranger.desktop.url,
           "/assets/pine-hollow/npcs/trader.glb", skins.trader.desktop.url,
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.desktop.url,

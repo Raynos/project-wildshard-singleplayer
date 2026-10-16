@@ -2,7 +2,7 @@
  * Pine Hollow's rigged creature hulls (PINE-HOLLOW-REMASTER PH-M1; baked by `scripts/creature-rig-bake.mjs --chunk
  * pine-hollow`): the files each tier reads per hull. Since SHARD-PLATFORM W2a they are the built product's named blobs
  * (`generators/rigBlobs.mjs`): an image-free rig `models/creatures/<hull>[.phone].rigged.glb` beside its separate KTX2
- * maps `<hull>[.phone].base.ktx2` / `.normal.ktx2`.
+ * maps `<hull>[.phone].base.ktx2` / `.normal.ktx2`; and the birds' posed rest geometry and atlas KTX2 (`pineBirdFiles`).
  * Nalati's own table is src/shards/nalati-grasslands/species/rigs.ts (on its branch); the two never share a hull.
  */
 import { TIER } from '@wildshard/engine/core/tier';
@@ -26,4 +26,10 @@ export function pineRigFiles(product: { readonly url: (name: string) => string }
  *  cache's identity. */
 export function pineCoatUrl(name: string, kind: string, variant: string, tier: 'phone' | 'desktop' = TIER): string {
   return `procedural:/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.${kind}.${variant}.coat.png`;
+}
+
+/** the birds' posed rest geometry and their atlas's own KTX2 on this tier, as the product's URLs (generators/birdBlobs.mjs) */
+export function pineBirdFiles(product: { readonly url: (name: string) => string }, tier: 'phone' | 'desktop' = TIER): { readonly geometry: string; readonly atlas: string } {
+  const dot = tier === 'phone' ? '.phone' : '';
+  return { geometry: product.url(`models/life/birds-rest${dot}.glb`), atlas: product.url(`models/life/birds${dot}.base.ktx2`) };
 }
