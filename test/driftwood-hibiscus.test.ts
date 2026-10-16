@@ -8,7 +8,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { seedOf } from '@wildshard/engine/models/model';
 import { leafClump } from '../src/shards/driftwood-isle/generators/hibiscus';
 import { hibiscusBush } from '../src/shards/driftwood-isle/runtime/models/hibiscusBush';
-import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/data/hibiscusFiles';
+import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/runtime/const';
 import { loadHibiscusVariants, copyHibiscusVariant, decodeHibiscusWorld } from '../src/shards/driftwood-isle/runtime/boot/hibiscusGeometry';
 
 const phone = (): Uint8Array => {

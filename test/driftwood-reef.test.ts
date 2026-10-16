@@ -10,7 +10,7 @@ import { REEF, type ReefParams } from '../src/shards/driftwood-isle/runtime/mode
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
 import { decodeReefWorld } from '../src/shards/driftwood-isle/runtime/boot/reefGeometry';
-import { REEF_FILES } from '../src/shards/driftwood-isle/data/reefFiles';
+import { REEF_FILES } from '../src/shards/driftwood-isle/runtime/const';
 import { REEF_SPECIMENS } from '../src/shards/driftwood-isle/data/reefSpecimenRows';
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
