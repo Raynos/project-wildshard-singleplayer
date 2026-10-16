@@ -23,6 +23,7 @@ import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
+import { clearOutputProduct, writeOutputProduct } from './outputProduct';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -108,7 +109,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { outputFormat?: 2; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
   const loaded = await readProjectAssets(project, options.map), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
@@ -118,13 +119,17 @@ export async function buildProject(project: string, output?: string, options: { 
   let shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
-  shard = writeProduct(shard, assets, destination, projectPerformancePolicy(project, shard));
+  let descriptor: unknown;
+  if (options.outputFormat === 2) {
+    clearOutputProduct(destination);
+    descriptor = writeOutputProduct(shard,assets,destination);
+  } else {shard = writeProduct(shard, assets, destination, projectPerformancePolicy(project, shard));descriptor=shard;}
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
   const client = options.client === null ? undefined : options.client ?? [resolve(directory, clientFolder), resolve(directory, 'dist', clientFolder)].find((path) => existsSync(resolve(path, 'index.html')));
   if (client !== undefined) {
     cpSync(client, destination, { recursive: true });
-    const json = canonicalJson(shard).replaceAll('<', String.raw`\u003c`);
+    const json = canonicalJson(descriptor).replaceAll('<', String.raw`\u003c`);
     const html = readFileSync(resolve(destination, 'index.html'), 'utf8').replace('</head>', `<script id="ws-shardfile" type="application/json">${json}</script></head>`);
     writeFileSync(resolve(destination, 'index.html'), html);
   }

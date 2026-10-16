@@ -135,7 +135,8 @@
     "./looks/streamedInstances": "./looks/streamedInstances.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
-    "./blobs": "./blobs.ts"
+    "./blobs": "./blobs.ts",
+    "./outputProduct": "./outputProduct.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -695,6 +696,10 @@
       "./blobs": {
         "types": "./dist/types/sdk/blobs.d.ts",
         "default": "./dist/blobs.js"
+      },
+      "./outputProduct": {
+        "types": "./dist/types/sdk/outputProduct.d.ts",
+        "default": "./dist/outputProduct.js"
       }
     }
   }

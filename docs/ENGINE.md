@@ -6876,3 +6876,22 @@ read a source manifest or patch a prior catalog. Missing level, card,
 placement, image or copied page runtime refuses before catalog publish.
 These are build-only preparation APIs; app activation follows the writer
 and standalone-runtime migration.
+
+### Sectioned output writer (P1)
+
+`@wildshard/sdk/outputProduct.writeOutputProduct` emits the format-2 index,
+canonical platform/custom sections and kind-specific immutable blobs.
+`validateOutputProduct` checks the on-disk inventory, exact hashes and
+sizes, binary headers and costs, platform schemas and emitted custom JSON
+Schemas. Unlisted files, symlinks, unknown majors, changed section bytes
+and understated costs refuse. Logical blob names remain in the index.
+Validation receipts pin the validator, assembled source and exact index.
+
+Runtime copies may import only installed public exports of
+`@wildshard/engine`, `@wildshard/game`, `@wildshard/sdk`,
+`@wildshard/format`, exported Three.js modules and the Valibot root, or
+TypeScript within the same copied runtime. Node, commons, private package
+paths, asset imports and computed imports refuse. G304 private-binary
+classification and G453 asset budget targets remain report-only; structural
+admission and truthful parsed costs remain enforced. Runtime copying and
+its data-boundary checks are supplied by the runtime output integration.
