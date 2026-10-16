@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { ClientChannelsSchema as Channels, PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
+import { HeldModelRowsSchema, HeldPresentationSchema } from '@wildshard/format/weaponProfiles';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -37,6 +38,12 @@ const look = v.strictObject({ set:opt(text), normalScale:opt(pair), color:opt(tr
   anisotropy:opt(number), anisotropyRotation:opt(number), emissive:opt(number), emissiveIntensity:opt(number), alphaTest:opt(number), vertexColors:opt(flag), forceSinglePass:opt(flag), side:opt(v.picklist([0,1,2])) });
 const bowPose = v.strictObject({ pos:triple, aim:triple, cant:number, pitch:number });
 const heldHand = v.strictObject({ part:text, at:triple, axis:triple, palm:triple, coat:flag, elbow:opt(triple) });
+const grip = v.strictObject({ at:triple, axis:triple, palm:triple }), pose = { px:number, py:number, pz:number, rx:number, ry:number, rz:number };
+/** The lever-action's rows on the held-firearm host (data/leverDetails.json): its model, view numbers, fists and presentation. */
+const leverRows = v.strictObject({ model:HeldModelRowsSchema, presentation:HeldPresentationSchema, hands:v.strictObject({ left:grip, right:grip, gate:grip }),
+  view: v.strictObject({ kick:number, flash:v.strictObject({frames:number,lightTime:number,light:number}), brass:v.strictObject({count:number,life:number}), tracer:v.strictObject({count:number,time:number}),
+    adsMotion:number, lever:v.strictObject({open:number,boltTravel:number,hammerDown:number,hammerCocked:number,handTurn:number}), sight:v.strictObject({y:number,eyeZ:number,rearZ:number,frontZ:number,muzzleZ:number}),
+    hammerPivot:triple, port:triple, hip:v.strictObject({...pose,scale:number}), cyclePose:v.strictObject(pose) }) });
 /** The crossbow's rows on the held-launcher host (generators/crossbowRows.ts, written by the crossbow pool bake). */
 const crossbowRows = v.strictObject({
   view: v.strictObject({ hip:v.strictObject({px:number,py:number,pz:number,rx:number,ry:number,rz:number,scale:number}), ads:v.strictObject({eyeAboveRail:number,nearMargin:number,pitch:number}), peep:v.strictObject({z:number,radius:number,worldRadius:number}) }),
@@ -66,7 +73,7 @@ export const SECTIONS = {
   'custom/heldSights':v.strictObject({sight:Channels,sightInputs:inputs,sightOutputs:outputs,string:Channels,stringInputs:inputs,peep:Channels,peepInputs:inputs}),
   'custom/leverPlayback':v.strictObject({handAt:Channels,handAxis:Channels,handPalm:Channels,sight:Channels,cycle:Channels,partInputs:inputs,partReads:strings,
     bindings:v.pipe(v.array(v.strictObject({group:text,target:text,inputs,outputs})),v.maxLength(16))}),
-  'custom/leverDetails':v.strictObject({pool}),
+  'custom/leverDetails':v.strictObject({pool,rows:leverRows}),
   'custom/heldToolPlayback':v.strictObject({description:text,nodeNames:v.record(text,text),pose:Channels}),
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk}),
   'custom/trophyMounts':mountPack,

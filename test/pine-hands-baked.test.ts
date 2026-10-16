@@ -4,7 +4,7 @@ import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
 import { HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL } from '../src/shards/pine-hollow/generators/handsLook';
 import { LONGBOW_LOOK, StaveBowLookSchema } from '../src/shards/pine-hollow/generators/longbowLook';
-import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/items/leverPresentation';
+import LEVER_DETAILS from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
 import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from '../src/shards/pine-hollow/generators/longbowPresentation';
 import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/generators/crossbowRows';
 
@@ -22,7 +22,7 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
     expect(hands[JSON.stringify([HUNTER_HANDS, spec, spec.elbow !== undefined])], side).toBeDefined();
     // The rifle reads the same baked part without recreating its palette/spec key at runtime.
     expect(Object.values(pool.hands).find(hand => hand.geometry === `hand-lever-${side}`), side).toBeDefined();
-    expect(LEVER_HAND_HOLDS[side].at).toHaveLength(3);
+    expect(LEVER_DETAILS.rows.hands[side].at).toHaveLength(3);
   }
   expect(pool.presentation).toEqual({hands:HANDS_MATERIAL,coat:COAT_MATERIAL,bow:LONGBOW_MATERIAL,arrow:ARROW_MATERIAL,poses:LONGBOW_POSES});
   expect(() => v.parse(SECTIONS['custom/handsPool'], { ...pool, presentation: undefined })).toThrow();

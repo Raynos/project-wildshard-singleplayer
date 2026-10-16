@@ -3,14 +3,11 @@ import { viewmodelRowMaterial, type RangedWorld, type TexSet } from '@wildshard/
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldModelRows } from '@wildshard/game/plugin/heldFirearm';
+import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel } from '@wildshard/game/plugin/heldFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { bakedHandGeometry, handsPresentation } from '../boot/handsGeometry';
-import { LEVER_MATERIALS } from './heldLook';
 import { parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary, type ModelLibrary } from '@wildshard/game/plugin/geometry';
-import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../items/leverPresentation';
-import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../items/rangedFrame';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { SECTIONS } from '../sections';
 import type { InferOutput } from 'valibot';
@@ -62,12 +59,13 @@ export const LEVER_MODEL_URL = '/assets/pine-hollow/weapons/lever-rifle.glb';
 /** the GLB's meshes: the static steel, the forend, the stock (hidden sighted), the lever + hammer (each about its pivot), the bolt */
 const MODEL_PARTS = ['steel', 'forend', 'stock', 'lever', 'hammer', 'bolt'] as const;
 type ModelPart = (typeof MODEL_PARTS)[number];
-/** the loaded model: plain float geometry per part (model space) + the two atlases */
-export interface LeverModel { geo: Record<ModelPart, THREE.BufferGeometry>; steel: TexSet; wood: TexSet }
+/** The lever's admitted rows (`custom/leverDetails` `rows`, data/leverDetails.json): model, view, fists, presentation. */
+export type LeverRows = InferOutput<(typeof SECTIONS)['custom/leverDetails']>['rows'];
+/** the loaded model: plain float geometry per part (model space), the two atlases and the admitted rows */
+export interface LeverModel { geo: Record<ModelPart, THREE.BufferGeometry>; steel: TexSet; wood: TexSet; rows: LeverRows }
 /** The model and the rifle details (`custom/leverDetails`: a named blob of the product) in one library, made by each
  *  fresh preload from the admitted product; the last one made serves the details (`detailGeometry`). */
-function leverLibrary(product: ShardProduct): ModelLibrary<never, never> {
-  const { pool } = product.section('custom/leverDetails', SECTIONS);
+function leverLibrary(product: ShardProduct, pool: { readonly url: string; readonly parts: readonly string[] }): ModelLibrary<never, never> {
   return createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
     geometryPools: [{ url: LEVER_MODEL_URL, parts: MODEL_PARTS, native: { requireIndex: true, white: true, disposeSource: true },
       atlases: [{ id: 'steel', part: 'steel', anisotropy: 8, refresh: true }, { id: 'wood', part: 'forend', anisotropy: 8, refresh: true }] },
@@ -87,29 +85,18 @@ function admittedLibrary(): ModelLibrary<never, never> {
 export function preloadLeverModel(product?: ShardProduct): Promise<LeverModel> {
   if (modelLoad !== null) return modelLoad;
   if (product === undefined) return Promise.reject(new Error('Required lever-action model is not admitted'));
-  const LEVER_LIBRARY = leverLibrary(product);
+  const { pool, rows } = product.section('custom/leverDetails', SECTIONS), LEVER_LIBRARY = leverLibrary(product, pool);
   library = LEVER_LIBRARY;
   modelLoad = LEVER_LIBRARY.preload().then(() => {
       const part = (name: ModelPart): THREE.BufferGeometry => { const geometry = LEVER_LIBRARY.geometry(name, { borrow: true }); if (geometry === null) throw new Error(`Missing lever geometry ${name}`); return geometry; };
       const steel = LEVER_LIBRARY.atlas('steel'), wood = LEVER_LIBRARY.atlas('wood'); if (steel === null || wood === null) throw new Error('Missing lever PBR atlases');
       for (const name of ['sight-bead', 'round-live', 'round-case'] as const) if (LEVER_LIBRARY.geometry(name, { borrow: true }) === null) throw new Error(`Missing required rifle detail ${name}`);
-      const ready = retainCachedResources({ geo: { steel: part('steel'), forend: part('forend'), stock: part('stock'), lever: part('lever'), hammer: part('hammer'), bolt: part('bolt') }, steel, wood }); modelReady = ready;
+      const ready = retainCachedResources({ geo: { steel: part('steel'), forend: part('forend'), stock: part('stock'), lever: part('lever'), hammer: part('hammer'), bolt: part('bolt') }, steel, wood, rows }); modelReady = ready;
       cacheUntilDisposed(ready, () => { if (modelReady === ready) { modelReady = null; modelLoad = null; } }); return ready;
     });
   return modelLoad;
 }
 
-/** The rifle's parts on the held-firearm host (H3): the GLB's meshes, the library's details, three materials. */
-const LEVER_MODEL: HeldModelRows = {
-  materials: { brass: { name: 'lever-brass', look: LEVER_MATERIALS.brass }, wood: { name: 'lever-wood', look: LEVER_MATERIALS.wood }, steel: { name: 'lever-steel', look: LEVER_MATERIALS.steel } },
-  textures: { gunmetal: { set: 'gunmetal', repeat: [2, 2] } }, // the cartridges' tiled brass UVs
-  parts: [{ id: 'wood', geometry: 'forend', material: 'wood', display: true }, { id: 'stock', geometry: 'stock', material: 'wood', sighted: false, display: true },
-    { id: 'steel', geometry: 'steel', material: 'steel', display: true }, { id: 'bead', geometry: 'sight-bead', material: 'brass', display: true },
-    { id: 'lever', geometry: 'lever', material: 'steel', at: 'leverPivot', display: true },
-    { id: 'hammer', geometry: 'hammer', material: 'steel', at: 'hammerPivot', rot: [LEVER_PRESENTATION.lever.hammerCocked, 0, 0], display: { rot: [LEVER_PRESENTATION.lever.hammerDown, 0, 0] } },
-    { id: 'bolt', geometry: 'bolt', material: 'steel', display: true }, { id: 'round', geometry: 'round-live', material: 'brass', hidden: true }],
-  anchors: { leverPivot: [0, -0.031, -0.018], hammerPivot: LEVER_PRESENTATION.hammerPivot, gate: [0.0158, -0.021, 0.028] },
-};
 /** The admitted model as host data: the GLB's parts (borrowed), owned copies of the details, the two atlases. */
 function leverModel(model: LeverModel): HeldFirearmModel {
   const g = model.geo, geometry = new Map(Object.entries(g));
@@ -118,7 +105,7 @@ function leverModel(model: LeverModel): HeldFirearmModel {
 }
 
 /** The Model Explorer's card (runtime/models/gear.ts): the cabin pickup's seven parts, hammer down, on their own materials. */
-export function leverSpecimen(sky: Sky, model: LeverModel): THREE.Group { return heldFirearmDisplay(sky, LEVER_MODEL, leverModel(model)); }
+export function leverSpecimen(sky: Sky, model: LeverModel): THREE.Group { return heldFirearmDisplay(sky, model.rows.model, leverModel(model)); }
 
 /** Details are admitted through the same model library and handed out as owned clones. */
 function detailGeometry(name: string): THREE.BufferGeometry {
@@ -127,13 +114,13 @@ function detailGeometry(name: string): THREE.BufferGeometry {
   return geometry;
 }
 
-/** Construct the same page profile and view from combat/items before the held host allocates any ammunition or clocks. */
-export function leverSettings(input: unknown): { profile: FirearmProfile; view: typeof LEVER_PRESENTATION & { magazine: number; reserve: number; timing: { autoReloadDelay: number; autoReloadClose: number; reloadIn: number; reloadOut: number; roundTime: number } } } {
+/** Construct the same page profile and view (the admitted rows' `view`) from combat/items before the held host allocates any ammunition or clocks. */
+export function leverSettings(input: unknown, presentation: LeverRows['view']): { profile: FirearmProfile; view: LeverRows['view'] & { magazine: number; reserve: number; timing: { autoReloadDelay: number; autoReloadClose: number; reloadIn: number; reloadOut: number; roundTime: number } } } {
   const p = parseNativeFirearmProfile(input, 'lever');
   if (p.lever === undefined) throw new Error('Missing admitted lever timing');
   return { profile: { ...p, action: 'lever', kick: 1.25 * (Math.PI / 180), brass: { count: 4, life: 1.8 }, tracer: { count: 2, life: 0.09, width: 3 },
     ads: { blend: 0.17, motion: 0.3, nearMargin: 0.03, sightY: 0.045, rearZ: -0.13, frontZ: -0.512, muzzleZ: -0.535 } },
-    view: { ...LEVER_PRESENTATION, magazine: p.magazine, reserve: p.reserve,
+    view: { ...presentation, magazine: p.magazine, reserve: p.reserve,
       timing: { autoReloadDelay: p.autoReload, autoReloadClose: p.lever.autoReloadClose, reloadIn: p.lever.reloadIn, reloadOut: p.lever.reloadOut, roundTime: p.reload } } };
 }
 
@@ -153,18 +140,19 @@ const bound = <T>(row: T | undefined): T => { if (row === undefined) throw new E
 
 /** Pine's lever-action: the profile, the view, the model and the sections' playback rows on the held-firearm host. */
 export function leverRifle(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: LeverHeldRows; profile: unknown; model?: LeverModel }): HeldFirearm<FirearmProfile> {
-  const { playback, inputs, lever } = opts.held, frame = inputs.frames.lever, rows = lever.bindings.slice(0, 5).map(bound), { profile, view } = leverSettings(opts.profile);
+  const { playback, inputs, lever } = opts.held, frame = inputs.frames.lever, rows = lever.bindings.slice(0, 5).map(bound), model = opts.model ?? requireLeverModel();
+  const { hands, presentation } = model.rows, { profile, view } = leverSettings(opts.profile, model.rows.view);
   return new HeldFirearm(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile, view,
-    model: leverModel(opts.model ?? requireLeverModel()),
-    hands: { material: viewmodelRowMaterial(world.sky, 'hunter-hands', handsPresentation().hands), left: { ...bakedHandGeometry('lever-left'), ...LEVER_HAND_HOLDS.left }, right: { ...bakedHandGeometry('lever-right'), ...LEVER_HAND_HOLDS.right }, gate: LEVER_HAND_HOLDS.gate },
-    rows: { ...LEVER_MODEL, mount: 'ownPass', gate: 'gate', round: 'round', brass: { geometry: 'round-case', material: 'brass' }, rotationReads: { hammerAngle: 'hammer' },
+    model: leverModel(model),
+    hands: { material: viewmodelRowMaterial(world.sky, 'hunter-hands', handsPresentation().hands), left: { ...bakedHandGeometry('lever-left'), ...hands.left }, right: { ...bakedHandGeometry('lever-right'), ...hands.right }, gate: hands.gate },
+    rows: { ...model.rows.model, mount: 'ownPass', gate: 'gate', round: 'round', brass: { geometry: 'round-case', material: 'brass' }, rotationReads: { hammerAngle: 'hammer' },
       playback: {
         groups: { frame: frame.program, pose: playback.lever, parts: playback.leverParts, sight: lever.sight, cycle: lever.cycle, handAt: lever.handAt, handAxis: lever.handAxis, handPalm: lever.handPalm },
         inputs: [{ group: 'frame', rows: frame.inputs }, { group: 'pose', rows: inputs.lever }, { group: 'parts', rows: lever.partInputs }, ...rows.map(row => ({ group: row.group, rows: row.inputs }))],
         outputs: [{ group: 'frame', rows: frame.outputs, target: 'frame' }, ...rows.map(row => ({ group: row.group, rows: row.outputs, target: row.target === 'sight' ? 'sight' as const : row.target === 'cycle' ? 'values' as const : 'grip' as const }))],
         schedule: { frame: 'frame', sight: 'sight', pose: 'pose', action: ['cycle', 'parts'], grip: ['handAt', 'handAxis', 'handPalm'] },
       },
-      presentation: { frame: RANGED_FRAME.lever, flash: { shape: RANGED_FLASH.lever, colour: 0xffb060 }, ejection: RANGED_BRASS.lever, tracer: RANGED_TRACE.segment, hitMuzzle: RANGED_HIT.lever.muzzle } },
+      presentation },
   });
 }
 /** A built Pine lever-action. */

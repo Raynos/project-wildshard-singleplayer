@@ -6,5 +6,360 @@
       "round-live",
       "round-case"
     ]
+  },
+  "rows": {
+    "model": {
+      "materials": {
+        "brass": {
+          "name": "lever-brass",
+          "look": {
+            "set": "gunmetal",
+            "normalScale": [
+              0.25,
+              0.25
+            ],
+            "color": [
+              0.95,
+              0.7,
+              0.34
+            ],
+            "roughness": 0.75,
+            "metalness": 1,
+            "envMapIntensity": 1.1
+          }
+        },
+        "wood": {
+          "name": "lever-wood",
+          "look": {
+            "set": "wood",
+            "normalScale": [
+              0.9,
+              -0.9
+            ],
+            "roughness": 1,
+            "metalness": 1,
+            "envMapIntensity": 0.55,
+            "specularIntensity": 0.55
+          }
+        },
+        "steel": {
+          "name": "lever-steel",
+          "look": {
+            "set": "steel",
+            "normalScale": [
+              0.8,
+              -0.8
+            ],
+            "roughness": 1,
+            "metalness": 1,
+            "envMapIntensity": 0.95
+          }
+        }
+      },
+      "textures": {
+        "gunmetal": {
+          "set": "gunmetal",
+          "repeat": [
+            2,
+            2
+          ]
+        }
+      },
+      "parts": [
+        {
+          "id": "wood",
+          "geometry": "forend",
+          "material": "wood",
+          "display": true
+        },
+        {
+          "id": "stock",
+          "geometry": "stock",
+          "material": "wood",
+          "sighted": false,
+          "display": true
+        },
+        {
+          "id": "steel",
+          "geometry": "steel",
+          "material": "steel",
+          "display": true
+        },
+        {
+          "id": "bead",
+          "geometry": "sight-bead",
+          "material": "brass",
+          "display": true
+        },
+        {
+          "id": "lever",
+          "geometry": "lever",
+          "material": "steel",
+          "at": "leverPivot",
+          "display": true
+        },
+        {
+          "id": "hammer",
+          "geometry": "hammer",
+          "material": "steel",
+          "at": "hammerPivot",
+          "rot": [
+            0.5,
+            0,
+            0
+          ],
+          "display": {
+            "rot": [
+              -0.12,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "bolt",
+          "geometry": "bolt",
+          "material": "steel",
+          "display": true
+        },
+        {
+          "id": "round",
+          "geometry": "round-live",
+          "material": "brass",
+          "hidden": true
+        }
+      ],
+      "anchors": {
+        "leverPivot": [
+          0,
+          -0.031,
+          -0.018
+        ],
+        "hammerPivot": [
+          0,
+          -0.006,
+          0.122
+        ],
+        "gate": [
+          0.0158,
+          -0.021,
+          0.028
+        ]
+      }
+    },
+    "view": {
+      "kick": 0.02181661564992912,
+      "flash": {
+        "frames": 2,
+        "lightTime": 0.06,
+        "light": 34
+      },
+      "brass": {
+        "count": 4,
+        "life": 1.8
+      },
+      "tracer": {
+        "count": 2,
+        "time": 0.09
+      },
+      "adsMotion": 0.3,
+      "lever": {
+        "open": 0.92,
+        "boltTravel": 0.058,
+        "hammerDown": -0.12,
+        "hammerCocked": 0.5,
+        "handTurn": 0.6
+      },
+      "sight": {
+        "y": 0.045,
+        "eyeZ": 0.36,
+        "rearZ": -0.13,
+        "frontZ": -0.512,
+        "muzzleZ": -0.535
+      },
+      "hammerPivot": [
+        0,
+        -0.006,
+        0.122
+      ],
+      "port": [
+        0,
+        0.026,
+        0.045
+      ],
+      "hip": {
+        "px": 0.07,
+        "py": -0.085,
+        "pz": -0.26,
+        "rx": 0.05,
+        "ry": 0.14,
+        "rz": -0.15,
+        "scale": 1
+      },
+      "cyclePose": {
+        "px": -0.03,
+        "py": 0.03,
+        "pz": 0,
+        "rx": 0.1,
+        "ry": 0.1,
+        "rz": -0.45
+      }
+    },
+    "hands": {
+      "left": {
+        "at": [
+          0,
+          -0.017,
+          -0.16
+        ],
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "palm": [
+          -0.5,
+          0.87,
+          0
+        ]
+      },
+      "right": {
+        "at": [
+          0,
+          -0.062,
+          0.165
+        ],
+        "axis": [
+          0,
+          1,
+          -0.25
+        ],
+        "palm": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "gate": {
+        "at": [
+          0.03,
+          -0.01,
+          0.03
+        ],
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "palm": [
+          -1,
+          0,
+          0
+        ]
+      }
+    },
+    "presentation": {
+      "frame": {
+        "clock": "frame",
+        "fovWhen": "active",
+        "recoil": {
+          "decay": 10,
+          "attack": 30,
+          "recovery": 6
+        },
+        "lag": {
+          "gain": 0.5,
+          "clampYaw": 0.12,
+          "clampPitch": 0.1,
+          "k": 220,
+          "c": 20
+        },
+        "clampAfter": true,
+        "readout": {
+          "range": 150,
+          "mask": 3,
+          "held": true,
+          "posed": false
+        }
+      },
+      "flash": {
+        "shape": {
+          "size": 0.2,
+          "y": 0,
+          "z": -0.02,
+          "secondaryZ": -0.06,
+          "secondaryScale": [
+            1.5,
+            0.55,
+            1
+          ],
+          "lightY": 0.03,
+          "lightZ": 0.1
+        },
+        "colour": 16756832
+      },
+      "ejection": {
+        "velocity": [
+          [
+            "up",
+            2.6,
+            0.6
+          ],
+          [
+            "right",
+            0.8,
+            0.5
+          ],
+          [
+            "forward",
+            -0.6,
+            0.2
+          ]
+        ],
+        "spin": [
+          [
+            18,
+            0,
+            12
+          ],
+          [
+            0,
+            -0.5,
+            8
+          ],
+          [
+            0,
+            -0.5,
+            8
+          ]
+        ],
+        "rotation": [
+          1,
+          0,
+          0,
+          -1.5707963267948966
+        ],
+        "floorOffset": 0.006
+      },
+      "tracer": {
+        "mode": "segment",
+        "points": 2,
+        "width": 3,
+        "color": [
+          1,
+          0,
+          0
+        ],
+        "order": 1200,
+        "lifetime": 0.5,
+        "fade": 1,
+        "markerScale": 0
+      },
+      "hitMuzzle": [
+        0,
+        0,
+        0
+      ]
+    }
   }
 }

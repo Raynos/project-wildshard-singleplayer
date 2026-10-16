@@ -168,7 +168,8 @@ export function parseNativeFirearmProfile(input: unknown, mode: 'bolt' | 'lever'
 
 // A held firearm's view rows as JSON (game/plugin/heldFirearm HeldModelRows and HeldFirearmRows `presentation`), admitted
 // before the host builds anything; shards keep them in data (Nalati's heldRifle.json, Pine's custom/leverDetails rows).
-const real = v.pipe(v.number(), v.finite()), vec3 = v.tuple([real, real, real]), rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
+// Plain numbers: JSON holds no non-finite value, and a product section's wire schema has no `finite` action.
+const real = v.number(), vec3 = v.tuple([real, real, real]), rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
 const primitive = v.strictObject({ kind: v.picklist(['box', 'cylinder', 'cone', 'sphere', 'torus', 'icosahedron', 'capsule']), args: v.pipe(v.array(real), v.maxLength(8)),
   ops: v.exactOptional(v.array(v.union([v.tuple([v.picklist(['translate', 'scale']), real, real, real]), v.tuple([v.picklist(['rotateX', 'rotateY', 'rotateZ']), real])]))) });
 const look = v.strictObject({ set: v.exactOptional(rowId), normalScale: v.exactOptional(v.tuple([real, real])), color: v.exactOptional(vec3),
