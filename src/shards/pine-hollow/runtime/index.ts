@@ -55,7 +55,8 @@ import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { loadBirdModels } from './birds';
 import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/wildlife';
-import { PINE_RUNTIME_GRAPHS, WILDLIFE_LOOK } from './const';
+import { WILDLIFE_LOOK } from './const';
+import * as v from 'valibot';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { isPhShot } from './audio/sfx';
@@ -106,8 +107,10 @@ export class PineHollow extends ShardPlugin {
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
     ctx.app.registerTrample(trample, ctx.scope);
-    // the look.materials graphs the spray, the water, the cabins' hearth particles and the cave's shaft wear (generators/lookMaterials.ts, their ids copied into runtime/const.ts), owned by this scope
-    lendPineLooks(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, PINE_RUNTIME_GRAPHS));
+    // The admitted graph list is author data; this scope still owns the compiled materials.
+    const graphNames = v.parse(v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(128)),
+      JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/runtime-graphs.json'))));
+    lendPineLooks(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, graphNames));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
     lendPineWildlifeLook(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [WILDLIFE_LOOK]));
