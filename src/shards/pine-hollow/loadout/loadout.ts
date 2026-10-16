@@ -5,15 +5,14 @@ import { AMMO_ROWS } from './effects';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
-import type { CombatCues } from '@wildshard/engine/combat/cues';
+import type { CombatCues, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { fixIBL, VIEWMODEL_GROUP, worldHit } from '@wildshard/engine/combat/view/ranged';
 import { listenPage } from '@wildshard/engine/input/dom';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineCombatCues } from '../runtime/audio/combatCues';
-import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import source from '../shard.config';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
@@ -112,8 +111,9 @@ export function restoreKept(inventory: Pick<Inventory, 'had'>, owned: Pick<Owned
 export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const { weapons, crossbow, rifle, longbow, hud, audio, inventory, owned, params } = h;
   const rows = h.context === undefined ? source.audio : runtimeAudio(h.context, source.audio);
-  const echo = requireAudioProfile(rows.routing.flatMap((route) => route.actions).find((action) => action.voice === 'pine.leverEcho'), 'pine.leverEcho');
-  const echoDelay = echo.delay ?? 0, echoGain = requireAudioProfile(echo.overrides?.gain, 'pine.leverEcho.gain');
+  const echo = rows.routing.flatMap((route) => route.actions).find((action) => action.voice === 'pine.leverEcho');
+  if (echo?.overrides?.gain === undefined) throw new Error('Missing declared Pine echo profile');
+  const echoDelay = echo.delay ?? 0, echoGain = echo.overrides.gain;
   const state = bindRuntimeState(h.context ?? { app, scope: h.scope }, source, 'pine.loadout', () => JSON.stringify(savedSlot.read('pine-hollow')));
   let saved: valibot.InferOutput<typeof savedSchema> = {};
   try { saved = valibot.parse(savedSchema, JSON.parse(String(state.read())) as unknown); } catch { /* defaults */ }
@@ -195,10 +195,16 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
 
     // ── sounds (chained over main.ts's: the held weapon decides) ──
     const cues = h.cues;
-    cues.use(pineCombatCues({
-      shot: (name, opts) => sfx?.shot(name, opts) ?? false, stony,
-      later: (fn, seconds) => { scope.timeout(seconds * 1000, fn); }, echoDelay, echoGain,
-    }, rows.routing), scope);
+    const ports = {
+      shot: (name: Parameters<PineHollowSfx['shot']>[0], opts?: Parameters<PineHollowSfx['shot']>[1]) => sfx?.shot(name, opts) ?? false,
+      later: (fn: () => void, seconds: number) => { scope.timeout(seconds * 1000, fn); }, echoDelay, echoGain,
+    };
+    const voices = new Map<string, (opts: CombatCueOpts) => boolean | undefined>([
+      ['pine.boltImpact-rock', opts => opts.point !== undefined && stony(opts.point) && ports.shot('boltImpact-rock', { at: opts.point })],
+    ]);
+    const routes = structuredClone(rows.routing);
+    for (const route of routes) for (const action of route.actions) if (action.voice === 'pine.leverEcho') action.delay = echoDelay;
+    cues.use(createCueRouter(routes, { voices, later: ports.later, bindings: source.audio.voiceBindings, owners: new Map([['ports', ports]]) }), scope);
     const events = weapons.events;
     events?.on('weapon.action', ({ id, phase }) => {
       if (id === rifle.row.id && phase === 'cycle') cues.cue('cue.lever.cycle');
