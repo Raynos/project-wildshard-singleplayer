@@ -18,7 +18,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { POND } from '../data/layout';
 import { codePart } from '../world/codeParts';
-import { npcMaterial } from '../models/people';
+import { npcMaterial } from '../runtime/models/people';
 
 interface Rider { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean }
 

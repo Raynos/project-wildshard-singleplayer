@@ -2,7 +2,7 @@
  * The token shelf (PINE-HOLLOW-REMASTER PH-C8's last piece): once all eight carved tokens are found, a pine display rack
  * stands on the ranger's mantel with the eight of them in a row — the cabin's side of the "Whittled Down" achievement
  * (its title, "Token Gesture", is the achievement's). The rack is a model (E315 M2:
- * src/shards/pine-hollow/models/tokenShelf.ts); here it is placed on the mantel and shown.
+ * src/shards/pine-hollow/runtime/models/tokenShelf.ts); here it is placed on the mantel and shown.
  *
  *   const shelf = placeTokenShelf(sky, cabins.roots[0], registry);   // hidden until shown
  *   shelf.setShown(tokenCount() === 8);  game.onUpdate(() => shelf.update(camera));
@@ -14,7 +14,7 @@ import { place } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineModels } from '../world/context';
-import { tokenShelf } from '../models/tokenShelf';
+import { tokenShelf } from '../runtime/models/tokenShelf';
 
 
 /**

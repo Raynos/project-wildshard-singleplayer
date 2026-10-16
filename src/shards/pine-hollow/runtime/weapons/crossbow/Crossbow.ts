@@ -43,7 +43,7 @@ const PEEP_R = 0.01, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring (CROSSBOW_V
 /**
  * The bolt (E348): its atlas (the iron shaft, the steel head, the feather vanes), its geometry along −Z (tip at −Z, 0.36 m)
  * and its material, on the viewmodels' program group. The loaded bolt, every bolt in flight or stuck (`buildCrossbow`'s
- * parts) and the Model Explorer's bolt card (src/shards/pine-hollow/models/gear.ts: its own copy) are built by this.
+ * parts) and the Model Explorer's bolt card (src/shards/pine-hollow/runtime/models/gear.ts: its own copy) are built by this.
  */
 export function buildBolt(sky: Sky): { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial } {
   const geometry = CROSSBOW_GEOMETRY.geometry('loaded-bolt', {borrow:true});
@@ -55,7 +55,7 @@ export function buildBolt(sky: Sky): { geometry: THREE.BufferGeometry; material:
  * The crossbow in model space (−Z the bolt, +Y up, the rail top at y 0; the nut at z +0.14, the prod at z −0.30): the stock,
  * the iron, the brass, the prod, the string (its legs unposed: the viewmodel poses them every frame), the leather, the loaded
  * bolt and the rear peep sight (in `peep` / `peepRing`, hidden), added to `into.model`, every lit part on the viewmodels'
- * shared program. The viewmodel's build and the Model Explorer's card (src/shards/pine-hollow/models/gear.ts, through
+ * shared program. The viewmodel's build and the Model Explorer's card (src/shards/pine-hollow/runtime/models/gear.ts, through
  * Skins.crossbowDisplayModel) are this one function, so the two never drift; the geometries without wear colours need
  * `whiteColors` before a draw.
  */

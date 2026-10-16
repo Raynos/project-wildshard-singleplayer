@@ -14,7 +14,7 @@ import { loadPainted } from '../runtime/looks/paintedTextures';
 import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_LOOKS } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
-import type { PropPart } from '../models/logCabin';
+import type { PropPart } from '../runtime/models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from './logKit';
 import { pineModels } from './context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
@@ -23,7 +23,7 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
 
 /**
  * Pine Hollow's homestead: the three log cabins and the mill hamlet's five buildings, as a living place (E347: its log kit
- * and the buildings' drawing moved onto the model contract — src/shards/pine-hollow/models/logCabin.ts builds each
+ * and the buildings' drawing moved onto the model contract — src/shards/pine-hollow/runtime/models/logCabin.ts builds each
  * building where it stands, `place` merges and welds them and drops their detail with distance,
  * src/shards/pine-hollow/world/cabins.ts).
  *
@@ -101,7 +101,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
 // ───────────────────────────── the homestead ─────────────────────────────
 
 
-/** a prop kind the buildings set about (E315 M2: each is a model — src/shards/pine-hollow/models/) */
+/** a prop kind the buildings set about (E315 M2: each is a model — src/shards/pine-hollow/runtime/models/) */
 export type CabinPropKind = PropKind;
 
 /**
@@ -226,6 +226,11 @@ export class Cabins extends BuildingLife implements BuildingOwner {
 /** A model library's LOD file, through the shared loader and its declared material aliases. */
 export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
   return loadRigFile(`/assets/models/${id}/${id}_lod.glb`, authored.propMaterials);
+}
+
+/** A model library's LOD file's node tree alone (for `prepModel`): what a scan model's loader reads. */
+export async function loadLodNodes(id: string): Promise<THREE.Object3D> {
+  return (await loadLod(id)).scene;
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */

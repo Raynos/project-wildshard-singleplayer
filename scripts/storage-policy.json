@@ -6,5 +6,13 @@
   "maxPushBytes": 10000000,
   "maxWeeklyBytes": 100000000,
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
-  "pins": []
+  "pins": [
+    {
+      "path": "src/shards/pine-hollow/data/physicsRows.json",
+      "oid": "b6b9d73b9ff28122b2b42935dba5941df575ee51",
+      "bytes": 1977322,
+      "kind": "input",
+      "purpose": "pine-physics / pine-king-collision generation input (authored collider rows, 1.98 MB before the storage policy); W2a's models move only rewrites its piece file paths"
+    }
+  ]
 }

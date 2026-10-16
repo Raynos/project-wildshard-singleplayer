@@ -280,7 +280,7 @@ export class CabinBuilder {
     if (this.frame) local.premultiply(this.frameM);
     this.propInstances[kind].push(Array.from(new THREE.Matrix4().multiplyMatrices(this.root.matrixWorld, local).elements));
     // PHYSICS P3: the glTF props' bounds (PROP_BOXES); the hatchet sits in its chopping block's collider. A prop's box is its
-    // model's collider (E315: src/shards/pine-hollow/models/woodenCrate.ts …), not its building's — kept here too, in the
+    // model's collider (E315: src/shards/pine-hollow/runtime/models/woodenCrate.ts …), not its building's — kept here too, in the
     // order it always had, for `colliderDescs` (the navmesh bake)
     const dims = PROP_BOXES[kind];
     if (dims) this.solid(x, z, dims.hw * scale, dims.hd * scale, y, y + dims.h * scale, ry, 'wood', true);

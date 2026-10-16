@@ -257,6 +257,14 @@ export interface ModelInfo {
 
 const defined = new Map<string, ModelInfo>();
 
+/**
+ * Tell the Model Explorer that model `id`'s file has landed after its specimen was built (a stand-in drawn first): its card
+ * re-frames and re-shoots (`ws:model-ready`). A no-op outside a page (headless runs, workers).
+ */
+export function announceModelReady(id: string): void {
+  if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
+}
+
 /** Define a model. Its id must be unique; the definition is returned as given. */
 export function defineModel<P extends object>(def: ModelDef<P>): ModelDef<P> {
   const prior = defined.get(def.id);

@@ -109,7 +109,7 @@ function buildLever(sky: Sky, model: LeverModel): LeverBuild {
 }
 
 /**
- * The Model Explorer's card (src/shards/pine-hollow/models/gear.ts): the lever-action as the cabin pickup shows it — the
+ * The Model Explorer's card (src/shards/pine-hollow/runtime/models/gear.ts): the lever-action as the cabin pickup shows it — the
  * seven parts, the hammer down — built by `buildLever` on its own materials and its own copy of the model's geometry, so
  * nothing of the rifle in your hands is shared or touched. `model`: `await preloadLeverModel()`.
  */

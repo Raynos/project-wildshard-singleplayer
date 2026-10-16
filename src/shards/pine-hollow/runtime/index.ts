@@ -1,7 +1,7 @@
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import SKIN_PICKUPS from '../data/skinPickups.json' with { type: 'json' };
 import { CROSSBOW_GEOMETRY } from './boot/crossbowGeometry';
-import { preloadKingKit } from '../models/antlerKing';
+import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
@@ -54,10 +54,10 @@ import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
 import { installAmbientLife } from '@wildshard/game/plugin/ui';
 import { PINE_LIFE,LIFE_CAPACITY } from '../data/ambientLife';
-import { SkinKnife } from '../models/skinningKnife';
+import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { loadBirdModels } from './birds';
-import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from '../models/wildlife';
+import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/wildlife';
 import { PINE_RUNTIME_GRAPHS, WILDLIFE_LOOK } from './const';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
@@ -271,7 +271,7 @@ export class PineHollow extends ShardPlugin {
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const wildlife=new WildlifeMesh(sky,LIFE_CAPACITY);
-    const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set,backend)=>{wildlife.useBirds(set,backend);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
+    const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });

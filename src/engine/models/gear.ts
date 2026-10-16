@@ -18,7 +18,7 @@ import { engineString } from '../strings';
 import * as THREE from 'three';
 import { applySkin, type SkinId, type WeaponKind, type SkinDef } from '../player/Skins';
 import type { SkyRig as Sky } from '../world/skyRig';
-import type { ModelVariant } from './model';
+import { announceModelReady, type ModelVariant } from './model';
 
 
 // ───────────────────────────── shared by every shard's gear ─────────────────────────────
@@ -59,7 +59,7 @@ export function loadingSpecimen(id: string, size: readonly [number, number, numb
       const made = await fill();
       holder.clear();
       holder.add(made);
-      if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
+      announceModelReady(id);
     } catch (error) {
       console.warn(`[models] ${id}: the specimen's file did not load`, error);
     }

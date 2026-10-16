@@ -18,6 +18,9 @@ export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: 
 let maxAniso = 8;
 let gpu: Renderer | null = null;
 export function setAnisotropy(renderer: Renderer): void { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); initKtx2(renderer); }
+/** Upload `texture` to the GPU now, on the boot's renderer (`setAnisotropy`), so its first draw does not stall on the upload;
+ *  a no-op before boot and headless. Shard code warms a texture through this, never its own renderer handle. */
+export function uploadTexture(texture: THREE.Texture): void { gpu?.initTexture(texture); }
 
 /**
  * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin

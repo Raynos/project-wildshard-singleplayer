@@ -2,7 +2,7 @@
  * The hollow-log passage (PINE-HOLLOW-REMASTER PH-C8, a secret of PH-U22): where one of the old-growth's fallen giants
  * lies — 3.2 m across and 11 m long, rotted out down its heart so you can walk through it; a carved token waits in the
  * middle, and the far end opens onto a ring of ferns you cannot see from the path. The log itself is a model
- * (E315 M2: src/shards/pine-hollow/models/hollowLog.ts — its drawing, LOD and colliders); this is its site: where it
+ * (E315 M2: src/shards/pine-hollow/runtime/models/hollowLog.ts — its drawing, LOD and colliders); this is its site: where it
  * lies, the bed you stand on inside, its mouths.
  */
 import * as THREE from 'three';

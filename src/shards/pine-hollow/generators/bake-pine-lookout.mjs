@@ -4,7 +4,7 @@
 // the level seed's), and writes what the builder leaves (each material's parts and the glass as float32 attribute blocks,
 // their 4-byte words' bytes in four lanes and zlib-compressed) to public/assets/pine-hollow/baked/lookout.bin, and the
 // rows (the binary's hash and size, the part counts, colliders, deck floors and anchors) to
-// src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/models/fireLookout.ts).
+// src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/runtime/models/fireLookout.ts).
 // test/shards/pine-hollow/lookout-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-lookout.mjs
 import { bakePoolRows } from './bake-pine-beaver-pool.mjs';

@@ -12,7 +12,7 @@
  * and bones, drips, and a crack in the roof whose shaft of light falls on the floor; its hood is the rock over its first
  * metres where the passage runs shallower than the slope.
  *
- * The modules are models (E315 M2, src/shards/pine-hollow/models/): `pine-hollow/crag-cliff` (the cliff bands, the
+ * The modules are models (E315 M2, src/shards/pine-hollow/runtime/models/): `pine-hollow/crag-cliff` (the cliff bands, the
  * buttress, the slab, the tors), `pine-hollow/crag-boulder` and `pine-hollow/scree`, placed with `place()`; the face skin
  * and the cave are the world (welded to the ground: the terrain is punched for the cave).
  *
@@ -37,9 +37,9 @@ import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
 import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
-import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
-import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
-import { SCREE_MODULES, scree as screeFan } from '../models/scree';
+import { CLIFF_MODULES, cragCliff } from '../runtime/models/cragCliff';
+import { BOULDER_MODULES, cragBoulder } from '../runtime/models/cragBoulder';
+import { SCREE_MODULES, scree as screeFan } from '../runtime/models/scree';
 import { CAVE_LOOK, CRAG_LOOK } from '../data/cragLook';
 import { pineLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';

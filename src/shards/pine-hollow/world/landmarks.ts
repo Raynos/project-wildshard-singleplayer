@@ -9,7 +9,7 @@
  *     a 3 m deck on log posts with a stair down; `zipTop` / `zipBottom` are the ride's anchors (the ride is a later row);
  *   · the CREEK FOOTBRIDGE on the E road: two log stringers, split-plank deck, log trestles in the gully, a log handrail;
  *   · image-to-3D hero props (TRELLIS.2, PBR kept; public/assets/models/pine-hollow-hero/), models on the contract
- *     (E315 M2, src/shards/pine-hollow/models/): the King's 7 standing stones, the 3 waystone lanterns (pond shore, ridge
+ *     (E315 M2, src/shards/pine-hollow/runtime/models/): the King's 7 standing stones, the 3 waystone lanterns (pond shore, ridge
  *     by the lookout, the den's cave mouth), the beaver dam on the sill, the canoe on the pond shore, the lodge's
  *     contract board, and the bear cave's rock arch (opened into the cave). Placed here, each type a set: LOD0 until
  *     the nearest copy is past its distance, then LOD1, gone past the props' range (`place`'s `lodBy: 'set'`).
@@ -39,18 +39,18 @@ import { loadPainted } from '../runtime/looks/paintedTextures';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
-import { STONE_KINDS, standingStone } from '../models/standingStone';
-import { waystone } from '../models/waystone';
-import { beaverDam } from '../models/beaverDam';
-import { canoe } from '../models/canoe';
-import { contractBoard } from '../models/contractBoard';
-import { caveArch, openCaveArch } from '../models/caveArch';
+import { STONE_KINDS, standingStone } from '../runtime/models/standingStone';
+import { waystone } from '../runtime/models/waystone';
+import { beaverDam } from '../runtime/models/beaverDam';
+import { canoe } from '../runtime/models/canoe';
+import { contractBoard } from '../runtime/models/contractBoard';
+import { caveArch, openCaveArch } from '../runtime/models/caveArch';
 import { loadTimber, type Floor } from './timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
-import { fireLookout } from '../models/fireLookout';
-import { ziplineLanding } from '../models/ziplineLanding';
-import { creekFootbridge } from '../models/creekFootbridge';
-import { zipCable } from '../models/zipCable';
+import { fireLookout } from '../runtime/models/fireLookout';
+import { ziplineLanding } from '../runtime/models/ziplineLanding';
+import { creekFootbridge } from '../runtime/models/creekFootbridge';
+import { zipCable } from '../runtime/models/zipCable';
 import { loadCodeParts } from './codeParts';
 import { PineCrags } from './crags';
 import { CRAG_ROWS } from './cragBake';

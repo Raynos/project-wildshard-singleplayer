@@ -7,9 +7,9 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { BOULDER_SHAPES, loadMossyBoulder, mossyBoulder, type MossyBoulderParams } from '../models/mossyBoulder';
-import { loadTreeStump, treeStump } from '../models/treeStump';
-import { fallenLog, loadFallenLog } from '../models/fallenLog';
+import { BOULDER_SHAPES, loadMossyBoulder, mossyBoulder, type MossyBoulderParams } from '../runtime/models/mossyBoulder';
+import { loadTreeStump, treeStump } from '../runtime/models/treeStump';
+import { fallenLog, loadFallenLog } from '../runtime/models/fallenLog';
 import { pineModels } from './context';
 import propJson from '../data/props.json' with { type: 'json' };
 

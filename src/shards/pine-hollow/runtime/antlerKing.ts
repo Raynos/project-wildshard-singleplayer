@@ -22,7 +22,7 @@ import { KINGS_CLEARING, KING_ARENA_FOG, KING_FX_LOOKS } from './const';
 import { Puffs } from '../combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { pineLook, setPineLookParam } from './looks/graphLooks';
-import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from '../models/antlerKing';
+import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from './models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
 
@@ -52,7 +52,7 @@ import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
  *   src/engine/player/Longbow.ts, adapted from Nalati's Bow.ts) joins the kit, with the WARDEN crossbow skin and the
  *   Owned 'warden-longbow' that keeps it across sessions (E314 C, src/shards/pine-hollow/loadout/loadout.ts); a re-fight pays 3 amber resin. Music: Music.ts's Pine Hollow boss slot (setScene('boss') / setBossPhase).
  *
- *   STAND-IN MODEL: src/shards/pine-hollow/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
+ *   STAND-IN MODEL: src/shards/pine-hollow/runtime/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
  *   HIS OWN RIG (E322 F-M1, Jake picked B; the elk-rig King went): the species as a custom rig (kingOwnSpecies, kingRig.ts) —
  *   each move names itself in `mem.act` before its wind-up: the sweep → the antler sweep, the stomp → the rearing strike

@@ -3,7 +3,7 @@
 // (src/shards/pine-hollow/generators/wildlife.ts) runs here only and writes the raven's, the owl's, the woodpecker's and the
 // hare's geometry, its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/wildlife.bin
 // and its rows (the binary's hash and size, each kind's counts) to src/shards/pine-hollow/data/wildlife.json, which the page
-// reads (src/shards/pine-hollow/models/wildlife.ts `preloadPineWildlife`). test/shards/pine-hollow/wildlife-bake.test.ts is
+// reads (src/shards/pine-hollow/runtime/models/wildlife.ts `preloadPineWildlife`). test/shards/pine-hollow/wildlife-bake.test.ts is
 // the stale gate.
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-wildlife.mjs
 import { createHash } from 'node:crypto';

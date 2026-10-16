@@ -50,7 +50,7 @@ export interface CatalogEntry extends Omit<RegisteredModel, 'worldBox'> {
 // ── Driftwood's models are on the model contract (E306 / E315 M1, src/engine/models/): `place` registers each one, its copies
 // and its tap targets, so the shard's setup registers nothing here.
 
-// ── Pine Hollow's models are on the contract (E315 M2, src/shards/pine-hollow/models/): `place` registers each one.
+// ── Pine Hollow's models are on the contract (E315 M2, src/shards/pine-hollow/runtime/models/): `place` registers each one.
 
 // ── the catalog Explore shows: every registered model + a creature per species on the shard ──
 

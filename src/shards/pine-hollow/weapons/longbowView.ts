@@ -28,7 +28,7 @@ export const POSE = bowPoses(LONGBOW_POSES);
 function longbowMaterial(sky: Sky): THREE.MeshPhysicalMaterial { return viewmodelMaterial(sky, 'longbow', LONGBOW_MATERIAL); }
 
 /**
- * The Model Explorer's card (src/shards/pine-hollow/models/gear.ts): what `displayModel` shows — the braced stave and the
+ * The Model Explorer's card (src/shards/pine-hollow/runtime/models/gear.ts): what `displayModel` shows — the braced stave and the
  * left glove on it (the bow's one mesh) — built as the viewmodel builds it on its own material, without a bow in your hands.
  */
 export function longbowSpecimen(sky: Sky): THREE.Group {

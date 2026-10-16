@@ -23,13 +23,13 @@ import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';
-import { forestTree, useTreeFactory, type ForestTreeParams } from '../models/forestTree';
-import { fern } from '../models/fern';
-import { shrub } from '../models/shrub';
-import { needleLitter } from '../models/needleLitter';
-import { pebbles } from '../models/pebbles';
-import { moss } from '../models/moss';
-import { reeds } from '../models/reeds';
+import { forestTree, useTreeFactory, type ForestTreeParams } from '../runtime/models/forestTree';
+import { fern } from '../runtime/models/fern';
+import { shrub } from '../runtime/models/shrub';
+import { needleLitter } from '../runtime/models/needleLitter';
+import { pebbles } from '../runtime/models/pebbles';
+import { moss } from '../runtime/models/moss';
+import { reeds } from '../runtime/models/reeds';
 
 /** Place the forest's trees and the floor's kinds, each in slices (`placeSliced` pausing on `due`, SF67): the same draws,
  *  registrations and order as one `place` per model, with a frame let through between the pieces when the cell builds on

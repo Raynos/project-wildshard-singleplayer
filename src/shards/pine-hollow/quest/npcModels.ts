@@ -24,7 +24,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  */
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { NpcKind } from '../models/people';
+import type { NpcKind } from '../runtime/models/people';
 import type { StandInRig } from '../runtime/npc/standInPerson';
 import skins from '../data/npcSkins.generated.json' with { type: 'json' };
 import { legBones, legPose, LEG_BONE_NAMES, type LegBuilt } from '@wildshard/game/systems/npc/npcRig';

@@ -10,12 +10,12 @@
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
 import { bear, boar, deer } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
-import { elk } from './models/creatures';
-import { antlerKing } from './models/antlerKing';
-import { owl, raven, woodpecker } from './models/birds';
-import { snowshoeHare } from './models/wildlife';
-import { millerBrandt, rangerHale, traderMott } from './models/people';
-import { GEAR } from './models/gear';
+import { elk } from './runtime/models/creatures';
+import { antlerKing } from './runtime/models/antlerKing';
+import { owl, raven, woodpecker } from './runtime/models/birds';
+import { snowshoeHare } from './runtime/models/wildlife';
+import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
+import { GEAR } from './runtime/models/gear';
 
 /** the small wildlife's copies (src/shards/pine-hollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */

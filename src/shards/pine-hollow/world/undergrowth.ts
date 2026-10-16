@@ -9,7 +9,7 @@ import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PA
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
- * goes, each kind's geometry, texture and material. Each kind is a model (src/shards/pine-hollow/models/fern.ts …) that
+ * goes, each kind's geometry, texture and material. Each kind is a model (src/shards/pine-hollow/runtime/models/fern.ts …) that
  * `place` draws instanced into `group` and culls per 32 m cell round the forest's view (E315: `kinds`, `groundCoverMatrix`,
  * `groundCoverCells`; src/shards/pine-hollow/world/drawnModels.ts).
  *

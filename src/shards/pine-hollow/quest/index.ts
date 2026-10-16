@@ -49,7 +49,7 @@ import source from '../shard.config';
  *   const quest = installPineQuest({ … });   // after installPineCombat + installCompendium (it chains animals.onKill)
  *   quest.useSfx(ambience.sfx);              // the barks, lanterns, the zipline, the thralls, once the ambience exists
  *
- *   src/shards/pine-hollow/models/people.ts   the ranger / miller / trader stand-ins — ONE factory PH-M4 swaps
+ *   src/shards/pine-hollow/runtime/models/people.ts   the ranger / miller / trader stand-ins — ONE factory PH-M4 swaps
  *   contracts.ts   the lodge's rotating three (pure)      trades.ts   the trader's swaps (pure)
  *   rides.ts       the zipline ride, the canoe to the islet             hollowLog.ts   the hollow-log passage
  *   stagLead.ts    beat 5, the pale stag down the west road            nightThralls.ts the old-growth's night + the millrace
@@ -70,7 +70,7 @@ import { ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../da
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { pineTableFromPlacements } from './table';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
-import { makeNpcFigure, type NpcFigure } from '../models/people';
+import { makeNpcFigure, type NpcFigure } from '../runtime/models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadCodeParts } from '../world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
@@ -80,7 +80,7 @@ import type { TradeItem } from '../data/trades';
 import { BoardPanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
-import { hollowLog, loadHollowLog } from '../models/hollowLog';
+import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
