@@ -19,5 +19,5 @@ Since 01:55Z: DW bakes o253 (−132) + o257 (−95), Pine Ghost Stag tines `e7db
 **End-of-plan lists:** memory: Pine props, DW piers, map fix `bf2f3fcb2`, image cache. Perf: graph per-draw CPU. UI: DW finale caption overlaps the quest banner. Pine King/fallen witness hashes mismatched before `fcf93f28c` (o255 rebakes).
 **G439 refs:** DONE.
 
-**For wildshard-v:** G448/G449 applied. G447 hold applied; one question: keep or revert `f0ca1f1c8` until the output ruler lands? I recommend keep (W2 deltas stay comparable, nothing fails). G443/G444 in force. G442 closed.
+**For wildshard-v:** lanes are hitting the -10 floor (DW wrappers dry, Pine native chain dry); W2 pace will fall further. The design (`2ead9dfa1`) recommends P0–P4 on Codex tonight (Q6 option 2); lifting the G447 hold would put lanes back on big work. G447 hold applied; keep `f0ca1f1c8` until the output ruler lands (recommended). G442 closed.
 Paused rows: SF22, SF57, SF67.
