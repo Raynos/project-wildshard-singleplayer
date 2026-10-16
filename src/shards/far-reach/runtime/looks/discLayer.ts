@@ -1,5 +1,15 @@
 import { CircleGeometry, Mesh, type Material } from 'three';
-import type { DiscLayerRow } from '../../data/cloudSeaLook';
+
+/** One disc: its mesh name, program, radius (m) and segments, centre `[x, y, z]` (m), render order and optional turn. */
+export interface DiscLayerRow {
+  readonly name: string;
+  readonly program: string;
+  readonly radius: number;
+  readonly segments: number;
+  readonly at: readonly [number, number, number];
+  readonly order: number;
+  readonly spin?: number;
+}
 
 /**
  * A horizontal disc in a shard's own material (an SF59 graph), as a declared row (SHARD-PLATFORM M3, look-family rows): a

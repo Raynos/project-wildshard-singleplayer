@@ -1,11 +1,11 @@
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
 import type { CardGroupRow } from '@wildshard/sdk/looks/cardField';
-import { SKY_CARDS } from './skyCards';
+import { SKY_CARDS } from '../data/skyCards';
+import type { SunGlowProgram } from '../data/skyCardsLook';
 import { fieldCards } from './skyCardsLook';
 
 /** The sun's three card programs and each one's weights in the glow graph's mix (`aMix`: bloom, wide, shaft). */
-export const SUN_GLOW_PROGRAMS = { sunBloom: [1, 0, 0], sunWide: [0, 1, 0], sunShaft: [0, 0, 1] } as const;
-export type SunGlowProgram = keyof typeof SUN_GLOW_PROGRAMS;
+const SUN_GLOW_PROGRAMS: Readonly<Record<SunGlowProgram, readonly [number, number, number]>> = { sunBloom: [1, 0, 0], sunWide: [0, 1, 0], sunShaft: [0, 0, 1] };
 
 /**
  * The sun's glow (E392; the judge every loop: "no visible sun, no god rays") as one SF59 material graph over one instanced

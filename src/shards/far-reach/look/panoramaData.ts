@@ -3,8 +3,6 @@
 export const PANO_HORIZON_V = 0.5508;
 /** the strip's vertical scale: degrees of elevation per unit of v (15.36 px per degree over 1024 rows) */
 export const PANO_DEG_PER_V = 66.667;
-/** columns of wrap on either side of the shipped strips (the shader maps the heading inside them) */
-export const PANO_PAD_PX = 16;
 /** the painted sun: heading (degrees, 0 = -z, 90 = +x) and elevation (degrees) */
 export const PANO_SUN = { heading: 352.16, elevation: 6.01 } as const;
 /** sRGB 0..1: the painting's top rows (the dome above them) and bottom rows (the dome below) */

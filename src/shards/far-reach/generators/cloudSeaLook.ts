@@ -1,9 +1,9 @@
 import type { GraphIr } from '@wildshard/format/materialGraph';
-import { graphKit } from './graphKit';
+import { graphKit } from '../data/graphKit';
 
 /**
  * Sky Reach's cloud sea graphs and discs (SHARD-PLATFORM M3: SF59 material graphs on horizontal discs built by
- * runtime/looks/discLayer.ts; look/render.ts adds them).
+ * runtime/looks/discLayer.ts; S4: built here at build time into data/skyDressing.generated.json, which look/render.ts adds).
  *
  * - `paintedSea` (E392, E399, E410; two discs, `SEA_LAYERS`): a big disc carrying a seamless painted texture of cumulus tops
  *   seen from above (`public/assets/far-reach/tex/cloudsea.webp`, codex image_gen), two scales blended so no repeat shows,
@@ -70,13 +70,3 @@ export const SEA_DISCS = {
   paintedMaelstrom: { name: 'far.painted-maelstrom', program: 'paintedMaelstrom', radius: 125, segments: 96, at: [0, 10, -190], order: -6 },
 } as const;
 
-/** One disc: its mesh name, program, radius (m) and segments, centre `[x, y, z]` (m), render order and optional turn. */
-export interface DiscLayerRow {
-  readonly name: string;
-  readonly program: string;
-  readonly radius: number;
-  readonly segments: number;
-  readonly at: readonly [number, number, number];
-  readonly order: number;
-  readonly spin?: number;
-}

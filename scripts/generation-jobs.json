@@ -13230,6 +13230,44 @@
       ]
     },
     {
+      "id": "sky-dressing",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/skyDressing.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/skyDressing.ts",
+        "skyDressingRows",
+        "src/shards/far-reach/data/skyDressing.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/far-reach/data/graphKit.ts",
+        "src/shards/far-reach/data/skyCards.ts",
+        "src/shards/far-reach/data/skyCardsLook.ts",
+        "src/shards/far-reach/data/skyLook.ts",
+        "src/shards/far-reach/generators/cloudSeaLook.ts",
+        "src/shards/far-reach/generators/skyCardsLook.ts",
+        "src/shards/far-reach/generators/skyDomeLook.ts",
+        "src/shards/far-reach/generators/skyDressing.ts",
+        "src/shards/far-reach/generators/sunGlowLook.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/skyDressing.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/skyDressing.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "signal-world-bakes",
       "shard": "sunscar-dunes",
       "entry": "src/shards/sunscar-dunes/generators/worldBakes.ts",

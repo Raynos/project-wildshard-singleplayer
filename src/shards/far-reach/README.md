@@ -45,7 +45,7 @@ Storm Roc.
 | `world/distant.ts` | the skyline: 14 decorative 3-D islands and waterfalls past the archipelago, and the windmill isle's waterfall |
 | `weapons/fanModel.ts` | the war fan to the review brief (nine teal panels, bronze ribs, tassel) in the shared gloved fist with a linen sleeve |
 | `look/render.ts` | `extend` look, **Gilded Air** (`docs/design/far-reach/style-bible.md`): the clean engine chain, the dome, the cloud sea and a warm distance fog |
-| `data/lookTextures.ts` | the look's painted images (the 360° panorama per tier, the cumulus atlas, the cloud sea, the maelstrom) and the dome's graph per tier (`data/skyDomeLook.ts`) |
+| `generators/skyDressing.ts` | the dome's graph per tier and the painted dressing (sun glow, cloud sea, maelstrom, cumulus; `generators/{skyDomeLook,sunGlowLook,cloudSeaLook,skyCardsLook}.ts`), written at build time to `data/skyDressing.generated.json`; the painted images are rows of `data/skyPaintedLook.ts` |
 | `data/skyLook.ts` | the look's rows: the fixed golden-hour sun (low, ahead of the spawn, left of the windmill) and clock, the key, the sky palette, the haze, the painted light and the cloud sea's layout |
 | `look/light.ts` | the painted light: a `lights_fragment_end` patch adding a warm bounce wrap, a sun rim and a warm shade floor to every lit material |
 | `plugin.ts` | the hooks, the updraft's lift (on the board inside the wind column, a steady `app.player.impulse` up: it floats you off the ramp to the high step), the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |

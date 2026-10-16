@@ -1,5 +1,5 @@
 import type { GraphIr } from '@wildshard/format/materialGraph';
-import { graphKit } from './graphKit';
+import { graphKit } from '../data/graphKit';
 
 /**
  * The painted golden-hour dome as one SF59 material graph (SHARD-PLATFORM M3; the painted look compiles it with the
