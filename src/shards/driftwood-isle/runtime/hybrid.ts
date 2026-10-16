@@ -18,7 +18,7 @@ import { setOceanLook } from './looks/facetedOcean';
 import { setCreatureLooks } from './looks/creatureLooks';
 import { setCoverLooks } from './looks/streamedCover';
 import { setIslandLooks } from './looks/bakedIsland';
-import { setGullLook } from '../world/Gulls';
+import { setGullLook } from './world/Gulls';
 import { admitDriftwoodRows } from './boot/rows';
 
 // The static transitional world belongs to the resident, not a single entered play scope; its motion binds the admitted

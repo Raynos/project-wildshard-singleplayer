@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { islandKnobs } from '../../tiers';
+import { islandKnobs } from '../tiers';
 import { copyHibiscusVariant, loadHibiscusVariants, hibiscusVariantsReady } from '../boot/hibiscusGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 

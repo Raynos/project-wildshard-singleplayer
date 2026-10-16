@@ -27,7 +27,7 @@ import { lookout as lookoutModel, lookoutOrigin, lookoutLayout } from '../runtim
 import { Wreck } from './Wreck';
 import { Shrine } from './Shrine';
 import { placeIslandBushes } from './Bushes';
-import { Gulls } from './Gulls';
+import { Gulls } from '../runtime/world/Gulls';
 import { buildTrailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';

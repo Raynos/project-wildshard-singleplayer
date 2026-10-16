@@ -11,7 +11,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import type { PierParams, PierSpec } from '../assets/contracts/pier';
 import { BOAT_MOORING } from '../data/boatLook';
 import { BOAT_LAYOUT } from '../data/boatLayout';
-import { BOAT_CLEATS } from '../world/boatFrame';
+import { BOAT_CLEATS } from '../runtime/world/boatFrame';
 import { pierPosts } from '../world/pierLayout';
 import { LOWERED_SEA } from '../world/sea';
 import { BOAT_MOOR } from '../world/sites';

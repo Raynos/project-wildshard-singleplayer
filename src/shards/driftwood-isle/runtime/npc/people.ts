@@ -1,7 +1,7 @@
 import { NpcRig, type NpcRow } from '@wildshard/game/systems/npc/npcRig';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { Castaway, loadWendellFace, type Pos } from '../runtime/npc/Castaway';
-import { Trader, TRADER_NEAR_R } from '../runtime/npc/Trader';
+import { Castaway, loadWendellFace, type Pos } from './Castaway';
+import { Trader, TRADER_NEAR_R } from './Trader';
 
 interface CastawayArgs { sky: Sky; feet: Pos; fire: Pos }
 export const CASTAWAY_ROW: NpcRow<Castaway, CastawayArgs> = {

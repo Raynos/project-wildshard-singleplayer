@@ -16,7 +16,7 @@ import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeomet
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BOAT_LAYOUT } from '../const';
-import { boatStation as authoredBoatStation } from '../../world/boatFrame';
+import { boatStation as authoredBoatStation } from '../world/boatFrame';
 
 export const LENGTH = BOAT_LAYOUT.length, BEAM = BOAT_LAYOUT.beam;
 /** the floor boards' top over the waterline (own y): where you stand in it */

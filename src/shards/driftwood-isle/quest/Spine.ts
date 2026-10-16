@@ -21,7 +21,7 @@ import { presentQuest, installDeclaredNpcTalks, QuestViews, type QuestNpcTalkPor
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { DRIFTWOOD_QUEST } from '../data/questStory';
 import type { Castaway } from '../runtime/npc/Castaway';
-import { castawayRig } from './people';
+import { castawayRig } from '../runtime/npc/people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 

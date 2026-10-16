@@ -1,4 +1,7 @@
-import { BOAT_LAYOUT, type BoatStation } from '../data/boatLayout';
+import { BOAT_LAYOUT } from '../const';
+
+/** one hull station (mirrors data/boatLayout.ts BoatStation) */
+export interface BoatStation { t: number; z: number; w: number; sheer: number; keel: number; floor: number }
 
 /** The retained authored hull equation; moving it out of the live model is not a custom-runtime cut. */
 export function boatStation(t: number): BoatStation {

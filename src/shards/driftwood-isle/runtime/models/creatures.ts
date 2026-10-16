@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { Gulls } from '../../world/Gulls';
+import { Gulls } from '../world/Gulls';
 import { fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 const FILE = 'src/shards/driftwood-isle/runtime/models/creatures.ts';
