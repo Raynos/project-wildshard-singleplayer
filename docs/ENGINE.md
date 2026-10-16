@@ -7561,3 +7561,23 @@ no repository policy module. Standalone v1 projects still declare an explicit
 `buildOptions.asLineCeiling`; generated code never counts as authored AS.
 Early asset target errors report target checks alone; execution sample
 requirements are checked only after the real simulation measurement.
+
+### World-target landing attachments (KA6)
+
+`bindQuestPageInteractions(source, ports, worldTargets?)` creates the target
+dispatcher using the entered quest's real marks, flags, named action beats
+and hint port. The optional third argument is the admitted `world/targets`
+section; otherwise it reads the source's verified output descriptor. Call
+`page.bindWorldTargets(weapon)` with the actual held owner. No shard function
+is passed, and the existing immediate or delayed landing remains the clock.
+Target interaction ids resolve through exactly one page action's native
+`interaction`, so presentation aliases cannot change mechanical identity.
+Absent contact rows refuse explicit binding; perch-only sections stay inert.
+
+`prepareRuntimePlan` accepts the full verified section map as its fifth
+argument. When the selected weapon has target rows, it attaches
+`bindNativeWorldTargets` after the existing quest owner and replaces the
+legacy reaction callback. A section with only perch points leaves the old
+weapon path intact. Installation and restore emit no contacts. Native hint
+effects publish as bounded `{kind:'hint', text}` tick data, alongside the
+existing fact/coin effects, only when the tick completes.

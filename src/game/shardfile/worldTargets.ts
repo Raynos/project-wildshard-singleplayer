@@ -12,6 +12,8 @@ export interface WorldTargetOwners {
 }
 /** A geometric contact can be absorbed without applying a mechanic (for example, a wrong move's hint). */
 export interface WorldTargetOutcome extends WorldContactHit { readonly id: string; readonly caught: boolean; readonly applied: boolean }
+/** The existing page/native contact owner. Borrowing it installs no clock or input lane. */
+export interface WorldTargetLanding { bindWorldTargets: (owner: WorldContactDispatcher | null) => void }
 
 /** Data-only contact policy on the existing strike contact primitive. It owns no step, guest, timers, saves or bodies. */
 export class WorldTargetHost implements WorldContactDispatcher {

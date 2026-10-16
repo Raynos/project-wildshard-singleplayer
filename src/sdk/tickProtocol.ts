@@ -41,6 +41,7 @@ export interface HeadlessCommandSource { source: string; commands: readonly Head
 export const TickEffectSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('fact'), name: text, actorId: text }),
   v.strictObject({ kind: v.literal('coins'), amount: finite, actorId: text }),
+  v.strictObject({ kind: v.literal('hint'), text: v.pipe(v.string(),v.minLength(1),v.maxLength(4096)) }),
 ]);
 /** Only completed, in-budget ticks can expose these durable quest requests to the parent. */
 export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;

@@ -1,5 +1,8 @@
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
+import { WorldTargetHost, type WorldTargetLanding } from '../shardfile/worldTargets';
+import { outputDescriptor } from '../shardfile/outputDescriptor';
+import { parseWorldTargets, type WorldTargets } from '@wildshard/format/worldTargets';
 import "../quest/presentation.css";
 import { compileTubeCurve, parseClientChannelInputs, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, PointLight, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
@@ -1318,9 +1321,13 @@ export interface QuestPageInteractionPorts {
   readonly owners?:ReadonlyMap<string,unknown>;
 }
 /** Validated presentation actions; run returns the native acceptance and action supplies a prompt callback. */
-export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void;readonly prompt:(id:string)=>Interactable;readonly world:QuestWorldReactions}
+export interface QuestPageInteractions {
+  readonly run:(id:string)=>boolean; readonly action:(id:string)=>()=>void; readonly prompt:(id:string)=>Interactable; readonly world:QuestWorldReactions;
+  /** Lend the platform's admitted dispatcher to the actual held weapon; never supplies shard callbacks. */
+  readonly bindWorldTargets: (landing: WorldTargetLanding) => void;
+}
 /** Bind page view rows only after every native rule and borrowed target resolves; seed saved view state once. */
-export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPageInteractionPorts):QuestPageInteractions {
+export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPageInteractionPorts,worldTargets?:WorldTargets):QuestPageInteractions {
   const data=questPageData(source);
   const promptOwners=new Map(ports.owners),owners=ports.promptIds===undefined?(ports.owners??promptOwners):promptOwners,made=new Map<string,Interactable>();
   if(ports.promptIds!==undefined){
@@ -1393,10 +1400,25 @@ export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPage
   for(const row of data.world??[])if(row.action!==undefined)read(row.action);
   const world=bindQuestWorldReactions(data.world??[],{flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}},run:id=>read(id)(),toast:ports.toast,
     point:row=>{const pointField=readBorrowedOwner(owners,row);if(!(pointField?.value instanceof Vector3))throw new Error('Quest world reaction needs its actual point');return pointField.value;}});
+  const targetData = worldTargets ?? ('files' in source && typeof source['files'] === 'object' && source['files'] !== null
+    ? outputDescriptor({files:source['files']})?.sections.get('world/targets') : undefined);
+  // Effects name native interaction identities, independently of page action aliases.
+  const targetActions = new Map<string, {run:()=>boolean}>();
+  if (targetData !== undefined) for (const row of rules.data.rows) {
+    const matches = data.actions.filter(action => action.interaction === row.id);
+    if (matches.length === 1) {
+      const action = matches[0]; if (action !== undefined) targetActions.set(row.id, {run:read(action.id)});
+    }
+  }
+  const parsedTargets = targetData === undefined ? undefined : parseWorldTargets(targetData);
+  const contacts = parsedTargets === undefined || parsedTargets.targets.length === 0 ? null : new WorldTargetHost(parsedTargets, {
+    flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}}, interactions:targetActions, hints:{show:ports.toast},
+  });
   for(const bind of prompts)bind();
   for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
   ports.interactables?.push(...registered);
-  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},prompt:id=>{const prompt=made.get(id);if(prompt===undefined)throw new Error(`Undeclared quest prompt ${id}`);return prompt;},world};
+  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},prompt:id=>{const prompt=made.get(id);if(prompt===undefined)throw new Error(`Undeclared quest prompt ${id}`);return prompt;},world,
+    bindWorldTargets:landing=>{if(contacts===null)throw new Error('Missing admitted world targets');landing.bindWorldTargets(contacts);}};
 }
 
 /** Live page owners lent to the already admitted quest stages. */

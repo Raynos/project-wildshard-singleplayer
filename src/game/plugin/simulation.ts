@@ -1,4 +1,7 @@
 import { ShardDecisions } from '../shardfile/decisions';
+import { WorldTargetHost } from '../shardfile/worldTargets';
+import { outputDescriptor } from '../shardfile/outputDescriptor';
+import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
 import { decisionScriptsFromSections } from '@wildshard/format/scriptContract';
 import { prepareNativePopulation, type NativePopulationRows } from '../shardfile/bossRow';
 import { parseQuestWorldReactions, type QuestWorldReactionsData } from '@wildshard/format/questInteractions';
@@ -197,16 +200,22 @@ interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
 }
 interface NativeRuntimeContext {
   readonly restoring: boolean; readonly snapshot?: Readonly<SimSnapshot>;
-  readonly emit: Parameters<typeof ledgerPorts>[0]; readonly commands: () => readonly NativeMeleeInput[];
+  readonly emit: (effect: NativeRuntimeEffect) => void; readonly commands: () => readonly NativeMeleeInput[];
 }
+/** Native quest facts, rewards and bounded player-facing contact hints publish only with a completed tick. */
+export type NativeRuntimeEffect = Parameters<Parameters<typeof ledgerPorts>[0]>[0] | { readonly kind: 'hint'; readonly text: string };
 interface NativeRuntimePlan {
   readonly level: SimLevel; readonly ports: Awaited<ReturnType<typeof prepareRuntimeWorld>>['ports'];
   readonly install: (host: SimHost, context: NativeRuntimeContext) => void;
   readonly proveEntries?: (host: SimHost) => ReturnType<typeof proveTerrainEntries>;
 }
 /** Complete declared native owners on the caller's one host, with original install phases and restore authority. */
-export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: NativeRuntimeRecipe): Promise<NativeRuntimePlan> {
+export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: NativeRuntimeRecipe,
+  sections: ReadonlyMap<string,unknown> = outputDescriptor(shard)?.sections ?? new Map()): Promise<NativeRuntimePlan> {
   const row = recipe.runtime, weapon = weaponRow(shard, row.weapon.id);
+  const targets = sections.has('world/targets') ? parseWorldTargets(sections.get('world/targets')) : undefined;
+  if (targets !== undefined) { const errors=worldTargetRules(targets,shard);if(errors.length>0)throw new Error(errors.join('; ')); }
+  const ownsTargets = targets?.targets.some(target=>target.weapon===weapon.id) === true;
   const world = await prepareRuntimeWorld(shard, assets, baked, recipe);
   const quest = shard.questHost;
   if (quest === undefined || quest === null) throw new Error('Missing admitted native quest host');
@@ -216,7 +225,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
   if (row.quest.summons.length > 64 || new Set(row.quest.summons.map(value => value.director)).size !== row.quest.summons.length) throw new Error('Invalid native director bindings');
   const plan: NativeRuntimePlan = { level: world.level, ports: world.ports, install: (host, context) => {
     const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
-    const reactions = row.weapon.worldReactionAction === undefined ? undefined : (() => {
+    const reactions = ownsTargets || row.weapon.worldReactionAction === undefined ? undefined : (() => {
       const declarations = quest.page?.world;
       if (declarations === undefined) throw new Error('Missing admitted quest world reactions');
       return bindQuestWorldReactions(declarations, { flags: host.flags });
@@ -230,7 +239,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
       hook: environment.hooks.get(weapon.id) ?? null, hookTick: environment.hookTick,
       ...(reactions === undefined ? {} : { landed: (action: number, from: Vector3, dir: Vector3) => { if (action === row.weapon.worldReactionAction) reactions.scan(from, dir); } }),
     });
-    installDeclaredQuestHost(host, shard, { ...ledger, spots,
+    const questRuntime = installDeclaredQuestHost(host, shard, { ...ledger, spots,
       ...(row.quest.crack ? { crack: { reach: { light: weapon.light.range, heavy: weapon.heavy.range }, cracked: melee.cracked } } : {}),
       ...(metadata === undefined ? {} : { promptRegistrations: parsePromptRegistrations(metadata.promptRegistrations) }),
       commands: pickCommands(context.commands, command => {
@@ -240,12 +249,23 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
       }), observations: environment.observations, actions: environment.actions,
       directorActions: new Map(row.quest.summons.map(binding => [binding.director, [{ action: { spawn: binding.spawn }, run: encounter.summon }]])),
     });
+    if (ownsTargets) bindNativeWorldTargets(host, melee, questRuntime, targets, context.emit);
     if (row.columns) bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).columns(shard.modes?.traverse ?? [], () => host.player.position, () => host.playerBoard.on,
       (id, run) => { host.onStep(id, run); });
     keeper.settle();
   } };
   const entries = row.entries;
   return entries === undefined ? plan : { ...plan, proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, world.ports.heightAt, entries) };
+}
+/** Attach admitted contacts after the existing quest owner is installed, without a second melee or script clock. */
+export function bindNativeWorldTargets(host: Pick<SimHost,'flags'>, melee: NativeMeleeOwner,
+  quest: Pick<ReturnType<typeof installDeclaredQuestHost>,'rules'|'run'>, input: unknown, emit: (effect: Extract<NativeRuntimeEffect,{kind:'hint'}>)=>void): void {
+  const contacts = new WorldTargetHost(input, {
+    flags:{has:id=>quest.rules.has(id),set:id=>{host.flags.set(id);}},
+    interactions:new Map(quest.rules.data.rows.map(row=>[row.id,{run:()=>quest.run(row.id).ok}])),
+    hints:{show:text=>{emit({kind:'hint',text});}},
+  });
+  melee.family.bindWorldTargets(contacts);
 }
 /** A declared weapon row (`shard.items`) by id; an absent or non-weapon row refuses. */
 export function weaponRow(shard: Pick<Shardfile, 'items'>, id: string): Extract<Shardfile['items']['rows'][number], { kind: 'weapon' }> {
