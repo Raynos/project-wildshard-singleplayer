@@ -171,6 +171,11 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
 }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
 
+/** one material's split program key (`EngineNodesHandler.splitKeys`): its material part and the last whole key with its parts */
+interface SplitKeyMemo {
+  readonly version: number; readonly material: string; key: string; scene: string; receive: boolean; toneMapped: boolean;
+  instances: string; bones: number; fog: string; layer: number;
+}
 /** what the stock handler keeps for one (material, program) pair: the uniforms, groups and update nodes of the program's build */
 interface ProgramEntry {
   readonly uniformsGroups: unknown[];
@@ -318,6 +323,23 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly stockKeys = new WeakMap<THREE.Material, { stamp: number; version: number; receive: string | undefined; plain: string | undefined }>();
   /** advances at every render start: the stock keys' validity */
   private keyStamp = 0;
+  /**
+   * Split program keys (the Developer Debug row Performance ▸ Split program keys, `graphSplitKeys`, live, default off):
+   * the program key a graph draw asks for is the same string, kept as three parts instead of being rebuilt every draw.
+   * The material part (three's walk of the material's node children) is kept per material version, the scene part (the
+   * scene's lights, environment and fog plus the bound target's output transform) once per render call and target, and
+   * only the object part (receive-shadow, instancing, bones, fog patch, layer) is compared per draw; an unchanged draw
+   * returns the very string it returned last time, so the variant lookup hashes nothing new.
+   */
+  splitKeys = false;
+  /** the material part of each material's split key and its last whole key (`splitKeys`) */
+  private readonly splitMemos = new WeakMap<THREE.Material, SplitKeyMemo>();
+  /** the scene part of the split key: the render call (stack entry), lights, target and output it was computed for */
+  private sceneMemo: { top: object | null; lights: number; target: THREE.RenderTarget | null; toneMapping: THREE.ToneMapping; colorSpace: string; value: string } | null = null;
+  /** advances at every `updateLights`: the scene part's validity */
+  private lightsStamp = 0;
+  /** material parts computed (three's node-children walk) under `splitKeys`; a test's and a bench's count */
+  materialKeyWalks = 0;
 
   constructor() {
     super();
@@ -370,12 +392,19 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // Within one render call the scene, lights and output transform are fixed, so it is computed once per material,
     // receive-shadow flag and render, and again whenever the material's version moves.
     const stockKeys = this.stockKeys, stamp = (): number => this.keyStamp;
+    // Split keys (Debug ▸ Performance ▸ Split program keys, `splitKeys`): the same key, from three parts kept apart
+    const splitOn = (): boolean => this.splitKeys, scenePart = (): string | null => this.scenePart();
+    const splitKey = (material: THREE.Material, object: unknown, scene: string, fogId: string, layer: number): string => this.splitKey(material, object, scene, fogId, layer);
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
       const current = frame();
       const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
       const layer = layerFrameOf(this);
       const fog = materialNodeFogOf(this) ?? fogPatches().at(-1);
       const fogKey = fog?.node === undefined ? '' : `|fog:${fog.id}`;
+      if (splitOn() && object instanceof THREE.Object3D) {
+        const scene = scenePart();
+        if (scene !== null) return splitKey(this, object, scene, fog?.node === undefined ? '' : fog.id, layer === null ? 0 : layer.whole ? 1 : 2);
+      }
       const receive = object instanceof THREE.Object3D && object.receiveShadow;
       let memo = stockKeys.get(this);
       if (memo === undefined || memo.stamp !== stamp() || memo.version !== this.version) {
@@ -406,6 +435,50 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const fade = reference('value', 'float', layer.fade);
       return layer.whole ? out.mul(fade) : vec4(out.xyz, out.w.mul(fade));
     });
+  }
+
+  /** the scene part of the split key for the current render call and target, or null where it cannot be kept (`splitKeys`) */
+  private scenePart(): string | null {
+    const top = internals(this).renderStack.at(-1), renderer = this.real;
+    if (top === undefined || renderer === null) return null;
+    const target = renderer.getRenderTarget();
+    // an XR target's output space is its texture's, which may move without the target changing
+    if (target !== null && Reflect.get(target, 'isXRRenderTarget') === true) return null;
+    const memo = this.sceneMemo;
+    if (memo?.top === top && memo.lights === this.lightsStamp && memo.target === target &&
+      memo.toneMapping === renderer.toneMapping && memo.colorSpace === renderer.outputColorSpace) return memo.value;
+    const sceneContext: unknown = top.sceneContext, proxy: unknown = Reflect.get(this, 'renderer');
+    const sceneKey: unknown = typeof sceneContext === 'object' && sceneContext !== null ? Reflect.get(sceneContext, 'getCacheKey') : undefined;
+    const rendererKey: unknown = typeof proxy === 'object' && proxy !== null ? Reflect.get(proxy, 'getCacheKey') : undefined;
+    if (typeof sceneKey !== 'function' || typeof rendererKey !== 'function') return null;
+    // three's stock key concatenates the scene hash and the renderer hash in this order (WebGLNodesHandler)
+    const value = `${String(Reflect.apply(sceneKey, sceneContext, []))}${String(Reflect.apply(rendererKey, proxy, []))}`;
+    this.sceneMemo = { top, lights: this.lightsStamp, target, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, value };
+    return value;
+  }
+
+  /** the whole program key from its kept parts: the same string as the stock path's (`splitKeys`) */
+  private splitKey(material: THREE.Material, object: unknown, scene: string, fogId: string, layer: number): string {
+    if (!(object instanceof THREE.Object3D)) throw new Error('EngineNodesHandler: a split program key without a drawn object');
+    let memo = this.splitMemos.get(material);
+    if (memo === undefined || memo.version !== material.version) {
+      // three's material hash: the node children's walk (NodeMaterial.customProgramCacheKey), as the stock callback asks it
+      const proto: unknown = Reflect.get(material.constructor, 'prototype');
+      const walk: unknown = typeof proto === 'object' && proto !== null ? Reflect.get(proto, 'customProgramCacheKey') : undefined;
+      if (typeof walk !== 'function') throw new Error('EngineNodesHandler: a graph material without a program key');
+      this.materialKeyWalks++;
+      memo = { version: material.version, material: String(Reflect.apply(walk, material, [])), key: '', scene: '', receive: false,
+        toneMapped: false, instances: '', bones: -1, fog: '', layer: -1 };
+      this.splitMemos.set(material, memo);
+    }
+    const receive = object.receiveShadow, instances = nodeInstanceKey(object);
+    const bones = object instanceof THREE.SkinnedMesh ? object.skeleton.bones.length : -1;
+    if (memo.key !== '' && memo.scene === scene && memo.receive === receive && memo.toneMapped === material.toneMapped &&
+      memo.instances === instances && memo.bones === bones && memo.fog === fogId && memo.layer === layer) return memo.key;
+    memo.scene = scene; memo.receive = receive; memo.toneMapped = material.toneMapped; memo.instances = instances;
+    memo.bones = bones; memo.fog = fogId; memo.layer = layer;
+    memo.key = `${memo.material}${scene}${String(receive)}|${PROGRAM_KEY}|${material.toneMapped ? 'tm' : 'raw'}|${nodeObjectKey(object)}${fogId === '' ? '' : `|fog:${fogId}`}${layer === 0 ? '' : `|layer:${layer === 1 ? 'whole' : 'alpha'}`}`;
+    return memo.key;
   }
 
   /** read stock references in place on every graph draw (`TextureUpdates.inlineReads`; Debug ▸ Performance ▸ Inline graph reads) */
@@ -562,6 +635,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       }
     }
     // the fade's ghosts light nothing (intensity 0) and lend their maps to their cascades: no light node of their own
+    this.lightsStamp++;
     super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
   }
 
