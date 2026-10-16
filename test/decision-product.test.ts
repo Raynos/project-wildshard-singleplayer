@@ -16,6 +16,7 @@ import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { admitScriptContract, decisionModuleContracts, decisionScriptsFromSections } from '../src/format/scriptContract';
 import { assetCost } from '../src/format/product';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
+import { HeadlessSimulation } from '../src/sdk/headless';
 
 let bytes: Uint8Array = new Uint8Array();
 const directories: string[] = [];
@@ -35,6 +36,15 @@ export function ws_init(lo:i32,hi:i32):void {}
 export function ws_io():i32 { return 16384; }
 export function ws_handle():i32 { return 0; }`, { abi: 1, maximumPages: 2 }); });
 afterEach(() => { for (const path of directories.splice(0)) rmSync(path, { recursive: true }); });
+
+test('native workers admit explicitly declared v1 sections without inferring an ABI', async () => {
+  const { shard, assets, scripts } = fixture();
+  await expect(HeadlessSimulation.create(shard, assets)).rejects.toThrow('ABI');
+  const sections = new Map<string, unknown>([['sim/scripts', scripts], ['actors/moves', []]]);
+  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections });
+  try { expect((await sim.step()).tick).toBe(1); expect(sim.quarantined).toBe(false); }
+  finally { await sim.dispose(); }
+});
 
 test('source and in-memory named bytes retain explicit contracts, without an index ABI field', async () => {
   const { blob, platform } = fixture(), root = directory(); writeFileSync(resolve(root, 'sample.wasm'), bytes);

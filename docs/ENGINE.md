@@ -7360,3 +7360,15 @@ The public steering kernels also serve the existing raptor/phased brains during 
 `@wildshard/engine/sim/moverLifecycle` observes committed fixed-step fields and retains edge latches plus a bounded 64-event FIFO. `MoverRuntime.drainEndEvents()` returns `{mover, atEnd}` edges for the platform's declared signal routes; drain each fixed step. These are distinct from the actor `move.done` ABI event. Snapshot/restore retains undelivered events and refuses incompatible declarations atomically.
 
 Fresh installations pass saved flag DATA as `restoreFlags: ReadonlySet<string>` through `installDeclaredMovers` or native `MoverScriptDriver.install`. `moverEndState` resolves an admitted track's final pose and stopped progress without executing its guest or advancing time. The platform validates the whole replacement state before publishing it and seeds endpoint latches without emitting a completion, quest write or reward. Native checkpoint restore keeps its own world/guest continuation and lifecycle latches; it does not rerun durable flag restoration. Existing movers without these rows retain their current command/physics law.
+
+### Native decision section transport (KT2)
+
+`@wildshard/sdk/headless.HeadlessSimulation.create` accepts optional
+`options.sections`: the admitted `sim/scripts` and `actors/moves` payloads.
+The parent parses them before asset admission and sends owned plain values
+to the worker, which parses them and verifies the same explicit Wasm
+contracts again. No ABI is inferred from an asset. Omitted sections retain
+the v0 path; v1 bytes without their declared rows refuse. The author build
+passes its decision rows into this boundary before measuring the native
+simulation. Decision execution/event wiring remains KA6; KT2 exercises the
+real DecisionHost separately, rather than inventing a second interpreter.

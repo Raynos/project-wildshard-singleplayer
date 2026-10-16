@@ -1871,3 +1871,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Cached split rig geometry and existing KTX2 blocks (pine-rig-blob-inputs).
 /src/shards/pine-hollow/assets/rig-blobs/
 /src/shards/pine-hollow/data/rigBlobs.generated.json
+
+# Cheap Template decision output (template-boss-decision).
+/src/shards/_template/behaviour/boss.json
+/src/shards/_template/assets/dbfb0cdeedc38df82399a8f2cf9c4d949e5fcee7603162f59f4b78373a4c2d60
