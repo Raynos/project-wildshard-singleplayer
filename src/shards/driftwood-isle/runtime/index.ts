@@ -9,7 +9,6 @@ import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { driftwoodDirectorBytes } from './director';
 import type { Vector3 } from 'three';
 import { SECTIONS } from './sections';
-import { driftwoodEffects } from './questRows';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
@@ -75,7 +74,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
     const quest = ctx.product.section('custom/questRows', SECTIONS); // the kit's rows from the product (W2b)
     ctx.rows.item(quest.items); ctx.rows.feat(quest.feats);
-    ctx.rows.effect(driftwoodEffects(quest.effects)); ctx.rows.shop(quest.goods);
+    ctx.rows.effect(quest.effects); ctx.rows.shop(quest.goods);
   }
 
   /** SF27: the hybrid subclass selects admitted decisions; the ordinary entry keeps the shipping species rows. */

@@ -53,8 +53,10 @@ const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', '
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
 const modifier = v.strictObject({ attr: text, op: v.picklist(['add', 'mul', 'override']), value: number });
-const effect = v.strictObject({ id: text, kind: v.literal('permanent'), tags: v.pipe(v.array(text), v.maxLength(32)), modifiers: v.pipe(v.array(modifier), v.maxLength(32)),
-  grants: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))), stacking: v.union([v.literal('none'), v.strictObject({ max: natural })]), group: v.exactOptional(text), removes: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))) });
+const effectId = v.pipe(text, v.startsWith('effect.'));
+const effectTag = v.pipe(text, v.includes('.'));
+const effect = v.strictObject({ id: effectId, kind: v.literal('permanent'), tags: v.pipe(v.array(effectTag), v.maxLength(32)), modifiers: v.pipe(v.array(modifier), v.maxLength(32)),
+  grants: v.exactOptional(v.pipe(v.array(effectTag), v.maxLength(32))), stacking: v.union([v.literal('none'), v.strictObject({ max: natural })]), group: v.exactOptional(text), removes: v.exactOptional(v.pipe(v.array(effectId), v.maxLength(32))) });
 const goodId = v.picklist(['whetstone-1', 'whetstone-2', 'heart-1', 'heart-2', 'sea-chart', 'cape']);
 const good = v.strictObject({ id: goodId, name: text, does: text, icon: v.picklist(['whetstone', 'heart', 'chart', 'cape']), price: natural, needs: v.exactOptional(goodId) });
 
