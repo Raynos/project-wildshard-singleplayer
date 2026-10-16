@@ -96,3 +96,15 @@ const EnemyPlacements = v.object({ seed: finite, practice: xz, native: v.strictO
 /** Native intake admits only the authored spawn rows it consumes, without importing a client module. */
 export type NativeEnemyPlacements = v.InferOutput<typeof EnemyPlacements>;
 export function readEnemyPlacements(input: unknown): NativeEnemyPlacements { return v.parse(EnemyPlacements, input); }
+
+const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
+const keeperRows = v.strictObject({ seed: finite,
+  fauna: v.strictObject({ seed: finite, centres: v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(32)),
+    rows: v.pipe(v.array(v.strictObject({ id: v.string(), herd: finite, seed: finite, x: finite, z: finite, yaw: finite, stream })), v.maxLength(64)), stream }),
+  variants: v.pipe(v.array(v.strictObject({ kind: v.string(), rows: v.pipe(v.array(v.strictObject({ id: v.string(), scale: v.tuple([finite, finite]) })), v.maxLength(32)) })), v.maxLength(32)),
+  herds: v.pipe(v.array(v.strictObject({ kind: v.string(), x: finite, z: finite })), v.maxLength(32)),
+  bodies: v.pipe(v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite,
+    yaw: finite, seed: finite, scale: finite, fauna: v.boolean(), practice: v.boolean(), stream: v.nullable(stream) })), v.length(34)) });
+/** Admitted immutable keeper boot rows; version-8 live continuation stays with the existing native owner. */
+export type NativeKeeperRows = v.InferOutput<typeof keeperRows>;
+export function readKeeperRows(input: unknown): NativeKeeperRows { return v.parse(keeperRows, input); }

@@ -3,6 +3,7 @@ import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { enemyPlacements } from './enemyPlacement';
+import { keeperRows } from './keeperRows';
 import { emitDefinedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../data/output';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../data/clientSections';
@@ -18,7 +19,9 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 }));
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-const placements = emitNamedBlobs([nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(enemyPlacements())))]);
+const placed = enemyPlacements();
+const placements = emitNamedBlobs([nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
+  nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
 export const output = { ...DRIFTWOOD_OUTPUT, namedFiles: placements.files, assets: placements.assets, custom };
 /** Strict output copies prove the same constants the source mirror fixture checks. */
 export const mirrors = [...RUNTIME_MIRRORS];

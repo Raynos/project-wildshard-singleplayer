@@ -12,25 +12,19 @@ import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { EntityIds } from '@wildshard/engine/entities/ids';
 import { Bodies } from '@wildshard/engine/physics/bodies';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { CRAB } from '../species/crab';
-import { SAILOR } from '../species/sailor';
-import { MONKEY_VARIANTS } from '../species/monkeyVariants';
 import { DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
-import type { DriftwoodBake, NativeEnemyPlacements } from './baked';
+import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
 import { RespawnQueue } from '../runtime/ecology';
 import { RESPAWN } from '../data/ecology';
-import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
 import { FAUNA_SPECIES } from './fauna';
-import { DRIFTWOOD_NATIVE_FAUNA } from '../data/nativeFauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
 export const ISLAND_STEP = 'driftwood.island';
@@ -48,8 +42,6 @@ const SHELL_FADE = 1.5;
 const NORMAL_EPS = 0.6;
 /** AnimalManager ANIM_LOD: the shipping rig leaves its pose/root transition frozen beyond this range. */
 const ANIM_LOD = 140;
-const ENEMIES = new Map<string, readonly { readonly id: string; readonly weight: number; readonly scale: readonly [number, number] }[]>([
-  ['crab', CRAB.variants], ['sailor', SAILOR.variants], ['monkey', MONKEY_VARIANTS]]);
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
 const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
@@ -59,6 +51,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
   readonly placement: NativeEnemyPlacements;
+  readonly keeper: NativeKeeperRows;
   readonly bake: DriftwoodBake;
   /** every (kind.variant)'s baked native spec */
   readonly specs: ReadonlyMap<string, AnimalSimSpec>;
@@ -93,7 +86,7 @@ const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.st
 /**
  * Driftwood Isle's creatures in a renderer-free host (SF72), as the shipping AnimalManager and creatures/Enemies.ts keep
  * them. The 13 fauna (four sounders and two bears) come from their baked recipes at the spawns, yaws and herd centres
- * their anchor searches drew off the creature stream `Rng(seed + 31)` (data/nativeFauna.ts); each fauna body's memory takes
+ * their anchor searches drew off the creature stream `Rng(seed + 31)` (sim/keeper.json); each fauna body's memory takes
  * the three draws after its seed (HuntBrain.adopt), and the stream then stands exactly past those 148 draws. The 21
  * enemies are placed by `placeEnemies` (crab groups, the practice crab, three monkey troops, the sailor in the hold), each
  * with the manager's spawn draws from that stream (a monkey's variant roll, then scale, rig seed, body seed, and the three
@@ -148,7 +141,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
 } {
   // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
   const FULL_ROSTER = new Error('Driftwood ecology roster exceeds its native bound');
-  const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
+  const { bake, specs, keeper: roster } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
   // the page's distance bands (AnimalManager.tickRate): 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`,
   // the fauna's default), 'always' while a crab sidesteps, the creature manager's 'legacy' for the captain (a self-thinking
   // species with no `tick`: 10 Hz decisions, the body every frame at any distance); and the creature body LOD. Before any spawn.
@@ -194,7 +187,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // the shared native roster (G454 rows): the island's scale tables, any heightfield as the floor, the melee turn cap, the
   // fauna adopted by the hunting brain, every body on the native pose roster
   const intake = createNativeCreatureRoster<IslandBody>(host, {
-    specs: specs.values(), variants: new Map([...ENEMIES, ['boar', ISLAND_BOAR.variants], ['bear', ISLAND_BEAR.variants]]),
+    specs: specs.values(), variants: new Map(roster.variants.map(row => [row.kind, row.rows])),
     rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', hunt, hunted: [...FAUNA], poses });
   /** a body the roster made: a sailor on a deck keeps the hold's floor under his feet; an enemy takes its shipping policy */
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
@@ -204,23 +197,13 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   };
   const { draw } = intake;
   const place = (body: IslandBody): void => { join(body, intake.arrive(body)); };
-  const variants = (kind: string): NonNullable<ReturnType<typeof ENEMIES.get>> => { const table = kind === 'boar' ? ISLAND_BOAR.variants : kind === 'bear' ? ISLAND_BEAR.variants : ENEMIES.get(kind); if (table === undefined) throw new Error(`Driftwood has no ${kind} variants`); return table; };
   const enemyBody = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number): IslandBody =>
     ({ ...intake.body(id, kind, variant, herd, at, yaw), brain: null });
-  const fauna = bake.actors.filter(actor => actor.kind === 'boar' || actor.kind === 'bear');
-  const boot = DRIFTWOOD_NATIVE_FAUNA, herdBase = boot.centres.length;
-  if (ports.seed !== boot.seed || fauna.length !== boot.rows.length || fauna.some((actor, i) => {
-    const row = boot.rows[i]; return row === undefined || row.id !== actor.id || row.herd !== actor.herd || row.seed !== actor.seed;
-  })) throw new Error('Driftwood fauna placement diverges from the authored boot');
-  const faunaBody = (actor: (typeof fauna)[number]): IslandBody => {
-    const at = boot.rows.find(row => row.id === actor.id); if (at === undefined) throw new Error(`Missing authored fauna ${actor.id}`);
-    return { ...intake.body(actor.id, actor.kind, actor.variant, actor.herd, at, at.yaw, [actor.scale, actor.scale], actor), brain: null };
-  };
-  // The manager's herds retain their original order and authored boot centres.
-  bake.herds.slice(0, herdBase).forEach((h, i) => { const c = boot.centres[i]; if (c !== undefined) hunt.addHerd(h.kind, c[0], c[1]); });
-  placed.centres.forEach((c, i) => { hunt.addHerd(bake.herds[herdBase + i]?.kind ?? 'crab', c.x, c.z); });
-  if (hunt.herds.length !== bake.herds.length) throw new Error('Driftwood herds diverge from the bake');
-
+  const boot = roster.fauna;
+  if (roster.seed !== ports.seed) throw new Error('Keeper rows belong to another seed');
+  const bootBody = (row: NativeKeeperRows['bodies'][number]): IslandBody => ({ ...intake.body(row.id, row.kind, row.variant,
+    row.herd, row, row.yaw, row.fauna ? [row.scale, row.scale] : undefined, row), brain: null });
+  roster.herds.forEach(row => { hunt.addHerd(row.kind, row.x, row.z); });
   const practice: { body: IslandBody | null; dead: number; fade: number } = { body: null, dead: 0, fade: -1 };
   /** the finale's captain, once spawned (never retired: his corpse stays), in the roster slot after the load-time bodies */
   let captain: IslandBody | null = null;
@@ -235,18 +218,12 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
    *  brain's world clock */
   const tracked = { speed: 0, prev: new Vector3(), seen: false };
   if (saved === undefined) {
-    fauna.forEach(actor => { const body = faunaBody(actor); place(body); bodies.push(body); });
-    intake.adopt(boot.rows, boot.stream);
-    if (bodies.some(b => b.actor === null || hunt.memory(b.actor) === undefined)) throw new Error('Driftwood fauna memories diverge from the stream');
-    placed.enemies.forEach((row, i) => {
-      const id = `creature:${String(fauna.length + i)}`;
-      const variant = row.variant ?? new WeightedTable({ mode: 'weighted', rows: variants(row.kind).map(r => ({ item: r, weight: r.weight })) }).pick(undefined, rng.next())?.item.id;
-      if (variant === undefined) throw new Error(`Driftwood ${row.kind} rolled no variant`);
-      const body = enemyBody(id, row.kind, variant, row.herd < 0 ? -1 : row.herd + herdBase, row, row.yaw);
-      draw(body); place(body); bodies.push(body);
-      if (row.practice === true) practice.body = body;
-    });
-    if (bodies.length !== BODY_COUNT || practice.body === null) throw new Error('Driftwood keeps its 34 load-time bodies');
+    for (const [i, row] of roster.bodies.entries()) {
+      const body = bootBody(row); if (row.stream !== null) rng.restore(row.stream);
+      place(body); bodies.push(body); if (row.practice) practice.body = body;
+      if (i + 1 === boot.rows.length) intake.adopt(boot.rows, boot.stream);
+    }
+    if (practice.body === null) throw new Error('Missing practice body');
   }
 
   /** the manager's own entity ids (EntityIds('creature')): the load-time roster took creature:0–33, each later spawn the next */
@@ -401,13 +378,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (body.actor !== null && FAUNA.has(body.kind)) hunt.adopt(body.actor, body.recipe.at.x, body.recipe.at.z);
   };
   // the roster's identities and recipes: the fauna's baked, the enemies' placed (their draws come from the saved bodies)
-  fauna.forEach(actor => { bodies.push(faunaBody(actor)); });
-  placed.enemies.forEach((row, i) => {
-    const id = `creature:${String(fauna.length + i)}`, baked = bake.actors.find(a => a.id === id);
-    if (baked === undefined) throw new Error(`Missing baked Driftwood enemy ${id}`);
-    const body = enemyBody(id, row.kind, baked.variant, row.herd < 0 ? -1 : row.herd + herdBase, row, row.yaw);
-    bodies.push(body); if (row.practice === true) practice.body = body;
-  });
+  roster.bodies.forEach(row => { const body = bootBody(row); bodies.push(body); if (row.practice) practice.body = body; });
   keeper.bodies.slice(BODY_COUNT).forEach(b => { bodies.push(enemyBody(b.id, b.kind, b.variant, b.herd, { x: 0, z: 0 }, 0)); });
   // the practice slot's herd is the newest herd of one once it has been replaced
   const slot = practice.body;

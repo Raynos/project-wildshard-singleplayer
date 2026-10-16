@@ -1,4 +1,4 @@
-/** Shipping native fauna boot poses and memory checkpoints, read once from faunaPlacement at b44d4d2b6.
+/** Build-only shipping native fauna boot poses and memory checkpoints, read once from faunaPlacement at b44d4d2b6.
  * The page keeps its authored search plans; native restore retains its version-8 continuation. */
 export const DRIFTWOOD_NATIVE_FAUNA = {
   seed: 24225,
