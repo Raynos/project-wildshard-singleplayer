@@ -109,29 +109,16 @@ export class StaveBowMesh {
     this.geometry.setAttribute('position', this.posAttr);
     this.geometry.setAttribute('normal', this.nrmAttr);
     this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 2);
-    this.shapeOwner = new BowShape({ ...rows, radial: look.radial, backScale: 0.55,
+    this.shapeOwner = new BowShape({ ...rows, curve: look, radial: look.radial, backScale: 0.55,
       tipArc: look.gripH + look.limbW + look.nockL - 0.014, tipOffset: 0.004,
       nockX: look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
       stringRadial: look.stringRadial, stringRadius: look.stringR, serving: look.serving }, {
       position: this.posAttr, normal: this.nrmAttr, tipTop: this.tipTop, tipBot: this.tipBot, nock: this.nock,
-      limbAt: (u, sign, draw, at, tan) => { this.limbAt(u, sign, draw, at, tan); },
       section: u => this.limbSection(u), ridge: (u, angle, sign) => this.gripWrap(u, angle, sign),
     });
     this.shape(0, 0);
   }
 
-  private limbAt(u: number, sign: number, p: number, pos: THREE.Vector3, tan: THREE.Vector3): void {
-    const { gripH: GRIP_H, limbW: LIMB_W } = this.look;
-    const k = this.look.kappaRest + this.look.kappaDraw * p;
-    if (u <= GRIP_H) { pos.set(0, sign * u, 0); tan.set(0, sign, 0); return; }
-    // the bend grows along the limb (a stave bends through the handle's ends and the mid-limb most, the tips least)
-    const w = Math.min(u - GRIP_H, LIMB_W);
-    const th = k * w;
-    let y = GRIP_H + Math.sin(th) / k, z = (1 - Math.cos(th)) / k;
-    let a = th;
-    if (u > GRIP_H + LIMB_W) { a = k * LIMB_W; const s = u - GRIP_H - LIMB_W; y += Math.cos(a) * s; z += Math.sin(a) * s; }
-    pos.set(0, sign * y, z); tan.set(0, sign * Math.cos(a), Math.sin(a));
-  }
   /** half width (x) and half thickness (belly-back) at u — a D section: deep at the handle, tapering to the nocks */
   private limbSection(u: number): [number, number] {
     const { gripH: GRIP_H, limbW: LIMB_W, nockL: NOCK_L } = this.look;

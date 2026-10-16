@@ -6273,16 +6273,24 @@ evicts a newer one. The viewmodel's rig-file parse and Pine's cabin material set
 limb/cap/string ranges in caller-owned Float32 position/normal attributes.
 Its row declares ring samples, side signs, radial counts, dynamic range,
 back-section scale, tip anchors, nock offsets and served-string dimensions.
-The caller supplies the centreline, section and grip laws plus stable
-endpoint vectors. Static channels, indices and vertices stay untouched;
+The caller supplies section and grip laws plus stable endpoint vectors.
+The optional `curve` declares `gripH`, `limbW`, `kappaRest`, `kappaDraw`
+and optional `tipKink`: a straight grip, circular working limb and rigid
+terminal arc. It is exclusive with the original trusted `limbAt` callback;
+absent curve keeps that callback unchanged. Construction refuses non-finite,
+non-positive grip/length/rest curvature, negative draw curvature, magnitudes
+above 10,000 and tip kinks outside ±PI. Curve sampling writes only the
+borrowed centre/tangent vectors and retains the original arithmetic.
+The named W3 match also includes Nalati `weapons/recurve.ts#limbAt`, whose
+siyah uses the same law with `tipKink = 0.95`. Static channels, indices and vertices stay untouched;
 cloning, disposal and baked-buffer transfer remain the caller's ownership.
 Construction refuses crossed channel lengths, non-Float32 attributes,
 non-finite coefficients and layouts beyond 1024 rings / 64 radial samples
 / 65,536 dynamic vertices. `shape(draw, nock)` retains the original draw
 clamp and dirty-range cadence; it does not advance combat or input clocks.
 Pine's stave is the current user. The named G441 W3 consumer is Nalati
-`weapons/recurve.ts#BowMesh.shape` and `writeLeg`, with its original limb,
-section, grip, palette and repaint policies retained locally.
+`weapons/recurve.ts#BowMesh.shape` and `writeLeg`, with its original centreline coefficients and tip kink declared on the shared
+curve; section, grip, palette and repaint policies remain local.
 
 **Packed creature body copies (G441).** `game/plugin/geometry` defines
 `packedCreatureBodies(input)` and its `PackedCreatureBodies` handle. It

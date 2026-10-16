@@ -42,6 +42,7 @@ export class BowShape {
   private readonly ringU: readonly number[]; private readonly ringSign: readonly number[];
   private readonly pos: Float32Array; private readonly nrm: Float32Array;
   private lastP = -1; private lastNock = -1;
+  private readonly limbAt: NonNullable<ConstructorParameters<typeof BowShape>[1]['limbAt']>;
   private readonly row: ConstructorParameters<typeof BowShape>[0];
   private readonly ports: ConstructorParameters<typeof BowShape>[1];
   constructor(row: {
@@ -50,14 +51,27 @@ export class BowShape {
     readonly backScale: number; readonly tipArc: number; readonly tipOffset: number;
     readonly nockX: number; readonly nockY: number; readonly drawZ: number;
     readonly stringRadial: number; readonly stringRadius: number; readonly serving: number;
+    /** Analytic circular working limb with a straight grip and an optional kinked rigid tip; exclusive with limbAt. */
+    readonly curve?: { readonly gripH: number; readonly limbW: number; readonly kappaRest: number; readonly kappaDraw: number; readonly tipKink?: number };
   }, ports: {
     readonly position: THREE.BufferAttribute; readonly normal: THREE.BufferAttribute;
     readonly tipTop: THREE.Vector3; readonly tipBot: THREE.Vector3; readonly nock: THREE.Vector3;
-    readonly limbAt: (u: number, sign: number, draw: number, at: THREE.Vector3, tangent: THREE.Vector3) => void;
+    readonly limbAt?: (u: number, sign: number, draw: number, at: THREE.Vector3, tangent: THREE.Vector3) => void;
     readonly section: (u: number) => readonly [number, number];
     readonly ridge: (u: number, angle: number, sign: number) => number;
   }) {
     this.row=row;this.ports=ports;
+    const curve = row.curve;
+    if (curve === undefined) {
+      if (ports.limbAt === undefined) throw new Error('Missing bow centreline');
+      this.limbAt = ports.limbAt.bind(ports);
+    } else {
+      if (ports.limbAt !== undefined || ![curve.gripH, curve.limbW, curve.kappaRest, curve.kappaDraw, curve.tipKink ?? 0].every(Number.isFinite)
+        || curve.gripH <= 0 || curve.gripH > 1e4 || curve.limbW <= 0 || curve.limbW > 1e4
+        || curve.kappaRest <= 0 || curve.kappaRest > 1e4 || curve.kappaDraw < 0 || curve.kappaDraw > 1e4 || Math.abs(curve.tipKink ?? 0) > Math.PI)
+        throw new Error('Invalid analytic bow curve');
+      this.limbAt = (u, sign, draw, at, tangent) => { this.curveAt(curve, u, sign, draw, at, tangent); };
+    }
     const {ringU,ringSign,radial,stringRadial,limbVerts,dynVerts}=row;
     if(ringU.length<2||ringU.length>1024||ringU.length!==ringSign.length
       ||!Number.isInteger(radial)||radial<3||radial>64||!Number.isInteger(stringRadial)||stringRadial<3||stringRadial>64
@@ -80,7 +94,7 @@ export class BowShape {
     const {radial}=this.row,P=this.pos,N=this.nrm,c=this.c,t=this.t,n=this.n,rings=this.ringU.length;
     for(let r=0;r<rings;r++) {
       const u=this.ringU[r]??0,sign=this.ringSign[r]??1;
-      this.ports.limbAt(u,sign,pc,c,t);n.set(0,-t.z*sign,t.y*sign);
+      this.limbAt(u,sign,pc,c,t);n.set(0,-t.z*sign,t.y*sign);
       const [hw,ht]=this.ports.section(u);
       for(let k=0;k<=radial;k++) {
         const ph=(k/radial)*Math.PI*2,cp=Math.cos(ph),sp=Math.sin(ph),flat=sp<0?this.row.backScale:1;
@@ -96,8 +110,8 @@ export class BowShape {
       }
     }
     const {tipTop,tipBot,nock}=this.ports,{tipArc,tipOffset}=this.row;
-    this.ports.limbAt(tipArc,1,pc,tipTop,t);tipTop.z+=tipOffset;
-    this.ports.limbAt(tipArc,-1,pc,tipBot,t);tipBot.z+=tipOffset;
+    this.limbAt(tipArc,1,pc,tipTop,t);tipTop.z+=tipOffset;
+    this.limbAt(tipArc,-1,pc,tipBot,t);tipBot.z+=tipOffset;
     const braceZ=(tipTop.z+tipBot.z)/2;
     nock.set(this.row.nockX,this.row.nockY,braceZ+(this.row.drawZ-braceZ)*Math.max(-0.12,nockDraw));
     nock.z=Math.max(nock.z,braceZ-0.03);
@@ -105,6 +119,15 @@ export class BowShape {
     for(const attr of [this.ports.position,this.ports.normal]) {
       attr.clearUpdateRanges();attr.addUpdateRange(0,this.row.dynVerts*3);attr.needsUpdate=true;
     }
+  }
+  private curveAt(curve: NonNullable<ConstructorParameters<typeof BowShape>[0]['curve']>, u: number, sign: number, draw: number, at: THREE.Vector3, tangent: THREE.Vector3): void {
+    const { gripH, limbW, kappaRest, kappaDraw } = curve;
+    const k = kappaRest + kappaDraw * draw;
+    if (u <= gripH) { at.set(0, sign * u, 0); tangent.set(0, sign, 0); return; }
+    const w = Math.min(u - gripH, limbW), th = k * w;
+    let y = gripH + Math.sin(th) / k, z = (1 - Math.cos(th)) / k, a = th;
+    if (u > gripH + limbW) { a = k * limbW - (curve.tipKink ?? 0); const extra = u - gripH - limbW; y += Math.cos(a) * extra; z += Math.sin(a) * extra; }
+    at.set(0, sign * y, z); tangent.set(0, sign * Math.cos(a), Math.sin(a));
   }
   private writeLeg(leg: number,a: THREE.Vector3,b: THREE.Vector3): void {
     const d=this.c.subVectors(b,a).normalize(),e1=this.t.set(1,0,0);e1.addScaledVector(d,-e1.dot(d)).normalize();
