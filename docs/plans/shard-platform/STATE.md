@@ -28,10 +28,5 @@
 **Queued for the next free Opus slot:** a Pine/DW graphical row (Pine road program-link/shader cache). The Nalati terrain-tile binding waits for W3.
 
 **KS1/KS4 notes:** takeoff needs altitude + perch; ready range borrows the strike's observation.range; dive may declare a strike id; the platform publishes move.done.
-**For wildshard-v (ask Jake today; recommended option first, built over the weekend unless he says otherwise):**
-1. W2 close at 05:00Z: Pine/DW won't be closed or at 80/20 by then. Rec: close on time (G451), leftovers become W3/closure rows, W1 spike starts.
-2. DW client world build into runtime/ under logged cap raises (o287); sim-reachable files stay out. Rec: yes.
-3. Transitional `sim/` folder for shard sim TS (counted, shrink-only, exit row). Rec: yes.
-4. AS budget: build refuses > 10 % of legacy; standalone projects declare a ceiling. Rec: yes.
-5. Visual picks, coming as boards: Pine KTX2 textures (o282), DW phone-tier bloom chain cut (o276 idea). Rec: ship only if the board looks the same.
+**G463 (Jake picked all five):** W2 closes on time, leftovers → W3 closure rows; DW client world build into runtime/ under logged raises (sim-reachable stays out); transitional sim/ folder; build refuses AS > 10 %; Pine desktop KTX2 ships (delete the image path + its Debug row together); DW phone bloom cut ships only with a same-look board. Ruler crash fixed `bd8d3d1ba` (local, pushes after x7's quiet window).
 Paused: SF22 SF57 SF67.
