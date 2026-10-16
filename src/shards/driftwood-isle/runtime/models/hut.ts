@@ -64,7 +64,7 @@ const DRAWS = { kit: HUT_KIT_GEOMETRY, flames: HUT_FLAMES_GEOMETRY };
 
 export const hut = defineModel<Record<string, never>>({
   id: 'driftwood-isle/hut', name: 'Hut', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/hut.ts', surface: 'planks',
+  file: 'src/shards/driftwood-isle/runtime/models/hut.ts', surface: 'planks',
   defaults: {},
   ...libraryModel<Record<string, never>, keyof typeof DRAWS, keyof typeof DRAWS>({
     draws: () => [{ draw: 'kit', material: 'kit', castShadow: true, receiveShadow: true }, { draw: 'flames', material: 'flames' }],

@@ -19,7 +19,7 @@ export function trailMaterial(ctx: ModelContext): THREE.Material { return ctx.on
 
 export const fencePost = defineModel<Record<string, never>>({
   id: 'driftwood-isle/fence-post', name: 'Fence post', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/trailside.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/trailside.ts', surface: 'wood',
   defaults: {},
   seed: 0x5ea1 ^ 0x7a11,
   build: (ctx, _p) => trailSpecimen('fence-post', {}, trailMaterial(ctx)),
@@ -36,7 +36,7 @@ export interface SignpostParams {
 
 export const signpost = defineModel<SignpostParams>({
   id: 'driftwood-isle/signpost', name: 'Signpost', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/trailside.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/trailside.ts', surface: 'wood',
   defaults: { arrows: [-1.27, 0.35], labels: ['HUT', 'LOOKOUT'] },
   variants: [{ id: 'two', label: 'Two arrows', params: {} }, { id: 'one', label: 'One arrow', params: { arrows: [1.2], labels: ['WRECK'] } }, { id: 'three', label: 'Three arrows', params: { arrows: [0.45, 0.75, -0.87], labels: ['LOOKOUT', 'WRECK', 'SHRINE'] } }],
   seed: 0x5ea1 ^ 0x7a11,
@@ -56,7 +56,7 @@ export interface PlankStepParams {
 
 export const plankStep = defineModel<PlankStepParams>({
   id: 'driftwood-isle/plank-step', name: 'Plank step', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/trailside.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/trailside.ts', surface: 'wood',
   defaults: { w: 2.4, roll: 0, yaw: 0, dark: false },
   variants: [{ id: 'light', label: 'Light', params: {} }, { id: 'dark', label: 'Dark', params: { dark: true } }],
   seed: 0x5ea1 ^ 0x7a11,

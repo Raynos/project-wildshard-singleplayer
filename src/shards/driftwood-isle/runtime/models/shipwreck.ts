@@ -23,7 +23,7 @@ const DRAWS = { 'world-kit': WRECK_KIT_GEOMETRY, 'world-glow': WRECK_GLOW_GEOMET
 /** The world copy's colliders and draw are the Wreck site's (world/Wreck.ts: `drawnInto`); this draws its Explorer card. */
 export const shipwreck = defineModel<ShipwreckParams>({
   id: 'driftwood-isle/shipwreck', name: 'Shipwreck', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/shipwreck.ts', surface: 'planks',
+  file: 'src/shards/driftwood-isle/runtime/models/shipwreck.ts', surface: 'planks',
   defaults: { site: WRECK_SITES.specimen, ground: () => 0 },
   ...libraryModel<ShipwreckParams, 'kit' | 'glow', keyof typeof DRAWS>({
     draws: (p) => { const kind = wreckSiteKind(p.site); return [{ draw: `${kind}-kit`, material: 'kit', castShadow: true, receiveShadow: true }, { draw: `${kind}-glow`, material: 'glow' }]; },

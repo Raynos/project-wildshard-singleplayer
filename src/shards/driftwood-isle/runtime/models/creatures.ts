@@ -12,7 +12,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { Gulls } from '../../world/Gulls';
 import { fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
-const FILE = 'src/shards/driftwood-isle/models/creatures.ts';
+const FILE = 'src/shards/driftwood-isle/runtime/models/creatures.ts';
 
 /** the reef crab (custom rig: claws, legs; its shell halves a hit from the front), small and big */
 export const reefCrab: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/reef-crab', file: FILE, pipeline: 'code', ...creature('crab') });

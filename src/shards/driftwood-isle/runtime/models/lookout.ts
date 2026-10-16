@@ -66,7 +66,7 @@ export function lookoutLayout(p: LookoutPlacement): LookoutLayout {
 // the banner's shadow moves with it (M5)
 export const lookout = defineModel<Record<string, never>>({
   id: 'driftwood-isle/lookout', name: 'Lookout tower', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/lookout.ts', surface: 'planks',
+  file: 'src/shards/driftwood-isle/runtime/models/lookout.ts', surface: 'planks',
   defaults: {},
   ...libraryModel<Record<string, never>, 'kit', 'lookout'>({
     draws: () => [{ draw: 'lookout', material: 'kit', castShadow: true, receiveShadow: true }],

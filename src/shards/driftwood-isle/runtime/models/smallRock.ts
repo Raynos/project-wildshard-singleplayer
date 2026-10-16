@@ -26,7 +26,7 @@ function parts(...[ctx, p, rng]: Parameters<ModelDef<SmallRockParams>['build']>)
 
 export const smallRock = defineModel<SmallRockParams>({
   id: 'driftwood-isle/small-rock', name: 'Small rock', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/smallRock.ts', surface: 'rock',
+  file: 'src/shards/driftwood-isle/runtime/models/smallRock.ts', surface: 'rock',
   defaults: { r: 0.35, sq: 0.7 },
   variants: [
     { id: 'round', label: 'Round', params: {} },

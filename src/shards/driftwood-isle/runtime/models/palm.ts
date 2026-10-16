@@ -56,7 +56,7 @@ function trunkCapsules(p: PalmParams): ColliderDesc[] {
 
 export const palm = defineModel<PalmParams>({
   id: 'driftwood-isle/palm', name: 'Coconut palm', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/palm.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/palm.ts', surface: 'wood',
   defaults: { h: 8, lean: 0.2, leanDir: 0, rot: 0, fronds: 11 },
   variants: [
     { id: 'tall', label: 'Tall', params: {} },

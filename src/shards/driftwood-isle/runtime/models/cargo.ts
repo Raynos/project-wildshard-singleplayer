@@ -30,7 +30,7 @@ function specimen(ctx: ModelContext, id: string, kind: keyof typeof CARGO_GEOMET
 export interface BarrelParams { readonly lying: boolean }
 export const barrel = defineModel<BarrelParams>({
   id: 'driftwood-isle/barrel', name: 'Barrel', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/cargo.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', surface: 'wood',
   defaults: { lying: false },
   variants: [{ id: 'standing', label: 'Standing', params: {} }, { id: 'lying', label: 'Lying', params: { lying: true } }],
   // the specimen: a standing barrel's foot on the origin (its centre 0.45 up), a lying one's side on it
@@ -41,7 +41,7 @@ export const barrel = defineModel<BarrelParams>({
 export interface CrateParams { readonly size: number; readonly broken: boolean }
 export const crate = defineModel<CrateParams>({
   id: 'driftwood-isle/crate', name: 'Crate', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/cargo.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', surface: 'wood',
   defaults: { size: 0.8, broken: false },
   variants: [
     { id: 'big', label: 'Big', params: {} }, { id: 'small', label: 'Small', params: { size: 0.55 } },
@@ -54,7 +54,7 @@ export const crate = defineModel<CrateParams>({
 export interface CoilParams { readonly r: number }
 export const ropeCoil = defineModel<CoilParams>({
   id: 'driftwood-isle/rope-coil', name: 'Rope coil', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/cargo.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/cargo.ts', surface: 'wood',
   defaults: { r: 0.3 },
   build: (ctx, p) => specimen(ctx, 'driftwood-isle/rope-coil', 'coil', [2 * p.r, 0.18, 2 * p.r], p.r / 0.3),
 });

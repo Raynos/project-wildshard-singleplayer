@@ -37,7 +37,7 @@ export interface CaptainHatParams {
 
 export const captainHat = defineModel<CaptainHatParams>({
   id: 'driftwood-isle/captain-hat', name: "Captain's hat", category: 'gear', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/captainHat.ts', surface: 'felt',
+  file: 'src/shards/driftwood-isle/runtime/models/captainHat.ts', surface: 'felt',
   defaults: { size: 1 },
   build: (ctx, p): readonly ModelPart[] | THREE.Object3D => fixedGeometryReady() ? [{
     geometry: ctx.once(`captain-hat:${p.size}`, () => (p.size === 1 ? captainHatGeometry() : captainHatGeometry().scale(p.size, p.size, p.size))),

@@ -19,14 +19,14 @@ const SIZE = [0.7, 0.5, 0.8] as const;
  * textures.
  */
 export const woodenSword: ModelDef<object> = defineModel<object>({
-  id: 'driftwood-isle/wooden-sword', name: 'Arms: wooden sword', category: 'gear', pipeline: ['blender', 'code'], file: 'src/shards/driftwood-isle/models/gear.ts',
+  id: 'driftwood-isle/wooden-sword', name: 'Arms: wooden sword', category: 'gear', pipeline: ['blender', 'code'], file: 'src/shards/driftwood-isle/runtime/models/gear.ts',
   defaults: {},
   build: (ctx) => loadingSpecimen(woodenSword.id, SIZE, async () => (await import('../fpArms')).castawaySpecimen(ctx.sky, 'wood')),
 });
 
 /** The iron sword on the same arms (board-2 A2): the steel blade and the dark iron guard, the same hemp-cord grip. */
 export const castawayIronSword: ModelDef<object> = defineModel<object>({
-  id: 'driftwood-isle/iron-sword', name: 'Arms: iron sword', category: 'gear', pipeline: ['blender', 'code'], file: 'src/shards/driftwood-isle/models/gear.ts',
+  id: 'driftwood-isle/iron-sword', name: 'Arms: iron sword', category: 'gear', pipeline: ['blender', 'code'], file: 'src/shards/driftwood-isle/runtime/models/gear.ts',
   defaults: {},
   build: (ctx) => loadingSpecimen(castawayIronSword.id, SIZE, async () => (await import('../fpArms')).castawaySpecimen(ctx.sky, 'iron')),
 });

@@ -50,7 +50,7 @@ const DRAWS = { hull: BOAT_HULL_GEOMETRY, sail: BOAT_SAIL_GEOMETRY, gear: BOAT_G
  *  never casts); only the geometry comes from the offline bake. */
 export const boat = defineModel<Record<string, never>>({
   id: 'driftwood-isle/boat', name: 'Sailboat', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/boat.ts', surface: 'planks',
+  file: 'src/shards/driftwood-isle/runtime/models/boat.ts', surface: 'planks',
   defaults: {},
   ...libraryModel<Record<string, never>, keyof typeof DRAWS, keyof typeof DRAWS>({
     draws: () => [{ draw: 'hull', material: 'hull', castShadow: true, receiveShadow: true }, { draw: 'sail', material: 'sail', castShadow: true },

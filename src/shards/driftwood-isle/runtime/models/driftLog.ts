@@ -7,7 +7,7 @@
  * Its own space: the log lies along x through the origin, its underside on the ground. The world's logs are baked
  * offline into their own kits and placed `drawnInto` those meshes, so only a specimen ever draws one: the Explorer's
  * three variants are fixed-model templates (`drift-log-*`) loaded through the shard's geometry intake; a log of another
- * size scales its tone's template. The Blender cove's TRELLIS driftwood is a different model (src/shards/driftwood-isle/models/cove.ts).
+ * size scales its tone's template. The Blender cove's TRELLIS driftwood is a different model (src/shards/driftwood-isle/runtime/models/cove.ts).
  */
 import * as THREE from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
@@ -50,7 +50,7 @@ function specimen(ctx: ModelContext, p: DriftLogParams): readonly ModelPart[] | 
 
 export const driftLog = defineModel<DriftLogParams>({
   id: 'driftwood-isle/drift-log', name: 'Drift log', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/driftLog.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/driftLog.ts', surface: 'wood',
   defaults: { len: 4, r0: 0.26, r1: 0.19, tone: 0 },
   variants: [
     { id: 'long', label: 'Long', params: {} }, { id: 'short', label: 'Short', params: { len: 2.6, r0: 0.18, r1: 0.12, tone: 1 } },

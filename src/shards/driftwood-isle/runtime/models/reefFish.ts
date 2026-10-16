@@ -16,7 +16,7 @@ export const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as con
 
 export const reefFish = defineModel<Record<string, never>>({
   id: 'driftwood-isle/reef-fish', name: 'Reef fish', category: 'creatures', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/reefFish.ts',
+  file: 'src/shards/driftwood-isle/runtime/models/reefFish.ts',
   defaults: {},
   // the baked fish (generators/reefFish.ts), a fixed-model template; a loading box until the island's templates are in
   build: (ctx) => {

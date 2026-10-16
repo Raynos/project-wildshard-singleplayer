@@ -50,7 +50,7 @@ const reefBuild = (kind: ReefKind) => (ctx: ModelContext, p: ReefParams): Return
 
 export const coral = defineModel<ReefParams>({
   id: 'driftwood-isle/coral', name: 'Coral clump', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/reef.ts',
+  file: 'src/shards/driftwood-isle/runtime/models/reef.ts',
   // the specimen is the first variant (a brain coral); the lagoon's copies draw their shape from the stream
   defaults: REEF_SPECIMENS.coral.defaults,
   variants: REEF_SPECIMENS.coral.variants,
@@ -60,7 +60,7 @@ export const coral = defineModel<ReefParams>({
 
 export const seaweed = defineModel<ReefParams>({
   id: 'driftwood-isle/seaweed', name: 'Seaweed bed', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/reef.ts',
+  file: 'src/shards/driftwood-isle/runtime/models/reef.ts',
   defaults: REEF_SPECIMENS.weed.defaults,
   variants: REEF_SPECIMENS.weed.variants,
   seed: 0x5ea1 ^ 0xc0,
@@ -69,7 +69,7 @@ export const seaweed = defineModel<ReefParams>({
 
 export const reefStarfish = defineModel<ReefParams>({
   id: 'driftwood-isle/reef-starfish', name: 'Reef starfish', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/reef.ts',
+  file: 'src/shards/driftwood-isle/runtime/models/reef.ts',
   defaults: REEF_SPECIMENS.star.defaults,
   variants: REEF_SPECIMENS.star.variants,
   seed: 0x5ea1 ^ 0xc0,

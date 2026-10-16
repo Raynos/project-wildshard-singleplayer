@@ -90,7 +90,7 @@ function coveModel(key: CoveFamily): ModelDef<CoveParams> {
   const first = f.protos[0] ?? '';
   return defineModel<CoveParams>({
     id: `driftwood-isle/cove-${key}`, name: f.name, category: 'nature', pipeline: f.pipeline,
-    file: 'src/shards/driftwood-isle/models/cove.ts',
+    file: 'src/shards/driftwood-isle/runtime/models/cove.ts',
     defaults: { proto: first },
     variants: f.protos.map((proto, i) => ({ id: proto, label: `${f.name} ${i + 1}`, params: { proto } })),
     build: (ctx, p) => protoPart(ctx, p.proto, f.look, f.look),

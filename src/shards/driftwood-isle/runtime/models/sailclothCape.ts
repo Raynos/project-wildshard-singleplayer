@@ -36,7 +36,7 @@ export interface SailclothCapeParams {
 
 export const sailclothCape = defineModel<SailclothCapeParams>({
   id: 'driftwood-isle/sailcloth-cape', name: 'Sailcloth cape', category: 'gear', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/sailclothCape.ts', surface: 'felt',
+  file: 'src/shards/driftwood-isle/runtime/models/sailclothCape.ts', surface: 'felt',
   defaults: { size: 1 },
   specimenYaw: Math.PI, // the Explorer opens on its outside (the back)
   build: (ctx, p): readonly ModelPart[] | THREE.Object3D => fixedGeometryReady() ? [{

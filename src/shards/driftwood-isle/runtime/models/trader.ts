@@ -34,7 +34,7 @@ export function traderOf(o: THREE.Object3D): Trader | null { return byGroup.get(
 export function traderRigOf(o: THREE.Object3D): NpcRig<Trader, Sky> | null { return byGroup.get(o) ?? null; }
 
 export const trader: ModelDef<object> = defineModel<object>({
-  id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/models/trader.ts', surface: 'flesh',
+  id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'flesh',
   defaults: {},
   // her kit meshes are baked (generators/npcKits.ts): a loading box until the island's templates are in
   build: (ctx) => {
@@ -46,7 +46,7 @@ export const trader: ModelDef<object> = defineModel<object>({
 });
 
 export const tradeCounter: ModelDef<object> = defineModel<object>({
-  id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/models/trader.ts', surface: 'wood',
+  id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'wood',
   defaults: {},
   build: (ctx) => {
     const parts = (): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];

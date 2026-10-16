@@ -27,7 +27,7 @@ function parts(...[ctx, p, rng]: Parameters<ModelDef<ReefRockParams>['build']>):
 
 export const reefRock = defineModel<ReefRockParams>({
   id: 'driftwood-isle/reef-rock', name: 'Reef rock', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/reefRock.ts', surface: 'rock',
+  file: 'src/shards/driftwood-isle/runtime/models/reefRock.ts', surface: 'rock',
   defaults: { r: 1.2, squash: 0.62, moss: 0.9 },
   variants: [
     { id: 'mossy', label: 'Mossy', params: {} }, { id: 'bare', label: 'Bare', params: { moss: 0.5 } },

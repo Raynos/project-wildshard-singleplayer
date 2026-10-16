@@ -59,7 +59,7 @@ export interface SeaGlassChimeParams {
 
 export const seaGlassChime = defineModel<SeaGlassChimeParams>({
   id: 'driftwood-isle/sea-glass-chime', name: 'Sea glass wind chime', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/seaGlassChime.ts', surface: 'wood',
+  file: 'src/shards/driftwood-isle/runtime/models/seaGlassChime.ts', surface: 'wood',
   defaults: { count: CHIME_PIECES },
   variants: [0, 5, 10, 15].map((n) => ({ id: `${n}`, label: `${n} / 15`, params: { count: n } })),
   build: (ctx, p) => fixedGeometryReady() ? buildSeaGlassChime(ctx, p.count) : loadingSpecimen('driftwood-isle/sea-glass-chime', [0.7, 0.95, 0.1], async () => {

@@ -26,7 +26,7 @@ function parts(...[ctx, p, rng]: Parameters<ModelDef<ShoreBoulderParams>['build'
 
 export const shoreBoulder = defineModel<ShoreBoulderParams>({
   id: 'driftwood-isle/shore-boulder', name: 'Shore boulder', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/shoreBoulder.ts', surface: 'rock',
+  file: 'src/shards/driftwood-isle/runtime/models/shoreBoulder.ts', surface: 'rock',
   defaults: { r: 1.8, squash: 0.72 },
   variants: [
     { id: 'medium', label: 'Medium', params: {} },

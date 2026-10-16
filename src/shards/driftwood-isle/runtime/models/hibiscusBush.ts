@@ -26,7 +26,7 @@ export interface HibiscusBushParams { readonly r: number; readonly flowers: bool
 
 export const hibiscusBush = defineModel<HibiscusBushParams>({
   id: 'driftwood-isle/hibiscus-bush', name: 'Hibiscus bush', category: 'nature', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/hibiscusBush.ts',
+  file: 'src/shards/driftwood-isle/runtime/models/hibiscusBush.ts',
   defaults: { r: 1.3, flowers: true, phase: 0 },
   variants: [
     { id: 'flowering', label: 'In flower', params: {} },

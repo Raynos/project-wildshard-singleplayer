@@ -26,6 +26,6 @@ export function lendCastawayArms(looks: ToonArmsLooks, follow: () => void): () =
 /** the rigs, loaded as ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands */
 export function castawayArms(): ReturnType<InstanceType<typeof ToonArms>['load']> { return ARMS.load(); }
 
-/** the Model Explorer's card (driftwood-isle/models/gear.ts): the castaway arms at rest holding `kind`, on their own
+/** the Model Explorer's card (driftwood-isle/runtime/models/gear.ts): the castaway arms at rest holding `kind`, on their own
  *  skeleton clone of the one parse (the held rigs' geometry), in camera space as held — the eye at the origin, −Z forward */
 export function castawaySpecimen(sky: Sky, kind: 'wood' | 'iron'): Promise<Object3D> { return ARMS.specimen(sky, kind); }

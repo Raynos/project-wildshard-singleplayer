@@ -20,7 +20,7 @@ export function ziplineGeometry(lay: CableLayout): { rig: ReturnType<typeof worl
 export type ZiplineParams = typeof rows.specimenLayout;
 export const zipline = defineModel<ZiplineParams>({
   id: 'driftwood-isle/zipline', name: 'Zipline', category: 'buildings', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/models/zipline.ts', surface: 'planks',
+  file: 'src/shards/driftwood-isle/runtime/models/zipline.ts', surface: 'planks',
   defaults: { top: { x: 0, y: 0, z: 0 }, bottom: { x: 13, y: -5, z: 3 } },
   prepare: loadZiplineGeometry,
   build: (ctx, p) => {
