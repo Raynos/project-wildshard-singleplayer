@@ -1,59 +1,65 @@
-/**
- * The mossy boulder (E315 M2): Poly Haven's CC0 `rock_moss_set_01` photoscan, meshoptimizer-simplified
- * (`public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb`, scripts/simplify-models.mjs). The set holds six
- * rocks: each is a variant, recentred so it stands on its own base at the origin. All six share the scan's one
- * material, so a forest of them is ONE BatchedMesh draw where multi-draw exists (else one InstancedMesh per shape).
- * A copy that shows more than ROCK_SOLID_ABOVE above the ground collides as its support-point hull (src/engine/models/hull.ts);
- * a lower one is walked over (the capsule's 0.35 m autostep). Placed by src/shards/pine-hollow/world/props.ts along the
- * trails and slopes.
- *
- *   await loadMossyBoulder(ctx);   // place() is synchronous: the GLB first
- */
 import type * as THREE from 'three';
-import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import * as v from 'valibot';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadSiteTimbers, propShapeGeometry } from '../world/timberSites';
 import { loadLodNodes, prepModel } from '../world/homestead';
-import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 
-/** a copy collides once this much of it shows above the ground (P3); lower ones the capsule's autostep walks over */
-export const ROCK_SOLID_ABOVE = 0.35;
+const finite = v.pipe(v.number(), v.finite());
+const shapeFields = { name: v.string(), sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]) };
+const hull = v.strictObject({ ...shapeFields, hull: v.pipe(v.array(finite), v.maxLength(8192)) });
+/** Original geometry names, bounds, hulls and capsule; no procedural reconstruction. */
+export const PropShapesSchema = v.strictObject({ rocks: v.pipe(v.array(hull), v.length(6)), stumps: v.pipe(v.array(hull), v.maxLength(128)),
+  log: v.strictObject({ parts: v.pipe(v.array(hull), v.maxLength(128)), capsule: v.strictObject({ kind: v.literal('capsule'),
+    x: finite, y: finite, z: finite, halfHeight: finite, radius: finite, rot: v.strictObject({ x: finite, y: finite, z: finite, w: finite }) }) }) });
+type ShapeRows = v.InferOutput<typeof PropShapesSchema>;
+type Kind = 'rocks' | 'stumps' | 'log';
+interface Part { draw: ModelPart; hull: Float32Array }
+interface Prepared { parts: Part[]; capsule: ShapeRows['log']['capsule'] }
+const key = (kind: Kind): string => `pine-hollow/prop:${kind}`;
+export const propScan = (ctx: ModelContext, kind: Kind): Prepared => ctx.once<Prepared>(key(kind), () => { throw new Error(`[props] load ${kind} before building`); });
+
+const shapeRows = new WeakMap<ShardProduct, Promise<ShapeRows>>();
+async function loadShapes(): Promise<ShapeRows> {
+  const product = await loadFirstPartyProduct('pine-hollow');
+  let pending = shapeRows.get(product);
+  if (pending === undefined) {
+    pending = product.file('world/prop-shapes.json').then(bytes => v.parse(PropShapesSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))));
+    shapeRows.set(product, pending);
+  }
+  return pending;
+}
+
+/** A single context-owned metadata read; each scan retains its original material-preparation order. */
+export async function loadProp(ctx: ModelContext, kind: Kind, scan: string): Promise<void> {
+  const [nodes, views, rows] = await Promise.all([loadLodNodes(scan), loadSiteTimbers(ctx), loadShapes()]);
+  ctx.once(key(kind), (): Prepared => {
+    const part = (row: ShapeRows['rocks'][number], material: THREE.Material): Part => ({
+      draw: { geometry: propShapeGeometry(views, row.name, row.sphere), material, castShadow: true, receiveShadow: true },
+      hull: new Float32Array(row.hull),
+    });
+    const parts = kind === 'rocks' ? rows.rocks.map(row => {
+      const first = prepModel(nodes, ctx.sky)[0]; if (first === undefined) throw new Error('[props] missing scan material');
+      return part(row, first.material);
+    }) : prepModel(nodes, ctx.sky).map((source, i) => {
+      const row = (kind === 'stumps' ? rows.stumps : rows.log.parts)[i];
+      if (row === undefined) throw new Error(`[props] missing authored ${kind}`);
+      return part(row, source.material);
+    });
+    return { parts, capsule: rows.log.capsule };
+  });
+}
 
 export const BOULDER_SHAPES = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
+export interface MossyBoulderParams { readonly shape: number; readonly solid: boolean }
+export const loadMossyBoulder = (ctx: ModelContext): Promise<void> => loadProp(ctx, 'rocks', 'rock_moss_set_01');
 
-export interface MossyBoulderParams {
-  /** which of the set's six rocks (0–5) */
-  readonly shape: number;
-  /** collides (its placement decided: enough of it shows above the ground) */
-  readonly solid: boolean;
-}
-
-/** one rock of the set in its own space: the drawn part and its hull (its footprint is the props bake's, ../generators/props.ts) */
-interface Shape { geometry: THREE.BufferGeometry; material: THREE.Material; hull: Float32Array }
-
-const KEY = 'pine-hollow/mossy-boulder';
-
-/** Load the scan into this shard's context (once). */
-export async function loadMossyBoulder(ctx: ModelContext): Promise<void> {
-  const [nodes, views] = await Promise.all([loadLodNodes('rock_moss_set_01'), loadSiteTimbers(ctx)]);
-  ctx.once(KEY, () => authored.propShapes.rocks.map((row): Shape => {
-    const p = prepModel(nodes, ctx.sky)[0]; if (p === undefined) throw new Error('[props] missing scan material');
-    return { geometry: propShapeGeometry(views, row.name, row.sphere), material: p.material, hull: new Float32Array(row.hull) };
-  }));
-}
-
-const shapes = (ctx: ModelContext): Shape[] => ctx.once<Shape[]>(KEY, () => { throw new Error('[mossy-boulder] loadMossyBoulder(ctx) first'); });
-
+/** Poly Haven's six mossy rocks, with the shipping shape indices and solid-placement policy. */
 export const mossyBoulder = defineModel<MossyBoulderParams>({
   id: 'pine-hollow/mossy-boulder', name: 'Mossy boulder', category: 'nature', pipeline: 'cc0',
-  file: 'src/shards/pine-hollow/models/mossyBoulder.ts', surface: 'rock',
-  defaults: { shape: 0, solid: true },
-  variants: BOULDER_SHAPES.map((id, k) => ({ id, label: `Rock ${id.toUpperCase()}`, params: { shape: k } })),
-  build: (ctx, p) => {
-    const s = shapes(ctx)[p.shape];
-    return s ? [{ geometry: s.geometry, material: s.material, castShadow: true, receiveShadow: true }] : [];
-  },
-  colliders: (p, ctx) => {
-    const s = shapes(ctx)[p.shape];
-    return p.solid && s ? [{ kind: 'hull', x: 0, y: 0, z: 0, points: s.hull }] : [];
-  },
+  file: 'src/shards/pine-hollow/models/mossyBoulder.ts', surface: 'rock', defaults: { shape: 0, solid: true },
+  variants: BOULDER_SHAPES.map((id, shape) => ({ id, label: `Rock ${id.toUpperCase()}`, params: { shape } })),
+  build: (ctx, p) => { const s = propScan(ctx, 'rocks').parts[p.shape]; return s === undefined ? [] : [s.draw]; },
+  colliders: (p, ctx) => { const s = propScan(ctx, 'rocks').parts[p.shape]; return p.solid && s !== undefined ? [{ kind: 'hull', x: 0, y: 0, z: 0, points: s.hull }] : []; },
 });

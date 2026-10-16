@@ -1,36 +1,11 @@
-/**
- * The tree stump (E315 M2): Poly Haven's CC0 `tree_stump_01` photoscan, meshoptimizer-simplified
- * (`public/assets/models/tree_stump_01/tree_stump_01_lod.glb`), its node transform baked in (its own space). Collides as
- * the support-point hull of each part (src/engine/models/hull.ts). Placed by src/shards/pine-hollow/world/props.ts along the
- * trails and round the cabins, as if cut for firewood.
- *
- *   await loadTreeStump(ctx);   // place() is synchronous: the GLB first
- */
-import type * as THREE from 'three';
-import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import { loadSiteTimbers, propShapeGeometry } from '../world/timberSites';
-import { loadLodNodes, prepModel } from '../world/homestead';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { loadProp, propScan } from './mossyBoulder';
 
-interface Part { geometry: THREE.BufferGeometry; material: THREE.Material; hull: Float32Array }
-
-const KEY = 'pine-hollow/tree-stump';
-
-/** Load the scan into this shard's context (once). */
-export async function loadTreeStump(ctx: ModelContext): Promise<void> {
-  const [nodes, views] = await Promise.all([loadLodNodes('tree_stump_01'), loadSiteTimbers(ctx)]);
-  ctx.once(KEY, () => prepModel(nodes, ctx.sky).map((p, i): Part => {
-    const row = authored.propShapes.stumps[i]; if (row === undefined) throw new Error('[props] missing authored stump');
-    return { geometry: propShapeGeometry(views, row.name, row.sphere), material: p.material, hull: new Float32Array(row.hull) };
-  }));
-}
-
-const parts = (ctx: ModelContext): Part[] => ctx.once<Part[]>(KEY, () => { throw new Error('[tree-stump] loadTreeStump(ctx) first'); });
-
+export const loadTreeStump = (ctx: ModelContext): Promise<void> => loadProp(ctx, 'stumps', 'tree_stump_01');
+/** The scan's original stump parts, each with its authored support-point hull. */
 export const treeStump = defineModel<Record<string, never>>({
   id: 'pine-hollow/tree-stump', name: 'Tree stump', category: 'nature', pipeline: 'cc0',
-  file: 'src/shards/pine-hollow/models/treeStump.ts', surface: 'wood',
-  defaults: {},
-  build: (ctx) => parts(ctx).map((p) => ({ geometry: p.geometry, material: p.material, castShadow: true, receiveShadow: true })),
-  colliders: (_p, ctx) => parts(ctx).map((p) => ({ kind: 'hull', x: 0, y: 0, z: 0, points: p.hull })),
+  file: 'src/shards/pine-hollow/models/treeStump.ts', surface: 'wood', defaults: {},
+  build: ctx => propScan(ctx, 'stumps').parts.map(p => p.draw),
+  colliders: (_, ctx) => propScan(ctx, 'stumps').parts.map(p => ({ kind: 'hull', x: 0, y: 0, z: 0, points: p.hull })),
 });
