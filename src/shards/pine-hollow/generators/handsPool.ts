@@ -375,6 +375,18 @@ const v3 = (v: THREE.Vector3): V3 => [v.x, v.y, v.z];
 /** A hand's bake key: the look, the spec as the weapon passes it, and whether its sleeve is free (gloveHands.handKey). */
 const handKey = (look: GloveHandsLook, spec: HandSpec, free: boolean): string => JSON.stringify([look, spec, free]);
 
+  /** half width (x) and half thickness (belly-back) at u — a D section: deep at the handle, tapering to the nocks */
+function limbSection(look: StaveBowLook, u: number): [number, number] {
+    const { gripH: GRIP_H, limbW: LIMB_W, nockL: NOCK_L } = look;
+    if (u <= GRIP_H) return [0.0145, 0.019];
+    const w = u - GRIP_H;
+    if (w <= LIMB_W) { const t = w / LIMB_W, fade = Math.exp(-((w / 0.035) ** 2)); return [0.0145 - 0.0065 * t + 0.001 * fade, 0.0155 - 0.008 * t + 0.0035 * fade]; }
+    const t = (w - LIMB_W) / NOCK_L;
+    return [0.0075 - 0.0025 * t + 0.0012 * Math.sin(t * Math.PI), 0.0072 - 0.002 * t + 0.0012 * Math.sin(t * Math.PI)];
+  }
+function gripWrap(look: StaveBowLook, u: number, ph: number, sign: number): number { return u < look.gripH ? 1 + 0.06 * Math.max(0, Math.sin(u * 300 * sign + ph * 2)) ** 3 : 1; }
+
+
 /** Every hand and Longbow part as one rest-geometry pool GLB, and the rows the runtime reads it by. */
 export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
   await MeshoptSimplifier.ready;
@@ -395,7 +407,11 @@ export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
   parts.set('bow-right-sleeve', planarUv(decimate(rArm, SLEEVE_VERTS)));
   parts.set('bow-arrow', arrowGeometry(look.arrow));
   parts.set('bow-arrow-nocked', planarUv(arrowGeometry(look.arrow), 20));
-  const bow = {
+  const sectionSamples = {
+    widths: stave.ringU.flatMap(u => limbSection(look, u)),
+    ridges: stave.ringU.flatMap((u, r) => Array.from({ length: look.radial + 1 }, (_, k) => gripWrap(look, u, (k / look.radial) * Math.PI * 2, stave.ringSign[r] ?? 1))),
+  };
+  const bow = { sectionSamples,
     look: JSON.stringify(look), arrow: JSON.stringify(look.arrow), ringU: stave.ringU, ringSign: stave.ringSign, limbVerts: stave.limbVerts, dynVerts: stave.dynVerts,
     lWrist: v3(lf.wrist), rWrist: v3(rf.wrist), rHook: v3(rf.hook), rWristDir: v3(rf.wristDir),
   };

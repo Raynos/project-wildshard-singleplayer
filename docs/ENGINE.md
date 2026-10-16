@@ -6294,7 +6294,7 @@ non-finite coefficients and layouts beyond 1024 rings / 64 radial samples
 clamp and dirty-range cadence; it does not advance combat or input clocks.
 Pine's stave is the current user. The named G441 W3 consumer is Nalati
 `weapons/recurve.ts#BowMesh.shape` and `writeLeg`, with its original centreline coefficients and tip kink declared on the shared
-curve; section, grip, palette and repaint policies remain local.
+curve; fixed section and grip values come from its producer; palette and repaint policies remain local.
 
 **Packed creature body copies (G441).** `game/plugin/geometry` defines
 `packedCreatureBodies(input)` and its `PackedCreatureBodies` handle. It
@@ -6311,6 +6311,16 @@ Driftwood keeps its existing payload and metadata. The W3 counterpart is
 Nalati `species/bodies.ts`: normalize its contiguous channel/group rows
 at intake, then replace its private body-part, bone and dimension copying;
 its lane decoding, family keys and painterly materials stay unchanged.
+
+`BowShape.sectionSamples` optionally supplies producer-owned `widths` (two
+positive finite half extents per ring) and `ridges` (one positive finite
+multiplier per radial vertex). Each value is at most 10,000; lengths must
+match the admitted ring/radial layout. Samples and trusted section/ridge
+callbacks are exclusive. Absent samples retain the callback path. The
+Pine hands producer computes these invariant values with the original
+section and spiral arithmetic; draw deformation and buffer ownership stay
+live. Nalati `weapons/recurve.ts#limbSection` and `gripRidge` are the named
+W3 match: its binding bulges and ear bridge are also fixed per ring.
 
 ### Held weapon queue preparation (G441)
 

@@ -51,14 +51,16 @@ export class BowShape {
     readonly backScale: number; readonly tipArc: number; readonly tipOffset: number;
     readonly nockX: number; readonly nockY: number; readonly drawZ: number;
     readonly stringRadial: number; readonly stringRadius: number; readonly serving: number;
+    /** Immutable producer samples: [half width, half thickness] per ring and grip multiplier per radial vertex. */
+    readonly sectionSamples?: { readonly widths: readonly number[]; readonly ridges: readonly number[] };
     /** Analytic circular working limb with a straight grip and an optional kinked rigid tip; exclusive with limbAt. */
     readonly curve?: { readonly gripH: number; readonly limbW: number; readonly kappaRest: number; readonly kappaDraw: number; readonly tipKink?: number };
   }, ports: {
     readonly position: THREE.BufferAttribute; readonly normal: THREE.BufferAttribute;
     readonly tipTop: THREE.Vector3; readonly tipBot: THREE.Vector3; readonly nock: THREE.Vector3;
     readonly limbAt?: (u: number, sign: number, draw: number, at: THREE.Vector3, tangent: THREE.Vector3) => void;
-    readonly section: (u: number) => readonly [number, number];
-    readonly ridge: (u: number, angle: number, sign: number) => number;
+    readonly section?: (u: number) => readonly [number, number];
+    readonly ridge?: (u: number, angle: number, sign: number) => number;
   }) {
     this.row=row;this.ports=ports;
     const curve = row.curve;
@@ -82,6 +84,13 @@ export class BowShape {
       ||ports.position.itemSize!==3||ports.normal.itemSize!==3||ports.position.count!==ports.normal.count
       ||ports.position.count<dynVerts||!(ports.position.array instanceof Float32Array)||!(ports.normal.array instanceof Float32Array))
       throw new Error('Invalid bow shape layout');
+    const samples = row.sectionSamples;
+    if (samples === undefined) {
+      if (ports.section === undefined || ports.ridge === undefined) throw new Error('Missing bow cross-section');
+    } else if (ports.section !== undefined || ports.ridge !== undefined || samples.widths.length !== ringU.length * 2
+      || samples.ridges.length !== ringU.length * (radial + 1)
+      || !samples.widths.every(n => Number.isFinite(n) && n > 0 && n <= 1e4)
+      || !samples.ridges.every(n => Number.isFinite(n) && n > 0 && n <= 1e4)) throw new Error('Invalid baked bow cross-section');
     this.ringU=[...ringU];this.ringSign=[...ringSign];
     this.pos=ports.position.array;this.nrm=ports.normal.array;
   }
@@ -95,10 +104,14 @@ export class BowShape {
     for(let r=0;r<rings;r++) {
       const u=this.ringU[r]??0,sign=this.ringSign[r]??1;
       this.limbAt(u,sign,pc,c,t);n.set(0,-t.z*sign,t.y*sign);
-      const [hw,ht]=this.ports.section(u);
+      const widths = this.row.sectionSamples?.widths;
+      const section = widths === undefined ? this.ports.section?.(u) : undefined;
+      const hw = widths?.[r * 2] ?? section?.[0], ht = widths?.[r * 2 + 1] ?? section?.[1];
+      if (hw === undefined || ht === undefined) throw new Error('Missing bow section sample');
       for(let k=0;k<=radial;k++) {
         const ph=(k/radial)*Math.PI*2,cp=Math.cos(ph),sp=Math.sin(ph),flat=sp<0?this.row.backScale:1;
-        const j=(r*(radial+1)+k)*3,rr=this.ports.ridge(u,ph,sign);
+        const j=(r*(radial+1)+k)*3,rr=this.row.sectionSamples?.ridges[r*(radial+1)+k]??this.ports.ridge?.(u,ph,sign);
+        if(rr===undefined)throw new Error('Missing bow grip sample');
         P[j]=cp*hw*rr;P[j+1]=c.y+n.y*sp*ht*flat*rr;P[j+2]=c.z+n.z*sp*ht*flat*rr;
         const ex=cp/hw,en=sp/(ht*flat),l=Math.hypot(ex,en)||1;
         N[j]=ex/l;N[j+1]=(n.y*en)/l;N[j+2]=(n.z*en)/l;

@@ -85,13 +85,11 @@ export class StaveBowMesh {
   readonly geometry: THREE.BufferGeometry;
   readonly dynVerts: number;
   readonly tipTop = new THREE.Vector3(); readonly tipBot = new THREE.Vector3(); readonly nock = new THREE.Vector3();
-  private readonly look: StaveBowLook;
   private readonly pos: Float32Array; private readonly nrm: Float32Array;
   private readonly posAttr: THREE.BufferAttribute; private readonly nrmAttr: THREE.BufferAttribute;
   private readonly shapeOwner: BowShape;
 
-  constructor(look: StaveBowLook, rest: THREE.BufferGeometry, rows: { readonly ringU: readonly number[]; readonly ringSign: readonly number[]; readonly limbVerts: number; readonly dynVerts: number }) {
-    this.look = look;
+  constructor(look: StaveBowLook, rest: THREE.BufferGeometry, rows: Pick<typeof BAKED_BOW, 'ringU' | 'ringSign' | 'limbVerts' | 'dynVerts' | 'sectionSamples'>) {
     this.dynVerts = rows.dynVerts;
     const restPos = ownArray(rest.getAttribute('position')), restNrm = ownArray(rest.getAttribute('normal'));
     if (taken.has(rest)) {
@@ -114,23 +112,11 @@ export class StaveBowMesh {
       nockX: look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
       stringRadial: look.stringRadial, stringRadius: look.stringR, serving: look.serving }, {
       position: this.posAttr, normal: this.nrmAttr, tipTop: this.tipTop, tipBot: this.tipBot, nock: this.nock,
-      section: u => this.limbSection(u), ridge: (u, angle, sign) => this.gripWrap(u, angle, sign),
     });
     this.shape(0, 0);
   }
 
-  /** half width (x) and half thickness (belly-back) at u — a D section: deep at the handle, tapering to the nocks */
-  private limbSection(u: number): [number, number] {
-    const { gripH: GRIP_H, limbW: LIMB_W, nockL: NOCK_L } = this.look;
-    if (u <= GRIP_H) return [0.0145, 0.019];
-    const w = u - GRIP_H;
-    if (w <= LIMB_W) { const t = w / LIMB_W, fade = Math.exp(-((w / 0.035) ** 2)); return [0.0145 - 0.0065 * t + 0.001 * fade, 0.0155 - 0.008 * t + 0.0035 * fade]; }
-    const t = (w - LIMB_W) / NOCK_L;
-    return [0.0075 - 0.0025 * t + 0.0012 * Math.sin(t * Math.PI), 0.0072 - 0.002 * t + 0.0012 * Math.sin(t * Math.PI)];
-  }
-  private gripWrap(u: number, ph: number, sign: number): number { return u < this.look.gripH ? 1 + 0.06 * Math.max(0, Math.sin(u * 300 * sign + ph * 2)) ** 3 : 1; }
-
-  /** The common traversal borrows this stave's owned dynamic channels and local section laws. */
+  /** The common traversal borrows this stave's dynamic channels and baked section samples. */
   shape(p: number, nockDraw: number): void { this.shapeOwner.shape(p, nockDraw); }
 
 }
