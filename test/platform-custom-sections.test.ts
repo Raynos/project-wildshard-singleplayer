@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {customSectionFailures} from '../scripts/shard-platform-sections.mjs';
 import {comparePlatformList} from '../scripts/check-platform-ratchets.mjs';
+import {compareCustomSections} from '../scripts/custom-section-policy.mjs';
 
 it('enforces both ceilings and a named exit for every private section',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-custom-section-'));
@@ -36,8 +37,31 @@ it('cannot enlarge or remove either custom-section policy ceiling',()=>{
   writeFileSync(before,policy(2,100));writeFileSync(after,policy(1,90));
   expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual([]);
   writeFileSync(after,policy(3,101));
-  expect(comparePlatformList('lint/ratchet.json',before,after)).toHaveLength(2);
+  expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual(['demo: custom-section ceiling rises without a raises line']);
+  for(const [count,bytes]of [[3,100],[2,101]] as const) {
+   writeFileSync(after,policy(count,bytes));
+   expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual(['demo: custom-section ceiling rises without a raises line']);
+  }
   writeFileSync(after,'{}');
   expect(comparePlatformList('lint/ratchet.json',before,after)).toHaveLength(2);
  }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('requires exact appended adoption rises and permanently seals them at the spike end',()=>{
+ const budgets=(count:number,bytes:number):Record<string,number>=>({'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes});
+ const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}},risesCloseAt:null,raises:[]};
+ const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:101},why:'Admit the reviewed W2 section'};
+ const raised={...base,raises:[row]};
+ expect(compareCustomSections(budgets(1,90),budgets(2,100),undefined,base)).toEqual([]);
+ expect(compareCustomSections(budgets(2,100),budgets(3,101),base,base)).toHaveLength(1);
+ expect(compareCustomSections(budgets(2,100),budgets(3,101),base,raised)).toEqual([]);
+ expect(compareCustomSections(budgets(3,101),budgets(4,102),raised,raised)).toHaveLength(1);
+ expect(compareCustomSections(budgets(2,100),budgets(1,80),base,base)).toEqual([]);
+ expect(compareCustomSections(budgets(3,101),budgets(3,101),raised,{...raised,raises:[{...row,why:'edit'}]})).toContain('custom-section raises must remain an immutable append-only history');
+ expect(compareCustomSections(budgets(2,100),budgets(2,100),base,raised)).toContain('demo: custom-section raises line matches no ceiling change');
+ const sealed={...base,risesCloseAt:'W1 spike end'};
+ expect(compareCustomSections(budgets(2,100),budgets(2,100),base,sealed)).toEqual([]);
+ expect(compareCustomSections(budgets(2,100),budgets(3,101),sealed,{...sealed,raises:[row]})).toContain('demo: custom-section rises closed at W1 spike end');
+ expect(compareCustomSections(budgets(2,100),budgets(2,100),sealed,base)).toContain('custom-section rise window cannot reopen');
+ expect(compareCustomSections(budgets(2,100),{'custom-sections/demo/count':2},base,base)).not.toEqual([]);
 });

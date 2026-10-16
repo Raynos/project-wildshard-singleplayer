@@ -40,9 +40,15 @@ The report identifies custom-section count/bytes, AssemblyScript lines and
 its report-only 10% legacy budget, private binary bytes and one-user SDK build
 tools separately. Unclosed shards receive no invented output columns.
 
-Custom-section count and byte ceilings in `lint/ratchet.json` cannot grow
-against the predecessor policy. Each private name still requires its plan
-exit row. The existing numeric ceilings are retained; no allowance was added.
+Custom-section count and byte ceilings remain in `lint/ratchet.json`.
+During the W2 adoption window, a rise needs a newly appended immutable
+`{slug, from, to, why}` record in `lint/custom-sections.json`, with both count
+and byte pairs matching the actual change. Its initial baseline adopts the
+committed ceilings (DW 5 / 39,637 bytes; Pine 13 / 115,310 bytes).
+Set `risesCloseAt` to `"W1 spike end"` to seal the window permanently.
+Thereafter both ceilings are shrink-only, even with an appended rise.
+Pre-commit and the immutable-policy comparison enforce it. Each private
+name still requires its plan exit row.
 
 G390 badges are rebased to completed output measures. Generation clears old
 source percentages; `--write` republishes badges and component documentation

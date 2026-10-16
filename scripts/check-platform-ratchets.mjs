@@ -9,8 +9,9 @@ import { importsOf } from './check-graph.mjs';
 import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareLegacyInventory, legacyInventory, registeredLegacyFile, LEGACY_INVENTORY } from './legacy-shards.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
+import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY, RUNTIME_FILES_LIST];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', CUSTOM_SECTION_POLICY, 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY, RUNTIME_FILES_LIST];
 
 const RUNTIME_REKEY_ABOUT = 'SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.';
 
@@ -218,18 +219,12 @@ function retiredClassCeilings(trees) {
 
 /** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only. */
 export function comparePlatformList(list, baselineFile, candidateFile, trees) {
-  if (list === 'lint/ratchet.json') {
-    // P4 owns only these two units. Other ratchet policies retain their own
-    // migration rules; no general permission or count rise is introduced here.
-    const before=existsSync(baselineFile)?JSON.parse(readFileSync(baselineFile,'utf8')).budgets??{}:{};
-    const after=existsSync(candidateFile)?JSON.parse(readFileSync(candidateFile,'utf8')).budgets??{}:{};
-    const failures=[];
-    for(const key of new Set([...Object.keys(before),...Object.keys(after)])) {
-      if(!/^custom-sections\/[^/]+\/(?:count|bytes)$/u.test(key))continue;
-      const value=after[key],ceiling=before[key]??0;
-      if(!Number.isSafeInteger(value)||value<0||value>ceiling)failures.push(`${list}: ${key} must shrink from ${ceiling}`);
-    }
-    return failures;
+  if (list === 'lint/ratchet.json' || list === CUSTOM_SECTION_POLICY) {
+    const read=file=>existsSync(file)?JSON.parse(readFileSync(file,'utf8')):undefined;
+    if(trees!==undefined)return compareCustomSections(read(resolve(trees.baselineRoot,'lint/ratchet.json'))?.budgets??{},
+      read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY)));
+    if(list===CUSTOM_SECTION_POLICY)return ['custom-section policy comparison requires immutable trees'];
+    return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},undefined,undefined);
   }
   if (list === CLASS_MOVE_LIST) {
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).moves : {};
@@ -364,7 +359,7 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
 }
 
 export function checkPlatformRatchets(baselineRoot, candidateRoot) {
-  return PLATFORM_LISTS.flatMap((list) => comparePlatformList(list, resolve(baselineRoot, list), resolve(candidateRoot, list), { baselineRoot, candidateRoot }));
+  return [...new Set(PLATFORM_LISTS.flatMap((list) => comparePlatformList(list, resolve(baselineRoot, list), resolve(candidateRoot, list), { baselineRoot, candidateRoot })))];
 }
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [baseline, candidate] = process.argv.slice(2);

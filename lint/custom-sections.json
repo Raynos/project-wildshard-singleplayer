@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "baselineAt": "27e9e4ae325707a1bcab6e091e9e9bcabcd5522b",
+  "baseline": {
+    "_template": {
+      "count": 0,
+      "bytes": 0
+    },
+    "blender-template": {
+      "count": 0,
+      "bytes": 0
+    },
+    "driftwood-isle": {
+      "count": 5,
+      "bytes": 39637
+    },
+    "far-reach": {
+      "count": 0,
+      "bytes": 0
+    },
+    "ink-cel-valley": {
+      "count": 0,
+      "bytes": 0
+    },
+    "nalati-grasslands": {
+      "count": 0,
+      "bytes": 0
+    },
+    "nine-dragon-stack": {
+      "count": 0,
+      "bytes": 0
+    },
+    "pastel-plain": {
+      "count": 0,
+      "bytes": 0
+    },
+    "pine-hollow": {
+      "count": 13,
+      "bytes": 115310
+    },
+    "sunscar-dunes": {
+      "count": 0,
+      "bytes": 0
+    }
+  },
+  "risesCloseAt": null,
+  "raises": []
+}
