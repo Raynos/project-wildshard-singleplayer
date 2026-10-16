@@ -26,10 +26,11 @@ export interface ReefSchool { readonly x: number; readonly z: number; readonly y
 /** A baked layout: its copies and the school over the densest reef. */
 export interface ReefBedLayout { readonly items: readonly ReefBedSpec[]; readonly school: ReefSchool | null }
 
-/** The reef's models: one per kind, the weld's material (with its sway clock) and the school's fish. */
+/** The reef's models: one per kind, the weld's material (its graph sways on the frame clock; `update` is its once-a-frame
+ *  step) and the school's fish. */
 export interface ReefBedModels<P extends ReefBedParams> {
   readonly kinds: Readonly<Record<string, ModelDef<P>>>;
-  readonly material: (ctx: ModelContext) => { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> }; update?: () => void };
+  readonly material: (ctx: ModelContext) => { material: THREE.Material; update?: () => void };
   readonly fish: ModelDef<Record<string, never>>;
 }
 
@@ -52,8 +53,6 @@ export class ReefBed<P extends ReefBedParams> {
   private readonly row: ReefBedRow;
   private readonly models: ReefBedModels<P>;
   private readonly params: (spec: ReefBedSpec) => P;
-  /** the reef's sway clock (its material's) */
-  private uniforms: { uTime: THREE.IUniform<number> } | null = null;
   /** the material's own once-a-frame step, when it has one */
   private step: (() => void) | null = null;
   private swim?: AmbientFlock;
@@ -94,8 +93,8 @@ export class ReefBed<P extends ReefBedParams> {
     const geo = batch.geometry;
     geo.computeBoundingSphere();
     this.tris = geo.getAttribute('position').count / 3;
-    const { material, uniforms, update } = this.models.material(ctx);
-    this.uniforms = uniforms; this.step = update ?? null;
+    const { material, update } = this.models.material(ctx);
+    this.step = update ?? null;
     const mesh = new THREE.Mesh(geo, material);
     this.weld = mesh;
     mesh.castShadow = false; mesh.receiveShadow = true;
@@ -127,10 +126,8 @@ export class ReefBed<P extends ReefBedParams> {
     this.tick(0);
   }
 
-  /** The sway clock and the school's poses (the model faces -z: the flock's heading turned round). */
+  /** The material's step and the school's poses (the model faces -z: the flock's heading turned round). */
   tick(dt: number): void {
-    const clock = this.uniforms;
-    if (clock) clock.uTime.value += dt;
     this.step?.();
     const swim = this.swim, mesh = this.fish;
     if (!swim || !mesh) return;

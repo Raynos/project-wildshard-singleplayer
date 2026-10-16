@@ -7,7 +7,7 @@
  * Each builds in its own space (its base on the sand at the origin, turned by `rot`, scaled by `s`, its tint picked by
  * `v`), from the rng stream it is handed: the lagoon (src/shards/driftwood-isle/world/Seabed.ts) builds its reef in scatter order from ONE
  * stream, across the three kinds, and welds every copy into one mesh on one material (one draw), then places each kind
- * `drawnInto` that mesh (its copies and card). The material (its sway clock, `reefMaterial(ctx).uniforms.uTime`) is the
+ * `drawnInto` that mesh (its copies and card). The material (its graph sways on the frame clock) is the
  * shard's, through the model context.
  */
 import type * as THREE from 'three';
@@ -40,11 +40,11 @@ export interface ReefParams {
 
 /** the reef's one material: its graph (data/reefLook.ts: toon lit, the fronds swaying in the current), its toon look
  *  following the day clock once a frame; the runtime lends it before the world builds, and a reef built before that refuses */
-export function reefMaterial(ctx: ModelContext): { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> }; update?: () => void } {
+export function reefMaterial(ctx: ModelContext): { material: THREE.Material; update?: () => void } {
   return ctx.once('driftwood-isle/reef:material', () => {
     const look = reefLook;
     if (look === null) throw new Error('Driftwood reef: no graph material lent (the runtime compiles it before the world builds)');
-    return { material: look.material, uniforms: { uTime: { value: 0 } }, update: look.follow };
+    return { material: look.material, update: look.follow };
   });
 }
 
