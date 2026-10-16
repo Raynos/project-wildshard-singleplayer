@@ -12,9 +12,9 @@ import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
 import { installDeclaredQuestHost } from '@wildshard/game/plugin/simulation';
 import { createAchievementCounters } from '@wildshard/game/achievements';
-import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
+import { DRIFTWOOD_FEAT_COUNTERS, DRIFTWOOD_NATIVE_PACK } from '../data/questInventory';
 import baked from '../data/spots.generated.json' with { type: 'json' };
-import { DriftwoodPack } from './pack';
+import { NativeInventory } from '@wildshard/game/inventoryLaw';
 import { ZiplineDriver } from '@wildshard/sdk/movers';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
@@ -118,11 +118,11 @@ const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.s
  * never-jam rule (BarrelWatch, each tick on the walk the player asks for); the open sluice drops its baked collider (on the
  * page it parks the tick its gate starts to lift, here in the tick it opens).
  */
-export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: DriftwoodPack } {
+export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: NativeInventory<string> } {
   const { table, spots } = ports, flags = host.flags;
   const rules: Rule[] = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
-  const pack = new DriftwoodPack();
+  const pack = new NativeInventory<string>(DRIFTWOOD_NATIVE_PACK);
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
   const rider = { position: host.player.position, velocity: new Vector3(), pitch: 0, carried: false,

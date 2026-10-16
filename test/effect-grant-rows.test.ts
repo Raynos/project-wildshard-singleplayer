@@ -1,26 +1,44 @@
-import { expect, test } from 'vitest';
-import { selectEffectGrants } from '../src/engine/combat/effects/EffectService';
+import { expect, test, vi } from 'vitest';
+import { Vector3 } from 'three';
+import { Scope } from '../src/engine/app/scope';
+import { Events } from '../src/engine/events/events';
+import { PlayerHealth } from '../src/engine/combat/health';
+import { EffectService, selectEffectGrants } from '../src/engine/combat/effects/EffectService';
 import type { OwnedId } from '../src/game/loot/Owned';
-import { driftwoodPlayerGrants, driftwoodWeaponGrants } from '../src/shards/driftwood-isle/loot/effects';
+import { bindDriftwoodEffects } from '../src/shards/driftwood-isle/loot/effects';
+import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/data/economy';
 import { NalatiSkinLocker, NALATI_SKINS } from '../src/shards/nalati-grasslands/weapons/nalatiSkins';
 
 test('Driftwood selects ordered live grants, highest upgrades and worn cosmetics', () => {
   const have = new Set<OwnedId>(), worn = new Set<string>();
-  const owned = { has: (id: OwnedId) => have.has(id), worn: (id: string) => worn.has(id) };
-  expect(driftwoodPlayerGrants(owned)).toEqual([]);
-  expect(driftwoodWeaponGrants(owned)).toEqual([]);
+  const scope = new Scope('ordered-grants'), effects = new EffectService(DRIFTWOOD_EFFECTS);
+  const health = new PlayerHealth(new Events(), { now: () => 0, dodging: () => false, dodgeGuard: () => false, position: () => new Vector3() });
+  const sword = { attributes: { damage: 24, heavyDamageMul: 1 }, damage: 24, heavyMult: 1 };
+  let changed = (): void => { /* Bound below. */ };
+  const owned: Parameters<typeof bindDriftwoodEffects>[0]['owned'] = {
+    has: id => have.has(id), worn: id => worn.has(id), onChange: run => { changed = run; return () => { changed = () => undefined; }; },
+  };
+  const sync = vi.spyOn(effects, 'sync');
+  const refresh = (): void => { sync.mockClear(); changed(); };
+  bindDriftwoodEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [sword], hitCap: Infinity, slug: 'driftwood-isle' });
+  const playerGrants = (): Parameters<EffectService['sync']>[1] => sync.mock.calls.find(call => call[0] === health)?.[1] ?? [];
+  const weaponGrants = (): Parameters<EffectService['sync']>[1] => sync.mock.calls.find(call => call[0] === sword)?.[1] ?? [];
+  expect(playerGrants()).toEqual([]);
+  expect(weaponGrants()).toEqual([]);
   for (const id of ['heart-1', 'heart-2', 'charm-1', 'charm-2', 'charm-3', 'boar-tusk', 'whetstone-1', 'whetstone-2', 'bear-claw'] as const) have.add(id);
-  worn.add('captain-hat'); worn.add('cape');
-  expect(driftwoodPlayerGrants(owned)).toEqual([
+  worn.add('captain-hat'); worn.add('cape'); refresh();
+  expect(playerGrants()).toEqual([
     { id: 'effect.sturdy-heart', stacks: 2 }, { id: 'effect.charm.1' }, { id: 'effect.charm.2' },
     { id: 'effect.charm.3' }, { id: 'effect.boar-tusk' }, { id: 'effect.captain-hat' }, { id: 'effect.cape' },
   ]);
-  expect(driftwoodWeaponGrants(owned)).toEqual([{ id: 'effect.whetstone.2' }, { id: 'effect.bear-claw' }]);
-  have.delete('heart-2'); have.delete('whetstone-2'); worn.clear();
-  expect(driftwoodPlayerGrants(owned)[0]).toEqual({ id: 'effect.sturdy-heart', stacks: 1 });
-  expect(driftwoodPlayerGrants(owned).some(grant => grant.id === 'effect.cape')).toBe(false);
-  expect(driftwoodWeaponGrants(owned)[0]).toEqual({ id: 'effect.whetstone.1' });
-  expect(driftwoodPlayerGrants({ has: owned.has })).toEqual(driftwoodPlayerGrants(owned));
+  expect(weaponGrants()).toEqual([{ id: 'effect.whetstone.2' }, { id: 'effect.bear-claw' }]);
+  have.delete('heart-2'); have.delete('whetstone-2'); worn.clear(); refresh();
+  expect(playerGrants()[0]).toEqual({ id: 'effect.sturdy-heart', stacks: 1 });
+  expect(playerGrants().some(grant => grant.id === 'effect.cape')).toBe(false);
+  expect(weaponGrants()[0]).toEqual({ id: 'effect.whetstone.1' });
+  const before = playerGrants(); delete owned.worn; refresh();
+  expect(playerGrants()).toEqual(before);
+  scope.dispose(); sync.mockRestore();
 });
 
 test('the named Nalati W3 worn-skin grants fit the shared selector', () => {

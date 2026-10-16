@@ -1,18 +1,11 @@
 import { DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from '../data/economy';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { selectEffectGrants, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
-import type { EffectId, EffectTarget } from '@wildshard/engine/combat/effects/types';
+import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
 
 interface OwnedEffects { has: (id: OwnedId) => boolean; worn?: (id: 'captain-hat' | 'cape') => boolean }
-export function driftwoodPlayerGrants(owned: OwnedEffects): { id: EffectId; stacks?: number }[] {
-  return [...selectEffectGrants(DRIFTWOOD_PLAYER_GRANTS, id => owned.has(id)),
-    ...selectEffectGrants(DRIFTWOOD_WORN_GRANTS, id => owned.worn?.(id) === true)];
-}
-export function driftwoodWeaponGrants(owned: OwnedEffects): { id: EffectId }[] {
-  return selectEffectGrants(DRIFTWOOD_WEAPON_GRANTS, id => owned.has(id));
-}
 export function bindDriftwoodEffects(o: {
   effects: EffectService; scope: Scope; owned: OwnedEffects & { onChange: (fn: () => void) => () => void };
   health: PlayerHealth; player: { dodgeCooldownScale: number };
@@ -33,8 +26,10 @@ export function bindDriftwoodEffects(o: {
   }
   const apply = (): void => {
     if (scope.disposed) return;
-    effects.sync(health, [...driftwoodPlayerGrants(o.owned), ...(Number.isFinite(o.hitCap) ? [{ id: 'effect.hit-cap' as const }] : [])]);
-    for (const sword of o.swords) effects.sync(sword, driftwoodWeaponGrants(o.owned));
+    effects.sync(health, [...selectEffectGrants(DRIFTWOOD_PLAYER_GRANTS, id => o.owned.has(id)),
+      ...selectEffectGrants(DRIFTWOOD_WORN_GRANTS, id => o.owned.worn?.(id) === true),
+      ...(Number.isFinite(o.hitCap) ? [{ id: 'effect.hit-cap' as const }] : [])]);
+    for (const sword of o.swords) effects.sync(sword, selectEffectGrants(DRIFTWOOD_WEAPON_GRANTS, id => o.owned.has(id)));
   };
   apply(); scope.onDispose(o.owned.onChange(apply));
 }
