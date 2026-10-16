@@ -79,7 +79,9 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
   const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
   const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output']);
-  const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : undefined);
+  // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
+  if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
+  const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);
   return { shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
 }
 /** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
