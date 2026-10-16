@@ -6,7 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { installInit } from './parity/init.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { plaquesGeometry } from '../src/shards/driftwood-isle/generators/trophyPlaques.ts';
-import { PLAQUE_GAP } from '../src/shards/driftwood-isle/runtime/models/trophyPlaques.ts';
+import { TROPHY_LAYOUT } from '../src/shards/driftwood-isle/data/trophyLayout.ts';
 import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter.ts';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -14,7 +14,7 @@ const url = arg('url'), output = arg('output');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<candidate preview> --output=<summary.json>');
 const version = await (await fetch(new URL('/version.json', url))).json();
 const original = {};
-for (const [name, gap] of [['wall', PLAQUE_GAP], ['drop', 0]]) {
+for (const [name, gap] of [['wall', TROPHY_LAYOUT.gap], ['drop', 0]]) {
   const { geometry } = plaquesGeometry(gap);
   original[name] = Object.fromEntries(Object.entries(geometry.attributes).map(([key, attribute]) => [key, { itemSize: attribute.itemSize, normalized: attribute.normalized, array: Array.from(attribute.array) }]));
   geometry.dispose();
@@ -59,8 +59,8 @@ try {
     try {
       const targets = [{ name: 'wall', mesh: wall, source: sources.wall, states: [[], ['bear'], ['bear', 'boar'], ['boar']], aim: 0.25, eyes: [[0, 0.3, 1.3], [0.55, 0.4, 0.9]] }];
       for (const id of ['bear', 'boar']) {
-        // The real constructor used by buildTrophy, including its gap-zero template and exact slot rewrite.
-        const Drop = wall.constructor, drop = new Drop(0, wall.material, {});
+        // The real constructor used by buildTrophy, including its loose-drop (gap-zero) template and exact slot rewrite.
+        const Drop = wall.constructor, drop = new Drop(true, wall.material, {});
         drop.trophyOnly(id); drop.position.copy(world.player.position).add(g.camera.position.clone().set(2, 1, 0));
         drop.visible = false; scene.add(drop); drops.push(drop);
         targets.push({ name: `drop-${id}`, mesh: drop, source: sources.drop, states: [[id]], aim: 0.25, eyes: [[0, 0.3, 1.3], [0.55, 0.4, 0.9]] });

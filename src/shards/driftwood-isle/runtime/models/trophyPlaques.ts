@@ -10,8 +10,8 @@
  * section, darker at the root and pale at the tip.
  *
  * Own space: the wall is the plane z = 0 and the plaques stand out of it toward +z (their front); x along the wall, the
- * bear's plaque at −x, the boar's at +x (`gap` apart, centre to centre); y = 0 is the plaques' bottom points. No
- * colliders: they are ~6 cm deep on a wall.
+ * bear's plaque at −x, the boar's at +x (the authored spacing apart, centre to centre); y = 0 is the plaques' bottom
+ * points. No colliders: they are ~6 cm deep on a wall. Both bakes are exact: the wall's, and the loose drop's (gap 0).
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
@@ -27,49 +27,22 @@ export const TROPHIES: readonly TrophyId[] = TROPHY_LAYOUT.ids;
 
 /** the most trophies the wall carries (today two: the bear's and the boar's) */
 const MAX_TROPHIES = 8;
-/** the most vertices one plaque or trophy range spans (the boards 780, the largest trophy 750); a larger range is refused */
-const MAX_RANGE_VERTICES = 4096;
-
-/** the plaques' default spacing, centre to centre (m) */
-export const PLAQUE_GAP = TROPHY_LAYOUT.gap;
 /** where a trophy hangs on its plaque (the peg), from the plaque's bottom point */
 const MOUNT_Y = TROPHY_LAYOUT.mountY;
 /** panel front: board thickness plus panel offset */
 const FRONT = TROPHY_LAYOUT.thickness + TROPHY_LAYOUT.panelOffset;
-
-/** Shipped wall and loose-drop spacings use exact baked vertices. Other Explorer spacings translate each plaque's
- * own ranges together; the original has no AO and no collision or height law to recompute. */
-function plaquesGeometry(gap: number): { slots: SlotGeometry; empty: Record<TrophyId, number>; full: Record<TrophyId, number> } {
-  const bakedSlots = driftwoodRows('custom/fixedLayouts').trophySlots; // the product's baked ranges (data/trophySlots.json)
-  const geometry = (gap === 0 ? TROPHY_DROP_GEOMETRY : TROPHY_PLAQUES_GEOMETRY).copy();
-  if (gap !== 0 && gap !== PLAQUE_GAP) {
-    const position = geometry.getAttribute('position');
-    for (let i = 0; i < Math.min(TROPHIES.length, MAX_TROPHIES); i++) {
-      const id = TROPHIES[i];
-      if (id === undefined) continue;
-      const shift = (gap - PLAQUE_GAP) * (id === 'bear' ? -0.5 : 0.5);
-      const ranges = [bakedSlots.boards[i], bakedSlots.ranges[bakedSlots.empty[id]], bakedSlots.ranges[bakedSlots.full[id]]];
-      for (let r = 0; r < 3; r++) {
-        const range = ranges[r];
-        if (range === undefined) throw new Error(`Missing trophy geometry range: ${id}`);
-        if (range.count > MAX_RANGE_VERTICES) throw new Error(`Trophy geometry range too large: ${id}`);
-        for (let k = 0; k < Math.min(range.count, MAX_RANGE_VERTICES); k++) { const v = range.start + k; position.setX(v, position.getX(v) + shift); }
-      }
-    }
-    geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-  }
-  return { slots: new SlotGeometry(geometry, bakedSlots.ranges), empty: bakedSlots.empty, full: bakedSlots.full };
-}
 
 /** the two plaques: one mesh; `setFilled(id, filled)` hangs a trophy or leaves its print */
 export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   private readonly slots: SlotGeometry;
   private readonly empty: Record<TrophyId, number>;
   private readonly full: Record<TrophyId, number>;
-  constructor(gap: number, material: THREE.Material, filled: Partial<Record<TrophyId, boolean>>) {
-    const g = plaquesGeometry(gap);
-    super(g.slots.geometry, material);
-    this.slots = g.slots; this.empty = g.empty; this.full = g.full;
+  /** `drop`: the loose-drop bake (the trophies at gap 0), else the wall's */
+  constructor(drop: boolean, material: THREE.Material, filled: Partial<Record<TrophyId, boolean>>) {
+    const baked = driftwoodRows('custom/fixedLayouts').trophySlots; // the product's baked ranges (data/trophySlots.json)
+    const slots = new SlotGeometry((drop ? TROPHY_DROP_GEOMETRY : TROPHY_PLAQUES_GEOMETRY).copy(), baked.ranges);
+    super(slots.geometry, material);
+    this.slots = slots; this.empty = baked.empty; this.full = baked.full;
     this.name = 'trophy-plaques';
     this.castShadow = true;
     this.receiveShadow = true;
@@ -89,16 +62,12 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
   }
 }
 
-export function buildTrophyPlaques(ctx: ModelContext, filled: Partial<Record<TrophyId, boolean>> = {}, gap: number = PLAQUE_GAP): TrophyPlaques {
-  return new TrophyPlaques(gap, lowPolyLookMaterial(ctx.sky, 'still'), filled);
-}
-
 /**
  * a loose trophy (the bear's claw, the boar's tusk) as the drop a kill leaves: the plaques' own claw / tusk alone, centred
  * on its origin (it hangs off the peg in the plaques' space), facing +z. One mesh, one draw, the island's material.
  */
 export function buildTrophy(ctx: ModelContext, id: TrophyId): THREE.Group {
-  const m = new TrophyPlaques(0, lowPolyLookMaterial(ctx.sky, 'still'), {});
+  const m = new TrophyPlaques(true, lowPolyLookMaterial(ctx.sky, 'still'), {});
   m.trophyOnly(id);
   m.position.set(0, -(MOUNT_Y + (id === 'boar' ? 0.13 : 0.01)), -FRONT - 0.04);
   const g = new THREE.Group();
@@ -107,24 +76,21 @@ export function buildTrophy(ctx: ModelContext, id: TrophyId): THREE.Group {
   return g;
 }
 
-
 export interface TrophyPlaquesParams {
   readonly bear: boolean;
   readonly boar: boolean;
-  /** centre to centre, metres */
-  readonly gap: number;
 }
 
 export const trophyPlaques = defineModel<TrophyPlaquesParams>({
   id: 'driftwood-isle/trophy-plaques', name: 'Trophy plaques', category: 'props', pipeline: 'code',
   file: 'src/shards/driftwood-isle/runtime/models/trophyPlaques.ts', surface: 'wood',
   prepare: loadFixedGeometry,
-  defaults: { bear: true, boar: true, gap: PLAQUE_GAP },
+  defaults: { bear: true, boar: true },
   variants: [
     { id: 'both', label: 'Both', params: {} },
     { id: 'empty', label: 'Empty', params: { bear: false, boar: false } },
     { id: 'bear', label: 'Bear', params: { boar: false } },
     { id: 'boar', label: 'Boar', params: { bear: false } },
   ],
-  build: (ctx, p) => buildTrophyPlaques(ctx, { bear: p.bear, boar: p.boar }, p.gap),
+  build: (ctx, p) => new TrophyPlaques(false, lowPolyLookMaterial(ctx.sky, 'still'), { bear: p.bear, boar: p.boar }),
 });
