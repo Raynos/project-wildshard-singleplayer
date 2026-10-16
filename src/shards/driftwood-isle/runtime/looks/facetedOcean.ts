@@ -22,7 +22,7 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
 import { waveClock, waterExtent } from '@wildshard/engine/world/waves';
-import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from '../../data/oceanLook';
+import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from '../const';
 
 /** the sea as data: its still level (m), colours (linear albedo) and the depth it is fully deep at (m) */
 export interface FacetedOceanDef {

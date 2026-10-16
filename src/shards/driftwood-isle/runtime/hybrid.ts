@@ -8,27 +8,18 @@ import { RESIDENT_WORLD } from '../data/residentWorld';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import source from '../shard.config';
-import { CASCADE_LOOKS } from '../data/waterfallLook';
+import { CASCADE_LOOKS, SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, CREATURE_LOOKS, COVER_LOOKS, ISLAND_LOOKS, GULL_GRAPH_LOOK } from './const';
 import { setWaterfallLooks } from '../world/Waterfall';
-import { SMOKE_LOOK } from '../data/smokeLook';
 import { setSmokeLook } from './looks/smokeColumn';
-import { FIREFLY_LOOK } from '../data/fireflyLook';
 import { setFireflyLook } from '../world/Shrine';
-import { REEF_LOOK } from '../data/reefLook';
 import { setReefLook } from '../models/reef';
 import { followToon } from '../look/toon';
-import { POOL_LOOK, SHRINE_POOL_LOOK } from '../data/poolLook';
 import { setShrinePoolLook } from '../models/shrine';
 import { setPoolLook } from '../world/Cove';
-import { OCEAN_LOOK } from '../data/oceanLook';
 import { setOceanLook } from './looks/facetedOcean';
-import { CREATURE_LOOKS } from '../data/creatureLook';
 import { setCreatureLooks } from './looks/creatureLooks';
-import { COVER_LOOKS } from '../data/coverLook';
 import { setCoverLooks } from './looks/streamedCover';
-import { ISLAND_LOOKS } from '../data/islandLook';
 import { setIslandLooks } from './looks/bakedIsland';
-import { GULL_GRAPH_LOOK } from '../data/gullGraphLook';
 import { setGullLook } from '../world/Gulls';
 
 // The static transitional world belongs to the resident, not a single entered play scope.

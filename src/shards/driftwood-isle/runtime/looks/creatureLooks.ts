@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { CREATURE_LOOKS } from '../../data/creatureLook';
+import { CREATURE_LOOKS } from '../const';
 
 /**
  * The island's creatures on their graph toon looks (data/creatureLook.ts): the runtime lends the compiled bodies before
