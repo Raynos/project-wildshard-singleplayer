@@ -8,8 +8,8 @@ import { installDriftwoodAudio } from './audio/install';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { driftwoodDirectorBytes } from './director';
 import type { Vector3 } from 'three';
-import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../data/questInventory';
-import { DRIFTWOOD_EFFECTS, GOODS } from '../data/economy';
+import { SECTIONS } from './sections';
+import { driftwoodEffects } from './questRows';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
@@ -73,8 +73,9 @@ export class DriftwoodPlugin extends ShardPlugin {
     const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials);
     ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows, ctx);
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
-    ctx.rows.item(DRIFTWOOD_ITEMS); ctx.rows.feat(DRIFTWOOD_FEATS);
-    ctx.rows.effect(DRIFTWOOD_EFFECTS); ctx.rows.shop(GOODS);
+    const quest = ctx.product.section('custom/questRows', SECTIONS); // the kit's rows from the product (W2b)
+    ctx.rows.item(quest.items); ctx.rows.feat(quest.feats);
+    ctx.rows.effect(driftwoodEffects(quest.effects)); ctx.rows.shop(quest.goods);
   }
 
   /** SF27: the hybrid subclass selects admitted decisions; the ordinary entry keeps the shipping species rows. */

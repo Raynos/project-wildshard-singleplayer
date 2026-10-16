@@ -3,6 +3,9 @@ import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import { CHIME_PIECES } from '../src/shards/driftwood-isle/runtime/models/seaGlassChime';
+import { driftwoodEffects } from '../src/shards/driftwood-isle/runtime/questRows';
+import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/data/questInventory';
+import { DRIFTWOOD_EFFECTS, GOODS } from '../src/shards/driftwood-isle/data/economy';
 
 // The Driftwood client's product reads (sp-o277, W2b): every custom section runtime/ asks the built output for is
 // emitted and parses against the runtime registry, with the shapes its readers rely on.
@@ -21,4 +24,7 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   expect(layouts.chimeSlots.length).toBe(CHIME_PIECES + 1);
   for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(layouts.hut.anchors[key], key).toBeDefined();
   for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
+  const quest = value('custom/questRows');
+  expect(quest.items).toEqual(DRIFTWOOD_ITEMS); expect(quest.feats).toEqual(DRIFTWOOD_FEATS); expect(quest.goods).toEqual(GOODS);
+  expect(driftwoodEffects(quest.effects)).toEqual(DRIFTWOOD_EFFECTS);
 }, 30000);

@@ -15,6 +15,14 @@ const desc = v.variant('kind', [
 ]);
 const boxes = v.pipe(v.array(box), v.maxLength(128));
 const descs = v.pipe(v.array(desc), v.maxLength(128));
+const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
+const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
+const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
+const modifier = v.strictObject({ attr: text, op: v.picklist(['add', 'mul', 'override']), value: number });
+const effect = v.strictObject({ id: text, kind: v.literal('permanent'), tags: v.pipe(v.array(text), v.maxLength(32)), modifiers: v.pipe(v.array(modifier), v.maxLength(32)),
+  grants: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))), stacking: v.union([v.literal('none'), v.strictObject({ max: natural })]), group: v.exactOptional(text), removes: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))) });
+const goodId = v.picklist(['whetstone-1', 'whetstone-2', 'heart-1', 'heart-2', 'sea-chart', 'cape']);
+const good = v.strictObject({ id: goodId, name: text, does: text, icon: v.picklist(['whetstone', 'heart', 'chart', 'cape']), price: natural, needs: v.exactOptional(goodId) });
 
 /** Product-owned logical names and the client's build-time rows (W2b, G449); runtime/ never imports data/. */
 export const SECTIONS = {
@@ -33,4 +41,6 @@ export const SECTIONS = {
     lookout: v.strictObject({ site, zipTo: v.strictObject({ x: number, z: number }), origin: point, platformY: number, colliders: boxes, descs, anchors: v.record(text, anchor),
       floor: v.strictObject({ cos: number, sin: number, plat: number, h: number, stair: v.strictObject({ x0: number, len: number, w: number }) }) }),
   }),
+  /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
+  'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) }),
 } as const;

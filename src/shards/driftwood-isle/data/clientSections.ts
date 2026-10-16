@@ -5,6 +5,8 @@ import islandClips from './islandClips.generated.json' with { type: 'json' };
 import chimeSlots from './chimeSlots.json' with { type: 'json' };
 import hut from './hutBake.json' with { type: 'json' };
 import lookout from './lookoutBake.json' with { type: 'json' };
+import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
+import { DRIFTWOOD_EFFECTS, GOODS } from './economy';
 
 // The same structure runtime/sections.ts reads (data/ cannot import runtime/); publication checks the emitted JSON
 // against that runtime registry too, so the two cannot drift silently.
@@ -23,6 +25,14 @@ const desc = v.variant('kind', [
 ]);
 const boxes = v.pipe(v.array(box), v.maxLength(128));
 const descs = v.pipe(v.array(desc), v.maxLength(128));
+const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
+const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
+const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
+const modifier = v.strictObject({ attr: text, op: v.picklist(['add', 'mul', 'override']), value: number });
+const effect = v.strictObject({ id: text, kind: v.literal('permanent'), tags: v.pipe(v.array(text), v.maxLength(32)), modifiers: v.pipe(v.array(modifier), v.maxLength(32)),
+  grants: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))), stacking: v.union([v.literal('none'), v.strictObject({ max: natural })]), group: v.exactOptional(text), removes: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))) });
+const goodId = v.picklist(['whetstone-1', 'whetstone-2', 'heart-1', 'heart-2', 'sea-chart', 'cape']);
+const good = v.strictObject({ id: goodId, name: text, does: text, icon: v.picklist(['whetstone', 'heart', 'chart', 'cape']), price: natural, needs: v.exactOptional(goodId) });
 
 const CumulusPuffs = v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024));
 const IslandClips = v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs });
@@ -35,9 +45,12 @@ const FixedLayouts = v.strictObject({
 });
 
 /** Driftwood's client rows (W2b, G449), build-only: the runtime reads them from the product, never from data/. */
+const QuestRows = v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) });
+
 const section = (name: string, schema: v.GenericSchema, value: unknown): DefinedSection => defineSection(name, schema, v.parse(schema, value));
 export const DRIFTWOOD_CLIENT_SECTIONS: readonly DefinedSection[] = [
   section('custom/cumulusPuffs', CumulusPuffs, cumulusPuffs),
   section('custom/islandClips', IslandClips, islandClips),
   section('custom/fixedLayouts', FixedLayouts, { chimeSlots, hut, lookout }),
+  section('custom/questRows', QuestRows, { feats: DRIFTWOOD_FEATS, items: DRIFTWOOD_ITEMS, effects: DRIFTWOOD_EFFECTS, goods: GOODS }),
 ];

@@ -48,7 +48,8 @@
       "pine-hollow/custom/crossbowPool": "docs/plans/shard-platform/open-x-queue.md#W2 Pine crossbowPool section exit",
       "driftwood-isle/custom/cumulusPuffs": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood cumulusPuffs section exit",
       "driftwood-isle/custom/islandClips": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood islandClips section exit",
-      "driftwood-isle/custom/fixedLayouts": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood fixedLayouts section exit"
+      "driftwood-isle/custom/fixedLayouts": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood fixedLayouts section exit",
+      "driftwood-isle/custom/questRows": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood questRows section exit"
     },
     "shardfile/sim-in-runtime": {
       "src/shards/driftwood-isle/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -134,8 +135,8 @@
     "custom-sections/_template/bytes": 0,
     "custom-sections/blender-template/count": 0,
     "custom-sections/blender-template/bytes": 0,
-    "custom-sections/driftwood-isle/count": 4,
-    "custom-sections/driftwood-isle/bytes": 35540,
+    "custom-sections/driftwood-isle/count": 5,
+    "custom-sections/driftwood-isle/bytes": 39637,
     "custom-sections/far-reach/count": 0,
     "custom-sections/far-reach/bytes": 0,
     "custom-sections/ink-cel-valley/count": 0,
@@ -347,7 +348,6 @@
     "src/shards/driftwood-isle/runtime/ecology.ts": 1,
     "src/shards/driftwood-isle/runtime/enemyBrains.ts": 1,
     "src/shards/driftwood-isle/runtime/headless.ts": 4,
-    "src/shards/driftwood-isle/runtime/index.ts": 2,
     "src/shards/driftwood-isle/runtime/keeper.ts": 3,
     "src/shards/driftwood-isle/runtime/kills.ts": 1,
     "src/shards/driftwood-isle/runtime/quest.ts": 3,
@@ -845,7 +845,7 @@
     "src/shards/driftwood-isle/runtime/finalePresentation.ts": 3,
     "src/shards/driftwood-isle/runtime/headless.ts": 6,
     "src/shards/driftwood-isle/runtime/hybrid.ts": 6,
-    "src/shards/driftwood-isle/runtime/index.ts": 10,
+    "src/shards/driftwood-isle/runtime/index.ts": 8,
     "src/shards/driftwood-isle/runtime/keeper.ts": 13,
     "src/shards/driftwood-isle/runtime/kills.ts": 1,
     "src/shards/driftwood-isle/runtime/placement.ts": 1,
