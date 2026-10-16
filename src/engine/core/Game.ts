@@ -20,7 +20,7 @@ import { N8AOPostPass } from 'n8ao';
 import { installAoTransparency } from '../render/aoTransparency';
 import { retried } from '../boot/retry';
 import { RegionCinematic } from '../render/regionCinematic';
-import { prepareWorldLook, CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type OffscreenPass, type ReplaceLook } from '../render/look';
+import { prepareWorldLook, CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
 import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
 import { installFogPatch } from '../render/fogPatches';
@@ -749,18 +749,6 @@ export class Game {
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current) : undefined;
     await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause,
-      setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
-  }
-
-  /** Prepare an offscreen pass before its first draw, against its own target: link its programs and, on a live page,
-   * upload its images in drawn-frame slices under the live budget (sp-o284: a cell sky's environment pass drew Sky
-   * Reach's panorama and three look images at attach, four uploads in one 207 ms Simulator frame). Early boot only links. */
-  async warmOffscreenPass(pass: OffscreenPass, current: () => boolean): Promise<void> {
-    const { compileOffscreenPass, runPrecompile, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
-    if (this.frameCount === 0) { await compileOffscreenPass(this.renderer, pass); return; }
-    const target = pass.scene instanceof THREE.Scene ? pass.scene : null;
-    await runPrecompile(this.renderer, pass.camera, [{ label: engineString('s_4bdf150dd0ed', [0]), root: pass.scene, camera: pass.camera, target, rt: pass.target }], 1,
-      undefined, undefined, current, true, () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current),
       setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
   }
 
