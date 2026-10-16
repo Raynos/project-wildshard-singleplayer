@@ -7127,3 +7127,23 @@ entering Wasm. Engine adapters supply read/list queries and a read-only
 `prepare` returning an atomic, non-throwing commit. Optional trace observers
 are tooling ports, never shard-authored callbacks. KA2 supplies the actual
 host implementation; these interfaces do not create an interpreter.
+
+### Decision-script scenario core
+
+`@wildshard/sdk/scriptScenario.createScriptScenario(DecisionHost, input)`
+drives the production host with built module bytes, resolved script and
+binding rows, a seed, and a small declared world. It advances consecutive
+60 Hz steps; `send` reaches the next decision and following commit step.
+`advance(seconds)` accepts whole fixed ticks. `commands`, `trace`, `state`
+and `maxFuel` inspect real host outputs; a fuel query with no calls refuses.
+Named event arguments and command expectations use the row's id maps.
+
+`ScenarioWorld` answers actor/player/zone/flag reads in deterministic order.
+Physics/navigation answers must be explicitly declared; random and timers
+belong to the host. Native movement completion is an explicit test event,
+not another movement implementation. Logical saves include host and fixture
+observations; restore rolls observations back if host validation refuses.
+The constructor port takes the real host, never a substitute Wasm runner.
+The disk `scenario(slug,id,options)` wrapper and built-Wasm sample follow
+KA2 and the v1 script-row admission schema; this core makes no claim that
+those pending integrations have passed.
