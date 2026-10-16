@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
+import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from './questConsequences';
+import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
@@ -24,7 +26,10 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
   return row.kind === 'glb' ? { ...row, options: { ...row.options, meshopt: true } } : row;
 }
 
-const clientJson=emitNamedBlobs([nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
+const clientJson=emitNamedBlobs([
+  ...([['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>
+    nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(rows))))),
+nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
  CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,
 }))), nameBlob('people/figure.json','json',new TextEncoder().encode(JSON.stringify(NPC_FIGURE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(floorRows))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
 

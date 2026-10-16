@@ -1,8 +1,6 @@
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
-import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from '../data/questConsequences';
-import { PINE_QUEST_TRANSACTIONS } from '../data/questTransactions';
 import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
@@ -131,6 +129,9 @@ async function loadQuest() {
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
+  const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));
+  const clockRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/clock.json'))));
+  const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/transactions.json'))));
   await Promise.all([(deps.preload ?? preloadNpcModels)(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
   const { DialogueBox, presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
@@ -212,7 +213,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the miller's errand: the wheel stands still until the race is clear ──
   const syncWheel = (): void => { if (h.cabins) h.cabins.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
   syncWheel();
-  const consequences = bindQuestPageInteractions(PINE_QUEST_CONSEQUENCES, { flags, toast: text => { hud.toast(text); },
+  const consequences = bindQuestPageInteractions(consequenceRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['native', { syncWheel }]]) });
   const payMiller = consequences.action('miller.pay');
   // the mill's door (E322 F-M7): a cabin door like the others (Cabin.ts swings it, its kinematic piece follows the pivot),
@@ -258,7 +259,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   } };
   const board: Board = loadBoard(store);
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
-  const transactions = bindQuestPageInteractions(PINE_QUEST_TRANSACTIONS, { flags, toast: text => { hud.toast(text); },
+  const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
       ['ammo', { get add() { return h.crossbow.addAmmo?.bind(h.crossbow) ?? null; } }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
       ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(pineSkins()[id]); } }]))]]) });
@@ -382,7 +383,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const span = (((to - dn.phase) % 1) + 1) % 1;
     ff = { from: dn.phase, span, t: 0, dur, to };
   };
-  const clockPage = bindQuestPageInteractions(PINE_CLOCK_CONSEQUENCES, { flags, toast: text => { hud.toast(text); },
+  const clockPage = bindQuestPageInteractions(clockRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['lamps', lm],
       ['caption', reward], ['objective', objective], ['native', { fastForward }]]) });
   const clock = await installPineClock(ctx, { seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: event => { clockPage.run(event); } }, quest.current?.id === 'dawn');

@@ -1,4 +1,4 @@
-import { PINE_SKY } from './sky';
+import { PINE_SKY } from '../data/sky';
 
 /** Ordered page consequences; native NPC, encounter and clock owners decide when these run. */
 export const PINE_QUEST_CONSEQUENCES = {
