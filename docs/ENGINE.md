@@ -6572,3 +6572,18 @@ Driftwood captain/sailor use the shared weighted stance. Nalati
 the same alternating swing and knee law with zero rest/brace terms,
 1.7 knee folding and caller-owned attack bend. The rest of its pose stays
 with the native caller.
+
+**Creature group sampling (G441).** `game/plugin/brain.sampleCreatureGroup`
+accepts a `CreatureGroupSpec` and returns ordered `CreatureGroupSample`
+poses. Groups are bounded to 16 members; indexed sources borrow up to
+1,024 points. Radial sources keep angle-before-radius order, optional
+first-at-centre, linear or area radius, up to 40 rejection attempts and
+an explicit centre fallback. Accepted poses draw yaw after acceptance
+unless yaw is supplied. First/rest or per-member variants stay authored.
+The borrowed acceptance and joined callbacks retain ground/body policy
+and per-member materialization before the next sample. Invalid inputs
+refuse before RNG or callbacks. No stream, body, herd or save is owned.
+Driftwood crab circles and indexed monkey groves use the same sampler.
+The G441 W3 match is Nalati `creatures/wildPlacement.ts#freeSpot`,
+`#placePack` and `#placeHerd`: preserve area-radius rejection, live-body
+clearance, centre fallback, variants and interleaved native spawning.

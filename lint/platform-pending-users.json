@@ -946,6 +946,39 @@
       },
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/plugin/brain.ts",
+      "export": "sampleCreatureGroup",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati creature group sampling (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/plugin/brain.ts",
+      "export": "CreatureGroupSpec",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati creature group sampling (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/plugin/brain.ts",
+      "export": "CreatureGroupSample",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati creature group sampling (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
     }
   ]
 }

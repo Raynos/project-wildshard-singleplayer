@@ -169,6 +169,63 @@ export function createCreatureSpawner<A extends { herd: number }>(ports: {
   return { spawn, group, place, dispose };
 }
 
+/** Bounded radial or indexed creature placement over an existing stream and ground owner. */
+export interface CreatureGroupSpec<K extends string = string> {
+  readonly kind: K; readonly count: number; readonly herd: number; readonly variant: string | null;
+  readonly firstVariant?: string | null; readonly variants?: readonly (string | null)[]; readonly yaw?: number;
+  readonly source: { readonly kind: 'indexed'; readonly points: readonly { readonly x: number; readonly z: number }[] }
+    | { readonly kind: 'radial'; readonly centre: { readonly x: number; readonly z: number }; readonly radius: readonly [number, number];
+      readonly firstAtCentre?: boolean; readonly radiusLaw?: 'linear' | 'area'; readonly attempts?: number; readonly fallback?: 'skip' | 'centre' };
+}
+/** Generated pose rows retain their authored kind, variant and herd; materialization remains borrowed. */
+export interface CreatureGroupSample<K extends string = string> { readonly kind: K; readonly variant: string | null; readonly herd: number; readonly x: number; readonly z: number; readonly yaw: number }
+/** Sample and append in order. Rejection precedes yaw; a borrowed joined callback runs before the next candidate. */
+export function sampleCreatureGroup<K extends string>(row: CreatureGroupSpec<K>, rng: Pick<Rng, 'range' | 'next'>,
+  accept?: (x: number, z: number, index: number) => boolean, joined?: (sample: CreatureGroupSample<K>) => void): CreatureGroupSample<K>[] {
+  const point = (p: { readonly x: number; readonly z: number }): boolean => Number.isFinite(p.x) && Number.isFinite(p.z);
+  const variant = (value: string | null): boolean => value === null || value.length > 0 && value.length <= 128;
+  if (!row.kind || row.kind.length > 128 || !Number.isSafeInteger(row.count) || row.count < 0 || row.count > 16 || !Number.isSafeInteger(row.herd) || row.herd < -1
+    || !variant(row.variant) || row.firstVariant !== undefined && !variant(row.firstVariant) || row.yaw !== undefined && !Number.isFinite(row.yaw)
+    || row.variants !== undefined && (row.variants.length !== row.count || row.variants.some(value => !variant(value)))) throw new Error('Invalid creature sampling group');
+  const source = row.source;
+  let attempts = 1;
+  switch (source.kind) {
+    case 'indexed':
+      if (source.points.length > 1024 || source.points.length < row.count || source.points.some(p => !point(p))) throw new Error('Invalid indexed creature group');
+      break;
+    case 'radial':
+      attempts = source.attempts ?? 1;
+      if (!point(source.centre) || !Number.isFinite(source.radius[0]) || !Number.isFinite(source.radius[1]) || source.radius[0] < 0 || source.radius[1] < source.radius[0]
+        || !Number.isSafeInteger(attempts) || attempts < 1 || attempts > 40 || !['linear', 'area'].includes(source.radiusLaw ?? 'linear')
+        || !['skip', 'centre'].includes(source.fallback ?? 'skip') || source.radiusLaw === 'area' && source.radius[0] !== 0) throw new Error('Invalid radial creature group');
+      break;
+    default: throw new Error('Unknown creature sampling source');
+  }
+  const samples: CreatureGroupSample<K>[] = [];
+  for (let index = 0; index < 16; index++) {
+    if (index >= row.count) break;
+    let x = 0, z = 0, accepted = false;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      if (attempt >= attempts) break;
+      if (source.kind === 'indexed') {
+        const p = source.points[index]; if (p === undefined) throw new Error('Missing indexed creature point'); x = p.x; z = p.z;
+      } else {
+        const angle = rng.range(0, Math.PI * 2);
+        const radius = source.firstAtCentre === true && index === 0 && attempt === 0 ? 0 : source.radiusLaw === 'area' ? Math.sqrt(rng.next()) * source.radius[1] : rng.range(source.radius[0], source.radius[1]);
+        x = source.centre.x + Math.cos(angle) * radius; z = source.centre.z + Math.sin(angle) * radius;
+      }
+      if (!Number.isFinite(x) || !Number.isFinite(z)) throw new Error('Invalid sampled creature point');
+      if (accept === undefined || accept(x, z, index)) { accepted = true; break; }
+    }
+    if (!accepted) { if (source.kind !== 'radial' || source.fallback !== 'centre') continue; x = source.centre.x; z = source.centre.z; }
+    const yaw = row.yaw ?? rng.range(0, Math.PI * 2);
+    if (!Number.isFinite(yaw)) throw new Error('Invalid sampled creature yaw');
+    const sample = { kind: row.kind, variant: row.variants === undefined ? index === 0 && row.firstVariant !== undefined ? row.firstVariant : row.variant : row.variants[index] ?? null, x, z, yaw, herd: row.herd };
+    samples.push(sample); joined?.(sample);
+  }
+  return samples;
+}
+
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
 export function speciesResolver(rows: ShardRows): (speciesId: string, variantId: string) => AnimalSimSpec {
   const catalogue = new Map(rows.species.map((row) => [row.id, row]));

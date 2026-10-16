@@ -1,4 +1,5 @@
 import { Rng } from '@wildshard/engine/core/rng';
+import { sampleCreatureGroup } from '@wildshard/game/plugin/brain';
 import { enemyCount } from '../creatures/tables';
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
@@ -54,41 +55,30 @@ export function placeEnemies(inputs: EnemyPlacementInputs): { enemies: EnemyPlac
     const s = inputs.crabSites[k], n = enemyCount('tidepool', () => rng.next()), herd = herds++;
     if (s === undefined || n > MAX_GROUP) throw new Error('Driftwood crab group exceeds its bound');
     at.push({ x: s.x, z: s.z });kinds.push('crab');
-    for (let i = 0; i < Math.min(n, MAX_GROUP); i++) {
-      const ang = rng.range(0, Math.PI * 2), r = i === 0 ? 0 : rng.range(1.2, 2.8);
-      const x = s.x + Math.cos(ang) * r, z = s.z + Math.sin(ang) * r;
-      if (inputs.heightAt(x, z) < inputs.waterLevel + 0.15) continue;
-      out.push({ kind: 'crab', variant: i === 0 ? 'big' : 'small', x, z, yaw: rng.range(0, Math.PI * 2), herd });
-    }
+    out.push(...sampleCreatureGroup({ kind: 'crab', count: n, herd, variant: 'small', firstVariant: 'big',
+      source: { kind: 'radial', centre: s, radius: [1.2, 2.8], firstAtCentre: true } }, rng, (x, z) => !(inputs.heightAt(x, z) < inputs.waterLevel + .15)));
   }
   if(practice!==null){out.push({ kind: 'crab', variant: 'small', x: practice.x, z: practice.z, yaw: 0, herd: herds++, practice: true });
   at.push({ x: practice.x, z: practice.z });kinds.push('crab');}
-  if (palms.length >= 4) {
-    // grove density: neighbours within 10 m
-    const score = palms.map((p) => palms.filter((q) => q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10).length);
-    const order = palms.map((_, i) => i).filter((i) => (score[i] ?? 0) >= 3).sort((a, b) => (score[b] ?? 0) - (score[a] ?? 0));
-    const centres: { x: number; z: number }[] = [];
-    for (let k = 0; k < Math.min(order.length, MAX_PALMS); k++) {
-      const p = palms[order[k] ?? -1];
-      if (p === undefined) continue;
-      if (centres.length >= troops) break;
-      if (Math.hypot(p.x - spawn.x, p.z - spawn.z) < 60) continue;
-      if (Math.hypot(p.x - WRECK_SITE.x, p.z - WRECK_SITE.z) < 30) continue;
-      if (centres.some((c) => Math.hypot(c.x - p.x, c.z - p.z) < 45)) continue;
-      centres.push(p);
-    }
-    for (let k = 0; k < Math.min(centres.length, troops, MAX_GROUP); k++) {
-      const c = centres[k]; if (c === undefined) continue;
-      const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);
-      const n = Math.min(grove.length, enemyCount('grove', () => rng.next())), herd = herds++;
-      if (n > MAX_GROUP) throw new Error('Driftwood troop exceeds its bound');
-      at.push({ x: c.x, z: c.z });kinds.push('monkey');
-      for (let i = 0; i < Math.min(n, MAX_GROUP); i++) {
-        const p = grove[i];
-        if (p === undefined) continue;
-        out.push({ kind: 'monkey', variant: null, x: p.x, z: p.z, yaw: rng.range(0, Math.PI * 2), herd });
-      }
-    }
+  // grove density: neighbours within 10 m
+  const score = palms.map((p) => palms.filter((q) => q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10).length);
+  const order = palms.map((_, i) => i).filter((i) => (score[i] ?? 0) >= 3).sort((a, b) => (score[b] ?? 0) - (score[a] ?? 0));
+  const centres: { x: number; z: number }[] = [];
+  for (let k = 0; k < Math.min(order.length, MAX_PALMS); k++) {
+    const p = palms[order[k] ?? -1];
+    if (p === undefined) continue;
+    if (centres.length >= troops) break;
+    if (Math.hypot(p.x - spawn.x, p.z - spawn.z) < 60) continue;
+    if (Math.hypot(p.x - WRECK_SITE.x, p.z - WRECK_SITE.z) < 30) continue;
+    if (centres.some((c) => Math.hypot(c.x - p.x, c.z - p.z) < 45)) continue;
+    centres.push(p);
+  }
+  for (let k = 0; k < Math.min(centres.length, troops, MAX_GROUP); k++) {
+    const c = centres[k]; if (c === undefined) continue;
+    const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);
+    const n = Math.min(grove.length, enemyCount('grove', () => rng.next())), herd = herds++;
+    at.push({ x: c.x, z: c.z });kinds.push('monkey');
+    out.push(...sampleCreatureGroup({ kind: 'monkey', count: n, herd, variant: null, source: { kind: 'indexed', points: grove } }, rng));
   }
   // the hold (Wreck.ts hull frame: local x starboard, z stern): the sailor rises 2 m forward of the iron sword
   const h = WRECK_SITE.heading, cs = Math.cos(h), sn = Math.sin(h);
