@@ -17,9 +17,9 @@ import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK } from './islandRows';
 import { KIT_LENDS } from './kitLook';
 import { DRIFTWOOD_IRON_PROFILE, DRIFTWOOD_MELEE_PROFILE } from './meleeProfile';
-import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS } from './npcFocus';
-import { CASTAWAY_POSE } from './npcPose';
-import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE } from './npcScenes';
+import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
+import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
+import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE, TRADER_BINDINGS, TRADER_PARTS, TRADER_SCENE } from './npcScenes';
 import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
 import { REEF_LOOK } from './reefLook';
@@ -73,6 +73,12 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CASTAWAY_HEAD_FOCUS', CASTAWAY_HEAD_FOCUS),
   defineMirror('CASTAWAY_FACING', CASTAWAY_FACING),
   defineMirror('CASTAWAY_SMOKE', CASTAWAY_SMOKE),
+  defineMirror('TRADER_SCENE', TRADER_SCENE),
+  defineMirror('TRADER_PARTS', TRADER_PARTS),
+  defineMirror('TRADER_BINDINGS', TRADER_BINDINGS),
+  defineMirror('TRADER_POSE', TRADER_POSE),
+  defineMirror('TRADER_HEAD_FOCUS', TRADER_HEAD_FOCUS),
+  defineMirror('TRADER_FACING', TRADER_FACING),
   defineMirror('WRECK_SITES', WRECK_SITES),
   defineMirror('FACETED_DAY_PRESET', FACETED_DAY_PRESET),
   defineMirror('CAPTAIN_ID', CAPTAIN_DEF.id),

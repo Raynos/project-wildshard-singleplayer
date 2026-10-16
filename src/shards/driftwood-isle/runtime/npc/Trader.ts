@@ -26,10 +26,8 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS } from '../../data/npcScenes';
+import { TRADER_SCENE, TRADER_PARTS, TRADER_BINDINGS, TRADER_POSE, TRADER_HEAD_FOCUS, TRADER_FACING } from '../const';
 import { NPC_KIT_GEOMETRY } from '../boot/fixedGeometry';
-import { TRADER_POSE } from '../../data/npcPose';
-import { TRADER_HEAD_FOCUS, TRADER_FACING } from '../../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
