@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { flightOf, type TrailsideSpec, type StepsSpec } from '../world/trailsideLayout';
+import { flightOf, type TrailsideSpec, type StepsSpec } from './trailsideLayout';
 
 /** Native trail treads and rail boxes, evaluated by the existing static trail author job. */
 export function trailColliders(spec:TrailsideSpec,heightAt:(x:number,z:number)=>number):ColliderDesc[] {

@@ -29,7 +29,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   // ── layout specs (desktop tier, as the bake's reference) ──
   const { scatterShoreBoulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
   const { buildTrailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
-  const { islandTrailsideSpec } = await imp('src/shards/driftwood-isle/world/trailsideLayout.ts');
+  const { islandTrailsideSpec, trailsideSpecKey } = await imp('src/shards/driftwood-isle/generators/trailsideLayout.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
   const { hut, bakedSite } = await imp('src/shards/driftwood-isle/runtime/models/fixedSites.ts');
   const { modelContext } = await imp('src/engine/models/model.ts');
@@ -46,7 +46,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: wl + 1.2, landing: true }).build();
   addObject(pier.group);
   tryBuild('hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hut, s.origin, s.layout, { ctx: modelContext(sky), registry: null }).group; });
-  tryBuild('trailside', () => buildTrailside(sky, trailside).mesh);
+  tryBuild('trailside', () => buildTrailside(sky, trailsideSpecKey(trailside)).mesh);
 
   return {
     scene: {

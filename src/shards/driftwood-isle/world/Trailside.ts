@@ -15,7 +15,7 @@
  *   const trailside = buildTrailside(sky);
  *   scene.add(trailside.mesh); its registry piece.push(...trailside.colliders);
  *
- * `islandTrailsideSpec()` is Driftwood's layout: fences along the plateau ramp and the plateau's
+ * The admitted `custom/trailside` section is Driftwood's layout: fences along the plateau ramp and the plateau's
  * seaward rim, steps up the plateau ramp and the headland ramp, signposts at the pier landing and
  * the hut fork.
  */
@@ -29,11 +29,10 @@ import { fencePost, plankStep, signpost, trailMaterial } from '../runtime/models
 
 import { copyTrailsideGeometry } from '../runtime/boot/trailsideGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { islandTrailsideSpec, type TrailsideSpec } from './trailsideLayout';
 
 /** Admit the trail weld; register its native treads at the original world-build phase. */
-export function buildTrailside(sky: Sky, spec: TrailsideSpec = islandTrailsideSpec()): { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[]; place: (registry: WorldRegistry) => void } {
-  const { geometry: geo, metadata, worldColliders } = copyTrailsideGeometry(spec);
+export function buildTrailside(sky: Sky, key?: string): { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[]; place: (registry: WorldRegistry) => void } {
+  const { geometry: geo, metadata, worldColliders } = copyTrailsideGeometry(key);
   const ctx = modelContext(sky), { posts, signs, planks } = metadata;
   const mesh = new THREE.Mesh(geo, trailMaterial(ctx));
   mesh.castShadow = true; mesh.receiveShadow = true;

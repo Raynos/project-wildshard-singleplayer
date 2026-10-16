@@ -7,7 +7,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { trailColliders } from './trailColliders';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import { fencePost, plankStep, signpost, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from './trailsideModels';
-import { flightOf, trailsideSpecKey, type TrailsideSpec } from '../world/trailsideLayout';
+import { flightOf, trailsideSpecKey, type TrailsideSpec } from './trailsideLayout';
 
 const isParts = (b: ModelBuild): b is readonly ModelPart[] => Array.isArray(b);
 /** Original static trail geometry plus the model placements and their exact world boxes. */

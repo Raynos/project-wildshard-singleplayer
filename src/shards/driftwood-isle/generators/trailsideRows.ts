@@ -1,6 +1,6 @@
 /**
  * Driftwood Isle's trail dressing as rows (SHARD-PLATFORM M3): the rope fences, the plank steps, the trestle flights and the
- * lettered signs that world/trailsideLayout.ts turns into the TrailsideSpec the fixed bake admits. Pure data: a fence
+ * lettered signs that generators/trailsideLayout.ts turns into the TrailsideSpec the fixed bake admits. Pure data: a fence
  * either lists its posts' line (`path`) or a path's centreline (`centre`) and the distance its line runs to the centre's
  * left (`offset`, negative = right); `spacing` is its post spacing (default 2.6 m).
  */

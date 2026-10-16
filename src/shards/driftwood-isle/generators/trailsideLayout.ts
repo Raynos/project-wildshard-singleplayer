@@ -1,4 +1,4 @@
-import { TRAILSIDE_ROWS, type FenceRow } from '../data/trailsideRows';
+import { TRAILSIDE_ROWS, type FenceRow } from './trailsideRows';
 /** A sampled fence polyline and its post spacing. */
 export interface FenceSpec { path: [number, number][]; spacing?: number }
 /** A terrain-following line of plank steps. */
@@ -20,7 +20,7 @@ function offset(path: [number, number][], d: number): [number, number][] {
   });
 }
 
-/** The original island fence, plank, sign and trestle layout (its rows: data/trailsideRows.ts). */
+/** The original island fence, plank, sign and trestle layout, expanded only by its offline compiler. */
 export function islandTrailsideSpec(): TrailsideSpec {
   const rows = TRAILSIDE_ROWS;
   const fence = (f: FenceRow): FenceSpec => {
