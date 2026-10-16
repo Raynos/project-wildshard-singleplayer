@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { Matrix4 } from 'three';
+import { Matrix3, Matrix4, Vector3 } from 'three';
 import { modelWorldMatrix } from 'three/tsl';
 import { NodeUniformBuffers, type BlockGroup } from '../src/engine/render/nodes/nodeUniformBuffers';
 import { classicModelUniform } from '../src/engine/render/nodes/nodeObjectUniforms';
@@ -16,9 +16,9 @@ class Gl {
   deleteBuffer(buffer: WebGLBuffer): void { this.values.delete(buffer); }
   bindBuffer(_target: number, buffer: WebGLBuffer | null): void { this.current = buffer; }
   bufferData(): void { /* Allocations are retained in values. */ }
-  bufferSubData(_target: number, offset: number, values: Float32Array): void {
+  bufferSubData(_target: number, offset: number, values: Float32Array, start = 0, length = values.length - start): void {
     if (this.current === null) throw new Error('Unbound upload');
-    this.values.get(this.current)?.set(offset, Array.from(values)); this.writes++;
+    this.values.get(this.current)?.set(offset, Array.from(values.subarray(start, start + length))); this.writes++;
   }
   bindBufferBase(_target: number, point: number, buffer: WebGLBuffer | null): void { this.bindings.set(point, buffer); this.baseCalls++; }
   getUniformBlockIndex(): number { return 0; }
@@ -42,6 +42,32 @@ test('keeps extensions first, removes only the stock matrix and preserves custom
   const untouched = {vertexShader: original, fragmentShader: original};
   classicModelUniform(untouched, [{name: 'object', uniforms: [custom]}]);
   expect(untouched.vertexShader).toBe(original);
+});
+
+test('coalesces dirty slots while retaining padding, unchanged gaps and live array edits', () => {
+  const gl = new Gl(), blocks = new NodeUniformBuffers(gl), program: WebGLProgram = {};
+  const a = {value: 1}, vector = {value: new Vector3(2, 3, 4)}, b = {value: 5};
+  const matrix = {value: new Matrix3().set(1, 2, 3, 4, 5, 6, 7, 8, 9)};
+  const array = {value: [10, 11]}, typed = {value: new Float32Array([12, 13, 14, 15])};
+  const group = {name: 'object', uniforms: [a, vector, b, matrix, array, typed]};
+  blocks.bind(program, [group]);
+  const buffer = gl.bindings.get(23);
+  if (buffer === undefined || buffer === null) throw new Error('Missing buffer');
+  const uploads = gl.values.get(buffer);
+  expect(gl.writes).toBe(1);
+  expect(uploads?.get(0)).toEqual([1, 0, 0, 0, 2, 3, 4, 5,
+    1, 4, 7, 0, 2, 5, 8, 0, 3, 6, 9, 0, 10, 11, 0, 0, 12, 13, 14, 15]);
+  a.value = 20; b.value = 21;
+  blocks.bind(program, [group]);
+  expect(gl.writes).toBe(2);
+  expect(uploads?.get(0)?.slice(0, 8)).toEqual([20, 0, 0, 0, 2, 3, 4, 21]);
+  matrix.value.elements[1] = 30; array.value[1] = 31; typed.value[2] = 32;
+  blocks.bind(program, [group]);
+  expect(gl.writes).toBe(3);
+  expect(uploads?.get(32)).toEqual([1, 30, 7, 0, 2, 5, 8, 0, 3, 6, 9, 0, 10, 31, 0, 0, 12, 13, 32, 15]);
+  array.value = [40, 41];
+  blocks.bind(program, [group]);
+  expect(uploads?.get(80)).toEqual([40, 41, 0, 0, 12, 13, 32, 15]);
 });
 
 test('retains consecutive bindings while still uploading live changes and restoring displaced groups', () => {

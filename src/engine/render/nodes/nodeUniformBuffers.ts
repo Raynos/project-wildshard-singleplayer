@@ -27,7 +27,7 @@ export interface BlockGroup { readonly name: string; readonly uniforms: readonly
 /** where one uniform value lives in its block, and what it last wrote */
 interface Slot { readonly uniform: BlockUniform; readonly element: number; readonly offset: number; readonly data: Float32Array; last: unknown }
 /** a group's buffer and layout */
-interface Block { readonly buffer: WebGLBuffer; readonly size: number; readonly slots: readonly Slot[] }
+interface Block { readonly buffer: WebGLBuffer; readonly data: Float32Array; readonly slots: readonly Slot[] }
 
 const CHUNK = 16;
 
@@ -127,7 +127,9 @@ export class NodeUniformBuffers {
     const gl = this.gl;
     let known = this.programs.get(program);
     if (known === undefined) { known = { index: new Map(), point: new Map() }; this.programs.set(program, known); }
-    groups.forEach((group, i) => {
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
+      if (group === undefined) continue;
       const block = this.block(group);
       this.upload(block);
       const point = this.top - i;
@@ -136,10 +138,10 @@ export class NodeUniformBuffers {
       }
       let index = known.index.get(group.name);
       if (index === undefined) { index = gl.getUniformBlockIndex(program, group.name); known.index.set(group.name, index); }
-      if (index === gl.INVALID_INDEX || known.point.get(index) === point) return;
+      if (index === gl.INVALID_INDEX || known.point.get(index) === point) continue;
       gl.uniformBlockBinding(program, index, point);
       known.point.set(index, point);
-    });
+    }
   }
 
   /** Classic draws and render boundaries may bind external groups. */
@@ -161,22 +163,33 @@ export class NodeUniformBuffers {
     gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
     gl.bufferData(gl.UNIFORM_BUFFER, layout.size, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-    const block: Block = { buffer, size: layout.size, slots: layout.slots.map((s) => ({ uniform: s.uniform, element: s.element, offset: s.offset, data: new Float32Array(s.storage / 4), last: undefined })) };
+    // One CPU image retains unchanged slots and std140 padding between edits.
+    // Slot views are made once; uploads use WebGL2's source offset/count overload.
+    const data = new Float32Array(layout.size / 4);
+    const block: Block = { buffer, data, slots: layout.slots.map((s) => ({ uniform: s.uniform, element: s.element, offset: s.offset,
+      data: new Float32Array(data.buffer, s.offset, s.storage / 4), last: undefined })) };
     this.blocks.set(group, block);
     return block;
   }
 
   private upload(block: Block): void {
     const gl = this.gl;
-    let bound = false;
+    let first: Slot | undefined, last: Slot | undefined;
     for (const slot of block.slots) {
-      const value = valuesOf(slot.uniform)[slot.element];
+      const value: unknown = Array.isArray(slot.uniform.value) ? slot.uniform.value[slot.element]
+        : slot.element === 0 ? slot.uniform.value : undefined;
       if (!changed(slot.last, value)) continue;
       slot.last = remember(slot.last, value);
       write(value, slot.data);
-      if (!bound) { gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer); bound = true; }
-      gl.bufferSubData(gl.UNIFORM_BUFFER, slot.offset, slot.data);
+      first ??= slot; last = slot;
     }
-    if (bound) gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+    if (first !== undefined && last !== undefined) {
+      gl.bindBuffer(gl.UNIFORM_BUFFER, block.buffer);
+      // Layout slots are ordered. Keep the ordinary three-argument call when
+      // only one changed; the span overload pays off for multiple dirty slots.
+      if (first === last) gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, first.data);
+      else gl.bufferSubData(gl.UNIFORM_BUFFER, first.offset, block.data, first.offset / 4, (last.offset + last.data.byteLength - first.offset) / 4);
+      gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+    }
   }
 }

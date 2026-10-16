@@ -25,8 +25,8 @@ class Buffers {
   bufferData(_target: number, size: number): void {
     if (this.uploadBuffer === null) throw new Error('Allocation needs a bound buffer'); this.sizes.set(this.uploadBuffer, size);
   }
-  bufferSubData(_target: number, offset: number, data: Float32Array): void {
-    if (this.uploadBuffer === null || offset + data.byteLength > (this.sizes.get(this.uploadBuffer) ?? 0)) throw new Error('Uniform upload exceeds its bound allocation');
+  bufferSubData(_target: number, offset: number, data: Float32Array, start = 0, length = data.length - start): void {
+    if (this.uploadBuffer === null || offset + length * data.BYTES_PER_ELEMENT > (this.sizes.get(this.uploadBuffer) ?? 0)) throw new Error('Uniform upload exceeds its bound allocation');
     this.writes++;
   }
   bindBufferBase(_target: number, point: number, buffer: WebGLBuffer | null): void { this.bound.set(point, buffer); }
