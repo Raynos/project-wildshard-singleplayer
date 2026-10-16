@@ -3,8 +3,8 @@ import { expect, test } from 'vitest';
 import { CabinRowsSchema } from '../src/shards/pine-hollow/runtime/world/homestead';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from '../src/shards/pine-hollow/data/cabinLook';
-import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../src/shards/pine-hollow/data/cabinAssembly';
-import { HEARTH_LOOKS } from '../src/shards/pine-hollow/data/hearthLook';
+import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../src/shards/pine-hollow/generators/cabinAssembly';
+import { HEARTH_LOOKS } from '../src/shards/pine-hollow/generators/hearthLook';
 import { TIMBER_DRAWS, TIMBER_GLASS } from '../src/shards/pine-hollow/data/timberDraws';
 
 test('admitted cabin JSON retains every authored material and life value and rejects malformed rows', () => {

@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { NPC_FIGURE } from '../src/shards/pine-hollow/data/peopleLook';
+import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { loadNpcFigureRows, npcFigureRows } from '../src/shards/pine-hollow/runtime/npc/standInPerson';
 import { rangerHale, millerBrandt, traderMott } from '../src/shards/pine-hollow/runtime/models/people';
