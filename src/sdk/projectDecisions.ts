@@ -20,8 +20,9 @@ export function projectDecisionOptions(input: unknown, decisionLegacyLines?: num
 export async function prepareProjectDecisions(project: string, source: Shardfile, platform: EmittedSections | undefined, options: DecisionBuildOptions): Promise<{
   platform?: EmittedSections; blobs: readonly NamedBlob[]; replaced: ReadonlySet<string>;
 }> {
-  const rows = outputDecisionScripts(platform), authored = readDecisionSources(project);
-  if (rows.length === 0 && authored.size === 0) return { ...(platform === undefined ? {} : { platform }), blobs: [], replaced: new Set() };
+  const rows = outputDecisionScripts(platform);
+  if (rows.length === 0) return { ...(platform === undefined ? {} : { platform }), blobs: [], replaced: new Set() };
+  const authored = readDecisionSources(project);
   const moveEntry = platform?.sections.find(row => row.name === 'actors/moves'), moveBytes = moveEntry === undefined ? undefined : platform?.files.get(moveEntry.path);
   const moves = moveBytes === undefined ? [] : parseActorMoves(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(moveBytes)));
   const targetEntry = platform?.sections.find(row => row.name === 'world/targets'), targetBytes = targetEntry === undefined ? undefined : platform?.files.get(targetEntry.path);
@@ -29,7 +30,6 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   if (targetEntry !== undefined && targetBytes !== undefined && (targetBytes.length !== targetEntry.bytes || hashImmutableBytes(targetBytes) !== targetEntry.hash)) throw new Error('World target section hash or size mismatch');
   const worldTargets = targetBytes === undefined ? undefined : parseWorldTargets(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(targetBytes)));
   const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets), authored, options);
-  if (rows.length === 0) return { ...(platform === undefined ? {} : { platform }), blobs: [], replaced: new Set() };
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];
   const files = new Map(platform?.files);
   for (const row of platform?.sections ?? []) if (row.name === 'sim/scripts') files.delete(row.path);

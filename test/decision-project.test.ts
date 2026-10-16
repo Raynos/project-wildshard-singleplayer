@@ -48,3 +48,12 @@ test('root build budgets and the ruler use the same sealed denominator and exact
   expect(old).toBe(3); expect(decisionLegacyLines(root, 'example')).toBe(old); expect(decisionLegacyLines(root, 'standalone')).toBeUndefined();
   expect(generated.has('src/shards/example-legacy/generated.ts')).toBe(true);
 });
+
+
+test('ABI0-only author sources do not enter the v1 compiler or require its budget', async () => {
+  const root = project(); writeFileSync(resolve(root, 'behaviour/legacy.as'), 'export function update():void {}');
+  const source = emptyShardfile({ slug: 'test', name: 'Test', author: 'Test', revision: 1, seed: 1 });
+  const built = await prepareProjectOutput(root, undefined, { source, options: {} });
+  expect(built.blobs).toEqual([]);
+  expect(built.options.platform).toBeUndefined();
+});
