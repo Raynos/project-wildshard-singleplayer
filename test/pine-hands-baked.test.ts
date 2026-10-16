@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { BAKED_BOW, BAKED_HANDS } from '../src/shards/pine-hollow/runtime/boot/handsGeometry';
 import { HUNTER_HANDS } from '../src/shards/pine-hollow/data/handsLook';
 import { LONGBOW_LOOK } from '../src/shards/pine-hollow/data/longbowLook';
-import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/data/leverPresentation';
+import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/items/leverPresentation';
 import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 
 // The hands are baked (src/shards/pine-hollow/generators/handsPool.ts): a weapon hold the bake does not carry refuses at
