@@ -47,3 +47,18 @@ module becomes a factory of the product instead of a module-level constant.
 Not here: the audio boot bindings (sp-x1, P3 async boot); the other `data/` imports in these files (`cumulusPuffs.json`,
 `look/dayKeys`, `data/groundFiles`, `data/skyLook`) wait on custom sections (P2b, the rewire lanes); converting
 roster models to read the product is the rewire lanes' work on this API.
+
+## Landed and proof
+
+`c298d3563` (this note), `7c5ee6973` (API + Driftwood / Pine look switch), `82fd5f039` (test type), `fc5ec85c6`
+(generated helper), `ab7606e16` (compat export: build-mirror slots that ran `pnpm gen` at `7c5ee6973..82fd5f039` keep a
+discovery file importing `callWithProduct`, which gen's generation step loads before gen-shards rewrites it; delete
+after W2).
+
+- Build mirror at `ab7606e16`: cold `pnpm gen` ok, `tsc -b tsconfig.layers.json` and root `tsc --noEmit` 0 errors, oxlint
+  clean on game, Driftwood, Pine; 7 files / 48 tests (product-in-look, authored-manifest, the 17 shard-headless,
+  world-look-ports, driftwood-island-look, platform-namespace-reach, native-roster-retirement).
+- Browser (`before-after.jpg`, iPhone 16 Pro portrait, muted, phone tier): before `c298d3563` / after `82fd5f039`,
+  standalone Driftwood and Pine boots and their Model Explorer roster specimens (Reef crab, Elk): 0 page errors and 0
+  console errors in all eight runs; mean absolute pixel difference 0.1-1.2 / 255 (cloud drift), no look change.
+  Later HEADs carry x5's `2173f6eeb` (Driftwood's `shard.config` pulls Node crypto into the browser); that crash is x5's.
