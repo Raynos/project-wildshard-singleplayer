@@ -1,5 +1,6 @@
 /** One authored layout and floor law for the offline mesh and live collision owner. */
 import { WORLD_DROP } from './sea';
+import { yawWorld } from '@wildshard/engine/world/yawFrame';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }
@@ -43,10 +44,7 @@ export function coveFloorAt(lz: number): number {
 export function coveHalfWidth(lz: number): number { return lz < PASS.z0 ? ANTE.hw : lz < PASS.z1 ? PASS.hw : ALC.hw; }
 export function coveCeil(lz: number): number { return lz < PASS.z0 ? ANTE.ceil : lz < PASS.z1 ? PASS.ceil : ALC.ceil; }
 
-export function coveWorld(cave: CoveSpec['cave'], lx: number, lz: number): [number, number] {
-  const cs = Math.cos(cave.yaw), sn = Math.sin(cave.yaw);
-  return [cave.x + lx * cs + lz * sn, cave.z - lx * sn + lz * cs];
-}
+export function coveWorld(cave: CoveSpec['cave'], lx: number, lz: number): [number, number] { return yawWorld(cave, lx, lz); }
 /** Numeric layout identity, independent of object property order. */
 export function coveSpecKey(spec: CoveSpec): string {
   const { cave: c, caveBounds: b, fall: f } = spec;

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import { PINE_LANTERN_PAGE } from '../data/questPageInteractions';
 import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from '../data/questConsequences';
 import { PINE_QUEST_TRANSACTIONS } from '../data/questTransactions';
@@ -150,8 +151,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the tower's frame (the lookout: local −Z faces the landing), its deck height ──
   const towerY = heightAt(LOOKOUT.x, LOOKOUT.z), deckY = towerY + 11;
   const tower = (lx: number, lz: number): { x: number; z: number } => {
-    const c = Math.cos(ZIP_YAW), s = Math.sin(ZIP_YAW);
-    return { x: LOOKOUT.x + lx * c + lz * s, z: LOOKOUT.z - lx * s + lz * c };
+    const [x, z] = yawWorld({ x: LOOKOUT.x, z: LOOKOUT.z, yaw: ZIP_YAW }, lx, lz); return { x, z };
   };
 
   // ── the table's sites ──
