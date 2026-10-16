@@ -1,5 +1,5 @@
 /**
- * Driftwood's herring gull (world/Gulls.ts, runtime/looks/gullFlock.ts), built offline: one faceted, flat-shaded,
+ * Driftwood's herring gull (runtime/world/Gulls.ts, the GULL_FLOCK row on @wildshard/sdk/looks/ambientFlock), built offline: one faceted, flat-shaded,
  * vertex-coloured gull in its palette (data/gullsLook.ts) about the graph rig's joints (data/gullGraphLook.ts), each
  * vertex tagged with the part (`aPart`) the graph turns. The flock draws it as the fixed-model template `gull`, loaded
  * through the shard's geometry intake; the flap, head, fold and legs stay posed on the GPU from `aAnim`.

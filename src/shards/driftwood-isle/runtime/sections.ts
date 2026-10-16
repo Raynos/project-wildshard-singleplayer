@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -85,6 +86,8 @@ export const SECTIONS = {
     ])), v.maxLength(1024)),
   }),
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
+  /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/sdk/looks/ambientFlock) */
+  'custom/gullFlock': AmbientFlockSchema,
   'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)), effects: v.pipe(v.array(effect), v.maxLength(128)), goods: v.pipe(v.array(good), v.maxLength(64)) }),
 } as const;
 

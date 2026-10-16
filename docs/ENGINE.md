@@ -5567,8 +5567,8 @@ Nalati's W3 valley raptors are the documented pending user.
 
 CirclingFlyer also accepts an optional bounded harmonic wheel row. Its `wheel`
 samples the caller's actual flock/time/body into a borrowed point; `face` accepts
-the native transition's bank gain. Driftwood's wheeling gulls lend their existing
-poses and clock; perch, flush, landing and guide owners remain native. No new
+the native transition's bank gain. The ambient-flock host's wheeling flyers (Driftwood's gulls) lend their poses
+and clock. No new
 clock, body roster, wing draw or RNG is allocated by the circling law.
 
 CirclingFlyer accepts optional bounded wingbeat rows as its third argument.
@@ -5578,6 +5578,34 @@ phase factors, flap/fold gain, rest/rates and glide/beat ranges. Equal bounds
 use the fixed value without drawing RNG; disabling glide also draws none.
 Pine's raven/owl/woodpecker and Driftwood's gulls use the same law, retaining
 native clocks, seeded streams, body ownership and material/shader posing.
+
+### Ambient flocks (G466 H6)
+
+`@wildshard/sdk/looks/ambientFlock` is the ambient-flock host: one row
+(`@wildshard/format/ambientLife#AmbientFlockSchema`) drives a flock's
+perched, wheeling, flushed and guiding flyers, and the platform owns the
+frame. `createAmbientFlock(row, look, perches)` validates the row and
+builds one `PosedInstances` draw of the look (`name`, authored `geometry`,
+posed `material`); `installAmbientFlock(ctx, draw, player)` ticks it in the
+row's `system` slot; `draw.guide(player, tx, tz)` flies the row's
+`formation` past the player toward a place (a `PlaceGuide` fly).
+
+The row carries the seed and count, the scale and foot height, the flight
+and wingbeat rows of `CirclingFlyer`, `wheeling` (centre, radius, loop
+offsets and ranges, harmonic wheel, perch-after time; `null` keeps idle birds
+hidden), `perch` (share perched, flush radius, hop, head turns, takeoff and
+landing curves), `guide` (speed, borrow distance, start / pass / end offsets
+in the player's frame, formation slots, stagger, leader call fraction, and
+`after`: back into a loop, or `null` hidden), `call` (a cue id played with
+`app.audio.cue(id, { point })`) and `channels` / `attributes`: how each
+bird's pose (`flap`, `fold`, `head`, `legs` or a constant) packs into the
+look's per-instance vec4s. Perches are plain points. No callback crosses it
+(G454). The motion is `engine/ai/ambientFlock.AmbientFlock`: render-free,
+seeded, server-safe.
+
+Users: Driftwood's gulls (`custom/gullFlock`, data/gullsLook.ts GULL_FLOCK,
+perched on the pier, boat, rocks and sand) and Pine Hollow's breadcrumb
+ravens (`custom/ambientLife` `guide.flock`, hidden until a guide pass).
 
 `bindDirectorActions(...).validate(saved)` checks the installed immutable
 stage contract and cursor without mutating its lane or calling native ports.

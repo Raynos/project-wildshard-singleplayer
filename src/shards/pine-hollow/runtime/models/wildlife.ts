@@ -84,6 +84,8 @@ export class WildlifeMesh {
   /** the owl's eye-shine (0 by day → 1 at night) */
   readonly glow: { value: number };
   private readonly posed: PosedInstancesView;
+  /** the posed look and its authored geometry, for the guide flock's own draw */
+  readonly look = { name: WILDLIFE_LOOK, material: wildlifeLook().material, get geometry(): THREE.BufferGeometry { return authoredWildlife().geometry; } };
 
   constructor(readonly sky: Sky, capacity: number) {
     this.capacity = capacity;

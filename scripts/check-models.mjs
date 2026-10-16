@@ -78,7 +78,6 @@ export const DONE = {
   'driftwood-isle': {
     'src/shards/driftwood-isle/runtime/looks/reefBed.ts': { why: "a sea floor's reef weld: every copy of its kinds in one mesh, the models placed drawnInto it (SHARD-PLATFORM M3, moved from Driftwood's world/Seabed.ts, whose entry still covers its frozen legacy copy)", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/runtime/looks/instancedTiles.ts': { why: "a baked island's placements drawn instanced per tile set (SHARD-PLATFORM M3, moved from Driftwood's world/islandInstances.ts, whose legacy copy keeps its entry; G144 / G173): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle/runtime/looks/gullFlock.ts': { why: "the gulls are creatures (M5), one instanced flock drawn by its live system (SHARD-PLATFORM M3, moved from Driftwood's world/Gulls.ts)", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/driftwood-isle/world/rockKit.ts': { why: "the rock kit the rock models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },

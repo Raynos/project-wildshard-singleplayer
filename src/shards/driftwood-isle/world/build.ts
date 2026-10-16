@@ -27,7 +27,8 @@ import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/
 import { Wreck } from './Wreck';
 import { placeShrine, type Shrine } from '../runtime/world/Shrine';
 import { placeIslandBushes } from './Bushes';
-import { Gulls } from '../runtime/world/Gulls';
+import { gullFlock } from '../runtime/world/Gulls';
+import type { AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { buildTrailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';
@@ -52,7 +53,7 @@ type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? Autho
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Awaited<ReturnType<typeof placeShoreBoulders>> | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
-  gulls: Gulls | null; trailside: ReturnType<typeof buildTrailside> | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
+  gulls: AmbientFlockDraw | null; trailside: ReturnType<typeof buildTrailside> | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Awaited<ReturnType<typeof placeIslandPalms>> | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
@@ -154,16 +155,13 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const foliage: AuthoredFoliage<typeof FOLIAGE.tiers.phone> = FOLIAGE.tiers[game.tier];
   const bushes = await stages.build('Bushes', () => placeIslandBushes(sky, foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-  const gulls = await stages.build('Gulls', () => new Gulls().build({
-    perches: [
+  const gulls = await stages.build('Gulls', () => gullFlock([
       ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
       new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
       ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
-      ...driftwoodRows('custom/fixedLayouts').gullPerches.map(p => new THREE.Vector3(p.x, p.y, p.z)),
-    ],
-    centre: new THREE.Vector3(0, 0, -205), radius: 90,
-  }), { objects: value => [value.group] });
+      ...driftwoodRows('custom/fixedLayouts').gullPerches,
+  ]), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
   const trailside = buildTrailside(sky);
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their

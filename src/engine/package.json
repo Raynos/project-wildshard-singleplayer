@@ -429,6 +429,7 @@
     "./boot/contentCacheWorker": "./boot/contentCacheWorker.ts",
     "./ai/huntPattern": "./ai/huntPattern.ts",
     "./ai/ambientFlight": "./ai/ambientFlight.ts",
+    "./ai/ambientFlock": "./ai/ambientFlock.ts",
     "./player/heldHandParts": "./player/heldHandParts.ts"
   }
 }

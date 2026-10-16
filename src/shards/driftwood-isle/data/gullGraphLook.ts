@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2 C4 (look-family rows): Driftwood's herring gulls (runtime/looks/gullFlock.ts, one instanced mesh)
+// SHARD-PLATFORM W2 C4 (look-family rows): Driftwood's herring gulls (the GULL_FLOCK row on @wildshard/sdk/looks/ambientFlock, one instanced mesh)
 // on the graph toon look (`look.materials`, compiled by the runtime with its other looks, runtime/hybrid.ts). The flap
 // rig that was GLSL is the vertex stage: each part (`aPart`) turned about its joint from the instance's `aAnim`
 // (flap, head yaw, wing fold, leg tuck), then the instance's own transform; the surface is the vertex paint, matte.

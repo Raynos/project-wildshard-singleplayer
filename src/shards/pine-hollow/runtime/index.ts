@@ -276,7 +276,7 @@ export class PineHollow extends ShardPlugin {
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
-    const wildlife=new WildlifeMesh(sky,lifeRows.scavenger.count+lifeRows.guide.count+lifeRows.forager.count+2);
+    const wildlife=new WildlifeMesh(sky,lifeRows.scavenger.count+lifeRows.forager.count+2);
     const life = installAmbientLife(lifeRows,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!isPhShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });

@@ -23,14 +23,15 @@ import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { BodylessForager, type BodylessForagerState, type ForagerMotion } from './bodylessForager';
 import { TrunkProbe } from './trunkProbe';
-import { parseAmbientLife, type AmbientLifeData, type CirclingLifeData } from '@wildshard/format/ambientLife';
+import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
+import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
 
 type WildKind=number;
 interface PlaceSpot {id:string;x:number;z:number;r:number}
 type RavenVisit='waiting'|'overhead'|'feeding'|'gone';
 export interface WildPose {kind:number;x:number;y:number;z:number;yaw:number;pitch:number;roll:number;scale:number;a0:number;a1:number;a2:number;a3:number;b1:number;b2:number}
 const newPose=(kind:number):WildPose=>({kind,x:0,y:-999,z:0,yaw:0,pitch:0,roll:0,scale:1,a0:0,a1:0,a2:0,a3:0,b1:0,b2:0});
-export interface AmbientLifeView {mesh:THREE.InstancedMesh;glow:{value:number};begin:()=>void;add:(pose:WildPose)=>void;commit:()=>void}
+export interface AmbientLifeView {mesh:THREE.InstancedMesh;glow:{value:number};look:AmbientFlockLook;begin:()=>void;add:(pose:WildPose)=>void;commit:()=>void}
 function beatEnvelope(t:number,beat:AmbientLifeData['harvest']):number {if(t<=0||t>=beat.len)return 0;const ease=(u:number):number=>u*u*(3-2*u);if(t<beat.kneelIn)return ease(t/beat.kneelIn);if(t>beat.rise)return ease(1-(t-beat.rise)/(beat.len-beat.rise));return 1;}
 
 export interface AmbientLifeHost<Birds> {
@@ -87,8 +88,8 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   if (h.trimShadows) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (ambient memory trim)
   const { game, sky, player, animals } = h;
   const KIND={raven:data.scavenger.model,owl:data.sentinel.model,woodpecker:data.trunkForager.model,hare:data.forager.model};
-  const N_RAVEN=data.scavenger.count,N_GUIDE=data.guide.count,N_HARE=data.forager.count;
-  const SLOT={raven:0,owl:N_RAVEN,wood:N_RAVEN+1,guide:N_RAVEN+2,hare:N_RAVEN+2+N_GUIDE};
+  const N_RAVEN=data.scavenger.count,N_HARE=data.forager.count;
+  const SLOT={raven:0,owl:N_RAVEN,wood:N_RAVEN+1,hare:N_RAVEN+2};
   const RAVEN_FLUSH=data.scavenger.flush,RAVEN_FLUSH_RUN=data.scavenger.flushRun,RAVEN_RELAND=data.scavenger.reland;
   const BODY=data.scavenger.bodyWidths,RAVEN_STAND=data.scavenger.stand,OWL_STAND=data.sentinel.stand;
   const BEAT=data.harvest;
@@ -159,8 +160,8 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   const ravens = Array.from({ length: N_RAVEN }, (_, i) => bird(SLOT.raven + i, KIND.raven));
   const owl = bird(SLOT.owl, KIND.owl);
   const wood = bird(SLOT.wood, KIND.woodpecker);
-  const guides = Array.from({ length: N_GUIDE }, (_, i) => bird(SLOT.guide + i, KIND.raven));
-  for (const b of [...ravens, owl, wood, ...guides]) b.pose.scale = b.pose.kind === KIND.raven ? data.scavenger.scale : data.sentinel.scale;
+  const fliers = [...ravens, owl, wood];
+  for (let i = 0; i < 258; i++) { const b = fliers[i]; if (b === undefined) break; b.pose.scale = b.pose.kind === KIND.raven ? data.scavenger.scale : data.sentinel.scale; }
 
   const place = (b: Bird, x: number, y: number, z: number): void => { b.pose.x = x; b.pose.y = y; b.pose.z = z; };
   /** fly from where it is to (x, y, z) at `speed` m/s, the path bowing along its heading (and up by `lift`) */
@@ -509,29 +510,13 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     }
   };
 
-  // ── the breadcrumbs: ravens toward the nearest unvisited place ──
-  function flyCrumbs(target: PlaceSpot, force: boolean): boolean {
-    if (!force && guides.some((j) => j.mode !== 'off')) return false;
-    const pp = player.position, dx = target.x - pp.x, dz = target.z - pp.z, d = Math.hypot(dx, dz) || 1, ux = dx / d, uz = dz / d;
-    // up from just behind you, low over your head (under the crowns), out ahead toward the place, rising away over the
-    // trees: they overtake you, so whichever way you face you see them go — "follow the birds"
-    const side = rng.next() < 0.5 ? -1 : 1, sx = -uz * side, sz = ux * side;
-    const n = rng.int(2, N_GUIDE);
-    guides.forEach((j, i) => {
-      if (i >= n) { off(j); return; }
-      const jit = (): number => rng.range(-1.5, 1.5);
-      const x0 = pp.x - ux * 5 + sx * 4 + jit(), z0 = pp.z - uz * 5 + sz * 4 + jit();
-      spawnAt(j, x0, heightAt(x0, z0) + rng.range(3.2, 4.2), z0, pp.x + ux * 20, pp.z + uz * 20);
-      j.flapT = rng.range(0, TAU); j.burst = rng.int(1, 3);
-      const mx = pp.x + ux * 28 + jit() * 2, mz = pp.z + uz * 28 + jit() * 2;
-      flyTo(j, mx, heightAt(mx, mz) + rng.range(4, 5.5), mz, 9.5 + rng.range(-0.8, 0.8), 0.5, () => {
-        const ex = pp.x + ux * 170 + jit() * 4, ez = pp.z + uz * 170 + jit() * 4;
-        flyTo(j, ex, heightAt(ex, ez) + 22, ez, 10.5, 2, null);
-      });
-      j.t = -i * 0.14; // a loose, staggered flock
-    });
-    const lead = guides[0];
-    if (lead && n > 0) { ravenVoiceT = 0; caw(lead, n > 1); } // croaking as they pass over: look up
+  // ── the breadcrumbs: ravens toward the nearest unvisited place (the guide flock row, @wildshard/sdk/looks/ambientFlock) ──
+  const crumbs = createAmbientFlock(data.guide.flock, wild.look);
+  wild.mesh.add(crumbs.group); // the guide flock draws beside the wildlife (both at the origin)
+  installAmbientFlock(h.ctx, crumbs, player);
+  function flyCrumbs(target: PlaceSpot): boolean {
+    if (!crumbs.guide(player.position, target.x, target.z)) return false;
+    ravenVoiceT = now() + rng.range(3, 6); voice(data.sounds.pair, crumbs.flock.birds[0], 0.9); // croaking as they pass over: look up
     return true;
   }
 
@@ -668,7 +653,9 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     if (wood.mode === 'perch' && Math.hypot(wood.pose.x - player.position.x, wood.pose.z - player.position.z) > 110) {
       wood.pose.b2 = 0; wood.pose.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30;
     }
-    for (const subject of [...ravens, owl, wood, ...guides]) {
+    for (let i = 0; i < 258; i++) {
+      const subject = fliers[i];
+      if (subject === undefined) break;
       const end = departureEnds.get(subject);
       if (subject.mode === 'fly' && subject.after === null && end !== undefined && now() >= end) { off(subject); departureEnds.delete(subject); }
     }
@@ -684,12 +671,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     const woodDt = scheduler.takeBrainDtAt('fx', wood, wood.mode === 'off' ? player.position : wood.pose);
     if (woodDt > 0) updateWood(woodDt, night);
     if (wood.mode !== 'off') wild.add(wood.pose);
-    for (const j of guides) {
-      if (j.mode === 'off') { scheduler.forget(j); continue; }
-      const tickDt = scheduler.takeBrainDtAt('fx', j, j.pose);
-      if (tickDt > 0 && j.mode === 'fly') stepFly(j, tickDt);
-      if (flying(j)) wild.add(j.pose);
-    }
     for (const hr of hares) {
       if (!prepareHare(hr, dt)) { scheduler.forget(hr); continue; }
       const tickDt = scheduler.takeBrainDtAt('fx', hr, hr.x === 1e5 ? player.position : { x: hr.x, y: hr.pose.y, z: hr.z });
@@ -705,7 +686,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
 
   const life: AmbientLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
   const probe = {
-    wild, ravens, owl, wood, guides, hares, carcasses, 
+    wild, ravens, owl, wood, guides: crumbs.flock.birds, hares, carcasses, 
     /** a breadcrumb flock now (captures); the place it heads for */
     crumbs: () => guide.attempt(true),
     /** the owl onto a perch near you now (captures; set the clock to night first) — or onto the snag nearest (x, z) */
@@ -735,22 +716,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   return life;
 }
 
-/** Native ports for independent circling populations. */
-export interface CirclingLifeHost { ctx:ShardContext;game:Game;view:AmbientLifeView }
-/** A circling role with real posed bodies; its caller owns the view and orbit declarations. */
-export function createCirclingLife(data:CirclingLifeData,host:CirclingLifeHost):AmbientLife {
-  const flight=new CirclingFlyer(data.flight),bodies=data.flock.map(row=>({pose:{...newPose(row.model),scale:row.scale,x:row.x+Math.cos(row.phase)*row.radius,y:row.y,z:row.z+Math.sin(row.phase)*row.radius},orbit:{ox:row.x,oz:row.z,orad:row.radius,oalt:row.y,ow:row.speed,oph:row.phase},row,wing:0}));
-  host.game.scene.add(host.view.mesh);
-  host.ctx.system({id:data.system.id,after:data.system.after,before:data.system.before,phase:'update',run:dt=>{
-    host.view.begin();for(const body of bodies){flight.step(body.pose,body.orbit,dt);body.wing+=dt*body.row.wingSpeed;body.pose.a0=Math.sin(body.wing)*body.row.wingAmplitude;host.view.add(body.pose);}host.view.commit();
-  }});
-  return {mesh:host.view.mesh,harvest:()=>{throw new Error('Circling population cannot harvest');},busy:false};
-}
-
 /** Install this shard's ambient role on its actual scoped world/model owners. */
-export function installAmbientLife<Birds>(input:unknown,ports:AmbientLifeHost<Birds>|CirclingLifeHost):ReturnType<typeof createAmbientLife<Birds>> {
-  const data=parseAmbientLife(input);
-  if(data.kind==='circling-flyer')return createCirclingLife(data,ports);
-  if(!('animals' in ports))throw new Error('Forest role needs its actual herd');
-  return createAmbientLife(data,ports);
+export function installAmbientLife<Birds>(input:unknown,ports:AmbientLifeHost<Birds>):ReturnType<typeof createAmbientLife<Birds>> {
+  return createAmbientLife(parseAmbientLife(input),ports);
 }

@@ -4,6 +4,7 @@ import { STRINGS } from './strings';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
 import { islandSystems } from './world/systems';
+import { installAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { installDriftwoodAudio } from './audio/install';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { driftwoodDirectorBytes } from './director';
@@ -57,6 +58,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(PROBE_KEYS.map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     shell.hooks.places = () => this.adventure?.places?.points ?? [];
     islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
+    if (gulls !== null) installAmbientFlock(ctx, gulls, world.player);
   }
 
   override async kit(ctx: ShardContext): Promise<void> {

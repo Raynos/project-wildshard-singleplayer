@@ -5,11 +5,11 @@
  * wreck's hold), the finale (src/shards/driftwood-isle/runtime/finalePresentation.ts: the Captain, once the altar is used), src/shards/driftwood-isle/world/Gulls.ts (the
  * gulls, one instanced draw, wings in the vertex shader). The deer, boar and bear are shared (src/game/models/creatures.ts).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { Gulls } from '../world/Gulls';
+import { gullFlock } from '../world/Gulls';
 import { fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
 const FILE = 'src/shards/driftwood-isle/runtime/models/creatures.ts';
@@ -35,7 +35,7 @@ export const gull: ModelDef<object> = defineModel<object>({
   defaults: {},
   // the baked gull (generators/gull.ts) is a fixed-model template: a loading box until the island's templates are in
   build: () => {
-    const one = (): THREE.Object3D => new Gulls().build({ perches: [new THREE.Vector3(0, 0, 0)], centre: new THREE.Vector3(0, 0, 0), radius: 1, count: 1 }).group;
+    const one = (): THREE.Object3D => gullFlock([{ x: 0, y: 0, z: 0 }], 1).group;
     if (fixedGeometryReady()) return one();
     return loadingSpecimen('driftwood-isle/gull', [0.95, 0.3, 0.9], async () => { await loadFixedGeometry(); return one(); });
   },

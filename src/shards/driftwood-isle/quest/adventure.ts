@@ -63,7 +63,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5), and the quest card (E51) */
   fullMap?: { setPois: (source: () => MapPoi[], opts?: { tally?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
   /** the island's gulls: three fly you toward the nearest unfound place when you wander or idle (E309 B, gullGuide.ts) */
-  gulls?: { guide: (player: THREE.Vector3, yaw: number, tx: number, tz: number) => boolean } | null;
+  gulls?: { guide: (player: THREE.Vector3, tx: number, tz: number) => boolean } | null;
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
   /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
   bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;
@@ -178,7 +178,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   if (w.gulls) {
     const gulls = w.gulls, guide = new PlaceGuide({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...GUIDE } },
       { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
-        fly: (target: { readonly x: number; readonly z: number }) => gulls.guide(w.player.position, w.player.yaw, target.x, target.z) });
+        fly: (target: { readonly x: number; readonly z: number }) => gulls.guide(w.player.position, target.x, target.z) });
     flags.onChange((flag, on) => { if (on && !flag.startsWith('plate:')) guide.progressed(); });
     w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered !== false && w.hud.paused !== true && w.player.position.y <= 300)
       guide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');

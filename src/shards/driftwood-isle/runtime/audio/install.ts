@@ -32,14 +32,13 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   });
   audio.installCues(cues, ctx.scope);
   ctx.answer('player.stepSurface', (request) => ({ ...request, surface: surfaces.surfaceAt(request.x, request.z, request.y) }));
-  const old = { onSwing: swordEvents.onSwing, onStrike: swordEvents.onStrike, onClang: swordEvents.onClang, onCall: built.gulls?.onCall };
+  const old = { onSwing: swordEvents.onSwing, onStrike: swordEvents.onStrike, onClang: swordEvents.onClang };
   swordEvents.onSwing = (speed, heavy, dir) => { cues('cue.weapon.fire', { speed, heavy, dir }); };
   swordEvents.onStrike = (kind, point, strength, killed) => {
     cues(`cue.hit.${kind === 'crab' ? 'shell' : kind === 'sailor' ? 'wood' : 'flesh'}`, { point, strength });
     if (killed) cues('cue.creature.death', { kind, point, gain: 1.3 });
   };
   swordEvents.onClang = (point, strength, clang) => { cues(`cue.weapon.clang.${clang}`, { point, strength }); };
-  if (built.gulls) built.gulls.onCall = (point) => { cues('cue.ambient.gull', { point }); };
   // Water callbacks stay synchronous: dive/surface synth, plunge bank, mixer, zoned bed, score.
   const previousUnderwater = audio.setUnderwater.bind(audio);
   audio.setUnderwater = (on) => { previousUnderwater(on); ambience.setUnderwater(on); };
@@ -54,7 +53,6 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   ctx.debug.expose('driftwood.audio', handles);
   ctx.scope.onDispose(() => {
     swordEvents.onSwing = old.onSwing; swordEvents.onStrike = old.onStrike; swordEvents.onClang = old.onClang;
-    if (built.gulls) { if (old.onCall === undefined) delete built.gulls.onCall; else built.gulls.onCall = old.onCall; }
     audio.setUnderwater = previousUnderwater;
     shrineHum?.dispose(); ambience.dispose();
     for (const [key, value] of Object.entries(handles)) if (shell.objects[key] === value) delete shell.objects[key];

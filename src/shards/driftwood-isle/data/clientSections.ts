@@ -10,6 +10,7 @@ import lookout from './lookoutBake.json' with { type: 'json' };
 import trailside from './trailsideBake.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from './economy';
+import { GULL_FLOCK } from './gullsLook';
 
 const foliageRows:Readonly<Record<string,unknown>>=foliage;
 
@@ -17,6 +18,7 @@ const foliageRows:Readonly<Record<string,unknown>>=foliage;
 export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] = [
   {name:'custom/cumulusPuffs', value:cumulusPuffs},
   {name:'custom/islandClips', value:islandClips},
+  {name:'custom/gullFlock', value:GULL_FLOCK},
   {name:'custom/fixedLayouts', value:{chimeSlots, gullPerches:foliageRows['gullPerches'], cove:coveBake, shrine:shrineBake, trophySlots:trophySlotsBake, hut, lookout}},
   {name:'custom/trailside', value:trailside},
   {name:'custom/questRows', value:{feats:DRIFTWOOD_FEATS, items:DRIFTWOOD_ITEMS, effects:DRIFTWOOD_EFFECTS, goods:GOODS}},
