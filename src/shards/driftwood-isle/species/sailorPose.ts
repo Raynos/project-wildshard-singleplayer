@@ -1,6 +1,6 @@
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, squashBody, step } from '@wildshard/engine/entities/species/rigs';
-import { sampleCreatureSwing, stepCreatureLift } from '@wildshard/game/plugin/animation';
+import { poseCreatureStride, sampleCreatureSwing, stepCreatureLift } from '@wildshard/game/plugin/animation';
 
 type Side = 'L' | 'R';
 type SailorBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, AnimalRigJoint>;
@@ -8,6 +8,7 @@ const R = (b: AnimalRigJoint,x:number,y:number,z:number) => b.rotation.set(x,y,z
 
 const SWING = { wind: [0, .6], cut: [.62, .78], recover: [.85, 1],
   channels: { swX: [.2, -2.7, .95], swZ: [-.25, -.9, .2], elR: [-.5, -.9, -.15], body: [0, -.25, .45], spine: [0, .45, -.5], head: [0, 0, .2] } } as const;
+const STRIDE = { hip: .55, knee: .35, spread: .08, kneeRest: .15 };
 const swing = { swX: 0, swZ: 0, elR: 0, body: 0, spine: 0, head: 0 };
 
 export function animateSailor(c: AnimalRigContext): void {
@@ -38,13 +39,6 @@ export function animateSailor(c: AnimalRigContext): void {
   R(b.armR_el, swing.elR - 0.5 * rise, 0, -0.1);
   R(b.armR_hand, 0.35, 0, 0);
   // ── legs: a stiff-kneed shamble, knees dropping when it dies ──
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    const lsw = Math.sin(ph + (sx > 0 ? 0 : Math.PI));
-    const hip = b[`leg${side}_hip`], knee = b[`leg${side}_knee`], foot = b[`leg${side}_foot`];
-    R(hip, -0.55 * lsw * moving - 0.1 * c.brace - 0.1 + 0.15 * kneel - 0.4 * topple, 0, sx * 0.08);
-    R(knee, (0.35 + 0.4 * Math.max(0, lsw)) * moving + 0.15 * c.brace + 0.15 + 1.9 * kneel, 0, 0);
-    R(foot, -0.15 * lsw * moving - 0.1, 0, 0);
-  }
+  poseCreatureStride(b, ph, moving, c.brace, kneel, topple, STRIDE);
   squashBody(b.body, c.flinch);
 }

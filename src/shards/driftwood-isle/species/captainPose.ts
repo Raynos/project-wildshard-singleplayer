@@ -1,4 +1,4 @@
-import { sampleCreatureSwing } from '@wildshard/game/plugin/animation';
+import { poseCreatureStride, sampleCreatureSwing } from '@wildshard/game/plugin/animation';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, step } from '@wildshard/engine/entities/species/rigs';
 import type { CaptainMem } from './captainPolicy';
@@ -9,6 +9,7 @@ const R = (b: AnimalRigJoint,x:number,y:number,z:number) => b.rotation.set(x,y,z
 
 const SWING = { wind: [0, .62], cut: [.64, .8], recover: [.86, 1],
   channels: { swX: [.25, -2.9, 1.05], swZ: [-.3, -1, .25], elR: [-.45, -1, -.1], body: [0, -.3, .5], spine: [0, .5, -.55], head: [0, 0, .2] } } as const;
+const STRIDE = { hip: .5, knee: .3, spread: .07 };
 const swing = { swX: 0, swZ: 0, elR: 0, body: 0, spine: 0, head: 0 };
 
 export function animateCaptain(c: AnimalRigContext): void {
@@ -38,11 +39,5 @@ export function animateCaptain(c: AnimalRigContext): void {
   R(b.armR_sh, swing.swX + armSw * 0.5 + riseArms * 0.8 + 0.8 * dead, 0, swing.swZ - 0.2 * rise);
   R(b.armR_el, swing.elR - 0.5 * rise, 0, -0.1);
   R(b.armR_hand, 0.35, 0, 0);
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    const lsw = Math.sin(ph + (sx > 0 ? 0 : Math.PI));
-    R(b[`leg${side}_hip`], -0.5 * lsw * moving - 0.1 * c.brace - 0.1 + 0.15 * kneel - 0.4 * topple, 0, sx * 0.07);
-    R(b[`leg${side}_knee`], (0.3 + 0.4 * Math.max(0, lsw)) * moving + 0.15 * c.brace + 0.12 + 1.9 * kneel, 0, 0);
-    R(b[`leg${side}_foot`], -0.15 * lsw * moving - 0.1, 0, 0);
-  }
+  poseCreatureStride(b, ph, moving, c.brace, kneel, topple, STRIDE);
 }

@@ -6549,3 +6549,16 @@ returning the decoded contract. It never spawns, draws RNG or mutates a
 roster. Pine uses first-match lookup across actors then parked recipes;
 the existing native creature intake retains last-match lookup. Each
 caller keeps its placement, hunt, pose and versioned continuation owners.
+
+**Creature leg stride (G441).** `game/plugin/animation.poseCreatureStride`
+poses six borrowed hip/knee/foot joints using a `CreatureStrideProfile`
+and the caller's phase, movement, brace, kneel and topple values. The
+profile holds numeric swing, spread and optional stance coefficients;
+an optional bend adds the existing attack knee bend. All scalars and
+required joints preflight before any write. No clock, RNG, actor memory,
+position or save state is owned, and no per-frame allocation is needed.
+Driftwood captain/sailor use the shared weighted stance. Nalati
+`species/balbal.ts#animateBalbal` is the G441 later user: its leg loop uses
+the same alternating swing and knee law with zero rest/brace terms,
+1.7 knee folding and caller-owned attack bend. The rest of its pose stays
+with the native caller.
