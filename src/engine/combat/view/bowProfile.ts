@@ -38,6 +38,27 @@ export interface BowProfile<Style extends string = string> {
  * The caller retains baked ownership and its own centreline, section and grip laws.
  * Static vertices, colours, UVs and indices are never rewritten. */
 export class BowShape {
+  private static readonly claimed = new WeakSet<THREE.BufferGeometry>();
+  /** Claim rest backing once; subsequent views own position/normal copies and borrow immutable channels.
+   * Call before deformation. The returned dynamic attributes and radius-two bound belong to this view. */
+  static prepareGeometry(rest: THREE.BufferGeometry): { geometry: THREE.BufferGeometry; position: THREE.BufferAttribute; normal: THREE.BufferAttribute } {
+    const p = rest.getAttribute('position'), n = rest.getAttribute('normal');
+    if (!(p instanceof THREE.BufferAttribute) || !(n instanceof THREE.BufferAttribute)
+      || !(p.array instanceof Float32Array) || !(n.array instanceof Float32Array)
+      || p.itemSize !== 3 || n.itemSize !== 3 || p.count !== n.count || p.count < 1 || p.count > 1_048_576)
+      throw new Error('Bow rest geometry requires bounded Float32 position/normal channels');
+    const copied = BowShape.claimed.has(rest), geometry = copied ? new THREE.BufferGeometry() : rest;
+    const position = new THREE.BufferAttribute(copied ? p.array.slice() : p.array, 3).setUsage(THREE.DynamicDrawUsage);
+    const normal = new THREE.BufferAttribute(copied ? n.array.slice() : n.array, 3).setUsage(THREE.DynamicDrawUsage);
+    if (copied) {
+      for (const name of ['color', 'uv']) if (Object.hasOwn(rest.attributes, name)) geometry.setAttribute(name, rest.getAttribute(name));
+      geometry.setIndex(rest.getIndex());
+    }
+    BowShape.claimed.add(rest);
+    geometry.setAttribute('position', position); geometry.setAttribute('normal', normal);
+    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 2);
+    return { geometry, position, normal };
+  }
   private readonly c = new THREE.Vector3(); private readonly t = new THREE.Vector3(); private readonly n = new THREE.Vector3();
   private readonly ringU: readonly number[]; private readonly ringSign: readonly number[];
   private readonly pos: Float32Array; private readonly nrm: Float32Array;

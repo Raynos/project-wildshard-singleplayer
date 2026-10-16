@@ -70,13 +70,6 @@ export function arrowGeometry(look: ArrowLook): THREE.BufferGeometry {
   return handsPart('bow-arrow');
 }
 
-/** Baked rest geometries whose position / normal arrays a stave already bends (the next one bends its own copies). */
-const taken = new WeakSet<THREE.BufferGeometry>();
-const ownArray = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): Float32Array => {
-  if (!(a instanceof THREE.BufferAttribute) || !(a.array instanceof Float32Array)) throw new Error('[pine-hollow hands] the stave needs Float32 rest channels');
-  return a.array;
-};
-
 /** The stave and its string over the baked rest geometry (its colours, uv, index and the static left fist after them; a
  *  copy of its positions and normals once another stave bends the first). The first `dynVerts` vertices (limbs + string)
  *  are rewritten by `shape(draw, nock)`. Each limb: the stiff grip, then a working limb of near-constant bend κ(p) toward
@@ -85,33 +78,17 @@ export class StaveBowMesh {
   readonly geometry: THREE.BufferGeometry;
   readonly dynVerts: number;
   readonly tipTop = new THREE.Vector3(); readonly tipBot = new THREE.Vector3(); readonly nock = new THREE.Vector3();
-  private readonly pos: Float32Array; private readonly nrm: Float32Array;
-  private readonly posAttr: THREE.BufferAttribute; private readonly nrmAttr: THREE.BufferAttribute;
   private readonly shapeOwner: BowShape;
 
   constructor(look: StaveBowLook, rest: THREE.BufferGeometry, rows: Pick<typeof BAKED_BOW, 'ringU' | 'ringSign' | 'limbVerts' | 'dynVerts' | 'sectionSamples'>) {
     this.dynVerts = rows.dynVerts;
-    const restPos = ownArray(rest.getAttribute('position')), restNrm = ownArray(rest.getAttribute('normal'));
-    if (taken.has(rest)) {
-      this.pos = restPos.slice(); this.nrm = restNrm.slice();
-      this.geometry = new THREE.BufferGeometry();
-      this.geometry.setAttribute('color', rest.getAttribute('color'));
-      this.geometry.setAttribute('uv', rest.getAttribute('uv'));
-      this.geometry.setIndex(rest.getIndex());
-    } else {
-      taken.add(rest);
-      this.geometry = rest; this.pos = restPos; this.nrm = restNrm;
-    }
-    this.posAttr = new THREE.BufferAttribute(this.pos, 3); this.nrmAttr = new THREE.BufferAttribute(this.nrm, 3);
-    this.posAttr.setUsage(THREE.DynamicDrawUsage); this.nrmAttr.setUsage(THREE.DynamicDrawUsage);
-    this.geometry.setAttribute('position', this.posAttr);
-    this.geometry.setAttribute('normal', this.nrmAttr);
-    this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 2);
+    const { geometry, position, normal } = BowShape.prepareGeometry(rest);
+    this.geometry = geometry;
     this.shapeOwner = new BowShape({ ...rows, curve: look, radial: look.radial, backScale: 0.55,
       tipArc: look.gripH + look.limbW + look.nockL - 0.014, tipOffset: 0.004,
       nockX: look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
       stringRadial: look.stringRadial, stringRadius: look.stringR, serving: look.serving }, {
-      position: this.posAttr, normal: this.nrmAttr, tipTop: this.tipTop, tipBot: this.tipBot, nock: this.nock,
+      position, normal, tipTop: this.tipTop, tipBot: this.tipBot, nock: this.nock,
     });
     this.shape(0, 0);
   }

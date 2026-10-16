@@ -6299,7 +6299,15 @@ above 10,000 and tip kinks outside ±PI. Curve sampling writes only the
 borrowed centre/tangent vectors and retains the original arithmetic.
 The named W3 match also includes Nalati `weapons/recurve.ts#limbAt`, whose
 siyah uses the same law with `tipKink = 0.95`. Static channels, indices and vertices stay untouched;
-cloning, disposal and baked-buffer transfer remain the caller's ownership.
+disposal remains the caller's ownership. `BowShape.prepareGeometry(rest)`
+claims Float32 position/normal backing for the first view; later views copy
+only those mutable channels and borrow color, UV and index backing. It
+returns the geometry and its DynamicDrawUsage attributes with the existing
+radius-two bounding sphere. Call before deforming the source. Interleaved,
+non-Float32, crossed, empty or over-1,048,576-vertex channels refuse before
+claiming. The named W3 consumer is Nalati `weapons/recurve.ts#BowMesh`'s
+constructor, which binds the same dynamic position/normal channels and
+bounds; its palette, repaint and static geometry production stay local.
 Construction refuses crossed channel lengths, non-Float32 attributes,
 non-finite coefficients and layouts beyond 1024 rings / 64 radial samples
 / 65,536 dynamic vertices. `shape(draw, nock)` retains the original draw
