@@ -87,6 +87,7 @@ export function declaredLootPresentation(row: ShardRows['loot'][number], cue: (i
 type EconomyGrant<K extends OwnedId> = Omit<LootEconomy['grants']['player'][number], 'key' | 'unless'> & { key: K; unless?: K[] };
 /** Economy metadata with identifiers admitted by the existing ownership service. */
 export interface DeclaredLootEconomy extends Omit<LootEconomy, 'goods' | 'grants' | 'finds'> {
+  progression: { flags: string[]; states: { earned: { id: OwnedId; text: string }[]; displayCount: number; next: number | null }[]; glow: { owned: OwnedId; curve: NonNullable<LootEconomy['progression']>['glow']['curve'] } };
   goods: (Omit<LootEconomy['goods'][number], 'id' | 'needs'> & { id: OwnedId; needs?: OwnedId })[];
   grants: { player: EconomyGrant<OwnedId>[]; worn: EconomyGrant<CosmeticId>[]; weapons: EconomyGrant<OwnedId>[] };
   finds: FindsCatalogueRows<OwnedId>;
@@ -99,7 +100,10 @@ export function declaredLootEconomy(rows: ShardRows['loot']): DeclaredLootEconom
   const owned = (id: string): OwnedId => { if (!isOwnedId(id)) throw new Error('Unknown economy ownership'); return id; };
   const worn = (id: string): CosmeticId => { const key = owned(id); if (!isCosmetic(key)) throw new Error('Economy worn grant requires a cosmetic'); return key; };
   const grants = <K extends OwnedId>(entries: LootEconomy['grants']['player'], key: (id: string) => K) => entries.map(({ key: id, unless, ...row }) => ({ ...row, key: key(id), ...(unless === undefined ? {} : { unless: unless.map(key) }) }));
+  const progression = economy.progression;
+  if (progression === undefined) throw new Error('Missing economy progression');
   return { ...economy, goods: economy.goods.map(({ id, needs, ...good }) => ({ ...good, id: owned(id), ...(needs === undefined ? {} : { needs: owned(needs) }) })),
+    progression: { ...progression, states: progression.states.map(state => ({ ...state, earned: state.earned.map(reward => ({ ...reward, id: owned(reward.id) })) })), glow: { ...progression.glow, owned: owned(progression.glow.owned) } },
     grants: { player: grants(economy.grants.player, owned), worn: grants(economy.grants.worn, worn), weapons: grants(economy.grants.weapons, owned) },
     finds: { ...economy.finds, sections: economy.finds.sections.map(section => {
       const items = section.items.map(item => {

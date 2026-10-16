@@ -5,8 +5,10 @@ import { parseLootEconomy } from '../src/format/lootEconomy';
 import { parseRows } from '../src/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { buyGood, goodState } from '../src/shards/driftwood-isle/loot/shop';
-import { seaChartMarks } from '../src/shards/driftwood-isle/loot/finds';
-import type { OwnedId } from '../src/game/loot/Owned';
+import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
+import { Flags } from '../src/engine/world/interact/flags';
+import { Scope } from '../src/engine/app/scope';
+import { Owned, type OwnedId } from '../src/game/loot/Owned';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables';
 
@@ -28,12 +30,17 @@ test('emitted goods keep prices, prerequisites and spend-before-grant transactio
   }
 });
 
-test('chart rows preserve all shipping world positions, order and saved-flag visibility', () => {
+test('chart rows preserve all shipping world positions, order and saved-flag visibility', async () => {
   const old = DRIFTWOOD_INTERACT.rows.flatMap(row => row.kind === 'pickup' && row.look === 'seaglass' && row.at.poi === 'world' && row.sets?.[0] !== undefined
     ? [{ flag: row.sets[0], x: row.at.x, z: row.at.z, color: row.color ?? '#7df0d0' }] : []);
   expect(economy.marks).toEqual(old); expect(old).toHaveLength(15);
   const saved = new Set(old.filter((_, index) => index % 2 === 0).map(row => row.flag));
-  expect(seaChartMarks({ has: flag => saved.has(flag) }, economy.marks)).toEqual(old.filter(row => !saved.has(row.flag)).map(({ x, z, color }) => ({ x, z, color })));
+  const flags = new Flags('driftwood-isle', false), scope = new Scope('loot-chart'); flags.restore([...saved]);
+  try {
+    const view = await driftwoodLootPresentation({ economy, adventure: { flags, trader: null }, owned: new Owned('driftwood-isle'),
+      health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } }, scope, toast: () => undefined, hold: () => undefined });
+    expect(view.marks?.()).toEqual(old.filter(row => !saved.has(row.flag)).map(({ x, z, color }) => ({ x, z, color })));
+  } finally { scope.dispose(); }
 });
 
 test('economy rejects executable, malformed and unresolved rows before reading live state', () => {

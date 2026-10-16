@@ -5,10 +5,15 @@ import { DRIFTWOOD_INTERACT } from '../data/interactables';
 
 const flags = (input: readonly string[] | { readonly prefix: string; readonly count: number }): string[] => 'prefix' in input
   ? Array.from({ length: input.count }, (_, i) => `${input.prefix}${i + 1}`) : [...input];
+const glass = flags(DRIFTWOOD_FINDS.glass.flags), every = DRIFTWOOD_FINDS.next.every;
+const charms = ['charm-1', 'charm-2', 'charm-3'] as const;
 /** Build the original flag ranges and world-space chart once; the page only filters current saved flags. */
 export const DRIFTWOOD_LOOT = {
   id: 'driftwood.loot', gear: 'purse.coins', finds: null, marks: null, charted: false, chime: 'cue.loot.chime',
-  economy: { tables: [
+  economy: { progression: { flags: glass, states: Array.from({ length: glass.length + 1 }, (_, found) => ({
+    earned: charms.slice(0, Math.max(0, Math.min(3, Math.floor(found / every)))).map(id => ({ id, text: KEEPSAKES.charms.toast[id] })), displayCount: Math.max(0, Math.floor(found / every) * every),
+    next: (Math.floor(found / every) + 1) * every > glass.length ? null : (Math.floor(found / every) + 1) * every,
+  })), glow: { owned: 'charm-3', curve: { terms: [{ gain: 1, ramp: [0.3, 0.45], fold: true }] } } }, tables: [
     { id: 'loot.driftwood.coins', domain: 'coins', table: { mode: 'each', rows: Object.entries(DRIFTWOOD_COIN_VALUES).map(([kind, count]) => ({ item: 'coin', weight: 1, count, match: { kind } })) } },
     { id: 'loot.driftwood.trophies', domain: 'trophies', table: { mode: 'each', rows: Object.entries(KEEPSAKES.trophies).map(([item, row]) => ({ item, weight: 1, match: { kind: row.kind, ...(row.variant === null ? {} : { variant: row.variant }), unowned: true } })) } },
   ], effects: DRIFTWOOD_EFFECTS, goods: GOODS,

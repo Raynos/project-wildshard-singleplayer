@@ -40,6 +40,8 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { rollLoot } from '@wildshard/game/loot/tables';
+import { curveAt } from '@wildshard/format/materials';
+import type { DeclaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { seaGlassChime, SeaGlassChime } from '../runtime/models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../runtime/models/trophyPlaques';
 import { buildCaptainHat, buildSailclothCape } from '../runtime/models/captainHat';
@@ -49,13 +51,12 @@ import { ownEnteredTree } from '../quest/Spine';
 import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { seaGlassFound } from './finds';
-import { charmsFor, chimeCount, nightGlow } from './perks';
 
 type TrophyDropId = keyof typeof KEEPSAKE_PICKUPS;
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
 export interface KeepsakeHost<A extends KeepsakeAnimal> {
+  progression: DeclaredLootEconomy['progression'];
   owner?: ShardContext;
   onDeath?: (run: (animal: A) => void, order: number) => void;
   owned: Owned;
@@ -80,7 +81,7 @@ export interface Keepsakes {
 }
 
 export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): Keepsakes {
-  const { owned, adventure: adv } = h;
+  const { owned, adventure: adv, progression } = h;
   const flags = adv.flags;
   const ctx = modelContext(h.sky);
   const registry = h.registry ? { registry: h.registry } : {};
@@ -106,14 +107,14 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   // ── the charms: the found count → the chime's pieces and the charms owned ──
   const pending: { text: string; at: number }[] = [];
   let clock = 0;
-  const found = (): number => seaGlassFound(flags).filter(Boolean).length;
   const syncGlass = (announce: boolean): void => {
-    const n = found();
-    chime?.setCount(chimeCount(n));
-    for (const id of charmsFor(n)) {
-      if (!owned.grant(id) || !announce) continue;
+    const state = progression.states[progression.flags.filter(flag => flags.has(flag)).length];
+    if (state === undefined) throw new Error('Missing admitted reward state');
+    chime?.setCount(state.displayCount);
+    for (const reward of state.earned) {
+      if (!owned.grant(reward.id) || !announce) continue;
       const last = pending[pending.length - 1]?.at ?? -Infinity;   // two charms at once (a dev jump): one toast after the other
-      pending.push({ text: KEEPSAKE_CONTENT.charms.toast[id], at: Math.max(clock + KEEPSAKE_CONTENT.charms.delay, last + KEEPSAKE_CONTENT.charms.spacing) });
+      pending.push({ text: reward.text, at: Math.max(clock + KEEPSAKE_CONTENT.charms.delay, last + KEEPSAKE_CONTENT.charms.spacing) });
     }
   };
   syncGlass(false);
@@ -172,7 +173,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       if (next) { h.hud.toast(next.text); sfx.interact('chime', undefined, { gain: 0.9 }); h.music.sting('pickup'); }
     }
     roster.update(dt, t, h.game.renderer, h.game.camera, h.player.position);
-    const glow = nightGlow(owned, h.sky.night);
+    const glow = owned.has(progression.glow.owned) ? curveAt(progression.glow.curve, h.sky.night) : 0;
     for (const s of h.swords) s.bladeGlow = glow;
   }, 'keepsakes');
 

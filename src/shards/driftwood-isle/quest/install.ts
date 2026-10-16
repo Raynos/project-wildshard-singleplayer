@@ -43,7 +43,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   const scopedGame = { scene: game.scene, camera: game.camera, renderer: game.renderer,
     onUpdate: (run: (dt: number, t: number) => void, label?: string) => { ctx.system({ id: label ?? 'shard.driftwood.keepsakes', phase: 'update', after: ['game.loot', 'body-shadow'], before: ['hud.combat', 'last place', 'first hints', 'main.world'], run }); } };
   installKeepsakes({ owner: ctx, onDeath: (run, order) => { onCreatureDeath(ctx, () => h.animals.animals, run, order); },
-    owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
+    progression: economy.progression, owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
     body: h.bodyShadow ?? null, swords, effectsManaged: true });
   const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
     toast: (text) => { h.hud.toast(text); }, hold: new QuestViews(ctx).panelHold({ hud: h.hud, weapons: h.weapons, menu: h.menu,

@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { CurveSchema } from './materials';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));
@@ -43,6 +44,9 @@ export function parseLootTables(input: unknown): v.InferOutput<typeof LootTables
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
 export const LootEconomySchema = v.strictObject({
   tables: v.exactOptional(LootTablesSchema),
+  progression: v.exactOptional(v.strictObject({ flags,
+    states: v.pipe(v.array(v.strictObject({ earned: v.pipe(v.array(v.strictObject({ id: key, text })), v.maxLength(128)), displayCount: count, next: v.nullable(count) })), v.minLength(1), v.maxLength(257)),
+    glow: v.strictObject({ owned: key, curve: CurveSchema }) })),
   effects: v.pipe(v.array(effectSchema), v.maxLength(128)), goods: v.pipe(v.array(goodSchema), v.maxLength(64)),
   grants: v.strictObject({ player: grants, worn: grants, weapons: grants }),
   finds: v.strictObject({ counters: v.pipe(v.array(v.strictObject({ label: text, flags })), v.maxLength(32)),
@@ -57,6 +61,9 @@ export type LootEconomy = v.InferOutput<typeof LootEconomySchema>;
 export function lootEconomyRules(row: LootEconomy): string[] {
   const errors: string[] = [], effects = new Set(row.effects.map(effect => effect.id)), goods = new Set(row.goods.map(good => good.id));
   if (row.tables !== undefined) errors.push(...lootTableRules(row.tables));
+  const progression = row.progression;
+  if (progression !== undefined && (new Set(progression.flags).size !== progression.flags.length || progression.states.length !== progression.flags.length + 1
+    || progression.states.some(state => new Set(state.earned.map(reward => reward.id)).size !== state.earned.length))) errors.push('complete unique economy progression');
   if (effects.size !== row.effects.length || goods.size !== row.goods.length) errors.push('unique economy effects and goods');
   if (row.goods.some(good => good.needs !== undefined && (!goods.has(good.needs) || good.needs === good.id))) errors.push('economy good prerequisite');
   if ([...row.grants.player, ...row.grants.worn, ...row.grants.weapons].some(grant => !effects.has(grant.id))

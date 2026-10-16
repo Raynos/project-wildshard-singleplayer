@@ -8,7 +8,6 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Adventure } from '../quest/adventure';
 import { TRADER_NAME } from '../quest/TraderStall';
-import { nextCharmAt, seaChartMarks, seaGlassFound } from './finds';
 import { buyGood, goodById, goodState, type Good } from './shop';
 
 /** The island's authored counter and bag rows, supplied to the common loot mechanism. */
@@ -22,11 +21,11 @@ export async function driftwoodLootPresentation(o: { economy: ReturnType<typeof 
   return {
     debugName: 'driftwood.loot',
     lateKinds: ['sailor', 'captain'],
-    charted: () => owned.has('sea-chart'), marks: () => seaChartMarks(adv.flags, economy.marks),
+    charted: () => owned.has('sea-chart'), marks: () => economy.marks.filter(row => !adv.flags.has(row.flag)).map(({ x, z, color }) => ({ x, z, color })),
     chime: () => { sfx.interact('chime', undefined, { gain: 0.55 }); },
     finds: () => finds({ flags: adv.flags, owned }),
     gear: (purse) => ({ sharpen: owned.sharpen, health: { max: o.health.attributes.maxHealth, hearts: owned.hearts },
-      charms: { owned: owned.charms, next: nextCharmAt(seaGlassFound(adv.flags).filter(Boolean).length) },
+      charms: { owned: owned.charms, next: economy.progression.states[economy.progression.flags.filter(flag => adv.flags.has(flag)).length]?.next ?? null },
       cosmetics: [cosmetic('captain-hat', 'hat', 'The Drowned Captain'), cosmetic('cape', 'cape', `${TRADER_NAME}'s counter`)], coins: purse.coins }),
     shop: (purse) => {
       const stall = adv.trader;

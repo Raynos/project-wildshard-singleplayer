@@ -8064,3 +8064,13 @@ The producer hoists random arguments in authored order before each native
 sound operation, preserving the noise source's interleaved random draw.
 Supplied call times use the explicit `at` parameter rather than the host's
 current-time `t` value.
+
+`economy/loot.economy.progression` admits one reward state for every possible
+found-flag count (zero through the bounded flag list length). States carry
+ordered earned ownership keys/notices, a display count and the next threshold;
+the existing `Owned` service still grants and persists them. Build-time tables
+replace finite threshold arithmetic. The existing `CurveSchema`/`curveAt`
+controls an owned numeric glow, with no shard callback or new clock. Missing
+states, duplicate keys and unknown ownership refuse before gameplay mutation;
+quiet save restoration and the caller's ordered notice queue stay unchanged.
+
