@@ -1,14 +1,12 @@
 import * as v from 'valibot';
 import {defineSection,emitDefinedSections} from '@wildshard/sdk/sections';
 import {parseAmbientLife} from '@wildshard/format/ambientLife';
-import {parseEliteScript} from '@wildshard/format/eliteScripts';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
 import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS} from './outputSchemas';
 import pickups from './skinPickups.json' with {type:'json'};
 import {PINE_FEATS,PINE_BAG_ITEMS} from './questInventory';
 import {PINE_LIFE} from './ambientLife';
-import {PINE_ELITE_FIGHTS} from './eliteBrainRows';
 import playback from './heldPlayback.json' with {type:'json'};
 import inputs from './heldInputs.json' with {type:'json'};
 import sights from './heldSights.json' with {type:'json'};
@@ -31,7 +29,6 @@ const values:Readonly<Record<string,unknown>>={
  'custom/skinPickups':pickups,
  'custom/questInventory':{feats:PINE_FEATS,items:PINE_BAG_ITEMS},
  'custom/ambientLife':PINE_LIFE,
- 'custom/eliteBrains':PINE_ELITE_FIGHTS,
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
  'custom/leverDetails':{...leverDetails,pool:{...leverDetails.pool,url:named(leverDetails.pool.url)}},
  'custom/heldToolPlayback':toolPlayback,
@@ -44,7 +41,6 @@ const values:Readonly<Record<string,unknown>>={
 // Semantic host laws are kept in their defining public parsers. The serialized
 // custom schema checks structure; publication also checks the runtime registry.
 parseAmbientLife(PINE_LIFE);
-for(const row of Object.values(PINE_ELITE_FIGHTS))parseEliteScript(row);
 parsePrivateScene(crossbow.hierarchy);
 function checkPrograms(value:unknown):void{
  if(Array.isArray(value)){for(const row of value)checkPrograms(row);return;}

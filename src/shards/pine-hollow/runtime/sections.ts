@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { ClientChannelsSchema as Channels, PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
-import { EliteScriptSchema } from '@wildshard/format/eliteScripts';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -39,7 +38,6 @@ export const SECTIONS = {
   'custom/skinPickups':v.record(text,skinPickup),
   'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
   'custom/ambientLife':ForestLifeSchema,
-  'custom/eliteBrains':v.record(text,EliteScriptSchema),
   'custom/heldPlayback':v.strictObject({crossbow:Channels,lever:Channels,crossbowParts:Channels,leverParts:Channels}),
   'custom/heldInputs':v.strictObject({crossbow:inputs,lever:inputs,frames:v.strictObject({crossbow:frame,lever:frame})}),
   'custom/heldSights':v.strictObject({sight:Channels,sightInputs:inputs,sightOutputs:outputs,string:Channels,stringInputs:inputs,peep:Channels,peepInputs:inputs}),

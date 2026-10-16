@@ -33,8 +33,6 @@ const PrivateSceneSchema=v.strictObject({version:v.literal(1),root:textNode,node
  v.strictObject({kind:v.literal('group'),id:textNode,...scenePose}),v.strictObject({kind:v.literal('mesh'),id:textNode,geometry:textNode,material:textNode,missing:v.picklist(['empty','group','omit']),...scenePose}),
  v.strictObject({kind:v.literal('object'),id:textNode,source:textNode,missing:v.picklist(['omit','refuse']),...scenePose}),
 ])),v.maxLength(128)),materials:v.array(v.strictObject({kind:v.literal('port'),id:textNode,source:textNode})),textures:v.pipe(v.array(textNode),v.maxLength(0))});
-const EliteScriptSchema=v.strictObject({id:textNode,kind:v.literal('elite-script'),module:textNode,parameters:v.array(coeffNode),slots:v.array(v.strictObject({field:textNode,initial:coeffNode})),modes:v.array(textNode),voices:v.array(textNode),
- lanes:v.array(v.strictObject({mode:textNode,lane:indexNode,trauma:coeffNode})),contacts:v.array(v.strictObject({strike:textNode,throughWalls:v.boolean(),stun:coeffNode,trauma:coeffNode})),actions:v.array(textNode),maxSpeed:coeffNode,maxTurnRate:coeffNode});
 const rangeNode=v.tuple([coeffNode,coeffNode]),postureNode=v.tuple([coeffNode,coeffNode,coeffNode,coeffNode,coeffNode,coeffNode]);
 const foragerPolicy=v.strictObject({scare:rangeNode,alertMargin:coeffNode,releaseMargin:coeffNode,fleeDistance:rangeNode,fleePause:rangeNode,alertPause:rangeNode,grazePause:rangeNode,settlePause:rangeNode,turn:rangeNode,
  grazing:v.strictObject({chance:coeffNode,length:rangeNode,duration:coeffNode,height:coeffNode}),escape:v.strictObject({length:coeffNode,duration:coeffNode,height:coeffNode,zigSteps:rangeNode,spread:rangeNode,steer:coeffNode}),posture:v.strictObject({graze:postureNode,alert:postureNode,flee:postureNode})});
@@ -84,7 +82,6 @@ export const SECTIONS = {
   'custom/skinPickups':v.record(text,skinPickup),
   'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
   'custom/ambientLife':ForestLifeSchema,
-  'custom/eliteBrains':v.record(text,EliteScriptSchema),
   'custom/heldPlayback':v.strictObject({crossbow:Channels,lever:Channels,crossbowParts:Channels,leverParts:Channels}),
   'custom/heldInputs':v.strictObject({crossbow:inputs,lever:inputs,frames:v.strictObject({crossbow:frame,lever:frame})}),
   'custom/heldSights':v.strictObject({sight:Channels,sightInputs:inputs,sightOutputs:outputs,string:Channels,stringInputs:inputs,peep:Channels,peepInputs:inputs}),

@@ -244,7 +244,6 @@ reader adoption; this table grants no extra section or byte headroom.
 | W2 Pine skinPickups section exit | `custom/skinPickups` | Move pickup options into the platform item/pickup section. | sp-x5 / W2 client rewire |
 | W2 Pine questInventory section exit | `custom/questInventory` | Use platform items and quest achievement declarations directly. | sp-x5 / W2 client rewire |
 | W2 Pine ambientLife section exit | `custom/ambientLife` | Replace the private community bundle with platform ambient-life declarations. | sp-x5 / W2 client rewire |
-| W2 Pine eliteBrains section exit | `custom/eliteBrains` | Emit the shared elite brain declarations in the platform brain section. | sp-x5 / W2 client rewire |
 | W2 Pine heldPlayback section exit | `custom/heldPlayback` | Move held programs into the platform client-channel declaration inventory. | sp-x5 / W2 client rewire |
 | W2 Pine heldInputs section exit | `custom/heldInputs` | Move equipment observation bindings into platform held-input rows. | sp-x5 / W2 client rewire |
 | W2 Pine heldSights section exit | `custom/heldSights` | Move sight and cord programs into the platform client-channel inventory. | sp-x5 / W2 client rewire |
