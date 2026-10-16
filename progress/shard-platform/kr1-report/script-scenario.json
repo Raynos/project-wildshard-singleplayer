@@ -1,0 +1,13 @@
+{
+  "schema": "script-scenario/1",
+  "slug": "_template",
+  "script": "template.boss.decision",
+  "scenario": "boss logical save continuation",
+  "sectionHash": "073887860bb0833285a774820355d444e2d856dbf8869b19b1f96b4cdda38fc5",
+  "hostHash": "6d1c6855cb8097e299cf9cf4469106c13a61cd3d6fa3e7602a2244ee9c45d433",
+  "passed": true,
+  "calls": 13,
+  "fuel": 4113830,
+  "maxFuel": 391906,
+  "refusals": 0
+}

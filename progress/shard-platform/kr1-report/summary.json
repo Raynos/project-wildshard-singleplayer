@@ -1,0 +1,169 @@
+{
+  "schema": "kr1-report/1",
+  "source": "f23a82d97",
+  "measuredTree": "32ad0014edfb805624e476c4fbdd3104c605023d",
+  "enforcement": "report-only",
+  "netLines": [
+    {
+      "wave": "W1",
+      "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
+      "record": "b9fb99185:docs/plans/shard-platform/STATE.md",
+      "baselineBasis": "historical source M0",
+      "enforcement": "report-only",
+      "shards": {
+        "far-reach": {
+          "before": 3158,
+          "after": 6061,
+          "basis": "source",
+          "cut": -2903
+        },
+        "sunscar-dunes": {
+          "before": 1841,
+          "after": 1790,
+          "basis": "source",
+          "cut": 51
+        }
+      },
+      "layers": {
+        "engine": {
+          "before": 67206,
+          "after": 73892,
+          "growth": 6686
+        },
+        "game": {
+          "before": 33346,
+          "after": 46931,
+          "growth": 13585
+        },
+        "sdk": {
+          "before": 7240,
+          "after": 10242,
+          "growth": 3002
+        }
+      },
+      "customCut": -2852,
+      "platformGrowth": 23273,
+      "netCut": -26125
+    },
+    {
+      "wave": "W2",
+      "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
+      "record": "docs/plans/shard-platform/w2-m0-inventory.md",
+      "baselineBasis": "historical source M0",
+      "enforcement": "report-only",
+      "shards": {
+        "pine-hollow": {
+          "before": 22996,
+          "after": 18734,
+          "basis": "source",
+          "cut": 4262
+        },
+        "driftwood-isle": {
+          "before": 18015,
+          "after": 13895,
+          "basis": "source",
+          "cut": 4120
+        }
+      },
+      "layers": {
+        "engine": {
+          "before": 67897,
+          "after": 73892,
+          "growth": 5995
+        },
+        "game": {
+          "before": 35276,
+          "after": 46931,
+          "growth": 11655
+        },
+        "sdk": {
+          "before": 7536,
+          "after": 10242,
+          "growth": 2706
+        }
+      },
+      "customCut": 8382,
+      "platformGrowth": 20356,
+      "netCut": -11974
+    }
+  ],
+  "scripts": {
+    "_template": {
+      "status": "measured",
+      "scripts": [
+        {
+          "id": "template.boss.decision",
+          "measured": true
+        }
+      ],
+      "scenarios": [
+        {
+          "schema": "script-scenario/1",
+          "slug": "_template",
+          "script": "template.boss.decision",
+          "scenario": "boss logical save continuation",
+          "sectionHash": "073887860bb0833285a774820355d444e2d856dbf8869b19b1f96b4cdda38fc5",
+          "hostHash": "6d1c6855cb8097e299cf9cf4469106c13a61cd3d6fa3e7602a2244ee9c45d433",
+          "passed": true,
+          "calls": 13,
+          "fuel": 4113830,
+          "maxFuel": 391906,
+          "refusals": 0,
+          "path": "progress/shard-platform/kr1-report/script-scenario.json",
+          "receiptHash": "72c7a44d5c7c290a4de183318b80fd5691ded558f7b67879890dc2566029e636"
+        }
+      ]
+    },
+    "blender-template": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "driftwood-isle": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "far-reach": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "ink-cel-valley": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "nalati-grasslands": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "nine-dragon-stack": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "pastel-plain": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "pine-hollow": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    },
+    "sunscar-dunes": {
+      "status": "not-applicable",
+      "scripts": [],
+      "scenarios": []
+    }
+  },
+  "checks": {
+    "focusedFiles": 3,
+    "checks": 6,
+    "rootTypes": true,
+    "typedLint": true
+  }
+}

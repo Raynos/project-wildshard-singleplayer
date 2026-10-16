@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the producer's small immutable Wasm, never compile in the gate scenario.
-import { readFileSync } from 'node:fs';
+import { readFileSync,writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Optional proof receipt destination belongs to this test runner.
+import {env} from 'node:process';
 import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { decisionScriptRules } from '@wildshard/format/decisionScripts';
@@ -12,6 +14,7 @@ import { BOSS_MOVES, BOSS_REGISTRIES, bossBindingMap } from '../../src/shards/_t
 import { output } from '../../src/shards/_template/generators/output';
 import product from '../../src/shards/_template/generators/product';
 import module from '../../src/shards/_template/behaviour/boss.json';
+import {scenarioHostHash,scriptScenarioReceipt} from '../../scripts/script-scenario-metrics.mjs';
 
 test('Template boss runs admitted Wasm decisions and resumes a logical save', () => {
   const row = outputDecisionScripts(output.platform)[0];
@@ -73,4 +76,11 @@ test('Template boss runs admitted Wasm decisions and resumes a logical save', ()
   expect(resumed.host.metrics()[0]).toMatchObject({ refusals: 0, disabled: false });
   expect(resumed.maxFuel()).toBeGreaterThan(0);
   expect(resumed.maxFuel()).toBeLessThan(400_000);
+  const receiptPath=env['WS_SCRIPT_SCENARIO_RECEIPT'];
+  if(receiptPath!==undefined) {
+    const section=output.platform.sections.find(value=>value.name==='sim/scripts');
+    const hostHash=scenarioHostHash('.');
+    if(section===undefined||hostHash===null)throw new Error('Missing scenario byte binding');
+    writeFileSync(receiptPath,`${JSON.stringify(scriptScenarioReceipt({slug:'_template',script:row.id,scenario:'boss logical save continuation',sectionHash:section.hash,hostHash,trace:[...scenario.trace(),...resumed.trace()]}),null,2)}\n`);
+  }
 }, 2_000);
