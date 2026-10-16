@@ -463,12 +463,14 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
  * downsample materials passes swap in, nested passes of effects), each on a screen triangle in an
  * empty scene: no fog, no lights, into a frame buffer — except the pass that renders to screen.
  */
-export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget | null, per = Number.POSITIVE_INFINITY): CompileJob[] {
+export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.WebGLRenderTarget | null, per = Number.POSITIVE_INFINITY): CompileJob[] {
   const found = new Map<THREE.Material, boolean>(); // material → renders to screen
-  const visited = new Set<object>();
+  // A scene pass can point back to its composer. Revisit a pass reached more directly so that
+  // an earlier, deeper route cannot exhaust the depth budget before its nested effects are read.
+  const visited = new Map<object, number>();
   const walk = (v: unknown, toScreenIn: boolean, depth: number): void => {
     let toScreen = toScreenIn;
-    if (v === null || typeof v !== 'object' || visited.has(v) || depth > 4) return;
+    if (v === null || typeof v !== 'object' || (visited.get(v) ?? Number.POSITIVE_INFINITY) <= depth || depth > 4) return;
     // AGX never updates its adaptation passes. Bloom still draws luminance when its threshold is zero.
     if (v instanceof ToneMappingEffect && v.mode !== ToneMappingMode.REINHARD2_ADAPTIVE) return;
     if (v instanceof Pass && !v.enabled) return;
@@ -482,7 +484,7 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
     }
     if (o.isTexture || o.isWebGLRenderTarget || o.isCamera || o.isScene || ArrayBuffer.isView(v)) return;
     if (o.isObject3D) { if (o.isMesh) walk((o as unknown as THREE.Mesh).material, toScreen, depth + 1); return; }
-    visited.add(v);
+    visited.set(v, depth);
     if (v instanceof Pass) { toScreen = v.renderToScreen; walk(v.fullscreenMaterial, toScreen, depth + 1); }
     for (const val of Array.isArray(v) ? v : Object.values(o)) walk(val, toScreen, depth + 1);
   };
