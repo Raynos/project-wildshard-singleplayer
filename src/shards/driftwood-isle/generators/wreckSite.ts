@@ -10,14 +10,14 @@ import { REEF_ROCK } from '../data/rockProfiles';
 import { addDriftLog, DRIFT } from './driftLogs';
 import type { WreckSpec, WreckAnchor, HoldBounds } from '../assets/contracts/wreck';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { BoxSpec } from '@wildshard/engine/physics/box';
+import type { BoxSpec, FloorRect } from '@wildshard/engine/physics/box';
 import { wreckCatalogue } from './wreckCatalogue';
 
 /** Authored draw and native layout of the canonical Wreck Cove site. */
 export interface WreckSiteBake {
   geometry: {kit:THREE.BufferGeometry;glow:THREE.BufferGeometry;rocks:THREE.BufferGeometry};
   rows: {spec:WreckSpec;floorY:number;colliders:BoxSpec[];descs:ColliderDesc[];
-    anchors:Record<string,WreckAnchor>;holdBounds:HoldBounds;floor:ReturnType<ShipwreckBuilder['floorRows']>;shipBox:number[];
+    anchors:Record<string,WreckAnchor>;holdBounds:HoldBounds;floors:FloorRect[];shipBox:number[];
     catalogue:ReturnType<typeof wreckCatalogue>};
 }
 
@@ -132,6 +132,6 @@ export function wreckSite(spec: WreckSpec, heightAt: (x: number, z: number) => n
   const box = ship.shipBox(new THREE.Box3());
   return { geometry: { kit: geometry.geometry, glow: geometry.glow, rocks: reefGeometry },
     rows: { spec, floorY: ship.floorY, colliders: ship.colliders, descs: ship.colliderDescs(),
-      anchors: ship.anchors, holdBounds: ship.holdBounds, floor: ship.floorRows(), shipBox: [...box.min, ...box.max],
+      anchors: ship.anchors, holdBounds: ship.holdBounds, floors: ship.floorRects(), shipBox: [...box.min, ...box.max],
       catalogue: wreckCatalogue([...ship.cargo,...cargo],logs,rocks) } };
 }

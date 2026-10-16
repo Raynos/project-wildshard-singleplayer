@@ -32,7 +32,7 @@ import type { WreckSpec, WreckAnchor, HoldBounds } from '../assets/contracts/wre
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { BoxSpec as Collider, FloorRect } from '@wildshard/engine/physics/box';
 import { log, beam, plank, rope, sagLine, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
@@ -41,6 +41,8 @@ import { addBarrel, addCoil, addCrate } from './cargo';
 
 /** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */
 interface Plane { a: number; bx: number; bz: number }
+/** a plane-topped hull-local floor footprint: plane, lx0, lx1, lz0, lz1 */
+type FloorPart = [Plane, number, number, number, number];
 /** half the thickness of a floor slab (m) */
 const SLAB = 0.15;
 
@@ -617,15 +619,6 @@ export class ShipwreckBuilder {
     return { geometry: geo, glow: gGeo };
   }
 
-  /** Native floor coefficients are emitted with the immutable draw, never recomputed from renderer state. */
-  floorRows(): { spec: WreckSpec; cs: number; sn: number; floorW: {port:number;starboard:number}[];
-    bowPlane: Plane; quarterPlane: Plane; floorPlane: Plane; rampLen: number; rampX0: number; rampGround: number } {
-    return { spec: this.spec, cs: this.cs, sn: this.sn,
-      floorW: this.floorW.map(([port, starboard]) => ({ port, starboard })),
-      bowPlane: this.bowPlane, quarterPlane: this.quarterPlane, floorPlane: this.floorPlane,
-      rampLen: this.rampLen, rampX0: this.rampX0, rampGround: this.rampGround };
-  }
-
   /** the vessel's world box (the hull frame's reach: keel to masthead, bowsprit to transom, the yard's arm) */
   shipBox(target: THREE.Box3): THREE.Box3 {
     target.makeEmpty();
@@ -657,17 +650,8 @@ export class ShipwreckBuilder {
   colliderDescs(): ColliderDesc[] {
     const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
     out.push(...this.timberDescs());
-    const fp = this.floorPlane;
-    // the hold floor: one slab per run of equal-width 0.25 m rows (floorHalf rounds z to the nearest row)
-    const rows = this.floorW.length;
-    for (let i = 0; i < rows;) {
-      const w = this.floorW[i] ?? [1.5, 1.5];
-      let j = i + 1;
-      while (j < rows && this.floorW[j]?.[0] === w[0] && this.floorW[j]?.[1] === w[1]) j++;
-      const z0 = Math.max(HOLD_Z0, HOLD_Z0 + (i - 0.5) * 0.25), z1 = Math.min(HOLD_Z1, HOLD_Z0 + (j - 0.5) * 0.25);
-      out.push(this.planeBox(fp, -w[0], w[1], z0, z1));
-      i = j;
-    }
+    const fp = this.floorPlane, parts = this.floorParts();
+    out.push(...parts.hold.map(part => this.planeBox(...part)));
     // the stair up the port side to the forecastle, as treads from the floor at its foot
     {
       const xc = (STAIR.x0 + STAIR.x1) / 2, at = (lz: number): number => fp.a + fp.bx * xc + fp.bz * lz;
@@ -677,26 +661,52 @@ export class ShipwreckBuilder {
       const count = 9, rise = BOW_DECK / 8, run = (STAIR.z0 - STAIR.z1) / 8, zTop = STAIR.z0 - run * count;
       out.push({ kind: 'treads', from: this.world(xc, at(STAIR.z0), STAIR.z0), to: this.world(xc, at(STAIR.z0) + rise * count, zTop), width: STAIR.x1 - STAIR.x0, count });
     }
+    out.push(...parts.ramp.map(part => this.planeBox(...part)), ...parts.decks.map(part => this.planeBox(...part)));
+    return out;
+  }
+
+  /** The floors `floorHeightAt` answers, as plane-topped hull-local footprints (plane, lx0, lx1, lz0, lz1). */
+  private floorParts(): Record<'hold' | 'ramp' | 'decks', FloorPart[]> {
+    const fp = this.floorPlane, rows = this.floorW.length, hold: FloorPart[] = [], ramp: FloorPart[] = [], decks: FloorPart[] = [];
+    // the hold floor: one slab per run of equal-width 0.25 m rows (floorHalf rounds z to the nearest row)
+    for (let i = 0; i < rows;) {
+      const w = this.floorW[i] ?? [1.5, 1.5];
+      let j = i + 1;
+      while (j < rows && this.floorW[j]?.[0] === w[0] && this.floorW[j]?.[1] === w[1]) j++;
+      const z0 = Math.max(HOLD_Z0, HOLD_Z0 + (i - 0.5) * 0.25), z1 = Math.min(HOLD_Z1, HOLD_Z0 + (j - 0.5) * 0.25);
+      hold.push([fp, -w[0], w[1], z0, z1]);
+      i = j;
+    }
     // the hatch-cover ramp out of the breach: level floor out to the ramp's head where a row stops short of it, then
     // the slope down to the sand
-    {
-      const rz0 = BREACH_Z0 + 0.25, rz1 = BREACH_Z1 - 0.25;
-      for (let i = 0; i < rows; i++) {
-        const z0 = Math.max(rz0, HOLD_Z0 + (i - 0.5) * 0.25), z1 = Math.min(rz1, HOLD_Z0 + (i + 0.5) * 0.25), sw = this.floorW[i]?.[1] ?? 1.5;
-        if (z1 > z0 && sw < this.rampX0 - 0.005) out.push(this.planeBox(fp, sw, this.rampX0, z0, z1));
-      }
-      const g = this.rampGround / this.rampLen;
-      out.push(this.planeBox({ a: fp.a - g * this.rampX0, bx: fp.bx + g, bz: fp.bz }, this.rampX0, this.rampX0 + this.rampLen, rz0, rz1));
+    const rz0 = BREACH_Z0 + 0.25, rz1 = BREACH_Z1 - 0.25;
+    for (let i = 0; i < rows; i++) {
+      const z0 = Math.max(rz0, HOLD_Z0 + (i - 0.5) * 0.25), z1 = Math.min(rz1, HOLD_Z0 + (i + 0.5) * 0.25), sw = this.floorW[i]?.[1] ?? 1.5;
+      if (z1 > z0 && sw < this.rampX0 - 0.005) ramp.push([fp, sw, this.rampX0, z0, z1]);
     }
+    const g = this.rampGround / this.rampLen;
+    ramp.push([{ a: fp.a - g * this.rampX0, bx: fp.bx + g, bz: fp.bz }, this.rampX0, this.rampX0 + this.rampLen, rz0, rz1]);
     // the forecastle and the quarterdeck: strips as wide as the deck gets across each (so no floor point is missed)
-    const decks: [Plane, number, number, number][] = [[this.bowPlane, -L / 2 + 1.2, HOLD_Z0, BOW_DECK], [this.quarterPlane, HOLD_Z1, L / 2 - 0.2, QUARTER_DECK]];
-    for (const [pl, za, zb, y] of decks) {
+    const deckRows: [Plane, number, number, number][] = [[this.bowPlane, -L / 2 + 1.2, HOLD_Z0, BOW_DECK], [this.quarterPlane, HOLD_Z1, L / 2 - 0.2, QUARTER_DECK]];
+    for (const [pl, za, zb, y] of deckRows) {
       for (let z0 = za; z0 < zb - 1e-6; z0 += 0.25) {
         const z1 = Math.min(zb, z0 + 0.25), w = Math.max(halfWidthAt(tOf(z0), y), halfWidthAt(tOf(z1), y)) - 0.3;
-        if (w > 0) out.push(this.planeBox(pl, -w, w, z0, z1));
+        if (w > 0) decks.push([pl, -w, w, z0, z1]);
       }
     }
-    return out;
+    return { hold, ramp, decks };
+  }
+
+  /** The walkable floor as engine FloorRect rows in world space, first match wins: the hold stair (a plane rising from the
+   *  floor at its foot to the forecastle), the hold's rows, the ramp, then the deck strips the colliders use. */
+  floorRects(): FloorRect[] {
+    const fp = this.floorPlane, rise = BOW_DECK / (STAIR.z0 - STAIR.z1), { hold, ramp, decks } = this.floorParts();
+    for (const [, lx0, lx1, z0] of hold) if (z0 < STAIR.z0 && (lx0 > STAIR.x0 || lx1 < STAIR.x1)) throw new Error('[wreck] the stair leaves the hold floor');
+    const stair: FloorPart = [{ a: fp.a + rise * STAIR.z0, bx: fp.bx, bz: fp.bz - rise }, STAIR.x0, STAIR.x1, HOLD_Z0, STAIR.z0];
+    return [stair, ...hold, ...ramp, ...decks].map(([pl, lx0, lx1, lz0, lz1]) => {
+      const lx = (lx0 + lx1) / 2, lz = (lz0 + lz1) / 2, c = this.world(lx, 0, lz);
+      return { x: c.x, z: c.z, hw: (lx1 - lx0) / 2, hd: (lz1 - lz0) / 2, y: pl.a + pl.bx * lx + pl.bz * lz, rot: this.spec.heading, slope: pl.bz, tilt: pl.bx };
+    });
   }
 
   /** E296: the hold's timbers (see `timbers`) as boxes exactly where `beam()` drew them, and the mainmast as a capsule

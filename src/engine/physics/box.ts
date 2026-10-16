@@ -16,9 +16,9 @@ export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = '
   return { ...d, x: centre.x, y: centre.y, z: centre.z, rot: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w } };
 }
 
-/** A horizontal deck rectangle, or a ramp rising `slope` metres per metre along its local +z (`y` at its centre); rot uses
- * the same negative-Y convention as BoxSpec. */
-export interface FloorRect { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly y: number; readonly rot?: number; readonly slope?: number }
+/** A horizontal deck rectangle, or a ramp rising `slope` metres per metre along its local +z and `tilt` along its local
+ * +x (`y` at its centre); rot uses the same negative-Y convention as BoxSpec. */
+export interface FloorRect { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly y: number; readonly rot?: number; readonly slope?: number; readonly tilt?: number }
 
 /** A floor on a turned site's local z axis (own space): centred at local `lz`, a ramp rising `slope` along local +z. */
 export const siteFloor = (rot: number, lz: number, hw: number, hd: number, y: number, slope?: number): FloorRect =>
@@ -32,7 +32,7 @@ export function floorAtRects(floors: readonly FloorRect[], x: number, z: number,
     const c = Math.cos(f.rot ?? 0), s = Math.sin(f.rot ?? 0);
     const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
     if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) {
-      const y = f.slope === undefined ? f.y : f.y + f.slope * lz;
+      const along = f.slope === undefined ? f.y : f.y + f.slope * lz, y = f.tilt === undefined ? along : along + f.tilt * lx;
       if (policy === 'first') return y;
       if (best === undefined || y > best) best = y;
     }

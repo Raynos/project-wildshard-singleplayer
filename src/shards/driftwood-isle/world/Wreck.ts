@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -14,7 +14,6 @@ import { barrel as barrelModel, crate as crateModel, ropeCoil, driftLog } from '
 import { reefRock } from '../runtime/models/shoreBoulder';
 import { WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY, WRECK_ROCKS_GEOMETRY } from '../runtime/boot/fixedGeometry';
 import bake from '../data/wreckBake.json' with { type: 'json' };
-import { wreckFloorHeight } from './wreckFloor';
 
 /** Wreck Cove's authored draw, native floor query and existing model/registry ownership. */
 export class Wreck {
@@ -57,5 +56,5 @@ export class Wreck {
 
   /** The authored walls, timber, mast, ramps and treads retain their existing collision owner. */
   colliderDescs(): ColliderDesc[] { return readColliderRows(bake.descs, { kinds: ['box', 'capsule', 'treads'], surfaces: [] }); }
-  floorHeightAt(x:number,z:number):number|undefined { return wreckFloorHeight(bake.floor,x,z); }
+  floorHeightAt(x:number,z:number):number|undefined { return floorAtRects(bake.floors,x,z,'first'); }
 }
