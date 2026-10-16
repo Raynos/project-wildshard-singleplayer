@@ -39,8 +39,8 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
   return admitProduct(source, assets, projectPerformancePolicy(project, source));
 }
 
-async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
-  const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
+async function authorModule(project: string, file: string): Promise<Record<string, unknown>> {
+  const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, file), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built) || (Array.isArray(result) && result.length !== 1)) throw new Error('config build produced unexpected output');
   const chunks = built.output.filter((out) => out.type === 'chunk');
@@ -48,8 +48,14 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
   const chunk = chunks[0]; if (chunk === undefined) throw new Error('config chunk missing');
   assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
   const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
-  if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('config has no default export');
-  let declaration: unknown = loaded.default;
+  if (typeof loaded !== 'object' || loaded === null) throw new Error('Author module has no exports');
+  return Object.fromEntries(Object.entries(loaded));
+}
+
+async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
+  const loaded = await authorModule(project, 'shard.config.ts');
+  if (!('default' in loaded)) throw new Error('config has no default export');
+  let declaration: unknown = loaded['default'];
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
   const sourcePath = (path: string): string => {
@@ -57,7 +63,7 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
     if (!resolved.startsWith(`${root}${sep}`)) throw new Error('Authored source resolves outside the author project'); return resolved;
   };
   if ('behaviour' in loaded) {
-    const compiled = await compileBehaviourSource(loaded.behaviour, declaration, path => new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(sourcePath(path), 1_000_000)));
+    const compiled = await compileBehaviourSource(loaded['behaviour'], declaration, path => new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(sourcePath(path), 1_000_000)));
     declaration = compiled.declaration;
     for (const [hash, bytes] of compiled.assets) baked.set(hash, bytes);
   }
@@ -68,9 +74,11 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
-  const output = await prepareProjectOutput(project, 'output' in loaded ? loaded.output : undefined);
-  const mirrors = projectMirrors('mirrors' in loaded ? loaded.mirrors : undefined);
-  return { shard, commons: 'commons' in loaded ? loaded.commons : undefined, baked, output, mirrors };
+  const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
+  if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
+  const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output']);
+  const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : undefined);
+  return { shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
 }
 /** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
 export async function readProject(project: string): Promise<Shardfile> {

@@ -1,4 +1,3 @@
-import { DRIFTWOOD_OUTPUT } from './data/output';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { DRIFTWOOD_QUESTS } from './data/quests';
@@ -67,5 +66,3 @@ export default parseShardfile({
     colliders: ENTRY_LANDINGS.map((landing) => ({ id: `landing.${landing.edge}`, panel: null, initialActive: true, shapes: [{ ...landing.box }] })) },
   spawn: { x: 0, y: 1.2, z: -194, yaw: Math.PI },
 });
-
-export const output = { ...DRIFTWOOD_OUTPUT };

@@ -7048,3 +7048,11 @@ is linked as evidence, not silently treated as a current verdict.
 and `verdicts` (`noShardNouns`, `dataOnly`, `serverSafe`, `deletionTest`, each
 `pass` or `fail`). Changed source invalidates review credit; a review cannot
 override observed TS callbacks or substitute a planned user for a real one.
+
+### CLI-only output sidecars
+
+An author project may put its named `output` export in `generators/output.ts`.
+`readProjectAssets` compiles that module independently at build time, with
+normal config boundary checks and output admission. The config cannot also
+export `output`. This keeps section emission and hashing outside the browser
+import graph while existing client code still borrows `shard.config.ts`.
