@@ -1,9 +1,11 @@
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../../shard.config';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
-const profile = requireAudioProfile(source.audio.samples, 'pine.samples');
-/** Pine's original base-set decode selection and levels, supplied by its shardfile. */
-export const FOREST_AUDIO = { bed: profile.bed, samples: { loopGains: profile.loopGains } };
-
-/** Original fallback wind/gust preset; playback remains on the native mixer. */
-export const FOREST_WIND_BED = requireAudioProfile(source.audio.ambience ?? undefined, 'ambience.pine.wind');
+/** Original base-set gains and fallback wind from this entry's admitted audio section. */
+export function pineAudioProfile(product: ShardProduct): { bed: string; samples: { loopGains: Readonly<Record<string, number>> }; wind: Parameters<Audio['windBed']>[0] } {
+  const rows = product.section('audio/audio').audio;
+  const profile = requireAudioProfile(rows.samples, 'pine.samples');
+  return { bed: profile.bed, samples: { loopGains: profile.loopGains },
+    wind: requireAudioProfile(rows.ambience ?? undefined, 'ambience.pine.wind') };
+}
