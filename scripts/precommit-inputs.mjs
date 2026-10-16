@@ -6,6 +6,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { openMirror } from './build-mirror.mjs';
 import { discoverGeneration, generateShardJob } from './generate.mjs';
+import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 
 /** A warm mirror still needs newly declared cheap outputs before resolving typed imports. */
 export async function prepareMissingCheapInputs(root = resolve(import.meta.dirname, '..')) {
@@ -22,6 +23,12 @@ export async function prepareMissingCheapInputs(root = resolve(import.meta.dirna
 export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
   const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
   const changed = git(['diff', '--cached', '--name-only', '--no-renames']).split('\n').filter(Boolean);
+  // Per-shard runtime/ file ceilings are shrink-only: a rise needs a new raises line (lint/runtime-files.mjs).
+  if (changed.includes(RUNTIME_FILES_LIST)) {
+    const show = (/** @type {string} */ spec) => { try { return /** @type {unknown} */ (JSON.parse(git(['show', spec]))); } catch { return undefined; } };
+    const staged = show(`:${RUNTIME_FILES_LIST}`), failures = staged === undefined ? [`${RUNTIME_FILES_LIST}: removed or unreadable`] : compareRuntimeFiles(show(`HEAD:${RUNTIME_FILES_LIST}`), staged);
+    if (failures.length > 0) throw new Error(failures.join('\n'));
+  }
   if (!changed.some(file => /^(src|scripts|lint|test|api|admin|drafts)\//u.test(file) || /^(package|pnpm|vite|vitest|tsconfig|\.oxlint)/u.test(file))) return;
   const mirror = openMirror(git(['write-tree']), { repo: root, slot: 'commit' });
   const scratch = mirror.dir;

@@ -8,8 +8,9 @@ import { parseSync } from 'vite';
 import { importsOf } from './check-graph.mjs';
 import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareLegacyInventory, legacyInventory, registeredLegacyFile, LEGACY_INVENTORY } from './legacy-shards.mjs';
+import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY, RUNTIME_FILES_LIST];
 
 const RUNTIME_REKEY_ABOUT = 'SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.';
 
@@ -242,6 +243,11 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
       if (original < used || current !== 1) failures.push(`${list}: class body changed or copied ${key}`);
     }
     return failures;
+  }
+  if (list === RUNTIME_FILES_LIST) {
+    // Shrink-only per-shard runtime/ file ceilings: a rise needs a new raises line (lint/runtime-files.mjs).
+    if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: ceiling list removed`] : [];
+    return compareRuntimeFiles(existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : undefined, JSON.parse(readFileSync(candidateFile, 'utf8')));
   }
   if (list === LEGACY_INVENTORY) {
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: frozen policy removed; retire its rows instead`] : [];
