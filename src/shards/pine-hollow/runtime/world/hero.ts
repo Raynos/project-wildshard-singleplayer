@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { loadLodPairInto, lodPairOf, vertexHull, type GlbPart } from '@wildshard/engine/models/glb';
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
-import { pineHeroUrl, type PineHeroId } from '../runtime/world/heroFiles';
+import { pineHeroUrl, type PineHeroId } from './heroFiles';
 
 /**
  * the turn that brings each generation's front (the face the reference showed: the carved glyphs, the lantern's arm, the
@@ -23,7 +23,8 @@ const key = (id: PineHeroId): string => `pine-hollow/hero:${id}`;
 export async function loadPineHero(ctx: ModelContext, id: PineHeroId): Promise<void> {
   await loadLodPairInto(ctx, key(id), pineHeroUrl(id), pineHeroUrl(`${id}-lod1`), (m) => {
     if (m instanceof THREE.MeshStandardMaterial) {
-      for (const t of [m.map, m.normalMap]) if (t) t.anisotropy = 4;
+      if (m.map) m.map.anisotropy = 4;
+      if (m.normalMap) m.normalMap.anisotropy = 4;
       m.envMapIntensity = 0.8;
     }
     ctx.sky.setupMaterial(m);

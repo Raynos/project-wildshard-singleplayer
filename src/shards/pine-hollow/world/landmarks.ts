@@ -38,7 +38,7 @@ import type { Cabins } from './homestead';
 import { loadPainted } from '../runtime/looks/paintedTextures';
 import { PINE_HERO_IDS, type PineHeroId } from '../runtime/world/heroFiles';
 import { pineModels } from './context';
-import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
+import { HERO_FRONT, heroLod0, loadPineHero } from '../runtime/world/hero';
 import { STONE_KINDS, standingStone } from '../runtime/models/standingStone';
 import { waystone } from '../runtime/models/waystone';
 import { beaverDam } from '../runtime/models/beaverDam';

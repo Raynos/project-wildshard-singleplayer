@@ -17,13 +17,16 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import SPRAY from '../data/sprayPuffs.json' with { type: 'json' };
-import { SPRAY_LOOK } from '../data/streamLook';
-import { pineLook } from '../runtime/looks/graphLooks';
-import { loadSiteTimbers } from './timberSites';
-import { pineModels } from './context';
+import SPRAY from '../../data/sprayPuffs.json' with { type: 'json' };
+import { SPRAY_LOOK } from '../../data/streamLook';
+import { pineLook } from '../looks/graphLooks';
+import { loadSiteTimbers } from '../../world/timberSites';
+import { pineModels } from '../../world/context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineWater } from './water';
+import { pineWater } from '../../world/water';
+
+/** the most mist puffs the waterfall draws (../data/sprayPuffs.json bakes 11) */
+const MAX_SPRAY = 64;
 
 export class PineStreams {
   readonly group = new THREE.Group();
@@ -59,7 +62,8 @@ export class PineStreams {
   private buildSpray(): THREE.InstancedMesh {
     const total = SPRAY.at.length / 3, geo = new THREE.PlaneGeometry(1, 1), m = new THREE.Matrix4();
     const mesh = new THREE.InstancedMesh(geo, pineLook(SPRAY_LOOK), total);
-    for (let i = 0; i < total; i++) mesh.setMatrixAt(i, m.makeTranslation(SPRAY.at[i * 3] ?? 0, SPRAY.at[i * 3 + 1] ?? 0, SPRAY.at[i * 3 + 2] ?? 0));
+    if (total > MAX_SPRAY) throw new Error('[streams] more spray puffs than the waterfall draws');
+    for (let i = 0; i < Math.min(total, MAX_SPRAY); i++) mesh.setMatrixAt(i, m.makeTranslation(SPRAY.at[i * 3] ?? 0, SPRAY.at[i * 3 + 1] ?? 0, SPRAY.at[i * 3 + 2] ?? 0));
     geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(Float32Array.from(SPRAY.seed), 4));
     geo.setAttribute('aSize', new THREE.InstancedBufferAttribute(Float32Array.from(SPRAY.size), 3));
     mesh.renderOrder = 7;
