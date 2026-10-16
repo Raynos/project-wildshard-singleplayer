@@ -9,5 +9,5 @@ export const stoneFirePit = defineModel<Record<string, never>>({
   id: 'pine-hollow/stone-fire-pit', name: 'Stone fire pit', category: 'props', pipeline: 'cc0',
   file: 'src/shards/pine-hollow/models/stoneFirePit.ts',
   defaults: {},
-  build: (ctx) => dressedCopy(ctx, 'firePit'),
+  build: (ctx) => dressedCopy(ctx, 'firePitObj'),
 });

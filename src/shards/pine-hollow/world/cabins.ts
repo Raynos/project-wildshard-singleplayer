@@ -60,12 +60,12 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
   /** each building's index in its weld (a prop's host) */
   const hostOf = new Map<CabinBuilding, number>();
   for (const b of cabins.buildings) {
-    const w = b.hamlet ? hamletWeld : cabinWeld;
+    const w = b.site.hamlet ? hamletWeld : cabinWeld;
     if (w === null) continue;
     if (hostOf.size > 0) await macrotask(); // one building's merge per task (the phone's ~30 ms budget)
     hostOf.set(b, w.size);
-    const pl = { x: b.x, y: b.y, z: b.z, yaw: b.rot };
-    const piece = { solidFloor: true, floor: (x: number, z: number): number | undefined => floorAtRects(b.floors, x, z, 'first') };
+    const pl = { x: b.site.at[0], y: b.site.at[1], z: b.site.at[2], yaw: b.site.rot };
+    const piece = { solidFloor: true, floor: (x: number, z: number): number | undefined => floorAtRects(b.owner.floors, x, z, 'first') };
     const hm = HAMLET[b.id];
     if (hm) hamlet.push(place(hm, [pl], { ctx, draw: 'merged', registry, weld: w, piece: { ...piece, id: `pine-hollow/${b.id}` } }));
     else {
@@ -81,22 +81,22 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
   for (const [kind, model] of Object.entries(PROPS) as [CabinPropKind, Model][]) {
     for (const [w, inHamlet] of [[cabinWeld, false], [hamletWeld, true]] as const) {
       if (w === null) continue;
-      const copies = cabins.buildings.filter((b) => b.hamlet === inHamlet).flatMap((b) => b.props[kind].map((m) => at(m, hostOf.get(b))));
+      const copies = cabins.buildings.filter((b) => b.site.hamlet === inHamlet).flatMap((b) => b.owner.props[kind].map((m) => at(m, hostOf.get(b))));
       if (copies.length === 0) continue;
       const placed = place(model, copies, { ctx, draw: 'instanced', registry, weld: w, piece: { id: `${model.id}${inHamlet ? '#hamlet' : ''}` } });
       if (inHamlet) hamlet.push(placed);
     }
   }
   // each building's fire pit and porch lantern, drawn in its own root
-  for (const [which, model] of [['firePit', stoneFirePit], ['lantern', porchLantern]] as const) {
+  for (const [which, model] of [['firePitObj', stoneFirePit], ['lanternObj', porchLantern]] as const) {
     for (const b of cabins.buildings) {
-      const o = b[which];
+      const o = b.owner[which];
       if (!o) continue;
       o.updateWorldMatrix(true, false);
       const box = new THREE.Box3().setFromObject(o);
       const placed = place(model, [at(o.matrixWorld.clone())], { ctx, draw: 'single', registry,
         drawnInto: { object: o, boxes: Float32Array.from([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z]) }, piece: { id: `${model.id}@${b.id}` } });
-      if (b.hamlet) hamlet.push(placed);
+      if (b.site.hamlet) hamlet.push(placed);
     }
   }
   if (hamlet.length > 0) placeSet({ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'src/shards/pine-hollow/world/cabins.ts', members: hamlet, place: 'pine-hollow/hamlet', registry }); // the named place (M12)

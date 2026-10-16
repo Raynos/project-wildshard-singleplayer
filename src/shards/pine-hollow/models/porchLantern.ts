@@ -9,5 +9,5 @@ export const porchLantern = defineModel<Record<string, never>>({
   id: 'pine-hollow/porch-lantern', name: 'Porch lantern', category: 'props', pipeline: 'cc0',
   file: 'src/shards/pine-hollow/models/porchLantern.ts',
   defaults: {},
-  build: (ctx) => dressedCopy(ctx, 'lantern'),
+  build: (ctx) => dressedCopy(ctx, 'lanternObj'),
 });

@@ -9,7 +9,6 @@ import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { BuildingLife } from '../runtime/props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { loadPainted } from '../runtime/looks/paintedTextures';
@@ -17,7 +16,7 @@ import { CABIN_DOOR_LOOK, CABIN_LIFE, cabinMossLook } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 import type { PropPart } from '../models/logCabin';
-import { PROP_KINDS, type PropKind } from './logKit';
+import { PROP_KINDS, type PropKind, type BakedBuilding } from './logKit';
 import { pineModels } from './context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
@@ -115,17 +114,9 @@ export const CABIN_PROP_KINDS: readonly CabinPropKind[] = PROP_KINDS;
 export interface CabinBuilding {
   readonly id: string;
   readonly index: number;
-  readonly x: number; readonly y: number; readonly z: number; readonly rot: number;
-  /** its own root: what draws with it alone (its door, lantern, fire pit, smoke, wheel), and a cabin's merged parts */
-  readonly root: THREE.Object3D;
-  /** a mill-hamlet building: welded into the hamlet's one set (`Cabins.cluster`) */
-  readonly hamlet: boolean;
-  readonly colliders: readonly ColliderDesc[];
-  readonly floors: readonly { x: number; z: number; rot: number; hw: number; hd: number; y: number }[];
-  readonly props: Readonly<Record<CabinPropKind, readonly THREE.Matrix4[]>>;
-  readonly firePit: THREE.Object3D | null;
-  readonly lantern: THREE.Object3D | null;
-  /** what its model hands `place` (src/engine/models/weld.ts) */
+  /** Borrow the authored site and actual building owner; keep the weld captured at registration. */
+  readonly site: BakedBuilding;
+  readonly owner: LogBuilding;
   readonly weld: WeldBuild;
 }
 
@@ -165,16 +156,9 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   /** what the buildings were built from (their materials, the props' scans, the fire pit and the lantern, the bake); null before `build` */
   get kit(): { readonly mats: Mats; readonly props: Readonly<Record<PropKind, readonly PropPart[]>>; readonly firePit: THREE.Object3D; readonly lantern: THREE.Object3D; readonly geometries: CabinGeometries } | null { return this.loaded; }
 
-  /** what the building just built by `b` is, for its model */
-  private record(b: LogBuilding, id: string, index: number, x: number, y: number, z: number, rot: number, hamlet: boolean): void {
-    this.buildings.push({ id, index, x, y, z, rot, root: b.root, hamlet, colliders: b.colliderDescs(), floors: b.floors, props: b.props, firePit: b.firePitObj, lantern: b.lanternObj, weld: b.weldBuild() });
-    this.addSite({ root: b.root, anchors: b.anchors, rooms: b.rooms, door: b.doorAt });
-  }
-
   /** a prop kind's parts (for its model's specimen), their node transforms baked in; null before `build` */
   propParts(kind: CabinPropKind): readonly PropPart[] | null { return this.loaded?.props[kind] ?? null; }
-  /** the fire pit's and the lantern's loaded models (for their models' specimens); null before `build` */
-  get models(): { firePit: THREE.Object3D; lantern: THREE.Object3D } | null { return this.loaded ? { firePit: this.loaded.firePit, lantern: this.loaded.lantern } : null; }
+
 
   /**
    * Assemble every building where it stands from the offline bake (../generators/logCabin.ts → ./cabinBake.ts), one per
@@ -216,7 +200,8 @@ export class Cabins extends BuildingLife implements BuildingOwner {
           for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of b.props[k]) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
         }
       }
-      this.record(b, row.id, row.index, ...row.at, row.rot, row.hamlet);
+      this.buildings.push({ id: row.id, index: row.index, site: row, owner: b, weld: b.weldBuild() });
+      this.addSite({ root: b.root, anchors: b.anchors, rooms: b.rooms, door: b.doorAt });
       if (row.hamlet) this.group.add(b.root);
       else this.cabinCount++;
     }
@@ -225,7 +210,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   }
 
   /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) — not the cluster's buildings */
-  get roots(): readonly THREE.Object3D[] { return this.buildings.slice(0, this.cabinCount).map((b) => b.root); }
+  get roots(): readonly THREE.Object3D[] { return this.buildings.slice(0, this.cabinCount).map((b) => b.owner.root); }
 
   /** per frame: the buildings' life from the eye and the clock (the phone's pooled lights, doors, flicker, swings, the
    *  wheel), then the smoke's sun colour and night hold (its shade dims at night, the chimney glow lights with the lamps) */

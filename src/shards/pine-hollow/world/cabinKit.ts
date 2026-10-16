@@ -26,13 +26,13 @@ export function propBox(kind: CabinPropKind): ColliderSpec[] {
 }
 
 /** the fire pit or the porch lantern as a building dressed it (its materials fixed, lit like the rest), a copy at the origin */
-export function dressedCopy(ctx: ModelContext, which: 'firePit' | 'lantern'): THREE.Object3D {
-  const b = cabinsOf(ctx).buildings.find((x) => x[which] !== null);
-  const src = b?.[which];
+export function dressedCopy(ctx: ModelContext, which: 'firePitObj' | 'lanternObj'): THREE.Object3D {
+  const b = cabinsOf(ctx).buildings.find((x) => x.owner[which] !== null);
+  const src = b?.owner[which];
   if (!src) return new THREE.Group();
   const o = src.clone(true);
   o.position.set(0, 0, 0); o.rotation.set(0, 0, 0);
   o.traverse((c) => { c.visible = true; }); // the building's detail set may be hidden (far from the camera) as it is copied
-  if (which === 'lantern') o.scale.setScalar(1.35);
+  if (which === 'lanternObj') o.scale.setScalar(1.35);
   return o;
 }
