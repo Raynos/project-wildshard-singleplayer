@@ -33,8 +33,6 @@ export const COAT_MATERIAL = { set: 'coat', normalScale: [0.8, 0.8], roughness: 
 
 /** the cave mouth's frame (data/layout.ts BEAR_CAVE) */
 export const BEAR_CAVE = { x: 200, z: 200, rot: 0.7853981633974483 };
-/** small world dimensions, shared with the author bake (data/hollowLog.json) */
-export const HOLLOW_LOG_SHAPE = { len: 11, R: 1.6, r: 1.3, bed: 0.42 };
 /** the Explorer names (data/wardensHollow.ts dialogue names), without loading quest dialogue */
 export const NPC_NAMES = { ranger: 'Hale, ranger of the Hollow', miller: 'Brandt, the miller', trader: 'Mott, the trader' };
 /** graph material identities, not shader code (data/cragLook.ts, streamLook.ts) */

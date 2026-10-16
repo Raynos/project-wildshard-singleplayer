@@ -8,7 +8,6 @@ import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from './handsLo
 
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import { SPRAY_LOOK } from './streamLook';
-import HOLLOW_LOG_SHAPE from './hollowLog.json' with { type: 'json' };
 import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHollow';
 
 import { ARROW_MATERIAL, LONGBOW_ARROW, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowLook';
@@ -33,7 +32,6 @@ export const RUNTIME_MIRRORS = [
   defineMirror('ARROW_MAX_FLYING', BOW_PROFILE.pool),
   defineMirror('FINISH_CARDS', FINISH_CARDS),
   defineMirror('BEAR_CAVE', BEAR_CAVE),
-  defineMirror('HOLLOW_LOG_SHAPE', HOLLOW_LOG_SHAPE),
   defineMirror('NPC_NAMES', { ranger: RANGER_DIALOGUE.name, miller: MILLER_DIALOGUE.name, trader: TRADER_DIALOGUE.name }),
   defineMirror('CRAG_LOOK', CRAG_LOOK),
   defineMirror('CAVE_LOOK', CAVE_LOOK),
