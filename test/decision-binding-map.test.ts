@@ -62,3 +62,22 @@ it('uses actual runtime spawn identities in the same namespace and refuses a sec
   source.runtime.spawns?.actors?.push(actor);
   expect(() => buildDecisionRegistries(source, [])).toThrow('Duplicate');
 });
+
+it('binds verified native strike identities without narrowing their geometry', async () => {
+  const { readCreatureStrikes } = await import('@wildshard/format/creatures');
+  const { buildDecisionRegistries } = await import('@wildshard/format/decisionBindings');
+  const { emptyShardfile } = await import('../src/sdk/author');
+  const source = emptyShardfile({ slug: 'binding-test', name: 'Binding', author: 'Test', seed: 2, revision: 1 });
+  const strike = { id: 'actor.wave', shape: { kind: 'lane', length: 26, width: 6 }, windup: 1.5,
+    active: 0.6, recover: 1.4, cooldown: 3.5, range: 30, damage: 12, tags: ['actor.wave'],
+    units: 'world', weight: { kind: 'constant', value: 1 } };
+  const rows = readCreatureStrikes([strike]);
+  expect(rows[0]).toEqual(strike);
+  expect(buildDecisionRegistries(source, []).strikes?.has(strike.id)).toBe(false);
+  const registry = buildDecisionRegistries(source, [], undefined, rows);
+  const row = { ...script(), actors: {}, strikes: { wave: strike.id } };
+  expect(decisionBindingMap(row, registry).ids.strikes).toEqual({ wave: 1 });
+  expect(() => readCreatureStrikes([strike, strike])).toThrow('unique strike ids');
+  expect(() => readCreatureStrikes([{ ...strike, damage: () => 12 }])).toThrow('plain JSON');
+  expect(() => buildDecisionRegistries(source, [], undefined, [...rows, ...rows])).toThrow('Duplicate');
+});

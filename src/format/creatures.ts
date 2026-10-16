@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { isJsonData } from './json';
 import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, GuardianSchema, PerchHunterSchema, ScriptBrainSchema } from './brains';
 import { GroupBrainSchema, groupBrainRules } from './groupBrains';
 import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from './grazers';
@@ -82,3 +83,12 @@ export const CreatureStrikeSchema = v.strictObject({
     track: v.exactOptional(v.picklist(['none', 'lead', 'follow'])), overshoot: v.exactOptional(strikeFinite), skid: v.exactOptional(strikeNonnegative) })),
   eligibility: v.exactOptional(v.strictObject({ maxDy: v.exactOptional(strikeNonnegative), jumpDodges: v.exactOptional(v.boolean()) })),
 });
+
+/** Plain native strike catalogue; names are unique across the whole section. */
+export const CreatureStrikesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON strike data'),
+  v.array(CreatureStrikeSchema), v.maxLength(256),
+  v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique strike ids'));
+/** Admitted native strike rows, retaining world/actor units and motion laws. */
+export type CreatureStrikes = v.InferOutput<typeof CreatureStrikesSchema>;
+/** Read an entire actors/strikes section before resolving decision handles. */
+export function readCreatureStrikes(input: unknown): CreatureStrikes { return v.parse(CreatureStrikesSchema, input); }

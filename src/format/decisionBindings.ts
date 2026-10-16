@@ -2,6 +2,7 @@ import { SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow, type ScriptV1Referen
 import type { Shardfile } from './shardSchema';
 import type { ActorMove } from './actorMoves';
 import type { WorldTargets } from './worldTargets';
+import type { CreatureStrikes } from './creatures';
 
 /** Authoritative platform ids; actor handles are never allocated from aliases or guessed from row order. */
 export type DecisionRegistries = Readonly<Partial<Record<ScriptV1ReferenceKind, ReadonlyMap<string, number>>>>;
@@ -48,14 +49,15 @@ function catalogue(names: readonly string[]): ReadonlyMap<string, number> {
 /** Wire handles come from real platform rows, independently of alias spelling or declaration order.
  * Unsupported namespaces remain absent and refuse in decisionBindingMap. Existing v0 handles are unchanged.
  * Compiler glue and the authoritative sim use this same catalogue for a given product.
+ * nativeStrikeRows comes from the verified actors/strikes section; duplicate root/native ids refuse.
  */
 export function buildDecisionRegistries(source: Pick<Shardfile, 'creatures' | 'rows' | 'state' | 'quests' | 'audio' | 'targets' | 'ledger' | 'clientChannels' | 'movers'> & Partial<Pick<Shardfile, 'runtime'>>,
-  moves: readonly ActorMove[], worldTargets?: WorldTargets): DecisionRegistries {
+  moves: readonly ActorMove[], worldTargets?: WorldTargets, nativeStrikeRows: readonly CreatureStrikes[number][] = []): DecisionRegistries {
   const runtime = source.runtime?.spawns;
   const actors = [...source.creatures.spawns, ...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].map(row => row.id);
   return {
     actors: catalogue(actors),
-    moves: catalogue(moves.map(row => row.id)), strikes: catalogue(source.rows.strikes.map(row => row.id)),
+    moves: catalogue(moves.map(row => row.id)), strikes: catalogue([...source.rows.strikes, ...nativeStrikeRows].map(row => row.id)),
     fields: new Map(source.state.shared.filter(row => row.type !== 'string' && row.privacy === 'public').map(row => [row.name, row.id])),
     flags: catalogue(source.quests.flags), zones: catalogue(source.quests.triggers.filter(row => row.kind === 'region').map(row => row.id)),
     cues: catalogue(source.audio.cues.map(row => row.id)), channels: catalogue((source.clientChannels ?? []).map(row => row.id)),

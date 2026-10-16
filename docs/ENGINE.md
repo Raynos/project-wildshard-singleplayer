@@ -7548,3 +7548,12 @@ legacy reaction callback. A section with only perch points leaves the old
 weapon path intact. Installation and restore emit no contacts. Native hint
 effects publish as bounded `{kind:'hint', text}` tick data, alongside the
 existing fact/coin effects, only when the tick completes.
+
+### Native strike decision handles
+
+`@wildshard/format/creatures.readCreatureStrikes(input)` admits a plain,
+bounded `actors/strikes` catalogue with unique ids, preserving native
+geometry, units and motion. Pass those verified rows as the optional fourth
+argument to `buildDecisionRegistries(source, moves, worldTargets, strikes)`.
+Compiler, scenarios and runtime use the same joint root/native strike
+namespace; duplicate identities refuse instead of allocating aliases.
