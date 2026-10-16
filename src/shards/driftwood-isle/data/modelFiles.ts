@@ -63,4 +63,9 @@ export const FIXED_MODEL_FILES = {
   waterfallSheet: '/assets/driftwood-isle/baked/fixed-models/waterfall-sheet.glb',
   waterfallRings: '/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb',
   waterfallPuffs: '/assets/driftwood-isle/baked/fixed-models/waterfall-puffs.glb',
+  cargoBarrel: '/assets/driftwood-isle/baked/fixed-models/cargo-barrel.glb',
+  cargoBarrelLying: '/assets/driftwood-isle/baked/fixed-models/cargo-barrel-lying.glb',
+  cargoCrate: '/assets/driftwood-isle/baked/fixed-models/cargo-crate.glb',
+  cargoCrateBroken: '/assets/driftwood-isle/baked/fixed-models/cargo-crate-broken.glb',
+  cargoCoil: '/assets/driftwood-isle/baked/fixed-models/cargo-coil.glb',
 } as const;

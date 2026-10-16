@@ -50,6 +50,12 @@ export const BRIDGE_SPECIMEN_POSTS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.br
 export const WATERFALL_SHEET_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallSheet, { _astep: 'aStep' });
 export const WATERFALL_RINGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallRings);
 export const WATERFALL_PUFFS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallPuffs, { _acentre: 'aCentre', _ainfo: 'aInfo' });
+/** The Explorer's lone wreck cargo (generators/cargo.ts): the world's copies are drawn into the wreck's own kit. */
+export const CARGO_GEOMETRY = {
+  barrel: modelGeometry(FIXED_MODEL_FILES.cargoBarrel), lying: modelGeometry(FIXED_MODEL_FILES.cargoBarrelLying),
+  crate: modelGeometry(FIXED_MODEL_FILES.cargoCrate), broken: modelGeometry(FIXED_MODEL_FILES.cargoCrateBroken),
+  coil: modelGeometry(FIXED_MODEL_FILES.cargoCoil),
+} as const;
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

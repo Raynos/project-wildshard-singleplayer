@@ -3107,7 +3107,17 @@
         "src/shards/driftwood-isle/assets/f1333cead34089533204d43ea700923fdcc927003b43c428651a8ae97c73227a",
         "src/shards/driftwood-isle/assets/f7f43455c52d61b0642442de4e525345786d04558e965484cbd2aac012abc1a3",
         "public/assets/driftwood-isle/baked/fixed-models/wendell-head.glb",
-        "src/shards/driftwood-isle/assets/2dc1437317b239defedfa557f60232e26afb7815353e7e273b8a6679fc2c5e6c"
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-barrel.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-barrel-lying.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-crate.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-crate-broken.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-coil.glb",
+        "src/shards/driftwood-isle/assets/3cf8036ff90cdcadb572cb9ea7b913be7879b0fb522a3422bb612a1adf062290",
+        "src/shards/driftwood-isle/assets/4dcf5d7e76bc3a9f4541943d76456ca06b00ae9320d5c66453685a8efb33a6d5",
+        "src/shards/driftwood-isle/assets/7509231c9763c7c291160f7f3ff0e2c9c5c48431474f1c7282b533ac039fa75d",
+        "src/shards/driftwood-isle/assets/8df86072bafa618f81d4a199eed90f0506b29746b3fa13c7f95c8cce13230dc4",
+        "src/shards/driftwood-isle/assets/b9417b5305209d9ca0e10041af301ee985cab5b9cb6bafd5378adfccb0ee92b5",
+        "src/shards/driftwood-isle/assets/eee4103a9b2e71ba0e9db57ce98ee5814068e14552fd2582c44eb3a8ed1b50c6"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -3213,7 +3223,17 @@
         "src/shards/driftwood-isle/assets/f1333cead34089533204d43ea700923fdcc927003b43c428651a8ae97c73227a",
         "src/shards/driftwood-isle/assets/f7f43455c52d61b0642442de4e525345786d04558e965484cbd2aac012abc1a3",
         "public/assets/driftwood-isle/baked/fixed-models/wendell-head.glb",
-        "src/shards/driftwood-isle/assets/2dc1437317b239defedfa557f60232e26afb7815353e7e273b8a6679fc2c5e6c"
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-barrel.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-barrel-lying.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-crate.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-crate-broken.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cargo-coil.glb",
+        "src/shards/driftwood-isle/assets/3cf8036ff90cdcadb572cb9ea7b913be7879b0fb522a3422bb612a1adf062290",
+        "src/shards/driftwood-isle/assets/4dcf5d7e76bc3a9f4541943d76456ca06b00ae9320d5c66453685a8efb33a6d5",
+        "src/shards/driftwood-isle/assets/7509231c9763c7c291160f7f3ff0e2c9c5c48431474f1c7282b533ac039fa75d",
+        "src/shards/driftwood-isle/assets/8df86072bafa618f81d4a199eed90f0506b29746b3fa13c7f95c8cce13230dc4",
+        "src/shards/driftwood-isle/assets/b9417b5305209d9ca0e10041af301ee985cab5b9cb6bafd5378adfccb0ee92b5",
+        "src/shards/driftwood-isle/assets/eee4103a9b2e71ba0e9db57ce98ee5814068e14552fd2582c44eb3a8ed1b50c6"
       ]
     },
     {

@@ -37,7 +37,7 @@ import { log, beam, plank, rope, sagLine, tris } from '@wildshard/engine/world/g
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { addBarrel, addCoil, addCrate } from '../models/cargo';
+import { addBarrel, addCoil, addCrate } from './cargo';
 
 /** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */
 interface Plane { a: number; bx: number; bz: number }

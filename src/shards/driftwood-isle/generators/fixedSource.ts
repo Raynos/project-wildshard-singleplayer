@@ -16,6 +16,7 @@ import { originalHut, originalLookout } from './driftwoodHut.mjs';
 import { originalShrine } from './driftwoodShrine.mjs';
 import { originalWreck } from './driftwoodWreck.mjs';
 import { originalPiers } from './driftwoodPiers';
+import { cargoSpecimens } from './cargo';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
 export function driftwoodFixedSource(): {
@@ -69,5 +70,7 @@ export function driftwoodFixedSource(): {
   const piers=originalPiers();
   for(const [name,geometry] of piers.geometry)geometries.set(name,geometry);
   rows['piers.generated']=piers.rows;
+  // the Explorer's lone cargo copies (barrel, crate, coil), last so the earlier templates keep their keys
+  for (const [name, geometry] of Object.entries(cargoSpecimens())) geometries.set(`cargo-${name}`, geometry);
   return { geometries, world, rows };
 }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { CargoCopy } from './shipwreck';
-import { cargoBox } from '../models/cargo';
+import { cargoBox } from './cargo';
 import { driftLogBox } from '../models/driftLog';
 
 interface CatalogueGroup<P extends object> { placements: Placement<P>[]; boxes: number[] }
