@@ -5692,6 +5692,23 @@ path, and a slot written directly drops its kept copy so a later
 row-off draw rewrites it once. `test/node-uniform-bindings.test.ts`
 runs the coalescing test both ways and pins the toggle.
 
+### Uniform block ring (E435)
+
+`NodeUniformBuffers.ring` (through `EngineNodesHandler.blockRing`;
+the Developer Debug row **Uniform block ring**, Performance,
+`graphBlockRing`, live, default off) writes a block whose floats
+changed whole at the next free offset of one 4 MB ring buffer
+(aligned to `UNIFORM_BUFFER_OFFSET_ALIGNMENT`, never straddling the
+ring's end) and binds it there with `bindBufferRange`, instead of
+rewriting the block's own buffer in place. A group shared by many
+draws (each draw's object block) then never overwrites bytes an
+earlier draw of the same frame still reads, which Metal (ANGLE) may
+stall on or shadow-copy (sp-o286). An unchanged block keeps its
+placement until the ring laps it; turning the row off rewrites each
+block's own buffer whole once. A context without `bindBufferRange`
+never rings. `test/node-uniform-bindings.test.ts` pins the
+placements, the lap and the row-off rewrite.
+
 `physics/bodies.DynamicBodySlots<T>` is the bounded slot/lifecycle owner for
 existing dynamic bodies: ordered reuse, source identity, age/rest clocks,
 optional flight landing and the exact native handle continuation. Rows choose
