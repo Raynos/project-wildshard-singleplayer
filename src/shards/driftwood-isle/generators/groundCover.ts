@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, fern, hibiscus, grassTuft, broadClump, PLANT, type Part } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { fern, hibiscus, grassTuft, broadClump, PLANT, type Part } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { triAreas } from './coverTris';
 

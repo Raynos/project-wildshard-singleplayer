@@ -4,7 +4,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { rock, log, tris } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, bakeLight, type BakedLight } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from '../data/rockProfiles';
 import { ANTE, PASS, ALC_FLOOR, ANTE_FLOOR, RAMP, coveFloorAt, coveHalfWidth, coveCeil, coveWorld, type CoveSpec } from '../world/coveLayout';

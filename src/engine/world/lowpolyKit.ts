@@ -144,6 +144,9 @@ export class LowPolyKit {
 
 
 // ── plants (multi-colour parts: `kit.addParts(fern(rng, 1), { matrix })`) ────────────────────────
+// The plant builders and bakeLight below are imported only by the frozen driftwood-isle-legacy folder (SF73: an export a
+// registered legacy file imports stays and leaves with that folder). Driftwood's generators use their own copy
+// (src/shards/driftwood-isle/generators/lowpolyPlants.ts); no runtime module reaches these.
 
 /** a geometry + the colour to paint it: plants are a few of these */
 export type Part = [THREE.BufferGeometry, ColorLike];

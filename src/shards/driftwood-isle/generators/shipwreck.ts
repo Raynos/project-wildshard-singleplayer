@@ -34,7 +34,8 @@ import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { log, beam, plank, rope, sagLine, tris } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, bakeLight, type BakedLight } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { addBarrel, addCoil, addCrate } from '../models/cargo';
 

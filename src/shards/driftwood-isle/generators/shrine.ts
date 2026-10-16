@@ -26,7 +26,8 @@ import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 import type { ShrineSite, ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
