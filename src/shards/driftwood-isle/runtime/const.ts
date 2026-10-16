@@ -168,3 +168,7 @@ export const FACETED_DAY_PRESET = {
   light: 'colour', lightI: 'number', hemiSky: 'colour', hemiGround: 'colour', hemiI: 'number',
   lift: 'colour', rim: 'colour', fogNear: 'colour', fogSun: 'colour', disc: 'colour', cloudShadow: 'number', dusk: 'number',
 } as const;
+/** the Drowned Captain's encounter id, arena radius and boss-bar name (data/captainEncounter.ts) */
+export const CAPTAIN_ID = 'boss.captain';
+export const CAPTAIN_ARENA_R = 22;
+export const CAPTAIN_NAME = 'The Drowned Captain';

@@ -15,7 +15,7 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
 import { DrownedCaptain } from '../combat/captain';
-import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from '../data/captainEncounter';
+import { CAPTAIN_ARENA_R, CAPTAIN_ID, CAPTAIN_NAME } from './const';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from './director';
 import spots from '../data/spots.generated.json' with { type: 'json' };
@@ -56,13 +56,13 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     }
     catch (e) { console.error('[finale] the captain failed to spawn', e); flags.set('dead:captain'); return; }   // never strand the quest
     captain.herd = -1;
-    captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = CAPTAIN_DEF.arena.r;
+    captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = CAPTAIN_ARENA_R;
   };
   const encounter = new DrownedCaptain({ player: w.player, pool, events: app.events, flags, animal: () => captain, ui: bar });
   const scope = app.levelScope;
   if (scope !== null) {
-    app.encounters.register({ id: CAPTAIN_DEF.id, displayName: CAPTAIN_PRESENTATION.name }, scope);
-    app.encounters.boss(CAPTAIN_DEF.id, encounter, scope);
+    app.encounters.register({ id: CAPTAIN_ID, displayName: CAPTAIN_NAME }, scope);
+    app.encounters.boss(CAPTAIN_ID, encounter, scope);
     app.events.on('player.died', () => { encounter.onPlayerDeath(); }, scope);
     scope.onDispose(() => { bar.root.remove(); });
   }

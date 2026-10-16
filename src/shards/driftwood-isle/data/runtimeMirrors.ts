@@ -3,6 +3,7 @@ import { ISLAND_FAMILIES } from './audioPlayback';
 import { ISLAND_SURFACES } from './audioSurfaces';
 import { COVER_LOOKS } from './coverLook';
 import { BOAT_LAYOUT } from './boatLayout';
+import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from './captainEncounter';
 import { CASTAWAY_SMOKE } from './castawayLook';
 import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
@@ -74,4 +75,7 @@ export const RUNTIME_MIRRORS = [
   defineMirror('CASTAWAY_SMOKE', CASTAWAY_SMOKE),
   defineMirror('WRECK_SITES', WRECK_SITES),
   defineMirror('FACETED_DAY_PRESET', FACETED_DAY_PRESET),
+  defineMirror('CAPTAIN_ID', CAPTAIN_DEF.id),
+  defineMirror('CAPTAIN_ARENA_R', CAPTAIN_DEF.arena.r),
+  defineMirror('CAPTAIN_NAME', CAPTAIN_PRESENTATION.name),
 ];
