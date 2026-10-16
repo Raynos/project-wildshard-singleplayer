@@ -185,7 +185,7 @@ export function mapPalette(row: MapPaletteRow): MapPaletteLook {
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const number = v.pipe(v.number(), v.minValue(-1e9), v.maxValue(1e9));
 const rgb = v.tuple([number, number, number]);
-const image = v.pipe(v.string(), v.maxLength(16384), v.regex(/^(?:\/src\/|\/assets\/|data:image\/)/u));
+const image = v.pipe(v.string(), v.maxLength(16384), v.regex(/^(?:\/src\/|\/assets\/|data:image\/|\/shardfiles\/(?:_[a-z]+|[a-z][a-z0-9-]*)\/blobs\/image\/[a-f0-9]{64}\.(?:webp|jpg|png)$)/u));
 const art = v.strictObject({ world: image, models: image, sets: image, practice: image });
 const band = v.strictObject({ azimuth: number, spread: number, height: number, rough: number });
 const ring = v.strictObject({ r: number, base: number, color: rgb, top: rgb, snowLine: number, haze: number,

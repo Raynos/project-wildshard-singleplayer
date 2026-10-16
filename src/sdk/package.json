@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./outputCatalogScan": "./outputCatalogScan.ts",
+    "./projectManifest": "./projectManifest.ts",
     "./outputRuntime": "./outputRuntime.ts",
     "./outputCatalog": "./outputCatalog.ts",
     "./playerModeData": "./playerModeData.ts",
@@ -170,6 +172,14 @@
   },
   "publishConfig": {
     "exports": {
+      "./outputCatalogScan": {
+        "types": "./dist/types/sdk/outputCatalogScan.d.ts",
+        "default": "./dist/outputCatalogScan.js"
+      },
+      "./projectManifest": {
+        "types": "./dist/types/sdk/projectManifest.d.ts",
+        "default": "./dist/projectManifest.js"
+      },
       "./outputRuntime": {
         "types": "./dist/types/sdk/outputRuntime.d.ts",
         "default": "./dist/outputRuntime.js"

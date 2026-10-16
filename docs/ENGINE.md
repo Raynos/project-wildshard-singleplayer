@@ -6855,3 +6855,24 @@ sidecar or authored receipt can grant this trust.
 for the SDK client's embedded index. Installed data-client manifests
 retain their admitted product, so session context creation reuses its
 sections and file reader instead of loading a descriptor a second time.
+
+### Built level image packing and catalog scan (P3)
+
+`@wildshard/sdk/projectManifest.manifestImages` lists the image inputs in
+plain level metadata. `packManifestImages(folder, metadata, images)`
+requires those exact bytes, admits still images through `nameBlob`,
+deduplicates identical content and returns the rewritten metadata plus
+named blobs. Project declaration intake charges new hashes once. Inline data
+images remain inline; absent bytes refuse. Emitted level image URLs are
+bounded `/shardfiles/<folder>/blobs/image/<sha256>.<webp|jpg|png>` paths.
+No runtime source image import or missing-image fallback is introduced.
+
+`@wildshard/sdk/outputCatalogScan.writeCatalogFromOutputs(out, placements)`
+regenerates discovery from every published product directory. It reads
+only output indexes, current index-hash receipts, `ui/level`, `ui/card`
+and the referenced image blobs, verifies their hashes and emits the
+complete catalog by atomic rename. It does not load all product assets,
+read a source manifest or patch a prior catalog. Missing level, card,
+placement, image or copied page runtime refuses before catalog publish.
+These are build-only preparation APIs; app activation follows the writer
+and standalone-runtime migration.
