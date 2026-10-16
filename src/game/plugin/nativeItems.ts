@@ -1,3 +1,4 @@
+import type { AmmoRow } from '@wildshard/engine/combat/ammo';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { parseItems } from '@wildshard/format/items';
 import * as v from 'valibot';
@@ -340,4 +341,18 @@ export function readItemEquipment(input: unknown, id: string): EquipmentRow {
       ...(cues.dry === undefined ? {} : { dry: cueId(cues.dry) }), ...(cues.hit === undefined ? {} : { hit: cueId(cues.hit) }),
       ...(cues.heavy === undefined ? {} : { heavy: cueId(cues.heavy) }),
       ...(cues.charge === undefined ? {} : { charge: Object.fromEntries(Object.entries(cues.charge).map(([phase, value]) => [phase, cueId(value)])) }) } }) };
+}
+
+/** Page ammunition borrows the same admitted flight/target coefficients as native projectiles.
+ * The returned rows retain the weather convention (absolute wet multipliers) and carry no effects or clocks. */
+export function readItemAmmunition(input: unknown, id: string): ReadonlyMap<string, { row: AmmoRow; damage: { readonly default: number; readonly kinds: Readonly<Record<string, number>> } }> {
+  const item = parseItems(input).rows.find(row => row.id === id);
+  if (item?.kind !== 'weapon' || item.ranged === undefined) throw new Error('Missing declared ammunition');
+  return new Map(item.ranged.ammunition.map(ammo => {
+    if (ammo.presentation === undefined) throw new Error('Missing declared ammunition presentation');
+    const ammoId = `ammo.${ammo.id}` as const;
+    return [ammo.id, { row: { id: ammoId, ...ammo.presentation, flight: { ...ammo.flight }, tags: [ammoId],
+      ...(ammo.wet === undefined ? {} : { wet: { gravity: 1 + ammo.wet.gravity, drag: 1 + ammo.wet.drag } }) },
+    damage: { default: 1, kinds: Object.fromEntries(ammo.targets.map(kind => [kind, ammo.damage])) } }];
+  }));
 }

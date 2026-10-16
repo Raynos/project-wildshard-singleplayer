@@ -61,8 +61,8 @@ import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRif
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
-import { AMMO_ROWS, pineFinishEffect } from '../loadout/effects';
+import { readItemEquipment, readItemAmmunition } from '@wildshard/game/plugin/nativeItems';
+import { pineFinishEffect } from '../loadout/effects';
 import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
@@ -192,7 +192,7 @@ export class PineHollow extends ShardPlugin {
     } });
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
-    ctx.rows.ammo(AMMO_ROWS);
+    ctx.rows.ammo([...readItemAmmunition(ctx.product.shardfile.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
     ctx.rows.effect([...FINISH_CARDS.map(({ id }) => pineFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
     ctx.rows.skin(pineSkinRows());
   }

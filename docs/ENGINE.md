@@ -7856,3 +7856,9 @@ and initializes the existing scene/phase/sting rows. The platform registers the
 comparison once before score binding; shards supply no selection callback.
 Pine and Driftwood both use this installer; their lifecycle and catalogue rows
 remain the source of their differences.
+
+`readItemAmmunition(items, id)` in `game/plugin/nativeItems` reads the
+admitted ranged ammunition as page `AmmoRow` values and bounded target-damage
+coefficients. Optional presentation declares labels and pouch capacity; missing
+presentation refuses. Native flight remains additive in rain; page rows retain
+absolute wet multipliers for the existing weather owner. No save owner is added.

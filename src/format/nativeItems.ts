@@ -12,6 +12,7 @@ export const NativeRangedRowSchema = v.pipe(v.strictObject({
   radius: scalar, tags: ConeWeaponProfileSchema.entries.gust.entries.tags,
   glance: v.strictObject({ lift: scalar, keep: scalar, bounce: scalar, maxSpeed: scalar }),
   defaultAmmo: name, ammunition: v.pipe(v.array(v.strictObject({ id: name, flight: pair, wet: v.exactOptional(pair),
+    presentation: v.exactOptional(v.strictObject({ label: v.pipe(v.string(), v.maxLength(128)), name: v.pipe(v.string(), v.maxLength(128)), pouchMax: count })),
     targets: v.pipe(v.array(name), v.maxLength(128)), damage: scalar })), v.minLength(1), v.maxLength(32)),
   shaft: v.exactOptional(v.strictObject({ capacity: v.pipe(count, v.minValue(1)), length: positive, bury: scalar,
     reach: v.strictObject({ radius: scalar, up: scalar, down: scalar }), recover: v.pipe(scalar, v.maxValue(1)), recoveryStride: v.pipe(count, v.minValue(1)) })),

@@ -13,7 +13,13 @@ import { projectileFlightStep } from '../../../src/engine/combat/projectileFligh
 export interface BoltFlight { gravity: number; drag: number }
 const PLAIN_FLIGHT: BoltFlight = { gravity: 1, drag: 1 };
 import { aimAt, bodyHit } from '../../../src/shards/pine-hollow/runtime/weapons/headlessRanged';
-import { boltDamage, type BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
+import type { BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
+const boltDamage = (kind: BoltKind, animal: string): number => kind === 'broadhead' && (animal === 'deer' || animal === 'boar') ? 1.4 : 1;
+/** Frozen shipping flight law, independent of the adopted item rows. */
+export function boltFlight(kind: BoltKind, rain: number): BoltFlight {
+  const r = Math.min(1, Math.max(0, rain)), gravity = kind === 'pitch' ? 0.8 : kind === 'broadhead' ? 1.08 : 1, drag = kind === 'pitch' ? 0.7 : kind === 'broadhead' ? 1.1 : 1;
+  return kind === 'pitch' ? { gravity, drag } : { gravity: gravity * (1 + 0.2 * r), drag: drag * (1 + 0.9 * r) };
+}
 
 /** The crossbow's fixed-step id; its continuation is the bow's state and every bolt in flight. */
 export const CROSSBOW_STEP = 'pine.crossbow';

@@ -1,8 +1,6 @@
-import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
-import { AMMO_ROWS, PINE_SOURCE_MULTIPLIERS } from './effects';
 /**
  * Pine Hollow's special ammunition (PINE-HOLLOW-REMASTER PH-C11, Jake's PH-U16: the trader swaps hides / antlers / resin
- * for special bolts and cartridges). Pure rules, no THREE / DOM (test/shards/pine-hollow/pine-loadout.test.ts); loadout.ts applies them.
+ * for special bolts and cartridges). The ammunition coefficients are authored in combat/items; this owns parked counts.
  *
  *   IRON bolts       the crossbow's own, as ever. In the rain their goose fletching soaks: they drop and slow more.
  *   PITCH-TIPPED     resin-sealed heads and fletching: a flatter flight (less drop, less drag), and the rain does nothing
@@ -11,44 +9,18 @@ import { AMMO_ROWS, PINE_SOURCE_MULTIPLIERS } from './effects';
  *                    ×BROADHEAD_DEER); the bigger beasts' hides and the King's bark turn the edge (×1).
  *   CARTRIDGES       the lever-action's .30-30s (its reserve); ARROWS the Warden's Longbow's quiver.
  *
- *   boltFlight(kind, rain) → { gravity, drag }   multipliers on the crossbow's flight (Crossbow.BoltMod)
- *   boltDamage(kind, animalKind) → ×            on the damage model's number
  *   const q = new Quiver({ pitch: 4 }); q.cycle(live) → the next kind you can load (iron always)
  */
 
 export type BoltKind = 'iron' | 'pitch' | 'broadhead';
 export type AmmoKind = BoltKind | 'cartridge' | 'arrow';
 export const BOLT_KINDS: readonly BoltKind[] = ['iron', 'pitch', 'broadhead'];
-/** the HUD strip's label for the loaded kind */
-export const BOLT_LABEL: Readonly<Record<BoltKind, string>> = { iron: 'Bolts', pitch: 'Pitch bolts', broadhead: 'Broadheads' };
-/** the toast when you load one */
-export const BOLT_NAME: Readonly<Record<BoltKind, string>> = { iron: 'Iron bolts', pitch: 'Pitch-tipped bolts', broadhead: 'Broadhead bolts' };
 /** a stack's cap (the crossbow's MAX_BOLTS, the same for every kind) */
 export const POUCH_MAX = 30;
-/** deer-sized game: where a broadhead's edge counts */
-export const DEER_SIZED: ReadonlySet<string> = new Set(['deer', 'boar']);
-export const BROADHEAD_DEER = 1.4;
 /** the rain's toll on a wet bolt at full rain: × gravity, × drag */
 export const WET_GRAVITY = 0.2, WET_DRAG = 0.9;
 
 const clampStack = (n: number): number => Math.max(0, Math.min(POUCH_MAX, Math.round(n)));
-
-export interface Flight { gravity: number; drag: number }
-
-/** the flight multipliers of a `kind` bolt with the rain at `rain` (0 dry … 1 a downpour) */
-export function boltFlight(kind: BoltKind, rain: number): Flight {
-  const r = Math.min(1, Math.max(0, rain));
-  const row = AMMO_ROWS.find((ammo) => ammo.id === `ammo.${kind}`);
-  if (row === undefined) throw new Error(`Unknown bolt ${kind}`);
-  const base = row.flight, wet = row.wet;
-  if (wet === undefined) return { ...base };
-  return { gravity: base.gravity * (1 + WET_GRAVITY * r), drag: base.drag * (1 + WET_DRAG * r) };
-}
-
-/** × the damage model's number for a `kind` bolt landing in an animal of `animalKind` */
-export function boltDamage(kind: BoltKind, animalKind: string): number {
-  return sourceMultiplier(PINE_SOURCE_MULTIPLIERS, { sourceTags: [`ammo.${kind}`], targetTags: DEER_SIZED.has(animalKind) ? ['size.deer'] : [] });
-}
 
 /**
  * The crossbow's three stacks. The LOADED kind's count lives in the crossbow (`state.bolts`, which every refill tops up);

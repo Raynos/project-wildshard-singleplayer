@@ -1,7 +1,7 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
-import { AMMO_ROWS } from './effects';
+import { readItemAmmunition } from '@wildshard/game/plugin/nativeItems';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -28,7 +28,7 @@ import { QUIVER_MAX } from '../runtime/weapons/Longbow';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
-import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, DEER_SIZED, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
+import { BOLT_KINDS, POUCH_MAX, Quiver, type AmmoKind, type BoltKind } from './ammo';
 
 const savedSchema = valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) });
 const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: savedSchema, initial: () => ({}) });
@@ -117,6 +117,8 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const state = bindRuntimeState(h.context ?? { app, scope: h.scope }, source, 'pine.loadout', () => JSON.stringify(savedSlot.read('pine-hollow')));
   let saved: valibot.InferOutput<typeof savedSchema> = {};
   try { saved = valibot.parse(savedSchema, JSON.parse(String(state.read())) as unknown); } catch { /* defaults */ }
+  const ammunition = readItemAmmunition(h.context?.product.shardfile.items ?? source.items, 'weapon.crossbow');
+  const ammoFor = (kind: BoltKind) => { const row = ammunition.get(kind); if (row === undefined) throw new Error(`Unknown ammo ${kind}`); return row; };
   const quiver = new Quiver({ pitch: saved.pitch ?? 0, broadhead: saved.broadhead ?? 0 });
   const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.round(v)) : null);
   const rounds = num(saved.rounds), arrows = num(saved.arrows);
@@ -141,15 +143,14 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   h.scene.add(parked);
 
   const mods = new Map<BoltKind, BoltMod>();
-  for (const k of BOLT_KINDS) mods.set(k, { gravity: 1, drag: 1, damage: { default: boltDamage(k, ''), kinds: Object.fromEntries([...DEER_SIZED].map(animal => [animal, boltDamage(k, animal)])) }, material: dress.get(k) });
+  for (const k of BOLT_KINDS) mods.set(k, { gravity: 1, drag: 1, damage: ammoFor(k).damage, material: dress.get(k) });
   const applyBolt = (): void => {
     if (!crossbow) return;
-    const k = quiver.selected, m = mods.get(k) ?? PLAIN_BOLT, row = AMMO_ROWS.find((ammo) => ammo.id === `ammo.${k}`);
-    if (row === undefined) throw new Error(`Unknown ammo ${k}`);
+    const k = quiver.selected, m = mods.get(k) ?? PLAIN_BOLT, row = ammoFor(k).row;
     crossbow.selectedAmmo = row;
     const f = row.flight;
     m.gravity = f.gravity; m.drag = f.drag;
-    crossbow.boltMod = m; crossbow.ammoLabel = BOLT_LABEL[k];
+    crossbow.boltMod = m; crossbow.ammoLabel = row.label;
   };
   const markDirty = (): void => { dirty = true; };
   const save = (): void => {
@@ -165,7 +166,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     if (n === null) return;
     crossbow.state.bolts = n; crossbow.state.loaded = n > 0 && crossbow.state.loaded; // the bolt on the rail is swapped for one of the new kind
     applyBolt(); markDirty();
-    if (!quiet) { hud.toast(`${BOLT_NAME[kind]} loaded · ${n}`); audio.weaponSwap(); }
+    if (!quiet) { hud.toast(`${ammoFor(kind).row.name} loaded · ${n}`); audio.weaponSwap(); }
   };
   const cycleBolt = (): void => { if (crossbow) selectBolt(quiver.next()); };
   if (crossbow) crossbow.ammoSelect = cycleBolt;
@@ -249,7 +250,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
       // a special stack ran dry (nothing on the rail): back to iron, which the crossbow spans itself
       if (quiver.selected !== 'iron' && live() <= 0 && !crossbow.state.loaded && !crossbow.state.reloading) {
         const was = quiver.selected;
-        selectBolt('iron', true); hud.toast(`${BOLT_NAME[was]} spent · iron bolts loaded`);
+        selectBolt('iron', true); hud.toast(`${ammoFor(was).row.name} spent · iron bolts loaded`);
       }
       applyBolt();
       // the lever-action once taken (the cabin's pickup, a rifle finish's drop) is kept
