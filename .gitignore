@@ -1895,3 +1895,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Canonical runtime section validators copied by the official schema producer.
 /src/shards/pine-hollow/generators/sectionSchemas.generated.ts
+
+/src/shards/driftwood-isle/generators/sectionSchemas.generated.ts

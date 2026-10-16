@@ -14832,6 +14832,34 @@
       "buildTimeOutputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts"
       ]
+    },
+    {
+      "id": "driftwood-section-schemas",
+      "shard": null,
+      "entry": "scripts/bake-section-schemas.mjs",
+      "command": [
+        "--import",
+        "./scripts/shard-platform-format.mjs",
+        "scripts/bake-section-schemas.mjs",
+        "driftwood-isle"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bake-section-schemas.mjs",
+        "scripts/shard-platform-format.mjs",
+        "src/format",
+        "src/sdk/package.json",
+        "src/sdk/formatJsonSchema.ts",
+        "src/shards/driftwood-isle/runtime/sections.ts"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts"
+      ]
     }
   ]
 }
