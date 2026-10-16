@@ -6814,3 +6814,20 @@ schema keys, and parses emitted values with those schemas. Declared
 constant mirrors use the defining `runtimeMirrorIssues` comparer. These
 are build-time proofs; client runtime code is compiled into the app and
 never imported from a remote JavaScript URL.
+
+### Named author blobs (P2b)
+
+`@wildshard/sdk/blobs.nameBlob(name, kind, bytes, options)` owns and
+admits binary assets, derives their content hash, measured minimum costs
+and `blobs/<kind>/<hash>.<extension>` path. Logical names remain in the
+index. `emitNamedBlobs(rows)` revalidates the bytes and returns sorted
+`files` and an `assets` map for output admission; duplicate names, aliases,
+mutated bytes and understated costs refuse. JSON values use sections.
+
+`readNamedBlob(project, name, source, kind, options)` reads bounded local
+files after resolving symlinks within the project. Textual `.gltf` sources
+compile to a self-contained GLB through the existing SDK bake dependencies;
+local and embedded resources are bounded, remote/escaping resources and
+unsupported extensions refuse. No textual GLTF is emitted as JSON or bin.
+Simulation declarations belong to platform sections and hosts, not copied
+runtime code; custom-section policy and exit rows remain writer-owned.
