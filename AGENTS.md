@@ -139,6 +139,9 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   GAME-NORMALIZATION), up to **3 Opus + 3 Codex** lanes; SHARD-PLATFORM alone may run up to 5 + 5 (Jake's exception): graphical work is Opus-only, Codex does non-graphical
   engineering, both paced with `openusage` so Codex reaches 0 % as Claude reaches its 10 % reserve. Any other session
   starts no Codex panes. `codex exec` for mockups and a council's Codex seat are not lanes.
+- **Never pause lanes, ever** (Jake, 2026-10-16: *"FFS don't pause lanes ever bro"*, after a night of idle lanes held for
+  a design and his picks): no hold waits on a question, a pick or a design. Lanes keep working on the recommended
+  option and the work that is safe under every answer; Jake's pick steers them when it arrives.
 
 ## Variants: no URL switches, ever → [docs/process/DEBUG-TOGGLES.md](docs/process/DEBUG-TOGGLES.md)
 
