@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import * as v from 'valibot';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 
 /**
@@ -10,27 +13,20 @@ import type { BoxSpec } from '@wildshard/engine/physics/box';
  * materials and the rig source.
  */
 
-/** The person's numbers (a shard's data row). */
-export interface StandInPersonRow {
-  /** the collider box: half its width and depth, and its top and bottom from the feet (metres) */
-  readonly collider: { readonly half: number; readonly top: number; readonly bottom: number };
-  /** the talk prompt's height over the feet */
-  readonly talkHeight: number;
-  /** drawn inside this many metres of the camera … */
-  readonly drawDistance: number;
-  /** … and casting a shadow inside this */
-  readonly shadowDistance: number;
-  /** the person turns to face a player inside this radius (metres) */
-  readonly noticeRadius: number;
-  /** the walk's pace and metres per cycle while the stand-in shows (the rig brings its own) */
-  readonly walk: { readonly speed: number; readonly cycle: number };
-  /** the rig's lantern flame: a sphere's radius and segments, and its glow colour (linear, may exceed 1) */
-  readonly flame: { readonly radius: number; readonly widthSegments: number; readonly heightSegments: number; readonly color: readonly [number, number, number] };
-  /** a pointing person points while talking from `from` to `to` seconds into every `period` */
-  readonly point: { readonly period: number; readonly from: number; readonly to: number };
-  /** the stand-in's breathing (a y scale) and its talking sway (a z roll): amplitude and rate each */
-  readonly sway: { readonly breathe: number; readonly breatheRate: number; readonly talk: number; readonly talkRate: number };
+const finite = v.pipe(v.number(), v.finite());
+/** The authored motion, reach, collider and flame facts, with no runtime defaults. */
+export const NpcFigureRowsSchema = v.strictObject({ collider: v.strictObject({ half: finite, top: finite, bottom: finite }),
+  talkHeight: finite, drawDistance: finite, shadowDistance: finite, noticeRadius: finite, walk: v.strictObject({ speed: finite, cycle: finite }),
+  flame: v.strictObject({ radius: finite, widthSegments: finite, heightSegments: finite, color: v.tuple([finite, finite, finite]) }),
+  point: v.strictObject({ period: finite, from: finite, to: finite }), sway: v.strictObject({ breathe: finite, breatheRate: finite, talk: finite, talkRate: finite }) });
+export type StandInPersonRow = v.InferOutput<typeof NpcFigureRowsSchema>;
+let admitted: StandInPersonRow | null = null;
+/** The page and cold Explorer await the same strictly parsed named rows. Failed admission keeps the previous value. */
+export async function loadNpcFigureRows(product: ShardProduct): Promise<void> {
+  admitted = v.parse(NpcFigureRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('people/figure.json'))));
 }
+export async function prepareNpcFigureRows(): Promise<void> { await loadNpcFigureRows(await loadFirstPartyProduct('pine-hollow')); }
+export function npcFigureRows(): StandInPersonRow { if (admitted === null) throw new Error('Pine NPC figure rows are not admitted'); return admitted; }
 
 /** The rigged person a stand-in gives way to (structural: the shard's rig loader returns one). */
 export interface StandInRig {

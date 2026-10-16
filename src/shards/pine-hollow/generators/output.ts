@@ -3,6 +3,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from '../data/cabinLook';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
 import { HEARTH_LOOKS } from '../data/hearthLook';
+import { NPC_FIGURE } from '../data/peopleLook';
 import { WEAPON_FINISHES } from '../data/weaponFinishes';
 import { TIMBER_DRAWS, TIMBER_GLASS } from '../data/timberDraws';
 import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
@@ -19,7 +20,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const clientJson=emitNamedBlobs([nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
  CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,
-}))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(floorRows))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
+}))), nameBlob('people/figure.json','json',new TextEncoder().encode(JSON.stringify(NPC_FIGURE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(floorRows))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 export const output = { ...PINE_OUTPUT, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };

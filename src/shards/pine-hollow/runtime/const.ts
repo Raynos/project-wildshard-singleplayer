@@ -37,18 +37,6 @@ export const BEAR_CAVE = { x: 200, z: 200, rot: 0.7853981633974483 };
 export const HOLLOW_LOG_SHAPE = { len: 11, R: 1.6, r: 1.3, bed: 0.42 };
 /** the Explorer names (data/wardensHollow.ts dialogue names), without loading quest dialogue */
 export const NPC_NAMES = { ranger: 'Hale, ranger of the Hollow', miller: 'Brandt, the miller', trader: 'Mott, the trader' };
-/** the NPC figure dimensions and motion (data/peopleLook.ts) */
-export const NPC_FIGURE = {
-  collider: { half: 0.28, top: 1.8, bottom: 0.3 },
-  talkHeight: 1.6,
-  drawDistance: 140,
-  shadowDistance: 45,
-  noticeRadius: 9,
-  walk: { speed: 0.72, cycle: 0.72 },
-  flame: { radius: 0.035, widthSegments: 8, heightSegments: 6, color: [2.4, 1.35, 0.45] },
-  point: { period: 9, from: 5.5, to: 8 },
-  sway: { breathe: 0.006, breatheRate: 1.7, talk: 0.025, talkRate: 2.3 },
-} as const;
 /** graph material identities, not shader code (data/cragLook.ts, streamLook.ts) */
 export const CRAG_LOOK = 'pine-crag';
 export const SPRAY_LOOK = 'pine-waterfall-spray';

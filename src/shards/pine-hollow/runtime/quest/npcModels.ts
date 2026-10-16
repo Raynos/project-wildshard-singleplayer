@@ -25,7 +25,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
-import type { StandInRig } from '../npc/standInPerson';
+import { prepareNpcFigureRows, type StandInRig } from '../npc/standInPerson';
 import skins from '../../data/npcSkins.generated.json' with { type: 'json' };
 import { legBones, legPose, LEG_BONE_NAMES, type LegBuilt } from '@wildshard/game/systems/npc/npcRig';
 
@@ -88,7 +88,7 @@ export class NpcModels {
     });
   }
 
-  async preload(): Promise<void> { await Promise.all(NPC_KINDS.map((kind) => this.load(kind))); }
+  async preload(): Promise<void> { await Promise.all([...NPC_KINDS.map((kind) => this.load(kind)), prepareNpcFigureRows()]); }
 
   /** a skinned instance of `kind`'s model, or null until it has loaded */
   rig(kind: NpcKind, sky: Sky): NpcRig | null {

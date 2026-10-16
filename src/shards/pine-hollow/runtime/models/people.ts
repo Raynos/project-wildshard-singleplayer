@@ -11,11 +11,11 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
  * beard, a brass badge and a lantern held low. They turn to face you when you come near and sway a little as they talk.
  */
 import * as THREE from 'three';
-import { announceModelReady, defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { announceModelReady, defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { codePart, loadCodeParts } from '../world/codeParts';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { standInPerson, type StandInPerson } from '../npc/standInPerson';
-import { NPC_FIGURE, KINGS_CLEARING, NPC_NAMES } from '../const';
+import { standInPerson, npcFigureRows, prepareNpcFigureRows, type StandInPerson } from '../npc/standInPerson';
+import { KINGS_CLEARING, NPC_NAMES } from '../const';
 import { npcModels, type NpcModels } from '../quest/npcModels';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';
@@ -45,7 +45,7 @@ export function npcGlowMaterial(): THREE.MeshBasicMaterial {
 export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: number; z: number }, yaw: number, models: NpcModels = npcModels): NpcFigure {
   void models.preload(); // the play installer already awaited these; standalone specimens may still request them
   return standInPerson({
-    name: `npc-${kind}`, feet, yaw, row: NPC_FIGURE,
+    name: `npc-${kind}`, feet, yaw, row: npcFigureRows(),
     body: codePart(`npc-${kind}`), bodyMaterial: npcMaterial(sky), // baked offline (../generators/codeParts.ts); the quest's install loaded them
     glass: kind === 'ranger' ? codePart('npc-ranger-glass') : null, glowMaterial: npcGlowMaterial,
     // PH-M4: the generated person, once loaded (then the stand-in leaves the group); the ranger points toward the old-growth
@@ -65,8 +65,10 @@ const NOBODY = new THREE.Vector3(0, 0, 1e4);
  * A person's specimen: `makeNpcFigure` at the origin facing +z, exactly the figure the quest stands up — the generated,
  * rigged person (npcModels.ts) once the model has loaded, the stand-in above until then (the card then swaps, `ws:model-ready`).
  */
-function person(id: string, kind: NpcKind): (ctx: ModelContext) => THREE.Object3D {
-  return (ctx) => {
+async function preparePerson(): Promise<void> { await Promise.all([loadCodeParts(), prepareNpcFigureRows()]); }
+function person(id: string, kind: NpcKind, name: string): ModelDef<object> {
+  return defineModel<object>({ id, name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+    defaults: {}, rig: { clips: NPC_CLIPS }, prepare: preparePerson, build: (ctx) => {
     const fig = makeNpcFigure(kind, ctx.sky, { x: 0, y: 0, z: 0 }, 0);
     const rigged = (): boolean => fig.group.children.some((c) => (c as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true);
     fig.update(0, 0, NOBODY); // adopts the generated person when it has loaded, posed at rest
@@ -78,27 +80,13 @@ function person(id: string, kind: NpcKind): (ctx: ModelContext) => THREE.Object3
       })();
     }
     return fig.group;
-  };
+  } });
 }
 
 /** Hale, the ranger (board B3 pick A, "the old warden": long coat, campaign hat, grey beard, brass badge, a lantern held
  *  low): out front of his cabin, gives the quest, and points toward the old-growth now and then as he talks */
-export const rangerHale: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/ranger-hale', name: NPC_NAMES.ranger, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
-  defaults: {}, rig: { clips: NPC_CLIPS }, prepare: loadCodeParts,
-  build: person('pine-hollow/ranger-hale', 'ranger'),
-});
-
-/** Brandt, the miller (the apron, the cap): in front of the miller's house */
-export const millerBrandt: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/miller-brandt', name: NPC_NAMES.miller, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
-  defaults: {}, rig: { clips: NPC_CLIPS }, prepare: loadCodeParts,
-  build: person('pine-hollow/miller-brandt', 'miller'),
-});
-
-/** Mott, the trader (the fur hat, the red coat): at his stall — his swaps and the errand */
-export const traderMott: ModelDef<object> = defineModel<object>({
-  id: 'pine-hollow/trader-mott', name: NPC_NAMES.trader, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
-  defaults: {}, rig: { clips: NPC_CLIPS }, prepare: loadCodeParts,
-  build: person('pine-hollow/trader-mott', 'trader'),
-});
+export const rangerHale = person('pine-hollow/ranger-hale', 'ranger', NPC_NAMES.ranger);
+/** Brandt, the miller, at the miller's house. */
+export const millerBrandt = person('pine-hollow/miller-brandt', 'miller', NPC_NAMES.miller);
+/** Mott, the trader, at his stall. */
+export const traderMott = person('pine-hollow/trader-mott', 'trader', NPC_NAMES.trader);
