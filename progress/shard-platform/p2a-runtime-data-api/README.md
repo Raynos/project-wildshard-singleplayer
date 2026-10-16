@@ -8,7 +8,7 @@ That trust is what removes the class of hitch in STATE.md (Pine's plugin import 
 table synchronously: a 99.6 ms road hitch).
 
 The typed skeleton is in the tree with this spec: `src/format/sections.ts`, `src/game/shardfile/shardProduct.ts`,
-`ShardContext.product` (`src/game/plugin/context.ts`) and `test/shard-product.test.ts`. Codex lanes build the rest
+`ShardContext.product` (`src/game/plugin/context.ts`), `src/sdk/runtimeMirrors.ts` and their tests. Codex lanes build the rest
 from §6.
 
 ---
@@ -85,7 +85,7 @@ new ones P2b lands first:
 |---|---|---|---|
 | `ui/strings` | `Record<string, string>`, ≤ 1024 keys, ≤ 4 KB a value | `UiStringsSchema` (P2b) | `data/strings.ts` imports |
 | `actors/strikes` | `CreatureStrike[]` | existing `CreatureStrikeSchema` | `data/brains.ts` `ROC_STRIKES` etc. |
-| `world/physics` | the `prepareRuntimePlan` baked-physics rows | P2b | `data/physics.generated.json` imports |
+| `world/physics` | the `prepareRuntimePlan` baked-physics rows | `WorldPhysicsSchema` (sp-x6, `@wildshard/format/worldPhysics`) | `data/physics.generated.json` imports |
 | `sim/native-world` | the `prepareRuntimePlan` native-world rows | P2b | `data/nativeWorld.ts` imports |
 
 Note on names: the design's P2b row said "Sky's `combat/strikes` rows". `combat/strikes` is already today's
@@ -133,7 +133,26 @@ A custom schema may import a public schema instead of copying one (`DirectorSche
 A shape that a **host** consumes (`HybridRuntimeRows`, `prepareRuntimePlan`'s inputs) is not custom: it becomes a
 platform section with its schema in a public module, so both sides import it and nothing is copied.
 
-## 3. How the product reaches the code
+### 2.3 `runtime/const.ts` mirrors (review item 8)
+
+A value copied into `runtime/const.ts` (design §7.5: `CROWN`, `DAIS`, `ROC`) must not drift from its `data/` source.
+`data/` declares each copy next to the value it mirrors, with `defineMirror` from `@wildshard/sdk/runtimeMirrors`
+(in the skeleton):
+
+```ts
+// data/layout.ts (build-time)
+export const CROWN = { x: 0, z: -190, r: 20 } as const;
+export const RUNTIME_MIRRORS = [defineMirror('CROWN', CROWN), defineMirror('DAIS', DAIS), defineMirror('ROC', ROC)];
+```
+
+`shard.config.ts` hands the shard's mirrors to the build (`mirrors: [...RUNTIME_MIRRORS]`, P2b wires the field), and
+build step 5 imports `out/<slug>/runtime/const.ts` in Node and calls `runtimeMirrorIssues(mirrors, constModule)`: every
+mirror must be an export of `const.ts` whose value is canonically equal (key order ignored, numbers exact). A drift,
+a missing export or a duplicate mirror refuses the build and names the constant and both values. Exports `data/` does
+not mirror (runtime-only magic numbers) are allowed. `const.ts` holds plain JSON-valued `export const`s only, so it
+imports in Node with nothing else.
+
+
 
 ### 3.1 The client: `ctx.product`
 
@@ -320,16 +339,17 @@ recipe covers `nightDirector.ts`, `trader.ts` (`custom/trades`), `lodge.ts` and 
 
 **Done here (sp-o258, the skeleton):** `src/format/sections.ts` (+ export), `src/game/shardfile/shardProduct.ts`
 (+ export), `ShardContext.product` and the default in `shardContext()`, `hybridInstallation` passthrough,
-`test/shard-product.test.ts`.
+`src/sdk/runtimeMirrors.ts` (`defineMirror`, `runtimeMirrorIssues`), `test/shard-product.test.ts`,
+`test/runtime-mirrors.test.ts`.
 
 | Step | Lane | Files | Done when |
 |---|---|---|---|
 | 1 | **sp-x5** (P1 writer) | `src/format/outputIndex.ts`: writer table type-tested against `PlatformSections`; sections hold schema output; `files[].name` written | `keyof PlatformSections` equals the table's names (type test) |
-| 2 | **sp-x6** (P2b) | `src/sdk/sections.ts` (`defineSection`, in flight); `src/format/uiStrings.ts`, `world/physics` and `sim/native-world` schemas + `PlatformSections` entries; `actors/strikes` from `CreatureStrikeSchema`; named blobs incl. `behaviour/<stem>.wasm`; emit `data/strings.ts` → `ui/strings` | Sky and Signal outputs list `ui/strings`, `actors/strikes` (Sky), `world/physics`, `sim/native-world` and named Wasm |
+| 2 | **sp-x6** (P2b) | `src/sdk/sections.ts` (`defineSection`, in flight); `shard.config.ts` `mirrors` field (§2.3); `src/format/uiStrings.ts`, `world/physics` and `sim/native-world` schemas + `PlatformSections` entries; `actors/strikes` from `CreatureStrikeSchema`; named blobs incl. `behaviour/<stem>.wasm`; emit `data/strings.ts` → `ui/strings` | Sky and Signal outputs list `ui/strings`, `actors/strikes` (Sky), `world/physics`, `sim/native-world` and named Wasm |
 | 3 | **sp-x8** (P1 loader) | `src/game/shardfile/outputDescriptor.ts` + `src/format/outputIndex.ts` `assembleOutputShardfile`: **no valibot for first-party** (§2.1); `src/game/shardfile/runtimeProduct.ts`: `loadShardProduct`, `shardProductFromAdmission`, the lease cache; `src/game/session/session.ts`, `src/game/shard/pluginLoad.ts`, `src/game/grid/regionalRuntime.ts`: pass the product to `shardContext` | a booted Sky / Pine page has `ctx.product.has('quests/quests')`; `parseShardfile` absent from a first-party boot profile |
 | 4 | **sp-x8** (P1 loader, cont.) | `src/game/shard/runtimeVariant.ts`: drop `StandaloneHybridRows.source` and `firstPartyStandaloneEntry`'s `source`, read `ctx.product.shardfile`; `src/game/shardfile/hybrid.ts`: `prepareHybridShard` takes the product, no second descriptor read; `src/sdk/headlessRuntime.ts` + the Node loader: `HeadlessRuntimePreparation.product` | no caller passes a `source` loader; headless proofs get a checked product |
 | 5 | **Codex (P2a build; first free of x8 / x6)** | `src/game/plugin/headless.ts`: `rows(product)` memoised, `HybridRuntimeRows.source` deleted; Sky and Signal plugins follow (mechanical) | Sky and Signal boot with `runtime/source.ts` unused |
-| 6 | **sp-x1** (P3) | build step 5: import `out/<slug>/runtime/sections.ts`, check every `SECTIONS` key against the emitted JSON (§2.2) | a deliberately drifted schema refuses `wildshard build` |
+| 6 | **sp-x1** (P3) | build step 5: import `out/<slug>/runtime/sections.ts`, check every `SECTIONS` key against the emitted JSON (§2.2); import `runtime/const.ts` and refuse on `runtimeMirrorIssues` (§2.3) | a deliberately drifted schema or constant refuses `wildshard build` |
 | 7 | **sp-x4** (P0) | `lint/shardfile-boundaries.mjs`: already allows `@wildshard/game/*`, `format`, `valibot`; nothing new | — |
 | 8 | S1 / S2 / W2a / W2b | the rewires, using §4 and §5 as the recipe; delete `runtime/source.ts` | the shard's `runtime-standalone` ratchet reaches 0 |
 
