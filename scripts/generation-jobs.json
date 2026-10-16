@@ -13736,16 +13736,22 @@
         "src/sdk",
         "src/format",
         "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs",
-        "src/shards/pine-hollow/generators/crossbowPool.ts"
+        "src/shards/pine-hollow/generators/crossbowPool.ts",
+        "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
-        "src/shards/pine-hollow/data/crossbowPool.generated.json"
+        "src/shards/pine-hollow/data/crossbowPool.generated.json",
+        "src/shards/pine-hollow/assets/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159",
+        "src/shards/pine-hollow/data/heldBlobs.generated.json"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
-        "src/shards/pine-hollow/data/crossbowPool.generated.json"
+        "src/shards/pine-hollow/data/crossbowPool.generated.json",
+        "src/shards/pine-hollow/assets/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159",
+        "src/shards/pine-hollow/data/heldBlobs.generated.json"
       ]
     },
     {
@@ -13806,16 +13812,22 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb",
-        "src/shards/pine-hollow/data/kingKit.generated.json"
+        "src/shards/pine-hollow/data/kingKit.generated.json",
+        "src/shards/pine-hollow/assets/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220",
+        "src/shards/pine-hollow/data/kingBlobs.generated.json"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "public/assets/pine-hollow/baked/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb",
-        "src/shards/pine-hollow/data/kingKit.generated.json"
+        "src/shards/pine-hollow/data/kingKit.generated.json",
+        "src/shards/pine-hollow/assets/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220",
+        "src/shards/pine-hollow/data/kingBlobs.generated.json"
       ]
     },
     {

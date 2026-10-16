@@ -110,3 +110,12 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   These cached G405 outputs are not Git binaries. This prerequisite changes
   no runtime consumer or shipped download; the W2b consumer switch records
   the published blob inventory separately.
+
+- 2026-10-16 P2b Pine blob-source prerequisite: the existing held-crossbow
+  and King-kit producers also emit two named author inputs (542,748 B and
+  123,000 B, 665,748 B total), each byte-identical to its public GLB.
+  `data/heldBlobs.generated.json` and `data/kingBlobs.generated.json` total
+  666 B raw / 403 B gzip-9. Both cold producer runs and verified warm cache
+  restores pass. These cached build outputs add no Git binary or runtime
+  download; consumer migration is separate. The meshopt tree pool remains
+  on its existing path until the named intake admits its compressed GLB.
