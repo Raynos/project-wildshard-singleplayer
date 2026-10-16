@@ -245,4 +245,19 @@ export class BossBrain {
     else this.host.toast?.(engineString('s_100cbeedfcec', [this.def.name]));
   }
 
+  /** A declared decision requests an existing phase/win/fail transition, never a second fight owner. */
+  validateDecision(verb: number, value: number): void {
+    if (!Number.isSafeInteger(value) || (verb === 1 ? value < 0 || value >= this.def.phases.length : value !== 0)
+      || ![1, 2, 3].includes(verb)) throw new Error('Invalid encounter decision');
+  }
+  applyDecision(verb: number, value: number): void {
+    this.validateDecision(verb, value);
+    if (verb === 1) {
+      if (value === this.phase || !this.engaged) return;
+      this.phase = value; this.checkpoint = value; this.script.enterPhase(value);
+      const phase = this.def.phases[value]; if (phase !== undefined) this.ui.setPhase(value, phase.caption);
+    } else if (verb === 2) { if (this.engaged) this.win(); }
+    else this.onPlayerDeath();
+  }
+
 }

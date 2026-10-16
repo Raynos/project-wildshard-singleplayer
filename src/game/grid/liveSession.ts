@@ -1,3 +1,4 @@
+import { outputDescriptor } from '../shardfile/outputDescriptor';
 /**
  * The live crossing inside EXPERIMENTAL Wildshard (SHARD-PLATFORM SF18a / SF20a / SF17b, the grid client step 2): what
  * turns the step-1 session's closed soft walls into a real crossing. It composes sp-x2's `LiveGridHost` and sp-x1's
@@ -617,7 +618,7 @@ export class LiveGridSession {
     // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
     const bytes = regionalSimAccountedBytes(cell.slug, source.budgets.sim.resident + generatedGroundBytes + 4096, TRANSFER_WALL_BYTES, findShard(cell.slug));
     return { bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
-      let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
+      let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
       let releaseBasis: () => void = () => undefined;
       let transfer: TransferWalls;
       try {
@@ -637,7 +638,7 @@ export class LiveGridSession {
         if (prior !== undefined) {
           const authored = sim.host.level; sim.dispose();
           const host = restoreSimHost(authored, { rapier }, prior, (restored) => {
-            sim = bindShardfileSim(restored, copySource, assets, { rapier, restoring: true, quest, ...scriptPorts }); savedRegion.bind(restored, sim.colliders);
+            sim = bindShardfileSim(restored, copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, restoring: true, quest, ...scriptPorts }); savedRegion.bind(restored, sim.colliders);
             transfer = regionTransferWalls(restored, this.page.traveller.motor.opts.radius, true);
           });
           host.detachPlayerMotor(); // the restored world carries its strip duplicates already

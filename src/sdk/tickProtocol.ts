@@ -1,3 +1,4 @@
+import { DecisionPublicationSchema } from '@wildshard/format/decisionPublication';
 import type { SimCommand } from '@wildshard/engine/sim';
 import * as v from 'valibot';
 
@@ -44,7 +45,7 @@ export const TickEffectSchema = v.variant('kind', [
 /** Only completed, in-budget ticks can expose these durable quest requests to the parent. */
 export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;
 /** Validated tick result carrying its continuation, effects and optional script cost observations. */
-export const TickCommitSchema = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))) });
+export const TickCommitSchema = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))), decisions: v.exactOptional(DecisionPublicationSchema) });
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
 export type HeadlessTickCommit = v.InferOutput<typeof TickCommitSchema>;
 /** A finite author tape: no host modules, synthetic facts or configurable physics ports. */

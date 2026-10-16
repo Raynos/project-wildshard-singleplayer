@@ -1,3 +1,5 @@
+import { ShardDecisions } from '../shardfile/decisions';
+import { decisionScriptsFromSections } from '@wildshard/format/scriptContract';
 import { prepareNativePopulation, type NativePopulationRows } from '../shardfile/bossRow';
 import { parseQuestWorldReactions, type QuestWorldReactionsData } from '@wildshard/format/questInteractions';
 import { installQuestGraph, type QuestGraphPorts } from './quests';
@@ -171,7 +173,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
       const items = declaredItemScriptBindings(shard.items, host.player.id);
       const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
         declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
-      { id: row.systemId, restoring, drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
+      { id: row.systemId, restoring, restoreFlags: new Set(host.flags.all), drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
       for (const binding of row.observations) observations.set(binding.name, () => motion.pose(binding.mover).enabled);
       for (const binding of row.actions) actions.set(binding.name, () => { motion.command(binding.mover, binding.command); });
       return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
@@ -282,6 +284,8 @@ const dayClockContinuation = v.strictObject({
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
 /** The existing client can lend its physics/player/fixed-step driver; Node owns them by default. */
 export interface ShardfileSimPorts extends SimHostPorts {
+  /** Hash/size-verified format-2 platform payloads; v1 never imports author source. */
+  sections?: ReadonlyMap<string, unknown> | undefined;
   weapon?: SimStrike; quest?: QuestDataPorts; hooks?: QuestScriptBindings; scriptRules?: EffectRules;
   encounters?: Parameters<typeof installDeclaredEncounters>[2]; hud?: Parameters<typeof installDeclaredEncounters>[3];
   water?: WaterBodies; colliders?: ReadonlyMap<string, PropColliderPort>;
@@ -315,6 +319,7 @@ export interface ShardfileSimulation {
   selectedInteraction: () => string | null;
   /** Queue the selected authored scene only; absent, farther and occluded prompts refuse. */
   interact: (id: string) => boolean;
+  decisions?: ShardDecisions;
   host: SimHost; lane: ScriptLanePort | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
   groups: ReadonlyMap<string, DeclaredGroupPolicy>;
@@ -470,7 +475,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       } else lane = moverDriver === undefined ? createShardfileScriptLane(shard, assets, options) : moverDriver.compose(shard, assets, options);
       if (moverDriver !== undefined) {
         const stateWorld = lane.world;
-        const runtime = moverDriver.install(host, lane, { id: 'movers.declared',
+        const runtime = moverDriver.install(host, lane, { id: 'movers.declared', restoreFlags: new Set(host.flags.all),
           activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, shared: id => {
             const field = shard.state.shared.find(row => row.id === id);
             const value = field === undefined ? undefined : stateWorld.view(host.player.id).shared[field.name];
@@ -540,7 +545,11 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     }
     installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || (!custom.has(spawn.brain) && !groupIds.has(spawn.brain))), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains ?? dataPorts?.brains);
     dataPorts?.install();
-    const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud);
+    const decisionRows = decisionScriptsFromSections(ports.sections).filter(row => row.side === 'sim');
+    const decisionActors = new Set(decisionRows.flatMap(row => Object.values(row.actors)));
+    const decisionEncounters = new Set(shard.encounters.filter(row => decisionActors.has(row.entity)).map(row => row.id));
+    const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud, decisionEncounters);
+    const decisions = decisionRows.length === 0 ? undefined : new ShardDecisions(host, shard, assets, ports.sections ?? new Map(), encounters, quest, movers, ports.quest?.fact, ports.restoring ?? false, ports.navigation, ports.scriptDisabled);
     // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.
     const groups = preparedGroups.install(ports.restoring ?? false);
     if (!host.embedded && !ports.restoring) host.physics.step();
@@ -553,10 +562,11 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       const row = shard.targets.interactions.find(target => target.id === id);
       if (row === undefined) throw new Error('Unknown authored interaction');
       if (selectedInteraction() !== id) return false;
+      if (decisions?.interact(id) === true) return true;
       if (lane === undefined) throw new Error('Interaction requires an admitted scene lane');
       createQuestScriptPorts(lane, hooks, actors).scene(row.scene, host.player.id); return true;
     };
-    return { selectedInteraction, interact, host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
+    return { selectedInteraction, interact, ...(decisions === undefined ? {} : { decisions }), host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
 }
 

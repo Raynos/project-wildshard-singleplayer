@@ -944,6 +944,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
         ...(composition?.schedules === undefined ? {} : { schedules: composition.schedules }), seed: composition?.seed ?? source.identity.seed,
       };
       runtime = await installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
+        restoreFlags: new Set(source.movers.flatMap(mover => mover.restoreFrom !== undefined && flags.has(mover.restoreFrom.flag) ? [mover.restoreFrom.flag] : [])),
         admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
         ...(composed === undefined ? {} : { composition: composed }),
         permissions: () => new Map(grants.map(grant => [grant.mover, flagValue(flags, grant.flags)])),

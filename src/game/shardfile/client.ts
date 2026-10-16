@@ -1,3 +1,4 @@
+import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 import { renderCount } from '@wildshard/engine/render/frameCounter';
@@ -373,7 +374,7 @@ export class ShardfileClient {
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
     let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
     const ladderCommand = { x: 0, z: 0, release: true };
-    const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
+    const sim = createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
       creatureImpulse: velocity => { world.player.impulse(velocity); },
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),

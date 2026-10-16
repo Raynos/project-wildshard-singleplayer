@@ -7463,3 +7463,38 @@ the official root CLI supplies sealed legacy counts instead. The ruler and
 root adapter share `scripts/decision-legacy-lines.mjs`, including exact generated
 producer exclusions. Template's handlers use this same compiler and no private
 ABI glue. Generated bindings are virtual `behaviour/generated/<camelId>.ts`.
+
+### Simulation decision wiring (KA6)
+
+`@wildshard/game/shardfile/decisions` defines `ShardDecisions` over one
+existing `SimHost`. `ShardfileSimPorts.sections` lends verified platform
+payloads; the ordinary page, grid regional host and isolated SDK worker
+all install the same v1 decisions. There is no author-module evaluator.
+
+Encounter, quest and region bindings enqueue start/stop events. Combat,
+flags, actor move/strike completion and KA7 mover endpoints enqueue ABI
+records for the next decision tick. A decision-owned encounter keeps its
+existing boss/checkpoint/reward owner and replaces only its default
+steering/strike policy. An actor with another brain refuses.
+
+All commands validate before the next fixed-step commit. Selected strikes
+use `SimHost.registerStrikeCatalogue` / `startDeclaredStrike` on the
+existing runner and contact pipeline. Logical snapshots include enabled
+bindings, queued/staged decisions, move clocks, public fields/channels and
+completion latches. Restore never enters Wasm. Page and native mover
+installers forward the actual saved flag set to KA7 endpoint restoration;
+loading neither invokes a guest action nor emits an endpoint event. SDK worker observations
+include actual v1 fuel and call CPU, and refuse failed calls.
+
+`simulation.decisions.publication()` exposes numeric public actor fields,
+channels, cues and move/strike starts, detached from authoritative state.
+The SDK publishes the same schema-checked packet in
+`HeadlessTickCommit.decisions`, so worker consumers receive actual data.
+`publish(event)` and the native picker enqueue observations without
+synchronous script execution. `DecisionHost.setEnabled` suppresses periodic
+work while permitting explicit final inboxes to drain.
+
+Spawn/despawn, impulse and weather declarations currently refuse without
+an admitted mechanic owner. Named spots/perches also refuse until their
+platform section exists. The sim world-target contact section is the next
+KA6 slice; interaction prompts are not treated as strike targets.

@@ -24,7 +24,7 @@ await runTickWorker(async raw => {
   if (payload.trustedRuntime !== undefined) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier }, payload.trustedRuntime, payload.snapshot);
   let commands: ReadonlyMap<string, number> = new Map();
   let effects: HeadlessEffect[] = [];
-  const ports = { rapier, commands: () => commands, quest: {
+  const ports = { rapier, sections, commands: () => commands, quest: {
     fact: (name: string, actorId: string) => { effects.push({ kind: 'fact', name, actorId }); },
     coins: (amount: number, actorId: string) => { effects.push({ kind: 'coins', amount, actorId }); },
   } };
@@ -37,7 +37,17 @@ await runTickWorker(async raw => {
     sim = installed;
   }
   effects = [];
-  let scriptMicros = 0;
+  let scriptMicros = 0, decisionFuel = 0;
+  if (sim.decisions !== undefined) {
+    const host = sim.decisions.host, step = host.step.bind(host);
+    host.step = (...args: Parameters<typeof step>): ReturnType<typeof step> => {
+      const before = host.metrics().reduce((sum, row) => sum + row.fuel, 0), started = diagnosticNow();
+      try { step(...args); } finally {
+        scriptMicros += (diagnosticNow() - started) * 1000;
+        decisionFuel += host.metrics().reduce((sum, row) => sum + row.fuel, 0) - before;
+      }
+    };
+  }
   if (sim.lane !== undefined) {
     const host = sim.lane.host, call = host.call.bind(host);
     // Offline-only instrumentation; neither author code nor the production frame loop chooses this wrapper.
@@ -48,7 +58,7 @@ await runTickWorker(async raw => {
   }
   return {
     step: input => {
-      scriptMicros = 0; effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
+      scriptMicros = 0; decisionFuel = 0; effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
       for (const command of input) {
         if (command.kind === 'player') player = simPlayerCommand(command);
         else if (command.kind === 'interact') sim.interact(command.id);
@@ -62,9 +72,10 @@ await runTickWorker(async raw => {
     commit: () => {
       const script = sim.lane?.host.checkpoint();
       if (script?.modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');
+      if (sim.decisions?.host.metrics().some(row => row.refusals > 0 || row.disabled)) throw new Error('Headless decision call failed');
       // A sleeping lane retains its last counters; report only fuel consumed by this completed global tick.
       const fuelUsed = script?.tick === sim.host.state.tick ? script.used.fuel : 0;
-      return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects, fuelUsed, scriptMicros };
+      return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects, fuelUsed: fuelUsed + decisionFuel, scriptMicros, ...(sim.decisions === undefined ? {} : { decisions: sim.decisions.publication() }) };
     },
     authorProof: plan => proveAuthoredGrid(shard, payload.assets, ports,
       { ticks: plan.tape.length, checkpointTick: plan.checkpointTick, requiredFacts: plan.requiredFacts },

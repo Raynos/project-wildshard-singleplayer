@@ -1,0 +1,375 @@
+import type { DecisionPublication } from '@wildshard/format/decisionPublication';
+import * as v from 'valibot';
+import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
+import { buildDecisionRegistries, decisionBindingMap, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
+import { parseActorMoves, actorMoveRules, type ActorMove } from '@wildshard/format/actorMoves';
+import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Event, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
+import { admitScriptContract } from '@wildshard/format/scriptContract';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { DecisionHost, type DecisionWorld, type DecisionContext, type DecisionSnapshot, type DecisionScript } from '@wildshard/engine/script/decision';
+import { ActorMoveRunner } from '@wildshard/engine/ai/moves';
+import { canReach } from '@wildshard/engine/ai/reach';
+import type { PhaseEncounter } from '@wildshard/engine/ai/phases';
+import type { SimHost, SimValue } from '@wildshard/engine/sim';
+import type { Navmesh } from '@wildshard/engine/physics/navmesh';
+import type { DeclaredQuests, QuestDataPorts } from '../quest/declared';
+import type { MoverRuntime } from '../plugin/mover';
+import { simStrikes } from '../plugin/brain';
+import type { ShardScriptPorts } from './scripts';
+
+interface Motion { move: number; target: number; runner: ActorMoveRunner; binding: number }
+interface Strike { strike: number; target: number; binding: number; hit: boolean }
+const finite = v.pipe(v.number(), v.finite());
+const natural = v.pipe(finite, v.integer(), v.minValue(0));
+const pointFields = v.array(v.tuple([natural, natural, finite]));
+const continuation = v.strictObject({ contract: v.string(), decision: v.custom<DecisionSnapshot>(value => typeof value === 'object' && value !== null),
+  enabled: v.array(v.tuple([natural, v.boolean()])), fields: pointFields, channels: v.array(v.tuple([natural, finite])),
+  playerFlags: v.array(natural), zones: v.array(v.string()), phases: v.array(v.tuple([v.string(), natural])),
+  moves: v.array(v.strictObject({ actor: natural, move: natural, target: natural, binding: natural, state: v.unknown() })),
+  strikes: v.array(v.strictObject({ actor: natural, strike: natural, target: natural, binding: natural, hit: v.boolean() })),
+});
+function requireValue<T>(value: T | undefined, reason: string): T { if (value === undefined) throw new Error(`Decision world: ${reason}`); return value; }
+function inverse(registry: ReadonlyMap<string, number> | undefined): ReadonlyMap<number, string> { return new Map([...registry ?? []].map(([name, id]) => [id, name])); }
+function readName(name: string): name is ScriptV1ReadName { return Object.hasOwn(SCRIPT_V1_READS, name); }
+function listName(name: string): name is ScriptV1ListName { return Object.hasOwn(SCRIPT_V1_LISTS, name); }
+
+/** One renderer-free v1 decision owner over the existing simulation, move and strike mechanics.
+ * Only verified platform section payloads reach this installer. No shard callbacks or author module imports.
+ */
+export class ShardDecisions {
+  readonly host: DecisionHost;
+  readonly registries: DecisionRegistries;
+  private readonly sim: SimHost;
+  private readonly source: Shardfile;
+  private readonly rows: readonly DecisionScriptRow[];
+  private readonly moves: readonly ActorMove[];
+  private readonly actors: ReadonlyMap<number, string>;
+  private readonly names: ReadonlyMap<string, number>;
+  private readonly enabled = new Map<number, boolean>();
+  private readonly motions = new Map<number, Motion>();
+  private readonly striking = new Map<number, Strike>();
+  private readonly fieldActors = new Set<number>();
+  private readonly fields = new Map<number, Map<number, number>>();
+  private readonly channels = new Map<number, number>();
+  private readonly playerFlags = new Set<number>();
+  private readonly zones = new Set<string>();
+  private readonly phases = new Map<string, number>();
+  private readonly encounters: ReadonlyMap<string, PhaseEncounter>;
+  private readonly quest: DeclaredQuests;
+  private readonly movers: MoverRuntime | undefined;
+  private readonly fact: QuestDataPorts['fact'];
+  private readonly navigation: Pick<Navmesh, 'closestWalkable' | 'findPath'> | undefined;
+  private readonly contract: string;
+  private events: DecisionPublication['events'][number][] = [];
+  private readonly strikes;
+  constructor(sim: SimHost, source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections: ReadonlyMap<string, unknown>,
+    encounters: ReadonlyMap<string, PhaseEncounter>, quest: DeclaredQuests, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
+    navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled']) {
+    this.sim = sim; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
+    this.rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
+    this.moves = parseActorMoves(sections.get('actors/moves') ?? []);
+    this.registries = buildDecisionRegistries(source, this.moves);
+    this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
+    this.strikes = simStrikes(source.rows);
+    const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
+    if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
+    this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, actors: [...this.names], state: source.state,
+      strikes: source.rows.strikes, quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
+    const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>();
+    const bindings = this.rows.map((row, index) => {
+      const map = decisionBindingMap(row, this.registries), actorIds = Object.values(map.ids.actors ?? {});
+      for (const handle of actorIds) {
+        const name = requireValue(this.actors.get(handle), 'binding actor');
+        if (owners.has(name) || source.creatures.spawns.find(value => value.id === name)?.brain !== null) throw new Error('Decision actor has two controllers');
+        owners.add(name); this.fieldActors.add(handle); sim.registerStrikeCatalogue(name, [...this.strikes.values()]);
+      }
+      if (row.commands.some(name => ['spawn', 'despawn', 'impulse', 'weather'].includes(name))) throw new Error('Decision mechanic has no admitted platform row owner');
+      if (row.commands.some(name => name === 'grant' || name === 'reward') && facts === undefined) throw new Error('Decision grant requires the authoritative ledger fact port');
+      const binding = row.binding;
+      const encounter = 'encounter' in binding ? requireValue(source.encounters.find(value => value.id === binding.encounter), 'encounter binding') : undefined;
+      if ('quest' in binding && !quest.quests.some(value => value.def.id === binding.quest)) throw new Error('Decision quest binding missing');
+      if ('zone' in binding && !this.registries.zones?.has(binding.zone)) throw new Error('Decision zone binding missing');
+      const self = encounter === undefined ? 0 : requireValue(this.names.get(encounter.entity), 'encounter actor');
+      if (self > 0 && !actorIds.includes(self)) throw new Error('Decision encounter does not own its actor');
+      const bytes = requireValue(assets.get(row.module.slice('blobs/wasm/'.length, -'.wasm'.length)), 'module bytes');
+      admitScriptContract(bytes, { abi: 1, pages: row.pages }); modules.set(row.module, bytes);
+      scripts.push({ ...row, state: row.state.map(slot => {
+        if (slot.scope === 'local') throw new Error('Simulation state cannot be view-local');
+        return { ...slot, scope: slot.scope };
+      }), ids: map.ids, reads: row.reads.filter(readName), lists: row.reads.filter(listName) });
+      return { id: index + 1, script: row.id, self, actors: actorIds, instance: 0 };
+    });
+    const world: DecisionWorld = { read: (op, a, b, context) => this.read(op, a, b, context), list: (op, a, b, out) => this.list(op, a, b, out),
+      prepare: (commands, context) => this.prepare(commands, context), failed: (mode, context, reason) => {
+        onDisabled?.({ module: context.script.module, entity: `binding:${context.binding.id}`, reason, failures: 3 });
+        if (mode === 'hold') return;
+        for (const actor of context.binding.actors) this.stop(actor, true);
+        const binding = this.rows.find(row => row.id === context.script.id)?.binding;
+        if (mode === 'reset' && binding !== undefined && 'encounter' in binding) this.encounters.get(binding.encounter)?.retry();
+      } };
+    this.host = new DecisionHost({ scripts, bindings, modules, seed: [source.identity.seed >>> 0, 0], world });
+    for (const binding of bindings) { this.enabled.set(binding.id, false); this.host.setEnabled(binding.id, false); }
+    for (const row of source.state.shared.filter(field => field.type !== 'string' && field.privacy === 'public')) for (const actor of this.fieldActors) {
+      const values = this.fields.get(actor) ?? new Map<number, number>(); values.set(row.id, Number(row.default)); this.fields.set(actor, values);
+    }
+    sim.scope.onDispose(sim.flags.onChange((name, on) => { const flag = this.registries.flags?.get(name); if (flag !== undefined) this.publish([12, flag, Number(on), 0, 0, 0]); }));
+    sim.events.on('damage.dealt', ({ req, dealt }) => {
+      const actor = this.names.get(req.target.id); if (actor === undefined) return;
+      const by = req.source === 'env' ? 0 : this.names.get(req.source.id) ?? 0;
+      this.publish([7, actor, by, dealt, this.read(5, actor, 0), 0]);
+      if (by > 0) { const strike = this.striking.get(by); if (strike !== undefined) strike.hit = true; }
+    }, sim.scope);
+    sim.events.on('actor.died', ({ actor, req }) => { const handle = this.names.get(actor.id); if (handle !== undefined) this.publish([9, handle, req.source === 'env' ? 0 : this.names.get(req.source.id) ?? 0, 0, 0, 0]); }, sim.scope);
+    sim.onStep('decision.declared', () => { this.events = []; this.lifecycle(); this.host.step(sim.state.tick); this.stepMoves(); }, {
+      snapshot: () => this.snapshot(), restore: value => this.restore(value),
+    });
+    sim.onStep('decision.observations', () => this.observe(), undefined, 'afterBodies');
+    if (!restoring) this.lifecycle();
+  }
+  private actor(handle: number) { const name = requireValue(this.actors.get(handle), 'unknown actor'); return name === this.sim.player.id ? undefined : requireValue(this.sim.entities.get(name), 'absent actor'); }
+  private position(handle: number) { return handle === DECISION_PLAYER_HANDLE ? this.sim.player.position : requireValue(this.actor(handle), 'actor position').position; }
+  private name(kind: keyof DecisionRegistries, id: number): string { return requireValue(inverse(this.registries[kind]).get(id), `undeclared ${kind}`); }
+  private inside(zone: string, actor: number): boolean {
+    const row = this.source.quests.triggers.find(value => value.kind === 'region' && value.id === zone);
+    if (row?.kind !== 'region') throw new Error('Missing decision zone');
+    const point = this.position(actor); return Math.hypot(point.x - row.x, point.z - row.z) <= row.radius;
+  }
+  private read(op: number, a: number, b: number, _context?: DecisionContext): number {
+    if (op === 10) return Number(this.sim.flags.has(this.name('flags', a)));
+    if (op === 17) { if (a !== DECISION_PLAYER_HANDLE) throw new Error('Decision player kind'); this.name('flags', b); return Number(this.playerFlags.has(b)); }
+    if (op === 14) return Number(this.inside(this.name('zones', a), DECISION_PLAYER_HANDLE));
+    if (op === 18) return Number(this.actor(a)?.alive ?? this.sim.player.health.alive);
+    if (op === 9) {
+      this.position(a); const binding = this.rows.find(row => row.id === _context?.script.id)?.binding;
+      if (binding !== undefined && 'encounter' in binding) {
+        const arena = requireValue(this.source.encounters.find(row => row.id === binding.encounter), 'encounter').arena;
+        const player = this.sim.player.position;
+        if (Math.hypot(player.x - arena.at[0], player.y - arena.at[1], player.z - arena.at[2]) > arena.radius) return 0;
+      }
+      return this.sim.player.health.alive ? DECISION_PLAYER_HANDLE : 0;
+    }
+    if (op === 8 || op === 19) { const from = this.position(a), to = this.position(b); return op === 8 ? Math.hypot(to.x - from.x, to.z - from.z) : Math.atan2(to.x - from.x, to.z - from.z); }
+    if (op === 13) return Number(this.inside(this.name('zones', b), a));
+    const actor = this.actor(a), point = this.position(a);
+    if (op === 1) return point.x; if (op === 2) return point.y; if (op === 3) return point.z;
+    if (op === 4) return actor?.yaw ?? this.sim.player.yaw;
+    if (op === 5) return actor === undefined ? this.sim.player.health.attributes.health / this.sim.player.health.attributes.maxHealth : actor.hp / actor.maxHp;
+    if (op === 6) return Number(actor?.alive ?? this.sim.player.health.alive);
+    if (op === 7) return requireValue(this.fields.get(a)?.get(b), 'unavailable public field');
+    if (op === 15) return Number(this.motions.has(a));
+    if (op === 16) return ['idle', 'windup', 'active', 'recover', 'cooldown'].indexOf(this.sim.strikes.get(requireValue(this.actors.get(a), 'strike actor'))?.state ?? 'idle');
+    throw new Error('Decision read has no authoritative mechanic');
+  }
+  private list(op: number, a: number, b: number, output: Float64Array): number {
+    if (op === 3 || op === 4) {
+      if (Math.abs(a) > 250 || Math.abs(b) > 250) throw new Error('Decision query outside cell');
+      const y = this.sim.groundHeightAt(a, b);
+      if (op === 3) { if (output.length === 0) return 0; output[0] = y; return 1; }
+      const nav = requireValue(this.navigation, 'navigation owner'), point = nav.closestWalkable({ x: a, y, z: b });
+      if (point === null || output.length < 3) return 0;
+      output.set([point.x, point.y, point.z]); return 3;
+    }
+    if (op === 5) {
+      const nav = requireValue(this.navigation, 'navigation owner'), points = nav.findPath(this.position(a), this.position(b), this.actor(a)?.dims.bodyRadius ?? this.sim.player.motor.opts.radius, [], 128) ?? [];
+      const count = Math.min(points.length, Math.floor(output.length / 3), 32);
+      for (let i = 0; i < count; i++) { const point = points[i]; if (point !== undefined) output.set([point.x, point.y, point.z], i * 3); }
+      return count * 3;
+    }
+    let handles: number[];
+    if (op === 1) handles = [...this.actors.keys()].filter(actor => actor !== DECISION_PLAYER_HANDLE && this.inside(this.name('zones', a), actor));
+    else if (op === 2) { if (b < 0) throw new Error('Invalid player radius'); handles = this.sim.player.health.alive && this.position(a).distanceTo(this.sim.player.position) <= b ? [DECISION_PLAYER_HANDLE] : []; }
+    else throw new Error('Decision navigation requires an admitted navigation owner');
+    handles.sort((left, right) => left - right); const count = Math.min(output.length, handles.length); for (let i = 0; i < count; i++) output[i] = handles[i] ?? 0; return count;
+  }
+  private owned(actor: number, context: DecisionContext): string {
+    if (actor === DECISION_PLAYER_HANDLE || !context.binding.actors.includes(actor)) throw new Error('Decision actor ownership');
+    const name = requireValue(this.actors.get(actor), 'missing actor'); requireValue(this.sim.entities.get(name), 'absent actor'); return name;
+  }
+  private validateField(field: number, value: number): void {
+    const row = requireValue(this.source.state.shared.find(entry => entry.id === field && entry.privacy === 'public' && entry.type !== 'string'), 'public field');
+    const low = row.min ?? (row.type === 'bool' ? 0 : row.type === 'i32' ? -2147483648 : -Number.MAX_VALUE);
+    const high = row.max ?? (row.type === 'bool' ? 1 : row.type === 'i32' ? 2147483647 : Number.MAX_VALUE);
+    if (!Number.isFinite(value) || value < low || value > high || (row.type !== 'f64' && !Number.isInteger(value))) throw new Error('Decision field bounds');
+  }
+  private moveStrike(actor: number, binding: number) {
+    const active = this.striking.get(actor)?.strike;
+    if (active !== undefined) return this.strikes.get(this.name('strikes', active));
+    const name = this.actors.get(actor), initial = this.source.creatures.spawns.find(row => row.id === name)?.strike;
+    if (initial !== null && initial !== undefined) return this.strikes.get(initial);
+    const row = requireValue(this.rows[binding - 1], 'move binding'), names = Object.values(row.strikes);
+    return names.length === 1 ? this.strikes.get(names[0] ?? '') : undefined;
+  }
+  private prepare(commands: readonly ScriptV1Command[], context: DecisionContext) {
+    const apply: (() => void)[] = [];
+    for (const [op, target, a, b] of commands) {
+      if (op === 8) continue; // Timers are the DecisionHost's transaction, not another clock.
+      if (op === 1 || op === 2 || op === 3 || op === 4) {
+        const name = this.owned(target, context), actor = requireValue(this.sim.entities.get(name), 'actor');
+        if (op === 3) { apply.push(() => this.stop(target)); continue; }
+        if (op === 4) {
+          this.validateField(a, b);
+          apply.push(() => { this.fields.get(target)?.set(a, b); }); continue;
+        }
+        if (b > 0) this.position(b);
+        if (op === 1) {
+          const row = requireValue(this.moves.find(value => value.id === this.name('moves', a)), 'move');
+          if (('ground' in row && !row.ground && !actor.flying) || ((row.kind === 'stalk' || row.kind === 'dive' || row.kind === 'takeoff' || row.kind === 'ring-run') && b === 0)) throw new Error('Decision move body/target');
+          if (row.kind === 'stalk' && row.ready.kind === 'range' && this.moveStrike(target, context.binding.id) === undefined) throw new Error('Decision range move needs an unambiguous admitted strike');
+          if (row.kind === 'burrow' || row.kind === 'surface') {
+            const field = requireValue(this.source.state.shared.find(value => value.name === row.field && value.type === 'f64' && value.privacy === 'public'), 'move field');
+            this.validateField(field.id, 0); this.validateField(field.id, 1);
+          }
+          if (![actor.position.x, actor.position.y, actor.position.z, actor.yaw].every(Number.isFinite)) throw new Error('Nonfinite move body');
+          // Capture the starting pose on the commit step, not during validation one body step earlier.
+          apply.push(() => { const runner = new ActorMoveRunner(row, actor); this.motions.set(target, { move: a, target: b, runner, binding: context.binding.id }); this.events.push({ kind: 'move', actor: target, id: a, target: b }); });
+        } else {
+          this.name('strikes', a); if (b === 0) throw new Error('Decision strike requires a target');
+          apply.push(() => { if (this.sim.startDeclaredStrike(name, requireValue(this.actors.get(b), 'strike target'), this.name('strikes', a))) {
+            this.striking.set(target, { strike: a, target: b, binding: context.binding.id, hit: false }); this.events.push({ kind: 'strike', actor: target, id: a, target: b });
+          } });
+        }
+      } else if (op === 7) {
+        const flag = this.name('flags', a); if (b !== 0 && b !== 1) throw new Error('Decision flag bounds');
+        if (target !== 0 && (target !== DECISION_PLAYER_HANDLE || !context.observed.has(target))) throw new Error('Decision player flag authority');
+        apply.push(() => { if (target === 0) this.sim.flags.set(flag, b === 1); else if (b === 1) this.playerFlags.add(a); else this.playerFlags.delete(a); });
+      } else if (op === 9) {
+        this.name('signals', a); apply.push(() => { this.publish([13, a, b, context.binding.self, 0, 0]); });
+      } else if (op === 10 || op === 11) {
+        const fact = this.name(op === 10 ? 'facts' : 'rewards', a), grant = requireValue(this.fact, 'ledger authority');
+        if (target !== 0 && (target !== DECISION_PLAYER_HANDLE || !context.observed.has(target))) throw new Error('Decision ledger player authority');
+        apply.push(() => { const key = `decision:${context.binding.id}:${target}:${fact}`; if (!this.sim.slots.ledgerDedupe.includes(key)) { this.sim.slots.ledgerDedupe.push(key); grant(fact, this.sim.player.id); } });
+      } else if (op === 12) {
+        this.name('cues', a); if (target > 0) this.position(target);
+        apply.push(() => { this.events.push({ kind: 'cue', actor: target, id: a, target: 0 }); });
+      } else if (op === 13) {
+        this.name('channels', a); apply.push(() => { this.channels.set(a, b); });
+      } else if (op === 15) {
+        const binding = requireValue(this.rows.find(row => row.id === context.script.id), 'binding').binding;
+        if (!('encounter' in binding)) throw new Error('Decision encounter ownership');
+        const encounter = requireValue(this.encounters.get(binding.encounter), 'encounter');
+        encounter.validateDecision(a, b); apply.push(() => { encounter.applyDecision(a, b); });
+      } else throw new Error('Decision command has no admitted mechanic');
+    }
+    return { commit: () => { for (const commit of apply) commit(); } };
+  }
+  private stop(actor: number, reset = false): void {
+    this.motions.delete(actor);
+    const name = this.actors.get(actor), body = name === undefined ? undefined : this.sim.entities.get(name);
+    body?.setMotion(body.yaw, 0);
+    const runner = name === undefined ? undefined : this.sim.strikes.get(name);
+    if (reset || runner?.state === 'windup') { this.striking.delete(actor); body?.cancelAttack(); runner?.cancel(); }
+  }
+  private lifecycle(): void {
+    for (const [index, row] of this.rows.entries()) {
+      const binding = row.binding;
+      const active = 'shard' in binding || ('encounter' in binding ? this.encounters.get(binding.encounter)?.boss.state === 'fight'
+        : 'quest' in binding ? this.quest.quests.some(value => value.def.id === binding.quest && value.isStarted && !value.isComplete)
+        : this.inside(binding.zone, DECISION_PLAYER_HANDLE));
+      const id = index + 1;
+      if ((this.enabled.get(id) ?? false) === active) continue;
+      this.enabled.set(id, active); this.host.setEnabled(id, active);
+      if (!active) for (const handle of Object.values(decisionBindingMap(row, this.registries).ids.actors ?? {})) this.stop(handle, true);
+      if (active) this.host.enqueue(id, [1, 0, 0, 0, 0, 0]);
+      this.host.enqueue(id, [active ? 15 : 16, DECISION_PLAYER_HANDLE, 0, 0, 0, 0]);
+      if (!active) this.host.enqueue(id, [18, 0, 0, 0, 0, 0]);
+    }
+  }
+  private stepMoves(): void {
+    for (const [handle, motion] of this.motions) {
+      const actor = this.actor(handle); if (actor === undefined || !actor.alive) { this.stop(handle, true); continue; }
+      const target = motion.target === 0 ? undefined : this.position(motion.target), strike = this.moveStrike(handle, motion.binding);
+      const row = requireValue(this.moves.find(value => value.id === this.name('moves', motion.move)), 'move');
+      const field = row.kind === 'burrow' || row.kind === 'surface' ? this.registries.fields?.get(row.field) : undefined;
+      const result = motion.runner.step({ body: actor, ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
+        ...(field === undefined ? {} : { field: this.fields.get(handle)?.get(field) ?? 0 }) });
+      if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
+      if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.fields.get(handle)?.set(id, result.field.value); }
+      if (result.strike !== undefined && motion.target > 0) this.sim.startDeclaredStrike(actor.entityId, requireValue(this.actors.get(motion.target), 'move strike target'), result.strike);
+      if (result.done !== undefined) { actor.setMotion(actor.yaw, 0); this.motions.delete(handle); this.host.enqueue(motion.binding, [10, handle, motion.move, Number(result.done), 0, 0]); }
+    }
+  }
+  private observe(): void {
+    for (const [handle, strike] of this.striking) {
+      const runner = this.sim.strikes.get(requireValue(this.actors.get(handle), 'strike actor'));
+      if (runner?.busy === true) continue;
+      this.striking.delete(handle); this.host.enqueue(strike.binding, [11, handle, strike.strike, Number(strike.hit), 0, 0]);
+    }
+    for (const region of this.source.quests.triggers.filter(row => row.kind === 'region')) {
+      const zone = requireValue(this.registries.zones?.get(region.id), 'zone');
+      for (const actor of this.names.values()) {
+        const key = `${zone}:${actor}`, inside = this.inside(region.id, actor), before = this.zones.has(key);
+        if (before === inside) continue;
+        if (inside) this.zones.add(key); else this.zones.delete(key);
+        this.publish([inside ? 4 : 5, zone, actor, 0, 0, 0]);
+      }
+    }
+    for (const [id, encounter] of this.encounters) {
+      const before = this.phases.get(id) ?? 0, phase = encounter.boss.phase;
+      this.phases.set(id, phase); if (phase !== before) { const row = requireValue(this.source.encounters.find(value => value.id === id), 'encounter'); this.publish([8, requireValue(this.names.get(row.entity), 'encounter actor'), phase, 0, 0, 0]); }
+    }
+    for (const event of this.movers?.drainEndEvents() ?? []) { const signal = this.registries.signals?.get(event.mover); if (signal !== undefined) this.publish([13, signal, Number(event.atEnd), 0, 0, 0]); }
+  }
+  /** Existing combat/interactions feed this queue; events never execute Wasm synchronously. */
+  publish(event: ScriptV1Event): void { for (const [id, active] of this.enabled) if (active) this.host.enqueue(id, event); }
+  /** Only the native picker may call this after verifying distance and LOS. */
+  interact(id: string): boolean {
+    const target = requireValue(this.registries.targets?.get(id), 'interaction target'); let routed = false;
+    for (const [index, row] of this.rows.entries()) if (row.on.includes('interact') && Object.values(row.targets).includes(id) && this.enabled.get(index + 1) === true) {
+      this.host.enqueue(index + 1, [6, target, DECISION_PLAYER_HANDLE, 0, 0, 0]); routed = true;
+    }
+    return routed;
+  }
+  publication(): DecisionPublication { return { tick: this.sim.state.tick,
+    fields: [...this.fields].flatMap(([actor, rows]) => [...rows].map(([field, value]) => ({ actor, field, value }))),
+    channels: [...this.channels].map(([channel, value]) => ({ channel, value })), events: structuredClone(this.events) }; }
+  private savedStrikes(): { actor: number; strike: number; target: number; binding: number; hit: boolean }[] {
+    const rows: { actor: number; strike: number; target: number; binding: number; hit: boolean }[] = [];
+    for (const [actor, strike] of this.striking) rows.push({ actor, ...strike });
+    return rows;
+  }
+  private snapshot(): string { return JSON.stringify({ contract: this.contract, decision: this.host.snapshot(), enabled: [...this.enabled],
+    fields: [...this.fields].flatMap(([actor, values]) => [...values].map(([field, value]) => [actor, field, value])), channels: [...this.channels], playerFlags: [...this.playerFlags], zones: [...this.zones], phases: [...this.phases],
+    moves: [...this.motions].map(([actor, motion]) => ({ actor, move: motion.move, target: motion.target, binding: motion.binding, state: motion.runner.snapshot() })),
+    strikes: this.savedStrikes() }); }
+  private restore(input: SimValue): void {
+    if (typeof input !== 'string') throw new Error('Invalid decision continuation');
+    const saved = v.parse(continuation, JSON.parse(input)); if (saved.contract !== this.contract) throw new Error('Incompatible decision continuation');
+    const fields = new Map<number, Map<number, number>>();
+    for (const [actor, field, value] of saved.fields) { this.position(actor); if (!this.fieldActors.has(actor)) throw new Error('Invalid public field owner'); this.validateField(field, value); const values = fields.get(actor) ?? new Map<number, number>(); if (values.has(field)) throw new Error('Duplicate decision field'); values.set(field, value); fields.set(actor, values); }
+    const expectedFields = this.source.state.shared.filter(row => row.privacy === 'public' && row.type !== 'string').length;
+    if (saved.fields.length !== this.fieldActors.size * expectedFields || [...fields.values()].some(values => values.size !== expectedFields)) throw new Error('Incomplete decision fields');
+    if (new Set(saved.enabled.map(([id]) => id)).size !== this.rows.length || saved.enabled.length !== this.rows.length
+      || saved.enabled.some(([id, on]) => id < 1 || id > this.rows.length || saved.decision.bindings.find(row => row.id === id)?.enabled !== on)) throw new Error('Decision binding lifetime restore');
+    if (new Set(saved.channels.map(([id]) => id)).size !== saved.channels.length || new Set(saved.playerFlags).size !== saved.playerFlags.length) throw new Error('Duplicate decision scalar');
+    for (const [id] of saved.channels) this.name('channels', id);
+    for (const id of saved.playerFlags) this.name('flags', id);
+    if (new Set(saved.zones).size !== saved.zones.length || new Set(saved.phases.map(([id]) => id)).size !== saved.phases.length) throw new Error('Duplicate decision observation');
+    const zoneKeys = new Set([...this.registries.zones?.values() ?? []].flatMap(zone => [...this.names.values()].map(actor => `${zone}:${actor}`)));
+    if (saved.zones.some(key => !zoneKeys.has(key))) throw new Error('Invalid decision zone observation');
+    for (const [id, phase] of saved.phases) {
+      const encounter = requireValue(this.source.encounters.find(row => row.id === id), 'saved encounter');
+      if (phase >= encounter.phases.length) throw new Error('Invalid decision phase observation');
+    }
+    const motions = new Map<number, Motion>();
+    for (const motion of saved.moves) { const actor = requireValue(this.actor(motion.actor), 'move actor'), row = requireValue(this.moves.find(value => value.id === this.name('moves', motion.move)), 'move');
+      const binding = requireValue(this.rows[motion.binding - 1], 'move binding'), ids = decisionBindingMap(binding, this.registries).ids;
+      if (!Object.values(ids.actors ?? {}).includes(motion.actor) || !Object.values(ids.moves ?? {}).includes(motion.move) || motions.has(motion.actor)) throw new Error('Invalid decision move ownership');
+      if (motion.target !== 0) this.position(motion.target);
+      const runner = new ActorMoveRunner(row, actor); runner.restore(motion.state); motions.set(motion.actor, { ...motion, runner }); }
+    if (new Set(saved.strikes.map(row => row.actor)).size !== saved.strikes.length) throw new Error('Duplicate decision strike');
+    for (const strike of saved.strikes) {
+      const binding = requireValue(this.rows[strike.binding - 1], 'strike binding'), ids = decisionBindingMap(binding, this.registries).ids;
+      if (!Object.values(ids.actors ?? {}).includes(strike.actor) || !Object.values(ids.strikes ?? {}).includes(strike.strike)) throw new Error('Invalid decision strike ownership');
+      this.position(strike.target);
+    }
+    this.host.restore(saved.decision);
+    this.enabled.clear(); for (const [id, on] of saved.enabled) this.enabled.set(id, on);
+    this.fields.clear(); for (const [id, values] of fields) this.fields.set(id, values);
+    this.channels.clear(); for (const [id, value] of saved.channels) this.channels.set(id, value);
+    this.playerFlags.clear(); for (const id of saved.playerFlags) this.playerFlags.add(id);
+    this.zones.clear(); for (const zone of saved.zones) this.zones.add(zone);
+    this.phases.clear(); for (const [id, phase] of saved.phases) this.phases.set(id, phase);
+    this.motions.clear(); for (const [actor, motion] of motions) this.motions.set(actor, motion);
+    this.striking.clear(); for (const { actor, ...strike } of saved.strikes) this.striking.set(actor, strike);
+  }
+}

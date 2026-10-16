@@ -37,7 +37,7 @@ export interface DecisionSnapshot {
   bindings: readonly {
     id: number; script: string; stateVersion: number; slots: Readonly<Record<string, number | boolean>>;
     timers: Readonly<Record<string, number>>; rng: number; failures: number; disabled: boolean;
-    pending: readonly ScriptV1Event[]; lastCall: number | null;
+    pending: readonly ScriptV1Event[]; lastCall: number | null; enabled?: boolean;
   }[];
 }
 /** Trace observers are tooling ports and are absent from the allocation-free production hot path. */
@@ -107,7 +107,7 @@ interface BindingState {
   queue: EventQueue; observed: Set<number>; players: Set<number>; owners: Set<number>;
   pool: Command[]; commands: Command[]; staged: DecisionCommit | null;
   rng: number; nextRng: number; lastCall: number | null; nextLastCall: number;
-  failures: number; disabled: boolean; metric: DecisionMetrics;
+  failures: number; disabled: boolean; enabled?: boolean; metric: DecisionMetrics;
 }
 
 /** Event-driven, renderer-free decision scheduler. Module memory is scratch, never save state. */
@@ -199,6 +199,15 @@ export class DecisionHost {
     this.rows.sort((a, b) => a.binding.id - b.binding.id);
   }
   private row(id: number): BindingState { const row = this.bindings.get(id); check(row !== undefined, 'unknown binding'); return row; }
+  /** Platform binding lifetime: inactive bindings receive no periodic ticks or timer events.
+   * Explicit start/stop inboxes may still drain. Disabling cancels uncommitted work, never enters Wasm.
+   */
+  setEnabled(binding: number, enabled: boolean): void {
+    check(!this.busy && typeof enabled === 'boolean', 'binding lifetime');
+    const row = this.row(binding);
+    row.enabled = enabled;
+    if (!enabled) { row.staged = null; row.timers.fill(0); }
+  }
   enqueue(binding: number, event: ScriptV1Event): void {
     check(!this.busy || this.committing, 'reentrant enqueue');
     const row = this.row(binding), eventName = eventNames.get(event[0]);
@@ -224,7 +233,7 @@ export class DecisionHost {
           row.values.set(row.next); row.timers.set(row.nextTimers); row.rng = row.nextRng; row.lastCall = row.nextLastCall;
         }
         row.context.tick = tick;
-        if (row.disabled) continue;
+        if (row.disabled || row.enabled === false) continue;
         for (let i = 0; i < row.timers.length; i++) {
           const deadline = row.timers[i] ?? 0;
           if (deadline > 0 && deadline <= tick) {
@@ -238,7 +247,7 @@ export class DecisionHost {
       let calls = 0;
       for (const row of this.rows) {
         if (row.disabled) continue;
-        if (row.script.tick !== null && tick % (60 / row.script.tick) === 0) row.queue.push(2, 0, 0, 0, 0, 0);
+        if (row.enabled !== false && row.script.tick !== null && tick % (60 / row.script.tick) === 0) row.queue.push(2, 0, 0, 0, 0, 0);
         if (row.queue.size > 0 && calls < 64 && this.remainingFuel > 0) { calls++; this.call(row); }
         row.metric.carried = row.queue.size;
       }
@@ -384,7 +393,7 @@ export class DecisionHost {
     return { version: 1, tick: this.tick,
       bindings: this.rows.map(row => ({ id: row.binding.id, script: row.script.id, stateVersion: row.script.stateVersion,
         slots: this.named(row, row.values), timers: this.savedTimers(row, row.timers), rng: row.rng, failures: row.failures,
-        disabled: row.disabled, pending: row.queue.saved(), lastCall: row.lastCall })),
+        disabled: row.disabled, pending: row.queue.saved(), lastCall: row.lastCall, ...(row.enabled === undefined ? {} : { enabled: row.enabled }) })),
       staged: this.rows.filter(row => row.staged !== null).map(row => ({ binding: row.binding.id, tick: this.tick,
         observed: [...row.observed], commands: row.commands.map(command => [...command]), slots: this.named(row, row.next),
         timers: this.savedTimers(row, row.nextTimers), rng: row.nextRng, lastCall: row.nextLastCall })),
@@ -403,6 +412,7 @@ export class DecisionHost {
       const saved = snapshot.bindings.find(value => value.id === row.binding.id);
       check(saved !== undefined && saved.script === row.script.id && saved.stateVersion === row.script.stateVersion, 'snapshot binding/version');
       check(integer(saved.rng) && integer(saved.failures, 0, 3) && saved.disabled === (saved.failures >= 3)
+        && (saved.enabled === undefined || typeof saved.enabled === 'boolean')
         && (saved.lastCall === null || integer(saved.lastCall, 0, snapshot.tick)), 'snapshot counters');
       const decodeSlots = (slots: Readonly<Slots>): Float64Array => {
         check(Object.keys(slots).length === row.script.state.length, 'snapshot slots');
@@ -441,6 +451,7 @@ export class DecisionHost {
       const { row, saved, pending } = value;
       row.values.set(value.values); row.timers.set(value.timers); row.queue = value.queue;
       row.rng = saved.rng; row.failures = saved.failures; row.disabled = saved.disabled; row.lastCall = saved.lastCall;
+      if (saved.enabled === undefined) delete row.enabled; else row.enabled = saved.enabled;
       row.next.set(value.next); row.nextTimers.set(value.nextTimers); row.staged = value.transaction;
       row.nextRng = pending?.rng ?? saved.rng; row.nextLastCall = pending?.lastCall ?? 0; row.commands.length = 0;
       row.observed.clear(); for (const actor of pending?.observed ?? []) row.observed.add(actor);

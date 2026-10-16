@@ -5,7 +5,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { DeclaredHudHandles } from '@wildshard/engine/ui/declared';
 
 /** Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering. */
-export function installDeclaredEncounters(sim: SimHost, rows: readonly PhaseEncounterSpec[], ports: (id: string) => Omit<PhaseEncounterPorts, 'presentation'>, hud?: Pick<DeclaredHudHandles, 'bosses'>): ReadonlyMap<string, PhaseEncounter> {
+export function installDeclaredEncounters(sim: SimHost, rows: readonly PhaseEncounterSpec[], ports: (id: string) => Omit<PhaseEncounterPorts, 'presentation'>, hud?: Pick<DeclaredHudHandles, 'bosses'>, decisionOwned: ReadonlySet<string> = new Set()): ReadonlyMap<string, PhaseEncounter> {
   const result = new Map<string, PhaseEncounter>();
   const checked = v.parse(EncountersSchema, rows);
   for (const row of checked) {
@@ -16,7 +16,7 @@ export function installDeclaredEncounters(sim: SimHost, rows: readonly PhaseEnco
   }
   for (const row of checked) {
     const panel = row.panel === null ? undefined : hud?.bosses.get(row.id);
-    result.set(row.id, new PhaseEncounter(sim, row, { ...ports(row.id), ...(panel ? { presentation: panel.presentation } : {}) }));
+    result.set(row.id, new PhaseEncounter(sim, row, { ...ports(row.id), ...(panel ? { presentation: panel.presentation } : {}) }, decisionOwned.has(row.id)));
   }
   return result;
 }

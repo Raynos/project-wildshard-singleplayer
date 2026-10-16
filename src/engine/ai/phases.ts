@@ -32,7 +32,7 @@ export class PhaseEncounter {
   private readonly contract: string;
   private readonly actor: AnimalSim;
   private readonly presentation: BossPresentation;
-  constructor(sim: SimHost, spec: PhaseEncounterSpec, ports: PhaseEncounterPorts) {
+  constructor(sim: SimHost, spec: PhaseEncounterSpec, ports: PhaseEncounterPorts, decisionOwned = false) {
     const actor = sim.entities.get(spec.entity);
     if (![ports.saved.defeated, ports.saved.rewardTaken].every((n) => typeof n === 'boolean') || !Number.isSafeInteger(ports.saved.kills) || ports.saved.kills < 0) throw new Error('Invalid encounter persistence');
     if (!actor || spec.phases.length === 0 || spec.phases[0]?.at !== 1 || spec.phases.some((p, i) => ![p.at, p.speed, p.stopDistance, p.turnRate].every(Number.isFinite) || p.at <= 0 || p.at > 1 || p.speed < 0 || p.speed > 15 || p.stopDistance < 0 || p.turnRate < 0 || (i > 0 && p.at >= (spec.phases[i - 1]?.at ?? 0)))
@@ -46,6 +46,7 @@ export class PhaseEncounter {
       reset: (index) => { const value = spec.phases[index]; if (!value) throw new Error('Missing checkpoint'); actor.hp = actor.maxHp * value.at; actor.alive = true; actor.cancelAttack(); sim.strikes.get(actor.entityId)?.cancel(); actor.setMotion(actor.yaw, 0, 4); },
       seal: () => undefined, intro: () => focus, begin: () => undefined, enterPhase: () => undefined,
       update: (_dt, _t, fighting) => {
+        if (decisionOwned) return;
         const player = sim.player.position, tune = phase(), dx = player.x - actor.position.x, dz = player.z - actor.position.z;
         actor.setMotion(Math.atan2(dx, dz), fighting && actor.alive && Math.hypot(dx, dz) > tune.stopDistance ? tune.speed : 0, tune.turnRate);
         if (fighting && actor.alive && sim.player.health.alive) sim.startStrike(actor.entityId, sim.player.id);
@@ -87,4 +88,8 @@ export class PhaseEncounter {
   }
   /** Explicit death/checkpoint hook for a host that resolves death before its queued notification. */
   retry(): boolean { return this.boss.onPlayerDeath(); }
+  /** Read-only batch validation; the DecisionHost commits only after every command passes. */
+  validateDecision(verb: number, value: number): void { this.boss.validateDecision(verb, value); }
+  /** Apply on the next fixed step through the current checkpoint/reward owner. */
+  applyDecision(verb: number, value: number): void { this.boss.applyDecision(verb, value); }
 }

@@ -178,3 +178,16 @@ test('committed engine commands may queue events without reentering Wasm in the 
   expect(f.host.metrics()[0]?.calls).toBe(1); expect(f.host.snapshot().bindings[0]?.pending).toHaveLength(1);
   f.run(13); expect(f.host.state(1)).toEqual({ phase: 16 });
 });
+
+test('inactive bindings suppress periodic work and timers but deliver explicit stop, with logical restore', async () => {
+  const f = await setup(valid.replace('return 1;', `store<f64>(${out + 40},8);store<f64>(${out + 56},1);store<f64>(${out + 64},2);return 2;`));
+  const host = new DecisionHost({ ...f.options, scripts: f.options.scripts.map(script => { const row = structuredClone(script); row.tick = 10; row.on = ['start', 'tick', 'timer', 'stop']; return row; }) });
+  const run = (end: number): void => { for (let tick = host.snapshot().tick + 1; tick <= end; tick++) host.step(tick); };
+  host.setEnabled(1, false); run(60); expect(host.metrics()[0]?.calls).toBe(0);
+  const saved = host.snapshot(); expect(saved.bindings[0]?.enabled).toBe(false);
+  host.restore(saved); host.setEnabled(1, true); host.enqueue(1, [1, 0, 0, 0, 0, 0]); run(67);
+  expect(host.state(1)).toEqual({ phase: 8 }); expect(host.snapshot().bindings[0]?.timers['rest']).toBeGreaterThan(0);
+  host.setEnabled(1, false); run(120); expect(host.state(1)).toEqual({ phase: 8 });
+  expect(host.snapshot().bindings[0]?.timers).toEqual({});
+  host.enqueue(1, [18, 0, 0, 0, 0, 0]); run(127); expect(host.state(1)).toEqual({ phase: 16 });
+});

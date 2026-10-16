@@ -180,6 +180,7 @@ export class SimHost {
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly afterCallbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly weapons = new Map<string, StrikeSpec>();
+  private readonly strikeCatalogues = new Map<string, ReadonlyMap<string, StrikeSpec>>();
   private readonly dynamicActors = new Set<string>();
   private readonly targetIds = new Map<string, string>();
   private readonly wanted = new Vector3();
@@ -349,7 +350,7 @@ export class SimHost {
   retire(id: string): boolean {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (!this.dynamicActors.has(id)) return false;
-    this.entities.get(id)?.motor?.dispose(); this.dynamicActors.delete(id); this.entities.delete(id); this.strikes.delete(id); this.weapons.delete(id);
+    this.entities.get(id)?.motor?.dispose(); this.dynamicActors.delete(id); this.entities.delete(id); this.strikes.delete(id); this.weapons.delete(id); this.strikeCatalogues.delete(id);
     this.adapters.delete(`runtime.actor.${id}`); this.bands?.clocks.forget(id);
     for (const [source, target] of this.targetIds) if (source === id || target === id) {
       this.strikes.get(source)?.cancel(); this.entities.get(source)?.cancelAttack(); this.targetIds.delete(source);
@@ -359,7 +360,24 @@ export class SimHost {
   /** Exact restore resolves pending strikes from the currently installed static or trusted dynamic recipe. */
   strikeSpecifications(id: string): readonly StrikeSpec[] {
     const spec = this.weapons.get(id);
-    return spec === undefined ? [] : [{ ...spec, shape: { ...spec.shape }, tags: [...spec.tags] }];
+    const specs = new Map(this.strikeCatalogues.get(id));
+    if (spec !== undefined && !specs.has(spec.id)) specs.set(spec.id, spec);
+    const result: StrikeSpec[] = [];
+    for (const row of specs.values()) result.push({ ...row, shape: { ...row.shape }, tags: [...row.tags] });
+    return result;
+  }
+  /** A declared decision owner selects among admitted strikes on the existing runner, including after restore. */
+  registerStrikeCatalogue(id: string, specs: readonly SimStrike[]): void {
+    if (!this.entities.has(id) || this.strikeCatalogues.has(id) || new Set(specs.map(row => row.id)).size !== specs.length) throw new Error('Invalid strike catalogue owner');
+    const rows = new Map<string, StrikeSpec>();
+    for (const spec of specs) rows.set(spec.id, { ...structuredClone(spec), weight: () => 1 });
+    this.strikeCatalogues.set(id, rows);
+    if (specs.length > 0 && !this.strikes.has(id)) this.strikes.set(id, new StrikeRunner());
+  }
+  /** Selection never installs another clock or contact path. Missing or busy actors retain today's refusal. */
+  startDeclaredStrike(sourceId: string, targetId: string, strike: string): boolean {
+    const spec = this.strikeCatalogues.get(sourceId)?.get(strike);
+    return spec === undefined ? false : this.beginStrike(sourceId, targetId, spec);
   }
   /** The player's capsule on the page's body law (PLAYER_BODY: ITEM bodies stop it and its 80 kg pushes them), a creature's
    * on the page's creature filter. */
@@ -870,7 +888,10 @@ export class SimHost {
   }
   /** Start an authored strike; active/recovery/cooldown timing remains in StrikeRunner. */
   startStrike(sourceId: string, targetId: string): boolean {
-    const runner = this.strikes.get(sourceId), spec = this.weapons.get(sourceId), source = this.entities.get(sourceId), target = this.entities.get(targetId);
+    return this.beginStrike(sourceId, targetId, this.weapons.get(sourceId));
+  }
+  private beginStrike(sourceId: string, targetId: string, spec: StrikeSpec | undefined): boolean {
+    const runner = this.strikes.get(sourceId), source = this.entities.get(sourceId), target = this.entities.get(targetId);
     const position = sourceId === this.player.id ? this.player.position : source?.position;
     const targetPosition = targetId === this.player.id ? this.player.position : target?.position;
     if (runner === undefined || spec === undefined || runner.busy || position === undefined || targetPosition === undefined) return false;

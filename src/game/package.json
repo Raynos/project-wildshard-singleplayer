@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/decisions": "./shardfile/decisions.ts",
     "./shardfile/outputDescriptor": "./shardfile/outputDescriptor.ts",
     "./shardfile/productData": "./shardfile/productData.ts",
     "./shard/catalogBoot": "./shard/catalogBoot.ts",
