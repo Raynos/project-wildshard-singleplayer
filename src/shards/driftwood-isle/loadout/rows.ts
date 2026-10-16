@@ -1,6 +1,6 @@
 import type { Material } from 'three';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
-import source from '../shard.config';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
@@ -15,7 +15,7 @@ const drops = new WeakMap<ShardRuntime, IronSwordPickup>();
 export function ironSwordDrop(shell: ShardRuntime): IronSwordPickup | null { return drops.get(shell) ?? null; }
 
 /** Compose admitted combat numbers while retaining the guarded iron pickup owner. */
-export function driftwoodLoadoutRows(world: World, shell: ShardRuntime, materials: ReadonlyMap<string, Material>): readonly [MeleeProfile, MeleeProfile] {
+export function driftwoodLoadoutRows(world: World, shell: ShardRuntime, materials: ReadonlyMap<string, Material>, source: Pick<ShardContext['product']['shardfile'], 'items'>): readonly [MeleeProfile, MeleeProfile] {
   const declaredWood = source.items.rows[0], declaredIron = source.items.rows[1];
   if (declaredWood?.kind !== 'weapon' || declaredIron?.kind !== 'weapon' || declaredWood.profile?.family !== 'melee' || declaredIron.profile?.family !== 'melee') throw new Error('Driftwood declares both swords');
   const wood = applyMeleeCombatProfile(SWORD_WOOD, declaredWood.profile);

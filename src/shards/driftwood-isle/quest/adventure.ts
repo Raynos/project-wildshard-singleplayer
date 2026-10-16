@@ -21,7 +21,6 @@ import { installAdventureInteractables } from './interactLifetime';
 import { installSpine, ownEnteredTree, type Spine } from './Spine';
 import { installTrader, type TraderStall } from './TraderStall';
 import { bindDriftwoodFacts } from './facts';
-import declaration from '../shard.config';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { installFeats } from './Feats';
 import { installPlaces } from './Places';
@@ -113,7 +112,7 @@ export function adventureGame(game: AdventureWorld['game'], onUpdate: AdventureW
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
   const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
-  const scope = ctx.scope;
+  const scope = ctx.scope, declaration = ctx.product.shardfile; // the admitted declaration (W2b: never shard.config)
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const flags = new Flags(w.chunk.slug);
@@ -135,8 +134,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     ]) });
 
   const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
-  const grants = bindDriftwoodFacts(ctx, w.progress?.rows ?? [], w.progress, w.chunk.slug);
-  adventure.spine = installSpine(adventure, w, ctx, grants.facts);
+  const grants = bindDriftwoodFacts(ctx, declaration, w.progress?.rows ?? [], w.progress, w.chunk.slug);
+  adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
   installFeats(adventure, w, () => { grants.syncFlags(flags); });
