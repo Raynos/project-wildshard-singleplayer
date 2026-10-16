@@ -39,12 +39,6 @@ export interface CoconutPorts<T extends CoconutThrower> {
   readonly sound: (name: 'coconut_hit' | 'coconut_land', at: Vector3) => void;
   readonly splash: (at: Vector3, strength: number) => void;
 }
-/** One slot's continuation: state (1 flying, 2 landed), rest and age (s), the thrower's index, the body's native handle
- *  and how wet it last was. */
-export interface CoconutSlot { k: number; state: number; rest: number; age: number; thrower: number; handle: number; wet: number }
-/** A slot's continuation as plain data (a snapshot value). */
-export type CoconutSlotData = { [K in keyof CoconutSlot]: CoconutSlot[K] };
-
 const _v = new Vector3(), _q = new Quaternion(), _e = new Euler(), _vel = { x: 0, y: 0, z: 0 };
 
 /**
@@ -55,17 +49,14 @@ const _v = new Vector3(), _q = new Quaternion(), _e = new Euler(), _vel = { x: 0
  * thrower's blow; it bounces off); a knock past 1.5 m/s, the sea or 3 s of flight is the landing, from which it is an ITEM
  * the player nudges. A landed coconut goes after resting 4 s, or at 16 s old.
  */
-export class Coconuts<T extends CoconutThrower> {
-  private readonly slots: DynamicBodySlots<T>;
-  private readonly ports: CoconutPorts<T>;
-  private player: Vector3 | null = null;
+export class Coconuts<T extends CoconutThrower> extends DynamicBodySlots<T> {
+  private readonly launchPorts: CoconutPorts<T>;
   constructor(ports: CoconutPorts<T>) {
-    this.ports = ports;
-    this.slots = new DynamicBodySlots({count:COCONUTS,clocks:'f32',initial:1,restSpeed:REST_SPEED,restTime:REST_T,maxAge:MAX_AGE,inclusive:false,
+    super({count:COCONUTS,clocks:'f32',initial:1,restSpeed:REST_SPEED,restTime:REST_T,maxAge:MAX_AGE,inclusive:false,
       landing:{impact:LAND_IMPACT,timeout:3,wet:true,clearDistance:.8}}, {
       bodies:()=>ports.bodies(),spec:()=>({...COCONUT_BODY,float:{...COCONUT_BODY.float,surface:ports.surface},owner:ports.owner}),
-      contact:(body,thrower,at)=>{
-        const player=this.player;if(player===null)throw new Error('Coconut contact requires the current player pose');
+      contact:(body,thrower,at,player)=>{
+        if(player===null)throw new Error('Coconut contact requires the current player pose');
         const cy=MathUtils.clamp(at.y,player.y,player.y+PLAYER_H);
         if(!((at.x-player.x)**2+(cy-at.y)**2+(at.z-player.z)**2<HIT_R*HIT_R))return false;
         if(thrower!==null)ports.hit(thrower,DRIFTWOOD_STRIKES.coconut.damage,DRIFTWOOD_STRIKES.coconut.id);
@@ -73,40 +64,27 @@ export class Coconuts<T extends CoconutThrower> {
       },
       landed:(body,_at,age)=>{if(age<=3)ports.sound('coconut_land',_v);if(body.wet>0)ports.splash(_v,.3);},
     });
+    this.launchPorts = ports;
   }
 
   /** lob a coconut from `from` to land on `to` (the slots are reused round-robin, the oldest goes) */
   throw(from: Vector3, to: Vector3, thrower: T | null): void {
-    const bodies = this.ports.bodies(), rng = this.ports.rng;
+    const bodies = this.launchPorts.bodies(), rng = this.launchPorts.rng;
     if (bodies === null) return;
     const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
     const T = MathUtils.clamp(Math.hypot(dx, dz) / 9, 0.8, 1.5);
     const spin = rng.range(0, 6.28);
     _q.setFromEuler(_e.set(spin, spin * 0.7, 0));
     _vel.x = dx / T; _vel.y = dy / T + 0.5 * G * T; _vel.z = dz / T;
-    const b = this.slots.spawn(from,_vel,_q,thrower);
+    const b = this.spawn(from,_vel,_q,thrower);
     if(b===null)return;
     b.rb.setAngvel({ x: rng.range(-7, 7), y: rng.range(-3, 3), z: rng.range(-7, 7) }, true);
   }
 
-  dispose(): void { this.slots.dispose(); }
-
   /** Read the bodies after the world stepped (`alpha` of the way from the previous fixed step to the latest), strike the
    *  player at `player` (feet), land, rest and retire them. `draw` gets each live slot's pose, or null for a freed one;
    *  the answer is whether it drew any. */
-  step(dt: number, alpha: number, player: Vector3, draw?: (k: number, at: Vector3 | null, rot: Quaternion) => void): boolean {
-    this.player=player;
-    return this.slots.step(dt,alpha,player,_v,_q,(k,at)=>draw?.(k,at,_q));
-  }
-
-  /** The live slots and the round-robin cursor; `index` names a thrower (−1: none). */
-  snapshot(index: (thrower: T) => number): { next: number; slots: CoconutSlotData[] } {
-    return this.slots.snapshot(index);
-  }
-
-  /** Restore the slots' counters before the world is replaced; `reattach` (once the restored world is live) adopts each
-   *  saved native body into `bodies`, its pose and last velocity read back off the body as a step leaves them. */
-  restore(saved: { next: number; slots: readonly CoconutSlot[] }, thrower: (index: number) => T | null): () => void {
-    return this.slots.restore(saved,thrower);
+  update(dt: number, alpha: number, player: Vector3, draw?: (k: number, at: Vector3 | null, rot: Quaternion) => void): boolean {
+    return this.step(dt,alpha,player,_v,_q,(k,at)=>draw?.(k,at,_q));
   }
 }

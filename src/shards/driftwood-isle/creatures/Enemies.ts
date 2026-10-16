@@ -248,7 +248,7 @@ export class Enemies {
     if (this.disposed) return;
     this.tickPractice(dt, playerPos);
     // ── coconuts: their bodies fly, bounce, roll and float in the physics world; the volley reads them, this draws them ──
-    const drew = this.volley.step(dt, app.bodies?.alpha ?? 1, playerPos, (k, at, rot) => {
+    const drew = this.volley.update(dt, app.bodies?.alpha ?? 1, playerPos, (k, at, rot) => {
       if (at === null) this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));
       else this.coconuts.setMatrixAt(k, _m.compose(at, rot, _s.set(1, 1, 1)));
     });

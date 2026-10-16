@@ -5627,6 +5627,9 @@ borrow the existing Bodies service, original collider recipe and contact,
 landing/removal callbacks; caller-owned fixed phases and pose scratch remain
 unchanged. Tossed Drop and native/page volleys use the same owner. Restore
 loads counters before reattaching saved Rapier handles after world replacement.
+The optional contact port also borrows the current step's player pose (or
+null). A specialized volley may extend this owner directly and keep only its
+launch/contact policy, inheriting disposal and native continuation unchanged.
 
 ### Conditional quest page prompts
 

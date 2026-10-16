@@ -329,8 +329,8 @@ export interface DynamicBodySlotsPorts<T> {
   readonly bodies: () => Bodies | null; readonly spec: (slot: number) => BodySpec;
   readonly removed?: (slot: number, body: Body) => void;
   readonly retired?: (slot: number, body: Body) => void;
-  /** True means the caller applied a contact/bounce; the slot settles without drawing this frame. */
-  readonly contact?: (body: Body, source: T | null, at: Vec3) => boolean;
+  /** Borrows this step's player pose. True means contact/bounce consumed the slot's draw this frame. */
+  readonly contact?: (body: Body, source: T | null, at: Vec3, player: Vec3 | null) => boolean;
   readonly landed?: (body: Body, at: Vec3, age: number) => void;
 }
 /** One body slot owner for volleys and tossed loot. No fixed phase, collider or Rapier service is installed here. */
@@ -385,7 +385,7 @@ export class DynamicBodySlots<T> {
       const age = (this.age[k]??0)+dt; this.age[k] = age;
       const landing = this.row.landing;
       if(state === 1) {
-        if(this.ports.contact?.(body,this.source[k]??null,at)) {this.state[k]=2;this.rest[k]=0;continue;}
+        if(this.ports.contact?.(body,this.source[k]??null,at,player)) {this.state[k]=2;this.rest[k]=0;continue;}
         if(landing && (body.takeImpact()>landing.impact || (landing.wet && body.wet>0) || age>landing.timeout)) {
           this.ports.landed?.(body,at,age); this.state[k]=2;this.rest[k]=0;body.setGroup('ITEM');
         }
@@ -402,7 +402,7 @@ export class DynamicBodySlots<T> {
     }
     return drew;
   }
-  snapshot(index:(source:T)=>number):{next:number;slots:DynamicBodySlotData[]} {
+  snapshot(index:(source:T)=>number):{next:number;slots:{[K in keyof DynamicBodySlotData]:DynamicBodySlotData[K]}[]} {
     const slots:DynamicBodySlotData[]=[];
     for(let k=0;k<this.row.count;k++) {
       const body=this.bodyAt(k),state=this.state[k]??0,source=this.source[k]??null;

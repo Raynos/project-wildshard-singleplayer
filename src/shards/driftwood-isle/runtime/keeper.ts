@@ -344,7 +344,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     continuation.advance(dt);
     cadence.observe(dt); cadence.decide();
     // the coconuts strike, land and rest (Enemies.update), then their bodies ready the next world step ('pre')
-    volley.step(dt, 1, player);
+    volley.update(dt, 1, player);
     service.pre(dt);
     respawns(dt);
     const crab = practice.body?.actor ?? null;
