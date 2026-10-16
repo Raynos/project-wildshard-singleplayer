@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./scriptAbiV1": "./scriptAbiV1.ts",
     "./level": "./level.ts",
     "./outputIndex": "./outputIndex.ts",
     "./shardCatalog": "./shardCatalog.ts",

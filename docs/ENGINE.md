@@ -7109,3 +7109,21 @@ This strict complete-build mode is opt-in until client runtime closure.
 The live title still uses its current discovery path. Switching that
 reader must enable `--catalog` in the app, push-gate and Vercel build
 commands in the same commit, so no shipped reader lacks its catalog.
+
+### Decision-script v1 transport and host contract
+
+`format/scriptAbiV1` defines the numeric event/read/list/command tables and
+`scriptV1Layout(states, params)`, the bounded little-endian f64 IO layout.
+Header slots 5–7 are reserved zero. The admitted row supplies slot counts;
+there are no hidden capacity fields. View command ids start at 100.
+
+`engine/script/decision` defines the renderer-free `DecisionHost` contract:
+`enqueue(binding,event)`, consecutive 60 Hz `step(tick)`, logical
+`snapshot`/`restore`, named `state`, and per-binding `metrics`. Decision
+calls stage validated commands and proposed state until the next fixed
+step. Snapshots include staged calls, pending events, timers and RNG;
+restore validates everything and re-prepares staged transactions without
+entering Wasm. Engine adapters supply read/list queries and a read-only
+`prepare` returning an atomic, non-throwing commit. Optional trace observers
+are tooling ports, never shard-authored callbacks. KA2 supplies the actual
+host implementation; these interfaces do not create an interpreter.
