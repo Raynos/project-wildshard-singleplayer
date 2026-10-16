@@ -12,11 +12,12 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | P1 | Output v2 writer `out/<slug>/` + validator §2.8 1–4 (A); loader adapter + blob URLs (B) | M | sp-x5 (A), sp-x8 (B) | in flight |
 | P2a | Runtime data API `product.section/strings/file` spec + skeleton | S | sp-o258 designs, Codex builds | in flight |
 | P2b | `defineSection`, `schemas/custom/`, named blobs, first W1 platform sections | M | sp-x6 | in flight |
-| P3 | Runtime copy, `import.meta.glob` registry, `out/catalog.json`, title menu reads it | M | sp-x1 | in flight |
-| P4 | Ruler on the output; drop `runtimeExcludedFolders` and the G445 clause; new report columns | S | sp-x7 | in flight |
+| P3 | Runtime copy, `import.meta.glob` registry (carries runtime.files hash), `out/catalog.json` (one-pass regen), level section, code loaders into the registry, async boot (spike first) (review §2, §4, §6) | L | sp-x1 | in flight |
+| P4 | Ruler on the output via heavy-lane or the gate's HEAD build, temp dir + rename; drop `runtimeExcludedFolders` and the G445 clause; custom-section count+bytes shrink-only ratchet (review §4, §5) | S | sp-x7 | in flight |
 | S1 / S1b / S2 / S3 | Sky and Signal rewire to sections, play folders into runtime/, private assets into blobs | M / S / S / S | Codex after P1–P3 | open |
 | S4 | Sky look-graph builders + Signal fire.ts emit SF59 graph JSON at build | M | sp-o259 | in flight |
 | S5 | Sky/Signal world/ onto hosts or build-time sections (decision table, then moves) | M | sp-o262 picks, Codex moves | in flight |
+| N1 | Nalati private assets into blobs (review §7) | S | Codex (W3) | open |
 | T1 | Template on the new source layout; `wildshard new` writes it | S | Codex | open |
 | W2a / W2b | Pine / Driftwood rewire from data/ + play folders into runtime/ wholesale (counted) + assets into blobs | L / L | 2 Codex lanes each, after P1–P3 | open |
 | W2c | Pine cabinLook/keyedSkyRows, DW groundLook/coverLook emit graph JSON at build | M | sp-o260 (Pine), sp-o261 (DW) | in flight |
