@@ -3130,8 +3130,10 @@
         "src/shards/driftwood-isle/assets/47208f586729e66d2313308db1ddc77caab81ea33573f99a3bfbc698d91ff8d5",
         "src/shards/driftwood-isle/assets/ae2c26097453efdc2caf90593c8df0861e14cc0447b16907c5ec96611d3df2f0",
         "public/assets/driftwood-isle/baked/fixed-models/reef-fish.glb",
-        "src/shards/driftwood-isle/assets/20d2e1f53c5381d307166d4a8e31671c221449fc169e35f0b2a8197c899d6336",
-        "src/shards/driftwood-isle/assets/b3a596f4c62b834318923329c50b0453d9b834d611e68f3b992590d9e443dee1"
+        "src/shards/driftwood-isle/assets/b3a596f4c62b834318923329c50b0453d9b834d611e68f3b992590d9e443dee1",
+        "public/assets/driftwood-isle/baked/fixed-models/mooring-lines.glb",
+        "src/shards/driftwood-isle/assets/09ff2983502804099017c184a96ba07b7e2f2db4d9287855c3f1c136de55c06c",
+        "src/shards/driftwood-isle/assets/fa614a4c9d0aec65b0fd7e3be430fe32f48bb3c5939d84b6e2223daa63e67f2e"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -3260,8 +3262,10 @@
         "src/shards/driftwood-isle/assets/47208f586729e66d2313308db1ddc77caab81ea33573f99a3bfbc698d91ff8d5",
         "src/shards/driftwood-isle/assets/ae2c26097453efdc2caf90593c8df0861e14cc0447b16907c5ec96611d3df2f0",
         "public/assets/driftwood-isle/baked/fixed-models/reef-fish.glb",
-        "src/shards/driftwood-isle/assets/20d2e1f53c5381d307166d4a8e31671c221449fc169e35f0b2a8197c899d6336",
-        "src/shards/driftwood-isle/assets/b3a596f4c62b834318923329c50b0453d9b834d611e68f3b992590d9e443dee1"
+        "src/shards/driftwood-isle/assets/b3a596f4c62b834318923329c50b0453d9b834d611e68f3b992590d9e443dee1",
+        "public/assets/driftwood-isle/baked/fixed-models/mooring-lines.glb",
+        "src/shards/driftwood-isle/assets/09ff2983502804099017c184a96ba07b7e2f2db4d9287855c3f1c136de55c06c",
+        "src/shards/driftwood-isle/assets/fa614a4c9d0aec65b0fd7e3be430fe32f48bb3c5939d84b6e2223daa63e67f2e"
       ]
     },
     {

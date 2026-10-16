@@ -69,6 +69,8 @@ export const DRIFT_LOG_GEOMETRY = {
 } as const;
 /** The reef fish (generators/reefFish.ts): the lagoon's school tints each instanced copy. */
 export const REEF_FISH_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.reefFish);
+/** The sailboat's mooring lines (generators/mooringLines.ts, world space); the Boat lifts each cleat end by its `aMoor`. */
+export const MOORING_LINES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.mooringLines, { _amoor: 'aMoor' });
 const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
 const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
 const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);

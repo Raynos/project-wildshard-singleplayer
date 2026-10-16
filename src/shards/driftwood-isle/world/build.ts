@@ -125,7 +125,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
   // SF46 (G164): lowered with everything else, it stays moored by the pier
-  const boat = new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry);
+  const boat = new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moored: true }).place(registry);
   statics.push(...boat.colliders);
   if (boat.ropes) game.scene.add(boat.ropes);
   await stages.next('Pier and boat');

@@ -9,3 +9,7 @@ export function boatStation(t: number): BoatStation {
   const keel = -0.52 + 0.34 * Math.max(0, 1 - t / 0.35) ** 2 + 0.14 * aft ** 2;
   return { t, z: -BOAT_LAYOUT.length / 2 + t * BOAT_LAYOUT.length, w, sheer, keel, floor: t <= DECK_T ? sheer : FLOOR };
 }
+
+/** the bow and stern cleats the mooring lines start from, own space (z along the hull, y over the waterline) */
+export const BOAT_CLEATS: readonly { readonly z: number; readonly y: number }[] =
+  [-BOAT_LAYOUT.length / 2 + 0.3, BOAT_LAYOUT.length / 2 - 0.3].map((z) => ({ z, y: boatStation((z + BOAT_LAYOUT.length / 2) / BOAT_LAYOUT.length).sheer + 0.06 }));

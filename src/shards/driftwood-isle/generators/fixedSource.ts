@@ -22,6 +22,8 @@ import { gullGeometry } from './gull';
 import { smokeColumnGeometry } from './smoke';
 import { driftLogSpecimens } from './driftLogs';
 import { reefFishGeometry } from './reefFish';
+import { mooringLinesGeometry } from './mooringLines';
+import { worldPierSites } from './pierSites';
 import { CASTAWAY_SMOKE } from '../data/castawayLook';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
@@ -88,5 +90,9 @@ export function driftwoodFixedSource(): {
   for (const [name, geometry] of Object.entries(driftLogSpecimens())) geometries.set(`drift-log-${name}`, geometry);
   // the reef fish (generators/reefFish.ts), last so the earlier templates keep their keys
   geometries.set('reef-fish', reefFishGeometry());
+  // the sailboat's mooring lines on the south pier (generators/mooringLines.ts), last so the earlier templates keep their keys
+  const southPier = worldPierSites()[0], southParams = piers.rows.find(row => row.id === 'world-0')?.params;
+  if (southPier === undefined || southParams === undefined) throw new Error('Driftwood fixed source: the south pier is missing');
+  geometries.set('mooring-lines', mooringLinesGeometry(southPier, southParams));
   return { geometries, world, rows };
 }

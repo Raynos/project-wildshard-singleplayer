@@ -29,10 +29,6 @@ export function boatStation(t: number): BoatStation {
   return authoredBoatStation(t);
 }
 
-/** the bow and stern cleats the mooring lines start from, own space (z along the hull, y over the waterline) */
-export const BOAT_CLEATS: readonly { readonly z: number; readonly y: number }[] =
-  [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3].map((z) => ({ z, y: boatStation((z + LENGTH / 2) / LENGTH).sheer + 0.06 }));
-
 /**
  * PHYSICS P4, own space: the four gunwale / bow / stern walls (they keep you in the boat once you're in, and keep a
  * swimmer out of the hull; from the pier deck you step over them) and the floor boards as a slab whose top is the

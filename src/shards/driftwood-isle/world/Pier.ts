@@ -13,8 +13,7 @@
  * it marches over the shallows to the first dry sand; the native floor receives those admitted parameters.
  * `floorHeightAt` returns the deck's top for any (x, z) over the deck, else undefined — same contract as `Cabins`.
  * `bollards` are the two tall rope-wrapped posts at the sea end (the sailboat moors to them); `posts` every piling.
- * `mooringsFor(x, z)` picks the bollard and the piling nearest a boat moored alongside at (x, z) — pass it as
- * `Boat.moorTo`.
+ * The sailboat's mooring lines to its bollard and piling are baked offline (generators/mooringLines.ts).
  */
 import type * as THREE from 'three';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
@@ -77,24 +76,6 @@ export class Pier {
       this.colliders.push({ x, z, hw: b.hw, hd: b.hd, rot: -yaw, yTop: b.yTop + deckY, yBottom: b.yBottom + deckY });
     }
     return this;
-  }
-
-  /** [bow post, stern piling] on the side of (x, z) for a boat moored alongside — bow line and stern line. The bow line
-   *  goes to the sea-end bollard when the bow is by it, else (E308: the boat half way down the pier) to the piling nearest
-   *  the bow */
-  mooringsFor(x: number, z: number, sternZ = z + 3, bowZ = z - 3): { x: number; z: number }[] {
-    const side = (x - this.spec.x) * this.cos - (z - this.spec.z) * this.sin < 0 ? -1 : 1;
-    const onSide = (p: { x: number; z: number }): boolean => Math.sign((p.x - this.spec.x) * this.cos - (p.z - this.spec.z) * this.sin) === side;
-    const nearest = (at: number, of: readonly { x: number; z: number }[]): { x: number; z: number } | undefined => {
-      let pick: { x: number; z: number } | undefined, best = Infinity;
-      for (const p of of) { if (!onSide(p)) continue; const d = Math.hypot(p.x - x, p.z - at); if (d < best) { best = d; pick = p; } }
-      return pick;
-    };
-    const bollard = this.bollards.find(onSide) ?? this.bollards[0];
-    const post = nearest(sternZ, this.posts);
-    const bow = bollard !== undefined && Math.hypot(bollard.x - x, bollard.z - bowZ) < 6 ? bollard : nearest(bowZ, this.posts) ?? bollard;
-    if (!bow || !post) throw new Error('Pier.mooringsFor(): build() first');
-    return [bow, post];
   }
 
   /**

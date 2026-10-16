@@ -2,9 +2,9 @@
  * Boat — where the sailboat you arrived in is moored, and how it rides (E306 / E315 M1: the boat itself is the model
  * src/shards/driftwood-isle/models/boat.ts; this is the world side). It places the dinghy beside the pier, runs its
  * mooring lines to the pier's bollards (world geometry between two placed models: a separate static mesh, so they don't
- * bob; SHARD-PLATFORM M3: @wildshard/sdk/props/mooringLines from data/boatLook.ts) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
+ * bob; baked offline with the pier's post choice, generators/mooringLines.ts, the fixed-model template `mooring-lines`) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
  *
- *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moorTo: pier.mooringsFor(-4.2, -244) }).place(registry);
+ *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moored: true }).place(registry);
  *   scene.add(boat.group); if (boat.ropes) scene.add(boat.ropes);
  *   its registry piece.push(...boat.colliders);
  *   player.platforms.push((x, z) => boat.floorHeightAt(x, z));   // you can jump in
@@ -12,7 +12,7 @@
  *
  * `heading` is radians about +y (0 = bow toward −z, i.e. out to sea when moored at the south pier).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -22,16 +22,16 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
-import { BOAT_MOORING } from '../data/boatLook';
-import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat } from '../models/boat';
+import { MOORING_LINES_GEOMETRY } from '../boot/fixedGeometry';
+import { BEAM, BOAT_FLOOR, LENGTH, boat } from '../models/boat';
 
 export interface BoatSpec {
   x: number; z: number;
   heading?: number;
   /** still-water level; the hull floats with its waterline here */
   waterY: number;
-  /** world xz of posts to run mooring lines to (bow → first, stern → second) */
-  moorTo?: { x: number; z: number }[];
+  /** draw the baked mooring lines to the south pier's posts (generators/mooringLines.ts: the world's boat at BOAT_MOOR) */
+  moored?: boolean;
 }
 
 export class Boat {
@@ -56,11 +56,8 @@ export class Boat {
     const mat = lowPolyLookMaterial(this.sky, 'still');
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
-    if (this.spec.moorTo?.length) {
-      const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h);
-      const cleat = (lz: number, ly: number): THREE.Vector3 => new THREE.Vector3(this.spec.x + lz * sn, this.spec.waterY + ly, this.spec.z + lz * cs);
-      const ends = [cleat(-LENGTH / 2 + 0.3, BOAT_CLEATS[0]?.y ?? 0.7), cleat(LENGTH / 2 - 0.3, BOAT_CLEATS[1]?.y ?? 0.7)];
-      this.moorings = new MooringLines(BOAT_MOORING, ends, this.spec.moorTo.slice(0, 2), this.spec.waterY, [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], mat);
+    if (this.spec.moored === true) {
+      this.moorings = new MooringLines(MOORING_LINES_GEOMETRY.copy(), [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], mat);
       this.ropes = this.moorings.mesh;
     }
     // gunwales + bow / stern as thin walls: they keep you in the boat once you're in, and keep a swimmer out
