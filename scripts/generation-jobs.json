@@ -15324,6 +15324,46 @@
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts"
       ]
+    },
+    {
+      "id": "driftwood-quest-rows",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/questRows.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/questRows.ts",
+        "driftwoodQuestRows",
+        "src/shards/driftwood-isle/data/questRows.generated.json"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/questRows.ts",
+        "src/shards/driftwood-isle/generators/questStory.ts",
+        "src/shards/driftwood-isle/generators/quests.ts",
+        "src/shards/driftwood-isle/generators/questNpcs.ts",
+        "src/shards/driftwood-isle/generators/questHost.ts",
+        "src/shards/driftwood-isle/generators/questGraph.ts",
+        "src/shards/driftwood-isle/data/questStory.ts",
+        "src/shards/driftwood-isle/data/interactables.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/quests.ts",
+        "src/sdk/package.json",
+        "src/format",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/questRows.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/questRows.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "portable"
     }
   ]
 }

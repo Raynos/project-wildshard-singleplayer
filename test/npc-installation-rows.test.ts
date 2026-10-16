@@ -9,7 +9,7 @@ import type { NpcDef } from '../src/engine/quest/core';
 import type { Piece } from '../src/engine/world/registry';
 import type { Interactable } from '../src/engine/world/interact/types';
 import { QUEST_NPCS } from '../src/shards/pine-hollow/generators/questTalkPolicy';
-import { CASTAWAY_TALK } from '../src/shards/driftwood-isle/data/questNpcs';
+import { CASTAWAY_TALK } from '../src/shards/driftwood-isle/generators/questNpcs';
 
 test('NPC installation borrows reading, saved flags and original frame order; invalid rows have no effects', () => {
   const scope = new Scope('npc-installation-test');

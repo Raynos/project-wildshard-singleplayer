@@ -1,5 +1,5 @@
-import { parseInteractionRows } from '@wildshard/sdk/interactions';
-import { parseQuestGraph } from '@wildshard/sdk/questGraph';
+import { parseInteractionRows } from '@wildshard/format/questInteractions';
+import { parseQuestGraph } from '@wildshard/format/questGraph';
 
 /** Native prompt command identity; physical controllers retain their shipping update order. */
 export const DRIFTWOOD_GRAPH = parseQuestGraph({ actor: 'driftwood.interact', step: 'driftwood.quest.graph', actions: [] });

@@ -16,10 +16,9 @@ import { DialogueBox, type ObjectiveLine } from '@wildshard/engine/quest/view/ui
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import { DRIFTWOOD_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
 import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
-import { DRIFTWOOD_MARKERS } from '../data/quests';
+import { DRIFTWOOD_MARKERS, DRIFTWOOD_QUEST } from '../data/quests';
 import { presentQuest, installDeclaredNpcTalks, QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
-import { DRIFTWOOD_QUEST } from '../data/questStory';
 import type { Castaway } from '../runtime/npc/Castaway';
 import { castawayRig } from '../runtime/npc/people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';

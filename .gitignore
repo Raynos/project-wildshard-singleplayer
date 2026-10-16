@@ -1927,3 +1927,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # C6 authored economy product
 /src/shards/driftwood-isle/data/loot.generated.json
+
+# Retained Driftwood quest story and registration compiler.
+/src/shards/driftwood-isle/data/questRows.generated.json

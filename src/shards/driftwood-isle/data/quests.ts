@@ -1,18 +1,16 @@
+import * as v from 'valibot';
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { DRIFTWOOD_QUEST, CASTAWAY } from './questStory';
-import { QUEST_FLAGS } from './questHost';
+import rows from './questRows.generated.json' with { type: 'json' };
 
-// Declared markers carry their stable IDs; the trusted placement port restores the original POI/anchor/dy recipe.
-const markers = [...(DRIFTWOOD_QUEST.intro?.markers ?? []), ...DRIFTWOOD_QUEST.steps.flatMap(step => step.markers ?? [])];
-export const DRIFTWOOD_MARKERS = Object.fromEntries(markers.map(marker => [marker.id, marker.at]));
-const declaredMarker = (marker: (typeof markers)[number]) => ({ ...marker, at: { poi: 'world' as const, x: marker.at.x, z: marker.at.z } });
-const reads = (condition: { all?: readonly string[]; any?: readonly string[]; none?: readonly string[] } | undefined): readonly string[] => [...(condition?.all ?? []), ...(condition?.any ?? []), ...(condition?.none ?? [])];
-const declaredStep = (step: (typeof DRIFTWOOD_QUEST.steps)[number]) => ({ ...step, markers: step.markers?.map(declaredMarker) ?? [] });
-export const DRIFTWOOD_QUESTS = parseQuestData({
-  flags: [...new Set([...QUEST_FLAGS, DRIFTWOOD_QUEST.completeFlag, ...reads(DRIFTWOOD_QUEST.startWhen), ...DRIFTWOOD_QUEST.steps.flatMap(step => [...reads(step.done), ...(step.count ?? [])]), ...markers.flatMap(marker => reads(marker.hideWhen)), ...CASTAWAY.dialogue.flatMap(entry => reads(entry.when).concat(entry.sets ?? []))])],
-  quests: [{ ...DRIFTWOOD_QUEST,
-    ...(DRIFTWOOD_QUEST.intro === undefined ? {} : { intro: { ...DRIFTWOOD_QUEST.intro, markers: DRIFTWOOD_QUEST.intro.markers?.map(declaredMarker) ?? [] } }),
-    steps: DRIFTWOOD_QUEST.steps.map(declaredStep),
-    onComplete: { fact: 'driftwood.quest' } }],
-  triggers: [], dialogue: [],
-});
+/** Retained local POI and live anchor placement, alongside the public quest rows. */
+const coordinate = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
+const markerPlaces = v.record(v.string(), v.strictObject({
+  poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']),
+  x: coordinate, z: coordinate, y: v.exactOptional(coordinate), dy: v.exactOptional(coordinate),
+  yaw: v.exactOptional(coordinate), anchor: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(256))),
+}));
+export const DRIFTWOOD_MARKERS = v.parse(markerPlaces, rows.markers);
+export const DRIFTWOOD_QUESTS = parseQuestData(rows.quests);
+const chapter = DRIFTWOOD_QUESTS.quests[0];
+if (chapter === undefined) throw new Error('The declared Driftwood chapter is required');
+export const DRIFTWOOD_QUEST = chapter;
