@@ -314,7 +314,7 @@ too: `plugin.ts` → `runtime/index.ts`; `manifest.json` → `data/card.ts` (→
 
 1. **`runtime/` is standalone** (Jake, 21:35). Its files import only other files in its own `runtime/` folder,
    `@wildshard/game` plugin modules listed in that package's `exports` (G307), the public engine modules those
-   plugin interfaces hand it, and `three`. It never imports, even type-only, any other file in the shard
+   plugin interfaces hand it, `three` and `valibot` (for the schemas of the custom sections it reads). It never imports, even type-only, any other file in the shard
    folder, another shard, `@wildshard/commons` (G143), JSON or asset files.
 2. **Nothing the game runs imports build-time code.** No file in `src/engine`, `src/game`, `src/sdk/runtime`, the
    composition root, another shard, or a shard's `runtime/` may import a shard's `data/`, `generators/`,
@@ -333,7 +333,10 @@ too: `plugin.ts` → `runtime/index.ts`; `manifest.json` → `data/card.ts` (→
 - **`wildshard/no-build-time-import`**: no module outside a shard's build-time set may resolve into
   `src/shards/<slug>/(data|generators|behaviour|assets|blender)/` or `shard.config.ts`. Combined with the rule
   above, this also closes legacy play folders once they are emptied.
-- Both start as **ratchets** in `lint/ratchet.json` (today's violation count per shard, shrink-only, G349), and become
+- **`wildshard/no-runtime-in-build`**: build-time files (`data/`, `generators/`, `shard.config.ts`) may not import
+  `runtime/`, or a legacy play folder once that folder is moved into `runtime/`. Today's G297 bridges are listed by
+  name in the ratchet, each with its exit row.
+- All three start as **ratchets** in `lint/ratchet.json` (today's violation count per shard, shrink-only, G349), and become
   hard errors per shard as each shard's migration row lands. `shard-sandbox`'s existing "game imports only from
   `runtime/`" check stays.
 - `lint/shard-layout.json` loses the legacy play folders when the last shard empties them. During migration they are
@@ -416,27 +419,36 @@ remaining real work.
 
 ## 6. Migration plan
 
-Rows in order. Codex = mechanical, non-graphical. Opus = judgment or anything that changes how the game looks (G407).
+Rows in order. **Codex** = mechanical, non-graphical: rewiring imports, moving files, build emitters, lint, the loader
+adapter, the ruler. **Opus** = judgment or anything that can change how the game looks (G407): API shape, look graphs,
+before / after boards. Most of the volume is Codex.
 
-| # | Row | Size | Who |
-|---|---|---|---|
-| **P0** | Lint rules `runtime-standalone` and `no-build-time-import` as ratchets with today's counts in `lint/ratchet.json` | S | Codex |
-| **P1** | Output v2 writer: `out/<slug>/` with index `shard.json`, `sections/`, `blobs/<kind>/`; loader adapter assembles today's `Shardfile` from sections (v1 monolith still read until every output is rebuilt); blob URL builder; validator §2.8 steps 1–4; all shards rebuilt in the same commit set | M | Codex |
-| **P2** | Custom sections and named blobs: `defineSection` in the authoring SDK, `schemas/custom/`, `product.section(name, schema)` and `product.file(name)` on `RuntimeProduct`; the loader passes the product into the plugin (no more `runtime/source.ts`) | M | Codex (Opus reviews the API) |
-| **P3** | Runtime copy + registry + catalog: build step 5, `import.meta.glob` registry over `out/*/runtime/index.ts`, `out/catalog.json` replacing `discovery.generated.ts` / `shards.generated.ts` for the six ported shards and the Template; the title menu reads the catalog | M | Codex |
-| **P4** | Ruler on the output: `shard-platform.mjs` builds, then measures `out/*/runtime`; G294 roots from the output; drop `runtimeExcludedFolders` and the G445 clause; new report columns; G390 port % re-baselined | S | Codex |
-| **S1** | Sky: rewire 19 play files (52 imports) from `data/*.ts` to sections or `runtime/const.ts`; move `world/`, `look/`, `models/`, `weapons/`, `quests/` play files and `plugin.ts` into `runtime/`; flip Sky's lint rules to errors | M | Codex |
-| **S2** | Signal: same (14 files, 26 imports); `plugin.ts` (75 lines) into `runtime/` | S | Codex |
-| **S3** | Sky and Signal private assets (`public/assets/far-reach`, `sunscar-dunes`: 120 files, 20 MB) into blobs, read by logical name | S | Codex |
-| **S4** | Sky look-graph builders (7 modules, 335 lines) and Signal `fire.ts` serialize as SF59 graph JSON at build; before / after board | M | Opus |
-| **S5** | Sky `world/` (307) and Signal `world/` (177) onto platform hosts or build-time sections, where possible, toward 90/10 | M | Opus + Codex |
-| **T1** | Template: new source layout, `data/card.ts`, `wildshard new` writes it, SHARDS.md §2 regenerated | S | Codex |
-| **W2a** | Pine: rewire 92 files (189 imports) from `data/`; move `world/ quest/ combat/ models/ loadout/ weapons/ species/ boot/ dev/ debug/ compendium/ life/` play code into `runtime/` (counted); private assets (282 files / 120 MB) into blobs; lint to errors | L (2 lanes split by folder) | Codex |
-| **W2b** | Driftwood: same (113 files, 219 imports; 110 assets / 61 MB) | L (2 lanes) | Codex |
-| **W2c** | Pine `cabinLook`, `keyedSkyRows`; Driftwood `groundLook`, `coverLook` → graph JSON; boards | M | Opus |
-| **W3a** | Nalati: play folders into `runtime/` (most code is already play code; data is small) | L | Codex |
-| **W3b** | Nine Dragon: same | L | Codex |
-| **Z1** | Delete the v1 monolith reader, `gen-shards` discovery for ported shards, `runtime/source.ts` patterns and the legacy play folders from `lint/shard-layout.json`; ratchets become hard errors everywhere | S | Codex |
+| # | Row | Size | Lane | Kind of work |
+|---|---|---|---|---|
+| **P0** | Lint rules `runtime-standalone`, `no-build-time-import`, `no-runtime-in-build` as ratchets with today's counts in `lint/ratchet.json` | S | **Codex** | lint |
+| **P1** | Output v2 writer: `out/<slug>/` with index `shard.json`, `sections/`, `blobs/<kind>/` (`binary` splits into `tile` / `bin`); loader adapter assembles today's `Shardfile` from sections (v1 monolith still read until every output is rebuilt); blob URL builder; validator §2.8 steps 1–4; all shards rebuilt in the same commit set | M | **Codex** | build emitter + loader |
+| **P2a** | The runtime data API: `product.section(name[, schema])`, `product.strings(keys)`, `product.file(name)`; the loader passes the product into the plugin (no more `runtime/source.ts`) | S | **Opus** designs it, **Codex** builds it | API judgment |
+| **P2b** | `defineSection` in the authoring SDK, `schemas/custom/`, named blobs, new platform sections the W1 shards need first (`ui/strings`, `world/physics`, `sim/native-world`, Sky's `combat/strikes` rows) | M | **Codex** | build emitter |
+| **P3** | Runtime copy + registry + catalog: build step 5, `import.meta.glob` registry over `out/*/runtime/index.ts`, `out/catalog.json` replacing `discovery.generated.ts` / `shards.generated.ts` for the six ported shards and the Template; the title menu reads the catalog | M | **Codex** | build + loader |
+| **P4** | Ruler on the output: `shard-platform.mjs` builds, then measures `out/*/runtime`; G294 roots from the output; drop `runtimeExcludedFolders` and the G445 clause; new report columns; G390 port % re-baselined | S | **Codex** | script |
+| **S1** | Sky: rewire 19 play files (52 imports, 42 data modules) from `data/` to sections, `product.strings` or `runtime/const.ts` (§7.5); move `world/`, `look/render.ts`, `look/panoramaData.ts`, `models/`, `weapons/`, `quests/`, `roster.ts`, `plugin.ts` into `runtime/`; flip Sky's lint rules to errors | M | **Codex** | mechanical rewiring |
+| **S1b** | Sky build-time code that reaches play code (`generators/{geometries,skyDock,isletRig,farLook}.ts` → `world/materials` `PALETTE`; `shackKit` → `world/shack` type): move `PALETTE` and the type into `data/`, and have the runtime read the palette section | S | **Codex** | mechanical rewiring |
+| **S2** | Signal: same as S1 (14 files, 26 imports, 22 data modules); `plugin.ts` (75 lines), `boot/ground.ts`, `world/`, `look/{render,dusk,light,sandEntry}.ts` into `runtime/` | S | **Codex** | mechanical rewiring |
+| **S3** | Sky and Signal private assets (`public/assets/far-reach` 73 files / 13 MB, `sunscar-dunes` 47 / 7 MB) plus thumbs and Explore art into blobs, read by logical name | S | **Codex** | build emitter |
+| **S4** | Sky look-graph builders (`meadowLook`, `cloudSeaLook`, `skyDomeLook`, `sunGlowLook`, `skyCardsLook`, `graphKit`, `mapGraph`: 335 lines) and Signal `fire.ts` emit SF59 graph JSON at build; before / after board | M | **Opus** | visual |
+| **S5** | Sky `world/` (307) and Signal `world/` (177) onto platform hosts or build-time sections, where possible, toward 90/10 | M | **Opus** picks, **Codex** moves | judgment + visual |
+| **T1** | Template: new source layout, `data/card.ts`, `wildshard new` writes it, SHARDS.md §2 regenerated | S | **Codex** | mechanical |
+| **W2a** | Pine: rewire 92 files (189 imports) from `data/`; move `world/ quest/ combat/ models/ loadout/ weapons/ species/ boot/ dev/ debug/ compendium/ life/` play code into `runtime/` (counted); private assets (282 files / 120 MB) into blobs; lint to errors | L (2 lanes split by folder) | **Codex** | mechanical rewiring |
+| **W2b** | Driftwood: same (113 files, 219 imports; 110 assets / 61 MB) | L (2 lanes) | **Codex** | mechanical rewiring |
+| **W2c** | Pine `cabinLook`, `keyedSkyRows`; Driftwood `groundLook`, `coverLook` → graph JSON; boards | M | **Opus** | visual |
+| **W3a** | Nalati: play folders into `runtime/` (most code is already play code; data is small) | L | **Codex** | mechanical |
+| **W3b** | Nine Dragon: same | L | **Codex** | mechanical |
+| **Z1** | Delete the v1 monolith reader, `gen-shards` discovery for ported shards, `runtime/source.ts` patterns and the legacy play folders from `lint/shard-layout.json`; ratchets become hard errors everywhere | S | **Codex** | cleanup |
+
+**The W1 / W2 work isn't wasted; it moves** (Jake, 21:40). Every host, row, quest graph, director stage, creature
+loader, mover row and SF59 graph that W1 and W2 built is exactly what reads a platform section in this design. The
+rows above only change where the data comes from (the output instead of a TS import) and which folder the play code
+sits in. The G294 / G441 accounting and the frozen denominators carry over unchanged.
 
 Notes:
 - **No row hand-converts `data/` to JSON** (Jake, 21:30). `data/` stays TypeScript, and the build emits the JSON.
@@ -451,7 +463,265 @@ Notes:
 
 ---
 
-## 7. Questions for Jake
+## 7. Worked examples: Sky Reach and Signal Dunes
+
+All file names, sizes, hashes and values below are real: clean HEAD and the latest cached builds
+(`~/.cache/wildshard/shardfiles/far-reach/15540bfc…/`, `sunscar-dunes/ff9a9c01…/`). The section split was a dry run
+of today's `shard.json` through the §2.2 mapping.
+
+### 7.1 Sky Reach source: today vs after
+
+```
+TODAY src/shards/far-reach/                        AFTER src/shards/far-reach/
+  shard.config.ts                                    shard.config.ts                    build entry (unchanged)
+  README.md                                          README.md
+  manifest.json            title card, bounds, pois  data/card.ts                       -> sections/ui/card.json
+  discovery.generated.ts   imports data/*.ts  ✗      (deleted: catalog.json + index)
+  ktx2.generated.ts        KTX2 table          ✗     (deleted: index files[] with names)
+  plugin.ts                firstPartyStandaloneEntry runtime/index.ts                   (merged in)
+  roster.ts                Model Explorer roster     runtime/roster.ts
+  layout.ts                bridge sag / rise maths   data/layoutMaths.ts                build-time (generators use it)
+  data/        105 .ts + 33 .json, 14 *.generated.*  data/        unchanged, build-time only -> sections/**
+  generators/  57 files                              generators/  unchanged
+  behaviour/   fanGust.as                            behaviour/   fanGust.as             -> blobs/wasm
+  blender/     roc/repair.py                         blender/     roc/repair.py
+  assets/      27 hash-named bake products           assets/      + thumbs/ (3 jpg) + explore/ (4 webp) + look/top.webp
+  thumbs/ explore/                                   (folded into assets/)
+  look/        render.ts panoramaData.ts map.json    runtime/looks/render.ts, runtime/looks/panoramaData.ts;
+               map.baked.json top.webp                 map.json + map.baked.json -> data/map/
+  world/       baked build crown dressing isle       runtime/world/  same 12 files (counted)
+               materials meadow meshes mill shack      except PALETTE (materials.ts) -> data/palette.ts,
+               shapes storm                            read back as sections/custom/palette.json
+  models/      gear.ts                               runtime/models/gear.ts
+  weapons/     fanModel.ts                           runtime/weapons/fanModel.ts
+  quests/      flags.ts                              runtime/quests/flags.ts
+  runtime/     index.ts headless.ts source.ts        runtime/     index.ts headless.ts const.ts sections.ts
+               weapons/heldFan.ts                                 weapons/heldFan.ts looks/wakeRibbon.ts
+               looks/wakeRibbon.ts looks/discLayer.ts             looks/discLayer.ts  (source.ts deleted)
+  audio/ boot/ combat/ quest/ species/  (empty)      (deleted)
+```
+
+Signal Dunes follows the same pattern. `manifest.json`, `discovery.generated.ts`, `plugin.ts` (75 lines) and
+`roster.ts` go the same way. `boot/ground.ts`, `world/{baked,build,fireFx,meshes,places}.ts`,
+`look/{render,dusk,light,sandEntry}.ts`, `models/gear.ts` and `weapons/slots.merge.d.ts` move into `runtime/`.
+`data/` (72 .ts + 26 .json) and `generators/` (35) stay as they are, build-time only.
+
+### 7.2 Output trees after
+
+```
+out/far-reach/                                    out/sunscar-dunes/
+  shard.json                index                   shard.json
+  sections/                 25 platform files       sections/                 23 platform files
+    world/  tiles 2.9K  edge 18K  movers 40K          world/  tiles 22K  terrain 7.9K  edge 81K
+            props 4.9K  navigation 0.8K                       navigation 2.1K  spawn  traversal
+            spawn  traversal                          look/   look 42K  map
+    look/   look 147K  map                            actors/ creatures  npcs 1.3K  spawns 1.8K
+    actors/ creatures  npcs 1.6K  spawns 1.0K         combat/ items 3.1K
+    combat/ items 2.9K  strikes (new, Roc rows)       quests/ quests 2.9K  host 11K  directors 1.9K
+    quests/ quests 1.9K  host 4.5K  directors 1.6K    economy/ledger  state/state
+    economy/ledger  state/{state,modes}               sim/    sim  hooks  client-scripts  client-channels 2K
+    sim/    sim  hooks  client-scripts                audio/audio  ui/{card,strings}
+            client-channels 46K                       custom/ ~15 files (sand, sandFields, surfaces,
+    audio/audio  ui/{card,strings}                            lastLight, placeBindings, rigLibrary, files …)
+    custom/ ~25 files (windLook, rayWakeLook,
+            rocFight, storm, palette, isles,          blobs/
+            restScenes, staticScenes, rigLibrary …)     tile/  80 .wtt   (the 80 L0/L1 terrain tiles)
+  blobs/                                                bin/    2 .bin   (collider, navmesh)
+    glb/   11 .glb                                      ktx2/   4 .ktx2
+    ktx2/  11 .ktx2                                     image/  1 + 3 thumbs + 4 Explore + map
+    wasm/   3 .wasm  (fanGust and the script set)       (+ 47 files / 7 MB from public/assets/sunscar-dunes)
+    bin/    1 .bin
+    image/  1 + 3 thumbs + 4 Explore + map            runtime/  ~12 .ts (index, headless, const, sections,
+    (+ 73 files / 13 MB from public/assets/far-reach)           world/*, looks/*, items/heldWhip …)
+  runtime/  ~24 .ts (index, headless, const,          validation.json
+            sections, roster, world/*, looks/*,
+            weapons/*, models/gear, quests/flags)
+  validation.json
+```
+
+Sky's look-graph builders (S4) land in `sections/look/materials.json` as SF59 graph JSON, not in `custom/`.
+
+### 7.3 Sky's index (`out/far-reach/shard.json`), excerpt
+
+```jsonc
+{
+  "format": "wildshard.shardfile", "formatVersion": 2, "sdk": "0.1",
+  "identity": { "author": "Wildshard", "name": "Sky Reach", "revision": 1, "seed": 6417, "slug": "far-reach" },
+  "requires": { "capabilities": [], "commons": [] },
+  "admission": {
+    "budgets": { "library": { "compressed": 9508599, "downloadAllowance": 9508599, "resident": 54741764 },
+                 "overlap": 0, "sim": { "compressed": 12158, "resident": 1376937 } },
+    "serverBudget": { "commandsPerTick": 32, "entities": 100, "memory": 1310774, "tickMicros": 1000 },
+    "authorCaps": { "players": 32, "speed": 15 },
+    "critical": ["1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
+                 "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22", "…"],
+    "library": ["29509eb73032d3779209857635a2800c58e30d97cf39aa647cd82edce53aa9b5", "…"]
+  },
+  "sections": [
+    { "name": "actors/spawns", "path": "sections/actors/spawns.json", "schema": "wildshard:actors/spawns@1",
+      "hash": "9989f6bcf9aff38860ae7002065a92bd614c879983e161fe520c13fb2664f331", "bytes": 999,
+      "audience": "both", "load": "enter" },
+    { "name": "quests/quests", "path": "sections/quests/quests.json", "schema": "wildshard:quests/quests@1",
+      "hash": "69d9d4e8530eef294f836a6bf54d0fa91ed624f25e4c04a5b85cba3e7ab292dd", "bytes": 1870,
+      "audience": "both", "load": "enter" },
+    { "name": "look/look", "path": "sections/look/look.json", "schema": "wildshard:look/look@1",
+      "hash": "…", "bytes": 147069, "audience": "client", "load": "enter" },
+    { "name": "custom/windLook", "path": "sections/custom/windLook.json",
+      "schema": "schemas/custom/windLook.schema.json", "hash": "…", "bytes": "…", "audience": "client", "load": "enter" },
+    "… 25 platform + ~25 custom in all"
+  ],
+  "files": [
+    { "path": "blobs/glb/1b1322de534d9f98d10df53949afe7a7f8242f3ee0cf5384012c83270388d860.glb", "kind": "glb",
+      "hash": "1b1322de534d9f98d10df53949afe7a7f8242f3ee0cf5384012c83270388d860",
+      "compressed": 111816, "decoded": 111788, "gpu": 110640, "triangles": 4460, "draws": 1, "critical": false,
+      "dependencies": [] },
+    { "path": "blobs/wasm/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982.wasm", "kind": "wasm",
+      "hash": "06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982",
+      "compressed": 627, "decoded": 627, "gpu": 0, "triangles": 0, "draws": 0, "critical": true, "dependencies": [] },
+    { "path": "blobs/glb/<hash>.glb", "kind": "glb", "name": "models/storm-roc.glb", "…": "…" },
+    "… 27 today, ~100 once public/assets/far-reach moves in"
+  ],
+  "runtime": { "trust": "first-party", "entry": "runtime/index.ts",
+               "binds": ["quests", "ledger", "state", "items", "spawns", "modes", "props", "clientChannels"],
+               "files": [{ "path": "runtime/index.ts", "hash": "…", "lines": "…" }, "…"], "lines": "…" }
+}
+```
+
+The two section hashes and every blob row above are computed from today's build. The `…` values don't exist yet
+because the files they describe aren't emitted yet.
+
+### 7.4 A section from today's `data/*.ts`: Signal's spawns
+
+Source, `src/shards/sunscar-dunes/data/spawns.ts` (25 lines, TypeScript computing rows; already build-only, since
+only `generators/product.ts` and `generators/physics.ts` import it):
+
+```ts
+import { BASIN, PACKS, RAY_HOME, STRIDERS } from './layout';
+export const RESPAWN = { duneRay: 25, sandSkitterer: 50, duneStrider: 70 } as const;
+const home = (index: number, kind: keyof typeof RESPAWN, x: number, z: number, yaw: number): Home =>
+  ({ id: `sunscar.home:${String(index)}`, kind, look: 'dusk', at: [x, z], yaw, respawn: RESPAWN[kind] });
+const skitterers = PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i) => {
+  const a = (i / p.n) * Math.PI * 2 + p.x * 0.1;
+  return { x: p.x + Math.sin(a) * 3.5, z: p.z + Math.cos(a) * 3.5, yaw: a };
+}));
+export const SIGNAL_SPAWNS = {
+  homes: [home(0, 'duneRay', RAY_HOME.x, RAY_HOME.z, 0),
+    ...skitterers.map((s, i) => home(1 + i, 'sandSkitterer', s.x, s.z, s.yaw)),
+    ...STRIDERS.map((s, i) => home(1 + skitterers.length + i, 'duneStrider', s.x, s.z, 0))],
+  bosses: [{ id: 'sunscar.matriarch', kind: 'duneMatriarch', look: 'matriarch', at: [BASIN.x, BASIN.z], yaw: 0 }],
+};
+```
+
+Output, `out/sunscar-dunes/sections/actors/spawns.json` (1,784 bytes; the values are today's `runtime.spawns`):
+
+```json
+{
+  "bosses": [{ "at": [-14, -150], "id": "sunscar.matriarch", "kind": "duneMatriarch", "look": "matriarch", "yaw": 0 }],
+  "homes": [
+    { "at": [8, -75], "id": "sunscar.home:0", "kind": "duneRay", "look": "dusk", "respawn": 25, "yaw": 0 },
+    { "at": [-30.493920028209534, 4.535026261898441], "id": "sunscar.home:1", "kind": "sandSkitterer",
+      "look": "dusk", "respawn": 50, "yaw": -3 },
+    { "at": [-32.75379526653711, 10.160234160918163], "id": "sunscar.home:2", "kind": "sandSkitterer",
+      "look": "dusk", "respawn": 50, "yaw": -0.9056048976068047 },
+    "…"
+  ]
+}
+```
+
+This is the whole idea in one file. The TypeScript stays (loops, `Math.sin`, named constants), it runs once at
+build, and only the JSON ships. Sky's quests work the same way: `data/questGraph.ts` + `data/strings.ts` →
+`sections/quests/quests.json` (1,870 bytes: flags `far.notes` … `far.vane.ruin`, step `notes` with chip
+`"TALK TO THE KEEPER"` and a marker at `x -2.4, y 30, z -13.6`).
+
+### 7.5 A runtime file before and after
+
+**Sky, `runtime/index.ts` today** (lines 4, 10, 11, 48, 92, 166–173, 198):
+
+```ts
+import { ROC_STRIKES } from '../data/brains';          // build-time TS, shipped in the bundle
+import { STRINGS } from '../data/strings';
+import { CROWN, DAIS, ROC } from '../data/layout';
+import source from '../runtime/source';                 // imports data/product.generated.json into JS
+import { buildWorld, type BuiltWorld } from '../world/build';
+…
+const GALE_WALL = ROC_STRIKES[1];
+…
+built.winch.label = STRINGS.raised;
+…
+body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
+```
+
+**After:**
+
+```ts
+import { HybridRuntimePlugin } from '@wildshard/game/plugin/headless';
+import { CROWN, DAIS, ROC } from './const';
+import { buildWorld, type BuiltWorld } from './world/build';     // world/ moved into runtime/ (counted)
+…
+// in prepare(ctx): the loader hands the admitted product in; nothing is imported from data/
+const strikes = ctx.product.section('combat/strikes');           // platform section, typed by @wildshard/format
+this.galeWall = strikes.find(row => row.id === 'far.roc.galeWall') ?? refuse('far.roc.galeWall');
+this.strings = ctx.product.strings(['raised', 'winchLocked', 'vaneTurned'] as const);  // ui/strings, keys checked at load
+…
+built.winch.label = this.strings.raised;
+…
+body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
+```
+
+**`runtime/const.ts`** (new: duplicated on purpose, Jake 21:35):
+
+```ts
+/** Copied from data/layout.ts (build-time). The Roc's stalk line around the crown dais. */
+export const CROWN = { x: 0, z: -190, r: 20 } as const;
+export const DAIS = { x: 0, z: -196, r: 5 } as const;   // CROWN.z - 6
+export const ROC = { x: 0, z: -196, r: 13 } as const;   // laps the dais 13 m out
+```
+
+**Signal, `runtime/headless.ts`**, before and after. The shapes are the ones `prepareRuntimePlan` already takes, so
+they become platform sections, not custom ones:
+
+```ts
+// before
+import { SIGNAL_NATIVE_WORLD } from '../data/nativeWorld';
+import baked from '../data/physics.generated.json' with { type: 'json' };
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) =>
+  prepareRuntimePlan(shard, assets, baked, SIGNAL_NATIVE_WORLD);
+
+// after
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets, product }) =>
+  prepareRuntimePlan(shard, assets, product.section('world/physics'), product.section('sim/native-world'));
+```
+
+### 7.6 What the lint rules say
+
+```
+src/shards/far-reach/runtime/index.ts:4:1  wildshard/runtime-standalone
+  runtime/ is standalone: '../data/brains' is build-time code (src/shards/far-reach/data/brains.ts).
+  Read it from the built shard (ctx.product.section(...)) or copy the value into runtime/const.ts.
+
+src/shards/sunscar-dunes/runtime/headless.ts:4:1  wildshard/runtime-standalone
+  runtime/ cannot import JSON: '../data/physics.generated.json'. Emit it as a section at build and read it
+  with ctx.product.section(...).
+
+src/shards/far-reach/runtime/index.ts:12:1  wildshard/runtime-standalone
+  runtime/ is standalone: '../world/build' is outside runtime/ (src/shards/far-reach/world/build.ts).
+  Move the file into runtime/ (it counts) or make it build-time code that emits a section.
+
+src/shards/far-reach/generators/geometries.ts:4:1  wildshard/no-runtime-in-build
+  Build-time code cannot import play code: '../world/materials' ships in runtime/. Move PALETTE into data/
+  and let the runtime read it from the built shard.
+
+src/shards/far-reach/discovery.generated.ts:4:1  wildshard/no-build-time-import
+  Play code cannot import build-time code: './data/budgets' (src/shards/far-reach/data/budgets.ts).
+  It reaches the game through the built shard's index.
+```
+
+Today's counts would seed the ratchet, roughly (the two counts overlap): Sky has 52 play-code imports of `data/` (19
+files) and 24 imports from `runtime/` to outside it; Signal has 26 (14 files) and 6.
+
+---
+
+## 8. Questions for Jake
 
 Option 1 is always "Skip for now".
 
