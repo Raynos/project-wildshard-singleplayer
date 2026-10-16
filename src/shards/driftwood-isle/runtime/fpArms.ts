@@ -14,8 +14,8 @@
 // SHARD-PLATFORM M3: the arms are the toon arms (runtime/viewmodel/toonArms.ts); the look is data (data/fpArmsLook.ts).
 import type { Object3D } from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ToonArms, type ToonArmsLooks } from './runtime/viewmodel/toonArms';
-import { FP_ARMS_LOOK } from './data/fpArmsLook';
+import { ToonArms, type ToonArmsLooks } from './viewmodel/toonArms';
+import { FP_ARMS_LOOK } from '../data/fpArmsLook';
 
 const ARMS = new ToonArms(FP_ARMS_LOOK);
 

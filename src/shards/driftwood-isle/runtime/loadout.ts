@@ -50,5 +50,5 @@ export function buildIronSwordDisplay(materials: ReadonlyMap<string, Material>):
 
 /** The required native model load propagates failures to equipment boot. */
 export async function loadSword(): Promise<ShardSword> {
-  return (await import('../fpArms')).castawayArms();
+  return (await import('./fpArms')).castawayArms();
 }

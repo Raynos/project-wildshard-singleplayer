@@ -69,7 +69,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     // swimming hands are dressed (and any Model Explorer card)
     const arms = await runtimeLookMaterials(ctx, source, true, Object.values(FP_ARMS_MATERIALS));
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded while compiling its arms');
-    ctx.scope.onDispose((await import('../fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
+    ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
     this.installCreatures(ctx);
     const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials);
     ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows, ctx);

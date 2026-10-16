@@ -37,8 +37,8 @@ Everything here is used by Driftwood alone, so it stays in the shard (the rule o
 | `weapons/`, `loadout/` | the iron sword row and the wood / iron sword loadout | the kit `Sword` with Driftwood's profiles and arms |
 | `onboarding/` | the first minutes | the first shard a player meets |
 
-Layout debt (grandfathered in `lint/shard-layout.json`): `fpArms.ts`, `tiers.ts` (the island's tier knobs, B44),
-`loot/`, `onboarding/`.
+Layout debt (grandfathered in `lint/shard-layout.json`): `tiers.ts` (the island's tier knobs, B44), `loot/`,
+`onboarding/`. Client-only play code moves into `runtime/` (W2b, G453): `runtime/fpArms.ts`.
 
 ## Budgets
 

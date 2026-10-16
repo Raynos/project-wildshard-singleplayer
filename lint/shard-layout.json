@@ -44,7 +44,6 @@
   "legacy": {
     "driftwood-isle": {
       "entries": [
-        "fpArms.ts",
         "loot/",
         "onboarding/",
         "tiers.ts"
