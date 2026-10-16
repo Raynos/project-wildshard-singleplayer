@@ -33,12 +33,12 @@ const brain = v.union([
 ]);
 // Existing gameplay-only species attributes pass through unchanged. The outer
 // JSON check refuses callbacks/accessors; the species owner admits its policy.
-const variant = v.looseObject({ id: key, label: key, weight: number,
-  rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), scale: pair });
-const species = v.looseObject({ id: key, kind: key, label: key,
+const variant = v.objectWithRest({ id: key, label: key, weight: number,
+  rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), scale: pair }, v.unknown());
+const species = v.objectWithRest({ id: key, kind: key, label: key,
   variants: v.pipe(v.array(variant), v.minLength(1), v.maxLength(64)),
-  brain: v.exactOptional(brain), body: v.exactOptional(CreatureBodyRecipeSchema) });
-const population = v.looseObject({ program: v.strictObject({
+  brain: v.exactOptional(brain), body: v.exactOptional(CreatureBodyRecipeSchema) }, v.unknown());
+const population = v.objectWithRest({ program: v.strictObject({
   species: v.pipe(v.array(species), v.maxLength(256)), strikes: v.pipe(v.array(CreatureStrikeSchema), v.maxLength(256)),
   modules: v.exactOptional(v.record(key, v.pipe(v.string(), v.maxLength(400000)))) }),
   step: key, seed: number, homes: v.pipe(v.array(v.strictObject({ id: key, kind: key, at: pair, yaw: number,
@@ -47,19 +47,19 @@ const population = v.looseObject({ program: v.strictObject({
   attackers: v.nullable(count), think: v.union([v.literal('legacy'), v.strictObject({ every: count, dt: number })]),
   killY: v.exactOptional(number), admission: v.picklist(['prepare', 'install']),
   placement: v.exactOptional(v.strictObject({ fallback: number, rows: v.pipe(v.array(v.strictObject({ id: key, fromY: number, home })), v.maxLength(4096)) })),
-  holds: v.exactOptional(v.pipe(v.array(v.strictObject({ home: count, field: key, until: key })), v.maxLength(4096))) });
+  holds: v.exactOptional(v.pipe(v.array(v.strictObject({ home: count, field: key, until: key })), v.maxLength(4096))) }, v.unknown());
 const spot = v.strictObject({ id: key, x: number, y: number, z: number, radius: number });
 const entry = v.strictObject({ lanes: count, walk: number, start: number, maxTicks: count,
   ramp: v.exactOptional(v.strictObject({ at: number, run: number, height: number, stride: number, look: number,
     halfWidths: v.strictObject({ north: number, east: number, south: number, west: number }) })) });
-const motion = v.looseObject({ systemId: key, skipPrefix: v.exactOptional(key),
+const motion = v.objectWithRest({ systemId: key, skipPrefix: v.exactOptional(key),
   composition: v.strictObject({ sim: v.strictObject({ bindings: ScriptBindingsSchema, scriptTickDivisor: count }),
     state: v.pick(StateSchema.pipe[0], ['shared', 'player']) }),
   rules: v.strictObject({ fields: v.record(key, pair), archetypes: v.pipe(v.array(count), v.maxLength(1024)),
     events: v.pipe(v.array(count), v.maxLength(1024)), maxEntities: count }),
   permissions: v.pipe(v.array(v.strictObject({ mover: key, flags: v.pipe(v.array(v.strictObject({ name: key, bit: count })), v.maxLength(16)) })), v.maxLength(64)),
   observations: v.pipe(v.array(v.strictObject({ name: key, mover: key, atEnd: v.exactOptional(v.boolean()) })), v.maxLength(64)),
-  actions: v.pipe(v.array(v.strictObject({ name: key, mover: key, command: v.picklist([1, 2, 3]) })), v.maxLength(64)) });
+  actions: v.pipe(v.array(v.strictObject({ name: key, mover: key, command: v.picklist([1, 2, 3]) })), v.maxLength(64)) }, v.unknown());
 const recipe = v.strictObject({
   population: v.strictObject({ rows: population, sources: v.picklist(['actors', 'actors+bosses']), seed: v.picklist(['identity', 'declared']), owner: BossOwnerRowSchema }),
   terrain: v.picklist(['none', 'collider']), floor: v.exactOptional(v.literal('solids')),
