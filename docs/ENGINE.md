@@ -7022,3 +7022,29 @@ reader, previous-version migration or bare-hash blob URL fallback.
 Browser descriptor caches use the v2 namespace and evict the old one;
 immutable content-addressed asset caches retain valid shared bytes.
 Normalized in-memory Shardfile inputs remain the current host API.
+
+### G454 host callbacks and catalogue
+
+`wildshard/no-shard-host-callback` resolves play-code calls into engine,
+game and SDK signatures, including inherited methods and function aliases.
+Each explicit function value (including named/spread option fields) is a
+ratcheted site in `lint/ratchet.json`; existing file counts may only shrink.
+Build-only sources and exact registered legacy predecessors are excluded.
+Opaque engine services are not expanded into their inherited methods.
+Unresolved/dynamic calls require review; this static check is not a proof of
+absence. New host APIs take data or Wasm references instead of shard TS hooks.
+
+`pnpm gen` writes `lint/host-catalogue.generated.json` and
+`docs/api/HOSTS.md`: resolved host callers, callback sites, planned W3 users,
+all platform section fields, the wire schema field inventory and the exact
+Wasm import/export ABI. Proof/input-only generation skips derived docs.
+Two resolved calling shards can establish the first host-bar test; pending
+users never do. Observed callbacks fail the data-only test. Other semantic
+judgments remain `needs-review`, granting no pass. The historical host audit
+is linked as evidence, not silently treated as a current verdict.
+
+`lint/host-reviews.json` accepts entries keyed by `src/<layer>/<module>#export`
+(or `#*` for a module), with `sourceHash` (the catalogue's SHA-256), `evidence`
+and `verdicts` (`noShardNouns`, `dataOnly`, `serverSafe`, `deletionTest`, each
+`pass` or `fail`). Changed source invalidates review credit; a review cannot
+override observed TS callbacks or substitute a planned user for a real one.

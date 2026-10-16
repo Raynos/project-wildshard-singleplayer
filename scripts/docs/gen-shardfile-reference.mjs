@@ -7,7 +7,7 @@ import { renderReference, assertReferenceCoverage } from './schema-reference.mjs
 
 export const SHARDFILE_REFERENCE = 'docs/api/SHARDFILE.md';
 /** Read actual schemas in an isolated Node process; preserve the caller's module loader. */
-function referenceData(root) {
+export function referenceData(root) {
   const result = spawnSync(process.execPath, ['--import', './scripts/sim-node-loader.mjs', 'scripts/docs/read-shardfile-reference.mjs'],
     { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   if (result.error) throw result.error;

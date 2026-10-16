@@ -194,6 +194,7 @@
         "wildshard/runtime-commons": "error",
         // G450: internally ratcheted against lint/ratchet.json; new files start at zero.
         "wildshard/runtime-standalone": "error",
+        "wildshard/no-shard-host-callback": "error",
         "wildshard/no-build-time-import": "error",
         "wildshard/no-runtime-in-build": "error",
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module

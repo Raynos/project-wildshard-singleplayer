@@ -48,6 +48,8 @@ const measures = await step('port-shares', () => genPortShares());
 if (!buildInputs && !proof) {
   const { writeApiDocs } = await import('./gen-api.mjs');
   writeApiDocs();
+  const { writeHostCatalogue } = await import('./gen-host-catalogue.mjs');
+  await step('host-catalogue', () => writeHostCatalogue());
   execFileSync(process.execPath, ['scripts/webgpu-inventory.mjs'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
 }
 

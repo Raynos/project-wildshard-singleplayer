@@ -22,6 +22,7 @@ import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations, frozenRuntimePerformanceViolations } from './runtime-performance.mjs';
 import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
 import { shardfileBoundaryVisitors } from './shardfile-boundaries.mjs';
+import { hostCallbackViolations, hostPlayFile } from './host-callbacks.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -933,6 +934,23 @@ const boundaryVisitors = check => ({
 // G450: normal lint enforces today's file ceilings without the retired ratchet hook.
 // Count mode emits every site for lint/ratchet.mjs and the source/runtime copier.
 const shardfileDebt = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')) : {};
+const shardHostCallback = {
+  meta: { type: 'problem', docs: { description: 'Shard host APIs take data, not TS callbacks (G454)' },
+    schema: [{ type: 'object', properties: { count: { type: 'boolean' } }, additionalProperties: false }] },
+  create(context) {
+    const file = pathOf(context);
+    if (!file.startsWith('src/shards/') || legacySourcePath(file) !== null) return {};
+    const index = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
+    const root = index === -1 ? REPO : context.filename.slice(0, index);
+    if (!hostPlayFile(root, file)) return {};
+    const limit = context.options[0]?.count === true ? 0 : shardfileDebt['wildshard/no-shard-host-callback']?.[file] ?? 0;
+    return { 'Program:exit'() {
+      for (const issue of hostCallbackViolations(root, file).slice(limit)) context.report({
+        loc: { start: context.sourceCode.getLocFromIndex(issue.start), end: context.sourceCode.getLocFromIndex(issue.end) }, message: issue.message,
+      });
+    } };
+  },
+};
 const shardfileBoundaryRule = name => ({
   meta: { type: 'problem', docs: { description: `Shardfile source boundary: ${name} (G450)` },
     schema: [{ type: 'object', properties: { count: { type: 'boolean' } }, additionalProperties: false }] },
@@ -1066,6 +1084,7 @@ const plugin = {
     'legacy-npc-imports': legacyNpcImports,
     'runtime-commons': runtimeCommons,
     'runtime-standalone': shardfileBoundaryRule('runtime-standalone'),
+    'no-shard-host-callback': shardHostCallback,
     'no-build-time-import': shardfileBoundaryRule('no-build-time-import'),
     'no-runtime-in-build': shardfileBoundaryRule('no-runtime-in-build'),
     'runtime-performance': runtimePerformance,
