@@ -11,7 +11,7 @@
  * is the shardfile's declared landing (world/sea.ts), installed as declared by the world build.
  */
 import * as THREE from 'three';
-import { DECK_SLAB } from '../../data/entryRows';
+import { DECK_SLAB } from '../const';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { defineModel } from '@wildshard/engine/models/model';

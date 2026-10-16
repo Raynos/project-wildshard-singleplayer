@@ -21,7 +21,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import bakedSlots from '../../data/trophySlots.json' with { type: 'json' };
-import { TROPHY_LAYOUT } from '../../data/trophyLayout';
+import { TROPHY_LAYOUT } from '../const';
 
 export type TrophyId = 'bear' | 'boar';
 export const TROPHIES: readonly TrophyId[] = TROPHY_LAYOUT.ids;

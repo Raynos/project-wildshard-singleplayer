@@ -22,6 +22,9 @@ import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
 import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE, TRADER_BINDINGS, TRADER_PARTS, TRADER_SCENE } from './npcScenes';
 import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from './poolLook';
+import { DECK_SLAB } from './entryRows';
+import { TROPHY_LAYOUT } from './trophyLayout';
+import { SHRINE_SITES } from './shrineSites';
 import { REEF_LOOK } from './reefLook';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from './skyLook';
@@ -79,6 +82,9 @@ export const RUNTIME_MIRRORS = [
   defineMirror('TRADER_POSE', TRADER_POSE),
   defineMirror('TRADER_HEAD_FOCUS', TRADER_HEAD_FOCUS),
   defineMirror('TRADER_FACING', TRADER_FACING),
+  defineMirror('DECK_SLAB', DECK_SLAB),
+  defineMirror('TROPHY_LAYOUT', TROPHY_LAYOUT),
+  defineMirror('SHRINE_SITES', SHRINE_SITES),
   defineMirror('WRECK_SITES', WRECK_SITES),
   defineMirror('FACETED_DAY_PRESET', FACETED_DAY_PRESET),
   defineMirror('CAPTAIN_ID', CAPTAIN_DEF.id),

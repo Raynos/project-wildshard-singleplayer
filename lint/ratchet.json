@@ -650,11 +650,10 @@
     "src/shards/sunscar-dunes/world/fireFx.ts": 1,
     "src/shards/sunscar-dunes/world/meshes.ts": 4,
     "src/shards/sunscar-dunes/world/places.ts": 2,
-    "src/shards/driftwood-isle/runtime/models/entryDeck.ts": 1,
     "src/shards/driftwood-isle/runtime/models/ropeBridge.ts": 1,
     "src/shards/driftwood-isle/runtime/models/pier.ts": 3,
-    "src/shards/driftwood-isle/runtime/models/shrine.ts": 4,
-    "src/shards/driftwood-isle/runtime/models/trophyPlaques.ts": 2
+    "src/shards/driftwood-isle/runtime/models/shrine.ts": 2,
+    "src/shards/driftwood-isle/runtime/models/trophyPlaques.ts": 1
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
@@ -1059,12 +1058,11 @@
     "src/shards/pine-hollow/runtime/models/scree.ts": 1,
     "src/shards/pine-hollow/runtime/models/standingStone.ts": 2,
     "src/shards/pine-hollow/runtime/models/waystone.ts": 1,
-    "src/shards/driftwood-isle/runtime/models/entryDeck.ts": 1,
     "src/shards/driftwood-isle/runtime/models/people.ts": 1,
     "src/shards/driftwood-isle/runtime/models/ropeBridge.ts": 2,
     "src/shards/driftwood-isle/runtime/models/pier.ts": 4,
-    "src/shards/driftwood-isle/runtime/models/shrine.ts": 4,
-    "src/shards/driftwood-isle/runtime/models/trophyPlaques.ts": 2
+    "src/shards/driftwood-isle/runtime/models/shrine.ts": 2,
+    "src/shards/driftwood-isle/runtime/models/trophyPlaques.ts": 1
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/bag.ts": 1,

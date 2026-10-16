@@ -5,9 +5,8 @@ import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { ShrineAnchor, ShrineParams, ShrineSite } from '../../assets/contracts/shrine';
-import { SHRINE_SITES } from '../../data/shrineSites';
 import bake from '../../data/shrineBake.json' with {type:'json'};
-import { SHRINE_POOL_LOOK } from '../../data/poolLook';
+import { SHRINE_POOL_LOOK, SHRINE_SITES } from '../const';
 import { fixedGeometryReady, loadFixedGeometry,
   SHRINE_KIT_GEOMETRY,SHRINE_WATER_GEOMETRY,SHRINE_GLYPHS_GEOMETRY,
   SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
