@@ -6,9 +6,7 @@ import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { jsonSlot } from '@wildshard/engine/saves/slots';
 import { requireAudioProfile, type AudioMusicProfile } from '@wildshard/engine/audio/audioProfiles';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
-import source from '../../shard.config';
 
-const PROFILE = requireAudioProfile(source.audio.music, 'score.pine');
 
 export const PINE_SCORE_PICKS = ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'] as const;
 export function pineScorePick(): (typeof PINE_SCORE_PICKS)[number] {
@@ -17,12 +15,13 @@ export function pineScorePick(): (typeof PINE_SCORE_PICKS)[number] {
   const value = saved ?? (legacy !== null && typeof legacy === 'object' && !Array.isArray(legacy) ? legacy['pineScore'] : undefined);
   return PINE_SCORE_PICKS.find((choice) => choice === value) ?? 'auto';
 }
-/** Pine uses the platform resident score and its declared scene/phase/sting policy. */
-export function pineScore(music:Music,profile?:AudioMusicProfile):CatalogueScore {return CatalogueScore.get(music,profile??PROFILE,pineScorePick,undefined,profile!==undefined);}
+/** Pine uses the platform resident score and its declared scene/phase/sting policy (`profile`: the declared
+ *  `audio.music` row; `rebind`: rebind a resident score to it). */
+export function pineScore(music:Music,profile:AudioMusicProfile,rebind=false):CatalogueScore {return CatalogueScore.get(music,profile,pineScorePick,undefined,rebind);}
 
 /** Suspend a retained home's score on the road without restarting its authored scene or boss phase on re-entry. */
 export function installEnteredPineScore(context: ShardContext, audio: Audio, music: Music, debugRow?: ShardContext['debugRow']): void {
-  const profile = requireAudioProfile(runtimeAudio(context, source.audio).music, 'score.pine');
+  const profile = requireAudioProfile(runtimeAudio(context, context.product.shardfile.audio).music, 'score.pine');
   const retained=retainsRuntimeServices(context);
   let registerDebug = true;
   installEnteredRuntimeService(context, (scope) => {

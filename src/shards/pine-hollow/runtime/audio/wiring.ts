@@ -69,7 +69,7 @@ export function installPineAudio(h: PineAudioHost): void {
   const retained = retainsRuntimeServices(h.context);
   if (!retained) h.cabins?.onDoor(doorSound);
 
-  const score = pineScore(music);
+  const score = pineScore(music, requireAudioProfile(h.context.product.shardfile.audio.music, 'score.pine'));
   const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
   const observer:ReturnType<typeof audioObserverSystems>=audioObserverSystems(requireAudioProfile(rows.observations,'pine audio observations'),{
     inputs:new Map<string,()=>unknown>([['clock',()=>sky.dayNight],['pinned',()=>pinned],['score',()=>score],['engaged',()=>h.eliteEngaged()],['listener',()=>game.camera.position]]),
