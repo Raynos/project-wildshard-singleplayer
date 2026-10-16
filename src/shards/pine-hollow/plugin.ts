@@ -18,7 +18,7 @@ export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
 /** Admit the retained ON home; fixtures can inject the same trusted preparation contract. */
 export function preparePineHybrid(ctx: ShardContext,
   prepare?: typeof prepareTrustedHybrid): Promise<ShardPlugin> {
-  return prepareStandaloneHybrid(ctx,{name:'Pine',source:()=>import('./shard.config'),
+  return prepareStandaloneHybrid(ctx,{name:'Pine',
     retainHomeRuntime:true,runtime:{entry:'runtime/index.ts',load:()=>import('./runtime/index')}},prepare);
 }
 

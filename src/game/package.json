@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/outputDescriptor": "./shardfile/outputDescriptor.ts",
+    "./shardfile/productData": "./shardfile/productData.ts",
     "./shard/catalogBoot": "./shard/catalogBoot.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
     "./systems/looks/grassField": "./systems/looks/grassField.ts",

@@ -1,12 +1,16 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Headless behaviour runs the real authored product bytes.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native fixtures require the official format-2 outputs before workers start.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Run the official writer with the same Node binary as the test worker.
+import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The trusted worker entry is a local platform-selected file.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- No network or browser enters the authoritative simulation.
 import { pathToFileURL } from 'node:url';
 import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
-import { expect, it } from 'vitest';
+import { beforeAll, expect, it } from 'vitest';
 import { parseShardfile } from '../src/format/shardSchema';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
@@ -25,6 +29,10 @@ const cases = [
   ['nalati-grasslands', nalati, true], ['nine-dragon-stack', nine, true],
   ['sunscar-dunes', signal, true], ['far-reach', sky, true],
 ] as const;
+
+beforeAll(() => {
+  execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
+}, 120_000);
 
 // Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
 for (const [slug, input, trusted] of cases) it(`${slug}: boots and advances a living headless simulation`, async () => {

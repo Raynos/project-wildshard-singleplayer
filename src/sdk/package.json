@@ -5,6 +5,7 @@
   "exports": {
     "./outputCatalogScan": "./outputCatalogScan.ts",
     "./projectManifest": "./projectManifest.ts",
+    "./headlessProduct": "./headlessProduct.ts",
     "./outputRuntime": "./outputRuntime.ts",
     "./outputCatalog": "./outputCatalog.ts",
     "./playerModeData": "./playerModeData.ts",
@@ -365,6 +366,10 @@
       "./headlessRuntime": {
         "types": "./dist/types/sdk/headlessRuntime.d.ts",
         "default": "./dist/headlessRuntime.js"
+      },
+      "./headlessProduct": {
+        "types": "./dist/types/sdk/headlessProduct.d.ts",
+        "default": "./dist/headlessProduct.js"
       },
       "./commons": {
         "types": "./dist/types/sdk/commons.d.ts",

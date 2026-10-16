@@ -49,8 +49,8 @@ function buildValidatedSource(value: unknown, sourceHash: string, indexHash: str
 
 /**
  * Read all sections needed by today's complete Shardfile hosts, checking exact
- * byte sizes and hashes before assembly. v1 inputs pass through to their version
- * reader unchanged. Platform hosts receive their complete admitted model.
+ * byte sizes and hashes before assembly. Already assembled in-memory models
+ * remain host inputs; disk readers separately require a format-2 index.
  */
 export async function resolveOutputDescriptor(input: unknown, reader: OutputDescriptorReader): Promise<unknown> {
   if (!isJsonData(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
@@ -91,13 +91,13 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   return source;
 }
 
-/** Resolve only declared content: v2 uses its kind/hash path; v1 keeps the bare hash URL. */
+/** Resolve only a declared format-2 blob, using its admitted kind/hash path. */
 export function outputBlobUrl(source: Shardfile, ref: string, base: string): string {
   const hash = ref.replace(/^commons:/u, '');
   if (!/^[a-f0-9]{64}$/u.test(hash) || (ref.startsWith('commons:')
     ? !source.requires.commons.includes(hash) : !source.files.some(file => file.hash === hash))) throw new Error('Undeclared shardfile blob');
   const descriptor = outputDescriptor(source);
-  if (descriptor === undefined) return new URL(hash, base).href;
+  if (descriptor === undefined) throw new Error('Blob reads require an admitted format-2 output');
   const file = descriptor.index.files.find(entry => entry.hash === hash);
   if (file === undefined) throw new Error('Missing shardfile blob path');
   return new URL(outputBlobPath(file), base).href;

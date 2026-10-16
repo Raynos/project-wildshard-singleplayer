@@ -10,6 +10,7 @@ import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { parseNavmesh, type Navmesh } from '../../../src/engine/physics/navmesh';
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
@@ -49,7 +50,7 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function pineRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export function pinePlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return Promise.resolve(prepareHeadlessRuntime({ shard: source, assets, rapier })); }
+export async function pinePlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/pine-hollow') }); }
 
 function context(session: Omit<Session, 'host'>, saved?: SimSnapshot): HeadlessRuntimeInstallation {
   return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };

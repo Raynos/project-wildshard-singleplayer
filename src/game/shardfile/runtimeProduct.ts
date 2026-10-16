@@ -199,12 +199,6 @@ export function firstPartyDescriptor(slug: string): Promise<Shardfile> {
   return loadFirstPartyProduct(slug).then(product => product.shardfile);
 }
 
-/** Existing hybrid callers share the already loaded descriptor until their product argument lands. */
-export function takeFirstPartyDescriptor(options: ProductOptions): Promise<Shardfile> {
-  const key = productRequestKey(options);
-  return productRequests.get(key)?.then(entry => entry.source) ?? readProductDescriptor(options);
-}
-
 /** The product reader for `slug`: its runtime's (`runtimeProduct`) once its hybrid was prepared, else a resident grid cell's, else null. */
 export function slugRuntimeProduct(slug: string): RuntimeProduct | null {
   const source = declared.get(slug);

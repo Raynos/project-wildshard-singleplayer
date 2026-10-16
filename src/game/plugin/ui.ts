@@ -73,6 +73,7 @@ import { configureLevel } from '@wildshard/engine/level/selection';
 import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
+import { isOutputIndex } from '@wildshard/format/outputIndex';
 import { emptyLook } from '../shardfile/emptyLook';
 import { shardfileLook } from '../shardfile/look';
 import { admitProduct, boundedResponse, readProductInput, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
@@ -2088,6 +2089,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     options.progress?.({ phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
     input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   }
+  if (!isOutputIndex(input)) throw new Error('Manifest shardfile requires a format-2 output');
   const source = await readProductInput(input, productOptions);
   const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
   if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
@@ -2124,7 +2126,9 @@ export async function configuredShardfile(document: Pick<Document, 'getElementBy
   const text = element.textContent;
   // Reject excessive character counts before creating a UTF-8 copy or parsing the inline source.
   if (text.length > limits.sourceBytes || new TextEncoder().encode(text).length > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap');
-  const source = await readProductInput(JSON.parse(text), options);
+  const input: unknown = JSON.parse(text);
+  if (!isOutputIndex(input)) throw new Error('Embedded shardfile requires a format-2 output');
+  const source = await readProductInput(input, options);
   return source;
 }
 

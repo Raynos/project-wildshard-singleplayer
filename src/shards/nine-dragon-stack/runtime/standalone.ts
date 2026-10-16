@@ -3,14 +3,12 @@ import { type ShardContext, type ShardPlugin, standaloneHybridEntry } from '@wil
 import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 
 async function prepareHybrid(ctx: ShardContext): Promise<ShardPlugin> {
-  const [{ prepareHybridShard }, { default: source }] = await Promise.all([
-    import('@wildshard/game/shardfile/hybrid'), import('../shard.config'),
-  ]);
-  return prepareHybridShard(source, { firstParty: true }, {
+  const { prepareHybridShard } = await import('@wildshard/game/shardfile/hybrid');
+  return prepareHybridShard(ctx.product, { firstParty: true }, {
     residencyContext: ctx, retainHomeRuntime: true,
     catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
     icon: () => { throw new Error('Transitional Nine Dragon has no declared item icon'); },
-  }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./index') }]);
+  }, [{ slug: ctx.product.slug, entry: 'runtime/index.ts', load: () => import('./index') }]);
 }
 
 /** SF73: admit this primary's data and bound runtime for SHARDFILE, preserving the supplied native LEGACY constructor. */

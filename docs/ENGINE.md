@@ -6751,8 +6751,8 @@ that same parser/comment counting law for author tools.
 
 ### Split shardfile loading (P1b)
 
-`game/shardfile/product.readProductDescriptor` reads either the transitional
-v1 monolith or the v2 index. An optional trusted `descriptorHash` checks the
+`game/shardfile/product.readProductDescriptor` reads the v2 index.
+An optional trusted `descriptorHash` checks the
 exact index bytes before section requests. The reader fetches sections in
 parallel, verifies every section's declared size and SHA-256, and assembles
 the existing `Shardfile` through `format/outputIndex`'s field schemas.
@@ -6760,12 +6760,12 @@ Today's complete hosts receive all sections. Custom section values remain
 available in `game/shardfile/outputDescriptor.outputDescriptor(source)`.
 
 `outputBlobUrl(source, ref, base)` resolves declared references through the
-validated v2 kind/hash paths; v1 retains bare hash URLs. `ClientAssets` and
+validated v2 kind/hash paths. `ClientAssets` and
 admission use the same builder. Transport metadata follows parser copies
 without adding fields to the host model. Offline products retain the v2 index
 plus hash-checked section bytes in the existing content cache. Publication
 requires all section and asset bytes; missing or corrupt sections refuse
-before a host is built. Existing v1 caches keep their version-reader policy.
+before a host is built. Old monolithic descriptor caches are evicted.
 
 ### Independently authored platform sections (P2b)
 
@@ -6997,3 +6997,28 @@ image packing uses the same accounting as source blobs.
 never imports copied runtime code. Runtime mirror verification/copying
 remains the separate build step. Config exports cannot inject writer
 runtime inventories or policy allowances.
+
+### Runtime and native product boundaries (P2a step 4)
+
+`game/shard/runtimeVariant.prepareStandaloneHybrid` uses `ctx.product`;
+its rows and `firstPartyStandaloneEntry` no longer accept a source
+loader. `prepareHybridShard` takes that loaded product and never fetches
+its descriptor again. Frozen callers may provide structural identity;
+the loader ignores their data and loads their format-2 output instead.
+Bundled runtime selection remains separate from data admission.
+
+`@wildshard/sdk/headlessProduct.loadHeadlessProduct(outDir)` reads only
+the selected local format-2 inventory. It checks section sizes/hashes,
+the host schema, and each named blob's size/hash on read, and refuses
+escaping symlinks. Its product checks custom sections against the
+runtime's schemas. Native factories require
+`HeadlessRuntimePreparation.product`. The existing trusted resident and
+adapter input boundaries accept an explicit product or load `out/<slug>`;
+a missing output says `run wildshard build <slug>` and has no fallback.
+The existing `shard` field remains for native proof overrides until Z1.
+
+Disk and embedded descriptors now require format 2. There is no v1
+reader, previous-version migration or bare-hash blob URL fallback.
+Browser descriptor caches use the v2 namespace and evict the old one;
+immutable content-addressed asset caches retain valid shared bytes.
+Normalized in-memory Shardfile inputs remain the current host API.

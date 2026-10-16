@@ -72,7 +72,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default firstPartyStandaloneEntry(SignalDunesPlugin, 'Signal Dunes', () => import('./runtime/source'), () => import('./runtime/index'));
+export default firstPartyStandaloneEntry(SignalDunesPlugin, 'Signal Dunes', () => import('./runtime/index'));
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
 export function resolveTrustedRuntime(entry: string): typeof SignalDunesPlugin {

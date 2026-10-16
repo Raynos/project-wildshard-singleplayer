@@ -1,3 +1,4 @@
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness refuses incomplete native gameplay rather than report a passing flag.
 import assert from 'node:assert/strict';
 import type { SimHost } from '../../../src/engine/sim';
@@ -41,7 +42,7 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
   if (actor === undefined) throw new Error('Missing authored wild stallion');
   const spawn = nalatiBake().spawns.find(a => a.id === actor.id);
   if (spawn === undefined) throw new Error('Missing authored wild stallion placement');
-  const originalPlan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
+  const originalPlan = await prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/nalati-grasslands') });
   const heightAt = originalPlan.ports?.heightAt; if (heightAt === undefined) throw new Error('Missing actual terrain');
   const x = spawn.at[0] + 2, z = spawn.at[2], fixture = { ...source, spawn: { x, y: heightAt(x, z) + 0.1, z, yaw: 0 } };
   const preparation = { shard: fixture, assets, rapier }, entry = { module: MODULE };

@@ -13,7 +13,7 @@ export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
 }
 
 const DriftwoodHybrid = standaloneHybridEntry(RuntimePlugin,ctx=>prepareStandaloneHybrid(ctx,{name:'Driftwood',
-  source:()=>import('./shard.config'),runtime:{entry:'runtime/hybrid.ts',load:()=>import('./runtime/hybrid')}}),shardfileEntry,'Driftwood');
+  runtime:{entry:'runtime/hybrid.ts',load:()=>import('./runtime/hybrid')}}),shardfileEntry,'Driftwood');
 
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
 export default DriftwoodHybrid;

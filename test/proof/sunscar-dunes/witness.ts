@@ -9,6 +9,7 @@ import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
@@ -60,7 +61,7 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function signalRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export function signalPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return Promise.resolve(prepareHeadlessRuntime({ shard: source, assets, rapier })); }
+export async function signalPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/sunscar-dunes') }); }
 
 function context(session: Omit<Session, 'host'>, saved?: string): HeadlessRuntimeInstallation {
   return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: decodeSimSnapshot(saved) }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };

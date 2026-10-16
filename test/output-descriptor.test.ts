@@ -49,7 +49,7 @@ function cacheStore(): { cache: ProductCache; bytes: Map<string, Uint8Array>; pr
   } };
 }
 
-test('v2 sections reconstruct v1 values and ClientAssets reads the declared blob path', async () => {
+test('v2 sections reconstruct host values and refuse the old monolithic transport', async () => {
   const { source, wires } = fixture(true), opts = options(wires);
   const read = await readProductDescriptor(opts);
   expect(read).toEqual(parseShardfile(source));
@@ -60,9 +60,8 @@ test('v2 sections reconstruct v1 values and ClientAssets reads the declared blob
   expect(await new ClientAssets(read, new Map(), opts).read(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
   expect(() => outputBlobUrl(read, '0'.repeat(64), base)).toThrow('Undeclared');
   const v1 = new Map([['shard.json', encodeCanonicalJson(source)], [file.hash, new Uint8Array([1, 2, 3])]]);
-  const old = await readProductDescriptor(options(v1));
-  expect(old).toEqual(read); expect(outputDescriptor(old)).toBeUndefined();
-  expect(await new ClientAssets(old, new Map(), options(v1)).read(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
+  await expect(readProductDescriptor(options(v1))).rejects.toThrow('format-2');
+  expect(() => outputBlobUrl(source, file.hash, base)).toThrow('format-2');
 });
 
 test('admission preserves v2 addressing across parser copies and offline section reassembly', async () => {

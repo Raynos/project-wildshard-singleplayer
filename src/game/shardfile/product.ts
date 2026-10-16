@@ -1,7 +1,8 @@
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
-import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from '@wildshard/format/version';
+import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
+import { isOutputIndex } from '@wildshard/format/outputIndex';
 
 import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets, deviceLibraryCost } from '@wildshard/format/assetAdmission';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
@@ -30,8 +31,6 @@ export interface ProductCache {
   putProduct: (key: string, product: CachedProduct) => Promise<void>;
   pin?: (hashes: Iterable<string>) => () => void;
 }
-/** Version readers are trusted client migrations; content cannot register its own compatibility rule. */
-export interface ProductVersions { current: string; previous?: string | 0; readers: ReadonlyMap<string | 0, (source: unknown) => Shardfile> }
 /** Actual admission work, before the ordinary world boot plan exists. Bytes include verified cache reads. */
 export interface ProductProgress {
   phase: 'descriptor' | 'cache-read' | 'assets' | 'hash' | 'validation' | 'cache' | 'complete';
@@ -41,12 +40,11 @@ export interface ProductProgress {
 export interface ProductOptions {
   /** Trusted probe-filtered device support; authored content cannot select its charge. */
   textures?: TextureTranscodeSupport;
-  /** Optional catalogue SHA-256 of the exact index/monolith wire bytes. */
+  /** Optional catalogue SHA-256 of the exact format-2 index wire bytes. */
   descriptorHash?: string;
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
-  versions?: ProductVersions;
   /** G216: trusted page Developer policy; authored data cannot provide it or bypass exact asset checks. */
   memory?: MemoryAdmission;
   /** Trusted residency owner reserves parsed source and immutable transport before any asset-cache read or owned copy. */
@@ -83,17 +81,11 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     return released;
   };
 }
-function version(input: unknown): string | 0 {
+function version(input: unknown): string {
   if (typeof input !== 'object' || input === null || !('version' in input)) throw new Error('Shardfile needs a format version');
-  if (input.version === 0) return 0;
   shardfileRevision(input.version);
   if (typeof input.version !== 'string') throw new Error('Shardfile needs a format version');
   return input.version;
-}
-function readLegacyCache(input: unknown): Shardfile {
-  preflightShardfile(input);
-  if (typeof input !== 'object' || input === null || !('version' in input) || input.version !== 0 || !('requires' in input) || typeof input.requires !== 'object' || input.requires === null || !('sdk' in input.requires) || input.requires.sdk !== 0) throw new Error('Invalid legacy shardfile cache');
-  return parseShardfile({ ...input, version: SHARDFILE_VERSION, requires: { ...input.requires, sdk: SHARDFILE_VERSION } });
 }
 /** Stream bounded wire bytes, including responses without a trustworthy Content-Length header. */
 export async function boundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
@@ -128,7 +120,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions): Promise<unk
   });
 }
 
-/** Read a built v1 monolith or v2 index, verifying the catalogue hash before any section fetch. */
+/** Read a format-2 output, verifying the catalogue hash before any section fetch. */
 export async function readProductDescriptor(options: ProductOptions): Promise<Shardfile> {
   const base = new URL('.', options.base).href;
   const visited = options.offline ? await options.cache?.product(base) : undefined;
@@ -139,6 +131,7 @@ export async function readProductDescriptor(options: ProductOptions): Promise<Sh
     if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
     input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   }
+  if (!isOutputIndex(input)) throw new Error('Shardfile requires a format-2 output; rebuild it with wildshard build');
   return readProductInput(input, options);
 }
 
@@ -159,24 +152,18 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', input));
   return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
-/** Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. */
+/** Validate a visited format-2 product again, including cached Wasm. */
 export async function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
   const visited = await options.cache?.product(base);
   if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
+  if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
   const raw = await resolveDescriptor(cached?.source ?? input, options);
-  const wire = cached?.source ?? (typeof input === 'object' && input !== null && 'files' in input && Array.isArray(input.files)
-    ? outputDescriptor({ files: input.files })?.index ?? input : input);
   if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
-  const versions: ProductVersions = options.versions ?? { current: SHARDFILE_VERSION, previous: SHARDFILE_PREVIOUS_VERSION,
-    readers: new Map<string | 0, (source: unknown) => Shardfile>([[SHARDFILE_VERSION, parseShardfile], [SHARDFILE_PREVIOUS_VERSION, readLegacyCache]]) };
-  const currentRevision = shardfileRevision(versions.current);
-  const previousRevision = versions.previous === 0 ? 0 : versions.previous === undefined ? undefined : shardfileRevision(versions.previous);
-  const revision = version(raw), reader = versions.readers.get(revision);
-  if (reader === undefined || (revision !== versions.current && !(revision === versions.previous && previousRevision === currentRevision - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
-  const source = options.versions === undefined && options.firstParty && isBuildValidatedOutput(raw) ? raw : reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  if (version(raw) !== SHARDFILE_VERSION) throw new Error('Shardfile needs the current format');
+  const source = options.firstParty && isBuildValidatedOutput(raw) ? raw : parseShardfile(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   carryOutputDescriptor(raw, source);
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
@@ -184,13 +171,13 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const sourceHash = revisionKey === null ? '' : await options.hash(validationSourceBytes(source));
   const built = outputDescriptor(source)?.receipt;
   if (built !== undefined && sourceHash !== built.sourceHash) throw new Error('Built shardfile changed after verification');
-  // Custom readers always revalidate. A build receipt is pinned inside this client, never fetched from data.
-  const receipt = options.versions === undefined && revisionKey !== null
+  // A build receipt is pinned inside this client, never fetched from data.
+  const receipt = revisionKey !== null
     ? readValidationReceipt(visited?.validation, sourceHash) ?? (options.firstParty ? builtValidationReceipt(sourceHash) : null) : null;
   const worst = receipt?.worst ?? preflightDeclaredCosts(source, options.memory).worst;
   if (receipt !== null) acceptValidatedCost(source, worst, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
-  if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) {
+  if (!options.offline && visited !== null && visited !== undefined && isOutputIndex(visited.source) && version(visited.source) === SHARDFILE_VERSION) {
     const previous = await resolveDescriptor(visited.source, { ...options, offline: true });
     assertStateCompatibility(parseStateLineage(previous), source);
   }
@@ -269,17 +256,27 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
       }
       for (const section of descriptor?.index.sections ?? []) if (!await present(section.hash, section.bytes)) complete = false;
-      if (complete) await cache.putProduct(base, { source: wire, firstParty: options.firstParty, ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, worst } }) });
+      if (complete && descriptor !== undefined) await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
+        ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
     } finally { release?.(); }
   }
   progress('complete', 'Product admitted');
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 const browserContentStores = new WeakMap<Pick<CacheStorage, 'open'>, ContentCache | ContentCacheWorker>();
+const retiredProductStores = new WeakSet();
+async function retireDescriptorCache(storage: Partial<Pick<CacheStorage, 'delete'>>): Promise<void> {
+  try { await storage.delete?.('ws-shardfile-products-v0'); }
+  catch (error) { console.warn('[shardfile] old descriptor cache eviction failed', error); }
+}
 
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
-export function browserProductCache(storage: Pick<CacheStorage, 'open'>): ProductCache {
-  const open = () => storage.open('ws-shardfile-products-v0');
+export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>): ProductCache {
+  if (!retiredProductStores.has(storage)) {
+    retiredProductStores.add(storage);
+    void retireDescriptorCache(storage);
+  }
+  const open = () => storage.open('ws-shardfile-products-v2');
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
   let content = browserContentStores.get(storage);
   if (content === undefined) {
@@ -301,11 +298,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'>): Produc
       const validation = typeof rawValidation === 'object' && rawValidation !== null && 'sourceHash' in rawValidation && typeof rawValidation.sourceHash === 'string' ? readValidationReceipt(rawValidation, rawValidation.sourceHash) : null;
       return { source: value.source, firstParty: value.firstParty, ...(validation === null ? {} : { validation }) };
     },
-    asset: async (base, hash) => {
-      const bytes = await ownedContent.get(hash); if (bytes !== null) return bytes;
-      const response = await (await open()).match(new URL(hash, base).href);
-      return response === undefined ? null : boundedResponse(response, MAX_FILE_BYTES);
-    },
+    asset: (_base, hash) => ownedContent.get(hash),
     verifiedAsset: hash => ownedContent.get(hash),
     ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
     putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),

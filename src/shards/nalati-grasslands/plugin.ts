@@ -13,15 +13,13 @@ export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
 }
 
 async function prepareNalatiHybrid(ctx: ShardContext): Promise<ShardPlugin> {
-  const [{ prepareHybridShard }, { default: source }] = await Promise.all([
-    import('@wildshard/game/shardfile/hybrid'), import('./shard.config'),
-  ]);
-  return prepareHybridShard(source, { firstParty: true }, {
+  const { prepareHybridShard } = await import('@wildshard/game/shardfile/hybrid');
+  return prepareHybridShard(ctx.product, { firstParty: true }, {
     residencyContext: ctx,
     retainHomeRuntime: true,
     catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
     icon: () => { throw new Error('Transitional Nalati has no declared item icon'); },
-  }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }]);
+  }, [{ slug: ctx.product.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }]);
 }
 
 /** Preserve native/admitted selection and its constructor injection through the defining standalone owner. */

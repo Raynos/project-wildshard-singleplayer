@@ -12,6 +12,7 @@ import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
@@ -60,7 +61,7 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function skyRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export async function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { const plan = await prepareHeadlessRuntime({ shard: source, assets, rapier }); return plan; }
+export async function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { const plan = await prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/far-reach') }); return plan; }
 
 function context(session: Omit<Session, 'host'>, saved?: string): HeadlessRuntimeInstallation {
   return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: decodeSimSnapshot(saved) }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };

@@ -3,7 +3,6 @@ import { isDev } from '@wildshard/engine/core/devMode';
 import { type ShardContext, type ShardPlugin, type TrustedRuntimeEntry, standaloneHybridEntry } from '../plugin/context';
 import { currentPageMode } from '../grid/pageMode';
 import { shardEntry } from './entryMode';
-import type { Shardfile } from '@wildshard/format/shardSchema';
 
 
 /** Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. */
@@ -28,24 +27,23 @@ export function shardfileEntry(context: Pick<ShardContext, 'manifest'>): boolean
 
 /**
  * A first-party transitional shard's standalone entry (SF73; Signal Dunes and Sky Reach): SHARDFILE admits its shardfile
- * (`source`) and its trusted runtime at `runtime/index.ts` (`index`) through `prepareHybridShard`, with a retained home
+ * from `ctx.product` and its trusted runtime at `runtime/index.ts` (`index`) through `prepareHybridShard`, with a retained home
  * and no declared item icons (`stagesOwner` 'runtime' when that runtime installs every stage itself); LEGACY keeps the
  * supplied native constructor.
  */
-export function firstPartyStandaloneEntry(Native: new () => ShardPlugin, name: string, source: () => Promise<{ readonly default: Shardfile }>,
+export function firstPartyStandaloneEntry(Native: new () => ShardPlugin, name: string,
   index: TrustedRuntimeEntry['load'], stagesOwner?: 'runtime'): ReturnType<typeof standaloneHybridEntry> {
   const admit = (ctx: ShardContext): Promise<ShardPlugin> => prepareStandaloneHybrid(ctx, {
-    name, source, runtime: { entry: 'runtime/index.ts', load: index }, retainHomeRuntime: true,
+    name, runtime: { entry: 'runtime/index.ts', load: index }, retainHomeRuntime: true,
     ...(stagesOwner === undefined ? {} : { stagesOwner }),
   });
   return standaloneHybridEntry(Native, admit, shardfileEntry, name);
 }
 
-/** Explicit first-party source and native entry, with the original home/stage
+/** Explicit first-party bundled entry, with the original home/stage
  * ownership policy. The caller supplies loaders, never a shard-name lookup. */
 export interface StandaloneHybridRows {
   readonly name:string;
-  readonly source:()=>Promise<{readonly default:Shardfile}>;
   readonly runtime:Pick<TrustedRuntimeEntry,'entry'|'load'>;
   readonly retainHomeRuntime?:boolean;
   readonly stagesOwner?:'declared'|'runtime';
@@ -54,11 +52,11 @@ export interface StandaloneHybridRows {
  * injected preparation port preserves trusted fixture/host admission checks. */
 export async function prepareStandaloneHybrid(ctx:ShardContext,rows:StandaloneHybridRows,
   prepare?:typeof PrepareHybrid):Promise<ShardPlugin> {
-  const [{prepareHybridShard},{default:source}]=await Promise.all([import('../shardfile/hybrid'),rows.source()]);
-  return (prepare??prepareHybridShard)(source,{firstParty:true},{residencyContext:ctx,
+  const {prepareHybridShard}=await import('../shardfile/hybrid');
+  return (prepare??prepareHybridShard)(ctx.product,{firstParty:true},{residencyContext:ctx,
     ...(rows.retainHomeRuntime===undefined?{}:{retainHomeRuntime:rows.retainHomeRuntime}),
     ...(rows.stagesOwner===undefined?{}:{stagesOwner:rows.stagesOwner}),
     catalogue:[],items:new Map(),recipes:new Map(),voices:()=>new Map(),
     icon:()=>{throw new Error(`Transitional ${rows.name} has no declared item icon`);},
-  },[{slug:source.identity.slug,...rows.runtime}]);
+  },[{slug:ctx.product.slug,...rows.runtime}]);
 }
