@@ -5966,41 +5966,50 @@ end of W3.
 
 ### Native creature recipe intake
 
-`game/shardfile/homeKeeper.createNativeCreatureRoster` owns baked
-kind/variant and scale lookup, caller-stream spawn draws, native body
-materialization, structure-aware floors, identity-indexed body callbacks
-and saved-recipe reinstallation. Attachment preflight precedes spawn; the
-caller retains poses, herd membership, policies, death/respawn scheduling
-and its existing save envelope. `retarget` reuses a cold recipe slot; it
-creates no actor until `arrive` or `materialize`. `reinstall` restores the
-original adapter placement and structure flag without drawing RNG.
-`adopt(rows, stream, remember)` preflights at most 1,024 unique live body
-identities, optional recipe seeds, finite points and valid checkpoints on
-the owned RNG before calling any memory owner. It restores each declared
-checkpoint in row order, lends the actor and point to `remember`, and
-continues at the final stream. No actor, memory or save owner is replaced.
-Nalati's `runtime/headlessCreatures.ts` adopted-stream boot loop is the
-G441 W3 user of this replay; its callbacks and save envelope stay native.
-`NativeCreatureSlot<A>` names the same mutable identity, variant, herd,
-recipe, scale range and nullable owned actor used by this intake.
-Optional `herds` borrows the existing herd arrays and allocator: attachment
-joins before `joined`. `retire` admits only the exact registered slot,
-detaches its member (bounded to 1,024), retires the native identity, calls
-`retired`, and clears the actor without drawing RNG. `retireDead(id)` skips
-missing or living predecessors. `refill` requires a singleton home herd
-and retires the
-old identity while retaining membership until the caller allocates its
-new ID, clears its old herd, creates its new home herd, then draws and
-arrives with the same recipe object. The caller retains clocks and saves.
+`game/shardfile/homeKeeper.createNativeCreatureRoster(host, rows)` is the
+native creature roster Pine Hollow (`runtime/roster.ts`) and Driftwood Isle
+(`runtime/keeper.ts`) both run on (G454: two real users, data-only rows).
+It owns baked kind/variant and scale lookup, caller-stream spawn draws,
+native body materialization, structure-aware floors, herd membership, the
+hunting brain's adoption and release, pose-roster attachment and
+saved-recipe reinstallation. It calls back into no shard code: every
+function returns the body it made and the shard acts on it (Pine joins its
+list and the King's pose; Driftwood builds an enemy's policy and keeps a
+sailor's hold floor). `NativeRosterRows` holds what differs as data: the
+baked `specs` and their `duplicates` rule (`first` for Pine, `last`
+default), the `variants` scale table, `spawnY`, the optional
+`attackTurnCap` (absent: the body keeps its own), the floor's
+`heightfield` policy, the `hunt` (`createNativeHunt`'s brain on `rng`),
+the `hunted` kinds the brain adopts (`every` for Pine, the fauna for
+Driftwood), the optional platform `poses` roster (attachment preflight
+precedes spawn) and a restoring host's `saved` entities, whose floor flags
+win over a fresh install's sample. `remember(slot)` lets the brain adopt
+a hunted kind at its recipe point, or skips three draws for any other.
+`retarget` reuses a cold recipe slot; it creates no actor until `arrive`
+or `materialize`. `reinstall(slot, saved)` restores the original adapter
+placement and structure flag without drawing RNG; `read(saved, id)` is
+the recipe reader. `adopt(rows, stream)` preflights at most 1,024 unique
+live body identities, optional recipe seeds, finite points and valid
+checkpoints on the owned RNG before any memory is made, restores each
+declared checkpoint in row order into the hunting brain and continues at
+the final stream. `NativeCreatureSlot` names the mutable identity,
+variant, herd, recipe, scale range and nullable owned actor. `retire`
+admits only the exact registered slot, detaches its member (bounded to
+1,024), forgets its memory, retires the native identity and its pose and
+clears the actor without drawing RNG. `retireDead(id)` skips missing or
+living predecessors and returns the retired slot. `refill` requires a
+singleton home herd and retires the old identity while retaining
+membership until the caller allocates its new ID, clears its old herd,
+creates its new home herd, then draws and arrives with the same recipe
+object. Callers keep their spawn rolls, boot order, clocks and saves.
 Nalati `runtime/headlessCreatures.ts#retireBondedHorse` and `retireElite`
 are the G441 W3 retirement match; their hidden/parked flags, continuation
 records and policy cleanup remain caller-owned.
 `creatureFloor` defaults to the existing ground-material heightfield rule;
 its explicit `any` policy treats every heightfield hit as terrain.
 
-G441 pending second user: Nalati's native creature manager will use this
-intake for its pack/elite/bonded spawns and restored roster. The allowance
-is rechecked at the end of W3; it is not an actual second-user claim.
+Nalati's native creature manager is the W3 third user: its
+pack/elite/bonded spawns and restored roster join the same rows.
 
 
 `engine/combat/view/ranged.weaponDisplay(parts, policy)` builds at most 128
