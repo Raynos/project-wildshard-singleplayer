@@ -15,7 +15,7 @@ const ready = v.variant('kind', [
   v.strictObject({ kind: v.literal('over'), radius: positive, height: positive }),
   v.strictObject({ kind: v.literal('band'), tolerance: positive }),
   // The platform supplies the admitted strike's range, rather than duplicating it in a move.
-  v.strictObject({ kind: v.literal('range') }),
+  v.strictObject({ kind: v.literal('range'), strike: v.exactOptional(id) }),
 ]);
 /** Data-only fixed-step motion. Decisions, strike selection, rewards and phase transitions are not moves. */
 export const ActorMoveSchema = v.variant('kind', [
@@ -47,6 +47,7 @@ export function actorMoveRules(rows: readonly ActorMove[], refs: { spots: Readon
   const failures = new Set<string>();
   for (const row of rows) {
     if ((row.kind === 'takeoff' || row.kind === 'perch') && !refs.spots.has(row.perch)) failures.add('move perch resolves in world spots');
+    if (row.kind === 'stalk' && row.ready.kind === 'range' && row.ready.strike !== undefined && !refs.strikes.has(row.ready.strike)) failures.add('move range resolves in actors/strikes');
     if (row.kind === 'dive' && row.strike !== undefined && !refs.strikes.has(row.strike)) failures.add('move strike resolves in actors/strikes');
     if ((row.kind === 'burrow' || row.kind === 'surface') && !refs.fields.has(row.field)) failures.add('move field resolves in declared actor fields');
   }

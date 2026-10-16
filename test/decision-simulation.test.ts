@@ -262,3 +262,23 @@ test('native strike sections reach the existing runner with their world-space ge
     expect(sim.decisions?.host.metrics()[0]?.refusals).toBe(0);
   } finally { sim.dispose(); }
 });
+
+test('multi-strike readiness uses its named strike and takeoff resolves the admitted perch', async () => {
+  const f = fixture(), strike = f.source.rows.strikes[0];
+  if (strike === undefined) throw new Error('Missing range fixture');
+  f.source.rows.strikes.push({ ...strike, id: 'z.unused', range: 0.1 });
+  f.sections.set('actors/moves', parseActorMoves([{ id: 'approach', kind: 'stalk', speed: 1, turn: 2,
+    ground: true, above: 0, standOff: 0, ready: { kind: 'range', strike: 'bump' } }]));
+  const script = f.scripts[0]; if (script === undefined) throw new Error('Missing range script'); script.strikes['unused'] = 'z.unused';
+  const R = await rapier, sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: R });
+  try { for (let i = 0; i < 13; i++) sim.host.step(); expect(sim.decisions?.host.metrics()[0]).toMatchObject({ refusals: 0 }); }
+  finally { sim.dispose(); }
+  const flight = fixture(); const species = flight.source.rows.species[0]; if (species === undefined) throw new Error('Missing flight species');
+  species.flight = { altitude: 1, above: 'world', climbRate: 1, diveRate: 1 };
+  flight.sections.set('actors/moves', parseActorMoves([{ id: 'approach', kind: 'takeoff', speed: 1, turn: 2,
+    ground: false, perch: 'home', altitude: 3, seconds: 1, bank: 0.3 }]));
+  flight.sections.set('world/targets', { targets: [], spots: [{ id: 'home', at: [0, 1, 5], yaw: 0 }] });
+  const flying = createShardfileSim(flight.source, flight.assets, { ...flight.options, rapier: R });
+  try { for (let i = 0; i < 13; i++) flying.host.step(); expect(flying.decisions?.host.metrics()[0]).toMatchObject({ refusals: 0 }); }
+  finally { flying.dispose(); }
+});

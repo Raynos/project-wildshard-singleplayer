@@ -14,6 +14,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { parseShardfile } from '../src/format/shardSchema';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
+import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import template from '../src/shards/_template/shard.config';
@@ -40,13 +41,13 @@ beforeAll(() => {
 }, 120_000);
 
 // Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
-for (const [slug, input, trusted] of cases) it(`${slug}: boots and advances a living headless simulation`, async () => {
-  const source = parseShardfile(input);
-  const assets = new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/${slug}/assets/${file.hash}`))]));
-  for (const hash of source.requires.commons) assets.set(`commons:${hash}`, Uint8Array.from(readFileSync(`public/commons/${hash}`)));
-  const product = await loadHeadlessProduct(`out/${slug}`);
+for (const [slug, _input, trusted] of cases) it(`${slug}: boots and advances a living headless simulation`, async () => {
+  const product = await loadHeadlessProduct(`out/${slug}`), source = product.shardfile;
+  const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
+  const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
+    Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
-    ...(product.has('sim/runtime-plan') ? { sections: productHeadlessSections(product) } : {}),
+    sections: productHeadlessSections(product),
     ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : (existsSync(`src/shards/${slug}/sim/headless.ts`) ? `src/shards/${slug}/sim/headless.ts` : `src/shards/${slug}/runtime/headless.ts`))).href } } : {}) });
   try {
     const first = decodeSimSnapshot((await sim.step()).snapshot);

@@ -8,7 +8,6 @@ import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, Fi
 import { SHARDFILE_VERSION } from './version';
 import { isJsonData } from './json';
 import { PLATFORM_DATA_SECTIONS } from './platformDataSections';
-import { CreatureStrikeSchema } from './creatures';
 import type { PlatformSectionName } from './sections';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
@@ -72,7 +71,7 @@ const OUTPUT_SECTION_FIELDS = [
 ] as const satisfies readonly SectionMapping[];
 /** Existing host-field envelopes, plus independently authored platform schemas. */
 export const OUTPUT_SECTIONS:readonly SectionMapping[]=OUTPUT_SECTION_FIELDS;
-const OUTPUT_DATA_SECTIONS={...PLATFORM_DATA_SECTIONS,'actors/strikes':{schema:v.array(CreatureStrikeSchema)}} as const;
+const OUTPUT_DATA_SECTIONS=PLATFORM_DATA_SECTIONS;
 /** Compile-time coverage is checked against the public platform-section registry. */
 export type OutputPlatformSectionName=(typeof OUTPUT_SECTION_FIELDS)[number]['name']|keyof typeof OUTPUT_DATA_SECTIONS;
 /** Detect the explicit disk envelope, including unsupported versions that must refuse. */

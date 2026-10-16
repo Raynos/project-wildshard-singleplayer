@@ -4,6 +4,7 @@ import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/
 import { buildDecisionRegistries, decisionBindingMap, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
 import { parseActorMoves, actorMoveRules, type ActorMove } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
+import { parseWorldTargets, worldTargetSpots } from '@wildshard/format/worldTargets';
 import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Event, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -71,6 +72,7 @@ export class ShardDecisions {
   private readonly source: Shardfile;
   private readonly rows: readonly DecisionScriptRow[];
   private readonly moves: readonly ActorMove[];
+  private readonly spots: ReturnType<typeof worldTargetSpots>;
   private readonly actors: ReadonlyMap<number, string>;
   private readonly names: ReadonlyMap<string, number>;
   private readonly enabled = new Map<number, boolean>();
@@ -98,13 +100,15 @@ export class ShardDecisions {
     this.rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
     this.moves = parseActorMoves(sections.get('actors/moves') ?? []);
     const nativeStrikes = readCreatureStrikes(sections.get('actors/strikes') ?? []);
-    this.registries = buildDecisionRegistries(source, this.moves, undefined, nativeStrikes);
+    const targets = sections.has('world/targets') ? parseWorldTargets(sections.get('world/targets')) : undefined;
+    this.spots = targets === undefined ? new Map() : worldTargetSpots(targets);
+    this.registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes);
     this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
     this.strikes = new Map(simStrikes(source.rows));
     for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
     const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
     if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
-    this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, actors: [...this.names], state: source.state,
+    this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, ...(this.spots.size === 0 ? {} : { spots: [...this.spots] }), actors: [...this.names], state: source.state,
       ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
       strikes: source.rows.strikes, ...(nativeStrikes.length === 0 ? {} : { nativeStrikes }), quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
     const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>(), bodies = new Set<AnimalSim>();
@@ -251,7 +255,9 @@ export class ShardDecisions {
     if (body !== undefined && this.sim.borrowedActors?.has(requireValue(this.actors.get(actor), 'field actor')) === true)
       body.mem[requireValue(this.source.state.shared.find(row => row.id === field), 'public field').name] = value;
   }
-  private moveStrike(actor: number, binding: number) {
+  private moveStrike(actor: number, binding: number, move?: ActorMove) {
+    if (move?.kind === 'stalk' && move.ready.kind === 'range' && move.ready.strike !== undefined)
+      return requireValue(this.strikes.get(move.ready.strike), 'range move strike');
     const active = this.striking.get(actor)?.strike;
     if (active !== undefined) return this.strikes.get(this.name('strikes', active));
     const name = this.actors.get(actor), initial = this.source.creatures.spawns.find(row => row.id === name)?.strike;
@@ -274,7 +280,7 @@ export class ShardDecisions {
         if (op === 1) {
           const row = requireValue(this.moves.find(value => value.id === this.name('moves', a)), 'move');
           if (('ground' in row && !row.ground && !actor.flying) || ((row.kind === 'stalk' || row.kind === 'dive' || row.kind === 'takeoff' || row.kind === 'ring-run') && b === 0)) throw new Error('Decision move body/target');
-          if (row.kind === 'stalk' && row.ready.kind === 'range' && this.moveStrike(target, context.binding.id) === undefined) throw new Error('Decision range move needs an unambiguous admitted strike');
+          if (row.kind === 'stalk' && row.ready.kind === 'range' && this.moveStrike(target, context.binding.id, row) === undefined) throw new Error('Decision range move needs an unambiguous admitted strike');
           if (row.kind === 'burrow' || row.kind === 'surface') {
             const field = requireValue(this.source.state.shared.find(value => value.name === row.field && value.type === 'f64' && value.privacy === 'public'), 'move field');
             this.validateField(field.id, 0); this.validateField(field.id, 1);
@@ -337,10 +343,12 @@ export class ShardDecisions {
   private stepMoves(): void {
     for (const [handle, motion] of this.motions) {
       const actor = this.actor(handle); if (actor === undefined || !actor.alive) { this.stop(handle, true); continue; }
-      const target = motion.target === 0 ? undefined : this.position(motion.target), strike = this.moveStrike(handle, motion.binding);
+      const target = motion.target === 0 ? undefined : this.position(motion.target);
       const row = requireValue(this.moves.find(value => value.id === this.name('moves', motion.move)), 'move');
+      const strike = this.moveStrike(handle, motion.binding, row);
+      const perch = row.kind === 'takeoff' || row.kind === 'perch' ? requireValue(this.spots.get(row.perch), 'move perch') : undefined;
       const field = row.kind === 'burrow' || row.kind === 'surface' ? this.registries.fields?.get(row.field) : undefined;
-      const result = motion.runner.step({ body: actor, ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
+      const result = motion.runner.step({ body: actor, ...(perch === undefined ? {} : { perch }), ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
         ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }) });
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
       if (result.field !== undefined) { const id = requireValue(this.registries.fields?.get(result.field.id), 'move field'); this.writeField(handle, id, result.field.value); }

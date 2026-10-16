@@ -1,6 +1,5 @@
-import type * as v from 'valibot';
 import type { Shardfile } from './shardSchema';
-import type { CreatureStrikeSchema } from './creatures';
+import type { CreatureStrikes } from './creatures';
 import type { ActorMoves } from './actorMoves';
 import type { DecisionScriptRow } from './decisionScripts';
 import type { WorldPhysics } from './worldPhysics';
@@ -51,7 +50,7 @@ export interface PlatformSections {
   'actors/species': { readonly rows: Pick<Rows, 'species'> };
   'actors/spawns': { readonly runtime: { readonly spawns: Spawns } };
   /** new (P2b): the creature strike table species programs name by id (Sky's Roc rows), `CreatureStrikeSchema` rows */
-  'actors/strikes': readonly v.InferOutput<typeof CreatureStrikeSchema>[];
+  'actors/strikes': Readonly<CreatureStrikes>;
   'combat/items': Pick<Shardfile, 'items'>;
   'combat/encounters': Pick<Shardfile, 'encounters'>;
   'combat/strikes': { readonly rows: Pick<Rows, 'strikes'> };
