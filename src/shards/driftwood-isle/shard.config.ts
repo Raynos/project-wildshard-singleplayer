@@ -16,6 +16,7 @@ import { ENTRY_LANDINGS } from './data/entryLandings';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import fixed from './data/fixedTiles.generated.json' with { type: 'json' };
 import lookGraphs from './data/lookMaterials.generated.json' with { type: 'json' };
+import skyChannels from './data/skyChannels.generated.json' with { type: 'json' };
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
 // SF46 edges (G93 / G99 / G164): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand on
@@ -47,12 +48,13 @@ export default parseShardfile({
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures, the baked cove's terrain and props;
-  // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts);
+  // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts; its frame is the `driftwood.sky` channel group);
   // the faceted ground and its slab, and the low-poly kit's variants (compiled by the look's prepareWorld before the ground builds, look/terrainPainter.ts)
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/index.ts)
   // W2c: every graph arrives as build-time JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
-  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot'], spawns: DRIFTWOOD_SPAWNS },
+  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
+  clientChannels: skyChannels.clientChannels,
   quests: DRIFTWOOD_QUESTS, questHost: QUEST_HOST, questNpcs: QUEST_NPCS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: AUDIO.audio, modes: DRIFTWOOD_MODES,

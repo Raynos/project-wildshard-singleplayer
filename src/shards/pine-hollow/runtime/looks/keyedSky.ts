@@ -43,8 +43,6 @@ function skyKeyFiles(style: KeyedSkyStyle, key: SkyKeyRow): { color: string; gai
 
 const SHADOW_STEP = 0.25 * Math.PI / 180;
 const tmpC = new THREE.Color();
-/** components into `out` (a param setter copies them: nothing allocated a frame) */
-function put(out: number[], a: number, b: number, c = 0): number[] { out[0] = a; out[1] = b; if (out.length > 2) out[2] = c; return out; }
 
 /** one decoded key: its GPU texture (CPU copy dropped after upload) and its horizon colour */
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number; /** GPU bytes (RGBA16F 8 a texel, RGB9_E5 4) */ bytes: number }
@@ -74,11 +72,8 @@ export interface KeyedSkyOptions {
   readonly smallEnv: boolean;
 }
 
-/** The sky's two graphs' setters (the dome's and the environment pass's), both params by name. */
-interface KeyedSkyGraphs {
-  readonly set: (name: string, value: number | number[]) => void;
-  readonly lend: (name: string, texture: THREE.Texture) => void;
-}
+/** The sky's two graphs' texture lender (the dome's and the environment pass's); their params are the `pine.sky` channels. */
+interface KeyedSkyGraphs { readonly lend: (name: string, texture: THREE.Texture) => void }
 
 export class KeyedSky {
   readonly clock: DayCycle<SkyPreset>;
@@ -100,12 +95,14 @@ export class KeyedSky {
   readonly envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   readonly envEquirect: THREE.WebGLRenderTarget;
   private readonly style: KeyedSkyStyle;
-  /** the two keys the graphs blend and their params (`push` sets both graphs) */
-  private readonly u = {
-    tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null }, mix: 0,
-    rotA: new THREE.Vector2(1, 0), rotB: new THREE.Vector2(1, 0), gainA: 1, gainB: 1, lightDir: new THREE.Vector3(0, 1, 0), glow: new THREE.Color(), grey: 0, flat: new THREE.Color(),
-  };
-  private cur: SkyPreset;
+  /** the two keys the graphs blend */
+  private readonly u = { tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null } };
+  /** the keys' blend, turns (radians) and gains and the deck: the `pine.sky` channels' numeric owner (generators/skyChannels.ts
+   *  turns them, the glow, the grey and the flat colour into both graphs' params) */
+  readonly keys = { mix: 0, turnA: 0, turnB: 0, gainA: 1, gainB: 1, overcast: 0 };
+  /** the blended preset (the channels read its glow) and the fog colour (their flat colour) */
+  cur: SkyPreset;
+  readonly fog: { readonly color: THREE.Color };
   private sun = new THREE.Vector3();
   private moon = new THREE.Vector3();
   private fogCol = new THREE.Color();
@@ -122,7 +119,7 @@ export class KeyedSky {
   private readonly opts: KeyedSkyOptions;
   private readonly graphs: KeyedSkyGraphs;
 
-  constructor(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, materials: { readonly dome: THREE.Material; readonly env: THREE.Material }, graphs: KeyedSkyGraphs) {
+  constructor(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, dome: THREE.Mesh, env: THREE.Material, graphs: KeyedSkyGraphs) {
     const style = day.style;
     this.day = day; this.renderer = renderer; this.scene = scene; this.opts = opts; this.graphs = graphs;
     this.style = style;
@@ -131,14 +128,9 @@ export class KeyedSky {
     const first = day.presets[style.frames[0]?.[1] ?? ''];
     if (first === undefined) throw new Error('keyed sky: no keyframes');
     this.cur = day.clone(first);
-    const [radius, wSeg, hSeg] = [style.dome.radius, style.dome.segments[0], style.dome.segments[1]];
-    // both graphs drawn as the GLSL programs were: no depth, untouched by the material's tone map (the post chain grades it)
-    materials.dome.depthTest = false; materials.dome.toneMapped = false; materials.dome.side = THREE.BackSide;
-    materials.env.depthTest = false; materials.env.toneMapped = false;
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(radius, wSeg, hSeg), materials.dome);
-    dome.name = style.dome.name;
-    dome.frustumCulled = false;
-    dome.renderOrder = -1000; // first of the opaque pass, depth untouched: everything draws over it
+    this.fog = { color: this.fogCol };
+    // the environment graph drawn as the GLSL program was: no depth, untouched by the material's tone map (the post chain grades it)
+    env.depthTest = false; env.toneMapped = false;
     this.dome = dome;
     // the environment pass: the same sky, one texel per direction of a 1024×512 equirect (PMREM's cube is a quarter of its
     // width: 256); `smallEnv`: 512×256 → a 128 cube, PMREM's three cube-UV targets 768×1024 → 384×512 RGBA16F (~−16.5 MB)
@@ -147,7 +139,7 @@ export class KeyedSky {
     this.envEquirect.texture.mapping = THREE.EquirectangularReflectionMapping;
     const tri = new THREE.BufferGeometry();
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
-    const quad = new THREE.Mesh(tri, materials.env);
+    const quad = new THREE.Mesh(tri, env);
     quad.frustumCulled = false;
     this.envScene.add(quad);
   }
@@ -245,22 +237,9 @@ export class KeyedSky {
     }
   }
 
-  /** the rotation that puts key k's sun glow on the direction `body` */
-  private rot(k: string, body: THREE.Vector3, out: THREE.Vector2): void {
-    const thKey = (this.keyRow(k).sunU - 0.5) * 2 * Math.PI, thBody = Math.atan2(body.z, body.x);
-    const a = thKey - thBody;
-    out.set(Math.cos(a), Math.sin(a));
-  }
-
-  private readonly v2 = [0, 0];
-  private readonly v3 = [0, 0, 0];
-  /** the keys and every param into both sky graphs (uniforms and sampled textures only: no program change) */
-  private push(): void {
-    const { u, graphs: g, v2, v3 } = this, tA = u.tA.value, tB = u.tB.value;
-    if (tA !== null && tB !== null) { g.lend('keyA', tA); g.lend('keyB', tB); }
-    g.set('mix', u.mix); g.set('rotA', put(v2, u.rotA.x, u.rotA.y)); g.set('rotB', put(v2, u.rotB.x, u.rotB.y));
-    g.set('gainA', u.gainA); g.set('gainB', u.gainB); g.set('lightDir', put(v3, u.lightDir.x, u.lightDir.y, u.lightDir.z));
-    g.set('glow', put(v3, u.glow.r, u.glow.g, u.glow.b)); g.set('grey', u.grey); g.set('flat', put(v3, u.flat.r, u.flat.g, u.flat.b));
+  /** the turn (radians) that puts key k's sun glow on the direction `body` */
+  private rot(k: string, body: THREE.Vector3): number {
+    return (this.keyRow(k).sunU - 0.5) * 2 * Math.PI - Math.atan2(body.z, body.x);
   }
 
   /** `snap`: move the shadow light to the exact phase now (boot, a Time of day pick), not in SHADOW_STEP steps */
@@ -282,14 +261,17 @@ export class KeyedSky {
     if (ra) ra.used = this.frame;
     if (rb) rb.used = this.frame;
     const A = ra ?? rb, B = rb ?? ra;
+    const k = this.keys;
+    k.overcast = ov;
     if (A && B) {
       this.u.tA.value = A.tex; this.u.tB.value = B.tex;
-      this.u.mix = ra && rb ? t : 0;
-      this.rot(ra ? a[1].key : b[1].key, glowBody(ra ? a[1].key : b[1].key), this.u.rotA);
-      this.rot(rb ? b[1].key : a[1].key, glowBody(rb ? b[1].key : a[1].key), this.u.rotB);
+      this.graphs.lend('keyA', A.tex); this.graphs.lend('keyB', B.tex);
+      k.mix = ra && rb ? t : 0;
+      k.turnA = this.rot(ra ? a[1].key : b[1].key, glowBody(ra ? a[1].key : b[1].key));
+      k.turnB = this.rot(rb ? b[1].key : a[1].key, glowBody(rb ? b[1].key : a[1].key));
       const dim = 1 - 0.5 * ov; // the deck: the sky's brightness under it
-      this.u.gainA = (ra ? a[1].bg : b[1].bg) * dim; this.u.gainB = (rb ? b[1].bg : a[1].bg) * dim;
-      this.fogCol.copy(A.horizon).multiplyScalar(this.u.gainA).lerp(tmpC.copy(B.horizon).multiplyScalar(this.u.gainB), this.u.mix);
+      k.gainA = (ra ? a[1].bg : b[1].bg) * dim; k.gainB = (rb ? b[1].bg : a[1].bg) * dim;
+      this.fogCol.copy(A.horizon).multiplyScalar(k.gainA).lerp(tmpC.copy(B.horizon).multiplyScalar(k.gainB), k.mix);
       const m = Math.max(this.fogCol.r, this.fogCol.g, this.fogCol.b, 1e-3);
       if (m > 1.1) this.fogCol.multiplyScalar(1.1 / m);
       if (ov > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 0.92; this.fogCol.lerp(tmpC.setRGB(g * 0.95, g * 0.98, g * 1.03), ov * 0.85); }
@@ -297,10 +279,8 @@ export class KeyedSky {
       if (mist > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 1.08; this.fogCol.lerp(tmpC.setRGB(g * 0.96, g, g * 1.05), mist * 0.6); }
       // the look loop's sky (by day): the dome — and so the IBL rendered from it — × look.sky; the fog colour above stays
       const skyK = 1 + (this.look.sky - 1) * (1 - day0.nightAt(p));
-      this.u.gainA *= skyK; this.u.gainB *= skyK;
+      k.gainA *= skyK; k.gainB *= skyK;
     }
-    this.u.grey = 0.92 * ov;
-    this.u.flat.copy(this.fogCol).multiplyScalar(1.05);
     if (!ra || !rb) void Promise.all([this.ensure(a[1].key), this.ensure(b[1].key)]);
     // decode the key after this segment ahead of time (its upload lands mid-segment, not on the transition)
     const [, next] = this.segment((b[0] + 0.0005) % 1);
@@ -312,9 +292,6 @@ export class KeyedSky {
     this.dusk = Math.max(this.night, 1 - THREE.MathUtils.smoothstep(this.sun.y, this.style.dusk[0], this.style.dusk[1]));
     this.dawn = day0.dawnAt(p);
     this.lamps = Math.max(C.lamps, this.night);
-    this.u.lightDir.copy(day || this.night < 0.5 ? this.sun : this.moon);
-    this.u.glow.copy(C.glow).multiplyScalar((day ? THREE.MathUtils.smoothstep(this.sun.y, -0.08, 0.02) : 1) * (1 - ov));
-    this.push();
     if (!T) return;
     const fade = driveDayLight(T, day0, p, this.sun, this.moon, C, 1, SHADOW_STEP, snap);
     // the shadow's depth: full by day, the style's `nightShadow` by night (a uniform: no program changes; ≤ 4 cascades)
@@ -367,18 +344,20 @@ export function keyedSkyOf(sky: SkyRig): KeyedSky | null { return skies.get(sky)
  * half-size environment.
  */
 export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean, looks: { readonly source: Parameters<typeof graphDaySkyBackdrop>[0]['source']; readonly dome: string; readonly env: string }): SkyBackdropFactory {
-  return graphDaySkyBackdrop({ name: 'keyed sky', source: looks.source, ids: [looks.dome, looks.env], build: async (context, g: DaySkyGraphs): Promise<DaySkyBody<SkyPreset>> => {
+  const dome = day.style.dome;
+  // the dome first of the opaque pass, depth untouched: everything draws over it
+  return graphDaySkyBackdrop({ name: 'keyed sky', source: looks.source, ids: [looks.dome, looks.env], dome: { graph: looks.dome, radius: dome.radius, segments: dome.segments, order: -1000, name: dome.name }, channels: 'pine.sky', build: async (context, g: DaySkyGraphs, mesh): Promise<DaySkyBody<SkyPreset>> => {
     const { sky, scene, renderer, level, tier, look } = context;
     const opts: KeyedSkyOptions = { envSteps: level.tiers?.[tier]?.envSteps === true, packKeys: memoryTrim(), smallEnv: tier === 'phone' && memoryTrim() };
-    const keyed = new KeyedSky(day, renderer, scene, opts, { dome: g.material(looks.dome), env: g.material(looks.env) }, {
-      set: (name, value) => { g.setParam(looks.dome, name, value); g.setParam(looks.env, name, value); },
+    const keyed = new KeyedSky(day, renderer, scene, opts, mesh, g.material(looks.env), {
       lend: (name, texture) => { g.setTexture(looks.dome, name, texture); g.setTexture(looks.env, name, texture); } });
     await keyed.prepare();
     skies.set(sky, keyed);
     if (look) Object.assign(keyed.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
     day.sunAt(keyed.phase, sky.sunDir);
     return {
-      clock: keyed.clock, dome: keyed.dome, follow: true, horizon: new THREE.Color(...level.sky.fogSunColor),
+      clock: keyed.clock, follow: true, horizon: new THREE.Color(...level.sky.fogSunColor),
+      owners: new Map<string, unknown>([['keys', keyed.keys], ['preset', keyed.cur], ['fog', keyed.fog]]),
       // the 2-second IBL refresh, with `envSteps` one PMREM level a frame (E142, the 30-fps-at-2× lane); a jump refreshes whole
       environment: { source: { kind: 'equirect', scene: keyed.envScene, camera: keyed.envCam, target: keyed.envEquirect }, refresh: { every: 2, stepped: opts.envSteps, ready: () => keyed.ready } },
       drive: (T, post, snap) => { keyed.drive(T, post, snap); },

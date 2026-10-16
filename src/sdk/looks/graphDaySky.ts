@@ -4,7 +4,9 @@ import type { OffscreenPass, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory
 import { prepareOffscreenBuild } from '@wildshard/engine/render/offscreenBuild';
 import { SkyEnvironment, type SkyEnvironmentRefresh, type SkyEnvironmentSource } from '@wildshard/engine/render/skyEnvironment';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
+import { parseClientChannels } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
 
 /**
@@ -18,11 +20,21 @@ import * as THREE from 'three';
  * the environment), keeps the dome on the camera when asked, and frees the dome, the environment pass and the environment
  * when the backdrop leaves (a grid region's layered sky, G223), reporting their GPU bytes.
  *
- * THE SHARD builds its sky from the compiled graphs (`build`): its dome, its environment source, its running clock
- * (`runDayClock`), its frame (`drive`: every knob the clock turns, from `bind` on, `snap` at a jump) and whatever it holds
+ * THE DOME is a row (`dome`: its graph, radius and segments, draw order): one back-faced sphere, no depth test, untouched by
+ * the material's tone map (the post chain grades it), built by the host and handed to `build`.
+ *
+ * THE CHANNELS (`channels`, H4): the shard's declared numeric channel group (`clientChannels` rows,
+ * `@wildshard/game/plugin/channelPrograms`) is the sky's frame as data. From `bind` on, after the shard's `drive`, the host
+ * fills the `clock` owner (`phase`, `day` 1 / 0, `night`, `sunX…Z`, `moonX…Z`), evaluates the group over it, the shard's
+ * own numeric owners (`owners`: its blended preset, its uniforms) and the backdrop's targets (`sky.fog` `{ color }`,
+ * `sky.fogSun`, `sky.disc` (its transform), `sky.discColour` `{ color }`, `sky.planetSun`, `sky.planetHaze`), then pushes
+ * every graph param an output names (target = a sky graph id, path `[param]` or `[param, x|y|z|w]`) through `setParam`.
+ *
+ * THE SHARD builds its sky from the compiled graphs and the dome (`build`): its environment source, its running clock
+ * (`runDayClock`), its frame (`drive`: what the channels don't turn, from `bind` on, `snap` at a jump) and whatever it holds
  * beyond them (decoded keys: `prepare`, `bytes`, `ceiling`, `rebuild`, `dispose`). Nothing here knows a shard or its sky.
  *
- *   backdrop: graphDaySkyBackdrop({ name, source, ids: [dome, env], build: async (context, graphs) => ({ clock, dome, … }) })
+ *   backdrop: graphDaySkyBackdrop({ name, source, ids: [dome, env], dome: { graph, radius, segments, order }, channels, build })
  */
 
 /** A day sky's compiled graphs: a material by look.materials id, and the checked param / texture setters. */
@@ -44,8 +56,8 @@ export interface DaySkyEnvironment {
 export interface DaySkyBody<K> {
   /** its running clock (`runDayClock`): the host sets its `onSet` */
   readonly clock: DayCycle<K>;
-  /** its dome, added to the scene and freed with the backdrop */
-  readonly dome: THREE.Mesh;
+  /** the numeric owners the channel group reads and writes beyond the clock, the graphs and the targets */
+  readonly owners?: ReadonlyMap<string, unknown>;
   /** true: the host keeps the dome on the camera; false: Game does (it is handed over as the backdrop's `clouds`) */
   readonly follow: boolean;
   readonly environment: DaySkyEnvironment;
@@ -78,7 +90,43 @@ export interface GraphDaySkySpec<K> {
   /** the shard's declaration, and the look.materials ids of the sky's graphs */
   readonly source: Parameters<typeof lookGraphMaterials>[2];
   readonly ids: readonly string[];
-  readonly build: (context: SkyBackdropContext, graphs: DaySkyGraphs) => Promise<DaySkyBody<K>>;
+  /** the dome: one of `ids`, a back-faced sphere of this radius and [width, height] segments, drawn at `order` */
+  readonly dome: { readonly graph: string; readonly radius: number; readonly segments: readonly [number, number]; readonly order: number; readonly name?: string };
+  /** the declared numeric channel group the sky's frame runs on (see the module comment) */
+  readonly channels?: string;
+  readonly build: (context: SkyBackdropContext, graphs: DaySkyGraphs, dome: THREE.Mesh) => Promise<DaySkyBody<K>>;
+}
+
+/** the clock as numeric owner fields (filled each frame) */
+interface ClockOwner { phase: number; day: number; night: number; sunX: number; sunY: number; sunZ: number; moonX: number; moonY: number; moonZ: number }
+const AXES = ['x', 'y', 'z', 'w'];
+
+/** A plain numeric root per sky graph param the group's outputs name, and the push that moves them into the graphs. */
+function graphParamRoots(rows: unknown, group: string, ids: readonly string[]): { roots: Map<string, Record<string, number | Record<string, number>>>; push: (set: DaySkyGraphs['setParam']) => void } {
+  const roots = new Map<string, Record<string, number | Record<string, number>>>(), sizes = new Map<string, Map<string, number>>();
+  for (const row of parseClientChannels(rows)) for (const out of row.numeric?.group === group ? row.numeric.outputs : []) {
+    const [param, axis] = out.path;
+    if (!ids.includes(out.target) || param === undefined) continue;
+    const root = roots.get(out.target) ?? {}, size = sizes.get(out.target) ?? new Map<string, number>();
+    roots.set(out.target, root); sizes.set(out.target, size);
+    if (axis === undefined) { root[param] = 0; size.set(param, 0); continue; }
+    const at = AXES.indexOf(axis);
+    if (at === -1) throw new Error(`graph day sky: ${out.target}.${param} has no axis ${axis}`);
+    const vec = root[param], parts = typeof vec === 'object' ? vec : {};
+    parts[axis] = 0; root[param] = parts;
+    size.set(param, Math.max(size.get(param) ?? 0, at + 1));
+  }
+  const pushes: ((set: DaySkyGraphs['setParam']) => void)[] = [];
+  for (const [id, root] of roots) for (const [param, size] of sizes.get(id) ?? []) {
+    const out = Array.from({ length: size }, () => 0);
+    pushes.push((set) => {
+      const v = root[param];
+      if (typeof v === 'number') { set(id, param, v); return; }
+      for (let i = 0; i < size; i++) out[i] = v?.[AXES[i] ?? 'x'] ?? 0;
+      set(id, param, out);
+    });
+  }
+  return { roots, push: (set) => { for (const push of pushes) push(set); } };
 }
 
 /** free a mesh's geometry and material(s) */
@@ -87,6 +135,14 @@ function freeMesh(o: THREE.Object3D): void {
   const geometry: unknown = o.geometry, material: unknown = o.material, list: unknown[] = Array.isArray(material) ? material : [material];
   if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
   for (const m of list) if (m instanceof THREE.Material) m.dispose();
+}
+
+/** A scene holding a copy of the dome at the origin (its geometry and material shared), for a `kind: 'scene'` environment:
+ *  the node handler keeps the main and environment programs' uniforms paired. The host frees it with the backdrop. */
+export function domeEnvironmentScene(dome: THREE.Mesh): THREE.Scene {
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(dome.geometry, dome.material));
+  return scene;
 }
 
 /** A shard's graph day sky as a sky backdrop (see the module comment). */
@@ -99,7 +155,12 @@ export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFac
       if (m === undefined) throw new Error(`${spec.name}: look.materials lacks the sky graph ${id}`);
       return m;
     } };
-    const body = await spec.build(context, graphs), { clock, dome, environment } = body, source = environment.source;
+    const domeRow = spec.dome, domeMaterial = graphs.material(domeRow.graph);
+    domeMaterial.side = THREE.BackSide; domeMaterial.depthTest = false; domeMaterial.toneMapped = false;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(domeRow.radius, domeRow.segments[0], domeRow.segments[1]), domeMaterial);
+    dome.frustumCulled = false; dome.renderOrder = domeRow.order;
+    if (domeRow.name !== undefined) dome.name = domeRow.name;
+    const body = await spec.build(context, graphs, dome), { clock, environment } = body, source = environment.source;
     scene.background = null;
     scene.add(dome);
     const env = new SkyEnvironment(renderer, scene, source, environment.refresh);
@@ -114,7 +175,29 @@ export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFac
       } catch (error) { prepared.generator?.dispose(); throw error; }
     }
     let targets: SkyBackdropTargets | null = null, post: SkyBackdropPost | null = null;
-    const drive = (snap: boolean): void => { body.drive(targets, post, snap); };
+    const group = spec.channels, params = group === undefined ? null : graphParamRoots(spec.source.clientChannels, group, spec.ids);
+    const clockOwner: ClockOwner = { phase: 0, day: 0, night: 0, sunX: 0, sunY: 0, sunZ: 0, moonX: 0, moonY: 0, moonZ: 0 };
+    const sun = new THREE.Vector3(), moon = new THREE.Vector3();
+    let channels: ReturnType<typeof installChannelPrograms> | null = null;
+    const bindChannels = (T: SkyBackdropTargets): void => {
+      if (group === undefined || params === null) return;
+      const disc: unknown = T.disc.material, discColour = disc instanceof THREE.MeshBasicMaterial ? { color: disc.color } : null;
+      channels = installChannelPrograms(spec.source.clientChannels, group, new Map<string, unknown>([
+        ['clock', clockOwner], ...params.roots, ...(body.owners ?? []),
+        ['sky.fog', { color: T.fog.color }], ['sky.fogSun', T.fogU.fogSunColor], ['sky.disc', T.disc], ['sky.discColour', discColour],
+        ['sky.planetSun', T.planet.uSunDir], ['sky.planetHaze', T.planet.uHaze],
+      ]));
+    };
+    const drive = (snap: boolean): void => {
+      body.drive(targets, post, snap);
+      if (channels === null || params === null) return;
+      const c = clockOwner;
+      clock.sunAt(sun); clock.moonAt(moon);
+      c.phase = clock.phase; c.day = clock.body === 'sun' ? 1 : 0; c.night = clock.night;
+      c.sunX = sun.x; c.sunY = sun.y; c.sunZ = sun.z; c.moonX = moon.x; c.moonY = moon.y; c.moonZ = moon.z;
+      channels.evaluate({ time: 0, delta: 0, values: {} });
+      params.push(graphs.setParam);
+    };
     clock.onSet = async () => { await body.prepare?.(); drive(true); env.refresh(); };
     const pass: OffscreenPass | undefined = source.kind === 'equirect' ? { scene: source.scene, camera: source.camera, target: source.target } : undefined;
     return {
@@ -122,7 +205,7 @@ export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFac
       ...(body.follow ? {} : { clouds: dome }),
       ...(pass === undefined ? {} : { environmentPass: pass }),
       bind: (T) => {
-        targets = T; body.bound?.(T); drive(true);
+        targets = T; body.bound?.(T); bindChannels(T); drive(true);
         if (environment.offscreenFirst !== true) env.refresh(); // an offscreen first build is already the sky of the hour
       },
       update: (dt, camera) => {

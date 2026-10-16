@@ -80,3 +80,35 @@ export class ClientChannels {
     if (result === undefined) throw new Error('Missing client channel program'); return result;
   }
 }
+
+/** One numeric output of a group: a private root's field (`[field]` or `[field, axis]`) and the expression that fills it,
+ *  reading owner fields by path (`read(owner, path)` declares the input binding). */
+export interface NumericChannelOutput {
+  readonly target: string;
+  readonly path: readonly [string] | readonly [string, string];
+  readonly expr: (b: ClientChannels, read: (owner: string, path: readonly (string | number)[]) => number) => number;
+}
+const NUMERIC_PROPERTIES: readonly ClientChannelProperty[] = ['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 'scaleY', 'scaleZ', 'value', 'turn', 'visible'];
+/** A numeric group's outputs as programs of at most twelve channels each (`<prefix>.<n>`), every read a declared owner
+ *  path: build-time authoring for `@wildshard/game/plugin/channelPrograms` (a sky's frame, a weather's look). */
+export function numericChannelPrograms(prefix: string, group: string, outputs: readonly NumericChannelOutput[]): ClientChannelProgram[] {
+  const programs: ClientChannelProgram[] = [];
+  for (let at = 0; at < outputs.length; at += NUMERIC_PROPERTIES.length) {
+    const b = new ClientChannels(`${prefix}.${String(programs.length)}`), inputs = new Map<string, { input: string; owner: string; path: (string | number)[] }>();
+    const read = (owner: string, path: readonly (string | number)[]): number => {
+      const input = [owner, ...path].join('.');
+      inputs.set(input, { input, owner, path: [...path] });
+      return b.read(input);
+    };
+    const rows = outputs.slice(at, at + NUMERIC_PROPERTIES.length).map((out, i) => {
+      const property = NUMERIC_PROPERTIES[i];
+      if (property === undefined) throw new Error('numeric channel property overflow');
+      b.output(property, out.expr(b, read));
+      return { property, target: out.target, path: [...out.path] };
+    });
+    const program = parseClientChannels([{ ...b.build(), numeric: { group, outputs: rows, inputs: [...inputs.values()], restoreOnly: [] } }])[0];
+    if (program === undefined) throw new Error('Missing numeric channel program');
+    programs.push(program);
+  }
+  return programs;
+}

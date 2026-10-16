@@ -2239,9 +2239,18 @@ the sky's graphs (`spec.ids` from `spec.source`'s look catalogue, `DaySkyGraphs`
 adds the dome, owns the image-based light (`SkyEnvironment`; a scene source may build its first PMREM offscreen), runs
 the clock's jumps (`onSet`: `prepare`, then a snapped `drive` and a whole refresh), keeps the dome on the camera
 (`follow`) or hands it to Game as `clouds`, and frees the dome, the environment pass and the environment on dispose with
-their GPU bytes. The shard's `build(context, graphs)` returns a `DaySkyBody`: its dome, environment source, running clock
-(`runDayClock`) and frame (`drive(targets, post, snap)`), plus what it holds beyond them. Pine Hollow's keyed sky
-(`runtime/looks/keyedSky.ts`) and Driftwood's faceted day (`runtime/looks/facetedDayBackdrop.ts`) are its users.
+their GPU bytes. The dome is a row (`spec.dome`: its graph, radius, segments, draw order, name): the host builds the
+back-faced, depth-test-free, untonemapped sphere and hands it to `build(context, graphs, dome)`, which returns a
+`DaySkyBody`: its environment source (`domeEnvironmentScene(dome)` for a scene source), running clock (`runDayClock`)
+and frame (`drive(targets, post, snap)`), plus what it holds beyond them. **The frame as data (H4):** `spec.channels`
+names a numeric client-channel group (`installChannelPrograms`, below) installed at `bind`; after each `drive` the host
+fills the `clock` owner (`phase`, `day`, `night`, `sunX…Z`, `moonX…Z`), evaluates the group over it, the body's
+`owners` (its blended preset, uniforms) and the backdrop targets (`sky.fog` `{ color }`, `sky.fogSun`, `sky.disc`,
+`sky.discColour` `{ color }`, `sky.planetSun`, `sky.planetHaze`), then pushes every sky-graph param an output names
+(target = a graph id, path `[param]` or `[param, x|y|z|w]`). Build-time authoring is
+`@wildshard/sdk/clientChannels#numericChannelPrograms` (twelve outputs a program, each read a declared owner path).
+Pine Hollow's keyed sky (`runtime/looks/keyedSky.ts`, group `pine.sky`) and Driftwood's faceted day
+(`runtime/looks/facetedDayBackdrop.ts`, group `driftwood.sky`) are its users.
 
 **Day air (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/daySky` (`src/sdk/looks/daySky.ts`) `driveDayAir(targets,
 post, scene, row, frame)` writes the air a keyed day preset sets beside its key light (`driveDayLight`): the scene's
@@ -8027,7 +8036,8 @@ channel programs, then publishes their fields. `capture()` returns the original
 values of fields marked `restore` and all restore-only fields, for the owner's
 existing scope lifetime. Restore-only fields are never written during evaluation.
 Pine's weather projections and Nalati's storm-look projection are the two live
-users. Their generators emit ordinary client-channel JSON; neither playback
+users; the graph day sky's `channels` (Pine's `pine.sky`, Driftwood's
+`driftwood.sky`) run their frames on it too. Their generators emit ordinary client-channel JSON; neither playback
 path imports the build-time expression authoring.
 
 `readLootTables(input)` in `game/loot/tables` admits ordered economy table data
