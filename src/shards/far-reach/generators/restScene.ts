@@ -86,7 +86,7 @@ function boltGeometry(random: () => number, length: number): BufferGeometry {
 }
 /**
  * The crown's storm (loop 3), centred at its origin (world/build.ts hangs it over the crown at `STORM.lift`, leaning
- * toward the arena): the vortex's dished ring (the first layer's; data/stormLook.ts paints it in the `storm-ring` look)
+ * toward the arena): the vortex's dished ring (the first layer's; data/lookGraphs.json paints it in the `storm-ring` look)
  * and three hidden lightning bolts the plugin flashes (world/storm.ts). Ring and bolts are client material ports; the
  * lightning's per-vertex flash stays the client's.
  */

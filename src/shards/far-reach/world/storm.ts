@@ -9,7 +9,7 @@ export type CrownStorm = ReturnType<typeof crownStorm>;
 
 /**
  * The storm from its rest scene (generators/restScene.ts `stormRest`: the vortex ring and three hidden bolts), centred at
- * the group's origin (place it over the crown at `STORM.lift`). The ring wears the `storm-ring` look (data/stormLook.ts);
+ * the group's origin (place it over the crown at `STORM.lift`). The ring wears the `storm-ring` look (data/lookGraphs.json);
  * `aFlash` carries the lightning to it; before the looks are set (a test) no ring shows. `strike(delay)` fires a strike
  * `delay` seconds from the next update (captures and tests use it through `__wildshard.shard.farReach`).
  */

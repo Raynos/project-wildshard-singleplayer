@@ -10,6 +10,6 @@ export const SKY_WORLD_PREPARATION = {
   ],
   requiredMaterials: ['deck-wood', 'hover-frame'],
   // the windmill's painted stone (art/far-reach/round-18-windmill) as the `mill-tower` look's bump on the tower's second UV
-  // set, so the courses and the mortar read (data/millLook.ts multiplies the same courses into the paint)
+  // set, so the courses and the mortar read (data/lookGraphs.json mill-tower multiplies the same courses into the paint)
   bumps: [{ material: 'mill-tower', texture: 'millStone', channel: 1, scale: 2 }],
 } as const;

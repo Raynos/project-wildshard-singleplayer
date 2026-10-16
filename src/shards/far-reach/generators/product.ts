@@ -1,6 +1,6 @@
 import { SKY_SECTIONS } from '../data/sections';
 import { STORM_NOISE } from '../data/stormNoise';
-import { SWARD_ATLAS_FILE } from '../data/swardAtlas';
+import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../data/swardAtlas';
 import skyMaps from '../data/skyMaps.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import { SKY_REACH_RUNTIME_COST } from '../data/budgets';
@@ -15,7 +15,8 @@ import { BRIDGE_MODULE } from '../data/bridgeModule';
 import isletRows from '../data/islets.generated.json' with { type: 'json' };
 import { RISING_ISLETS, ENTRYWAYS } from '../data/islets.generated';
 import isleProps from '../data/props.json' with { type: 'json' };
-import { SKY_LOOK_MATERIALS, SKY_LOOK_SAMPLERS } from '../data/lookMaterials';
+import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
+import { ISLE_MAPS } from '../data/isleLook';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0
@@ -28,8 +29,9 @@ import { SKY_LOOK_MATERIALS, SKY_LOOK_SAMPLERS } from '../data/lookMaterials';
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 const product = parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS },
-  // the material graphs the runtime draws its own meshes in, and the library maps' samplers (data/lookMaterials.ts)
-  look: { ...base.look, materials: { ...base.look.materials, ...SKY_LOOK_MATERIALS }, samplers: { ...base.look.samplers, ...SKY_LOOK_SAMPLERS } },
+  // the material graphs the runtime draws its own meshes in (authored SF59 graph JSON, data/lookGraphs.json), and the
+  // samplers: the islands' and boulders' library maps tile, the sward atlas keeps its own
+  look: { ...base.look, materials: { ...base.look.materials, ...lookGraphs }, samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS],
   entryways: [...ENTRYWAYS],
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.

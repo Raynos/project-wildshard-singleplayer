@@ -12,7 +12,7 @@ import { type MeshStandardMaterial, Mesh, type Object3D, Texture } from 'three';
  * −Y into the fist.
  */
 /** Paint the silk with the leaf texture (loaded and owned by the plugin's scope): its meshes wear the `fan-silk` look over it
- *  (data/paintLook.ts FAN_SILK_GRAPH: the leaf toward the mockups' muted, lighter teal, E399 round 6). */
+ *  (data/lookGraphs.json fan-silk: the leaf toward the mockups' muted, lighter teal, E399 round 6). */
 export function paintFanLeaf(parts: { readonly root: Object3D; readonly material:(id:string)=>MeshStandardMaterial }, leaf: Texture): void {
   if (!(leaf instanceof Texture)) throw new Error('Fan leaf must be its owned texture');
   const original=parts.material('silk'), silk = SKY_LIBRARY.mappedLook('fan-silk', leaf);

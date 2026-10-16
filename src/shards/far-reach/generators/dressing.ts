@@ -23,7 +23,7 @@ import { apothem, knollHeight } from '../layout';
  *
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
-/** The scatter's densities; `rockGroupsPerM2` the meadow's scattered rock groups (`meadowRocks`). The clumps' and flowers' hand-off distances to the near meadow are their shader rows' (data/dressingLook.ts: 15-22 m, 9-13 m). */
+/** The scatter's densities; `rockGroupsPerM2` the meadow's scattered rock groups (`meadowRocks`). The clumps' and flowers' hand-off distances to the near meadow are their graphs. (data/lookGraphs.json: 15-22 m, 9-13 m). */
 export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.07, stonesPerIsle: 9, rootsPerM: 0, lipPerM: 0.9, cragsPerIsle: 0, bridgeClear: 0.3, rockGroupsPerM2: 0.006 } as const;
 
 function seeded(seed: number): () => number {

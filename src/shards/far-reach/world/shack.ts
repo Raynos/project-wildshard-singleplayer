@@ -3,7 +3,7 @@ import type { Material } from 'three';
 
 /**
  * The weathered-timber surfaces of Sky Reach's small buildings (E392, round 18): a baked shack part is drawn in its kind's
- * material graph (data/shackLook.ts, the shardfile's `look.materials.shack-<kind>`), reading its `aShk` face coordinates.
+ * material graph (data/lookGraphs.json, the shardfile's `look.materials.shack-<kind>`), reading its `aShk` face coordinates.
  * The geometry is built at bake time (`generators/shackKit.ts`, SHARD-PLATFORM SF72); the client only draws it.
  */
 export type ShackKind = 'plank' | 'shingle' | 'stone' | 'beam';
