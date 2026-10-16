@@ -121,7 +121,7 @@ async function startSelected(): Promise<void> {
   const { configuredShardfile, installShardfileProduct, installManifestShardfile } = await retried(() => import('@wildshard/game/plugin/ui'));
   const { browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/runtimeProduct'));
   const { pageGridRecovery } = await retried(() => import('@wildshard/game/plugin/ui'));
-  const source = pageGridRecovery() === null ? configuredShardfile(document) : null;
+  const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
   const { preparePageResidency } = await retried(() => import('@wildshard/game/plugin/ui'));
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {

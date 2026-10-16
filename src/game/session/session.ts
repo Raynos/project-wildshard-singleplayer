@@ -39,6 +39,7 @@ import { installWorldRegistry } from '@wildshard/engine/world/registry';
 
 import { installProductGround, installProductSampling } from '../shardfile/productGround';
 import { installProductNavigation } from '../shardfile/productNavigation';
+import { loadManifestProduct } from '../shardfile/runtimeProduct';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/product';
@@ -119,6 +120,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   }
   const scope = currentOwner();
   if (scope === null) throw new Error('Plugin boot needs a level scope');
+  const product = await stage('product', () => loadManifestProduct(manifest, scope));
   const { default: Plugin } = await stage('manifest.load', () => retried(loadPlugin));
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), ...(session.residency === undefined ? {} : { residency: session.residency }), bag: {
@@ -126,7 +128,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
     fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return bagMenu(menu).fragment(tab, fragment); },
   } };
   let context: ShardContext | undefined;
-  const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); boot.context = context; return context; };
+  const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game, product); boot.context = context; return context; };
   app.levelAdapters.inputContext = (def) => {
     const child = scope.child(`input.${def.id}`); app.input.register(def, child);
     return () => child.dispose();

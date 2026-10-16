@@ -6831,3 +6831,27 @@ local and embedded resources are bounded, remote/escaping resources and
 unsupported extensions refuse. No textual GLTF is emitted as JSON or bin.
 Simulation declarations belong to platform sections and hosts, not copied
 runtime code; custom-section policy and exit rows remain writer-owned.
+
+### Product loading and build-pinned assembly (P2a)
+
+`game/shardfile/runtimeProduct.loadShardProduct(slug, options, scope)`
+loads the output index and all sections before the first plugin hook.
+Concurrent requests share a product; each live scope leases its roots
+and sections, and the last lease removes the cache entry. Failed reads
+retry. `loadManifestProduct` runs at the standalone/plugin boundary;
+`shardProductFromAdmission` reuses a grid admission without fetching its
+descriptor again. `loadFirstPartyProduct` uses the configured first-party
+base for early readers and requires the same live owner.
+
+A build-owned validation receipt pins both the canonical index digest
+and assembled host-model digest. Only that exact root skips section and
+full-model schemas; section bytes still pass their declared sizes and
+hashes. A changed index falls back to checked admission, and a changed
+assembled source refuses. External inputs retain schema validation.
+Custom section schemas run on read in checked/proof products. No network
+sidecar or authored receipt can grant this trust.
+
+`configuredShardfile(document, options)` awaits the same section reader
+for the SDK client's embedded index. Installed data-client manifests
+retain their admitted product, so session context creation reuses its
+sections and file reader instead of loading a descriptor a second time.

@@ -3,6 +3,10 @@ import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
+import { currentOwner } from '@wildshard/engine/app/ownership';
+import { shardProductData } from './productData';
+import { absentShardProduct, type ShardProduct } from './shardProduct';
+import type { ShardManifest } from '../shard/manifest';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
@@ -87,32 +91,118 @@ export function provideHybridDeclaration(source: Shardfile): void {
   declared.set(source.identity.slug, source);
 }
 
-const descriptors = new Map<string, Promise<Shardfile>>();
-
-/** Read a first-party product's built descriptor (`<base>shard.json`, or the visited copy offline) and parse it. */
-function readDescriptor(options: ProductOptions): Promise<Shardfile> {
-  return readProductDescriptor(options);
+interface ProductEntry {
+  readonly source: Shardfile;
+  readonly product: ShardProduct;
+  readonly assets: ClientAssets;
+  readonly options: ProductOptions;
+  readonly owners: Set<Scope>;
+  readonly requests: Set<string>;
+  readonly key: string;
+}
+const productRequests = new Map<string, Promise<ProductEntry>>();
+const productsByIndex = new Map<string, ProductEntry>();
+function productPolicy(options: ProductOptions): string { return `${options.firstParty ? 'first' : 'external'}|${options.offline ? 'offline' : 'online'}`; }
+function productRequestKey(options: ProductOptions): string { return `${new URL('.', options.base).href}|${options.descriptorHash ?? ''}|${productPolicy(options)}`; }
+function liveProductOwner(scope: Scope | null): scope is Scope { return scope !== null && !scope.disposed; }
+function retireProduct(entry: ProductEntry): void {
+  if (entry.owners.size > 0) return;
+  if (productsByIndex.get(entry.key) === entry) productsByIndex.delete(entry.key);
+  for (const key of entry.requests) productRequests.delete(key);
+  if (declared.get(entry.source.identity.slug) === entry.source) declared.delete(entry.source.identity.slug);
 }
 
 /**
- * A standalone first-party hybrid's built descriptor, read ahead of its hybrid boot by a session reader that needs the
- * product before the boot prepares it (the baked-samples reader runs in the level's terrain step, before the plugin). The
- * read is held only until the hybrid boot takes it (`takeFirstPartyDescriptor`), so the page fetches `shard.json` once.
+ * Read one product per immutable index and lease it to the caller's scope.
+ * Concurrent requests share decoding; the last owner removes all request aliases.
+ * Failed reads are forgotten so a subsequent entry can retry.
  */
-export function firstPartyDescriptor(slug: string): Promise<Shardfile> {
-  const options = browserShardfileOptions(productBase(slug), true), held = descriptors.get(options.base);
-  if (held !== undefined) return held;
-  const read = readDescriptor(options);
-  descriptors.set(options.base, read);
-  read.catch(() => { if (descriptors.get(options.base) === read) descriptors.delete(options.base); });
-  return read;
+export async function loadShardProduct(expectedIdentity: string, options: ProductOptions, scope: Scope | null = currentOwner()): Promise<ShardProduct> {
+  if (!liveProductOwner(scope)) throw new Error('Shard product needs a live owner');
+  const base = new URL('.', options.base).href, requestKey = productRequestKey(options);
+  let pending = productRequests.get(requestKey);
+  if (pending === undefined) {
+    pending = readProductDescriptor(options).then(source => {
+      const { slug: actualIdentity } = source.identity;
+      if (actualIdentity !== expectedIdentity) throw new Error('Built shard product identity mismatch');
+      const descriptor = outputDescriptor(source);
+      const key = `${base}|${descriptor?.indexHash ?? source.identity.revision}|${productPolicy(options)}`;
+      let entry = productsByIndex.get(key);
+      if (entry === undefined) {
+        const assets = new ClientAssets(source, new Map(), options);
+        entry = { source, assets, options, key, owners: new Set(), requests: new Set(),
+          product: shardProductData(source, base, ref => assets.read(ref), descriptor?.receipt === undefined) };
+        productsByIndex.set(key, entry);
+      }
+      entry.requests.add(requestKey);
+      return entry;
+    });
+    productRequests.set(requestKey, pending);
+    const request = pending;
+    void request.catch(() => { if (productRequests.get(requestKey) === request) productRequests.delete(requestKey); });
+  }
+  const entry = await pending;
+  const { slug: actualIdentity } = entry.product;
+  if (actualIdentity !== expectedIdentity) throw new Error('Built shard product identity mismatch');
+  if (!liveProductOwner(scope)) { queueMicrotask(() => { retireProduct(entry); }); throw new Error('Shard product owner left during loading'); }
+  if (!entry.owners.has(scope)) {
+    entry.owners.add(scope);
+    const release = entry.assets.pin(), sections = entry.options.cache?.pin?.(outputDescriptor(entry.source)?.index.sections.map(section => section.hash) ?? []);
+    scope.onDispose(() => { release(); sections?.(); entry.owners.delete(scope); retireProduct(entry); });
+  }
+  provideHybridDeclaration(entry.source);
+  return entry.product;
 }
 
-/** The hybrid boot's descriptor read (`prepareHybridShard`): one a session reader started ahead (released here), else a fresh read. */
+const manifestAdmissions = new WeakMap<ShardManifest, { readonly admitted: AdmittedProduct; readonly options: ProductOptions }>();
+/** An installed data-client manifest already owns an admission; its context reuses it. */
+export function provideManifestAdmission(manifest: ShardManifest, admitted: AdmittedProduct, options: ProductOptions): void {
+  manifestAdmissions.set(manifest, { admitted, options });
+}
+
+/** Load a configured output before its plugin constructor, independent of entry mode. */
+export function loadManifestProduct(manifest: ShardManifest, scope: Scope): Promise<ShardProduct> {
+  const installed = manifestAdmissions.get(manifest);
+  if (installed !== undefined) return Promise.resolve(shardProductFromAdmission(installed.admitted, scope, installed.options));
+  const path = manifest.shardfile ?? manifest.gridShardfile;
+  if (path === undefined) return Promise.resolve(absentShardProduct(manifest.slug));
+  const base = new URL('.', new URL(path, typeof document === 'undefined' ? location.href : document.baseURI || location.href)).href;
+  return loadShardProduct(manifest.slug, browserShardfileOptions(base, true), scope);
+}
+
+const admittedProducts = new WeakMap<object, ShardProduct>();
+/** Reuse already admitted section/asset bytes for a regional runtime; no descriptor is fetched again. */
+export function shardProductFromAdmission(admitted: AdmittedProduct, scope: Scope, options?: ProductOptions): ShardProduct {
+  if (scope.disposed) throw new Error('Admitted shard product needs a live owner');
+  const opts = options ?? browserShardfileOptions(productBase(admitted.source.identity.slug), true);
+  let product = admittedProducts.get(admitted.source.files);
+  if (product === undefined) {
+    const reader = new ClientAssets(admitted.source, new Map(), opts);
+    product = shardProductData(admitted.source, opts.base, ref => {
+      const present = admitted.assets.get(ref);
+      return present === undefined ? reader.read(ref) : Promise.resolve(present);
+    }, outputDescriptor(admitted.source)?.receipt === undefined);
+    admittedProducts.set(admitted.source.files, product);
+  }
+  const release = opts.cache?.pin?.(outputDescriptor(admitted.source)?.index.sections.map(section => section.hash) ?? []);
+  scope.onDispose(() => { release?.(); });
+  return product;
+}
+
+/** Terrain/navigation readers share the product loaded before the first plugin hook. */
+export function loadFirstPartyProduct(slug: string, scope: Scope | null = currentOwner()): Promise<ShardProduct> {
+  return loadShardProduct(slug, browserShardfileOptions(productBase(slug), true), scope);
+}
+
+/** Terrain/navigation readers share the product loaded before the first plugin hook. */
+export function firstPartyDescriptor(slug: string): Promise<Shardfile> {
+  return loadFirstPartyProduct(slug).then(product => product.shardfile);
+}
+
+/** Existing hybrid callers share the already loaded descriptor until their product argument lands. */
 export function takeFirstPartyDescriptor(options: ProductOptions): Promise<Shardfile> {
-  const held = descriptors.get(options.base);
-  descriptors.delete(options.base);
-  return held ?? readDescriptor(options);
+  const key = productRequestKey(options);
+  return productRequests.get(key)?.then(entry => entry.source) ?? readProductDescriptor(options);
 }
 
 /** The product reader for `slug`: its runtime's (`runtimeProduct`) once its hybrid was prepared, else a resident grid cell's, else null. */

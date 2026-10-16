@@ -1,4 +1,5 @@
-import { assembleOutputShardfile, isOutputIndex, outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import { assembleOutputFields, assembleOutputShardfile, isOutputIndex, outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import { builtValidationReceipt, validationSourceBytes, type ValidationReceipt } from '@wildshard/format/product';
 import { isJsonData } from '@wildshard/format/json';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -9,16 +10,26 @@ export interface OutputDescriptorReader {
   cached?: (hash: string) => Promise<Uint8Array | null>;
   store?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
   offline: boolean;
+  /** Only a matching build-pinned index and source receipt permits unchecked assembly. */
+  firstParty?: boolean;
 }
 
 export interface OutputDescriptor {
   readonly index: OutputIndex;
   readonly sections: ReadonlyMap<string, unknown>;
   readonly cached: boolean;
+  readonly indexHash: string;
+  readonly receipt?: ValidationReceipt;
 }
 // Existing hosts consume the unchanged Shardfile shape. Keying by its files array
 // also preserves location through the hosts' shallow presentation-only copies.
 const descriptors = new WeakMap<object, OutputDescriptor>();
+const buildValidated = new WeakSet();
+
+/** Only the exact root verified against the build receipt has the schema-output proof. */
+export function isBuildValidatedOutput(value: unknown): value is Shardfile {
+  return typeof value === 'object' && value !== null && buildValidated.has(value);
+}
 
 /** The admitted v2 index and parsed sections, if this source came from a split output. */
 export function outputDescriptor(source: { readonly files: object }): OutputDescriptor | undefined { return descriptors.get(source.files); }
@@ -28,6 +39,12 @@ export function carryOutputDescriptor(from: unknown, to: Shardfile): void {
   if (typeof from !== 'object' || from === null || !('files' in from) || !Array.isArray(from.files)) return;
   const descriptor = descriptors.get(from.files);
   if (descriptor !== undefined) descriptors.set(to.files, descriptor);
+}
+
+// The build receipt proves the schema output type; callers cannot provide a
+// receipt through data. Both digests are computed from the actual decoded input.
+function buildValidatedSource(value: unknown, sourceHash: string, indexHash: string): value is Shardfile {
+  return typeof value === 'object' && value !== null && builtValidationReceipt(sourceHash, indexHash) !== null;
 }
 
 /**
@@ -59,8 +76,18 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     if (result.status === 'rejected') throw result.reason;
     sections.set(...result.value);
   }
-  const source = assembleOutputShardfile(index, sections);
-  descriptors.set(source.files, { index, sections, cached });
+  const indexHash = await reader.hash(validationSourceBytes(input));
+  const receipt = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash, indexHash) : null;
+  let source: Shardfile;
+  if (receipt === null) source = assembleOutputShardfile(index, sections);
+  else {
+    const fields = assembleOutputFields(index, sections, false);
+    const actual = await reader.hash(validationSourceBytes(fields));
+    if (actual !== index.build.sourceHash || !buildValidatedSource(fields, actual, indexHash)) throw new Error('Built shardfile source receipt mismatch');
+    source = fields;
+    buildValidated.add(source);
+  }
+  descriptors.set(source.files, { index, sections, cached, indexHash, ...(receipt === null ? {} : { receipt }) });
   return source;
 }
 

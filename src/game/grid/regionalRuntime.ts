@@ -16,6 +16,7 @@ import type { ShardPlayHost, ShardRuntime } from '../shard/runtime';
 import type { ShardWorld } from '../shard/world';
 import type { HybridResident } from '../shardfile/hybrid';
 import type { AdmittedProduct } from '../shardfile/product';
+import { shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { GridCell } from './assembly';
 import { shiftedFullMap, shiftedMinimap } from './mapFrame';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
@@ -223,7 +224,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           const installation = createLevelInstallation(app, owner, app.levelAdapters, () => request.page.context.progress);
           view.root.add(installation.context.root);
           const base = shardContext(installation.context, request.manifest, { ...request.page.context.game,
-            runtime, shard: request.manifest, rows: new Map(), declaredAudio: request.admitted.source.audio });
+            runtime, shard: request.manifest, rows: new Map(), declaredAudio: request.admitted.source.audio },
+            shardProductFromAdmission(request.admitted, scope));
           const context: ShardContext = { ...base, rows: { ...base.rows, skin: values => {
             base.rows.skin(values);
             const list: readonly SkinDef[] = Array.isArray(values) ? values : [values as SkinDef];

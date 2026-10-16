@@ -11,7 +11,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { carryOutputDescriptor, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
+import { carryOutputDescriptor, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
@@ -119,7 +119,7 @@ export async function boundedResponse(response: Response, maximum: number, read?
 function resolveDescriptor(input: unknown, options: ProductOptions): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache;
   return resolveOutputDescriptor(input, {
-    offline: options.offline, hash: options.hash,
+    offline: options.offline, hash: options.hash, firstParty: options.firstParty,
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
     ...(cache === undefined ? {} : {
       cached: (hash: string) => cache.asset(base, hash),
@@ -139,7 +139,13 @@ export async function readProductDescriptor(options: ProductOptions): Promise<Sh
     if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
     input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   }
+  return readProductInput(input, options);
+}
+
+/** Assemble an inline or already fetched descriptor through the same verified section reader. */
+export async function readProductInput(input: unknown, options: ProductOptions): Promise<Shardfile> {
   const assembled = await resolveDescriptor(input, options);
+  if (isBuildValidatedOutput(assembled)) return assembled;
   preflightShardfile(assembled);
   const source = parseShardfile(assembled);
   carryOutputDescriptor(assembled, source);
@@ -163,19 +169,21 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const raw = await resolveDescriptor(cached?.source ?? input, options);
   const wire = cached?.source ?? (typeof input === 'object' && input !== null && 'files' in input && Array.isArray(input.files)
     ? outputDescriptor({ files: input.files })?.index ?? input : input);
-  preflightShardfile(raw);
+  if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
   const versions: ProductVersions = options.versions ?? { current: SHARDFILE_VERSION, previous: SHARDFILE_PREVIOUS_VERSION,
     readers: new Map<string | 0, (source: unknown) => Shardfile>([[SHARDFILE_VERSION, parseShardfile], [SHARDFILE_PREVIOUS_VERSION, readLegacyCache]]) };
   const currentRevision = shardfileRevision(versions.current);
   const previousRevision = versions.previous === 0 ? 0 : versions.previous === undefined ? undefined : shardfileRevision(versions.previous);
   const revision = version(raw), reader = versions.readers.get(revision);
   if (reader === undefined || (revision !== versions.current && !(revision === versions.previous && previousRevision === currentRevision - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
-  const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  const source = options.versions === undefined && options.firstParty && isBuildValidatedOutput(raw) ? raw : reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   carryOutputDescriptor(raw, source);
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
   const revisionKey = validationRevision();
   const sourceHash = revisionKey === null ? '' : await options.hash(validationSourceBytes(source));
+  const built = outputDescriptor(source)?.receipt;
+  if (built !== undefined && sourceHash !== built.sourceHash) throw new Error('Built shardfile changed after verification');
   // Custom readers always revalidate. A build receipt is pinned inside this client, never fetched from data.
   const receipt = options.versions === undefined && revisionKey !== null
     ? readValidationReceipt(visited?.validation, sourceHash) ?? (options.firstParty ? builtValidationReceipt(sourceHash) : null) : null;

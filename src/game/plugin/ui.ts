@@ -75,7 +75,8 @@ import { toLevelSpec } from '../shard/spec';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { emptyLook } from '../shardfile/emptyLook';
 import { shardfileLook } from '../shardfile/look';
-import { admitProduct, boundedResponse, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { admitProduct, boundedResponse, readProductInput, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { provideManifestAdmission } from '../shardfile/runtimeProduct';
 import { ClientAssets } from '../shardfile/clientAssets';
 import type { ShardfileClientBindings } from '../shardfile/client';
 import { clientGround } from '../shardfile/clientGround';
@@ -2032,7 +2033,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   const assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source, admitted.assets);
   const clientBindings = { ...ownedBindings, allocator: residency.allocator };
-  return { ...manifest, ...(source.presentation === undefined ? { biome: 'Authored world', blurb: source.identity.name } : {}),
+  const result: ShardManifest = { ...manifest, ...(source.presentation === undefined ? { biome: 'Authored world', blurb: source.identity.name } : {}),
     // Traversal belongs to the platform, independently of authored item rows or Developer mode.
     loadout: { weapons: [], tools: ['tool.hoverboard'], start: ['tool.hoverboard'] },
     ...(manifest.navigation === undefined ? {} : { navigation: manifest.navigation }),
@@ -2043,6 +2044,8 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
     render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
     load: async () => { const { ShardfileClient } = await import('../shardfile/client'); return { default: class extends ShardfileClient { constructor() { super(source, assets, clientBindings); } } }; },
   };
+  provideManifestAdmission(result, admitted, options);
+  return result;
 }
 
 /** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. */
@@ -2085,14 +2088,14 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     options.progress?.({ phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
     input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   }
-  const source = parseShardfile(input);
+  const source = await readProductInput(input, productOptions);
   const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
   if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   const admitted = await admitProduct(source, productOptions);
   const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
   const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};
-  return selectSource({ ...client,
+  const installed = { ...client,
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
@@ -2101,7 +2104,9 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     minimap: { ...mapLook, ...client.minimap },
     // and its listed places, the full map's pins (SF66): the admitted source has none
     ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
-  }, true);
+  };
+  provideManifestAdmission(installed, admitted, productOptions);
+  return selectSource(installed, true);
 }
 
 /** Project an empty shardfile into the same engine spec consumed by legacy sources. */
@@ -2113,13 +2118,14 @@ export async function loadShardfile(app: App, input: unknown): Promise<void> {
 }
 
 /** The prebuilt client's HTML supplies data, without a second boot loop or URL switch. */
-export function configuredShardfile(document: Pick<Document, 'getElementById'>): Shardfile | null {
+export async function configuredShardfile(document: Pick<Document, 'getElementById'>, options: ProductOptions): Promise<Shardfile | null> {
   const element = document.getElementById('ws-shardfile');
   if (element === null) return null;
   const text = element.textContent;
   // Reject excessive character counts before creating a UTF-8 copy or parsing the inline source.
   if (text.length > limits.sourceBytes || new TextEncoder().encode(text).length > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap');
-  return parseShardfile(JSON.parse(text));
+  const source = await readProductInput(JSON.parse(text), options);
+  return source;
 }
 
 /** Select a validated external source before the normal session starts. */
