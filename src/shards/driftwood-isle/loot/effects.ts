@@ -1,27 +1,17 @@
-import { DRIFTWOOD_EFFECTS } from '../data/economy';
+import { DRIFTWOOD_EFFECTS, DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from '../data/economy';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import { EffectService, selectEffectGrants } from '@wildshard/engine/combat/effects/EffectService';
 import type { EffectId, EffectTarget, AttributeSet } from '@wildshard/engine/combat/effects/types';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
 
 interface OwnedEffects { has: (id: OwnedId) => boolean; worn?: (id: 'captain-hat' | 'cape') => boolean }
 export function driftwoodPlayerGrants(owned: OwnedEffects): { id: EffectId; stacks?: number }[] {
-  const grants: { id: EffectId; stacks?: number }[] = [];
-  const hearts = owned.has('heart-2') ? 2 : owned.has('heart-1') ? 1 : 0;
-  if (hearts > 0) grants.push({ id: 'effect.sturdy-heart', stacks: hearts });
-  for (const id of ['charm-1', 'charm-2', 'charm-3', 'boar-tusk'] as const) if (owned.has(id)) {
-    grants.push({ id: id === 'boar-tusk' ? 'effect.boar-tusk' : `effect.charm.${id.slice(-1)}` });
-  }
-  for (const id of ['captain-hat', 'cape'] as const) if (owned.worn?.(id)) grants.push({ id: `effect.${id}` });
-  return grants;
+  return [...selectEffectGrants(DRIFTWOOD_PLAYER_GRANTS, id => owned.has(id)),
+    ...selectEffectGrants(DRIFTWOOD_WORN_GRANTS, id => owned.worn?.(id) === true)];
 }
 export function driftwoodWeaponGrants(owned: OwnedEffects): { id: EffectId }[] {
-  const grants: { id: EffectId }[] = [];
-  if (owned.has('whetstone-2')) grants.push({ id: 'effect.whetstone.2' });
-  else if (owned.has('whetstone-1')) grants.push({ id: 'effect.whetstone.1' });
-  if (owned.has('bear-claw')) grants.push({ id: 'effect.bear-claw' });
-  return grants;
+  return selectEffectGrants(DRIFTWOOD_WEAPON_GRANTS, id => owned.has(id));
 }
 /** Pure legacy reads derive from the same rows while their presentation consumers move. */
 export function driftwoodAttributes(owned: OwnedEffects): { attributes: AttributeSet; tags: readonly string[] } {

@@ -6201,3 +6201,15 @@ local transform ports in `ClipCtx.bones` (`AnimalRigJoint`), including
 existing bones, meshes and groups. The reader writes only position,
 rotation and scale; it creates no pivots, materials or animation clock.
 NPC gesture acceptance, timers and head focus stay with their owners.
+
+`src/engine/combat/effects/EffectService.ts#selectEffectGrants` reads
+`EffectGrantRow<Key>` declarations against the caller's current key
+predicate and returns ordered permanent grants for `EffectService.sync`.
+Each row names an effect, required key, optional excluding keys and
+optional positive stack count. Admission bounds rows to 128, exclusions
+to 32 per row and keys to 256 characters; invalid rows refuse before
+reading the predicate. The selector owns no effects, storage, clocks or
+subscriptions. Driftwood's existing player and weapon effect binding
+uses authored owned/worn rows; highest upgrades and grant order remain
+content facts. G441's W3 match is Nalati's worn-skin grant selection in
+`weapons/nalatiSkins.ts#NalatiSkinLocker.syncEffects`.

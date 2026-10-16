@@ -40,3 +40,22 @@ export const GOODS: readonly GoodRow[] = [
 
 /** Bounty from the original full island clear. */
 export const FULL_CLEAR = 92;
+
+/** Owned and worn keys select grants; the shared effect service remains the only gameplay owner. */
+export const DRIFTWOOD_PLAYER_GRANTS = [
+  { id: 'effect.sturdy-heart', key: 'heart-2', stacks: 2 },
+  { id: 'effect.sturdy-heart', key: 'heart-1', unless: ['heart-2'], stacks: 1 },
+  { id: 'effect.charm.1', key: 'charm-1' },
+  { id: 'effect.charm.2', key: 'charm-2' },
+  { id: 'effect.charm.3', key: 'charm-3' },
+  { id: 'effect.boar-tusk', key: 'boar-tusk' },
+] as const;
+export const DRIFTWOOD_WORN_GRANTS = [
+  { id: 'effect.captain-hat', key: 'captain-hat' },
+  { id: 'effect.cape', key: 'cape' },
+] as const;
+export const DRIFTWOOD_WEAPON_GRANTS = [
+  { id: 'effect.whetstone.2', key: 'whetstone-2' },
+  { id: 'effect.whetstone.1', key: 'whetstone-1', unless: ['whetstone-2'] },
+  { id: 'effect.bear-claw', key: 'bear-claw' },
+] as const;
