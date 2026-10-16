@@ -14328,16 +14328,19 @@
         "src/shards/pine-hollow/data/layout.ts",
         "src/shards/pine-hollow/data/physicsRows.json",
         "src/shards/pine-hollow/behaviour/layout.ts",
-        "public/assets/baked/pine-hollow/terrain.bin"
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "src/shards/pine-hollow/generators/floorRows.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/floor.generated.json",
-        "public/assets/pine-hollow/baked/floor/1c535380ab9c118bac7cb0bd57dc64e927f20f68b45427e18b751e63c643271e.bin"
+        "public/assets/pine-hollow/baked/floor/1c535380ab9c118bac7cb0bd57dc64e927f20f68b45427e18b751e63c643271e.bin",
+        "src/shards/pine-hollow/data/floorLayout.generated.json"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/pine-hollow/data/floor.generated.json",
-        "public/assets/pine-hollow/baked/floor/1c535380ab9c118bac7cb0bd57dc64e927f20f68b45427e18b751e63c643271e.bin"
+        "public/assets/pine-hollow/baked/floor/1c535380ab9c118bac7cb0bd57dc64e927f20f68b45427e18b751e63c643271e.bin",
+        "src/shards/pine-hollow/data/floorLayout.generated.json"
       ],
       "seedOutputs": []
     },

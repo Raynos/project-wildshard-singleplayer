@@ -1888,3 +1888,4 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Cached split bird geometry and existing KTX2 maps (pine-bird-blob-inputs).
 /src/shards/pine-hollow/assets/bird-blobs/
 /src/shards/pine-hollow/data/birdBlobs.generated.json
+/src/shards/pine-hollow/data/floorLayout.generated.json

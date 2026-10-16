@@ -1,4 +1,4 @@
-import floor from '../../data/floor.generated.json' with { type: 'json' };
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { UnderPlacements } from '../looks/groundCover';
 /**
  * Pine Hollow's two site-fitted timber landmarks, the zipline landing and the creek footbridge (E315 M2; PH-B3), where
@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
-import { readWholeGeometry, fetchLaneBake, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
+import { readWholeGeometry, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
 import type { TimberCopy } from './timber';
 import { mossHint, TimberRowSchema } from '../../world/timberBake';
 import siteJson from '../../data/siteTimbers.json' with { type: 'json' };
@@ -89,28 +89,15 @@ export function propShapeGeometry(views: ReadonlyMap<string, WholeGeometryView>,
   return geometry;
 }
 
-/** the floor's kinds (ferns, shrubs, litter, stones, moss, reeds) and the most records it holds in all */
-const FLOOR_KINDS = 6, MAX_FLOOR_RECORDS = 40_000;
-
-/** Required hash-named floor records; the temporary byte view is not retained beside the layout. */
+const floorKinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
+const floorPlace = v.strictObject({ x: num, y: num, z: num, nx: num, ny: num, nz: num, rot: num, scale: num, r: num, g: num, b: num });
+const floorList = v.pipe(v.array(floorPlace), v.maxLength(40_000)), count = v.pipe(v.number(), v.integer(), v.minValue(0));
+/** Exact ordered layouts; malformed records, count mismatches and oversized floors refuse. */
+export const FloorRowsSchema = v.pipe(v.strictObject({ counts: v.tuple([count, count, count, count, count, count]),
+  layout: v.strictObject({ ferns: floorList, shrubs: floorList, litter: floorList, stones: floorList, moss: floorList, reeds: floorList }) }),
+  v.check(row => row.counts.reduce((total, n) => total + n, 0) <= 40_000 && floorKinds.every((kind, i) => row.layout[kind].length === row.counts[i])));
+/** Required named floor records, decoded during authoring rather than on the page. */
 export async function loadUnderPlacements(): Promise<UnderPlacements> {
-  const bytes = await fetchLaneBake(floor.url), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (bytes.length < 32 || view.getUint32(0, true) !== 0x46555357 || view.getUint32(4, true) !== 2) throw new Error('[undergrowth] invalid floor records');
-  const kinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
-  const counts = kinds.map((_, i) => view.getUint32(8 + i * 4, true));
-  const count = counts.reduce((total, n) => total + n, 0);
-  if (count > MAX_FLOOR_RECORDS || bytes.length !== 32 + count * 12 || counts.some((n, i) => n !== floor.counts[i])) throw new Error('[undergrowth] invalid floor counts');
-  const layout: UnderPlacements = { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
-  let offset = 32;
-  const tints = [[.5,.78,.72,.82,.48,.6],[.8,1,.9,.8,.6,.55],[.7,.9,.68,.82,.62,.75],[.75,1,.75,.98,.75,.95],[.6,.85,.62,.78,.5,.62],[.75,1,.85,.95,.45,.6]] as const;
-  for (let i = 0; i < FLOOR_KINDS; i++) for (let j = 0; j < Math.min(counts[i] ?? 0, MAX_FLOOR_RECORDS); j++) {
-    const kind = kinds[i], tint = tints[i]; if (kind === undefined || tint === undefined) throw new Error('[undergrowth] missing kind or tint');
-    const nx = view.getInt8(offset + 8) / 127, nz = view.getInt8(offset + 9) / 127, hue = view.getUint8(offset + 11) / 255;
-    const mix = (a: number, b: number): number => a + (b - a) * hue;
-    layout[kind].push({ x: view.getUint16(offset, true) / 65535 * 500 - 250, y: view.getUint16(offset + 2, true) / 65535 * 256 - 128, z: view.getUint16(offset + 4, true) / 65535 * 500 - 250,
-      nx, ny: Math.sqrt(1 - nx * nx - nz * nz), nz, rot: view.getUint16(offset + 6, true) / 65535 * (2 * Math.PI), scale: .5 + view.getUint8(offset + 10) / 200,
-      r: mix(tint[0], tint[1]), g: mix(tint[2], tint[3]), b: mix(tint[4], tint[5]) });
-    offset += 12;
-  }
-  return layout;
+  const product = await loadFirstPartyProduct('pine-hollow');
+  return v.parse(FloorRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('world/floor.json')))).layout;
 }

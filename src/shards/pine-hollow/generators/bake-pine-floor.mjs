@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { decodeFloorRecords } from './floorRows.mjs';
 import { pineFloorPlacements } from './floorPlacements.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
@@ -25,3 +26,5 @@ const packed=deflateSync(lanes,{level:9}), hash=createHash('sha256').update(pack
 mkdirSync(resolve(root,'public/assets/pine-hollow/baked/floor'),{recursive:true});writeFileSync(resolve(root,file),packed);
 writeFileSync(resolve(root,'src/shards/pine-hollow/data/floor.generated.json'),`${JSON.stringify({url:file.slice(6),counts,bytes:packed.length,decoded:raw.length})}\n`);
 console.log(JSON.stringify({file,counts,bytes:packed.length,decoded:raw.length}));
+
+writeFileSync(resolve(root,'src/shards/pine-hollow/data/floorLayout.generated.json'),JSON.stringify({counts,layout:decodeFloorRecords(raw,counts)}));
