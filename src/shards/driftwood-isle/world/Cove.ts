@@ -41,6 +41,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { yawLocal } from '@wildshard/engine/world/yawFrame';
 import { POOL_LOOK } from '../data/poolLook';
 
 let poolLook: { material: THREE.Material; follow: () => void } | null = null;
@@ -87,10 +88,6 @@ export class Cove {
     return this;
   }
 
-  private L(x: number, z: number): [number, number] {
-    const c = this.cave, cs = Math.cos(c.yaw), sn = Math.sin(c.yaw), dx = x - c.x, dz = z - c.z;
-    return [dx * cs - dz * sn, dx * sn + dz * cs];
-  }
   build(spec: CoveSpec): this {
     const built = copyCoveGeometry(spec);
     this.crabSites = spec.crabSites;
@@ -150,7 +147,7 @@ export class Cove {
 
   /** the cave's walkable floor under (x, z), else undefined */
   floorHeightAt(x: number, z: number): number | undefined {
-    const [lx, lz] = this.L(x, z);
+    const [lx, lz] = yawLocal(this.cave, x, z);
     if (lz < -0.3 || lz > this.cave.depth) return undefined;
     if (Math.abs(lx) > coveHalfWidth(lz) + 0.1) return undefined;
     return coveFloorAt(lz);

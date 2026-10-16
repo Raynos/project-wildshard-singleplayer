@@ -5,6 +5,7 @@ import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { insidePolygon, yawLocal, yawWorld, type YawFrame } from '@wildshard/engine/world/yawFrame';
 import { pineLook, setPineLookParam } from '../looks/graphLooks';
 
 /**
@@ -36,9 +37,6 @@ export interface CaveMeta {
   floor: [number, number][];
 }
 
-/** The cave's frame in the world: its mouth at (x, z), local +Z turned by `yaw` into the rock. */
-export interface CaveFrame { readonly x: number; readonly z: number; readonly yaw: number }
-
 /** How a cave looks and behaves near its mouth (a shard's data row). */
 export interface CaveLookRow {
   /** metres from the mouth within which the shaft and the drips draw and animate */
@@ -69,7 +67,7 @@ export class CaveInterior {
   readonly meta: CaveMeta;
   /** the shaft and the drips (added by `buildFx`) */
   readonly fx: THREE.Object3D[] = [];
-  private readonly frame: CaveFrame;
+  private readonly frame: YawFrame;
   private readonly look: CaveLookRow;
   private readonly fill: { value: number };
   private shaft: THREE.Mesh | null = null;
@@ -78,8 +76,8 @@ export class CaveInterior {
   private near = false;
   private under = false;
 
-  /** `fill`: the walls' material's fill uniform this cave drives by day */
-  constructor(meta: CaveMeta, frame: CaveFrame, look: CaveLookRow, fill: { value: number }) {
+  /** `frame`: its mouth at (x, z), local +Z turned by `yaw` into the rock; `fill`: the walls' material's fill uniform this cave drives by day */
+  constructor(meta: CaveMeta, frame: YawFrame, look: CaveLookRow, fill: { value: number }) {
     this.meta = meta;
     this.frame = frame;
     this.look = look;
@@ -87,16 +85,10 @@ export class CaveInterior {
   }
 
   /** world (x, z) → cave-local (lx, lz) */
-  local(x: number, z: number): [number, number] {
-    const f = this.frame, c = Math.cos(f.yaw), s = Math.sin(f.yaw), dx = x - f.x, dz = z - f.z;
-    return [dx * c - dz * s, dx * s + dz * c];
-  }
+  local(x: number, z: number): [number, number] { return yawLocal(this.frame, x, z); }
 
   /** cave-local (lx, lz) → world (x, z) */
-  world(lx: number, lz: number): [number, number] {
-    const f = this.frame, c = Math.cos(f.yaw), s = Math.sin(f.yaw);
-    return [f.x + lx * c + lz * s, f.z - lx * s + lz * c];
-  }
+  world(lx: number, lz: number): [number, number] { return yawWorld(this.frame, lx, lz); }
 
   /** the physics heightfield's cuts (world rects): the ground under the passage where the slope runs through it */
   terrainCuts(): TerrainCut[] {
@@ -124,18 +116,7 @@ export class CaveInterior {
   }
 
   /** inside the footprint (no rain falls there) */
-  inside(x: number, z: number): boolean {
-    const poly = this.meta.inside;
-    if (poly.length < 3) return false;
-    const [lx, lz] = this.local(x, z);
-    let inside = false;
-    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const a = poly[i], b = poly[j];
-      if (!a || !b) continue;
-      if ((a[1] > lz) !== (b[1] > lz) && lx < ((b[0] - a[0]) * (lz - a[1])) / (b[1] - a[1]) + a[0]) inside = !inside;
-    }
-    return inside;
-  }
+  inside(x: number, z: number): boolean { const [lx, lz] = this.local(x, z); return insidePolygon(this.meta.inside, lx, lz); }
 
   /** the passage's floor height at depth `lz` */
   floorAt(lz: number): number | undefined {

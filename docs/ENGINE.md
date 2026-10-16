@@ -6244,6 +6244,13 @@ BoxSpec negative-Y convention and the existing scalar inverse transform. `first`
 Pine keeps its floor rows and registration owners; Nine `world/floorRows.ts#entryDeckFloor` is the G441 W3
 adoption of its inclusive entry-slab loop, with first-match policy and the existing zero deck height.
 
+**Yaw frames and plan polygons.** `src/engine/world/yawFrame.ts` holds a ground frame turned about +Y
+(`YawFrame`: origin x/z and yaw, the BoxSpec / FloorRect `rot` convention): `yawLocal(frame, x, z)` maps world
+x/z into the frame and `yawWorld(frame, lx, lz)` maps back; `insidePolygon(points, x, z)` is the even-odd plan test
+against [x, z] corners (false under three). Pure scalar math: no clocks, heights or allocation beyond the returned
+pair. Users: declared pool water (`world/water/declared.ts`), Pine's cave interior (its passage frame and dry
+footprint) and Driftwood's sea cave floor.
+
 **Actor-memory actions (G441).** `game/plugin/brain` defines
 `createMemoryActionBrain` and `MemoryActionRows`. The bounded row names an
 existing numeric state field, its inspection labels, and ordered body-step

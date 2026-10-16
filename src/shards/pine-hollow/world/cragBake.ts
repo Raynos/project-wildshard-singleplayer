@@ -31,16 +31,6 @@ export const SKIN_STEPS: Record<Tier, readonly [number, number]> = { phone: [1.0
 
 /** the cave's frame: its mouth at BEAR_CAVE, local +Z into the rock (the mouth faces local −Z), y is world height */
 export const CAVE_FRAME = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, yaw: BEAR_CAVE.rot };
-/** world (x, z) → cave-local (lx, lz) */
-export function caveLocal(x: number, z: number): [number, number] {
-  const c = Math.cos(CAVE_FRAME.yaw), s = Math.sin(CAVE_FRAME.yaw), dx = x - CAVE_FRAME.x, dz = z - CAVE_FRAME.z;
-  return [dx * c - dz * s, dx * s + dz * c];
-}
-/** cave-local (lx, lz) → world (x, z) */
-export function caveWorld(lx: number, lz: number): [number, number] {
-  const c = Math.cos(CAVE_FRAME.yaw), s = Math.sin(CAVE_FRAME.yaw);
-  return [CAVE_FRAME.x + lx * c + lz * s, CAVE_FRAME.z - lx * s + lz * c];
-}
 
 const num = v.pipe(v.number(), v.finite());
 const Place = v.strictObject({ id: v.picklist([...CRAG_IDS, CRAG_HERO]), x: num, y: num, z: num, yaw: num, scale: num, tiltX: num, tiltZ: num });

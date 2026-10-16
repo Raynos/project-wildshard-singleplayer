@@ -1,5 +1,6 @@
 import type { WaterBody } from './body';
 import { waveHeight } from '../waves';
+import { insidePolygon } from '../yawFrame';
 import { CHUNK_HALF, ENTRY_WIDTH, ENTRY_ASPHALT } from '../../core/config';
 
 /** Canonical entryway exclusions; they remove water across the entire platform socket, not an authored sample point. */
@@ -33,12 +34,7 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
     if (data.kind === 'pool') {
       const shape = data.shape;
       if (shape.kind === 'circle') return Math.hypot(x - shape.x, z - shape.z) < shape.radius ? data.level : null;
-      let inside = false;
-      for (let i = 0, j = shape.points.length - 1; i < shape.points.length; j = i++) {
-        const a = shape.points[i], b = shape.points[j]; if (a === undefined || b === undefined) continue;
-        if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
-      }
-      return inside ? data.level : null;
+      return insidePolygon(shape.points, x, z) ? data.level : null;
     }
     let distance = Infinity, height = level;
     for (let i = 1; i < data.points.length; i++) {

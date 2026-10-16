@@ -366,6 +366,7 @@
     "./audio/cueRouting": "./audio/cueRouting.ts",
     "./audio/declared": "./audio/declared.ts",
     "./world/water/declared": "./world/water/declared.ts",
+    "./world/yawFrame": "./world/yawFrame.ts",
     "./world/declaredProps": "./world/declaredProps.ts",
     "./physics/declaredProps": "./physics/declaredProps.ts",
     "./combat/items": "./combat/items.ts",
