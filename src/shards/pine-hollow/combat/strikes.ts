@@ -1,12 +1,14 @@
 import { StrikeRunner, type StrikeActor, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { strike, type StrikeData } from '@wildshard/sdk/species';
 
 interface BrainPoint { x: number; y: number; z: number }
 
-const lane = (id: string, windup: number, width: number, speed: number, overshoot: number, damage: number, recover: number, range: number): StrikeSpec => ({
+const lane = (id: string, windup: number, width: number, speed: number, overshoot: number, damage: number, recover: number, range: number): StrikeSpec => strikeFromData(strike({
   id, shape: { kind: 'lane', width, length: 0 }, windup, active: 0, recover, cooldown: 0, range, damage,
-  tags: ['creature.charge'], weight: () => 1,
+  tags: ['creature.charge'], weight: { kind: 'constant', value: 1 },
   motion: { speed, track: 'lead', overshoot, skid: recover },
-});
+}));
 /** Authored lane rows; phase-dependent windups/speed multipliers remain the fight's policy. */
 export const PINE_LANES = {
   ironhide: lane('strike.ironhide.charge', 0.9, 2.4, 12.5, 7, 30, 1.1, 1.7),
@@ -17,23 +19,25 @@ export const PINE_LANES = {
   thrall: lane('strike.antler-king.thrall', 0.7, 2.4, 9, 5, 14, 1.2, 1.7),
 };
 
-const nonlane = (id: string, shape: StrikeSpec['shape'], windup: number, recover: number, cooldown: number, damage: number, exempt = false): StrikeSpec => ({
-  id, shape, windup, active: 0, recover, cooldown, range: Infinity, damage,
-  tags: exempt ? ['cover.exempt'] : ['cover.checked'], weight: () => 1, units: 'world',
+const measured = (id: string, shape: StrikeData['shape'], windup: number, recover: number, cooldown: number, damage: number, exempt = false): StrikeData => ({
+  id, shape, windup, active: 0, recover, cooldown, range: null, damage,
+  tags: exempt ? ['cover.exempt'] : ['cover.checked'], weight: { kind: 'constant', value: 1 }, units: 'world',
 });
+const row = (data: StrikeData): StrikeSpec => strikeFromData(strike(data));
 /** Measured contacts retain the authored goal clocks and cover exceptions. */
 export const PINE_STRIKES = {
-  swipe: { ...nonlane('strike.blackpaw.swipe', { kind: 'arc', radius: 3.8 / 1.65, halfAngle: 1.1 }, 0.55, 0.65, 0, 22), units: 'actor' } satisfies StrikeSpec,
-  roar: nonlane('strike.blackpaw.roar', { kind: 'point', radius: 8 }, 1.1, 0, 10, 12, true),
-  roarPhase2: nonlane('strike.blackpaw.roar.phase2', { kind: 'point', radius: 11 }, 1.1, 0, 5.5, 12, true),
-  sweep: { ...nonlane('strike.antler-king.sweep', { kind: 'arc', radius: 4, halfAngle: 1.31 }, 0.9, 0, 5, 24),
-    alternatives: [{ kind: 'arc', radius: 7.1, halfAngle: 0.52, yawOffset: -0.26 }] } satisfies StrikeSpec,
-  roots: { ...nonlane('strike.antler-king.roots', { kind: 'ring', inner: -0.9, outer: 0.9 }, 1, 0, 0, 20, true),
-    motion: { speed: 10.5 }, eligibility: { jumpDodges: true } } satisfies StrikeSpec,
-  lantern: nonlane('strike.antler-king.lantern', { kind: 'point', radius: 3, exclusive: true }, 0.75, 0, 0.8, 9, true),
+  swipe: row({ ...measured('strike.blackpaw.swipe', { kind: 'arc', radius: 3.8 / 1.65, halfAngle: 1.1 }, 0.55, 0.65, 0, 22), units: 'actor' }),
+  roar: row(measured('strike.blackpaw.roar', { kind: 'point', radius: 8 }, 1.1, 0, 10, 12, true)),
+  roarPhase2: row(measured('strike.blackpaw.roar.phase2', { kind: 'point', radius: 11 }, 1.1, 0, 5.5, 12, true)),
+  sweep: row({ ...measured('strike.antler-king.sweep', { kind: 'arc', radius: 4, halfAngle: 1.31 }, 0.9, 0, 5, 24),
+    alternatives: [{ kind: 'arc', radius: 7.1, halfAngle: 0.52, yawOffset: -0.26 }] }),
+  roots: row({ ...measured('strike.antler-king.roots', { kind: 'ring', inner: -0.9, outer: 0.9 }, 1, 0, 0, 20, true),
+    motion: { speed: 10.5 }, eligibility: { jumpDodges: true } }),
+  lantern: row(measured('strike.antler-king.lantern', { kind: 'point', radius: 3, exclusive: true }, 0.75, 0, 0.8, 9, true)),
 };
+
 const contact = new StrikeRunner();
 export function pineContact(actor: StrikeActor, target: BrainPoint, spec: StrikeSpec, hit: (damage: number) => void,
   reach: () => boolean, options: { origin?: BrainPoint; ringRadius?: number; airborne?: boolean } = {}): boolean {
-  return contact.contact(spec, { actor, target, ...options, canReach: reach, hit: (row) => { hit(row.damage); } });
+  return contact.contact(spec, { actor, target, ...options, canReach: reach, hit: (landed) => { hit(landed.damage); } });
 }
