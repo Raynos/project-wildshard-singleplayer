@@ -138,3 +138,20 @@
 .ws-menu.ws-menu-carousel .ws-menu-modes-dual .ws-menu-mode:disabled .ws-menu-mode-glyph { color: var(--ws-cyan-dim); }
 .ws-menu.ws-menu-carousel .ws-menu-card .ws-menu-card-port { position: absolute; left: 8px; bottom: 8px; z-index: calc(var(--ws-layer-hud) + 1); padding: 3px 8px; font: 9px/1.2 var(--ws-mono); font-style: normal; letter-spacing: 0.16em; color: var(--ws-cyan); background: rgba(4, 18, 26, 0.85); border: 1px solid var(--ws-cyan-line); }
 .ws-menu.ws-menu-carousel .ws-menu-shardfile { background: rgba(9, 22, 36, 0.88); }
+/* E484 (Jake: "The reload pill is not centered with the text"): the build pill (src/engine/ui/Update.ts) centres on
+   `--ws-pill-line`; these put that line on the cap centre of the screen's title, in the same layouts as the rules above.
+   Main menu: head padding + 0.475 × the logo size (line-height 1; Rajdhani's caps sit just above the line box's middle).
+   SHARD SELECT: head padding (src/engine/ui/styles/menu.css) + half BACK's height (36px phone, 40px wider), less half a
+   pixel for the same cap offset. A sheet over the title (Settings) keeps the pill in its own band above the sheet. */
+:root:has(.ws-title-stack:not(.hide) > .ws-main:not(.hide)):not(:has(.ws-gmenu.show)) { --ws-pill-line: calc(18px + env(safe-area-inset-top, 0px) + 0.475 * 44px); }
+:root:has(.ws-title-stack:not(.hide) > .ws-menu-carousel:not(.hide)):not(:has(.ws-gmenu.show)) { --ws-pill-line: calc(34px + 20px - 0.7px); }
+@media (max-width: 700px) {
+  :root:has(.ws-title-stack:not(.hide) > .ws-menu-carousel:not(.hide)):not(:has(.ws-gmenu.show)) { --ws-pill-line: calc(14px + env(safe-area-inset-top, 0px) + 18px - 0.5px); }
+}
+@media (max-width: 420px) {
+  :root:has(.ws-title-stack:not(.hide) > .ws-main:not(.hide)):not(:has(.ws-gmenu.show)) { --ws-pill-line: calc(18px + env(safe-area-inset-top, 0px) + 0.475 * 36px); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  :root:has(.ws-title-stack:not(.hide) > .ws-main:not(.hide)):not(:has(.ws-gmenu.show)) { --ws-pill-line: calc(10px + env(safe-area-inset-top, 0px) + 0.475 * 28px); }
+  :root:has(.ws-title-stack:not(.hide) > .ws-menu-carousel:not(.hide)):not(:has(.ws-gmenu.show)) { --ws-pill-line: calc(10px + env(safe-area-inset-top, 0px) + 20px - 0.7px); }
+}
