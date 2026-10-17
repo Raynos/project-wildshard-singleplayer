@@ -6,8 +6,8 @@
  * camps, and ambient life (pollen + seed fluff in the sun, butterflies over the drifts, kites circling high).
  *
  *   import { NalatiDressing } from '../world/nalati/dressing';
- *   const dressing = await new NalatiDressing(sky, forest).build(macrotask);   // deterministic from the seed; yields between passes
- *   dressing.addTo(game.scene, pois.colliders);                  // meshes (+ the camp clutter, clear of those boxes)
+ *   const dressing = await new NalatiDressing(sky).build(product, macrotask);   // deterministic from the seed; yields between passes
+ *   dressing.addTo(game.scene);                  // meshes (+ the camp clutter, clear of those boxes)
  *   await dressing.place(app.registry, macrotask);             // its collision into the world registry (NALATI-MERGE P1)
  *   game.onUpdate((dt) => dressing.update(dt, game.camera, player.position, renderer));
  *   dressing.stats()                                             // { calls, tris, perLayer } for the perf report
@@ -31,15 +31,13 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type PlaceOptions, type Placed } from '@wildshard/engine/models/place';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import * as v from 'valibot';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
-import { DressLayer, type Inst } from './layer';
-import { planDressing, type DressPlan } from './place';
+import { DressLayer, DRESSING_PLAN, CAMP_CLUTTER, type Inst, type DressPlan, type ClutterSpots } from './layer';
 import { buildStaticsSliced, buildCampClutter, buildCampClutterSliced, type CampClutter } from './statics';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../glbPaint';
@@ -131,12 +129,17 @@ export class NalatiDressing {
   private readonly frame = new FrameCamera(this.group);
   private size = new THREE.Vector2();
 
-  constructor(private sky: Sky, private forest: Forest | null) { this.group.name = 'nalati-dressing'; this.statics.name = 'nalati-dress-statics'; }
+  constructor(private sky: Sky) { this.group.name = 'nalati-dressing'; this.statics.name = 'nalati-dress-statics'; }
 
-  async build(yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
+  private clutterSpots: ClutterSpots = [];
+
+  async build(product: { file: (name: string) => Promise<Uint8Array> }, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     let t0 = diagnosticNow();
     const lap = (k: string) => { const t = diagnosticNow(); this.timings[k] = Math.round(t - t0); t0 = t; };
-    const plan = this.plan = await planDressing(this.forest, yieldTask);
+    const read = async (key: string): Promise<unknown> => JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
+    const entries = await Promise.all(Object.keys(DRESSING_PLAN.entries).map(async key => [key, await read(key)]));
+    const plan = this.plan = v.parse(DRESSING_PLAN, Object.fromEntries(entries));
+    this.clutterSpots = v.parse(CAMP_CLUTTER, await read('clutter'));
     lap('plan');
     await yieldTask();
     await preloadNalatiPlaces(); // the scatter shapes' bake (../placeBake.ts; in already when the POIs built first)
@@ -213,16 +216,16 @@ export class NalatiDressing {
     return this;
   }
 
-  /** into the scene; the camps' clutter keeps clear of `avoid` (the POIs' boxes, the outcrops') */
-  addTo(scene: THREE.Object3D, avoid: readonly Collider[]): void {
+  /** Into the scene; camp clutter uses its already-cleared build-time anchors. */
+  addTo(scene: THREE.Object3D): void {
     scene.add(this.group);
-    this.addClutter(buildCampClutter(this.sky, avoid));
+    this.addClutter(buildCampClutter(this.sky, this.clutterSpots));
   }
 
   /** `addTo`, the clutter a task apart whenever `due` says the task is over budget (SF67); the same clutter */
-  async addToSliced(scene: THREE.Object3D, avoid: readonly Collider[], due: () => Promise<void> | null): Promise<void> {
+  async addToSliced(scene: THREE.Object3D, due: () => Promise<void> | null): Promise<void> {
     scene.add(this.group);
-    this.addClutter(await buildCampClutterSliced(this.sky, avoid, due));
+    this.addClutter(await buildCampClutterSliced(this.sky, this.clutterSpots, due));
   }
 
   private addClutter(cl: CampClutter): void {

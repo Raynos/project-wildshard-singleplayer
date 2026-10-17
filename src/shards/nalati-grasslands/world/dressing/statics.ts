@@ -22,7 +22,7 @@ import { PaintKit, poiMaterial, texturedMaterial } from '../paint';
 import { NalatiSet } from '../painted';
 import { Flutter } from '../Flutter';
 import { NO_PLUMES } from '../types';
-import { campClutterSpots, type DressPlan } from './place';
+import type { DressPlan, ClutterSpots } from './layer';
 import { fence, fenceRun } from '../../models/fence';
 import { fallenLog, logEnds, stump, ovoo, viewpointPole, skyGateway, campClutter } from '../../models/dressingProps';
 
@@ -144,31 +144,30 @@ function* staticsSteps(sky: Sky, plan: DressPlan, flutter: Flutter): Generator<v
 }
 
 /**
- * The camps' loose clutter as one merged mesh. Built after the POIs are in (`avoid` = the player's colliders then, the
- * POI agent's set pieces among them), so nothing lands inside a stove, a cart or a rug rack. Each group is the camp
+ * The camps' loose clutter as one merged mesh. The bake resolves its anchors against the POIs, outcrops and crags,
+ * so nothing lands inside a stove, a cart or a rug rack. Each group is the camp
  * clutter model (src/shards/nalati-grasslands/models/dressingProps.ts), placed drawnInto the mesh (`set`).
  */
 export interface CampClutter { mesh: THREE.Mesh | null; colliders: Collider[]; tris: number; spots: number; set: NalatiSet }
-export function buildCampClutter(sky: Sky, avoid: readonly Collider[]): CampClutter {
-  const steps = campClutterSteps(sky, avoid);
+export function buildCampClutter(sky: Sky, spots: ClutterSpots): CampClutter {
+  const steps = campClutterSteps(sky, spots);
   for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }
 
 /** `buildCampClutter`, a task apart whenever `due` says the task is over budget (SF67); the same groups from the same rng
  *  stream in the same order */
-export async function buildCampClutterSliced(sky: Sky, avoid: readonly Collider[], due: () => Promise<void> | null): Promise<CampClutter> {
-  const steps = campClutterSteps(sky, avoid);
+export async function buildCampClutterSliced(sky: Sky, spots: ClutterSpots, due: () => Promise<void> | null): Promise<CampClutter> {
+  const steps = campClutterSteps(sky, spots);
   for (;;) {
     const step = steps.next(); if (step.done === true) return step.value;
     const pause = due(); if (pause !== null) await pause;
   }
 }
 
-function* campClutterSteps(sky: Sky, avoid: readonly Collider[]): Generator<void, CampClutter> {
+function* campClutterSteps(sky: Sky, spots: ClutterSpots): Generator<void, CampClutter> {
   const rng = new Rng(0xc1a7);
   const kit = new PaintKit(0xc1a8);
   const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: NO_PLUMES });
-  const spots = campClutterSpots(avoid);
   yield;
   for (const s of spots) { set.paint(campClutter, { x: s.x, y: ground(s.x, s.z), z: s.z, yaw: s.yaw }, { kind: s.kind, rng }); yield; }
   if (kit.empty) return { mesh: null, colliders: set.boxes, tris: 0, spots: 0, set };

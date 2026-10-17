@@ -14,6 +14,7 @@
  * test so its shadow still falls into view from behind the camera.
  */
 import * as THREE from 'three';
+import * as v from 'valibot';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface Inst {
@@ -29,6 +30,27 @@ export interface Inst {
   /** linear RGB multiplier (instanceColor) */
   r: number; g: number; b: number;
 }
+
+const dressNumber = v.pipe(v.number(), v.finite());
+const spot = v.object({ x: dressNumber, z: dressNumber, s: dressNumber });
+const instance = v.object({ x: dressNumber, y: dressNumber, z: dressNumber, yaw: dressNumber, sx: dressNumber, sy: dressNumber, sz: dressNumber,
+  tiltX: v.exactOptional(dressNumber), tiltZ: v.exactOptional(dressNumber), solid: v.exactOptional(v.literal(true)), far: dressNumber, r: dressNumber, g: dressNumber, b: dressNumber });
+const box = v.object({ x: dressNumber, z: dressNumber, hw: dressNumber, hd: dressNumber, rot: dressNumber, yBottom: dressNumber, yTop: dressNumber, ghost: v.exactOptional(v.literal(true)) });
+
+/** Exact build-time world placements; the page only renders these rows. */
+export const DRESSING_PLAN = v.object({
+  boulder: v.array(instance), slab: v.array(instance), stone: v.array(instance),
+  juniper: v.array(instance), rose: v.array(instance), willow: v.array(instance),
+  lupin: v.array(instance), daisy: v.array(instance), reed: v.array(instance),
+  logs: v.array(v.object({ ax: dressNumber, az: dressNumber, bx: dressNumber, bz: dressNumber, r: dressNumber, drift: v.boolean() })),
+  stumps: v.array(spot), ovoos: v.array(spot), poles: v.array(spot),
+  fences: v.array(v.array(v.tuple([dressNumber, dressNumber]))), gates: v.array(v.object({ x: dressNumber, z: dressNumber, yaw: dressNumber })),
+  drifts: v.array(v.object({ x: dressNumber, y: dressNumber, z: dressNumber, r: dressNumber })), colliders: v.array(box),
+});
+export type DressPlan = v.InferOutput<typeof DRESSING_PLAN>;
+/** Camp anchors already rejected against the actual POI, outcrop and crag boxes. */
+export const CAMP_CLUTTER = v.array(v.object({ x: dressNumber, z: dressNumber, yaw: dressNumber, kind: dressNumber }));
+export type ClutterSpots = v.InferOutput<typeof CAMP_CLUTTER>;
 
 const CELL = 24;
 const FADE_START = 0.82;
