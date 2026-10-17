@@ -6,14 +6,13 @@
 
 **Push discipline (for every session):** sp-x7 is the only pusher (G485). During its 14:36–15:10 safety hold (a Safari crash at DW Props, fixed in 87c717f31), origin still advanced 14:59–15:02 (c82dd929c, 016f28241, 538918559), carrying held lane commits. Please don't run push-main.sh from other sessions; land locally and sp-x7 carries it.
 
-**Lanes (W2):**
-- sp-x5 Z2 world scene assembly (G483; first adopters DW cascade + Pine streams).
-- sp-x8 population HOST-BAR fix (honest Pine charge-back; 7 crossings grandfathered until the AS adapter row).
-- sp-x6 feature #4 rest: held gear/skins, toon 6/6 fix, DW IronSword claim.
-- sp-x4 G484 (a): skitterer to ABI v1 with a generic spawn-group binding.
-- sp-x1 Sim road part six (native traces: zlib decode + microtasks; shared inflate pacing).
-- sp-x7 (G485): ONLY CI/deploy until live == recent main (red since this morning; live a399c36f3 from 10-13). Root cause so far: Nalati spear pool bake hash differs Linux 7fbead3b vs Mac af347349 and its GLB was git-ignored (8f5e76376); plus Nalati empty-URL model 404s. The G480 ruler task is already landed (49ac0b23a), so nothing to move.
-- sp-x8 G484 (b) SCRIPT-ABI.md rewrite. Next free lane: spawn director Script ABI spawn/retire + Pine night waves to AS (wins back the +603 charge-back), then #5 living buildings; Z1 after Z2.
+**Lanes (G489: 7 building Codex + sp-x7 pusher while Opus is capped at 1; back to 5 after Monday's reset):**
+- sp-x4 elites + v0-prewarm director-only fix (deploy-critical: cold Pine GRID ABI admission).
+- sp-x5 DW Z2 adoption (host core e4666bfd5 landed; DW map slice next in the chain).
+- sp-x8 #11 keyed sky + weather. sp-x1 Sim road (part seven after-measure).
+- sp-x6 C1 static world: DW rocks, Pine props/hero/timber/cabin shells. sp-x10 C1: Pine crags/forest drawer + geography rasters.
+- sp-x9 Pine Z2 adoption (G488).
+- sp-x7 deploy only (G485). Pine map chain: x4 → x5 → x8 → x6 (clean-bake rule).
 
 **Perf:** Sim floor p95 ≤ 35 ms: Sky passes; Pine, Nalati, DW travel 36–46 ms across runs (sp-x1 part six: zlib decode + microtasks, inflate pacing).
 
