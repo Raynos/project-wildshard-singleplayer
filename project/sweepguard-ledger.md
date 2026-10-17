@@ -177,3 +177,5 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 00:09 · wT:p6 · `python3 - <<'PY' from pathlib import Path import os,subprocess,json path='scripts/check-models.mjs' base=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip() source=subprocess.check_o`
 - 2026-10-17 00:09 · wT:p6 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE=tmp/sp-x6/repair.index git commit -F tmp/sp-x6/repair-message`
 - 2026-10-17 00:15 · wT:pK · `python3 - <<'PY' from pathlib import Path p=Path('src/format/questStory.ts');text=p.read_text().replace('\n\nconst bossRecord','\n\n\nconst bossRecord');p.write_text(text) p=Path('tmp/sky-signal-quest`
+- 2026-10-17 00:42 · wT:pK · `GIT_INDEX_FILE=/Users/raynos/projects/games/wildshard-singleplayer/tmp/sky-signal-layout/index SKIP_SWEEPGUARD=1 .githooks/pre-commit > tmp/sky-signal-layout/precommit.log 2>&1`
+- 2026-10-17 00:44 · wT:p6 · `test ! -e .git/quiet && SKIP_SWEEPGUARD=1 python3 tmp/nine-items-x6/land.py`
