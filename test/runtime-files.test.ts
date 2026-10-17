@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the fixture and the repository's own runtime folders.
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { compareRuntimeFiles, readRuntimeFiles, runtimeFileCeiling, RUNTIME_FILE_DEFAULT } from '../lint/runtime-files.mjs';
+import { compareRuntimeFiles, readRuntimeFiles, runtimeFilesShape, runtimeFileCeiling, RUNTIME_FILE_DEFAULT } from '../lint/runtime-files.mjs';
 import { checkProjectRuntime } from '../src/sdk/runtimePerformance';
 
 const about = 'test policy';
@@ -51,7 +51,9 @@ test('the build refuses a shard above its ceiling; projects without first-party 
 
 test('the checked-in ceilings are self-consistent and every first-party shard fits its own', () => {
   const repo = resolve(import.meta.dirname, '..'), checkedIn = readRuntimeFiles(repo);
-  expect(compareRuntimeFiles(undefined, checkedIn)).toEqual([]);
+  // The current policy may have shrunk since its historical raises;
+  // predecessor transition tests and the gate enforce those changes.
+  expect(runtimeFilesShape(checkedIn)).toEqual([]);
   const count = (folder: string): number => readdirSync(folder, { withFileTypes: true }).reduce((total, entry) => total
     + (entry.isDirectory() ? count(join(folder, entry.name)) : /\.[cm]?[jt]sx?$/u.test(entry.name) && !entry.name.endsWith('.d.ts') ? 1 : 0), 0);
   for (const slug of ['pine-hollow', 'driftwood-isle']) {
