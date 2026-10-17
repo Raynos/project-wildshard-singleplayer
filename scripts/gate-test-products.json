@@ -1,5 +1,8 @@
 {
   "test/elite-encounters.test.ts": ["pine-hollow", "nalati-grasslands"],
+  "test/ground-borrowed-body.test.ts": ["driftwood-isle", "pine-hollow"],
+  "test/matriarch-borrowed-body.test.ts": ["sunscar-dunes"],
+  "test/roc-borrowed-body.test.ts": ["far-reach"],
   "test/nalati-static-landmarks.test.ts": ["nalati-grasslands"],
   "test/nalati-headless-assembly.test.ts": ["nalati-grasslands"],
   "test/shard-headless.test.ts": ["_template", "pastel-plain", "driftwood-isle", "pine-hollow", "nalati-grasslands", "nine-dragon-stack", "sunscar-dunes", "far-reach"],
