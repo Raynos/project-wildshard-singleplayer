@@ -31,6 +31,7 @@ import { memorySaverOn } from '../render/memorySaver';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
 import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
+import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
@@ -44,11 +45,47 @@ function createLoader(): KTX2Loader {
   made.workerPool = new ScopedWorkerPool(pageScope);
   return made;
 }
-/** the GPU's formats, less every family the capability probe saw sample wrong when mipmapped (render/ktx2Probe.ts) */
+/**
+ * The GPU's formats, less every family the capability probe saw sample wrong when mipmapped (render/ktx2Probe.ts).
+ * On a page whose probe a measurement pin skipped, its textures also come back RGB-ETC2-free (`widenRgbEtc2`).
+ */
 export function detectKtx2Support(made: KTX2Loader, renderer: Renderer): KTX2Loader {
   made.detectSupport(renderer);
   applyKtx2Probe(made.workerConfig);
+  if (harnessPins()?.ktx2Probe === 'skip') {
+    const parse = made.parse.bind(made);
+    made.parse = (buffer, onLoad, onError): void => {
+      parse(buffer, onLoad === undefined ? undefined : (texture) => { onLoad(widenRgbEtc2(texture)); }, onError);
+    };
+  }
   return made;
+}
+
+/** an EAC alpha block that decodes to 255 everywhere: base 255, multiplier 0 */
+const OPAQUE_EAC = Uint8Array.of(0xff, 0, 0, 0, 0, 0, 0, 0);
+
+/**
+ * RGB8 ETC2 → RGBA8 ETC2/EAC, pixel for pixel (OM, 2026-10-17): each 8-byte colour block gets an opaque 8-byte EAC
+ * alpha block in front of it, and RGBA8 ETC2/EAC decodes its colour half exactly as RGB8 ETC2 does. The iOS Simulator's
+ * WebKit GPU process (ANGLE's Metal UploadTextureContents) reads past the end of an RGB8 ETC2 compressedTexSubImage2D/3D
+ * payload and crashes ("the GPU process restarted"), deterministically in isolation. The KTX2 probe turns ETC2 off
+ * there, so only a page whose probe the G386 measurement pin skipped transcodes opaque ETC1S to RGB8 ETC2; it widens
+ * those textures instead (twice their bytes) and uploads safely. Any other texture comes back unchanged.
+ */
+export function widenRgbEtc2(texture: THREE.CompressedTexture): THREE.CompressedTexture {
+  if (texture.format !== THREE.RGB_ETC2_Format || texture instanceof THREE.CompressedCubeTexture) return texture;
+  texture.mipmaps = texture.mipmaps.map((mip) => {
+    const src = new Uint8Array(mip.data.buffer, mip.data.byteOffset, mip.data.byteLength);
+    const out = new Uint8Array(src.byteLength * 2);
+    for (let block = 0; block * 8 < src.byteLength; block++) {
+      out.set(OPAQUE_EAC, block * 16);
+      out.set(src.subarray(block * 8, block * 8 + 8), block * 16 + 8);
+    }
+    return { data: out, width: mip.width, height: mip.height };
+  });
+  texture.format = THREE.RGBA_ETC2_EAC_Format;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 /** The same probe-filtered capabilities used by the actual transcoder; before a renderer, retain RGBA charging. */
