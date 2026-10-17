@@ -114,3 +114,5 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 19:11 · wT:p1 · `GIT_INDEX_FILE=/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/o5/idx SKIP_SWEEPGUARD=1 timeout 900 git commit -q -F /privat`
 - 2026-10-16 19:11 · wT:p1 · `B=$(git rev-parse HEAD) && export WS_COMMIT_INTENT="{\"base\":\"$B\",\"paths\":[\"src/shards/driftwood-isle/world/Seabed.ts\",\"src/shards/driftwood-isle/data/seabedLook.ts\",\"src/shards/driftwood-is`
 - 2026-10-16 20:02 · wT:p6 · `GIT_INDEX_FILE="$PWD/tmp/c6-sim/index" SKIP_SWEEPGUARD=1 .githooks/pre-commit > tmp/c6-sim/precommit.log 2>&1`
+- 2026-10-16 20:02 · wT:p6 · `python3 - <<'PY' from pathlib import Path import subprocess,os,json base=Path('tmp/c6-sim/base').read_text().strip();env=dict(os.environ,GIT_INDEX_FILE=str(Path('tmp/c6-sim/index').resolve())) patch=s`
+- 2026-10-16 20:04 · wT:p6 · `python3 - <<'PY' from pathlib import Path import subprocess,os,json paths=json.loads(Path('tmp/c6-sim/paths.json').read_text()); paths+=['src/game/plugin/ui.ts','src/shards/far-reach/world/storm.ts'];`
