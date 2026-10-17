@@ -50,7 +50,8 @@ test('published brain/body programs bind the existing owner and refuse executabl
   if (program === undefined) throw new Error('Missing emitted enemy program');
   expect(program.species.map(row => row.kind)).toEqual(['crab', 'monkey', 'sailor', 'captain']);
   const owner = speciesBrains(program.species, program.strikes, program.modules);
-  expect([...owner.kinds]).toEqual(['crab', 'monkey', 'sailor']);
+  expect([...owner.kinds]).toEqual(['crab', 'monkey', 'sailor', 'captain']);
+  expect(() => owner.bind('captain')).toThrow('existing body authority');
   for (const kind of ['crab', 'sailor']) expect(typeof owner.bind(kind).act).toBe('function');
   expect(() => owner.bind('monkey')).toThrow('trusted native body adapter');
   expect(program.species[0]?.body?.kind).toBe('animal');
