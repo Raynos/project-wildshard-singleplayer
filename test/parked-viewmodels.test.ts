@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Vector4, WebGLRenderTarget, type Camera, type Object3D } from 'three';
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderTarget, type Camera, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { ViewmodelRoot } from '../src/engine/render/viewmodel';
@@ -79,4 +79,22 @@ test('a failed equipment draw restores every live visibility before returning', 
     expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true, () => Promise.resolve(), { revealChildren: true })).toBe(0);
     f.restored();
   } finally { error.mockRestore(); f.dispose(); }
+});
+
+test('camera equipment borrows the parked world lighting without drawing its world geometry', async () => {
+  const f = fixture(), world = new Group(), light = new PointLight(), geometry = new BoxGeometry(), material = new MeshBasicMaterial();
+  const mesh = new Mesh(geometry, material); world.add(light, mesh); world.visible = false; f.scene.add(world);
+  const original = f.render.getMockImplementation();
+  if (original === undefined) throw new Error('Missing renderer fixture');
+  f.render.mockImplementation((scene, camera) => {
+    expect(world.visible).toBe(true); expect(light.layers.test(camera.layers)).toBe(true);
+    original(scene, camera);
+  });
+  try {
+    await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
+      () => { expect(world.visible).toBe(false); expect(light.layers.mask).toBe(1); f.restored(); return Promise.resolve(); },
+      { revealChildren: true, lightingRoot: world });
+    expect(f.draws.flat()).not.toContain(mesh); expect(f.draws.flat()).toEqual(f.parts);
+    expect(world.visible).toBe(false); expect(light.layers.mask).toBe(1);
+  } finally { f.dispose(); geometry.dispose(); material.dispose(); }
 });

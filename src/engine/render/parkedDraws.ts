@@ -222,8 +222,11 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   target: THREE.WebGLRenderTarget | null, root: THREE.Object3D, current: () => boolean, pause: () => Promise<void>,
   options: { environment?: THREE.Texture | null; budget?: ParkedDrawBudget;
     /** Parked camera weapons hide their direct roots as well as their staging group. Descendant visibility stays authored. */
-    revealChildren?: boolean } = {}): Promise<number> {
+    revealChildren?: boolean;
+    /** A parked world's lights must be present for camera equipment to acquire its entry-frame programs. */
+    lightingRoot?: THREE.Object3D } = {}): Promise<number> {
   const reveal = new Set(options.revealChildren === true ? root.children : []);
+  if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const slices = parkedDrawSlices(parkedDrawables(root, camera, reveal), options.budget ?? DEFAULT_BUDGET);
   const view = camera.clone(), standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   let drawn = 0;

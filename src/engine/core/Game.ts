@@ -859,7 +859,7 @@ export class Game {
       enter('parked-viewmodels');
       const start = diagnosticNow();
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, stagedModels, current,
-        drawnPause, { environment: futureEnvironment, revealChildren: true });
+        drawnPause, { environment: futureEnvironment, revealChildren: true, ...(futureRoot === undefined ? {} : { lightingRoot: futureRoot }) });
       onStage('parked-viewmodels', diagnosticNow() - start, drawn);
     }
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
