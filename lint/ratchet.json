@@ -66,7 +66,6 @@
       "src/shards/nalati-grasslands/runtime/groups.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/headless.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/headlessCreatures.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/nalati-grasslands/runtime/headlessElites.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/headlessMounted.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/headlessRaid.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/headlessTaming.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -84,7 +83,6 @@
       "src/shards/nine-dragon-stack/runtime/props/bakedColliders.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/props/edgeDecks.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/elites.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/herds.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/king.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/kingCollisionBake.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -126,10 +124,10 @@
     "sim-in-runtime/driftwood-isle": 2,
     "sim-in-runtime/far-reach": 0,
     "sim-in-runtime/ink-cel-valley": 0,
-    "sim-in-runtime/nalati-grasslands": 20,
+    "sim-in-runtime/nalati-grasslands": 19,
     "sim-in-runtime/nine-dragon-stack": 9,
     "sim-in-runtime/pastel-plain": 0,
-    "sim-in-runtime/pine-hollow": 15,
+    "sim-in-runtime/pine-hollow": 14,
     "sim-in-runtime/sunscar-dunes": 0
   },
   "debugRows": {

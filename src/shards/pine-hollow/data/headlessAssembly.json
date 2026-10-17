@@ -1,97 +1,35 @@
 {
   "version": 1,
   "modules": {
-    "src/shards/pine-hollow/quest/rows": [
-      "parsePineQuestRows"
-    ],
-    "src/shards/pine-hollow/runtime/baked": [
-      "PINE_GROUND_RES",
-      "pineBake"
-    ],
-    "@wildshard/engine/physics/navmesh": [
-      "readNavmesh"
-    ],
-    "@wildshard/engine/world/BakedTerrain": [
-      "bakedSamplers",
-      "parseBakedTerrain"
-    ],
-    "@wildshard/format/weaponProfiles": [
-      "parseNativeFirearmProfile",
-      "parseWeaponProfile"
-    ],
-    "@wildshard/game/plugin/nativeItems": [
-      "installNativeItems",
-      "observeNativeCombatMotion",
-      "readItemInventory"
-    ],
-    "@wildshard/game/plugin/simulation": [
-      "bindNativeLoadout",
-      "weaponRow"
-    ],
-    "@wildshard/game/plugin/director": [
-      "readDirectorProduct"
-    ],
-    "src/shards/pine-hollow/runtime/nightDirector": [
-      "preparePineNightDirector"
-    ],
-    "src/shards/pine-hollow/runtime/quest": [
-      "PINE_INTERACT",
-      "installHollowQuest",
-      "pineSpots"
-    ],
-    "src/shards/pine-hollow/runtime/lodge": [
-      "PINE_LODGE",
-      "parseContractCatalogue"
-    ],
-    "@wildshard/format/achievementCounters": [
-      "parseAchievementCounterData"
-    ],
-    "@wildshard/game/loot/exchange": [
-      "parseExchange"
-    ],
-    "@wildshard/format/weatherProgram": [
-      "parseWeatherProgram"
-    ],
-    "@wildshard/sdk/headlessRuntime": [
-      "bindHeadlessCommands",
-      "installNativeCollision"
-    ],
-    "@wildshard/game/shardfile/borrowedDecisions": [
-      "nativeDecisionAuthority"
-    ],
-    "src/shards/pine-hollow/runtime/roster": [
-      "installPineRoster"
-    ],
-    "src/shards/pine-hollow/runtime/elites": [
-      "installPineElites"
-    ],
-    "src/shards/pine-hollow/runtime/king": [
-      "installPineKing"
-    ],
-    "@wildshard/engine/world/dayCycle": [
-      "DayCycle"
-    ],
-    "src/shards/pine-hollow/look/dayKeys": [
-      "PINE_DAY"
-    ],
-    "src/shards/pine-hollow/runtime/weapons/ammunition": [
-      "PineAmmunition"
-    ],
-    "src/shards/pine-hollow/runtime/nightPopulation": [
-      "installPineNight"
-    ],
-    "@wildshard/game/plugin/weather": [
-      "installWeatherContinuation"
-    ],
-    "src/shards/pine-hollow/runtime/rainShelter": [
-      "installPineRainShelter"
-    ],
-    "@wildshard/game/plugin/mover": [
-      "proveTerrainEntries"
-    ],
-    "@wildshard/engine/physics/terrain": [
-      "isStandaloneEdgeWall"
-    ]
+    "src/shards/pine-hollow/quest/rows": ["parsePineQuestRows"],
+    "src/shards/pine-hollow/runtime/baked": ["PINE_GROUND_RES", "pineBake"],
+    "@wildshard/engine/physics/navmesh": ["readNavmesh"],
+    "@wildshard/engine/world/BakedTerrain": ["bakedSamplers", "parseBakedTerrain"],
+    "@wildshard/format/weaponProfiles": ["parseNativeFirearmProfile", "parseWeaponProfile"],
+    "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion", "readItemInventory"],
+    "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
+    "@wildshard/game/plugin/director": ["readDirectorProduct"],
+    "src/shards/pine-hollow/runtime/nightDirector": ["preparePineNightDirector"],
+    "src/shards/pine-hollow/runtime/quest": ["PINE_INTERACT", "installHollowQuest", "pineSpots"],
+    "src/shards/pine-hollow/runtime/lodge": ["PINE_LODGE", "parseContractCatalogue"],
+    "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
+    "@wildshard/game/loot/exchange": ["parseExchange"],
+    "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
+    "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands", "installNativeCollision"],
+    "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
+    "src/shards/pine-hollow/runtime/roster": ["installPineRoster"],
+    "src/shards/pine-hollow/runtime/king": ["installPineKing"],
+    "@wildshard/engine/world/dayCycle": ["DayCycle"],
+    "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
+    "src/shards/pine-hollow/runtime/weapons/ammunition": ["PineAmmunition"],
+    "src/shards/pine-hollow/runtime/nightPopulation": ["installPineNight"],
+    "@wildshard/game/plugin/weather": ["installWeatherContinuation"],
+    "src/shards/pine-hollow/runtime/rainShelter": ["installPineRainShelter"],
+    "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
+    "@wildshard/engine/physics/terrain": ["isStandaloneEdgeWall"],
+    "@wildshard/game/shardfile/eliteEncounters": ["installEliteEncounters"],
+    "src/shards/pine-hollow/combat/eliteScripts": ["pineEliteScripts"],
+    "src/shards/pine-hollow/combat/lane": ["Lane"]
   },
   "prepare": [
     {
@@ -530,76 +468,130 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/elites", "installPineElites"]
+            "$ref": ["@wildshard/game/shardfile/eliteEncounters", "installEliteEncounters"]
           },
           {
             "$ref": ["host"]
           },
           {
-            "bodies": {
-              "$fn": {
-                "$if": [
-                  {
-                    "$ref": ["roster"]
-                  },
-                  {
+            "step": "pine.elites",
+            "version": 4,
+            "wire": {
+              "scripts": "scripts",
+              "stun": "stun",
+              "upgrades": [
+                {
+                  "version": 1,
+                  "removeScriptFields": [],
+                  "bindInstalledAnimals": true,
+                  "clearStun": true,
+                  "fieldDefaults": {
+                    "imperial-bull": {
+                      "rival0": null,
+                      "rival1": null,
+                      "rivalCharge0": false,
+                      "rivalCharge1": false
+                    }
+                  }
+                },
+                {
+                  "version": 2,
+                  "removeScriptFields": []
+                },
+                {
+                  "version": 3,
+                  "removeScriptFields": ["prelude"]
+                }
+              ]
+            },
+            "conditions": {
+              "mode": "weights",
+              "dusk": {
+                "$fn": {
+                  "$ref": ["day", "dusk"]
+                }
+              },
+              "night": {
+                "$fn": {
+                  "$ref": ["day", "night"]
+                }
+              }
+            },
+            "scripted": {
+              "create": {
+                "$ref": ["src/shards/pine-hollow/combat/eliteScripts", "pineEliteScripts"]
+              },
+              "ports": {
+                "bodies": {
+                  "$fn": {
+                    "$if": [
+                      {
+                        "$ref": ["roster"]
+                      },
+                      {
+                        "$call": [
+                          {
+                            "$ref": ["roster", "bodies"]
+                          }
+                        ]
+                      },
+                      []
+                    ]
+                  }
+                },
+                "heightAt": {
+                  "$ref": ["heightAt"]
+                },
+                "spawn": {
+                  "$fn": {
                     "$call": [
                       {
-                        "$ref": ["roster", "bodies"]
+                        "$ref": ["roster", "spawn"]
+                      },
+                      {
+                        "$ref": ["args", 0]
+                      },
+                      {
+                        "$ref": ["args", 1]
+                      },
+                      {
+                        "$ref": ["args", 2]
+                      },
+                      {
+                        "$ref": ["args", 3]
+                      },
+                      {
+                        "$ref": ["args", 4]
                       }
                     ]
-                  },
-                  []
-                ]
-              }
-            },
-            "heightAt": {
-              "$ref": ["heightAt"]
-            },
-            "spawn": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "spawn"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  },
-                  {
-                    "$ref": ["args", 1]
-                  },
-                  {
-                    "$ref": ["args", 2]
-                  },
-                  {
-                    "$ref": ["args", 3]
-                  },
-                  {
-                    "$ref": ["args", 4]
                   }
-                ]
-              }
-            },
-            "retire": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "retire"]
-                  },
-                  {
-                    "$ref": ["args", 0]
+                },
+                "retire": {
+                  "$fn": {
+                    "$call": [
+                      {
+                        "$ref": ["roster", "retire"]
+                      },
+                      {
+                        "$ref": ["args", 0]
+                      }
+                    ]
                   }
-                ]
-              }
-            },
-            "dusk": {
-              "$fn": {
-                "$ref": ["day", "dusk"]
-              }
-            },
-            "night": {
-              "$fn": {
-                "$ref": ["day", "night"]
+                },
+                "dusk": {
+                  "$fn": {
+                    "$ref": ["day", "dusk"]
+                  }
+                },
+                "night": {
+                  "$fn": {
+                    "$ref": ["day", "night"]
+                  }
+                },
+                "scriptedState": "sidestep",
+                "lane": {
+                  "$ref": ["src/shards/pine-hollow/combat/lane", "Lane"]
+                }
               }
             }
           }

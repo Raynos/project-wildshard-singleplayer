@@ -16,7 +16,7 @@ import type { Lane, LaneBody } from './lane';
 /**
  * Pine Hollow's four named elites' scripts, renderer-free (SF72): Old Ironhide, the Ghost Stag, Old Blackpaw and the Imperial
  * Bull as one implementation over any body and world (each satisfies the game's `EliteCoreScript`). The page (elites.ts) gives them its Animals, its decals, puffs and voices;
- * a renderer-free host (runtime/elites.ts) gives them its bodies, bare lanes and silent effects. Every random draw is the elite's
+ * the declared native encounter installer gives them its bodies, bare lanes and silent effects. Every random draw is the elite's
  * own seeded stream (eliteStreams.ts). The rules around them (lair, aware / engaged / leash, phase 2, respawn) are the game's
  * `EliteCore` (@wildshard/game/eliteSystem). Their fights — the moves and clocks — are admitted elite scripts (SF27:
  * behaviour/<name>.as, data/eliteRows.ts); the author rows assemble their hosts (spawn, lair, tells, the actions a script names)
@@ -157,6 +157,19 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   }
   /** the brain's and the script's own state (its lanes ride `lanes()`) */
   fields(): PineEliteFields { return { modeT: this.modeT, p2: this.p2, wx: this.wx, wz: this.wz, wanderT: this.wanderT, ...this.extra() }; }
+  /** Admit a continuation before any live fields, body visibility or rival bindings change. */
+  validateFields(f: PineEliteFields): void {
+    for (const key of ['modeT', 'wx', 'wz', 'wanderT']) if (typeof f[key] !== 'number' || !Number.isFinite(f[key])) throw new Error(`Invalid elite field ${key}`);
+    if (typeof f['p2'] !== 'boolean') throw new Error('Invalid elite phase');
+    for (const slot of this.rule.slots) { const value = f[slot.field];
+      if (slot.kind === 'boolean' ? typeof value !== 'boolean' : !(value === null && slot.never !== null) && (typeof value !== 'number' || !Number.isFinite(value))) throw new Error(`Invalid elite field ${slot.field}`);
+    }
+    if (this.rule.hidden && typeof f['hidden'] !== 'boolean') throw new Error('Invalid elite visibility');
+    if (this.rule.rivals) this.nativeLanes.slice(1).forEach((_lane, i) => { const value = f[`rival${String(i)}`];
+      if (value !== null && (typeof value !== 'number' || !Number.isInteger(value) || this.env.find(`creature:${String(value)}`) === null)) throw new Error('Invalid elite rival');
+      if (typeof f[`rivalCharge${String(i)}`] !== 'boolean') throw new Error('Invalid elite rival charge');
+    });
+  }
   restoreFields(mode: string, f: PineEliteFields): void {
     const num = (k: string): number => { const v = f[k]; if (typeof v !== 'number') throw new Error(`Incompatible Pine elite field ${k}`); return v; };
     const bool = (k: string): boolean => { const v = f[k]; if (typeof v !== 'boolean') throw new Error(`Incompatible Pine elite field ${k}`); return v; };

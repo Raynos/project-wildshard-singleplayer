@@ -77,6 +77,7 @@ them early. The ids carry a `K` so they don't collide with the shardfile rows ab
 | SF50-p, SF49-p, SF51-p | Signal, Sky and Nine port X tails toward ≤ 20 % | L–XL | after BR rows |
 | SF73 | Per-shard legacy deletion and save migration after ≤ 20 % and the gates | S–M each | blocked by ports |
 | W3 shared weather/wind continuation | Pine `runtime/air.ts` (47, C3) only composes Weather + a gust clock/cadence with atomic old-save restore; an honest shared cut needs a documented generic cadenced weather/wind continuation in `engine/world/weather`, with Pine as data/bindings and Nalati's native weather + wind laws as the second real user (sp-x5, 10-15). No pending-user credit before Nalati lands on it | Pine air.ts and Nalati's own weather/wind code deleted onto the engine continuation, saves restore | W3, with the Nalati port |
+| C4 elite type shim exit | On the next `headlessCreatures.ts` migration, point its and `headless.ts`'s manager-port type imports directly at the shared `EliteBindings` and delete temporary `runtime/headlessElites.d.ts`. No value exports or runtime code; root/layer types and 17 headless cases green, callback total does not rise. | S | next `headlessCreatures.ts` owner |
 
 ## SF87 / G320 status (2026-10-13, sp-x6; clean-room pin `2e24ff5bf`)
 

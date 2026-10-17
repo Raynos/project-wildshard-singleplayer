@@ -6823,9 +6823,34 @@ random source. Untouched last-hit clocks retain the historical null wire value.
 
 `EliteCoreContinuationSchema.entries` composes these fields into a caller's
 strict versioned envelope. Its top-level parser can also project those core
-fields directly from that envelope; nested rows remain strict. Pine retains
-its version-four envelope. W3 Nalati `runtime/headlessElites.ts` adopts the
-same codec, keeping its three-ID whitelist, tuple length and body/phase checks.
+fields directly from that envelope; nested rows remain strict.
+
+`game/shardfile/eliteEncounters#installEliteEncounters(host, spec)` owns the
+ordered native encounter roster on this core. Pine Hollow and Nalati both
+install it from their admitted headless assemblies. `scripted` lends an
+existing controller factory with its field/lane/RNG continuations; `rows` declares keeper constructors, member kind
+and variant, boot/spawn/herd adoption, initial memory, pack offsets and member
+order. Lair and respawn rules remain each row's `def` on `EliteCore`.
+`eliteBindings()` lends pins and decision/act bindings to the one manager body
+step. Keeper state is restored before body bindings are reattached; pack
+members must retain their declared kind, count and consecutive native IDs.
+The optional `win-and-detach` adoption action validates the native reward,
+sets its declared scale, retires the encounter and detaches its herd lookup.
+It takes no shard callback.
+
+The installer's scripted ports give existing fights boot-body adoption,
+cover-checked combat, lane constructors, bounds and a saved player root.
+The roster retains spawn IDs, draws and retirement; no second body installer,
+attack clock or decision controller is introduced.
+
+`wire` names the existing adapter envelope's script, stun and optional
+permanent-detachment keys. Pine saves version 4 and Nalati version 1, retaining
+their historical field and actor identities. Explicit `wire.upgrades` admit
+Pine v2 and remove v3's obsolete prelude cursors; v1 binds the install-time
+bodies and supplies its implicit no-rivals/no-root state. Unknown versions
+refuse. Restore checks the complete ordered core roster, exact record keys,
+body identities, phase/pack bindings, keeper payloads, fields, lanes and RNG
+before committing live state. It invokes no spawn, reward or random draw.
 
 ### Borrowed held hand parts
 

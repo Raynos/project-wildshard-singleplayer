@@ -124,7 +124,8 @@
     "./shardfile/dataCreaturePorts": "./shardfile/dataCreaturePorts.ts",
     "./bag/findsCatalogue": "./bag/findsCatalogue.ts",
     "./plugin/borrowed": "./plugin/borrowed.ts",
-    "./plugin/channels": "./plugin/channels.ts"
+    "./plugin/channels": "./plugin/channels.ts",
+    "./shardfile/eliteEncounters": "./shardfile/eliteEncounters.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

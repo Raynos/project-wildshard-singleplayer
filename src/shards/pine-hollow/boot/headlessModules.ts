@@ -1,3 +1,6 @@
+import { installEliteEncounters as eliteinstallEliteEncounters } from '@wildshard/game/shardfile/eliteEncounters';
+import { pineEliteScripts as elitepineEliteScripts } from '../combat/eliteScripts';
+import { Lane as eliteLane } from '../combat/lane';
 import type { HeadlessAssemblyModules } from '@wildshard/sdk/headlessAssembly';
 import { parsePineQuestRows as module0ParsePineQuestRows } from '../quest/rows';
 import { PINE_GROUND_RES as module1PINE_GROUND_RES, pineBake as module1PineBake } from '../runtime/baked';
@@ -16,7 +19,6 @@ import { parseWeatherProgram as module13ParseWeatherProgram } from '@wildshard/f
 import { bindHeadlessCommands as module14BindHeadlessCommands, installNativeCollision as module14InstallNativeCollision } from '@wildshard/sdk/headlessRuntime';
 import { nativeDecisionAuthority as module15NativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { installPineRoster as module16InstallPineRoster } from '../runtime/roster';
-import { installPineElites as module17InstallPineElites } from '../runtime/elites';
 import { installPineKing as module18InstallPineKing } from '../runtime/king';
 import { DayCycle as module19DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY as module20PINE_DAY } from '../look/dayKeys';
@@ -47,7 +49,6 @@ export const headlessModules = {
   '@wildshard/sdk/headlessRuntime': { bindHeadlessCommands: module14BindHeadlessCommands, installNativeCollision: module14InstallNativeCollision },
   '@wildshard/game/shardfile/borrowedDecisions': { nativeDecisionAuthority: module15NativeDecisionAuthority },
   'src/shards/pine-hollow/runtime/roster': { installPineRoster: module16InstallPineRoster },
-  'src/shards/pine-hollow/runtime/elites': { installPineElites: module17InstallPineElites },
   'src/shards/pine-hollow/runtime/king': { installPineKing: module18InstallPineKing },
   '@wildshard/engine/world/dayCycle': { DayCycle: module19DayCycle },
   'src/shards/pine-hollow/look/dayKeys': { PINE_DAY: module20PINE_DAY },
@@ -57,4 +58,7 @@ export const headlessModules = {
   'src/shards/pine-hollow/runtime/rainShelter': { installPineRainShelter: module24InstallPineRainShelter },
   '@wildshard/game/plugin/mover': { proveTerrainEntries: module25ProveTerrainEntries },
   '@wildshard/engine/physics/terrain': { isStandaloneEdgeWall: module26IsStandaloneEdgeWall },
+  '@wildshard/game/shardfile/eliteEncounters': { installEliteEncounters: eliteinstallEliteEncounters },
+  'src/shards/pine-hollow/combat/eliteScripts': { pineEliteScripts: elitepineEliteScripts },
+  'src/shards/pine-hollow/combat/lane': { Lane: eliteLane },
 } satisfies HeadlessAssemblyModules;

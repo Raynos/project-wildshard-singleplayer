@@ -32,10 +32,6 @@
     "@wildshard/sdk/headlessRuntime": [
       "installNativeCollision"
     ],
-    "src/shards/nalati-grasslands/runtime/headlessElites": [
-      "nalatiEliteBindings",
-      "installNalatiElites"
-    ],
     "src/shards/nalati-grasslands/runtime/groups": [
       "nalatiHeadlessEnv",
       "installNalatiGroups"
@@ -64,6 +60,27 @@
     ],
     "src/shards/nalati-grasslands/species/horse": [
       "poseNalatiHorse"
+    ],
+    "@wildshard/game/shardfile/eliteEncounters": [
+      "eliteBindings",
+      "installEliteEncounters"
+    ],
+    "src/shards/nalati-grasslands/runtime/aqbarsKeeper": [
+      "AqbarsKeeper"
+    ],
+    "src/shards/nalati-grasslands/runtime/kokboriKeeper": [
+      "KokboriKeeper"
+    ],
+    "src/shards/nalati-grasslands/runtime/argymaqKeeper": [
+      "ArgymaqKeeper"
+    ],
+    "src/shards/nalati-grasslands/combat/strikes": [
+      "sampleStrike",
+      "NALATI_STRIKES"
+    ],
+    "src/shards/nalati-grasslands/creatures/knockdown": [
+      "knockdownDash",
+      "KNOCKDOWN_TIME"
     ]
   },
   "constants": {},
@@ -415,8 +432,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headlessElites",
-              "nalatiEliteBindings"
+              "@wildshard/game/shardfile/eliteEncounters",
+              "eliteBindings"
             ]
           }
         ]
@@ -683,8 +700,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headlessElites",
-              "installNalatiElites"
+              "@wildshard/game/shardfile/eliteEncounters",
+              "installEliteEncounters"
             ]
           },
           {
@@ -693,226 +710,360 @@
             ]
           },
           {
-            "bindings": {
-              "$ref": [
-                "bindings"
-              ]
+            "step": "nalati.elites",
+            "version": 1,
+            "wire": {
+              "detached": "argDetached"
             },
-            "taming": {
-              "$fn": {
-                "$coalesce": [
-                  {
-                    "$call": [
-                      {
-                        "$ref": [
-                          "src/shards/nalati-grasslands/runtime/headlessTaming",
-                          "nalatiTamingOf"
-                        ]
-                      },
-                      {
-                        "$ref": [
-                          "host"
-                        ]
-                      }
-                    ]
-                  },
-                  null
-                ]
+            "conditions": {
+              "mode": "phase",
+              "phase": {
+                "$fn": {
+                  "$ref": [
+                    "clock",
+                    "dayPhase"
+                  ]
+                }
+              },
+              "storm": {
+                "$fn": {
+                  "$ref": [
+                    "env",
+                    "storm"
+                  ]
+                }
               }
             },
-            "heightAt": {
-              "$ref": [
-                "heightAt"
-              ]
-            },
-            "ledges": {
-              "$ref": [
-                "bake",
-                "ledges"
-              ]
-            },
-            "phase": {
-              "$fn": {
-                "$ref": [
-                  "clock",
-                  "dayPhase"
-                ]
-              }
-            },
-            "storm": {
-              "$fn": {
-                "$ref": [
-                  "env",
-                  "storm"
-                ]
-              }
-            },
-            "environment": {
-              "$fn": {
-                "$ref": [
-                  "env"
-                ]
-              }
-            },
-            "packs": {
-              "$fn": {
-                "$ref": [
-                  "groups",
-                  "packs"
-                ]
-              }
-            },
-            "spawnPack": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": [
-                      "creatures",
-                      "spawnElitePack"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      0
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      1
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      2
-                    ]
+            "rows": [
+              {
+                "def": {
+                  "$ref": [
+                    "constants",
+                    "eliteDefs",
+                    "aqbars"
+                  ]
+                },
+                "snapshot": "aqbars",
+                "keeper": "pouncer",
+                "member": {
+                  "kind": "leopard",
+                  "variant": "aqbars",
+                  "source": "boot",
+                  "yaw": 0,
+                  "memory": {
+                    "low": 0.3
                   }
-                ]
+                }
+              },
+              {
+                "def": {
+                  "$ref": [
+                    "constants",
+                    "eliteDefs",
+                    "kokbori"
+                  ]
+                },
+                "snapshot": "kokbori",
+                "keeper": "howler",
+                "member": {
+                  "kind": "kokbori",
+                  "variant": "kokbori",
+                  "source": "spawn",
+                  "yaw": 3.141592653589793
+                },
+                "pack": {
+                  "offset": [
+                    -6,
+                    4
+                  ],
+                  "variants": [
+                    "grey",
+                    "tawny",
+                    "grey",
+                    "dark",
+                    "scout"
+                  ],
+                  "kind": "wolf",
+                  "idPrefix": "creature:"
+                }
+              },
+              {
+                "def": {
+                  "$ref": [
+                    "constants",
+                    "eliteDefs",
+                    "argymaq"
+                  ]
+                },
+                "snapshot": "argymaq",
+                "keeper": "herd",
+                "member": {
+                  "kind": "argymaq",
+                  "variant": "stallion",
+                  "source": "herd",
+                  "yaw": 0
+                },
+                "brokenState": "beaten",
+                "onAdopted": {
+                  "action": "win-and-detach",
+                  "variant": "tulpar",
+                  "scale": 1.3
+                }
               }
-            },
-            "retirePack": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": [
-                      "creatures",
-                      "retirePack"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      0
-                    ]
-                  }
+            ],
+            "ports": {
+              "bindings": {
+                "$ref": [
+                  "bindings"
                 ]
-              }
-            },
-            "bodies": {
-              "$fn": {
-                "$coalesce": [
-                  {
-                    "$ref": [
-                      "creatures",
-                      "bodies"
-                    ]
-                  },
-                  {
-                    "$call": [
-                      {
-                        "$ref": [
-                          "bodies",
-                          "map"
-                        ]
-                      },
-                      {
-                        "$fn": {
+              },
+              "taming": {
+                "$fn": {
+                  "$coalesce": [
+                    {
+                      "$call": [
+                        {
                           "$ref": [
-                            "args",
-                            0,
-                            "actor"
+                            "src/shards/nalati-grasslands/runtime/headlessTaming",
+                            "nalatiTamingOf"
+                          ]
+                        },
+                        {
+                          "$ref": [
+                            "host"
                           ]
                         }
-                      }
-                    ]
-                  }
+                      ]
+                    },
+                    null
+                  ]
+                }
+              },
+              "heightAt": {
+                "$ref": [
+                  "heightAt"
                 ]
-              }
-            },
-            "herd": {
-              "$fn": {
-                "$coalesce": [
-                  {
-                    "$ref": [
-                      "groups",
-                      "herds",
-                      1
-                    ]
-                  },
-                  null
+              },
+              "ledges": {
+                "$ref": [
+                  "bake",
+                  "ledges"
                 ]
-              }
-            },
-            "spawn": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": [
-                      "creatures",
-                      "spawnElite"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      0
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      1
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      2
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      3
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      4
-                    ]
-                  }
+              },
+              "environment": {
+                "$fn": {
+                  "$ref": [
+                    "env"
+                  ]
+                }
+              },
+              "packs": {
+                "$fn": {
+                  "$ref": [
+                    "groups",
+                    "packs"
+                  ]
+                }
+              },
+              "spawnPack": {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "creatures",
+                        "spawnElitePack"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        1
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        2
+                      ]
+                    }
+                  ]
+                }
+              },
+              "retirePack": {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "creatures",
+                        "retirePack"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    }
+                  ]
+                }
+              },
+              "bodies": {
+                "$fn": {
+                  "$coalesce": [
+                    {
+                      "$ref": [
+                        "creatures",
+                        "bodies"
+                      ]
+                    },
+                    {
+                      "$call": [
+                        {
+                          "$ref": [
+                            "bodies",
+                            "map"
+                          ]
+                        },
+                        {
+                          "$fn": {
+                            "$ref": [
+                              "args",
+                              0,
+                              "actor"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "herd": {
+                "$fn": {
+                  "$coalesce": [
+                    {
+                      "$ref": [
+                        "groups",
+                        "herds",
+                        1
+                      ]
+                    },
+                    null
+                  ]
+                }
+              },
+              "spawn": {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "creatures",
+                        "spawnElite"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        1
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        2
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        3
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        4
+                      ]
+                    }
+                  ]
+                }
+              },
+              "retire": {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "creatures",
+                        "retireElite"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    }
+                  ]
+                }
+              },
+              "keepers": {
+                "pouncer": {
+                  "$ref": [
+                    "src/shards/nalati-grasslands/runtime/aqbarsKeeper",
+                    "AqbarsKeeper"
+                  ]
+                },
+                "howler": {
+                  "$ref": [
+                    "src/shards/nalati-grasslands/runtime/kokboriKeeper",
+                    "KokboriKeeper"
+                  ]
+                },
+                "herd": {
+                  "$ref": [
+                    "src/shards/nalati-grasslands/runtime/argymaqKeeper",
+                    "ArgymaqKeeper"
+                  ]
+                }
+              },
+              "strike": {
+                "$ref": [
+                  "src/shards/nalati-grasslands/combat/strikes",
+                  "sampleStrike"
                 ]
-              }
-            },
-            "retire": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": [
-                      "creatures",
-                      "retireElite"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      0
-                    ]
-                  }
+              },
+              "strikes": {
+                "$ref": [
+                  "src/shards/nalati-grasslands/combat/strikes",
+                  "NALATI_STRIKES"
                 ]
+              },
+              "swipeDamage": 14,
+              "knock": {
+                "dash": {
+                  "$ref": [
+                    "src/shards/nalati-grasslands/creatures/knockdown",
+                    "knockdownDash"
+                  ]
+                },
+                "duration": {
+                  "$ref": [
+                    "src/shards/nalati-grasslands/creatures/knockdown",
+                    "KNOCKDOWN_TIME"
+                  ]
+                }
               }
             }
           }

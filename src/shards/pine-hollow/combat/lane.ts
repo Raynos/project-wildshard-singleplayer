@@ -50,6 +50,8 @@ export class Lane<B extends LaneBody = LaneBody> {
   snapshot(): LaneState { return { tellT: this.tellT, runner: this.runner.snapshot() }; }
   /** Back to a saved state: the running strike is this lane's own spec at the saved tell length. */
   restore(saved: LaneState): void { this.tellT = saved.tellT; this.runner.restore(saved.runner, [{ ...this.spec, windup: saved.tellT }]); }
+  /** Validate a runner without mutating the live charge. */
+  validate(saved: LaneState): void { new Lane(this.spec, this.reach).restore(saved); }
   recoverNow(): void { this.runner.recoverNow(); }
   /** One body-clock step (`t`, the frame's time, is the decal's alone). */
   update(a: B, dt: number, t: number, player: Vector3, hurt: (dmg: number) => void): void {

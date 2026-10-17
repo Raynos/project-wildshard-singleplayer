@@ -32,7 +32,6 @@ const roles = [
 // W2 reviewed ownership: native animal keepers are creature managers, not quest NPCs.
 const creatureOwners=new Set([
   'src/shards/pine-hollow/runtime/nightDirector.ts',
-  'src/shards/pine-hollow/runtime/elites.ts',
   'src/shards/pine-hollow/combat/eliteScripts.ts',
   'src/shards/pine-hollow/runtime/kingPoseKeeper.ts',
   'src/shards/pine-hollow/runtime/kingQueryPose.ts',

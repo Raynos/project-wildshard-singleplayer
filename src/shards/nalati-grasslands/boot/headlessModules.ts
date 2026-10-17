@@ -1,3 +1,9 @@
+import { eliteBindings as eliteeliteBindings, installEliteEncounters as eliteinstallEliteEncounters } from '@wildshard/game/shardfile/eliteEncounters';
+import { AqbarsKeeper as eliteAqbarsKeeper } from '../runtime/aqbarsKeeper';
+import { KokboriKeeper as eliteKokboriKeeper } from '../runtime/kokboriKeeper';
+import { ArgymaqKeeper as eliteArgymaqKeeper } from '../runtime/argymaqKeeper';
+import { sampleStrike as elitesampleStrike, NALATI_STRIKES as eliteNALATI_STRIKES } from '../combat/strikes';
+import { knockdownDash as eliteknockdownDash, KNOCKDOWN_TIME as eliteKNOCKDOWN_TIME } from '../creatures/knockdown';
 import { poseNalatiHorse } from '../species/horse';
 import type { HeadlessAssemblyModules } from '@wildshard/sdk/headlessAssembly';
 import { parseWeatherProgram as m0parseWeatherProgram } from '@wildshard/format/weatherProgram';
@@ -7,7 +13,6 @@ import { nalatiTerrainGrid as m3nalatiTerrainGrid, nalatiWorldQueries as m3nalat
 import { bakedSamplers as m4bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import { readNavmesh as m5readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { installNativeCollision as m6installNativeCollision } from '@wildshard/sdk/headlessRuntime';
-import { nalatiEliteBindings as m7nalatiEliteBindings, installNalatiElites as m7installNalatiElites } from '../runtime/headlessElites';
 import { nalatiHeadlessEnv as m8nalatiHeadlessEnv, installNalatiGroups as m8installNalatiGroups } from '../runtime/groups';
 import { nalatiTamingOf as m9nalatiTamingOf, installNalatiTaming as m9installNalatiTaming } from '../runtime/headlessTaming';
 import { installNalatiCreatures as m10installNalatiCreatures } from '../runtime/headlessCreatures';
@@ -27,7 +32,6 @@ export const headlessModules = {
   '@wildshard/engine/world/BakedTerrain': { bakedSamplers: m4bakedSamplers },
   '@wildshard/engine/physics/navmesh': { readNavmesh: m5readNavmesh },
   '@wildshard/sdk/headlessRuntime': { installNativeCollision: m6installNativeCollision },
-  'src/shards/nalati-grasslands/runtime/headlessElites': { nalatiEliteBindings: m7nalatiEliteBindings, installNalatiElites: m7installNalatiElites },
   'src/shards/nalati-grasslands/runtime/groups': { nalatiHeadlessEnv: m8nalatiHeadlessEnv, installNalatiGroups: m8installNalatiGroups },
   'src/shards/nalati-grasslands/runtime/headlessTaming': { nalatiTamingOf: m9nalatiTamingOf, installNalatiTaming: m9installNalatiTaming },
   'src/shards/nalati-grasslands/runtime/headlessCreatures': { installNalatiCreatures: m10installNalatiCreatures },
@@ -36,4 +40,10 @@ export const headlessModules = {
   'src/shards/nalati-grasslands/world/terrain': { TERRAIN: m13TERRAIN },
   '@wildshard/engine/core/noise': { clamp: m14clamp },
   '@wildshard/game/plugin/mover': { proveTerrainEntries: m15proveTerrainEntries },
+  '@wildshard/game/shardfile/eliteEncounters': { eliteBindings: eliteeliteBindings, installEliteEncounters: eliteinstallEliteEncounters },
+  'src/shards/nalati-grasslands/runtime/aqbarsKeeper': { AqbarsKeeper: eliteAqbarsKeeper },
+  'src/shards/nalati-grasslands/runtime/kokboriKeeper': { KokboriKeeper: eliteKokboriKeeper },
+  'src/shards/nalati-grasslands/runtime/argymaqKeeper': { ArgymaqKeeper: eliteArgymaqKeeper },
+  'src/shards/nalati-grasslands/combat/strikes': { sampleStrike: elitesampleStrike, NALATI_STRIKES: eliteNALATI_STRIKES },
+  'src/shards/nalati-grasslands/creatures/knockdown': { knockdownDash: eliteknockdownDash, KNOCKDOWN_TIME: eliteKNOCKDOWN_TIME },
 } satisfies HeadlessAssemblyModules;
