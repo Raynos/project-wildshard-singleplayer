@@ -68,6 +68,7 @@ describe('Driftwood and Pine looks read the product, not shard.config', () => {
       expect(source).toContain("import type { ShardProduct } from '../../game/shardfile/shardProduct';");
     }
     expect(authoredManifestSource(root, 'sunscar-dunes')).toContain('roster: async (product) => callWithProduct(');
-    expect(authoredManifestSource(root, 'driftwood-isle')).toContain('roster: async () => (await import("./roster"))["ROSTER"]');
+    // d78cef781: Driftwood's roster is a called factory now, so discovery forwards the product to it too
+    expect(authoredManifestSource(root, 'driftwood-isle')).toContain('roster: async (product) => callWithProduct((await import("./roster"))["roster"], product)');
   });
 });
