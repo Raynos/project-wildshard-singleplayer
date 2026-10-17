@@ -1,8 +1,10 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W1 DONE (10-17 ~09:30Z).** Ruler at `d78cef781` (~12:40Z, JSON-aware G480): **M3 63.8 % (51,155 of 80,173 cut)**, plan 38.3–71.6 %. Sky 528 (7.8 %), Signal 392 (9.5 %); W2: Pine 8,984 (42.2 %; target ≤ 4,261), DW 5,829 (34.0 %; target ≤ 3,433); W3 later: Nalati 20,077, Nine 11,889. Landed features: quest runner 6/6 (974e725c4), boss host 6/6 (c023b2350), collections 5/6 (d78cef781), held arms/catalogue/loadout 5/6 (a29bc1c05, 2d0e3fcb7, c7bd8fe24), actor lifetimes 3/6 (78820910c, fix in flight). Ladder G479: Opus eyes-only, 0 running.
+**W1 DONE (10-17 ~09:30Z).** Ruler at `d78cef781` (~12:40Z, JSON-aware G480): **M3 63.8 % (51,155 of 80,173 cut)**, plan 38.3–71.6 %. Sky 528 (7.8 %), Signal 392 (9.5 %); W2: Pine 8,984 (42.2 %; target ≤ 4,261), DW 5,829 (34.0 %; target ≤ 3,433); W3 later: Nalati 20,077, Nine 11,889. Feature scores: quest runner 6/6, boss host 6/6, collections 5/6, held 5/6, population fixed (7d0589151, Pine +603 charge-back). Ladder G479: Opus eyes-only, 0 running.
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
+
+**FOR wildshard-v (blocker on the push):** sp-x7 reports the pre-push whats-new freshness check (ba3dd68d7) refuses: committed src/game/whatsNew.json lacks a fresh `updated` stamp, while the working tree holds your refreshed copy plus new freshness code/tests (your 'whats new gate' WIP). Please land that WIP now; sp-x7 preserves it and will not commit it for you (G485: sp-x7 does only push/CI/deploy).
 
 **Lanes (W2):**
 - sp-x5 Z2 world scene assembly (G483; first adopters DW cascade + Pine streams).
@@ -13,10 +15,9 @@
 - sp-x7 (G485): ONLY CI/deploy until live == recent main (red since this morning; live a399c36f3 from 10-13). Root cause so far: Nalati spear pool bake hash differs Linux 7fbead3b vs Mac af347349 and its GLB was git-ignored (8f5e76376); plus Nalati empty-URL model 404s. The G480 ruler task is already landed (49ac0b23a), so nothing to move.
 - sp-x8 G484 (b) SCRIPT-ABI.md rewrite. Next free lane: spawn director Script ABI spawn/retire + Pine night waves to AS (wins back the +603 charge-back), then #5 living buildings; Z1 after Z2.
 
-**Perf (standing goal 60 fps desktop / 30 fps Sim):** Sim crash FIXED (0e9f5d4c9, OM: ANGLE RGB8 ETC2 overread, only under the G386 probe-skip pin). Quiet Sim road p95 at e5aba0e01 (travel/drive): Pine 55/55, Nalati 53/46, DW 68/53, Sky 36/44 ms; staged node builds gave no win (removed). sp-x1 attributes Pine's long world-build frames.
-- Desktop standalone 7/7 at 60 fps; Sim milestone 8/8 with no crash after 0e9f5d4c9. Landed: 7afedf243 posed-atlas re-entry, 2c956f4d9 + ea3164e39 live collider splits (Nalati 172 → 47 ms), 230be1ccc/e0799b920 Sky pacing.
+**Perf:** Sim floor p95 ≤ 35 ms: Sky passes; Pine, Nalati, DW travel 36–46 ms across runs (sp-x1 part six: zlib decode + microtasks, inflate pacing).
 
-**Memory:** neighbour products 436 → 47 MB (sp-x7); settled Nine 1,242 MB over the 1.2 GB report cap (late L0 rings), others 600–900 MB.
+**Memory:** settled Nine 1,242 MB over the 1.2 GB report cap; others 600–900 MB.
 
 **Order (G471/G477, plan agent's mini plans `progress/shard-platform/mini-plans-2026-10-17/`):** W1 spike (Sky, Signal ≤ 10 %), then W2 (Pine, DW ≤ 20 % through the G473–G477 platform features, AS only for unique logic), then W3 (Nalati, Nine). Rows: [open-x-queue](open-x-queue.md).
 Paused: SF22 SF57 SF67.
