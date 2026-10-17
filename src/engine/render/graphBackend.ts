@@ -12,6 +12,10 @@ import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
 
 const installed = new WeakMap<Renderer, Promise<EngineNodesHandler>>();
+const ready = new WeakMap<Renderer, EngineNodesHandler>();
+
+/** the renderer's node handler once installed, else null (never loads the back-end; diagnostics read its counters) */
+export function installedGraphBackend(renderer: Renderer): EngineNodesHandler | null { return ready.get(renderer) ?? null; }
 
 /** install the engine's node handler on this renderer (once; later calls return the same handler) */
 export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler> {
@@ -20,6 +24,7 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
   const loading = import('./nodes/engineNodesHandler').then(({ EngineNodesHandler: Handler }) => {
     const handler = new Handler();
     renderer.setNodesHandler(handler);
+    ready.set(renderer, handler);
     return handler;
   });
   installed.set(renderer, loading);
