@@ -41,7 +41,7 @@ import type { Lightning as Weather, Exposed, LightningPlayer } from './Lightning
 import { steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { WeatherFX } from './WeatherFX';
-import { waterOf } from '../water';
+import { setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 type WeatherHUD = Parameters<HUD['setWeather']>[0];
@@ -50,8 +50,6 @@ declare module '@wildshard/engine/events/maps' { interface EventMap { 'weather.c
 export interface WeatherCtx {
   ctx: ShardContext; manifest: ShardManifest;
   game: Game; sky: Sky; player: Player; forest: Forest; colliders?: Collider[];
-  /** the river / brook / waterfall (src/shards/nalati-grasslands/water.ts): its unlit colours are dimmed with the light (night, storm) */
-  water?: THREE.Object3D;
 }
 
 export interface WeatherHooks {
@@ -94,21 +92,16 @@ function isTimeName(s: string): s is DayPhase | 'noon' | 'midnight' { return (TI
 const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 
 /**
- * The river's shader is unlit (its colours are painted): its light follows the hour and the storm through the water's
- * own setters (src/shards/nalati-grasslands/water.ts `setLight` / `setRain`), so the water doesn't glow at night and rain rings its surface.
+ * The water's look is unlit (its colours are painted: data/lookGraphs.json 'nalati-water'): its light follows the hour and
+ * the storm through the look's params, so the water doesn't glow at night and rain rings its surface.
  */
-function waterDimmer(root: THREE.Object3D | undefined): ((L: SkyLook, dayFog: number, dayKey: number, rain: number) => void) | null {
-  const water = root ? waterOf(root) : null;
-  if (!water) return null;
-  const lum = (c: THREE.Color): number => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-  const sky = new THREE.Color(), sun = new THREE.Color(), baseSun = water.sunColor.clone();
-  return (L, dayFog, dayKey, rain) => {
-    const k = Math.min(1, Math.max(0.06, lum(L.fogColor) / Math.max(1e-3, dayFog)));
-    sky.copy(L.horizon).lerp(L.zenith, 0.35);
-    sun.copy(baseSun).multiply(L.keyColor).multiplyScalar(L.keyIntensity / Math.max(1e-3, dayKey));
-    water.setLight({ brightness: k, sky, sun });
-    water.setRain(rain);
-  };
+const WATER = 'nalati-water', waterSky: number[] = [0, 0, 0], waterSun: number[] = [0, 0, 0], rgb = new THREE.Color();
+function lightWater(L: SkyLook, dayFog: number, dayKey: number, rain: number): void {
+  const lum = 0.2126 * L.fogColor.r + 0.7152 * L.fogColor.g + 0.0722 * L.fogColor.b;
+  setLentParam(WATER, 'brightness', Math.min(1, Math.max(0.06, lum / Math.max(1e-3, dayFog))));
+  setLentParam(WATER, 'sky', rgb.copy(L.horizon).lerp(L.zenith, 0.35).toArray(waterSky));
+  setLentParam(WATER, 'sunColour', rgb.copy(L.keyColor).multiplyScalar(L.keyIntensity / Math.max(1e-3, dayKey)).toArray(waterSun));
+  setLentParam(WATER, 'rain', Math.min(1, Math.max(0, rain)));
 }
 
 export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
@@ -129,7 +122,6 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey }, def);
   const base = makeLook(), look = makeLook();
   const stormLook=installChannelPrograms(ctx.ctx.product.shardfile.clientChannels,'weather',new Map([['look',look]]));
-  const dimWater = waterDimmer(ctx.water);
   const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);
 
   // ── the lightning's view of the world ──
@@ -205,7 +197,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.weather.overcast,flash:weather.flash,rain:weather.weather.rain,wet:weather.weather.wet}});
       rig.flash = weather.flash * 0.7;
       rig.apply(look, dt);
-      dimWater?.(look, dayFog, dayKey, indoors ? 0 : weather.weather.rain);
+      lightWater(look, dayFog, dayKey, indoors ? 0 : weather.weather.rain);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
       // the creatures

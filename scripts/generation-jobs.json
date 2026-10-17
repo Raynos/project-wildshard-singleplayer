@@ -16131,6 +16131,41 @@
       ],
       "platform": "native",
       "catalogueDependencies": []
+    },
+    {
+      "id": "nalati-water",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/waterStrips.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "scripts/bake/nalatiWater.mjs",
+        "src/shards/nalati-grasslands/generators/waterStrips.ts"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake/environment.mjs",
+        "scripts/bake/nativeWorld.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "scripts/bake/nalatiWater.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/water.generated.json"
+      ],
+      "platform": "native",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/water.generated.json"
+      ]
     }
   ]
 }

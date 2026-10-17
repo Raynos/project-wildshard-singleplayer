@@ -10,7 +10,8 @@
  * feeds each frame (`bind`: its own clock, the open water's half-extent `waterExtent`, and at draw the chunk's half), static params, an optional baked floor (a `res`² RG half-float texture over the chunk:
  * R = the floor height, baked; G = the foam proximity `foamAround` stamps) and its dry-rectangle sockets. `lent` hands a
  * param a uniform the shard's light owns (read each frame). No callback crosses it (G454). Users: Driftwood's faceted
- * sea (grid, floor, foam, dry sockets, waves), Pine Hollow's creek and waterfall, beaver pool and trickle.
+ * sea (grid, floor, foam, dry sockets, waves), Pine Hollow's creek and waterfall, beaver pool and trickle, Nalati's baked river
+ * and brook.
  */
 import * as THREE from 'three';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';

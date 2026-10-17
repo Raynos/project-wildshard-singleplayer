@@ -12,7 +12,10 @@ import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
-import { Color, Vector3, type Object3D } from 'three';
+import { BufferGeometry, Color, Float32BufferAttribute, Vector3, type Object3D } from 'three';
+import * as v from 'valibot';
+import { lentLooksOf } from '@wildshard/sdk/looks/lentLooks';
+import { WaterSurface, waterSurfaceLook } from '@wildshard/sdk/looks/waterSurface';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
@@ -31,7 +34,6 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 
-import { NalatiWater } from '../water';
 import { buildOutcropsSliced } from '../outcrops';
 import { buildCragRockSliced } from '../cragRock';
 import { NalatiPOIs } from '../world/index';
@@ -75,8 +77,6 @@ export interface NalatiPlay {
 export interface Nalati {
   readonly persistence: NalatiPersistence | undefined;
   /** every frame (main.ts game.onUpdate) */
-  /** the river, brook and waterfall (world agent) */
-  water: NalatiWater;
   /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
   pois: NalatiPOIs;
   /** the day/night clock + storms (weather agent, B10): `weather.clock.onDusk(fn)`, `weather.weather.stormActive`,
@@ -148,8 +148,12 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     painterlyUniforms.uPWind.value.set(wind.dirX, wind.dirZ, windUniforms.uWindStrength.value);
   });
 
-  // ── water (world agent, B0): the braided Kunes, the plateau brook, the waterfall ──
-  const water = new NalatiWater(sky).build();
+  // ── water (world agent, B0): the braided Kunes and the plateau brook, baked (generators/waterStrips.ts), on the water-surface
+  // host in their look (data/lookGraphs.json 'nalati-water', lit by world/installWeather.ts) ──
+  const strips = v.parse(v.object({ surface: v.looseObject({ look: v.string() }), position: v.array(v.number()), water: v.array(v.number()), index: v.array(v.number()) }),
+    JSON.parse(new TextDecoder().decode(await plugin.product.file('world/water.json'))));
+  const water = new WaterSurface(strips.surface, waterSurfaceLook(lentLooksOf(strips.surface.look), strips.surface.look)).draw(new BufferGeometry()
+    .setAttribute('position', new Float32BufferAttribute(strips.position, 3)).setAttribute('aWater', new Float32BufferAttribute(strips.water, 4)).setIndex(strips.index));
   game.scene.add(water.group);
   groups['water'] = water.group;
   updates.push((dt) => water.update(dt));
@@ -198,7 +202,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await slice(++completed, total, 'Dressing');
 
   // ── weather + day/night (weather agent, B10): the clock, storms, the sky rig — src/shards/nalati-grasslands/weather.ts ──
-  const weather = await wireWeather({ ctx: plugin, manifest: ctx.chunk, game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders, water: water.group });
+  const weather = await wireWeather({ ctx: plugin, manifest: ctx.chunk, game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders });
   groups['weather'] = weather.fx.group;
   updates.push((dt) => weather.update(dt));
 
@@ -336,7 +340,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     return w;
   };
   const nalati: Nalati = {
-    persistence, water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
+    persistence, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
     skins: new NalatiSkinLocker(persistence === undefined ? undefined : { read: () => persistence.cosmetics.read(), write: (value) => { persistence.cosmetics.write(value); return true; } }),
     attachAnimals(animals) {
       const w = prepareWildlife(animals);
