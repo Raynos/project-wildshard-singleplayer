@@ -9,8 +9,11 @@
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
-import { bear, boar, deer } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
-import { elk } from './runtime/models/creatures';
+import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
+import { creature } from '@wildshard/engine/models/creature';
+import { defineModel } from '@wildshard/engine/models/model';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { preparePineGrazers, pineGrazer } from './species/looks';
 import { antlerKing } from './runtime/models/antlerKing';
 import { WILD_MODELS as WILD } from './runtime/models/birds';
 import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
@@ -22,23 +25,32 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
 const RAVENS = 4 + 3, OWLS = 1, WOODPECKERS = 1, HARES = 5;
 
-export const ROSTER: readonly RosterEntry[] = [
-  // the fauna (pine-hollow.ts `fauna`): the shared rigs in Pine Hollow's hulls (scripts/creature-rig-bake.mjs) — the hind
-  // TRELLIS.2, the stag, the boar and the bears Hunyuan3D-2 — and the boar's and elk's thralls (the King's fight)
-  live(deer, { pipeline: ['trellis', 'hunyuan', 'code'] }), live(boar, { pipeline: ['hunyuan', 'code'] }), live(bear, { pipeline: ['hunyuan', 'code'] }),
-  live(elk),
-  // the boss (src/shards/pine-hollow/combat/antlerKing.ts): at night in the King's clearing; parked out of the herd list by day
-  live(antlerKing, { planned: 1 }),
-  // the birds and the hares (src/shards/pine-hollow/life/index.ts)
-  live(WILD.raven, { copies: RAVENS, drawnAs: 'instanced' }), live(WILD.owl, { copies: OWLS, drawnAs: 'instanced' }),
-  live(WILD.woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(WILD.hare, { copies: HARES, drawnAs: 'instanced' }),
-  // the people (src/shards/pine-hollow/quest/index.ts): one each, the generated person skinned on its code rig
-  live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
-  // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the
-  // skinning knife) and the gloved hands in the pond and the creek (E348)
-  ...GEAR,
-  live(swimHands, { copies: 1 }),
-];
+function roster(): readonly RosterEntry[] {
+  const deer = defineModel({ id: 'shared/deer', file: 'src/game/models/creatures.ts', pipeline: ['code', 'trellis', 'hunyuan'], ...creature('deer', { species: pineGrazer('deer') }) });
+  const elk = defineModel({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true, species: pineGrazer('elk') }) });
+
+  return [
+    // the fauna (pine-hollow.ts `fauna`): the shared rigs in Pine Hollow's hulls (scripts/creature-rig-bake.mjs) — the hind
+    // TRELLIS.2, the stag, the boar and the bears Hunyuan3D-2 — and the boar's and elk's thralls (the King's fight)
+    live(deer, { pipeline: ['trellis', 'hunyuan', 'code'] }), live(boar, { pipeline: ['hunyuan', 'code'] }), live(bear, { pipeline: ['hunyuan', 'code'] }),
+    live(elk),
+    // the boss (src/shards/pine-hollow/combat/antlerKing.ts): at night in the King's clearing; parked out of the herd list by day
+    live(antlerKing, { planned: 1 }),
+    // the birds and the hares (src/shards/pine-hollow/life/index.ts)
+    live(WILD.raven, { copies: RAVENS, drawnAs: 'instanced' }), live(WILD.owl, { copies: OWLS, drawnAs: 'instanced' }),
+    live(WILD.woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(WILD.hare, { copies: HARES, drawnAs: 'instanced' }),
+    // the people (src/shards/pine-hollow/quest/index.ts): one each, the generated person skinned on its code rig
+    live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
+    // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the
+    // skinning knife) and the gloved hands in the pond and the creek (E348)
+    ...GEAR,
+    live(swimHands, { copies: 1 }),
+  ];
+}
 
 /** Admit the knife recipe before the Explorer can synchronously build its card. */
-export async function preparedRoster(product?: ShardProduct): Promise<readonly RosterEntry[]> { await prepareKnifeRows(product); return ROSTER; }
+export async function preparedRoster(product?: ShardProduct): Promise<readonly RosterEntry[]> {
+  const source = product ?? await loadFirstPartyProduct('pine-hollow');
+  await Promise.all([prepareKnifeRows(source), preparePineGrazers(source)]);
+  return roster();
+}

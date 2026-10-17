@@ -5,6 +5,7 @@
  * and the bear are shared (src/game/models/creatures.ts); the Antler King is ./antlerKing.ts, the birds ./birds.ts, the hare
  * ./wildlife.ts.
  */
+import { DEER } from '../species/deerRows';
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 
@@ -12,3 +13,6 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
  *  the Hunyuan3D-2 hulls (elk-cow / elk-bull[.phone].rigged.glb, src/engine/entities/pineCreatures.ts) on the elk's code rig
  *  (src/engine/entities/species/elk.ts), which is also the fallback when Debug ▸ Creatures = Procedural */
 export const elk: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true }) });
+
+/** Frozen red deer model retained after the primary grazer data migration. */
+export const deer: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'shared/deer', file: 'src/game/models/creatures.ts', pipeline: ['code', 'trellis', 'hunyuan'], ...creature('deer', { species: DEER }) });

@@ -3,8 +3,8 @@ import { Color } from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { HuntGround, HuntSpecies } from '@wildshard/engine/ai/hunt';
 import type { VariantDef, VariantTable } from '@wildshard/engine/entities/species/registry';
-import { DEER } from '@wildshard/game/systems/species/deer';
-import { ELK } from '@wildshard/game/systems/species/elk';
+import { DEER } from '../species/deerRows';
+import { ELK } from '../species/elkRows';
 import { PINE_BEAR, PINE_BOAR, PINE_ELK_THRALL } from '../species/rows';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { treeGridOf, type TreeInstance } from '@wildshard/engine/world/forest/placement';
@@ -44,7 +44,7 @@ export const PINE_KING_KIND = 'antler-king';
  * Pine's creature rows as the manager's spawn rolls and hunting brain read them, renderer-free (SF72; `spawnRolls`'
  * species seam and `HuntConfig.species`): the kit's deer, the kit's elk with Pine's thrall (species/rows.ts pineElk), Pine's
  * boar and bear, and the Antler King's one variant (`king`: his scale is the baked body's, models/antlerKing.ts KING_VARIANT).
- * The kit's deer and elk rows are public game modules for this (`@wildshard/game/systems/species/deer` / `elk`, beside
+ * The kit's deer and elk rows are public game modules for this (`../species/deerRows` / `elk`, beside
  * bear and boar): a renderer-free host reads the rows the page registers, never the global registry.
  */
 export function pineSpawnSpecies(king: VariantDef): (kind: string) => VariantTable & HuntSpecies {

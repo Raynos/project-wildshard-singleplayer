@@ -9,7 +9,7 @@ import { runtimeAudio, installRuntimeAudioEntry } from '@wildshard/game/plugin/a
 import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
-import { pineLooks } from '../species/looks';
+import { pineLooks, preparePineGrazers } from '../species/looks';
 import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
 import { installPineCompendium } from './compendium/install';
 import { ShardPlugin,type ShardContext } from '@wildshard/game/plugin/context';
@@ -156,6 +156,7 @@ export class PineHollow extends ShardPlugin {
     const audio = ctx.app.audio;
     if (audio === null) throw new Error('Pine synth bed needs its mixer');
     installRuntimeAudioEntry(ctx,'kit',{audio});
+    await preparePineGrazers(ctx.product);
     registerKing();
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/creature-clips.json')))));

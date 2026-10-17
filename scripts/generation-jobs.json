@@ -3,6 +3,34 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "pine-grazers",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-grazers.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-grazers.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-grazers.mjs",
+        "src/shards/pine-hollow/generators/deerRows.ts",
+        "src/shards/pine-hollow/generators/elkRows.ts",
+        "src/shards/pine-hollow/generators/grazerBodies.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/grazers.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/grazers.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "driftwood-isle-humanoid-clips",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-humanoid-clips.mjs",

@@ -296,7 +296,7 @@
         "models/contractBoard.ts": "c244d3bd0b24788a0be35c1e3a1c08385439e3c5de639d0ef3f0bfadfb88b322",
         "models/cragBoulder.ts": "1baa02b8d55838a10f767225cf26e0d450d62b4bbff26cc887fc742edb9b118c",
         "models/cragCliff.ts": "681d3575d79cec5dd592d4e9536ae4ccb4c815d1ea4bc10a2c2f7db27ddd9605",
-        "models/creatures.ts": "4a69946f4e687c296920db75af9a402cfe3e9b7c7cef44b31a3e78e893ce30e1",
+        "models/creatures.ts": "02368c044ecff6c93e6d837e067cc73107c3eabfcfdffc129e5802a25ad294c5",
         "models/creekFootbridge.ts": "e55e27f14ba4e265a0a4dd68f867e5c8eaf53f304802dfed7a0895c54c31c137",
         "models/fallenLog.ts": "f34630980bb83070f4ace8e948ab7bb2f8490519470342879318d05be974a720",
         "models/fern.ts": "61d8c13cd19f2acee16ba5905b319b7b8ca173ea4299e46ba6a57442dd14e81b",
@@ -354,7 +354,7 @@
         "quest/ui.ts": "8de9d58ca573ccf129da8601beb80f19647f5d57d7161000938d418843e07be7",
         "quest/wardensHollow.ts": "bc375557c9f4ceb537801dbcb8b7b5166a60fc7813fbd19cac195b4d34a15a74",
         "quest/zipWire.ts": "ce57f5e10d824ea0ee0f264b02993a760ebaef3b00b18afdf8cda679b4031f7b",
-        "roster.ts": "d22a5222b31b82cee052b38e3e593da80593cfb15c8619788c0ac9559cd3a919",
+        "roster.ts": "a83363125e6c57f39a813bad8d976aded657801fc3ba359be82bc156078d9358",
         "runtime/KingGoals.ts": "78f02cd90d19be47b36e3821450efbab6bb6b9f45f3290b704703ce06aeb5e9d",
         "runtime/antlerKing.ts": "2a133099c3acd263eb72163de4678dadb3d29c4645e1a868f3de19a0e10d3433",
         "runtime/audio/ambience.ts": "dd6bed3dbe4886a9a42ad77c9cc6099a10c9a6fdd81366fc08219f504f9a4192",
@@ -373,7 +373,7 @@
         "runtime/facts.ts": "3dc4545c89bb03da654cdb0173312bfdd47a3005801259b1f891ed43b8d79021",
         "runtime/fauna.ts": "367368d258d4632743a6a3996f68b744e6df102b9e120716f6fc10d5dcc87027",
         "runtime/headless.ts": "e2d0a15165ae2e5bd5437168404f186f209462fecf7753c7e394a39d039c1d07",
-        "runtime/herds.ts": "ebb0dcc73c06122ab2bcb9db28dcfdb66764cf190d5b454d23fb9d04714dfd2f",
+        "runtime/herds.ts": "8b4c6a98ee4685a8d7383e57b3a8ab9a9370a2952a2aac55a929b6bf07cdf884",
         "runtime/index.ts": "0bb3b1c4702b6398217fafb9b66f17e11d14b4cc439ec2e8ba5f72b6bc4a1a1b",
         "runtime/items.ts": "d70f4162dbcb2630433e827d8ed1945ed098083718f8e4523034c1bb818431b7",
         "runtime/king.ts": "0d381daa2a2769a221968ba214c23f443c66890d47ceafd1d5c2374787365e10",
@@ -398,6 +398,8 @@
         "shard.config.ts": "852955b9fc08ea7197f04ba40d9d8be72c08df6ed6a7a7aa483f5a89f7909d74",
         "species/bearFix.ts": "fecfeed9a59ac56279a8b8e7c5fc6609dfadc3b7c97e9fa80ea80dd2b31f6064",
         "species/coats.ts": "e154183e9d87d05835e2c460b0d836804b8ae142869ee1d2cfc0e701b0cc67c5",
+        "species/deerRows.ts": "a6b982e5f13532046b282730b9f570754bc7df04a38d99ab45513b3567b36a24",
+        "species/elkRows.ts": "1610990b6e98d0605b2689641b73a003fa2baddae83884137c138c53cba1d6a8",
         "species/hulls.ts": "d2f9bdadf3c3b8a76419039f5070de5b16e325f4f0c70a0d6e022a68f8dd7f66",
         "species/looks.ts": "85951bde7d2a11c764a64ef27a1db19e3dc1ff999570a08fe8023b85f0712e44",
         "species/palettes.ts": "c98a4eb15410b11b12788e898251fcf759f2b5ed2778fdfc3a1f89f9480bc815",
@@ -453,6 +455,21 @@
           "original": "d24a2fbbd6308b7f46d8a6534ef7952df164b6cdd78c2c22e43a1e6747a9b62e",
           "current": "86bc588957ea072c2e4c2cf37c4200649ef68bac803c5f3ec00548538e3bf103",
           "reason": "Restore the 43-file frozen Pine manifest admission after pure format bounds/wave relocation. Declare the identical pond/creek bodies at the manifest; original frozen water module remains byte-identical, values and functions unchanged."
+        },
+        "models/creatures.ts": {
+          "original": "4a69946f4e687c296920db75af9a402cfe3e9b7c7cef44b31a3e78e893ce30e1",
+          "current": "02368c044ecff6c93e6d837e067cc73107c3eabfcfdffc129e5802a25ad294c5",
+          "reason": "Keep the frozen grazer definitions and model loadable after the primary moves to generated JSON (G469 coordinator-approved compatibility move)."
+        },
+        "runtime/herds.ts": {
+          "original": "ebb0dcc73c06122ab2bcb9db28dcfdb66764cf190d5b454d23fb9d04714dfd2f",
+          "current": "8b4c6a98ee4685a8d7383e57b3a8ab9a9370a2952a2aac55a929b6bf07cdf884",
+          "reason": "Keep the frozen grazer definitions and model loadable after the primary moves to generated JSON (G469 coordinator-approved compatibility move)."
+        },
+        "roster.ts": {
+          "original": "d22a5222b31b82cee052b38e3e593da80593cfb15c8619788c0ac9559cd3a919",
+          "current": "a83363125e6c57f39a813bad8d976aded657801fc3ba359be82bc156078d9358",
+          "reason": "Keep the frozen grazer definitions and model loadable after the primary moves to generated JSON (G469 coordinator-approved compatibility move)."
         }
       }
     },

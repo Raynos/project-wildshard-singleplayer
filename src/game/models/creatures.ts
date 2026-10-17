@@ -6,13 +6,9 @@
  */
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { DEER } from '../systems/species/deer';
 // not on the engine index: it builds through AnimalFactory, which the node-safe manifests never load
 
 const FILE = 'src/game/models/creatures.ts';
-
-/** red deer: hinds, stags and their rare coats (the ghost stag, the great stag) */
-export const deer: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'shared/deer', file: FILE, pipeline: ['code', 'trellis', 'hunyuan'], ...creature('deer', { species: DEER }) });
 
 /** wild boar: sows to the old boars, and the spawn-only variants a level asks for by name */
 export const boar: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'shared/boar', file: FILE, pipeline: ['code', 'hunyuan'], ...creature('boar', { spawnOnly: true }) });

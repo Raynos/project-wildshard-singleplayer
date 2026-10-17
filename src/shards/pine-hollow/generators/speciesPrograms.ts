@@ -3,8 +3,8 @@ import { PINE_SPAWNS } from './spawnTables';
 import { PINE_NATIVE_HUNT } from './nativeHunt';
 import { bakeSpecies } from '@wildshard/sdk/bake/species';
 import { readSpecies } from '@wildshard/format/speciesPrograms';
-import { DEER } from '@wildshard/game/systems/species/deer';
-import { ELK } from '@wildshard/game/systems/species/elk';
+import { DEER } from './deerRows';
+import { ELK } from './elkRows';
 import { PINE_BOAR, PINE_BEAR, PINE_ELK_THRALL, PINE_SPECIES, pineDeer, pineElk } from './speciesRows';
 import physics from '../data/physics.generated.json' with { type: 'json' };
 

@@ -77,7 +77,9 @@ const { numericCreaturePose } = await import('../src/game/plugin/channelPrograms
 registerSpecies(speciesWithLook(PINE_BOAR, { ...PINE_BOAR_LOOK, postPose: numericCreaturePose(THRALL_CLIPS) }));
 // and its elk thrall (E405: Pine's, derived from the kit's elk)
 const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRows');
-const { pineElkLook } = await import('../src/shards/pine-hollow/species/looks');
+const { pineElkLook, preparePineGrazers } = await import('../src/shards/pine-hollow/species/looks');
+const { default: grazers } = await import('../src/shards/pine-hollow/data/grazers.generated.json');
+await preparePineGrazers({ file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(grazers))) });
 registerSpecies(speciesWithLook(pineElk(), pineElkLook({ pose: THRALL_CLIPS, ...thrallLook })));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');

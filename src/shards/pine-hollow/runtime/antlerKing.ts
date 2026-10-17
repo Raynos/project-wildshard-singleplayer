@@ -10,8 +10,7 @@ import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { registerSpecies, variantDef, hasSpecies, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import { ELK } from '@wildshard/game/systems/species/elk';
-import { hullBody } from '../species/bodies';
+import { pineGrazer } from '../species/looks';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
@@ -75,7 +74,7 @@ let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
  *  on his own upright rig (E322 F-M1, kingOwnSpecies) */
 export function registerKing(): void {
   if (hasSpecies(KING_KIND)) return;
-  const elk: SpeciesDef = { ...ELK, build: hullBody('elk') };
+  const elk: SpeciesDef = pineGrazer('elk');
   const def: SpeciesDef = {
     ...elk, kind: KING_KIND, label: 'The Antler King', variants: [KING_VARIANT], aggressive: true, blood: false,
     walkSpeed: 2.2, chargeSpeed: 13,

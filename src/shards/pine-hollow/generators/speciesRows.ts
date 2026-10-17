@@ -2,8 +2,8 @@ import { deriveSpecies, type SpeciesRow } from '@wildshard/engine/ai/species';
 import type { VariantDef } from '@wildshard/engine/entities/species/registry';
 import { BEAR } from '@wildshard/game/systems/species/bear';
 import { BOAR } from '@wildshard/game/systems/species/boar';
-import { DEER } from '@wildshard/game/systems/species/deer';
-import { ELK } from '@wildshard/game/systems/species/elk';
+import { DEER } from './deerRows';
+import { ELK } from './elkRows';
 
 /** The night-only thrall is authored by Pine; ordinary weighted variants retain their original order. */
 export const PINE_BOAR = deriveSpecies(BOAR, {

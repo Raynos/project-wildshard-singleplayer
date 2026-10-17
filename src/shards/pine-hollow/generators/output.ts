@@ -40,6 +40,7 @@ import props from '../data/props.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
 import { PINE_OUTPUT } from './outputInputs';
+import grazers from '../data/grazers.generated.json' with { type: 'json' };
 import { RUNTIME_MIRRORS } from './runtimeMirrors';
 
 /** Preserve logical names and tier selection while packing named geometry losslessly. */
@@ -49,6 +50,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cabinAmbienceRows()))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS))),
