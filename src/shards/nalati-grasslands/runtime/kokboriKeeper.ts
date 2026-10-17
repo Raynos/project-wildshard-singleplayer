@@ -2,7 +2,7 @@ import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import { StalkerBrain, type HowlerPorts, type PouncerContext } from '@wildshard/engine/ai/stalker';
-import { KOKBORI_CUES, KOKBORI_PROFILE } from '../data/eliteProfiles';
+import profile from '../data/kokboriProfile.json' with { type: 'json' };
 
 /** The actual pack remains owned and snapshotted by its group host. */
 export type KokboriPack<A extends AnimalSim> = Pick<PackBrain<A>, 'homeX' | 'homeZ' | 'phase' | 'awareness' | 'scare'>;
@@ -18,9 +18,9 @@ export class KokboriKeeper<A extends AnimalSim> {
   /** Exact encounter frame order over the real pack. */
   readonly tick: StalkerBrain<A>['advance'];
   constructor(ports: KokboriPorts<A>) {
-    this.policy = new StalkerBrain({ ...KOKBORI_PROFILE, ports: { ...ports,
-      regrouped: () => { ports.feed(KOKBORI_CUES.regrouped); }, interrupted: () => { ports.feed(KOKBORI_CUES.interrupted); },
-      closed: () => { ports.feed(KOKBORI_CUES.closed); }, howl: at => { ports.sound('wolf_howl', at); } } });
+    this.policy = new StalkerBrain({ pattern: 'howler', spec: profile.spec, ports: { ...ports,
+      regrouped: () => { ports.feed(profile.regrouped); }, interrupted: () => { ports.feed(profile.interrupted); },
+      closed: () => { ports.feed(profile.closed); }, howl: at => { ports.sound('wolf_howl', at); } } });
     this.think = this.policy.decideHowler.bind(this.policy); this.tick = this.policy.advance.bind(this.policy);
   }
   /** Preserve deferred spawn order and the original initial howl clock. */

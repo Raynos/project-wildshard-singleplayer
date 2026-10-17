@@ -1,0 +1,87 @@
+{
+  "spec": {
+    "initialCooldown": 2,
+    "awareCooldown": 1.5,
+    "lookIdle": 0.4,
+    "homeRadius": 3,
+    "pathSeconds": 0.6,
+    "ledgeMargin": 0.3,
+    "standRate": 10,
+    "openSeconds": 1.5,
+    "openCooldown": 1.2,
+    "fields": {
+      "low": "low",
+      "leap": "leap",
+      "snarl": "snarl"
+    },
+    "pose": {
+      "stalk": 0.8,
+      "perch": 0.2,
+      "open": 0.1,
+      "leapSwing": 0.6,
+      "leapBase": 0.4
+    },
+    "speeds": {
+      "home": 5,
+      "perch": 5.5,
+      "stalk": 4.2,
+      "back": -1
+    },
+    "turns": {
+      "home": 3,
+      "idle": 1,
+      "swipeStart": 6,
+      "perch": 4,
+      "stalk": 3,
+      "tell": 6,
+      "open": 2,
+      "swipe": 5
+    },
+    "stalk": {
+      "far": 9,
+      "near": 6
+    },
+    "perch": {
+      "minHeight": 3,
+      "maxHeight": 8,
+      "minDistance": 4,
+      "maxDistance": 14,
+      "arrival": 1.4,
+      "retreatHeight": 2.5,
+      "retreatDistance": 25,
+      "cooldown": 3.5,
+      "waitSeconds": 4
+    },
+    "damage": {
+      "airborne": 2,
+      "openHead": 1.2,
+      "perched": 0.25
+    },
+    "swipe": {
+      "from": 2.4,
+      "seconds": 1,
+      "first": 0.45,
+      "second": 0.8,
+      "range": 2.9,
+      "damage": 14,
+      "cooldown": 1.4
+    },
+    "pounce": {
+      "minDistance": 7,
+      "maxDistance": 12,
+      "seconds": 0.6,
+      "arcHeight": 1.6,
+      "range": 1.9,
+      "damage": 35,
+      "cooldown": 2.5
+    },
+    "tell": {
+      "radius": 2.2,
+      "strength": 0.6,
+      "growth": 0.4,
+      "growSeconds": 0.3,
+      "seconds": 1
+    }
+  },
+  "opened": "Aqbars skids — OPEN"
+}

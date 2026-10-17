@@ -1,0 +1,72 @@
+{
+  "spec": {
+    "initialHowl": 8,
+    "engagedHowl": 3,
+    "phaseCooldown": 1,
+    "interruptedHowl": 12,
+    "nextHowl": 11,
+    "randomHowl": 4,
+    "pathSeconds": 0.6,
+    "pathNear": 6,
+    "homePathSeconds": 2,
+    "homeStop": 3,
+    "homeReset": 4,
+    "meleeRadius": 3.8,
+    "grassHeight": 0.6,
+    "hiddenDamage": 2,
+    "fields": {
+      "howl": "howl",
+      "low": "low",
+      "snarl": "snarl"
+    },
+    "speeds": {
+      "home": 6,
+      "watched": 7,
+      "hold": 4,
+      "hunt": 8,
+      "bite": 6
+    },
+    "turns": {
+      "home": 3,
+      "den": 1.5,
+      "hold": 3,
+      "howl": 1,
+      "hunt": 3.5,
+      "bite": 4
+    },
+    "hold": {
+      "watchedDot": 0.9,
+      "minRadius": 24,
+      "maxRadius": 32,
+      "sidestep": 0.6,
+      "arrival": 2,
+      "watchedLow": 0.6,
+      "low": 0.2
+    },
+    "hunt": {
+      "snarlDistance": 8,
+      "attackDistance": 3.5,
+      "moveDistance": 2.5
+    },
+    "bite": {
+      "seconds": 0.9,
+      "phase": 0.7,
+      "range": 3.2,
+      "damage": 22,
+      "cooldown": 1.8
+    },
+    "howl": {
+      "growSeconds": 0.3,
+      "seconds": 1.2,
+      "radius": 2,
+      "speed": 11,
+      "span": 12,
+      "strength": 0.85,
+      "stagger": 1,
+      "scare": 80
+    }
+  },
+  "regrouped": "Kokbori calls the pack back — and comes for you",
+  "interrupted": "The howl breaks — the pack scatters",
+  "closed": "PACK HOWL — the pack closes in"
+}

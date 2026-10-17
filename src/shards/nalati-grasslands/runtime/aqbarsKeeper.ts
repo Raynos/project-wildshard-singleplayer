@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { StalkerBrain, type PouncerPorts, type PouncerContext, type PouncerLedge } from '@wildshard/engine/ai/stalker';
-import { AQBARS_OPEN, AQBARS_PROFILE } from '../data/eliteProfiles';
+import profile from '../data/aqbarsProfile.json' with { type: 'json' };
 
 /** Solid Crags ledges observed by the native world. */
 export type AqbarsLedge = PouncerLedge;
@@ -20,8 +20,8 @@ export class AqbarsKeeper<A extends AnimalSim> {
   /** Exact encounter/frame order, including the real ballistic body motion. */
   readonly tick: StalkerBrain<A>['advance'];
   constructor(ports: AqbarsPorts<A>) {
-    this.policy = new StalkerBrain({ ...AQBARS_PROFILE, ports: { ...ports,
-      opened: () => { ports.feed(AQBARS_OPEN); }, growl: at => { ports.sound('leopard_growl', at); } } });
+    this.policy = new StalkerBrain({ pattern: 'pouncer', spec: profile.spec, ports: { ...ports,
+      opened: () => { ports.feed(profile.opened); }, growl: at => { ports.sound('leopard_growl', at); } } });
     this.think = this.policy.decidePouncer.bind(this.policy);
     this.tick = this.policy.advance.bind(this.policy);
   }

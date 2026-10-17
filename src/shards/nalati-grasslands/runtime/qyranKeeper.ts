@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DiverBrain, type WindDiverPorts } from '@wildshard/engine/ai/diver';
-import { QYRAN_PROFILE, QYRAN_GROUNDED } from '../data/qyranProfile';
+import profile from '../data/qyranProfile.json' with { type: 'json' };
 
 /** Existing native body, wind/altitude/contact and entered cue ports. */
 export interface QyranPorts<A extends AnimalSim> extends Omit<WindDiverPorts<A>, 'grounded' | 'cry'> {
@@ -15,8 +15,8 @@ export class QyranKeeper<A extends AnimalSim> {
   /** Exact encounter frame law over the authoritative body/altitude state. */
   readonly tick: DiverBrain<A>['advanceWind'];
   constructor(ports: QyranPorts<A>) {
-    this.policy = new DiverBrain<A>(null, { ...QYRAN_PROFILE, ports: { ...ports,
-      grounded: () => { ports.feed(QYRAN_GROUNDED); }, cry: at => { ports.sound('eagle_cry', at); } } });
+    this.policy = new DiverBrain<A>(null, { pattern: 'wind', spec: profile.spec, ports: { ...ports,
+      grounded: () => { ports.feed(profile.grounded); }, cry: at => { ports.sound('eagle_cry', at); } } });
     this.think = this.policy.decideWind.bind(this.policy); this.tick = this.policy.advanceWind.bind(this.policy);
   }
   /** Return to climb with the same retained clocks. */
