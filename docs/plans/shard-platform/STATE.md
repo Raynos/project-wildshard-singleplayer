@@ -4,14 +4,12 @@
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
-**Lanes (one task each):**
-- sp-x1 Nalati + Nine manifests to declared data
-- sp-x4 proof/build-only charges (simulation.ts proofs, Nine boot catalogue); the ruler change lands as its own commit
-- sp-x5 Nalati layout/clearings bake (f4d3b62e7 in checks); terrain.ts stays (live forest mask, paint, water, ambience)
-- sp-x6 Nalati paint.ts + signpost.ts bake
-- sp-x8 Nine signAtlas bake (source done, checks queued)
-- sp-x7 G470: DW quest/adventure/finale + Pine lodge to AS (ScriptProcedure on ABI-v0); the coordinator now carries the push
-- Opus (ladder G462 at 80 %: cap 2 after current tasks) OL2 Nine look graphs, ON Nalati graphs + flock, OP5 road hitches, OM Sim crash
+**Lanes (one task each), switch point 10-17 + G477 add-on:**
+- W1 spike: sp-x8 Sky S1→S2; next free lanes get Signal A→B, the runtime-rows host (Sky M1 + Signal D) and the painted-look host (Signal F + Sky #9)
+- Features (lanes with no spike task): sp-x5 → #1 quest step runner (Pine + DW) after landing DW batch 1. Note for the plan agent: sp-x7's DW quest AS draft was WITHDRAWN under G473/G474 (no host landed), so the runner covers DW quest too.
+- Landing now: sp-x1 manifests, sp-x4 proof extraction + a5df1f8c5 forward revert, sp-x6 Nalati paint/signpost
+- sp-x7 pusher; wave table fixed (6d687cb50, 02dbb2144); shard-components wave change held until its pending-charge split matches G473–G477
+- Opus (cap 2): OL2 Nine look-graph verify, OM Sim GPU crash
 
 **Perf (standing goal 60 fps desktop / 30 fps Sim):** Sim drives crash: a WebKit GPU-process SIGSEGV in ANGLE compressedTexSubImage2D/3D (not memory), 14 reports since 04:53; OM is tracing the upload.
 - Desktop standalone 7/7 at 60 fps; milestone 8/8 routes, 0 errors.
