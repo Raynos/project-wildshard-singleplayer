@@ -7,8 +7,9 @@ import { KINGS_CLEARING } from '../data/layout';
 import { PINE_STRIKES, pineContact } from './strikes';
 import type { LaneState } from './lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '@wildshard/game/plugin/bossPhase';
-import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import { ANTLER_KING_BOSS_PROFILE, type ANTLER_KING_FIGHT } from '../data/kingFight';
+import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
+import * as v from 'valibot';
+import kingProfile from '../data/kingFight.generated.json' with { type: 'json' };
 
 /** A body the King's fight drives: his own, or a thrall's (the page's Animal, the headless host's body). */
 export interface KingBody extends AnimalSim { hp: number; readonly maxHp: number; herd: number; place: (x: number, z: number, yaw: number) => void }
@@ -19,7 +20,7 @@ export interface KingCoreEnv<B extends KingBody> extends Pick<KingPorts<B>, 'pla
 /** The King's fight: the SDK's roaming phasedBoss policy on the host's bodies, lanes and the King's two streams. */
 export type KingFight<B extends KingBody> = RoamingBossFight<B, LaneState, RngState>;
 type KingMove = 'roar' | 'sweep' | 'strike' | 'brace';
-type KingSound = typeof ANTLER_KING_FIGHT.sounds[keyof typeof ANTLER_KING_FIGHT.sounds];
+type KingSound = typeof kingProfile.fight.sounds[keyof typeof kingProfile.fight.sounds];
 type KingPorts<B extends KingBody> = RoamingBossPorts<B, LaneState, RngState, 'elk' | 'boar', KingMove, KingSound>;
 /** What a host lends the fight beyond its env: bodies, ground, lanes, rings, the weak point and its views. */
 export type KingHost<B extends KingBody> = Omit<KingPorts<B>, 'player' | 'random' | 'contact' | 'hurt' | 'trauma' | 'shot'>;
@@ -31,20 +32,23 @@ const kingStreams = (seed: number): { readonly call: Rng; readonly charge: Rng }
 
 /** The page's and the headless host's one fight: the admitted roaming boss profile on the host's ports. */
 export function kingFight<B extends KingBody>(env: KingCoreEnv<B>, host: KingHost<B>, seed: number, program: SpeciesProgramData, decisions: SpeciesDecisionAuthority): KingFight<B> {
-  parseBossProfile(ANTLER_KING_BOSS_PROFILE);
+  const action=v.object({action:v.picklist(['roar','sweep','strike','brace'])});
+  const profile=v.parse(v.intersect([RoamingBossProfileSchema,v.object({fight:v.object({
+    adds:v.object({kinds:v.array(v.picklist(['elk','boar']))}),strike:action,burst:action,summon:action,lanes:action,
+  })})]),kingProfile);
   const row=program.species.find(candidate=>candidate.kind==='antler-king');
   if(row?.brain?.archetype!=='decision'||row.body===undefined)throw new Error('King requires its admitted decision/body recipe');
   const declared=row.brain.data,recipe=row.body;
   const bound=new WeakSet<B>();
   const bind=(actor:B):B=>{if(!bound.has(actor)){decisions.bind(actor,declared,recipe);bound.add(actor);}return actor;};
   const body={...host.body,make:():B=>bind(host.body.make())};
-  const fight = bossFight(ANTLER_KING_BOSS_PROFILE, { ...host, body, player: env.player, random: kingStreams(seed),
+  const fight = bossFight(profile, { ...host, body, player: env.player, random: kingStreams(seed),
     contact: (a, strike, hit, options) => {
       const spec = strike === 'sweep' ? PINE_STRIKES.sweep : strike === 'roots' ? PINE_STRIKES.roots : strike === 'lantern' ? PINE_STRIKES.lantern : undefined;
       if (spec === undefined) throw new Error(`Unknown Antler King strike ${strike}`);
       return pineContact(a, env.player.position, spec, hit, () => env.reach(a, env.player.position), options);
     },
-    hurt: (a, damage, through) => { env.hurt(a, damage, through); }, trauma: v => { env.trauma(v); }, shot: (sound, at) => { env.shot(sound, at); } });
+    hurt: (a, damage, through) => { env.hurt(a, damage, through); }, trauma: amount => { env.trauma(amount); }, shot: (sound, at) => { env.shot(sound, at); } });
   const restore=fight.restore.bind(fight);fight.restore=(saved,bodies)=>{const actor=saved.body===null?undefined:bodies.get(saved.body);if(actor!==undefined)bind(actor);restore(saved,bodies);};
   return fight;
 }

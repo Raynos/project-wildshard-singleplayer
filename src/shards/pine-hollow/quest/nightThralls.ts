@@ -20,7 +20,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { variantDef } from '@wildshard/engine/entities/species/registry';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { pineNightSpec } from './nightSpec';
 import { Puffs } from '../runtime/combat/fxKit';
 import { own, release, retire } from '../combat/ctx';
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
@@ -64,7 +63,7 @@ export class NightThralls {
         () => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw)), own, release,
       retire: (actor) => { if (spawner === null) retire(h.animals, actor); else spawner.retire(actor); },
       burst: (actor) => { this.puffs.burst(this.point.copy(actor.position).setY(actor.position.y + 1), 1.2, 3.4, 0.8, 0.8); },
-    }, pineNightSpec(MAX));
+    }, MAX);
   }
   get count(): number { return this.brain.count; }
   force(p: THREE.Vector3): void { this.brain.force(p); }

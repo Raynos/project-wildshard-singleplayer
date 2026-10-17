@@ -3,7 +3,6 @@ import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import { PineNightDirector } from './nightDirector';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
-import { pineNightSpec } from '../quest/nightSpec';
 import type { PineHuntBody } from './roster';
 
 export const NIGHT_STEP = 'pine.night';
@@ -33,7 +32,7 @@ export function installPineNight(host: SimHost, lane: DirectorLane, ports: PineN
     own: actor => { actor.herd = -1; actor.state = 'sidestep'; actor.scripted = true; },
     release: actor => { actor.scripted = false; if (actor.alive && actor.state === 'sidestep') actor.state = 'alert'; },
     shot: () => undefined, burst: () => undefined,
-  }, pineNightSpec(ports.max ?? 3));
+  }, ports.max ?? 3);
   host.onStep(NIGHT_STEP, dt => { brain.advance(dt, host.player.position); }, {
     snapshot: () => ({ version: 1, population: brain.snapshot(actor => actor.entityId), rng: { ...rng.snapshot() } }),
     restore: value => {

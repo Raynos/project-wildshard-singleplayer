@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { sampleCreatureGroup, type CreatureGroupSpec } from '../src/game/plugin/brain';
 import { PineNightDirector, preparePineNightDirector, type NightActor, type NightSpec } from '../src/shards/pine-hollow/runtime/nightDirector';
-import { pineNightSpec } from '../src/shards/pine-hollow/quest/nightSpec';
+import nightData from '../src/shards/pine-hollow/data/nightPopulation.generated.json' with { type: 'json' };
 
 const ground = (x: number, z: number): number => Math.sin(x * 0.05) * 3 + Math.cos(z * 0.07) * 2;
 
@@ -71,7 +71,7 @@ function retiredRoamer(spec: NightSpec, p: { x: number; z: number }, anywhere: b
 }
 
 test('Pine night roamers on sampleCreatureGroup rows spawn exactly where the retired loop did', async () => {
-  const create = await preparePineNightDirector(), spec = pineNightSpec(4);
+  const create = await preparePineNightDirector(), spec = { ...nightData.spec, max: 4 };
   const height = (x: number, z: number): number => spec.water + ground(x, z);
   let spawned = 0;
   for (let seed = 0; seed < 120; seed++) {

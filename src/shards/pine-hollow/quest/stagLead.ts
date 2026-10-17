@@ -11,7 +11,6 @@
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Puffs } from '../runtime/combat/fxKit';
-import { headingTo } from '../combat/combatMath';
 import { StagWalk, STAG_PATH } from './stagWalk';
 
 // the walk's road and lengths are the renderer-free walk's (stagWalk.ts), which the headless quest runs alone
@@ -44,11 +43,11 @@ export class StagLead {
     a.update(dt, t, true);
     if (Math.floor(t * 10) !== Math.floor((t - dt) * 10)) a.sampleTerrain();
     if (this.walk.mode === 'stare') {
-      a.setMotion(headingTo(a.position.x, a.position.z, player.x, player.z), 0, 3);
+      a.setMotion(Math.atan2(player.x - a.position.x, player.z - a.position.z), 0, 3);
       a.lookTarget.copy(player); a.lookWeight = 1;
     } else if (this.walk.mode === 'trot') {
       const next = STAG_PATH[this.walk.i + 1] ?? STAG_PATH[this.walk.i];
-      if (next) a.setMotion(headingTo(a.position.x, a.position.z, next[0], next[1]), 4.5, 4);
+      if (next) a.setMotion(Math.atan2(next[0] - a.position.x, next[1] - a.position.z), 4.5, 4);
       a.lookWeight = 0;
     }
     const event = this.walk.step(dt, on, player, a.position);
@@ -67,7 +66,7 @@ export class StagLead {
   private appear(i: number, player: THREE.Vector3, first: boolean): void {
     const p = STAG_PATH[i];
     if (!p) return;
-    const yaw = headingTo(p[0], p[1], player.x, player.z);
+    const yaw = Math.atan2(player.x - p[0], player.z - p[1]);
     if (this.a) { this.a.place(p[0], p[1], yaw); this.a.mesh.visible = true; } else this.a = this.spawnAt(p[0], p[1], yaw);
     this.a.sampleTerrain();
     this.puffs.burst(this._v.copy(this.a.position).setY(this.a.position.y + 1.1), 2.6, 0.7, 0.55, 0.7);

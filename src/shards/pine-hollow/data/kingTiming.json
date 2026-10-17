@@ -1,0 +1,14 @@
+{
+  "sweep": {
+    "duration": 0.9,
+    "hitPhase": 1
+  },
+  "strike": {
+    "duration": 1,
+    "hitPhase": 1
+  },
+  "roar": {
+    "duration": 1.6,
+    "hitPhase": 1
+  }
+}

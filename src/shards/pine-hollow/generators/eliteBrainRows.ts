@@ -2,7 +2,7 @@ import ironhide from '../behaviour/ironhide.json' with { type: 'json' };
 import ghostStag from '../behaviour/ghostStag.json' with { type: 'json' };
 import blackpaw from '../behaviour/blackpaw.json' with { type: 'json' };
 import imperialBull from '../behaviour/imperialBull.json' with { type: 'json' };
-import { GHOST_LAIR } from './eliteHomes';
+import { GHOST_LAIR } from '../data/eliteHomes';
 
 /**
  * Pine Hollow's four named elites' fights as admitted elite scripts (SF27): each elite's module (behaviour/<name>.as behind

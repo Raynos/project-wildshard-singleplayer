@@ -4,7 +4,7 @@
 import type { Vector3 } from 'three';
 import type { BrainPoint } from '@wildshard/engine/ai/strikes';
 import type { Lane, LaneBody } from '../../../src/shards/pine-hollow/combat/lane';
-import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '../../../src/shards/pine-hollow/combat/combatMath';
+import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '../pine/combatMath';
 import { PINE_STRIKES, pineContact, PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';

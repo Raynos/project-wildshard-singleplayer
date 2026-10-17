@@ -1,5 +1,5 @@
 import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
-import { ANTLER_KING_FIGHT } from '../data/kingFight';
+import { ANTLER_KING_FIGHT } from './kingFight';
 import { KING_FX_LOOKS } from './kingFxLook';
 import { KINGS_CLEARING, BEAR_CAVE } from '../data/layout';
 import { WILDLIFE_LOOK } from './wildlifeLook';

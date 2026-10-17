@@ -3,7 +3,7 @@ import { DirectorScriptStageLane, prepareDirectorModule, type DirectorLane } fro
 import { parseDirector } from '@wildshard/format/director';
 import { sampleCreatureGroup, type CreatureGroupGround, type CreatureGroupStream } from '@wildshard/game/plugin/brain';
 import declaration from '../data/nightDirector.json' with { type: 'json' };
-import rows from '../data/nightStages.json' with { type: 'json' };
+import rows from '../data/nightPopulation.generated.json' with { type: 'json' };
 import module from '../behaviour/night.generated.json' with { type: 'json' };
 
 /** Admit the retained typed AS night author; each page or native population gets an independent continuation. */
@@ -60,12 +60,13 @@ export class PineNightDirector<T extends NightActor> {
   private roamer: Roamer<T> | null = null;
   private racer: Racer<T> | null = null;
   private point: BrainPoint = { x: 0, y: 0, z: 0 };
-  constructor(lane: DirectorLane, h: NightPorts<T>, spec: NightSpec) {
+  constructor(lane: DirectorLane, h: NightPorts<T>, input: NightSpec | 3 | 4) {
+    const spec:NightSpec=typeof input==='number'?{...rows.spec,max:input}:input;
     if ((spec.max !== 3 && spec.max !== 4) || spec.race.length > 8 || spec.roamKinds.length === 0) throw new RangeError('Invalid Pine night roster bounds');
     this.h = h; this.spec = spec; this.contract = JSON.stringify(spec);
     const roamer = (): Roamer<T> => { if (this.roamer === null) throw new Error('Missing Pine roamer'); return this.roamer; };
     const racer = (): Racer<T> => { if (this.racer === null) throw new Error('Missing Pine racer'); return this.racer; };
-    this.stages = new DirectorScriptStageLane(rows, lane, { observe: () => this.observe(), emits: {
+    this.stages = new DirectorScriptStageLane(rows.stages, lane, { observe: () => this.observe(), emits: {
       source: 'matching', actions: new Map<string, (value: number) => void>([
         ['roam.move', value => { const r = roamer(); r.flee = value; r.a.setMotion(headingTo(this.point.x, this.point.z, r.a.position.x, r.a.position.z), 8, 3); }],
         ['roam.dawn', () => { const r = roamer(); this.h.own(r.a); r.flee = 0.01; this.h.shot('thrall_move', r.a); }],

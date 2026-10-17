@@ -15633,6 +15633,52 @@
         "src/shards/driftwood-isle/data/npcScenes.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "pine-hollow-elite-rows",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-elite-rows.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-elite-rows.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-elite-rows.mjs",
+        "src/shards/pine-hollow/generators/eliteBrainRows.ts",
+        "src/shards/pine-hollow/generators/eliteHostRows.ts",
+        "src/shards/pine-hollow/generators/nightSpec.ts",
+        "src/shards/pine-hollow/generators/kingFight.ts",
+        "src/shards/pine-hollow/data/layout.ts",
+        "src/shards/pine-hollow/data/eliteHomes.ts",
+        "src/shards/pine-hollow/data/antlerKing.ts",
+        "src/shards/pine-hollow/data/kingTiming.json",
+        "src/shards/pine-hollow/behaviour/ironhide.json",
+        "src/shards/pine-hollow/behaviour/ghostStag.json",
+        "src/shards/pine-hollow/behaviour/blackpaw.json",
+        "src/shards/pine-hollow/behaviour/imperialBull.json",
+        "src/sdk/species.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/format",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/data/nightStages.json"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/eliteRuntime.generated.json",
+        "src/shards/pine-hollow/data/nightPopulation.generated.json",
+        "src/shards/pine-hollow/data/kingFight.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/eliteRuntime.generated.json",
+        "src/shards/pine-hollow/data/nightPopulation.generated.json",
+        "src/shards/pine-hollow/data/kingFight.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { Bone, Group } from 'three';
 import { applyKingPose, clipPose, kingRest, newPose, type KingRest } from '../../../src/shards/pine-hollow/combat/kingRig';
-import { KING_ATTACK_TIMING } from '../../../src/shards/pine-hollow/combat/kingTiming';
+import KING_ATTACK_TIMING from '../../../src/shards/pine-hollow/data/kingTiming.json' with { type: 'json' };
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
 import physics from '../../../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 import { withPortableMath } from '../../fake/portableMath';

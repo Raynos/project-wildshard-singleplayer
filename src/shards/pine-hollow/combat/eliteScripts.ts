@@ -3,11 +3,10 @@ import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { BEAR_CAVE } from '../data/layout';
 import { moduleBytes, stepEliteScript, EliteScriptLane, type EliteScriptPorts } from '@wildshard/game/plugin/brain';
-import { PINE_ELITE_FIGHTS, PINE_ELITE_MODULES } from '../data/eliteBrainRows';
-import { PINE_ELITE_HOSTS } from '../data/eliteHostRows';
+import eliteRows from '../data/eliteRuntime.generated.json' with { type: 'json' };
+import { parseEliteScript } from '@wildshard/format/eliteScripts';
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from './eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
-import { behindPlayer, bugleHour, fadeCooldown, headingTo } from './combatMath';
 import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
 import type { Lane, LaneBody } from './lane';
 
@@ -17,7 +16,7 @@ import type { Lane, LaneBody } from './lane';
  * a renderer-free host (runtime/elites.ts) gives them its bodies, bare lanes and silent effects. Every random draw is the elite's
  * own seeded stream (eliteStreams.ts). The rules around them (lair, aware / engaged / leash, phase 2, respawn) are the game's
  * `EliteCore` (@wildshard/game/eliteSystem). Their fights — the moves and clocks — are admitted elite scripts (SF27:
- * behaviour/<name>.as, data/eliteBrains.ts); the author rows assemble their hosts (spawn, lair, tells, the actions a script names)
+ * behaviour/<name>.as, data/eliteRows.ts); the author rows assemble their hosts (spawn, lair, tells, the actions a script names)
  * and keep the continuation's field names. The behaviour is told in elites.ts.
  */
 
@@ -88,12 +87,13 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   readonly env: PineEliteWorld<B>;
   /** the elite's admitted fight script (its slots are the fight's state) */
   readonly script: EliteScriptLane;
-  private readonly rule:NonNullable<(typeof PINE_ELITE_HOSTS)[string]>;
+  private readonly rule:(typeof eliteRows.hosts)[keyof typeof eliteRows.hosts];
   private readonly nativeLanes:readonly Lane<B>[];
   private readonly ring:PineRingTell|null;
   rivals:Rival<B>[]=[];
   constructor(id: string, env: PineEliteWorld<B>, seed?: number) {
-    const rule=PINE_ELITE_HOSTS[id],row=PINE_ELITE_FIGHTS[id];
+    const rule=Object.entries(eliteRows.hosts).find(([key])=>key===id)?.[1], input=Object.entries(eliteRows.fights).find(([key])=>key===id)?.[1];
+    const row=input===undefined?undefined:parseEliteScript(input);
     if(rule===undefined||row===undefined)throw new Error(`Missing elite host row '${id}'`);
     const def = PINE_ELITE_DEFS[id];
     if (def === undefined) throw new Error(`no elite '${id}'`);
@@ -101,16 +101,16 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     const streams = pineEliteStreams(def.id, seed);
     super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def; this.env = env;
     this.streams = streams;
-    const bytes = PINE_ELITE_MODULES[row.module];
+    const bytes = Object.entries(eliteRows.modules).find(([key])=>key===row.module)?.[1];
     if (bytes === undefined) throw new Error(`pine elite '${id}' has no module`);
     this.script = new EliteScriptLane(row,moduleBytes(bytes),()=>streams.fight.next());
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
     this.who = who;this.rule=rule;
-    if(row.actions.some(name=>!rule.actions.includes(name)))throw new Error('Unbound elite native action');
+    if(row.actions.some(name=>!rule.actions.some(action=>action===name)))throw new Error('Unbound elite native action');
     if(rule.leashParameter!==null&&row.parameters[rule.leashParameter]!==def.leashR)throw new Error('Elite script leash differs from its lair');
     if(rule.slots.some(slot=>!this.script.data.slots.some(field=>field.field===slot.field)))throw new Error('Undeclared elite saved slot');
-    this.ring=rule.ring?env.ring():null;this.nativeLanes=rule.lanes.map(key=>env.lane(PINE_LANES[key]));
+    this.ring=rule.ring?env.ring():null;this.nativeLanes=rule.lanes.map(key=>env.lane(Object.entries(PINE_LANES).find(([name])=>name===key)?.[1] ?? (()=>{throw new Error(`Missing elite lane ${key}`);})()));
   }
   override spawn(): void {
     const L = this.def.lair;
@@ -132,7 +132,7 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   /** dev / captures: run its signature move now */
   force(move:string):void {
     const a=this.animal;if(a===null)return;
-    if(this.rule.force==='fade'){this.vanish(a);this.script.setSlot('fadeT',2);this.script.setSlot('cd',fadeCooldown(this.p2));this.setMode('faded');this.sig();return;}
+    if(this.rule.force==='fade'){this.vanish(a);this.script.setSlot('fadeT',2);this.script.setSlot('cd',(this.p2 ? 2.4 : 4.5));this.setMode('faded');this.sig();return;}
     if(this.rule.home==='cave'&&a.hidden)this.burstOut(a);
     if(move===this.rule.special)this.setMode(move);else {const p=this.env.player.position;this.lane(0).start(a,p.x,p.z,60);this.setMode('charge');}
   }
@@ -146,7 +146,7 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     if(this.rule.home!=='cave'){super.idle(a,dt);return;}
     if(this.mode==='lurk')return;
     const distance=Math.hypot(MOUTH.x-a.position.x,MOUTH.z-a.position.z);
-    if(distance>2.5){a.setMotion(headingTo(a.position.x,a.position.z,MOUTH.x,MOUTH.z),2.2,2);return;}
+    if(distance>2.5){a.setMotion(Math.atan2(MOUTH.x - a.position.x, MOUTH.z - a.position.z),2.2,2);return;}
     if(a.position.distanceTo(this.env.player.position)>35)this.lurk(a);else super.idle(a,dt);
   }
   /** the brain's and the script's own state (its lanes ride `lanes()`) */
@@ -195,13 +195,13 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
       trauma: (k) => { this.env.trauma(k); },
       ring:(radius,alpha)=>{this.ring?.ring(a.position.x,a.position.z,radius,alpha);},ringHide:()=>{this.ring?.hide();},
       ...(this.ring===null?{}:{ringTime:()=>{this.ring?.setTime(t);}}),
-      ...(this.rule.rivals?{hostValues:():readonly[number,number]=>[this.rivals.length,bugleHour(this.env.dusk(),this.env.night())?1:0]}:{}),
+      ...(this.rule.rivals?{hostValues:():readonly[number,number]=>[this.rivals.length,(this.env.dusk()>0.45||this.env.night()>0.45)?1:0]}:{}),
       action: (name) => { this.act(name, a); },
     };
   }
   /** one of the elite's own actions its script names */
   protected act(name:string,a:B):void {
-    if(!this.rule.actions.includes(name))throw new Error(`pine elite '${this.def.id}' has no action ${name}`);
+    if(!this.rule.actions.some(action=>action===name))throw new Error(`pine elite '${this.def.id}' has no action ${name}`);
     if(name==='fade')this.vanish(a);else if(name==='comeBack')this.comeBack(a);else if(name==='burstOut')this.burstOut(a);else if(name==='roarFx')this.env.fx.roar(a,this.p2?11:8);else if(name==='callRivals')this.callRivals(a);else throw new Error(`pine elite '${this.def.id}' has no action ${name}`);
   }
   private vanish(a: B): void {
@@ -213,7 +213,8 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   comeBack(a: B): void {
     const p = this.env.player.position, L = this.def.lair;
     for (const side of [0, 0.6, -0.6, 1.2, -1.2, 1.8, -1.8, Math.PI]) {
-      const q = behindPlayer(p.x, p.z, this.env.player.yaw, 14 + this.next() * 4, side);
+      const distance=14+this.next()*4, angle=this.env.player.yaw+side;
+      const q={x:p.x+Math.sin(angle)*distance,z:p.z+Math.cos(angle)*distance};
       if (!this.env.inChunk(q.x, q.z, 24) || Math.hypot(q.x - L.x, q.z - L.z) > this.def.leashR - 12) continue;
       if (Math.abs(this.env.heightAt(q.x, q.z) - this.env.heightAt(p.x, p.z)) > 6) continue;
       this.reappear(a, q.x, q.z); return;
@@ -222,7 +223,7 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   }
   private reappear(a: B, x: number, z: number): void {
     const p = this.env.player.position;
-    a.place(x, z, headingTo(x, z, p.x, p.z));
+    a.place(x, z, Math.atan2(p.x - x, p.z - z));
     a.hidden = false; this.env.show(a, true);
     this.env.fx.reappear(a);
     this.setMode('stare');
@@ -234,7 +235,7 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   }
   burstOut(a: B): void {
     const p = this.env.player.position;
-    a.place(MOUTH.x - Math.sin(BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(BEAR_CAVE.rot) * 2.5, headingTo(MOUTH.x, MOUTH.z, p.x, p.z));
+    a.place(MOUTH.x - Math.sin(BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(BEAR_CAVE.rot) * 2.5, Math.atan2(p.x - MOUTH.x, p.z - MOUTH.z));
     a.hidden = false; this.env.show(a, true);
     this.env.fx.burstOut(a);
     this.sig();
@@ -246,7 +247,7 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
       const ang = yaw + side * Math.PI / 2;
       let x = p.x + Math.sin(ang) * 55, z = p.z + Math.cos(ang) * 55;
       if (!this.env.inChunk(x, z, 24)) { x = p.x - Math.sin(ang) * 40; z = p.z - Math.cos(ang) * 40; }
-      const r = this.env.spawn('elk', x, z, headingTo(x, z, p.x, p.z), i === 0 ? 'big-bull' : 'bull');
+      const r = this.env.spawn('elk', x, z, Math.atan2(p.x - x, p.z - z), i === 0 ? 'big-bull' : 'bull');
       this.env.own(r);
       const lane = this.nativeLanes[i+1];
       if (lane) this.rivals.push({ a: r, lane, mode: 'approach' });
@@ -260,7 +261,7 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
       const d = Math.hypot(p.x - r.a.position.x, p.z - r.a.position.z);
       r.a.lookTarget.copy(p); r.a.lookWeight = 1;
       if (r.mode === 'charge') { r.lane.update(r.a, dt, t, p, (dmg) => { this.hurt(r.a, dmg); this.env.trauma(0.35); }); if (!r.lane.busy) r.mode = 'approach'; continue; }
-      r.a.setMotion(headingTo(r.a.position.x, r.a.position.z, p.x, p.z), d > 16 ? 7 : 1.5, 2.5);
+      r.a.setMotion(Math.atan2(p.x - r.a.position.x, p.z - r.a.position.z), d > 16 ? 7 : 1.5, 2.5);
       if (d < 20 && this.next() < dt * 0.6) { r.lane.start(r.a, p.x, p.z, 0.9); r.mode = 'charge'; }
     }
     this.rivals = this.rivals.filter((r) => r.a.alive || r.lane.busy);

@@ -1,7 +1,7 @@
 import type { RoamingBossRow } from '@wildshard/sdk/phasedBoss';
-import { KINGS_CLEARING } from './layout';
-import { ANTLER_KING_PHASES } from './antlerKing';
-import { KING_ATTACK_TIMING } from '../combat/kingTiming';
+import { KINGS_CLEARING } from '../data/layout';
+import { ANTLER_KING_PHASES } from '../data/antlerKing';
+import KING_ATTACK_TIMING from '../data/kingTiming.json' with { type: 'json' };
 
 /** The shipped Warden fight as phasedBoss data: each stance, contact, lane chain, lantern and phase. */
 export const ANTLER_KING_FIGHT = {
