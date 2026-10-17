@@ -18,7 +18,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 import { Sabre, type MountState, type SabreWeapon } from '../runtime/weapons/Sabre';
 import { Spear, type SpearWeapon } from '../runtime/weapons/Spear';
-import { BOW } from './equipment';
+import items from '../data/items.json' with { type: 'json' };
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 
 /** The composite recurve's baked rows and parts (generators/recurvePool.ts): the held bow draw's (H3); the Golden Bow and the
  *  Sky-Wolf skin are its paints. */
@@ -49,7 +50,7 @@ export async function buildNalatiLoadoutSliced(world: NalatiWorld, targets: Targ
   const spear = new Spear(world, targets, { allowUnlocked });
   await yieldTask();
   const { profile } = await loadHeldBow(RECURVE);
-  const bow = new Bow(world, targets, { row: BOW, profile, allowUnlocked });
+  const bow = new Bow(world, targets, { row: readItemEquipment(items, 'weapon.bow'), profile, allowUnlocked });
   return loadoutOf(world, targets, allowUnlocked, sabre, spear, bow, profile);
 }
 
@@ -64,7 +65,7 @@ function loadoutOf(world: NalatiWorld, targets: Targets, allowUnlocked: boolean,
     upgradeBow(weapons, power) {
       if (kit.bow instanceof GoldenBow) return;
       const previous = kit.bow;
-      const next = new GoldenBow(world, targets, { row: BOW, profile, allowUnlocked, power, previous });
+      const next = new GoldenBow(world, targets, { row: readItemEquipment(items, 'weapon.bow'), profile, allowUnlocked, power, previous });
 
       weapons.replace(previous.id, next); kit.bow = next;
     },

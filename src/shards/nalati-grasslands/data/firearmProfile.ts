@@ -1,7 +1,11 @@
-import { RIFLE_WEAPON_PROFILE } from './rifleProfile';
+import items from './items.json' with { type: 'json' };
+import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import * as v from 'valibot';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 
 /** Existing carbine tuning retained as shard-owned data during the weapon row conversion. */
+const RIFLE_WEAPON_PROFILE = v.parse(FirearmWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.rifle')?.profile);
+if (RIFLE_WEAPON_PROFILE.action === 'bolt') throw new Error('Carbine requires a magazine firearm action');
 export const AR15: FirearmProfile = {
   family: RIFLE_WEAPON_PROFILE.family, action: RIFLE_WEAPON_PROFILE.action,
   magazine: RIFLE_WEAPON_PROFILE.magazine, reserve: RIFLE_WEAPON_PROFILE.reserve, interval: RIFLE_WEAPON_PROFILE.interval,

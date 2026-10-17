@@ -1,11 +1,13 @@
-import { JAVELIN_WEAPON_PROFILE } from '../../data/javelinProfile';
+import items from '../../data/items.json' with { type: 'json' };
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import * as schema from 'valibot';
 import { javelinSpearType, type JavelinSpearMount, type JavelinSpearParts, type JavelinSpearPose, type JavelinSpearRowOptions, type JavelinSpearView, type JavelinSpear as JavelinSpearWeapon, type JavelinSpearWorld } from './javelinSpear';
 import { lin } from '@wildshard/engine/math/color';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ThrownProfile } from './thrownProfile';
-import { SPEAR } from '../../weapons/equipment';
 import * as THREE from 'three';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';
 
@@ -43,6 +45,7 @@ import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, hel
 
 /** the host the spear draws into */
 export type SpearWorld = JavelinSpearWorld;
+const JAVELIN_WEAPON_PROFILE = schema.parse(ThrownWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.spear')?.profile);
 /** construction: the unlock policy and an optional profile over SPEAR_PROFILE */
 export type SpearOptions = JavelinSpearRowOptions<typeof SPEAR_PROFILE>;
 /** the riding row's hook (B7): horse speed / heading while mounted */
@@ -198,7 +201,7 @@ export const SPEAR_PROFILE: MeleeProfile & {
   thrust: { damage: number; stagger: number; windup: number; activeEnd: number; total: number; fan: typeof THRUST_FAN };
   lance: { reach: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number; rehit: number };
 } = {
-  ...SWORD_WOOD, ...SPEAR, parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
+  ...SWORD_WOOD, ...readItemEquipment(items, 'weapon.spear'), parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
   hitStop: { body: 0, head: 0, kill: 0 },
   cues: { fire: 'cue.spear.thrust', reload: 'cue.reload', impact: 'cue.javelin.hit', hit: 'cue.javelin.hit', charge: { throw: 'cue.javelin.throw', recover: 'cue.javelin.pickup' } },
   thrust: { damage: THRUST_DAMAGE, stagger: THRUST_STAGGER, windup: T_WIND, activeEnd: T_ACTIVE_END, total: T_TOTAL, fan: THRUST_FAN },

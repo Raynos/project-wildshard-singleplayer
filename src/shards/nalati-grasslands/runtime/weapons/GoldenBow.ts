@@ -5,8 +5,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from '../../weapons/effects';
 import * as THREE from 'three';
 import type { BowInstance } from '@wildshard/sdk/runtime/weapons/starterBow';
-import { rewardBowType } from './rewardBow';
-import { BOW } from '../../weapons/equipment';
+import { RewardBow, type RewardBowOptions } from './rewardBow';
 
 
 
@@ -226,8 +225,11 @@ export function goldenBowModel(sky: Sky): THREE.Object3D {
   return wrap;
 }
 
-export const GOLDEN_BOW = { ...BOW, id: 'weapon.golden-bow' as const,
-  ui: { ...BOW.ui, name: 'Golden Bow', swapName: 'Golden Bow' }, meta: { ...BOW.meta, name: 'Golden Bow' } };
-/** The Golden Bow as a row over the platform's reward bow: GOLDEN_BOW's row, its power applied once the replaced bow's
+/** The Golden Bow over its supplied native equipment row, its power applied once the replaced bow's
  *  multiplier, loose hook and saddle are carried over; the power keeps its preloaded streak clock. */
-export const GoldenBow = rewardBowType(GOLDEN_BOW);
+export class GoldenBow extends RewardBow {
+  constructor(world: ConstructorParameters<typeof RewardBow>[0], targets: ConstructorParameters<typeof RewardBow>[1], opts: RewardBowOptions) {
+    super(world, targets, { ...opts.row, id: 'weapon.golden-bow',
+      ui: { ...opts.row.ui, name: 'Golden Bow', swapName: 'Golden Bow' }, meta: { ...opts.row.meta, name: 'Golden Bow' } }, opts);
+  }
+}

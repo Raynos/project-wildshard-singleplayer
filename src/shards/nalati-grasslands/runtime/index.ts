@@ -21,13 +21,13 @@ import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { buildNalatiLoadoutSliced, type NalatiLoadout } from '../weapons/loadout';
-import { AR15, BOW, SABRE, SPEAR } from '../weapons/equipment';
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
+import { installNalatiWeaponHooks } from '../weapons/hooks';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from '../adventure';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
-import source from '../shard.config';
 import { bindNalatiPersistence, type NalatiPersistence } from './persistence';
-import { bindNalatiItems } from './items';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
@@ -51,7 +51,7 @@ export class NalatiPlugin extends ShardPlugin {
     const { game, sky, forest, registry } = world;
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials)));
-    this.persistence = bindNalatiPersistence(ctx, source, world.chunk.slug);
+    this.persistence = bindNalatiPersistence(ctx, ctx.product.shardfile, world.chunk.slug);
     ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await import('@wildshard/engine/world/Grass');
@@ -96,13 +96,17 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.rows.species(NALATI_SPECIES);
     ctx.rows.speciesLook(NALATI_LOOKS);
     ctx.rows.feat(NALATI_FEATS);
-    ctx.rows.weapon([BOW, SABRE, SPEAR, AR15]);
+    ctx.rows.weapon(['weapon.bow', 'weapon.sabre', 'weapon.spear', 'weapon.rifle'].map(id => readItemEquipment(ctx.product.shardfile.items, id)));
     shell.buildEquipment = async (targets, nolock) => {
       const kit = await buildNalatiLoadoutSliced(world, targets, nolock, macrotask); // SF67: a task apart per weapon
       this.loadout = kit;
       await macrotask();
-      const rifle = buildRifle(world, targets, { row: AR15, allowUnlocked: nolock, muzzleLight: true });
-      bindNalatiItems(ctx, { bow: kit.bow, sabre: kit.sabre, spear: kit.spear, rifle });
+      const rifle = buildRifle(world, targets, { row: readItemEquipment(ctx.product.shardfile.items, 'weapon.rifle'), allowUnlocked: nolock, muzzleLight: true });
+      bindRuntimeEquipment(ctx, ctx.product.shardfile, [kit.bow, kit.sabre, kit.spear, rifle].map(weapon => {
+        const item = ctx.product.shardfile.items.rows.find(row => row.id === weapon.row.id);
+        return { id: weapon.row.id, weapon, profile: item?.kind === 'weapon' ? item.profile : undefined };
+      }));
+      installNalatiWeaponHooks(ctx, kit).catch((e: unknown) => { console.warn('[nalati] weapon hooks failed: the sabre keeps its row rule', e); });
       return { primary: kit.base, rifle, secondary: null, extras: kit.extras, order: ['bow', 'sabre', 'spear'], install: (weapons) => { kit.install(weapons); } };
     };
   }
@@ -121,7 +125,7 @@ export class NalatiPlugin extends ShardPlugin {
     const part = async (): Promise<void> => { await macrotask(); if (ctx.scope.disposed) throw new Error('Nalati was unloaded during play installation'); };
     const own = enteredOwner(), owned = <T>(fn: () => T): T => (own === null ? fn() : withOwner(own, fn));
     await part(); // not in the page's play-stage task
-    const king = owned(() => bindRuntimeBoss(ctx, source, 'nalati.golden-king', undefined, { identity: 'runtime' }));
+    const king = owned(() => bindRuntimeBoss(ctx, ctx.product.shardfile, 'nalati.golden-king', undefined, { identity: 'runtime' }));
     const wildlife = rt.wildlife;
     if (wildlife === null) throw new Error('Nalati creatures have not been built');
     const hurt = (tag: DamageRequest['sourceTags'][number], amount: number, cause: DamageRequest['cause'], toast?: string): void => {

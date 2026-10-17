@@ -9,7 +9,7 @@ import { NALATI_RUNTIME_COST } from './data/runtimeCost';
 import questContent from './data/questContent.json' with { type: 'json' };
 import { NALATI_LEDGER } from './data/ledger';
 import { NALATI_STATE } from './data/state';
-import { NALATI_ITEMS } from './data/items';
+import items from './data/items.json' with { type: 'json' };
 import { NALATI_RUNTIME_SPAWNS } from './data/spawns';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import queryTerrain from './data/terrain.generated.json' with { type: 'json' };
@@ -37,5 +37,5 @@ export default parseShardfile({ ...base,
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: [...NALATI_FAR_HERD_CHANNELS,...weatherChannels.clientChannels],
-  modes: NALATI_MODES, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items: NALATI_ITEMS, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
+  modes: NALATI_MODES, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

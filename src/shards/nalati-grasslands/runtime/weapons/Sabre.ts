@@ -1,5 +1,7 @@
-import { SABRE_WEAPON_PROFILE } from '../../data/sabreProfile';
-import { SABRE } from '../../weapons/equipment';
+import items from '../../data/items.json' with { type: 'json' };
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import * as schema from 'valibot';
 import * as THREE from 'three';
 import type { SwordWorld, SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
 import { mountedSwordType, type MountedSwordMount, type MountedSwordRowOptions, type MountedSword as MountedSwordWeapon } from './mountedSword';
@@ -34,13 +36,21 @@ import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, hel
  * `passChain` (hits in the running chain, 0 = none) and `passChainLeft` (s until it lapses) feed the HUD's "2 HIT" chip.
  */
 
+const SABRE_WEAPON_PROFILE = schema.parse(MeleeWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.sabre')?.profile);
+const mounted = SABRE_WEAPON_PROFILE.mounted, passes = SABRE_WEAPON_PROFILE.moves.passes;
+const [slash, backhand, finisher] = SABRE_WEAPON_PROFILE.moves.combo;
+if (mounted === undefined || passes === undefined || slash === undefined || backhand === undefined || finisher === undefined) throw new Error('Sabre requires mounted passes and three combo moves');
+function contact(row: schema.InferOutput<typeof MeleeWeaponProfileSchema>['moves']['heavy']): Pick<Move, 'windup' | 'slashEnd' | 'total' | 'damage' | 'stagger' | 'sweep' | 'reach'> {
+  if (row.stagger === undefined || row.sweep === undefined) throw new Error('Sabre moves require stagger and sweep');
+  return { ...row, stagger: row.stagger, sweep: row.sweep };
+}
 const DAMAGE = SABRE_WEAPON_PROFILE.damage;               // base: 24 / 24 / 32 combo, 48 heavy
 const SPEED = SABRE_WEAPON_PROFILE.swingScale;               // every move's duration × this (the sabre is lighter and quicker than the iron sword)
-const MOUNT_REACH = SABRE_WEAPON_PROFILE.mounted.reach;
-const MOUNT_COOLDOWN = SABRE_WEAPON_PROFILE.mounted.cooldown;      // s between pass slashes
-const PASS_SENSE = SABRE_WEAPON_PROFILE.mounted.sense;            // m — which side the pass slash goes: the nearest live animal inside this radius
-const CHAIN_WINDOW = SABRE_WEAPON_PROFILE.mounted.chainWindow;          // s — mounted hits this close together chain
-const CHAIN_STEP = SABRE_WEAPON_PROFILE.mounted.chainStep, CHAIN_MAX = SABRE_WEAPON_PROFILE.mounted.chainMax;
+const MOUNT_REACH = mounted.reach;
+const MOUNT_COOLDOWN = mounted.cooldown;      // s between pass slashes
+const PASS_SENSE = mounted.sense;            // m — which side the pass slash goes: the nearest live animal inside this radius
+const CHAIN_WINDOW = mounted.chainWindow;          // s — mounted hits this close together chain
+const CHAIN_STEP = mounted.chainStep, CHAIN_MAX = mounted.chainMax;
 
 const BLADE_L = 0.62;            // m, guard to tip (the sabre is longer than the wooden sword's 0.52)
 const CURVE = 0.12;              // m the tip sits back from the grip's line (toward -X, the spine side)
@@ -136,7 +146,7 @@ const S_SLASH: Move = {
     key(0.13, 0.2, -0.3, -0.47, -0.62, 0.55, -0.56, 0.75),    // sweeping across, the curve dragging the tip behind
     key(0.24, -0.06, -0.4, -0.46, -0.9, 0.05, -0.43, 0.45),   // out low left: a falling arc, not a flat line
   ],
-  ...SABRE_WEAPON_PROFILE.moves.combo[0], hitStop: 0.045, kick: { pitch: -0.6, roll: 1.6 },
+  ...contact(slash), hitStop: 0.045, kick: { pitch: -0.6, roll: 1.6 },
   trail: { from: 0.58, color: ice(0.78, 0.92, 1), alpha: 0.65, inner: 0, life: 0.14 },
 };
 const S_BACKHAND: Move = {
@@ -146,7 +156,7 @@ const S_BACKHAND: Move = {
     key(0.125, 0.12, -0.26, -0.5, 0.05, 0.72, -0.69, -0.55),   // rising through the centre
     key(0.22, 0.42, -0.14, -0.5, 0.86, 0.46, -0.22, -0.7),     // high right: a rising arc
   ],
-  ...SABRE_WEAPON_PROFILE.moves.combo[1], hitStop: 0.045, kick: { pitch: -0.6, roll: -1.6 },
+  ...contact(backhand), hitStop: 0.045, kick: { pitch: -0.6, roll: -1.6 },
   trail: { from: 0.58, color: ice(0.72, 0.88, 1), alpha: 0.65, inner: 0, life: 0.14 },
 };
 const S_FINISHER: Move = {
@@ -156,7 +166,7 @@ const S_FINISHER: Move = {
     key(0.19, 0.1, -0.2, -0.47, -0.42, 0.44, -0.79, 0.35),     // a hooked diagonal through the centre
     key(0.28, -0.16, -0.46, -0.44, -0.7, -0.36, -0.62, 0.15),  // low left
   ],
-  ...SABRE_WEAPON_PROFILE.moves.combo[2], hitStop: 0.06, kick: { pitch: -1.8, roll: 1.1 },
+  ...contact(finisher), hitStop: 0.06, kick: { pitch: -1.8, roll: 1.1 },
   trail: { from: 0.5, color: ice(0.86, 0.95, 1), alpha: 0.75, inner: 0.05, life: 0.16 },
 };
 const S_HEAVY: Move = {
@@ -166,7 +176,7 @@ const S_HEAVY: Move = {
     key(0.17, 0.06, -0.18, -0.52, -0.2, 0.55, -0.81, 0.1),
     key(0.3, -0.14, -0.5, -0.44, -0.58, -0.44, -0.68, 0.0),
   ],
-  ...SABRE_WEAPON_PROFILE.moves.heavy, hitStop: 0.08, kick: { pitch: -2.6, roll: 0.8, fov: -2 },
+  ...contact(SABRE_WEAPON_PROFILE.moves.heavy), hitStop: 0.08, kick: { pitch: -2.6, roll: 0.8, fov: -2 },
   trail: { from: 0.3, color: ice(0.9, 0.97, 1), alpha: 1.0, inner: 0.35, life: 0.22 },
 };
 /** mounted: a wide pass on the right — high forward-right, down and back along the horse's flank */
@@ -177,7 +187,7 @@ export const PASS_RIGHT: Move = {
     key(0.18, 0.4, -0.3, -0.5, 0.55, -0.05, -0.83, 1.4),     // cutting down across the lower right
     key(0.3, 0.38, -0.42, -0.36, 0.75, -0.45, -0.2, 1.5),    // follow-through low right, trailing back along the flank
   ],
-  ...SABRE_WEAPON_PROFILE.moves.passes.right, hitStop: 0.05, kick: { pitch: -0.5, roll: -1.2 }, reach: MOUNT_REACH,
+  ...contact(passes.right), hitStop: 0.05, kick: { pitch: -0.5, roll: -1.2 }, reach: MOUNT_REACH,
   trail: { from: 0.3, color: ice(0.8, 0.94, 1), alpha: 0.9, inner: 0.2, life: 0.2 },
 };
 /** mounted: the backhand pass on the left */
@@ -188,7 +198,7 @@ export const PASS_LEFT: Move = {
     key(0.18, 0.05, -0.3, -0.52, -0.6, -0.05, -0.8, -0.7),   // the backhand down across the lower left
     key(0.3, -0.15, -0.42, -0.4, -0.8, -0.45, -0.2, -0.9),   // follow-through low left
   ],
-  ...SABRE_WEAPON_PROFILE.moves.passes.left, hitStop: 0.05, kick: { pitch: -0.5, roll: 1.2 }, reach: MOUNT_REACH,
+  ...contact(passes.left), hitStop: 0.05, kick: { pitch: -0.5, roll: 1.2 }, reach: MOUNT_REACH,
   trail: { from: 0.3, color: ice(0.8, 0.94, 1), alpha: 0.9, inner: 0.2, life: 0.2 },
 };
 export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARGE, sprint: SABRE_SPRINT, combo: [S_SLASH, S_BACKHAND, S_FINISHER], heavy: S_HEAVY };
@@ -196,13 +206,13 @@ export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARG
 // ───────────────────────────── the weapon ─────────────────────────────
 
 export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown: number; sense: number; chainWindow: number; chainStep: number; chainMax: number; speedDivisor: number; behind: number }; blade: { length: number; curve: number } } = {
-  ...SWORD_WOOD, ...SABRE, parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
+  ...SWORD_WOOD, ...readItemEquipment(items, 'weapon.sabre'), parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
   reach: SABRE_WEAPON_PROFILE.reach, cooldown: SABRE_WEAPON_PROFILE.cooldown, comboGap: SABRE_WEAPON_PROFILE.comboGap,
   chainLag: SABRE_WEAPON_PROFILE.chainLag, heavyCharge: SABRE_WEAPON_PROFILE.heavyCharge,
   lunge: SABRE_WEAPON_PROFILE.lunge, sweep: SABRE_WEAPON_PROFILE.sweep,
   hitStop: { body: 0.045, head: 0.045, kill: 0.045 }, moves: SABRE_MOVES, portraitPullX: 0.85,
   mounted: { reach: MOUNT_REACH, cooldown: MOUNT_COOLDOWN, sense: PASS_SENSE, chainWindow: CHAIN_WINDOW,
-    chainStep: CHAIN_STEP, chainMax: CHAIN_MAX, speedDivisor: SABRE_WEAPON_PROFILE.mounted.speedDivisor, behind: SABRE_WEAPON_PROFILE.mounted.behind },
+    chainStep: CHAIN_STEP, chainMax: CHAIN_MAX, speedDivisor: mounted.speedDivisor, behind: mounted.behind },
   blade: SABRE_BLADE,
 };
 

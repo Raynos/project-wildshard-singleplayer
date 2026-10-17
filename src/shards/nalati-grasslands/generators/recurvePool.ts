@@ -9,13 +9,15 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
-import { BOW_PROFILE } from '../data/bowProfile';
+import items from '../data/items.json' with { type: 'json' };
+import { BowWeaponProfileSchema, type HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';
-import type { HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
-import type * as v from 'valibot';
+import * as schema from 'valibot';
+
+const BOW_PROFILE = schema.parse(BowWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.bow')?.profile);
 
 /** Original riding/feel/loose policy, emitted without executable view strategies. */
-export function recurveBase(): v.InferInput<typeof HeldBowBaseSchema> {
+export function recurveBase(): schema.InferInput<typeof HeldBowBaseSchema> {
   const { wind, ...base } = BOW; void wind;
   return { ...base, quiver: BOW_PROFILE.quiver, speedBase: BOW_PROFILE.speedBase, speedDraw: BOW_PROFILE.speedDraw, damageScale: BOW_PROFILE.damageScale,
     aimSpread: BOW_PROFILE.spread.aimMultiplier, draw: BOW_PROFILE.draw, loose: { ...BOW_PROFILE.spread, muzzle: BOW_PROFILE.muzzle },

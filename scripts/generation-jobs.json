@@ -10034,7 +10034,7 @@
         "src/sdk/sourceReader.ts",
         "src/shards/nalati-grasslands/behaviour/weapons.as",
         "src/shards/nalati-grasslands/generators/sabreHook.ts",
-        "src/shards/nalati-grasslands/data/sabreProfile.ts",
+        "src/shards/nalati-grasslands/data/items.json",
         "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs",
         "src/shards/nalati-grasslands/generators/weaponHooks.ts"
       ],
@@ -10065,7 +10065,7 @@
         "src/format",
         "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
         "src/shards/nalati-grasslands/generators/recurvePool.ts",
-        "src/shards/nalati-grasslands/data/bowProfile.ts",
+        "src/shards/nalati-grasslands/data/items.json",
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",

@@ -1,0 +1,500 @@
+{
+  "version": 1,
+  "rows": [
+    {
+      "id": "weapon.bow",
+      "kind": "weapon",
+      "family": "bow",
+      "slot": "declared.weapon.bow",
+      "context": "weapon.bow",
+      "ui": {
+        "name": "Bow",
+        "icon": "longbow",
+        "swapIcon": "<path d=\"M6 3c7 3.5 7 14.5 0 18\"/><path d=\"M6 3v18\" stroke-width=\"0.9\"/><path d=\"M4 12h15M16.5 9.5 19 12l-2.5 2.5\"/>",
+        "blurb": ""
+      },
+      "view": {
+        "recipe": "nalati-grasslands.bow",
+        "colour": "#ffffff",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "hook": null,
+      "light": {
+        "id": "weapon.bow.light",
+        "damage": 0,
+        "cooldown": 1,
+        "range": 0.01,
+        "width": 0.01,
+        "tags": [],
+        "effect": null
+      },
+      "heavy": {
+        "id": "weapon.bow.heavy",
+        "damage": 0,
+        "cooldown": 1,
+        "range": 0.01,
+        "width": 0.01,
+        "tags": [],
+        "effect": null
+      },
+      "charge": 0.001,
+      "profile": {
+        "family": "bow",
+        "quiver": 24,
+        "speedBase": 30,
+        "speedDraw": 28,
+        "damageScale": 1.2,
+        "draw": {
+          "drawTime": 0.75,
+          "letdownTime": 0.4,
+          "renockTime": 0.62,
+          "renockEarly": 0.4,
+          "holdSteady": 3,
+          "holdTire": 8,
+          "tiredTime": 1.1
+        },
+        "spread": {
+          "degrees": 0.3,
+          "radius": "sqrt",
+          "axisScale": 1,
+          "aimMultiplier": 0.5,
+          "motion": 0.6
+        },
+        "flight": {
+          "gravity": 5,
+          "drag": 0.015,
+          "windCoupling": 0.25
+        },
+        "muzzle": 0.55,
+        "pool": 8,
+        "substeps": 4,
+        "lifetime": 12
+      },
+      "equipment": {
+        "cues": {
+          "fire": "cue.bow.loose",
+          "reload": "cue.reload",
+          "impact": "cue.arrow.hit"
+        },
+        "id": "weapon.bow",
+        "legacySlot": "bow",
+        "ui": {
+          "swapIcon": "<path d=\"M6 3c7 3.5 7 14.5 0 18\"/><path d=\"M6 3v18\" stroke-width=\"0.9\"/><path d=\"M4 12h15M16.5 9.5 19 12l-2.5 2.5\"/>",
+          "name": "Bow",
+          "icon": "longbow",
+          "touch": "bow",
+          "lockOn": false,
+          "melee": false,
+          "tracers": false,
+          "ammo": {
+            "label": "Arrows",
+            "segments": 4
+          },
+          "swapName": "Bow",
+          "huntersEye": true
+        },
+        "meta": {
+          "name": "Bow",
+          "icon": "longbow",
+          "blurb": "",
+          "category": "weapon"
+        }
+      }
+    },
+    {
+      "id": "weapon.sabre",
+      "kind": "weapon",
+      "family": "melee",
+      "slot": "declared.weapon.sabre",
+      "context": "weapon.melee",
+      "ui": {
+        "name": "Sabre",
+        "icon": "sword",
+        "swapIcon": "<path d=\"M5 19c4-3.5 9.5-9.5 13.5-15.5-1 5-5.5 11.5-11.5 16.5\"/><path d=\"M3.5 16.5l4.5 4.5M4.5 21.5l2-2\"/>",
+        "blurb": ""
+      },
+      "view": {
+        "recipe": "nalati-grasslands.sabre",
+        "colour": "#ffffff",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "hook": null,
+      "light": {
+        "id": "sabre.light",
+        "damage": 24,
+        "cooldown": 0.08,
+        "range": 2.2,
+        "width": 0.9,
+        "tags": [],
+        "effect": null
+      },
+      "heavy": {
+        "id": "sabre.heavy",
+        "damage": 48,
+        "cooldown": 0.08,
+        "range": 2.2,
+        "width": 0.9,
+        "tags": [],
+        "effect": null
+      },
+      "charge": 0.45,
+      "profile": {
+        "family": "melee",
+        "damage": 24,
+        "reach": 2.2,
+        "swingScale": 0.9,
+        "cooldown": 0.08,
+        "comboGap": 0.6,
+        "chainLag": 0.02,
+        "heavyCharge": 0.45,
+        "moves": {
+          "combo": [
+            {
+              "windup": 0.07,
+              "slashEnd": 0.24,
+              "total": 0.35,
+              "damage": 1,
+              "stagger": 0,
+              "sweep": 1
+            },
+            {
+              "windup": 0.06,
+              "slashEnd": 0.22,
+              "total": 0.34,
+              "damage": 1,
+              "stagger": 0,
+              "sweep": -1
+            },
+            {
+              "windup": 0.1,
+              "slashEnd": 0.28,
+              "total": 0.44,
+              "damage": 1.3333333333333333,
+              "stagger": 0.25,
+              "sweep": 0.5
+            }
+          ],
+          "heavy": {
+            "windup": 0.06,
+            "slashEnd": 0.3,
+            "total": 0.62,
+            "damage": 2,
+            "stagger": 1,
+            "sweep": 0.35
+          },
+          "passes": {
+            "left": {
+              "windup": 0.09,
+              "slashEnd": 0.3,
+              "total": 0.5,
+              "damage": 1,
+              "stagger": 1,
+              "sweep": 1,
+              "reach": 2.8
+            },
+            "right": {
+              "windup": 0.09,
+              "slashEnd": 0.3,
+              "total": 0.5,
+              "damage": 1,
+              "stagger": 1,
+              "sweep": -1,
+              "reach": 2.8
+            }
+          }
+        },
+        "mounted": {
+          "reach": 2.8,
+          "cooldown": 0.7,
+          "sense": 6,
+          "chainWindow": 3,
+          "chainStep": 0.1,
+          "chainMax": 1.4,
+          "speedDivisor": 12,
+          "behind": -2
+        },
+        "lunge": {
+          "range": 4,
+          "heavyRange": 5,
+          "cone": 0.4363323129985824,
+          "stop": 1.1,
+          "speed": 22,
+          "minTime": 0.08,
+          "maxTime": 0.15
+        },
+        "sweep": {
+          "rays": 5,
+          "extensions": [
+            0.12,
+            0.24,
+            0.36,
+            0.48
+          ],
+          "step": 0.09,
+          "maxSamples": 6,
+          "maxHits": 8
+        }
+      },
+      "equipment": {
+        "cues": {
+          "fire": "cue.sabre.swing",
+          "reload": "cue.reload",
+          "impact": "cue.sabre.hit"
+        },
+        "id": "weapon.sabre",
+        "legacySlot": "sabre",
+        "ui": {
+          "swapIcon": "<path d=\"M5 19c4-3.5 9.5-9.5 13.5-15.5-1 5-5.5 11.5-11.5 16.5\"/><path d=\"M3.5 16.5l4.5 4.5M4.5 21.5l2-2\"/>",
+          "name": "Sabre",
+          "icon": "sword",
+          "touch": "melee",
+          "lockOn": true,
+          "melee": true,
+          "tracers": false,
+          "swapName": "Sabre"
+        },
+        "meta": {
+          "name": "Sabre",
+          "icon": "sword",
+          "blurb": "",
+          "category": "weapon"
+        }
+      }
+    },
+    {
+      "id": "weapon.spear",
+      "kind": "weapon",
+      "family": "thrown",
+      "slot": "declared.weapon.spear",
+      "context": "weapon.spear",
+      "ui": {
+        "name": "Spear",
+        "icon": "sword",
+        "swapIcon": "<path d=\"M4 20 16 8\"/><path d=\"M16 8c.8-2.6 2.6-4.4 5-5-.6 2.4-2.4 4.2-5 5z\"/><path d=\"M13.2 8.6l2.2 2.2\"/>",
+        "blurb": ""
+      },
+      "view": {
+        "recipe": "nalati-grasslands.spear",
+        "colour": "#ffffff",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "hook": null,
+      "light": {
+        "id": "weapon.spear.light",
+        "damage": 0,
+        "cooldown": 1,
+        "range": 0.01,
+        "width": 0.01,
+        "tags": [],
+        "effect": null
+      },
+      "heavy": {
+        "id": "weapon.spear.heavy",
+        "damage": 0,
+        "cooldown": 1,
+        "range": 0.01,
+        "width": 0.01,
+        "tags": [],
+        "effect": null
+      },
+      "charge": 0.001,
+      "profile": {
+        "family": "thrown",
+        "speed": 28,
+        "gravity": 9.8,
+        "damage": 55,
+        "headMultiplier": 2,
+        "radius": 0.03,
+        "headOffset": 0.8,
+        "windup": 0.4,
+        "release": 0.14,
+        "recovery": 0.45,
+        "carried": 3,
+        "pool": 5,
+        "pickupRadius": 1.6,
+        "pickupHeight": 2.2,
+        "survive": 0.9,
+        "arcPoints": 32,
+        "arcAfter": 0.12,
+        "stagger": 1
+      },
+      "equipment": {
+        "cues": {
+          "fire": "cue.spear.thrust",
+          "reload": "cue.reload",
+          "impact": "cue.javelin.hit"
+        },
+        "id": "weapon.spear",
+        "legacySlot": "spear",
+        "ui": {
+          "swapIcon": "<path d=\"M4 20 16 8\"/><path d=\"M16 8c.8-2.6 2.6-4.4 5-5-.6 2.4-2.4 4.2-5 5z\"/><path d=\"M13.2 8.6l2.2 2.2\"/>",
+          "name": "Spear",
+          "icon": "sword",
+          "touch": "throwing",
+          "lockOn": true,
+          "melee": true,
+          "tracers": false,
+          "ammo": {
+            "label": "Javelins",
+            "segments": 3
+          },
+          "swapName": "Spear"
+        },
+        "meta": {
+          "name": "Spear",
+          "icon": "sword",
+          "blurb": "",
+          "category": "weapon"
+        }
+      }
+    },
+    {
+      "id": "weapon.rifle",
+      "kind": "weapon",
+      "family": "firearm",
+      "slot": "declared.weapon.rifle",
+      "context": "weapon.ranged",
+      "ui": {
+        "name": "AR-15",
+        "icon": "rifle",
+        "swapIcon": "<path d=\"M3 13h14l3-2h1v3h-4l-2 2H9l-1 3H5l1-3H3z\"/>",
+        "blurb": ""
+      },
+      "view": {
+        "recipe": "nalati-grasslands.rifle",
+        "colour": "#ffffff",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "hook": null,
+      "light": {
+        "id": "weapon.rifle.light",
+        "damage": 0,
+        "cooldown": 1,
+        "range": 0.01,
+        "width": 0.01,
+        "tags": [],
+        "effect": null
+      },
+      "heavy": {
+        "id": "weapon.rifle.heavy",
+        "damage": 0,
+        "cooldown": 1,
+        "range": 0.01,
+        "width": 0.01,
+        "tags": [],
+        "effect": null
+      },
+      "charge": 0.001,
+      "profile": {
+        "family": "firearm",
+        "action": "semi",
+        "magazine": 30,
+        "reserve": 90,
+        "interval": 0.09,
+        "reload": 1.6,
+        "reloadMode": "magazine",
+        "autoReload": 0.35,
+        "damageScale": 0.55,
+        "range": 300,
+        "spreadAds": 0.12,
+        "spreadHip": 1.1,
+        "spreadRadius": "linear",
+        "bloomShot": 0.35,
+        "bloomMax": 1.6,
+        "movingSpread": 0,
+        "movingAimReduction": 0,
+        "projectile": {
+          "kind": "bullet",
+          "delivery": "hitscan",
+          "speed": 0,
+          "radius": 0,
+          "flight": {
+            "gravity": 0,
+            "drag": 0,
+            "windCoupling": 0
+          },
+          "pool": 1,
+          "substeps": 1,
+          "lifetime": 1
+        }
+      },
+      "equipment": {
+        "cues": {
+          "fire": "cue.firearm.fire",
+          "reload": "cue.firearm.reload",
+          "impact": "cue.projectile.hit"
+        },
+        "id": "weapon.rifle",
+        "legacySlot": "rifle",
+        "ui": {
+          "swapIcon": "<path d=\"M3 13h14l3-2h1v3h-4l-2 2H9l-1 3H5l1-3H3z\"/>",
+          "name": "AR-15",
+          "icon": "rifle",
+          "touch": "ranged",
+          "lockOn": false,
+          "melee": false,
+          "tracers": true,
+          "ammo": {
+            "label": "Rounds",
+            "magazine": true,
+            "segments": 6
+          }
+        },
+        "meta": {
+          "name": "AR-15",
+          "icon": "rifle",
+          "blurb": "",
+          "category": "weapon"
+        }
+      }
+    }
+  ],
+  "contexts": [],
+  "runtimeContexts": [
+    "weapon.melee",
+    "weapon.bow",
+    "weapon.spear",
+    "weapon.ranged"
+  ],
+  "loadout": {
+    "primary": "weapon.bow",
+    "secondary": "weapon.sabre",
+    "tools": []
+  }
+}
