@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "a7b1527c38f2bd2320153ee1fcd26e598560c5cb",
- "committedAt": "2026-10-16T23:29:07.000Z",
- "measuredAt": "2026-10-16T23:33:15.103Z",
+ "revision": "9e83e28d045d637ce07e3c176251442c6588c4d2",
+ "committedAt": "2026-10-17T00:28:17.000Z",
+ "measuredAt": "2026-10-17T00:38:08.900Z",
  "basis": "source",
  "plan": {
-  "lower": 0.21514394443037768,
-  "upper": 0.548477277763711
+  "lower": 0.2253892505360263,
+  "upper": 0.5587225838693597
  },
  "m3": {
-  "cut": 28748,
+  "cut": 30117,
   "mustGo": 80173.3,
-  "fraction": 0.3585732407172961
+  "fraction": 0.3756487508933772
  },
  "m2": {
   "ready": 0,
@@ -26,9 +26,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 12803,
+   "custom": 12262,
    "legacy": 21305,
-   "pct": 60.1,
+   "pct": 57.6,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -44,9 +44,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 9116,
+   "custom": 8288,
    "legacy": 17167,
-   "pct": 53.1,
+   "pct": 48.3,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -98,9 +98,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 28553,
+   "custom": 28433,
    "legacy": 28370,
-   "pct": 100.6,
+   "pct": 100.2,
    "grid": "fail",
    "criteria": {
     "bakedTiles": "fail",
@@ -145,7 +145,7 @@
    "pine-hollow",
    "driftwood-isle"
   ],
-  "pct": 57.5
+  "pct": 61.7
  },
  "waves": [
   {
@@ -598,6 +598,19 @@
     "far-reach": 26.4,
     "sunscar-dunes": 43.8,
     "nalati-grasslands": 100.6,
+    "nine-dragon-stack": 76.8
+   }
+  },
+  {
+   "revision": "9e83e28d045d637ce07e3c176251442c6588c4d2",
+   "at": "2026-10-17T00:28:17.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 57.6,
+    "driftwood-isle": 48.3,
+    "far-reach": 26.4,
+    "sunscar-dunes": 43.8,
+    "nalati-grasslands": 100.2,
     "nine-dragon-stack": 76.8
    }
   }
