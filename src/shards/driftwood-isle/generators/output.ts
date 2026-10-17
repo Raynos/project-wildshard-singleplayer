@@ -1,4 +1,4 @@
-import { COMPLETE_CONTENT } from './completion';
+import { completionRows } from './completion';
 import { TRADER_PAGE } from './traderPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
@@ -35,10 +35,10 @@ const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
   nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),
-  nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ complete: COMPLETE_CONTENT, places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
+  nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };
 /** Strict output copies prove the same constants the source mirror fixture checks. */
 export const mirrors = [...RUNTIME_MIRRORS];
 

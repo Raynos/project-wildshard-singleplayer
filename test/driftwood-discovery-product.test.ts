@@ -6,6 +6,7 @@ import { parseAdventureContent, type AdventureContent } from '../src/shards/drif
 import { createQuestPlacements } from '../src/engine/world/interact/types';
 import { Flags } from '../src/engine/world/interact/flags';
 import { installPlaces } from '../src/shards/driftwood-isle/quest/Places';
+import { COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 import frames from '../src/shards/driftwood-isle/data/questFrames.json' with { type: 'json' };
 
@@ -27,7 +28,7 @@ const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().en
 
 test('product completion copy, ordered places and guide thresholds retain the shipped catalogue', () => {
   const rows = content();
-  expect([hash(rows.complete), hash(rows.places), hash(rows.guide)]).toEqual(ORIGINAL_HASHES);
+  expect([hash(COMPLETE_CONTENT), hash(rows.places), hash(rows.guide)]).toEqual(ORIGINAL_HASHES);
   expect(rows.glassCount).toBe(15);
   expect(rows.shardFlags).toEqual(['shard:lookout', 'shard:wreck', 'shard:cave']);
 });
@@ -51,7 +52,7 @@ test('admitted places keep actual POI and late anchor resolution, pre-existing d
 
 test('discovery catalogue refuses malformed coordinates and unknown completion policy', () => {
   const rows = content();
-  expect(() => parseAdventureContent({ ...rows, complete: { ...rows.complete, maximumTodo: 0 } })).toThrow();
+  expect(() => parseAdventureContent({ ...rows, complete: {} })).toThrow();
   expect(() => parseAdventureContent({ ...rows, guide: { ...rows.guide, retry: -1 } })).toThrow();
   expect(() => parseAdventureContent({ ...rows, places: [{ ...rows.places[0], at: { poi: 'world', x: Infinity, z: 0 } }] })).toThrow();
 });

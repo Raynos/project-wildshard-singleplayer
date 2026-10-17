@@ -8265,3 +8265,22 @@ The native installer drives the same owner and carries its ordinary
 mover/script continuation. A restore just before arrival still releases
 at the baked landing. Terrain and deck queries run only in the producer.
 No shard callback, extra ride controller or clock enters the row.
+
+### Declared completion cards (`ui/completion`)
+
+`@wildshard/format/completion` defines bounded find groups, stat selectors,
+completion/seen flags, safe-poll policy and card copy. Generators resolve static
+find coordinates and emit the admitted `ui/completion` section. Driftwood uses
+its existing reward handoff; Template uses a minimal first-adventure card with
+no new runtime module. Both use `@wildshard/game/complete/declared.installCompletion`
+and the existing `ShardComplete` renderer.
+
+The installer borrows the actual play, flag and progress owners, registers its
+system on the existing clock and preserves their save envelopes. Reward cards
+open only through their existing reward handoff; a safe fallback offers the menu
+once per session. Quest-triggered cards open once after their declared flag.
+`completionProjection` reads current counts without mutation; the card retains
+its existing pause, viewmodel, audio and Keep/Next/Title actions. Shards supply
+data, never card-policy callbacks. `createQuestPlacements().anchors` is a
+readonly view of that placement owner's validated anchors, so late ride anchors
+remain authoritative for completion markers without a second placement cache.

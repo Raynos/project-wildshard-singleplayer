@@ -29,7 +29,7 @@ import { installPlaces } from './Places';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '../runtime/quest/content';
 import { installDirectorFinale, type Finale } from '../runtime/finalePresentation';
-import { installComplete, type Complete, type CompleteProgress } from './Complete';
+import { installCompletion, type Completion as Complete, type CompletionProgress as CompleteProgress } from '@wildshard/game/complete/declared';
 import { installEcology } from './Ecology';
 import type { RespawnQueue } from '../runtime/ecology';
 import { Zipline } from '../world/Zipline';
@@ -123,7 +123,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
 
-  const { floorAt, place, setAnchor } = createQuestPlacements({ terrain: heightAt, platforms: w.player.platforms, frames, pois: w.pois,
+  const { floorAt, place, setAnchor, anchors } = createQuestPlacements({ terrain: heightAt, platforms: w.player.platforms, frames, pois: w.pois,
     ...(w.registry === undefined ? {} : { registry: w.registry }) });
 
   const kit = await installAdventureInteractables(scope, { scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts });
@@ -186,7 +186,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered !== false && w.hud.paused !== true && w.player.position.y <= 300)
       guide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');
   }
-  adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
+  adventure.complete = installCompletion(ctx, flags, w.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
   const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
   adventure.finale = await installDirectorFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);

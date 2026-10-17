@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { CompletionSchema, type CompletionRows } from './completion';
 import { SpeciesProgramsSchema, type SpeciesPrograms } from './speciesPrograms';
 import { CreatureStrikesSchema, type CreatureStrikes } from './creatures';
 import { ActorMovesSchema, type ActorMoves } from './actorMoves';
@@ -10,6 +11,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'ui/completion': CompletionRows;
   'sim/runtime-plan': NativeRuntimePlanData;
   'actors/species-programs': SpeciesPrograms;
   'actors/moves': ActorMoves;
@@ -22,6 +24,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'ui/completion': { schema: CompletionSchema },
   'sim/runtime-plan': { schema: NativeRuntimePlanSchema },
   'actors/species-programs': { schema: SpeciesProgramsSchema },
   'actors/moves': { schema: ActorMovesSchema },
@@ -40,6 +43,7 @@ export function parsePlatformDataSection(name: 'actors/species-programs', value:
 export function parsePlatformDataSection(name: 'actors/moves', value: unknown): ActorMoves;
 export function parsePlatformDataSection(name: 'actors/strikes', value: unknown): CreatureStrikes;
 export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): DecisionScripts;
+export function parsePlatformDataSection(name: 'ui/completion', value: unknown): CompletionRows;
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;
 export function parsePlatformDataSection(name: 'world/physics', value: unknown): WorldPhysics;
 export function parsePlatformDataSection(name: 'world/targets', value: unknown): WorldTargets;

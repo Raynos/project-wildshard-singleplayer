@@ -1,7 +1,7 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
 
 export const TEMPLATE_QUESTS = parseQuestData({
-  flags: ['template.hut', 'template.blob', 'template.complete', 'template.door-open', 'template.wave-started', 'template.wave-complete'],
+  flags: ['template.hut', 'template.blob', 'template.complete', 'template.complete-card', 'template.door-open', 'template.wave-started', 'template.wave-complete'],
   quests: [{ id: 'template.quest', title: 'A first adventure', track: false, completeFlag: 'template.complete', steps: [
     { id: 'hut', objective: 'Reach the hut', done: { all: ['template.hut'] } },
     { id: 'blob', objective: 'Beat the blob', done: { all: ['template.blob'] } },

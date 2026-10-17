@@ -1,3 +1,4 @@
+import { installCompletion } from '../complete/declared';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
@@ -481,6 +482,7 @@ export class ShardfileClient {
       const declaration = source.quests.quests.find((row) => row.id === quest.def.id);
       installQuestPresentation(ctx, quest, declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {});
     }
+    if (ctx.product.has('ui/completion') && ctx.product.section('ui/completion').trigger === 'quest') installCompletion(ctx, sim.host.flags, play.progress);
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
     if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,

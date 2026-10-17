@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./completion": "./completion.ts",
     "./weatherProgram": "./weatherProgram.ts",
     "./achievementCounters": "./achievementCounters.ts",
     "./spawnTables": "./spawnTables.ts",

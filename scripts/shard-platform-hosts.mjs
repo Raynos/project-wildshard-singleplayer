@@ -50,6 +50,7 @@ const hosts = {
   'ui/level': [],
   'ui/ui': ['game/shard/declaredUi#mountDeclaredUi', 'game/shard/declaredTargets#installDeclaredTargets'],
   'ui/compendium': ['game/shard/declaredRows#declaredProductCompendium'],
+  'ui/completion': ['game/complete/declared#installCompletion'],
   'ui/strings': [], // Read by an explicitly imported consumer, not executed.
 };
 

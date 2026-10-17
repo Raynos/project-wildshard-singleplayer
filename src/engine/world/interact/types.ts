@@ -78,6 +78,8 @@ export function createQuestPlacements(ports: QuestPlacementPorts): {
   readonly floorAt: (x: number, z: number) => number;
   readonly place: (at: Place) => { x: number; y: number; z: number; yaw: number };
   readonly setAnchor: (name: string, anchor: QuestPlaceAnchor) => void;
+  /** Borrow current validated anchors without introducing a second placement owner. */
+  readonly anchors: ReadonlyMap<string, Readonly<QuestPlaceAnchor>>;
 } {
   if (ports.registryReach !== undefined && (!Number.isFinite(ports.registryReach) || ports.registryReach <= 0)) throw new RangeError('Invalid quest registry reach');
   if ((ports.platforms?.length ?? 0) > 4096) throw new RangeError('Too many quest floors');
@@ -92,7 +94,7 @@ export function createQuestPlacements(ports: QuestPlacementPorts): {
     return y;
   };
   return {
-    floorAt,
+    anchors: own, floorAt,
     setAnchor: (name, anchor) => {
       questKey(name);
       if (!own.has(name) && own.size >= 4096) throw new RangeError('Too many quest anchors');

@@ -6,7 +6,7 @@ import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
  * ShardComplete — the "<shard> complete" card (E132, mockup A: art/quest/round-2-complete-screen/A.jpg): a centred glass
  * card over the dimmed last frame. It shows the shard's title, a stats grid, the "still to find" chips and three buttons:
  * KEEP EXPLORING (primary), NEXT SHARD: <name> and TITLE SCREEN. It is data only. A shard's quest hands it a
- * `ShardCompleteData` and its own handlers. Driftwood's is src/shards/driftwood-isle/quest/Complete.ts. Nothing here knows a shard.
+ * `ShardCompleteData` and platform handlers. Admitted rows use complete/declared; nothing here knows a shard.
  *
  *   const card = new ShardComplete();
  *   card.open(data, { keep, next, title });   // Enter / Esc = keep

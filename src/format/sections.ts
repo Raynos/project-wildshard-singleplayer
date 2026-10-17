@@ -1,3 +1,4 @@
+import type { CompletionRows } from './completion';
 import type { SpeciesPrograms } from './speciesPrograms';
 import type { Shardfile } from './shardSchema';
 import type { CreatureStrikes } from './creatures';
@@ -22,6 +23,7 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  'ui/completion': CompletionRows;
   /** Existing native owners selected by admitted data, never client runtime code. */
   'sim/runtime-plan': NativeRuntimePlanData;
   'world/tiles': Pick<Shardfile, 'tiles' | 'far' | 'near'>;

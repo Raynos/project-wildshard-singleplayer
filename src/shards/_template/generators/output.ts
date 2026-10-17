@@ -10,6 +10,9 @@ export const output = {
     { name: 'behaviour/boss.wasm', kind: 'wasm', source: `assets/${boss.hash}`,
       options: { script: { abi: 1, pages: 1 }, critical: true } }],
   platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([
+    ['ui/completion', { doneFlag: 'template.complete', seenFlag: 'template.complete-card', trigger: 'quest', system: 'game.completion', before: ['main.world'], after: [],
+      title: 'Template shard', card: { kicker: 'A first adventure · complete', flavour: [] },
+      menuSubtitle: 'Your first adventure', toastSuffix: ' complete', safeRadius: 25, pollSeconds: 1, maximumTodo: 7, more: 'more', coveredEvents: [], groups: [], stats: [] }],
     ['sim/scripts', [bossDecision(`blobs/wasm/${boss.hash}.wasm`)]], ['actors/moves', BOSS_MOVES],
   ])),
 } satisfies ProjectOutput;
