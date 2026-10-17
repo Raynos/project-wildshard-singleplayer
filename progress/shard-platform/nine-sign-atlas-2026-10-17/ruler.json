@@ -1,0 +1,65 @@
+{
+  "measurement": "source",
+  "tool": "scripts/shard-platform.mjs sourceProgressInventory",
+  "mirrorSlot": "check3",
+  "before": "d5a135a139e91ddee9a29f72615a0a6a73c9e799",
+  "after": "2ade7d229aff3d2e3f4375d6822b982d24c42509",
+  "products": "all ten complete",
+  "shards": {
+    "_template": {
+      "before": 1003,
+      "after": 1003,
+      "net": 0
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "net": 0
+    },
+    "driftwood-isle": {
+      "before": 6661,
+      "after": 6661,
+      "net": 0
+    },
+    "far-reach": {
+      "before": 1303,
+      "after": 1303,
+      "net": 0
+    },
+    "ink-cel-valley": {
+      "before": 1108,
+      "after": 1108,
+      "net": 0
+    },
+    "nalati-grasslands": {
+      "before": 20948,
+      "after": 20948,
+      "net": 0
+    },
+    "nine-dragon-stack": {
+      "before": 12636,
+      "after": 12326,
+      "net": -310
+    },
+    "pastel-plain": {
+      "before": 736,
+      "after": 736,
+      "net": 0
+    },
+    "pine-hollow": {
+      "before": 10584,
+      "after": 10584,
+      "net": 0
+    },
+    "sunscar-dunes": {
+      "before": 1368,
+      "after": 1368,
+      "net": 0
+    }
+  },
+  "deletedCodeLines": {
+    "runtime/signs/signAtlas.ts": 329,
+    "look/signs.ts": 19,
+    "runtime/signs/fontWait.ts": 5
+  }
+}

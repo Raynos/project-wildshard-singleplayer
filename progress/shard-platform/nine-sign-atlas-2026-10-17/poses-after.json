@@ -1,0 +1,164 @@
+{
+  "build": "a9e4bbb-mvc97w4y",
+  "profile": "iPhone 16 Pro / DPR3 / webkit; plain scene render, time 10, movers and viewmodel hidden",
+  "tiers": {
+    "phone": {
+      "pieces": 23,
+      "colliderCount": 489,
+      "colliders": "7119ef581d8aca81a89f199e3ff282a23e6570ce462dec2874db4fe2812818d4",
+      "gpuBytes": 277926443,
+      "cpuBackingBytes": 153317118,
+      "programs": 110
+    },
+    "desktop": {
+      "pieces": 23,
+      "colliderCount": 489,
+      "colliders": "7119ef581d8aca81a89f199e3ff282a23e6570ce462dec2874db4fe2812818d4",
+      "gpuBytes": 519640879,
+      "cpuBackingBytes": 269096590,
+      "programs": 124
+    }
+  },
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "A",
+      "width": 804,
+      "height": 1362,
+      "calls": 121,
+      "triangles": 1246123,
+      "lit": 1095048,
+      "pixels": "e40935f36c60dd9e32536a48ca5935ddec5bc9884cda03a527975ce5d12f072d"
+    },
+    {
+      "tier": "phone",
+      "pose": "B",
+      "width": 804,
+      "height": 1362,
+      "calls": 112,
+      "triangles": 1105881,
+      "lit": 1095048,
+      "pixels": "3375c67ac76334d7fabc30dfd97a7923258ffafea1ba0071465a1c2665d83a7e"
+    },
+    {
+      "tier": "phone",
+      "pose": "C",
+      "width": 804,
+      "height": 1362,
+      "calls": 105,
+      "triangles": 1011321,
+      "lit": 1095048,
+      "pixels": "72d112e9e9ec7b7aa42718b97e289b3f932257819fcc0191fe85c65f2d196e11"
+    },
+    {
+      "tier": "phone",
+      "pose": "D",
+      "width": 804,
+      "height": 1362,
+      "calls": 112,
+      "triangles": 1105879,
+      "lit": 1095048,
+      "pixels": "f7c2b304d08b8e0f55aa4b96c3cb922c3015ad33978b03568a03561b63d9b364"
+    },
+    {
+      "tier": "phone",
+      "pose": "upper-stair",
+      "width": 804,
+      "height": 1362,
+      "calls": 91,
+      "triangles": 763225,
+      "lit": 1095048,
+      "pixels": "14c7c733c032d930555ec5d15d655590b6e41166359305874d884435a3571561"
+    },
+    {
+      "tier": "phone",
+      "pose": "lower-well",
+      "width": 804,
+      "height": 1362,
+      "calls": 112,
+      "triangles": 1105881,
+      "lit": 1095048,
+      "pixels": "a9e735abd26f993a8cb4c721799ce1ed9ed63ff4e5816a78315a1b9efff60219"
+    },
+    {
+      "tier": "phone",
+      "pose": "sign-lightboxes",
+      "width": 804,
+      "height": 1362,
+      "calls": 119,
+      "triangles": 1243565,
+      "lit": 1095048,
+      "pixels": "c5b309862642d4256971f3aa5b525d3b8556951b45bfdbf6842afec92b840680"
+    },
+    {
+      "tier": "phone",
+      "pose": "sign-plaque-paper",
+      "width": 804,
+      "height": 1362,
+      "calls": 116,
+      "triangles": 1187519,
+      "lit": 1095048,
+      "pixels": "bdbce6c797d805e9b20f8233dacddf40ec63664f64ae0dce66391f5ddd521454"
+    },
+    {
+      "tier": "desktop",
+      "pose": "A",
+      "width": 603,
+      "height": 1021,
+      "calls": 122,
+      "triangles": 1238807,
+      "lit": 615663,
+      "pixels": "b97791d2b344b68874d5d320ab98b9ceccb0418450f6aded909ec56036a740b4"
+    },
+    {
+      "tier": "desktop",
+      "pose": "B",
+      "width": 603,
+      "height": 1021,
+      "calls": 113,
+      "triangles": 1098565,
+      "lit": 615663,
+      "pixels": "a44702666496dd17dcb899ebe1821cb84c5ff063888e670c20f96958fd9be79e"
+    },
+    {
+      "tier": "desktop",
+      "pose": "C",
+      "width": 603,
+      "height": 1021,
+      "calls": 106,
+      "triangles": 1004005,
+      "lit": 615663,
+      "pixels": "198bceb5da8cb054dee4e3e67924ba0dfa67cd15810b4f501ac91e7edc249037"
+    },
+    {
+      "tier": "desktop",
+      "pose": "D",
+      "width": 603,
+      "height": 1021,
+      "calls": 113,
+      "triangles": 1098563,
+      "lit": 615663,
+      "pixels": "9d8b1aa43dcb0e7ccc2de9c52a426c27ea8c5dc5e8c1226dc6ccc0877f063de2"
+    },
+    {
+      "tier": "desktop",
+      "pose": "upper-stair",
+      "width": 603,
+      "height": 1021,
+      "calls": 92,
+      "triangles": 755909,
+      "lit": 615663,
+      "pixels": "f7ec60043a99b3007b2aa3f1d13cbb39b5d02e733e96d810ca5b617923a80634"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lower-well",
+      "width": 603,
+      "height": 1021,
+      "calls": 113,
+      "triangles": 1098565,
+      "lit": 615663,
+      "pixels": "fc3c6d34e26b59e26a814f991752483587d7c0daa3a372d190e9e3a243c0bd6a"
+    }
+  ]
+}

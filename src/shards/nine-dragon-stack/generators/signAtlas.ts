@@ -1,9 +1,9 @@
-import type { SignAtlasLayout, SignLen, SignStep, SignPaint, SignStyleRow } from "../../data/signs";
+import type { SignAtlasLayout, SignLen, SignStep, SignPaint, SignStyleRow } from "../data/signs";
 import {
-  BufferGeometry, CanvasTexture, Color, DataTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, RedFormat, SRGBColorSpace,
-  type Texture, Uint32BufferAttribute, UnsignedByteType, Vector3,
+  BufferGeometry, CanvasTexture, Color, DataTexture, Float32BufferAttribute, LinearMipmapLinearFilter, RedFormat, SRGBColorSpace,
+  Uint32BufferAttribute, UnsignedByteType, Vector3,
 } from 'three';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+
 
 /**
  * Painted sign lettering as data (SHARD-PLATFORM M3, the sign system): real words drawn once at load into two atlases.
@@ -69,7 +69,7 @@ export class SignAtlas<S extends string = string> {
   readonly monoTex: DataTexture;
   readonly colourTex: CanvasTexture;
 
-  constructor(readonly styles: Readonly<Record<S, SignStyleRow>>, private readonly sizing: SignAtlasLayout, private readonly label: string) {
+  constructor(readonly styles: Readonly<Record<S, SignStyleRow>>, private readonly sizing: SignAtlasLayout) {
     this.vy = this.sizing.mh / 2;
     this.mono = document.createElement('canvas');
     this.mono.width = this.sizing.mw;
@@ -93,35 +93,10 @@ export class SignAtlas<S extends string = string> {
 
   row(style: S): SignStyleRow { return rowOf(this.styles, style); }
 
-  /** after every sign is placed: copy the mono canvas's red channel into the R8 texture */
-  finish(): void {
-    const img = this.mctx.getImageData(0, 0, this.sizing.mw, this.sizing.mh).data;
-    const r = new Uint8Array(this.sizing.mw * this.sizing.mh);
-    // the canvas is top-down; the texture's v runs bottom-up (flipY is off for DataTexture)
-    for (let y = 0; y < this.sizing.mh; y++) {
-      const src = y * this.sizing.mw * 4, dst = (this.sizing.mh - 1 - y) * this.sizing.mw;
-      for (let x = 0; x < this.sizing.mw; x++) r[dst + x] = img[src + x * 4] ?? 0;
-    }
-    this.monoTex.image = { data: r, width: this.sizing.mw, height: this.sizing.mh };
-    this.monoTex.minFilter = LinearMipmapLinearFilter;
-    this.monoTex.magFilter = LinearFilter;
-    this.monoTex.generateMipmaps = true;
-    this.monoTex.anisotropy = 8;
-    this.monoTex.needsUpdate = true;
-    this.colourTex.needsUpdate = true;
-    // (E264) the atlas is finished once: its canvases and the mono copy are on the GPU after the first draw. The mono
-    // canvas goes now (its red channel is copied above); the colour canvas and the R8 array once uploaded. A word a
-    // specimen asks for later must be one already drawn
-    this.mono.width = 1;
-    this.mono.height = 1;
-    gpuOnlyTexture(this.monoTex, this.label);
-    gpuOnlyTexture(this.colourTex, this.label);
+  /** Offline pixels and exact cell allocations, captured before any GPU upload. */
+  snapshot(): { mono: string; colour: string; cells: Record<string, SignCell> } {
+    return { mono: this.mono.toDataURL('image/png'), colour: this.colour.toDataURL('image/png'), cells: Object.fromEntries(this.cache) };
   }
-
-  get textures(): { mono: Texture; colour: Texture } { return { mono: this.monoTex, colour: this.colourTex }; }
-
-  /** debug: the mono atlas as an image (before finish(): after it the canvas is gone, E264) */
-  dump(): string { return this.mono.toDataURL('image/jpeg', 0.8); }
 
   private allocMono(w: number, h: number, vertical: boolean): { x: number; y: number } {
     if (vertical) {

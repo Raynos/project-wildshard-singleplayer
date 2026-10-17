@@ -5,7 +5,7 @@ import {
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import * as val from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { SignCalligraphy, SignLight } from './signAtlas';
+import type { Emitter as SignLight } from '../looks/vertexSpill';
 
 
 const GlyphRows = val.strictObject({
@@ -128,7 +128,7 @@ class Batch {
   }
 }
 
-export class NeonText implements SignCalligraphy {
+export class NeonText {
   private readonly boards = new Batch();
   private readonly tubes = new Batch();
   readonly emitters: SignLight[] = [];

@@ -7,9 +7,10 @@
 // `--compare=a.json,b.json` diffs two captures. Through browser-lane; only summary numbers are saved.
 //   scripts/browser-lane.sh node scripts/proof-nine-layout-parity.mjs --url=<DEVSERVER preview> --output=<summary.json>
 //   node scripts/proof-nine-layout-parity.mjs --compare=<base.json>,<candidate.json>
-import { chromium, devices } from 'playwright';
+import { chromium, webkit, devices } from 'playwright';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { MOCKUP_CAMERAS } from '../src/shards/nine-dragon-stack/mockupCameras.ts';
@@ -24,25 +25,38 @@ if (compare !== undefined) {
     for (const key of ['tier', 'pose', 'pixels', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
   }
   for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
-  for (const tier of Object.keys(a.tiers)) if (typeof a.tiers[tier].cpuBackingBytes !== 'number' || typeof b.tiers[tier]?.cpuBackingBytes !== 'number' || b.tiers[tier].cpuBackingBytes > a.tiers[tier].cpuBackingBytes) diffs.push(`${tier}: CPU backing bytes rose or measurement is unavailable`);
+  // G433: memory is report-only. Weak backing-store observations are separate
+  // from native resident memory, and WebKit cannot force collection.
+  for (const tier of Object.keys(a.tiers)) console.log(`${tier}: observed CPU backing bytes ${a.tiers[tier].cpuBackingBytes} → ${b.tiers[tier]?.cpuBackingBytes}`);
   console.log(diffs.length === 0 ? `nine-layout-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (pixels, draws, triangles), GPU bytes and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
 const url = arg('url'), output = arg('output');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
 const version = await (await fetch(new URL('/version.json', url))).json();
-const poses = ['A', 'B', 'C'].map(key => {
+const extended = process.argv.includes('--extended'), engine = arg('browser') ?? 'chromium', screens = arg('screens');
+if (!['chromium', 'webkit'].includes(engine)) throw new Error('Nine proof supports chromium or webkit');
+if (screens !== undefined) mkdirSync(screens, { recursive: true });
+const poses = (extended ? ['A', 'B', 'C', 'D'] : ['A', 'B', 'C']).map(key => {
   const c = MOCKUP_CAMERAS[key], yaw = (c.yaw * Math.PI) / 180, pitch = (c.pitch * Math.PI) / 180;
   return { pose: key, eye: c.eye, look: [c.eye[0] + Math.sin(yaw) * Math.cos(pitch) * 20, c.eye[1] + Math.sin(pitch) * 20, c.eye[2] - Math.cos(yaw) * Math.cos(pitch) * 20] };
 });
+if (extended) poses.push(
+  { pose: 'upper-stair', eye: [50, 143.68, 6], look: [80, 154, 6] },
+  { pose: 'lower-well', eye: [-16, 92, 4], look: [-16, 96, -30] },
+);
+const signPoses = [
+  { pose: 'sign-lightboxes', eye: [18, 128.1, -8.5], look: [18, 128, -18.25] },
+  { pose: 'sign-plaque-paper', eye: [15.2, 127.1, -17.1], look: [15.2, 126.7, -20.13] },
+];
 const sleep = ms => new Promise(resolve => { setTimeout(resolve, ms); });
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const rows = [], tiers = {}, errors = [];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {
   for (const tier of ['phone', 'desktop']) {
-    const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-    await installInit(context, { lane: 'nine-layout-parity', sha: version.build, browser: 'chromium', tier });
+    const context = await browser.newContext(devices['iPhone 16 Pro']);
+    await installInit(context, { lane: 'nine-layout-parity', sha: version.build, browser: engine, tier });
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
     const page = await context.newPage(); page.on('pageerror', error => errors.push(String(error)));
     // a shader that fails to compile is a console error from three, not a page error
@@ -64,7 +78,7 @@ try {
       return { colliderJson: JSON.stringify(list), pieces: list.length, colliderCount: list.reduce((n, r) => n + r.colliders.length, 0) };
     });
     tiers[tier].colliders = sha(tiers[tier].colliderJson); delete tiers[tier].colliderJson;
-    for (const p of poses) {
+    for (const p of extended && tier === 'phone' ? poses.concat(signPoses) : poses) {
       await page.evaluate(() => { const g = window.__wildshard.world.game; if (window.__ndpGate !== undefined) g.frameGate = window.__ndpGate; });
       await page.evaluate(v => {
         const w = window.__wildshard.world;
@@ -100,12 +114,15 @@ try {
         return { width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join('') };
       }, p);
       rows.push({ tier, pose: p.pose, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels });
+      if (screens !== undefined) await page.screenshot({ path: join(screens, `${tier}-${p.pose}.jpg`), type: 'jpeg', quality: 85 });
       console.log(`${tier} ${p.pose}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }
     const census = await page.evaluate(() => window.__sc_gl().reduce((n, row) => n + row.totalBytes, 0));
     tiers[tier].gpuBytes = census;
-    const memory = await context.newCDPSession(page);
-    try { await memory.send('HeapProfiler.collectGarbage'); } finally { await memory.detach(); }
+    if (engine === 'chromium') {
+      const memory = await context.newCDPSession(page);
+      try { await memory.send('HeapProfiler.collectGarbage'); } finally { await memory.detach(); }
+    }
     // The engine's scalar RAM projection counts observed backing stores, distinct from native process footprint.
     tiers[tier].cpuBackingBytes = await page.evaluate(() => window.__wildshard.memory?.().totals.ram ?? null);
     // the linked programs after the three poses (the renderer's cache: a split or merged program shows here)
@@ -113,5 +130,5 @@ try {
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);
-  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: 'iPhone 16 Pro / DPR2 / Metal; plain scene render, time 10, movers and viewmodel hidden', tiers, rows }, null, 2)}\n`);
+  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: `iPhone 16 Pro / DPR3 / ${engine}; plain scene render, time 10, movers and viewmodel hidden`, tiers, rows }, null, 2)}\n`);
 } finally { await browser.close(); }

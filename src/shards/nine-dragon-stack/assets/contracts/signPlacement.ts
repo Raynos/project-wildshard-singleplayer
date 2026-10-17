@@ -42,3 +42,10 @@ export interface SignSink<S extends string = SignStyle> {
   tube: (a: Vector3, b: Vector3, facing: Vector3, width: number, color: number, gain: number, flicker?: number) => void;
 }
 
+type V3 = readonly [number, number, number];
+/** Author-only replay rows, serialized by the layout and fixed-cast bakers. */
+export type SignCallRow =
+  | { readonly k: 'place'; readonly p: Omit<SignPlace, 'at' | 'normal'> & { readonly at: V3; readonly normal: V3 } }
+  | { readonly k: 'light'; readonly c: V3; readonly r: V3; readonly u: V3; readonly w: number; readonly h: number; readonly color: number; readonly gain: number; readonly mode: 1 | 2; readonly seed: number }
+  | { readonly k: 'tube'; readonly a: V3; readonly b: V3; readonly f: V3; readonly width: number; readonly color: number; readonly gain: number; readonly flicker: number };
+

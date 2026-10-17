@@ -7,9 +7,8 @@ import { type BufferGeometry, Group, type Material, Mesh, type ShaderMaterial } 
 import { modelContext, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { SignAtlas as SignAtlasView } from '../runtime/signs/signAtlas';
+import type { BakedSigns } from './casts';
 import type { NeonText as NeonTextView } from '../runtime/signs/neonText';
-import type { SignStyle } from '../data/signs';
 import { type SpecimenBake, loadSpecimens } from './specimens';
 
 export interface NdLook {
@@ -20,7 +19,7 @@ export interface NdLook {
   /** the paper lanterns' look (look/lanterns.ts: the 'nine-lantern' graph) */
   lantern: Material | null;
   /** the 'nine-neon' look over the sign atlas (the drones' lights) and the atlas */
-  neon: { readonly mat: Material; readonly atlas: SignAtlasView<SignStyle> } | null;
+  neon: { readonly mat: Material; readonly atlas: BakedSigns } | null;
   /** meshoptimizer is ready (../runtime/cull/meshLod `lodReady`): the sculpts' distance LODs are simplified copies; else a sculpt's
    *  LOD is its own full geometry, which the fragment's culler leaves out */
   canLod: boolean;

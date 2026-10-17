@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute } from 'three';
-import { nineLayoutSource, SignRecorder } from '../src/shards/nine-dragon-stack/generators/layout';
+import { nineLayoutSource } from '../src/shards/nine-dragon-stack/generators/layout';
 import { Ctx } from '../src/shards/nine-dragon-stack/world/ctx';
 import { LayoutBake, restoreLayout } from '../src/shards/nine-dragon-stack/world/layoutBake';
 
@@ -11,7 +11,7 @@ test('restores the offline facade shell with exact packed channels and bounds', 
   if (original === undefined) throw new Error('Nine layout lost its shell geometry');
   const bake = new LayoutBake(source.rows, source.records, new Map(source.geometries.map((geometry, i) => [i, geometry])));
   await bake.prepare(() => Promise.resolve());
-  const ctx = new Ctx(new SignRecorder());
+  const ctx = new Ctx();
   restoreLayout(bake, ctx);
   const restored = ctx.fd.shell;
   if (restored === null) throw new Error('Nine restored no facade shell');

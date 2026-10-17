@@ -4,15 +4,14 @@
  * `../generators/layout.ts` runs it at build time (`src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs`) and stores the build context it fills:
  * every kit's built geometry, the facade dressing (pieces, windows, sign slots, the shell), the instance lists, the
  * models drawn into kits, the map's floor plan, the emitters, the crossings' colliders, the lion and set queues, the
- * banyan's plan, and the 1,156 sign calls in the order the builders made them. `restoreLayout` fills a page's `Ctx` from
- * it and replays the signs into the page's own SignBuilder, so build.ts carries on exactly as after the builders ran.
+ * banyan's plan, and the sign authoring calls. `restoreLayout` fills a page's `Ctx`; the separate sign bake reads those
+ * calls offline and the existing cast reader restores its faces, registrations and light spill.
  */
 import { Box3, type BufferGeometry, Color, Matrix4, Vector3, Vector4 } from 'three';
 import * as v from 'valibot';
 import type { Ctx, InKit } from './ctx';
 import { Kit } from './kit';
 import { isPiece } from './facade/pieceIds';
-import type { SignPlace, SignSink } from '../look/signs';
 import { restoreQueued } from './props3d';
 import { restoreCrossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyanPlan';
@@ -24,7 +23,7 @@ const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'wa
 const V3 = v.tuple([finite, finite, finite]);
 const STYLES = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'] as const;
 const Spec = v.strictObject({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.picklist(STYLES), ink: v.exactOptional(v.string()) });
-const Place = v.strictObject({
+export const Place = v.strictObject({
   at: V3, normal: V3, size: finite, spec: Spec, gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
   board: v.exactOptional(finite), fogK: v.exactOptional(finite), clear: v.exactOptional(finite),
 });
@@ -125,17 +124,6 @@ export async function loadLayoutBake(pause: () => Promise<void> = () => Promise.
 
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);
 
-/** one recorded sign call into a sign builder (the boards are in the baked kits already, so no kit is passed) */
-export function replaySign(signs: SignSink, call: SignCallRow): void {
-  if (call.k === 'place') {
-    const { at, normal, ...rest } = call.p;
-    const p: SignPlace = { ...rest, at: vec(at), normal: vec(normal) };
-    signs.place(p, null);
-  } else if (call.k === 'light') signs.light(vec(call.c), vec(call.r), vec(call.u), call.w, call.h, call.color, call.gain, call.mode, call.seed);
-  else signs.tube(vec(call.a), vec(call.b), vec(call.f), call.width, call.color, call.gain, call.flicker);
-}
-
-/** fill `ctx` (fresh) from the bake as the layout builders would have, replaying the signs into `ctx.signs` */
 export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   const r = bake.rows, f = bake.f64;
   let at = 0;
@@ -199,7 +187,6 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   for (const m of r.map) ctx.map.push({ ...m });
   for (const e of r.emitters) ctx.emitters.push({ at: vec(e.at), color: new Color(e.color[0], e.color[1], e.color[2]), w: e.w, h: e.h, power: e.power, spill: e.spill });
   ctx.rng.restore(r.rng);
-  for (const call of r.signs) replaySign(ctx.signs, call);
   restoreCrossingColliders(r.crossings);
   restoreQueued(lions, sets);
   wellSheets.length = 0;

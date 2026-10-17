@@ -6,7 +6,6 @@ import type { Emitter } from '../runtime/looks/vertexSpill';
 import { Dressing } from './facade/dressing';
 import { KitSet } from '../runtime/kit/kitSet';
 import type { DrawnCopy } from '../runtime/kit/drawnInto';
-import type { SignSink } from '../look/signs';
 import { Rng } from '@wildshard/engine/core/rng';
 import { WELL, Y0 } from '../layout';
 
@@ -46,12 +45,8 @@ export class Ctx extends KitSet<Kit, Kit> {
   readonly inst = new Map<string, Instance[]>();
   readonly rng = new Rng(9);
 
-  /** where the layout's signs go (look/signs.ts) */
-  readonly signs: SignSink;
-
-  constructor(signs: SignSink) {
+  constructor() {
     super(() => new Kit(), () => new Kit());
-    this.signs = signs;
   }
 
   lantern(x: number, y: number, z: number, s = 1, rot = 0): void {

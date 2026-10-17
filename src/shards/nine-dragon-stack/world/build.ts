@@ -42,12 +42,10 @@ import { FigureCrowd } from '../runtime/cull/figureCrowd';
 import { CROWD_LEVELS } from '../data/lod';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
-import { SignAtlas, SignBuilder } from '../runtime/signs/signAtlas';
-import { KitSigns } from '../look/signs';
-import { SIGN_COLOUR, SIGN_MODEL, SIGN_STYLES, type SignStyle } from '../data/signs';
+import { SIGN_MODEL } from '../data/signs';
 import { Shared, jiehuaMaterial } from '../look/style';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
-import { signLayout, type NdTier } from '../tier';
+import type { NdTier } from '../tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';
@@ -61,19 +59,18 @@ import { buildPortals } from './portals';
 import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
-import { loadLayoutBake, restoreLayout, replaySign } from './layoutBake';
+import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { loadSpecimens } from './specimens';
-import { loadCast, loadFixedRows } from './casts';
+import { loadCast, loadFixedRows, loadSignAtlas } from './casts';
 import { SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
 import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
 import { cullHandedBatches } from '../runtime/cull/handedBatches';
 import { convertKits } from '../runtime/kit/kitConvert';
-import { waitForFonts } from '../runtime/signs/fontWait';
 import { mistSheetsGeometry, steamPuffsGeometry } from '../runtime/looks/mistGeometry';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
-import { FONT_LOAD, KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
+import { KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '../runtime/cull/meshLod';
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
@@ -141,22 +138,26 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
   const fontsStart = performance.now();
-  const fontsReady = loadGlyphField(tier).then(async glyphs => { await waitForFonts(FONT_LOAD.specs, glyphs.chars, FONT_LOAD.capMs); phaseDone('fonts', fontsStart); return glyphs; });
+  const fontsReady = loadGlyphField(tier).then(glyphs => { phaseDone('fonts', fontsStart); return glyphs; });
   const [paint, glyphs] = await Promise.all([paintReady, fontsReady]);
   shared.u.uPaint.value = paint.tex;
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
-  const atlas = new SignAtlas<SignStyle>(SIGN_STYLES, { ...signLayout(tier), ...SIGN_COLOUR[tier] }, 'Nine Dragon sign atlas (GPU only)');
-  const signs = new SignBuilder(atlas);
+  const atlas = await loadSignAtlas(tier, renderer);
+  const signs = atlas;
   // the neon calligraphy: the 'nine-neon-board' and 'nine-neon-tube' looks (data/lookGraphs.json), fogged by the silk
   const neonSigns = new NeonText(SIGN_MODEL.tubeGain, glyphs);
-  signs.calligraphy = neonSigns;
+  for (const { p, neon } of signs.placed) {
+    if (!neon) continue;
+    neonSigns.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
+      twoSided: p.blade === true, gain: ((p.gain ?? SIGN_MODEL.calligraphyGain) / SIGN_MODEL.calligraphyGain) * neonSigns.gain, flicker: p.flicker ?? 0, clear: p.clear ?? 0 });
+  }
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
-  const ctx = new Ctx(new KitSigns(signs));
+  const ctx = new Ctx();
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
   const nd = ndModelContext(renderer);
   nd.look.calligraphy = neonSigns;
@@ -186,7 +187,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await opts.pause();
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
   ctx.kits.set('facade-signs', Kit.fromBake(boards));
-  for (const call of fixed.signs) replaySign(ctx.signs, call);
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
@@ -315,7 +315,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     ...movers(drone, declarations.clientChannels.slice(2), 'nds-drones'),
   ];
   await slice();
-  const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
+  const signsMesh = named(new Mesh(signs.geometry('world'), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
   registerSigns(nd.ctx, signs.placed, { atlas: signsMesh, neon: neonMeshes.boards });
@@ -364,7 +364,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   if (dealt.walkers.length > 0) (await placeSliced(umbrellaWalker, dealt.walkers.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-walkers' } }, slice.due)).object.name = 'crowd';
   if (dealt.sitters.length > 0) (await placeSliced(mahjongSitter, dealt.sitters.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-sitters' } }, slice.due)).object.name = 'crowd';
   await slice();
-  atlas.finish();
   phaseDone('crowd + atlas', phaseStart);
 
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the

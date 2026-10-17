@@ -12,8 +12,7 @@
  */
 import type { Object3D } from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import type { PlacedSign } from '../runtime/signs/signAtlas';
-import { type SignModelLook, registerSignCopies, signParts } from "../runtime/signs/signModel";
+import { type PlacedSign, type SignModelLook, registerSignCopies, signParts } from "../runtime/signs/signModel";
 import { SIGN_DEFAULTS, SIGN_MODEL, SIGN_VARIANTS, type SignStyle, type SignModelParams } from '../data/signs';
 import { ndLook, need } from '../world/modelLook';
 
@@ -23,7 +22,7 @@ const FILE = 'src/shards/nine-dragon-stack/models/signs.ts';
 export type SignParams = SignModelParams<SignStyle>;
 
 /** the fragment's calligraphy and sign atlas, as the sign model draws with them */
-function signLook(ctx: ModelContext): SignModelLook<SignStyle> {
+function signLook(ctx: ModelContext): SignModelLook {
   const look = ndLook(ctx);
   return { calligraphy: look.calligraphy, atlas: () => need(look.neon, 'the sign atlas') };
 }

@@ -2,14 +2,20 @@ import type { SignModelParams, SignModelRow } from "../../data/signs";
 // signModel — a sign model over the sign system (SHARD-PLATFORM M3, ex Nine Dragon's models/signs.ts): one model, its
 // variants the sign styles, a copy's params its words, colours and size. `signParts` builds one sign alone, centred on the
 // origin and facing +z (the Model Explorer's specimen): a calligraphy style through the SDF neon (./neonText: its board
-// and its tubes), every other style as a quad over the sign atlas (./signAtlas). `registerSignCopies` registers every
+// and its tubes), every other style from the prepared atlas geometry. `registerSignCopies` registers every
 // sign a shard's builder hung where it is drawn — the atlas ones on the shard's `signs` mesh, the calligraphy on the neon
 // boards — one `place` each, so a sign costs no draw of its own; each copy's world box is its face and its board's depth.
-import { Box3, type Material, type Object3D, Vector3 } from 'three';
+import { Box3, type BufferGeometry, type Material, type Object3D, Vector3 } from 'three';
 import type { ModelContext, ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import type { NeonText } from './neonText';
-import { type PlacedSign, type SignAtlas, SignBuilder } from './signAtlas';
+/** Exact baked registration, with vectors restored for the existing copy/picking reader. */
+export interface PlacedSign<S extends string = string> {
+  readonly p: { readonly at: Vector3; readonly normal: Vector3; readonly size: number;
+    readonly spec: Pick<SignModelParams<S>, 'text' | 'color' | 'vertical' | 'style' | 'ink'>;
+    readonly gain?: number; readonly flicker?: number; readonly blade?: boolean; readonly board?: number; readonly fogK?: number; readonly clear?: number };
+  readonly w: number; readonly h: number; readonly neon: boolean;
+}
 
 /** A sign copy's params: its style, words, colours, size, faces, board and gain. */
 
@@ -23,15 +29,17 @@ import { type PlacedSign, type SignAtlas, SignBuilder } from './signAtlas';
 
 /** What the sign model draws with: the SDF calligraphy (null: calligraphy styles go to the atlas) and the sign atlas with
  *  its program (asked only for an atlas sign). */
-export interface SignModelLook<S extends string = string> {
+export interface SignModelLook {
   readonly calligraphy: NeonText | null;
-  readonly atlas: () => { readonly mat: Material; readonly atlas: SignAtlas<S> };
+  readonly atlas: () => { readonly mat: Material; readonly atlas: {
+    readonly keys: Readonly<Record<string, string>>; readonly geometry: (name: string) => BufferGeometry;
+  } };
 }
 
 const Z = new Vector3(0, 0, 1), O = new Vector3(0, 0, 0);
 
 /** One sign alone, centred on the origin and facing +z: its board and tubes (calligraphy) or its atlas quad. */
-export function signParts<S extends string>(ctx: ModelContext, p: SignModelParams<S>, look: SignModelLook<S>, row: SignModelRow): readonly ModelPart[] {
+export function signParts<S extends string>(ctx: ModelContext, p: SignModelParams<S>, look: SignModelLook, row: SignModelRow): readonly ModelPart[] {
   const key = `${row.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
   const neon = look.calligraphy;
   if (row.calligraphyStyles.includes(p.style) && neon !== null) {
@@ -39,11 +47,7 @@ export function signParts<S extends string>(ctx: ModelContext, p: SignModelParam
     return [{ geometry: g.boards, material: neon.boardMat }, { geometry: g.tubes, material: neon.tubeMat, renderOrder: 5 }];
   }
   const atlas = look.atlas();
-  const geometry = ctx.once(key, () => {
-    const b = new SignBuilder(atlas.atlas);
-    b.place({ at: O, normal: Z, size: p.size, spec: { text: p.text, color: p.color, vertical: p.vertical, style: p.style, ...(p.ink === undefined ? {} : { ink: p.ink }) }, blade: p.blade, ...(p.board === undefined ? {} : { board: p.board }), ...(p.gain === undefined ? {} : { gain: p.gain }) }, null);
-    return b.build();
-  });
+  const geometry = ctx.once(key, () => atlas.atlas.geometry(atlas.atlas.keys[key] ?? 'missing-sign'));
   return [{ geometry, material: atlas.mat }];
 }
 

@@ -1,9 +1,6 @@
-// Nine Dragon's world build as data (SHARD-PLATFORM M3, ex world/build.ts): the sign fonts it waits for, the kit
+// Nine Dragon's world build as data (SHARD-PLATFORM M3, ex world/build.ts): the kit
 // conversion's yield, the Well's silk sheet layers, the noodle stall's steam puffs and the movers' paths
-// (@wildshard/sdk/looks/fontWait, kit/kitConvert, looks/mistGeometry, props/pathMovers).
-
-/** the sign faces are drawn into canvases: their fonts must be in before the atlas is (9 s cap, then system fallbacks) */
-export const FONT_LOAD = { specs: ['700 64px "LXGW WenKai TC"', '900 64px "Noto Serif TC"'], capMs: 9000 } as const;
+// (kit/kitConvert, looks/mistGeometry, props/pathMovers).
 
 /** the kits' geometry conversion gives the page a turn (the loading panel paints) every this many ms */
 export const KIT_YIELD_MS = 30;

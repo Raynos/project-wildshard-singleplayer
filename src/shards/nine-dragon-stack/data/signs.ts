@@ -173,6 +173,11 @@ export const SIGN_COLOUR: Readonly<Record<'phone' | 'desktop', Pick<SignAtlasLay
   phone: { colourUnit: 36, colourScale: 0.5 },
   desktop: { colourUnit: 72, colourScale: 1 },
 };
+/** Author-only raster layout; the page reads the baked texture dimensions. */
+export const SIGN_LAYOUT = {
+  phone: { mw: 1024, mh: 2048, cw: 512, ch: 1024, unit: 48, pad: 4 },
+  desktop: { mw: 2048, mh: 4096, cw: 1024, ch: 2048, unit: 96, pad: 8 },
+} as const;
 
 /** the sign model (models/signs.ts, @wildshard/sdk/looks/signModel): the calligraphy styles and their gain scale (a tube's
  *  default 4.4 draws the SDF tubes at 4.2), the etch runs sideways, the boards' depths (neon 9 cm, a blade 12 cm, else
