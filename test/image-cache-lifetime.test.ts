@@ -2,7 +2,14 @@ import { afterEach, expect, test, vi } from 'vitest';
 import * as bytes from '../src/engine/boot/bytes';
 import { decodedImageCount, loadImage } from '../src/engine/core/assets';
 
-afterEach(() => { vi.unstubAllGlobals(); });
+const globals = ['WeakRef', 'Worker', 'ImageBitmap', 'createImageBitmap'].map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(globalThis, key) }));
+afterEach(() => {
+  vi.restoreAllMocks();
+  for (const { key, descriptor } of globals) {
+    if (descriptor === undefined) Reflect.deleteProperty(globalThis, key);
+    else Object.defineProperty(globalThis, key, descriptor);
+  }
+});
 
 test('image loads share pending and live decodes, retry failures and release completed cache ownership', async () => {
   const refs: { clear: () => void }[] = [];
@@ -33,4 +40,40 @@ test('image loads share pending and live decodes, retry failures and release com
   await expect(loadImage('/image-cache/retry.png')).rejects.toThrow('Interrupted image');
   expect(await loadImage('/image-cache/retry.png')).toBe(first);
   expect(fetch).toHaveBeenCalledTimes(4);
+});
+
+class DecodedBitmap {
+  readonly width = 2;
+  readonly height = 2;
+  readonly close = vi.fn();
+}
+class DecoderWorker extends EventTarget {
+  static readonly instances: DecoderWorker[] = [];
+  readonly messages: { id: number; blob: Blob; options: ImageBitmapOptions }[] = [];
+  readonly terminate = vi.fn();
+  constructor() { super(); DecoderWorker.instances.push(this); }
+  postMessage(message: { id: number; blob: Blob; options: ImageBitmapOptions }): void { this.messages.push(message); }
+  reply(id: number, image: DecodedBitmap): void { this.dispatchEvent(new MessageEvent('message', { data: { id, image } })); }
+}
+
+test('transfers bitmap ownership, preserves options and releases pending requests on worker failure', async () => {
+  DecoderWorker.instances.length = 0;
+  vi.stubGlobal('Worker', DecoderWorker); vi.stubGlobal('ImageBitmap', DecodedBitmap);
+  const fallbackImage = new DecodedBitmap(), fallback = vi.fn((_blob: Blob, _options: ImageBitmapOptions) => Promise.resolve(fallbackImage));
+  vi.stubGlobal('createImageBitmap', fallback);
+  const { decodeImageBitmap } = await import('../src/engine/boot/imageDecode');
+  const blob = new Blob(['pixels']), options: ImageBitmapOptions = { imageOrientation: 'flipY', premultiplyAlpha: 'none', colorSpaceConversion: 'none', resizeWidth: 2, resizeHeight: 2, resizeQuality: 'medium' };
+  const first = decodeImageBitmap(blob, options), second = decodeImageBitmap(blob, options);
+  const worker = DecoderWorker.instances[0]; if (worker === undefined) throw new Error('Decoder did not start');
+  expect(worker.messages).toEqual([{ id: 1, blob, options }, { id: 2, blob, options }]);
+  const a = new DecodedBitmap(), b = new DecodedBitmap(), stale = new DecodedBitmap();
+  worker.reply(2, b); worker.reply(1, a); worker.reply(999, stale);
+  expect(await first).toBe(a); expect(await second).toBe(b);
+  expect(stale.close).toHaveBeenCalledOnce(); expect(a.close).not.toHaveBeenCalled(); expect(fallback).not.toHaveBeenCalled();
+  const interrupted = [decodeImageBitmap(blob, options), decodeImageBitmap(blob, options)];
+  const failure = new Event('error', { cancelable: true }); worker.dispatchEvent(failure);
+  expect(await Promise.all(interrupted)).toEqual([fallbackImage, fallbackImage]); expect(failure.defaultPrevented).toBe(true);
+  expect(fallback.mock.calls).toEqual([[blob, options], [blob, options]]);
+  expect(await decodeImageBitmap(blob, options)).toBe(fallbackImage);
+  expect(DecoderWorker.instances).toHaveLength(1); expect(worker.terminate).toHaveBeenCalledOnce();
 });

@@ -1,6 +1,66 @@
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_ABI } from '@wildshard/format/scriptAbi';
+import { SCRIPT_V1_LAYOUT } from '@wildshard/format/scriptAbiV1';
+import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { observeWasmMemory } from '../core/memoryResources';
+import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
+import { pageScope } from '../app/resources';
+import type { Scope } from '../app/scope';
+import { nextDrawnFrame, presenting } from '../core/framePacing';
+import { yieldTask } from '../core/workSlice';
+
+interface PreparedMemories { pages: readonly number[]; available: WebAssembly.Memory[]; ready: Promise<void> }
+const prepared = new Map<Scope, PreparedMemories>();
+
+/** Prepare fresh fixed-size v1 memories, one per drawn frame, without executing a guest.
+ * The admitted page counts are data. Only this owner and its descendants may consume them;
+ * each allocation is consumed once, and unused allocations leave with the owner. Node/loading
+ * preparation uses ordinary tasks. Repeated identical preparation shares its pending result. */
+export function prepareDecisionMemories(pages: readonly number[], owner: Scope): Promise<void> {
+  if (owner.disposed) return Promise.reject(new Error('Decision memory owner disposed'));
+  if (pages.some(value => !Number.isSafeInteger(value) || value < 1 || value > SCRIPT_V1_LAYOUT.maximumPages)
+    || pages.reduce((sum, value) => sum + value * 65536, 0) > SCRIPT_LIMITS.memoryBytes)
+    return Promise.reject(new Error('Decision memory preparation allowance'));
+  const previous = prepared.get(owner);
+  if (previous !== undefined) return previous.pages.length === pages.length && previous.pages.every((value, i) => value === pages[i])
+    ? previous.ready : Promise.reject(new Error('Decision memory preparation changed'));
+  if (pages.length === 0) return Promise.resolve();
+  const plan = [...pages], available: WebAssembly.Memory[] = [];
+  let cancel = (): void => undefined;
+  const stopped = new Promise<never>((_resolve, reject) => { cancel = () => { reject(new Error('Decision memory owner disposed')); }; });
+  const check = (): void => { if (owner.disposed) throw new Error('Decision memory owner disposed'); };
+  const pause = async (): Promise<void> => {
+    check(); await Promise.race([presenting() ? nextDrawnFrame(pageScope) : yieldTask(pageScope), stopped]); check();
+  };
+  const ready = (async () => {
+    for (const initial of plan) {
+      await pause();
+      available.push(owner.run(() => {
+        const memory = new WebAssembly.Memory({ initial, maximum: initial });
+        observeWasmMemory(memory, { owner: owner.name, asset: 'decision/prepared' });
+        return memory;
+      }));
+    }
+    await pause();
+  })();
+  const entry = { pages: plan, available, ready }; prepared.set(owner, entry);
+  const clear = (): void => { if (prepared.get(owner) === entry) prepared.delete(owner); available.length = 0; cancel(); };
+  const forget = owner.capture('disposers', clear);
+  void ready.catch(() => { clear(); forget(); });
+  return ready;
+}
+
+function preparedMemory(initial: number, maximum: number): WebAssembly.Memory | undefined {
+  if (initial !== maximum) return undefined;
+  const construction = constructionOwner(), owner = construction === null ? currentOwner() : ownerOr(construction);
+  if (owner === null || owner.disposed) return undefined;
+  for (const [scope, entry] of prepared) {
+    if (!owner.belongsTo(scope)) continue;
+    const index = entry.available.findIndex(memory => memory.buffer.byteLength === initial * 65536);
+    if (index !== -1) return entry.available.splice(index, 1)[0];
+  }
+  return undefined;
+}
 
 /** One shared, admitted instance. Durable binding state never lives in this memory. */
 export class DecisionModule {
@@ -19,7 +79,8 @@ export class DecisionModule {
     list: (op: number, a: number, b: number, out: number, cap: number) => number;
   }) {
     const admission = admitScript(bytes, 1);
-    this.memory = new WebAssembly.Memory({ initial: admission.initialPages, maximum: admission.maximumPages });
+    this.memory = preparedMemory(admission.initialPages, admission.maximumPages)
+      ?? new WebAssembly.Memory({ initial: admission.initialPages, maximum: admission.maximumPages });
     observeWasmMemory(this.memory, { owner: 'engine/script', asset: 'decision/module' });
     this.begin(2_000_000);
     this.instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(bytes)), { env: {

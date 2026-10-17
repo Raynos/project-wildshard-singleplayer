@@ -1,0 +1,739 @@
+{
+  "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+  "timingCredit": false,
+  "method": "Native Time Profiler plus task clock/frame timeline; no temporary Promise/GL/Wasm observer. Shared load, no floor credit; task-clock overhead remains.",
+  "traceStartEpochMs": 1792274071992.0,
+  "mainThread": {
+    "id": 40850217,
+    "name": "Main Thread (0x26f5329) (com.apple.WebKit.WebContent, pid: 63520)"
+  },
+  "rows": [
+    {
+      "name": {
+        "name": "spawn",
+        "x": -3.8657464416225196e-06,
+        "y": 1.2117999941285234,
+        "z": -194.00000202114,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "p95Ms": 41,
+      "maxMs": 54,
+      "anchors": [
+        [
+          18916,
+          1792274092211
+        ],
+        [
+          22982,
+          1792274096277
+        ]
+      ],
+      "driftMs": 0,
+      "longFrameCount": 14,
+      "worstFrames": [
+        {
+          "startMs": 19555,
+          "intervalMs": 54,
+          "mainSampleMs": 50.0,
+          "inclusiveCategoryMs": {
+            "gc": 22.0
+          },
+          "topLeaves": [
+            [
+              "JSC::MarkedBlock::Handle::stopAllocating(JSC::FreeList const&)",
+              2.0
+            ],
+            [
+              "operationGetByValGeneric",
+              2.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              2.0
+            ],
+            [
+              "JSC::BlockDirectory::sweep()",
+              2.0
+            ],
+            [
+              "mach_msg2_trap",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              19563,
+              42,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              19563,
+              22,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              19565,
+              4,
+              "ShadowMap.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\n@../../../../../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17774:13 ()\n@../../../../../src/engine/render/frameCounter.ts:31:4 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 19661,
+          "intervalMs": 45,
+          "mainSampleMs": 18.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x1155333c1",
+              1.0
+            ],
+            [
+              "0x116c0466d",
+              1.0
+            ],
+            [
+              "0x116ce0f01",
+              1.0
+            ],
+            [
+              "0x11548c711",
+              1.0
+            ],
+            [
+              "0x1163562f5",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              19667,
+              10,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              19667,
+              10,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 20095,
+          "intervalMs": 45,
+          "mainSampleMs": 17.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "operationGetByIdGaveUp",
+              2.0
+            ],
+            [
+              "WebCore::SelectorChecker::checkOne(WebCore::SelectorChecker::CheckingContext&, WebCore::SelectorChecker::LocalContext&, WebCore::SelectorChecker::MatchType&) const",
+              1.0
+            ],
+            [
+              "mach_absolute_time",
+              1.0
+            ],
+            [
+              "0x11694be35",
+              1.0
+            ],
+            [
+              "JSC::constructArray(JSC::JSGlobalObject*, JSC::Structure*, JSC::JSValue const*, unsigned int)",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              20099,
+              10,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              20099,
+              10,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 20026,
+          "intervalMs": 43,
+          "mainSampleMs": 31.0,
+          "inclusiveCategoryMs": {
+            "gc": 16.0
+          },
+          "topLeaves": [
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              4.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              2.0
+            ],
+            [
+              "__psynch_cvwait",
+              1.0
+            ],
+            [
+              "0x116a001d9",
+              1.0
+            ],
+            [
+              "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              20027,
+              16,
+              "Game.runFixed",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1026:11 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              20028,
+              14,
+              "System.shard.driftwood.movers",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrunPhase@../../../../../src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\nrunFixed@../../../../../src/engine/core/Game.ts:679:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1026:11 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              20028,
+              14,
+              "Game.runPhase:fixed.pre",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrunFixed@../../../../../src/engine/core/Game.ts:679:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1026:11 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              20046,
+              11,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              20046,
+              11,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 19249,
+          "intervalMs": 41,
+          "mainSampleMs": 17.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x116b34401",
+              1.0
+            ],
+            [
+              "0x115b9fa79",
+              1.0
+            ],
+            [
+              "0x116e1b405",
+              1.0
+            ],
+            [
+              "WebKit::RemoteImageBufferProxy::ensureBackend() const",
+              1.0
+            ],
+            [
+              "operationArrayPushMultipleSlow",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              19254,
+              9,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              19254,
+              9,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        }
+      ],
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "driftwood-isle",
+            "samples": 120,
+            "p95Ms": 2,
+            "maxMs": 15,
+            "calls": 5277
+          }
+        ]
+      },
+      "maxExactCalls": {
+        "ShadowMap.render": 4,
+        "Game.runPhase:fixed.pre": 14,
+        "System.shard.driftwood.movers": 14,
+        "Composer.render": 42,
+        "Game.runFixed": 16,
+        "Renderer.render": 22,
+        "Game.runPhase:update": 4
+      }
+    },
+    {
+      "name": {
+        "name": "beach",
+        "x": -10,
+        "z": -150,
+        "yaw": 4.3,
+        "pitch": 0
+      },
+      "p95Ms": 40,
+      "maxMs": 46,
+      "anchors": [
+        [
+          29545,
+          1792274102841
+        ],
+        [
+          33713,
+          1792274107008
+        ]
+      ],
+      "driftMs": -1,
+      "longFrameCount": 32,
+      "worstFrames": [
+        {
+          "startMs": 31045,
+          "intervalMs": 46,
+          "mainSampleMs": 20.0,
+          "inclusiveCategoryMs": {
+            "gc": 2.0
+          },
+          "topLeaves": [
+            [
+              "0x11622f089",
+              1.0
+            ],
+            [
+              "WebCore::RenderLayerBacking::updateAppleVisualEffect(WebCore::RenderStyle const&)",
+              1.0
+            ],
+            [
+              "0x116e14dcd",
+              1.0
+            ],
+            [
+              "0x11665c049",
+              1.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              31050,
+              12,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              31050,
+              11,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 29853,
+          "intervalMs": 43,
+          "mainSampleMs": 24.0,
+          "inclusiveCategoryMs": {
+            "gc": 4.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSCellButterfly::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              1.0
+            ],
+            [
+              "_ZZN3JSC10IsoCellSet27forEachMarkedCellInParallelIRNS_11SlotVisitorEZZNS_4Heap18addCoreConstraintsEvENK4$_11clIS2_EEDaRT_EUlS9_PNS_8HeapCellENSA_4KindEE_EEN3WTF3RefINSE_10SharedTaskIFvS9_EEENSE_12RawPtrTraitsISI_EENSE_21DefaultRefDerefTraitsISI_EEEERKT0_EN4Task3runES3_",
+              1.0
+            ],
+            [
+              "JSC::speculationFromValue(JSC::JSValue)",
+              1.0
+            ],
+            [
+              "JSC::Heap::finalizeUnconditionalFinalizers()",
+              1.0
+            ],
+            [
+              "0x11686d809",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              29863,
+              14,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              29863,
+              13,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 32431,
+          "intervalMs": 42,
+          "mainSampleMs": 17.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x11578c089",
+              1.0
+            ],
+            [
+              "0x115421ba9",
+              1.0
+            ],
+            [
+              "WTF::equal(WTF::StringImpl const&, WTF::StringImpl const&)",
+              1.0
+            ],
+            [
+              "0x1167e7e41",
+              1.0
+            ],
+            [
+              "vmEntryToJavaScriptWith2Arguments",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              32436,
+              10,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              32436,
+              10,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 31598,
+          "intervalMs": 40,
+          "mainSampleMs": 20.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x116b24b2d",
+              2.0
+            ],
+            [
+              "0x1163e2edd",
+              1.0
+            ],
+            [
+              "0x11595253d",
+              1.0
+            ],
+            [
+              "0x11575b2cd",
+              1.0
+            ],
+            [
+              "WebCore::Style::ElementRuleCollector::~ElementRuleCollector()",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              31604,
+              13,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              31604,
+              12,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 31638,
+          "intervalMs": 40,
+          "mainSampleMs": 18.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x116aff239",
+              1.0
+            ],
+            [
+              "cos",
+              1.0
+            ],
+            [
+              "0x116e154a9",
+              1.0
+            ],
+            [
+              "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+              1.0
+            ],
+            [
+              "JSC::arrayProtoFuncSort(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              31643,
+              13,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              31643,
+              12,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        }
+      ],
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "driftwood-isle",
+            "samples": 120,
+            "p95Ms": 2,
+            "maxMs": 2.000000000003638,
+            "calls": 5295
+          }
+        ]
+      },
+      "maxExactCalls": {
+        "Composer.render": 14,
+        "Renderer.render": 14
+      }
+    },
+    {
+      "name": {
+        "name": "wreck",
+        "x": 105,
+        "z": 0,
+        "yaw": -1.5707963267948966,
+        "pitch": 0
+      },
+      "p95Ms": 34,
+      "maxMs": 37,
+      "anchors": [
+        [
+          35893,
+          1792274109189
+        ],
+        [
+          39929,
+          1792274113225
+        ]
+      ],
+      "driftMs": 0,
+      "longFrameCount": 3,
+      "worstFrames": [
+        {
+          "startMs": 36603,
+          "intervalMs": 37,
+          "mainSampleMs": 16.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x11708f8e9",
+              1.0
+            ],
+            [
+              "JSC::constructArray(JSC::JSGlobalObject*, JSC::Structure*, JSC::JSValue const*, unsigned int)",
+              1.0
+            ],
+            [
+              "0x1171182d1",
+              1.0
+            ],
+            [
+              "0x1169b26bd",
+              1.0
+            ],
+            [
+              "0x116e5f2e1",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              36609,
+              8,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              36609,
+              8,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 37270,
+          "intervalMs": 36,
+          "mainSampleMs": 17.0,
+          "inclusiveCategoryMs": {
+            "gc": 2.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSObject::initializeIndex(JSC::ObjectInitializationScope&, unsigned int, JSC::JSValue)",
+              2.0
+            ],
+            [
+              "0x11663a789",
+              1.0
+            ],
+            [
+              "0x11711739d",
+              1.0
+            ],
+            [
+              "0x11548c77d",
+              1.0
+            ],
+            [
+              "0x116235401",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              37276,
+              9,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              37276,
+              9,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        },
+        {
+          "startMs": 37370,
+          "intervalMs": 36,
+          "mainSampleMs": 17.0,
+          "inclusiveCategoryMs": {},
+          "topLeaves": [
+            [
+              "0x116c969f5",
+              1.0
+            ],
+            [
+              "0x1171170ad",
+              1.0
+            ],
+            [
+              "sin",
+              1.0
+            ],
+            [
+              "JSC::JSObject::trySetIndexQuickly(JSC::VM&, unsigned int, JSC::JSValue, JSC::ArrayProfile*)",
+              1.0
+            ],
+            [
+              "JSC::JSObject::attemptToInterceptPutByIndexOnHoleForPrototype(JSC::JSGlobalObject*, JSC::JSValue, unsigned int, JSC::JSValue, bool, bool&)",
+              1.0
+            ]
+          ],
+          "exactCalls": [
+            [
+              37376,
+              9,
+              "Renderer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../../src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4480/frame-floor-safari.html:90:33\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ],
+            [
+              37376,
+              9,
+              "Composer.render",
+              "measuredCall@http://127.0.0.1:4480/frame-floor-safari.html:95:181\ns@../../../../../src/engine/core/Game.ts:1039:17 ()\nm@../../../../../src/engine/app/ownership.ts:54:15 ()\n@../../../../../src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4480/frame-floor-safari.html:203:100"
+            ]
+          ]
+        }
+      ],
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "driftwood-isle",
+            "samples": 120,
+            "p95Ms": 2,
+            "maxMs": 2.000000000007276,
+            "calls": 5280
+          }
+        ]
+      },
+      "maxExactCalls": {
+        "Composer.render": 10,
+        "Renderer.render": 10,
+        "Game.runPhase:update": 4
+      }
+    }
+  ],
+  "runtimeParity": {
+    "src": [
+      "876f430c86a7c43ca78b0c185ae9b6e778384f37",
+      "876f430c86a7c43ca78b0c185ae9b6e778384f37"
+    ],
+    "public": [
+      "d695670b8c9c6cd7aeafb0191d72171f4ab2f5f4",
+      "d695670b8c9c6cd7aeafb0191d72171f4ab2f5f4"
+    ],
+    "scripts/generation-jobs.json": [
+      "7152c1464efd08cf2ef38239e54419d288848946",
+      "7152c1464efd08cf2ef38239e54419d288848946"
+    ]
+  }
+}

@@ -7805,6 +7805,25 @@ name order, state slots authored order. Actor/player slots require one
 binding per script/owner with a nonzero `self`. The sim host refuses view
 scripts until their first real client user supplies that implementation.
 
+`engine/script/decisionModule.prepareDecisionMemories(pages, owner)` prepares
+fresh fixed-size v1 memories from admitted page counts before synchronous
+controller construction. Live preparation allocates at most one memory per
+completed game draw; loading and Node use ordinary tasks. It runs no guest
+code. Only the owner and its descendants consume a matching allocation, once;
+unused memories leave with the owner. Invalid/changed plans and cancellation
+refuse. Constructors still admit the actual bytes and initialize their own
+module/global image at the original point. The page decision authority derives
+this inventory from `sim/scripts` and `actors/spawn-scripts` for both creature
+and encounter consumers; the v0 preparation path remains separate.
+
+`fetchImage` keeps counted network reads and header-based size selection on the
+page, then decodes its Blob in one page-owned image worker with the same bitmap
+options. Completed ImageBitmaps transfer back without a canvas copy. The worker
+serializes native decodes, ends after 30 idle seconds and rejects all pending
+requests on failure/disposal. Unsupported workers and failed jobs use the original
+page `createImageBitmap` API, then the existing image-element fallback. KTX2
+transcoding and its format probe are independent of this image decode path.
+
 Calls consume at most 16 queued events and emit 32 commands, four spawns
 and eight timer writes. A decision tick caps 64 calls and 128 commands.
 Reads/list writes enforce declarations, observed handles and memory bounds;

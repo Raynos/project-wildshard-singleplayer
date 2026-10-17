@@ -15,6 +15,8 @@ import type { ShardContext } from '../plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';
+import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
+import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
 
 /** Existing world services and fixed-step registration, lent by the page/native owner.
@@ -59,6 +61,7 @@ export async function pageDecisionAuthority(ctx: ShardContext): Promise<SpeciesD
     if (file?.name === undefined) throw new Error('Decision module has no admitted logical file');
     assets.set(hash, await ctx.product.file(file.name));
   }));
+  await prepareDecisionMemories(scriptAdmissionRows(descriptor.sections).filter(row => row.side === 'sim').map(row => row.pages), ctx.scope);
   let authority: SpeciesDecisionAuthority | undefined;
   return { bind: (actor, row, body) => {
     const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player;

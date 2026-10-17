@@ -1,0 +1,140 @@
+{
+  "rows": [
+    {
+      "input": "alpha-gradient",
+      "blobBytes": 892,
+      "options": {
+        "imageOrientation": "flipY",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "width": 31,
+      "height": 23,
+      "comparedBytes": 2852,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "alpha-gradient",
+      "blobBytes": 892,
+      "options": {
+        "imageOrientation": "none",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "width": 31,
+      "height": 23,
+      "comparedBytes": 2852,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "alpha-gradient",
+      "blobBytes": 892,
+      "options": {
+        "imageOrientation": "flipY",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none",
+        "resizeWidth": 17,
+        "resizeHeight": 13,
+        "resizeQuality": "medium"
+      },
+      "width": 17,
+      "height": 13,
+      "comparedBytes": 884,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "/assets/tex/forest_leaves_02/diffuse_1k.jpg",
+      "blobBytes": 414854,
+      "options": {
+        "imageOrientation": "flipY",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "width": 1024,
+      "height": 1024,
+      "comparedBytes": 4194304,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "/assets/tex/forest_leaves_02/diffuse_1k.jpg",
+      "blobBytes": 414854,
+      "options": {
+        "imageOrientation": "none",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "width": 1024,
+      "height": 1024,
+      "comparedBytes": 4194304,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "/assets/tex/forest_leaves_02/diffuse_1k.jpg",
+      "blobBytes": 414854,
+      "options": {
+        "imageOrientation": "flipY",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none",
+        "resizeWidth": 17,
+        "resizeHeight": 13,
+        "resizeQuality": "medium"
+      },
+      "width": 17,
+      "height": 13,
+      "comparedBytes": 884,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "/assets/tex/pine_bark/diffuse_1k.jpg",
+      "blobBytes": 200659,
+      "options": {
+        "imageOrientation": "flipY",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "width": 1024,
+      "height": 1024,
+      "comparedBytes": 4194304,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "/assets/tex/pine_bark/diffuse_1k.jpg",
+      "blobBytes": 200659,
+      "options": {
+        "imageOrientation": "none",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "width": 1024,
+      "height": 1024,
+      "comparedBytes": 4194304,
+      "differingBytes": 0,
+      "maxDifference": 0
+    },
+    {
+      "input": "/assets/tex/pine_bark/diffuse_1k.jpg",
+      "blobBytes": 200659,
+      "options": {
+        "imageOrientation": "flipY",
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none",
+        "resizeWidth": 17,
+        "resizeHeight": 13,
+        "resizeQuality": "medium"
+      },
+      "width": 17,
+      "height": 13,
+      "comparedBytes": 884,
+      "differingBytes": 0,
+      "maxDifference": 0
+    }
+  ],
+  "pass": true
+}

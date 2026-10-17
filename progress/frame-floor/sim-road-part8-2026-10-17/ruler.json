@@ -1,0 +1,328 @@
+{
+  "measurement": "source-basis, all ten verified products and component inventory",
+  "before": {
+    "sourceEquivalentParent": "9cc43b4e96099f84e1a25e310fd36453519426c0",
+    "providedBy": "sp-x10",
+    "receiptSha256": "9bffd3c1994d6bd13f23449ed3df09ca79c0a3e9e830aeeb19b25c51663a65c6"
+  },
+  "after": "9e74fa5373ef57c136b613cbd29a93f78b2f3ab8",
+  "rows": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "net": 0,
+      "beforeComponents": null,
+      "afterComponents": null
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "net": 0,
+      "beforeComponents": null,
+      "afterComponents": null
+    },
+    "driftwood-isle": {
+      "before": 5517,
+      "after": 5517,
+      "net": 0,
+      "beforeComponents": {
+        "shard": "driftwood-isle",
+        "counts": {
+          "C1": 2253,
+          "C2": 633,
+          "C3": 0,
+          "C4": 759,
+          "C5": 772,
+          "C6": 276,
+          "C7": 0,
+          "C8": 17,
+          "C9": 807
+        },
+        "total": 5517,
+        "unknown": [
+          "src/shards/driftwood-isle/data/bridgeRows.ts",
+          "src/shards/driftwood-isle/data/entryLandings.ts",
+          "src/shards/driftwood-isle/data/entryRows.ts",
+          "src/shards/driftwood-isle/data/facetedDayRows.ts",
+          "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
+          "src/shards/driftwood-isle/data/islandClipRows.ts",
+          "src/shards/driftwood-isle/data/islandCoverFiles.ts",
+          "src/shards/driftwood-isle/data/islandPlanFiles.ts",
+          "src/shards/driftwood-isle/data/pierRows.ts",
+          "src/shards/driftwood-isle/data/shrineSites.ts",
+          "src/shards/driftwood-isle/data/skyDay.ts",
+          "src/shards/driftwood-isle/data/skyPalette.ts",
+          "src/shards/driftwood-isle/data/speciesActions.ts",
+          "src/shards/driftwood-isle/data/strikes.ts",
+          "src/shards/driftwood-isle/data/terrainBindings.ts",
+          "src/shards/driftwood-isle/runtime/npc/people.ts",
+          "src/shards/driftwood-isle/runtime/sections.ts",
+          "src/engine/physics/box.ts#siteFloor",
+          "src/game/plugin/animation.ts#NpcFacingProfile",
+          "src/game/plugin/animation.ts#stepNpcFacing",
+          "src/game/plugin/animation.ts#NpcHeadFocusState",
+          "src/game/plugin/animation.ts#NpcHeadFocusProfile",
+          "src/game/plugin/animation.ts#NpcHeadFocusInput",
+          "src/game/plugin/animation.ts#stepNpcHeadFocus",
+          "src/game/Progress.ts#ProgressSink"
+        ]
+      },
+      "afterComponents": {
+        "shard": "driftwood-isle",
+        "counts": {
+          "C1": 2253,
+          "C2": 633,
+          "C3": 0,
+          "C4": 759,
+          "C5": 772,
+          "C6": 276,
+          "C7": 0,
+          "C8": 17,
+          "C9": 807
+        },
+        "total": 5517,
+        "unknown": [
+          "src/shards/driftwood-isle/data/bridgeRows.ts",
+          "src/shards/driftwood-isle/data/entryLandings.ts",
+          "src/shards/driftwood-isle/data/entryRows.ts",
+          "src/shards/driftwood-isle/data/facetedDayRows.ts",
+          "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
+          "src/shards/driftwood-isle/data/islandClipRows.ts",
+          "src/shards/driftwood-isle/data/islandCoverFiles.ts",
+          "src/shards/driftwood-isle/data/islandPlanFiles.ts",
+          "src/shards/driftwood-isle/data/pierRows.ts",
+          "src/shards/driftwood-isle/data/shrineSites.ts",
+          "src/shards/driftwood-isle/data/skyDay.ts",
+          "src/shards/driftwood-isle/data/skyPalette.ts",
+          "src/shards/driftwood-isle/data/speciesActions.ts",
+          "src/shards/driftwood-isle/data/strikes.ts",
+          "src/shards/driftwood-isle/data/terrainBindings.ts",
+          "src/shards/driftwood-isle/runtime/npc/people.ts",
+          "src/shards/driftwood-isle/runtime/sections.ts",
+          "src/engine/physics/box.ts#siteFloor",
+          "src/game/plugin/animation.ts#NpcFacingProfile",
+          "src/game/plugin/animation.ts#stepNpcFacing",
+          "src/game/plugin/animation.ts#NpcHeadFocusState",
+          "src/game/plugin/animation.ts#NpcHeadFocusProfile",
+          "src/game/plugin/animation.ts#NpcHeadFocusInput",
+          "src/game/plugin/animation.ts#stepNpcHeadFocus",
+          "src/game/Progress.ts#ProgressSink"
+        ]
+      }
+    },
+    "far-reach": {
+      "before": 528,
+      "after": 528,
+      "net": 0,
+      "beforeComponents": {
+        "shard": "far-reach",
+        "counts": {
+          "C1": 286,
+          "C2": 70,
+          "C3": 54,
+          "C4": 0,
+          "C5": 8,
+          "C6": 19,
+          "C7": 0,
+          "C8": 0,
+          "C9": 91
+        },
+        "total": 528,
+        "unknown": [
+          "src/shards/far-reach/data/gearRows.generated.d.json.ts",
+          "src/shards/far-reach/data/rocSlate.json",
+          "src/shards/far-reach/data/runtimeRows.generated.d.json.ts"
+        ]
+      },
+      "afterComponents": {
+        "shard": "far-reach",
+        "counts": {
+          "C1": 286,
+          "C2": 70,
+          "C3": 54,
+          "C4": 0,
+          "C5": 8,
+          "C6": 19,
+          "C7": 0,
+          "C8": 0,
+          "C9": 91
+        },
+        "total": 528,
+        "unknown": [
+          "src/shards/far-reach/data/gearRows.generated.d.json.ts",
+          "src/shards/far-reach/data/rocSlate.json",
+          "src/shards/far-reach/data/runtimeRows.generated.d.json.ts"
+        ]
+      }
+    },
+    "ink-cel-valley": {
+      "before": 1105,
+      "after": 1105,
+      "net": 0,
+      "beforeComponents": null,
+      "afterComponents": null
+    },
+    "nalati-grasslands": {
+      "before": 20339,
+      "after": 20339,
+      "net": 0,
+      "beforeComponents": null,
+      "afterComponents": null
+    },
+    "nine-dragon-stack": {
+      "before": 11889,
+      "after": 11889,
+      "net": 0,
+      "beforeComponents": null,
+      "afterComponents": null
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "net": 0,
+      "beforeComponents": null,
+      "afterComponents": null
+    },
+    "pine-hollow": {
+      "before": 7035,
+      "after": 7035,
+      "net": 0,
+      "beforeComponents": {
+        "shard": "pine-hollow",
+        "counts": {
+          "C1": 2372,
+          "C2": 895,
+          "C3": 345,
+          "C4": 796,
+          "C5": 1288,
+          "C6": 400,
+          "C7": 7,
+          "C8": 33,
+          "C9": 899
+        },
+        "total": 7035,
+        "unknown": [
+          "src/shards/pine-hollow/data/eliteHomes.ts",
+          "src/shards/pine-hollow/data/fauna.generated.ts",
+          "src/shards/pine-hollow/data/keyedSkyRows.ts",
+          "src/shards/pine-hollow/data/kingRig.ts",
+          "src/shards/pine-hollow/data/layout.generated.d.json.ts",
+          "src/shards/pine-hollow/data/nativeLoadout.ts",
+          "src/shards/pine-hollow/data/quests.ts",
+          "src/shards/pine-hollow/data/runtimeCost.ts",
+          "src/shards/pine-hollow/data/terrainBindings.ts",
+          "src/shards/pine-hollow/data/wardensHollow.ts",
+          "src/shards/pine-hollow/runtime/sections.ts",
+          "src/game/population/shelter.ts",
+          "src/sdk/interactions.ts",
+          "src/sdk/populationRoster.ts",
+          "src/sdk/populationShelter.ts",
+          "src/engine/anim/rig.ts#rigRoot",
+          "src/engine/app/cachedAssets.ts#ResourceMemo",
+          "src/game/inventoryLaw.ts#grantNativeInventory",
+          "src/game/plugin/animation.ts#nativeCreaturePose",
+          "src/game/plugin/nativeItems.ts#observeNativeCombatMotion",
+          "src/game/plugin/nativeItems.ts#bindNativeRangedVolumes",
+          "src/game/plugin/nativeItems.ts#readNativeRangedItem",
+          "src/game/plugin/nativeItems.ts#readItemAmmunition",
+          "src/game/shardfile/borrowedDecisions.ts#nativeDecisions",
+          "src/sdk/blobs.ts#BlobSourceOptions",
+          "src/sdk/questGraph.ts#parseQuestGraph",
+          "src/sdk/questGraph.ts#parseNpcDialogueRow"
+        ]
+      },
+      "afterComponents": {
+        "shard": "pine-hollow",
+        "counts": {
+          "C1": 2372,
+          "C2": 895,
+          "C3": 345,
+          "C4": 796,
+          "C5": 1288,
+          "C6": 400,
+          "C7": 7,
+          "C8": 33,
+          "C9": 899
+        },
+        "total": 7035,
+        "unknown": [
+          "src/shards/pine-hollow/data/eliteHomes.ts",
+          "src/shards/pine-hollow/data/fauna.generated.ts",
+          "src/shards/pine-hollow/data/keyedSkyRows.ts",
+          "src/shards/pine-hollow/data/kingRig.ts",
+          "src/shards/pine-hollow/data/layout.generated.d.json.ts",
+          "src/shards/pine-hollow/data/nativeLoadout.ts",
+          "src/shards/pine-hollow/data/quests.ts",
+          "src/shards/pine-hollow/data/runtimeCost.ts",
+          "src/shards/pine-hollow/data/terrainBindings.ts",
+          "src/shards/pine-hollow/data/wardensHollow.ts",
+          "src/shards/pine-hollow/runtime/sections.ts",
+          "src/game/population/shelter.ts",
+          "src/sdk/interactions.ts",
+          "src/sdk/populationRoster.ts",
+          "src/sdk/populationShelter.ts",
+          "src/engine/anim/rig.ts#rigRoot",
+          "src/engine/app/cachedAssets.ts#ResourceMemo",
+          "src/game/inventoryLaw.ts#grantNativeInventory",
+          "src/game/plugin/animation.ts#nativeCreaturePose",
+          "src/game/plugin/nativeItems.ts#observeNativeCombatMotion",
+          "src/game/plugin/nativeItems.ts#bindNativeRangedVolumes",
+          "src/game/plugin/nativeItems.ts#readNativeRangedItem",
+          "src/game/plugin/nativeItems.ts#readItemAmmunition",
+          "src/game/shardfile/borrowedDecisions.ts#nativeDecisions",
+          "src/sdk/blobs.ts#BlobSourceOptions",
+          "src/sdk/questGraph.ts#parseQuestGraph",
+          "src/sdk/questGraph.ts#parseNpcDialogueRow"
+        ]
+      }
+    },
+    "sunscar-dunes": {
+      "before": 392,
+      "after": 392,
+      "net": 0,
+      "beforeComponents": {
+        "shard": "sunscar-dunes",
+        "counts": {
+          "C1": 152,
+          "C2": 123,
+          "C3": 50,
+          "C4": 0,
+          "C5": 7,
+          "C6": 12,
+          "C7": 0,
+          "C8": 0,
+          "C9": 48
+        },
+        "total": 392,
+        "unknown": [
+          "src/shards/sunscar-dunes/data/creatureModels.generated.d.json.ts",
+          "src/shards/sunscar-dunes/data/gearRows.generated.d.json.ts",
+          "src/shards/sunscar-dunes/data/placeBindings.ts",
+          "src/shards/sunscar-dunes/data/runtimeRows.generated.d.json.ts"
+        ]
+      },
+      "afterComponents": {
+        "shard": "sunscar-dunes",
+        "counts": {
+          "C1": 152,
+          "C2": 123,
+          "C3": 50,
+          "C4": 0,
+          "C5": 7,
+          "C6": 12,
+          "C7": 0,
+          "C8": 0,
+          "C9": 48
+        },
+        "total": 392,
+        "unknown": [
+          "src/shards/sunscar-dunes/data/creatureModels.generated.d.json.ts",
+          "src/shards/sunscar-dunes/data/gearRows.generated.d.json.ts",
+          "src/shards/sunscar-dunes/data/placeBindings.ts",
+          "src/shards/sunscar-dunes/data/runtimeRows.generated.d.json.ts"
+        ]
+      }
+    }
+  },
+  "afterInventorySha256": "bd95a66d57f8a39676c0c15d7a5d4cdedf85194dbb60d64eb4d99eb6bdb12c7b"
+}

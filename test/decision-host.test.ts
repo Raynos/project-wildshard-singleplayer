@@ -1,6 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { DecisionHost, type DecisionHostOptions, type DecisionScript, type DecisionTrace, type DecisionWorld } from '@wildshard/engine/script/decision';
-import { DecisionModule } from '../src/engine/script/decisionModule';
+import { DecisionModule, prepareDecisionMemories } from '../src/engine/script/decisionModule';
+import { Scope } from '../src/engine/app/scope';
+import { pageScope } from '../src/engine/app/resources';
 import { compileScript } from '@wildshard/sdk/compileScript';
 import { scriptV1Layout } from '@wildshard/format/scriptAbiV1';
 import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
@@ -190,4 +192,64 @@ test('inactive bindings suppress periodic work and timers but deliver explicit s
   host.setEnabled(1, false); run(120); expect(host.state(1)).toEqual({ phase: 8 });
   expect(host.snapshot().bindings[0]?.timers).toEqual({});
   host.enqueue(1, [18, 0, 0, 0, 0, 0]); run(127); expect(host.state(1)).toEqual({ phase: 16 });
+});
+
+test('paces fresh decision memories and consumes each once without changing guest initialization', async () => {
+  const bytes = await compiled(valid), owner = new Scope('decision-preparation'), child = owner.child('child');
+  const NativeMemory = WebAssembly.Memory, allocated: WebAssembly.Memory[] = [];
+  const memory = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
+    constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); allocated.push(this); }
+  });
+  const pause = vi.spyOn(pageScope, 'timeout');
+  try {
+    const pending = prepareDecisionMemories([1, 1], owner);
+    expect(prepareDecisionMemories([1, 1], owner)).toBe(pending);
+    await pending;
+    expect(allocated).toHaveLength(2); expect(pause.mock.calls.length).toBeGreaterThanOrEqual(3);
+    for (const fresh of allocated) expect(new Uint8Array(fresh.buffer).every(value => value === 0)).toBe(true);
+    const ports = { read: () => 0, list: () => 0 };
+    const first = child.run(() => new DecisionModule(bytes, [123, 456], ports));
+    const second = owner.run(() => new DecisionModule(bytes, [123, 456], ports));
+    expect(first.memory).toBe(allocated[0]); expect(second.memory).toBe(allocated[1]);
+    expect(first.memory).not.toBe(second.memory); expect(allocated).toHaveLength(2);
+    const oracle = new DecisionModule(bytes, [123, 456], ports);
+    expect(new Uint8Array(first.memory.buffer)).toEqual(new Uint8Array(oracle.memory.buffer));
+    expect(new Uint8Array(second.memory.buffer)).toEqual(new Uint8Array(oracle.memory.buffer));
+    first.view.setFloat64(first.io, 99, true); first.rewind();
+    expect(new Uint8Array(first.memory.buffer)).toEqual(new Uint8Array(oracle.memory.buffer));
+    const later = owner.run(() => new DecisionModule(bytes, [123, 456], ports));
+    expect(allocated).toHaveLength(4); expect(later.memory).not.toBe(first.memory);
+  } finally { owner.dispose(); memory.mockRestore(); pause.mockRestore(); }
+});
+
+test('decision preparation rejects invalid plans and cancellation cannot strand a pending frame', async () => {
+  const owner = new Scope('decision-cancel');
+  const pause = vi.spyOn(pageScope, 'timeout').mockImplementation(() => { owner.dispose(); return 0; });
+  try {
+    await prepareDecisionMemories([], owner);
+    await expect(prepareDecisionMemories([0], owner)).rejects.toThrow('allowance');
+    await expect(prepareDecisionMemories([5], owner)).rejects.toThrow('allowance');
+    await expect(prepareDecisionMemories(Array.from({ length: 400 }, () => 1), owner)).rejects.toThrow('allowance');
+    await expect(prepareDecisionMemories([1], owner)).rejects.toThrow('owner disposed');
+    await expect(prepareDecisionMemories([1], owner)).rejects.toThrow('owner disposed');
+  } finally { owner.dispose(); pause.mockRestore(); }
+});
+
+test('another owner and a different fixed size cannot consume prepared decision memory', async () => {
+  const bytes = await compiled(valid), owner = new Scope('decision-owner'), sibling = new Scope('decision-sibling');
+  const NativeMemory = WebAssembly.Memory, allocated: WebAssembly.Memory[] = [];
+  const memory = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
+    constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); allocated.push(this); }
+  });
+  try {
+    await prepareDecisionMemories([2, 1], owner);
+    await expect(prepareDecisionMemories([1], owner)).rejects.toThrow('changed');
+    const ports = { read: () => 0, list: () => 0 };
+    const foreign = sibling.run(() => new DecisionModule(bytes, [1, 2], ports));
+    const actual = owner.run(() => new DecisionModule(bytes, [1, 2], ports));
+    expect(foreign.memory).toBe(allocated[2]); expect(actual.memory).toBe(allocated[1]);
+    owner.dispose();
+    const retired = owner.run(() => new DecisionModule(bytes, [1, 2], ports));
+    expect(retired.memory).toBe(allocated[3]);
+  } finally { owner.dispose(); sibling.dispose(); memory.mockRestore(); }
 });

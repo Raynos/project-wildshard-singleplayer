@@ -16,6 +16,7 @@ import { assetVersions, publicBytes } from './tables';
 import { DefaultLoadingManager } from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { standIn, texMode, type TexMode } from './gpuFiles';
+import { decodeImageBitmap } from './imageDecode';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -187,7 +188,7 @@ export async function fetchImage(file: string, maxSize = Infinity, flip = true, 
           opts.resizeWidth = Math.round(dim.w * k); opts.resizeHeight = Math.round(dim.h * k); opts.resizeQuality = 'medium';
         }
       }
-      return await createImageBitmap(blob, opts);
+      return await decodeImageBitmap(blob, opts);
     } catch { /* fall through */ }
   }
   const src = URL.createObjectURL(blob);

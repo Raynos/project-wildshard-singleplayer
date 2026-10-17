@@ -1,0 +1,2166 @@
+[
+  {
+    "file": "before-normal-1/17ef0c2e8-24839-1792271637117.json",
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "mode": "before-normal-1",
+    "complete": true,
+    "pass": false,
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -3.945176135777828e-06,
+          "y": 1.2135999940466717,
+          "z": -194.00000471742086,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 42,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-deck-east",
+          "x": 277.5,
+          "y": 1.7,
+          "z": -40,
+          "yaw": 0,
+          "pitch": -0.08
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 38,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-crossroads",
+          "x": 277.5,
+          "y": 1.7,
+          "z": 277.5,
+          "yaw": -2.356194490192345,
+          "pitch": -0.12
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 155,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 1,
+          "at": [
+            [
+              44531,
+              155
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-drive"
+        },
+        "frames": 270,
+        "p95Ms": 44,
+        "maxMs": 155,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "far-reach:afterPlay",
+            "frames": 3,
+            "maxMs": 92,
+            "totalMs": 205,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:play",
+            "frames": 1,
+            "maxMs": 155,
+            "totalMs": 155,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:activate",
+            "frames": 1,
+            "maxMs": 79,
+            "totalMs": 79,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 70,
+            "totalMs": 70,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 6,
+          "over100Ms": 1,
+          "at": [
+            [
+              42765,
+              70
+            ],
+            [
+              44531,
+              155
+            ],
+            [
+              47897,
+              57
+            ],
+            [
+              48489,
+              56
+            ],
+            [
+              48545,
+              92
+            ],
+            [
+              50231,
+              79
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 46,
+        "maxMs": 70,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 4,
+          "over100Ms": 0,
+          "at": [
+            [
+              61764,
+              58
+            ],
+            [
+              62681,
+              70
+            ],
+            [
+              62971,
+              66
+            ],
+            [
+              63421,
+              53
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-drive"
+        },
+        "frames": 660,
+        "p95Ms": 35,
+        "maxMs": 73,
+        "pass": true,
+        "longFrameHooks": [
+          {
+            "hook": "nalati-grasslands:world",
+            "frames": 2,
+            "maxMs": 70,
+            "totalMs": 128,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:activate",
+            "frames": 1,
+            "maxMs": 73,
+            "totalMs": 73,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterWorld",
+            "frames": 1,
+            "maxMs": 66,
+            "totalMs": 66,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:play",
+            "frames": 1,
+            "maxMs": 53,
+            "totalMs": 53,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 5,
+          "over100Ms": 0,
+          "at": [
+            [
+              61764,
+              58
+            ],
+            [
+              62681,
+              70
+            ],
+            [
+              62971,
+              66
+            ],
+            [
+              63421,
+              53
+            ],
+            [
+              70448,
+              73
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 42,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 46,
+        "maxMs": 115,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 6,
+          "over100Ms": 1,
+          "at": [
+            [
+              88281,
+              74
+            ],
+            [
+              88381,
+              115
+            ],
+            [
+              89948,
+              62
+            ],
+            [
+              90081,
+              52
+            ],
+            [
+              90282,
+              66
+            ],
+            [
+              90648,
+              60
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-drive"
+        },
+        "frames": 780,
+        "p95Ms": 41,
+        "maxMs": 239,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "pine-hollow:world",
+            "frames": 6,
+            "maxMs": 115,
+            "totalMs": 429,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:play",
+            "frames": 4,
+            "maxMs": 239,
+            "totalMs": 398,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 3,
+            "maxMs": 71,
+            "totalMs": 193,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:activate",
+            "frames": 1,
+            "maxMs": 88,
+            "totalMs": 88,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:afterPlay",
+            "frames": 1,
+            "maxMs": 80,
+            "totalMs": 80,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 15,
+          "over100Ms": 2,
+          "at": [
+            [
+              87198,
+              69
+            ],
+            [
+              87267,
+              71
+            ],
+            [
+              87483,
+              53
+            ],
+            [
+              88281,
+              74
+            ],
+            [
+              88381,
+              115
+            ],
+            [
+              89948,
+              62
+            ],
+            [
+              90081,
+              52
+            ],
+            [
+              90282,
+              66
+            ],
+            [
+              90648,
+              60
+            ],
+            [
+              92581,
+              239
+            ],
+            [
+              92881,
+              54
+            ],
+            [
+              92957,
+              54
+            ],
+            [
+              93098,
+              51
+            ],
+            [
+              99178,
+              80
+            ],
+            [
+              102514,
+              88
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 42,
+        "maxMs": 59,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              124017,
+              59
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-drive"
+        },
+        "frames": 600,
+        "p95Ms": 42,
+        "maxMs": 79,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "between hooks",
+            "frames": 2,
+            "maxMs": 79,
+            "totalMs": 133,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:activate",
+            "frames": 1,
+            "maxMs": 76,
+            "totalMs": 76,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:afterKit",
+            "frames": 1,
+            "maxMs": 59,
+            "totalMs": 59,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 4,
+          "over100Ms": 0,
+          "at": [
+            [
+              120314,
+              79
+            ],
+            [
+              124017,
+              59
+            ],
+            [
+              130048,
+              76
+            ],
+            [
+              132831,
+              54
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      }
+    ],
+    "timingCredit": false,
+    "reason": "ordinary shared machine load; BEFORE receives no quiet timing credit"
+  },
+  {
+    "file": "before-normal-2/17ef0c2e8-37211-1792271804491.json",
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "mode": "before-normal-2",
+    "complete": true,
+    "pass": false,
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -3.926377917684576e-06,
+          "y": 1.2128999940643552,
+          "z": -194.00000209948703,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-crossroads",
+          "x": 277.5,
+          "y": 1.7,
+          "z": 277.5,
+          "yaw": -2.356194490192345,
+          "pitch": -0.12
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-deck-east",
+          "x": 277.5,
+          "y": 1.7,
+          "z": -40,
+          "yaw": 0,
+          "pitch": -0.08
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 187,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 1,
+          "at": [
+            [
+              45783,
+              187
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-drive"
+        },
+        "frames": 270,
+        "p95Ms": 44,
+        "maxMs": 187,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "far-reach:world",
+            "frames": 2,
+            "maxMs": 187,
+            "totalMs": 255,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:afterPlay",
+            "frames": 1,
+            "maxMs": 157,
+            "totalMs": 157,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:activate",
+            "frames": 1,
+            "maxMs": 78,
+            "totalMs": 78,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 64,
+            "totalMs": 64,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 5,
+          "over100Ms": 2,
+          "at": [
+            [
+              44017,
+              64
+            ],
+            [
+              44233,
+              68
+            ],
+            [
+              45783,
+              187
+            ],
+            [
+              50267,
+              157
+            ],
+            [
+              52017,
+              78
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 43,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 46,
+        "maxMs": 75,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 2,
+          "over100Ms": 0,
+          "at": [
+            [
+              64317,
+              72
+            ],
+            [
+              64600,
+              75
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-drive"
+        },
+        "frames": 690,
+        "p95Ms": 36,
+        "maxMs": 86,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "nalati-grasslands:activate",
+            "frames": 1,
+            "maxMs": 86,
+            "totalMs": 86,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterWorld",
+            "frames": 1,
+            "maxMs": 75,
+            "totalMs": 75,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:world",
+            "frames": 1,
+            "maxMs": 72,
+            "totalMs": 72,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 67,
+            "totalMs": 67,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterPlay",
+            "frames": 1,
+            "maxMs": 63,
+            "totalMs": 63,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 5,
+          "over100Ms": 0,
+          "at": [
+            [
+              60083,
+              67
+            ],
+            [
+              64317,
+              72
+            ],
+            [
+              64600,
+              75
+            ],
+            [
+              69971,
+              63
+            ],
+            [
+              72233,
+              86
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 44,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 53,
+        "maxMs": 147,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 10,
+          "over100Ms": 1,
+          "at": [
+            [
+              90553,
+              53
+            ],
+            [
+              90631,
+              60
+            ],
+            [
+              90950,
+              82
+            ],
+            [
+              91050,
+              147
+            ],
+            [
+              92684,
+              65
+            ],
+            [
+              92772,
+              53
+            ],
+            [
+              92989,
+              53
+            ],
+            [
+              93367,
+              59
+            ],
+            [
+              93650,
+              70
+            ],
+            [
+              93917,
+              52
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-drive"
+        },
+        "frames": 750,
+        "p95Ms": 43,
+        "maxMs": 275,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "pine-hollow:world",
+            "frames": 8,
+            "maxMs": 147,
+            "totalMs": 581,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 7,
+            "maxMs": 92,
+            "totalMs": 433,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:play",
+            "frames": 3,
+            "maxMs": 275,
+            "totalMs": 388,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:afterPlay",
+            "frames": 4,
+            "maxMs": 96,
+            "totalMs": 257,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:activate",
+            "frames": 1,
+            "maxMs": 96,
+            "totalMs": 96,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 23,
+          "over100Ms": 2,
+          "at": [
+            [
+              89783,
+              92
+            ],
+            [
+              89996,
+              54
+            ],
+            [
+              90050,
+              57
+            ],
+            [
+              90107,
+              57
+            ],
+            [
+              90164,
+              60
+            ],
+            [
+              90553,
+              53
+            ],
+            [
+              90631,
+              60
+            ],
+            [
+              90950,
+              82
+            ],
+            [
+              91050,
+              147
+            ],
+            [
+              92684,
+              65
+            ],
+            [
+              92772,
+              53
+            ],
+            [
+              92989,
+              53
+            ],
+            [
+              93367,
+              59
+            ],
+            [
+              93650,
+              70
+            ],
+            [
+              93917,
+              52
+            ],
+            [
+              95233,
+              275
+            ],
+            [
+              95638,
+              60
+            ],
+            [
+              95783,
+              53
+            ],
+            [
+              95900,
+              56
+            ],
+            [
+              97848,
+              51
+            ],
+            [
+              101817,
+              96
+            ],
+            [
+              101913,
+              54
+            ],
+            [
+              105218,
+              96
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 36,
+        "maxMs": 59,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              126400,
+              59
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-drive"
+        },
+        "frames": 630,
+        "p95Ms": 36,
+        "maxMs": 85,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 85,
+            "totalMs": 85,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:activate",
+            "frames": 1,
+            "maxMs": 83,
+            "totalMs": 83,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:afterKit",
+            "frames": 1,
+            "maxMs": 59,
+            "totalMs": 59,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:afterPlay",
+            "frames": 1,
+            "maxMs": 55,
+            "totalMs": 55,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 4,
+          "over100Ms": 0,
+          "at": [
+            [
+              122233,
+              85
+            ],
+            [
+              126400,
+              59
+            ],
+            [
+              127771,
+              55
+            ],
+            [
+              132517,
+              83
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      }
+    ],
+    "timingCredit": false,
+    "reason": "ordinary shared machine load; BEFORE receives no quiet timing credit"
+  },
+  {
+    "file": "before-pinned-1/17ef0c2e8-56538-1792271973798.json",
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "mode": "before-pinned-1",
+    "complete": true,
+    "pass": false,
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -3.925439265750619e-06,
+          "y": 1.2126999940839596,
+          "z": -194.00000209948703,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "frames": 120,
+        "p95Ms": 44,
+        "maxMs": 48,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-crossroads",
+          "x": 277.5,
+          "y": 1.7,
+          "z": 277.5,
+          "yaw": -2.356194490192345,
+          "pitch": -0.12
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-deck-east",
+          "x": 277.5,
+          "y": 1.7,
+          "z": -40,
+          "yaw": 0,
+          "pitch": -0.08
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 145,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 1,
+          "at": [
+            [
+              44122,
+              145
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-drive"
+        },
+        "frames": 270,
+        "p95Ms": 35,
+        "maxMs": 145,
+        "pass": true,
+        "longFrameHooks": [
+          {
+            "hook": "far-reach:world",
+            "frames": 1,
+            "maxMs": 145,
+            "totalMs": 145,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 67,
+            "totalMs": 67,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:activate",
+            "frames": 1,
+            "maxMs": 66,
+            "totalMs": 66,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:constructor",
+            "frames": 1,
+            "maxMs": 64,
+            "totalMs": 64,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 4,
+          "over100Ms": 1,
+          "at": [
+            [
+              42389,
+              67
+            ],
+            [
+              42540,
+              64
+            ],
+            [
+              44122,
+              145
+            ],
+            [
+              50156,
+              66
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 43,
+        "maxMs": 69,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 3,
+          "over100Ms": 0,
+          "at": [
+            [
+              61178,
+              56
+            ],
+            [
+              62122,
+              69
+            ],
+            [
+              62456,
+              67
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-drive"
+        },
+        "frames": 690,
+        "p95Ms": 35,
+        "maxMs": 82,
+        "pass": true,
+        "longFrameHooks": [
+          {
+            "hook": "nalati-grasslands:world",
+            "frames": 2,
+            "maxMs": 69,
+            "totalMs": 125,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:activate",
+            "frames": 1,
+            "maxMs": 82,
+            "totalMs": 82,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterWorld",
+            "frames": 1,
+            "maxMs": 67,
+            "totalMs": 67,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterPlay",
+            "frames": 1,
+            "maxMs": 56,
+            "totalMs": 56,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 55,
+            "totalMs": 55,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 6,
+          "over100Ms": 0,
+          "at": [
+            [
+              57956,
+              55
+            ],
+            [
+              61178,
+              56
+            ],
+            [
+              62122,
+              69
+            ],
+            [
+              62456,
+              67
+            ],
+            [
+              67745,
+              56
+            ],
+            [
+              69939,
+              82
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 36,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 117,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 3,
+          "over100Ms": 1,
+          "at": [
+            [
+              88556,
+              73
+            ],
+            [
+              88647,
+              117
+            ],
+            [
+              90056,
+              60
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-drive"
+        },
+        "frames": 840,
+        "p95Ms": 35,
+        "maxMs": 262,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "pine-hollow:play",
+            "frames": 3,
+            "maxMs": 262,
+            "totalMs": 386,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:world",
+            "frames": 3,
+            "maxMs": 117,
+            "totalMs": 250,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:afterPlay",
+            "frames": 2,
+            "maxMs": 54,
+            "totalMs": 106,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:activate",
+            "frames": 1,
+            "maxMs": 89,
+            "totalMs": 89,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 9,
+          "over100Ms": 2,
+          "at": [
+            [
+              88556,
+              73
+            ],
+            [
+              88647,
+              117
+            ],
+            [
+              90056,
+              60
+            ],
+            [
+              94872,
+              56
+            ],
+            [
+              95022,
+              262
+            ],
+            [
+              95606,
+              68
+            ],
+            [
+              95839,
+              52
+            ],
+            [
+              97447,
+              54
+            ],
+            [
+              105556,
+              89
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 37,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 41,
+        "maxMs": 58,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              126578,
+              58
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-drive"
+        },
+        "frames": 630,
+        "p95Ms": 35,
+        "maxMs": 95,
+        "pass": true,
+        "longFrameHooks": [
+          {
+            "hook": "driftwood-isle:activate",
+            "frames": 1,
+            "maxMs": 95,
+            "totalMs": 95,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 79,
+            "totalMs": 79,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:afterKit",
+            "frames": 1,
+            "maxMs": 58,
+            "totalMs": 58,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 3,
+          "over100Ms": 0,
+          "at": [
+            [
+              126578,
+              58
+            ],
+            [
+              132706,
+              95
+            ],
+            [
+              134522,
+              79
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 38,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      }
+    ],
+    "timingCredit": false,
+    "reason": "ordinary shared machine load; BEFORE receives no quiet timing credit"
+  },
+  {
+    "file": "before-pinned-2/17ef0c2e8-70556-1792272150243.json",
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "mode": "before-pinned-2",
+    "complete": true,
+    "pass": false,
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -3.8657464416225196e-06,
+          "y": 1.2120999941136688,
+          "z": -194.00000100973307,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 44,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-deck-east",
+          "x": 277.5,
+          "y": 1.7,
+          "z": -40,
+          "yaw": 0,
+          "pitch": -0.08
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-crossroads",
+          "x": 277.5,
+          "y": 1.7,
+          "z": 277.5,
+          "yaw": -2.356194490192345,
+          "pitch": -0.12
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 156,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 1,
+          "at": [
+            [
+              42175,
+              156
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry-drive"
+        },
+        "frames": 300,
+        "p95Ms": 34,
+        "maxMs": 156,
+        "pass": true,
+        "longFrameHooks": [
+          {
+            "hook": "far-reach:world",
+            "frames": 2,
+            "maxMs": 156,
+            "totalMs": 218,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "far-reach:activate",
+            "frames": 1,
+            "maxMs": 69,
+            "totalMs": 69,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 57,
+            "totalMs": 57,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 4,
+          "over100Ms": 1,
+          "at": [
+            [
+              40408,
+              57
+            ],
+            [
+              40592,
+              62
+            ],
+            [
+              42175,
+              156
+            ],
+            [
+              48658,
+              69
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-far-reach-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 42,
+        "maxMs": 97,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 4,
+          "over100Ms": 0,
+          "at": [
+            [
+              60375,
+              52
+            ],
+            [
+              60515,
+              54
+            ],
+            [
+              61525,
+              97
+            ],
+            [
+              61908,
+              69
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry-drive"
+        },
+        "frames": 690,
+        "p95Ms": 34,
+        "maxMs": 97,
+        "pass": true,
+        "longFrameHooks": [
+          {
+            "hook": "nalati-grasslands:world",
+            "frames": 3,
+            "maxMs": 97,
+            "totalMs": 203,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:activate",
+            "frames": 1,
+            "maxMs": 84,
+            "totalMs": 84,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterWorld",
+            "frames": 1,
+            "maxMs": 69,
+            "totalMs": 69,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 5,
+          "over100Ms": 0,
+          "at": [
+            [
+              60375,
+              52
+            ],
+            [
+              60515,
+              54
+            ],
+            [
+              61525,
+              97
+            ],
+            [
+              61908,
+              69
+            ],
+            [
+              69475,
+              84
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-nalati-grasslands-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 40,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 36,
+        "maxMs": 115,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 3,
+          "over100Ms": 1,
+          "at": [
+            [
+              87692,
+              52
+            ],
+            [
+              87775,
+              115
+            ],
+            [
+              89325,
+              95
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry-drive"
+        },
+        "frames": 870,
+        "p95Ms": 35,
+        "maxMs": 287,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "pine-hollow:play",
+            "frames": 3,
+            "maxMs": 287,
+            "totalMs": 407,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:world",
+            "frames": 3,
+            "maxMs": 115,
+            "totalMs": 262,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:activate",
+            "frames": 1,
+            "maxMs": 90,
+            "totalMs": 90,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "pine-hollow:afterPlay",
+            "frames": 1,
+            "maxMs": 58,
+            "totalMs": 58,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 58,
+            "totalMs": 58,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 9,
+          "over100Ms": 2,
+          "at": [
+            [
+              87692,
+              52
+            ],
+            [
+              87775,
+              115
+            ],
+            [
+              89325,
+              95
+            ],
+            [
+              94342,
+              59
+            ],
+            [
+              94492,
+              287
+            ],
+            [
+              95104,
+              61
+            ],
+            [
+              95358,
+              58
+            ],
+            [
+              105142,
+              90
+            ],
+            [
+              109975,
+              58
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-pine-hollow-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-travel"
+        },
+        "frames": 120,
+        "p95Ms": 43,
+        "maxMs": 69,
+        "pass": false,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              126631,
+              69
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry-drive"
+        },
+        "frames": 630,
+        "p95Ms": 38,
+        "maxMs": 76,
+        "pass": false,
+        "longFrameHooks": [
+          {
+            "hook": "driftwood-isle:activate",
+            "frames": 1,
+            "maxMs": 76,
+            "totalMs": 76,
+            "gl": {},
+            "glStart": {}
+          },
+          {
+            "hook": "driftwood-isle:afterKit",
+            "frames": 1,
+            "maxMs": 69,
+            "totalMs": 69,
+            "gl": {},
+            "glStart": {}
+          }
+        ],
+        "longFrames": {
+          "over50Ms": 2,
+          "over100Ms": 0,
+          "at": [
+            [
+              126631,
+              69
+            ],
+            [
+              132692,
+              76
+            ]
+          ]
+        }
+      },
+      {
+        "pose": {
+          "name": "grid-driftwood-isle-road-entry"
+        },
+        "frames": 120,
+        "p95Ms": 35,
+        "maxMs": 35,
+        "pass": true,
+        "longFrameHooks": null,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        }
+      }
+    ],
+    "timingCredit": false,
+    "reason": "ordinary shared machine load; BEFORE receives no quiet timing credit"
+  }
+]

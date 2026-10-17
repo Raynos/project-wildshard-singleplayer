@@ -13,6 +13,7 @@
     "./sim/moverMotion": "./sim/moverMotion.ts",
     "./ai/moves": "./ai/moves.ts",
     "./script/decision": "./script/decision.ts",
+    "./script/decisionModule": "./script/decisionModule.ts",
     "./render/programRetention": "./render/programRetention.ts",
     "./models/placementBatch": "./models/placementBatch.ts",
     "./models/glbNodes": "./models/glbNodes.ts",

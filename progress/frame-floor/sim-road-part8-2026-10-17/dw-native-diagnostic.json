@@ -1,0 +1,538 @@
+{
+  "sha": "427023fff68af1a9c2ca0beba4aa87e0e37db3cd",
+  "timingCredit": false,
+  "method": "Native Time Profiler with diagnostic task clock and GL/Promise observers; inclusive categories overlap. Shared machine load.",
+  "traceStartEpochMs": 1792273016829.0,
+  "mainThread": {
+    "id": 40621604,
+    "name": "Main Thread (0x26bd624) (com.apple.WebKit.WebContent, pid: 55771)"
+  },
+  "rows": [
+    {
+      "name": {
+        "name": "spawn",
+        "x": -3.8657464416225196e-06,
+        "y": 1.2120999941136688,
+        "z": -194.00000100973307,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "p95Ms": 49,
+      "maxMs": 57,
+      "anchors": [
+        [
+          17393,
+          1792273036278
+        ],
+        [
+          21552,
+          1792273040438
+        ]
+      ],
+      "driftMs": 1,
+      "longFrameCount": 30,
+      "worstFrames": [
+        {
+          "startMs": 18984,
+          "intervalMs": 57,
+          "mainSampleMs": 37.0,
+          "inclusiveCategoryMs": {
+            "gc": 17.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              8.0
+            ],
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::markAuxiliary(void const*)",
+              3.0
+            ],
+            [
+              "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+              1.0
+            ],
+            [
+              "0x112840705",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 18574,
+          "intervalMs": 54,
+          "mainSampleMs": 37.0,
+          "inclusiveCategoryMs": {
+            "gc": 16.0
+          },
+          "topLeaves": [
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              2.0
+            ],
+            [
+              "JSC::GetByStatus::finalize(JSC::VM&)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "0x1118db919",
+              1.0
+            ],
+            [
+              "pas_thread_local_cache_flush_deallocation_log",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 19955,
+          "intervalMs": 53,
+          "mainSampleMs": 38.0,
+          "inclusiveCategoryMs": {
+            "gc": 22.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              7.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              2.0
+            ],
+            [
+              "JSC::ObjectPropertyConditionSet::areStillLive(JSC::VM&) const",
+              2.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              2.0
+            ],
+            [
+              "0x112a0bfed",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 19484,
+          "intervalMs": 52,
+          "mainSampleMs": 38.0,
+          "inclusiveCategoryMs": {
+            "gc": 22.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              6.0
+            ],
+            [
+              "syscall_thread_switch",
+              2.0
+            ],
+            [
+              "0x112bec63d",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "0x1123c5e19",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 17651,
+          "intervalMs": 49,
+          "mainSampleMs": 42.0,
+          "inclusiveCategoryMs": {
+            "gc": 27.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              8.0
+            ],
+            [
+              "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+              2.0
+            ],
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              2.0
+            ],
+            [
+              "0x1124f7285",
+              1.0
+            ],
+            [
+              "0x1125fa7ad",
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": {
+        "name": "beach",
+        "x": -10,
+        "z": -150,
+        "yaw": 4.3,
+        "pitch": 0
+      },
+      "p95Ms": 48,
+      "maxMs": 61,
+      "anchors": [
+        [
+          28334,
+          1792273047219
+        ],
+        [
+          32532.000000000004,
+          1792273051418
+        ]
+      ],
+      "driftMs": 1.0,
+      "longFrameCount": 35,
+      "worstFrames": [
+        {
+          "startMs": 30785,
+          "intervalMs": 61,
+          "mainSampleMs": 37.0,
+          "inclusiveCategoryMs": {
+            "gc": 15.0
+          },
+          "topLeaves": [
+            [
+              "operationPutByValDirectBeyondArrayBoundsStrict",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "0x11141074d",
+              1.0
+            ],
+            [
+              "JSC::JSObject::setIndexQuickly(JSC::VM&, unsigned int, JSC::JSValue)",
+              1.0
+            ],
+            [
+              "WebCore::Region::rects() const",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 31952,
+          "intervalMs": 58,
+          "mainSampleMs": 45.0,
+          "inclusiveCategoryMs": {
+            "gc": 27.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::markAuxiliary(void const*)",
+              2.0
+            ],
+            [
+              "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+              2.0
+            ],
+            [
+              "JSC::InlineCacheHandler::visitWeak(JSC::VM&)",
+              2.0
+            ]
+          ]
+        },
+        {
+          "startMs": 30403,
+          "intervalMs": 56,
+          "mainSampleMs": 38.0,
+          "inclusiveCategoryMs": {
+            "gc": 14.0
+          },
+          "topLeaves": [
+            [
+              "operationGetByIdGaveUp",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              2.0
+            ],
+            [
+              "0x1126ba401",
+              1.0
+            ],
+            [
+              "0x112a321f9",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 28501,
+          "intervalMs": 55,
+          "mainSampleMs": 45.0,
+          "inclusiveCategoryMs": {
+            "gc": 26.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              8.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::markAuxiliary(void const*)",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "JSC::WeakSet::sweep()",
+              2.0
+            ]
+          ]
+        },
+        {
+          "startMs": 29670,
+          "intervalMs": 54,
+          "mainSampleMs": 37.0,
+          "inclusiveCategoryMs": {
+            "gc": 19.0
+          },
+          "topLeaves": [
+            [
+              "JSC::SlotVisitor::markAuxiliary(void const*)",
+              2.0
+            ],
+            [
+              "operationGetByIdMegamorphic",
+              2.0
+            ],
+            [
+              "0x1114e6841",
+              1.0
+            ],
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              1.0
+            ],
+            [
+              "void WebCore::SelectorDataList::execute<WebCore::Element*>(WebCore::ContainerNode&, WebCore::Element*&) const",
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": {
+        "name": "wreck",
+        "x": 105,
+        "z": 0,
+        "yaw": -1.5707963267948966,
+        "pitch": 0
+      },
+      "p95Ms": 49,
+      "maxMs": 55,
+      "anchors": [
+        [
+          34614,
+          1792273053500
+        ],
+        [
+          38823,
+          1792273057708
+        ]
+      ],
+      "driftMs": -1,
+      "longFrameCount": 45,
+      "worstFrames": [
+        {
+          "startMs": 36234,
+          "intervalMs": 55,
+          "mainSampleMs": 47.0,
+          "inclusiveCategoryMs": {
+            "gc": 27.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              7.0
+            ],
+            [
+              "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+              3.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              3.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "JSC::BlockDirectory::sweep()",
+              2.0
+            ]
+          ]
+        },
+        {
+          "startMs": 35955,
+          "intervalMs": 52,
+          "mainSampleMs": 42.0,
+          "inclusiveCategoryMs": {
+            "gc": 16.0
+          },
+          "topLeaves": [
+            [
+              "syscall_thread_switch",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "JSC::InlineCacheHandler::visitWeak(JSC::VM&)",
+              2.0
+            ],
+            [
+              "JSC::WeakSet::sweep()",
+              2.0
+            ],
+            [
+              "WebCore::Document::cssParserContext() const",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 35058,
+          "intervalMs": 50,
+          "mainSampleMs": 42.0,
+          "inclusiveCategoryMs": {
+            "gc": 26.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              7.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "JSC::JSObject::hasProperty(JSC::JSGlobalObject*, unsigned int) const",
+              1.0
+            ],
+            [
+              "0x112ecbf69",
+              1.0
+            ],
+            [
+              "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+              1.0
+            ]
+          ]
+        },
+        {
+          "startMs": 36850,
+          "intervalMs": 50,
+          "mainSampleMs": 43.0,
+          "inclusiveCategoryMs": {
+            "gc": 26.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              5.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              3.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::stopAllocating(JSC::FreeList const&)",
+              2.0
+            ],
+            [
+              "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+              2.0
+            ],
+            [
+              "operationArrayPushMultipleSlow",
+              2.0
+            ]
+          ]
+        },
+        {
+          "startMs": 38077,
+          "intervalMs": 50,
+          "mainSampleMs": 41.0,
+          "inclusiveCategoryMs": {
+            "gc": 23.0
+          },
+          "topLeaves": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "JSC::SlotVisitor::markAuxiliary(void const*)",
+              1.0
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
