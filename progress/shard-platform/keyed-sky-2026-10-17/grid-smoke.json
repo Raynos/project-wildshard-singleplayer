@@ -1,0 +1,60 @@
+{
+  "version": {
+    "build": "3867b74-mvcxnlzj",
+    "time": "2026-10-17T21:53:10.196Z"
+  },
+  "faults": [],
+  "packedRequests": [
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/39e820ae3363fb813cdd3114f5046e9c8f6c4b92d3e2ecc70d9a030286bb0d68.bin",
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/ae6435ad102c33a2ca04cd7dffb813fcf1b879997c9871ea037318b53b62c810.bin",
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/bd2706c812d8cd2e949b583f591bfd557b4e6c8b37aa1b4bce0525367dfc3713.bin",
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/c1ef10dc6df37f2f6e80f92b84e6d10bb72e7d998e35123621ec6fa3cbf8d523.bin",
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/cda906626e5bdc9df6db363e8e8e49adeee47f43bc90d646c36526c8f203732c.bin",
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/e8c9260c329b1168394cb0d3ae984cc027ad474321627f27aa10996de7cf6bfe.bin",
+    "http://127.0.0.1:4401/shardfiles/pine-hollow/blobs/bin/fa797e112c975513759b02b6b66bbf904eed8ac3b8818a30d6f76d7d50ffe01b.bin"
+  ],
+  "observations": [
+    {
+      "phase": 0.4166999999999999,
+      "home": "pine-hollow",
+      "inside": "pine-hollow",
+      "current": "pine-hollow",
+      "ready": true,
+      "renderFrame": 38,
+      "fatal": []
+    },
+    {
+      "phase": 0.9199999999999999,
+      "home": "pine-hollow",
+      "inside": "pine-hollow",
+      "current": "pine-hollow",
+      "ready": true,
+      "renderFrame": 38,
+      "fatal": []
+    }
+  ],
+  "packedStorage": [
+    {
+      "width": 2048,
+      "height": 1024
+    },
+    {
+      "width": 2048,
+      "height": 1024
+    }
+  ],
+  "packedUploads": [
+    {
+      "method": "texSubImage2D",
+      "width": 2048,
+      "height": 1024,
+      "bytes": 12582912
+    },
+    {
+      "method": "texSubImage2D",
+      "width": 2048,
+      "height": 1024,
+      "bytes": 12582912
+    }
+  ]
+}

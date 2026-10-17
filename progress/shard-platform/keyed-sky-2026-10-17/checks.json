@@ -1,0 +1,25 @@
+{
+  "parent": "0604da36c64a41eb207671ec65a1ed4d8302fdda",
+  "checkedSourceTree": "fe09120eef0c9af437f4b318b89822a41967ffa8",
+  "coldGenerationTree": "3867b748ad1a52e1c41e6cfc29d5c86ea30bf2f5",
+  "checks": {
+    "all10Products": "pass",
+    "rootTypes": "pass",
+    "layerTypes": "pass",
+    "typedLint": "pass",
+    "focusedTests": 37,
+    "shardHeadlessCases": 17,
+    "weatherDaySaveContinuation": "pass",
+    "gridPackedUploads": "pass",
+    "renderedComparisons": 48,
+    "minimumSSIM": 0.9999870939001777
+  },
+  "maps": {
+    "status": "source-only G490; sp-x10 owns central clean bake before strict push",
+    "affectedShards": [
+      "pine-hollow",
+      "driftwood-isle"
+    ],
+    "sourceProductWarning": "Expected stale map warning for these two shards; source build is non-strict."
+  }
+}

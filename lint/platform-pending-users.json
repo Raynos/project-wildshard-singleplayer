@@ -201,7 +201,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/sdk/looks/overcast.ts",
+      "module": "src/game/looks/overcast.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/shard-platform/open-x-queue.md",
@@ -210,7 +210,7 @@
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3",
       "approvedFeature": {
-        "name": "weather-keyed-sky",
+        "name": "weather reactions + keyed sky",
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
           "row": "G474"
@@ -743,7 +743,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/sdk/looks/daySky.ts",
+      "module": "src/game/looks/daySky.ts",
       "export": "driveDayAir",
       "shard": "nalati-grasslands",
       "plan": {
@@ -753,7 +753,7 @@
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3",
       "approvedFeature": {
-        "name": "weather-keyed-sky",
+        "name": "weather reactions + keyed sky",
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
           "row": "G474"
@@ -761,7 +761,7 @@
       }
     },
     {
-      "module": "src/sdk/looks/daySky.ts",
+      "module": "src/game/looks/daySky.ts",
       "export": "DayAirRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -771,7 +771,7 @@
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3",
       "approvedFeature": {
-        "name": "weather-keyed-sky",
+        "name": "weather reactions + keyed sky",
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
           "row": "G474"
@@ -779,7 +779,7 @@
       }
     },
     {
-      "module": "src/sdk/looks/daySky.ts",
+      "module": "src/game/looks/daySky.ts",
       "export": "DayAirFrame",
       "shard": "nalati-grasslands",
       "plan": {
@@ -789,7 +789,7 @@
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3",
       "approvedFeature": {
-        "name": "weather-keyed-sky",
+        "name": "weather reactions + keyed sky",
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
           "row": "G474"
@@ -2113,6 +2113,40 @@
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
           "row": "G473"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/keyedSky.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G477"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "weather reactions + keyed sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/keyedSkyClock.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G477"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "weather reactions + keyed sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
         }
       }
     }

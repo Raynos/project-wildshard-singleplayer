@@ -38,7 +38,7 @@ Nalati and Pine runtime world hooks lazily import these defining modules. The ki
 A curtain's frame of motion is data (W2 C2, H4): Pine Hollow's rain turns its curtain's velocity and wrapped offset,
 the splash and lens clocks and the lens's wetness through the numeric channel group `pine.rain`
 (`generators/rainChannels.ts`, private slots for the integrated values) over graph param roots
-(`@wildshard/sdk/looks/graphDaySky#graphParamRoots`); G441's W3 match is Nalati `world/WeatherFX.ts` `update`'s
+(`@wildshard/game/looks/graphDaySky#graphParamRoots`); G441's W3 match is Nalati `world/WeatherFX.ts` `update`'s
 curtain block.
 
 The historical `@wildshard/game/systems/npc/{figureRig,figureMotion,faceHeads}` exports remain literally unchanged
@@ -2402,7 +2402,24 @@ species look's `skin` (null keeps the procedural mesh: no hull, not loaded, or b
 Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS; the thralls' eyes and ferns
 baked by `generators/bake-pine-thrall-extras.mjs`).
 
-**Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/graphDaySky` (`src/sdk/looks/graphDaySky.ts`)
+**Weather reactions + keyed sky (G474/G477).** `look/keyed-sky` is an admitted
+platform section defined by `@wildshard/format/keyedSky`. The client-only
+`@wildshard/game/looks/keyedSky` consumes its image keys, preset frames,
+weather-response rows and graph/channel ids through `keyedSkyBackdrop`.
+`@wildshard/game/looks/keyedSkyClock` constructs the same renderer-free day clock for simulation.
+Photographic gain-map keys are packed as RGB half-float rows at build, with their original
+half-float horizon means retained as data; the page inflates and uploads packed
+texels into RGB9_E5 without a pixel conversion loop. The standalone half-float path still
+reads the original gain maps. See [WEATHER-KEYED-SKY.md](WEATHER-KEYED-SKY.md)
+for the data contract, lifetime and host-bar scope. The shared day-clock,
+day-air, overcast and graph-sky helpers now live in `@wildshard/game/looks/`.
+Their authoring contracts live in `@wildshard/format/dayLook`; live colour
+presets remain in `@wildshard/game/looks/dayLookPresets`.
+Day-clock dusk/lamps readers are numeric preset field ids, with no caller
+callbacks.
+
+
+**Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/graphDaySky` (`src/game/looks/graphDaySky.ts`)
 `graphDaySkyBackdrop(spec)` is a shard's day sky drawn on material graphs as a `SkyBackdropFactory`: the host compiles
 the sky's graphs (`spec.ids` from `spec.source`'s look catalogue, `DaySkyGraphs`), preloads the baked textures and LUT,
 adds the dome, owns the image-based light (`SkyEnvironment`; a scene source may build its first PMREM offscreen), runs
@@ -2421,7 +2438,7 @@ fills the `clock` owner (`phase`, `day`, `night`, `sunX…Z`, `moonX…Z`), eval
 Pine Hollow's keyed sky (`runtime/looks/keyedSky.ts`, group `pine.sky`) and Driftwood's faceted day
 (`runtime/looks/facetedDayBackdrop.ts`, group `driftwood.sky`) are its users.
 
-**Day air (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/daySky` (`src/sdk/looks/daySky.ts`) `driveDayAir(targets,
+**Day air (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/daySky` (`src/game/looks/daySky.ts`) `driveDayAir(targets,
 post, scene, row, frame)` writes the air a keyed day preset sets beside its key light (`driveDayLight`): the scene's
 `environmentIntensity`, the fog's colour, sun in-scatter and distance / height densities (left alone under water), the
 disc's colour and scale, the corona's colour and opacity, the cloud layer, the far ridges' haze and sea glint, and the
@@ -2431,7 +2448,7 @@ post chain's shafts, god rays and saturation. `DayAirRow` names the preset's fie
 share, disc scale, corona share). Uniforms only, no program changes. Pine Hollow's keyed sky is its user; G441's W3 match
 is Nalati `look/skyRig.ts` `SkyRig.apply`, whose environment, fog, disc, corona and cloud-light writes move onto it.
 
-**Overcast rows (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/overcast` (`src/sdk/looks/overcast.ts`)
+**Overcast rows (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/overcast` (`src/game/looks/overcast.ts`)
 `overcastOver(look, rows, s, level)` lays a cloud deck `s` (0 … 1) over the hour's blended look in place from
 `OvercastRow` data: `scale` (× 1 + by·s, optionally through a smoothstep `curve`), `add`, `atLeast`, `grey` (toward the
 colour's luminance × a tint) and `toward` (a storm palette colour, × the caller's light `level` when `lit`). Pine

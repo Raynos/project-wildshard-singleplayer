@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
-import { graphParamRoots } from '../src/sdk/looks/graphDaySky';
+import { graphParamRoots } from '../src/game/looks/graphDaySky';
 import { PINE_RAIN_PROGRAMS } from '../src/shards/pine-hollow/data/weatherLook';
 import { pineRainChannels } from '../src/shards/pine-hollow/generators/rainChannels';
 

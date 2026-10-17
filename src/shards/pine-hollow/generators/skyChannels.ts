@@ -2,7 +2,7 @@
 // environment pass's) blend, key turns and gains from the keyed sky's own numbers (`keys`), the light direction (the sun by
 // day and while the night is under half, else the moon), the aureole's glow (the preset's, faded below the horizon by day
 // and under the deck), the deck's grey and its flat colour (the fog's × 1.05), read from the clock owner the graph day sky
-// fills (`@wildshard/sdk/looks/graphDaySky`).
+// fills (`@wildshard/game/looks/graphDaySky`).
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import { SKY_LOOKS } from '../data/skyLook';
 

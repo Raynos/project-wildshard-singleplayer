@@ -1,3 +1,4 @@
+import { KEYED_SKY, type KeyedSkyStyle } from './keyedSky';
 import { SpawnScriptsSchema, type SpawnScriptRows } from './spawnScripts';
 import { ClientPlanSchema, type ClientPlan } from './clientPlan';
 import { WorldScenesSchema, type WorldScenesSection } from './worldScenes';
@@ -19,6 +20,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'look/keyed-sky': KeyedSkyStyle;
   'client/plan': ClientPlan;
   'held/arms': HeldArmsRows;
   'held/gear': HeldGearRows;
@@ -40,6 +42,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'look/keyed-sky': { schema: KEYED_SKY },
   'client/plan': { schema: ClientPlanSchema },
   'held/arms': { schema: HeldArmsSchema },
   'held/gear': { schema: HeldGearSchema },
@@ -65,6 +68,7 @@ export type PlatformDataSectionName = keyof PlatformDataSections;
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
 export function parsePlatformDataSection(name: 'held/finishes', value: unknown): HeldFinishesRows;
 export function parsePlatformDataSection(name: 'held/gear', value: unknown): HeldGearRows;
+export function parsePlatformDataSection(name: 'look/keyed-sky', value: unknown): KeyedSkyStyle;
 export function parsePlatformDataSection(name: 'client/plan', value: unknown): ClientPlan;
 export function parsePlatformDataSection(name: 'held/arms', value: unknown): HeldArmsRows;
 export function parsePlatformDataSection(name: 'held/loadout', value: unknown): LoadoutRows;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import type { SkyBackdropPost, SkyBackdropTargets } from '../src/engine/render/look';
-import { driveDayAir, type DayAirRow } from '../src/sdk/looks/daySky';
+import { driveDayAir, type DayAirRow } from '../src/game/looks/daySky';
 
 const c = (v: number): THREE.Color => new THREE.Color(v, v, v);
 const u = <T>(value: T): { value: T } => ({ value });

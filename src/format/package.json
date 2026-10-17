@@ -174,7 +174,9 @@
     "./limbRig": "./limbRig.ts",
     "./limbCollision": "./limbCollision.ts",
     "./limbPopulation": "./limbPopulation.ts",
-    "./worldSceneModels": "./worldSceneModels.ts"
+    "./worldSceneModels": "./worldSceneModels.ts",
+    "./keyedSky": "./keyedSky.ts",
+    "./dayLook": "./dayLook.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

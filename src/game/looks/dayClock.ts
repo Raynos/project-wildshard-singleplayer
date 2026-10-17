@@ -1,7 +1,8 @@
-import type { DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
+import type { DayClockStyle, DayClockReads, DayLookSchema } from '@wildshard/format/dayLook';
+import { isJsonData } from '@wildshard/format/json';
 import { compassDir as dirFrom, DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
 import * as THREE from 'three';
-import { dayLookPresets, type DayLookPreset, type DayLookRow, type DayLookSchema } from './dayLookPresets';
+import { dayLookPresets, type DayLookPreset } from './dayLookPresets';
 
 /**
  * A keyed day / night clock as data (SHARD-PLATFORM W2 C2; Pine Hollow's keyed sky and Driftwood's faceted day): a shard's
@@ -20,41 +21,8 @@ import { dayLookPresets, type DayLookPreset, type DayLookRow, type DayLookSchema
  * key lights with it (`driveDayLight`).
  */
 
-type Range = readonly [number, number];
 /** A clock's curves (the engine's DayCycleSpec curves). */
 export type DayCurves = NonNullable<DayCycleSpec['curves']>;
-
-/** A keyed day clock's row: the shard's own row type extends this. */
-export interface DayClockStyle<S extends DayLookSchema> {
-  /** the day's share of the cycle (sunset's phase) */
-  readonly dayFraction: number;
-  /** the start phase when nothing pins one */
-  readonly start: number;
-  readonly schedule: readonly DayClockSegment[];
-  /** Settings ▸ Time of day's picks → the phase they park the clock at */
-  readonly fixed: DayClockRow['fixed'];
-  /** the engine's named light presets → phase */
-  readonly namedPhases: DayClockRow['presets'];
-  /** `?tod=` names → phase (a number always works) */
-  readonly phases?: Readonly<Record<string, number>>;
-  readonly presets: Readonly<Record<string, DayLookRow<S>>>;
-  /** keyframes over the phase (sorted; wraps 1 → 0): a phase and the preset it holds */
-  readonly frames: readonly (readonly [number, string])[];
-  readonly sun: { readonly rise: number; readonly sweep: number; readonly noon: number; readonly nightRise: number; readonly nightSweep: number; readonly nadir: number };
-  readonly moon: { readonly rise: number; readonly sweep: number; readonly base: number; readonly arc: number };
-  readonly night: { readonly eve?: { readonly span: Range; readonly height: number }; readonly rise: Range; readonly fall: Range };
-  readonly fade: { readonly sunY: Range; readonly moonIn: Range; readonly moonOut: Range };
-  /** the dusk curve from the sun's height (1 → 0 over these heights, never under the night); without it, `duskOf` */
-  readonly dusk?: Range;
-  /** the dawn curve: its phase and the distance window it fades over (none: 0) */
-  readonly dawn?: { readonly at: number; readonly width: Range };
-}
-
-/** What a preset adds to the curves: its dusk level (eased between keyframes), its lamps (over the night). */
-export interface DayClockReads<S extends DayLookSchema> {
-  readonly duskOf?: (p: DayLookPreset<S>) => number;
-  readonly lampsOf?: (p: DayLookPreset<S>) => number;
-}
 
 /** A keyed day clock: the engine spec, the live presets, the bodies' paths and the curves. */
 export interface DayClock<S extends DayLookSchema, T extends DayClockStyle<S> = DayClockStyle<S>> {
@@ -77,6 +45,13 @@ const smooth = THREE.MathUtils.smoothstep;
 
 /** The clock a row declares, its presets of `schema`. */
 export function dayClock<S extends DayLookSchema, T extends DayClockStyle<S>>(schema: S, style: T, reads: DayClockReads<S> = {}): DayClock<S, T> {
+  if (!isJsonData(schema) || !isJsonData(style) || !isJsonData(reads) || Object.keys(reads).some(key => key !== 'dusk' && key !== 'lamps')) throw new Error('Day clocks require plain rows and field ids');
+  for (const field of [reads.dusk, reads.lamps]) if (field !== undefined && schema[field] !== 'number') throw new Error('Day curve field must name a number');
+  const valueOf = (preset: DayLookPreset<S>, field: NonNullable<typeof reads.dusk>): number => {
+    const value: unknown = preset[field];
+    if (typeof value !== 'number') throw new Error('Day curve field is not numeric');
+    return value;
+  };
   const kit = dayLookPresets(schema), DAY = style.dayFraction, { sun, moon, night, fade } = style;
   const presets: Record<string, DayLookPreset<S>> = {};
   for (const [name, row] of Object.entries(style.presets)) presets[name] = kit.live(row);
@@ -114,22 +89,22 @@ export function dayClock<S extends DayLookSchema, T extends DayClockStyle<S>>(sc
     fixed: style.fixed, presets: style.namedPhases,
   };
   // dusk: the sun's height, or the presets' dusk eased between keyframes
-  const duskSun = new THREE.Vector3(), duskScratch = kit.clone(first), { duskOf, lampsOf } = reads, duskRow = style.dusk;
+  const duskSun = new THREE.Vector3(), duskScratch = kit.clone(first), duskField = reads.dusk, lampsField = reads.lamps, duskRow = style.dusk;
   const dusk = (p: number): number => {
     if (duskRow !== undefined) return Math.max(nightAt(p), 1 - smooth(sunAt(p, duskSun).y, duskRow[0], duskRow[1]));
-    if (duskOf === undefined) return 0;
+    if (duskField === undefined) return 0;
     let i = 0;
     while (i < frames.length - 2 && (frames[i + 1]?.[0] ?? 1) <= p) i++;
     const a = frames[i], b = frames[i + 1];
     if (a && b) kit.lerp(duskScratch, a[1], b[1], smooth(p, a[0], b[0]));
-    return duskOf(duskScratch);
+    return valueOf(duskScratch, duskField);
   };
   // lamps: the presets' lamps (keyed like the light) over the night
   const lampClock = new DayCycle(base), lampScratch = kit.clone(first);
   const lamps = (p: number): number => {
-    if (lampsOf === undefined) return nightAt(p);
+    if (lampsField === undefined) return nightAt(p);
     lampClock.phase = p; lampClock.key(lampScratch);
-    return Math.max(lampsOf(lampScratch), nightAt(p));
+    return Math.max(valueOf(lampScratch, lampsField), nightAt(p));
   };
   const spec: DayClock<S, T>['spec'] = { ...base, curves: { night: nightAt, dusk, dawn: dawnAt, lamps } };
   return { style, spec, presets, clone: kit.clone, sunAt, moonAt, nightAt, dawnAt, fadeAt };

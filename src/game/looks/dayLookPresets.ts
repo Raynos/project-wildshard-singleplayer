@@ -1,3 +1,4 @@
+import type { DayLookSchema, DayLookRow } from '@wildshard/format/dayLook';
 import { Color } from 'three';
 
 /**
@@ -14,14 +15,6 @@ import { Color } from 'three';
  * at the midpoint), or a nested group of fields.
  */
 
-/** A preset's fields: each a colour, a number, a name, or a nested group. */
-export interface DayLookSchema { readonly [field: string]: 'colour' | 'number' | 'name' | DayLookSchema }
-/** A colour as data: an sRGB hex number, or linear RGB. */
-export type DayLookColour = number | readonly [number, number, number];
-/** A preset as data. */
-export type DayLookRow<S extends DayLookSchema> = {
-  readonly [K in keyof S]: S[K] extends 'colour' ? DayLookColour : S[K] extends 'number' ? number : S[K] extends 'name' ? string : S[K] extends DayLookSchema ? DayLookRow<S[K]> : never;
-};
 /** A live preset: its colours as three.js colours. */
 export type DayLookPreset<S extends DayLookSchema> = {
   -readonly [K in keyof S]: S[K] extends 'colour' ? Color : S[K] extends 'number' ? number : S[K] extends 'name' ? string : S[K] extends DayLookSchema ? DayLookPreset<S[K]> : never;

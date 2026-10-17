@@ -102,11 +102,6 @@
     "./looks/tileField": "./looks/tileField.ts",
     "./looks/cardField": "./looks/cardField.ts",
     "./looks/effectField": "./looks/effectField.ts",
-    "./looks/dayLookPresets": "./looks/dayLookPresets.ts",
-    "./looks/dayClock": "./looks/dayClock.ts",
-    "./looks/daySky": "./looks/daySky.ts",
-    "./looks/graphDaySky": "./looks/graphDaySky.ts",
-    "./looks/overcast": "./looks/overcast.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
@@ -569,26 +564,6 @@
       "./looks/effectField": {
         "types": "./dist/types/sdk/looks/effectField.d.ts",
         "default": "./dist/looks/effectField.js"
-      },
-      "./looks/dayLookPresets": {
-        "types": "./dist/types/sdk/looks/dayLookPresets.d.ts",
-        "default": "./dist/looks/dayLookPresets.js"
-      },
-      "./looks/dayClock": {
-        "types": "./dist/types/sdk/looks/dayClock.d.ts",
-        "default": "./dist/looks/dayClock.js"
-      },
-      "./looks/daySky": {
-        "types": "./dist/types/sdk/looks/daySky.d.ts",
-        "default": "./dist/looks/daySky.js"
-      },
-      "./looks/graphDaySky": {
-        "types": "./dist/types/sdk/looks/graphDaySky.d.ts",
-        "default": "./dist/looks/graphDaySky.js"
-      },
-      "./looks/overcast": {
-        "types": "./dist/types/sdk/looks/overcast.d.ts",
-        "default": "./dist/looks/overcast.js"
       },
       "./looks/riggedHulls": {
         "types": "./dist/types/sdk/looks/riggedHulls.d.ts",

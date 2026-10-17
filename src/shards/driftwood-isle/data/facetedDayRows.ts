@@ -1,8 +1,7 @@
-import type { DayClockStyle } from '@wildshard/sdk/looks/dayClock';
-import type { DayLookPreset, DayLookSchema } from '@wildshard/sdk/looks/dayLookPresets';
+import type { DayClockStyle, DayLookSchema } from '@wildshard/format/dayLook';
 
 /**
- * A faceted day's row types (SHARD-PLATFORM M3, look-family rows; the shared day clock `@wildshard/sdk/looks/dayClock` is its
+ * A faceted day's row types (SHARD-PLATFORM M3, look-family rows; the shared day clock `@wildshard/game/looks/dayClock` is its
  * clock): the keyed light presets, the keyframes, the arcs, the curves and the backdrop's numbers, all data
  * (data/skyDay.ts is Driftwood's row).
  */
@@ -50,5 +49,3 @@ export const FACETED_DAY_PRESET = {
   lift: 'colour', rim: 'colour', fogNear: 'colour', fogSun: 'colour', disc: 'colour', cloudShadow: 'number', dusk: 'number',
 } as const satisfies DayLookSchema & Record<keyof FacetedDayPresetRow, unknown>;
 
-/** one live preset (the row's colours as three.js colours) */
-export type FacetedDayPreset = DayLookPreset<typeof FACETED_DAY_PRESET>;

@@ -108,5 +108,6 @@
   "test/nine-cloth-bake.test.ts": [],
   "test/living-buildings-platform.test.ts": [],
   "test/declared-audio-gameplay.test.ts": [],
-  "test/elites-platform.test.ts": []
+  "test/elites-platform.test.ts": [],
+  "test/keyed-sky-platform.test.ts": []
 }

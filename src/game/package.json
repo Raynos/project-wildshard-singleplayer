@@ -177,7 +177,14 @@
     "./animation/limbQueryPose": "./animation/limbQueryPose.ts",
     "./animation/limbQueryView": "./animation/limbQueryView.ts",
     "./animation/limbPopulation": "./animation/limbPopulation.ts",
-    "./models/worldSceneCatalogue": "./models/worldSceneCatalogue.ts"
+    "./models/worldSceneCatalogue": "./models/worldSceneCatalogue.ts",
+    "./looks/dayLookPresets": "./looks/dayLookPresets.ts",
+    "./looks/dayClock": "./looks/dayClock.ts",
+    "./looks/daySky": "./looks/daySky.ts",
+    "./looks/graphDaySky": "./looks/graphDaySky.ts",
+    "./looks/overcast": "./looks/overcast.ts",
+    "./looks/keyedSky": "./looks/keyedSky.ts",
+    "./looks/keyedSkyClock": "./looks/keyedSkyClock.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

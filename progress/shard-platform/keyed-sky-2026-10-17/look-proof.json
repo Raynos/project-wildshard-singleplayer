@@ -1,0 +1,525 @@
+{
+  "feature": "weather reactions + keyed sky",
+  "scope": "keyed sky; weather wiring remains feature 11 tail",
+  "baseline": {
+    "commit": "016f282417d5b650a6f1857769b07f6bceb00ada",
+    "version": {
+      "build": "016f282-mvctof6b",
+      "time": "2026-10-17T20:01:48.983Z"
+    }
+  },
+  "candidate": {
+    "parent": "cb834b67c78b6bab8580db2f099b5c7fe1215dea",
+    "tree": "3867b748ad1a52e1c41e6cfc29d5c86ea30bf2f5",
+    "version": {
+      "build": "3867b74-mvcxnlzj",
+      "time": "2026-10-17T21:53:10.196Z"
+    }
+  },
+  "method": {
+    "capture": "Game.captureFrame(402), full rendered world without DOM",
+    "device": "iPhone 16 Pro",
+    "tiers": [
+      "phone",
+      "desktop"
+    ],
+    "weather": [
+      "clear",
+      "overcast",
+      "rain"
+    ],
+    "keys": [
+      "day",
+      "dusk",
+      "night",
+      "dawn"
+    ],
+    "poses": {
+      "cabin": [
+        -14,
+        -62,
+        3.141592653589793,
+        0
+      ],
+      "pond": [
+        -56,
+        95,
+        3.141592653589793,
+        0.15
+      ]
+    },
+    "threshold": 0.9995
+  },
+  "minimumSSIM": 0.9999870939001777,
+  "comparisons": [
+    {
+      "id": "phone-day-clear-cabin",
+      "tier": "phone",
+      "key": "day",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999999975295402
+    },
+    {
+      "id": "phone-day-clear-pond",
+      "tier": "phone",
+      "key": "day",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.9999999993239223
+    },
+    {
+      "id": "phone-day-overcast-cabin",
+      "tier": "phone",
+      "key": "day",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999998652552903
+    },
+    {
+      "id": "phone-day-overcast-pond",
+      "tier": "phone",
+      "key": "day",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 0.9999998422253321
+    },
+    {
+      "id": "phone-day-rain-cabin",
+      "tier": "phone",
+      "key": "day",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999999462219548
+    },
+    {
+      "id": "phone-day-rain-pond",
+      "tier": "phone",
+      "key": "day",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 0.9999999035390416
+    },
+    {
+      "id": "phone-dusk-clear-cabin",
+      "tier": "phone",
+      "key": "dusk",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999999813240421
+    },
+    {
+      "id": "phone-dusk-clear-pond",
+      "tier": "phone",
+      "key": "dusk",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.9999996324413413
+    },
+    {
+      "id": "phone-dusk-overcast-cabin",
+      "tier": "phone",
+      "key": "dusk",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999998742998936
+    },
+    {
+      "id": "phone-dusk-overcast-pond",
+      "tier": "phone",
+      "key": "dusk",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 0.9999998882845402
+    },
+    {
+      "id": "phone-dusk-rain-cabin",
+      "tier": "phone",
+      "key": "dusk",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999992681131835
+    },
+    {
+      "id": "phone-dusk-rain-pond",
+      "tier": "phone",
+      "key": "dusk",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 0.9999999982336325
+    },
+    {
+      "id": "phone-night-clear-cabin",
+      "tier": "phone",
+      "key": "night",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999999944102835
+    },
+    {
+      "id": "phone-night-clear-pond",
+      "tier": "phone",
+      "key": "night",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.9999998508226944
+    },
+    {
+      "id": "phone-night-overcast-cabin",
+      "tier": "phone",
+      "key": "night",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999999947276781
+    },
+    {
+      "id": "phone-night-overcast-pond",
+      "tier": "phone",
+      "key": "night",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 0.9999998111984372
+    },
+    {
+      "id": "phone-night-rain-cabin",
+      "tier": "phone",
+      "key": "night",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999999986225071
+    },
+    {
+      "id": "phone-night-rain-pond",
+      "tier": "phone",
+      "key": "night",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 1
+    },
+    {
+      "id": "phone-dawn-clear-cabin",
+      "tier": "phone",
+      "key": "dawn",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999999872981986
+    },
+    {
+      "id": "phone-dawn-clear-pond",
+      "tier": "phone",
+      "key": "dawn",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.9999999837021276
+    },
+    {
+      "id": "phone-dawn-overcast-cabin",
+      "tier": "phone",
+      "key": "dawn",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 1
+    },
+    {
+      "id": "phone-dawn-overcast-pond",
+      "tier": "phone",
+      "key": "dawn",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 0.9999999934477687
+    },
+    {
+      "id": "phone-dawn-rain-cabin",
+      "tier": "phone",
+      "key": "dawn",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999999930983424
+    },
+    {
+      "id": "phone-dawn-rain-pond",
+      "tier": "phone",
+      "key": "dawn",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 0.999999985006894
+    },
+    {
+      "id": "desktop-day-clear-cabin",
+      "tier": "desktop",
+      "key": "day",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999870939001777
+    },
+    {
+      "id": "desktop-day-clear-pond",
+      "tier": "desktop",
+      "key": "day",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.9999999916828116
+    },
+    {
+      "id": "desktop-day-overcast-cabin",
+      "tier": "desktop",
+      "key": "day",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999893454003647
+    },
+    {
+      "id": "desktop-day-overcast-pond",
+      "tier": "desktop",
+      "key": "day",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 0.9999999997058997
+    },
+    {
+      "id": "desktop-day-rain-cabin",
+      "tier": "desktop",
+      "key": "day",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999889420803583
+    },
+    {
+      "id": "desktop-day-rain-pond",
+      "tier": "desktop",
+      "key": "day",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 0.9999999007896067
+    },
+    {
+      "id": "desktop-dusk-clear-cabin",
+      "tier": "desktop",
+      "key": "dusk",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999891870833545
+    },
+    {
+      "id": "desktop-dusk-clear-pond",
+      "tier": "desktop",
+      "key": "dusk",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.9999999911612283
+    },
+    {
+      "id": "desktop-dusk-overcast-cabin",
+      "tier": "desktop",
+      "key": "dusk",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999970153207421
+    },
+    {
+      "id": "desktop-dusk-overcast-pond",
+      "tier": "desktop",
+      "key": "dusk",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 1
+    },
+    {
+      "id": "desktop-dusk-rain-cabin",
+      "tier": "desktop",
+      "key": "dusk",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999959553937999
+    },
+    {
+      "id": "desktop-dusk-rain-pond",
+      "tier": "desktop",
+      "key": "dusk",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 1
+    },
+    {
+      "id": "desktop-night-clear-cabin",
+      "tier": "desktop",
+      "key": "night",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999893114155131
+    },
+    {
+      "id": "desktop-night-clear-pond",
+      "tier": "desktop",
+      "key": "night",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 0.999999977383883
+    },
+    {
+      "id": "desktop-night-overcast-cabin",
+      "tier": "desktop",
+      "key": "night",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999922929131596
+    },
+    {
+      "id": "desktop-night-overcast-pond",
+      "tier": "desktop",
+      "key": "night",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 1
+    },
+    {
+      "id": "desktop-night-rain-cabin",
+      "tier": "desktop",
+      "key": "night",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.9999912998562552
+    },
+    {
+      "id": "desktop-night-rain-pond",
+      "tier": "desktop",
+      "key": "night",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 0.99999995462838
+    },
+    {
+      "id": "desktop-dawn-clear-cabin",
+      "tier": "desktop",
+      "key": "dawn",
+      "weather": "clear",
+      "pose": "cabin",
+      "ssim": 0.9999963076169895
+    },
+    {
+      "id": "desktop-dawn-clear-pond",
+      "tier": "desktop",
+      "key": "dawn",
+      "weather": "clear",
+      "pose": "pond",
+      "ssim": 1
+    },
+    {
+      "id": "desktop-dawn-overcast-cabin",
+      "tier": "desktop",
+      "key": "dawn",
+      "weather": "overcast",
+      "pose": "cabin",
+      "ssim": 0.9999934216852736
+    },
+    {
+      "id": "desktop-dawn-overcast-pond",
+      "tier": "desktop",
+      "key": "dawn",
+      "weather": "overcast",
+      "pose": "pond",
+      "ssim": 1
+    },
+    {
+      "id": "desktop-dawn-rain-cabin",
+      "tier": "desktop",
+      "key": "dawn",
+      "weather": "rain",
+      "pose": "cabin",
+      "ssim": 0.999991245128404
+    },
+    {
+      "id": "desktop-dawn-rain-pond",
+      "tier": "desktop",
+      "key": "dawn",
+      "weather": "rain",
+      "pose": "pond",
+      "ssim": 1
+    }
+  ],
+  "errors": [],
+  "packing": {
+    "rows": [
+      {
+        "key": "dawn",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "key": "day",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "key": "dusk",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "key": "golden",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "key": "night",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "key": "sunrise",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "key": "sunset",
+        "texels": 2097152,
+        "differences": 0,
+        "maxBitDelta": 0,
+        "horizonDifference": [
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "maps": {
+    "status": "source-only G490 landing; official batch bake owned by sp-x10"
+  }
+}

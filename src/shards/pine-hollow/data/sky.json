@@ -756,5 +756,43 @@
       "key": "lamps",
       "by": 0.35
     }
-  ]
+  ],
+  "response": {
+    "shadowStep": 0.25,
+    "overcastLamps": 0.35,
+    "domeDim": 0.5,
+    "horizonCeiling": 1.1,
+    "overcastHorizon": {
+      "luma": 0.92,
+      "tint": [
+        0.95,
+        0.98,
+        1.03
+      ],
+      "amount": 0.85
+    },
+    "mistHorizon": {
+      "luma": 1.08,
+      "tint": [
+        0.96,
+        1,
+        1.05
+      ],
+      "amount": 0.6
+    },
+    "moonDisc": 0.6,
+    "minLight": 0.05,
+    "lightBase": 3.8,
+    "above": [
+      -0.03,
+      0.02
+    ],
+    "residentKeys": 3,
+    "prefetch": 0.0005,
+    "environment": {
+      "width": 1024,
+      "smallWidth": 512,
+      "refresh": 2
+    }
+  }
 }

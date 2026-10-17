@@ -17979,6 +17979,64 @@
         "src/shards/driftwood-isle/assets/world-scenes/rings.glb"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "pine-packed-sky-keys",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-keyed-sky.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-keyed-sky.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk",
+        "src/format",
+        "src/shards/pine-hollow/generators/bake-keyed-sky.mjs",
+        "src/shards/pine-hollow/data/sky.json",
+        "scripts/bake/keyed-sky.mjs",
+        "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs",
+        "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_dawn_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_sunrise_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_sunrise_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_mid_morning_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_mid_morning_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_late_afternoon_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_late_afternoon_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_sunset_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_sunset_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_dusk_2_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_dusk_2_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_moon_noon_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_moon_noon_puresky_2k.key.gain.png"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/skyKeyBlobs.generated.json",
+        "src/shards/pine-hollow/data/keyedSky.generated.json",
+        "src/shards/pine-hollow/assets/sky-keys/bd2706c812d8cd2e949b583f591bfd557b4e6c8b37aa1b4bce0525367dfc3713",
+        "src/shards/pine-hollow/assets/sky-keys/e8c9260c329b1168394cb0d3ae984cc027ad474321627f27aa10996de7cf6bfe",
+        "src/shards/pine-hollow/assets/sky-keys/cda906626e5bdc9df6db363e8e8e49adeee47f43bc90d646c36526c8f203732c",
+        "src/shards/pine-hollow/assets/sky-keys/39e820ae3363fb813cdd3114f5046e9c8f6c4b92d3e2ecc70d9a030286bb0d68",
+        "src/shards/pine-hollow/assets/sky-keys/c1ef10dc6df37f2f6e80f92b84e6d10bb72e7d998e35123621ec6fa3cbf8d523",
+        "src/shards/pine-hollow/assets/sky-keys/ae6435ad102c33a2ca04cd7dffb813fcf1b879997c9871ea037318b53b62c810",
+        "src/shards/pine-hollow/assets/sky-keys/fa797e112c975513759b02b6b66bbf904eed8ac3b8818a30d6f76d7d50ffe01b"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/skyKeyBlobs.generated.json",
+        "src/shards/pine-hollow/data/keyedSky.generated.json",
+        "src/shards/pine-hollow/assets/sky-keys/bd2706c812d8cd2e949b583f591bfd557b4e6c8b37aa1b4bce0525367dfc3713",
+        "src/shards/pine-hollow/assets/sky-keys/e8c9260c329b1168394cb0d3ae984cc027ad474321627f27aa10996de7cf6bfe",
+        "src/shards/pine-hollow/assets/sky-keys/cda906626e5bdc9df6db363e8e8e49adeee47f43bc90d646c36526c8f203732c",
+        "src/shards/pine-hollow/assets/sky-keys/39e820ae3363fb813cdd3114f5046e9c8f6c4b92d3e2ecc70d9a030286bb0d68",
+        "src/shards/pine-hollow/assets/sky-keys/c1ef10dc6df37f2f6e80f92b84e6d10bb72e7d998e35123621ec6fa3cbf8d523",
+        "src/shards/pine-hollow/assets/sky-keys/ae6435ad102c33a2ca04cd7dffb813fcf1b879997c9871ea037318b53b62c810",
+        "src/shards/pine-hollow/assets/sky-keys/fa797e112c975513759b02b6b66bbf904eed8ac3b8818a30d6f76d7d50ffe01b"
+      ],
+      "platform": "portable"
     }
   ]
 }

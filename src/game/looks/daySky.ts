@@ -3,7 +3,8 @@ import { setting } from '@wildshard/engine/ui/Settings';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import * as THREE from 'three';
 import type { DayClock, DayCurves } from './dayClock';
-import type { DayLookPreset, DayLookSchema } from './dayLookPresets';
+import type { DayLookPreset } from './dayLookPresets';
+import type { DayLookSchema } from '@wildshard/format/dayLook';
 
 /**
  * A keyed day clock on a page (SHARD-PLATFORM W2 C2; Pine Hollow's keyed sky and Driftwood's faceted day): the backdrop's

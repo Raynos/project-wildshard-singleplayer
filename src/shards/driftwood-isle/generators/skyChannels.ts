@@ -1,7 +1,7 @@
 // Driftwood's faceted day frame as a numeric channel group (SHARD-PLATFORM W2 C2, H4): every knob the blended preset turns
 // (the dome and cumulus graphs' palette, the horizon matte's palette, the toon day light, the colour-ramp fog, the backdrop's
 // fog, disc and planet), read from the preset the clock keys and the clock owner the graph day sky fills
-// (`@wildshard/sdk/looks/graphDaySky`). The light body's direction is the sun by day and the moon by night.
+// (`@wildshard/game/looks/graphDaySky`). The light body's direction is the sun by day and the moon by night.
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import DRIFTWOOD_SKY_DAY from '../data/skyDay.json' with { type: 'json' };
 

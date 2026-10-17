@@ -10,7 +10,7 @@ import { pineWaterSurface, setWaterFade } from '../../world/water';
 import { fetchLaneBake, GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
-import { graphParamRoots } from '@wildshard/sdk/looks/graphDaySky';
+import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
 import { lentLook, pushLentParams, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 
 /**

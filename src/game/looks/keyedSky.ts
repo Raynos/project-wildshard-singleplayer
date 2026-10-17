@@ -1,28 +1,28 @@
+import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { loadBakedSky, skyHorizonColor } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { DayClock } from '@wildshard/sdk/looks/dayClock';
-import { driveDayAir, driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
-import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/sdk/looks/graphDaySky';
-import { overcastOver } from '@wildshard/sdk/looks/overcast';
+import { driveDayAir, driveDayLight, runDayClock } from '@wildshard/game/looks/daySky';
+import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/game/looks/graphDaySky';
+import { overcastOver } from '@wildshard/game/looks/overcast';
 import * as THREE from 'three';
-import type { KeyedSkyStyle, SKY_PRESET, SkyKeyRow, SkyPreset } from '../../data/keyedSkyRows';
+import type { KeyedSkyStyle, SkyKeyRow } from '@wildshard/format/keyedSky';
 
-/** A keyed sky's clock: the shared day clock over its row. */
-export type KeyedSkyDay = DayClock<typeof SKY_PRESET, KeyedSkyStyle>;
+import { keyedSkyDay, type KeyedSkyDay, type SkyPreset } from './keyedSkyClock';
 
 /**
- * A day / night sky drawn from photographic keys (SHARD-PLATFORM M3, look-family rows): the backdrop half of a keyed sky,
- * its clock and every number data (`KeyedSkyStyle`, on the shared day clock `@wildshard/sdk/looks/dayClock`).
+ * Client-only day / night presentation from photographic keys (SHARD-PLATFORM M3, look-family rows): the backdrop half of a keyed sky,
+ * its clock and every number data (`KeyedSkyStyle`, on the shared day clock `@wildshard/game/looks/dayClock`).
  *
  * THE SKY is a dome drawn from two baked equirect keys at a time (gain-mapped pairs, each key's own sun painted out by the
  * bake), blended by the clock, each turned about the vertical so its sun glow sits on the clock's sun azimuth (the moon key's
  * on the moon), and scaled by a per-preset gain. The dome adds an analytic aureole around the clock's own sun / moon. Both
  * are the shard's look.materials graphs (data/skyLook.ts; the keys lent as they decode, the rest params set each frame): the
- * dome's, and the environment pass's, which renders the blend into a 1024×512 equirect every 2 s and PMREM turns it into the scene's environment (IBL) in
- * place, so every lit material sees the sky of the hour. The SDK's graph day sky (`@wildshard/sdk/looks/graphDaySky`) owns
- * the graphs, the environment, the clock's jumps and the backdrop's lifecycle; this is the sky and its frame. The keys' GPU textures are decoded on demand (at most 3 resident:
+ * dome's, and the environment pass's, which renders the blend at the row's declared size and cadence; PMREM turns it into the scene's environment (IBL) in
+ * place, so every lit material sees the sky of the hour. The game's graph day sky (`@wildshard/game/looks/graphDaySky`) owns
+ * the graphs, the environment, the clock's jumps and the backdrop's lifecycle; this is the sky and its frame. The keys' GPU textures are decoded on demand (the row bounds residency:
  * the two being blended and the next one, decoded ahead); their CPU copies are dropped after upload.
  *
  * THE LIGHT: the scene's CSM lights, hemisphere and fog — never added or removed — driven by the keyed presets: the sun's
@@ -41,8 +41,8 @@ function skyKeyFiles(style: KeyedSkyStyle, key: SkyKeyRow): { color: string; gai
   return { color: style.keyFiles.color.replaceAll('{id}', key.id), gain: style.keyFiles.gain.replaceAll('{id}', key.id) };
 }
 
-const SHADOW_STEP = 0.25 * Math.PI / 180;
 const tmpC = new THREE.Color();
+let uploadTurn: Promise<void> = Promise.resolve();
 
 /** one decoded key: its GPU texture (CPU copy dropped after upload) and its horizon colour */
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number; /** GPU bytes (RGBA16F 8 a texel, RGB9_E5 4) */ bytes: number }
@@ -72,10 +72,10 @@ export interface KeyedSkyOptions {
   readonly smallEnv: boolean;
 }
 
-/** The sky's two graphs' texture lender (the dome's and the environment pass's); their params are the `pine.sky` channels. */
+/** The sky's two graphs' texture lender (the dome's and the environment pass's); their params are the `keyed sky` channels. */
 interface KeyedSkyGraphs { readonly lend: (name: string, texture: THREE.Texture) => void }
 
-export class KeyedSky {
+class KeyedSky {
   readonly clock: DayCycle<SkyPreset>;
   get phase(): number { return this.clock.phase; }
   night = 0;
@@ -97,7 +97,7 @@ export class KeyedSky {
   private readonly style: KeyedSkyStyle;
   /** the two keys the graphs blend */
   private readonly u = { tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null } };
-  /** the keys' blend, turns (radians) and gains and the deck: the `pine.sky` channels' numeric owner (generators/skyChannels.ts
+  /** the keys' blend, turns (radians) and gains and the deck: the `keyed sky` channels' numeric owner (generators/skyChannels.ts
    *  turns them, the glow, the grey and the flat colour into both graphs' params) */
   readonly keys = { mix: 0, turnA: 0, turnB: 0, gainA: 1, gainB: 1, overcast: 0 };
   /** the blended preset (the channels read its glow) and the fog colour (their flat colour) */
@@ -118,13 +118,15 @@ export class KeyedSky {
   private readonly scene: THREE.Scene;
   private readonly opts: KeyedSkyOptions;
   private readonly graphs: KeyedSkyGraphs;
+  private readonly product: ShardProduct;
 
-  constructor(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, dome: THREE.Mesh, env: THREE.Material, graphs: KeyedSkyGraphs) {
+  constructor(product: ShardProduct, day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, dome: THREE.Mesh, env: THREE.Material, graphs: KeyedSkyGraphs) {
+    this.product = product;
     const style = day.style;
     this.day = day; this.renderer = renderer; this.scene = scene; this.opts = opts; this.graphs = graphs;
     this.style = style;
     const curves = day.spec.curves;
-    this.clock = runDayClock(day, style.cycleMinutes * 60, { ...curves, lamps: (p) => Math.max(curves.lamps(p), .35 * this.mod.overcast) });
+    this.clock = runDayClock(day, style.cycleMinutes * 60, { ...curves, lamps: (p) => Math.max(curves.lamps(p), style.response.overcastLamps * this.mod.overcast) });
     const first = day.presets[style.frames[0]?.[1] ?? ''];
     if (first === undefined) throw new Error('keyed sky: no keyframes');
     this.cur = day.clone(first);
@@ -134,7 +136,7 @@ export class KeyedSky {
     this.dome = dome;
     // the environment pass: the same sky, one texel per direction of a 1024×512 equirect (PMREM's cube is a quarter of its
     // width: 256); `smallEnv`: 512×256 → a 128 cube, PMREM's three cube-UV targets 768×1024 → 384×512 RGBA16F (~−16.5 MB)
-    const envW = opts.smallEnv ? 512 : 1024;
+    const envW = opts.smallEnv ? style.response.environment.smallWidth : style.response.environment.width;
     this.envEquirect = new THREE.WebGLRenderTarget(envW, envW / 2, { type: THREE.HalfFloatType, depthBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
     this.envEquirect.texture.mapping = THREE.EquirectangularReflectionMapping;
     const tri = new THREE.BufferGeometry();
@@ -174,7 +176,7 @@ export class KeyedSky {
 
   /** The GPU bytes the resident keys hold now / at most (three at the decoded size). */
   keyBytes(): number { let bytes = 0; for (const r of this.resident.values()) bytes += r.bytes; return bytes; }
-  keyCeiling(): number { return 3 * Math.max(0, ...[...this.resident.values()].map((r) => r.bytes)); }
+  keyCeiling(): number { return this.style.response.residentKeys * Math.max(0, ...[...this.resident.values()].map((r) => r.bytes)); }
 
   /** the keyframes around phase p: [a, b] and the blend t */
   private segment(p: number): [readonly [number, SkyPreset], readonly [number, SkyPreset], number] {
@@ -205,30 +207,42 @@ export class KeyedSky {
     if (have) return Promise.resolve(have);
     let p = this.loading.get(k);
     if (p === undefined) {
-      p = this.blobsOf(k).then(async ({ color, gain }) => {
-        const urls = { color: URL.createObjectURL(color), gain: URL.createObjectURL(gain) };
-        try {
-          const tex = await loadBakedSky(urls);
-          tex.name = `${skyKeyFiles(this.style, this.keyRow(k)).color.replace(/^\/assets\//u, '')} + gain.png`;
-          tex.wrapS = THREE.RepeatWrapping; // the equirect seam blends across u = 0 / 1
-          const horizon = skyHorizonColor(tex);
-          if (this.opts.packKeys) packSkyKeyRgb9e5(tex); // half the key's GPU bytes
-          this.renderer.initTexture(tex); // upload now, not on the frame that first draws it
-          tex.image.data = null;          // the GPU has it: drop the CPU copy (rebuild() decodes again after a context loss)
+      p = this.texture(k).then(({ tex, horizon }) => {
           if (this.disposed) { tex.dispose(); return null; }
+          tex.wrapS = THREE.RepeatWrapping;
+          this.renderer.initTexture(tex);
+          tex.image.data = null;
           const r: Resident = { tex, horizon, used: this.frame, bytes: tex.image.width * tex.image.height * (this.opts.packKeys ? 4 : 8) };
-          this.resident.set(k, r);
-          this.evict();
-          return r;
-        } finally { URL.revokeObjectURL(urls.color); URL.revokeObjectURL(urls.gain); this.loading.delete(k); }
-      }).catch((e: unknown) => { console.warn(`[keyed sky] key ${k} did not load`, e); this.loading.delete(k); return null; });
+          this.resident.set(k, r); this.evict(); return r;
+      }).catch((e: unknown) => { console.warn(`[keyed sky] key ${k} did not load`, e); return null; }).finally(() => { this.loading.delete(k); });
       this.loading.set(k, p);
     }
     return p;
   }
 
+  private async texture(k: string): Promise<{ tex: THREE.DataTexture; horizon: THREE.Color }> {
+    if (this.opts.packKeys) {
+      const row = this.style.packedKeys?.[k];
+      if (row === undefined) throw new Error(`Missing built sky key: ${k}`);
+      const bytes = await this.product.file(row.file);
+      const stream = new Blob([new Uint8Array(bytes)]).stream().pipeThrough(new DecompressionStream('gzip'));
+      const buffer = await new Response(stream).arrayBuffer();
+      if (buffer.byteLength !== row.width * row.height * 6) throw new Error(`Invalid built sky key: ${k}`);
+      if (presenting()) { uploadTurn = uploadTurn.then(() => nextDrawnFrame()); await uploadTurn; }
+      const tex = new THREE.DataTexture(new Uint16Array(buffer), row.width, row.height, THREE.RGBFormat, THREE.HalfFloatType);
+      tex.internalFormat = 'RGB9_E5'; tex.colorSpace = THREE.LinearSRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false; tex.flipY = true; tex.needsUpdate = true; tex.name = row.file;
+      return { tex, horizon: new THREE.Color(...row.horizon) };
+    }
+    const { color, gain } = await this.blobsOf(k);
+    const urls = { color: URL.createObjectURL(color), gain: URL.createObjectURL(gain) };
+    try { const tex = await loadBakedSky(urls); return { tex, horizon: skyHorizonColor(tex) }; }
+    finally { URL.revokeObjectURL(urls.color); URL.revokeObjectURL(urls.gain); }
+  }
+
   private evict(): void {
-    while (this.resident.size > 3) {
+    while (this.resident.size > this.style.response.residentKeys) {
       let oldest: string | null = null, t = Infinity;
       for (const [k, r] of this.resident) if (r.used < t && r.tex !== this.u.tA.value && r.tex !== this.u.tB.value) { t = r.used; oldest = k; }
       if (oldest === null) return;
@@ -244,7 +258,7 @@ export class KeyedSky {
 
   /** `snap`: move the shadow light to the exact phase now (boot, a Time of day pick), not in SHADOW_STEP steps */
   private apply(T: SkyBackdropTargets | null, post: SkyBackdropPost | null, snap: boolean): void {
-    const p = this.phase, DAY = this.style.dayFraction, day0 = this.day;
+    const p = this.phase, DAY = this.style.dayFraction, day0 = this.day, response = this.style.response;
     const [a, b, t] = this.segment(p);
     this.clock.key(this.cur);
     const C = this.cur;
@@ -269,21 +283,21 @@ export class KeyedSky {
       k.mix = ra && rb ? t : 0;
       k.turnA = this.rot(ra ? a[1].key : b[1].key, glowBody(ra ? a[1].key : b[1].key));
       k.turnB = this.rot(rb ? b[1].key : a[1].key, glowBody(rb ? b[1].key : a[1].key));
-      const dim = 1 - 0.5 * ov; // the deck: the sky's brightness under it
+      const dim = 1 - response.domeDim * ov; // the deck: the sky's brightness under it
       k.gainA = (ra ? a[1].bg : b[1].bg) * dim; k.gainB = (rb ? b[1].bg : a[1].bg) * dim;
       this.fogCol.copy(A.horizon).multiplyScalar(k.gainA).lerp(tmpC.copy(B.horizon).multiplyScalar(k.gainB), k.mix);
       const m = Math.max(this.fogCol.r, this.fogCol.g, this.fogCol.b, 1e-3);
-      if (m > 1.1) this.fogCol.multiplyScalar(1.1 / m);
-      if (ov > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 0.92; this.fogCol.lerp(tmpC.setRGB(g * 0.95, g * 0.98, g * 1.03), ov * 0.85); }
+      if (m > response.horizonCeiling) this.fogCol.multiplyScalar(response.horizonCeiling / m);
+      if (ov > 0) tintHorizon(this.fogCol, response.overcastHorizon, ov);
       const mist = Math.min(1, Math.max(0, this.mod.mist));
-      if (mist > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 1.08; this.fogCol.lerp(tmpC.setRGB(g * 0.96, g, g * 1.05), mist * 0.6); }
+      if (mist > 0) tintHorizon(this.fogCol, response.mistHorizon, mist);
       // the look loop's sky (by day): the dome — and so the IBL rendered from it — × look.sky; the fog colour above stays
       const skyK = 1 + (this.look.sky - 1) * (1 - day0.nightAt(p));
       k.gainA *= skyK; k.gainB *= skyK;
     }
     if (!ra || !rb) void Promise.all([this.ensure(a[1].key), this.ensure(b[1].key)]);
     // decode the key after this segment ahead of time (its upload lands mid-segment, not on the transition)
-    const [, next] = this.segment((b[0] + 0.0005) % 1);
+    const [, next] = this.segment((b[0] + response.prefetch) % 1);
     if (!this.resident.has(next[1].key) && !this.loading.has(next[1].key)) void this.ensure(next[1].key);
 
     // ── the light body: the sun by day, the moon by night, faded out at the swap ──
@@ -293,63 +307,56 @@ export class KeyedSky {
     this.dawn = day0.dawnAt(p);
     this.lamps = Math.max(C.lamps, this.night);
     if (!T) return;
-    const fade = driveDayLight(T, day0, p, this.sun, this.moon, C, 1, SHADOW_STEP, snap);
+    const fade = driveDayLight(T, day0, p, this.sun, this.moon, C, 1, response.shadowStep * Math.PI / 180, snap);
     // the shadow's depth: full by day, the style's `nightShadow` by night (a uniform: no program changes; ≤ 4 cascades)
     const shade = 1 + (this.style.nightShadow - 1) * this.night;
     for (let i = 0; i < Math.min(T.lights.length, 4); i++) { const l = T.lights[i]; if (l !== undefined) l.shadow.intensity = shade; }
-    T.sunColor.copy(C.light).multiplyScalar(Math.max(0.05, fade * C.lightI / 3.8));
+    T.sunColor.copy(C.light).multiplyScalar(Math.max(response.minLight, fade * C.lightI / response.lightBase));
     // the disc (the god-ray source) and its corona: the moon is smaller and comes and goes by size, not colour (a darkened
     // disc reads as a black dot on the dusk sky); neither shows through the ground
     const air = this.air;
     air.body = lightDir; air.cloudBody = day || this.night < 0.5 ? this.sun : this.moon; air.fade = fade; air.haloK = day ? 1 : fade;
-    air.above = THREE.MathUtils.smoothstep(lightDir.y, -0.03, 0.02);
-    air.discScale = (day ? 1 : 0.6 * Math.max(1e-3, fade)) * Math.max(1e-3, 1 - ov);
+    air.above = THREE.MathUtils.smoothstep(lightDir.y, ...response.above);
+    air.discScale = (day ? 1 : response.moonDisc * Math.max(1e-3, fade)) * Math.max(1e-3, 1 - ov);
     driveDayAir(T, post, this.scene, C, air);
   }
 }
 
 /** lay the weather over the blended preset (in place: the fog's multipliers, then the style's overcast rows); returns the
  *  overcast it applied */
+function tintHorizon(color: THREE.Color, row: KeyedSkyStyle['response']['overcastHorizon'], amount: number): void {
+  const luma = (color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722) * row.luma;
+  color.lerp(tmpC.setRGB(luma * row.tint[0], luma * row.tint[1], luma * row.tint[2]), amount * row.amount);
+}
+
 function weatherOver(C: SkyPreset, mod: SkyWeather, style: KeyedSkyStyle): number {
   C.fogDist *= mod.fogDist; C.fogHeight *= mod.fogHeight;
   return overcastOver(C, style.overcast, mod.overcast);
 }
 
-/**
- * A decoded sky key as RGB9_E5 instead of RGBA16F (SF47-g): the key's alpha is the constant 1 the decode writes and the sky
- * shader reads only .rgb, so the GPU keeps 4 bytes a texel, not 8. RGB9_E5 keeps 9 mantissa bits per channel under one
- * shared exponent, sampled and filtered like the half-float key; the driver packs it from the half-float RGB rows at upload
- * (WebGL2: RGB9_E5 ← RGB / HALF_FLOAT). Call it after anything reads the RGBA data (the horizon).
- */
-export function packSkyKeyRgb9e5(tex: THREE.DataTexture): void {
-  const { width, height, data } = tex.image;
-  if (!(data instanceof Uint16Array) || tex.format !== THREE.RGBAFormat || tex.type !== THREE.HalfFloatType) throw new Error('keyed sky key: expected RGBA half-float data');
-  const texels = width * height, rgb = new Uint16Array(texels * 3);
-  for (let i = 0; i < texels; i++) {
-    rgb[i * 3] = data[i * 4] ?? 0; rgb[i * 3 + 1] = data[i * 4 + 1] ?? 0; rgb[i * 3 + 2] = data[i * 4 + 2] ?? 0;
-  }
-  tex.image.data = rgb;
-  tex.format = THREE.RGBFormat;
-  tex.internalFormat = 'RGB9_E5';
-  tex.needsUpdate = true;
-}
+/** Identity of the client-owned sky; callers never provide a subclass or constructor. */
+export type KeyedSkyHandle = KeyedSky;
 
 const skies = new WeakMap<SkyRig, KeyedSky>();
 /** The keyed sky a backdrop built on this sky rig (the shard's weather and transitions read it). */
 export function keyedSkyOf(sky: SkyRig): KeyedSky | null { return skies.get(sky) ?? null; }
 
 /**
- * A shard's sky backdrop from its keyed-sky row, on the SDK's graph day sky: the clock at the URL's / Settings' time, its
- * first two keys decoded, the look loop's layer applied. `memoryTrim` read once at build: packed keys, and on the phone a
+ * A shard's sky backdrop from its keyed-sky row, on the game's graph day sky: the clock at the URL's / Settings' time, its
+ * first two keys decoded, the look loop's layer applied. The declared options select packed keys and, on the phone, a
  * half-size environment.
  */
-export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean, looks: { readonly source: Parameters<typeof graphDaySkyBackdrop>[0]['source']; readonly dome: string; readonly env: string }): SkyBackdropFactory {
-  const dome = day.style.dome;
+export function keyedSkyBackdrop(input: unknown, options: { readonly packKeys: boolean; readonly smallEnv: boolean; readonly channels: string }, looks: { readonly product: ShardProduct; readonly dome: string; readonly env: string }): SkyBackdropFactory {
+  const day = keyedSkyDay(input), dome = day.style.dome;
+  if (options.packKeys) for (const id of Object.keys(day.style.keys)) {
+    const row = day.style.packedKeys?.[id];
+    if (row === undefined || !looks.product.hasFile(row.file)) throw new Error(`Missing built sky key: ${id}`);
+  }
   // the dome first of the opaque pass, depth untouched: everything draws over it
-  return graphDaySkyBackdrop({ name: 'keyed sky', source: looks.source, ids: [looks.dome, looks.env], dome: { graph: looks.dome, radius: dome.radius, segments: dome.segments, order: -1000, name: dome.name }, channels: 'pine.sky', build: async (context, g: DaySkyGraphs, mesh): Promise<DaySkyBody<SkyPreset>> => {
+  return graphDaySkyBackdrop({ name: 'keyed sky', source: looks.product.shardfile, ids: [looks.dome, looks.env], dome: { graph: looks.dome, radius: dome.radius, segments: dome.segments, order: -1000, name: dome.name }, channels: options.channels, build: async (context, g: DaySkyGraphs, mesh): Promise<DaySkyBody<SkyPreset>> => {
     const { sky, scene, renderer, level, tier, look } = context;
-    const opts: KeyedSkyOptions = { envSteps: level.tiers?.[tier]?.envSteps === true, packKeys: memoryTrim(), smallEnv: tier === 'phone' && memoryTrim() };
-    const keyed = new KeyedSky(day, renderer, scene, opts, mesh, g.material(looks.env), {
+    const opts: KeyedSkyOptions = { envSteps: level.tiers?.[tier]?.envSteps === true, packKeys: options.packKeys, smallEnv: tier === 'phone' && options.smallEnv };
+    const keyed = new KeyedSky(looks.product, day, renderer, scene, opts, mesh, g.material(looks.env), {
       lend: (name, texture) => { g.setTexture(looks.dome, name, texture); g.setTexture(looks.env, name, texture); } });
     await keyed.prepare();
     skies.set(sky, keyed);
@@ -359,7 +366,7 @@ export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean, lo
       clock: keyed.clock, follow: true, horizon: new THREE.Color(...level.sky.fogSunColor),
       owners: new Map<string, unknown>([['keys', keyed.keys], ['preset', keyed.cur], ['fog', keyed.fog]]),
       // the 2-second IBL refresh, with `envSteps` one PMREM level a frame (E142, the 30-fps-at-2× lane); a jump refreshes whole
-      environment: { source: { kind: 'equirect', scene: keyed.envScene, camera: keyed.envCam, target: keyed.envEquirect }, refresh: { every: 2, stepped: opts.envSteps, ready: () => keyed.ready } },
+      environment: { source: { kind: 'equirect', scene: keyed.envScene, camera: keyed.envCam, target: keyed.envEquirect }, refresh: { every: day.style.response.environment.refresh, stepped: opts.envSteps, ready: () => keyed.ready } },
       drive: (T, post, snap) => { keyed.drive(T, post, snap); },
       prepare: () => keyed.prepare(),
       rebuild: () => { keyed.dropKeys(); },

@@ -19,6 +19,7 @@ const hosts = {
   'look/look': ['game/shardfile/look#shardfileLook'],
   'look/map': ['game/shardfile/mapImage#reserveMapImage'],
   'look/materials': ['game/shardfile/clientMaterials#clientMaterials'],
+  'look/keyed-sky': ['game/looks/keyedSky#keyedSkyBackdrop'],
   'actors/spawn-scripts': ['game/population/spawnScript#SpawnScript', 'format/spawnScripts#parseSpawnScript'],
   'actors/moves': ['engine/ai/moves#ActorMoveRunner', 'format/actorMoves#parseActorMoves'],
   'actors/creatures': ['game/shardfile/brainRuntime#installDeclaredBrains'],

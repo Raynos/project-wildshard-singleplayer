@@ -2,7 +2,7 @@ import { driftwoodRows } from '../boot/rows';
 /**
  * Driftwood's sky backdrop (DRIFTWOOD-REMASTER L2, the user's pick D2: a stylized gradient dome + faceted cumulus, no HDRI):
  * the dome and cumulus are the shard's material graphs (data/skyLook.ts) on the SDK's graph day sky
- * (`@wildshard/sdk/looks/graphDaySky`), a PMREM of the dome is the (specular-only, toon.ts) environment, re-rendered as the
+ * (`@wildshard/game/looks/graphDaySky`), a PMREM of the dome is the (specular-only, toon.ts) environment, re-rendered as the
  * day / night clock moves on, and the sun starts where the clock puts it. The clock's keys, arcs and curves are data
  * (data/skyDay.ts, through look/dayKeys.ts); every knob the blended preset turns (the palette, the toon day light, the ramp
  * fog, the fog, disc and planet) is the numeric channel group generators/skyChannels.ts emits. This file keys the preset,
@@ -14,9 +14,10 @@ import { driftwoodRows } from '../boot/rows';
  */
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
-import type { DayClock, DayClockStyle } from '@wildshard/sdk/looks/dayClock';
-import { domeEnvironmentScene, graphDaySkyBackdrop } from '@wildshard/sdk/looks/graphDaySky';
+import { driveDayLight, runDayClock } from '@wildshard/game/looks/daySky';
+import type { DayClock } from '@wildshard/game/looks/dayClock';
+import type { DayClockStyle } from '@wildshard/format/dayLook';
+import { domeEnvironmentScene, graphDaySkyBackdrop } from '@wildshard/game/looks/graphDaySky';
 import * as THREE from 'three';
 import { SECTIONS } from '../sections';
 import { toonState } from '../look/toon';
