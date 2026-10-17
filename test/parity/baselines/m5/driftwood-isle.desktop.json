@@ -1234,22 +1234,6 @@
         }
       },
       {
-        "id": "reef-fish",
-        "category": "creatures",
-        "surface": "wood",
-        "floor": false,
-        "solidFloor": false,
-        "follows": false,
-        "shapes": {
-          "cuboid": 0,
-          "ball": 0,
-          "capsule": 0,
-          "convex": 0,
-          "trimesh": 0,
-          "treads": 0
-        }
-      },
-      {
         "id": "rocks",
         "category": "nature",
         "surface": "rock",
@@ -1268,54 +1252,6 @@
       {
         "id": "sea-glass-chime",
         "category": "props",
-        "surface": "wood",
-        "floor": false,
-        "solidFloor": false,
-        "follows": false,
-        "shapes": {
-          "cuboid": 0,
-          "ball": 0,
-          "capsule": 0,
-          "convex": 0,
-          "trimesh": 0,
-          "treads": 0
-        }
-      },
-      {
-        "id": "seabed-coral",
-        "category": "nature",
-        "surface": "wood",
-        "floor": false,
-        "solidFloor": false,
-        "follows": false,
-        "shapes": {
-          "cuboid": 0,
-          "ball": 0,
-          "capsule": 0,
-          "convex": 0,
-          "trimesh": 0,
-          "treads": 0
-        }
-      },
-      {
-        "id": "seabed-star",
-        "category": "nature",
-        "surface": "wood",
-        "floor": false,
-        "solidFloor": false,
-        "follows": false,
-        "shapes": {
-          "cuboid": 0,
-          "ball": 0,
-          "capsule": 0,
-          "convex": 0,
-          "trimesh": 0,
-          "treads": 0
-        }
-      },
-      {
-        "id": "seabed-weed",
-        "category": "nature",
         "surface": "wood",
         "floor": false,
         "solidFloor": false,
@@ -1587,7 +1523,7 @@
       }
     ],
     "registryModels": {
-      "models": 70,
+      "models": 66,
       "sets": 9
     },
     "physics": {
@@ -2387,8 +2323,8 @@
     "gpuBytes": {
       "textures": 333147228,
       "renderbuffers": 1784064,
-      "buffers": 114061432,
-      "total": 448992724
+      "buffers": 114061880,
+      "total": 448993172
     },
     "audio": {
       "requests": [
