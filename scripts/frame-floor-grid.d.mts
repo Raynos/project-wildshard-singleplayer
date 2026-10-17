@@ -32,6 +32,9 @@ export interface FloorGridProgress { documentOrigin: number; sampledAt: number; 
   /** Existing scalar admission telemetry, copied at the ledger's one-second cadence; old records may omit it. */
   admission?: { residents: string[]; pending: string[]; issues: Record<string, string>;
     crossing: { phase: string; issue: string | null } | null; screens: unknown };
+  /** The entered-runtime hook a stuck admission waits in (`current`) and the last completed hooks; old records omit it. */
+  runtimeTiming?: { current: { instance: string; hook: string; start: number } | null;
+    completed: { instance: string; hook: string; start: number; end: number; outcome: string }[] } | null;
   memory: { modelledMB: number | null; accountedBytes: number | null; glMB: number | null; glReconciled: boolean | null; claims: unknown; cost: unknown } }
 export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop']; lastSample: FloorGridProgress; recoveryReason: string; nextDocumentOrigin: number }
 export function installFloorGridProgress(): void;

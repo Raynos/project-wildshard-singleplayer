@@ -191,6 +191,8 @@ export function installFloorGridProgress() {
         admission: { residents: [...(live?.residents ?? [])], pending: [...(live?.pending ?? [])], issues: { ...live?.issues },
           crossing: state.live?.crossing === undefined ? null : { phase: state.live.crossing.phase, issue: state.live.crossing.issue },
           screens: state.screens ?? null },
+        // the hook a stuck admission is waiting in (current), and the last completed ones
+        runtimeTiming: state.live?.runtimeTiming ?? null,
         memory: { modelledMB: state.playingMB ?? null, accountedBytes: state.accountedBytes ?? null,
           ...(contexts ? { glMB: contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6, glReconciled: totals ? null : contexts.every(row => row.reconciled) }
             : { glMB: null, glReconciled: null }), claims: residency.claims, cost: residency.cost } };
