@@ -36,7 +36,9 @@ function program(graph: GraphIr, fog: THREE.Fog, compiled?: THREE.Material): THR
 // a shard's declared fog (O11): its colour × 0.5 + the engine's half, with a marker param
 const FOG: GraphIr = { version: 1, kind: 'fog', params: { mark: { type: 'float', value: 0.4375 } },
   nodes: { i: { op: 'fogInput' }, e: { op: 'engineFogged' }, s: { op: 'fogScale' }, p: { op: 'positionWorld' }, c: { op: 'cameraPosition' },
-    d: { op: 'length', in: ['p'] }, m: { op: 'param', param: 'mark' }, k: { op: 'mul', in: ['m', 's'] }, mx: { op: 'mix', in: ['i', 'e', 'k'] }, o: { op: 'add', in: ['mx', 'd'] } },
+    d: { op: 'length', in: ['p'] }, m: { op: 'param', param: 'mark' },
+    // a loop body builds with the program, after the patch returns: its fog inputs must still resolve
+    k: { op: 'loop', in: [0], count: 2, body: { nodes: { a: { op: 'acc' }, h: { op: 'mul', in: ['m', 's'] }, b: { op: 'add', in: ['a', 'h'] } }, out: 'b' } }, mx: { op: 'mix', in: ['i', 'e', 'k'] }, o: { op: 'add', in: ['mx', 'd'] } },
   stages: { fog: { colour: 'o' } } };
 const SURFACE: GraphIr = { version: 1, kind: 'material', model: 'unlit', effectState: { fog: 'shard-fog' },
   nodes: { c: { op: 'const', value: [0.2, 0.3, 0.4] } }, stages: { surface: { colour: 'c' } } };

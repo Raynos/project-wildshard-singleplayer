@@ -875,11 +875,15 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'loop': {
         const init = ref(n.in?.[0] ?? 0, scope), body = n.body, count = n.count ?? 1;
         if (body === undefined) break;
+        // the body builds when the program does (after this call returns): a fog stage's inputs are restored for it
+        const fogNow = fogIn;
         const looped = Fn(() => {
           const acc = Var(init.n);
           Loop(count, ({ i }: { i: Node<'int'> }) => {
             const inner: Scope = { nodes: body.nodes, parent: scope, memo: new Map(), acc: { t: init.t, n: acc }, index: { t: 'float', n: float(i) } };
-            acc.assign(ref(body.out, inner).n);
+            const fogOuter = fogIn;
+            fogIn = fogNow;
+            try { acc.assign(ref(body.out, inner).n); } finally { fogIn = fogOuter; }
           });
           return acc;
         });
