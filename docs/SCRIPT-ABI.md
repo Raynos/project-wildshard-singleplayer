@@ -146,7 +146,7 @@ methods have these argument shapes; omitted wire arguments are zero.
 | 15 | `moving(actor)` | Whether decision owner has a move runner | [game/shardfile/decisions.ts:215](../src/game/shardfile/decisions.ts#L215) |
 | 16 | `strikeState(actor)` | 0 idle, 1 windup, 2 active, 3 recover, 4 cooldown | [game/shardfile/decisions.ts:216](../src/game/shardfile/decisions.ts#L216) |
 | 17 | `playerFlag(player, flag)` | Local player's decision-owned flag; another player refuses | [game/shardfile/decisions.ts:195](../src/game/shardfile/decisions.ts#L195) |
-| 18 | `spawnGroupAlive(spawn)` | **Single actor alive (0/1)** using a declared spawn/actor handle; not a group count | [game/shardfile/decisions.ts:197](../src/game/shardfile/decisions.ts#L197) [format/decisionBindings.ts:64](../src/format/decisionBindings.ts#L64) |
+| 18 | `spawnGroupAlive(spawn)` | Live member count for a declared creature group or script spawn group; an actor spawn id returns 0/1 | [game/shardfile/decisions.ts:200](../src/game/shardfile/decisions.ts#L200) [format/decisionBindings.ts:50](../src/format/decisionBindings.ts#L50) [format/decisionBindings.ts:76](../src/format/decisionBindings.ts#L76) |
 | 19 | `bearing(actor, target)` | `atan2(dx, dz)` | [game/shardfile/decisions.ts:207](../src/game/shardfile/decisions.ts#L207) |
 
 `ws_list` writes at most 96 finite f64 slots to an aligned in-memory range;
@@ -334,10 +334,12 @@ These are findings, not additional API promises or code changes:
   despite the design's “id only” status. They do not prove multiplayer joins.
   `spawned` and `strike.target` still lack producers in the decision owner.
   [progress/shard-platform/wasm-api-design-2026-10-17/README.md:88](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L88) [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) [game/shardfile/decisions.ts:380](../src/game/shardfile/decisions.ts#L380) [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42)
-- **Group API:** `spawnGroupAlive` reads one actor's alive flag. G484(a)'s
-  spawn-group binding/skitterer port is not part of this reviewed revision;
-  do not infer a group count or group binding from the read's name.
-  [game/shardfile/decisions.ts:197](../src/game/shardfile/decisions.ts#L197) [format/decisionBindings.ts:64](../src/format/decisionBindings.ts#L64) [format/decisionScripts.ts:23](../src/format/decisionScripts.ts#L23) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+- **Group API:** G484(a)'s spawn-group binding and skitterer port landed in
+  `9c6361f6b` / `74c87e851`. A `{ spawnGroup: id }` binding expands into one
+  logical binding per declared actor, with actor-scoped slots and an owned
+  self handle. `spawnGroupAlive` counts live members of creature groups or
+  declared script groups; actor spawn ids retain their 0/1 behavior.
+  [format/decisionScripts.ts:23](../src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](../src/format/decisionScripts.ts#L98) [format/decisionBindings.ts:50](../src/format/decisionBindings.ts#L50) [game/shardfile/decisions.ts:200](../src/game/shardfile/decisions.ts#L200)
 - **Refused operations:** spawn/despawn, impulse and weather remain install-time
   refusals until their owning feature commits. No mover command exists. View
   ids are declarations without a v1 runner; `view.field` 105 has no numeric id
