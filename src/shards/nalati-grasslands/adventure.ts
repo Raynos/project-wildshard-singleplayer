@@ -65,6 +65,13 @@ export interface NalatiAdventure {
 const Content = v.object({ npcs: v.record(v.string(), NpcDialogueRowSchema), places: v.array(v.object({ id: v.string(), label: v.string(), x: v.number(), z: v.number(), r: v.number(), quiet: v.exactOptional(v.boolean()), y: v.exactOptional(v.number()) })),
   clueFlags: v.array(v.string()), carvings: v.array(v.array(v.string())), featherFlags: v.array(v.string()),
   featherElites: v.array(v.object({ id: v.string() })) });
+/** Saved elite read failures are recoverable; quest/save listener failures must propagate. */
+export function syncFelledElites(flags: Pick<Flags, 'set'>, elites: readonly { id: string }[], read: () => ReturnType<NalatiPersistence['elites']['read']>): void {
+  let savedElites: ReturnType<NalatiPersistence['elites']['read']> = {};
+  try { savedElites = read(); } catch { /* No saved elites yet. */ }
+  for (const [id, saved] of Object.entries(savedElites)) if (saved.kills > 0 && elites.some(e => e.id === id)) flags.set(`felled:${id}`);
+}
+
 export async function installNalatiAdventure<A extends { kind: string; variant?: string; combatActor: () => Actor }>(w: NalatiAdventureWorld<A>): Promise<NalatiAdventure | null> {
   const scope = w.ctx.scope;
   if (w.chunk.slug !== 'nalati-grasslands') return null;
@@ -119,9 +126,7 @@ export async function installNalatiAdventure<A extends { kind: string; variant?:
     // the storm feathers: one per named elite felled (the saved elite store, re-read every 2 s)
     if (t - eliteT > 2) {
       eliteT = t;
-      try { for (const [id, saved] of Object.entries(w.persistence.elites.read(w.chunk.slug))) {
-        if (saved.kills > 0 && content.featherElites.some(e => e.id === id)) flags.set(`felled:${id}`);
-      } } catch { /* No saved elites yet. */ }
+      syncFelledElites(flags, content.featherElites, () => w.persistence.elites.read(w.chunk.slug));
       const n = content.featherElites.filter((e) => flags.has(`felled:${e.id}`)).length;
       content.featherFlags.forEach((f, i) => { if (i < n && !flags.has(f)) { flags.set(f); if (line.active?.def.id === 'father-wind') w.hud.toast(`Storm feather · ${i + 1} / ${content.featherFlags.length}`); } });
     }
