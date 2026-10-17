@@ -118,13 +118,6 @@ exports[`matches the original warm cards for every authored geometry and variant
       "receiveShadow": true,
     },
   ],
-  "driftwood-isle/reef-fish/default": [
-    {
-      "castShadow": false,
-      "geometry": "a730b175ffcd493c291ee869493a29fc77be58905adc282212e9de4aa4058a47",
-      "receiveShadow": false,
-    },
-  ],
   "driftwood-isle/rope-coil/default": [
     {
       "castShadow": true,

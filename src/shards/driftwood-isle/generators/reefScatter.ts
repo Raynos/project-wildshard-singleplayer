@@ -11,7 +11,9 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { OCEAN } from '../world/sites';
-import { REEF_FISH_COLOURS } from '../runtime/models/reefFish';
+
+/** the fish's tints: each of the school takes one */
+const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;
 
 /** One scattered copy: its kind (the row's names), where, size, turn about +Y and which tint (0‥1). */
 export interface ReefCopy { kind: string; x: number; z: number; s: number; rot: number; v: number }

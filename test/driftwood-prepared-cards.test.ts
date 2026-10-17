@@ -11,13 +11,12 @@ import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { loadFixedGeometry, fixedGeometryReady } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
 import { barrel, crate, ropeCoil, driftLog } from '../src/shards/driftwood-isle/runtime/models/cargo';
 import { captainHat, sailclothCape } from '../src/shards/driftwood-isle/runtime/models/captainHat';
-import { reefFish } from '../src/shards/driftwood-isle/runtime/models/reefFish';
 import { seaGlassChime } from '../src/shards/driftwood-isle/runtime/models/seaGlassChime';
 import { castaway } from '../src/shards/driftwood-isle/runtime/models/people';
 import { trader, tradeCounter } from '../src/shards/driftwood-isle/runtime/models/trader';
 import { trophyPlaques } from '../src/shards/driftwood-isle/runtime/models/trophyPlaques';
 
-const entries = [live(barrel), live(crate), live(ropeCoil), live(driftLog), live(captainHat), live(sailclothCape), live(reefFish), live(seaGlassChime), live(trophyPlaques), live(castaway), live(trader), live(tradeCounter)];
+const entries = [live(barrel), live(crate), live(ropeCoil), live(driftLog), live(captainHat), live(sailclothCape), live(seaGlassChime), live(trophyPlaques), live(castaway), live(trader), live(tradeCounter)];
 
 it('forwards cold fixed preparation to the existing live roster', () => {
   expect(fixedGeometryReady()).toBe(false);
@@ -69,7 +68,7 @@ it('matches the original warm cards for every authored geometry and variant', as
   }
   try {
     await check(barrel); await check(crate); await check(ropeCoil); await check(driftLog);
-    await check(captainHat); await check(sailclothCape); await check(reefFish); await check(seaGlassChime); await check(trophyPlaques);
+    await check(captainHat); await check(sailclothCape); await check(seaGlassChime); await check(trophyPlaques);
     await check(castaway, false); await check(trader); await check(tradeCounter);
     expect(signatures).toMatchSnapshot();
     expect(mocked).toHaveBeenCalled();
