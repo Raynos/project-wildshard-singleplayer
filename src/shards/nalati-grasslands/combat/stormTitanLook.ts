@@ -47,37 +47,6 @@ export function patchTitanCloud(sh: { vertexShader: string; fragmentShader: stri
 
 // ── the grass fire ──────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** three tongues lathed round their own axes, clustered; attributes aH (0 root … 1 tip) and aS (the tongue's seed) */
-function flameClusterGeometry(): THREE.BufferGeometry {
-  const S = PHONE ? 8 : 12, R = PHONE ? 6 : 9;
-  const tongues: [number, number, number, number][] = [[0, 0, 1.0, 1.0], [0.75, 0.35, 0.72, 0.8], [-0.55, -0.6, 0.6, 0.75]]; // x, z, height, width
-  const pos: number[] = [], nrm: number[] = [], aH: number[] = [], aS: number[] = [], idx: number[] = [];
-  tongues.forEach(([ox, oz, hh, ww], k) => {
-    const base = pos.length / 3;
-    for (let j = 0; j <= R; j++) {
-      const v = j / R, y = v * 2.6 * hh;
-      const r = (j === R ? 0 : 0.85 * ww * Math.sin(Math.PI * v ** 0.62) ** 0.85 + 0.02) * (1 - 0.15 * v);
-      for (let i = 0; i < S; i++) {
-        const a = (i / S) * Math.PI * 2;
-        pos.push(ox + Math.cos(a) * r, y, oz + Math.sin(a) * r);
-        nrm.push(Math.cos(a), 0.25, Math.sin(a));
-        aH.push(v); aS.push(k * 0.37 + 0.11);
-      }
-    }
-    for (let j = 0; j < R; j++) for (let i = 0; i < S; i++) {
-      const a = base + j * S + i, b = base + j * S + ((i + 1) % S), c = a + S, d = b + S;
-      idx.push(a, c, b, b, c, d);
-    }
-  });
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  g.setAttribute('aH', new THREE.Float32BufferAttribute(aH, 1));
-  g.setAttribute('aS', new THREE.Float32BufferAttribute(aS, 1));
-  g.setIndex(idx);
-  return g;
-}
-
 const FLAME_VS = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.FLAME_VS);
 
 const FLAME_FS = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.FLAME_FS);
@@ -100,13 +69,13 @@ export class GrassFireFx {
   private n = 0;
   private next = 0;
 
-  constructor(scene: THREE.Scene, maxFlames: number, fogC: { value: THREE.Color }, flash: { value: number }) {
+  constructor(scene: THREE.Scene, maxFlames: number, fogC: { value: THREE.Color }, flash: { value: number }, flames: unknown) {
     const fm = new THREE.ShaderMaterial({
       uniforms: this.flameUni, vertexShader: FLAME_VS, fragmentShader: FLAME_FS,
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
     });
     fm.name = 'titan-flame';
-    this.flames = new THREE.InstancedMesh(flameClusterGeometry(), fm, maxFlames);
+    this.flames = new THREE.InstancedMesh(new THREE.BufferGeometryLoader().parse(flames), fm, maxFlames);
     this.flames.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(maxFlames * 3), 3);
     this.flames.frustumCulled = false; this.flames.count = 0; this.flames.renderOrder = 14; this.flames.name = 'titan-flames';
     scene.add(this.flames);

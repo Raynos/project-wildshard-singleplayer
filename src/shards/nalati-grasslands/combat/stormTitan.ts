@@ -40,7 +40,31 @@ import { CAIRN } from '../layout';
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../runtime/weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { TITAN_ENCOUNTER, TITAN_LINES, TITAN_PHASES, TITAN_PLACE, TITAN_REWARD, TITAN_SKIN, TITAN_TUNING } from '../data/stormTitanFight';
+import * as v from 'valibot';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+
+const finite = v.pipe(v.number(), v.finite()), text = v.string();
+const phaseRow = v.object({ at: finite, caption: text, name: text });
+const TitanFightRows = v.object({
+  TITAN_PHASES: v.array(phaseRow),
+  TITAN_ENCOUNTER: v.object({ id: text, name: text, title: text, retryTitle: text, phases: v.array(phaseRow), intro: finite, introShort: finite }),
+  TITAN_REWARD: v.object({ tier: text, name: text, flavour: text, prompt: text }),
+  TITAN_SKIN: v.object({ id: text, toast: text }),
+  TITAN_LINES: v.object({ kneels: text, grassFire: text, immuneDome: text, immuneSpear: text, spearStuck: text, riderBreaks: text,
+    lastRider: text, burning: text, chain: text, wall: text, tie: text, tieOnFoot: text, tieQuiet: text, wantsRider: text, quiet: text, wakes: text }),
+  TITAN_PLACE: v.object({ centreZ: finite, arenaRadius: finite, titanZ: finite, heartHp: finite, bodyScale: finite }),
+  TITAN_TUNING: v.object({ spearDamage: finite, spearRadius: finite, spearAim: finite, spearLock: finite, spearStuck: finite,
+    whirlDamage: finite, whirlRadius: finite, riderHp: finite, riderChip: finite, chargeDamage: finite, laneSeconds: finite,
+    flankSeconds: finite, stunSeconds: finite, cell: finite, burnSeconds: finite, fireDps: finite, maxFlames: finite,
+    chainDamage: finite, chainRadius: finite, chainLand: finite, fullDraw: finite, fullDrawMul: finite }),
+});
+const bufferRow = v.object({ type: v.literal('BufferGeometry'), data: v.unknown() });
+const triple = v.tuple([finite, finite, finite]);
+const tierRow = v.object({ flames: bufferRow, puffs: v.array(v.object({
+  bone: v.picklist(['root', 'chest', 'head', 'upperR', 'foreR', 'handR', 'upperL', 'foreL', 'handL']),
+  p: triple, r: finite, ph: finite, colour: triple,
+})) });
+const TitanGeometryRows = v.object({ phone: tierRow, desktop: tierRow, eyes: bufferRow });
 
 
 /**
@@ -91,21 +115,32 @@ import { TITAN_ENCOUNTER, TITAN_LINES, TITAN_PHASES, TITAN_PLACE, TITAN_REWARD, 
 
 // ─────────────────────────────── the place ───────────────────────────────
 
-const CENTER = { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.centreZ };
-const ARENA_R = TITAN_PLACE.arenaRadius;
-/** his waist, beyond the rim in the cloud sea (Projectiles also ends a flight past CHUNK_HALF + 80 m): the standing heart
- *  ~20 m in front of this, the bent one (the spear stuck) 18 m nearer */
-const TITAN = { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.titanZ };
-const { heartHp: HEART_HP, bodyScale: BODY_SCALE } = TITAN_PLACE;
-const { spearDamage: SPEAR_DMG, spearRadius: SPEAR_R, spearAim: SPEAR_AIM, spearLock: SPEAR_LOCK, spearStuck: SPEAR_STUCK, whirlDamage: WHIRL_DMG,
-  whirlRadius: WHIRL_R, riderHp: RIDER_HP, riderChip: RIDER_CHIP, chargeDamage: CHARGE_DMG, laneSeconds: LANE_T, flankSeconds: FLANK_T,
-  stunSeconds: STUN_T, cell: CELL, burnSeconds: BURN_T, fireDps: FIRE_DPS, maxFlames: MAX_FLAMES, chainDamage: CHAIN_DMG, chainRadius: CHAIN_R,
-  chainLand: CHAIN_LAND, fullDraw: FULL_DRAW, fullDrawMul: FULL_DRAW_MUL } = TITAN_TUNING;
-const GRID = Math.ceil((ARENA_R * 2) / CELL);
+function staticTitan(fight: v.InferOutput<typeof TitanFightRows>, geometry: v.InferOutput<typeof TitanGeometryRows>) {
+  const { TITAN_PLACE, TITAN_TUNING } = fight;
+  const CENTER = { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.centreZ };
+  const ARENA_R = TITAN_PLACE.arenaRadius;
+  /** his waist, beyond the rim in the cloud sea (Projectiles also ends a flight past CHUNK_HALF + 80 m): the standing heart
+   *  ~20 m in front of this, the bent one (the spear stuck) 18 m nearer */
+  const TITAN = { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.titanZ };
+  const { heartHp: HEART_HP, bodyScale: BODY_SCALE } = TITAN_PLACE;
+  const { spearDamage: SPEAR_DMG, spearRadius: SPEAR_R, spearAim: SPEAR_AIM, spearLock: SPEAR_LOCK, spearStuck: SPEAR_STUCK, whirlDamage: WHIRL_DMG,
+    whirlRadius: WHIRL_R, riderHp: RIDER_HP, riderChip: RIDER_CHIP, chargeDamage: CHARGE_DMG, laneSeconds: LANE_T, flankSeconds: FLANK_T,
+    stunSeconds: STUN_T, cell: CELL, burnSeconds: BURN_T, fireDps: FIRE_DPS, maxFlames: MAX_FLAMES, chainDamage: CHAIN_DMG, chainRadius: CHAIN_R,
+    chainLand: CHAIN_LAND, fullDraw: FULL_DRAW, fullDrawMul: FULL_DRAW_MUL } = TITAN_TUNING;
+  const GRID = Math.ceil((ARENA_R * 2) / CELL);
+  return { ...fight, geometry, CENTER, ARENA_R, TITAN, HEART_HP, BODY_SCALE, SPEAR_DMG, SPEAR_R, SPEAR_AIM, SPEAR_LOCK, SPEAR_STUCK, WHIRL_DMG, WHIRL_R, RIDER_HP, RIDER_CHIP, CHARGE_DMG, LANE_T, FLANK_T, STUN_T, CELL, BURN_T, FIRE_DPS, MAX_FLAMES, CHAIN_DMG, CHAIN_R, CHAIN_LAND, FULL_DRAW, FULL_DRAW_MUL, GRID };
+}
+let prepared: ReturnType<typeof staticTitan> | null = null;
+function titanRows(): NonNullable<typeof prepared> { if (prepared === null) throw new Error('Titan rows are not prepared'); return prepared; }
+/** Read the admitted static encounter and both tiers before world/Explorer bodies are constructed. */
+export async function prepareStormTitan(product: Pick<ShardProduct, 'file'>): Promise<void> {
+  const [fight, geometry] = await Promise.all([product.file('combat/titan-fight.json'), product.file('combat/titan-geometry.json')]);
+  prepared = staticTitan(v.parse(TitanFightRows, JSON.parse(new TextDecoder().decode(fight))),
+    v.parse(TitanGeometryRows, JSON.parse(new TextDecoder().decode(geometry))));
+}
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _s = new THREE.Vector3();
 const _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
-function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
 // ─────────────────────────────── the body ───────────────────────────────
 
@@ -113,6 +148,7 @@ interface Puff { bone: THREE.Object3D; p: THREE.Vector3; r: number; ph: number }
 
 /** the Titan's body: seven bones, ~340 cloud puffs on them (one InstancedMesh), the heart, the eyes, the spear */
 export class TitanBody {
+  private readonly data = titanRows();
   readonly root = new THREE.Object3D();
   readonly chest = new THREE.Object3D();
   readonly head = new THREE.Object3D();
@@ -148,48 +184,18 @@ export class TitanBody {
     const uR = mk(this.chest, -11.5, 21, 0), fR = mk(uR, 0, -14, 0), hR = mk(fR, 0, -13, 0);
     const uL = mk(this.chest, 11.5, 21, 0), fL = mk(uL, 0, -14, 0), hL = mk(fL, 0, -13, 0);
     this.armR = [uR, fR, hR]; this.armL = [uL, fL, hL];
-    this.root.scale.setScalar(BODY_SCALE);
+    this.root.scale.setScalar(this.data.BODY_SCALE);
     scene.add(this.root);
 
     // ── the puffs ──
-    const r = rng(0x7174a);
-    const add = (bone: THREE.Object3D, x: number, y: number, z: number, rad: number): void => { this.list.push({ bone, p: new THREE.Vector3(x, y, z), r: rad, ph: r() * 6.28 }); };
-    const dir = (): THREE.Vector3 => { const u = r() * 2 - 1, a = r() * 6.283; const s = Math.sqrt(1 - u * u); return new THREE.Vector3(s * Math.cos(a), u, s * Math.sin(a)); };
-    // torso: an ellipsoid shell, broad at the shoulders
-    for (let i = 0; i < 130; i++) { const d = dir(), k = 0.6 + 0.4 * r(), y = 11 + d.y * 12 * k; add(this.chest, d.x * 10 * k * (0.75 + 0.45 * (y / 24)), y, d.z * 6.5 * k, 3.2 + r() * 3); }
-    // the skirt: the cloud sea he rises from — wide, heavy, down past the rim
-    for (let i = 0; i < 70; i++) { const a = r() * 6.283, rr = 7 + r() * 10, y = -16 + r() * 18; add(this.root, Math.cos(a) * rr * (1 + (-y) * 0.03), y, Math.sin(a) * rr * 0.8, 4.5 + r() * 4 + Math.max(0, -y) * 0.12); }
-    // head, the pointed helmet, the beard
-    for (let i = 0; i < 26; i++) { const d = dir(), k = 0.5 + 0.5 * r(); add(this.head, d.x * 4.2 * k, d.y * 4.6 * k, d.z * 4 * k, 1.8 + r() * 1.4); }
-    for (let i = 0; i < 18; i++) { const u = i / 17, a = i * 2.4; add(this.head, Math.cos(a) * 4.6 * (1 - u), 3 + u * 11, Math.sin(a) * 4.4 * (1 - u), 0.6 + 3.2 * (1 - u)); }
-    for (let i = 0; i < 16; i++) { const u = r(); add(this.head, (r() - 0.5) * 5 * (1 - u * 0.6), -2 - u * 7, 3.4 + r() * 1.5, 1.6 + r() * 1.2); }
-    // arms: upper + fore along −y, a fist
-    for (const arm of [this.armR, this.armL]) {
-      for (let s = 0; s < 2; s++) for (let i = 0; i < 12; i++) { const u = i / 11; add(arm[s] ?? this.chest, (r() - 0.5) * 2.2, -u * 13.5, (r() - 0.5) * 2.2, (s === 0 ? 4.2 : 3.4) - u * 0.8 + r() * 0.6); }
-      add(arm[2], 0, 0, 0, 3.4);
+    const rows = (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).puffs;
+    const bones = new Map([['root', this.root], ['chest', this.chest], ['head', this.head],
+      ['upperR', uR], ['foreR', fR], ['handR', hR], ['upperL', uL], ['foreL', fL], ['handL', hL]]);
+    for (const row of rows) {
+      const bone = bones.get(row.bone);
+      if (bone === undefined) throw new Error('Titan puff has no retained bone');
+      this.list.push({ bone, p: new THREE.Vector3().fromArray(row.p), r: row.r, ph: row.ph });
     }
-    // the cloak: off the shoulders, streaming back and down
-    for (let i = 0; i < 44; i++) { const u = r(), v = r() - 0.5; add(this.chest, v * 26 * (0.7 + 0.5 * u), 22 - u * 32, -5 - u * 7 - Math.abs(v) * 3, 3.5 + r() * 2.5); }
-
-    // the cumulus's small heads: a smaller puff budding out of the outer side of most big ones (a cauliflower silhouette,
-    // not a string of balls); per puff, how exposed it is (its distance out from its bone's cluster) shades it
-    const centre = new Map<THREE.Object3D, { c: THREE.Vector3; n: number; max: number }>();
-    for (const pf of this.list) { const e = centre.get(pf.bone) ?? { c: new THREE.Vector3(), n: 0, max: 0 }; e.c.add(pf.p); e.n++; centre.set(pf.bone, e); }
-    for (const e of centre.values()) e.c.multiplyScalar(1 / Math.max(1, e.n));
-    for (const pf of this.list) { const e = centre.get(pf.bone); if (e) e.max = Math.max(e.max, pf.p.distanceTo(e.c)); }
-    const buds = TIER === 'phone' ? 1 : 2;
-    const primaries = this.list.length;
-    for (let i = 0; i < primaries; i++) {
-      const pf = this.list[i], e = pf ? centre.get(pf.bone) : undefined;
-      if (!pf || !e) continue;
-      for (let b = 0; b < buds; b++) {
-        const out = pf.p.clone().sub(e.c); if (out.lengthSq() < 1e-4) out.set(0, 1, 0);
-        out.normalize().add(dir().multiplyScalar(0.7)).normalize();
-        const k = 0.72 + 0.2 * r();
-        add(pf.bone, pf.p.x + out.x * pf.r * k, pf.p.y + out.y * pf.r * k, pf.p.z + out.z * pf.r * k, pf.r * (0.34 + 0.2 * r()));
-      }
-    }
-    const exposure = this.list.map((pf) => { const e = centre.get(pf.bone); return e && e.max > 0 ? Math.min(1, pf.p.distanceTo(e.c) / e.max) : 0.7; });
 
     const geo = new THREE.IcosahedronGeometry(1, 2);
     const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false });
@@ -205,12 +211,7 @@ export class TitanBody {
     this.puffs.name = 'titan-cloud';
     // colour: the albedo the cloud program lights — the exposed outer puffs full, his core, the skirt and the cloak darker
     const c = new THREE.Color();
-    this.list.forEach((pf, i) => {
-      const low = pf.bone === this.root ? 0.72 : pf.p.z < -4.5 ? 0.78 : 0.92 + 0.08 * Math.sin(i * 1.7);
-      const k = low * (0.45 + 0.6 * (exposure[i] ?? 0.7));
-      c.setRGB(0.95 * k, 0.97 * k, 1.05 * k);
-      this.puffs.setColorAt(i, c);
-    });
+    rows.forEach((row, i) => { this.puffs.setColorAt(i, c.fromArray(row.colour)); });
     scene.add(this.puffs);
 
     // ── the heart: a white-blue core, a fresnel glow shell, the gold target ring when it is open ──
@@ -230,9 +231,7 @@ export class TitanBody {
     this.dome.visible = false;
     this.heart.add(this.dome);
     // the eyes: two white-hot sparks
-    const eg = new THREE.SphereGeometry(0.9, 10, 8), eg2 = eg.clone();
-    eg.translate(-1.8, 0.8, 4.1); eg2.translate(1.8, 0.8, 4.1);
-    const eyes = mergeTwo(eg, eg2);
+    const eyes = new THREE.BufferGeometryLoader().parse(this.data.geometry.eyes);
     this.eyes = new THREE.Mesh(eyes, new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 3.4, 4.2), toneMapped: false, fog: false }));
     this.head.add(this.eyes);
     this.spear = new LightningStrip(scene, 18, new THREE.Color(2.2, 2.4, 3.8));
@@ -254,7 +253,7 @@ export class TitanBody {
     const g = this.ground;
     const root = this.root;
     // standing waist at the rim's height, beyond it; rising from 45 m below; bending over the rim; kneeling; striding
-    root.position.set(TITAN.x + Math.sin(t * 0.11) * 42 * this.stride, g + 4 - 80 * (1 - this.rise) - 20 * this.kneel - 8 * this.bend, TITAN.z + 18 * this.bend + 10 * this.kneel);
+    root.position.set(this.data.TITAN.x + Math.sin(t * 0.11) * 42 * this.stride, g + 4 - 80 * (1 - this.rise) - 20 * this.kneel - 8 * this.bend, this.data.TITAN.z + 18 * this.bend + 10 * this.kneel);
     root.rotation.set(0, Math.sin(t * 0.21) * 0.06 + (this.stride > 0 ? Math.cos(t * 0.11) * 0.18 * this.stride : 0), 0);
     this.chest.rotation.set(0.62 * this.bend + 0.22 * this.kneel + Math.sin(t * 0.7) * 0.02, 0, Math.sin(t * 0.33) * 0.03);
     this.head.rotation.set(-0.35 * this.bend + 0.12, 0, 0);
@@ -300,20 +299,6 @@ export class TitanBody {
   }
 }
 
-function mergeTwo(a: THREE.BufferGeometry, b: THREE.BufferGeometry): THREE.BufferGeometry {
-  const out = new THREE.BufferGeometry();
-  const pa = a.getAttribute('position'), pb = b.getAttribute('position');
-  const pos = new Float32Array((pa.count + pb.count) * 3);
-  for (let i = 0; i < pa.count; i++) { pos[i * 3] = pa.getX(i); pos[i * 3 + 1] = pa.getY(i); pos[i * 3 + 2] = pa.getZ(i); }
-  for (let i = 0; i < pb.count; i++) { const k = (pa.count + i) * 3; pos[k] = pb.getX(i); pos[k + 1] = pb.getY(i); pos[k + 2] = pb.getZ(i); }
-  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const ia = a.getIndex(), ib = b.getIndex(), idx: number[] = [];
-  if (ia) for (let i = 0; i < ia.count; i++) idx.push(ia.getX(i)); else for (let i = 0; i < pa.count; i++) idx.push(i);
-  if (ib) for (let i = 0; i < ib.count; i++) idx.push(ib.getX(i) + pa.count); else for (let i = 0; i < pb.count; i++) idx.push(i + pa.count);
-  out.setIndex(idx);
-  return out;
-}
-
 // ─────────────────────────────── the arena: wall, whirlwinds, fire ───────────────────────────────
 
 function scorchTexture(): THREE.Texture {
@@ -346,9 +331,10 @@ export interface TitanFightHost {
 
 /** the BossScript: the Titan, his moves, the arena's hazards */
 export class StormTitanFight implements BossScript {
+  private readonly data = titanRows();
   readonly body: TitanBody;
   phase = 0;
-  hp = HEART_HP;
+  hp = this.data.HEART_HP;
   private invuln = false;
   private fighting = false;
   private victoryT = -1;
@@ -364,8 +350,8 @@ export class StormTitanFight implements BossScript {
   private chargeCd = 2.5;
   private stunT = 0; private domeBroken = false;
   // phase III
-  private readonly burn = new Uint8Array(GRID * GRID);      // 0 grass · 1 burning · 2 burnt
-  private readonly burnT = new Float32Array(GRID * GRID);
+  private readonly burn = new Uint8Array(this.data.GRID * this.data.GRID);      // 0 grass · 1 burning · 2 burnt
+  private readonly burnT = new Float32Array(this.data.GRID * this.data.GRID);
   private spreadT = 0; private fireOn = false; private fireDmgT = 0;
   private readonly fire: GrassFireFx; private readonly scorch: THREE.InstancedMesh;
   private scorchN = 0;
@@ -391,8 +377,8 @@ export class StormTitanFight implements BossScript {
     // the storm wall: two counter-rotating cloud cylinders
     this.wallMat = [fxMaterial(FX.stream, new THREE.Color(0.5, 0.53, 0.62), 0.85, false), fxMaterial(FX.stream, new THREE.Color(0.66, 0.7, 0.8), 0.55, false)];
     this.wall = this.wallMat.map((m, i) => {
-      const w = new THREE.Mesh(new THREE.CylinderGeometry(ARENA_R + i * 3, ARENA_R + i * 3, 46, 72, 1, true), m);
-      w.position.set(CENTER.x, heightAt(CENTER.x, CENTER.z) - 6, CENTER.z);
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(this.data.ARENA_R + i * 3, this.data.ARENA_R + i * 3, 46, 72, 1, true), m);
+      w.position.set(this.data.CENTER.x, heightAt(this.data.CENTER.x, this.data.CENTER.z) - 6, this.data.CENTER.z);
       w.visible = false; w.renderOrder = 12; w.name = 'titan-storm-wall';
       scene.add(w);
       return w;
@@ -404,23 +390,23 @@ export class StormTitanFight implements BossScript {
     this.whirls = [0, 1, 2].map((i) => {
       const f = new THREE.Mesh(funnelGeo, funnelMat); f.visible = false; f.renderOrder = 11; f.name = 'titan-whirlwind'; scene.add(f);
       const a = i * 2.1;
-      return { x: CENTER.x + Math.cos(a) * 30, z: CENTER.z + Math.sin(a) * 30, vx: 0, vz: 0, funnel: f, on: false, k: 0 };
+      return { x: this.data.CENTER.x + Math.cos(a) * 30, z: this.data.CENTER.z + Math.sin(a) * 30, vx: 0, vz: 0, funnel: f, on: false, k: 0 };
     });
     this.debris = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(0.28), new THREE.MeshLambertMaterial({ color: 0x6a5a44 }), 3 * 40);
     this.debris.frustumCulled = false; this.debris.count = 0; this.debris.name = 'titan-debris';
     scene.add(this.debris);
     // fire: 3D flame tongues + rising smoke (stormTitanLook.ts) and scorch decals
-    this.fire = new GrassFireFx(scene, MAX_FLAMES, this.body.uni.uFogC, this.body.uni.uFlash);
-    const sg = new THREE.PlaneGeometry(CELL * 1.25, CELL * 1.25); sg.rotateX(-Math.PI / 2);
+    this.fire = new GrassFireFx(scene, this.data.MAX_FLAMES, this.body.uni.uFogC, this.body.uni.uFlash, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
+    const sg = new THREE.PlaneGeometry(this.data.CELL * 1.25, this.data.CELL * 1.25); sg.rotateX(-Math.PI / 2);
     const scMat = new THREE.MeshBasicMaterial({ color: 0x0d0a08, alphaMap: scorchTexture(), transparent: true, opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, fog: false });
     scMat.name = 'titan-scorch';
-    this.scorch = new THREE.InstancedMesh(sg, scMat, GRID * GRID);
+    this.scorch = new THREE.InstancedMesh(sg, scMat, this.data.GRID * this.data.GRID);
     this.scorch.frustumCulled = false; this.scorch.count = 0; this.scorch.renderOrder = 2; this.scorch.name = 'titan-scorch';
     scene.add(this.scorch);
   }
 
   // ── BossScript ──
-  get hpFrac(): number { return Math.max(0, this.hp / HEART_HP); }
+  get hpFrac(): number { return Math.max(0, this.hp / this.data.HEART_HP); }
   get shielded(): boolean { return this.phase === 1 && !this.domeBroken; }
   get dead(): boolean { return this.hp <= 0; }
   get heartOpen(): boolean {
@@ -429,29 +415,29 @@ export class StormTitanFight implements BossScript {
     if (this.phase === 1) return this.domeBroken;
     return true;
   }
-  inArena(p: THREE.Vector3): boolean { return this.tied && this.host.mounted() && Math.hypot(p.x - CENTER.x, p.z - CENTER.z) < ARENA_R - 2; }
+  inArena(p: THREE.Vector3): boolean { return this.tied && this.host.mounted() && Math.hypot(p.x - this.data.CENTER.x, p.z - this.data.CENTER.z) < this.data.ARENA_R - 2; }
   /** the strip is tied (the cairn's prompt) — the threshold */
   tied = false;
   seal(on: boolean): void { this.sealed = on; }
-  clampHp(frac: number): void { this.hp = Math.max(1, Math.round(HEART_HP * frac)); }
+  clampHp(frac: number): void { this.hp = Math.max(1, Math.round(this.data.HEART_HP * frac)); }
   setInvulnerable(on: boolean): void { this.invuln = on; }
   rewardPoint(): THREE.Vector3 {
     const s = this.cairnSpot();
-    const dx = CENTER.x - s.x, dz = CENTER.z - s.z, l = Math.hypot(dx, dz) || 1;
+    const dx = this.data.CENTER.x - s.x, dz = this.data.CENTER.z - s.z, l = Math.hypot(dx, dz) || 1;
     const x = s.x + (dx / l) * 3.5, z = s.z + (dz / l) * 3.5;
     return new THREE.Vector3(x, heightAt(x, z) + 1.3, z);
   }
   respawnPoint(): { pos: THREE.Vector3; yaw: number } {
     const s = this.cairnSpot();
-    const dx = CENTER.x - s.x, dz = CENTER.z - s.z, l = Math.hypot(dx, dz) || 1;
+    const dx = this.data.CENTER.x - s.x, dz = this.data.CENTER.z - s.z, l = Math.hypot(dx, dz) || 1;
     const x = s.x + (dx / l) * 16, z = s.z + (dz / l) * 16;
-    return { pos: new THREE.Vector3(x, heightAt(x, z), z), yaw: Math.atan2(-(TITAN.x - x), -(TITAN.z - z)) };
+    return { pos: new THREE.Vector3(x, heightAt(x, z), z), yaw: Math.atan2(-(this.data.TITAN.x - x), -(this.data.TITAN.z - z)) };
   }
   cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(CAIRN.x, heightAt(CAIRN.x, CAIRN.z + 3), CAIRN.z + 3); }
 
   reset(phase: number): void {
     this.phase = phase;
-    this.hp = Math.round(HEART_HP * (TITAN_PHASES[phase]?.at ?? 1));
+    this.hp = Math.round(this.data.HEART_HP * (this.data.TITAN_PHASES[phase]?.at ?? 1));
     this.fighting = false; this.invuln = false; this.victoryT = -1; this.introBolt = false;
     const b = this.body;
     b.rise = 0; b.bend = 0; b.raise = 0.2; b.kneel = 0; b.castL = 0; b.stride = 0; b.heartOpen = 0;
@@ -476,7 +462,7 @@ export class StormTitanFight implements BossScript {
     b.uni.uAlpha.value = this.phase === 1 ? 1 - 0.45 * smoothstep(0, 1, t / len) : 1;
     b.uni.uFlash.value = t > len * 0.7 ? Math.max(0, 1 - (t - len * 0.7) * 2) : 0;
     // his eyes ignite, and the first bolt hits the meadow
-    if (!short && t > 2.5 && !this.introBolt) { this.introBolt = true; this.bolt(CENTER.x + 18, CENTER.z - 10); }
+    if (!short && t > 2.5 && !this.introBolt) { this.introBolt = true; this.bolt(this.data.CENTER.x + 18, this.data.CENTER.z - 10); }
     return b.heartWorld(_hitP);
   }
 
@@ -494,14 +480,14 @@ export class StormTitanFight implements BossScript {
     if (phase === 1) {
       this.domeBroken = false; this.stunT = 0;
       this.spawnRiders();
-      this.host.feed(TITAN_LINES.kneels);
+      this.host.feed(this.data.TITAN_LINES.kneels);
     } else this.clearRiders();
     if (phase === 2) {
       this.fireOn = true;
       // the lightning has already lit the plateau in three places (upwind of you)
       const p = this.host.player.position;
       for (let i = 0; i < 3; i++) { const a = i * 2.1 + 0.5; this.ignite(p.x + Math.cos(a) * 26, p.z + Math.sin(a) * 26); }
-      this.host.feed(TITAN_LINES.grassFire);
+      this.host.feed(this.data.TITAN_LINES.grassFire);
     }
   }
 
@@ -610,10 +596,10 @@ export class StormTitanFight implements BossScript {
   private hitHeart(amount: number): boolean {
     if (this.dead) return false;
     if (!this.heartOpen) {
-      if (this.immuneT <= 0) { this.immuneT = 2.5; this.host.toast(this.phase === 1 ? TITAN_LINES.immuneDome : TITAN_LINES.immuneSpear); }
+      if (this.immuneT <= 0) { this.immuneT = 2.5; this.host.toast(this.phase === 1 ? this.data.TITAN_LINES.immuneDome : this.data.TITAN_LINES.immuneSpear); }
       return false;
     }
-    const mul = amount >= FULL_DRAW ? FULL_DRAW_MUL : 1;
+    const mul = amount >= this.data.FULL_DRAW ? this.data.FULL_DRAW_MUL : 1;
     this.hp = Math.max(0, this.hp - amount * mul);
     this.body.uni.uFlash.value = 1;
     return this.hp <= 0;
@@ -634,16 +620,16 @@ export class StormTitanFight implements BossScript {
       case 'aim': {
         b.raise += (1 - b.raise) * Math.min(1, dt * 4);
         // the ring tracks you until 0.5 s before the strike
-        if (this.spearT < SPEAR_AIM - SPEAR_LOCK) { const k = Math.min(1, dt * 5); this.spearAt.x += (p.x - this.spearAt.x) * k; this.spearAt.z += (p.z - this.spearAt.z) * k; }
-        const pulse = 0.6 + 0.4 * Math.sin(t * (this.spearT > SPEAR_AIM - SPEAR_LOCK ? 30 : 12));
-        this.spearRing.ring(this.spearAt.x, this.spearAt.z, SPEAR_R, 0.95 * pulse);
-        this.spearFork.ring(this.spearAt.x, this.spearAt.z, SPEAR_R * (0.3 + 0.7 * (1 - this.spearT / SPEAR_AIM)), 0.8 * pulse);
-        if (this.spearT >= SPEAR_AIM) {
+        if (this.spearT < this.data.SPEAR_AIM - this.data.SPEAR_LOCK) { const k = Math.min(1, dt * 5); this.spearAt.x += (p.x - this.spearAt.x) * k; this.spearAt.z += (p.z - this.spearAt.z) * k; }
+        const pulse = 0.6 + 0.4 * Math.sin(t * (this.spearT > this.data.SPEAR_AIM - this.data.SPEAR_LOCK ? 30 : 12));
+        this.spearRing.ring(this.spearAt.x, this.spearAt.z, this.data.SPEAR_R, 0.95 * pulse);
+        this.spearFork.ring(this.spearAt.x, this.spearAt.z, this.data.SPEAR_R * (0.3 + 0.7 * (1 - this.spearT / this.data.SPEAR_AIM)), 0.8 * pulse);
+        if (this.spearT >= this.data.SPEAR_AIM) {
           this.spear = 'strike'; this.spearT = 0;
           this.spearAt.y = heightAt(this.spearAt.x, this.spearAt.z);
           this.spearRing.hide(); this.spearFork.hide();
           this.bolt(this.spearAt.x, this.spearAt.z);
-          if (Math.hypot(p.x - this.spearAt.x, p.z - this.spearAt.z) < SPEAR_R && sampleArena(NALATI_STRIKES.spear, this.spearAt, p, () => { this.host.hurt(SPEAR_DMG, 'The Sky Spear — keep turning at a canter'); }, app.physics)) this.host.throwRider();
+          if (Math.hypot(p.x - this.spearAt.x, p.z - this.spearAt.z) < this.data.SPEAR_R && sampleArena(NALATI_STRIKES.spear, this.spearAt, p, () => { this.host.hurt(this.data.SPEAR_DMG, 'The Sky Spear — keep turning at a canter'); }, app.physics)) this.host.throwRider();
           if (this.phase === 2) this.ignite(this.spearAt.x, this.spearAt.z);
         }
         break;
@@ -651,11 +637,11 @@ export class StormTitanFight implements BossScript {
       case 'strike':
         b.raise += (0 - b.raise) * Math.min(1, dt * 8);
         b.bend += (1 - b.bend) * Math.min(1, dt * 5);
-        if (this.spearT > 0.45) { this.spear = 'stuck'; this.spearT = 0; if (this.phase === 0) this.host.feed(TITAN_LINES.spearStuck); }
+        if (this.spearT > 0.45) { this.spear = 'stuck'; this.spearT = 0; if (this.phase === 0) this.host.feed(this.data.TITAN_LINES.spearStuck); }
         break;
       case 'stuck':
         b.bend += (1 - b.bend) * Math.min(1, dt * 5);
-        if (this.spearT >= SPEAR_STUCK) { this.spear = 'idle'; this.spearT = 0; this.spearCd = this.phase === 2 ? 6 + app.rng.stream('ai').next() * 2 : 2 + app.rng.stream('ai').next() * 1.5; }
+        if (this.spearT >= this.data.SPEAR_STUCK) { this.spear = 'idle'; this.spearT = 0; this.spearCd = this.phase === 2 ? 6 + app.rng.stream('ai').next() * 2 : 2 + app.rng.stream('ai').next() * 1.5; }
         break;
       default: break;
     }
@@ -668,10 +654,10 @@ export class StormTitanFight implements BossScript {
     const gr = this.host.riders();
     if (gr === null) { this.domeBroken = true; return; }
     for (let i = 0; i < 3; i++) {
-      const x = TITAN.x + (i - 1) * 18, z = CENTER.z - ARENA_R + 10;
+      const x = this.data.TITAN.x + (i - 1) * 18, z = this.data.CENTER.z - this.data.ARENA_R + 10;
       const a = gr.spawnRider({ x, z, yaw: 0, variant: 'rider', storm: true });
       if (a === null) continue;
-      a.maxHp = RIDER_HP; a.hp = RIDER_HP;
+      a.maxHp = this.data.RIDER_HP; a.hp = this.data.RIDER_HP;
       const lane = this.lanes[i] ?? this.lanes[0];
       if (lane === undefined) continue;
       const r: StormRider = { a, mode: 'circle', t: 0, th: i * 2.09, lane, x0: 0, z0: 0, x1: 0, z1: 0, hit: false };
@@ -703,9 +689,9 @@ export class StormTitanFight implements BossScript {
       if (!a.alive) {
         r.lane.hide();
         this.stormRiders.splice(i, 1);
-        if (!this.invuln) this.hp = Math.max(1, this.hp - RIDER_CHIP * HEART_HP);
-        this.host.feed(this.stormRiders.length > 0 ? `${TITAN_LINES.riderBreaks} · ${this.stormRiders.length} left` : TITAN_LINES.lastRider);
-        if (this.stormRiders.length === 0) { this.domeBroken = true; this.stunT = STUN_T; this.body.uni.uFlash.value = 1; }
+        if (!this.invuln) this.hp = Math.max(1, this.hp - this.data.RIDER_CHIP * this.data.HEART_HP);
+        this.host.feed(this.stormRiders.length > 0 ? `${this.data.TITAN_LINES.riderBreaks} · ${this.stormRiders.length} left` : this.data.TITAN_LINES.lastRider);
+        if (this.stormRiders.length === 0) { this.domeBroken = true; this.stunT = this.data.STUN_T; this.body.uni.uFlash.value = 1; }
         continue;
       }
       r.t += dt;
@@ -720,13 +706,13 @@ export class StormTitanFight implements BossScript {
         case 'aim': {
           m['tx'] = r.x0; m['tz'] = r.z0; m['v'] = 0.5; m['turn'] = 5;
           r.lane.lane(r.x0, r.z0, r.x1, r.z1, 4.2, 0.9 * (0.65 + 0.35 * Math.sin(r.t * 18)));
-          if (r.t >= LANE_T) { r.mode = 'charge'; r.t = 0; r.hit = false; }
+          if (r.t >= this.data.LANE_T) { r.mode = 'charge'; r.t = 0; r.hit = false; }
           break;
         }
         case 'charge': {
           m['tx'] = r.x1; m['tz'] = r.z1; m['v'] = 21; m['turn'] = 6;
           r.lane.lane(r.x0, r.z0, r.x1, r.z1, 4.2, Math.max(0, 0.5 - r.t * 0.3));
-          if (!r.hit && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 3.4) { r.hit = true; if (sampleArena(NALATI_STRIKES.wind, a.position, p, () => { this.host.hurt(CHARGE_DMG, 'Wind Charge — swerve out of the lane'); }, app.physics)) this.host.throwRider(); }
+          if (!r.hit && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 3.4) { r.hit = true; if (sampleArena(NALATI_STRIKES.wind, a.position, p, () => { this.host.hurt(this.data.CHARGE_DMG, 'Wind Charge — swerve out of the lane'); }, app.physics)) this.host.throwRider(); }
           if (Math.hypot(r.x1 - a.position.x, r.z1 - a.position.z) < 4 || r.t > 3.2) { r.mode = 'open'; r.t = 0; r.lane.hide(); }
           break;
         }
@@ -734,7 +720,7 @@ export class StormTitanFight implements BossScript {
           // past you: its flank is open (the sabre ×3) while it wheels
           const dx = r.x1 - r.x0, dz = r.z1 - r.z0, l = Math.hypot(dx, dz) || 1;
           m['tx'] = r.x1 + (dx / l) * 14; m['tz'] = r.z1 + (dz / l) * 14; m['v'] = 7; m['turn'] = 2;
-          if (r.t >= FLANK_T) { r.mode = 'circle'; r.t = 0; r.th = Math.atan2(a.position.x - p.x, a.position.z - p.z); }
+          if (r.t >= this.data.FLANK_T) { r.mode = 'circle'; r.t = 0; r.th = Math.atan2(a.position.x - p.x, a.position.z - p.z); }
           break;
         }
         default: break;
@@ -755,19 +741,19 @@ export class StormTitanFight implements BossScript {
   // ── III · the grass fire + chain lightning ──
 
   private cellOf(x: number, z: number): number {
-    const i = Math.floor((x - (CENTER.x - ARENA_R)) / CELL), j = Math.floor((z - (CENTER.z - ARENA_R)) / CELL);
-    return i < 0 || j < 0 || i >= GRID || j >= GRID ? -1 : j * GRID + i;
+    const i = Math.floor((x - (this.data.CENTER.x - this.data.ARENA_R)) / this.data.CELL), j = Math.floor((z - (this.data.CENTER.z - this.data.ARENA_R)) / this.data.CELL);
+    return i < 0 || j < 0 || i >= this.data.GRID || j >= this.data.GRID ? -1 : j * this.data.GRID + i;
   }
-  private cellX(c: number): number { return CENTER.x - ARENA_R + ((c % GRID) + 0.5) * CELL; }
-  private cellZ(c: number): number { return CENTER.z - ARENA_R + (Math.floor(c / GRID) + 0.5) * CELL; }
-  private inside(c: number): boolean { return Math.hypot(this.cellX(c) - CENTER.x, this.cellZ(c) - CENTER.z) < ARENA_R - 2; }
+  private cellX(c: number): number { return this.data.CENTER.x - this.data.ARENA_R + ((c % this.data.GRID) + 0.5) * this.data.CELL; }
+  private cellZ(c: number): number { return this.data.CENTER.z - this.data.ARENA_R + (Math.floor(c / this.data.GRID) + 0.5) * this.data.CELL; }
+  private inside(c: number): boolean { return Math.hypot(this.cellX(c) - this.data.CENTER.x, this.cellZ(c) - this.data.CENTER.z) < this.data.ARENA_R - 2; }
   /** a burning cell (for the horse's refusal, the HUD) */
   burningAt(x: number, z: number): boolean { const c = this.cellOf(x, z); return c >= 0 && this.burn[c] === 1; }
 
   private ignite(x: number, z: number): void {
     const c = this.cellOf(x, z);
     if (c < 0 || this.burn[c] !== 0 || !this.inside(c)) return;
-    this.burn[c] = 1; this.burnT[c] = BURN_T * (0.8 + app.rng.stream('ai').next() * 0.4);
+    this.burn[c] = 1; this.burnT[c] = this.data.BURN_T * (0.8 + app.rng.stream('ai').next() * 0.4);
   }
   private addScorch(c: number): void {
     if (this.scorchN >= this.scorch.instanceMatrix.count) return;
@@ -779,7 +765,7 @@ export class StormTitanFight implements BossScript {
     _m.compose(_v.set(x, heightAt(x, z) + 0.08, z), _q, _s.set(0.8 + app.rng.stream('cosmetic').next() * 0.5, 1, 0.8 + app.rng.stream('cosmetic').next() * 0.5));
     this.scorch.setMatrixAt(this.scorchN++, _m);
     this.scorch.count = this.scorchN; this.scorch.instanceMatrix.needsUpdate = true;
-    wildEnv.trample(x, z, CELL * 0.6, 1, 0, 0);   // the grass burnt flat
+    wildEnv.trample(x, z, this.data.CELL * 0.6, 1, 0, 0);   // the grass burnt flat
   }
   private clearFire(): void {
     this.burn.fill(0); this.burnT.fill(0);
@@ -797,19 +783,19 @@ export class StormTitanFight implements BossScript {
       const next: number[] = [];
       for (let c = 0; c < this.burn.length; c++) {
         if (this.burn[c] !== 1) continue;
-        const i = c % GRID, j = Math.floor(c / GRID);
+        const i = c % this.data.GRID, j = Math.floor(c / this.data.GRID);
         for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
           if (di === 0 && dj === 0) continue;
           const ni = i + di, nj = j + dj;
-          if (ni < 0 || nj < 0 || ni >= GRID || nj >= GRID) continue;
-          const n = nj * GRID + ni;
+          if (ni < 0 || nj < 0 || ni >= this.data.GRID || nj >= this.data.GRID) continue;
+          const n = nj * this.data.GRID + ni;
           if (this.burn[n] !== 0) continue;
           const l = Math.hypot(di, dj), along = (di * wx + dj * wz) / l;
           const pr = along > 0.5 ? 0.16 : along > -0.2 ? 0.035 : 0.004;
           if (app.rng.stream('ai').next() < pr) next.push(n);
         }
       }
-      for (const n of next) if (this.inside(n)) { this.burn[n] = 1; this.burnT[n] = BURN_T * (0.8 + app.rng.stream('ai').next() * 0.4); }
+      for (const n of next) if (this.inside(n)) { this.burn[n] = 1; this.burnT[n] = this.data.BURN_T * (0.8 + app.rng.stream('ai').next() * 0.4); }
     }
     // burn down; draw the flames: each cell rises, roars and sinks to embers; the downwind front stands tallest; smoke rolls off
     const fx = this.fire;
@@ -822,10 +808,10 @@ export class StormTitanFight implements BossScript {
       this.burnT[c] = bt;
       if (bt <= 0) { this.burn[c] = 2; this.addScorch(c); continue; }
       const x = this.cellX(c), z = this.cellZ(c), y = heightAt(x, z) - 0.15;
-      const age = BURN_T - bt;
+      const age = this.data.BURN_T - bt;
       const heat = Math.min(1, age / 0.9) * Math.min(1, bt / 2.2);
       // the front: the next cell downwind is still grass
-      const nc = this.cellOf(x + wx * CELL, z + wz * CELL);
+      const nc = this.cellOf(x + wx * this.data.CELL, z + wz * this.data.CELL);
       const front = nc >= 0 && this.burn[nc] === 0 ? 1 : 0;
       fx.flame(x + Math.sin(c * 3.1) * 0.8, y, z + Math.cos(c * 2.3) * 0.8, c, heat, front, 1.5);
       if (app.rng.stream('cosmetic').next() < dt * smokeRate * (0.4 + heat)) fx.puff(x, y, z, heat);
@@ -835,7 +821,7 @@ export class StormTitanFight implements BossScript {
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
     this.fireDmgT -= dt;
-    if (this.burningAt(p.x, p.z) && this.fireDmgT <= 0) { this.fireDmgT = 0.5; sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(FIRE_DPS * 0.5, TITAN_LINES.burning); }, app.physics); }
+    if (this.burningAt(p.x, p.z) && this.fireDmgT <= 0) { this.fireDmgT = 0.5; sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(this.data.FIRE_DPS * 0.5, this.data.TITAN_LINES.burning); }, app.physics); }
     if (this.host.mounted()) {
       let near = false;
       for (let a = 0; a < 6 && !near; a++) near = this.burningAt(p.x + Math.cos(a) * 5, p.z + Math.sin(a) * 5);
@@ -864,12 +850,12 @@ export class StormTitanFight implements BossScript {
     for (const c of this.chains) {
       if (!c.on) continue;
       c.t += dt;
-      c.tell.ring(c.x, c.z, CHAIN_R, 0.85 * (0.6 + 0.4 * Math.sin(t * 24)));
-      if (c.t >= CHAIN_LAND) {
+      c.tell.ring(c.x, c.z, this.data.CHAIN_R, 0.85 * (0.6 + 0.4 * Math.sin(t * 24)));
+      if (c.t >= this.data.CHAIN_LAND) {
         c.on = false; c.tell.hide();
         this.bolt(c.x, c.z);
         this.ignite(c.x, c.z);
-        if (Math.hypot(p.x - c.x, p.z - c.z) < CHAIN_R) sampleArena(NALATI_STRIKES.chain, _v.set(c.x, p.y, c.z), p, () => { this.host.hurt(CHAIN_DMG, TITAN_LINES.chain); }, app.physics);
+        if (Math.hypot(p.x - c.x, p.z - c.z) < this.data.CHAIN_R) sampleArena(NALATI_STRIKES.chain, _v.set(c.x, p.y, c.z), p, () => { this.host.hurt(this.data.CHAIN_DMG, this.data.TITAN_LINES.chain); }, app.physics);
       }
     }
   }
@@ -888,12 +874,12 @@ export class StormTitanFight implements BossScript {
       w.funnel.visible = w.k > 0.02;
       if (!w.funnel.visible) continue;
       // wander: a slow turn, kept inside the circle, drifting downwind
-      const a = Math.sin(t * 0.3 + wi * 2) * 1.2 + Math.atan2(CENTER.z - w.z, CENTER.x - w.x) * 0.35;
+      const a = Math.sin(t * 0.3 + wi * 2) * 1.2 + Math.atan2(this.data.CENTER.z - w.z, this.data.CENTER.x - w.x) * 0.35;
       w.vx += (Math.cos(a) * 4.2 + wind.dirX * 1.5 - w.vx) * Math.min(1, dt * 0.6);
       w.vz += (Math.sin(a) * 4.2 + wind.dirZ * 1.5 - w.vz) * Math.min(1, dt * 0.6);
       w.x += w.vx * dt; w.z += w.vz * dt;
-      const d = Math.hypot(w.x - CENTER.x, w.z - CENTER.z);
-      if (d > ARENA_R - 8) { w.x = CENTER.x + (w.x - CENTER.x) * (ARENA_R - 8) / d; w.z = CENTER.z + (w.z - CENTER.z) * (ARENA_R - 8) / d; }
+      const d = Math.hypot(w.x - this.data.CENTER.x, w.z - this.data.CENTER.z);
+      if (d > this.data.ARENA_R - 8) { w.x = this.data.CENTER.x + (w.x - this.data.CENTER.x) * (this.data.ARENA_R - 8) / d; w.z = this.data.CENTER.z + (w.z - this.data.CENTER.z) * (this.data.ARENA_R - 8) / d; }
       const gy = heightAt(w.x, w.z);
       w.funnel.position.set(w.x, gy - 0.5, w.z);
       w.funnel.rotation.y += dt * 5;
@@ -905,9 +891,9 @@ export class StormTitanFight implements BossScript {
         this.debris.setMatrixAt(n++, _m);
       }
       // touching it lifts you out of the saddle
-      if (live && this.whirlCd <= 0 && Math.hypot(p.x - w.x, p.z - w.z) < WHIRL_R) {
+      if (live && this.whirlCd <= 0 && Math.hypot(p.x - w.x, p.z - w.z) < this.data.WHIRL_R) {
         this.whirlCd = 2;
-        if (sampleArena(NALATI_STRIKES.whirl, _v.set(w.x, gy, w.z), p, () => { this.host.hurt(WHIRL_DMG, 'A whirlwind — ride around them'); }, app.physics)) this.host.throwRider();
+        if (sampleArena(NALATI_STRIKES.whirl, _v.set(w.x, gy, w.z), p, () => { this.host.hurt(this.data.WHIRL_DMG, 'A whirlwind — ride around them'); }, app.physics)) this.host.throwRider();
       }
     }
     this.debris.count = n; this.debris.instanceMatrix.needsUpdate = true;
@@ -924,7 +910,7 @@ export class StormTitanFight implements BossScript {
 
   /** the storm wall and the fire line the horse will not ride into */
   refuses(x: number, z: number): boolean {
-    if (this.sealed && Math.hypot(x - CENTER.x, z - CENTER.z) > ARENA_R - 3) return true;
+    if (this.sealed && Math.hypot(x - this.data.CENTER.x, z - this.data.CENTER.z) > this.data.ARENA_R - 3) return true;
     return this.fighting && this.phase === 2 && this.burningAt(x, z);
   }
   get sealedNow(): boolean { return this.sealed; }
@@ -960,6 +946,7 @@ export interface TitanPlay {
 export class StormTitanBrain extends Boss {}
 
 export class StormTitan {
+  private readonly data = titanRows();
   readonly fight: StormTitanFight;
   readonly spareLight = new THREE.PointLight(0xc8dcff, 0, 1, 2);
   ui: BossBar | null = null;
@@ -991,10 +978,10 @@ export class StormTitan {
       animals: () => this.play?.animals ?? null,
     };
     this.fight = new StormTitanFight(ctx, host);
-    this.spareLight.position.set(TITAN.x, -60, TITAN.z);
+    this.spareLight.position.set(this.data.TITAN.x, -60, this.data.TITAN.z);
     ctx.game.scene.add(this.spareLight);
     const spot = this.fight.cairnSpot();
-    this.prompt = { position: new THREE.Vector3(spot.x, spot.y + 1.2, spot.z), radius: 0, label: TITAN_LINES.tie, onInteract: () => { this.tie(); } };
+    this.prompt = { position: new THREE.Vector3(spot.x, spot.y + 1.2, spot.z), radius: 0, label: this.data.TITAN_LINES.tie, onInteract: () => { this.tie(); } };
   }
 
   get engaged(): boolean { return this.boss?.engaged === true; }
@@ -1011,14 +998,14 @@ export class StormTitan {
     });
     this.ui = new BossBar();
     const def: BossDef = {
-      ...TITAN_ENCOUNTER,
+      ...this.data.TITAN_ENCOUNTER,
       reward: {
-        ...TITAN_REWARD,
+        ...this.data.TITAN_REWARD,
         model: () => naizagaiModel(),
         grant: () => {
           if (this.naizagai) play.upgradeSabre?.(this.naizagai);
-          play.ownSkin?.(TITAN_SKIN.id);
-          play.toast(TITAN_SKIN.toast);
+          play.ownSkin?.(this.data.TITAN_SKIN.id);
+          play.toast(this.data.TITAN_SKIN.toast);
         },
       },
     };
@@ -1063,12 +1050,12 @@ export class StormTitan {
   private tie(): void {
     const play = this.play, boss = this.boss;
     if (!play || !boss || this.engaged || boss.state === 'victory' && boss.reward !== null) return;
-    if (play.ride?.mount.mounted !== true) { play.toast(TITAN_LINES.wantsRider); return; }
-    if (!this.ctx.weather.weather.stormActive) { play.toast(TITAN_LINES.quiet); return; }
+    if (play.ride?.mount.mounted !== true) { play.toast(this.data.TITAN_LINES.wantsRider); return; }
+    if (!this.ctx.weather.weather.stormActive) { play.toast(this.data.TITAN_LINES.quiet); return; }
     this.fight.tied = true;
     if (boss.state === 'victory') boss.disarm();
     boss.arm();
-    play.toast(TITAN_LINES.wakes);
+    play.toast(this.data.TITAN_LINES.wakes);
   }
 
   /** back at the cairn in the saddle: Tulpar / Argymaq if you have him, else a camp horse */
@@ -1095,19 +1082,19 @@ export class StormTitan {
     // the cairn's prompt (label by the situation; hidden while the fight is on)
     const mounted = play.ride?.mount.mounted === true, storm = this.ctx.weather.weather.stormActive;
     this.prompt.radius = this.engaged || (boss.state === 'armed' && this.fight.tied) ? 0 : 4.6;
-    this.prompt.label = !mounted ? TITAN_LINES.tieOnFoot : !storm ? TITAN_LINES.tieQuiet : TITAN_LINES.tie;
+    this.prompt.label = !mounted ? this.data.TITAN_LINES.tieOnFoot : !storm ? this.data.TITAN_LINES.tieQuiet : this.data.TITAN_LINES.tie;
     // the storm ended before you rode in: the strip is just a strip
     if (boss.state === 'armed' && !storm) { this.fight.tied = false; boss.disarm(); }
     // left the arena while armed (not yet fighting): forget it
     const p = this.ctx.player.position;
-    const away = Math.hypot(p.x - CENTER.x, p.z - CENTER.z);
-    if (boss.state === 'armed' && away > ARENA_R + 30) { this.fight.tied = false; boss.disarm(); }
+    const away = Math.hypot(p.x - this.data.CENTER.x, p.z - this.data.CENTER.z);
+    if (boss.state === 'armed' && away > this.data.ARENA_R + 30) { this.fight.tied = false; boss.disarm(); }
     // on foot at the wall: it stings and throws you back
     this.wallT -= dt;
-    if (this.engaged && this.fight.sealedNow && away > ARENA_R - 2.5 && !mounted) {
-      const k = (ARENA_R - 4) / away;
-      p.x = CENTER.x + (p.x - CENTER.x) * k; p.z = CENTER.z + (p.z - CENTER.z) * k;
-      if (this.wallT <= 0) { this.wallT = 1.2; sampleArena(NALATI_STRIKES.wall, p, p, () => { play.hurt(10, TITAN_LINES.wall); }, app.physics); }
+    if (this.engaged && this.fight.sealedNow && away > this.data.ARENA_R - 2.5 && !mounted) {
+      const k = (this.data.ARENA_R - 4) / away;
+      p.x = this.data.CENTER.x + (p.x - this.data.CENTER.x) * k; p.z = this.data.CENTER.z + (p.z - this.data.CENTER.z) * k;
+      if (this.wallT <= 0) { this.wallT = 1.2; sampleArena(NALATI_STRIKES.wall, p, p, () => { play.hurt(10, this.data.TITAN_LINES.wall); }, app.physics); }
     }
     if (boss.state === 'victory' && this.fight.tied) {
       // the rain curtain: the storm lets go and clears

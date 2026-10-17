@@ -1945,3 +1945,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Fixed Nalati model paint is built from retained source GLBs.
 /public/assets/nalati/baked/painted-models/
+
+# Static Storm Titan rows and geometry are cheap build products.
+/src/shards/nalati-grasslands/data/stormTitanFight.generated.json
+/src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json

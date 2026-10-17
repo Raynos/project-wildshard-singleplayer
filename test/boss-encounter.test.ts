@@ -7,7 +7,7 @@ import type { BossScript } from '../src/engine/ai/BossBrain';
 import { installBossEncounter, type BossEncounterPorts, type BossEncounterRows, type BossPersistence } from '../src/game/Boss';
 import { ANTLER_KING_PRESENTATION } from '../src/shards/pine-hollow/data/antlerKing';
 import { mockCanvas } from './fake/weaponParity';
-import { TITAN_ENCOUNTER, TITAN_REWARD } from '../src/shards/nalati-grasslands/data/stormTitanFight';
+import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
 
 function fixture(rows: BossEncounterRows, owned = false) {
@@ -75,7 +75,7 @@ test('Pine keeps bar/prewarm/register order, borrowed room stepping, phase check
   } finally { live.ui.scope.dispose(); f.scope.dispose(); }
 });
 
-test.each([{ definition: TITAN_ENCOUNTER, reward: TITAN_REWARD }, { definition: king.encounter, reward: king.reward }])('a paid $definition.id record stays paid with its original event owner', ({ definition, reward }) => {
+test.each([{ definition: titan.TITAN_ENCOUNTER, reward: titan.TITAN_REWARD }, { definition: king.encounter, reward: king.reward }])('a paid $definition.id record stays paid with its original event owner', ({ definition, reward }) => {
   const rows: BossEncounterRows = { definition, reward,
     score: { intro: [{ kind: 'combat', value: 1 }], phase: [{ kind: 'combat', value: 1 }], victory: [{ kind: 'sting', value: 'chunk' }], death: [{ kind: 'sting', value: 'death' }], pickup: [{ kind: 'sting', value: 'pickup' }] } };
   const f = fixture(rows, true), live = installBossEncounter(rows, () => f.script, f.ports);

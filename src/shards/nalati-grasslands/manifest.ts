@@ -70,7 +70,10 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   // (src/shards/nalati-grasslands/world/index.ts), the World Explorer map pins the map's named places
   explore: { art: EXPLORE, compare: COMPARE },
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
-  roster: async () => (await import('./roster')).ROSTER,
+  roster: async () => {
+    await (await import('./combat/stormTitan')).prepareStormTitan(await (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct('nalati-grasslands'));
+    return (await import('./roster')).ROSTER;
+  },
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   hud: { dayBadge: true }, // the minimap's sun / moon (E154)
   minimap: { image: '/assets/nalati-grasslands/map/top.webp', palette: NALATI_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges and names the map-01 places (look/minimap.ts)
