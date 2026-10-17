@@ -113,3 +113,24 @@ slice's -291 from the separate contracts reduction.
 Checkpoint hash metadata is recorded in the separate cadence commit, with
 its unchanged phase tick table. The muted served-HEAD phone check follows
 that landing.
+
+
+## Separate checkpoint pin: accepted 10 Hz cadence
+
+The retained recorder regenerated the five checkpoints after the G415/G416
+cadence change and the v2 Script ABI continuation replaced the old 60 Hz
+wave adapter wire. Canonical state/payload hashes change; the gameplay
+phase boundaries stay at the same ticks:
+
+| Checkpoint | Before | After | Delta |
+|---|---:|---:|---:|
+| dam | 8000 | 8000 | 0 |
+| ridge | 16000 | 16000 | 0 |
+| night | 24000 | 24000 | 0 |
+| King phase II | 27752 | 27752 | 0 |
+| fallen | 30581 | 30581 | 0 |
+
+The fresh 1,200-tick exact replay and uninterrupted 31,301-tick journey
+above use these regenerated payloads. Only the generated manifest and this
+receipt change in the pin commit; runtime code, shard/platform counts,
+AS totals and the official map remain the feature's tested bytes.
