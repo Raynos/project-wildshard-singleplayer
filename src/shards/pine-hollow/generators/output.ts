@@ -26,12 +26,12 @@ import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '.
 import { HEARTH_LOOKS } from './hearthLook';
 import { NPC_FIGURE } from './peopleLook';
 import { WEAPON_FINISHES } from './weaponFinishes';
-import { TIMBER_DRAWS, TIMBER_GLASS } from '../data/timberDraws';
+import { TIMBER_DRAWS, TIMBER_GLASS } from './timberDraws';
 import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
-import { PINE_OUTPUT } from '../data/output';
+import { PINE_OUTPUT } from './outputInputs';
 import { RUNTIME_MIRRORS } from './runtimeMirrors';
 
 /** Preserve logical names and tier selection while packing named geometry losslessly. */

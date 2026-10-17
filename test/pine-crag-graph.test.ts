@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
-import { CRAG_LOOK } from '../src/shards/pine-hollow/data/cragLook';
+import { CRAG_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
 

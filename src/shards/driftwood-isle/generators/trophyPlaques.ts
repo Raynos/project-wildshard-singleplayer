@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { SlotRecorder, type SlotRange } from '../runtime/models/slots';
 import { log, rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { TROPHY_LAYOUT } from '../data/trophyLayout';
+import { TROPHY_LAYOUT } from './trophyLayout';
 
 type TrophyId = (typeof TROPHY_LAYOUT.ids)[number];
 const TROPHIES = TROPHY_LAYOUT.ids;

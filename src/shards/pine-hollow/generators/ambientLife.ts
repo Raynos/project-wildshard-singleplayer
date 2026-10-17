@@ -1,4 +1,4 @@
-import perches from './perchRows.generated.json';
+import perches from '../data/perchRows.generated.json';
 
 const flight={wave:0.7,amplitude:1.2,pitch:0.6,pitchRate:4,bank:-0.5,bankLimit:0.7,bankRate:3};
 const depart={distance:140,up:[35,50],speed:11,lift:4,spread:0.6};

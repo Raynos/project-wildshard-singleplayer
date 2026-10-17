@@ -6,7 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { installInit } from './parity/init.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { plaquesGeometry } from '../src/shards/driftwood-isle/generators/trophyPlaques.ts';
-import { TROPHY_LAYOUT } from '../src/shards/driftwood-isle/data/trophyLayout.ts';
+import { TROPHY_LAYOUT } from '../src/shards/driftwood-isle/generators/trophyLayout.ts';
 import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter.ts';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);

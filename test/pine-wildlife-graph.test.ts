@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { DoubleSide } from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { validateGraph } from '../src/format/materialGraph';
-import { WILDLIFE_LOOK } from '../src/shards/pine-hollow/data/wildlifeLook';
+import { WILDLIFE_LOOK } from '../src/shards/pine-hollow/generators/wildlifeLook';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
 

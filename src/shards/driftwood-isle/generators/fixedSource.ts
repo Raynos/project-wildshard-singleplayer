@@ -4,7 +4,7 @@ import { boatGeometry } from './boat';
 import { sailclothCapeGeometry } from './sailclothCape';
 import { chimeGeometry } from './seaGlassChime';
 import { plaquesGeometry } from './trophyPlaques';
-import { TROPHY_LAYOUT } from '../data/trophyLayout';
+import { TROPHY_LAYOUT } from './trophyLayout';
 import { counterGeometry } from './tradeCounter';
 import { ironSwordGeometry } from './ironSword';
 import { coverGeometry } from './groundCover';

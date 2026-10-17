@@ -3,11 +3,11 @@ import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { wildlifeGeometry } from './wildlife';
-import { KIND } from '../data/wildlifeKinds';
+import { KIND } from './wildlifeKinds';
 import { NodeIO, VertexLayout } from '@gltf-transform/core';
 import { EXTMeshoptCompression } from '@gltf-transform/extensions';
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
-import { BIRD_FRAMES } from '../data/birdFrames';
+import { BIRD_FRAMES } from './birdVariants';
 import { clingPose,inflateBody,type ClingFeet } from './birdFrames';
 
 const isMesh=(node:THREE.Object3D):node is THREE.Mesh=>node instanceof THREE.Mesh;

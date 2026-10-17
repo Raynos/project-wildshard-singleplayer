@@ -1,11 +1,11 @@
 import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
 import { ANTLER_KING_FIGHT } from '../data/kingFight';
-import { KING_FX_LOOKS } from '../data/kingFxLook';
+import { KING_FX_LOOKS } from './kingFxLook';
 import { KINGS_CLEARING, BEAR_CAVE } from '../data/layout';
-import { WILDLIFE_LOOK } from '../data/wildlifeLook';
+import { WILDLIFE_LOOK } from './wildlifeLook';
 
-import { CRAG_LOOK, CAVE_LOOK } from '../data/cragLook';
-import { SPRAY_LOOK } from '../data/streamLook';
+import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
+import { SPRAY_LOOK } from './streamLook';
 import people from '../data/questNpcs.generated.json' with { type: 'json' };
 
 import { FINISH_CARDS } from './finishCards';

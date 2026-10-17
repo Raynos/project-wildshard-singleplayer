@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { CaveInterior, type CaveMeta } from '../src/shards/pine-hollow/runtime/kit/caveInterior';
-import { CAVE_LOOK } from '../src/shards/pine-hollow/data/cragLook';
+import { CAVE_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 
 
 const meta: CaveMeta = {

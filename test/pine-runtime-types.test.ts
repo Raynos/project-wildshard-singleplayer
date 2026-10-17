@@ -1,6 +1,6 @@
 import { expectTypeOf, test } from 'vitest';
 import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
-import { CAVE_LOOK } from '../src/shards/pine-hollow/data/cragLook';
+import { CAVE_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 import type { BuildingLifeLook } from '../src/shards/pine-hollow/runtime/props/buildingLife';
 import type { CaveLookRow } from '../src/shards/pine-hollow/runtime/kit/caveInterior';
 

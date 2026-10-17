@@ -825,7 +825,7 @@
         "src/shards/pine-hollow/generators/birds.ts",
         "src/shards/pine-hollow/generators/birdFrames.ts",
         "src/shards/pine-hollow/generators/bake-birds.mjs",
-        "src/shards/pine-hollow/data/birdFrames.ts",
+        "src/shards/pine-hollow/generators/birdVariants.ts",
         "src/format",
         "package.json",
         "pnpm-lock.yaml",
@@ -833,7 +833,7 @@
         "public/assets/pine-hollow/life/birds.json",
         "public/assets/pine-hollow/life/birds.phone.glb",
         "src/shards/pine-hollow/generators/wildlife.ts",
-        "src/shards/pine-hollow/data/wildlifeKinds.ts",
+        "src/shards/pine-hollow/generators/wildlifeKinds.ts",
         "src/sdk"
       ],
       "outputs": [
@@ -5296,7 +5296,7 @@
         "src/commons",
         "src/shards/pine-hollow/generators/wildlife.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts",
-        "src/shards/pine-hollow/data/wildlifeKinds.ts",
+        "src/shards/pine-hollow/generators/wildlifeKinds.ts",
         "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs",
         "package.json",
         "pnpm-lock.yaml",

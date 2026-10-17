@@ -18,7 +18,7 @@ import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS 
 import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
 import { OCEAN_LOOK } from './oceanLook';
 import { POOL_LOOK, SHRINE_POOL_LOOK } from '../data/poolLook';
-import { TROPHY_LAYOUT } from '../data/trophyLayout';
+import { TROPHY_LAYOUT } from './trophyLayout';
 import { SHRINE_SITES } from '../data/shrineSites';
 import { REEF_LOOK } from './reefLook';
 import { REEF_SPECIMENS } from './reefSpecimenRows';

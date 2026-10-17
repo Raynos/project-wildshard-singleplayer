@@ -8,7 +8,7 @@
  */
 import * as THREE from 'three';
 import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
-import { HARE_NECK, KIND, P, WILD_BAKE_KINDS, type V3, type WildKind, type WildRows } from '../data/wildlifeKinds';
+import { HARE_NECK, KIND, P, WILD_BAKE_KINDS, type V3, type WildKind, type WildRows } from './wildlifeKinds';
 
 type Paint = (p: V3, n: V3) => THREE.Color;
 

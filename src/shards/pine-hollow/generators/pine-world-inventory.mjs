@@ -66,6 +66,6 @@ export function inventoryPineWorld(root, edges) {
 
 if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
   const root = resolve(fileURLToPath(new URL('../../../..', import.meta.url)));
-  const { PINE_EDGE_HEIGHTS } = await import('../data/edges.ts');
+  const { PINE_EDGE_HEIGHTS } = await import('./edges.ts');
   process.stdout.write(`${JSON.stringify(inventoryPineWorld(root, PINE_EDGE_HEIGHTS), null, 2)}\n`);
 }
