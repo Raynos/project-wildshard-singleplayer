@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/storyLaw": "./quest/storyLaw.ts",
+    "./quest/story": "./quest/story.ts",
     "./shardfile/borrowedDecisions": "./shardfile/borrowedDecisions.ts",
     "./complete/declared": "./complete/declared.ts",
     "./plugin/weather": "./plugin/weather.ts",

@@ -9,16 +9,16 @@
  */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
-import { DialogueBox, type ObjectiveLine } from '@wildshard/engine/quest/view/ui';
+import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import { DRIFTWOOD_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
 import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
-import { DRIFTWOOD_MARKERS, DRIFTWOOD_QUEST } from '../data/quests';
-import { presentQuest, installDeclaredNpcTalks, QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
-import { QUEST_PRESENTATION } from '../data/questPresentation';
+import type { QuestStory } from '@wildshard/format/questStory';
+import { QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
+import { presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
+import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Castaway } from '../runtime/npc/Castaway';
 import { castawayRig } from '../runtime/npc/people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
@@ -43,22 +43,22 @@ export function ownEnteredTree(object: THREE.Object3D, scope: Parameters<typeof 
   ownSceneTree(object, scope, app.assets);
 }
 
-export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ConstructorParameters<typeof QuestViews>[0], facts: RuntimeFacts, source: Parameters<typeof bindRuntimeQuest>[1]): Spine {
+export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ConstructorParameters<typeof QuestViews>[0], facts: RuntimeFacts, source: Parameters<typeof bindRuntimeQuest>[1], story: QuestStory): Spine {
   const { flags, kit, place } = adv;
-  const quest = bindRuntimeQuest(ctx, source, DRIFTWOOD_QUEST.id, { flags, facts, place: marker => DRIFTWOOD_MARKERS[marker.id] }).state;
+  const quest = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts, place: marker => story.quest.markers[marker.id] }).state;
   // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
   // after the quest (E132): "Still to find" + the nearest sea glass / place / treasure left (Complete.ts); hidden once all are found
   const leftovers = (): LiveMarker[] | null => (quest.isComplete && adv.complete ? adv.complete.leftMarkers() : null);
-  const presentation = presentQuest({ scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
+  const presentation = presentQuestStory(story, { scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
     toast: (text) => { w.hud.toast(text); }, sting: () => { w.music.sting('chunk'); },
     ...(w.fullMap === undefined ? {} : { fullMap: w.fullMap }) }, quest, {
-    place, ...QUEST_PRESENTATION,
+    place,
     chip: () => { const l = leftovers(); return l === null ? quest.chip() : { label: l.length > 0 ? 'Still to find' : '', count: '' }; },
     markers: () => leftovers() ?? presentation.markers(),
   });
   const { chip, markers } = presentation;
   const objective = chip.line;
-  const views = new QuestViews(ctx), dialogue = views.view('dialogue', scope => new DialogueBox(scope));
+  const views = new QuestViews(ctx);
   w.scope?.onDispose(() => { quest.dispose(); objective.root.remove(); });
 
   // ── Wendell at his campfire in front of the hut steps (hut local frame: the door faces −z) ──
@@ -71,7 +71,8 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     at: fig => { fig.group.updateMatrixWorld(true); return fig.headWorld(new THREE.Vector3()); },
     advance: (_fig, dt, t, pp) => { npc.update(dt, t, pp); }, open: () => { w.audio.weaponSwap(); },
     stow: on => { w.stowWeapon?.(on); }, approach: { at: fig => fig.position, run: fig => { fig.wave(); } } }]]);
-  const talk = installDeclaredNpcTalks(source, { dialogue, flags, scene: w.game.scene, registry: w.registry ?? app.registry, prompts: w.prompts, calls: new Map(), figures })[0];
+  const talks = installStoryTalks(views, source, { flags, scene: w.game.scene, registry: w.registry ?? app.registry, prompts: w.prompts, calls: new Map(), figures });
+  const { dialogue } = talks, talk = talks.people[0];
   if (talk === undefined) throw new Error('The declared castaway is required');
 
   // ── the quest's beats: a toast + the chunk sting on every step, a fanfare at the end ──
@@ -88,8 +89,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   // ── per frame: the quest chip, the nearest marker, the dialogue ──
   w.game.onUpdate((dt, t) => {
     const pp = w.player.position;
-    dialogue().update(dt);
-    talk.update(dt, t, pp);
+    talks.update(dt, t, pp);
     presentation.update(dt, t);
   }, 'shard.driftwood-isle.installSpine');
   return { quest, castaway, get dialogue() { return dialogue(); }, objective, markers };

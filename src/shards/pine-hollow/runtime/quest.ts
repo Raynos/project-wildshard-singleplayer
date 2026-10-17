@@ -23,7 +23,8 @@ import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } f
 import { PINE_READINGS } from '../data/readings';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
 import { eliteOf } from '../quest/contracts';
-import { pineBenchPose } from '../quest/benchPose';
+import { questBenchPose } from '@wildshard/game/quest/storyLaw';
+import benchRows from '../data/questBench.json' with { type: 'json' };
 import { PineTrader, PINE_TRADE, PINE_TRADE_CLOSE, type PineTradeSkin } from './trader';
 import { PINE_AMMO_SAVED, type PineAmmunition } from './weapons/ammunition';
 import baked from '../data/spots.generated.json' with { type: 'json' };
@@ -202,7 +203,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     const d = r.d;
     if (!graph.run(d.id).ok) return; // the shared table flag law; a locked row only toasts
     if (d.kind === 'bench') {
-      const pose = pineBenchPose(bench, bench.yaw);
+      const pose = questBenchPose(benchRows, bench, bench.yaw);
       at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at);
       host.player.yaw = pose.yaw; host.playerFall.vy = 0;
     }

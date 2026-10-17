@@ -2,7 +2,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { parseAdventureContent, type AdventureContent } from '../src/shards/driftwood-isle/runtime/quest/content';
+import { parseAdventureContent, type AdventureContent } from '../src/format/questStory';
 import { createQuestPlacements } from '../src/engine/world/interact/types';
 import { Flags } from '../src/engine/world/interact/flags';
 import { installPlaces } from '../src/shards/driftwood-isle/quest/Places';

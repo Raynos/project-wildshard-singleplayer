@@ -15,7 +15,7 @@
 import type { Placed } from '@wildshard/engine/models/place';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { Place } from '@wildshard/engine/world/interact/types';
-import type { AdventureContent } from '../runtime/quest/content';
+import type { AdventureContent } from '@wildshard/format/questStory';
 
 const FILE = 'src/shards/driftwood-isle/world/places.ts';
 

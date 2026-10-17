@@ -20,14 +20,13 @@ import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_KIT_EVENTS } from '../data/questEvents';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 import { installAdventureInteractables } from './interactLifetime';
-import { installSpine, ownEnteredTree, type Spine } from './Spine';
-import { installTrader, type TraderStall } from './TraderStall';
-import { bindDriftwoodFacts } from './facts';
-import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
-import { installFeats } from './Feats';
 import { installPlaces } from './Places';
+import { installSpine, ownEnteredTree, type Spine } from './Spine';
+import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench } from '@wildshard/game/quest/story';
+import { installTrader, type TraderStall } from './TraderStall';
+import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
-import { parseAdventureContent, type AdventureContent } from '../runtime/quest/content';
+import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
 import { installDirectorFinale, type Finale } from '../runtime/finalePresentation';
 import { installCompletion, type Completion as Complete, type CompletionProgress as CompleteProgress } from '@wildshard/game/complete/declared';
 import { installEcology } from './Ecology';
@@ -118,6 +117,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const scope = ctx.scope, declaration = ctx.product.shardfile; // the admitted declaration (W2b: never shard.config)
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
+  const story = await readQuestStory(ctx);
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
   const flags = new Flags(w.chunk.slug);
@@ -139,11 +139,13 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     ]) });
 
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
-  const grants = await bindDriftwoodFacts(ctx, declaration, w.progress?.rows ?? [], w.progress, w.chunk.slug);
-  adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration);
+  const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
+  adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration, story);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installTrader(adventure, w, traderRows);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
-  installFeats(adventure, w, () => { grants.syncFlags(flags); });
+  const storyOwners = new Map<string, unknown>([['counters', grants], ['hud', w.hud], ['placement', { floorAt }]]);
+  observeStoryFlags(story, scope, flags, storyOwners);
+  bindStoryBench(story, kit, w.player, storyOwners);
   if (w.ironDrop) {
     const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)
     w.ironDrop.guard = () => (all ? ironSwordGuard(all) : flags.has('dead:sailor') ? null : SWORD_GUARDED);

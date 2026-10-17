@@ -1,11 +1,15 @@
 import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
+import { parseQuestStory } from '../src/format/questStory';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { DRIFTWOOD_QUESTS, DRIFTWOOD_QUEST, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/data/quests';
+import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/generators/quests';
 import { QUEST_HOST } from '../src/shards/driftwood-isle/data/questHost';
-import { QUEST_NPCS } from '../src/shards/driftwood-isle/data/questNpcs';
+import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
+
+const DRIFTWOOD_QUEST = DRIFTWOOD_QUESTS.quests[0];
+if (DRIFTWOOD_QUEST === undefined) throw new Error('Missing declared chapter');
 
 // Frozen canonical values from the original play-read declarations, before compilation.
 const originals = {
@@ -20,6 +24,12 @@ test('the retained DW producer preserves story, POI anchors, NPC policy and orde
   const loaded = await readProjectAssets('src/shards/driftwood-isle');
   expect(hash(DRIFTWOOD_QUESTS)).toBe(originals.DRIFTWOOD_QUESTS);
   expect(hash(loaded.shard.quests)).toBe(originals.DRIFTWOOD_QUESTS);
+  const storyFile = loaded.output.namedFiles?.find(file => file.name === 'quests/story.json');
+  const storyBytes = storyFile === undefined ? undefined : loaded.assets.get(storyFile.hash);
+  if (storyBytes === undefined) throw new Error('The product must contain named story rows');
+  const story = parseQuestStory(JSON.parse(new TextDecoder().decode(storyBytes)));
+  expect(story.quest.id).toBe('sealed-ring');
+  expect(hash(story.quest.markers)).toBe(originals.DRIFTWOOD_MARKERS);
   expect(hash(DRIFTWOOD_MARKERS)).toBe(originals.DRIFTWOOD_MARKERS);
   expect(hash(QUEST_HOST)).toBe(originals.QUEST_HOST);
   expect(hash(loaded.shard.questHost)).toBe(originals.QUEST_HOST);
@@ -31,8 +41,7 @@ test('the retained DW producer preserves story, POI anchors, NPC policy and orde
 }, 30_000);
 
 test('Wendell and the complete quest retain flag progression and old-save restoration at every beat', () => {
-  const npc = QUEST_NPCS[0]?.npc;
-  if (npc === undefined) throw new Error('The admitted castaway is required');
+  const npc = QUEST_NPCS[0].npc;
   const flags = new Flags('compiled-driftwood-story', false);
   const quest = new QuestState(DRIFTWOOD_QUEST, flags);
   try {

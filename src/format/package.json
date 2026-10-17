@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./questStory": "./questStory.ts",
     "./completion": "./completion.ts",
     "./weatherProgram": "./weatherProgram.ts",
     "./achievementCounters": "./achievementCounters.ts",

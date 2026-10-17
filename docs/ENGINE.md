@@ -8335,3 +8335,29 @@ loop bodies still pass the same structural fuel/depth/finite guards. This
 keeps field-heavy decision guests within the existing per-call fuel cap.
 Native borrowed guests run in the existing after-body phase and resolve the
 current host physics after snapshot restore.
+
+
+### Product quest story and journal rows (C5)
+
+`@wildshard/format/questStory` admits `quests/story.json` for Driftwood
+and Pine. `@wildshard/game/quest/story` binds the existing journal,
+flag observation, kit seat, presentation and NPC talk owners. Rows retain
+the original migration source, achievement prefix, write/refresh order,
+messages and seat pose. `quest/storyLaw` supplies the same seat arithmetic
+to the native keeper without importing page views. These hosts add no
+saved cursor, reward, timer, prompt or alternate NPC rig.
+
+
+### Build-emitted numeric creature poses
+
+`game/plugin/channelPrograms.numericCreaturePose(input)` lends existing
+rig joints and copied frame inputs to the numeric channel evaluator. Each
+programme targets one optional joint (`joint.<name>`; underscores become
+dots); `read.joint.<name>.rotation` contains the pre-pose Euler scalars.
+Rows may select a variant/alive gate, enumerate state indices, borrow the
+existing bounded look-angle helper, and finish with the existing flinch
+squash. The returned callback caches per rig, owns no actor memory or clock,
+and works on the same renderer-free joints as the native pose owner.
+Driftwood's crab and Pine's living thralls consume build-emitted JSON rows.
+The existing numeric DAG's `pow` operation preserves native `Math.pow`
+semantics, including the crab's squared smoothstep and thrall's sharp jerk.

@@ -1,8 +1,8 @@
 import {expect,test} from 'vitest';
 import {QuestState,questMessageHandlers} from '../src/engine/quest/core';
 import {Flags} from '../src/engine/world/interact/flags';
-import {QUEST_PRESENTATION as pine} from '../src/shards/pine-hollow/data/questPresentation';
-import {QUEST_PRESENTATION as driftwood} from '../src/shards/driftwood-isle/data/questPresentation';
+import {QUEST_PRESENTATION as pine} from '../src/shards/pine-hollow/generators/questPresentation';
+import {QUEST_PRESENTATION as driftwood} from '../src/shards/driftwood-isle/generators/questPresentation';
 
 test('authored quest notices preserve text and toast/sting/beat order without touching saved flags',()=>{
   for(const rows of [pine,driftwood]){

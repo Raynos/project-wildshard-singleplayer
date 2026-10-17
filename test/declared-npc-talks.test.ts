@@ -8,9 +8,9 @@ import { Scope } from '../src/engine/app/scope';
 import { DialogueBox } from '../src/engine/quest/view/ui';
 import { Flags } from '../src/engine/world/interact/flags';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
-import { QUEST_NPCS } from '../src/shards/driftwood-isle/data/questNpcs';
+import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
 import { PINE_QUESTS } from '../src/shards/pine-hollow/data/quests';
-import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/data/quests';
+import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';
 
 test('the two native talk rosters admit only declared flags and bounded reading policies', () => {
   const rows = v.parse(QuestNpcBindingsSchema, pineQuestNpcs()['rows']);
