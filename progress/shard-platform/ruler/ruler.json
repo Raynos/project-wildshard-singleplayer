@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "93a250445724959d3e9c2ee42fcbeaba0fb25d19",
- "committedAt": "2026-10-17T10:31:37.000Z",
- "measuredAt": "2026-10-17T10:40:49.895Z",
+ "revision": "82672058015604d4e1ac7d8e5825cebfeb35892c",
+ "committedAt": "2026-10-17T12:35:29.000Z",
+ "measuredAt": "2026-10-17T12:48:58.042Z",
  "basis": "source",
  "plan": {
-  "lower": 0.3384618071103472,
-  "upper": 0.6717951404436806
+  "lower": 0.358091783673617,
+  "upper": 0.6914251170069503
  },
  "m3": {
-  "cut": 45226,
+  "cut": 47849,
   "mustGo": 80173.3,
-  "fraction": 0.5641030118505787
+  "fraction": 0.5968196394560283
  },
  "m2": {
   "ready": 0,
@@ -26,9 +26,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 10642,
+   "custom": 10367,
    "legacy": 21305,
-   "pct": 50,
+   "pct": 48.7,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -44,9 +44,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 6771,
+   "custom": 6488,
    "legacy": 17167,
-   "pct": 39.4,
+   "pct": 37.8,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -62,9 +62,9 @@
    "name": "Sky Reach",
    "wave": "W1",
    "goal": 10,
-   "custom": 1309,
+   "custom": 948,
    "legacy": 6779,
-   "pct": 19.3,
+   "pct": 14,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -80,9 +80,9 @@
    "name": "Signal Dunes",
    "wave": "W1",
    "goal": 10,
-   "custom": 1380,
+   "custom": 1176,
    "legacy": 4122,
-   "pct": 33.5,
+   "pct": 28.5,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -98,9 +98,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 20971,
+   "custom": 20069,
    "legacy": 28370,
-   "pct": 73.9,
+   "pct": 70.7,
    "grid": "fail",
    "criteria": {
     "bakedTiles": "fail",
@@ -116,9 +116,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 12555,
+   "custom": 11957,
    "legacy": 21111,
-   "pct": 59.5,
+   "pct": 56.6,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -137,32 +137,23 @@
   "pastel-plain"
  ],
  "wave": {
-  "id": "W1 spike",
-  "label": "W1 spike · Sky + Signal to 90/10 with the Wasm API",
+  "id": "W1",
+  "label": "W1 · Sky + Signal under 10%",
   "until": null,
   "goal": 10,
   "shards": [
    "far-reach",
    "sunscar-dunes"
   ],
-  "pct": 36
+  "pct": 39.2
  },
  "waves": [
   {
-   "id": "W2",
-   "startedAt": "2026-10-14T04:19:00Z",
+   "id": "W1",
+   "startedAt": "2026-10-17T12:48:58.042Z",
    "start": {
-    "pine-hollow": 107.6,
-    "driftwood-isle": 104.2
-   },
-   "endedAt": "2026-10-17T05:00:00Z"
-  },
-  {
-   "id": "W1 spike",
-   "startedAt": "2026-10-17T10:40:49.895Z",
-   "start": {
-    "far-reach": 26.4,
-    "sunscar-dunes": 43
+    "far-reach": 19.3,
+    "sunscar-dunes": 33.5
    },
    "endedAt": null
   }
@@ -674,6 +665,19 @@
     "nalati-grasslands": 73.9,
     "nine-dragon-stack": 59.5
    }
+  },
+  {
+   "revision": "82672058015604d4e1ac7d8e5825cebfeb35892c",
+   "at": "2026-10-17T12:35:29.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 48.659938981459746,
+    "driftwood-isle": 37.79344090406012,
+    "far-reach": 13.984363475438855,
+    "sunscar-dunes": 28.529839883551674,
+    "nalati-grasslands": 70.74021854071202,
+    "nine-dragon-stack": 56.638719151153424
+   }
   }
  ],
  "events": [
@@ -704,6 +708,14 @@
   {
    "at": "2026-10-17T10:40:49.895Z",
    "label": "W1 spike starts"
+  },
+  {
+   "at": "2026-10-17T12:48:58.042Z",
+   "label": "G471: waves follow the mini-plan goals; midnight close cancelled"
+  },
+  {
+   "at": "2026-10-17T12:48:58.042Z",
+   "label": "W1 starts"
   }
  ]
 }
