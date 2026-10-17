@@ -15,7 +15,7 @@ import { driftwoodRows } from '../boot/rows';
  * loaded file (the island hands its prototypes to the shard's model context, `coveProtos`).
  */
 import type * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { defineGeometryModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Pipeline } from '@wildshard/engine/world/registry';
 
 /** a family's look in the world: the casters', the small cover's or the big cover's (data/islandLook.ts) */
@@ -71,24 +71,17 @@ const FAMILIES = {
 
 export type CoveFamily = keyof typeof FAMILIES;
 
-/** a prototype as the island draws it: a copy of its baked geometry, in `material` */
-function protoPart(ctx: ModelContext, proto: string, look: CoveLook, material: CoveLook): { geometry: THREE.BufferGeometry; material: THREE.Material; castShadow: boolean; receiveShadow: boolean }[] {
-  const island = coveProtos(ctx), g = island?.protos.get(proto);
-  return island && g ? [{ geometry: g.clone(), material: island.materials[material], castShadow: look === 'cast', receiveShadow: true }] : [];
-}
-
+/** Bind the retained prototype recipes to the island's real geometry and looks. */
 function coveModel(key: CoveFamily): ModelDef<CoveParams> {
   const f: Family = FAMILIES[key];
-  const first = f.protos[0] ?? '';
-  return defineModel<CoveParams>({
-    id: `driftwood-isle/cove-${key}`, name: f.name, category: 'nature', pipeline: f.pipeline,
-    file: 'src/shards/driftwood-isle/runtime/models/cove.ts',
-    defaults: { proto: first },
-    variants: f.protos.map((proto, i) => ({ id: proto, label: `${f.name} ${i + 1}`, params: { proto } })),
-    build: (ctx, p) => protoPart(ctx, p.proto, f.look, f.look),
-    get lods() { return f.far === undefined ? [] : [{ from: driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.lod, build: (ctx: ModelContext, p: CoveParams) => protoPart(ctx, `${p.proto}_lo`, f.look, f.look) }]; },
-    // the Explorer's turntable: one copy in the casters' look (a cover look fades its copies by their distance)
-    specimen: (ctx, p) => protoPart(ctx, p.proto, f.look, 'cast'),
+  const parts = (far: boolean) => Object.fromEntries(f.protos.map(proto => [proto, [{ geometry: `${proto}${far ? '_lo' : ''}`, material: f.look, clone: true, castShadow: f.look === 'cast', receiveShadow: true }]]));
+  return defineGeometryModel({
+    id: `driftwood-isle/cove-${key}`, name: f.name, file: 'src/shards/driftwood-isle/runtime/models/cove.ts',
+    defaults: { proto: f.protos[0] ?? '' }, variants: f.protos.map((proto, i) => ({ id: proto, label: `${f.name} ${i + 1}`, params: { proto } })),
+    parts: parts(false), specimenMaterial: 'cast',
+    get lods() { return f.far === undefined ? [] : [{ from: driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.lod, parts: parts(true) }]; },
+  }, 'proto', { category: 'nature', pipeline: f.pipeline }, ctx => {
+    const island = coveProtos(ctx); return island === null ? null : { geometry: island.protos, materials: island.materials };
   });
 }
 

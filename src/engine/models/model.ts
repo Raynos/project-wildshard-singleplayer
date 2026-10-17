@@ -345,6 +345,50 @@ export function defineBakedModels(rows: readonly BakedModelMetadata[], build: (i
   return rows.map((row, index) => defineModel({ ...row, defaults: {}, ...(prepare === undefined ? {} : { prepare }), build: () => build(index) }));
 }
 
+/** One authored part of a named geometry variant; sources remain caller-owned. */
+export interface GeometryModelPart {
+  readonly geometry: string; readonly fallback?: string; readonly material: string;
+  readonly clone?: boolean; readonly castShadow: boolean; readonly receiveShadow: boolean;
+}
+/** Ordered variant draws and optional own-space convex hulls, lowered by authoring. */
+export interface GeometryModelRow<P extends object> {
+  readonly id: string; readonly name: string; readonly file: string;
+  readonly defaults: P; readonly variants: readonly ModelVariant<P>[];
+  readonly parts: Readonly<Record<string, readonly GeometryModelPart[] | undefined>>;
+  readonly lods: readonly { readonly from: number; readonly parts: GeometryModelRow<P>['parts'] }[];
+  readonly hulls?: Readonly<Record<string, { readonly points: readonly number[] } | undefined>>;
+  readonly specimenMaterial?: string;
+}
+/** Already loaded parts borrowed by a geometry recipe. */
+export interface GeometryModelSource {
+  readonly geometry: ReadonlyMap<string, THREE.BufferGeometry>;
+  readonly materials: Readonly<Record<string, THREE.Material | undefined>>;
+}
+/** Bind baked variant recipes to the real geometry/material owner. Preserves part
+ * order, explicit fallback, clone policy, lazy LOD distances and Float32 hulls.
+ * No geometry is fitted, transformed or loaded by this adapter. */
+export function defineGeometryModel<P extends object>(row: GeometryModelRow<P>, field: keyof P,
+  policy: Pick<ModelDef<P>, 'category' | 'pipeline' | 'surface'>,
+  source: GeometryModelSource | ((ctx: ModelContext) => GeometryModelSource | null)): ModelDef<P> {
+  const selected = (p: P): string => { const key = p[field]; if (typeof key !== 'string') throw new Error('Geometry variant must be a string'); return key; };
+  const parts = (rows: GeometryModelRow<P>['parts'], ctx: ModelContext, p: P, material?: string): ModelPart[] => {
+    const loaded = typeof source === 'function' ? source(ctx) : source; if (loaded === null) return [];
+    return (rows[selected(p)] ?? []).flatMap(part => {
+      const geometry = loaded.geometry.get(part.geometry) ?? (part.fallback === undefined ? undefined : loaded.geometry.get(part.fallback));
+      if (geometry === undefined) return [];
+      const mat = loaded.materials[material ?? part.material]; if (mat === undefined) throw new Error('Missing geometry model material');
+      return [{ geometry: part.clone === true ? geometry.clone() : geometry, material: mat, castShadow: part.castShadow, receiveShadow: part.receiveShadow }];
+    });
+  };
+  const hulls = new Map(Object.entries(row.hulls ?? {}).map(([key, hull]) => [key, new Float32Array(hull?.points ?? [])]));
+  return defineModel({ id: row.id, name: row.name, file: row.file, ...policy, defaults: row.defaults, variants: row.variants,
+    build: (ctx, p) => parts(row.parts, ctx, p),
+    get lods() { return row.lods.map(level => ({ from: level.from, build: (ctx: ModelContext, p: P) => parts(level.parts, ctx, p) })); },
+    ...(row.specimenMaterial === undefined ? {} : { specimen: (ctx: ModelContext, p: P) => parts(row.parts, ctx, p, row.specimenMaterial) }),
+    ...(row.hulls === undefined ? {} : { colliders: (p: P) => { const points = hulls.get(selected(p)); return points === undefined ? [] : [{ kind: 'hull' as const, x: 0, y: 0, z: 0, points, ...(policy.surface === undefined ? {} : { surface: policy.surface }) }]; } }),
+  });
+}
+
 /** A lazy specimen borrows its actual builder; rows declare only framing and shown parts. */
 export interface SceneModelRow {
   readonly model: BakedModelMetadata; readonly builder: string; readonly show?: readonly string[];

@@ -12,7 +12,7 @@
  * and bones, drips, and a crack in the roof whose shaft of light falls on the floor; its hood is the rock over its first
  * metres where the passage runs shallower than the slope.
  *
- * The modules are models (E315 M2, ../models/cragCliff.ts): `pine-hollow/crag-cliff` (the cliff bands, the buttress, the
+ * The modules are models (E315 M2, ../../generators/cragAssembly.ts): `pine-hollow/crag-cliff` (the cliff bands, the buttress, the
  * slab, the tors, the hero crag), `pine-hollow/crag-boulder` and `pine-hollow/scree`, drawn from the loaded kit and placed
  * with `place()`; the face skin (the admitted site-timber views `<tier>-skin-<i>-near|far`) and the cave are the world (welded
  * to the ground: the terrain is punched for the cave).
@@ -37,14 +37,13 @@ import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels, pineView } from './context';
 import { loadSiteTimbers } from './timberSites';
-import { cragModels } from '../models/cragCliff';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
-import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import { defineGeometryModel } from '@wildshard/engine/models/model';
+import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import type { WholeGeometryView } from '@wildshard/game/plugin/geometry';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../kit/caveInterior';
 import { loadGlbNodes } from '@wildshard/engine/models/glbNodes';
@@ -58,11 +57,6 @@ const CRAG_DIR = PINE_CRAG_DIR; // the boot file rows list the kit alongside the
 function caveFrame() { const { BEAR_CAVE } = pineView(); return { x:BEAR_CAVE.x, z:BEAR_CAVE.z, yaw:BEAR_CAVE.rot }; }
 /** one placed module (../data/crags.json): its base centre, a turn about +Y (its front, local +Z, faces (sin yaw, cos yaw)), a tilt */
 type CragPlace = (typeof cragRows.places)[number];
-
-/** LOD / range per kind (m, camera to the module less half its radius): the cliffs' full model near, their LOD1 to the slab's edge */
-const CRAG_LOD = TIER === 'phone'
-  ? { big: 95, bigFar: 900, small: 38, smallFar: 170, scree: 30, screeFar: 110 }
-  : { big: 170, bigFar: 900, small: 70, smallFar: 320, scree: 55, screeFar: 200 };
 
 /*
  * E322 F-L2 (Jake picked B): the face skin is textured by its facets, not its smoothed normals (the old projection laid
@@ -157,7 +151,7 @@ export class PineCrags {
    * (@wildshard/engine/models/cull).
    */
   async build(registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
-    const places = this.places = cragRows.places;
+    this.places = cragRows.places;
     // the world's own geometry: the face skin (tile i's near and far are slots 2i and 2i + 1, identity matrix: its
     // vertices are world positions) and the cave (its interior + hood near, the hood alone (simplified) far)
     const assembly=authored.cragAssembly.tiers[TIER], skin = this.skin;
@@ -177,10 +171,8 @@ export class PineCrags {
     if (this.cave) this.caveColliders.push(...this.cave.roofPatch());
 
     // the modules, as models: every place call adds its (variant, level) geometries and its copies to the one batch
-    const of = (ids: readonly string[]): CragPlace[] => places.filter((p) => ids.includes(p.id) && this.kit.has(p.id));
-    const kinds = cragModels({ kit: this.kit, mat: this.mat ?? new THREE.MeshBasicMaterial(), lod: CRAG_LOD, hulls: authored.cragAssembly.hulls });
-    const byKind = kinds.map((row) => of(row.modules));
-    if (this.mat && (plan.length > 0 || byKind.some((l) => l.length > 0))) {
+    const kinds = assembly.kinds, material = this.mat ?? new THREE.MeshBasicMaterial();
+    if (this.mat && (plan.length > 0 || kinds.some(row => row.placements.length > 0))) {
       const capacity=assembly.reserve;
       const bm = this.batch = new THREE.BatchedMesh(capacity.instances,capacity.vertices,capacity.indices,this.mat);
       bm.name = 'pine-crags';
@@ -190,20 +182,20 @@ export class PineCrags {
     const sky = this.sky;
     if (sky) {
       const ctx = pineModels(sky);
-      const placeKind = async <P extends object>(model: ModelDef<P>, list: readonly CragPlace[], far: number): Promise<void> => {
-        if (list.length === 0) return;
-        const pls = list.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: modelPoseMatrix({ ...p, pitch: p.tiltX, roll: p.tiltZ }), variant: p.id }));
-        // LOD by the camera's distance less half the module's radius, re-chosen once it has moved a metre; three culls
-        // each live copy per camera (the batch's per-object culling)
+      for (let k = 0; k < 3; k++) {
+        const row = kinds[k]; if (row === undefined) continue;
+        const model = defineGeometryModel(row.model, 'module', { category: 'nature', pipeline: 'blender', surface: 'rock' },
+          { geometry: this.kit, materials: { rock: material } });
+        if (row.placements.length === 0) continue;
+        const pls = row.placements.map(p => ({ ...p, matrix: modelPoseMatrix(p) }));
         const placed = place(model, pls, { ctx, draw: 'batched', ...(this.batch ? { batch: this.batch } : {}), registry,
-          cull: { frustum: false, radiusBias: 0.5, step: 1, bounds: 'sphere', far },
+          cull: { frustum: false, radiusBias: 0.5, step: 1, bounds: 'sphere', far: row.far },
           piece: { id: `pine-crags-${model.id.slice('pine-hollow/'.length)}`, name: model.name, split: { every: 90, yieldTask } } });
         this.placed.push(placed);
         this.colliders.push(...placed.colliders);
         await placed.registered;
         if (placed.colliders.length > 0) await yieldTask();
-      };
-      for (let k = 0; k < 3; k++) { const row = kinds[k]; if (row) await placeKind(row.model, byKind[k] ?? [], row.far); } // the three crag rows
+      }
     }
     const bm = this.batch;
     if (bm) {

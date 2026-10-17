@@ -5254,7 +5254,7 @@
       ],
       "platform": "native",
       "buildOutputs": {
-        "src/shards/pine-hollow/data/timberWorld.generated.json": "22f82c384420f8c27ea24cb66e4f7592bc37df197fdb07b9d7d7a35b0d60cc84",
+        "src/shards/pine-hollow/data/timberWorld.generated.json": "6cb87a20d6327f677ada560f0758b4a2dc33ba1848abe3599eb519f36bb512ea",
         "public/assets/pine-hollow/baked/cabin-materials/02baca5fc1bbd43f87e08ee7ed3f57d27438c78106feef8b5584fdd01d2b9c23.gltf": "02baca5fc1bbd43f87e08ee7ed3f57d27438c78106feef8b5584fdd01d2b9c23",
         "public/assets/pine-hollow/baked/cabin-materials/08c96e77b93de8e0562b9ff3cdec50e53c2d6722b431dacdd5086240f86ae336.gltf": "08c96e77b93de8e0562b9ff3cdec50e53c2d6722b431dacdd5086240f86ae336",
         "public/assets/pine-hollow/baked/cabin-materials/1bebe67ea6a3da82682fdd507d684e3b68bb6b79551364af65867356d8b732a1.gltf": "1bebe67ea6a3da82682fdd507d684e3b68bb6b79551364af65867356d8b732a1",

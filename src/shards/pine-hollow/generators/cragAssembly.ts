@@ -8,7 +8,7 @@ import { BEAR_CAVE } from '../data/layout';
 
 interface CaveMeta { cuts: { lx: number; lz: number; hw: number; hd: number; below: number }[]; holes: { lx: number; lz: number; hw: number; hd: number; y0: number; y1: number }[] }
 interface Plan { lod0: number; lod1: number; near: number; far: number; r: number; x: number; y: number; z: number; cave: boolean }
-interface AssemblyTier { slots: { skin: number; cave: string }[]; plans: Plan[]; reserve: { instances: number; vertices: number; indices: number } }
+interface AssemblyTier { kinds: ReturnType<typeof cragKinds>; slots: { skin: number; cave: string }[]; plans: Plan[]; reserve: { instances: number; vertices: number; indices: number } }
 interface CragAssembly { hulls: Record<string, { cap: number; points: number[] }>; tiers: Record<CragTier, AssemblyTier>; roof: { resolution: number; size: number; triangles: number[] } }
 const cliff = ['cliff-a','cliff-b','cliff-c','buttress','slab','tor-a','tor-b','hero'];
 const boulder = ['boulder-a','boulder-b','boulder-c'];
@@ -25,7 +25,7 @@ export function pineCragAssembly(kit: ReadonlyMap<string, THREE.BufferGeometry>,
     hulls[id]={cap,points};
   }
   const source = pineCragScene(skin), tiers: Record<CragTier, AssemblyTier> = {
-    phone: {slots:[],plans:[],reserve:{instances:0,vertices:0,indices:0}}, desktop: {slots:[],plans:[],reserve:{instances:0,vertices:0,indices:0}} };
+    phone: {kinds:cragKinds('phone',kit,hulls,places),slots:[],plans:[],reserve:{instances:0,vertices:0,indices:0}}, desktop: {kinds:cragKinds('desktop',kit,hulls,places),slots:[],plans:[],reserve:{instances:0,vertices:0,indices:0}} };
   const size = (geometry: THREE.BufferGeometry | undefined) => geometry === undefined ? {v:0,i:0} : {v:geometry.getAttribute('position').count,i:geometry.index?.count ?? geometry.getAttribute('position').count};
   const caveMatrix = new THREE.Matrix4().makeRotationY(BEAR_CAVE.rot).setPosition(BEAR_CAVE.x,0,BEAR_CAVE.z);
   for (const tier of ['phone','desktop'] as const) {
@@ -72,4 +72,21 @@ export function pineCragAssembly(kit: ReadonlyMap<string, THREE.BufferGeometry>,
   }
   source.traverse(node=>{if(node instanceof THREE.Mesh){const geometry: unknown = node.geometry;if(geometry instanceof THREE.BufferGeometry)geometry.dispose();if(node.material instanceof THREE.Material)node.material.dispose();}});
   return {hulls,tiers,roof:{resolution:res,size:chunk,triangles}};
+}
+
+/** Model recipes and pose inputs retain original kind/variant/copy order. */
+function cragKinds(tier: CragTier, kit: ReadonlyMap<string, THREE.BufferGeometry>, hulls: CragAssembly['hulls'], places: readonly CragPlace[]) {
+  const rows = [
+    { id: 'crag-cliff', name: 'Ridge crag', near: tier === 'phone' ? 95 : 170, far: 900, modules: { 'cliff-a': 'Cliff band A', 'cliff-b': 'Cliff band B', 'cliff-c': 'Cliff band C', buttress: 'Buttress', slab: 'Slab', 'tor-a': 'Tor A', 'tor-b': 'Tor B', hero: 'Hero crag' } },
+    { id: 'crag-boulder', name: 'Crag boulder', near: tier === 'phone' ? 38 : 70, far: tier === 'phone' ? 170 : 320, modules: { 'boulder-a': 'Boulder A', 'boulder-b': 'Boulder B', 'boulder-c': 'Boulder C' } },
+    { id: 'scree', name: 'Scree fan', near: tier === 'phone' ? 30 : 55, far: tier === 'phone' ? 110 : 200, modules: { 'scree-a': 'Scree A', 'scree-b': 'Scree B' } },
+  ];
+  return rows.map(row => {
+    const modules = Object.keys(row.modules), parts = (lod: boolean) => Object.fromEntries(modules.map(id => [id, [{ geometry: lod ? `${id}-lod1` : id, ...(lod ? { fallback: id } : {}), material: 'rock', castShadow: true, receiveShadow: true }]]));
+    return { far: row.far, model: { id: `pine-hollow/${row.id}`, name: row.name, file: 'src/shards/pine-hollow/generators/cragAssembly.ts',
+      defaults: { module: modules[0] ?? '' }, variants: Object.entries(row.modules).map(([module, label]) => ({ id: module, label, params: { module } })),
+      parts: parts(false), lods: [{ from: row.near, parts: parts(true) }],
+      ...(modules.some(id => hulls[id] !== undefined) ? { hulls: Object.fromEntries(modules.flatMap(id => hulls[id] === undefined ? [] : [[id, hulls[id]]])) } : {}),
+    }, placements: places.filter(place => modules.includes(place.id) && kit.has(place.id)).map(p => ({ x: p.x, y: p.y, z: p.z, variant: p.id, yaw: p.yaw, scale: p.scale, pitch: p.tiltX, roll: p.tiltZ })) };
+  });
 }

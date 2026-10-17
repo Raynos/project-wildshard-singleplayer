@@ -4662,6 +4662,12 @@ publishing any, and reads only that shard's authored input folders.
 
 `engine/models/model.defineBakedModels(rows, build)` defines bounded,
 unique model metadata without registering a species or building a model.
+`defineGeometryModel(row, field, policy, source)` binds authored variant
+part names to a caller-owned geometry/material library. Recipes retain
+part order, optional geometry fallback, clone and shadow policy, lazy LOD
+bands, optional specimen material and Float32 convex hulls. It never loads,
+fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
+
 The SDK model library's `models(rows)` method resolves those
 metadata rows through the original rig specimen builder. Sky and Signal
 use their declared rig libraries for both play and Model Explorer.
