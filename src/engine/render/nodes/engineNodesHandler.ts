@@ -67,8 +67,6 @@ import { TextureUpdates } from './textureUpdates';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { NodeBuildReuse, geometrySignature, parameterSignature, reusableObject, type BuildView, type NodeBuildStats } from './nodeBuildReuse';
-import { setting } from '../../ui/Settings';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -192,7 +190,6 @@ interface StockInternals {
   onBeforeRenderCallback: THREE.Material['onBeforeRender'];
   onDisposeMaterialCallback: (this: THREE.Material) => void;
   updateGeometryAttributes: (builder: unknown, geometry: THREE.BufferGeometry) => void;
-  updateShaderParameters: (builder: unknown, parameters: THREE.WebGLProgramParametersWithUniforms) => void;
 }
 const internals = (h: WebGLNodesHandler): StockInternals => h as WebGLNodesHandler & StockInternals;
 
@@ -316,13 +313,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** builds of each material not yet paired with their programs (see `onUpdateProgram`) */
   private readonly pendingBuilds = new WeakMap<object, PendingBuild[]>();
   private readonly objectVariants = new NodeProgramVariants();
-  /** node builds kept for materials that share a graph (`nodeBuildReuse.ts`; Debug ▸ Performance ▸ Shader build reuse) */
-  private readonly reuse = new NodeBuildReuse();
-  private readonly identities = new WeakMap<object, number>();
-  /** the handler's own listeners (a reused build's material dispose hook) */
-  private readonly lifetime = new Scope('engine-nodes');
-  private readonly reuseDisposal = new WeakSet<THREE.Material>();
-  private identityCount = 0;
   /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
   private readonly environments = new WeakMap<THREE.Texture, Node>();
   /** the stock program key per material, valid for one key context (`customProgramCacheKeyCallback`, `keyContextNow`) */
@@ -618,62 +608,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
   }
 
-  /** node build and reuse counters since the page loaded (the entry trace reads their difference) */
-  get buildStats(): Readonly<NodeBuildStats> { return this.reuse.stats; }
-
-  private identity(value: unknown): string {
-    if (typeof value !== 'object' || value === null) return '-';
-    let id = this.identities.get(value);
-    if (id === undefined) { id = ++this.identityCount; this.identities.set(value, id); }
-    return String(id);
-  }
-
-  /**
-   * What a node build of `material` for `object` depends on beyond its own nodes (`nodeBuildReuse.ts`): every primitive
-   * program parameter, the scene context the build reads (lights node and its lights, environment, fog, scene), the camera,
-   * the geometry layout and the engine's per-material layer frame and node fog. null: this build is never shared.
-   */
-  private reuseKey(material: NodeMaterial, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): string | null {
-    if (!reusableObject(object)) return null;
-    const top = internals(this).renderStack.at(-1);
-    if (top === undefined) return null;
-    const scene = top.sceneContext, lightsNode: unknown = Reflect.get(scene, 'lightsNode');
-    const lights: unknown = typeof lightsNode === 'object' && lightsNode !== null ? Reflect.get(lightsNode, '_lights') : undefined;
-    const lightIds = Array.isArray(lights) ? lights.map((light: unknown) => this.identity(light)).join(',') : '?';
-    const geometry = geometrySignature(Reflect.get(object, 'geometry'));
-    if (geometry === null) return null;
-    return `${parameterSignature(parameters)}|scene:${this.identity(scene.scene)}:${this.identity(lightsNode)}:${lightIds}:${this.identity(scene.environmentNode)}:` +
-      `${this.identity(scene.fogNode)}|camera:${this.identity(top.camera)}|geometry:${geometry}|layer:${this.identity(layerFrameOf(material))}|fog:${this.identity(materialNodeFogOf(material))}`;
-  }
-
-  /** The stock build's effects from a kept build (`WebGLNodesHandler.build`): program parameters, the latest builder the
-   * engine pairs below, the dispose listener and the first node update. A kept build added no buffer attributes. */
-  private replay(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms, view: BuildView): void {
-    const self = internals(this);
-    this.frame.material = material; this.frame.object = object;
-    self.updateShaderParameters(view, parameters);
-    Reflect.set(material, '_latestBuilder', view);
-    // the stock build's dispose hook (its programs, groups and blocks go with the material), once per material
-    if (!this.reuseDisposal.has(material)) {
-      this.reuseDisposal.add(material);
-      this.lifetime.listenOnceEmitter(material, 'dispose', () => { this.reuseDisposal.delete(material); self.onDisposeMaterialCallback.call(material); });
-    }
-    self.updateNodes(view.updateNodes);
-  }
-
   /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
-    const reuseKey = material instanceof NodeMaterial ? this.reuseKey(material, object, parameters) : null;
-    const kept = reuseKey === null || setting('shaderReuse') !== 'on' ? undefined : this.reuse.lookup(material, reuseKey);
-    if (kept !== undefined) this.replay(material, object, parameters, kept);
-    else if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
+    if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
     else super.build(material, object, parameters);
-    if (reuseKey !== null) {
-      const real: unknown = kept === undefined ? Reflect.get(material, '_latestBuilder') : undefined;
-      if (typeof real === 'object' && real !== null) this.reuse.keep(material, reuseKey, real);
-      this.reuse.count(reuseKey, diagnosticNow() - t0, kept !== undefined);
-    }
     parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object, parameters.extensionMultiDraw);
     // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
     // size property replaces only that epilogue; content still supplies no shader code.

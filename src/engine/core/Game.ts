@@ -838,23 +838,18 @@ export class Game {
     // Both browser families use the existing live slice; boot retains its larger bound.
     const sliceMs = this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
     const shaderStart = diagnosticNow();
-    // OP2: the node builds this warm-up ran, the repeats among them (a key already built) and the builds it reused
+    // OP2: the node (TSL) builds this warm-up ran: on Safari each is one long frame of the entry
     const { installedGraphBackend } = await import('../render/graphBackend');
-    const nodeStats = (): { builds: number; buildMs: number; reused: number; repeats: number; repeatMs: number } | null => {
-      const stats = installedGraphBackend(this.renderer)?.buildStats;
-      return stats === undefined ? null : { ...stats };
+    const nodeStats = (): { builds: number; buildMs: number } | null => {
+      const handler = installedGraphBackend(this.renderer);
+      return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs };
     };
     const nodesBefore = nodeStats();
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
-    if (nodesAfter !== null) {
-      const before = nodesBefore ?? { builds: 0, buildMs: 0, reused: 0, repeats: 0, repeatMs: 0 };
-      onStage('node-builds', nodesAfter.buildMs - before.buildMs, nodesAfter.builds - before.builds);
-      onStage('node-repeats', nodesAfter.repeatMs - before.repeatMs, nodesAfter.repeats - before.repeats);
-      onStage('node-reused', 0, nodesAfter.reused - before.reused);
-    }
+    if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
