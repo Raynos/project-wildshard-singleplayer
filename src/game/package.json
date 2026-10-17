@@ -184,7 +184,10 @@
     "./looks/graphDaySky": "./looks/graphDaySky.ts",
     "./looks/overcast": "./looks/overcast.ts",
     "./looks/keyedSky": "./looks/keyedSky.ts",
-    "./looks/keyedSkyClock": "./looks/keyedSkyClock.ts"
+    "./looks/keyedSkyClock": "./looks/keyedSkyClock.ts",
+    "./looks/streamedCover": "./looks/streamedCover.ts",
+    "./looks/toonLighting": "./looks/toonLighting.ts",
+    "./looks/toonLook": "./looks/toonLook.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

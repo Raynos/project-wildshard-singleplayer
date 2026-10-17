@@ -644,8 +644,7 @@
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
         "src/shards/driftwood-isle/data/skyDay.json",
-        "src/shards/driftwood-isle/data/skyPalette.json",
-        "src/shards/driftwood-isle/data/facetedDayRows.ts"
+        "src/shards/driftwood-isle/data/skyPalette.json"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/skyChannels.generated.json"

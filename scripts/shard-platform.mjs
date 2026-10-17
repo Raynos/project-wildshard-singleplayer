@@ -527,7 +527,7 @@ const approvedFeatures = {
   'living-buildings':'G474',
   'weather reactions + keyed sky':'G474', 'quadruped-rig':'G474', 'actor-spawn':'G474',
   'bolt-flight':'G474', 'quest-step-runner':'G474', 'loadout':'G474',
-  'streamed-cover':'G475', 'collections':'G475', 'held-arms':'G475',
+  'streamed-cover':'G475', 'streamed cover':'G475', 'toon look host':'G475', 'collections':'G475', 'held-arms':'G475',
   'water-ripples':'G474', 'colour-ramp-fog':'G475',
   'low-poly-binder':'G475', 'resident-world':'G475',
 };
@@ -537,14 +537,18 @@ function approvedFeature(entry) {
   return approval!==undefined && approvedFeatures[approval.name]===approval.decision.row;
 }
 // G419: planned users are an explicit, temporary allowance, never actual import-graph users.
-const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1'), entries:v.array(v.strictObject({
+const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1'), entries:v.pipe(v.array(v.strictObject({
   module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk)\//u)), export:v.optional(v.string()),
-  shard:v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack']),
-  plan:v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()}),
-  documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.literal('end of W3'),
+  shard:v.exactOptional(v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack'])),
+  plan:v.exactOptional(v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()})),
+  documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.exactOptional(v.literal('end of W3')),
   approvedFeature:v.exactOptional(v.strictObject({name:v.string(),decision:v.strictObject({path:v.literal('docs/plans/shard-platform/decisions.md'),row:v.picklist(['G473','G474','G475','G483'])})})),
-})) });
-/** Read only documented general platform declarations with a real later-wave plan row.
+})), v.check(rows => rows.every(entry => {
+  const complete = entry.shard !== undefined && entry.plan !== undefined && entry['rechecked-by'] !== undefined;
+  const empty = entry.shard === undefined && entry.plan === undefined && entry['rechecked-by'] === undefined;
+  return complete || (empty && entry.approvedFeature !== undefined);
+}), 'A pending user needs its shard, plan and recheck; an approved feature needs only its decision')) });
+/** Read documented general hosts backed by a real future user or an explicit day-one approval.
  * @param {string} root @returns {import('./shard-platform.mjs').PendingPlatformUser[]} */
 export function pendingPlatformUsers(root) {
   const file=resolve(root,'lint/platform-pending-users.json');
@@ -552,7 +556,7 @@ export function pendingPlatformUsers(root) {
   const {entries}=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))),seen=new Set();
   const names={'driftwood-isle':'Driftwood','pine-hollow':'Pine','nalati-grasslands':'Nalati','nine-dragon-stack':'Nine'};
   for(const entry of entries){
-    const key=`${entry.module}#${entry.export??'*'}:${entry.shard}`;
+    const key=`${entry.module}#${entry.export??'*'}:${entry.shard??'approved'}`;
     if(seen.has(key))throw new Error(`Duplicate pending platform user: ${key}`);seen.add(key);
     if(entry.approvedFeature!==undefined){
       if(!approvedFeature(entry))throw new Error(`Unapproved platform feature: ${key}`);
@@ -568,8 +572,10 @@ export function pendingPlatformUsers(root) {
     const documentation=readFileSync(resolve(root,entry.documentation),'utf8');
     if(!documentation.includes(entry.module.replace(/^src\//u,'').replace(/\.ts$/u,'')))
       throw new Error(`Pending feature lacks documentation: ${key}`);
-    const row=readFileSync(resolve(root,entry.plan.path),'utf8').split('\n').find(line=>line.split('|')[1]?.trim()===entry.plan.row);
-    if(!row||!row.includes(names[entry.shard]))throw new Error(`Missing later-wave plan row: ${key}`);
+    if (entry.plan !== undefined && entry.shard !== undefined) {
+      const row=readFileSync(resolve(root,entry.plan.path),'utf8').split('\n').find(line=>line.split('|')[1]?.trim()===entry.plan?.row);
+      if(!row||!row.includes(names[entry.shard]))throw new Error(`Missing later-wave plan row: ${key}`);
+    }
   }
   return entries;
 }
@@ -583,7 +589,7 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
   const pending=[];
   const charged=(row)=>{
     const eligibleWave=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug));
-    const matches=allowances.filter(entry=>(eligibleWave||approvedFeature(entry))&&entry.shard!==slug&&entry.module===row.path
+    const matches=allowances.filter(entry=>(approvedFeature(entry)||(eligibleWave&&entry.shard!==undefined))&&entry.shard!==slug&&entry.module===row.path
       && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name)));
     if(matches.length===0)return true;
     pending.push({...row,status:'pending second user',users:matches});return false;

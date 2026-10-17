@@ -1,3 +1,4 @@
+import { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
 import { HELD_ARMS } from '../../src/shards/driftwood-isle/generators/heldArms';
 import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
@@ -15,6 +16,7 @@ export function admitDriftwoodFixtureRows(): void { admitDriftwoodFixtureAliases
 export function admitDriftwoodFixtureAliases(byUrl: Readonly<Record<string, string>>): void {
   const sections = new Map<string, unknown>();
   for (const row of DRIFTWOOD_CLIENT_SECTIONS) { const value: unknown = JSON.parse(JSON.stringify(row.value)); sections.set(row.name, value); }
+  sections.set('look/toon', TOON_LOOK);
   sections.set('held/arms', HELD_ARMS);
   sections.set('custom/assets', { byUrl });
   const identity = { slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 1 };

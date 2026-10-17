@@ -4,7 +4,7 @@
  * The island's low-poly kit materials as SF59 material graphs (SHARD-PLATFORM W2 C2; the shardfile's `look.materials`,
  * compiled by the look's `prepareWorld` with the ground and lent to the kit's variants with `bindLowPolyMaterial`, so every
  * `lowPolyLookMaterial(sky, variant)` in the world wears the graph): the toon family's light model (its numbers the
- * catalogue's live toon look, following the day clock: look/toon.ts `followToon`), flat-shaded vertex colour, two-sided,
+ * catalogue's live toon look, following the day clock: game/looks/toonLook.ts `followToonLook`), flat-shaded vertex colour, two-sided,
  * matte. The swaying ones move in their shadow pass too (`shadow: true`), so no mesh needs a depth material of its own.
  * - `default`: the kit (the castaway, the trader and his counter, the boat's sail, the lookout's banner, the wrecks, the
  *   hibiscus): the engine's Driftwood sway (engine/world/wind.ts) from each vertex's `aSway` (weight, phase; absent reads

@@ -1,4 +1,4 @@
-import { driftwoodRows } from '../boot/rows';
+import { driftwoodRows, driftwoodProduct } from '../boot/rows';
 /**
  * The lagoon floor's models (E306 / E315 M1: models on the contract, src/engine/models/model.ts; they were built inside
  * src/shards/driftwood-isle/world/Seabed.ts): faceted low-poly CORAL CLUMPS in pastel pink / orange / purple / cream (four shapes: brain
@@ -14,8 +14,8 @@ import { driftwoodRows } from '../boot/rows';
 import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { reefSpecimen } from '../boot/reefGeometry';
-import { lentLook, lentToon } from '@wildshard/sdk/looks/lentLooks';
-import { followToon } from '../look/toon';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
+import { followToonLook } from '@wildshard/game/looks/toonLook';
 
 const reefRows = () => driftwoodRows('custom/fixedLayouts').nativeView.REEF_SPECIMENS;
 
@@ -37,7 +37,7 @@ export interface ReefParams {
 /** the reef's one material: its graph (data/reefLook.ts: toon lit, the fronds swaying in the current), its toon look
  *  following the day clock once a frame; the runtime lends it before the world builds, and a reef built before that refuses */
 export function reefMaterial(ctx: ModelContext): { material: THREE.Material; update?: () => void } {
-  return ctx.once('driftwood-isle/reef:material', () => ({ material: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK), update: followToon(lentToon(driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK)) }));
+  return ctx.once('driftwood-isle/reef:material', () => ({ material: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK), update: followToonLook(driftwoodProduct(), driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK) }));
 }
 
 /** The three cards differ only in their existing metadata and authored specimen rows. */

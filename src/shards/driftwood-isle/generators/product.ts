@@ -47,8 +47,8 @@ export default parseShardfile({
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures, the baked cove's terrain and props;
-  // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts; its frame is the `driftwood.sky` channel group);
-  // the faceted ground and its slab, and the low-poly kit's variants (compiled by the look's prepareWorld before the ground builds, look/terrainPainter.ts)
+  // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, game/looks/toonSky.ts; its frame is the `driftwood.sky` channel group);
+  // the faceted ground and its slab, and the low-poly kit's variants (compiled by the look's prepareWorld before the ground builds, game/looks/toonLook.ts)
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/index.ts)
   // W2c: every graph arrives as build-time JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },

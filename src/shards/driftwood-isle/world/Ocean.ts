@@ -17,8 +17,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildTier } from '@wildshard/engine/core/tier';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
 import { OCEAN } from '../world/sites';
-import { driftwoodRows } from '../runtime/boot/rows';
-import { toonState } from '../runtime/look/toon';
+import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
+import { toonLookState } from '@wildshard/game/looks/toonLook';
 
 /** the baked sea, loaded: the level it was baked at, the tier's grid and the sea floor's heights (half-float bits) */
 export interface FacetedOceanBake { readonly level: number; readonly grid: THREE.BufferGeometry; readonly floor: Uint16Array }
@@ -38,8 +38,8 @@ export class Ocean extends WaterSurface {
   /** the baked sea at `level` (its bake's), clipped out of up to four dry rectangles, stopping `edgeInset` m inside its square */
   build(bake: FacetedOceanBake, level = OCEAN.level, dry: readonly WaterDryRect[] = [], edgeInset = 0): this {
     if (bake.level !== level) throw new Error('The baked ocean is for another sea level');
-    const caustics: { value: number } = toonState().dayLight.uSeaLevel; caustics.value = level; // the caustics under it
+    const caustics: { value: number } = toonLookState(driftwoodProduct()).dayLight.uSeaLevel; caustics.value = level; // the caustics under it
     const params: Record<string, GraphLiteral> = { level, deepDepth: OCEAN.deepDepth, shallow: [...OCEAN.shallowColor], deep: [...OCEAN.deepColor], edgeInset, seaEnd: HORIZON_RADIUS };
-    return this.draw(bake.grid, { level, floor: bake.floor, dry, params, lent: { night: toonState().dayLight.uToonNight } });
+    return this.draw(bake.grid, { level, floor: bake.floor, dry, params, lent: { night: toonLookState(driftwoodProduct()).dayLight.uToonNight } });
   }
 }

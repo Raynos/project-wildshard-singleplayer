@@ -1,67 +1,13 @@
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { TIER } from '@wildshard/engine/core/tier';
-import { lentLook, lentToon, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { followToon } from '../look/toon';
-import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/sdk/looks/streamedInstances';
+import { lentLook, lentToon, setLentParam } from '../shardfile/lentLooks';
+import { followToonLighting } from './toonLighting';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { parseStreamedCover, type StreamedCoverRow } from '@wildshard/format/streamedCover';
+import type { SceneResources } from '../shardfile/sceneResources';
+import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/engine/render/streamedInstances';
 
-
-/**
- * A ground cover streamed round the viewer as rows (SHARD-PLATFORM M3, look-family rows): instanced low-poly plants, one
- * InstancedMesh per kind (one draw each, no shadow casting), refilled from square cells round the viewer whenever it has
- * moved `refill` m. Each cell's plants are baked at build (generators/coverCells.ts: where a plant stands, its kind,
- * scale, tint and the ground under it) and decoded from that file once per cell as the window caches it, then the ones
- * that can show from here are copied into the instance buffers — no per-frame allocation. The plants wear the shard's material graphs (its look.materials), which bend them and fade each one by its
- * distance to the camera; the cover sets their params (a kind's reach, far reach, mode and keep once, the viewer's
- * position, the slope reach and the far set's grow-in every frame).
- *
- * - No ring, no pop: each kind has a reach [near, far] (m, camera to plant, in 3D): every plant inside `near` stands, and
- *   past it each one has its own edge in [near + grow, far] (drawn from its yaw, which the shader reads back from the
- *   matrix). The refill copies only plants that can reach their edge before the next refill (their edge + `refill`), so
- *   nothing is ever inserted part-grown.
- * - A far tier: a kind may have a far model and its own [farNear, farFar] edge; past its near edge a plant hands over to
- *   it. The far set is rebuilt every `farRefill` m by a job that runs a slice of cells per frame (`farBudgetMs`) into the
- *   back buffers, with `farSlack` m of room, so neither the refill nor new cells hitch a frame.
- * - Slope reach: plants on sloping ground keep their reach × up to `slopeReach.up`, fading out as the camera climbs.
- * - No upload stalls: each tier of each kind is the SDK's twin-mesh `InstanceTier` (looks/streamedInstances, beside the
- *   `CellWindow` that caches the cells): the next set uploads a slice a frame (`uploadBytes` for the whole cover) and
- *   swaps in one frame when it is all on the GPU. The near set starts `nearLag` m early and must swap within
- *   `nearLag` m of travel (else the rest uploads that frame).
- *
- * Nothing here knows a shard: its numbers and kinds are rows in its `data/`, its graphs its look's, its plants a baked
- * file.
- *
- *   const cover = new StreamedCover({ row, geometry, cells, heightAt }).build();
- *   scene.add(cover.group);
- *   game.onUpdate((dt) => cover.update(dt, player.position));
- */
-
-
-interface PerTier { readonly phone: number; readonly desktop: number }
-type Span = readonly [number, number];
-/** what the cover reads off its row (data/coverLook.ts GROUND_COVER; its plants are baked into the cells) */
-export interface StreamedCoverRow {
-  readonly cell: number; readonly refill: number; readonly cacheMin: number; readonly growShare: number;
-  readonly farRefill: number; readonly farSlack: number; readonly farIn: number; readonly eyeSlack: number;
-  readonly uploadBytes: number; readonly nearLag: number; readonly look: string; readonly meshPrefix: string;
-  readonly reachK: PerTier; readonly capK: PerTier; readonly farBudgetMs: PerTier;
-  readonly slopeReach: { readonly up: number; readonly lo: number; readonly hi: number; readonly fadeFrom: number; readonly fadeTo: number };
-  readonly kinds: readonly {
-    readonly name: string; readonly geometry: string; readonly cap: number; readonly reach: Span; readonly scale: Span;
-    readonly far?: { readonly geometry: string; readonly reach: Span; readonly cap: number; readonly keep: number };
-  }[];
-}
-
-/** What the cover needs. */
-export interface StreamedCoverOptions {
-  readonly row: StreamedCoverRow;
-  /** the kinds' geometries by the rows' keys */
-  readonly geometry: Readonly<Record<string, THREE.BufferGeometry>>;
-  /** the baked cells (generators/coverCells.ts) */
-  readonly cells: Uint8Array;
-  /** the ground height under the viewer (the slope reach fades out over it) */
-  readonly heightAt: (x: number, z: number) => number;
-}
 
 /** Measurements for the pop-in / stutter scripts (`group.userData.stats`). */
 export interface StreamedCoverStats {
@@ -83,7 +29,9 @@ interface CellFile { readonly view: DataView; readonly x0: number; readonly z0: 
 function readCells(bytes: Uint8Array, cell: number): CellFile {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), u = (i: number): number => (bytes.byteLength >= HEAD * 4 ? view.getUint32(i * 4, true) : 0);
   if (u(0) !== MAGIC || u(1) !== VERSION || u(2) !== cell) throw new Error('StreamedCover: the baked cells are missing or another version (rebuild them)');
-  const w = u(5), h = u(6), nk = u(7), n = w * h * nk, starts = new Uint32Array(n + 1);
+  const w = u(5), h = u(6), nk = u(7), n = w * h * nk;
+  if (w === 0 || h === 0 || nk === 0 || nk > 32 || n > 1048576 || HEAD * 4 + n * 2 > bytes.byteLength) throw new Error('StreamedCover: invalid cell bounds');
+  const starts = new Uint32Array(n + 1);
   starts[0] = (HEAD * 4 + n * 2 + 3) & ~3;
   for (let i = 0; i < Math.min(n, 1048576); i++) starts[i + 1] = (starts[i] ?? 0) + view.getUint16(HEAD * 4 + i * 2, true) * PLANT;
   if (starts[n] !== bytes.byteLength) throw new Error('StreamedCover: the baked cells are corrupt (rebuild them)');
@@ -128,12 +76,12 @@ function writePlant(A: InstanceArrays, n: number, v: Float32Array, i: number): v
 }
 
 /** A ground cover streamed round the viewer (see the module comment). */
-export class StreamedCover {
+class StreamedCover {
   /** the cover's meshes (the shard may add its own) */
   readonly group = new THREE.Group();
   /** measurements (also `group.userData.stats`) */
   readonly stats: StreamedCoverStats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
-  private readonly o: StreamedCoverOptions;
+  private readonly resources: SceneResources;
   private readonly file: CellFile;
   private readonly row: StreamedCoverRow;
   private readonly farBudgetMs: number;
@@ -159,10 +107,11 @@ export class StreamedCover {
   private farWritten = false;
 
   /** The cover's rows, geometries and baked cells. */
-  constructor(options: StreamedCoverOptions) {
-    this.o = options;
-    this.row = options.row;
-    this.file = readCells(options.cells, options.row.cell);
+  constructor(resources: SceneResources, row: StreamedCoverRow, cells: Uint8Array) {
+    this.resources = resources;
+    this.row = row;
+    this.file = readCells(cells, row.cell);
+    if (this.file.nk !== row.kinds.length) throw new Error('StreamedCover: baked kind count differs from rows');
     this.farBudgetMs = forTier(this.row.farBudgetMs);
     this.cells = new CellWindow(this.row.cell, (cx, cz) => this.generate(cx, cz));
   }
@@ -180,15 +129,11 @@ export class StreamedCover {
     const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), sr = row.slopeReach;
     const material = (id: string, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.Material => {
       const mat = lentLook(id);
-      setLentParam(id, 'reach', reach.toArray()); setLentParam(id, 'farReach', far.toArray()); setLentParam(id, 'mode', mode); setLentParam(id, 'keep', keep);
-      this.ids.push(id); this.follow ??= followToon(lentToon(id));
+      setLentParam(id, row.params.reach, reach.toArray()); setLentParam(id, row.params.lodReach, far.toArray()); setLentParam(id, row.params.mode, mode); setLentParam(id, row.params.keep, keep);
+      this.ids.push(id); this.follow ??= followToonLighting(row.lighting, lentToon(id));
       return mat;
     };
-    const geometry = (key: string): THREE.BufferGeometry => {
-      const g = this.o.geometry[key];
-      if (g === undefined) throw new Error(`StreamedCover: no geometry ${key}`);
-      return g;
-    };
+    const geometry = (key: string): THREE.BufferGeometry => this.resources.geometry(key);
     for (let ki = 0; ki < Math.min(row.kinds.length, 32); ki++) {
       const k = row.kinds[ki];
       if (k === undefined) continue;
@@ -313,7 +258,7 @@ export class StreamedCover {
     const row = this.row, REFILL_M = row.refill, NEAR_LAG = row.nearLag, FAR_SLACK = row.farSlack, sr = row.slopeReach;
     this.uniforms.uPlayer.value.copy(viewer);
     // full strength on foot (the viewer is the player's feet), none from high up
-    this.uniforms.uReachUp.value = 1 - ss(sr.fadeFrom, sr.fadeTo, viewer.y - this.o.heightAt(viewer.x, viewer.z));
+    this.uniforms.uReachUp.value = 1 - ss(sr.fadeFrom, sr.fadeTo, viewer.y - terrainHeight(viewer.x, viewer.z));
     // in 3D: a flying camera climbs and dives, and the reach is measured from the camera. The next near set is built
     // NEAR_LAG m early and uploads a slice a frame; it must be shown before the viewer is REFILL_M from where the shown one
     // was built, so it swaps by NEAR_LAG m of travel whatever is left (`last` = where the newest set was built).
@@ -365,8 +310,15 @@ export class StreamedCover {
     p[0] = v.x; p[1] = v.y; p[2] = v.z;
     for (let i = 0; i < Math.min(this.ids.length, 32); i++) {
       const id = this.ids[i];
-      if (id !== undefined) { setLentParam(id, 'player', p); setLentParam(id, 'reachUp', this.uniforms.uReachUp.value); setLentParam(id, 'farIn', this.farIn.value); }
+      if (id !== undefined) { setLentParam(id, this.row.params.viewer, p); setLentParam(id, this.row.params.slope, this.uniforms.uReachUp.value); setLentParam(id, this.row.params.growIn, this.farIn.value); }
     }
     follow();
   }
+}
+
+/** Client-only presentation handle; construction stays private so shards cannot override streaming. */
+export type StreamedCoverHandle = Pick<StreamedCover, 'group' | 'stats' | 'update'>;
+/** Build from plain rows and baked bytes using platform-owned scene resources. */
+export function createStreamedCover(resources: SceneResources, input: unknown, cells: Uint8Array): StreamedCoverHandle {
+  return new StreamedCover(resources, parseStreamedCover(input), cells).build();
 }

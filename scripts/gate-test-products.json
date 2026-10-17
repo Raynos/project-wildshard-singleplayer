@@ -109,5 +109,7 @@
   "test/living-buildings-platform.test.ts": [],
   "test/declared-audio-gameplay.test.ts": [],
   "test/elites-platform.test.ts": [],
-  "test/keyed-sky-platform.test.ts": []
+  "test/keyed-sky-platform.test.ts": [],
+  "test/streamed-cover-platform.test.ts": [],
+  "test/toon-look-platform.test.ts": []
 }

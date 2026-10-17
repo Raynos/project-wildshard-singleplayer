@@ -176,7 +176,10 @@
     "./limbPopulation": "./limbPopulation.ts",
     "./worldSceneModels": "./worldSceneModels.ts",
     "./keyedSky": "./keyedSky.ts",
-    "./dayLook": "./dayLook.ts"
+    "./dayLook": "./dayLook.ts",
+    "./streamedCover": "./streamedCover.ts",
+    "./toonLighting": "./toonLighting.ts",
+    "./toonLook": "./toonLook.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

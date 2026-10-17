@@ -139,7 +139,6 @@
     "./looks/ambientFlock": "./looks/ambientFlock.ts",
     "./looks/lentLooks": "./looks/lentLooks.ts",
     "./looks/waterSurface": "./looks/waterSurface.ts",
-    "./looks/streamedInstances": "./looks/streamedInstances.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",

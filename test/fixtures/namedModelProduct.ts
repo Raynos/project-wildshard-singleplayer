@@ -1,3 +1,4 @@
+import { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
 import { HELD_ARMS } from '../../src/shards/driftwood-isle/generators/heldArms';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
@@ -11,7 +12,7 @@ export function namedModelProduct(models: ReadonlyMap<string, Uint8Array>, check
   const assets = new Map(blobs.map(({ blob }) => [blob.file.hash, blob.bytes]));
   return createShardProduct({ slug: 'driftwood-isle', revision: 1,
     shardfile: emptyShardfile({ slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1 }),
-    sections: new Map<string, unknown>([...DRIFTWOOD_CLIENT_SECTIONS.map(({name,value}): [string, unknown] => [name, JSON.parse(encodeCanonicalJson(value))]), ['held/arms', HELD_ARMS], ['custom/assets', { byUrl: Object.fromEntries(blobs.map(({ url, blob }) => [url, blob.file.name])) }]]),
+    sections: new Map<string, unknown>([...DRIFTWOOD_CLIENT_SECTIONS.map(({name,value}): [string, unknown] => [name, JSON.parse(encodeCanonicalJson(value))]), ['look/toon', TOON_LOOK], ['held/arms', HELD_ARMS], ['custom/assets', { byUrl: Object.fromEntries(blobs.map(({ url, blob }) => [url, blob.file.name])) }]]),
     files: new Map(blobs.map(({ blob }) => [blob.file.name ?? '', { hash: blob.file.hash, url: `/${blob.file.path}` }])),
     read: hash => {
       const bytes = assets.get(hash);

@@ -7,7 +7,7 @@
 // GPU bytes; the linked program count and a hash of every shader source the page compiled; any shader compile error;
 // every registered piece's colliders, hashed. Creatures keep moving between captures, so two runs of one build can
 // differ by a few hundred pixels: `--raw=<dir>` keeps each frame's RGBA so `--compare` can count the differing pixels.
-//   scripts/browser-lane.sh node scripts/proof-driftwood-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>]
+//   scripts/browser-lane.sh node scripts/proof-driftwood-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>] [--phase=midday|night]
 //   node scripts/proof-driftwood-look-parity.mjs --compare=<base.json>,<candidate.json>
 // Add --original-scenes with scripts/bake-loader.mjs to compare all five migrated sites against retained author geometry,
 // at every pose in the same frozen frame; independent boots still retain their natural creature differences.
@@ -36,7 +36,7 @@ if (compare !== undefined) {
   if (a.rows.length !== b.rows.length) diffs.push(`Pose count ${a.rows.length} ≠ ${b.rows.length}`);
   for (const [i, row] of a.rows.entries()) {
     const other = b.rows[i];
-    for (const key of ['tier', 'pose', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
+    for (const key of ['tier', 'phase', 'pose', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
     if (row.pixels !== other?.pixels) {
       // the differing pixel count when both runs kept their frames
       const fa = row.raw === undefined ? null : row.raw, fb = other?.raw ?? null;
@@ -53,7 +53,8 @@ if (compare !== undefined) {
   console.log(diffs.length === 0 ? `driftwood-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
-const url = arg('url'), output = arg('output'), raw = arg('raw');
+const url = arg('url'), output = arg('output'), raw = arg('raw'), phase = arg('phase') ?? 'midday';
+if (phase !== 'midday' && phase !== 'night') throw new Error('--phase=midday|night');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
 if (raw !== undefined) mkdirSync(raw, { recursive: true });
 const version = await (await fetch(new URL('/version.json', url))).json();
@@ -81,7 +82,7 @@ try {
   for (const tier of ['phone', 'desktop']) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
     await installInit(context, { lane: 'driftwood-look-parity', sha: version.build, browser: 'chromium', capture: 30, tier });
-    await developerSettings(context, { time: 'midday' });
+    await developerSettings(context, { time: phase });
     // every shader source the page compiles, hashed (a byte that moved in any program shows here)
     await context.addInitScript(() => {
       const seen = new Set();
@@ -98,7 +99,7 @@ try {
       const w = window.__wildshard?.world;
       return (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
     }, undefined, { timeout: 400000, polling: 1000 });
-    await sleep(4000);
+    await page.evaluate(() => window.__parity.advance(30));
     tiers[tier] = await page.evaluate(() => {
       const w = window.__wildshard.world, pieces = w.game.app.registry.pieceList();
       const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
@@ -139,7 +140,7 @@ try {
         const w = window.__wildshard.world;
         w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
       }, { x: p.x, z: p.z, yaw, pitch });
-      await sleep(5000);
+      await page.evaluate(() => window.__parity.advance(180));
       await page.evaluate(() => { const g = window.__wildshard.world.game; if (!('__dlpGate' in window)) window.__dlpGate = g.frameGate; g.frameGate = () => false; });
       await sleep(300);
       const shot = await page.evaluate(async v => {
@@ -183,7 +184,7 @@ try {
         let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
         return { player: [Math.round(at.x * 10) / 10, Math.round(at.y * 10) / 10, Math.round(at.z * 10) / 10], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, originalChangedPixels, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
       }, { yaw, pitch });
-      const row = { tier, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels, ...(shot.originalChangedPixels === null ? {} : { originalChangedPixels: shot.originalChangedPixels }) };
+      const row = { tier, phase, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels, ...(shot.originalChangedPixels === null ? {} : { originalChangedPixels: shot.originalChangedPixels }) };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
@@ -197,5 +198,5 @@ try {
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);
-  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: 'iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day midday (paused), time and cloud time 10, viewmodel hidden', tiers, rows }, null, 2)}\n`);
+  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: 'iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden', tiers, rows }, null, 2)}\n`);
 } finally { await browser.close(); }

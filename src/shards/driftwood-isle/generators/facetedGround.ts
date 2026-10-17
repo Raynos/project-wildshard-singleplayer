@@ -4,7 +4,7 @@
  * from its height above the sea, its slope and whether it is a cliff's top lip (look/groundColor.ts), the sand paths over
  * the grass; and the chunk's four slab walls in rock darkening with depth. The bake (bake-faceted-ground.mjs) runs it on
  * the bound native ground and writes two hash-named static GLBs (`facetedGroundGlbs`); the runtime only loads them
- * (runtime/looks/facetedGround.ts).
+ * (game/looks/toonLook.ts).
  */
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';

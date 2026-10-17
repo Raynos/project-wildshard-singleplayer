@@ -7,7 +7,8 @@ import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
 import { namedModelProduct } from './fixtures/namedModelProduct';
-import { prepareToon } from '../src/shards/driftwood-isle/runtime/look/toon';
+import { prepareToonLook } from '../src/game/looks/toonLook';
+import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import { rockGeometry } from '../src/shards/driftwood-isle/world/rockKit';
 import { addGeometryBake } from '../src/engine/world/geometryBake';
@@ -22,9 +23,9 @@ test('native view rows are admitted from canonical authored data', () => {
 });
 
 test('render setup retains the live uniforms used by parked views', () => {
-  const state = prepareToon(namedModelProduct(new Map()));
+  const state = prepareToonLook(TOON_LOOK);
   state.dayLight.uCloudTime.value = 42;
-  expect(prepareToon(namedModelProduct(new Map()))).toBe(state);
+  expect(prepareToonLook(TOON_LOOK)).toBe(state);
   expect(state.dayLight.uCloudTime.value).toBe(42);
 });
 

@@ -1,0 +1,337 @@
+{
+  "baseline": {
+    "sourceRevision": "427023fff68af1a9c2ca0beba4aa87e0e37db3cd",
+    "complete": true,
+    "pass": false,
+    "frames": 120,
+    "settings": {
+      "tier": "desktop",
+      "fps": "auto"
+    },
+    "limitations": [
+      "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+      "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+      "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+    ],
+    "results": [
+      {
+        "surface": "desktop",
+        "shard": "driftwood-isle",
+        "pass": true,
+        "cameraSource": "manifest standing parity cameras",
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.967136279703354e-06,
+              "y": 1.2138813460143865,
+              "z": -194.00000546164753,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.7,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "pass": true
+          },
+          {
+            "pose": {
+              "name": "beach",
+              "x": -10,
+              "z": -150,
+              "yaw": 4.3,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.7,
+            "p99Ms": 33.3,
+            "maxMs": 33.4,
+            "pass": true
+          },
+          {
+            "pose": {
+              "name": "wreck",
+              "x": 105,
+              "z": 0,
+              "yaw": -1.5707963267948966,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.8,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "pass": true
+          }
+        ],
+        "metadata": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "viewport": [
+            1440,
+            900
+          ],
+          "devicePixelRatio": 2,
+          "renderScale": 2,
+          "canvas": [
+            2880,
+            1800
+          ],
+          "developer": true,
+          "settings": {
+            "tier": "desktop",
+            "fps": "auto"
+          },
+          "gfx": {
+            "dpr": "2",
+            "aa": "auto"
+          }
+        },
+        "errors": []
+      },
+      {
+        "surface": "sim",
+        "shard": "driftwood-isle",
+        "pass": false,
+        "cameraSource": "manifest standing parity cameras",
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.7785675277568487e-06,
+              "y": 1.2108999941658112,
+              "z": -194.00000010230116,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 29.412,
+            "p95Ms": 69,
+            "p99Ms": 85,
+            "maxMs": 101,
+            "pass": false
+          },
+          {
+            "pose": {
+              "name": "beach",
+              "x": -10,
+              "z": -150,
+              "yaw": 4.3,
+              "pitch": 0
+            },
+            "medianFps": 31.25,
+            "p95Ms": 52,
+            "p99Ms": 58,
+            "maxMs": 61,
+            "pass": false
+          },
+          {
+            "pose": {
+              "name": "wreck",
+              "x": 105,
+              "z": 0,
+              "yaw": -1.5707963267948966,
+              "pitch": 0
+            },
+            "medianFps": 30.303,
+            "p95Ms": 53,
+            "p99Ms": 62,
+            "maxMs": 71,
+            "pass": false
+          }
+        ],
+        "metadata": {
+          "renderer": "Apple GPU",
+          "viewport": [
+            402,
+            714
+          ],
+          "devicePixelRatio": 3,
+          "renderScale": 2,
+          "canvas": [
+            804,
+            1428
+          ],
+          "developer": true,
+          "settings": {
+            "tier": "phone",
+            "fps": "auto"
+          },
+          "gfx": {
+            "dpr": "2",
+            "aa": "auto"
+          }
+        },
+        "errors": []
+      }
+    ],
+    "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+    "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro"
+  },
+  "integration": {
+    "sourceRevision": "d4981d200e899f44fd0aa739e8d5ce5d1e2926a7",
+    "complete": true,
+    "pass": false,
+    "frames": 120,
+    "settings": {
+      "tier": "desktop",
+      "fps": "auto"
+    },
+    "limitations": [
+      "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+      "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+      "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+    ],
+    "results": [
+      {
+        "surface": "desktop",
+        "shard": "driftwood-isle",
+        "pass": true,
+        "cameraSource": "manifest standing parity cameras",
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.925439265750619e-06,
+              "y": 1.2126999940839596,
+              "z": -194.00000209948703,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.8,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "pass": true
+          },
+          {
+            "pose": {
+              "name": "pier",
+              "x": 0,
+              "z": -194,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.7,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "pass": true
+          },
+          {
+            "pose": {
+              "name": "beach",
+              "x": -10,
+              "z": -150,
+              "yaw": 4.3,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.8,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "pass": true
+          }
+        ],
+        "metadata": {
+          "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "viewport": [
+            1440,
+            900
+          ],
+          "devicePixelRatio": 2,
+          "renderScale": 2,
+          "canvas": [
+            2880,
+            1800
+          ],
+          "developer": true,
+          "settings": {
+            "tier": "desktop",
+            "fps": "auto"
+          },
+          "gfx": {
+            "dpr": "2",
+            "aa": "auto"
+          }
+        },
+        "errors": []
+      },
+      {
+        "surface": "sim",
+        "shard": "driftwood-isle",
+        "pass": false,
+        "cameraSource": "manifest standing parity cameras",
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.8657464416225196e-06,
+              "y": 1.2118999941259971,
+              "z": -194.00000202114,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 30.303,
+            "p95Ms": 44,
+            "p99Ms": 51,
+            "maxMs": 51,
+            "pass": false
+          },
+          {
+            "pose": {
+              "name": "beach",
+              "x": -10,
+              "z": -150,
+              "yaw": 4.3,
+              "pitch": 0
+            },
+            "medianFps": 30.303,
+            "p95Ms": 48,
+            "p99Ms": 55,
+            "maxMs": 55,
+            "pass": false
+          },
+          {
+            "pose": {
+              "name": "wreck",
+              "x": 105,
+              "z": 0,
+              "yaw": -1.5707963267948966,
+              "pitch": 0
+            },
+            "medianFps": 30.303,
+            "p95Ms": 45,
+            "p99Ms": 45,
+            "maxMs": 49,
+            "pass": false
+          }
+        ],
+        "metadata": {
+          "renderer": "Apple GPU",
+          "viewport": [
+            402,
+            714
+          ],
+          "devicePixelRatio": 3,
+          "renderScale": 2,
+          "canvas": [
+            804,
+            1428
+          ],
+          "developer": true,
+          "settings": {
+            "tier": "phone",
+            "fps": "auto"
+          },
+          "gfx": {
+            "dpr": "2",
+            "aa": "auto"
+          }
+        },
+        "errors": []
+      }
+    ],
+    "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+    "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro"
+  },
+  "verdict": "Desktop floor passes; Simulator remains below its absolute floor, with lower p95 at all three matching standing poses. No physical-device performance claim."
+}

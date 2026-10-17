@@ -1,0 +1,730 @@
+{
+  "base": "427023fff68af1a9c2ca0beba4aa87e0e37db3cd",
+  "candidateTree": "d4981d200e899f44fd0aa739e8d5ce5d1e2926a7",
+  "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden",
+  "metric": "RGB SSIM, 7x7 uniform window, sample covariance, channel average",
+  "threshold": 0.9995,
+  "passed": true,
+  "rows": [
+    {
+      "tier": "phone",
+      "phase": "midday",
+      "pose": "beach-sea",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        113,
+        113
+      ],
+      "triangles": [
+        834738,
+        834738
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "pixelHashes": [
+        "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d",
+        "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "midday",
+      "pose": "wreck",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        100,
+        100
+      ],
+      "triangles": [
+        777303,
+        777303
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "pixelHashes": [
+        "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce",
+        "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "midday",
+      "pose": "lookout",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        76,
+        76
+      ],
+      "triangles": [
+        677796,
+        677796
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        93.6,
+        33.5,
+        95.9
+      ],
+      "pixelHashes": [
+        "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5",
+        "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "midday",
+      "pose": "cave",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        94,
+        94
+      ],
+      "triangles": [
+        715464,
+        715464
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "pixelHashes": [
+        "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800",
+        "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "midday",
+      "pose": "vista",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        169,
+        169
+      ],
+      "triangles": [
+        887812,
+        887812
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "pixelHashes": [
+        "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989",
+        "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "midday",
+      "pose": "altar",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        168,
+        168
+      ],
+      "triangles": [
+        1577465,
+        1577465
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "pixelHashes": [
+        "295c96452716c728afb833d5c102855e89070a7a7706e0e52d154645c8bb0819",
+        "295c96452716c728afb833d5c102855e89070a7a7706e0e52d154645c8bb0819"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "midday",
+      "pose": "beach-sea",
+      "changedPixels": 1,
+      "ssim": 0.9999999978194085,
+      "calls": [
+        187,
+        187
+      ],
+      "triangles": [
+        1267726,
+        1267726
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "pixelHashes": [
+        "c0acab876ce81eb42ddf3d29401ee7ad8c831872a4e025803b3e76f957738d7a",
+        "69224a07f7469feea11fe488b721da1d20dc7bb08dfc613434790478ed11e5b1"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "midday",
+      "pose": "wreck",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        144,
+        144
+      ],
+      "triangles": [
+        1084058,
+        1084058
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "pixelHashes": [
+        "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b",
+        "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "midday",
+      "pose": "lookout",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        166,
+        166
+      ],
+      "triangles": [
+        1095553,
+        1095553
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        93.6,
+        33.5,
+        95.9
+      ],
+      "pixelHashes": [
+        "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691",
+        "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "midday",
+      "pose": "cave",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        194,
+        194
+      ],
+      "triangles": [
+        1139305,
+        1139305
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "pixelHashes": [
+        "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a",
+        "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "midday",
+      "pose": "vista",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        299,
+        299
+      ],
+      "triangles": [
+        1628125,
+        1628125
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "pixelHashes": [
+        "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c",
+        "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "midday",
+      "pose": "altar",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        467,
+        467
+      ],
+      "triangles": [
+        2825019,
+        2825019
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "pixelHashes": [
+        "2271ced33875fe8df6a9cd4dc8127e5a36109eecef0b713ce6c9558d4ab51a0c",
+        "2271ced33875fe8df6a9cd4dc8127e5a36109eecef0b713ce6c9558d4ab51a0c"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "night",
+      "pose": "beach-sea",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        114,
+        114
+      ],
+      "triangles": [
+        835981,
+        835981
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "pixelHashes": [
+        "efb5bb1bb09d8fecae9ddbd2deb593904286651f86bf7aa1c015f8e0c9dec705",
+        "efb5bb1bb09d8fecae9ddbd2deb593904286651f86bf7aa1c015f8e0c9dec705"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "night",
+      "pose": "wreck",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        99,
+        99
+      ],
+      "triangles": [
+        777259,
+        777259
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "pixelHashes": [
+        "e0ba0ad325f5ce0b47ab7a1c7699f8817ad06a6a6afadef681aaa8b3655dd0f2",
+        "e0ba0ad325f5ce0b47ab7a1c7699f8817ad06a6a6afadef681aaa8b3655dd0f2"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "night",
+      "pose": "lookout",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        77,
+        77
+      ],
+      "triangles": [
+        678124,
+        678124
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        93.6,
+        33.5,
+        95.9
+      ],
+      "pixelHashes": [
+        "20641e44a9036f8687c2a94665f2199982ee630c36ef7e2368b11ad0a6bc5bf4",
+        "20641e44a9036f8687c2a94665f2199982ee630c36ef7e2368b11ad0a6bc5bf4"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "night",
+      "pose": "cave",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        94,
+        94
+      ],
+      "triangles": [
+        715464,
+        715464
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "pixelHashes": [
+        "318f2ef0d7ac52f35c9f5da4895e6e88b2749185b97196c8e30b579e36b31009",
+        "318f2ef0d7ac52f35c9f5da4895e6e88b2749185b97196c8e30b579e36b31009"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "night",
+      "pose": "vista",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        170,
+        170
+      ],
+      "triangles": [
+        921360,
+        921360
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "pixelHashes": [
+        "4626a65b9981735f55415c0e864740f7943e12e4a7f30b3cd31abbb8efdffc44",
+        "4626a65b9981735f55415c0e864740f7943e12e4a7f30b3cd31abbb8efdffc44"
+      ]
+    },
+    {
+      "tier": "phone",
+      "phase": "night",
+      "pose": "altar",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        169,
+        169
+      ],
+      "triangles": [
+        1580984,
+        1580984
+      ],
+      "width": 804,
+      "height": 1362,
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "pixelHashes": [
+        "a911c79c238d2e1c088bb798645717e09e891bc9ed173c7f9c69256bf8524ad9",
+        "a911c79c238d2e1c088bb798645717e09e891bc9ed173c7f9c69256bf8524ad9"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "night",
+      "pose": "beach-sea",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        189,
+        189
+      ],
+      "triangles": [
+        1275440,
+        1275440
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "pixelHashes": [
+        "49933f32c48467441c9fc7534ad39b52e48ab7fdab6e0828375123adee92bacd",
+        "49933f32c48467441c9fc7534ad39b52e48ab7fdab6e0828375123adee92bacd"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "night",
+      "pose": "wreck",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        143,
+        143
+      ],
+      "triangles": [
+        1070709,
+        1070709
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "pixelHashes": [
+        "99786c367a82a90c697ebbe0b5cbfcdb3ab494abbd0958a873f06488263a7292",
+        "99786c367a82a90c697ebbe0b5cbfcdb3ab494abbd0958a873f06488263a7292"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "night",
+      "pose": "lookout",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        176,
+        176
+      ],
+      "triangles": [
+        1109917,
+        1109917
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        93.6,
+        33.5,
+        95.9
+      ],
+      "pixelHashes": [
+        "c559f7e54ac8824e1328004ff0b46c8773751a702f9f71184a0c6e9d6bcce899",
+        "c559f7e54ac8824e1328004ff0b46c8773751a702f9f71184a0c6e9d6bcce899"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "night",
+      "pose": "cave",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        210,
+        210
+      ],
+      "triangles": [
+        1160319,
+        1160319
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "pixelHashes": [
+        "147baa41dfdff0c00f4951f1f5d186f6eb5676fc4b6aa8e1c11022d6982dfc8a",
+        "147baa41dfdff0c00f4951f1f5d186f6eb5676fc4b6aa8e1c11022d6982dfc8a"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "night",
+      "pose": "vista",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        318,
+        318
+      ],
+      "triangles": [
+        1716674,
+        1716674
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "pixelHashes": [
+        "18d6d7767469bbc402970b59b64975623008c58278c24e2303a6134533a263b1",
+        "18d6d7767469bbc402970b59b64975623008c58278c24e2303a6134533a263b1"
+      ]
+    },
+    {
+      "tier": "desktop",
+      "phase": "night",
+      "pose": "altar",
+      "changedPixels": 0,
+      "ssim": 1.0,
+      "calls": [
+        474,
+        474
+      ],
+      "triangles": [
+        2854024,
+        2854024
+      ],
+      "width": 603,
+      "height": 1021,
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "pixelHashes": [
+        "cb204e91f3f6cb28ca8323d7e143c6917cc6da5ebcde0320605df87e74de9730",
+        "cb204e91f3f6cb28ca8323d7e143c6917cc6da5ebcde0320605df87e74de9730"
+      ]
+    }
+  ],
+  "tiers": {
+    "midday": {
+      "base": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef",
+          "gpuBytes": 190168025,
+          "programs": 189,
+          "shaderCount": 319,
+          "shaders": "99c5db663c7bc3dacd2ea44a81b981f665775276599356f6565d28d442c7140b"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0",
+          "gpuBytes": 380802178,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "b2128ac910ed38ef49bc7ce6e76ab4c861e40b3dcad302b32f56a8ddce17522b"
+        }
+      },
+      "candidate": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef",
+          "gpuBytes": 190168025,
+          "programs": 189,
+          "shaderCount": 319,
+          "shaders": "99c5db663c7bc3dacd2ea44a81b981f665775276599356f6565d28d442c7140b"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0",
+          "gpuBytes": 380802178,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "b2128ac910ed38ef49bc7ce6e76ab4c861e40b3dcad302b32f56a8ddce17522b"
+        }
+      }
+    },
+    "night": {
+      "base": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef",
+          "gpuBytes": 190168025,
+          "programs": 189,
+          "shaderCount": 319,
+          "shaders": "99c5db663c7bc3dacd2ea44a81b981f665775276599356f6565d28d442c7140b"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0",
+          "gpuBytes": 380802178,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "b2128ac910ed38ef49bc7ce6e76ab4c861e40b3dcad302b32f56a8ddce17522b"
+        }
+      },
+      "candidate": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef",
+          "gpuBytes": 190168025,
+          "programs": 189,
+          "shaderCount": 319,
+          "shaders": "99c5db663c7bc3dacd2ea44a81b981f665775276599356f6565d28d442c7140b"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0",
+          "gpuBytes": 380802178,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "b2128ac910ed38ef49bc7ce6e76ab4c861e40b3dcad302b32f56a8ddce17522b"
+        }
+      }
+    }
+  },
+  "hostBlobs": {
+    "src/engine/render/streamedInstances.ts": "999e6c524481bc160262ee6cb5e0457f52855f30",
+    "src/game/looks/streamedCover.ts": "89e792260b20db39c8e842ebe2a174b851e3af93",
+    "src/game/looks/toonLighting.ts": "bfe8115a7084e5428676ef05d31579aae5fa7c84",
+    "src/game/looks/toonLook.ts": "e5dfa5025972c36633f0c5f30f0abdd9e3861da5",
+    "src/game/looks/toonSky.ts": "896748f5822b682a7d44592747961b013a09bfb5",
+    "src/format/streamedCover.ts": "792ce9864a84f935591a33c28516b9ca8e1100b0",
+    "src/format/toonLighting.ts": "9610196f65eef3bda14e3d6566e9cf5ff37dcdb5",
+    "src/format/toonLook.ts": "7e93686860319db074e0d056516cc22359f60a93"
+  }
+}

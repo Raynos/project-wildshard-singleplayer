@@ -1,4 +1,4 @@
-import type { FacetedDayStyle } from './facetedDayRows';
+import type { ToonDayRow } from '@wildshard/format/toonLook';
 /** Authored JSON row types; no runtime declarations. */
-declare const rows: FacetedDayStyle;
+declare const rows: ToonDayRow;
 export = rows;

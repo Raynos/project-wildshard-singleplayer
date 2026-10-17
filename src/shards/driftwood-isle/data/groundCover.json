@@ -183,7 +183,17 @@
           "keep": 1
         }
       }
-    ]
+    ],
+    "lighting": "driftwood.day-light",
+    "params": {
+      "reach": "reach",
+      "lodReach": "farReach",
+      "mode": "mode",
+      "keep": "keep",
+      "viewer": "player",
+      "slope": "reachUp",
+      "growIn": "farIn"
+    }
   },
   "COVER_LOOKS": [
     "driftwood-cover-tuft",

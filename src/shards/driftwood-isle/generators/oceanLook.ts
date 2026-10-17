@@ -3,7 +3,7 @@
 /**
  * Driftwood's open sea (runtime/looks/facetedOcean.ts, world/Ocean.ts) as an SF59 material graph (SHARD-PLATFORM W2 C2;
  * the shardfile's `look.materials`, compiled by the hybrid runtime with the reef and the pools). The toon family's light
- * model (the catalogue's live toon look, following the day clock: look/toon.ts `followToon`) without its caustics
+ * model (the catalogue's live toon look, following the day clock: game/looks/toonLook.ts `followToonLook`) without its caustics
  * (`toonCaustics: false`: none on the sea surface itself), double-sided in one pass, alpha blended, depth written.
  *
  * - **vertex**: the shared Gerstner swell (`gerstner`, the same coefficients the boats and swimmers read) on the frame's

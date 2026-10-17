@@ -44,10 +44,10 @@ import type { PalmSpec } from './Palms';
 import sea from '../boot/sea.generated.json' with { type: 'json' };
 import { smallRock } from '../runtime/models/shoreBoulder';
 import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
-import { driftwoodRows } from '../runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import type { IslandCover } from './islandCover';
-import { lentLook, lentToon, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
-import { followToon } from '../runtime/look/toon';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { followToonLook } from '@wildshard/game/looks/toonLook';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -163,7 +163,7 @@ export class BlenderIsland {
       const m = new THREE.Mesh(o.geometry, terrainMat);
       m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
       m.name = `${driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
-      m.onBeforeRender = followToon(lentToon(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain)); // the terrain draws whenever the cove is in view: its toon look follows the day clock here
+      m.onBeforeRender = followToonLook(driftwoodProduct(), driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain); // the terrain draws whenever the cove is in view: its toon look follows the day clock here
       ctx.islandCover.wear(o.geometry, terrainTiles.length + 1); // E156: the cove's ground wears the cover it carries (baked over the estimate)
       terrainTiles.push(m);
       if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias

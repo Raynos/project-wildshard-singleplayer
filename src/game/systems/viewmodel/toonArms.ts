@@ -5,6 +5,7 @@
 import type { RigBake, RigContract } from '@wildshard/engine/anim/rig';
 import type { SwimArms } from '@wildshard/engine/player/Hands';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { toonLighting } from '../../looks/toonLighting';
 import type { ToonLookUniforms } from '@wildshard/engine/render/families/toon';
 import { runtimeLookMaterials } from '../../shardfile/runtimeProduct';
 import type { ShardContext } from '../../plugin/context';
@@ -13,7 +14,7 @@ import type { ShardProduct } from '../../shardfile/shardProduct';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseToonArmsLook, type ToonArmsLook } from '@wildshard/format/heldArms';
-import { Color, type BufferGeometry, type Material, type Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
+import { type BufferGeometry, type Material, type Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
 import type { ShardSword } from '../../shard/manifest';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 import { RigArms, swordArmsOf, vmScale } from './rigArms';
@@ -22,14 +23,8 @@ type Sword = 'wood' | 'iron';
 
 type ToonArmsRig = Pick<RigArms, 'root' | 'nodes' | 'meta' | 'weapon' | 'meshes' | 'update' | 'swim' | 'play' | 'blade'>;
 type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;
-function createLighting(row: ToonArmsLook['lighting']['initial']) {
-  return { uToonLift: { value: new Color(...row.uToonLift) }, uToonRim: { value: new Color(...row.uToonRim) },
-    uCloudShadow: { value: row.uCloudShadow }, uToonNight: { value: row.uToonNight },
-    uSeaLevel: { value: row.uSeaLevel }, uCloudTime: { value: row.uCloudTime } };
-}
-const lighting = new Map<string, ReturnType<typeof createLighting>>();
 const catalogues = new Map<string, ToonArms>();
-interface Loan { readonly looks: Looks; readonly light: { readonly source: ReturnType<typeof createLighting>;
+interface Loan { readonly looks: Looks; readonly light: { readonly source: ReturnType<typeof toonLighting>;
   readonly target: Pick<ToonLookUniforms, 'famToonLift' | 'famToonRim' | 'famToonCloud' | 'famToonWater' | 'famToonTime'> } }
 function followLight(loan: Loan): void {
   const u = loan.light.source, t = loan.light.target;
@@ -74,11 +69,8 @@ export class ToonArms {
   materialById(id: string): Material { return this.material(this.loan(), id); }
 
   /** The day clock and held meshes resolve the same lighting identity, initialized only from rows. */
-  static lighting(input: unknown): ReturnType<typeof createLighting> {
-    const row = parseToonArmsLook(input).lighting;
-    let state = lighting.get(row.id);
-    if (state === undefined) { state = createLighting(row.initial); lighting.set(row.id, state); }
-    return state;
+  static lighting(input: unknown): ReturnType<typeof toonLighting> {
+    return toonLighting(parseToonArmsLook(input).lighting);
   }
 
   /** Client-only preparation: resolve material ids and day lighting inside the host's platform scope. */

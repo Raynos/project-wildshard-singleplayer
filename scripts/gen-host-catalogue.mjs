@@ -91,7 +91,7 @@ export function renderHostCatalogue(catalogue) {
     ...catalogue.sections.map(row => `| ${cell(row.name)} | ${row.fields.map(field => cell(field.name)).join(', ')} | ${row.hosts.map(cell).join(', ')} | ${row.users.map(cell).join(', ')} |`), '',
     'Full schema field inventory and exact Wasm ABI: [SHARDFILE.md](SHARDFILE.md). Machine-readable detail: `lint/host-catalogue.generated.json`.', '',
     '## Hosts', '', '| Host | Resolved calling shards | Planned W3 users | Five verdicts |', '|---|---|---|---|',
-    ...catalogue.hosts.map(row => `| ${cell(keyOf(row))} | ${row.users.length === 0 ? 'none proven' : row.users.map(cell).join(', ')} | ${[...new Set(row.pendingUsers.map(pending => pending.shard))].map(cell).join(', ')} | ${Object.values(row.verdicts).map(result => result.status).join(' / ')} |`)];
+    ...catalogue.hosts.map(row => `| ${cell(keyOf(row))} | ${row.users.length === 0 ? 'none proven' : row.users.map(cell).join(', ')} | ${[...new Set(row.pendingUsers.map(pending => pending.shard ?? `approved: ${pending.approvedFeature?.name ?? 'unknown'}`))].map(cell).join(', ')} | ${Object.values(row.verdicts).map(result => result.status).join(' / ')} |`)];
   return `${lines.join('\n')}\n`;
 }
 

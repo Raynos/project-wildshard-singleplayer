@@ -3,7 +3,7 @@
  * hibiscus, white daisies and mossy pebbles on the grass, sparse sun-bleached beach grass on the sand, and a thicker
  * fern understorey in the shrine jungle. So the island interior stops reading as empty planes.
  *
- * Drawn by runtime/looks/streamedCover.ts from the rows in data/coverLook.ts and the graphs of data/lookGraphs.json: one InstancedMesh per plant (two,
+ * Drawn by the game streamed-cover host from data/groundCover.json and the graphs of data/lookGraphs.json: one InstancedMesh per plant (two,
  * E186: written and uploaded behind, swapped in one frame), refilled from 16 m cells round the viewer every 4 m, each
  * plant at its own edge in its kind's reach (E117: no ring, no pop), a far tier of stand-ins past the near set (E117
  * follow-up: "more distant cover"), plants on sloping ground keeping their reach further (E156 C), and the plants fading
@@ -25,8 +25,8 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { StreamedCover } from '../runtime/looks/streamedCover';
+import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 
 const { GROUND_COVER } = authoredCoverLook;
 
@@ -35,19 +35,26 @@ export interface GroundCoverOpts {
   cells: Uint8Array;
 }
 
-export class GroundCover extends StreamedCover {
+export class GroundCover {
+  private readonly stream: StreamedCoverHandle;
+  readonly group: THREE.Group;
+  readonly stats: StreamedCoverHandle['stats'];
   /** its placements: the dune line's drift logs (the named places' sets read them) */
   readonly placed: Placed[] = [];
   constructor(private readonly sky: Sky, opts: GroundCoverOpts) {
-    super({ row: GROUND_COVER, geometry: Object.fromEntries(Object.entries(fixedGeometryGroups().cover).map(([kind, slot]) => [kind, fixedDraw(slot).copy()])), cells: opts.cells, heightAt });
+    const resources = new SceneResources(sky);
+    for (const [kind, slot] of Object.entries(fixedGeometryGroups().cover)) resources.publish(kind, fixedDraw(slot).copy());
+    this.stream = createStreamedCover(resources, GROUND_COVER, opts.cells);
+    this.group = this.stream.group; this.stats = this.stream.stats;
   }
 
-  override build(): this {
-    super.build();
+  build(): this {
     this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
   }
+
+  update(dt: number, viewer: THREE.Vector3): void { this.stream.update(dt, viewer); }
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {

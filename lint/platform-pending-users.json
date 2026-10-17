@@ -837,23 +837,6 @@
       }
     },
     {
-      "module": "src/sdk/looks/streamedInstances.ts",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati cell-streamed dressing (G441)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "streamed-cover",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G475"
-        }
-      }
-    },
-    {
       "module": "src/game/plugin/director.ts",
       "export": "DirectorScriptStageLane",
       "shard": "nalati-grasslands",
@@ -2147,6 +2130,61 @@
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
           "row": "G474"
+        }
+      }
+    },
+    {
+      "module": "src/engine/render/streamedInstances.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "streamed cover",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/streamedCover.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "streamed cover",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/toonLighting.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "toon look host",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/toonLook.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "toon look host",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/toonSky.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "toon look host",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
         }
       }
     }

@@ -53,10 +53,10 @@ export function declarationOnlyManifest(source:string,path?:string):boolean;
 export function portHeadline(customPercent:number|null,content:{status:string;tiles:{total:number}|null;privateBinaries:readonly string[]}):PortHeadline;
 export function portAverage(rows:Record<string,{port:PortHeadline}>):number|null;
 
-/** G419 allowance: reviewed again when W3 ends; this is not an actual user. */
+/** G419 planned user, or a day-one feature receipt. Neither fabricates an actual user. */
 export interface PendingPlatformUser {
-  module:string; export?:string; shard:'driftwood-isle'|'pine-hollow'|'nalati-grasslands'|'nine-dragon-stack';
-  plan:{path:string;row:string}; documentation:string; 'rechecked-by':'end of W3';
+  module:string; export?:string; shard?:'driftwood-isle'|'pine-hollow'|'nalati-grasslands'|'nine-dragon-stack';
+  plan?:{path:string;row:string}; documentation:string; 'rechecked-by'?:'end of W3';
   approvedFeature?:{name:string;decision:{path:'docs/plans/shard-platform/decisions.md';row:'G473'|'G474'|'G475'|'G483'}};
 }
 export interface PendingPlatformCharge {path:string;name?:string;lines:number;status:'pending second user';users:PendingPlatformUser[]}

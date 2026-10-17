@@ -1,6 +1,6 @@
-// SHARD-PLATFORM M3 (look-family rows): Driftwood's faceted ground (look/terrainPainter.ts builds it through
-// runtime/looks/facetedGround.ts): the materials it wears, the build's band, the cliff lip, the slab walls and the sand
-// paths. The colours by height and slope are look/groundColor.ts; the materials' graphs are authored graph JSON
+// SHARD-PLATFORM M3 (look-family rows): Driftwood's faceted ground, drawn by the game toon look host:
+// the materials it wears, the build's band, the cliff lip, the slab walls and the sand
+// paths. The colours by height and slope are generators/groundColor.ts; the materials' graphs are authored graph JSON
 // (data/lookGraphs.json).
 
 /**

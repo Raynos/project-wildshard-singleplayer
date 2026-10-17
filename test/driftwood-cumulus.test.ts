@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import puffs from '../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
 import { cumulusPuffs } from '../src/shards/driftwood-isle/generators/cumulus';
-import { cumulusGeometry } from '../src/shards/driftwood-isle/runtime/looks/facetedDayBackdrop';
+import { cumulusGeometry } from '../src/game/looks/toonSky';
 
 it('keeps the baked cumulus rows in step with their generator', () => {
   expect(puffs).toEqual(cumulusPuffs());

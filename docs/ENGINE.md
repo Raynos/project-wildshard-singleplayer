@@ -6656,7 +6656,7 @@ belong to the rows. The host preserves each source range's original box.
 
 ### Cell-streamed instances
 
-`src/sdk/looks/streamedInstances.ts` holds the bookkeeping of a scatter
+`src/engine/render/streamedInstances.ts` holds the bookkeeping of a scatter
 streamed round a viewer. `CellWindow<T>(size, build)` keys square cells,
 builds a cell's contents once through `build`, keeps at most `cacheMax`
 of them (oldest dropped first) and lists the cells within a radius,
@@ -6668,12 +6668,11 @@ per-instance matrices, colours and declared attributes each their own).
 written instances, a byte budget at a time, and `swap` shows the set in
 one frame. Both meshes start visible at count 0, so the boot creates
 their GPU buffers. What a cell holds, which instances show and what each
-attribute means stay the caller's. Driftwood's streamed ground cover
-(`runtime/looks/streamedCover.ts`) is the current user; its per-cell
-generation, far tier, slope reach and upload budget stay in the shard.
-G441 registers Nalati `world/dressing/layer.ts#DressLayer` (its 24 m cell
-buckets and range walk, the cull's front-of-buffer copy, count and
-upload) as the W3 adopter, rechecked at the end of W3.
+attribute means stay the caller's. The game's `looks/streamedCover` host
+owns the ground-cover decoder, near/far handover, slope reach and upload
+budgets from `format/streamedCover` rows (G475). Driftwood supplies rows
+and baked cells. Nalati's dressing layer is the planned W3 adopter; the
+feature carries G475's day-one approval directly.
 
 ### First-person arm rigs
 
@@ -9491,3 +9490,44 @@ Host bar: **5/6**, failing only two real shipped users under G473's approved
 feature exception. Pine is the first user; the reed-marsh fixture exercises a
 different species, three-slot family and AS law. Nalati adoption is tracked in
 `lint/platform-pending-users.json` against G484, rechecked at the end of W3.
+
+**Streamed ground cover (G475).** The client-only
+`game/looks/streamedCover#createStreamedCover(resources, row, cells)` host
+reads `format/streamedCover` rows: cell spacing and cache capacity, per-tier
+reach/capacity and work budgets, fade bands, near/far geometry ids, far density
+retention, material prefix and shared toon-light identity. `SceneResources`
+resolves geometry ids; version-1 baked cell bytes carry placement, yaw, scale,
+tint, ground normals and surface colours. No shard callbacks or subclasses
+participate. Terrain placement height comes from the engine's installed field.
+`engine/render/streamedInstances` owns the existing twin-buffer upload
+and swap path. The unused SDK facade is retired. No renderer algorithm,
+material graph, placement density or reach tuning changes during adoption.
+
+Lighting is admitted explicitly through `game/looks/toonLighting` with a
+`format/toonLighting` row. The sky, held meshes and cover resolve the same
+lighting id; a host-owned follow copies it into the compiled toon family.
+Missing lighting, geometry, corrupt cells and mismatched kind counts refuse
+before the stream starts. G475 approves the feature from day one, recorded
+as approval metadata in `lint/platform-pending-users.json`; a marsh fixture in
+`test/streamed-cover-platform.test.ts` drives different geometry/material ids,
+bands and capacities without adding a host branch.
+
+**Toon look host (G475).** `game/looks/toonLook#toonLook(product)` reads
+`look/toon` (`format/toonLook`), preparing a client-only look. Its rows name
+the lighting identity, ramp-fog colours and range, shadow policy, baked
+ground/slab files and material ids, kit variants, sky dome and cloud graphs,
+puff instances, channel group and a keyed palette clock.
+`game/looks/toonSky` owns sky construction and its day/night drive; all
+callbacks remain inside the platform. The terrain painter resolves verified
+product bytes and borrows materials from its preparation scope. That scope
+clears its loan on disposal; a painter used before preparation refuses.
+`game/looks/toonLighting` supplies shared lighting for these hosts and held
+meshes. Shards declare cover rows rather than extending the instance streamer.
+
+The feature is approved from day one by G475: the approval metadata names
+the feature and decision directly, with no invented future toon shard. The
+fictional chalk-coast fixture varies files, materials, fog, shadows, puff
+rows, dome dimensions and environment cadence without a host branch.
+Ordinary pending-user entries still require a named future shard, live plan
+row and recheck; an approval-only entry requires an exact known feature and
+its recorded decision. Both forms require public module documentation.

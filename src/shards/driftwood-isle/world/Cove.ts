@@ -32,7 +32,7 @@
 import * as THREE from 'three';
 import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { driftwoodRows } from '../runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { reefRock } from '../runtime/models/shoreBoulder';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
@@ -40,8 +40,7 @@ import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physic
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
-import { lentToon } from '@wildshard/sdk/looks/lentLooks';
-import { followToon } from '../runtime/look/toon';
+import { followToonLook } from '@wildshard/game/looks/toonLook';
 
 const { POOL_LOOK } = authoredPoolLook;
 
@@ -99,7 +98,7 @@ export class Cove {
     this.anchors=structuredClone(built.native.anchors);
     this.cuts=built.native.cuts;
     this.rockMesh = this.scenes.mesh('cove.rocks');
-    this.follow = followToon(lentToon(POOL_LOOK)); // its lent graph's toon look follows the day clock once a frame
+    this.follow = followToonLook(driftwoodProduct(), POOL_LOOK); // its lent graph's toon look follows the day clock once a frame
     this.group.add(this.scenes.group('cascade.root'));
 
     return this;

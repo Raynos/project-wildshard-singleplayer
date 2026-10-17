@@ -1,5 +1,9 @@
 import { expect, test } from 'vitest';
-import { partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise approval parsing against an isolated authored ledger.
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the test's owned repository scratch root.
+import { join } from 'node:path';
+import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 
 test('reports a named pending export without waiving helpers or later-wave custom code',()=>{
   const module='src/game/feature.ts';
@@ -56,4 +60,39 @@ test('G483 declared runtime entry retains its explicit approved feature credit',
     approvedFeature: { name: 'declared runtime entry', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G483' } } };
   const rows = [{ path: module, name: 'installClientPhase', exported: true, lines: 8 }];
   expect(partitionPendingPlatformUsers('pine-hollow', [], rows, [allowance]).exports).toEqual([]);
+});
+
+
+test('G475 day-one hosts carry approval without a fictional future user', () => {
+  for (const name of ['streamed cover', 'toon look host']) {
+    const module = 'src/game/looks/fixture.ts';
+    const allowance: PendingPlatformUser = { module, documentation: 'docs/ENGINE.md',
+      approvedFeature: { name, decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G475' } } };
+    const rows = [{ path: module, lines: 200 }];
+    expect(partitionPendingPlatformUsers('driftwood-isle', rows, [], [allowance]).modules).toEqual([]);
+    const noDecision: PendingPlatformUser = { module, documentation: 'docs/ENGINE.md' };
+    expect(partitionPendingPlatformUsers('driftwood-isle', rows, [], [noDecision]).modules).toEqual(rows);
+    const wrongDecision: PendingPlatformUser = { ...allowance,
+      approvedFeature: { name, decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G474' } } };
+    expect(partitionPendingPlatformUsers('driftwood-isle', rows, [], [wrongDecision]).modules).toEqual(rows);
+  }
+});
+
+
+test('approval-only ledger entries require the exact decision and complete ordinary plans', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync('tmp/approved-host-test-');
+  try {
+    for (const dir of ['lint', 'src/game/looks', 'docs/plans/shard-platform']) mkdirSync(join(root, dir), { recursive: true });
+    writeFileSync(join(root, 'src/game/looks/fixture.ts'), 'export const feature = 1;');
+    writeFileSync(join(root, 'docs/ENGINE.md'), 'game/looks/fixture');
+    writeFileSync(join(root, 'docs/plans/shard-platform/decisions.md'), '| G475 | approved toon |');
+    const entry: PendingPlatformUser = { module: 'src/game/looks/fixture.ts', documentation: 'docs/ENGINE.md',
+      approvedFeature: { name: 'toon look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G475' } } };
+    const put = (value: unknown) => { writeFileSync(join(root, 'lint/platform-pending-users.json'), JSON.stringify({ schema: 'platform-pending-users/1', entries: [value] })); };
+    put(entry); expect(pendingPlatformUsers(root)).toEqual([entry]);
+    put({ ...entry, approvedFeature: undefined }); expect(() => pendingPlatformUsers(root)).toThrow('pending user');
+    put({ ...entry, shard: 'nalati-grasslands' }); expect(() => pendingPlatformUsers(root)).toThrow('pending user');
+    put({ ...entry, approvedFeature: { ...entry.approvedFeature, name: 'made-up-host' } }); expect(() => pendingPlatformUsers(root)).toThrow('Unapproved');
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
