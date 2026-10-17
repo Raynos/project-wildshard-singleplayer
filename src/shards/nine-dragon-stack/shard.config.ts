@@ -3,7 +3,7 @@ import { NINE_MODES } from './data/modes';
 import NINE_DRAGON_RUNTIME_COST from './data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import { NINE_ITEMS } from './data/items';
+import NINE_ITEMS from './data/items.json' with { type: 'json' };
 import { NINE_LEDGER } from './data/ledger';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import world from './data/world.generated.json' with { type: 'json' };

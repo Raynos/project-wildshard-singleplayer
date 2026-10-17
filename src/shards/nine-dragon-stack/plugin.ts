@@ -1,7 +1,11 @@
 import { installNineGeometry } from './runtime/geometry';
 import { standaloneEntry } from './runtime/standalone';
 import { Sword } from '@wildshard/game/weapons/Sword';
-import { JIAN_ROW } from './vm/jianRow';
+import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
+import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
+import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { bindRuntimeEquipment, bindRuntimeItems } from '@wildshard/game/plugin/headless';
 import { BufferGeometryLoader, MaterialLoader, type PerspectiveCamera } from 'three';
 import * as v from 'valibot';
 import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
@@ -14,7 +18,6 @@ import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
-import { bindNineItems } from './runtime/items';
 import { bindNineFacts } from './runtime/facts';
 import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import { playerRider, type PortalRide } from './world/portalRide';
@@ -58,7 +61,13 @@ export class NdPlugin extends ShardPlugin {
     await installAudio(ctx);
     const support = v.parse(v.strictObject({ sword: v.unknown(), arms: v.unknown(), material: v.unknown(), tipY: v.number(), baseY: v.number() }),
       JSON.parse(new TextDecoder().decode(await ctx.product.file('weapons/jian-support.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
-    ctx.rows.weapon(JIAN_ROW);
+    const view = v.parse(v.strictObject({ portraitFov: v.number() }), JSON.parse(new TextDecoder().decode(await ctx.product.file('weapons/jian-row.json'))));
+    const item = ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
+    const profile = v.parse(MeleeWeaponProfileSchema, item?.kind === 'weapon' ? item.profile : undefined);
+    this.profile = profile;
+    const row = { ...applyMeleeCombatProfile(SWORD_WOOD, profile), ...readItemEquipment(ctx.product.shardfile.items, 'weapon.jian'),
+      parent: SWORD_WOOD.id, feel: { ...SWORD_WOOD.feel, portraitFov: view.portraitFov } };
+    ctx.rows.weapon(row);
     ctx.rows.tool(FEI_ZHUA_ROW);
     const shell = this.shell;
     if (shell === undefined) throw new Error('Nine Dragon equipment requires the game session');
@@ -72,7 +81,7 @@ export class NdPlugin extends ShardPlugin {
         setProgramKey(material, 'sword-lowpoly'); world.sky.setupMaterial(material);
         rig = { sword: new BufferGeometryLoader().parse(support.sword), arms: new BufferGeometryLoader().parse(support.arms), material, tipY: support.tipY, baseY: support.baseY };
       }
-      const primary = new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword, rig,
+      const primary = new Sword(world, targets, { row, profile: row, allowUnlocked: nolock, ...ownSword, rig,
         ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
       this.primary = primary;
       return Promise.resolve({ primary, rifle: null, secondary: null });
@@ -86,7 +95,14 @@ export class NdPlugin extends ShardPlugin {
     // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
     const facts = bindNineFacts(ctx, this.shell?.play?.progress);
     const grapple = new FeiZhua(ctx, undefined, facts);
-    bindNineItems(ctx, primary, grapple);
+    const source = ctx.product.shardfile, items = source.items, tool = grapple.row;
+    bindRuntimeEquipment(ctx, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
+      [{ id: primary.row.id, weapon: primary, profile: this.profile }]);
+    bindRuntimeItems(ctx, source, {
+      kit: new Map([['melee', { kind: 'weapon', profiles: ['melee'], create: () => primary }]]),
+      families: new Map([['nine-dragon-stack.fei-zhua', { kind: 'tool', presentation: { ui: tool.ui }, create: row => { grapple.row = { ...row, meta: tool.meta }; return grapple; } }]]),
+      icon: name => { const row = [primary.row, tool].find(entry => entry.ui.icon === name); if (row === undefined) throw new Error(`Unknown Nine Dragon item icon ${name}`); return row.ui.icon; },
+    });
     equipment.add(grapple, { locked: false });
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
     const world = this.shell?.world, slot = this.ndWorld?.portal;
@@ -96,6 +112,7 @@ export class NdPlugin extends ShardPlugin {
   /** G224: the portals while they run (captures read them through the shard handle) */
   portals: PortalRide | null = null;
   private ndWorld: NineDragonWorld | null = null;
+  private profile: v.InferOutput<typeof MeleeWeaponProfileSchema> | null = null;
   private primary: InstanceType<typeof Sword> | null = null;
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;

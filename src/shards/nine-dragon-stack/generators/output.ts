@@ -11,6 +11,7 @@ const material = new MeshStandardMaterial({ flatShading: true, vertexColors: tru
 material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const emitted = emitNamedBlobs([
+  nameBlob('weapons/jian-row.json', 'json', json({ portraitFov: 78 })),
   nameBlob('weapons/jian-fallback.json', 'json', json({ ...fallback,
     ...Object.fromEntries(['sword', 'arms', 'guard', 'gauntlet'].map((key, i) => {
       const geometry = key === 'sword' ? fallback.sword : key === 'arms' ? fallback.arms : key === 'guard' ? fallback.guard : fallback.gauntlet;

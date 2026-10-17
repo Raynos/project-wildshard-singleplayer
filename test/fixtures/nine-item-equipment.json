@@ -1,0 +1,51 @@
+{
+  "equipment": {
+    "id": "weapon.jian",
+    "legacySlot": "sword",
+    "ui": {
+      "swapIcon": "<path d=\"M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6\"/><path d=\"M6.6 12.2l5.2 5.2M8.4 15.6 4 20\"/>",
+      "name": "Neon Jian",
+      "icon": "sword",
+      "touch": "melee",
+      "lockOn": true,
+      "melee": true,
+      "tracers": false
+    },
+    "meta": {
+      "name": "Neon Jian",
+      "icon": "sword",
+      "blurb": "",
+      "category": "weapon"
+    },
+    "cues": {
+      "fire": "cue.sword.swing",
+      "reload": "cue.reload",
+      "impact": "cue.sword.hit",
+      "hit": "cue.sword.hit",
+      "heavy": "cue.sword.heavy"
+    },
+    "hitStop": {
+      "body": 0.06,
+      "head": 0.06,
+      "kill": 0.06
+    }
+  },
+  "tool": {
+    "id": "tool.fei-zhua",
+    "ui": {
+      "swapIcon": "<path d=\"M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6\"/><path d=\"M6.6 12.2l5.2 5.2M8.4 15.6 4 20\"/>",
+      "name": "Fei Zhua",
+      "icon": "grapple",
+      "touch": "melee",
+      "lockOn": true,
+      "melee": true,
+      "tracers": false
+    },
+    "meta": {
+      "name": "tool.fei-zhua",
+      "icon": "grapple",
+      "blurb": "Lock a hook, then jump",
+      "category": "Grapple"
+    }
+  }
+}
