@@ -1,4 +1,5 @@
-import { animateCaptain } from './captainPose';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+import captainClips from '../data/captainClips.generated.json' with { type: 'json' };
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -44,6 +45,6 @@ export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { retu
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
   build: () => buildCaptain(mesh),
-  animate: animateCaptain,
+  animate: numericCreaturePose(captainClips),
 }; }
 export const CAPTAIN_LOOK: SpeciesLook = captainLook();

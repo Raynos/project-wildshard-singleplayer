@@ -8405,3 +8405,16 @@ host preserves counter ownership, facing, pitch restoration, distance closing an
 late shop readiness. Pine lends its existing lazy panel and keeps its talk gate
 and panel-hold lifetime. Catalogue, flags, payments and saves stay with their
 existing owners. `parseQuestTrader` validates rows before any placement.
+
+Numeric creature poses may declare up to 64 `scalars` observations. Each
+`{ name, path, fallback? }` copies one permitted frame field or a numeric
+`mem`/`dims` field into the read-only `scalars` input owner. Missing legacy
+memory may use the row's finite fallback; the adapter never initializes or
+changes actor memory. Duplicate names, unsafe paths and non-finite values
+refuse before posing. Driftwood's sailor and captain use these rows for
+rise/rage joints; Pine's thralls use them for their existing gait inputs.
+Sailor lift remains the caller's existing `stepCreatureLift` before posing,
+and the captain's admitted body step retains his lift. Numeric rows add no
+continuation, policy, physics write or random draw. Driftwood's ecological
+delays and clearance are compiled into `sim/keeper.json`; the native keeper
+reads those admitted rows while its version-8 live save remains unchanged.

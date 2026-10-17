@@ -1,3 +1,8 @@
+import { SAILOR_CLIPS, CAPTAIN_CLIPS } from '../src/shards/driftwood-isle/generators/humanoidClips';
+import { animateSailor as shippingSailorPose } from './fixtures/animal-pose/sailorPoseShipping';
+import { animateCaptain as shippingCaptainPose } from './fixtures/animal-pose/captainPoseShipping';
+import { NativeCreaturePose, stepCreatureLift, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
+import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { Bone, Euler, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
@@ -7,6 +12,7 @@ import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';
 import { shippingCrab } from './fixtures/animal-pose/customShipping';
 import { shippingThrall } from './fixtures/animal-pose/thrallShipping';
 
+const humanoidNames = ['body', 'spine', 'chest', 'head'].concat(['L', 'R'].flatMap(side => ['sh', 'el', 'hand'].map(part => `arm${side}_${part}`).concat(['hip', 'knee', 'foot'].map(part => `leg${side}_${part}`))));
 const crabNames = ['body', 'head'].concat(['L', 'R'].flatMap(side =>
   ['arm', 'hand', 'tip'].map(joint => `claw${side}_${joint}`).concat(
     [0, 1, 2].flatMap(i => ['hip', 'knee'].map(joint => `leg${side}${i}_${joint}`)))));
@@ -51,4 +57,53 @@ test('creature pose admission refuses non-joint outputs and stateful or unbounde
   expect(() => numericCreaturePose({ ...CRAB_CLIPS, programs: [first] })).toThrow('creature pose');
   expect(() => numericCreaturePose({ ...CRAB_CLIPS, look: [Number.NaN, 1, .5] })).toThrow();
   expect(() => numericCreaturePose({ ...CRAB_CLIPS, programs: [] })).toThrow('creature pose');
+  expect(() => numericCreaturePose({ ...SAILOR_CLIPS, scalars: [{ name: 'hp', path: ['animal', 'hp'] }] })).toThrow();
+  expect(() => numericCreaturePose({ ...SAILOR_CLIPS, scalars: [{ name: 'rise', path: ['mem', 'constructor'] }] })).toThrow();
+  expect(() => numericCreaturePose({ ...SAILOR_CLIPS, scalars: [SAILOR_CLIPS.scalars[0], SAILOR_CLIPS.scalars[0]] })).toThrow();
+  const c = context(humanoidNames), before = transforms(c), animate = numericCreaturePose(SAILOR_CLIPS);
+  c.mem['rise'] = Number.NaN;
+  expect(() => animate(c)).toThrow('scalar observation'); expect(transforms(c)).toEqual(before);
+});
+
+test('humanoid rows preserve frozen joints and sailor lift on native and rendered rigs', () => {
+  for (const captain of [false, true]) for (const plain of [true, false]) {
+    const animate = numericCreaturePose(captain ? CAPTAIN_CLIPS : SAILOR_CLIPS);
+    const actual = context(humanoidNames, plain), expected = context(humanoidNames);
+    for (const init of [0, 1]) for (const phase of [0, 2, 3, 4]) for (const attack of [-1, 0, .2, .6, .62, .64, .78, .8, .85, .86, 1]) for (const deathT of [-1, 0, .4, 1]) {
+      for (const c of [actual, expected]) {
+        Object.assign(c.mem, { init, phase, rise: .4, rising: 1, sinking: 0, floor: 2.3 });
+        c.attack = attack; c.deathT = deathT; c.alive = deathT < 0; c.t += .037; c.phase = (c.phase + .117) % 1; c.speed = Math.sin(c.t) * 1.4;
+      }
+      if (captain) shippingCaptainPose(expected); else { shippingSailorPose(expected); stepCreatureLift(actual.animal, actual.dt, 1.5, 1.5, -2.3, 6); }
+      animate(actual);
+      const wanted = transforms(expected);
+      transforms(actual).forEach((value, i) => expect(value, `${captain} ${init} ${phase} ${attack} ${deathT} scalar ${i}`).toBe(wanted[i]));
+      expect(actual.mem).toEqual(expected.mem); expect(actual.animal.yOffset).toBe(expected.animal.yOffset);
+    }
+    actual.mem = {}; actual.animal.mem = actual.mem;
+    expect(() => animate(actual)).not.toThrow();
+    expect(actual.mem).toEqual({});
+  }
+});
+
+test('predecessor native sailor saves resume on numeric joints without changing their envelope', () => {
+  const recipe: NativeCreaturePoseRecipe = { custom: true, joints: humanoidNames.map((name, i) => ({ name,
+    parent: i === 0 ? -1 : 0, position: [0, i === 0 ? 1 : .3, 0], order: 'YXZ', scale: [1, 1, 1] })) };
+  const make = () => new AnimalSim({ kind: 'sailor', label: 'Sailor', variant: 'sailor', rarity: 'uncommon', hp: 60,
+    aggressive: true, dims: context(humanoidNames).dims,
+    mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 14, relentless: false } },
+  1, 1, 'sailor', { heightAt: () => 0, random: () => .5 });
+  const oldActor = make(), newActor = make();
+  for (const actor of [oldActor, newActor]) Object.assign(actor.mem, { init: 1, rise: .4, rising: 1, floor: 2.3 });
+  const oldPose = new NativeCreaturePose(oldActor, recipe, shippingSailorPose), pose = numericCreaturePose(SAILOR_CLIPS);
+  const resumed = new NativeCreaturePose(newActor, recipe, c => { stepCreatureLift(c.animal, c.dt, 1.5, 1.5, -2.3, 6); pose(c); });
+  oldPose.advance(1 / 30, 1, true);
+  Object.assign(newActor.mem, oldActor.mem); newActor.yOffset = oldActor.yOffset;
+  const legacy = oldPose.snapshot(); resumed.restore(legacy);
+  expect(resumed.snapshot()).toBe(legacy);
+  for (let i = 0; i < 30; i++) {
+    oldPose.advance(1 / 30, 1 + i / 30, true); resumed.advance(1 / 30, 1 + i / 30, true);
+    expect(resumed.snapshot()).toBe(oldPose.snapshot());
+    expect(newActor.mem).toEqual(oldActor.mem); expect(newActor.yOffset).toBe(oldActor.yOffset);
+  }
 });

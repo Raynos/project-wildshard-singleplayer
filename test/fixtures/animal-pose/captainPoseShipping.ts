@@ -1,6 +1,7 @@
-import { poseCreatureStride, sampleCreatureSwing } from '@wildshard/game/plugin/animation';
-import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
-import { bump, clamp, lookAngles, smooth01, step } from '@wildshard/engine/entities/species/rigs';
+/** Frozen predecessor pose; do not update to follow the data implementation. */
+import { poseCreatureStride, sampleCreatureSwing } from '../../../src/game/plugin/animation';
+import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
+import { bump, clamp, lookAngles, smooth01, step } from '../../../src/engine/entities/species/rigs';
 
 type Side = 'L' | 'R';
 type CaptainBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, AnimalRigJoint>;

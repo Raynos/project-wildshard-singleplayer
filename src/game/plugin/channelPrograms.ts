@@ -48,11 +48,19 @@ const numericPoseSchema = poseSchema.strictObject({
   squash: poseSchema.exactOptional(poseSchema.string()),
   variant: poseSchema.exactOptional(poseSchema.string()),
   alive: poseSchema.exactOptional(poseSchema.boolean()),
+  scalars: poseSchema.optional(poseSchema.pipe(poseSchema.array(poseSchema.strictObject({
+    name: poseSchema.pipe(poseSchema.string(), poseSchema.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u)),
+    path: poseSchema.union([poseSchema.tuple([poseSchema.picklist(['t', 'seed', 'speed', 'strafe', 'phase', 'attack', 'brace', 'flinch', 'deathT'])]),
+      poseSchema.tuple([poseSchema.picklist(['mem', 'dims']), poseSchema.pipe(poseSchema.string(), poseSchema.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u))])]),
+    fallback: poseSchema.exactOptional(poseSchema.pipe(poseSchema.number(), poseSchema.finite())),
+  })), poseSchema.maxLength(64)), []),
 });
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => void {
   const row = poseSchema.parse(numericPoseSchema, input);
+  if (new Set(row.scalars.map(scalar => scalar.name)).size !== row.scalars.length
+    || row.scalars.some(scalar => [scalar.name, ...scalar.path].some(key => ['constructor', 'prototype', '__proto__'].includes(key)))) throw new Error('Invalid creature pose scalar');
   if (row.programs.length === 0 || row.programs.some(program => {
     const binding = program.numeric;
     return binding === undefined || binding.group !== row.group || binding.restoreOnly.length > 0
@@ -63,7 +71,7 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       || new Set(binding.outputs.map(output => output.target)).size !== 1;
   })) throw new Error('Invalid creature pose programme');
   const rigs = new WeakMap<AnimalRigContext['bones'], {
-    frame: Record<string, unknown>; look: { yaw: number; pitch: number };
+    frame: Record<string, unknown>; look: { yaw: number; pitch: number }; scalars: Record<string, number>;
     copies: { source: AnimalRigJoint; rotation: { x: number; y: number; z: number } }[];
     observation: { time: number; delta: number; values: Record<string, number> };
     lane: ReturnType<typeof installChannelPrograms> | null;
@@ -71,6 +79,15 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
   return c => {
     if ((row.alive !== undefined && row.alive !== c.alive)
       || (row.variant !== undefined && Reflect.get(c.animal, 'variant') !== row.variant)) return;
+    // Detached observations only: missing old-save memory can supply an authored default without a write.
+    const scalarValues = row.scalars.map(scalar => {
+      const [key, field] = scalar.path;
+      const owner: unknown = Reflect.get(c, key);
+      const value: unknown = field === undefined ? owner : typeof owner === 'object' && owner !== null && Object.hasOwn(owner, field) ? Reflect.get(owner, field) : undefined;
+      const number = value ?? scalar.fallback;
+      if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid creature pose scalar observation');
+      return number;
+    });
     let rig = rigs.get(c.bones);
     if (rig === undefined) {
       const frame: Record<string, unknown> = { ...c };
@@ -83,7 +100,8 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       const look = { yaw: 0, pitch: 0 }, owners = new Map<string, unknown>(Object.entries(c.bones).map(([name, bone]) => [
         `joint.${name.replaceAll('_', '.')}`, { position: fields(bone.position), rotation: fields(bone.rotation), scale: fields(bone.scale) },
       ]));
-      owners.set('frame', frame); owners.set('look', look);
+      const scalars: Record<string, number> = Object.fromEntries(row.scalars.map((scalar, i) => [scalar.name, scalarValues[i] ?? Number.NaN]));
+      owners.set('frame', frame); owners.set('look', look); owners.set('scalars', scalars);
       const copies = Object.entries(c.bones).map(([name, source]) => {
         const rotation = { x: source.rotation.x, y: source.rotation.y, z: source.rotation.z };
         owners.set(`read.joint.${name.replaceAll('_', '.')}`, { rotation });
@@ -95,11 +113,12 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         if (targets.size !== 1 || program.numeric?.group !== row.group) throw new Error('Invalid creature pose target');
         return [...targets].every(target => owners.has(target));
       });
-      rig = { frame, look, copies, observation: { time: c.t, delta: c.dt, values: {} },
+      rig = { frame, look, scalars, copies, observation: { time: c.t, delta: c.dt, values: {} },
         lane: programs.length === 0 ? null : installChannelPrograms(programs, row.group, owners) };
       rigs.set(c.bones, rig);
     }
     Object.assign(rig.frame, c);
+    row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
     rig.frame['stateIndex'] = row.states.indexOf(c.state);
     if (row.look !== undefined) Object.assign(rig.look, lookAngles(c, ...row.look));
     for (const copy of rig.copies) {

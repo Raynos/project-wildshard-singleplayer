@@ -2,12 +2,13 @@ import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { createNativeHunt, huntRosterContinuation, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
-import { createNativeCreaturePoses } from '@wildshard/game/plugin/animation';
+import { createNativeCreaturePoses, stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
 import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
 import { animateMonkey } from '../species/monkeyPose';
-import { animateSailor } from '../species/sailorPose';
-import { animateCaptain } from '../species/captainPose';
+import sailorClips from '../data/sailorClips.generated.json' with { type: 'json' };
+import captainClips from '../data/captainClips.generated.json' with { type: 'json' };
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -24,7 +25,8 @@ import { COCONUTS, CoconutVolley } from '../combat/strikes';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
 import { RespawnQueue } from '../runtime/ecology';
-import { RESPAWN } from '../data/ecology';
+
+const poseSailor = numericCreaturePose(sailorClips);
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
 export const ISLAND_STEP = 'driftwood.island';
@@ -43,7 +45,7 @@ const ANIM_LOD = 140;
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
 const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
-const POSE_CALLBACKS = new Map([['crab', numericCreaturePose(crabClips)], ['monkey', animateMonkey], ['sailor', animateSailor], ['captain', animateCaptain]]);
+const POSE_CALLBACKS = new Map([['crab', numericCreaturePose(crabClips)], ['monkey', animateMonkey], ['sailor', (c: AnimalRigContext) => { stepCreatureLift(c.animal, c.dt, 1.5, 1.5, -2.3, 6); poseSailor(c); }], ['captain', numericCreaturePose(captainClips)]]);
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
@@ -255,7 +257,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const spawnRandom = (): number => host.rng.stream('spawn').next();
   const allocated = { id: '', yaw: 0 };
   const allocateRespawn = (): typeof allocated => { allocated.id = entityIds.allocate(); allocated.yaw = spawnRandom() * Math.PI * 2; return allocated; };
-  const queue = new RespawnQueue(RESPAWN, spawnRandom), ecology = { now: 0, check: 0 };
+  const queue = new RespawnQueue(roster.ecology.rules, spawnRandom, roster.ecology.outOfSight), ecology = { now: 0, check: 0 };
   const pendingIds = new Map<(typeof queue.pending)[number], string>();
   host.events.on('actor.died', ({ actor }) => {
     const body = bodies.find(b => b.actor?.combatActor() === actor), a = body?.actor;

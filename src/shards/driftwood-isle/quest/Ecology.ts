@@ -1,4 +1,4 @@
-import { RESPAWN } from '../data/ecology';
+import ecology from '../data/ecology.json' with { type: 'json' };
 import { RespawnQueue, type RespawnEntry } from '../runtime/ecology';
 /**
  * Ecology — the island's enemies come back (DRIFTWOOD-REMASTER A6): a crab, monkey, boar or bear you kill is
@@ -27,7 +27,7 @@ export class PageRespawnQueue extends RespawnQueue {
 
 export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand: (x: number, z: number) => boolean): RespawnQueue {
   const random = (): number => app.rng.stream('spawn').next();
-  const q = new PageRespawnQueue(RESPAWN, random);
+  const q = new PageRespawnQueue(ecology.rules, random, ecology.outOfSight);
   let now = 0, checkT = 0;
   const killed = (a: A): void => {
     if (a.kind === 'captain') return;

@@ -1,0 +1,10 @@
+{
+  "outOfSight": 60,
+  "rules": {
+    "crab": { "delay": { "min": 240, "max": 360 } },
+    "monkey": { "delay": { "min": 300, "max": 420 } },
+    "boar": { "delay": { "min": 300, "max": 420 } },
+    "bear": { "delay": { "min": 600, "max": 900 } },
+    "sailor": { "delay": { "min": 180, "max": 180 }, "night": true }
+  }
+}

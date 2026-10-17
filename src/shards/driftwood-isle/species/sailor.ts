@@ -1,7 +1,11 @@
-import { animateSailor } from './sailorPose';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+import { stepCreatureLift } from '@wildshard/game/plugin/animation';
+import sailorClips from '../data/sailorClips.generated.json' with { type: 'json' };
 import { creatureBody, preloadCreatureBodies } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
+
+const poseSailor = numericCreaturePose(sailorClips);
 
 /**
  * Drowned Sailor — the wreck's guardian (art/driftwood-isle/round-3-enemies/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
@@ -52,5 +56,5 @@ export const SAILOR_LOOK: SpeciesLook = {
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
   // the lofted skeleton with its Hunyuan head, baked offline (generators/creatureBodies.ts)
   build: (v) => creatureBody('sailor', v.id),
-  animate: animateSailor,
+  animate: c => { stepCreatureLift(c.animal, c.dt, 1.5, 1.5, -2.3, 6); poseSailor(c); },
 };
