@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import type { PackController, PackPrey, HerdController } from '../runtime/groupRegistry';
 import { declaredGroupFactories } from '../runtime/groupDeclared';
 import { APP_GROUP_HOST } from '../runtime/groupHost';
-import { Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
+import { type Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
@@ -47,7 +47,7 @@ export interface WildlifeControllers {
   pack: (members: Animal[], x: number, z: number) => PackController;
   herd: (members: Animal[]) => HerdController;
 }
-export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock?: (options: FlockOpts, index: number) => Flock }
+export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock: (options: FlockOpts, index: number) => Flock }
 export interface SheepHit { flock: Flock; index: number; distance: number }
 
 /** the player surface Wildlife reads (Player satisfies it) */
@@ -141,7 +141,7 @@ export class Wildlife {
 
   spawnFlock(x: number, z: number, count: number, dog: boolean, range?: number): Flock {
     const options = { x, z, count, seed: this.opts.seed + this.flocks.length * 101, ...(range !== undefined ? { range } : {}) };
-    const f = this.opts.flock?.(options, this.flocks.length) ?? new Flock(this.opts.sky, options).build();
+    const f = this.opts.flock(options, this.flocks.length);
     this.opts.scene.add(f.mesh);
     f.onSound = (name, sx, sz) => { this._v.set(sx, heightAt(sx, sz) + 0.6, sz); this.onSound?.(name, this._v); };
     if (dog) {

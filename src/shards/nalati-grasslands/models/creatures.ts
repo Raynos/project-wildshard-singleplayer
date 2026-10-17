@@ -22,7 +22,9 @@ import { GHOST_RIDER } from '../species/ghostRider';
 import { BALBAL } from '../species/balbal';
 import { GOLDEN_KING } from '../species/goldenKing';
 import { ARGYMAQ, registerArgymaq } from '../combat/elites';
-import { Flock } from '../creatures/flock';
+import { Flock, type FlockBody } from '../creatures/flock';
+import { readFlockBody } from '../runtime/flockDeclared';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadCreatureRig } from '../species/hulls';
 import { modelsOn } from '../world/glbPaint';
 import { buildMarmotGeometry } from '../creatures/marmots';
@@ -70,6 +72,7 @@ export const goldenKing: ModelDef<CreatureParams> = defineModel<CreatureParams>(
 
 /** the flock's seed for the card's sheep: its first draws make a cream sheep standing, head up */
 const SHEEP_SEED = 3;
+let sheepBody: FlockBody | null = null;
 
 /**
  * the fat-tailed sheep: one of the camp's flock (src/engine/entities/Flock.ts — ~40 as ONE InstancedMesh, legs, head and the
@@ -79,8 +82,10 @@ const SHEEP_SEED = 3;
 export const sheep: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/sheep', name: 'Fat-tailed sheep', category: 'creatures', pipeline: ['trellis', 'code'], file: FILE, surface: 'flesh',
   defaults: {},
+  prepare: async () => { sheepBody ??= await readFlockBody(await loadFirstPartyProduct('nalati-grasslands')); },
   build: (ctx) => {
-    const mesh = new Flock(ctx.sky, { x: 0, z: 0, count: 1, seed: SHEEP_SEED }).build().mesh;
+    if (sheepBody === null) throw new Error('Sheep model requires its prepared body');
+    const mesh = new Flock(ctx.sky, { x: 0, z: 0, count: 1, seed: SHEEP_SEED }, sheepBody).build().mesh;
     mesh.setMatrixAt(0, new THREE.Matrix4());   // the flock stood it on the terrain near (0, 0): its own space instead
     mesh.instanceMatrix.needsUpdate = true;
     const fit = (): void => { mesh.computeBoundingBox(); mesh.computeBoundingSphere(); };

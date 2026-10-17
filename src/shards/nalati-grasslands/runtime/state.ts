@@ -4,7 +4,7 @@ import source from '../shard.config';
 import type { NalatiPersistence } from './persistence';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
-import { createNativeFlocks, type NativeFlocks } from './flockDeclared';
+import { createNativeFlocks, readFlockBody, type NativeFlocks } from './flockDeclared';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
 import { wildEnv } from '../creatures/env';
@@ -124,6 +124,7 @@ export interface Nalati {
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
+  const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
   const { game, sky } = ctx;
@@ -324,7 +325,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     plugin.scope.onDispose(bindFallbackGroupHost(APP_GROUP_HOST)); // the manager-only fallback groups' decision stream and director
     animals.wetAt = nalatiWetAt;
     animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
-    declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed);
+    declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed, flockBody);
     return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed,
       flock: declaredCrowds.factory });
   };

@@ -18,7 +18,6 @@ import * as THREE from 'three';
 
 
 import type { PackPrey } from '../runtime/groupRegistry';
-import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../species/sheep';
 import { loadCreatureRig, type RigAsset } from '../species/hulls';
 import { modelsOn } from '../world/glbPaint';
 
@@ -33,7 +32,7 @@ import { setDogFlock } from './sheepdogBrain';
  * per-instance `iAnim` (gait phase, ground speed, graze, dead). The flock AI is a boids layer with strong cohesion at
  * 10 Hz; positions integrate every frame.
  *
- *   const flock = new Flock(sky, { x, z, count: 36, seed }).build();  scene.add(flock.mesh)
+ *   const flock = new Flock(sky, { x, z, count: 36, seed }, body).build();  scene.add(flock.mesh)
  *   flock.update(dt, t, player.position, playerSpeed, wolves)          wolves: the living wolves (Animal[]) near it
  *   flock.dog = sheepdog                                                 the collie that herds it (species/sheepdog.ts)
  *   flock.raycast(origin, dir, maxDist) → index | -1 ;  flock.kill(i)    arrows: a sheep drops (the camp's property —
@@ -48,6 +47,8 @@ import { setDogFlock } from './sheepdogBrain';
  * sprinting within 10 m / walking within 4 m panics them — they bunch and run (4.5 m/s), bleating; sheep step out of
  * the dog's way toward the flock.
  */
+
+export interface FlockBody { readonly geometry: THREE.BufferGeometry; readonly pivots: readonly (readonly [number, number, number])[]; readonly parts: readonly string[] }
 
 export interface FlockOpts { x: number; z: number; count: number; seed: number; /** m the flock may wander from home (default 45) */ range?: number }
 
@@ -103,7 +104,7 @@ export class Flock extends GroupBrain<SheepPrey> {
   /** living sheep */
   alive: number;
 
-  constructor(private readonly sky: Sky, opts: FlockOpts, private readonly controller?: FlockController) {
+  constructor(private readonly sky: Sky, opts: FlockOpts, private readonly body: FlockBody, private readonly controller?: FlockController) {
     super([]);
     if (controller !== undefined && controller.n !== opts.count) throw new Error('Flock view roster mismatch');
     this.n = opts.count; this.alive = opts.count;
@@ -126,14 +127,14 @@ export class Flock extends GroupBrain<SheepPrey> {
   }
 
   build(): this {
-    const geo = buildSheepGeometry();
+    const geo = this.body.geometry.clone();
     // the shared painterly material + the flock's vertex animation: a sibling program ('…|nalati-sheep'), the one
     // exception to painterly's "no onBeforeCompile" rule — 40 GPU-animated sheep for one draw are worth one program
     const mat = painterlyAnimalMaterial(this.sky);
-    patchSheep(mat, this.uTime, false);
+    patchSheep(mat, this.uTime, false, this.body.pivots);
     const mesh = new THREE.InstancedMesh(geo, mat, this.n);
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
-    patchSheep(depth, this.uTime, true);
+    patchSheep(depth, this.uTime, true, this.body.pivots);
     mesh.customDepthMaterial = depth;
     // the phone's shadow map skips the flock (40 sheep ≈ 0.1 M tris a frame into it); desktop casts
     mesh.castShadow = TIER !== 'phone'; mesh.receiveShadow = true;
@@ -181,7 +182,7 @@ export class Flock extends GroupBrain<SheepPrey> {
 
   /** the flock's geometry from a baked rig: its skin folded into aRig (the two strongest parts), the atlas as the map */
   private useRig(rig: RigAsset, mat: THREE.MeshLambertMaterial): void {
-    if (rig.joints.length !== SHEEP_PART_NAMES.length || rig.joints.some((j, i) => j.name !== SHEEP_PART_NAMES[i])) { console.warn('[nalati] sheep rig: not the flock parts'); return; }
+    if (rig.joints.length !== this.body.parts.length || rig.joints.some((j, i) => j.name !== this.body.parts[i])) { console.warn('[nalati] sheep rig: not the flock parts'); return; }
     const src = rig.geometry, si = src.getAttribute('skinIndex'), sw = src.getAttribute('skinWeight'), n = si.count;
     const aRig = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
@@ -433,8 +434,8 @@ function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: numb
  * The flock's vertex animation, patched into the (painterly) material and the shadow depth material: each vertex
  * swings about its part's pivot (aRig: part a, part b, weight of b) by an angle from the instance's iAnim.
  */
-function patchSheep(mat: THREE.Material, uTime: { value: number }, depthOnly: boolean): void {
-  const piv = SHEEP_PIVOTS.map((p) => `vec3(${p[0].toFixed(3)}, ${p[1].toFixed(3)}, ${p[2].toFixed(3)})`).join(', ');
+function patchSheep(mat: THREE.Material, uTime: { value: number }, depthOnly: boolean, pivots: FlockBody['pivots']): void {
+  const piv = pivots.map((p) => `vec3(${p[0].toFixed(3)}, ${p[1].toFixed(3)}, ${p[2].toFixed(3)})`).join(', ');
   patchShader(mat, depthOnly ? 'nalati.sheep-depth' : 'nalati.sheep', PATCH_ORDER.decorate, (shader) => {
     attachFogUniforms(shader);
     shader.uniforms['uSheepTime'] = uTime;
