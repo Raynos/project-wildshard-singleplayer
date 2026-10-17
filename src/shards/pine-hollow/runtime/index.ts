@@ -26,7 +26,7 @@ import { crossbowHeldRows, pineCrossbow, prepareCrossbowHands } from './weapons/
 import { admitPaintedTextures } from './looks/paintedTextures';
 import { Cabins, loadCabinRows } from './world/homestead';
 import { updatePineForest } from '../world/treeFactory';
-import { lendPineLooks } from './looks/graphLooks';
+import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { dressPineWater } from '../world/water';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadUnderShapes } from './world/undergrowthKit';
@@ -107,7 +107,7 @@ export class PineHollow extends ShardPlugin {
     // The admitted graph list is author data; this scope still owns the compiled materials.
     const graphNames = v.parse(v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(128)),
       JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/runtime-graphs.json'))));
-    lendPineLooks(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, graphNames));
+    lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, graphNames));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
     lendPineWildlifeLook(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [WILDLIFE_LOOK]));

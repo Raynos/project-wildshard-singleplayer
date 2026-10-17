@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Scene, Texture } from 'three';
 import { dressPineWater } from '../src/shards/pine-hollow/world/water';
-import { lendPineLooks } from '../src/shards/pine-hollow/runtime/looks/graphLooks';
+import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { WATER_LOOKS } from '../src/shards/pine-hollow/data/waterLook';
 import { waterTexture } from '@wildshard/engine/world/water/ripples';
 
@@ -18,7 +18,7 @@ function pond(scene: Scene): { mesh: Mesh; material: MeshPhysicalMaterial; rippl
 describe('Pine water scene ownership', () => {
   beforeEach(() => {
     textures.mockClear();
-    lendPineLooks({ materials, setParam: () => undefined, setTexture: textures, bindMeshMap: () => new MeshStandardMaterial() });
+    lendLooks({ onDispose: () => undefined }, { materials, setParam: () => undefined, setTexture: textures, bindMeshMap: () => new MeshStandardMaterial() });
   });
 
   it('keeps a regional scene without a pond playable and lends real ripples without touching the page pond', async () => {

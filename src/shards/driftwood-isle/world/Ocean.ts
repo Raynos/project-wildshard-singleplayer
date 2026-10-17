@@ -10,7 +10,8 @@
  */
 import type * as THREE from 'three';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { WaterSurface, waterSurfaceLook, type WaterDryRect, type WaterSurfaceLook } from '@wildshard/sdk/looks/waterSurface';
+import { WaterSurface, waterSurfaceLook, type WaterDryRect } from '@wildshard/sdk/looks/waterSurface';
+import { lentLooksOf } from '@wildshard/sdk/looks/lentLooks';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildTier } from '@wildshard/engine/core/tier';
@@ -31,14 +32,9 @@ export async function loadOcean(): Promise<FacetedOceanBake> {
   return { level: files.level, grid: grid.take(), floor };
 }
 
-let lent: WaterSurfaceLook | null = null;
-/** hand the sea its compiled graph (look.materials) before the world builds */
-export function setOceanLook(looks: Parameters<typeof waterSurfaceLook>[0]): void { lent = waterSurfaceLook(looks, OCEAN_LOOK); }
-
 export class Ocean extends WaterSurface {
   constructor(_sky: Sky) {
-    if (lent === null) throw new Error('Driftwood: the ocean draws only with its look.materials graph (setOceanLook)');
-    super(driftwoodRows('custom/oceanSurface').surface, lent);
+    super(driftwoodRows('custom/oceanSurface').surface, waterSurfaceLook(lentLooksOf(OCEAN_LOOK), OCEAN_LOOK)); // its lent graph
   }
   /** the baked sea at `level` (its bake's), clipped out of up to four dry rectangles, stopping `edgeInset` m inside its square */
   build(bake: FacetedOceanBake, level = OCEAN.level, dry: readonly WaterDryRect[] = [], edgeInset = 0): this {

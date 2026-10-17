@@ -21,7 +21,7 @@ import { GroundTell } from '@wildshard/game/Elite';
 import { KINGS_CLEARING, KING_ARENA_FOG, KING_FX_LOOKS } from './const';
 import { Puffs } from './combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
-import { pineLook, setPineLookParam } from './looks/graphLooks';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from './models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
@@ -120,14 +120,14 @@ export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => vo
   const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, ctx.reach));
   // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
   const R = KING_ARENA_FOG;
-  const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), pineLook(KING_FX_LOOKS.fog));
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), lentLook(KING_FX_LOOKS.fog));
   wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = 26;
   wall.name = 'antler-king-fog-wall'; scene.add(wall);
   const puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
   const fallen: LanternView[] = [0, 1, 2].map(() => {
     const group = new THREE.Group(); group.visible = false;
     // a fallen lantern's fire: the SDK's crossed streak quads stood upright (1.3 wide, 1.9 tall) in its flame graph
-    const fire = effectField({ name: 'antler-king-lantern-fire', shape: 'streak', count: 1 }, pineLook(KING_FX_LOOKS.flame)), flame = fire.object;
+    const fire = effectField({ name: 'antler-king-lantern-fire', shape: 'streak', count: 1 }, lentLook(KING_FX_LOOKS.flame)), flame = fire.object;
     fire.place(_v.set(0, 0, 0), _w.set(0, 1, 0)); flame.scale.set(1.3, 1.3, 1.9); flame.visible = false; flame.renderOrder = 27; scene.add(group, flame);
     const lantern = kingLantern(kit); lantern.scale.setScalar(KING_VARIANT.scale[0]); group.add(lantern);
     return { group, flame, ring: new GroundTell(scene, 'ring', EMBER), from: new THREE.Vector3() };
@@ -192,7 +192,7 @@ export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => vo
         } else if (event === 'burn') {
           const ember = fight.darkK > 0 ? 1 - 0.5 * fight.darkK : 1;
           view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);
-          setPineLookParam(KING_FX_LOOKS.flame, 'alpha', 0.95 * ember);
+          setLentParam(KING_FX_LOOKS.flame, 'alpha', 0.95 * ember);
           view.ring.setTime(t);
           view.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
         } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + 0.3, f.z); view.group.rotation.set(1.3, i, 0.4); }
@@ -214,9 +214,9 @@ export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => vo
    *  stones; III: your lantern) */
   function room(dt: number, t: number): void {
     const seal = 0.92 * fight.sealK, fog = scene.fog;
-    setPineLookParam(KING_FX_LOOKS.fog, 'alpha', seal); wall.visible = seal > 0.01;
+    setLentParam(KING_FX_LOOKS.fog, 'alpha', seal); wall.visible = seal > 0.01;
     // the wall is the scene fog's murk this frame
-    if (fog instanceof THREE.Fog) setPineLookParam(KING_FX_LOOKS.fog, 'colour', _col.copy(fog.color).multiplyScalar(1.15).toArray(_fog));
+    if (fog instanceof THREE.Fog) setLentParam(KING_FX_LOOKS.fog, 'colour', _col.copy(fog.color).multiplyScalar(1.15).toArray(_fog));
     puffs.update(dt, t);
     if (fight.body === null || look === null) return;
     look.setOpen(Math.max(fight.open, 0.35 * fight.darkK), t);

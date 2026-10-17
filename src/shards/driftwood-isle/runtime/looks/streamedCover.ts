@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import { lentLook, lentToon, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { followToon } from '../look/toon';
 import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/sdk/looks/streamedInstances';
 
 
@@ -30,21 +31,11 @@ import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from
  * Nothing here knows a shard: its numbers and kinds are rows in its `data/`, its graphs its look's, its plants a baked
  * file.
  *
- *   setCoverLooks({ materials, setParam, follow });   // the compiled graphs, before the world builds
  *   const cover = new StreamedCover({ row, geometry, cells, heightAt }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  */
 
-/** The cover's compiled graphs by look.materials id, their param setter and their toon look's once-a-frame follow. */
-export interface CoverLooks {
-  readonly materials: ReadonlyMap<string, THREE.Material>;
-  readonly setParam: (id: string, name: string, value: GraphLiteral) => void;
-  readonly follow: () => void;
-}
-let lent: CoverLooks | null = null;
-/** Lend the cover its compiled graphs (the shard's runtime, before its world builds). */
-export function setCoverLooks(looks: CoverLooks): void { lent = looks; }
 
 interface PerTier { readonly phone: number; readonly desktop: number }
 type Span = readonly [number, number];
@@ -150,8 +141,8 @@ export class StreamedCover {
   private readonly cells: CellWindow<Float32Array[]>;
   private readonly last = new THREE.Vector3(1e9, 0, 1e9);
   private readonly uniforms = { uPlayer: { value: new THREE.Vector3() }, uReachUp: { value: 1 } };
-  /** the graphs it draws in (their ids) and their setter; the viewer's position as a param */
-  private looks: CoverLooks | null = null;
+  /** the graphs it draws in (their ids, lent by the runtime) and their toon look's follow; the viewer's position as a param */
+  private follow: (() => void) | null = null;
   private readonly ids: string[] = [];
   private readonly player = [0, 0, 0];
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
@@ -186,14 +177,11 @@ export class StreamedCover {
 
   /** Builds every kind's meshes in its lent graphs (one program for all of them) into `group`. */
   build(): this {
-    const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), sr = row.slopeReach, looks = lent;
-    if (looks === null) throw new Error('StreamedCover: no graphs lent (setCoverLooks before the world builds)');
-    this.looks = looks;
+    const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), sr = row.slopeReach;
     const material = (id: string, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.Material => {
-      const mat = looks.materials.get(id);
-      if (mat === undefined) throw new Error(`StreamedCover: look.materials lacks ${id}`);
-      looks.setParam(id, 'reach', reach.toArray()); looks.setParam(id, 'farReach', far.toArray()); looks.setParam(id, 'mode', mode); looks.setParam(id, 'keep', keep);
-      this.ids.push(id);
+      const mat = lentLook(id);
+      setLentParam(id, 'reach', reach.toArray()); setLentParam(id, 'farReach', far.toArray()); setLentParam(id, 'mode', mode); setLentParam(id, 'keep', keep);
+      this.ids.push(id); this.follow ??= followToon(lentToon(id));
       return mat;
     };
     const geometry = (key: string): THREE.BufferGeometry => {
@@ -372,13 +360,13 @@ export class StreamedCover {
 
   /** the per-frame params into every graph: the viewer, the slope reach's strength, the far set's grow-in; the toon follow */
   private pushParams(): void {
-    const looks = this.looks, p = this.player, v = this.uniforms.uPlayer.value;
-    if (looks === null) return;
+    const follow = this.follow, p = this.player, v = this.uniforms.uPlayer.value;
+    if (follow === null) return;
     p[0] = v.x; p[1] = v.y; p[2] = v.z;
     for (let i = 0; i < Math.min(this.ids.length, 32); i++) {
       const id = this.ids[i];
-      if (id !== undefined) { looks.setParam(id, 'player', p); looks.setParam(id, 'reachUp', this.uniforms.uReachUp.value); looks.setParam(id, 'farIn', this.farIn.value); }
+      if (id !== undefined) { setLentParam(id, 'player', p); setLentParam(id, 'reachUp', this.uniforms.uReachUp.value); setLentParam(id, 'farIn', this.farIn.value); }
     }
-    looks.follow();
+    follow();
   }
 }

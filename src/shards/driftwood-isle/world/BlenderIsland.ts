@@ -48,7 +48,9 @@ import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain } from './coverTint';
 import { driftwoodRows } from '../runtime/boot/rows';
-import { clipGridTerrain, islandLooks, sunBounceLevel, type IslandLooks } from '../runtime/looks/bakedIsland';
+import { clipGridTerrain, sunBounceLevel } from '../runtime/looks/bakedIsland';
+import { lentLook, lentToon, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { followToon } from '../runtime/look/toon';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import { coverAttributes } from '../runtime/looks/coverGrid';
 import { slicer } from '@wildshard/engine/boot/plan';
@@ -109,7 +111,6 @@ export class BlenderIsland {
   /** the area the island covers (GroundCover leaves it to the island's own dressing, E156) */
   static readonly area = area;
   group = new THREE.Group();
-  private looks!: IslandLooks;
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
     const island = new BlenderIsland();
@@ -140,15 +141,14 @@ export class BlenderIsland {
 
     // ── materials: the graph toon looks the runtime lent (data/islandLook.ts), the bake's maps lent to the terrain's and the
     //    tier's cover reach set on the two cover sets' ──
-    const looks = this.looks = islandLooks();
-    looks.texture(ISLAND_LOOKS.terrain, 'ao', ao); looks.texture(ISLAND_LOOKS.terrain, 'bounceMap', bounce);
+    setLentTexture(ISLAND_LOOKS.terrain, 'ao', ao); setLentTexture(ISLAND_LOOKS.terrain, 'bounceMap', bounce);
     // E156: each cover plant fades into the ground the cover grid paints under it (CoverGrid.texture, sampled at its origin)
     const ground = coverGrid.texture();
     for (const [id, c] of [[ISLAND_LOOKS.cover, TIER_LOOK.cover], [ISLAND_LOOKS.coverBig, TIER_LOOK.big]] as const) {
-      looks.param(id, 'fade', [c.near + c.grow, c.far, c.grow]); looks.param(id, 'groundRect', ground.rect); looks.texture(id, 'groundMap', ground.texture);
+      setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', ground.rect); setLentTexture(id, 'groundMap', ground.texture);
     }
-    const terrainMat = looks.material(ISLAND_LOOKS.terrain), propsMat = looks.material(ISLAND_LOOKS.props);
-    const coverMat = looks.material(ISLAND_LOOKS.cover), bigMat = looks.material(ISLAND_LOOKS.coverBig);
+    const terrainMat = lentLook(ISLAND_LOOKS.terrain), propsMat = lentLook(ISLAND_LOOKS.props);
+    const coverMat = lentLook(ISLAND_LOOKS.cover), bigMat = lentLook(ISLAND_LOOKS.coverBig);
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
@@ -164,7 +164,7 @@ export class BlenderIsland {
       const m = new THREE.Mesh(o.geometry, terrainMat);
       m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
       m.name = `${ISLAND_LOOK.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
-      m.onBeforeRender = looks.follow; // the terrain draws whenever the cove is in view: its toon look follows the day clock here
+      m.onBeforeRender = followToon(lentToon(ISLAND_LOOKS.terrain)); // the terrain draws whenever the cove is in view: its toon look follows the day clock here
       coverAttributes(o.geometry, o.geometry.getAttribute('position').count); // the graph reads the cover tint's (tintTerrain fills them)
       terrainTiles.push(m);
       if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
@@ -255,6 +255,6 @@ export class BlenderIsland {
   update(sky: Sky): void {
     const level = sunBounceLevel(sky, ISLAND_FACTS.bake.sunY);
     if (level === null) return;
-    this.looks.param(ISLAND_LOOKS.terrain, 'bounce', level / ISLAND_FACTS.bake.bounceGain);
+    setLentParam(ISLAND_LOOKS.terrain, 'bounce', level / ISLAND_FACTS.bake.bounceGain);
   }
 }

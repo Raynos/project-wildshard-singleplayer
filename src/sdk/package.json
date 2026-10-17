@@ -138,6 +138,7 @@
     "./random": "./random.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
     "./looks/ambientFlock": "./looks/ambientFlock.ts",
+    "./looks/lentLooks": "./looks/lentLooks.ts",
     "./looks/waterSurface": "./looks/waterSurface.ts",
     "./looks/streamedInstances": "./looks/streamedInstances.ts",
     "./sections": "./sections.ts",

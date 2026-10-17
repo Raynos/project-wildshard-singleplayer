@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { SMOKE_LOOK } from '../const';
 import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../boot/fixedGeometry';
 
@@ -13,14 +14,6 @@ import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../boot/fixedGeomet
  *   group.add(smoke.mesh);
  */
 
-let look: THREE.Material | null = null;
-/** hand the smoke its compiled graph (look.materials, data/smokeLook.ts) before the castaway builds */
-export function setSmokeLook(materials: ReadonlyMap<string, THREE.Material>): void {
-  const material = materials.get(SMOKE_LOOK);
-  if (material === undefined) throw new Error('Driftwood: look.materials lacks the smoke graph');
-  look = material;
-}
-
 /** what the column reads off its smoke row (data/smokeLook.ts CASTAWAY_SMOKE; the rest is baked into its quads) */
 export interface SmokeColumnRow { readonly bounds: { readonly offset: readonly number[]; readonly radius: number }; readonly name: string; readonly renderOrder: number }
 
@@ -31,7 +24,7 @@ export class SmokeColumn {
 
   constructor(row: SmokeColumnRow, at: THREE.Vector3) {
     // the column's quads are baked offline (generators/smoke.ts: the castaway's row), a fixed-model template
-    const g = fixedGeometryReady() ? CASTAWAY_SMOKE_GEOMETRY.copy() : new THREE.BufferGeometry();
+    const look = hasLentLook(SMOKE_LOOK) ? lentLook(SMOKE_LOOK) : null, g = fixedGeometryReady() ? CASTAWAY_SMOKE_GEOMETRY.copy() : new THREE.BufferGeometry();
     const o = row.bounds.offset;
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(o[0], o[1], o[2]), row.bounds.radius);
     this.mesh = new THREE.Mesh(g, look ?? undefined);

@@ -4,7 +4,7 @@ import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { insidePolygon, yawLocal, yawWorld, type YawFrame } from '@wildshard/engine/world/yawFrame';
-import { pineLook, setPineLookParam } from '../looks/graphLooks';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { codePart } from '../world/codeParts';
 
 /**
@@ -148,7 +148,7 @@ export class CaveInterior {
     const len = top.distanceTo(foot);
     const geo = new THREE.CylinderGeometry(meta.shaft.r0, meta.shaft.r1, len, look.shaft.radialSegments, look.shaft.heightSegments, true);
     geo.translate(0, -len / 2, 0);
-    const shaft = new THREE.Mesh(geo, pineLook(look.shaft.look));
+    const shaft = new THREE.Mesh(geo, lentLook(look.shaft.look));
     shaft.position.copy(top);
     shaft.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), foot.clone().sub(top).normalize());
     shaft.renderOrder = look.shaft.renderOrder; shaft.frustumCulled = true; shaft.visible = false;
@@ -194,7 +194,7 @@ export class CaveInterior {
       // the sky over the crack: bright by day (the lamps are out), a glimmer at night
       const day = 1 - Math.max(0, Math.min(1, sky.lamps));
       this.fill.value = look.fill[0] + look.fill[1] * day;
-      setPineLookParam(s.look, 'intensity', s.gain * day * Math.min(1, s.sunBase + Math.max(0, sky.sunDir.y) * s.sunGain) + s.floor);
+      setLentParam(s.look, 'intensity', s.gain * day * Math.min(1, s.sunBase + Math.max(0, sky.sunDir.y) * s.sunGain) + s.floor);
     }
     if (this.drips) {
       const pos = this.drips.geometry.getAttribute('position');

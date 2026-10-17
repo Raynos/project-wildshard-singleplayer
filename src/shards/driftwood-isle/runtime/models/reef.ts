@@ -13,18 +13,12 @@
 import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { reefSpecimen } from '../boot/reefGeometry';
+import { lentLook, lentToon } from '@wildshard/sdk/looks/lentLooks';
+import { followToon } from '../look/toon';
 import { REEF_LOOK, REEF_SPECIMENS } from '../const';
 
 /** the reef's three Explorer specimen kinds */
 export type ReefKind = keyof typeof REEF_SPECIMENS;
-
-let reefLook: { material: THREE.Material; follow: () => void } | null = null;
-/** hand the reef its compiled graph (look.materials, data/reefLook.ts) and its toon look's once-a-frame follow */
-export function setReefLook(materials: ReadonlyMap<string, THREE.Material>, follow: () => void): void {
-  const material = materials.get(REEF_LOOK);
-  if (material === undefined) throw new Error('Missing Driftwood reef look');
-  reefLook = { material, follow };
-}
 
 
 export interface ReefParams {
@@ -41,11 +35,7 @@ export interface ReefParams {
 /** the reef's one material: its graph (data/reefLook.ts: toon lit, the fronds swaying in the current), its toon look
  *  following the day clock once a frame; the runtime lends it before the world builds, and a reef built before that refuses */
 export function reefMaterial(ctx: ModelContext): { material: THREE.Material; update?: () => void } {
-  return ctx.once('driftwood-isle/reef:material', () => {
-    const look = reefLook;
-    if (look === null) throw new Error('Driftwood reef: no graph material lent (the runtime compiles it before the world builds)');
-    return { material: look.material, update: look.follow };
-  });
+  return ctx.once('driftwood-isle/reef:material', () => ({ material: lentLook(REEF_LOOK), update: followToon(lentToon(REEF_LOOK)) }));
 }
 
 /** The three cards differ only in their existing metadata and authored specimen rows. */

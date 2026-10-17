@@ -6,27 +6,18 @@
  * scalloped foam band where each step lands, bright streak dashes scrolling down; faceted foam rings on the pool; foam
  * puffs toon-lit in two bands.
  *
- *   const fall = waterfall();   // after loadFixedGeometry and setWaterfallLooks; each call draws its own copies (SF63 rebuilds)
+ *   const fall = waterfall();   // after loadFixedGeometry and the runtime's lendLooks; each call draws its own copies (SF63 rebuilds)
  *   scene.add(fall);
  */
 import * as THREE from 'three';
 import { CASCADE_LOOKS } from '../const';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { WATERFALL_PUFFS_GEOMETRY, WATERFALL_RINGS_GEOMETRY, WATERFALL_SHEET_GEOMETRY } from '../boot/fixedGeometry';
 
-/** the compiled graphs the three draws wear */
-interface CascadeMaterials { readonly curtain: THREE.Material; readonly pool: THREE.Material; readonly puffs: THREE.Material }
-
-let looks: CascadeMaterials | null = null;
-/** hand the cascade its compiled graphs (look.materials, data/waterfallLook.ts) before the world builds */
-export function setWaterfallLooks(materials: ReadonlyMap<string, THREE.Material>): void {
-  const curtain = materials.get(CASCADE_LOOKS.curtain), pool = materials.get(CASCADE_LOOKS.pool), puffs = materials.get(CASCADE_LOOKS.puffs);
-  if (curtain === undefined || pool === undefined || puffs === undefined) throw new Error('Driftwood: look.materials lacks the cascade graphs');
-  looks = { curtain, pool, puffs };
-}
-
-/** the toon cascade (E150): the baked curtain, pool rings and foam puffs on their graphs, drawn after the sea */
+/** the toon cascade (E150): the baked curtain, pool rings and foam puffs on their lent graphs (data/waterfallLook.ts), drawn
+ *  after the sea */
 export function waterfall(): THREE.Group {
-  if (looks === null) throw new Error('Driftwood: the cascade graphs were not compiled before the world build');
+  const looks = { curtain: lentLook(CASCADE_LOOKS.curtain), pool: lentLook(CASCADE_LOOKS.pool), puffs: lentLook(CASCADE_LOOKS.puffs) };
   const group = new THREE.Group();
   const draw = (name: string, geometry: THREE.BufferGeometry, material: THREE.Material, order: number): THREE.Mesh => {
     const mesh = new THREE.Mesh(geometry, material);

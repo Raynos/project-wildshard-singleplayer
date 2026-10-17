@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineMappedLook, setPineLookParam } from './graphLooks';
+import { lentMappedLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { loadPainted } from './paintedTextures';
 
 /**
@@ -105,7 +105,7 @@ export class GroundCover {
   /** The textures and materials, then (after `pause`, e.g. a macrotask, lets the event loop in) each kind's parts. */
   async buildAsync(pause: () => Promise<void>): Promise<this> {
     const far = TIER_CONFIG.undergrowthFar, fade = [far, Math.min(25, far * 0.3)]; // the tier's, read at the build
-    this.graphs.forEach((id) => { setPineLookParam(id, 'fade', fade); });
+    this.graphs.forEach((id) => { setLentParam(id, 'fade', fade); });
     const maps = await Promise.all(this.o.look.kinds.map(([kind]) => loadPainted(kind)));
     const made = new Map(this.o.look.kinds.map(([kind, row], i) => [kind, { mat: this.makeMaterial(maps[i] ?? null, row), row }]));
     await pause();
@@ -129,9 +129,9 @@ export class GroundCover {
     for (let i = 0; i < GRAPHS_MAX; i++) {
       const id = this.graphs[i];
       if (id === undefined) break;
-      setPineLookParam(id, 'viewer', this.xyz(at.x, at.y, at.z));
-      setPineLookParam(id, 'shift', this.xyz(frame[12], frame[13], frame[14]));
-      setPineLookParam(id, 'sunTint', this.xyz(sun.r, sun.g, sun.b));
+      setLentParam(id, 'viewer', this.xyz(at.x, at.y, at.z));
+      setLentParam(id, 'shift', this.xyz(frame[12], frame[13], frame[14]));
+      setLentParam(id, 'sunTint', this.xyz(sun.r, sun.g, sun.b));
     }
   }
 
@@ -144,7 +144,7 @@ export class GroundCover {
    *  not compile (no silent fallback to another look) */
   private makeMaterial(tex: THREE.Texture | null, row: GroundCoverKindRow): GroundCoverMaterial {
     if (tex === null) throw new Error(`[ground cover] no texture for ${row.key}`);
-    const mat = pineMappedLook(row.graph, tex);
+    const mat = lentMappedLook(row.graph, tex);
     if (!isCoverMaterial(mat) || mat.map !== tex) throw new Error(`[ground cover] ${row.graph} is not a compiled mapped graph`);
     mat.name = `${this.o.look.namePrefix}${row.key}`;
     mat.alphaTest = row.alphaTest;

@@ -13,7 +13,7 @@ import { pineSetCap } from '../debug/options';
 import { loadPainted } from '../looks/paintedTextures';
 import * as v from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
+import { lentLook, lentMappedLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
 import { pineModels } from './context';
@@ -107,19 +107,19 @@ async function loadMats(sky: Sky): Promise<Mats> {
   };
   const m: Mats = {
     log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: endGrain }),
-    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: pineMappedLook(CABIN_MOSS_LOOKS.roof, scan('roof')), beam: scan('beam'), deck: scan('deck'),
-    door: pineMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
-    stone: pineMappedLook(CABIN_MOSS_LOOKS.stone, scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
+    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: lentMappedLook(CABIN_MOSS_LOOKS.roof, scan('roof')), beam: scan('beam'), deck: scan('deck'),
+    door: lentMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
+    stone: lentMappedLook(CABIN_MOSS_LOOKS.stone, scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
     glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
     iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
-    smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
+    smoke: lentLook(HEARTH_LOOKS.smoke), flame: lentLook(HEARTH_LOOKS.flame), ember: lentLook(HEARTH_LOOKS.ember),
     glow: new THREE.MeshBasicMaterial({ map: glow, color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
   // the moss graphs light their scans' normal maps themselves (their authored shading normal replaces the borrowed one)
   for (const key of ['roof', 'stone'] as const) {
     const normal = scan(key).normalMap;
     if (normal === null) throw new Error(`Cabin scan ${key} has no normal map`);
-    setPineLookTexture(CABIN_MOSS_LOOKS[key], 'normalMap', normal);
+    setLentTexture(CABIN_MOSS_LOOKS[key], 'normalMap', normal);
   }
   for (const k of ['log', 'endGrain', 'chink', 'beam', 'deck', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
@@ -267,7 +267,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
     this.tick(dt, t, this.tmpV, sky.lamps);
     const id = this.rows.HEARTH_LOOKS.smoke, c = sky.sunColor;
     this.sunColour[0] = c.r; this.sunColour[1] = c.g; this.sunColour[2] = c.b;
-    setPineLookParam(id, 'sunColour', this.sunColour); setPineLookParam(id, 'lamps', sky.lamps); setPineLookParam(id, 'shade', 1 - 0.8 * sky.night);
+    setLentParam(id, 'sunColour', this.sunColour); setLentParam(id, 'lamps', sky.lamps); setLentParam(id, 'shade', 1 - 0.8 * sky.night);
   }
 }
 

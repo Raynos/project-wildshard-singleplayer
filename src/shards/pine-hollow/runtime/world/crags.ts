@@ -39,7 +39,7 @@ import { useCragKit } from './cragKit';
 import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
 import { CRAG_MODELS } from '../models/cragCliff';
 import { CAVE_LOOK, CRAG_LOOK } from '../const';
-import { pineLook, setPineLookParam, setPineLookTexture } from '../looks/graphLooks';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
@@ -74,11 +74,11 @@ const CAVE_FILL = { value: 1.0 };
 function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): THREE.Material {
   const lend = (name: string, t: THREE.Texture): void => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true;
-    setPineLookTexture(CRAG_LOOK, name, t);
+    setLentTexture(CRAG_LOOK, name, t);
   };
   lend('rockMap', rock.map); lend('rockNormal', rock.normalMap); lend('rockArm', rock.armMap);
   lend('gritMap', grit.map); lend('gritNormal', grit.normalMap);
-  return pineLook(CRAG_LOOK);
+  return lentLook(CRAG_LOOK);
 }
 
 // ─────────────────────────────────────────────────────── the set ───────────────────────────────────────────────────
@@ -231,6 +231,6 @@ export class PineCrags {
     const cam = sky.viewCamera, own = this.own; cam.getWorldPosition(this.tmp);
     for (let i = 0; i < Math.min(own.length, MAX_OWN); i++) own[i]?.update(cam);
     if (this.cave && this.caveLive) this.cave.update(t, this.tmp, sky);
-    if (this.mat) setPineLookParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
+    if (this.mat) setLentParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
   }
 }

@@ -18,7 +18,7 @@
  */
 import * as THREE from 'three';
 import { SPRAY_LOOK, SPRAY_PUFFS as SPRAY } from '../const';
-import { pineLook } from '../looks/graphLooks';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -54,7 +54,7 @@ export class PineStreams {
    *  their origins and seeds baked offline, ../generators/sprayPuffs.ts) */
   private buildSpray(): THREE.InstancedMesh {
     const total = SPRAY.at.length / 3, geo = new THREE.PlaneGeometry(1, 1), m = new THREE.Matrix4();
-    const mesh = new THREE.InstancedMesh(geo, pineLook(SPRAY_LOOK), total);
+    const mesh = new THREE.InstancedMesh(geo, lentLook(SPRAY_LOOK), total);
     if (total > MAX_SPRAY) throw new Error('[streams] more spray puffs than the waterfall draws');
     for (let i = 0; i < Math.min(total, MAX_SPRAY); i++) mesh.setMatrixAt(i, m.makeTranslation(SPRAY.at[i * 3] ?? 0, SPRAY.at[i * 3 + 1] ?? 0, SPRAY.at[i * 3 + 2] ?? 0));
     geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(Float32Array.from(SPRAY.seed), 4));

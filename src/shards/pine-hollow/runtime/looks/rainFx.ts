@@ -12,7 +12,7 @@ import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sd
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { graphParamRoots } from '@wildshard/sdk/looks/graphDaySky';
-import { pineLook, pineLooks, setPineLookParam, setPineLookTexture } from './graphLooks';
+import { lentLook, pushLentParams, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 
 /**
  * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in
@@ -141,7 +141,7 @@ export class RainFx {
     this.group.name = this.o.name;
     const p = this.o.programs, params = graphParamRoots(this.o.channels, p.channels, [p.rain, p.splash, p.lens]);
     const lane = installChannelPrograms(this.o.channels, p.channels, new Map<string, unknown>([['rain', this.seen], ...params.roots]));
-    this.frame = (dt) => { lane.evaluate({ time: 0, delta: dt, values: {} }); params.push(pineLooks()); };
+    this.frame = (dt) => { lane.evaluate({ time: 0, delta: dt, values: {} }); pushLentParams(params); };
     this.param = (id, name) => { const v = params.roots.get(id)?.[name]; return typeof v === 'number' ? v : 0; };
     return this;
   }
@@ -183,12 +183,12 @@ export class RainFx {
   /** the streak quads in the `programs.rain` graph, lent the cover map and given the hood once */
   private buildRain(): THREE.Mesh {
     const id = this.o.programs.rain;
-    setPineLookTexture(id, 'cover', this.cover);
-    setPineLookParam(id, 'coverK', 1 / (2 * CHUNK_HALF));
-    setPineLookParam(id, 'cave', this.cave.toArray());
-    setPineLookParam(id, 'caveBox', this.caveBox.toArray());
-    setPineLookParam(id, 'radius', this.seen.radius);
-    const m = new THREE.Mesh(rainCurtainGeometry(this.rainCount, this.o.seed, 'aSeed'), pineLook(id));
+    setLentTexture(id, 'cover', this.cover);
+    setLentParam(id, 'coverK', 1 / (2 * CHUNK_HALF));
+    setLentParam(id, 'cave', this.cave.toArray());
+    setLentParam(id, 'caveBox', this.caveBox.toArray());
+    setLentParam(id, 'radius', this.seen.radius);
+    const m = new THREE.Mesh(rainCurtainGeometry(this.rainCount, this.o.seed, 'aSeed'), lentLook(id));
     m.frustumCulled = false; m.renderOrder = 20; m.visible = false; m.name = 'rain';
     return m;
   }
@@ -219,7 +219,7 @@ export class RainFx {
     geo.setAttribute('aSplash', this.splashAttr);
     geo.instanceCount = n;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const m = new THREE.Mesh(geo, pineLook(this.o.programs.splash));
+    const m = new THREE.Mesh(geo, lentLook(this.o.programs.splash));
     m.frustumCulled = false; m.renderOrder = 21; m.visible = false; m.name = 'rain-splashes';
     return m;
   }
@@ -258,7 +258,7 @@ export class RainFx {
     geo.setIndex([0, 1, 2, 1, 3, 2]);
     geo.instanceCount = this.o.phone ? this.o.look.lensDrops.phone : this.o.look.lensDrops.desktop;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = pineLook(this.o.programs.lens);
+    const mat = lentLook(this.o.programs.lens);
     mat.depthTest = false; // over everything
     const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false; m.renderOrder = 1000; m.visible = false; m.name = 'rain-lens';
@@ -283,7 +283,7 @@ export class RainFx {
     this.splashes.visible = rainOn;
     this.lens.visible = !room && this.param(this.o.programs.lens, 'wet') > 0.002;
     if (room) return;
-    if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(this.o.programs.lens, 'aspect', cam.aspect); // the screen's shape
+    if (cam instanceof THREE.PerspectiveCamera) setLentParam(this.o.programs.lens, 'aspect', cam.aspect); // the screen's shape
     if (rainOn) this.spawnSplashes(dt, w.rain);
   }
 }

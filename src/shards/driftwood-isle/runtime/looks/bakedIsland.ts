@@ -1,40 +1,17 @@
 import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { GraphLiteral } from '@wildshard/format/materialGraph';
 
 /**
  * A baked island's generic parts (SHARD-PLATFORM M3; ex a shard's Blender-island install): an area of the world rebuilt
  * from an offline bake (terrain tiles with baked AO and bounce lightmaps, prototypes and their placements) over the
  * procedural ground it replaces. The shard keeps what is its own — its files, its area, its models and colliders — and
- * gives its looks as graph toon materials (data/islandLook.ts) and rows: the tile counts and the name patterns that sort
+ * gives its looks as graph toon materials (data/islandLook.ts, lent by the runtime: @wildshard/sdk/looks/lentLooks) and rows: the tile counts and the name patterns that sort
  * the placements.
  *
- * - `setIslandLooks` / `islandLooks`: the compiled graph looks the runtime lends the island before the world builds.
  * - `clipGridTerrain`: install the authored terrain clipping facts.
  * - `sunBounceLevel`: how much of the baked bounce the live sun lights.
  * The prototypes, their far copies (simplified at build) and the cover splat are baked (generators/islandCover.ts).
  */
-
-/** The island's compiled graph looks (look.materials, data/islandLook.ts) with their param / texture writers and their toon
- *  look's once-a-frame follow of the day clock. */
-export interface IslandLooks {
-  readonly material: (id: string) => THREE.Material;
-  readonly param: (id: string, name: string, value: GraphLiteral) => void;
-  readonly texture: (id: string, name: string, texture: THREE.Texture) => void;
-  readonly follow: () => void;
-}
-let lent: IslandLooks | null = null;
-
-/** Hand the island its compiled graph looks, their writers and their toon look's follow, before the world builds. */
-export function setIslandLooks(materials: ReadonlyMap<string, THREE.Material>, param: IslandLooks['param'], texture: IslandLooks['texture'], follow: () => void): void {
-  lent = { follow, param, texture, material: (id) => { const m = materials.get(id); if (m === undefined) throw new Error(`Baked island: look.materials lacks ${id}`); return m; } };
-}
-
-/** The island's lent looks; throws when the runtime lent none (there is no classic stand-in). */
-export function islandLooks(): IslandLooks {
-  if (lent === null) throw new Error('Baked island: no graph looks lent (the runtime compiles them before the world builds)');
-  return lent;
-}
 
 /** The authored grid's retained index runs (the product's `custom/islandClips`). */
 export interface IslandTerrainClip { readonly sourceVertices: number; readonly sourceIndices: number; readonly outputIndices: number; readonly ranges: readonly { readonly start: number; readonly count: number }[] }

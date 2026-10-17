@@ -23,6 +23,7 @@ import type { ModelSiteLayout } from '@wildshard/engine/models/place';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { driftwoodRows } from '../boot/rows';
 import { SHRINE_POOL_LOOK, SHRINE_SITES, WRECK_SITES } from '../const';
 import { fixedGeometryReady, loadFixedGeometry, HUT_KIT_GEOMETRY, HUT_FLAMES_GEOMETRY, LOOKOUT_GEOMETRY, WRECK_KIT_GEOMETRY,
@@ -74,20 +75,10 @@ export function wreckSiteKind(site: WreckSpec): keyof typeof WRECK_SITES {
 }
 
 export const SHRINE_RUNE = new THREE.Color('#7fd9ff');
-let poolLook: THREE.Material | null = null;
-/** hand the pool its compiled graph (look.materials, data/poolLook.ts: the ripples; its toon look follows the day clock with
- *  the cove's pools) before the world builds */
-export function setShrinePoolLook(materials: ReadonlyMap<string, THREE.Material>): void {
-  const material = materials.get(SHRINE_POOL_LOOK);
-  if (material === undefined) throw new Error('Driftwood: look.materials lacks the shrine pool graph');
-  poolLook = material;
-}
-/** the shrine's pool (its lent graph; a shrine built before that refuses) and its glyphs, which the world pulses */
+/** the shrine's pool (its lent graph, data/poolLook.ts: the ripples, its toon look following the day clock with the cove's
+ *  pools; a shrine built before the lend refuses) and its glyphs, which the world pulses */
 export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; glyphs: THREE.MeshBasicMaterial } {
-  return ctx.once('driftwood-isle/shrine:materials', () => {
-    if (poolLook === null) throw new Error('Driftwood shrine: no pool graph material lent (the runtime compiles it before the world builds)');
-    return { water: poolLook, glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }) };
-  });
+  return ctx.once('driftwood-isle/shrine:materials', () => ({ water: lentLook(SHRINE_POOL_LOOK), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }) }));
 }
 
 const DRAWS = { 'hut-kit': HUT_KIT_GEOMETRY, 'hut-flames': HUT_FLAMES_GEOMETRY, lookout: LOOKOUT_GEOMETRY,

@@ -41,15 +41,8 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { POOL_LOOK } from '../data/poolLook';
-
-let poolLook: { material: THREE.Material; follow: () => void } | null = null;
-/** hand the pools their compiled graph (look.materials, data/poolLook.ts: the ripple rings) and its toon look's
- *  once-a-frame follow, before the world builds */
-export function setPoolLook(materials: ReadonlyMap<string, THREE.Material>, follow: () => void): void {
-  const material = materials.get(POOL_LOOK);
-  if (material === undefined) throw new Error('Driftwood: look.materials lacks the cove pool graph');
-  poolLook = { material, follow };
-}
+import { lentLook, lentToon } from '@wildshard/sdk/looks/lentLooks';
+import { followToon } from '../runtime/look/toon';
 
 export class Cove {
   group = new THREE.Group();
@@ -103,9 +96,8 @@ export class Cove {
     const glowMesh = new THREE.Mesh(built.geometry.glow, new THREE.MeshBasicMaterial({ vertexColors: true }));
     glowMesh.name = 'cove-glow'; this.group.add(glowMesh);
     // the pools: concentric ripple rings drift outward, the sun catches their crests (data/poolLook.ts)
-    if (poolLook === null) throw new Error('Driftwood: the cove pool graph was not compiled before the world build');
-    this.follow = poolLook.follow;
-    const poolMesh = new THREE.Mesh(built.geometry.pools, poolLook.material);
+    this.follow = followToon(lentToon(POOL_LOOK)); // its lent graph's toon look follows the day clock once a frame
+    const poolMesh = new THREE.Mesh(built.geometry.pools, lentLook(POOL_LOOK));
     poolMesh.receiveShadow = true; poolMesh.renderOrder = 1;
     this.group.add(poolMesh);
 
