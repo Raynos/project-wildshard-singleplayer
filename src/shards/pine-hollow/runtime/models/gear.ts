@@ -12,7 +12,6 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { pineSkinRows, PINE_FINISH_VARIANTS, preparePineFinishes } from '../loadout/skins';
 import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { QUIVER_MAX } from '../weapons/Longbow';
 import { bakedHandRows, heldGeometry } from '../boot/crossbowGeometry';
 import { skinningKnife } from './skinningKnife';
 
@@ -73,7 +72,7 @@ export const crossbowBolt: ModelDef<object> = defineModel<object>({
 /**
  * The longbow's arrow (E348): an ash shaft, a sinew-bound bodkin head, three grey-goose feathers with a white cock
  * feather, 0.76 m — the baked arrow on its own copy of the arrows' material (`heldBowArrow`). Every
- * arrow loosed, flying or stuck, is one instanced draw (Projectiles.ts); the quiver holds QUIVER_MAX.
+ * arrow loosed, flying or stuck, is one instanced draw (Projectiles.ts); the quiver follows the admitted bow profile.
  */
 export const longbowArrow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/longbow-arrow', name: 'Longbow arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
@@ -92,6 +91,6 @@ export const GEAR: readonly RosterEntry[] = [
   live(crossbowBolt, { copies: MAX_BOLTS, drawnAs: 'single' }),
   live(leverAction, { copies: 1 }),
   live(wardensLongbow, { copies: 1 }),
-  live(longbowArrow, { copies: QUIVER_MAX, drawnAs: 'instanced' }),
+  live(longbowArrow, { copies: () => bakedHandRows().heldBow.base.quiver, drawnAs: 'instanced' }),
   live(skinningKnife, { copies: 1 }),
 ];

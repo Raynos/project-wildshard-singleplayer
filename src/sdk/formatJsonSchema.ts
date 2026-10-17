@@ -1,6 +1,6 @@
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
-import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import type { GenericSchema } from 'valibot';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
@@ -134,6 +134,9 @@ const wireRoots = {
   'weaponProfiles.ThrownWeaponProfile': ThrownWeaponProfileSchema,
   'weaponProfiles.LashWeaponProfile': LashWeaponProfileSchema,
   'weaponProfiles.ConeWeaponProfile': ConeWeaponProfileSchema,
+  'weaponProfiles.HeldBowBase': HeldBowBaseSchema,
+  'weaponProfiles.HeldBowRows': HeldBowRowsSchema,
+  'weaponProfiles.HeldBowDefinition': HeldBowDefinitionSchema,
   'brains.Skirmisher': SkirmisherSchema,
   'brains.Stalker': StalkerSchema,
   'brains.ScriptBrain': ScriptBrainSchema,

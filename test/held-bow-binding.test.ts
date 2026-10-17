@@ -3,6 +3,7 @@ import { expect, test } from 'vitest';
 import { BufferGeometry } from 'three';
 import { bindHeldBow } from '../src/game/plugin/heldLauncher';
 import { HeldBowDefinitionSchema } from '../src/format/weaponProfiles';
+import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { PINE_HELD_BOW } from '../src/shards/pine-hollow/generators/longbow';
 import { recurveBase } from '../src/shards/nalati-grasslands/generators/recurvePool';
 import * as v from 'valibot';
@@ -39,4 +40,12 @@ test('binding refuses malformed feel and parent identities before borrowing part
   expect(reads).toBe(0);
   expect(() => bindHeldBow({ ...PINE_HELD_BOW, base: { ...PINE_HELD_BOW.base, draw: { ...PINE_HELD_BOW.base.draw, holdSteady: 9 } } }, library)).toThrow('fatigue');
   expect(reads).toBe(0);
+});
+
+test('the bow definition emits a wire schema and refuses non-finite bake values', () => {
+  expect(() => formatJsonSchema(HeldBowDefinitionSchema, 'draft-07')).not.toThrow();
+  for (const value of [Infinity, -Infinity, Number.NaN]) {
+    expect(() => bindHeldBow({ ...PINE_HELD_BOW, bow: { ...PINE_HELD_BOW.bow,
+      arrow: { ...PINE_HELD_BOW.bow.arrow, bury: value } } }, { geometry: () => new BufferGeometry() })).toThrow();
+  }
 });

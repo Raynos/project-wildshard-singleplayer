@@ -24,7 +24,6 @@ import { PLAIN_BOLT, type HeldBolt as BoltMod } from '@wildshard/game/plugin/hel
 import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
 import { bindLongbowCharge } from './events';
 import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';
-import { QUIVER_MAX } from '../runtime/weapons/Longbow';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
@@ -123,7 +122,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.round(v)) : null);
   const rounds = num(saved.rounds), arrows = num(saved.arrows);
   if (rounds !== null) rifle.state.reserve = rounds;
-  if (arrows !== null) longbow.state.bolts = Math.min(QUIVER_MAX, arrows);
+  if (arrows !== null) longbow.state.bolts = Math.min(longbow.magazine, arrows);
   const kept = { rounds: rifle.state.reserve, arrows: longbow.state.bolts };
   let sfx: PineHollowSfx | null = null;
   let dirty = false, saveT = 0;
@@ -179,7 +178,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     markDirty();
   };
   const count = (kind: AmmoKind): number => kind === 'cartridge' ? rifle.state.reserve + rifle.state.ammo : kind === 'arrow' ? longbow.state.bolts : quiver.count(kind, live());
-  const CAP: Record<AmmoKind, number> = { iron: MAX_BOLTS, pitch: POUCH_MAX, broadhead: POUCH_MAX, arrow: QUIVER_MAX, cartridge: Infinity };
+  const CAP: Record<AmmoKind, number> = { iron: MAX_BOLTS, pitch: POUCH_MAX, broadhead: POUCH_MAX, arrow: longbow.magazine, cartridge: Infinity };
   const room = (kind: AmmoKind, n: number): boolean => count(kind) + n <= CAP[kind];
 
   const bind = (scope: Scope): void => {
