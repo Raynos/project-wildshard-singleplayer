@@ -46,13 +46,12 @@ import { smallRock } from '../runtime/models/shoreBoulder';
 import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
 import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
-import { CoverGrid, tintTerrain } from './coverTint';
+import type { IslandCover } from './islandCover';
 import { driftwoodRows } from '../runtime/boot/rows';
 import { clipGridTerrain, sunBounceLevel } from '../runtime/looks/bakedIsland';
 import { lentLook, lentToon, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { followToon } from '../runtime/look/toon';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
-import { coverAttributes } from '../runtime/looks/coverGrid';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -78,6 +77,8 @@ export interface BlenderIslandCtx {
   replace: (THREE.Mesh | null)[];
   /** GroundCover's group: its instanced plants are hidden inside the area, its static logs dropped there */
   cover: THREE.Object3D | null;
+  /** the tier's baked cover look (world/islandCover.ts): the plants' ground map and the tiles' cover bytes */
+  islandCover: IslandCover;
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
@@ -132,8 +133,7 @@ export class BlenderIsland {
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(), readDriftwoodBlob('world/island/protos.glb'),
     ]);
-    const coverGrid = CoverGrid.get();
-    if(coverGrid===null||plan.used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
+    if(plan.used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
     // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles and every placement here,
     // its collider boxes in the plan's bake), so it stays on the dropped terrain exactly
     const drop = WORLD_DROP;
@@ -142,10 +142,10 @@ export class BlenderIsland {
     // ── materials: the graph toon looks the runtime lent (data/islandLook.ts), the bake's maps lent to the terrain's and the
     //    tier's cover reach set on the two cover sets' ──
     setLentTexture(ISLAND_LOOKS.terrain, 'ao', ao); setLentTexture(ISLAND_LOOKS.terrain, 'bounceMap', bounce);
-    // E156: each cover plant fades into the ground the cover grid paints under it (CoverGrid.texture, sampled at its origin)
-    const ground = coverGrid.texture();
+    // E156: each cover plant fades into the ground the cover paints under it (the baked cover map, sampled at its origin)
+    const { ground, groundRect } = ctx.islandCover;
     for (const [id, c] of [[ISLAND_LOOKS.cover, TIER_LOOK.cover], [ISLAND_LOOKS.coverBig, TIER_LOOK.big]] as const) {
-      setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', ground.rect); setLentTexture(id, 'groundMap', ground.texture);
+      setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...groundRect]); setLentTexture(id, 'groundMap', ground);
     }
     const terrainMat = lentLook(ISLAND_LOOKS.terrain), propsMat = lentLook(ISLAND_LOOKS.props);
     const coverMat = lentLook(ISLAND_LOOKS.cover), bigMat = lentLook(ISLAND_LOOKS.coverBig);
@@ -165,7 +165,7 @@ export class BlenderIsland {
       m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
       m.name = `${ISLAND_LOOK.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
       m.onBeforeRender = followToon(lentToon(ISLAND_LOOKS.terrain)); // the terrain draws whenever the cove is in view: its toon look follows the day clock here
-      coverAttributes(o.geometry, o.geometry.getAttribute('position').count); // the graph reads the cover tint's (tintTerrain fills them)
+      ctx.islandCover.wear(o.geometry, terrainTiles.length + 1); // E156: the cove's ground wears the cover it carries (baked over the estimate)
       terrainTiles.push(m);
       if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
       o.geometry.computeBoundingSphere();
@@ -176,10 +176,6 @@ export class BlenderIsland {
     (await loader.parseAsync(Uint8Array.from(protoFile).buffer, '')).scene.traverse((o) => { if (isMesh(o)) protos.set(o.name, o.geometry); });
     // SF67: the build ends its task at each ~30 ms between its sections (the order and every result are unchanged)
     const slice = slicer();
-    await slice();
-    // E156: the cove's ground wears the cover it carries (coverTint.ts): what was placed here, splatted into the grid over
-    // GroundCover's estimate for this area, then sampled by the cove's terrain
-    for (const tile of terrainTiles) tintTerrain(tile);
     await slice();
     if (plan.smallRocks.length > 0) {
       // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)

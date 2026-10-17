@@ -5,13 +5,15 @@ import * as v from 'valibot';
 import { triAreas, type CoverTri } from './coverTris';
 import { islandProtos, type IslandProto } from './islandProtos';
 import { AuthorCoverGrid, baseCoverGrid } from './coverGrid';
-import { bakeCoverCells } from './coverCells';
+import { bakeCoverCells, coverJitter } from './coverCells';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { area } from '../world/blenderArea';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with {type:'json'};
 import { coveFamilyOf, type CoveFamily } from '../runtime/models/cove';
 import { WORLD_DROP } from '../world/sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import type { Tier } from '@wildshard/engine/core/tier';
 
 /** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */
@@ -72,13 +74,43 @@ export function splatBlock(grid: AuthorCoverGrid, tris: Iterable<CoverTri>, x0: 
   return out;
 }
 
-/** A baked float block's file: a 16-byte header (magic, version, the placements it was baked from, floats) and the
- *  block's f32s, little-endian (world/islandCover.ts reads it back). */
-export function encodeFloatBlock(block: Float32Array, used: number, magic: number, version: number): Uint8Array {
-  const out = new Uint8Array(16 + block.length * 4), view = new DataView(out.buffer);
-  view.setUint32(0, magic, true); view.setUint32(4, version, true); view.setUint32(8, used, true); view.setUint32(12, block.length, true);
-  for (let i = 0; i < block.length; i++) view.setFloat32(16 + i * 4, block[i] ?? 0, true);
+const coverByte = (x: number): number => Math.round(Math.min(1, Math.max(0, x)) * 255);
+/** A terrain's cover bytes (E156, baked): per vertex `aCover` (the grid's colour × the facet jitter, and its top) then
+ *  `aCoverSide`, sampled at each vertex's world (x, z) as the graph reads them, `flat` like the facet colour. */
+export function terrainCoverBytes(grid: AuthorCoverGrid, count: number, at: (i: number, out: THREE.Vector3) => THREE.Vector3): Uint8Array {
+  const out = new Uint8Array(count * 5), s = { r: 0, g: 0, b: 0, top: 0, side: 0 }, p = new THREE.Vector3();
+  for (let i = 0; i < count; i++) {
+    at(i, p); grid.sample(p.x, p.z, s);
+    const j = coverJitter(p.x, p.z); // the facet jitter the terrain's own colour has, so covered ground still reads as facets
+    out[i * 4] = coverByte(s.r * j); out[i * 4 + 1] = coverByte(s.g * j); out[i * 4 + 2] = coverByte(s.b * j); out[i * 4 + 3] = coverByte(s.top); out[count * 4 + i] = coverByte(s.side);
+  }
   return out;
+}
+
+/** The cover plants' ground map: the cropped grid as half-float RGBA, per cell rgb × (top + side) and top + side, a ring
+ *  of empty cells round it (a bilinear sample's rgb over its alpha is the cover colour); `uv`: a world (x, z) is
+ *  (x, z) × [2, 3] + [0, 1]. */
+export function coverTexture(data: Float32Array, rect: { x: number; z: number; width: number; height: number }, step: number): { bytes: Uint8Array; width: number; height: number; uv: [number, number, number, number] } {
+  const w = rect.width + 2, h = rect.height + 2, out = new Uint16Array(w * h * 4);
+  for (let z = 0; z < rect.height; z++) for (let x = 0; x < rect.width; x++) {
+    const o = (z * rect.width + x) * 5, a = (data[o + 3] ?? 0) + (data[o + 4] ?? 0), t = ((z + 1) * w + x + 1) * 4;
+    for (let c = 0; c < 3; c++) out[t + c] = THREE.DataUtils.toHalfFloat((data[o + c] ?? 0) * a);
+    out[t + 3] = THREE.DataUtils.toHalfFloat(a);
+  }
+  const k = CHUNK_HALF / step;
+  return { bytes: new Uint8Array(out.buffer), width: w, height: h, uv: [(k - rect.x + 1.5) / w, (k - rect.z + 1.5) / h, 1 / (step * w), 1 / (step * h)] };
+}
+
+/** island.glb's terrain tiles of a tier (the 1 m grid, or the phone's 2 m `terrainlo_*`) in the order the page loads them,
+ *  each with its world matrix (meshopt's dequantisation lives there). */
+const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
+async function islandTerrainTiles(glb: Uint8Array, phone: boolean): Promise<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }[]> {
+  await MeshoptDecoder.ready;
+  const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(glb).buffer, '');
+  gltf.scene.updateMatrixWorld(true);
+  const protoNames = new Set(ISLAND_FACTS.protos.map((p) => `${ISLAND_LOOK.protoPrefix}${p.name}`)), tiles: { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }[] = [];
+  gltf.scene.traverse((o) => { if (isMesh(o) && !protoNames.has(o.name) && o.name.startsWith('terrainlo') === phone) tiles.push({ geometry: o.geometry, matrix: o.matrixWorld.clone() }); });
+  return tiles;
 }
 
 interface CoverMeta { protos: { name: string; kind: string }[]; mustDraw: number }
@@ -103,9 +135,6 @@ export function islandCoverBlock(tris: Iterable<CoverTriangle>): Float32Array {
   return splatBlock(new AuthorCoverGrid(), instancedCoverTriangles(tris), area.x0, area.x1, area.z0, area.z1, ISLAND_LOOK.coverDepth);
 }
 
-/** the baked file: a 16-byte header ('WSIC', version, placements used, floats) and the block's f32s, little-endian */
-export const encodeIslandCover = (block: Float32Array, used: number): Uint8Array => encodeFloatBlock(block, used, ISLAND_LOOK.coverFile.magic, ISLAND_LOOK.coverFile.version);
-
 /** placements.bin as the build reads it: each placement's y dropped with the world (G164) */
 export function islandPlacements(buf: ArrayBuffer): Float32Array {
   const f = new Float32Array(buf);
@@ -128,15 +157,25 @@ export function islandSets(f: Float32Array, meta: CoverMeta, used: number, phone
   return { casters, covers, bigs, smallRocks: apart };
 }
 
-export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;rect:{x:number;z:number;width:number;height:number}}> {
+/** The tier's cover file (world/islandCover.ts): the ground map, then each terrain's cover bytes — part 0 the faceted
+ *  ground's grid (TERRAIN_RES², row by row), then the island's terrain tiles — and the layout its declaration carries. */
+export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;texture:{width:number;height:number};groundRect:[number,number,number,number];parts:[number,number][]}> {
   const base = '/assets/models/driftwood-blender/';
   const meta = v.parse(v.object({ protos: v.array(v.object({ name: v.string(), kind: v.string() })), mustDraw: v.number() }), JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
   const protos = await islandProtos(readAsset(`${base}island.glb`), meta), f = islandPlacements(Uint8Array.from(readAsset(`${base}placements.bin`)).buffer);
   const used = islandUsed(f, meta, phone), sets = islandSets(f, meta, used, phone);
   const grid=baseCoverGrid(palms,ground.heightAt,ground.normalAt,ground.trailDistance);
   grid.writeBlock(islandCoverBlock(coverTrianglesOf(protos,f,[sets.covers,sets.bigs])),area.x0,area.x1,area.z0,area.z1);
-  const {data,rect}=grid.crop();
-  return {bytes:encodeIslandCover(data,used),cells:bakeCoverCells(grid,palms,ground,seed,area),used,rect};
+  const {data,rect}=grid.crop(),texture=coverTexture(data,rect,grid.step),res=TERRAIN_RES,d=CHUNK_SIZE/(res-1);
+  const chunks=[texture.bytes,terrainCoverBytes(grid,res*res,(i,p)=>p.set(Math.fround(-CHUNK_HALF+(i%res)*d),0,Math.fround(-CHUNK_HALF+Math.floor(i/res)*d)))];
+  for(const tile of await islandTerrainTiles(readAsset(`${base}island.glb`),phone)){
+    const pos=tile.geometry.getAttribute('position');
+    chunks.push(terrainCoverBytes(grid,pos.count,(i,p)=>p.fromBufferAttribute(pos,i).applyMatrix4(tile.matrix)));
+  }
+  const parts:[number,number][]=[];let at=texture.bytes.length;
+  for(const chunk of chunks.slice(1)){parts.push([at,chunk.length/5]);at+=chunk.length;}
+  const bytes=new Uint8Array(at);at=0;for(const chunk of chunks){bytes.set(chunk,at);at+=chunk.length;}
+  return {bytes,cells:bakeCoverCells(grid,palms,ground,seed,area),used,texture:{width:texture.width,height:texture.height},groundRect:texture.uv,parts};
 }
 
 

@@ -34,7 +34,6 @@ import { buildSeabed, type Seabed } from './Seabed';
 import { placeIslandPalms, type PalmSpec } from './Palms';
 import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
-import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
@@ -81,7 +80,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const lowered = G164_LOWERED, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, { normalAt, TRAILS }, , coverGrid, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, { normalAt, TRAILS }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
+  islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
   const sea = { level: lowered.level };
   // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
@@ -173,8 +173,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { cells: coverCells, grid: coverGrid }).build(); // its plants baked per cell (generators/coverCells.ts)
-  game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover
+  const cover = new GroundCover(sky, { cells: coverCells }).build(); // its plants baked per cell (generators/coverCells.ts)
+  game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await stages.next('Palms and ground cover');
   await macrotask();
@@ -193,7 +193,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
       scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
-      replace: [bushes.mesh], cover: cover.group,
+      replace: [bushes.mesh], cover: cover.group, islandCover,
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
     return island;

@@ -6,8 +6,9 @@ import { islandCoveSpec } from './coveLayout';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
 import { GROUND_COVER } from '../data/coverLook';
 import { DENSITY, type Site } from './coverSites';
-import type { CoverSample } from '../runtime/looks/coverGrid';
 
+/** What the grid holds at a point: mean colour (linear), and top / side packed as 1 − e^−τ. */
+export interface CoverSample { r: number; g: number; b: number; top: number; side: number }
 const smooth = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 const KIND_DENSITY = GROUND_COVER.kinds.map(k => DENSITY[k.name] ?? (() => 0));
 /** Build-only mutable lattice; runtime borrows its already completed file. */
@@ -89,7 +90,7 @@ export function baseCoverGrid(palms: readonly {x:number;z:number}[], heightAt:(x
       let top = 0, side = 0;
       col.setRGB(0, 0, 0);
       for (const [ki, k] of GROUND_COVER.kinds.entries()) {
-        const look = COVER_LOOK[k.name as keyof typeof COVER_LOOK];
+        const look = COVER_LOOK[k.name];
         const n = per * Math.min(1, Math.max(0, (KIND_DENSITY[ki] ?? (() => 0))(site)) / 2), s = (k.scale[0] + k.scale[1]) / 2, ns = n * s * s;
         const t = ns * look.top, sd2 = ns * look.side, wt = t + sd2;
         top += t; side += sd2; col.r += look.r * wt; col.g += look.g * wt; col.b += look.b * wt;

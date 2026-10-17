@@ -4,7 +4,6 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { coverAttributes } from './coverGrid';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readDriftwoodBlob } from '../boot/blobAssets';
 
@@ -61,7 +60,6 @@ async function buildFacetedGround(t: Terrain, f: Parameters<TerrainPainter['buil
     readDriftwoodBlob(urls.slab).then(bytes => walls.load(bytes)),
   ]);
   const ground = grid.take(), slab = walls.take();
-  coverAttributes(ground, ground.getAttribute('position').count); // the graph reads the cover tint's attributes (zero until tintTerrain fills them)
   t.mesh = new THREE.Mesh(ground, loan.ground);
   t.mesh.receiveShadow = true;
   t.mesh.castShadow = true;

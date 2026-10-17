@@ -1,26 +1,26 @@
-import type { CoverGrid } from './coverTint';
+import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
-import { ISLAND_LOOK } from '../data/islandRows';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
-/** Required boot content: a bad header, placement count or grid refuses the world stage. */
-export function requiredIslandCover(bytes: ArrayBuffer | null, used: number, floats: number | undefined): Float32Array {
-  if (bytes === null || floats === undefined) throw new Error('Required island cover is missing');
-  // the baked file: a 16-byte header (magic, version, the placements it was baked from, floats), then the f32s
-  const head = bytes.byteLength === 16 + floats * 4 ? new Uint32Array(bytes, 0, 4) : null, { magic, version } = ISLAND_LOOK.coverFile;
-  const block = head?.[0] === magic && head[1] === version && head[2] === used && head[3] === floats ? new Float32Array(bytes, 16, floats) : null;
-  if (block === null || !block.every(Number.isFinite)) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
-  return block;
-}
+/** E156, baked (generators/islandCover.ts `bakeFullIslandCover`): the ground wears the cover. The cover plants fade into
+ *  `ground` (sampled through `groundRect`); each terrain wears its per-vertex cover bytes, which its graph reads `flat`
+ *  (data/lookGraphs.json, the cover mix): part 0 the faceted ground, then the island's terrain tiles in load order. */
+export interface IslandCover { readonly ground: THREE.DataTexture; readonly groundRect: readonly number[]; wear: (geometry: THREE.BufferGeometry, part: number) => void }
 
 /** Required declared boot file; immutable URL caching and hash admission precede borrowing its storage. */
-export async function loadIslandCover(product?: ShardProduct):Promise<Parameters<typeof CoverGrid.create>> {
- const file=ISLAND_COVER_FILES[TIER],input=await readDriftwoodBlob(file.url,product);
- const bytes=Uint8Array.from(input).buffer;
- if(bytes.byteLength!==file.bytes)throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
- const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),hash=Array.from(digest,v=>v.toString(16).padStart(2,'0')).join('');
- if(hash!==file.hash)throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
- return [requiredIslandCover(bytes,file.used,file.floats),file.rect];
+export async function loadIslandCover(product?: ShardProduct): Promise<IslandCover> {
+  const file = ISLAND_COVER_FILES[TIER], bytes = Uint8Array.from(await readDriftwoodBlob(file.url, product)).buffer;
+  if (bytes.byteLength !== file.bytes) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), hash = Array.from(digest, v => v.toString(16).padStart(2, '0')).join('');
+  if (hash !== file.hash) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
+  const { width, height } = file.texture, ground = new THREE.DataTexture(new Uint16Array(bytes, 0, width * height * 4), width, height, THREE.RGBAFormat, THREE.HalfFloatType);
+  ground.magFilter = THREE.LinearFilter; ground.minFilter = THREE.LinearFilter; ground.colorSpace = THREE.NoColorSpace; ground.needsUpdate = true;
+  return { ground, groundRect: file.groundRect, wear: (geometry, part) => {
+    const [at, count] = file.parts[part] ?? [0, -1];
+    if (geometry.getAttribute('position').count !== count) throw new Error('Required island cover does not match its terrain; rebuild its declared boot file');
+    geometry.setAttribute('aCover', new THREE.BufferAttribute(new Uint8Array(bytes, at, count * 4), 4, true));
+    geometry.setAttribute('aCoverSide', new THREE.BufferAttribute(new Uint8Array(bytes, at + count * 4, count), 1, true));
+  } };
 }
