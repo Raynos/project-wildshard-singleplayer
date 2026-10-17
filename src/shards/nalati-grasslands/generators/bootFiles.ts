@@ -43,5 +43,6 @@ export function bootFiles(tier: Tier): string[] { return Object.values(bootSourc
 /** Camp people keep their original late-read timing and ordered identities. */
 export function lateReads(tier: Tier, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): string[] {
   const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
-  return ['elder', 'herder-dauren', 'herder-erlan', 'child', 'cook'].map((name) => gpu(`/assets/nalati/models/people/${name}.gen${tier === 'phone' ? '.phone' : ''}.glb`)).filter((url) => url in inventory);
+  return [gpu(`/assets/nalati/baked/people/camp${tier === 'phone' ? '.phone' : ''}.glb`),
+    ...['elder', 'herder-dauren', 'herder-erlan', 'child', 'cook'].map((name) => gpu(`/assets/nalati/models/people/${name}.gen${tier === 'phone' ? '.phone' : ''}.glb`))].filter((url) => url in inventory);
 }

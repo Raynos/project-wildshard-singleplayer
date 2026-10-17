@@ -35,8 +35,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PaintKit, v3, poiMaterial } from './world/paint';
 import { pole, lathe } from '@wildshard/engine/world/geometryKit';
 import content from './data/questContent.json' with { type: 'json' };
-import { loadPeopleRig } from './campPeopleModels';
-import type { NpcFigureFrame as PersonFrame, NpcFigureRig as PeopleRig } from './models/npc/figureRig';
+import frameRows from './boot/peopleFrames.generated.json' with { type: 'json' };
+import { loadPeopleRig, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from './campPeopleModels';
 import { stepNpcFigure, npcFigurePose } from './models/npc/figureMotion';
 import { campPersonProfile, type CampPersonProfile } from './campPeopleProfiles';
 
@@ -69,6 +69,11 @@ const C = {
   coat: '#7a5634', coat2: '#56613c', trousers: '#39373e', fur: '#8c6a47', tymaqTop: '#a3291f', wood: '#6e4a2c',
   under: '#6e2a2a', shirt: '#ece4d2', vest: '#2f7a4c', cap: '#a9322a', dress: '#9b2d2a', velvet: '#1f4a3f', apron: '#ebe3d1', scarf: '#f3eee4', iron: '#3b3a3c',
 };
+
+function personFrame(id: PersonId): PersonFrame {
+  const row = frameRows[id];
+  return { height: row.height, neck: new THREE.Vector3(...row.neck), shoulder: new THREE.Vector3(...row.shoulder) };
+}
 
 interface Parts { body: THREE.BufferGeometry; head: THREE.BufferGeometry; arm: THREE.BufferGeometry; neck: THREE.Vector3; shoulder: THREE.Vector3; height: number; radius: number }
 
@@ -136,7 +141,7 @@ function elder(seed: number): Parts {
   h.add(new THREE.TorusGeometry(0.125, 0.028, 5, 14).rotateX(Math.PI / 2).translate(0, 0.205, 0), C.black);                // its brim
   const a = new PaintKit(seed + 2);
   arm(a, C.indigo, C.skin, 0.44, 0.065);
-  return { body: finish(b, true), head: finish(h), arm: finish(a), neck: v3(0, 1.5, 0.01), shoulder: v3(-0.23, 1.4, 0), height: 1.95, radius: 0.34 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('elder'), radius: 0.34 };
 }
 
 /** two boot toes peeking out under a robe */
@@ -173,7 +178,7 @@ function herder(seed: number, hat: 'tymaq' | 'kalpak', coat: string): Parts {
   arm(a, coat, C.skin, 0.42, 0.062, hat === 'tymaq'
     ? (k, hand) => { k.add(pole(hand, v3(hand.x - 0.02, hand.y - 0.02, hand.z + 0.34), 0.016, 0.012, 5), C.wood); k.add(pole(v3(hand.x - 0.02, hand.y - 0.02, hand.z + 0.34), v3(hand.x - 0.05, hand.y - 0.5, hand.z + 0.4), 0.007, 0.005, 4), C.boot); } // the qamshy (whip)
     : undefined);
-  return { body: finish(b, true), head: finish(h), arm: finish(a), neck: v3(0, 1.48, 0.01), shoulder: v3(-0.22, 1.38, 0), height: 1.85, radius: 0.3 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame(hat === 'tymaq' ? 'herderGate' : 'herderRail'), radius: 0.3 };
 }
 
 function child(seed: number): Parts {
@@ -191,7 +196,7 @@ function child(seed: number): Parts {
   h.add(lathe([[0.001, 0.15], [0.1, 0.15], [0.098, 0.2], [0.07, 0.23], [0.001, 0.24]], 10), (p) => (Math.floor(Math.atan2(p.x, p.z) * 2.5) % 2 === 0 ? C.cap : C.gold)); // the taqiya
   const a = new PaintKit(seed + 2);
   arm(a, C.shirt, C.skin, 0.28, 0.036);
-  return { body: finish(b, true), head: finish(h), arm: finish(a), neck: v3(0, 0.88, 0.01), shoulder: v3(-0.13, 0.84, 0), height: 1.15, radius: 0.2 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('child'), radius: 0.2 };
 }
 
 function cook(seed: number): Parts {
@@ -211,7 +216,7 @@ function cook(seed: number): Parts {
     k.add(pole(hand, v3(hand.x, hand.y - 0.05, hand.z + 0.42), 0.012, 0.012, 5), C.wood);                               // the ladle
     k.add(sphere(0.045, 1, 0.55, 1).translate(hand.x, hand.y - 0.07, hand.z + 0.45), C.iron);
   });
-  return { body: finish(b, true), head: finish(h), arm: finish(a), neck: v3(0, 1.45, 0.01), shoulder: v3(-0.21, 1.34, 0), height: 1.75, radius: 0.33 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('cook'), radius: 0.33 };
 }
 
 /** each figure's builder (the seeds fix its brush noise) */

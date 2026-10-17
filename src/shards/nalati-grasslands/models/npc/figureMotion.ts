@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { NpcFigureFrame } from './figureRig';
+import type { NpcFigureFrame } from '../../campPeopleModels';
 
 interface Wave { offset: number; amplitude: number; frequency: number; clock: 'phase' | 'time'; cosine?: boolean }
 export interface NpcFigureMotionProfile {

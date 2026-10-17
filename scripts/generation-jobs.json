@@ -16542,6 +16542,61 @@
         "src/shards/sunscar-dunes/data/questPage.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "nalati-people",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-people.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-people.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-people.mjs",
+        "src/shards/nalati-grasslands/generators/peopleRig.ts",
+        "src/shards/nalati-grasslands/data/peopleFrames.json",
+        "public/assets/nalati/models/people",
+        "src/sdk/bake/skinned.ts",
+        "src/sdk/package.json",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/bake/source-loader.mjs"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/people/camp.glb",
+        "public/assets/nalati/baked/people/camp.phone.glb",
+        "public/assets/nalati/baked/people/child.glb",
+        "public/assets/nalati/baked/people/child.phone.glb",
+        "public/assets/nalati/baked/people/cook.glb",
+        "public/assets/nalati/baked/people/cook.phone.glb",
+        "public/assets/nalati/baked/people/elder.glb",
+        "public/assets/nalati/baked/people/elder.phone.glb",
+        "public/assets/nalati/baked/people/herderGate.glb",
+        "public/assets/nalati/baked/people/herderGate.phone.glb",
+        "public/assets/nalati/baked/people/herderRail.glb",
+        "public/assets/nalati/baked/people/herderRail.phone.glb",
+        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "public/assets/nalati/baked/people/camp.glb": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
+        "public/assets/nalati/baked/people/camp.phone.glb": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
+        "public/assets/nalati/baked/people/child.glb": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
+        "public/assets/nalati/baked/people/child.phone.glb": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
+        "public/assets/nalati/baked/people/cook.glb": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
+        "public/assets/nalati/baked/people/cook.phone.glb": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
+        "public/assets/nalati/baked/people/elder.glb": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
+        "public/assets/nalati/baked/people/elder.phone.glb": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
+        "public/assets/nalati/baked/people/herderGate.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
+        "public/assets/nalati/baked/people/herderGate.phone.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
+        "public/assets/nalati/baked/people/herderRail.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
+        "public/assets/nalati/baked/people/herderRail.phone.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
+        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "9fe64f78b5e8b8a2ee01b7d00c50b8c3b3e45c1f82fc22eff599aca98ad015ea"
+      }
     }
   ]
 }

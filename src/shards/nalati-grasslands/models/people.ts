@@ -5,7 +5,7 @@
  * the herders Dauren at the corral gate and Erlan at the hitching rail; the child Ayan, skipping round the ribbon pole;
  * Gulnar Apa the cook at the iron stove. They are image-to-3D figures (Hunyuan3D-2, NALATI-MERGE D2, their faces the
  * Debug ▸ Creatures & NPCs ▸ Camp faces pick, E302 — src/shards/nalati-grasslands/campPeopleModels.ts) on the procedural figures' rig: a
- * root, a head and a right arm per figure, weighted at load. The procedural painterly figures stand in until they load
+ * root, a head and a right arm per figure, weighted offline. The procedural painterly figures stand in until they load
  * (and stay if they fail). The camp draws all five as ONE SkinnedMesh and turns them to you, glances, nods, gestures,
  * stirs and skips; the card is one figure at rest, and the variant row picks who.
  *
@@ -16,8 +16,7 @@ import type * as THREE from 'three';
 import { creatureFactory } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { personFigure, type PersonId } from '../campPeople';
-import { loadPeopleRig } from '../campPeopleModels';
-import type { NpcFigureFrame as PersonFrame } from './npc/figureRig';
+import { loadPeopleRig, type NpcFigureFrame as PersonFrame } from '../campPeopleModels';
 import { shepherdRider } from '../creatures/sheepRaid';
 
 export interface CampPersonParams { readonly person: PersonId }

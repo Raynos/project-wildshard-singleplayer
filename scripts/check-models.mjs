@@ -208,7 +208,6 @@ function countsOf(code) {
 
 // Literal SF54 relocation: these two helpers support Nalati's People model; no directory-wide exception.
 const MODEL_SUPPORT = new Map([
-  ['src/shards/nalati-grasslands/models/npc/figureRig.ts', 'Fits, weights and merges the authored camp figures used by models/people.ts.'],
   ['src/shards/nalati-grasslands/models/npc/figureMotion.ts', 'Publishes the camp figure poses used by the People model and its entered runtime.'],
 ]);
 

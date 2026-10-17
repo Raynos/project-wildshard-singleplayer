@@ -1965,3 +1965,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/far-reach/data/questPage.generated.json
 /src/shards/far-reach/data/questPrompts.generated.json
 /src/shards/sunscar-dunes/data/questPage.generated.json
+
+/public/assets/nalati/baked/people/
+
+/src/shards/nalati-grasslands/boot/peopleFrames.generated.json

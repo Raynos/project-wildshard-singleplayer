@@ -1,4 +1,3 @@
-import { bindRig } from '@wildshard/engine/anim/rig';
 import * as THREE from 'three';
 
 /** a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) */
@@ -194,7 +193,7 @@ export function mergeNpcFigures<K extends string>(figs: NpcFigure<K>[], material
   geo.setAttribute('position', new THREE.BufferAttribute(P, 3));
   geo.setAttribute('normal', new THREE.BufferAttribute(N, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(C, 3));
-  if (map) geo.setAttribute('uv', new THREE.BufferAttribute(U, 2));
+  geo.setAttribute('uv', new THREE.BufferAttribute(U, 2));
   geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(SI, 4));
   geo.setAttribute('skinWeight', new THREE.BufferAttribute(SW, 4));
   geo.setIndex(new THREE.BufferAttribute(I, 1));
@@ -202,10 +201,58 @@ export function mergeNpcFigures<K extends string>(figs: NpcFigure<K>[], material
   const mesh = new THREE.SkinnedMesh(geo, mat);
   mesh.name = name;
   mesh.bind(new THREE.Skeleton(boneList, inverses), new THREE.Matrix4());
-  const names = boneList.map((bone) => bone.name);
   // Detached world-matrix bones intentionally are not scene children; the skin owns their ordered joints.
-  bindRig(mesh, [], { skeleton: 'npc.figures.v1', clips: [], sockets: [] }, { skeleton: 'npc.figures.v1', joints: [names] });
+
   mesh.frustumCulled = false;   // five figures spread over the camp, moving: the batch did its own culling, this is 1 draw
   mesh.castShadow = true; mesh.receiveShadow = true;
   return { mesh, bones };
 }
+
+/** a float copy of an attribute (de-quantises normalized ints) */
+function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute {
+  const n = a.count, k = a.itemSize, out = new Float32Array(n * k);
+  for (let i = 0; i < n; i++) for (let c = 0; c < k; c++) out[i * k + c] = a.getComponent(i, c);
+  return new THREE.BufferAttribute(out, k);
+}
+
+const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
+
+export interface RawModel { geometry: THREE.BufferGeometry; map: THREE.Texture | null; box: THREE.Box3 }
+export function rawFromGltf(scene: THREE.Object3D, label: string): RawModel {
+  scene.updateMatrixWorld(true);
+  const meshes: THREE.Mesh[] = [];
+  scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
+  const found = meshes[0];
+  if (!found) throw new Error(`nalati model ${label}: no mesh`);
+  const src = found.geometry;
+  const geometry = new THREE.BufferGeometry();
+  for (const key of ['position', 'normal', 'uv'] as const) {
+    if (src.hasAttribute(key)) geometry.setAttribute(key, floatAttr(src.getAttribute(key)));
+  }
+  const index = src.getIndex();
+  if (index) geometry.setIndex(Array.from(index.array));
+  geometry.applyMatrix4(found.matrixWorld);
+  if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
+  // painterly materials always read vertex colours: the model's own (a far LOD's coat, a Blender model's albedo), else a
+  // white one (the atlas carries it). Float rgb, so the model-shading variant can swap its baked colours in place
+  const nv = geometry.getAttribute('position').count;
+  const rgb = new Float32Array(nv * 3).fill(1);
+  if (src.hasAttribute('color')) {
+    const c = src.getAttribute('color');
+    const ao = c.itemSize === 4;
+    for (let i = 0; i < nv; i++) {
+      const k = ao ? 0.4 + 0.6 * c.getW(i) : 1;
+      rgb[i * 3] = c.getX(i) * k; rgb[i * 3 + 1] = c.getY(i) * k; rgb[i * 3 + 2] = c.getZ(i) * k;
+    }
+  }
+  geometry.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  const srcMat = found.material;
+  const first = Array.isArray(srcMat) ? srcMat[0] : srcMat;
+  const map = first instanceof THREE.MeshStandardMaterial && first.map ? first.map : null;
+  if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
+  const box = geometry.boundingBox?.clone() ?? new THREE.Box3();
+  return { geometry, map, box };
+}
+

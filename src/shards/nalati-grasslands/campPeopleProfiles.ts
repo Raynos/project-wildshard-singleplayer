@@ -1,7 +1,6 @@
 import type { NpcFigureMotionProfile } from './models/npc/figureMotion';
 import content from './data/questContent.json' with { type: 'json' };
-import { peopleModelUrl } from './campPeopleModels';
-import type { NpcFigureFrame as PersonFrame } from './models/npc/figureRig';
+import { peopleModelUrl, type NpcFigureFrame as PersonFrame } from './campPeopleModels';
 
 export interface CampPersonProfile {
   id: keyof typeof content.people; model: string; frame: PersonFrame; motion: NpcFigureMotionProfile;
