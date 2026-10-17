@@ -4,12 +4,12 @@
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
-**Lanes (one task each), switch point 10-17 + G477 add-on:**
-- W1 spike: sp-x8 Sky S1→S2; next free lanes get Signal A→B, the runtime-rows host (Sky M1 + Signal D) and the painted-look host (Signal F + Sky #9)
-- Features (lanes with no spike task): sp-x5 → #1 quest step runner (Pine + DW) after landing DW batch 1. Note for the plan agent: sp-x7's DW quest AS draft was WITHDRAWN under G473/G474 (no host landed), so the runner covers DW quest too.
-- Landing now: sp-x1 manifests, sp-x4 proof extraction + a5df1f8c5 forward revert, sp-x6 Nalati paint/signpost
-- sp-x7 pusher; wave table fixed (6d687cb50, 02dbb2144); shard-components wave change held until its pending-charge split matches G473–G477
-- Opus (cap 2): OL2 Nine look-graph verify, OM Sim GPU crash
+**Lanes (one task each, 10-17 ~07:40Z):**
+- W1 spike: sp-x4 runtime-rows host (Sky M1 + Signal D), sp-x6 Signal A→B, sp-x8 painted-look host (Signal F + Sky #9), Opus OS Sky storm graph. Sky 948 (14.0 %) after S1a/S1b/S2 (−358).
+- Features: sp-x5 #1 quest step runner (Pine + DW).
+- Perf: sp-x1 Pine Sim road (exact packed bounds scans in Weld; first-visible frame cost open).
+- Opus OE2: graph ndv shading gap (Nine lanterns in-game), portal re-land, map refresh after b835bba67 (unlit graphs raw).
+- sp-x7 pusher.
 
 **Perf (standing goal 60 fps desktop / 30 fps Sim):** Sim crash FIXED (0e9f5d4c9, OM: ANGLE RGB8 ETC2 overread, only under the G386 probe-skip pin). Quiet Sim road p95 at e5aba0e01 (travel/drive): Pine 55/55, Nalati 53/46, DW 68/53, Sky 36/44 ms; staged node builds gave no win (removed). sp-x1 attributes Pine's long world-build frames.
 - Desktop standalone 7/7 at 60 fps; Sim milestone 8/8 with no crash after 0e9f5d4c9. Landed: 7afedf243 posed-atlas re-entry, 2c956f4d9 + ea3164e39 live collider splits (Nalati 172 → 47 ms), 230be1ccc/e0799b920 Sky pacing.
