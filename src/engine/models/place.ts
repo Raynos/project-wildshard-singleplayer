@@ -21,8 +21,8 @@ import type { BoxSpec } from '../physics/box';
  * allocate nothing per frame (./cull.ts).
  */
 import { app } from '../app/runtime';
-import { frameBudgetSpent, presenting } from '../core/framePacing';
-import { WORK_SLICE_MS } from '../core/workSlice';
+import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
+import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
@@ -159,7 +159,7 @@ export interface Placed {
   copyBox: (i: number, target: THREE.Box3) => THREE.Box3;
   /** the copy nearest p (-1 when there are none) */
   nearest: (p: THREE.Vector3) => number;
-  /** settles once every piece is registered (at once, unless `piece.split`) */
+  /** settles once every piece is registered (at once, unless `piece.split`, or in play a piece over LIVE_SPLIT_OVER colliders) */
   readonly registered: Promise<void>;
 }
 
@@ -1133,6 +1133,9 @@ export const CLAIM_MARGIN = 0.15;
 /** A split piece's colliders per registration in play (OP4): ~0.3-0.6 ms a hull on the Simulator, so a dozen stays
  *  inside one frame's shared build budget; the loading screen keeps each caller's `every`. */
 export const LIVE_SPLIT_EVERY = 12;
+/** In play, a piece with more colliders than this and no `split` of its own splits by LIVE_SPLIT_EVERY on the engine's
+ *  paced yield (OP5): Pine's 69 stump hulls landed as one unsplit registration inside a grid cell's travel window. */
+export const LIVE_SPLIT_OVER = 2 * LIVE_SPLIT_EVERY;
 const _claim = new THREE.Box3();
 
 /** the smallest of `p`'s copy boxes holding `pt` (grown by CLAIM_MARGIN), or null when `pt` is on none of them */
@@ -1264,8 +1267,12 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
     // OP4: in play (a grid cell built on the road) a split piece registers LIVE_SPLIT_EVERY colliders at a time and
     // yields once the frame's shared build budget is spent: the loading budget's 90-150 hulls a task (Rapier's
     // convexHull each) were single 40-100 ms Simulator frames. The same colliders, in more collider-only pieces.
-    const live = split !== undefined && presenting();
-    const every = split === undefined ? drawn.colliders.length : Math.max(1, live ? Math.min(split.every, LIVE_SPLIT_EVERY) : split.every);
+    // OP5: in play, a piece with no split of its own but more than LIVE_SPLIT_OVER colliders splits the same way, on the
+    // engine's paced yield in its registry's world scope (any shard's large live piece; the loading screen is unchanged).
+    const live = presenting(), scope = registry.scope;
+    const pace = split !== undefined ? split.yieldTask
+      : live && scope !== null && drawn.colliders.length > LIVE_SPLIT_OVER ? (): Promise<void> => paceYield(() => yieldTask(scope), scope, WORK_SLICE_MS) : undefined;
+    const every = pace === undefined ? drawn.colliders.length : Math.max(1, live ? Math.min(split?.every ?? LIVE_SPLIT_EVERY, LIVE_SPLIT_EVERY) : split?.every ?? LIVE_SPLIT_EVERY);
     registry.add({
       id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
       ...(shared ? { anchor: boxesCentre(boxes) } : { object: drawn.object }), colliders: drawn.colliders.slice(0, every),
@@ -1280,11 +1287,13 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
     registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()),
       // drawn into an object it shares (a kit, a painted place, a weld): a tap is this model's only on one of its copies (E323)
       ...(shared ? { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt), boxHit: (ray: THREE.Ray, far: number) => rayCopy(placed, ray, far) } : {}) });
-    if (split !== undefined && drawn.colliders.length > every) {
+    if (pace !== undefined && drawn.colliders.length > every) {
       // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
       registered = (async (): Promise<void> => {
         for (let at = every, k = 2; at < drawn.colliders.length; at += every, k++) {
-          if (!live || frameBudgetSpent(WORK_SLICE_MS)) await split.yieldTask();
+          if (!live || frameBudgetSpent(WORK_SLICE_MS)) await pace();
+          // a world that left while this waited takes no more pieces
+          if (registry.retired) return;
           registry.add({ id: `${pieceId}-${k}`, name: pc.name ?? def.name, category: def.category, file: def.file, colliders: drawn.colliders.slice(at, at + every),
             ...(def.surface === undefined ? {} : { surface: def.surface }) });
         }

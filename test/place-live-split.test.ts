@@ -2,7 +2,8 @@
 import { afterEach, expect, test } from 'vitest';
 import { BoxGeometry, Matrix4, MeshStandardMaterial } from 'three';
 import { defineModel, modelContext } from '../src/engine/models/model';
-import { LIVE_SPLIT_EVERY, place } from '../src/engine/models/place';
+import { LIVE_SPLIT_EVERY, LIVE_SPLIT_OVER, place } from '../src/engine/models/place';
+import { pageScope } from '../src/engine/app/resources';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { noteFrameDrawn, setFramePacing } from '../src/engine/core/framePacing';
 
@@ -41,4 +42,25 @@ test('in play a split piece registers the same colliders a dozen at a time', asy
   const live = await run();
   expect(live.pieces).toBe(Math.ceil(40 / LIVE_SPLIT_EVERY));
   expect([...live.colliders].sort((a, b) => a - b)).toEqual([...loading.colliders].sort((a, b) => a - b));
+});
+
+test('in play a large unsplit piece splits on the engine\'s yield, the same colliders', async () => {
+  const material = new MeshStandardMaterial(), ctx = modelContext(null);
+  const model = defineModel({ id: 'shared/live-auto-split-fixture', name: 'Auto split fixture', category: 'props', pipeline: 'code', file: 'test/place-live-split.test.ts', defaults: {},
+    build: () => [{ geometry: new BoxGeometry(1, 1, 1), material }],
+    colliders: () => [{ kind: 'box', x: 0, y: 0.5, z: 0, hx: 0.5, hy: 0.5, hz: 0.5, yaw: 0 }] });
+  const placements = Array.from({ length: 40 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
+  const count = async (scoped: boolean, playing: boolean): Promise<{ pieces: number; colliders: number }> => {
+    setFramePacing(playing); if (playing) noteFrameDrawn(performance.now());
+    const registry = new WorldRegistry();
+    if (scoped) registry.scope = pageScope;
+    const placed = place(model, placements, { ctx, draw: 'instanced', registry, piece: { id: 'auto' } });
+    await placed.registered;
+    const pieces = registry.pieces.filter(p => p.id.startsWith('auto'));
+    return { pieces: pieces.length, colliders: pieces.reduce((n, p) => n + (p.colliders?.length ?? 0), 0) };
+  };
+  expect(await count(true, false)).toEqual({ pieces: 1, colliders: 40 });
+  expect(await count(false, true)).toEqual({ pieces: 1, colliders: 40 });
+  expect(await count(true, true)).toEqual({ pieces: Math.ceil(40 / LIVE_SPLIT_EVERY), colliders: 40 });
+  expect(40).toBeGreaterThan(LIVE_SPLIT_OVER);
 });
