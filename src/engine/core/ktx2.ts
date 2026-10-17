@@ -33,6 +33,7 @@ import { uploadCompressedTexture } from '../render/compressedUpload';
 import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
 import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
+import { workSlice } from './workSlice';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -55,7 +56,16 @@ export function detectKtx2Support(made: KTX2Loader, renderer: Renderer): KTX2Loa
   if (harnessPins()?.ktx2Probe === 'skip') {
     const parse = made.parse.bind(made);
     made.parse = (buffer, onLoad, onError): void => {
-      parse(buffer, onLoad === undefined ? undefined : (texture) => { onLoad(widenRgbEtc2(texture)); }, onError);
+      parse(buffer, onLoad === undefined ? undefined : (texture) => {
+        const publish = async (): Promise<void> => {
+          try { onLoad(await widenRgbEtc2Async(texture)); }
+          catch (error) {
+            if (onError !== undefined) onError(new ErrorEvent('error', { error, message: String(error) }));
+            else queueMicrotask(() => { throw error; });
+          }
+        };
+        void publish();
+      }, onError);
     };
   }
   return made;
@@ -72,20 +82,49 @@ const OPAQUE_EAC = Uint8Array.of(0xff, 0, 0, 0, 0, 0, 0, 0);
  * there, so only a page whose probe the G386 measurement pin skipped transcodes opaque ETC1S to RGB8 ETC2; it widens
  * those textures instead (twice their bytes) and uploads safely. Any other texture comes back unchanged.
  */
-export function widenRgbEtc2(texture: THREE.CompressedTexture): THREE.CompressedTexture {
+function* widenRgbEtc2Steps(texture: THREE.CompressedTexture): Generator<undefined, THREE.CompressedTexture, void> {
   if (texture.format !== THREE.RGB_ETC2_Format || texture instanceof THREE.CompressedCubeTexture) return texture;
-  texture.mipmaps = texture.mipmaps.map((mip) => {
+  const mipmaps: THREE.CompressedTexture['mipmaps'] = [];
+  for (const mip of texture.mipmaps) {
     const src = new Uint8Array(mip.data.buffer, mip.data.byteOffset, mip.data.byteLength);
     const out = new Uint8Array(src.byteLength * 2);
-    for (let block = 0; block * 8 < src.byteLength; block++) {
-      out.set(OPAQUE_EAC, block * 16);
-      out.set(src.subarray(block * 8, block * 8 + 8), block * 16 + 8);
+    for (let start = 0; start < src.byteLength; start += 32768) {
+      yield;
+      for (let offset = start; offset < Math.min(start + 32768, src.byteLength); offset += 8) {
+        out.set(OPAQUE_EAC, offset * 2);
+        out.set(src.subarray(offset, offset + 8), offset * 2 + 8);
+      }
     }
-    return { data: out, width: mip.width, height: mip.height };
-  });
+    mipmaps.push({ data: out, width: mip.width, height: mip.height });
+  }
+  texture.mipmaps = mipmaps;
   texture.format = THREE.RGBA_ETC2_EAC_Format;
   texture.needsUpdate = true;
   return texture;
+}
+
+/** Renderer-free synchronous conversion for bake callers; runtime texture callbacks use the paced form below. */
+export function widenRgbEtc2(texture: THREE.CompressedTexture): THREE.CompressedTexture {
+  const steps = widenRgbEtc2Steps(texture);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
+}
+
+const wideningEtc2 = new WeakMap<THREE.CompressedTexture, Promise<THREE.CompressedTexture>>();
+/** Exact ETC2 widening in bounded batches under the shared frame budget; concurrent readers share complete mips. */
+export async function widenRgbEtc2Async(texture: THREE.CompressedTexture): Promise<THREE.CompressedTexture> {
+  const shared = wideningEtc2.get(texture); if (shared !== undefined) return shared;
+  const convert = async (): Promise<THREE.CompressedTexture> => {
+    const steps = widenRgbEtc2Steps(texture), slice = workSlice(undefined, pageScope);
+    for (;;) {
+      await slice.check();
+      const step = steps.next();
+      if (step.done) return step.value;
+    }
+  };
+  const pending = convert(); wideningEtc2.set(texture, pending);
+  try { return await pending; } finally { wideningEtc2.delete(texture); }
 }
 
 /** The same probe-filtered capabilities used by the actual transcoder; before a renderer, retain RGBA charging. */

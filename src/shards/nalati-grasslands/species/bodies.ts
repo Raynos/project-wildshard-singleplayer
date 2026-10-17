@@ -1,6 +1,6 @@
 import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { BufferAttribute, BufferGeometry } from 'three';
-import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
+import { fetchLaneBake } from '@wildshard/sdk/kit/geometryPack';
 import type { AnimalDims, AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import rowsJson from '../data/bodies.json' with { type: 'json' };
 import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from './bodyKey';
@@ -34,14 +34,6 @@ let bytes: Uint8Array | null = null;
 let offsets: Map<string, { row: BodyRow; at: number }> | null = null;
 let loading: Promise<void> | null = null;
 
-/** The binary from its shipped lanes (every 4-byte word's first bytes, then its second …), as the bake wrote them. */
-export function unshuffleBodyLanes(lanes: Uint8Array): Uint8Array {
-  if (lanes.length % 4 !== 0) throw new Error('[nalati-grasslands] the bodies bake is not whole words');
-  const n = lanes.length / 4, out = new Uint8Array(lanes.length);
-  for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
-  return out;
-}
-
 const pad4 = (n: number): number => n + ((4 - (n % 4)) % 4);
 /** a geometry's bytes in the binary: each channel (u16 joints, f32 the rest), then its u16 index */
 const geometryBytes = (g: BodyGeometryRow): number => {
@@ -70,8 +62,7 @@ export function provideNalatiBodies(read: () => Uint8Array): void { provider = r
 export function preloadNalatiBodies(): Promise<void> {
   loading ??= (async (): Promise<void> => {
     try {
-      const lanes = await fetchDeflated(metadata.assetFiles.bodies);
-      useNalatiBodies(unshuffleBodyLanes(lanes));
+      useNalatiBodies(await fetchLaneBake(metadata.assetFiles.bodies));
     } catch (error: unknown) { console.error('[nalati-grasslands] the baked species bodies did not load:', error); }
   })();
   return loading;

@@ -230,11 +230,9 @@ export class PineHollow extends ShardPlugin {
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     // SF67: the King's and his parked thralls' models, each in its own task before the combat install's prewarm spawns them
     // (the same cached models it would build in one stretch; the factory builds each from its own key's seed)
-    const warm = [[KING_KIND, 'warden'], ['elk', thrallVariant('elk')], ['boar', thrallVariant('boar')]] as const;
-    for (let i = 0; i < 3; i++) {
-      const [kind, variant] = warm[i] ?? warm[0];
-      ctx.scope.run(() => animals.factory.model(kind, variant)); await macrotask();
-    }
+    await ctx.scope.run(() => animals.factory.prepareModels([
+      { kind: KING_KIND, variant: 'warden' }, { kind: 'elk', variant: thrallVariant('elk') }, { kind: 'boar', variant: thrallVariant('boar') },
+    ]));
     // SF57: after the play hook's first await the owner is the page's; the boss / elite bars and the Elites service end with
     // this runtime, not with the page (one set per visit used to stay for the page's life)
     const decisions=await pageDecisionAuthority(ctx),decisionProgram=ctx.product.section('actors/species-programs').program;

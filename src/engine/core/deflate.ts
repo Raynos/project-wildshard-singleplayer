@@ -27,3 +27,23 @@ export async function fetchDeflatedBytes(url: string): Promise<Uint8Array> {
     try { await reader.cancel(); } finally { reader.releaseLock(); }
   }
 }
+
+/** Restore a range of four-byte words from their four byte lanes into a distinct complete buffer. */
+export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
+  if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');
+  const n = lanes.length / 4;
+  if (out.length !== lanes.length || out.buffer === lanes.buffer || !Number.isSafeInteger(wordStart) || !Number.isSafeInteger(wordEnd)
+    || wordStart < 0 || wordEnd < wordStart || wordEnd > n) throw new Error('unshuffleLanes: bad output/range');
+  for (let b = 0; b < 4; b++) for (let i = wordStart; i < wordEnd; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
+  return out;
+}
+
+/** Inflate and restore byte lanes in page-lived slices; cached reads survive a retired construction owner. */
+export async function fetchLaneBytes(url: string): Promise<Uint8Array> {
+  const lanes = await fetchDeflatedBytes(url), out = new Uint8Array(lanes.length), slice = workSlice(WORK_SLICE_MS, pageScope), words = lanes.length / 4;
+  for (let start = 0; start < words; start += 16_384) {
+    await slice.check();
+    unshuffleLanes(lanes, out, start, Math.min(words, start + 16_384));
+  }
+  return out;
+}

@@ -66,7 +66,8 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
 const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/rows');
 installNalatiSpeciesForTests();
 // Nalati's species bodies are an offline bake the page fetches: tests read the committed file (species/bodies.ts)
-const { provideNalatiBodies, unshuffleBodyLanes } = await import('../src/shards/nalati-grasslands/species/bodies');
+const { provideNalatiBodies } = await import('../src/shards/nalati-grasslands/species/bodies');
+const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');
 provideNalatiBodies(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/bodies.bin')))));
 // and its camps' and bridge's places bake (world/placeBake.ts)
 const { provideNalatiPlaces, provideNalatiDressing } = await import('../src/shards/nalati-grasslands/world/placeBake');

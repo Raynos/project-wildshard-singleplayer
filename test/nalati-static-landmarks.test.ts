@@ -12,7 +12,7 @@ import { SkyRig } from '../src/engine/world/skyRig';
 import { bakedPlaceAnchors, bakedPlaceSteps, placer, useNalatiPlaces } from '../src/shards/nalati-grasslands/world/placeBake';
 import { fieldstoneBaked as fieldstone, cragLedge, leopardCave, kurganEntrance, kurganKerb, graniteOutcrop, roundedBoulder, fence, signpostBaked, watchtower, stoneStep, kokparPost, kokparGoal, saddledHorse, kokparRider, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter } from '../src/shards/nalati-grasslands/models/catalogue';
 import { Flutter } from '../src/shards/nalati-grasslands/world/Flutter';
-import { unshuffleBodyLanes } from '../src/shards/nalati-grasslands/species/bodies';
+import { unshuffleLanes as unshuffleBodyLanes } from '../src/engine/core/deflate';
 import oracle from './fixtures/nalati-static-landmarks.json';
 import staticPaint from './fixtures/nalati-static-paint.json';
 

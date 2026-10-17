@@ -20,6 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { COCONUT_R, COCONUTS, CoconutVolley } from '../combat/strikes';
 import { driftwoodLaunch } from '../runtime/boot/rows';
 import { preloadSailorHead } from '../species/sailor';
+import { resourceScope } from '@wildshard/engine/app/resources';
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need
@@ -28,7 +29,7 @@ import { preloadSailorHead } from '../species/sailor';
  * `rig: 'custom'` + their own `think`); the AnimalManager still owns them (hit tests, health bars, blood, onKill,
  * corpses), so the sword, Combat.ts and the minimap see them like any boar.
  *
- *   const enemies = new Enemies(animals, { scene, sky, palms, wreck, crabSites }).build();
+ *   const enemies = await new Enemies(animals, { scene, sky, palms, wreck, crabSites }).build();
  *   game.onUpdate((dt, t) => enemies.update(dt, t, player.position));
  *
  *   palms      the PalmSpec[] the island's Palms were built from (Palms.scatterIsland) — the crowns become monkey perches
@@ -118,9 +119,11 @@ export class Enemies {
     }
   }
 
-  build(): this {
-    if (this.disposed) throw new Error('Cannot build disposed enemies');
+  async build(): Promise<this> {
+    const live = (): void => { if (this.disposed) throw new Error('Enemies unloaded during preparation'); };
+    live();
     const { opts, animals } = this;
+    const owner = opts.scope ?? resourceScope();
     // ── the pieces the AIs read (AnimalManager.habitat) ──
     const W = animals.habitat;
     if (opts.palms?.length) {
@@ -155,12 +158,11 @@ export class Enemies {
     }
     // the baked bodies first (AnimalFactory builds each model once, at its first spawn; the adventure's install already
     // waited on the same ~45 KB file behind the loading screen), then the placements in their order
-    void Promise.all([preloadSailorHead(), readDriftwoodBlob('sim/enemy-placement.json')]).then(([, bytes]) => {
-      if (this.disposed) return null;
-      this.placeAuthoredEnemies(v.parse(EnemyPlacementsSchema, JSON.parse(new TextDecoder().decode(bytes))));
-      return null;
-    });
-    opts.scene.add(this.group);
+    const [, bytes] = await Promise.all([preloadSailorHead(), readDriftwoodBlob('sim/enemy-placement.json')]);
+    const placement = v.parse(EnemyPlacementsSchema, JSON.parse(new TextDecoder().decode(bytes)));
+    await owner.run(() => animals.factory.prepareModels(placement.page[TIER].enemies));
+    live();
+    owner.run(() => { this.placeAuthoredEnemies(placement); opts.scene.add(this.group); });
     return this;
   }
 
@@ -170,10 +172,14 @@ export class Enemies {
     if (SEED !== placement.seed) throw new Error('Enemy placements require their authored seed');
     const rows = placement.page[TIER];
     this.rng.restore(rows.stream);
-    this.creatures.place(rows.centres, rows.kinds, rows.enemies, (actor, row) => {
+    const first = this.animals.animals.length, ordered = rows.enemies.filter(row => row.herd >= 0).sort((a, b) => a.herd - b.herd);
+    this.creatures.place(rows.centres, rows.kinds, rows.enemies);
+    for (const [index, row] of ordered.entries()) {
+      const actor = this.animals.animals[first + index]; if (actor === undefined) throw new Error('Missing placed enemy');
       if(row.practice===true){this.practiceCrab=actor;this.practiceDead=0;}
       if(row.kind==='crab')this.placed.crabs++;else this.placed.monkeys++;
-    }, (kind, i) => { if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++; });
+    }
+    rows.kinds.forEach((kind, i) => { if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++; });
     const sailor=rows.enemies.find(row=>row.kind==='sailor');if(sailor!==undefined)this.placeSailor(sailor, placement.hold);
   }
 

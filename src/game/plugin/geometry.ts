@@ -1,5 +1,5 @@
 import { unzlibSync } from 'fflate';
-import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
+import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
@@ -1233,22 +1233,12 @@ export async function fetchBuildFile(url: string): Promise<Uint8Array> {
 
 /** Restore byte lanes, optionally filling a word range in a distinct complete output. */
 export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
-  if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');
-  const n = lanes.length / 4;
-  if (out.length !== lanes.length || out.buffer === lanes.buffer || !Number.isSafeInteger(wordStart) || !Number.isSafeInteger(wordEnd)
-    || wordStart < 0 || wordEnd < wordStart || wordEnd > n) throw new Error('unshuffleLanes: bad output/range');
-  for (let b = 0; b < 4; b++) for (let i = wordStart; i < wordEnd; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
-  return out;
+  return restoreLanes(lanes, out, wordStart, wordEnd);
 }
 
 /** Fetch a lane-shuffled bake and restore its bytes within the live construction budget. */
-export async function fetchLaneBake(url: string): Promise<Uint8Array> {
-  const lanes = await fetchDeflated(url), out = new Uint8Array(lanes.length), slice = workSlice(), words = lanes.length / 4;
-  for (let start = 0; start < words; start += 16_384) {
-    await slice.check();
-    unshuffleLanes(lanes, out, start, Math.min(words, start + 16_384));
-  }
-  return out;
+export function fetchLaneBake(url: string): Promise<Uint8Array> {
+  return fetchLaneBytes(url);
 }
 
 // Built geometry as an offline bake stores it (SHARD-PLATFORM M3, the kit system): each attribute's typed array exactly

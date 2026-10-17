@@ -1,4 +1,6 @@
 {
+  "test/animal-model-preparation.test.ts": [],
+  "test/ktx2-widen-etc2.test.ts": [],
   "test/client-plan-boundary.test.ts": [],
   "test/client-plan-platform.test.ts": [],
   "test/view-field-host.test.ts": [],

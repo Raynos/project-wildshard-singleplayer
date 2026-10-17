@@ -183,6 +183,12 @@ export async function fetchDeflated(url: string): Promise<Uint8Array> {
   return fetchDeflatedBytes(url);
 }
 
+/** Fetch a zlib bake whose four-byte words are stored in byte lanes, restoring them within the live frame budget. */
+export async function fetchLaneBake(url: string): Promise<Uint8Array> {
+  const { fetchLaneBytes } = await import('@wildshard/engine/core/deflate');
+  return fetchLaneBytes(url);
+}
+
 /** Fetch a bake's JSON sidecar (a kit's placement metadata beside its GLB) as untrusted data (a failed fetch throws). */
 export async function fetchBakeJson(url: string): Promise<unknown> {
   const response = await fetch(url);

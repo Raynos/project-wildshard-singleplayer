@@ -14,6 +14,8 @@ import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lo
 import type { EyeSpot } from './species/look';
 import { app } from '../app/runtime';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { pageScope, resourceScope } from '../app/resources';
+import { workSlice } from '../core/workSlice';
 
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
@@ -304,6 +306,24 @@ export class AnimalFactory {
    *  in slices); read under the level whose models were made. */
   settled(): Promise<void> {
     return Promise.all(app.species.settles().map((settle) => settle())).then(() => undefined);
+  }
+
+  /** Prepare declared variants before a placement batch; an omitted/null variant prepares every variant for its kind.
+   * Preserves model seeds and cache identities without rolling the placement stream.
+   * Each model runs in the calling construction scope; spent slices let a live frame through. */
+  async prepareModels(rows: readonly { readonly kind: string; readonly variant?: string | null }[]): Promise<void> {
+    if (rows.length > 1024) throw new Error('Excessive creature model preparation');
+    const owner = resourceScope(), slice = workSlice(undefined, pageScope);
+    const live = (): void => { if (owner.disposed) throw new Error('Creature model preparation owner closed'); };
+    for (const row of rows) {
+      live();
+      const variants = owner.run(() => row.variant === undefined || row.variant === null ? speciesDef(row.kind).variants.map(variant => variant.id) : [row.variant]);
+      for (const variant of variants) {
+        await slice.check();
+        live();
+        owner.run(() => this.model(row.kind, variant));
+      }
+    }
   }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */

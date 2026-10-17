@@ -31,20 +31,20 @@ export async function installDriftwoodCreatures(ctx: ShardContext, decisions: Sp
   const shell = ctx.game.runtime;
   if (shell === undefined) throw new Error('Driftwood creatures require the world host');
   if (shell.world === null) throw new Error('Driftwood creatures require a built world');
-  const world = shell.world, previousReady = shell.hooks.animalsReady, previousUpdate = shell.hooks.worldUpdate;
+  const world = shell.world, previousReady = shell.hooks.animalsBuilt, previousUpdate = shell.hooks.worldUpdate;
   let enemies: Enemies | null = null;
-  const ready = (animals: AnimalManager): void => {
-    previousReady?.(animals);
+  const ready = async (animals: AnimalManager): Promise<void> => {
+    await previousReady?.(animals);
     const built = driftwoodWorld(shell);
-    enemies = new Enemies(animals, { respawn, scope: ctx.scope, scene: world.game.scene, sky: world.sky,
+    enemies = await new Enemies(animals, { respawn, scope: ctx.scope, scene: world.game.scene, sky: world.sky,
       palms: built.palmSpecs, wreck: built.wreck, crabSites: built.cove?.crabSites ?? [], practice: PRACTICE_CRAB }).build();
     shell.objects['enemies'] = enemies;
   };
   const update = (dt: number, t: number): void => { previousUpdate?.(dt, t); enemies?.update(dt, t, world.player.position); };
-  shell.hooks.animalsReady = ready; shell.hooks.worldUpdate = update;
+  shell.hooks.animalsBuilt = ready; shell.hooks.worldUpdate = update;
   ctx.scope.onDispose(() => {
-    if (shell.hooks.animalsReady === ready) {
-      if (previousReady === undefined) delete shell.hooks.animalsReady; else shell.hooks.animalsReady = previousReady;
+    if (shell.hooks.animalsBuilt === ready) {
+      if (previousReady === undefined) delete shell.hooks.animalsBuilt; else shell.hooks.animalsBuilt = previousReady;
     }
     if (shell.hooks.worldUpdate === update) {
       if (previousUpdate === undefined) delete shell.hooks.worldUpdate; else shell.hooks.worldUpdate = previousUpdate;

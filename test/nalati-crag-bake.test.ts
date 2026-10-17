@@ -10,7 +10,7 @@ import { expect, it } from 'vitest';
 import { MeshBasicMaterial } from 'three';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { createClientScene } from '@wildshard/game/plugin/ui';
-import { unshuffleBodyLanes } from '../src/shards/nalati-grasslands/species/bodies';
+import { unshuffleLanes as unshuffleBodyLanes } from '../src/engine/core/deflate';
 import rows from '../src/shards/nalati-grasslands/boot/cragRock.generated.json';
 import oracle from './fixtures/nalati-crag-bake.json';
 

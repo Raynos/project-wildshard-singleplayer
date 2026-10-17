@@ -10,11 +10,10 @@ import type { Placed } from '@wildshard/engine/models/place';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readBakedGeometry, type BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
-import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
+import { fetchLaneBake as fetchLanes } from '@wildshard/sdk/kit/geometryPack';
 import placesJson from '../data/places.json' with { type: 'json' };
 import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
 import type { NalatiTexName } from '../look/nalatiTextures';
-import { unshuffleBodyLanes } from '../species/bodies';
 import { poiMaterial, texturedMaterial, type ModelPlacement, type NalatiModelName } from './modelView';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type CragLedgeFloor, type LeopardCaveFloor, type KurganEntranceFloor, flushInstances, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
 import type { Box } from './solid';
@@ -130,10 +129,6 @@ function offsets<R>(bake: Bake<R>, raw: Uint8Array, geos: (r: R) => readonly { r
   for (const r of bake.rows) for (const m of geos(r)) { out.push(at); at += bytesOfRow(m.geometry); }
   if (at !== raw.length) throw new Error(`[nalati-grasslands] the ${what} rows do not cover the bake`);
   return out;
-}
-
-async function fetchLanes(url: string): Promise<Uint8Array> {
-  return unshuffleBodyLanes(await fetchDeflated(url));
 }
 
 const PAINT = bakeOf<{ readonly key: string; readonly geometry: PlaceGeometryRow; readonly data: string }>(poiPaint, 'poiPaint.json');

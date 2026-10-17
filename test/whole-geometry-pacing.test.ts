@@ -135,3 +135,13 @@ test('a page-lived bake read survives a retired ambient construction owner', asy
   try { expect(await fetchDeflatedBytes('https://test.example/page-bake')).toEqual(bytes); }
   finally { enterOwner(null); }
 });
+
+test('lane restoration keeps its page lifetime after the construction owner retires', async () => {
+  const lanes = new Uint8Array(262_144), retired = new Scope('retired-lane-reader'); owners.push(retired);
+  for (let i = 0; i < lanes.length; i++) lanes[i] = i % 251;
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(zlibSync(lanes))));
+  let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
+  enterOwner(retired); retired.dispose();
+  try { expect(await fetchLaneBake('https://test.example/page-lanes')).toEqual(unshuffleLanes(lanes)); }
+  finally { enterOwner(null); }
+});

@@ -1,7 +1,10 @@
 // @vitest-environment happy-dom
-import { expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { widenRgbEtc2 } from '@wildshard/engine/core/ktx2';
+import { widenRgbEtc2, widenRgbEtc2Async } from '@wildshard/engine/core/ktx2';
+import { pageScope } from '@wildshard/engine/app/resources';
+
+afterEach(() => { vi.restoreAllMocks(); });
 
 const block = (seed: number): number[] => Array.from({ length: 8 }, (_, i) => (seed * 31 + i * 7) & 0xff);
 
@@ -33,4 +36,34 @@ it('leaves every other format alone', () => {
   expect(t.format).toBe(THREE.RGBA_ASTC_4x4_Format);
   expect(t.mipmaps[0]?.data).toBe(data);
   expect(t.version).toBe(version);
+});
+
+it('paces large array mips without publishing partial data or changing output bytes', async () => {
+  const source = Uint8Array.from({ length: 131072 }, (_, index) => index * 17 & 255);
+  const mipmaps = [{ data: source, width: 256, height: 256 }, { data: source.subarray(0, 32768), width: 128, height: 128 }];
+  const direct = new THREE.CompressedArrayTexture(mipmaps, 256, 256, 4, THREE.RGB_ETC2_Format);
+  const paced = new THREE.CompressedArrayTexture(mipmaps, 256, 256, 4, THREE.RGB_ETC2_Format);
+  const expected = widenRgbEtc2(direct), version = paced.version;
+  const timeout = vi.spyOn(pageScope, 'timeout');
+  let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
+  const pending = widenRgbEtc2Async(paced), concurrent = widenRgbEtc2Async(paced);
+  expect(paced.mipmaps).toBe(mipmaps);
+  expect(paced.format).toBe(THREE.RGB_ETC2_Format);
+  expect(paced.version).toBe(version);
+  expect(await pending).toBe(paced);
+  expect(await concurrent).toBe(paced);
+  expect(timeout.mock.calls.length).toBeGreaterThan(5);
+  expect(paced.mipmaps).toEqual(expected.mipmaps);
+  expect(paced.format).toBe(expected.format);
+  expect(paced.version).toBe(version + 1);
+  expect(source).toEqual(Uint8Array.from({ length: source.length }, (_, index) => index * 17 & 255));
+});
+
+it('retains other compressed formats through the paced callback', async () => {
+  const data = Uint8Array.from(block(3)), mipmaps = [{ data, width: 4, height: 4 }];
+  const texture = new THREE.CompressedTexture(mipmaps, 4, 4, THREE.RGBA_ASTC_4x4_Format);
+  const version = texture.version;
+  expect(await widenRgbEtc2Async(texture)).toBe(texture);
+  expect(texture.mipmaps).toBe(mipmaps);
+  expect(texture.version).toBe(version);
 });
