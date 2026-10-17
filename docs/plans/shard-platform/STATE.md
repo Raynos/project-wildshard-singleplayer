@@ -18,6 +18,8 @@
 
 **G468 (Jake 18:55, `f783bb736`):** every commit deletes a whole runtime file or module with its data path in the same commit (aim ~150+ net, no admit-only); parity per ~5-commit batch; a board only when the look changes; DW first (DW 53.1 % needs ~390/h); x1 joins C5/C4 after the C7 fixes. Relayed to all ten lanes 19:0x.
 
+**G469 (Jake 19:40):** short-lived agents: one task per Codex agent, then `/new` and a fresh self-contained brief; one job per Opus subagent; no poll loops.
+
 **Visual:** A short Opus host review runs at each component's close.
 
 **G467:** Pine logCabin.ts stays (a working generator); generators are not custom code (no column, no re-base, build-time code may live in generators/).
