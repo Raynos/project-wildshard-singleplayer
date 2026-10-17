@@ -1,6 +1,6 @@
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
-import { DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/data/output';
+import { DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { admitDriftwoodRows } from '../../src/shards/driftwood-isle/runtime/boot/rows';
 

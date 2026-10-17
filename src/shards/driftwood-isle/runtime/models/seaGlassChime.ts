@@ -19,7 +19,7 @@ import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { SlotGeometry } from './slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { CHIME_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 import { driftwoodRows } from '../boot/rows';
 
 /** Maximum collectible pieces; slot 0 is always the cord and bar. */
@@ -48,7 +48,7 @@ export class SeaGlassChime extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
 
 /** a chime showing `count` pieces */
 export function buildSeaGlassChime(ctx: ModelContext, count = 0): SeaGlassChime {
-  return new SeaGlassChime(new SlotGeometry(CHIME_GEOMETRY.copy(), driftwoodRows('custom/fixedLayouts').chimeSlots), lowPolyLookMaterial(ctx.sky), count);
+  return new SeaGlassChime(new SlotGeometry(fixedDraw('chime').copy(), driftwoodRows('custom/fixedLayouts').chimeSlots), lowPolyLookMaterial(ctx.sky), count);
 }
 
 export interface SeaGlassChimeParams {

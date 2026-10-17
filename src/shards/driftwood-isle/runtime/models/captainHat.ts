@@ -15,18 +15,18 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { HAT_GEOMETRY, CAPE_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 
 /** Both cosmetics keep their baked geometry, ordinary kit material and native socket space. */
 const GARMENTS = {
-  'captain-hat': { name: "Captain's hat", geometry: HAT_GEOMETRY, yaw: 0 },
-  'sailcloth-cape': { name: 'Sailcloth cape', geometry: CAPE_GEOMETRY, yaw: Math.PI },
+  'captain-hat': { name: "Captain's hat", geometry: fixedDraw('hat'), yaw: 0 },
+  'sailcloth-cape': { name: 'Sailcloth cape', geometry: fixedDraw('cape'), yaw: Math.PI },
 } as const;
 type Garment = keyof typeof GARMENTS;
 
 /** Fresh copies; worn/specimen scaling never changes the shared template. */
-export function captainHatGeometry(): THREE.BufferGeometry { return HAT_GEOMETRY.copy(); }
-export function sailclothCapeGeometry(): THREE.BufferGeometry { return CAPE_GEOMETRY.copy(); }
+export function captainHatGeometry(): THREE.BufferGeometry { return fixedDraw('hat').copy(); }
+export function sailclothCapeGeometry(): THREE.BufferGeometry { return fixedDraw('cape').copy(); }
 
 function buildGarment(ctx: ModelContext, id: Garment): THREE.Mesh {
   const mesh = new THREE.Mesh(GARMENTS[id].geometry.copy(), lowPolyLookMaterial(ctx.sky));

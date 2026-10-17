@@ -3,13 +3,14 @@ import { Mesh, type Object3D } from 'three';
 import { admitBridgeFacts } from '../src/shards/driftwood-isle/boot/bridgeFacts';
 import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/runtime/models/ropeBridge';
 import { fakeWorld } from './fake/world';
-import { BRIDGE_SPECIMEN_POSTS_GEOMETRY } from '../src/shards/driftwood-isle/runtime/boot/fixedGeometry';
+import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgePosts } from '../src/shards/driftwood-isle/generators/ropeBridge';
 
 const span:RopeBridgeSpec={a:[0,0],b:[12,0],sag:0.9};
 const isMesh=(o:Object3D):o is Mesh=>o instanceof Mesh;
 // The page admits the baked posts before it builds; the author recipe stands in for the fixed-model bytes here.
-beforeAll(async () => { await BRIDGE_SPECIMEN_POSTS_GEOMETRY.load(bridgePosts(span,()=>0)); });
+beforeAll(async () => { admitDriftwoodFixtureRows(); await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0)); });
 it('keeps deck owners and the walk floor on the live chain poses', () => {
   const bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
   try {
@@ -56,7 +57,7 @@ it('draws the baked anchor posts, painted, and refuses to draw before they load'
     want.dispose();
     bridge.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});bridge.mesh.clear();
   }
-  BRIDGE_SPECIMEN_POSTS_GEOMETRY.take().dispose();
+  fixedDraw('bridgeSpecimenPosts').take().dispose();
   expect(()=>ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0})).toThrow('not loaded');
-  await BRIDGE_SPECIMEN_POSTS_GEOMETRY.load(bridgePosts(span,()=>0));
+  await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0));
 });

@@ -3,7 +3,7 @@ import { GROUND_FILES } from '../src/shards/driftwood-isle/data/groundFiles';
 import { PALM_FILES } from '../src/shards/driftwood-isle/data/palmFiles';
 import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/data/hibiscusFiles';
 import { REEF_FILES } from '../src/shards/driftwood-isle/data/reefFiles';
-import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/data/output';
+import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
 
 test('all draw labels preserve the authored tier, variant and deduplicated blob identity', () => {
   const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));

@@ -8,7 +8,7 @@ import {driftwoodRows} from '../boot/rows';
 import {pierParamsKey,type PierParams} from '../../assets/contracts/pier';
 import {PIER_DEFAULTS,PIER_VARIANTS} from '../../data/pierRows';
 import rows from '../../data/piers.generated.json' with {type:'json'};
-import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../boot/fixedGeometry';
+import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../boot/modelGeometry';
 
 const pair=(v:readonly number[]):[number,number]=>{const [a,b]=v;if(a===undefined||b===undefined||v.length!==2)throw new Error('Pier row requires a pair');return [a,b];};
 const admit=(p:typeof rows[number]['params']):PierParams=>({length:p.length,width:p.width,pileDepth:p.pileDepth,pennantDir:pair(p.pennantDir),

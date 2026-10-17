@@ -212,6 +212,18 @@
         "bytes": 513857
       },
       "why": "G468 C9: the fixedLayouts shadow tier flags (+93 B) replace the deleted runtime/tiers module; remaining tier authoring runs only in generators. Cover templates share the existing admitted fixed batch; no new section or host."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 8,
+        "bytes": 513857
+      },
+      "to": {
+        "count": 8,
+        "bytes": 517540
+      },
+      "why": "G468 C9: 86 fixed draw slot/channel declarations (+3683 B) replace the deleted runtime fixedGeometry module and parallel preload lists. Existing owned geometry batch preserves copy/take ownership; the source index runs offline. No new section or host."
     }
   ]
 }

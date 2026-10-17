@@ -89,3 +89,69 @@ export const FIXED_MODEL_FILES = {
   entryDeckDeep: '/assets/driftwood-isle/baked/fixed-models/entry-deck-deep.glb',
   entryDeckShallow: '/assets/driftwood-isle/baked/fixed-models/entry-deck-shallow.glb',
 } as const;
+
+/** Original GLB channel aliases, compiled into the admitted fixed draw declarations. */
+const channels: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  "hat": {
+    "_sway": "aSway"
+  },
+  "chime": {
+    "_sway": "aSway"
+  },
+  "cape": {
+    "_sway": "aSway"
+  },
+  "boatSail": {
+    "_sway": "aSway"
+  },
+  "tradeCounter": {
+    "_sway": "aSway"
+  },
+  "lookout": {
+    "_sway": "aSway"
+  },
+  "wreckKit": {
+    "_sway": "aSway"
+  },
+  "shipwreckKit": {
+    "_sway": "aSway"
+  },
+  "waterfallSheet": {
+    "_astep": "aStep"
+  },
+  "waterfallPuffs": {
+    "_acentre": "aCentre",
+    "_ainfo": "aInfo"
+  },
+  "shrineFireflies": {
+    "_afly": "aFly"
+  },
+  "gull": {
+    "_apart": "aPart"
+  },
+  "castawaySmoke": {
+    "_apuff": "aPuff"
+  },
+  "mooringLines": {
+    "_amoor": "aMoor"
+  },
+  "npcTraderBody": {
+    "_sway": "aSway"
+  },
+  "npcTraderHead": {
+    "_sway": "aSway"
+  },
+  "pierWorld0Cloth": {
+    "_sway": "aSway"
+  },
+  "pierWorld1Cloth": {
+    "_sway": "aSway"
+  },
+  "pierWorld3Cloth": {
+    "_sway": "aSway"
+  },
+  "pierSpecimenLandingCloth": {
+    "_sway": "aSway"
+  }
+};
+export const FIXED_DRAW_ROWS = Object.keys(FIXED_MODEL_FILES).map(slot => ({slot, channels:Object.entries(channels[slot] ?? {})}));

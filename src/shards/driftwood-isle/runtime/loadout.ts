@@ -1,6 +1,6 @@
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import type { Group, Material } from 'three';
-import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from './boot/fixedGeometry';
+import { fixedDraw } from './boot/modelGeometry';
 import { FP_ARMS_MATERIALS } from './const';
 import type { MeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { driftwoodRows } from './boot/rows';
@@ -51,7 +51,7 @@ export function buildIronSwordDisplay(materials: ReadonlyMap<string, Material>):
   const blade = materials.get(FP_ARMS_MATERIALS.pickupBlade), fittings = materials.get(FP_ARMS_MATERIALS.pickupFittings);
   if (blade === undefined || fittings === undefined) throw new Error('Iron sword display requires its graph materials');
   const made=createClientScene(driftwoodRows('custom/fixedLayouts').ironSword,{
-    geometry:id=>{if(id==='blade')return IRON_SWORD_BLADE_GEOMETRY.copy();if(id==='fittings')return IRON_SWORD_FITTINGS_GEOMETRY.copy();throw new Error('Unknown declared iron sword geometry');},
+    geometry:id=>{if(id==='blade')return fixedDraw('ironSwordBlade').copy();if(id==='fittings')return fixedDraw('ironSwordFittings').copy();throw new Error('Unknown declared iron sword geometry');},
     materials: new Map([['blade', blade], ['fittings', fittings]]),
   });
   const root=made.group('pickup');if(root===null)throw new Error('Iron sword display requires its declared group');return root;

@@ -17,7 +17,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { loadReefWorld } from '../runtime/boot/reefGeometry';
-import { REEF_FISH_GEOMETRY, loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import { loadFixedGeometry, fixedDraw } from '../runtime/boot/modelGeometry';
 import { reefMaterial } from '../runtime/models/reef';
 import { SEABED } from '../data/seabedLook';
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
@@ -35,7 +35,7 @@ export async function buildSeabed(sky: Sky): Promise<Seabed> {
   const s = REEF_LAYOUT.school, swim = SEABED.swim, centre = { x: s.x, y: s.y, z: s.z };
   // the baked fish faces -z, the host's +z
   const school = createAmbientFlock({ ...swim, count: s.n, wheeling: { ...swim.wheeling, centre: { x: s.x, z: s.z }, radius: s.r, altitude: [s.y, s.y] } },
-    { name: SEABED.fishMesh, geometry: REEF_FISH_GEOMETRY.copy().rotateY(Math.PI), material: lowPolyLookMaterial(sky, 'still') });
+    { name: SEABED.fishMesh, geometry: fixedDraw('reefFish').copy().rotateY(Math.PI), material: lowPolyLookMaterial(sky, 'still') });
   const tint = new THREE.Color();
   for (let i = 0; i < 64; i++) { const fish = s.fish[i]; if (fish === undefined) break; school.mesh.setColorAt(i, tint.setHex(fish.colour)); }
   return { mesh, fish: school.mesh, tick: (dt) => { update?.(); school.update(dt, centre); } };

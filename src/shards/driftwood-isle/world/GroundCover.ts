@@ -17,7 +17,7 @@
  * No URL switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
-import { DUNE_LOGS_GEOMETRY, copyCoverGeometry } from '../runtime/boot/fixedGeometry';
+import { copyCoverGeometry, fixedDraw } from '../runtime/boot/modelGeometry';
 import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
 import { GROUND_COVER } from '../data/coverLook';
 import { CoverGrid } from './coverTint';
@@ -53,7 +53,7 @@ export class GroundCover extends StreamedCover {
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
-    const geo = DUNE_LOGS_GEOMETRY.take();
+    const geo = fixedDraw('duneLogs').take();
     const mesh = new THREE.Mesh(geo, lowPolyLookMaterial(this.sky));
     mesh.name = 'ground-cover-driftwood';
     mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)

@@ -5,7 +5,7 @@ import { expect, it } from 'vitest';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
 import { contentHash } from '../src/sdk/project';
-import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/data/modelFiles';
+import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import product from '../src/shards/driftwood-isle/data/fixedTiles.generated.json' with { type: 'json' };
 import source from '../src/shards/driftwood-isle/shard.config';
 

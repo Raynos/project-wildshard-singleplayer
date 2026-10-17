@@ -6,11 +6,11 @@
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { GULL_GRAPH_LOOK } from '../const';
-import { GULL_GEOMETRY } from '../boot/fixedGeometry';
+import { fixedDraw } from '../boot/modelGeometry';
 import { driftwoodRows } from '../boot/rows';
 
 /** A gull flock on `perches` (a copy of the look per flock: the world's, a Model Explorer card's). */
 export function gullFlock(perches: readonly { x: number; y: number; z: number }[], count?: number): AmbientFlockDraw {
   const row = driftwoodRows('custom/gullFlock');
-  return createAmbientFlock(count === undefined ? row : { ...row, count, wheeling: null, guide: null, call: null }, { name: GULL_GRAPH_LOOK, geometry: GULL_GEOMETRY.copy(), material: lentLook(GULL_GRAPH_LOOK).clone(), castShadow: true }, perches);
+  return createAmbientFlock(count === undefined ? row : { ...row, count, wheeling: null, guide: null, call: null }, { name: GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(GULL_GRAPH_LOOK).clone(), castShadow: true }, perches);
 }

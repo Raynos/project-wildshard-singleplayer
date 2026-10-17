@@ -29,7 +29,7 @@ import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadF
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { CASTAWAY_POSE, CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING, CASTAWAY_SMOKE } from '../const';
 import { driftwoodRows } from '../boot/rows';
-import { NPC_KIT_GEOMETRY, WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
+import { NPC_KIT_GEOMETRY, fixedDraw } from '../boot/modelGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -42,8 +42,8 @@ const NEAR_R = 85;
 
 /** The original fitted head, prepared offline and lent through the existing fixed-model library. */
 export async function loadWendellFace(): Promise<THREE.BufferGeometry> {
-  await WENDELL_HEAD_GEOMETRY.load();
-  return WENDELL_HEAD_GEOMETRY.copy();
+  await fixedDraw('wendellHead').load();
+  return fixedDraw('wendellHead').copy();
 }
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }

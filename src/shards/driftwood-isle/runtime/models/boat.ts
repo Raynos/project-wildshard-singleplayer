@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
-import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BOAT_LAYOUT } from '../const';
@@ -36,7 +36,7 @@ export function boatColliders(): ColliderDesc[] {
   ];
 }
 
-const DRAWS = { hull: BOAT_HULL_GEOMETRY, sail: BOAT_SAIL_GEOMETRY, gear: BOAT_GEAR_GEOMETRY };
+const DRAWS = { hull: fixedDraw('boatHull'), sail: fixedDraw('boatSail'), gear: fixedDraw('boatGear') };
 
 /** The hull (one-sided: it never shadows itself), the sail + rigging (casts, never receives) and the thin gear (receives,
  *  never casts); only the geometry comes from the offline bake. */

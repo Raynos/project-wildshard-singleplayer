@@ -12,7 +12,7 @@ import { shipwreck, wreckSiteKind } from '../runtime/models/fixedSites';
 import type { WreckAnchor, HoldBounds, WreckSpec } from '../assets/contracts/wreck';
 import { barrel as barrelModel, crate as crateModel, ropeCoil, driftLog } from '../runtime/models/cargo';
 import { reefRock } from '../runtime/models/shoreBoulder';
-import { WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY, WRECK_ROCKS_GEOMETRY } from '../runtime/boot/fixedGeometry';
+import { fixedDraw } from '../runtime/boot/modelGeometry';
 import bake from '../data/wreckBake.json' with { type: 'json' };
 
 /** Wreck Cove's authored draw, native floor query and existing model/registry ownership. */
@@ -30,10 +30,10 @@ export class Wreck {
   place(registry: WorldRegistry): this { return this.draw(registry); }
   build(): this { return this.draw(null); }
   private draw(registry: WorldRegistry | null): this {
-    this.mesh = new THREE.Mesh(WRECK_KIT_GEOMETRY.copy(),lowPolyLookMaterial(this.sky));
+    this.mesh = new THREE.Mesh(fixedDraw('wreckKit').copy(),lowPolyLookMaterial(this.sky));
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
-    this.glow = new THREE.Mesh(WRECK_GLOW_GEOMETRY.copy(),new THREE.MeshBasicMaterial({vertexColors:true})); this.glow.name='wreck-lanterns';
-    const reef = new THREE.Mesh(WRECK_ROCKS_GEOMETRY.copy(),rockMaterial(this.sky)); reef.name='wreck-rocks';reef.castShadow=true;reef.receiveShadow=true;
+    this.glow = new THREE.Mesh(fixedDraw('wreckGlow').copy(),new THREE.MeshBasicMaterial({vertexColors:true})); this.glow.name='wreck-lanterns';
+    const reef = new THREE.Mesh(fixedDraw('wreckRocks').copy(),rockMaterial(this.sky)); reef.name='wreck-rocks';reef.castShadow=true;reef.receiveShadow=true;
     this.group.add(reef,this.mesh,this.glow);
     this.colliders=structuredClone(bake.colliders);this.anchors=structuredClone(bake.anchors);this.holdBounds={...bake.holdBounds};
     // ── the Wreck cove's models, drawn into the site's meshes ──

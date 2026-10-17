@@ -11,7 +11,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { ENTRY_DECK_GEOMETRY } from '../boot/fixedGeometry';
+import { ENTRY_DECK_GEOMETRY } from '../boot/modelGeometry';
 
 export interface EntryDeckParams {
   /** how far in from the cell edge the deck runs, metres (the 15 m socket and its landing) */

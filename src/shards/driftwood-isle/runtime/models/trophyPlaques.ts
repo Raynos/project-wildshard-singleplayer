@@ -18,7 +18,7 @@ import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { SlotGeometry } from '../models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 import { driftwoodRows } from '../boot/rows';
 import { TROPHY_LAYOUT } from '../const';
 
@@ -40,7 +40,7 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
   /** `drop`: the loose-drop bake (the trophies at gap 0), else the wall's */
   constructor(drop: boolean, material: THREE.Material, filled: Partial<Record<TrophyId, boolean>>) {
     const baked = driftwoodRows('custom/fixedLayouts').trophySlots; // the product's baked ranges (data/trophySlots.json)
-    const slots = new SlotGeometry((drop ? TROPHY_DROP_GEOMETRY : TROPHY_PLAQUES_GEOMETRY).copy(), baked.ranges);
+    const slots = new SlotGeometry((drop ? fixedDraw('trophyDrop') : fixedDraw('trophyPlaques')).copy(), baked.ranges);
     super(slots.geometry, material);
     this.slots = slots; this.empty = baked.empty; this.full = baked.full;
     this.name = 'trophy-plaques';

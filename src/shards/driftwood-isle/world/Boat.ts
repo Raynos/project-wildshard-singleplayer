@@ -22,7 +22,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
-import { MOORING_LINES_GEOMETRY } from '../runtime/boot/fixedGeometry';
+import { fixedDraw } from '../runtime/boot/modelGeometry';
 import { BEAM, BOAT_FLOOR, LENGTH, boat } from '../runtime/models/boat';
 
 export interface BoatSpec {
@@ -57,7 +57,7 @@ export class Boat {
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
     if (this.spec.moored === true) {
-      this.moorings = new MooringLines(MOORING_LINES_GEOMETRY.copy(), [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], mat);
+      this.moorings = new MooringLines(fixedDraw('mooringLines').copy(), [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], mat);
       this.ropes = this.moorings.mesh;
     }
     // gunwales + bow / stern as thin walls: they keep you in the boat once you're in, and keep a swimmer out

@@ -6,8 +6,8 @@ import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
 import { driftwoodTierShadows, driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { _buildAs } from '../src/engine/core/tier';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/data/modelFiles';
-import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/data/output';
+import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
+import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
 
 // P2a spec §2.3 / review item 8: Driftwood's runtime/const.ts copies must equal the data/ values they mirror.
 test('Driftwood runtime/const.ts mirrors data/ exactly', () => {

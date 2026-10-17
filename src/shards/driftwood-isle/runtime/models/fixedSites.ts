@@ -26,9 +26,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { driftwoodRows } from '../boot/rows';
 import { SHRINE_POOL_LOOK, SHRINE_SITES, WRECK_SITES } from '../const';
-import { fixedGeometryReady, loadFixedGeometry, HUT_KIT_GEOMETRY, HUT_FLAMES_GEOMETRY, LOOKOUT_GEOMETRY, WRECK_KIT_GEOMETRY,
-  WRECK_GLOW_GEOMETRY, SHIPWRECK_KIT_GEOMETRY, SHIPWRECK_GLOW_GEOMETRY, SHRINE_KIT_GEOMETRY, SHRINE_WATER_GEOMETRY,
-  SHRINE_GLYPHS_GEOMETRY, SHRINE_SPECIMEN_KIT_GEOMETRY, SHRINE_SPECIMEN_WATER_GEOMETRY, SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
+import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 
 /** Where a building stands: its centre (world xz) and which way its front faces (rot, radians about +Y). */
 export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }
@@ -81,10 +79,10 @@ export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; gly
   return ctx.once('driftwood-isle/shrine:materials', () => ({ water: lentLook(SHRINE_POOL_LOOK), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }) }));
 }
 
-const DRAWS = { 'hut-kit': HUT_KIT_GEOMETRY, 'hut-flames': HUT_FLAMES_GEOMETRY, lookout: LOOKOUT_GEOMETRY,
-  'wreck-world-kit': WRECK_KIT_GEOMETRY, 'wreck-world-glow': WRECK_GLOW_GEOMETRY, 'wreck-specimen-kit': SHIPWRECK_KIT_GEOMETRY, 'wreck-specimen-glow': SHIPWRECK_GLOW_GEOMETRY,
-  'shrine-world-kit': SHRINE_KIT_GEOMETRY, 'shrine-world-water': SHRINE_WATER_GEOMETRY, 'shrine-world-glyphs': SHRINE_GLYPHS_GEOMETRY,
-  'shrine-specimen-kit': SHRINE_SPECIMEN_KIT_GEOMETRY, 'shrine-specimen-water': SHRINE_SPECIMEN_WATER_GEOMETRY, 'shrine-specimen-glyphs': SHRINE_SPECIMEN_GLYPHS_GEOMETRY };
+const DRAWS = { 'hut-kit': fixedDraw('hutKit'), 'hut-flames': fixedDraw('hutFlames'), lookout: fixedDraw('lookout'),
+  'wreck-world-kit': fixedDraw('wreckKit'), 'wreck-world-glow': fixedDraw('wreckGlow'), 'wreck-specimen-kit': fixedDraw('shipwreckKit'), 'wreck-specimen-glow': fixedDraw('shipwreckGlow'),
+  'shrine-world-kit': fixedDraw('shrineKit'), 'shrine-world-water': fixedDraw('shrineWater'), 'shrine-world-glyphs': fixedDraw('shrineGlyphs'),
+  'shrine-specimen-kit': fixedDraw('shrineSpecimenKit'), 'shrine-specimen-water': fixedDraw('shrineSpecimenWater'), 'shrine-specimen-glyphs': fixedDraw('shrineSpecimenGlyphs') };
 type Draw = LibraryDraw<'kit' | 'still' | 'glow' | 'water' | 'glyphs', keyof typeof DRAWS>;
 const shadowed = (draw: Draw['draw'], material: Draw['material']): Draw => ({ draw, material, castShadow: true, receiveShadow: true });
 

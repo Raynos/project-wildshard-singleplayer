@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { castawayRig } from '../npc/people';
-import { loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadFixedGeometry } from '../boot/modelGeometry';
 
 /** the particle columns stripped from the card (today one: his campfire smoke) */
 const MAX_SMOKE = 8;

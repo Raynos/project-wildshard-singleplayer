@@ -16,7 +16,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { SHRINE_RUNE, bakedSite, shrine, shrineMaterials, shrineRow, type ShrineSite } from '../models/fixedSites';
 import { FIREFLY_LOOK } from '../const';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { SHRINE_FIREFLIES_GEOMETRY } from '../boot/fixedGeometry';
+import { fixedDraw } from '../boot/modelGeometry';
 
 /** The placed shrine with its glyph pulse and its dusk writer. */
 export interface Shrine extends ModelSite { readonly update: (dt: number) => void; readonly setDusk: (k: number) => void }
@@ -27,7 +27,7 @@ export function placeShrine(sky: Sky, site: ShrineSite, registry: WorldRegistry 
   const placed = placeModelSite(shrine, origin, layout, { ctx, registry, params: { site }, piece: { id: 'shrine' } });
   const glyphs = shrineMaterials(ctx).glyphs;
   // the firefly cloud (an effect, not the model): the baked quads (generators/fireflies.ts) the graph circles round the platform, 0.4–3 m up
-  const g = SHRINE_FIREFLIES_GEOMETRY.copy();
+  const g = fixedDraw('shrineFireflies').copy();
   g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, terrace - baseY, 0), 18);
   const mesh = new THREE.Mesh(g, look ?? undefined);
   mesh.name = 'shrine-fireflies'; mesh.renderOrder = 4; mesh.visible = look !== null;

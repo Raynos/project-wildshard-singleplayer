@@ -40,7 +40,7 @@ import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from '.
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { onDeck } from './entryDeck';
 import { entryDeck } from '../runtime/models/entryDeck';
-import { loadFixedGeometry } from '../runtime/boot/fixedGeometry';
+import { loadFixedGeometry } from '../runtime/boot/modelGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 

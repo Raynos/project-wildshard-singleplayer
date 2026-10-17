@@ -8,7 +8,7 @@
  */
 import { defineModel, type ModelContext, type ModelPart, type ModelDef } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { CARGO_GEOMETRY, DRIFT_LOG_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { CARGO_GEOMETRY, DRIFT_LOG_GEOMETRY, loadFixedGeometry } from '../boot/modelGeometry';
 
 /** Every wooden card copies the same prepared template before applying its authored scale. */
 function specimen(ctx: ModelContext, key: string, template: { copy: () => ModelPart['geometry'] }, sx = 1, sy = sx, sz = sy): readonly ModelPart[] {

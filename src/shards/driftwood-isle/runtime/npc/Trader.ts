@@ -28,7 +28,7 @@ import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadF
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { TRADER_POSE, TRADER_HEAD_FOCUS, TRADER_FACING } from '../const';
 import { driftwoodRows } from '../boot/rows';
-import { NPC_KIT_GEOMETRY } from '../boot/fixedGeometry';
+import { NPC_KIT_GEOMETRY } from '../boot/modelGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 

@@ -1,7 +1,7 @@
 import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { fixedGeometryHandle as modelGeometry } from './modelGeometry';
+import { fixedDraw as modelGeometry } from './modelGeometry';
 import { driftwoodRows } from './rows';
 
 const templates = {
@@ -22,15 +22,6 @@ export function islandCoveSpec(): CoveSpec { return structuredClone(bake().spec)
 /** The cave's walkable floor as baked FloorRect rows (generators/coveLayout.ts `coveFloors`). */
 export function coveFloors(): CoveBake['floors'] { return bake().floors; }
 
-/** Explicit intake; a fixture can admit these same immutable templates without fetch. */
-export async function loadCoveGeometry(bytes: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
-  await Promise.all([
-    templates.structure.load(bytes.get('coveStructure')),
-    templates.rocks.load(bytes.get('coveRocks')),
-    templates.glow.load(bytes.get('coveGlow')),
-    templates.pools.load(bytes.get('covePools')),
-  ]);
-}
 
 /** The authored island's one baked layout: fresh copies of its geometry with the catalogue and native facts it was baked with. */
 export function copyCoveGeometry(): {

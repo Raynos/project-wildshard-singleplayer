@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { SMOKE_LOOK } from '../const';
-import { CASTAWAY_SMOKE_GEOMETRY, fixedGeometryReady } from '../boot/fixedGeometry';
+import { fixedGeometryReady, fixedDraw } from '../boot/modelGeometry';
 
 /**
  * A thin, broken smoke column off a fire (SHARD-PLATFORM W2 C2): ONE mesh of camera-facing puff quads that the smoke's
@@ -24,7 +24,7 @@ export class SmokeColumn {
 
   constructor(row: SmokeColumnRow, at: THREE.Vector3) {
     // the column's quads are baked offline (generators/smoke.ts: the castaway's row), a fixed-model template
-    const look = hasLentLook(SMOKE_LOOK) ? lentLook(SMOKE_LOOK) : null, g = fixedGeometryReady() ? CASTAWAY_SMOKE_GEOMETRY.copy() : new THREE.BufferGeometry();
+    const look = hasLentLook(SMOKE_LOOK) ? lentLook(SMOKE_LOOK) : null, g = fixedGeometryReady() ? fixedDraw('castawaySmoke').copy() : new THREE.BufferGeometry();
     const o = row.bounds.offset;
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(o[0], o[1], o[2]), row.bounds.radius);
     this.mesh = new THREE.Mesh(g, look ?? undefined);

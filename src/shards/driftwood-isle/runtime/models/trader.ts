@@ -23,7 +23,7 @@ import { traderRig } from '../npc/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 
 import { COUNTER_TOP as TOP } from '../const';
-import { COUNTER_GEOMETRY, loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 
@@ -42,6 +42,6 @@ export const trader: ModelDef<object> = defineModel<object>({
 export const tradeCounter: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'wood',
   prepare: loadFixedGeometry, defaults: {},
-  build: (ctx): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }],
+  build: (ctx): readonly ModelPart[] => [{ geometry: fixedDraw('tradeCounter').copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }],
   colliders: () => [{ kind: 'box', x: 0, y: TOP.y / 2, z: 0, hx: TOP.w / 2, hy: TOP.y / 2, hz: TOP.d / 2 + 0.02 }],
 });

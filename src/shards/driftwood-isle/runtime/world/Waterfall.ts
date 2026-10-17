@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { CASCADE_LOOKS } from '../const';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { WATERFALL_PUFFS_GEOMETRY, WATERFALL_RINGS_GEOMETRY, WATERFALL_SHEET_GEOMETRY } from '../boot/fixedGeometry';
+import { fixedDraw } from '../boot/modelGeometry';
 
 /** the toon cascade (E150): the baked curtain, pool rings and foam puffs on their lent graphs (data/waterfallLook.ts), drawn
  *  after the sea */
@@ -25,11 +25,11 @@ export function waterfall(): THREE.Group {
     group.add(mesh);
     return mesh;
   };
-  draw('waterfall-sheet', WATERFALL_SHEET_GEOMETRY.copy(), looks.curtain, 5);
-  draw('waterfall-rings', WATERFALL_RINGS_GEOMETRY.copy(), looks.pool, 6);
+  draw('waterfall-sheet', fixedDraw('waterfallSheet').copy(), looks.curtain, 5);
+  draw('waterfall-rings', fixedDraw('waterfallRings').copy(), looks.pool, 6);
   // a puff's vertices are its unit ball; the graph moves each to its `aCentre`, so the cull sphere is round the centres,
   // grown by the cascade's width and the spray's reach
-  const puffs = draw('waterfall-puffs', WATERFALL_PUFFS_GEOMETRY.copy(), looks.puffs, 7).geometry, centres = puffs.getAttribute('aCentre');
+  const puffs = draw('waterfall-puffs', fixedDraw('waterfallPuffs').copy(), looks.puffs, 7).geometry, centres = puffs.getAttribute('aCentre');
   if (!(centres instanceof THREE.BufferAttribute)) throw new Error('Driftwood: the baked cascade puffs lack their centres');
   const sphere = new THREE.Box3().setFromBufferAttribute(centres).getBoundingSphere(new THREE.Sphere());
   sphere.radius += 6.2;

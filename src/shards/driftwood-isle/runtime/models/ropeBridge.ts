@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { BRIDGE_SPANS } from '../../data/bridgeRows';
 import { admitBridgeFacts, bridgeKey } from '../../boot/bridgeFacts';
-import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';
@@ -87,7 +87,7 @@ class RopeBridgeBuilder {
     this.mesh.name = 'rope-bridge';
 
     // ── anchor posts (two per end), sunk into the ground: the one static part, baked in own space ──
-    const posts = new THREE.Mesh((facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? BRIDGE_SPECIMEN_POSTS_GEOMETRY : BRIDGE_POSTS_GEOMETRY).copy(), lowPolyLookMaterial(this.sky, 'still'));
+    const posts = new THREE.Mesh((facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? fixedDraw('bridgeSpecimenPosts') : fixedDraw('bridgePosts')).copy(), lowPolyLookMaterial(this.sky, 'still'));
     posts.castShadow = true; posts.receiveShadow = true;
     this.mesh.add(posts);
 
