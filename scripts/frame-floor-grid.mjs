@@ -85,6 +85,14 @@ export function gridFloorPlans(state, scenario, options = {}) {
     }
     return plans;
   }
+  if (scenario === 'reentry') {
+    // OT (2026-10-17): enter Pine, retire it by entering Signal Dunes, enter it again. A page-wide cache that kept a
+    // resource the first resident freed fails only the second admission (Pine's posed atlas lost its GPU allocation).
+    const milestone = gridFloorPlans(state, 'milestone');
+    const road = slug => { const plan = milestone.find(row => row.name === `${slug}-road-entry`); if (!plan) throw new Error(`Re-entry floor requires ${slug}`); return plan; };
+    const pine = road('pine-hollow');
+    return [pine, road('sunscar-dunes'), { ...pine, name: 'pine-hollow-road-reentry' }];
+  }
   if (scenario === 'cell') {
     // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner
     // cell from its home-side midpoint), one road seed, then held input into its interior
