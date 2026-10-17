@@ -2,7 +2,7 @@
 
 **W2 = 9 components (G466, Jake 13:35 Cancun).** Each component is ONE megabuild across Pine AND DW. W2 stays open until its components close (the 05:00Z close is cancelled), and the W1 spike rides along: roc.as/moves → H1 in C4, Sky/Signal quests → H2 in C5, Sky movers → H5 in C7. Close bar: 100/0 per component except listed view code. G465 holds: no runtime/ detours, no const mirrors, every commit a measured net cut. Plan: `progress/shard-platform/host-gap-2026-10-16/README.md` (`6e1fa0038`).
 
-**Headline: components closed 0 / 9.** C7 review `23d1ca30a`: not closed (canoe transit track and door hinge fail G454, Pine-only); 5-item fix list at x1. Ruler at `677d75ec4` (01:4xZ): M3 36.6 % (29,305 of 80,173 cut), plan 21.9–55.3 %. Custom left: Pine 12,588, DW 8,774 (before `11ceddbd2` −151). Pine boot broke at `75c0ebb06` (zipline modes); x1 hotfix landing. C3 Pine 155 / DW 0. The table below is the 13:00 Cancun baseline per component.
+**Headline: components closed 0 / 9.** C7 review `23d1ca30a`: not closed (canoe transit track and door hinge fail G454, Pine-only); 5-item fix list at x1. Ruler at `3d26e4535` (02:5xZ): M3 38.9 % (31,148 of 80,173 cut), plan 23.3–56.6 %. Custom left: Pine 12,079, DW 7,440 (−1,334 since 01:4xZ, `c280fbe49` −495 the biggest). Boots: Pine `cf1b239f4`, DW sword `614aac37d` fixed. C3 Pine 104 / DW 0 in close review (R3); C7 Pine doors are honest custom (no second reversible door). The table below is the 13:00 Cancun baseline per component.
 
 | Comp | Lane | Pine lines | DW lines |
 |---|---|---:|---:|
