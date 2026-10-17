@@ -1,4 +1,13 @@
 import * as THREE from 'three';
+import * as v from 'valibot';
+import { TIER } from '@wildshard/engine/core/tier';
+import { uploadTexture } from '@wildshard/engine/core/assets';
+import { defineBakedModels } from '@wildshard/engine/models/model';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { live, type RosterEntry } from '@wildshard/engine/models/live';
+import { posedAssets, type PosedAssetSet } from '@wildshard/game/plugin/geometry';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { lentLook, setLentParam, setLentTexture } from './lentLooks';
 
 /** One dynamic instance owner for shader-posed crowds. Geometry attributes,
  * material, channel meanings, decisions and clocks belong to the caller.
@@ -40,7 +49,7 @@ export class PosedInstances {
    *  everywhere bounding sphere, as the drawn mesh has) */
   wrap(src: THREE.BufferGeometry, bound: boolean): THREE.InstancedBufferGeometry {
     const geo = new THREE.InstancedBufferGeometry();
-    for (const [k, v] of Object.entries(src.attributes)) geo.setAttribute(k, v);
+    for (const [key, attribute] of Object.entries(src.attributes)) geo.setAttribute(key, attribute);
     geo.setIndex(src.getIndex());
     geo.setAttribute(this.channels[0], this.anim);
     if (this.anim2 !== null && this.channels[1] !== undefined) geo.setAttribute(this.channels[1], this.anim2);
@@ -68,4 +77,110 @@ export class PosedInstances {
   }
   /** draw exactly the instances added since `begin` */
   commit(): void { this.mesh.count = this.n; this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true; if (this.anim2 !== null) this.anim2.needsUpdate = true; }
+}
+
+/** Named numeric channels, with an optional threshold union selecting one lane. */
+export type PosedLane = number | string | { readonly any: readonly { readonly field: string; readonly op: 'gt' | 'lt'; readonly value: number }[]; readonly yes: number; readonly no: number };
+/** Channel meaning is data; the draw owns no motion or random stream. */
+export interface PosedLayout {
+  readonly name: string;
+  readonly attributes: readonly [string, string?];
+  readonly channels: readonly [readonly [PosedLane, PosedLane, PosedLane, PosedLane], (readonly [PosedLane, PosedLane, PosedLane, PosedLane])?];
+  readonly scale?: number;
+  readonly glow?: string | undefined;
+}
+interface PosedLibrary { readonly name: string; readonly preload: () => Promise<void>; readonly draw: (capacity: number) => PosedDraw; readonly models: readonly RosterEntry[] }
+interface DrawPose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly pitch: number; readonly roll: number; readonly scale?: number }
+
+/** Data-driven pose packing shared by free wildlife and platform flock draws.
+ * The optional library reads named product geometry and Explorer rest cards;
+ * both use precisely the same layout, material and immutable source arrays. */
+export class PosedDraw {
+  private static readonly libraries = new Map<string, Promise<PosedLibrary>>();
+  readonly mesh: THREE.InstancedMesh;
+  readonly look: { readonly name: string; readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material };
+  readonly glow: { value: number };
+  private readonly posed: PosedInstances;
+  private readonly lanes: readonly ((pose: DrawPose) => number)[];
+  constructor(private readonly row: PosedLayout, capacity: number, geometry: THREE.BufferGeometry, material: THREE.Material) {
+    this.look = { name: row.name, geometry, material };
+    this.posed = new PosedInstances(capacity, row.name, material, () => geometry, row.attributes);
+    this.mesh = this.posed.mesh;
+    const read = (pose: DrawPose, field: string): number => {
+      const value: unknown = Reflect.get(pose, field);
+      if (typeof value !== 'number') throw new Error(`Missing numeric posed field ${field}`);
+      return value;
+    };
+    this.lanes = [...row.channels[0], ...row.channels[1] ?? [0, 0, 0, 0]].map(lane => {
+      if (typeof lane === 'number') return () => lane;
+      if (typeof lane === 'string') return pose => read(pose, lane);
+      const checks = lane.any.map(test => test.op === 'gt'
+        ? (pose: DrawPose) => read(pose, test.field) > test.value : (pose: DrawPose) => read(pose, test.field) < test.value);
+      return pose => { for (const check of checks) if (check(pose)) return lane.yes; return lane.no; };
+    });
+    let glow = 0;
+    this.glow = { get value() { return glow; }, set value(value: number) {
+      if (value !== glow) { glow = value; if (row.glow !== undefined) setLentParam(row.name, row.glow, value); }
+    } };
+  }
+  /** Begin packing the current visible roster. */
+  begin(): void { this.posed.begin(); }
+  /** Pack one pose without changing the caller's state or allocating a frame buffer. */
+  add(pose: DrawPose): void {
+    const lanes = this.lanes;
+    this.posed.add(pose.x, pose.y, pose.z, pose.pitch, pose.yaw, pose.roll, this.row.scale ?? pose.scale ?? 1,
+      lanes[0]?.(pose) ?? 0, lanes[1]?.(pose) ?? 0, lanes[2]?.(pose) ?? 0, lanes[3]?.(pose) ?? 0,
+      lanes[4]?.(pose) ?? 0, lanes[5]?.(pose) ?? 0, lanes[6]?.(pose) ?? 0, lanes[7]?.(pose) ?? 0);
+  }
+  /** Publish exactly the packed instances. */
+  commit(): void { this.posed.commit(); }
+
+  /** Admit a named product library without eagerly loading its model assets.
+   * Cards retain the normal loading specimen until their shared geometry is ready. */
+  static library(product: Pick<ShardProduct, 'file' | 'url'>, name: string, load: typeof posedAssets = posedAssets): Promise<PosedLibrary> {
+    const key = product.url(name);
+    let library = this.libraries.get(key);
+    if (library === undefined) { library = this.admitLibrary(product, name, load); this.libraries.set(key, library); }
+    return library;
+  }
+  private static async admitLibrary(product: Pick<ShardProduct, 'file' | 'url'>, name: string, load: typeof posedAssets): Promise<PosedLibrary> {
+    const number = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
+    const lane = v.union([number, text, v.strictObject({ any: v.pipe(v.array(v.strictObject({ field: text, op: v.picklist(['gt', 'lt']), value: number })), v.minLength(1), v.maxLength(8)), yes: number, no: number })]);
+    const channel = v.tuple([lane, lane, lane, lane]);
+    const tierFiles = v.strictObject({ geometry: text, atlas: text });
+    const row = v.parse(v.strictObject({ name: text, glow: v.optional(text), atlas: text, attributes: v.tuple([text, text]), channels: v.tuple([channel, channel]),
+      assets: v.strictObject({ name: text, channels: v.pipe(v.array(v.strictObject({ name: text, source: text, width: v.picklist([1, 2, 3, 4]) })), v.minLength(1), v.maxLength(16)),
+        ranges: v.pipe(v.array(v.strictObject({ kind: number, start: number, count: number, box: v.tuple([number, number, number, number, number, number]) })), v.minLength(1), v.maxLength(32)) }),
+      tiers: v.strictObject({ phone: tierFiles, desktop: tierFiles }),
+      models: v.pipe(v.array(v.strictObject({ id: text, name: text, pipeline: v.picklist(['code', 'hunyuan']), file: text, kind: number, copies: number,
+        box: v.tuple([number, number, number]), pose: v.record(text, number) })), v.minLength(1), v.maxLength(32)),
+    }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(name))));
+    let assets: PosedAssetSet | null = null, loading: Promise<void> | null = null;
+    const preload = (): Promise<void> => (loading ??= (async () => {
+      const files = row.tiers[TIER];
+      assets = await load({ ...row.assets, geometry: product.url(files.geometry), atlas: product.url(files.atlas) });
+    })());
+    const ready = (): PosedAssetSet => { if (assets === null) throw new Error('Required posed library is not loaded'); return assets; };
+    const draw = (capacity: number): PosedDraw => {
+      const set = ready(), view = new PosedDraw(row, capacity, set.geometry, lentLook(row.name));
+      setLentTexture(row.name, row.atlas, set.atlas); uploadTexture(set.atlas);
+      return view;
+    };
+    const models = row.models.map(model => {
+      const specimen = (): THREE.InstancedMesh => {
+        const range = ready().ranges.find(entry => entry.kind === model.kind);
+        if (range === undefined) throw new Error('Missing authored posed kind');
+        const view = draw(1);
+        view.mesh.geometry.setDrawRange(range.start, range.count);
+        view.mesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3(...range.box.slice(0, 3)), new THREE.Vector3(...range.box.slice(3)));
+        view.begin(); view.add({ x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, scale: 1, ...model.pose }); view.commit();
+        return view.mesh;
+      };
+      const metadata = { id: model.id, name: model.name, category: 'creatures' as const, pipeline: model.pipeline, file: model.file, surface: 'flesh' as const };
+      const definition = defineBakedModels([metadata], () => assets === null ? loadingSpecimen(model.id, model.box, async () => { await preload(); return specimen(); }) : specimen())[0];
+      if (definition === undefined) throw new Error('Missing posed model definition');
+      return live(definition, { copies: model.copies, drawnAs: 'instanced' });
+    });
+    return { name: row.name, preload, draw, models };
+  }
 }

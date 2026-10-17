@@ -1,3 +1,4 @@
+import { WILDLIFE_DRAW } from './wildlifeDraw';
 import directorData from '../data/director.json' with { type: 'json' };
 import directorModule from '../behaviour/director.json' with { type: 'json' };
 import directorStages from '../data/watchStages.json' with { type: 'json' };
@@ -54,6 +55,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(NATIVE_VIEW))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),

@@ -12,17 +12,15 @@
  */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { AmbientFlock, type AmbientFlockBird } from '@wildshard/engine/ai/ambientFlock';
+import { AmbientFlock } from '@wildshard/engine/ai/ambientFlock';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { parseAmbientFlock, type AmbientFlockData } from '@wildshard/format/ambientLife';
 import type { ShardContext } from '@wildshard/game/plugin/context';
-import { PosedInstances } from './posedInstances';
+import { PosedDraw } from './posedInstances';
 
 interface Point { x: number; y: number; z: number }
 /** the flock's look: the authored bird and the posed material (its vertex stage reads `attributes`) */
 export interface AmbientFlockLook { readonly name: string; readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material; readonly castShadow?: boolean }
-type Lane = AmbientFlockData['channels'][0][number];
-const lane = (b: AmbientFlockBird, l: Lane): number => typeof l === 'number' ? l : b[l];
 
 /** A flock row and its one posed draw. */
 export class AmbientFlockDraw {
@@ -31,13 +29,13 @@ export class AmbientFlockDraw {
   /** the draw's parent (add this to the scene) */
   readonly group = new THREE.Group();
   private readonly point = new THREE.Vector3();
-  private readonly posed: PosedInstances;
+  private readonly posed: PosedDraw;
   readonly row: AmbientFlockData;
   constructor(row: AmbientFlockData, look: AmbientFlockLook, perches: readonly Point[]) {
     this.row = row;
     this.flock = new AmbientFlock(row, perches, terrainHeight);
     const [, second] = row.attributes;
-    this.posed = new PosedInstances(Math.max(1, this.flock.birds.length), look.name, look.material, () => look.geometry, second === null ? [row.attributes[0]] : [row.attributes[0], second]);
+    this.posed = new PosedDraw({ name: look.name, attributes: second === null ? [row.attributes[0]] : [row.attributes[0], second], channels: row.channels[1] === null ? [row.channels[0]] : [row.channels[0], row.channels[1]], scale: row.scale }, Math.max(1, this.flock.birds.length), look.geometry, look.material);
     this.mesh = this.posed.mesh;
     this.mesh.castShadow = look.castShadow ?? false; this.mesh.receiveShadow = false;
     this.group.add(this.mesh);
@@ -52,12 +50,11 @@ export class AmbientFlockDraw {
   /** a guide pass toward (tx, tz) past `player` (false: none free) */
   guide(player: Point, tx: number, tz: number): boolean { return this.flock.guide(player, tx, tz); }
   private draw(): void {
-    const [a, b] = this.row.channels, s = this.row.scale, posed = this.posed;
+    const posed = this.posed;
     posed.begin();
     for (const bird of this.flock.birds) {
       if (bird.state === 0) continue;
-      posed.add(bird.x, bird.y, bird.z, bird.pitch, bird.yaw, bird.roll, s, lane(bird, a[0]), lane(bird, a[1]), lane(bird, a[2]), lane(bird, a[3]),
-        b === null ? 0 : lane(bird, b[0]), b === null ? 0 : lane(bird, b[1]), b === null ? 0 : lane(bird, b[2]), b === null ? 0 : lane(bird, b[3]));
+      posed.add(bird);
     }
     posed.commit();
   }

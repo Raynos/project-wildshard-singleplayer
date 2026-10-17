@@ -2,7 +2,6 @@ import { floorAtRects } from '@wildshard/engine/physics/box';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import { SECTIONS } from './sections';
-import metadata from '../data/explorerMetadata.generated.json' with { type: 'json' };
 import { preloadHeldGeometry, bakedHandRows, heldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -49,8 +48,7 @@ import { installPineQuest } from '../quest/index';
 import { installAmbientLife } from './life/ambientLife';
 import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
-import { loadBirdModels } from './birds';
-import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/wildlife';
+import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import * as v from 'valibot';
 import { installPineAudio, parseCabinAmbienceRows } from './audio/wiring';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
@@ -103,7 +101,8 @@ export class PineHollow extends ShardPlugin {
     lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, graphNames));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
-    lendPineWildlifeLook(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [metadata.wildlifeLook]));
+    const wildlife = await PosedDraw.library(ctx.product, 'look/wildlife-draw.json');
+    lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name]));
     const streams = await new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
@@ -267,10 +266,11 @@ export class PineHollow extends ShardPlugin {
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     await installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
-    await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
+    const wildlifeLibrary = await PosedDraw.library(ctx.product, 'look/wildlife-draw.json');
+    await wildlifeLibrary.preload();
     const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
-    const wildlife=new WildlifeMesh(sky,lifeRows.scavenger.flock.count+lifeRows.forager.count+2);
-    const life = installAmbientLife(lifeRows,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set)=>{wildlife.useBirds(set);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
+    const wildlife=wildlifeLibrary.draw(lifeRows.scavenger.flock.count+lifeRows.forager.count+2);
+    const life = installAmbientLife(lifeRows,{view:wildlife,knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });

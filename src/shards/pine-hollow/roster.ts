@@ -15,7 +15,7 @@ import { defineModel } from '@wildshard/engine/models/model';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { preparePineGrazers, pineGrazer } from './species/looks';
 import { antlerKing } from './runtime/models/antlerKing';
-import { WILD_MODELS as WILD } from './runtime/models/birds';
+import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
 import { GEAR } from './runtime/models/gear';
 import { prepareKnifeRows } from './runtime/models/skinningKnife';
@@ -23,9 +23,8 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** the small wildlife's copies (src/shards/pine-hollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
-const RAVENS = 4 + 3, OWLS = 1, WOODPECKERS = 1, HARES = 5;
 
-function roster(): readonly RosterEntry[] {
+function roster(wildlife: readonly RosterEntry[]): readonly RosterEntry[] {
   const deer = defineModel({ id: 'shared/deer', file: 'src/game/models/creatures.ts', pipeline: ['code', 'trellis', 'hunyuan'], ...creature('deer', { species: pineGrazer('deer') }) });
   const elk = defineModel({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true, species: pineGrazer('elk') }) });
 
@@ -37,8 +36,7 @@ function roster(): readonly RosterEntry[] {
     // the boss (src/shards/pine-hollow/combat/antlerKing.ts): at night in the King's clearing; parked out of the herd list by day
     live(antlerKing, { planned: 1 }),
     // the birds and the hares (src/shards/pine-hollow/life/index.ts)
-    live(WILD.raven, { copies: RAVENS, drawnAs: 'instanced' }), live(WILD.owl, { copies: OWLS, drawnAs: 'instanced' }),
-    live(WILD.woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(WILD.hare, { copies: HARES, drawnAs: 'instanced' }),
+    ...wildlife,
     // the people (src/shards/pine-hollow/quest/index.ts): one each, the generated person skinned on its code rig
     live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
     // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the
@@ -52,5 +50,5 @@ function roster(): readonly RosterEntry[] {
 export async function preparedRoster(product?: ShardProduct): Promise<readonly RosterEntry[]> {
   const source = product ?? await loadFirstPartyProduct('pine-hollow');
   await Promise.all([prepareKnifeRows(source), preparePineGrazers(source)]);
-  return roster();
+  return roster((await PosedDraw.library(source, 'look/wildlife-draw.json')).models);
 }

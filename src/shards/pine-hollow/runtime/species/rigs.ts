@@ -27,9 +27,3 @@ export function pineRigFiles(product: { readonly url: (name: string) => string }
 export function pineCoatUrl(name: string, kind: string, variant: string, tier: 'phone' | 'desktop' = TIER): string {
   return `procedural:/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.${kind}.${variant}.coat.png`;
 }
-
-/** the birds' posed rest geometry and their atlas's own KTX2 on this tier, as the product's URLs (generators/birdBlobs.mjs) */
-export function pineBirdFiles(product: { readonly url: (name: string) => string }, tier: 'phone' | 'desktop' = TIER): { readonly geometry: string; readonly atlas: string } {
-  const dot = tier === 'phone' ? '.phone' : '';
-  return { geometry: product.url(`models/life/birds-rest${dot}.glb`), atlas: product.url(`models/life/birds${dot}.base.ktx2`) };
-}

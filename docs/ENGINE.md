@@ -6286,9 +6286,20 @@ This pending allowance is rechecked at the end of W3.
 `begin/add/commit` packs the current visible roster; `wrap` lends the same
 channel buffers to replacement geometry without copying its source arrays.
 The caller retains geometry, material, shader semantics, colours, bounds,
-clocks and visibility decisions. Pine wildlife is the current user; G441
-registers Nalati `creatures/flock.ts` (`iAnim`, `writeInstances`, `useRig`)
-as its W3 adopter, rechecked at the end of W3.
+clocks and visibility decisions. `PosedDraw` adds named numeric pose lanes,
+constants and bounded threshold unions, compiled once before drawing. Its
+`begin/add/commit` consumes the caller's poses without owning their clocks.
+Driftwood's gulls and Pine's guide ravens use it through `AmbientFlockDraw`;
+Pine's free wildlife uses the same draw directly.
+
+`PosedDraw.library(product, name)` admits a named JSON library of tiered
+geometry/atlas files, original vertex ranges and Explorer rest cards.
+Admission loads no geometry: `preload()` prepares its shared immutable
+arrays, `draw(capacity)` borrows them with the lent look, and `models` lists
+its original rest specimens with loading boxes until preparation finishes.
+The library is shared by content-addressed row URL across world and Explorer
+readers. Atlas and glow parameter names, channel packing and rest poses
+belong to the rows. The host preserves each source range's original box.
 
 ### Cell-streamed instances
 

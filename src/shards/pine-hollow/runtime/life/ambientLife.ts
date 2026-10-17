@@ -28,7 +28,7 @@ const newPose=(kind:number):WildPose=>({kind,x:0,y:-999,z:0,yaw:0,pitch:0,roll:0
 export interface AmbientLifeView {mesh:THREE.InstancedMesh;glow:{value:number};look:AmbientFlockLook;begin:()=>void;add:(pose:WildPose)=>void;commit:()=>void}
 function beatEnvelope(t:number,beat:AmbientLifeData['harvest']):number {if(t<=0||t>=beat.len)return 0;const ease=(u:number):number=>u*u*(3-2*u);if(t<beat.kneelIn)return ease(t/beat.kneelIn);if(t>beat.rise)return ease(1-(t-beat.rise)/(beat.len-beat.rise));return 1;}
 
-export interface AmbientLifeHost<Birds> {
+export interface AmbientLifeHost {
   ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Parameters<typeof sharedWeaponVoices>[0];
   trees: readonly TreeInstance[];
@@ -40,9 +40,6 @@ export interface AmbientLifeHost<Birds> {
   /** ambient's generated one-shots (ForestAmbience's `sfx`): the birds' voices, the knife's strokes; null = none */
   sfx?: { shot:(name:string,options?:{at?:{x:number;y:number;z:number}|undefined;gain?:number})=>boolean } | null;
   view: AmbientLifeView;
-  /** One-shot owned intake; released after the view copies its vertex channels. */
-  birds: Birds|null;
-  swapBirds: (set:Birds,renderer:Game['renderer']) => void;
   knife: () => { update:(time:number)=>void };
   trimShadows: boolean;
 }
@@ -57,7 +54,7 @@ export interface AmbientLife {
 /** a kill: when the ravens come, the skinning, its scavenge site (-1 waiting, -2 they came and went unseen) */
 interface Carcass { a: Animal; killT: number; comeT: number; harvestT: number; site: number; dimmed: boolean }
 
-export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHost<Birds>): AmbientLife | null {
+export function createAmbientLife(data: AmbientLifeData,h: AmbientLifeHost): AmbientLife | null {
   if (h.trimShadows) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (ambient memory trim)
   const { game, sky, player, animals } = h;
   const sc = data.scavenger;
@@ -67,8 +64,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   const rng = new Rng(data.seed);
   const wild = h.view;
   game.scene.add(wild.mesh);
-  if(h.birds===null)throw new Error('Missing required ambient models');
-  h.swapBirds(h.birds,game.renderer);h.birds=null;
   const cam = game.camera;
   const fwd = new THREE.Vector3();
 
@@ -292,6 +287,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
 }
 
 /** Install this shard's ambient role on its actual scoped world/model owners. */
-export function installAmbientLife<Birds>(input:unknown,ports:AmbientLifeHost<Birds>):ReturnType<typeof createAmbientLife<Birds>> {
+export function installAmbientLife(input:unknown,ports:AmbientLifeHost):ReturnType<typeof createAmbientLife> {
   return createAmbientLife(parseAmbientLife(input),ports);
 }
