@@ -1,0 +1,1518 @@
+{
+  "source": "533662de42c4bedf6c59a5f5107f6065db5c1547",
+  "timingCredit": false,
+  "note": "Native sampled weights and overlapping Metal intervals are diagnostic, not independent elapsed charges. Unknown JIT addresses are not resolved to authored functions.",
+  "captures": [
+    {
+      "label": "nalati",
+      "command": [
+        "xcrun",
+        "xctrace",
+        "record",
+        "--template",
+        "Metal System Trace",
+        "--instrument",
+        "Time Profiler",
+        "--all-processes",
+        "--time-limit",
+        "100s",
+        "--no-prompt",
+        "--output",
+        "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x1-road6/nalati.trace"
+      ],
+      "processes": [
+        "4163 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/Applications/MobileSafari.app/MobileSafari",
+        "4176 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent",
+        "4180 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/NetworkingExtension.appex/com.apple.WebKit.Networking",
+        "4181 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/GPUExtension.appex/com.apple.WebKit.GPU",
+        "4208 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent",
+        "4317 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent"
+      ],
+      "nativeTraceRC": 0,
+      "traceStartEpochMs": 1792253020980.0,
+      "anchors": [
+        [
+          41752,
+          1792253036476
+        ],
+        [
+          67073.00000000001,
+          1792253061797
+        ]
+      ],
+      "anchorDriftMs": 0.0,
+      "frames": [
+        {
+          "pageStartMs": 41966,
+          "intervalMs": 55,
+          "traceStartMs": 15710.0,
+          "sampled": {
+            "webContentMainSampleMs": 53.0,
+            "mainRafSampleMs": 4.0,
+            "jitHelperSampleMs": 71.0,
+            "mainMicrotasksSampleMs": 50.0,
+            "mainGCSampleMs": 2.0,
+            "simMetalHostAllThreadsSampleMs": 6.0,
+            "webKitGPUAllThreadsSampleMs": 1.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "operationArrayPushMultipleSlow",
+                10.0
+              ],
+              [
+                "JSC::JSObject::attemptToInterceptPutByIndexOnHoleForPrototype(JSC::JSGlobalObject*, JSC::JSValue, unsigned int, JSC::JSValue, bool, bool&)",
+                5.0
+              ],
+              [
+                "JSC::JSObject::setIndexQuickly(JSC::VM&, unsigned int, JSC::JSValue)",
+                2.0
+              ],
+              [
+                "operationGetByValGaveUp",
+                2.0
+              ],
+              [
+                "JSC::Interpreter::executeCall(JSC::JSObject*, JSC::CallData const&, JSC::JSValue, JSC::JSCell*, JSC::ArgList const&)",
+                1.0
+              ],
+              [
+                "0x111421a75",
+                1.0
+              ],
+              [
+                "mach_msg2_trap",
+                1.0
+              ],
+              [
+                "_platform_memmove",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x1878fd504",
+                1.0
+              ],
+              [
+                "0x18bc73ae0",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x1878eec08",
+                1.0
+              ],
+              [
+                "0x1877388d0",
+                1.0
+              ],
+              [
+                "0x1878afc34",
+                1.0
+              ],
+              [
+                "0x18bc73ae0",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "CA::OGL::MetalContext::draw(MTLPrimitiveType, unsigned int, unsigned int, void const*, unsigned long, unsigned long, unsigned int, unsigned int, unsigned short const*, CA::OGL::ClipPlane const*, CA::OGL::MetalBufferPool::MetalBuffer const*)",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 2.041,
+                "SimMetalHost (frame-floor-iphone (3679)": 1.7,
+                "SimRenderServer (3678)": 0.288
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 0.874,
+                "SimMetalHost (frame-floor-iphone (3679)": 0.454,
+                "SimRenderServer (3678)": 0.075
+              },
+              "events": []
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 0.017
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {},
+              "events": []
+            }
+          }
+        },
+        {
+          "pageStartMs": 44116,
+          "intervalMs": 100,
+          "traceStartMs": 17860.0,
+          "sampled": {
+            "webContentMainSampleMs": 87.0,
+            "mainRafSampleMs": 3.0,
+            "jitHelperSampleMs": 14.0,
+            "simMetalHostAllThreadsSampleMs": 6.0,
+            "mainMicrotasksSampleMs": 81.0,
+            "webKitGPUAllThreadsSampleMs": 1.0,
+            "mainStyleSampleMs": 1.0,
+            "mainZlibSampleMs": 24.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "0x1cc0725b4",
+                20.0
+              ],
+              [
+                "_platform_memmove",
+                7.0
+              ],
+              [
+                "0x113f9ea51",
+                6.0
+              ],
+              [
+                "0x113f9ea41",
+                4.0
+              ],
+              [
+                "0x11415fa51",
+                2.0
+              ],
+              [
+                "0x113f9ea5d",
+                2.0
+              ],
+              [
+                "0x113f9ea39",
+                2.0
+              ],
+              [
+                "operationGetByValOptimize",
+                2.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x10f18790c",
+                1.0
+              ],
+              [
+                "0x18774f074",
+                1.0
+              ],
+              [
+                "0x1878afc34",
+                1.0
+              ],
+              [
+                "0x18bc73ae0",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "kevent_id",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x1878afc34",
+                1.0
+              ],
+              [
+                "0x18bc73ae0",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 1.796,
+                "SimMetalHost (frame-floor-iphone (3680)": 2.974,
+                "SimRenderServer (3678)": 0.396
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 0.595,
+                "SimMetalHost (frame-floor-iphone (3680)": 1.132,
+                "SimRenderServer (3678)": 0.1
+              },
+              "events": []
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 0.019
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {},
+              "events": []
+            }
+          }
+        },
+        {
+          "pageStartMs": 44549,
+          "intervalMs": 51,
+          "traceStartMs": 18293.0,
+          "sampled": {
+            "webContentMainSampleMs": 42.0,
+            "mainRafSampleMs": 4.0,
+            "simMetalHostAllThreadsSampleMs": 9.0,
+            "mainMicrotasksSampleMs": 37.0,
+            "webKitGPUAllThreadsSampleMs": 1.0,
+            "mainZlibSampleMs": 6.0,
+            "jitHelperSampleMs": 4.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "0x1cc0725b4",
+                4.0
+              ],
+              [
+                "operationGetByValOptimize",
+                4.0
+              ],
+              [
+                "_platform_memmove",
+                2.0
+              ],
+              [
+                "0x113e3e689",
+                2.0
+              ],
+              [
+                "0x112dcd8b1",
+                2.0
+              ],
+              [
+                "0x11354b5d1",
+                1.0
+              ],
+              [
+                "0x113dc9d5d",
+                1.0
+              ],
+              [
+                "0x113e9b239",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x1878eec08",
+                1.0
+              ],
+              [
+                "0x26135628c",
+                1.0
+              ],
+              [
+                "0x10f2c0270",
+                1.0
+              ],
+              [
+                "0x18bc73ae0",
+                1.0
+              ],
+              [
+                "0x1878afc34",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x1878b2914",
+                1.0
+              ],
+              [
+                "0x18bc73ae0",
+                1.0
+              ],
+              [
+                "0x1878afc34",
+                1.0
+              ],
+              [
+                "0x10ebff824",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "_platform_memset",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 1.653,
+                "SimMetalHost (frame-floor-iphone (3680)": 2.231,
+                "SimRenderServer (3678)": 0.313
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 1.069,
+                "SimMetalHost (frame-floor-iphone (3680)": 1.487,
+                "SimRenderServer (3678)": 0.068
+              },
+              "events": []
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 0.042
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {},
+              "events": []
+            }
+          }
+        },
+        {
+          "pageStartMs": 45266,
+          "intervalMs": 51,
+          "traceStartMs": 19010.0,
+          "sampled": {
+            "jitHelperSampleMs": 5.0,
+            "webContentMainSampleMs": 36.0,
+            "mainRafSampleMs": 3.0,
+            "webKitGPUAllThreadsSampleMs": 2.0,
+            "simMetalHostAllThreadsSampleMs": 7.0,
+            "mainMicrotasksSampleMs": 31.0,
+            "mainStyleSampleMs": 1.0,
+            "mainGCSampleMs": 1.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "JSC::JSObject::hasProperty(JSC::JSGlobalObject*, JSC::PropertyName) const",
+                6.0
+              ],
+              [
+                "JSC::CommonSlowPaths::opInByVal(JSC::JSGlobalObject*, JSC::JSValue, JSC::JSValue, JSC::ArrayProfile*)",
+                5.0
+              ],
+              [
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                2.0
+              ],
+              [
+                "0x1134d804d",
+                1.0
+              ],
+              [
+                "WebCore::FontDescription::FontDescription(WebCore::FontDescription const&)",
+                1.0
+              ],
+              [
+                "0x113d21d95",
+                1.0
+              ],
+              [
+                "clock_gettime",
+                1.0
+              ],
+              [
+                "WebCore::RenderTreeUpdater::commit(std::__1::unique_ptr<WebCore::Style::Update, std::__1::default_delete<WebCore::Style::Update>>)",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "objc_release_x8",
+                1.0
+              ],
+              [
+                "mach_msg2_trap",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x18bc73ae0",
+                2.0
+              ],
+              [
+                "0x1878afae4",
+                1.0
+              ],
+              [
+                "0x1878afc34",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x18bc73ae0",
+                1.0
+              ],
+              [
+                "0x1878afc34",
+                1.0
+              ],
+              [
+                "0x1878b2914",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 3.134,
+                "SimMetalHost (frame-floor-iphone (3679)": 1.677,
+                "SimRenderServer (3678)": 0.448
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 1.33,
+                "SimMetalHost (frame-floor-iphone (3679)": 0.578,
+                "SimRenderServer (3678)": 0.1
+              },
+              "events": []
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 0.026,
+                "SimMetalHost (frame-floor-iphone (3680)": 0.0
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {},
+              "events": []
+            }
+          }
+        },
+        {
+          "pageStartMs": 48682,
+          "intervalMs": 85,
+          "traceStartMs": 22426.0,
+          "sampled": {
+            "webContentMainSampleMs": 80.0,
+            "mainRafSampleMs": 5.0,
+            "webKitGPUAllThreadsSampleMs": 6.0,
+            "jitHelperSampleMs": 54.0,
+            "simMetalHostAllThreadsSampleMs": 6.0,
+            "mainMicrotasksSampleMs": 72.0,
+            "mainGCSampleMs": 3.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+                3.0
+              ],
+              [
+                "JSC::CommonSlowPaths::opInByVal(JSC::JSGlobalObject*, JSC::JSValue, JSC::JSValue, JSC::ArrayProfile*)",
+                3.0
+              ],
+              [
+                "mach_msg2_trap",
+                2.0
+              ],
+              [
+                "0x111404065",
+                2.0
+              ],
+              [
+                "0x113898d91",
+                1.0
+              ],
+              [
+                "_kernelrpc_mach_vm_deallocate_trap",
+                1.0
+              ],
+              [
+                "_platform_memmove",
+                1.0
+              ],
+              [
+                "0x113499681",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "_kernelrpc_mach_vm_deallocate_trap",
+                1.0
+              ],
+              [
+                "CA::OGL::MetalContext::draw(MTLPrimitiveType, unsigned int, unsigned int, void const*, unsigned long, unsigned long, unsigned int, unsigned int, unsigned short const*, CA::OGL::ClipPlane const*, CA::OGL::MetalBufferPool::MetalBuffer const*)",
+                1.0
+              ],
+              [
+                "__open_nocancel",
+                1.0
+              ],
+              [
+                "GL_Clear",
+                1.0
+              ],
+              [
+                "semaphore_wait_trap",
+                1.0
+              ],
+              [
+                "0x180186d49",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x10f73e118",
+                1.0
+              ],
+              [
+                "0x1940f926c",
+                1.0
+              ],
+              [
+                "0x1878eec08",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x18bc73ae0",
+                2.0
+              ],
+              [
+                "0x1878b2914",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 2.7,
+                "SimMetalHost (frame-floor-iphone (3679)": 1.863,
+                "SimRenderServer (3678)": 0.404
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 1.691,
+                "SimMetalHost (frame-floor-iphone (3679)": 0.829,
+                "SimRenderServer (3678)": 0.106
+              },
+              "events": []
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 0.049
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {},
+              "events": []
+            }
+          }
+        },
+        {
+          "pageStartMs": 54369,
+          "intervalMs": 54,
+          "traceStartMs": 28113.0,
+          "sampled": {
+            "webKitGPUAllThreadsSampleMs": 36.0,
+            "webContentMainSampleMs": 4.0,
+            "mainRafSampleMs": 3.0,
+            "simMetalHostAllThreadsSampleMs": 36.0,
+            "jitHelperSampleMs": 1.0,
+            "mainMicrotasksSampleMs": 1.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "mach_msg2_trap",
+                17.0
+              ],
+              [
+                "rx::TextureMtl::convertAndSetPerSliceSubImage(gl::Context const*, int, MTLRegion const&, gl::InternalFormat const&, unsigned int, angle::Format const&, unsigned long, unsigned long, gl::Buffer*, unsigned char const*, rx::ImageDefinitionMtl const&)",
+                4.0
+              ],
+              [
+                "-[MTLSerializerCommandEncoder writeSegmentHeader:continuation:]",
+                1.0
+              ],
+              [
+                "_platform_memset",
+                1.0
+              ],
+              [
+                "DYLD-STUB$$dispatch_data_apply_f",
+                1.0
+              ],
+              [
+                "_xzm_free",
+                1.0
+              ],
+              [
+                "mach_msg_overwrite",
+                1.0
+              ],
+              [
+                "_xpc_collection_apply_f",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "operationJSToWasmEntryWrapperBuildReturnFrame",
+                1.0
+              ],
+              [
+                "0x113ddea9d",
+                1.0
+              ],
+              [
+                "0x113ab43dd",
+                1.0
+              ],
+              [
+                "0x111414001",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x1878eec08",
+                21.0
+              ],
+              [
+                "0x1878afc34",
+                3.0
+              ],
+              [
+                "0x18770f958",
+                1.0
+              ],
+              [
+                "0x10ee27b94",
+                1.0
+              ],
+              [
+                "0x187710738",
+                1.0
+              ],
+              [
+                "0x1878b1a74",
+                1.0
+              ],
+              [
+                "0x10f374e6c",
+                1.0
+              ],
+              [
+                "0x1878fd414",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x18bc73ae0",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 0.927,
+                "SimRenderServer (3678)": 0.118,
+                "SimMetalHost (frame-floor-iphone (3679)": 1.732
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 0.444,
+                "SimRenderServer (3678)": 0.027,
+                "SimMetalHost (frame-floor-iphone (3679)": 1.241
+              },
+              "events": []
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 0.005,
+                "SimMetalHost (frame-floor-iphone (3679)": 0.194,
+                "SimRenderServer (3678)": 0.929
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {},
+              "events": []
+            }
+          }
+        },
+        {
+          "pageStartMs": 56749,
+          "intervalMs": 134,
+          "traceStartMs": 30493.0,
+          "sampled": {
+            "webContentMainSampleMs": 55.0,
+            "mainRafSampleMs": 46.0,
+            "jitHelperSampleMs": 8.0,
+            "simMetalHostAllThreadsSampleMs": 66.0,
+            "mainStyleSampleMs": 7.0,
+            "webKitGPUAllThreadsSampleMs": 42.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (4208)": [
+              [
+                "JSC::Structure::findStructuresAndMapForMaterialization(WTF::Vector<JSC::Structure*, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&, JSC::Structure*&, JSC::PropertyTable*&)",
+                4.0
+              ],
+              [
+                "PAL::TextCodecUTF8::decode(std::__1::span<unsigned char const, 18446744073709551615ul>, bool, bool, bool&)",
+                2.0
+              ],
+              [
+                "WebCore::Style::TreeResolver::resolve()",
+                2.0
+              ],
+              [
+                "WTF::fastMalloc(unsigned long)",
+                2.0
+              ],
+              [
+                "0x11173c20d",
+                1.0
+              ],
+              [
+                "0x111db5fc1",
+                1.0
+              ],
+              [
+                "_platform_memset",
+                1.0
+              ],
+              [
+                "bmalloc::api::tzoneAllocateNonCompact(void*)",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3680)": [
+              [
+                "0x18bc73ae0",
+                2.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (3679)": [
+              [
+                "0x1878eec08",
+                15.0
+              ],
+              [
+                "0x18bc73ae0",
+                10.0
+              ],
+              [
+                "0x1878afc34",
+                6.0
+              ],
+              [
+                "0x1878b2914",
+                4.0
+              ],
+              [
+                "0x1878afaa8",
+                2.0
+              ],
+              [
+                "0x1878b1a74",
+                2.0
+              ],
+              [
+                "0x1878fd11c",
+                1.0
+              ],
+              [
+                "0x1878b1460",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (4181)": [
+              [
+                "mach_msg2_trap",
+                11.0
+              ],
+              [
+                "semaphore_wait_trap",
+                2.0
+              ],
+              [
+                "start_wqthread",
+                2.0
+              ],
+              [
+                "rx::VertexArrayMtl::setupDraw(gl::Context const*, rx::mtl::RenderCommandEncoder*, bool*, rx::mtl::VertexDesc*)",
+                1.0
+              ],
+              [
+                "IPC::StreamConnectionWorkQueue::processStreams()",
+                1.0
+              ],
+              [
+                "gl::Context::bindTexture(gl::TextureType, gl::TextureID)",
+                1.0
+              ],
+              [
+                "AccelerateCrypto_SHA256_compress",
+                1.0
+              ],
+              [
+                "-[__NSDictionaryM setObject:forKey:]",
+                1.0
+              ]
+            ]
+          },
+          "metal": {
+            "metal-gpu-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 1.483,
+                "SimRenderServer (3678)": 0.233,
+                "SimMetalHost (frame-floor-iphone (3679)": 7.306
+              },
+              "events": []
+            },
+            "metal-driver-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3680)": 0.891,
+                "SimRenderServer (3678)": 0.108,
+                "SimMetalHost (frame-floor-iphone (3679)": 22.102
+              },
+              "events": [
+                {
+                  "start": "00:30.559.382",
+                  "duration": "13.19 ms",
+                  "gpu-driver-name": "Driver Processing",
+                  "event-type": "Command Buffer",
+                  "event-depth": "10",
+                  "event-label": "Command Buffer 0x109c314c4c (SimMetalHost (frame-floor-iphone (0x2352efd) (SimMetalHost (frame-floor-iphone, pid: 3679))",
+                  "event-priority": "0x0",
+                  "connection-UUID": "542018",
+                  "color": "1001",
+                  "process": "SimMetalHost (frame-floor-iphone (3679)",
+                  "thread": "SimMetalHost (frame-floor-iphone (0x2352efd) (SimMetalHost (frame-floor-iphone, pid: 3679)",
+                  "gpu": "M5 Max",
+                  "object-id": "0xffffffffffffffff",
+                  "lane": " ",
+                  "startMs": 30559.382666,
+                  "durationMs": 13.185209
+                },
+                {
+                  "start": "00:30.559.515",
+                  "duration": "8.97 ms",
+                  "gpu-driver-name": "Driver Processing",
+                  "event-type": "Command Encoder",
+                  "event-depth": "11",
+                  "event-label": "Segment 0x109d31a6dc",
+                  "event-priority": "0x0",
+                  "connection-UUID": "542048",
+                  "color": "1001",
+                  "process": "SimMetalHost (frame-floor-iphone (3679)",
+                  "thread": "SimMetalHost (frame-floor-iphone (0x2352efd) (SimMetalHost (frame-floor-iphone, pid: 3679)",
+                  "gpu": "M5 Max",
+                  "object-id": "0xffffffffffffffff",
+                  "lane": " ",
+                  "startMs": 30559.515291,
+                  "durationMs": 8.968042
+                },
+                {
+                  "start": "00:30.570.456",
+                  "duration": "2.04 ms",
+                  "gpu-driver-name": "Driver Processing",
+                  "event-type": "Command Encoder",
+                  "event-depth": "11",
+                  "event-label": "Segment 0x109d31a771",
+                  "event-priority": "0x0",
+                  "connection-UUID": "542024",
+                  "color": "1001",
+                  "process": "SimMetalHost (frame-floor-iphone (3679)",
+                  "thread": "SimMetalHost (frame-floor-iphone (0x2352efd) (SimMetalHost (frame-floor-iphone, pid: 3679)",
+                  "gpu": "M5 Max",
+                  "object-id": "0xffffffffffffffff",
+                  "lane": " ",
+                  "startMs": 30570.456291,
+                  "durationMs": 2.044459
+                },
+                {
+                  "start": "00:30.601.847",
+                  "duration": "2.02 ms",
+                  "gpu-driver-name": "Driver Processing",
+                  "event-type": "Command Buffer",
+                  "event-depth": "0",
+                  "event-label": "Command Buffer 0 (SimMetalHost (frame-floor-iphone (0x2350797) (SimMetalHost (frame-floor-iphone, pid: 3679))",
+                  "event-priority": "0x0",
+                  "connection-UUID": "542567",
+                  "color": "0",
+                  "process": "SimMetalHost (frame-floor-iphone (3679)",
+                  "thread": "SimMetalHost (frame-floor-iphone (0x2350797) (SimMetalHost (frame-floor-iphone, pid: 3679)",
+                  "gpu": "M5 Max",
+                  "object-id": "0xffffffffffffffff",
+                  "lane": " ",
+                  "startMs": 30601.847083,
+                  "durationMs": 2.024667
+                }
+              ]
+            },
+            "metal-driver-event-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 7.802,
+                "SimMetalHost (frame-floor-iphone (3680)": 0.0
+              },
+              "events": []
+            },
+            "graphics-compiler-activity-intervals": {
+              "unionMsByProcess": {
+                "SimMetalHost (frame-floor-iphone (3679)": 3.967
+              },
+              "events": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "dw-all",
+      "command": [
+        "xcrun",
+        "xctrace",
+        "record",
+        "--template",
+        "Time Profiler",
+        "--all-processes",
+        "--time-limit",
+        "40s",
+        "--no-prompt",
+        "--output",
+        "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x1-road6/dw-all.trace"
+      ],
+      "processes": [
+        "31765 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/Applications/MobileSafari.app/MobileSafari",
+        "31777 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent",
+        "31779 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/NetworkingExtension.appex/com.apple.WebKit.Networking",
+        "31780 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/GPUExtension.appex/com.apple.WebKit.GPU",
+        "31804 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent",
+        "31841 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent"
+      ],
+      "nativeTraceRC": 0,
+      "traceStartEpochMs": 1792253478070.0,
+      "anchors": [
+        [
+          40491,
+          1792253476535
+        ],
+        [
+          61659,
+          1792253497703
+        ]
+      ],
+      "anchorDriftMs": 0,
+      "frames": [
+        {
+          "pageStartMs": 44598,
+          "intervalMs": 115,
+          "traceStartMs": 2572.0,
+          "sampled": {
+            "jitHelperSampleMs": 8.0,
+            "webContentMainSampleMs": 113.0,
+            "mainRafSampleMs": 5.0,
+            "simMetalHostAllThreadsSampleMs": 7.0,
+            "webKitGPUAllThreadsSampleMs": 4.0,
+            "mainMicrotasksSampleMs": 104.0,
+            "mainGCSampleMs": 2.0,
+            "mainStyleSampleMs": 1.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (31804)": [
+              [
+                "0x1154153b5",
+                6.0
+              ],
+              [
+                "0x115fc68e1",
+                6.0
+              ],
+              [
+                "0x115fc6981",
+                5.0
+              ],
+              [
+                "0x115415361",
+                4.0
+              ],
+              [
+                "0x115fc58d1",
+                3.0
+              ],
+              [
+                "0x115408fd9",
+                3.0
+              ],
+              [
+                "void JSC::JSRopeString::resolveToBuffer<unsigned char>(JSC::JSString*, JSC::JSString*, JSC::JSString*, std::__1::span<unsigned char, 18446744073709551615ul>, unsigned char*)",
+                2.0
+              ],
+              [
+                "JSC::IsoInlinedHeapCellType<JSC::JSRopeString>::finishSweep(JSC::MarkedBlock::Handle&, JSC::FreeList*) const",
+                2.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphon (31518)": [
+              [
+                "iokit_user_client_trap",
+                2.0
+              ],
+              [
+                "_xpc_dictionary_look_up_table",
+                1.0
+              ],
+              [
+                "DYLD-STUB$$objc_retain",
+                1.0
+              ],
+              [
+                "objc_msgSend",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (31780)": [
+              [
+                "objc_retain_x28",
+                1.0
+              ],
+              [
+                "DYLD-STUB$$CGDataProviderGetSizeOfData",
+                1.0
+              ],
+              [
+                "start_wqthread",
+                1.0
+              ],
+              [
+                "semaphore_wait_trap",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (31520)": [
+              [
+                "-[AGXG17XFamilyRenderContext initWithCommandBuffer:descriptor:subEncoderIndex:framebuffer:]",
+                1.0
+              ],
+              [
+                "iokit_user_client_trap",
+                1.0
+              ]
+            ]
+          }
+        },
+        {
+          "pageStartMs": 44817,
+          "intervalMs": 52,
+          "traceStartMs": 2791.0,
+          "sampled": {
+            "webContentMainSampleMs": 49.0,
+            "mainRafSampleMs": 5.0,
+            "jitHelperSampleMs": 18.0,
+            "webKitGPUAllThreadsSampleMs": 16.0,
+            "simMetalHostAllThreadsSampleMs": 12.0,
+            "mainMicrotasksSampleMs": 38.0,
+            "mainGCSampleMs": 8.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (31804)": [
+              [
+                "pas_thread_local_cache_flush_deallocation_log",
+                3.0
+              ],
+              [
+                "WTF::ASCIILiteral JSC::JSObject::putDirectInternal<(JSC::JSObject::PutMode)0>(JSC::VM&, JSC::PropertyName, JSC::JSValue, unsigned int, JSC::PutPropertySlot&)",
+                2.0
+              ],
+              [
+                "operationGetByValGaveUp",
+                2.0
+              ],
+              [
+                "operationGetByValGeneric",
+                2.0
+              ],
+              [
+                "operationGetByIdGaveUp",
+                2.0
+              ],
+              [
+                "0x11542d16d",
+                1.0
+              ],
+              [
+                "0x1178e72b9",
+                1.0
+              ],
+              [
+                "operationGetByIdOptimize",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (31780)": [
+              [
+                "mach_msg2_trap",
+                3.0
+              ],
+              [
+                "angle::pp::Tokenizer::lex(angle::pp::Token*)",
+                2.0
+              ],
+              [
+                "dispatch_release",
+                1.0
+              ],
+              [
+                "CA::OGL::fill_rect(CA::OGL::Context&, CA::OGL::RectState const&)",
+                1.0
+              ],
+              [
+                "std::__1::pair<std::__1::__hash_iterator<std::__1::__hash_node<std::__1::__hash_value_type<unsigned int, MTLSimCommandBuffer*>, void*>*>, bool> std::__1::__hash_table<std::__1::__hash_value_type<unsigned int, MTLSimCommandBuffer*>, std::__1::__unordered_map_hasher<unsigned int, std::__1::pair<unsigned int const, MTLSimCommandBuffer*>, std::__1::hash<unsigned int>, std::__1::equal_to<unsigned int>, true>, std::__1::__unordered_map_equal<unsigned int, std::__1::pair<unsigned int const, MTLSimCommandBuffer*>, std::__1::equal_to<unsigned int>, std::__1::hash<unsigned int>, true>, std::__1::allocator<std::__1::pair<unsigned int const, MTLSimCommandBuffer*>>>::__emplace_unique_key_args<unsigned int, std::__1::piecewise_construct_t const&, std::__1::tuple<unsigned int const&>, std::__1::tuple<>>(unsigned int const&, std::__1::piecewise_construct_t const&, std::__1::tuple<unsigned int const&>&&, std::__1::tuple<>&&)",
+                1.0
+              ],
+              [
+                "CA::Render::(anonymous namespace)::flatten_intervals(std::__1::vector<double, std::__1::allocator<double>>&, std::__1::vector<CA::Render::(anonymous namespace)::Interval, std::__1::allocator<CA::Render::(anonymous namespace)::Interval>>&)",
+                1.0
+              ],
+              [
+                "_xzm_xzone_malloc_freelist_outlined",
+                1.0
+              ],
+              [
+                "semaphore_wait_trap",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (31520)": [
+              [
+                "IOGPUMetalCommandBufferStorageAllocResourceAtIndex",
+                1.0
+              ],
+              [
+                "iokit_user_client_trap",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphon (31518)": [
+              [
+                "start_wqthread",
+                4.0
+              ],
+              [
+                "iokit_user_client_trap",
+                2.0
+              ],
+              [
+                "__bsdthread_ctl",
+                1.0
+              ],
+              [
+                "MTLResourceListAddResource",
+                1.0
+              ],
+              [
+                "_dispatch_set_priority_and_voucher_slow",
+                1.0
+              ]
+            ]
+          }
+        },
+        {
+          "pageStartMs": 45766,
+          "intervalMs": 61,
+          "traceStartMs": 3740.0,
+          "sampled": {
+            "webKitGPUAllThreadsSampleMs": 28.0,
+            "webContentMainSampleMs": 31.0,
+            "mainRafSampleMs": 5.0,
+            "jitHelperSampleMs": 10.0,
+            "simMetalHostAllThreadsSampleMs": 24.0,
+            "mainGCSampleMs": 4.0,
+            "mainMicrotasksSampleMs": 21.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.GPU (31780)": [
+              [
+                "mach_msg2_trap",
+                4.0
+              ],
+              [
+                "sh::TIntermTraverser::visitConstantUnion(sh::TIntermConstantUnion*)",
+                2.0
+              ],
+              [
+                "madvise",
+                2.0
+              ],
+              [
+                "_platform_memmove",
+                2.0
+              ],
+              [
+                "yyparse(sh::TParseContext*, void*)",
+                1.0
+              ],
+              [
+                "non-virtual thunk to sh::TIntermAggregate::getSequence()",
+                1.0
+              ],
+              [
+                "sh::TIntermSymbol::traverse(sh::TIntermTraverser*)",
+                1.0
+              ],
+              [
+                "_CFStringEqual",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.WebContent (31804)": [
+              [
+                "0x1159bd681",
+                1.0
+              ],
+              [
+                "JSC::JSObject::convertContiguousToArrayStorage(JSC::VM&, JSC::TransitionKind)",
+                1.0
+              ],
+              [
+                "0x1175c8fc5",
+                1.0
+              ],
+              [
+                "operationGetByIdMegamorphic",
+                1.0
+              ],
+              [
+                "JSC::JSPropertyNameEnumerator::computeNext(JSC::JSGlobalObject*, JSC::JSObject*, unsigned int&, JSC::JSPropertyNameEnumerator::Flag&, bool)",
+                1.0
+              ],
+              [
+                "JSC::slowJoin(JSC::JSGlobalObject*, JSC::JSObject*, JSC::JSString*, unsigned long long)",
+                1.0
+              ],
+              [
+                "WebCore::FormatConverter::convert(WebCore::GraphicsContextGL::DataFormat, WebCore::GraphicsContextGL::DataFormat, WebCore::GraphicsContextGL::AlphaOp)",
+                1.0
+              ],
+              [
+                "_platform_memmove",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphon (31518)": [
+              [
+                "start_wqthread",
+                7.0
+              ],
+              [
+                "invocation function for block in void AGX::Texture<(AGXTextureMemoryLayout)4, AGX::HAL300::Encoders, AGX::HAL300::Classes>::processCompressedRegion2D<AGX::AppleCompressionGen2::Compressor<(AGX::AppleCompressionGen2::PixelFormat)15, 1u, (unsigned char)1, (AGX::AppleCompressionGen2::SubblockOrder)0, (AGXTextureFootprint)0>, false, (AGXHardwareTextureMemoryOrder)2>(void*, void const*, void*, MTLPixelFormat, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long, unsigned int, unsigned int) const",
+                4.0
+              ],
+              [
+                "mach_msg2_trap",
+                2.0
+              ],
+              [
+                "-[_MTLDeserializer operationWithSerializedData:serializedDataSize:allocator:]",
+                1.0
+              ],
+              [
+                "iokit_user_client_trap",
+                1.0
+              ],
+              [
+                "_xzm_xzone_malloc_tiny",
+                1.0
+              ],
+              [
+                "_xpc_serializer_pack",
+                1.0
+              ],
+              [
+                "kevent_id",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (31520)": [
+              [
+                "iokit_user_client_trap",
+                2.0
+              ],
+              [
+                "-[AGXG17XFamilyDevice alertCommandBufferActivityComplete]",
+                1.0
+              ]
+            ]
+          }
+        },
+        {
+          "pageStartMs": 50916,
+          "intervalMs": 81,
+          "traceStartMs": 8890.0,
+          "sampled": {
+            "webContentMainSampleMs": 27.0,
+            "mainRafSampleMs": 23.0,
+            "simMetalHostAllThreadsSampleMs": 50.0,
+            "jitHelperSampleMs": 6.0,
+            "mainStyleSampleMs": 4.0,
+            "webKitGPUAllThreadsSampleMs": 22.0
+          },
+          "leafSampleMs": {
+            "com.apple.WebKit.WebContent (31804)": [
+              [
+                "void WebCore::SelectorDataList::execute<WebCore::Element*>(WebCore::ContainerNode&, WebCore::Element*&) const",
+                1.0
+              ],
+              [
+                "bool JSC::ARM64LogicalImmediate::findBitRange<32u>(unsigned long long, unsigned int&, unsigned int&, bool&)",
+                1.0
+              ],
+              [
+                "JSC::JSObject::tryGetIndexQuickly(unsigned int, JSC::ArrayProfile*) const",
+                1.0
+              ],
+              [
+                "0x115abf3b9",
+                1.0
+              ],
+              [
+                "WebCore::SelectorFilter::collectElementIdentifierHashes(WebCore::Element const&, WTF::Vector<unsigned int, 4ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&)",
+                1.0
+              ],
+              [
+                "operationGetByValGaveUp",
+                1.0
+              ],
+              [
+                "JSC::InlineCacheCompiler::compileOneAccessCaseHandler(WTF::Vector<JSC::AccessCase*, 16ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc> const&, JSC::CodeBlock*, JSC::AccessCase&, WTF::Vector<JSC::WatchpointSet*, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&&)::$_1::operator()(WTF::Ref<JSC::PolymorphicAccessJITStubRoutine, WTF::RawPtrTraits<JSC::PolymorphicAccessJITStubRoutine>, WTF::DefaultRefDerefTraits<JSC::PolymorphicAccessJITStubRoutine>>&&, JSC::CacheType) const",
+                1.0
+              ],
+              [
+                "0x117115439",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphone (31520)": [
+              [
+                "mach_msg2_trap",
+                1.0
+              ],
+              [
+                "__bzero",
+                1.0
+              ],
+              [
+                "iokit_user_client_trap",
+                1.0
+              ]
+            ],
+            "com.apple.WebKit.GPU (31780)": [
+              [
+                "mach_msg2_trap",
+                7.0
+              ],
+              [
+                "AccelerateCrypto_SHA256_compress",
+                2.0
+              ],
+              [
+                "gl::Buffer::bufferSubData(gl::Context const*, gl::BufferBinding, void const*, long, long)",
+                1.0
+              ],
+              [
+                "_platform_memcmp",
+                1.0
+              ],
+              [
+                "_dispatch_event_loop_poke",
+                1.0
+              ],
+              [
+                "DYLD-STUB$$GL_BlendFuncSeparate",
+                1.0
+              ],
+              [
+                "objc_release_x23",
+                1.0
+              ],
+              [
+                "_xpc_graph_deserializer_read",
+                1.0
+              ]
+            ],
+            "SimMetalHost (frame-floor-iphon (31518)": [
+              [
+                "start_wqthread",
+                13.0
+              ],
+              [
+                "iokit_user_client_trap",
+                4.0
+              ],
+              [
+                "mach_msg2_trap",
+                3.0
+              ],
+              [
+                "kevent_id",
+                2.0
+              ],
+              [
+                "_platform_memset",
+                2.0
+              ],
+              [
+                "AGX::SamplerStateEncoderGen5<AGX::HAL300::TextureFormatTable>::SamplerStateFields::SamplerStateFields(AGX::SamplerDescriptor const&)",
+                1.0
+              ],
+              [
+                "+[NSObject allocWithZone:]",
+                1.0
+              ],
+              [
+                "_dispatch_mach_msg_send",
+                1.0
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

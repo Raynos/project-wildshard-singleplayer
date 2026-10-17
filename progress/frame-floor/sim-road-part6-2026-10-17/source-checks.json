@@ -1,0 +1,34 @@
+{
+  "sourceFixes": [
+    "180f4d4e13facbaae3b73e5f90eb79b3c56411d2",
+    "554322770a39e2c8a69b6e0f63dd27a702020bf9"
+  ],
+  "firstFix": {
+    "focusedTests": 39,
+    "proof": ".git/proofs/20261017T120019-sp-x1-road6-final-checks-48970.json"
+  },
+  "readerFix": {
+    "focusedTests": 40,
+    "proof": ".git/proofs/20261017T122655-sp-x1-road6-reader-checks-91303.json"
+  },
+  "bothFixes": {
+    "headlessCases": 17,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "products": 10,
+    "hostBar": "6/6 in each source commit",
+    "runtimeFilesDeleted": [],
+    "platformRuntimeTypeScriptPhysicalNet": 38,
+    "packageExportsAdded": 1,
+    "shardNet": {
+      "nalati-grasslands": -2,
+      "others": 0
+    }
+  },
+  "landedPreviewTypes": ".git/proofs/20261017T123609-sp-x1-road6-serve-readers-40474.json",
+  "quietPair": ".git/proofs/20261017T130551-sp-x1-road6-quiet-after-87906.json",
+  "quietPairExitCode": 2,
+  "quietPairComplete": true,
+  "quietPairFloorPass": false
+}

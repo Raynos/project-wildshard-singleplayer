@@ -1,0 +1,334 @@
+[
+  {
+    "label": "dw",
+    "source": "533662de42c4bedf6c59a5f5107f6065db5c1547",
+    "record": ".git/proofs/artifacts/20261017-sp-x1-sim-road6/dw/533662de4-81862-1792252744555.json",
+    "complete": true,
+    "errors": [],
+    "rows": [
+      {
+        "name": "spawn",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-crossroads",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-deck-east",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-driftwood-isle-road-entry-travel",
+        "p95Ms": 43,
+        "maxMs": 99
+      },
+      {
+        "name": "grid-driftwood-isle-road-entry-drive",
+        "p95Ms": 37,
+        "maxMs": 99
+      },
+      {
+        "name": "grid-driftwood-isle-road-entry",
+        "p95Ms": 45,
+        "maxMs": 46
+      }
+    ],
+    "drive": {
+      "nativeAnchors": [
+        [
+          41925.00000000001,
+          1792252807255
+        ],
+        [
+          63066,
+          1792252828396
+        ]
+      ],
+      "nativeGate": [],
+      "longFrames": [
+        [
+          46225,
+          99
+        ],
+        [
+          46425,
+          55
+        ],
+        [
+          52509,
+          96
+        ]
+      ],
+      "hookSummary": [
+        {
+          "hook": "driftwood-isle:afterKit",
+          "frames": 1,
+          "maxMs": 99,
+          "totalMs": 99
+        },
+        {
+          "hook": "driftwood-isle:activate",
+          "frames": 1,
+          "maxMs": 96,
+          "totalMs": 96
+        },
+        {
+          "hook": "driftwood-isle:afterPlay",
+          "frames": 1,
+          "maxMs": 55,
+          "totalMs": 55
+        }
+      ],
+      "activationCalls": [
+        [
+          52510,
+          2,
+          "RuntimeHooks.activate"
+        ]
+      ],
+      "timelineValid": false,
+      "timelineInvalid": [
+        "anchor drift -21171 ms > 5 ms",
+        "zero timeline timestamps (the proxy zero-clock fault)",
+        "4737 records without a finite positive span",
+        "no RenderingFrame records: run-loop coverage not established on this Inspector"
+      ]
+    }
+  },
+  {
+    "label": "nalati",
+    "source": "533662de42c4bedf6c59a5f5107f6065db5c1547",
+    "record": ".git/proofs/artifacts/20261017-sp-x1-sim-road6/nalati/533662de4-3469-1792252975699.json",
+    "complete": true,
+    "errors": [],
+    "rows": [
+      {
+        "name": "spawn",
+        "p95Ms": 44,
+        "maxMs": 52
+      },
+      {
+        "name": "grid-crossroads",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-deck-east",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-nalati-grasslands-road-entry-travel",
+        "p95Ms": 45,
+        "maxMs": 100
+      },
+      {
+        "name": "grid-nalati-grasslands-road-entry-drive",
+        "p95Ms": 37,
+        "maxMs": 134
+      },
+      {
+        "name": "grid-nalati-grasslands-road-entry",
+        "p95Ms": 34,
+        "maxMs": 39
+      }
+    ],
+    "drive": {
+      "nativeAnchors": [
+        [
+          41752,
+          1792253036476
+        ],
+        [
+          67073.00000000001,
+          1792253061797
+        ]
+      ],
+      "nativeGate": [],
+      "longFrames": [
+        [
+          41966,
+          55
+        ],
+        [
+          44116,
+          100
+        ],
+        [
+          44549,
+          51
+        ],
+        [
+          45266,
+          51
+        ],
+        [
+          48682,
+          85
+        ],
+        [
+          54369,
+          54
+        ],
+        [
+          56749,
+          134
+        ]
+      ],
+      "hookSummary": [
+        {
+          "hook": "nalati-grasslands:world",
+          "frames": 4,
+          "maxMs": 100,
+          "totalMs": 287
+        },
+        {
+          "hook": "nalati-grasslands:activate",
+          "frames": 1,
+          "maxMs": 134,
+          "totalMs": 134
+        },
+        {
+          "hook": "between hooks",
+          "frames": 1,
+          "maxMs": 55,
+          "totalMs": 55
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "frames": 1,
+          "maxMs": 54,
+          "totalMs": 54
+        }
+      ],
+      "activationCalls": [
+        [
+          56751,
+          4,
+          "RuntimeHooks.activate"
+        ]
+      ],
+      "timelineValid": false,
+      "timelineInvalid": [
+        "anchor drift -25435 ms > 5 ms",
+        "zero timeline timestamps (the proxy zero-clock fault)",
+        "3980 records without a finite positive span",
+        "no RenderingFrame records: run-loop coverage not established on this Inspector"
+      ]
+    }
+  },
+  {
+    "label": "dw-all",
+    "source": "533662de42c4bedf6c59a5f5107f6065db5c1547",
+    "record": ".git/proofs/artifacts/20261017-sp-x1-sim-road6/dw-all/533662de4-31214-1792253420394.json",
+    "complete": true,
+    "errors": [],
+    "rows": [
+      {
+        "name": "spawn",
+        "p95Ms": 34,
+        "maxMs": 35
+      },
+      {
+        "name": "grid-crossroads",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-deck-east",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-driftwood-isle-road-entry-travel",
+        "p95Ms": 41,
+        "maxMs": 115
+      },
+      {
+        "name": "grid-driftwood-isle-road-entry-drive",
+        "p95Ms": 35,
+        "maxMs": 115
+      },
+      {
+        "name": "grid-driftwood-isle-road-entry",
+        "p95Ms": 34,
+        "maxMs": 35
+      }
+    ],
+    "drive": {
+      "nativeAnchors": [
+        [
+          40491,
+          1792253476535
+        ],
+        [
+          61659,
+          1792253497703
+        ]
+      ],
+      "nativeGate": [],
+      "longFrames": [
+        [
+          44598,
+          115
+        ],
+        [
+          44817,
+          52
+        ],
+        [
+          45766,
+          61
+        ],
+        [
+          50916,
+          81
+        ]
+      ],
+      "hookSummary": [
+        {
+          "hook": "driftwood-isle:afterKit",
+          "frames": 1,
+          "maxMs": 115,
+          "totalMs": 115
+        },
+        {
+          "hook": "driftwood-isle:activate",
+          "frames": 1,
+          "maxMs": 81,
+          "totalMs": 81
+        },
+        {
+          "hook": "driftwood-isle:afterPlay",
+          "frames": 1,
+          "maxMs": 61,
+          "totalMs": 61
+        },
+        {
+          "hook": "driftwood-isle:play",
+          "frames": 1,
+          "maxMs": 52,
+          "totalMs": 52
+        }
+      ],
+      "activationCalls": [
+        [
+          50918,
+          2,
+          "RuntimeHooks.activate"
+        ]
+      ],
+      "timelineValid": false,
+      "timelineInvalid": [
+        "anchor drift -21269 ms > 5 ms",
+        "zero timeline timestamps (the proxy zero-clock fault)",
+        "4426 records without a finite positive span",
+        "no RenderingFrame records: run-loop coverage not established on this Inspector"
+      ]
+    }
+  }
+]

@@ -1,0 +1,576 @@
+{
+  "source": "554322770a39e2c8a69b6e0f63dd27a702020bf9",
+  "records": [
+    {
+      "path": ".git/proofs/artifacts/20261017-sp-x1-sim-road6/after-1/554322770-89562-1792260394729.json",
+      "sha": "554322770a39e2c8a69b6e0f63dd27a702020bf9",
+      "runId": "89562-1792260394729",
+      "elapsedSeconds": 165.941,
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-17T18:09:20.662Z",
+      "device": "frame-floor-iphone-17-pro",
+      "frames": 120,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "nalati-grasslands-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "harnessRevision": "5fd0bfe969a9e06be694910d279e99093a560753",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "quietValidity": {
+        "source": "554322770a39e2c8a69b6e0f63dd27a702020bf9",
+        "startedAt": 1792260394.6948018,
+        "endedAt": 1792260560.678009,
+        "pushEvents": [],
+        "pushersAtEnd": [],
+        "timingCredit": true
+      }
+    },
+    {
+      "path": ".git/proofs/artifacts/20261017-sp-x1-sim-road6/after-2/554322770-94385-1792260560750.json",
+      "sha": "554322770a39e2c8a69b6e0f63dd27a702020bf9",
+      "runId": "94385-1792260560750",
+      "elapsedSeconds": 160.731,
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-17T18:12:01.473Z",
+      "device": "frame-floor-iphone-17-pro",
+      "frames": 120,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "nalati-grasslands-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "harnessRevision": "5fd0bfe969a9e06be694910d279e99093a560753",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "quietValidity": {
+        "source": "554322770a39e2c8a69b6e0f63dd27a702020bf9",
+        "startedAt": 1792260560.717132,
+        "endedAt": 1792260721.487357,
+        "pushEvents": [],
+        "pushersAtEnd": [],
+        "timingCredit": true
+      }
+    }
+  ],
+  "rows": [
+    {
+      "row": "spawn",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 45,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-deck-east",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 36,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-deck-north",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        null
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-far-reach-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 134,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 127,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-far-reach-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 134,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 127,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-far-reach-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 45,
+          "maxMs": 100,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling"
+        },
+        {
+          "p95Ms": 43,
+          "maxMs": 73,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling"
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 100,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 88,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 42,
+          "maxMs": 87,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling"
+        },
+        {
+          "p95Ms": 40,
+          "maxMs": 105,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling"
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 98,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 105,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-pine-hollow-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 39,
+          "maxMs": 96,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling"
+        },
+        {
+          "p95Ms": 42,
+          "maxMs": 97,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling"
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 96,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 97,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-crossroads",
+      "runs": [
+        null,
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null
+        }
+      ],
+      "bothPass": false
+    }
+  ],
+  "allBothPass": false
+}

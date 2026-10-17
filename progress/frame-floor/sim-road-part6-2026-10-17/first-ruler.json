@@ -1,0 +1,45 @@
+{
+  "beforeSha": "74cc3361dee78bcee02e58ef0247ef7404a3ecdb",
+  "afterTree": "c81f0f29bd3df53ca06b7d435788963475b206b6",
+  "before": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5815,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20077,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 9355,
+    "sunscar-dunes": 392
+  },
+  "after": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5815,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20077,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 9355,
+    "sunscar-dunes": 392
+  },
+  "net": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  },
+  "note": "Both source-basis component inventories run in build-mirror check2. Each pin uses its own complete generated section products; the runtime-only change alters no declared data sections.",
+  "landedSourceSha": "180f4d4e13facbaae3b73e5f90eb79b3c56411d2",
+  "landedParent": "a585be217426def6f614cf15cca34235b3d84e12",
+  "landedSourceTree": "68a780a2fb50816fabdc46eba6c708f4cc64d197",
+  "rebaseNote": "The six checked blobs are byte-identical across later menu/docs commits. The pinned AFTER build also rechecks root/layer types at the landed SHA."
+}

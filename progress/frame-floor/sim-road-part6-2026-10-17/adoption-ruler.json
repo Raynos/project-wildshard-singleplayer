@@ -1,0 +1,61 @@
+{
+  "beforeSha": "c14cfd71c89e8db745aad276c568d64ad7450d4d",
+  "afterTree": "baf460b147545434f8584d84285226ce394df453",
+  "before": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5815,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20077,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 9355,
+    "sunscar-dunes": 392
+  },
+  "after": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5815,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20075,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 9355,
+    "sunscar-dunes": 392
+  },
+  "net": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": -2,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  },
+  "beforeProductsSha": "180f4d4e13facbaae3b73e5f90eb79b3c56411d2",
+  "beforeProducts": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/serve/20261017-122223-4400/dist/shardfiles",
+  "verifiedIdenticalParentInputs": [
+    "src/shards",
+    "src/engine",
+    "src/sdk",
+    "src/format",
+    "src/commons",
+    "src/game/plugin",
+    "src/game/models",
+    "src/game/shardfile",
+    "src/game/population",
+    "scripts/generation-jobs.json",
+    "scripts/source-generation-outputs.json",
+    "scripts/build-shardfiles.mjs",
+    "scripts/shard-platform-hosts.mjs",
+    "scripts/shardfile-config.mjs",
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "note": "Before source-basis inventory runs in build-mirror check2 against complete verified immutable products from the landed first fix. The protected shard/engine/SDK/format/section-producer inputs match the adoption parent; intervening changes add stats UI/docs. AFTER uses its own complete newly built products in the checked tree."
+}
