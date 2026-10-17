@@ -1,5 +1,6 @@
+import { gunzipSync } from 'fflate';
 import oracle from './fixtures/keyed-sky-half-oracle.json';
-import { packGainKey } from '../scripts/bake/keyed-sky.mjs';
+import { encodeGainKey, packGainKey } from '../scripts/bake/keyed-sky.mjs';
 import { describe, expect, it } from 'vitest';
 import { DayCycle } from '../src/engine/world/dayCycle';
 import { parseKeyedSky, SKY_PRESET } from '../src/format/keyedSky';
@@ -57,6 +58,13 @@ describe('weather reactions + keyed sky rows', () => {
 });
 
 // The old upload passes RGB half floats to RGB9_E5; retain those exact bits.
+it('retains the shipped gzip bytes independently of the producer OS', () => {
+  const data = new Uint16Array([15360, 15360, 15360]);
+  const bytes = encodeGainKey(data);
+  expect(Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')).toBe('1f8b080000000000021363b06100420057940dd706000000');
+  expect(gunzipSync(bytes)).toEqual(new Uint8Array(data.buffer));
+});
+
 it('packs RGB half texels offline and retains the unrounded horizon', () => {
   const packed = packGainKey(new Uint8Array([255, 255, 255, 255]), new Uint8Array([0, 0, 0, 255]), 1, 1);
   expect(packed.horizon).toEqual([1, 1, 1]); expect([...packed.data]).toEqual([15360, 15360, 15360]);

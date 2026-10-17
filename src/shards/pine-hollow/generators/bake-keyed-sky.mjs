@@ -2,10 +2,9 @@
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
 import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
-import { packGainKey } from '../../../../scripts/bake/keyed-sky.mjs';
+import { encodeGainKey, packGainKey } from '../../../../scripts/bake/keyed-sky.mjs';
 import sky from '../data/sky.json' with { type: 'json' };
 
 const sharp = createRequire(new URL('../../../sdk/package.json', import.meta.url))('sharp');
@@ -18,7 +17,7 @@ for (const [name, key] of Object.entries(sky.keys)) {
   const { width, height } = color.info;
   if (width !== gain.info.width || height !== gain.info.height) throw new Error(`Sky plane sizes differ: ${name}`);
   const { data, horizon } = packGainKey(color.data, gain.data, width, height);
-  const file = blobs.add(`look/sky/${name}.bin`, 'bin', gzipSync(new Uint8Array(data.buffer), { level: 9 }));
+  const file = blobs.add(`look/sky/${name}.bin`, 'bin', encodeGainKey(data));
   packedKeys[name] = { file, width, height, horizon };
 }
 blobs.finish(new URL('data/skyKeyBlobs.generated.json', project));

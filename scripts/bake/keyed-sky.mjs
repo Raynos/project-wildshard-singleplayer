@@ -1,5 +1,13 @@
 // Build-only RGB half-float rows. The upload retains each driver's RGB9_E5 quantization.
+import { gzipSync } from 'node:zlib';
 import { DataUtils } from 'three';
+
+/** Keep the shipped gzip OS marker stable across Darwin and Linux producers. */
+export function encodeGainKey(data) {
+  const bytes = gzipSync(new Uint8Array(data.buffer, data.byteOffset, data.byteLength), { level: 9 });
+  bytes[9] = 19; // Preserve the original Darwin catalogue; this header does not affect inflation.
+  return bytes;
+}
 
 /** Match BakedSky's gain lookup, drop constant alpha offline, and retain the original horizon means. */
 export function packGainKey(color, gain, width, height) {
