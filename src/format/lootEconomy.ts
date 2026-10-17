@@ -1,3 +1,4 @@
+import { ExchangeSchema } from './exchange';
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { CurveSchema } from './materials';
@@ -53,6 +54,7 @@ export function parseLootTables(input: unknown): v.InferOutput<typeof LootTables
 }
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
 export const LootEconomySchema = v.strictObject({
+  exchange: v.exactOptional(ExchangeSchema),
   pickups: v.exactOptional(v.pipe(v.record(key, ClaimedPickupSchema), v.maxEntries(128))),
   tables: v.exactOptional(LootTablesSchema),
   progression: v.exactOptional(v.strictObject({ flags,

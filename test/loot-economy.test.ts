@@ -4,7 +4,7 @@ import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { parseLootEconomy } from '../src/format/lootEconomy';
 import { parseRows } from '../src/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
-import { buyGood, goodState } from '../src/shards/driftwood-isle/loot/shop';
+import { Exchange } from '../src/game/loot/exchange';
 import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
 import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';
@@ -23,11 +23,25 @@ test('emitted goods keep prices, prerequisites and spend-before-grant transactio
   for (const good of economy.goods) {
     const have = new Set<OwnedId>(), calls: string[] = [], owned = { has: (id: OwnedId) => have.has(id), grant: (id: OwnedId) => { calls.push(`grant:${id}`); have.add(id); return true; } };
     const purse = { coins: good.price, spend: (n: number) => { calls.push(`spend:${n}`); purse.coins -= n; return true; } };
-    if (good.needs !== undefined) { expect(goodState(good, owned, purse.coins)).toBe('locked'); expect(buyGood(good, owned, purse)).toBe(false); have.add(good.needs); }
-    purse.coins = good.price - 1; expect(goodState(good, owned, purse.coins)).toBe('short'); expect(buyGood(good, owned, purse)).toBe(false); expect(calls).toEqual([]);
-    purse.coins = good.price; expect(buyGood(good, owned, purse)).toBe(true); expect(calls).toEqual([`spend:${good.price}`, `grant:${good.id}`]); expect(purse.coins).toBe(0);
-    expect(goodState(good, owned, 1000)).toBe('owned'); expect(buyGood(good, owned, purse)).toBe(false);
+    const shop = new Exchange(economy.exchange, new Map<string, unknown>([['owned', owned], ['purse', { count: () => purse.coins, spend: purse.spend }]]));
+    const index = economy.goods.indexOf(good); shop.open();
+    if (good.needs !== undefined) { expect(shop.state(index)).toBe('locked'); expect(shop.use(index)).toBe(false); have.add(good.needs); }
+    purse.coins = good.price - 1; expect(shop.state(index)).toBe('short'); expect(shop.use(index)).toBe(false); expect(calls).toEqual([]);
+    purse.coins = good.price; expect(shop.use(index)).toBe(true); expect(calls).toEqual([`spend:${good.price}`, `grant:${good.id}`]); expect(purse.coins).toBe(0);
+    expect(shop.state(index)).toBe('owned'); expect(shop.use(index)).toBe(false);
   }
+});
+
+test('a refused purse debit never grants a good or changes modal ownership', () => {
+  const calls: string[] = [];
+  const shop = new Exchange(economy.exchange, new Map<string, unknown>([
+    ['owned', { has: () => false, grant: () => { calls.push('grant'); } }],
+    ['purse', { count: () => 100, spend: () => { calls.push('spend'); return false; } }],
+  ]));
+  shop.open();
+  expect(shop.use(0)).toBe(false);
+  expect(calls).toEqual(['spend']);
+  expect(shop.snapshot()).toEqual({ version: 1, open: true });
 });
 
 test('chart rows preserve all shipping world positions, order and saved-flag visibility', async () => {

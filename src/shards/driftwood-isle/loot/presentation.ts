@@ -8,7 +8,9 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Adventure } from '../quest/adventure';
 import stallRows from '../data/traderStall.json' with { type: 'json' };
-import { buyGood, goodById, goodState, type Good } from './shop';
+import { Exchange } from '@wildshard/game/loot/exchange';
+
+type Good = ReturnType<typeof declaredLootEconomy>['goods'][number];
 
 /** The island's authored counter and bag rows, supplied to the common loot mechanism. */
 export async function driftwoodLootPresentation(o: { economy: ReturnType<typeof declaredLootEconomy>; adventure: Pick<Adventure, 'flags' | 'trader'>; owned: Owned; health: { readonly attributes: { readonly maxHealth: number } }; audio: { readonly voices: Pick<Audio['voices'], 'play'> }; scope: Scope; toast: (text: string) => void; hold: (on: boolean) => void }): Promise<LootPresentation> {
@@ -30,16 +32,17 @@ export async function driftwoodLootPresentation(o: { economy: ReturnType<typeof 
     shop: (purse) => {
       const stall = adv.trader;
       if (stall === null) return null;
+      const exchange = new Exchange(economy.exchange, new Map<string, unknown>([['owned', owned], ['purse', { count: () => purse.coins, spend: (n: number) => purse.spend(n) }]]));
       const panel = new ShopPanel<Good>({ trader: stallRows.name, place: 'Driftwood Isle', goods: GOODS,
-        state: (g) => goodState(g, owned, purse.coins), coins: () => purse.coins,
-        needs: (g) => g.needs !== undefined ? goodById(GOODS, g.needs)?.name ?? g.needs : '' });
+        state: (g) => exchange.state(GOODS.indexOf(g)), coins: () => purse.coins,
+        needs: (g) => g.needs !== undefined ? GOODS.find(good => good.id === g.needs)?.name ?? g.needs : '' });
       panel.onBuy = (g) => {
-        if (!buyGood(g, owned, purse)) return false;
+        if (!exchange.use(GOODS.indexOf(g))) return false;
         sfx.interact('chime', stall.at, { gain: 0.8 }); stall.trader?.offer();
         o.toast(`Bought · ${g.name} — ${g.id === 'cape' ? 'wear it from GEAR' : g.does.toLowerCase()}`);
         return true;
       };
-      panel.onOpen = () => { o.hold(true); }; panel.onClose = () => { o.hold(false); };
+      panel.onOpen = () => { exchange.open(); o.hold(true); }; panel.onClose = () => { exchange.close(); o.hold(false); };
       stall.shop = panel;
       o.scope.onDispose(() => { stall.shop = null; });
       return panel;

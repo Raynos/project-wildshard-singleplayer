@@ -1,3 +1,5 @@
+import type { ExchangeRows } from '@wildshard/format/exchange';
+
 type NativeEffectId = `effect.${string}`;
 type NativeTag = `${string}.${string}`;
 export interface NativeEffectRow {
@@ -59,3 +61,12 @@ export const DRIFTWOOD_WEAPON_GRANTS = [
   { id: 'effect.whetstone.1', key: 'whetstone-1', unless: ['whetstone-2'] },
   { id: 'effect.bear-claw', key: 'bear-claw' },
 ] as const;
+
+/** Coin purchases use the same exchange owner as barter, with a checked purse debit before ownership. */
+export const DRIFTWOOD_EXCHANGE: ExchangeRows = {
+  count: { owner: 'purse', path: ['count'] }, owns: { owner: 'owned', path: ['has'] },
+  goods: GOODS.map(good => ({ id: good.id, owns: good.id,
+    costs: [{ item: 'coin', n: good.price }], payments: [{ owner: 'purse', path: ['spend'], args: [good.price], required: true }],
+    grants: [{ owner: 'owned', path: ['grant'], args: [good.id] }],
+  })).map((row, index) => { const needs = GOODS[index]?.needs; if (needs !== undefined) Object.assign(row, { needs }); return row; }),
+};

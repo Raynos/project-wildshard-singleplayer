@@ -7,8 +7,8 @@ import { parseQuestPageInteractions, type QuestPageInteractionsData } from '../s
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
 import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/shards/pine-hollow/quest/contracts';
-import { tradeState } from '../src/shards/pine-hollow/quest/trades';
-import { TRADES } from '../src/shards/pine-hollow/generators/trades';
+import { Exchange } from '../src/game/loot/exchange';
+import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trades';
 
 const admitted = new Map<string, QuestPageInteractionsData>();
 // Frozen from the original play-read tables before moving their assembly to build time.
@@ -76,7 +76,8 @@ test('saved board and shop still decide acceptance, with costs before grants and
   events.length = 0;
   const trade = TRADES.find(row => row.id === 'broadheads');
   if (trade === undefined) throw new Error('Missing trade');
-  const check = () => tradeState(trade, { count: id => pack.get(id) ?? 0 }, id => owned.has(id));
+  const exchange = new Exchange(tradeExchange(), new Map<string, unknown>([['pack', { count: (id: string) => pack.get(id) ?? 0, take: () => true }], ['skins', { owns: (id: string) => owned.has(id), own: () => undefined }], ['ammo', { capacity: () => true, grant: () => undefined, addBolts: () => undefined }]]));
+  const check = () => exchange.check(TRADES.indexOf(trade));
   expect(check().ok).toBe(false); expect(events).toEqual([]);
   pack.set('boar-hide', 1); pack.set('amber-resin', 2); expect(check().ok).toBe(true);
   page.run(`trade.${trade.id}`);

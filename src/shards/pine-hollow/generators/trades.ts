@@ -1,3 +1,4 @@
+import type { ExchangeRows } from '@wildshard/format/exchange';
 import type { PineItem } from './questInventory';
 
 /** Authored swaps; native affordability, quiver capacity and shop presentation stay runtime-owned. */
@@ -52,4 +53,22 @@ export function tradeCatalogue(): AuthoredTradeCatalogue {
       : uses.map((trade, i) => i === 0 ? trade.short : trade.short.toLowerCase()).join(' · ')];
   }));
   return { goods, lines };
+}
+
+/** Capture the original barter reads, capacity tests and grant order as product data. */
+export function tradeExchange(): ExchangeRows {
+  return { count: { owner: 'pack', path: ['count'] }, owns: { owner: 'skins', path: ['owns'] }, room: { owner: 'ammo', path: ['capacity'] },
+    goods: tradeCatalogue().goods.map(({ trade, cost }) => {
+      const offer: ExchangeRows['goods'][number] = { id: trade.id,
+      costs: cost.map(row => ({ item: row.item, n: row.n, text: row.text })),
+      payments: trade.give.map(row => ({ owner: 'pack', path: ['take'], args: [row.item, row.n] })),
+      grants: ['bolts' in trade.get ? { owner: 'ammo', path: ['addBolts'], args: [trade.get.bolts] }
+        : 'ammo' in trade.get ? { owner: 'ammo', path: ['grant'], args: [trade.get.ammo, trade.get.n] }
+          : { owner: 'skins', path: ['own'], args: [trade.get.skin] }],
+      };
+      if ('skin' in trade.get && trade.once === true) offer.owns = trade.get.skin;
+      if ('bolts' in trade.get) offer.capacity = { item: 'iron', n: trade.get.bolts };
+      else if ('ammo' in trade.get) offer.capacity = { item: trade.get.ammo, n: trade.get.n };
+      return offer;
+    }) };
 }

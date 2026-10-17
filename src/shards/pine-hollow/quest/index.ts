@@ -1,5 +1,5 @@
 import { installQuestTrader } from '@wildshard/game/quest/trader';
-import { parsePineQuestRows } from './rows';
+import { parsePineQuestRows, parseTradeCatalogue, type TradeGood } from './rows';
 import type { Progress } from '@wildshard/game/Progress';
 import { parseContractCatalogue } from '../runtime/lodge';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -70,8 +70,8 @@ import { preloadNpcModels } from '../runtime/quest/npcModels';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
-import { tradeCost, tradeShopState, type Room } from './trades';
-import { parseTradeCatalogue, type TradeItem, type TradeGood } from '../runtime/trader';
+import { Exchange } from '@wildshard/game/loot/exchange';
+import type { AmmoKind } from '../loadout/ammo';
 import './pinehollow.css';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
@@ -92,7 +92,7 @@ export interface PineQuestHost {
   inventory: Inventory; progress: Pick<Progress, 'bindLedger' | 'refreshLedger'>; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
   weapons: { setEnabled: (on: boolean) => void; visible: boolean };
   /** the crossbow's bolts, and the loadout's special ammo (PH-C11: pitch / broadhead bolts, cartridges, arrows) */
-  crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void; /** can the kit hold n more? (E314 C: no trade into a full quiver) */ room?: Room };
+  crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void; /** can the kit hold n more? (E314 C: no trade into a full quiver) */ room?: (kind: AmmoKind, n: number) => boolean };
   menu: { isOpen: boolean; close: (silent?: boolean) => void };
   interactables: Interactable[];
   registry: WorldRegistry;
@@ -129,6 +129,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const native = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/native.json'))));
   const { resinCount: RESIN_COUNT, resinFlag: RESIN_FLAG, tokenFlag: TOKEN_FLAG, tokenNames: TOKEN_NAMES } = native.policy;
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/stall.json')));
+  const exchangeRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/exchange.json')));
   const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
@@ -284,14 +285,15 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   h.interactables.push(boardPrompt);
 
   // ── the trader's slate ──
-  const pack = { count: (id: TradeItem): number => inventory.count(id) };
   const owns = (s: string): boolean => s in pineSkins() && h.skins.has(s);
-  const room: Room = (k, n) => h.crossbow.room?.(k, n) ?? true;
+  const room = (k: AmmoKind, n: number) => h.crossbow.room?.(k, n) ?? true;
+  const exchange = new Exchange(exchangeRows, new Map<string, unknown>([['pack', inventory], ['skins', { owns, own: h.skins.own.bind(h.skins) }],
+    ['ammo', { capacity: room, addBolts: h.crossbow.addBolts.bind(h.crossbow), grant: (kind: Exclude<AmmoKind, 'iron'>, n: number) => h.crossbow.addAmmo?.(kind, n) }]]));
   // the platform draws the stall (SF28; the G87 sheet since G181): the goods and the rules are declared here
   const trade = ui.view('trade', (scope) => {
     const panel = new ShopPanel<TradeGood>({
       trader: 'Mott', place: 'Pine Hollow', goods: trades.goods, verb: 'Trade',
-      state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g, pack),
+      state: (g) => exchange.state(trades.goods.indexOf(g)), cost: (g) => exchange.cost(trades.goods.indexOf(g)),
       scope,
     });
     panel.onBuy = ({ trade: t }) => transactions.run(`trade.${t.id}`);

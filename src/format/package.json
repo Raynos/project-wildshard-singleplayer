@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./exchange": "./exchange.ts",
     "./panelTemplate": "./panelTemplate.ts",
     "./questStory": "./questStory.ts",
     "./completion": "./completion.ts",

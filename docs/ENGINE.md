@@ -8418,3 +8418,14 @@ and the captain's admitted body step retains his lift. Numeric rows add no
 continuation, policy, physics write or random draw. Driftwood's ecological
 delays and clearance are compiled into `sim/keeper.json`; the native keeper
 reads those admitted rows while its version-8 live save remains unchanged.
+
+### Declared exchanges
+
+`@wildshard/game/loot/exchange.Exchange` binds `ExchangeRows` from
+`@wildshard/format/exchange` to the session's lent inventory, purse,
+capacity and ownership methods. Pine emits `quests/exchange.json`;
+Driftwood includes the same rows in its admitted loot economy.
+Affordability reads precede ordered payments and grants. A payment
+marked `required` returning false stops the purchase before grants.
+Panels keep their original hold lifetimes; native modal saves retain
+`{ version: 1, open }`, with silent validation before restore.

@@ -29,3 +29,28 @@ export function parsePineQuestRows(input: unknown): v.InferOutput<typeof rows> {
 }
 /** Shared content contract for the existing page and renderer-free native owners. */
 export type PineQuestRows = v.InferOutput<typeof rows>;
+
+const tradeText = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
+const amount = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
+const item = v.picklist(['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon']);
+const tradeRow = v.strictObject({ id: tradeText, label: tradeText, short: tradeText, blurb: tradeText,
+  give: v.pipe(v.array(v.strictObject({ item, n: amount })), v.minLength(1), v.maxLength(3)),
+  get: v.union([v.strictObject({ bolts: amount }), v.strictObject({ ammo: v.picklist(['pitch', 'broadhead', 'cartridge', 'arrow']), n: amount }),
+    v.strictObject({ skin: v.picklist(['scarback-furnace', 'hollow-ash']) })]), once: v.exactOptional(v.boolean()) });
+const catalogue = v.strictObject({ goods: v.pipe(v.array(v.strictObject({ id: tradeText, name: tradeText, does: tradeText,
+  icon: v.picklist(['bolt', 'rifle', 'longbow', 'crossbow']), price: v.literal(0), tile: tradeText, trade: tradeRow,
+  cost: v.pipe(v.array(v.strictObject({ item, n: amount, text: tradeText })), v.minLength(1), v.maxLength(3)) })), v.minLength(1), v.maxLength(64)), lines: v.record(tradeText, tradeText) });
+export type TradeCatalogue = v.InferOutput<typeof catalogue>;
+export type TradeGood = TradeCatalogue['goods'][number];
+export type Trade = v.InferOutput<typeof tradeRow>;
+export type TradeItem = v.InferOutput<typeof item>;
+/** Preflight every offer and display link before the native modal or page panel can use a row. */
+export function parseTradeCatalogue(input: unknown): TradeCatalogue {
+  const parsed = v.parse(catalogue, input);
+  if (new Set(parsed.goods.map(g => g.id)).size !== parsed.goods.length || (Object.keys(parsed.lines).length !== item.options.length || item.options.some(id => parsed.lines[id] === undefined))
+    || parsed.goods.some(g => g.id !== g.trade.id || g.cost.length !== g.trade.give.length
+      || g.cost.some((c, i) => { const paid = g.trade.give[i]; return paid === undefined || c.item !== paid.item || c.n !== paid.n; }))) throw new Error('Invalid Pine trade catalogue');
+  return parsed;
+}
+
+export type PineTradeSkin = 'hollow-ash' | 'scarback-furnace';

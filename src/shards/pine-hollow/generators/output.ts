@@ -12,7 +12,7 @@ import { KNIFE_LOOK } from './knifeLook';
 import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
-import { tradeCatalogue } from './trades';
+import { tradeCatalogue, tradeExchange } from './trades';
 import movers from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
@@ -59,6 +59,7 @@ const clientJson=emitNamedBlobs([
   nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram)))),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),
+  nameBlob('quests/exchange.json', 'json', new TextEncoder().encode(encodeCanonicalJson(tradeExchange()))),
   nameBlob('quests/trades.json', 'json', new TextEncoder().encode(encodeCanonicalJson(tradeCatalogue()))),
   nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue()))),
   ...([['quests/mill-door.json', PINE_MILL_DOOR], ['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>

@@ -1,4 +1,4 @@
-import type { PineQuestRows } from '../quest/rows';
+import type { PineQuestRows, PineTradeSkin } from '../quest/rows';
 import { moversRiding } from '@wildshard/game/plugin/mover';
 import { cableModes } from '@wildshard/engine/player/modes';
 import * as v from 'valibot';
@@ -21,7 +21,7 @@ import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
 import { eliteOf } from '../quest/contracts';
 import { questBenchPose } from '@wildshard/game/quest/storyLaw';
 import benchRows from '../data/questBench.json' with { type: 'json' };
-import { PineTrader, PINE_TRADE, PINE_TRADE_CLOSE, type PineTradeSkin } from './trader';
+import { Exchange } from '@wildshard/game/loot/exchange';
 import { PINE_AMMO_SAVED, type PineAmmunition } from './weapons/ammunition';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 
@@ -36,6 +36,7 @@ export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5
 export const QUEST_STEP = 'pine.quest';
 /** The page's bolt-cycle action, accepted only while its crossbow is live and no modal owns the player. */
 export const PINE_AMMO = 'pine.ammo';
+const PINE_TRADE = 'pine.trade', PINE_TRADE_CLOSE = -1;
 
 /** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
 const EYE = 1.68;
@@ -74,7 +75,7 @@ export interface PineQuestPorts {
   readonly counters: AchievementCounterData;
   readonly inventory: NativeInventoryProfile<string>;
   readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
-  readonly trades: ConstructorParameters<typeof PineTrader>[0]['catalogue'];
+  readonly trades: unknown;
   /** USE on the King's pending orb, after the quest's modal ownership check. */
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
   readonly quests: QuestData;
@@ -105,7 +106,7 @@ export interface PineQuest {
   /** The dialogue modal owns use input and suppresses weapon actions until completion or cancellation. */
   readonly talking: () => boolean;
   readonly lodge: PineLodge;
-  readonly trader: PineTrader;
+  readonly trader: Exchange;
   readonly ownsTradeFinish: (skin: PineTradeSkin) => boolean;
   /** Lodge finish ownership is gameplay state; its material view remains on the page. */
   readonly ownsLodgeFinish: () => boolean;
@@ -177,12 +178,13 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const personSpots = { ranger: people.find(person => person.kind === 'ranger'),
     miller: people.find(person => person.kind === 'miller'), trader: people.find(person => person.kind === 'trader') };
   let hollowAsh = false;
-  let tradeSkins = new Set<PineTradeSkin>();
-  const trader = new PineTrader({ catalogue: ports.trades, pack, owns: skin => skin === 'hollow-ash' && hollowAsh || [...tradeSkins].some(owned => owned === skin),
-    room: (kind, n) => ports.ammunition?.room(kind, n) ?? false,
-    addBolts: ports.addBolts,
-    addAmmo: (kind, n) => { if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n); },
-    ownSkin: skin => { tradeSkins.add(skin); } });
+  let tradeSkins = new Set<string>();
+  const trader = new Exchange(ports.trades, new Map<string, unknown>([['pack', pack],
+    ['skins', { owns: (skin: string) => skin === 'hollow-ash' && hollowAsh || tradeSkins.has(skin), own: (skin: PineTradeSkin) => { tradeSkins.add(skin); } }],
+    ['ammo', { capacity: (kind: Parameters<NonNullable<PineQuestPorts['ammunition']>['room']>[0], n: number) => ports.ammunition?.room(kind, n) ?? false,
+      addBolts: ports.addBolts, grant: (kind: Parameters<NonNullable<PineQuestPorts['ammunition']>['add']>[0], n: number) => {
+        if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n);
+      } }]]));
   const initialTrader = trader.snapshot();
   const dialogue = createReadingRoster(content.readings, people, (npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), kind => {
     if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {

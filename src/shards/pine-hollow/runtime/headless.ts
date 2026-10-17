@@ -31,7 +31,7 @@ import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
 import { installPineNight } from './nightPopulation';
 import { PINE_LODGE, parseContractCatalogue } from './lodge';
-import { parseTradeCatalogue } from './trader';
+import { parseExchange } from '@wildshard/game/loot/exchange';
 import { parseAchievementCounterData, type AchievementCounterData } from '@wildshard/format/achievementCounters';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
@@ -79,7 +79,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   if (leverRow?.kind !== 'weapon' || leverRow.family !== 'firearm') throw new Error('Missing admitted Pine lever profile');
   parseNativeFirearmProfile(leverRow.profile, 'lever');
   const counters = parseAchievementCounterData(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/achievements.json'))));
-  const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/trades.json'))));
+  const trades = parseExchange(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/exchange.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/contracts.json'))));
   const content = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/native.json'))));
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
