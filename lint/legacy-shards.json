@@ -814,7 +814,7 @@
         "runtime/fan.ts": "9e79a4e13096afd30ad7a1d8e09122e17c0db5235583f1f3c51b65b2b0584bad",
         "runtime/flock.ts": "5c2a73db9df8841718a87cbd8e117767e6d28160637df4ba11e8c30fe1161db9",
         "runtime/flockBrains.ts": "97c3533e2cea1bed59099476a0986c5373457c07b01f03a1b5e7fe1aaa952286",
-        "runtime/headless.ts": "22f509f1b53f8769a890e5a844726d17ee474a50e31da41a6f09111b5bcccbcd",
+        "runtime/headless.ts": "9d74a530799ae8509187889aa30ab857e253f58a568796c7630f2f46970e65bb",
         "runtime/headlessMovers.ts": "68ec99f3578160ba512b4fbda9dc1caa77e974b16b5c0133cf14aa039d8e1abd",
         "runtime/index.ts": "c8c6383a8eff9006aebea15e13b0240b60650297a199762affac17d56750a197",
         "runtime/items.ts": "eacbbaa1367e4c7a62a14612658d86b08a04aad1d7f33b699322086aa585dd89",
@@ -871,6 +871,13 @@
         "world/swardAtlas.ts": "c2792f2b3749b5b882b49cad375260dc40e88e934031e9a22b89458e43b2ca1c",
         "world/trees.ts": "14c6a8f42cac73e351f3ad7e92e75d69c433716aae8959b879f24f5253f426a3",
         "world/windFx.ts": "f13a27bdb0a86237c0aeb93cbdd788e67ce98b0646b6450d1ab2689f46c95720"
+      },
+      "compatibility": {
+        "runtime/headless.ts": {
+          "original": "22f509f1b53f8769a890e5a844726d17ee474a50e31da41a6f09111b5bcccbcd",
+          "current": "9d74a530799ae8509187889aa30ab857e253f58a568796c7630f2f46970e65bb",
+          "reason": "G469 coordinator-approved proof import migration: keep the frozen headless entry loadable when entryway proofs leave the gameplay module; no behaviour or pinned 1258254a3 line basis changes."
+        }
       }
     },
     "sunscar-dunes-legacy": {

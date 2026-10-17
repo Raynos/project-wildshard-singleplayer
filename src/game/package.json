@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./proof/entryways": "./plugin/simulation.ts",
     "./models/specimenCatalogue": "./models/specimenCatalogue.ts",
     "./shardfile/audioCatalogue": "./shardfile/audioCatalogue.ts",
     "./quest/persistence": "./quest/persistence.ts",
