@@ -1,7 +1,7 @@
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
-const NAMES = ['sim/scripts', 'actors/moves', 'world/targets', 'sim/runtime-plan'] as const;
+const NAMES = ['sim/scripts', 'actors/spawn-scripts', 'actors/moves', 'world/targets', 'sim/runtime-plan'] as const;
 
 /** Explicit admitted decision/move context crossing the worker boundary; no ABI is inferred from bytes. */
 export function headlessSections(input?: ReadonlyMap<string, unknown>): Map<string, unknown> {

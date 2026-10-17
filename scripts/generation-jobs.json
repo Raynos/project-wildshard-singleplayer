@@ -7542,32 +7542,23 @@
       "inputRoots": [
         "package.json",
         "pnpm-lock.yaml",
-        "src/format/admissionLimits.ts",
-        "src/format/director.ts",
-        "src/format/directorStages.ts",
-        "src/format/directorWhen.ts",
-        "src/format/package.json",
-        "src/format/state.ts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/buildBehaviour.ts",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/directorAbi.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/sourceReader.ts",
+        "src/format",
+        "src/sdk",
         "src/shards/pine-hollow/behaviour/night.as",
-        "src/shards/pine-hollow/data/nightDirector.json",
+        "src/shards/pine-hollow/data/nightPopulation.generated.json",
+        "src/shards/pine-hollow/data/populationWaves.json",
+        "src/shards/pine-hollow/data/populationNight.json",
+        "src/shards/pine-hollow/generators/nightSpawn.ts",
         "src/shards/pine-hollow/generators/bake-pine-night-director.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/behaviour/night.generated.json",
-        "src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda"
+        "src/shards/pine-hollow/assets/3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/pine-hollow/behaviour/night.generated.json": "19d875cd69bc4ca409dead67186b7a449cdd563868b75202695c06e780ff2ba0",
-        "src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda": "a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda"
+        "src/shards/pine-hollow/behaviour/night.generated.json": "663eedeb015bca4dbdec4536fc37650137ae633ada5ffec8e7c7867a0a6a59ab",
+        "src/shards/pine-hollow/assets/3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135": "3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135"
       }
     },
     {

@@ -13,8 +13,7 @@
  * The thrall models are the King's (antlerKing.ts builds one of each kind at boot), so nothing here compiles mid-play.
  */
 import * as THREE from 'three';
-import { PagePopulationWaves } from './pageWaves';
-import type { DirectorLane } from '@wildshard/game/plugin/director';
+import { SpawnScript } from '@wildshard/game/population/spawnScript';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { Puffs } from '../runtime/combat/fxKit';
@@ -24,25 +23,31 @@ export interface NightHost {
   errand: () => boolean; onErrandDone: () => void;
   shot: (name: string, at: THREE.Vector3) => void;
 }
-/** The shard's puff/sound presentation; encounter iteration and placement are counted Pine wiring. */
+/** Client presentation for the AS-owned night encounter. */
 export class NightThralls {
-  private readonly brain: InstanceType<typeof PagePopulationWaves>;
+  private readonly brain: SpawnScript;
   private readonly puffs: Puffs;
   private readonly point = new THREE.Vector3();
-  constructor(private readonly h: NightHost, lane: DirectorLane, rows: unknown) {
+  private readonly flags: string[] = [];
+  constructor(private readonly h: NightHost, rows: unknown) {
     this.puffs = new Puffs(h.scene, new THREE.Color(0.55, 0.7, 0.62), 3);
-    this.brain = new PagePopulationWaves(lane, h.animals, rows, TIER === 'phone' ? 3 : 4);
+    this.brain = SpawnScript.page(h.animals, rows);
   }
   private present(): void {
-    for (const effect of this.brain.effects()) {
-      if (effect.kind === 'complete') this.h.onErrandDone();
-      else if (effect.kind === 'voice') this.h.shot(effect.name, effect.at);
-      else this.puffs.burst(this.point.copy(effect.at).setY(effect.at.y + 1), 1.2, 3.4, 0.8, 0.8);
+    if (this.brain.hasFlag('errand:done') && this.h.errand()) this.h.onErrandDone();
+    for (const effect of this.brain.drainEffects()) {
+      if (effect.kind !== 'cue') continue;
+      if (effect.id === 4) this.puffs.burst(this.point.copy(effect.at).setY(effect.at.y + 1), 1.2, 3.4, 0.8, 0.8);
+      else {
+        const name = ['thrall_call', 'thrall_groan', 'thrall_move'][effect.id - 1];
+        if (name !== undefined) this.h.shot(name, this.point.copy(effect.at));
+      }
     }
   }
-  get count(): number { return this.brain.count; }
-  force(point: THREE.Vector3): void { this.brain.force(point, this.h.errand()); this.present(); }
+  get count(): number { return this.brain.channel(1); }
+  force(point: THREE.Vector3): void { this.point.copy(point); this.brain.force(); }
   update(dt: number, t: number, point: THREE.Vector3): void {
-    this.puffs.update(dt, t); this.brain.advance(dt, point, this.h.night(), this.h.errand()); this.present();
+    this.puffs.update(dt, t); this.flags.length = 0; if (this.h.errand()) this.flags.push('errand:asked');
+    this.brain.advance(dt, point, this.h.night(), TIER === 'phone' ? 3 : 4, this.flags); this.present();
   }
 }

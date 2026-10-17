@@ -1,4 +1,4 @@
-import { decisionScriptsFromSections } from '@wildshard/format/scriptContract';
+import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
@@ -250,7 +250,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   progress('validation', receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt');
   if (receipt === null) validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
-  }, options.memory, options.textures, decisionScriptsFromSections(outputDescriptor(source)?.sections));
+  }, options.memory, options.textures, scriptAdmissionRows(outputDescriptor(source)?.sections));
   if (receipt !== null && options.textures !== undefined) acceptValidatedCost(source,
     deviceLibraryCost(source, assets, options.textures), options.memory);
   if (!options.offline && options.cache !== undefined) {

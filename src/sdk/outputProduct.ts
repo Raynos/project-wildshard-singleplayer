@@ -4,7 +4,7 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } 
 // oxlint-disable-next-line import/no-nodejs-modules -- Product paths are validated relative paths, never URLs.
 import { dirname, resolve } from 'node:path';
 import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
-import { decisionModuleContracts, decisionScriptsFromSections, type ScriptContract } from '@wildshard/format/scriptContract';
+import { decisionModuleContracts, decisionScriptsFromSections, scriptAdmissionRows, type ScriptContract } from '@wildshard/format/scriptContract';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
 import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -65,7 +65,7 @@ export interface OutputProductOptions {
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
 /** The platform sections a decision row resolves against: its rows and the moves they bind. */
-export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/moves', 'world/targets'] as const;
+export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/spawn-scripts', 'actors/moves', 'world/targets'] as const;
 /** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
 export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = DECISION_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
   const payloads = new Map<string, unknown>();
@@ -82,6 +82,10 @@ export function outputPlatformPayloads(platform: EmittedSections | undefined, na
 export function outputDecisionScripts(platform?: EmittedSections): DecisionScripts {
   return decisionScriptsFromSections(outputPlatformPayloads(platform, ['sim/scripts']));
 }
+/** Exact contracts for both generic actor decisions and population-owned directors. */
+export function outputScriptAdmissionRows(platform?: EmittedSections): DecisionScripts {
+  return scriptAdmissionRows(outputPlatformPayloads(platform, ['sim/scripts', 'actors/spawn-scripts']));
+}
 function checkWorldTargets(source: Shardfile, input: unknown): void {
   if (input === undefined) return;
   const errors = worldTargetRules(parseWorldTargets(input), source);
@@ -89,7 +93,7 @@ function checkWorldTargets(source: Shardfile, input: unknown): void {
 }
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
-  const scripts = outputDecisionScripts(options.platform), source = admitProduct(input,assets,'warn',scripts);
+  const scripts = outputScriptAdmissionRows(options.platform), source = admitProduct(input,assets,'warn',scripts);
   const targetEntry = options.platform?.sections.find(row => row.name === 'world/targets');
   if (targetEntry !== undefined) {
     const bytes = options.platform?.files.get(targetEntry.path);
@@ -157,7 +161,7 @@ export function validateOutputProduct(destination: string): {index:OutputIndex; 
   };
   for(const entry of index.schemas){const bytes=read(entry);readJson(bytes);schemaBytes.set(entry.path,bytes);}
   for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);if(entry.name.startsWith('custom/')){const schema=schemaBytes.get(entry.schema);if(schema===undefined)throw new Error('Missing custom schema');validateDefinedSection(schema,value);}else validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
-  const scripts = decisionScriptsFromSections(payloads), contracts = decisionModuleContracts(scripts, index.files);
+  const scripts = scriptAdmissionRows(payloads), contracts = decisionModuleContracts(scripts, index.files);
   for(const entry of index.files){const bytes=read({path:entry.path,hash:entry.hash,bytes:entry.compressed});inspectBlob(entry,bytes,entry.kind === 'wasm' ? contracts.get(entry.hash) ?? {abi:0} : undefined);assets.set(`${entry.commons===true?'commons:':''}${entry.hash}`,bytes);if(index.requires.commons.includes(entry.hash))assets.set(`commons:${entry.hash}`,bytes);}
   for(const entry of index.runtime?.files??[])validateRuntimeImports(destination,entry.path,new TextDecoder('utf-8',{fatal:true}).decode(read(entry)));
   const walk=(folder:string):void=>{for(const name of readdirSync(resolve(destination,folder))){const path=folder===''?name:`${folder}/${name}`,stat=lstatSync(resolve(destination,path));if(stat.isDirectory())walk(path);else if(!stat.isFile()||!listed.has(path))throw new Error(`Unlisted output file: ${path}`);}};

@@ -1,3 +1,4 @@
+import type { SpawnScriptRows } from './spawnScripts';
 import type { WorldScenesSection } from './worldScenes';
 import type { HeldArmsRows } from './heldArms';
 import type { HeldGearRows } from './heldGear';
@@ -59,6 +60,7 @@ export interface PlatformSections {
   'look/materials': { readonly rows: Pick<Rows, 'looks'> };
   /** new (KA5): sim-side steering mechanics, independently selected by decisions. */
   'actors/moves': ActorMoves;
+  'actors/spawn-scripts': SpawnScriptRows[];
   /** Callback-free gameplay species, in each owning world's original registration order. */
   'actors/species-programs': SpeciesPrograms;
   'actors/creatures': Pick<Shardfile, 'creatures'>;

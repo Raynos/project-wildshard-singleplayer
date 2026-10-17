@@ -9188,3 +9188,45 @@ a different rarity ladder, four-item rewards and a first-claim finish. Pine's
 catalogue fingerprint and old-save test retain its original three-slot serial
 sequence, words, rewards and save wire. The pending-user entry names the
 contracts + elites feature and the W3 recheck.
+
+
+### Population Script ABI spawn and retire (G474, G484)
+
+`game/population/spawnScript` owns ABI-v1 `spawn` (5) and `despawn` (6)
+for population directors. `installNativeSpawnScript(host, day, rows)`
+resolves the existing roster by its step id. `SpawnScript.page(manager,
+rows)` is the client-only binding to the actual AnimalManager. Neither
+installer accepts a shard callback, subclass or reflected owner path.
+
+`format/spawnScripts` declares bounded logical actor slots, species recipes,
+spawn sites, field sources and moves. A spawn command names a recipe row;
+that row names its species and site. Dynamic sites read declared x/z fields
+written by the script. The real roster allocates the native actor identity
+and consumes the existing recipe/memory draws; logical handles never become
+native entity ids. Retire releases that same body through its real owner.
+Recipe and capacity checks precede command commit. The decision host still
+validates the complete batch, authority and four-spawn quota before effects.
+
+The guest owns placement attempts, its declared placement RNG slot, group
+iteration and story choices at 10 Hz. Existing ActorMoveRunner mechanics
+steer the real bodies at fixed-step frequency. The bounded v1 `radial`
+list query (6) returns `[sin(angle) * radius, cos(angle) * radius]`, with
+radius 0–10000; the compiler generates `Read.radial` and `List.at` accessors.
+This uses the same native math as existing placement and avoids guest trig
+library calls consuming the coarse fuel budget. It reads no world state.
+
+Snapshots keep logical-to-native identities, declared guest slots, staged
+commands, site fields, moves, channels and the fixed-step remainder. A
+row-declared legacy map adopts old population ids and their placement stream
+without spawning, drawing, replaying effects or entering Wasm. A quiet
+re-save retains the validated input wire until the first simulation step;
+subsequent saves write the new continuation. Other v1 owners continue refusing spawn/retire until they bind a population owner;
+impulse and weather still need their own feature owners.
+
+`actors/spawn-scripts` admits population-owned v1 rows separately from the
+normal actor decision catalogue. `scriptAdmissionRows` supplies both sets to
+product byte/memory admission; automatic actor decisions still read only
+`sim/scripts`. Catalogue bytes are empty: `readSpawnScript(product, step)`
+resolves the exact declared module through the admitted product inventory,
+then supplies those verified bytes to the synchronous owner. The worker
+forwards this catalogue as part of its explicit admitted context.

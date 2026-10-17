@@ -1,4 +1,6 @@
 {
+  "test/pine-night-emits.test.ts": ["pine-hollow"],
+  "test/creature-group-sampling.test.ts": [],
   "test/contracts-platform.test.ts": [],
   "test/world-scenes-platform.test.ts": [],
   "test/scripts/skitterer-pack.test.ts": [

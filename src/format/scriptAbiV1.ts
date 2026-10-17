@@ -11,12 +11,12 @@ export const SCRIPT_V1_READS = Object.freeze({
   strikeState: 16, playerFlag: 17, spawnGroupAlive: 18, bearing: 19,
 });
 /** Bounded list queries. Ground/navigation keep the existing physics query semantics. */
-export const SCRIPT_V1_LISTS = Object.freeze({ actorsInZone: 1, playersWithin: 2, groundHeight: 3, nearestWalkable: 4, path: 5 });
+export const SCRIPT_V1_LISTS = Object.freeze({ actorsInZone: 1, playersWithin: 2, groundHeight: 3, nearestWalkable: 4, path: 5, radial: 6 });
 /** Command ids; view commands occupy a disjoint range and may not run in a simulation binding. */
 export const SCRIPT_V1_COMMANDS = Object.freeze({
   move: 1, strike: 2, stop: 3, field: 4, spawn: 5, despawn: 6, flag: 7, timer: 8,
   signal: 9, grant: 10, reward: 11, cue: 12, channel: 13, impulse: 14, encounter: 15, weather: 16,
-  'view.channel': 100, 'view.clip': 101, 'view.vfx': 102, 'view.sound': 103, 'view.visible': 104,
+  'view.channel': 100, 'view.clip': 101, 'view.vfx': 102, 'view.sound': 103, 'view.visible': 104, 'view.field': 105,
 });
 export type ScriptV1EventName = keyof typeof SCRIPT_V1_EVENTS;
 export type ScriptV1ReadName = keyof typeof SCRIPT_V1_READS;

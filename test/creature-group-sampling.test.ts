@@ -1,12 +1,7 @@
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { sampleCreatureGroup, type CreatureGroupSpec } from '../src/game/plugin/brain';
-import { PopulationWaveDirector, preparePopulationModule, type PopulationActor } from '../src/shards/pine-hollow/quest/waves';
-import type { PopulationWaveSpec } from '../src/shards/pine-hollow/quest/waveRows';
-import nightDeclaration from '../src/shards/pine-hollow/data/nightDirector.json' with { type: 'json' };
-import nightModule from '../src/shards/pine-hollow/behaviour/night.generated.json' with { type: 'json' };
-import nightRows from '../src/shards/pine-hollow/data/nightPopulation.generated.json' with { type: 'json' };
-import tuning from '../src/shards/pine-hollow/data/populationWaves.json' with { type: 'json' };
+
 
 const ground = (x: number, z: number): number => Math.sin(x * 0.05) * 3 + Math.cos(z * 0.07) * 2;
 
@@ -59,40 +54,3 @@ test('Driftwood crab groups on data gates match the retired accept callback bit 
   }
 });
 
-/** Pine's retired roamer loop (runtime/nightDirector.ts before sampleCreatureGroup), verbatim, as the oracle. */
-function retiredRoamer(spec: PopulationWaveSpec, p: { x: number; z: number }, anywhere: boolean, next: () => number, height: (x: number, z: number) => number): { x: number; z: number; yaw: number } | null {
-  for (let tries = 0; tries < 12; tries++) {
-    const ang = next() * Math.PI * 2, rr = Math.sqrt(next()) * 0.8;
-    const x = spec.region.x + Math.sin(ang) * spec.region.ax * rr, z = spec.region.z + Math.cos(ang) * spec.region.az * rr;
-    const dp = Math.hypot(x - p.x, z - p.z);
-    if (!anywhere && (dp < 45 || dp > 150)) continue;
-    if (anywhere && (dp < 18 || dp > 60)) continue;
-    if (Math.hypot(x - spec.exclude.x, z - spec.exclude.z) < spec.exclude.blend + 8) continue;
-    if (Math.abs(x) > 235 || Math.abs(z) > 235 || height(x, z) < spec.water + 0.6) continue;
-    return { x, z, yaw: Math.atan2(p.x - x, p.z - z) };
-  }
-  return null;
-}
-
-test('Pine night roamers on sampleCreatureGroup rows spawn exactly where the retired loop did', async () => {
-  const create = await preparePopulationModule(nightDeclaration, nightModule, 357), spec = { ...nightRows.spec, max: 4 };
-  const height = (x: number, z: number): number => spec.water + ground(x, z);
-  let spawned = 0;
-  for (let seed = 0; seed < 120; seed++) {
-    const player = { x: spec.region.x + (seed % 11 - 5) * 14, y: 0, z: spec.region.z + (seed % 7 - 3) * 19 };
-    const oracle = new Rng(seed).fork('pine.night'), live = new Rng(seed).fork('pine.night');
-    const expected: { x: number; z: number; yaw: number }[] = [];
-    for (let i = 0; i < 4; i++) { const at = retiredRoamer(spec, player, true, () => oracle.next(), height); if (at !== null) expected.push(at); }
-    const got: { x: number; z: number; yaw: number }[] = [];
-    const brain = new PopulationWaveDirector<PopulationActor>(create(), {
-      night: () => 1, errand: () => false, onErrandDone: () => undefined, stream: live, ground: { heightAt: height },
-      spawn: (_kind, x, z, yaw) => { got.push({ x, z, yaw }); return { position: { x, y: 0, z }, alive: true, hp: 1, maxHp: 1, lookWeight: 1, setMotion: () => undefined }; },
-      own: () => undefined, release: () => undefined, retire: () => undefined, burst: () => undefined, shot: () => undefined,
-    }, spec, nightRows.stages, tuning);
-    brain.force(player);
-    expect(got).toEqual(expected);
-    expect(live.snapshot()).toEqual(oracle.snapshot());
-    spawned += got.length;
-  }
-  expect(spawned).toBeGreaterThan(100);
-});

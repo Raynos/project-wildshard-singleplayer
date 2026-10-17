@@ -17,6 +17,7 @@ const reads: Record<keyof typeof SCRIPT_V1_READS, Method> = {
 const lists: Record<keyof typeof SCRIPT_V1_LISTS, Method> = {
   actorsInZone:{args:'zone:i32',values:'f64(zone)'},playersWithin:{args:'actor:i32,radius:f64',values:'f64(actor),radius'},
   groundHeight:{args:'x:f64,z:f64',values:'x,z'},nearestWalkable:{args:'x:f64,z:f64',values:'x,z'},path:{args:'actor:i32,target:i32',values:'f64(actor),f64(target)'},
+  radial:{args:'angle:f64,radius:f64=1',values:'angle,radius'},
 };
 const commands: Record<keyof typeof SCRIPT_V1_COMMANDS, Method> = {
   move:{args:'actor:i32,move:i32,target:i32=0',values:'actor,f64(move),f64(target)'},
@@ -30,6 +31,7 @@ const commands: Record<keyof typeof SCRIPT_V1_COMMANDS, Method> = {
   'view.channel':{args:'channel:i32,value:f64',values:'0,f64(channel),value'},'view.clip':{args:'actor:i32,clip:i32',values:'actor,f64(clip)'},
   'view.vfx':{args:'actor:i32,cue:i32',values:'actor,f64(cue)'},'view.sound':{args:'actor:i32,cue:i32',values:'actor,f64(cue)'},
   'view.visible':{args:'actor:i32,value:bool',values:'actor,value?1.0:0.0'},
+  'view.field':{args:'field:i32,value:f64',values:'0,f64(field),value'},
 };
 /** Handlers follow the design's implicit-subject form; Event.subject retains the full current subject for multi-actor bindings. */
 export const DECISION_HANDLERS: Record<ScriptV1EventName, { name: string; args: string }> = {

@@ -55,6 +55,9 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   adoptParked: (id: string, x: number, z: number, yaw: number) => NativePopulationActor;
   /** a body this roster made (listed or not) by entity id */
   actor: (id: string) => NativePopulationActor | null;
+  /** Script transactions preflight recipes and capacity without allocating or drawing. */
+  validateSpawn: (kind: string, variant: string) => void;
+  available: () => number;
 } {
   const rows = parseNativePopulationRows(input);
   const BODY_COUNT = rows.bodyCount, LIVE_MAX = rows.limit, ROSTER_STEP = rows.step;
@@ -219,7 +222,10 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   };
   const service: ReturnType<typeof installPopulationRoster> = { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant),
     spawnLoose: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant, false), retire, adoptParked,
-    actor: made };
+    actor: made, available: () => LIVE_MAX - list.length,
+    validateSpawn: (kind, variant) => { intake.spec(kind, variant); const row = species.get(kind);
+      if (row === undefined || ![...row.variants, ...row.spawnOnly ?? []].some(entry => entry.id === variant)) throw new Error('Missing native spawn species'); },
+  };
   const services = installed.get(host) ?? new Map<string, ReturnType<typeof installPopulationRoster>>();
   if (services.has(rows.step)) throw new Error('Duplicate native population service');
   services.set(rows.step, service); installed.set(host, services);

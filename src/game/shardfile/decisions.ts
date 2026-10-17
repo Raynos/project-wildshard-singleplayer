@@ -224,6 +224,12 @@ export class ShardDecisions {
     throw new Error('Decision read has no authoritative mechanic');
   }
   private list(op: number, a: number, b: number, output: Float64Array): number {
+    if (op === 6) {
+      if (b < 0 || b > 10000) throw new Error('Radial query bounds');
+      if (output.length < 2) return 0;
+      output[0] = Math.sin(a) * b; output[1] = Math.cos(a) * b; return 2;
+    }
+
     if (op === 3 || op === 4) {
       if (Math.abs(a) > 250 || Math.abs(b) > 250) throw new Error('Decision query outside cell');
       const y = this.sim.groundHeightAt(a, b);

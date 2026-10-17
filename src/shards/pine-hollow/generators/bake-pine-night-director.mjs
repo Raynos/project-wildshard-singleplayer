@@ -1,24 +1,17 @@
-// Retained authoring-only typed AS producer. No game, runtime, legacy, page or renderer inputs.
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { Buffer } from 'node:buffer';
-import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
-import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
+// Author-only v1 population script producer; no runtime or legacy evaluator.
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
+import { spawnScriptRegistries } from '@wildshard/format/spawnScripts';
+import { NIGHT_SPAWN } from './nightSpawn.ts';
 
-const root = resolve(import.meta.dirname, '../../../..'), project = 'src/shards/pine-hollow';
-const declaration = JSON.parse(readFileSync(resolve(root, project, 'data/nightDirector.json'), 'utf8'));
-const source = readFileSync(resolve(root, project, 'behaviour/night.as'), 'utf8');
-const compiled = await compileBehaviourModule(source, 1, { 'wildshard-director.ts': generateDirectorAbi(declaration) });
-if (declaration.module !== compiled.module) throw new Error('Pine night author module hash differs; update its declaration deliberately');
-const notice = 'DO-NOT-EDIT: generated from retained behaviour/night.as with the pinned SDK compiler; regenerate and compare hashes.';
-const products = new Map([
-  [`${project}/assets/${compiled.module}`, compiled.bytes],
-  [`${project}/behaviour/night.generated.json`, new TextEncoder().encode(`${JSON.stringify({ generated: notice, module: compiled.module, bytes: Buffer.from(compiled.bytes).toString('base64') }, null, 2)}\n`)],
-]);
-for (const [file, bytes] of products) {
-  const path = resolve(root, file);
-  if (process.argv.includes('--check')) {
-    if (!existsSync(path) || !Buffer.from(readFileSync(path)).equals(Buffer.from(bytes))) throw new Error(`Pine night output stale: ${file}`);
-  } else { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, bytes); }
-}
-console.info('Pine night: retained typed AS outputs match the declared immutable hash');
+const root=resolve(import.meta.dirname,'../../../..'),project='src/shards/pine-hollow';
+const built=await compileDecisionScripts([NIGHT_SPAWN.script],spawnScriptRegistries(NIGHT_SPAWN),new Map([['behaviour/night.as',readFileSync(resolve(root,project,'behaviour/night.as'),'utf8')]]),{asLineCeiling:2130});
+const script=built.rows[0],blob=built.blobs[0];
+
+const bytes=blob.bytes;
+const output=`${JSON.stringify({...NIGHT_SPAWN,script,bytes:Buffer.from(bytes).toString('base64')},null,2)}\n`;
+const path=resolve(root,project,'behaviour/night.generated.json');
+if(process.argv.includes('--check')){if(readFileSync(path,'utf8')!==output)throw new Error('Pine night v1 output stale');}
+else { writeFileSync(path,output); writeFileSync(resolve(root,project,'assets',blob.file.hash),bytes); }
+console.info(`Pine night v1: ${built.lines} AS lines, ${bytes.length} Wasm bytes`);

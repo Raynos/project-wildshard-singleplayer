@@ -1,6 +1,7 @@
 {
   "version": 1,
   "modules": {
+    "@wildshard/game/population/spawnScript": ["installNativeSpawnScript", "readSpawnScript"],
     "src/shards/pine-hollow/quest/rows": ["parsePineQuestRows"],
     "src/shards/pine-hollow/runtime/baked": ["PINE_GROUND_RES", "pineBake"],
     "@wildshard/engine/physics/navmesh": ["readNavmesh"],
@@ -9,8 +10,6 @@
     "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion", "readItemInventory"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
-    "src/shards/pine-hollow/quest/waves": ["preparePopulationModule"],
-    "src/shards/pine-hollow/quest/nativeWaves": ["installNativePopulationWaves"],
     "src/shards/pine-hollow/runtime/quest": ["PINE_INTERACT", "installHollowQuest", "pineSpots"],
     "@wildshard/format/contracts": ["parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
@@ -257,22 +256,9 @@
         ]
       }
     },
-    { "name": "nightRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/night.json"] } },
+    {"name": "nightRows", "value": {"$call": [{"$ref": ["@wildshard/game/population/spawnScript", "readSpawnScript"]}, {"$ref": ["product"]}, "pine.night"]}},
     { "name": "shelterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/shelter.json"] } },
     { "name": "populationRoster", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/roster.json"] } },
-    {
-      "name": "nightDirector",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/pine-hollow/quest/waves", "preparePopulationModule"]
-          },
-          { "$ref": ["nightRows", "declaration"] },
-          { "$ref": ["nightRows", "module"] },
-          { "$ref": ["nightRows", "seed"] }
-        ]
-      }
-    },
     {
       "name": "bake",
       "value": {
@@ -1192,85 +1178,6 @@
       }
     },
     {
-      "name": "thralls",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/pine-hollow/quest/nativeWaves", "installNativePopulationWaves"]
-          },
-          {
-            "$ref": ["host"]
-          },
-          {
-            "$call": [
-              {
-                "$ref": ["nightDirector"]
-              }
-            ]
-          },
-          {
-            "night": {
-              "$fn": {
-                "$ref": ["day", "night"]
-              }
-            },
-            "heightAt": {
-              "$ref": ["heightAt"]
-            },
-            "spawn": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "spawn"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  },
-                  {
-                    "$ref": ["args", 1]
-                  },
-                  {
-                    "$ref": ["args", 2]
-                  },
-                  {
-                    "$ref": ["args", 3]
-                  },
-                  {
-                    "$ref": ["args", 4]
-                  }
-                ]
-              }
-            },
-            "retire": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "retire"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  }
-                ]
-              }
-            },
-            "find": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "actor"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  }
-                ]
-              }
-            }
-          },
-          { "$ref": ["nightRows"] }
-        ]
-      }
-    },
-    {
       "name": "air",
       "value": {
         "$call": [
@@ -1372,6 +1279,34 @@
             }
           },
           { "$ref": ["populationRoster"] }
+        ]
+      }
+    },
+    {
+      "name": "thralls",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/population/spawnScript",
+              "installNativeSpawnScript"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "day"
+            ]
+          },
+          {
+            "$ref": [
+              "nightRows"
+            ]
+          }
         ]
       }
     },

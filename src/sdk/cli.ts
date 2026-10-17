@@ -19,7 +19,7 @@ import { buildBehaviourProject } from './buildBehaviour';
 import { synthProject } from './synth';
 import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
 import { decisionModuleContracts } from '@wildshard/format/scriptContract';
-import { outputDecisionScripts, validateOutputProduct } from './outputProduct';
+import { outputScriptAdmissionRows, validateOutputProduct } from './outputProduct';
 import type { RuntimeCopyOptions } from './outputRuntime';
 import type { ProjectManifestSource } from './projectManifest';
 import { ShardCatalogPlacementsSchema } from '@wildshard/format/shardCatalog';
@@ -104,7 +104,7 @@ export async function runCli(args: readonly string[], options: { readonly decisi
       console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`); return;
     }
     const { shard, assets, output: extensions } = await readProjectAssets(resolve(input), undefined, options.manifest, options);
-    const scripts = outputDecisionScripts(extensions.platform), contracts = decisionModuleContracts(scripts, shard.files);
+    const scripts = outputScriptAdmissionRows(extensions.platform), contracts = decisionModuleContracts(scripts, shard.files);
     const project = resolve(input), policy = projectPerformancePolicy(project, shard);
     validateProject(shard, assets, project, scripts);
     let layers = 0, blended = 0, masked = 0;

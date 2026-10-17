@@ -10,8 +10,7 @@ import { parseNativeFirearmProfile as module4ParseNativeFirearmProfile, parseWea
 import { installNativeItems as module5InstallNativeItems, observeNativeCombatMotion as module5ObserveNativeCombatMotion, readItemInventory as module5ReadItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { bindNativeLoadout as module6BindNativeLoadout, weaponRow as module6WeaponRow } from '@wildshard/game/plugin/simulation';
 import { readDirectorProduct as module7ReadDirectorProduct } from '@wildshard/game/plugin/director';
-import { preparePopulationModule as module8PreparePopulationModule } from '../quest/waves';
-import { installNativePopulationWaves as nativeInstallWaves } from '../quest/nativeWaves';
+import { installNativeSpawnScript, readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { PINE_INTERACT as module9PINE_INTERACT, installHollowQuest as module9InstallHollowQuest, pineSpots as module9PineSpots } from '../runtime/quest';
 import { parseContractCatalogue as module10ParseContractCatalogue } from '@wildshard/format/contracts';
 import { parseAchievementCounterData as module11ParseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -42,8 +41,7 @@ export const headlessModules = {
   '@wildshard/game/plugin/nativeItems': { installNativeItems: module5InstallNativeItems, observeNativeCombatMotion: module5ObserveNativeCombatMotion, readItemInventory: module5ReadItemInventory },
   '@wildshard/game/plugin/simulation': { bindNativeLoadout: module6BindNativeLoadout, weaponRow: module6WeaponRow },
   '@wildshard/game/plugin/director': { readDirectorProduct: module7ReadDirectorProduct },
-  'src/shards/pine-hollow/quest/waves': { preparePopulationModule: module8PreparePopulationModule },
-  'src/shards/pine-hollow/quest/nativeWaves': { installNativePopulationWaves: nativeInstallWaves },
+  '@wildshard/game/population/spawnScript': { installNativeSpawnScript, readSpawnScript },
   'src/shards/pine-hollow/runtime/quest': { PINE_INTERACT: module9PINE_INTERACT, installHollowQuest: module9InstallHollowQuest, pineSpots: module9PineSpots },
   '@wildshard/format/contracts': { parseContractCatalogue: module10ParseContractCatalogue },
   '@wildshard/format/achievementCounters': { parseAchievementCounterData: module11ParseAchievementCounterData },

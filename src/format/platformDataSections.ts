@@ -1,3 +1,4 @@
+import { SpawnScriptsSchema, type SpawnScriptRows } from './spawnScripts';
 import { WorldScenesSchema, type WorldScenesSection } from './worldScenes';
 import { HeldArmsSchema, type HeldArmsRows } from './heldArms';
 import { HeldGearSchema, type HeldGearRows } from './heldGear';
@@ -26,6 +27,7 @@ export interface PlatformDataSections {
   'sim/runtime-plan': NativeRuntimePlanData;
   'actors/species-programs': SpeciesPrograms;
   'actors/moves': ActorMoves;
+  'actors/spawn-scripts': SpawnScriptRows[];
   'actors/strikes': CreatureStrikes;
   'sim/scripts': DecisionScripts;
   'ui/strings': UiStrings;
@@ -45,6 +47,7 @@ export const PLATFORM_DATA_SECTIONS = {
   'sim/runtime-plan': { schema: NativeRuntimePlanSchema },
   'actors/species-programs': { schema: SpeciesProgramsSchema },
   'actors/moves': { schema: ActorMovesSchema },
+  'actors/spawn-scripts': { schema: SpawnScriptsSchema },
   'actors/strikes': { schema: CreatureStrikesSchema },
   'sim/scripts': { schema: DecisionScriptsSchema },
   'ui/strings': { schema: UiStringsSchema },
@@ -65,6 +68,7 @@ export function parsePlatformDataSection(name: 'held/equipment', value: unknown)
 export function parsePlatformDataSection(name: 'actors/species-programs', value: unknown): SpeciesPrograms;
 export function parsePlatformDataSection(name: 'actors/moves', value: unknown): ActorMoves;
 export function parsePlatformDataSection(name: 'actors/strikes', value: unknown): CreatureStrikes;
+export function parsePlatformDataSection(name: 'actors/spawn-scripts', value: unknown): SpawnScriptRows[];
 export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): DecisionScripts;
 export function parsePlatformDataSection(name: 'ui/completion', value: unknown): CompletionRows;
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;

@@ -7,7 +7,7 @@ import { readNamedBlob, emitNamedBlobs, nameBlob, type NamedBlob } from './blobs
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { defineMirror, type RuntimeMirror } from './runtimeMirrors';
 import type { EmittedSections } from './sections';
-import { outputDecisionScripts, type OutputProductOptions } from './outputProduct';
+import { outputDecisionScripts, outputScriptAdmissionRows, type OutputProductOptions } from './outputProduct';
 import { prepareProjectDecisions, replacedDecisionBlob, decisionBlobNames } from './projectDecisions';
 import type { DecisionBuildOptions } from './buildDecisionScripts';
 
@@ -69,7 +69,7 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
   for (const row of parsed.blobs) blobs.push(await readNamedBlob(project, row.name, row.source, row.kind, row.options));
   const inventory = [...parsed.namedFiles, ...blobs.map(row => row.file)];
   // Other rows may name files already declared by the root source; full product admission resolves those.
-  const scripts = outputDecisionScripts(parsed.platform).filter(row => inventory.some(file => file.path === row.module));
+  const scripts = outputScriptAdmissionRows(parsed.platform).filter(row => inventory.some(file => file.path === row.module));
   const contracts = decisionModuleContracts(scripts, inventory);
   for (const file of parsed.namedFiles) {
     const value = parsed.assets.get(file.hash);

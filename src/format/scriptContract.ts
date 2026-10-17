@@ -1,3 +1,4 @@
+import { SpawnScriptsSchema } from './spawnScripts';
 import * as v from 'valibot';
 import { admitScript, type ScriptAdmission } from './scriptAdmission';
 import { parseDecisionScripts, type DecisionScripts } from './decisionScripts';
@@ -29,4 +30,10 @@ export function decisionModuleContracts(input: readonly DecisionScripts[number][
     contracts.set(file.hash, { abi: 1, pages: row.pages }); sides.set(file.hash, row.side);
   }
   return contracts;
+}
+
+/** Every explicitly owned v1 module participates in byte, memory and inventory admission. */
+export function scriptAdmissionRows(sections?: ReadonlyMap<string, unknown>): DecisionScripts {
+  const spawn = v.parse(SpawnScriptsSchema, sections?.get('actors/spawn-scripts') ?? []);
+  return parseDecisionScripts([...decisionScriptsFromSections(sections), ...spawn.map(row => row.script)]);
 }

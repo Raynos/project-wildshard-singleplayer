@@ -15,7 +15,7 @@ import * as v from 'valibot';
 import { decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { trustedHeadlessModule, type TrustedHeadlessRuntime } from './headlessRuntime';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
-import { decisionScriptsFromSections } from '@wildshard/format/scriptContract';
+import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { headlessSections } from './headlessSections';
 
 /** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
@@ -27,7 +27,7 @@ export class HeadlessSimulation {
     const trustedRuntime = options.trustedRuntime === undefined ? undefined : { module: trustedHeadlessModule(options.trustedRuntime.module) };
     const sections = headlessSections(options.sections);
     const memory = offlineMemoryAdmission('refuse');
-    validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'), memory, undefined, decisionScriptsFromSections(sections));
+    validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'), memory, undefined, scriptAdmissionRows(sections));
     for (const report of memory?.reports() ?? []) console.warn(`Headless memory report-only (G433): ${report.id}: ${report.playingBytes} playing bytes`);
     const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
     if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
