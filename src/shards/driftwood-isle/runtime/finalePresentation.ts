@@ -17,7 +17,8 @@ import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
 import { DrownedCaptain } from '../combat/captain';
 import type { LevelContext } from '@wildshard/engine/level/context';
-import { prepareDriftwoodDirector, createDriftwoodFinale } from './director';
+import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/plugin/director';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** The existing view services; native finale timing and fight authority remain separate. */
 export type FinaleHost = Pick<typeof clientApp, 'events' | 'encounters' | 'levelScope' | 'engineScope' | 'clock'>;
@@ -83,26 +84,25 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     encounter.update(dt, app.clock.now);
   }, 'shard.driftwood-isle.installFinale');
   return { captain: () => captain, rewardAt, rewardPose,
-    director: { flags, player: w.player.position, rewardAt, reward: state, captain: new Map<string, (value: number) => void>([
-      ['captain.restore', spawn],
-      ['captain.wake', () => {
+    director: { flags, player: w.player.position, rewardAt, reward: state, captain: { restore: spawn,
+      wake: () => {
         spawn(); encounter.wake();
         w.hud.toast('The pool boils — the Drowned Captain rises!'); w.music.combat?.(1);
-      }],
-      ['captain.dead', () => { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); }],
-    ]) },
+      },
+      dead: () => { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); },
+    } },
     step: (dt: number) => { reward.update(dt, state.completed); },
   };
 }
 
 /** SF24 decisions/timers are data + bounded script; captain combat and reward camera/renderer remain runtime recipes (G51). */
-export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Pick<LevelContext, 'scope' | 'system'>, host?: FinaleHost): Promise<Finale> {
+export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Pick<LevelContext, 'scope' | 'system'> & { readonly product: ShardProduct }, host?: FinaleHost): Promise<Finale> {
   const scope = context.scope, app = host ?? { events: clientApp.events, encounters: clientApp.encounters, levelScope: scope,
     engineScope: clientApp.engineScope, clock: clientApp.clock };
   const recipe = scope.run(() => finaleRecipe(adv, w, app));
-  const create = await prepareDriftwoodDirector();
-  if (scope.disposed) throw new Error('Finale scope left during admission');
-  const clock = scope.run(() => createDriftwoodFinale(scope, create(), recipe.director));
+  const director = await readDirectorProduct(context.product, scope);
+  const clock = scope.run(() => DirectorScriptStageLane.bind(director.stages, director.create(), director.bindings,
+    new Map<string, unknown>(Object.entries(recipe.director)), scope));
   // G51: the page's existing rendered clock owns the reward view. Decisions use the same elapsed dt,
   // while the trusted headless keeper uses its normal fixed clock; neither installs a second scheduler.
   w.game.onUpdate(dt => { clock.update(dt); recipe.step(dt); }, 'shard.driftwood.director');

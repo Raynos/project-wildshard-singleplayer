@@ -1,3 +1,7 @@
+import directorData from '../data/director.json' with { type: 'json' };
+import directorModule from '../behaviour/director.json' with { type: 'json' };
+import directorStages from '../data/finaleStages.json' with { type: 'json' };
+import directorBindings from '../data/directorBindings.json' with { type: 'json' };
 import monkeyClips from '../data/monkeyClips.generated.json' with { type: 'json' };
 import traderStall from '../data/traderStall.json' with { type: 'json' };
 import { PAGE_STORY } from './pageStory';
@@ -37,6 +41,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
+  nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson(monkeyClips))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),

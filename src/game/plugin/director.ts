@@ -1,4 +1,5 @@
 import { flagValue } from '@wildshard/engine/world/interact/flags';
+import { bindBorrowedMethod, readBorrowedOwner } from './borrowed';
 import * as v from "valibot";
 import { BossBrain, type BossContinuation, type BossDefinition, type BossPorts, type BossPresentation, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery } from "@wildshard/engine/script/host";
@@ -112,6 +113,42 @@ export async function prepareDirectorModule(data: DirectorData, bytes: Uint8Arra
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
   if ([...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('') !== checked.module) throw new Error('Director module hash mismatch');
   return (seed, query) => new DirectorLane(checked, copy, seed, query);
+}
+
+/** Decode an embedded author bake only when it names the admitted declaration. */
+export function embeddedDirectorBytes(data: unknown, module: { readonly module: string; readonly bytes: string }): Uint8Array {
+  if (module.module !== parseDirector(data).module) throw new Error('Embedded director module is stale');
+  return Uint8Array.from(atob(module.bytes), byte => byte.codePointAt(0) ?? 0);
+}
+/** Admit an embedded bake once and retain a caller-owned seed for independent lane installations. */
+export async function prepareEmbeddedDirector(data: unknown, module: { readonly module: string; readonly bytes: string }, seed: number, scope?: { readonly disposed: boolean }): Promise<() => DirectorLane> {
+  const create = await prepareDirectorModule(parseDirector(data), embeddedDirectorBytes(data, module));
+  if (scope?.disposed === true) throw new Error('Director owner left during admission');
+  return () => create(seed);
+}
+
+const borrowedPath = { owner: v.pipe(v.string(), v.minLength(1), v.maxLength(96)), path: v.pipe(v.array(v.union([v.string(), v.number()])), v.minLength(1), v.maxLength(16)) };
+const argument = v.union([v.string(), v.number(), v.boolean(), v.null()]);
+const directorBindings = v.strictObject({
+  observations: v.pipe(v.record(v.string(), v.union([v.number(), v.strictObject({ ...borrowedPath,
+    args: v.exactOptional(v.pipe(v.array(argument), v.maxLength(16))), present: v.exactOptional(v.boolean()), fallback: v.exactOptional(v.number()),
+  })])), v.maxEntries(32)),
+  actions: v.pipe(v.record(v.string(), v.pipe(v.array(v.variant('kind', [
+    v.strictObject({ kind: v.literal('call'), ...borrowedPath, args: v.optional(v.pipe(v.array(argument), v.maxLength(16)), []) }),
+    v.strictObject({ kind: v.literal('set'), ...borrowedPath, value: argument }),
+  ])), v.maxLength(16))), v.maxEntries(64)),
+  changes: v.optional(v.pipe(v.array(v.strictObject({ ...borrowedPath, keys: v.pipe(v.array(v.string()), v.maxLength(32)) })), v.maxLength(16)), []),
+  source: v.picklist(['matching', 'optional']), initialDt: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(1)), 0),
+});
+const embeddedProduct = v.strictObject({ declaration: v.unknown(), module: v.strictObject({ module: v.string(), bytes: v.string() }),
+  stages: v.unknown(), bindings: v.unknown(), seed: v.number() });
+/** Read the admitted named product; embedded bytes, row contracts and bindings stay in the data path. */
+export async function readDirectorProduct(product: { file: (name: string) => Promise<Uint8Array> }, scope?: { readonly disposed: boolean }): Promise<{
+  readonly create: () => DirectorLane; readonly bytes: Uint8Array; readonly stages: unknown; readonly bindings: unknown;
+}> {
+  const data = v.parse(embeddedProduct, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('directors/main.json'))));
+  const create = await prepareEmbeddedDirector(data.declaration, data.module, data.seed, scope);
+  return { create, bytes: embeddedDirectorBytes(data.declaration, data.module), stages: data.stages, bindings: data.bindings };
 }
 
 /** Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. */
@@ -251,10 +288,14 @@ export function bindDirectorActions(data: unknown, spec: DirectorActionHostSpec)
 /** Native observations and one publication policy; named emits consume only admitted numeric payloads. */
 export interface DirectorScriptStagePorts {
   readonly observe: () => Readonly<Record<string, number>>;
+  /** Disposed native owners neither dispatch requests, advance nor publish. */
+  readonly scope?: { readonly disposed: boolean };
   readonly publish?: (action: DirectorAction, source?: Readonly<DirectorEvent>) => void;
   readonly emits?: {
     /** Matching requires a real same-key AS event; optional also permits bootstrap actions. */
     readonly source: 'matching' | 'optional';
+    /** Literal mode also requires each same-key AS payload to equal its authored row value. */
+    readonly value?: 'literal';
     readonly actions: ReadonlyMap<string, (value: number) => void>;
   };
 }
@@ -269,6 +310,41 @@ export class DirectorScriptStageLane {
   private readonly script: DirectorLane;
   private readonly ports: DirectorScriptStagePorts;
   private readonly emits: DirectorScriptStagePorts['emits'];
+  /** Bind bounded data paths to actual native owners; resolution invokes no actions or requests. */
+  static bind(data: unknown, script: DirectorLane, input: unknown, owners: ReadonlyMap<string, unknown>,
+    scope: { readonly disposed: boolean; readonly onDispose: (cleanup: () => void) => void }, restoring = false): DirectorScriptStageLane {
+    const rows = v.parse(directorBindings, input);
+    const observations = Object.entries(rows.observations).map(([key, row]) => {
+      if (typeof row === 'number') return [key, () => row] as const;
+      const call = row.args === undefined ? null : bindBorrowedMethod(owners, row);
+      if (call === null) readBorrowedOwner(owners, row);
+      return [key, () => {
+        const value = call === null ? readBorrowedOwner(owners, row)?.value : call(...(row.args ?? []));
+        if (row.present === true) return Number(value !== null && value !== undefined);
+        const number = typeof value === 'boolean' ? Number(value) : value ?? row.fallback;
+        if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid director bound observation');
+        return number;
+      }] as const;
+    });
+    const actions = new Map(Object.entries(rows.actions).map(([key, commands]) => {
+      const calls = commands.map(command => {
+        if (command.kind === 'call') { const call = bindBorrowedMethod(owners, command); return () => { call(...command.args); }; }
+        const field = readBorrowedOwner(owners, command);
+        if (field === null || typeof field.value !== typeof command.value) throw new Error('Invalid director bound field');
+        return () => { field.receiver[field.key] = command.value; };
+      });
+      return [key, () => { for (const call of calls) call(); }] as const;
+    }));
+    const changes = rows.changes.map(row => ({ subscribe: bindBorrowedMethod(owners, row), keys: row.keys }));
+    const clock = new DirectorScriptStageLane(data, script, { scope, observe: () => Object.fromEntries(observations.map(([key, read]) => [key, read()])),
+      emits: { source: rows.source, value: 'literal', actions } }, restoring, rows.initialDt);
+    for (const row of changes) {
+      const off = row.subscribe((key: unknown, on: unknown) => { if (on === true && typeof key === 'string' && row.keys.includes(key)) clock.changed(); });
+      const cleanup = v.parse(v.custom<() => void>(value => typeof value === 'function', 'Director edge cleanup'), off);
+      scope.onDispose(cleanup);
+    }
+    return clock;
+  }
   constructor(data: unknown, script: DirectorLane, ports: DirectorScriptStagePorts, restoring = false, initialDt = 0) {
     if (!Number.isFinite(initialDt) || initialDt < 0 || initialDt > 1) throw new Error('Invalid director initial delta');
     this.definition = structuredClone(parseDirectorStages(data));
@@ -283,8 +359,9 @@ export class DirectorScriptStageLane {
       if (ports.publish !== undefined || !['matching', 'optional'].includes(emits.source) || emits.actions.size > 64) throw new Error('Invalid director emit bindings');
       const actions = new Map(emits.actions);
       if ([...actions.values()].some(run => typeof run !== 'function') || this.definition.stages.some(stage => stage.do.some(action =>
-        !('emit' in action) || action.value !== 0 || !actions.has(action.emit)))) throw new Error('Unbound director emit action');
-      this.emits = { source: emits.source, actions };
+        !('emit' in action) || typeof action.value !== 'number' || !actions.has(action.emit) || (emits.value === 'literal'
+          ? !outputs.some(event => event.key === action.emit && typeof action.value === 'number' && payload(event, action.value)) : action.value !== 0)))) throw new Error('Unbound director emit action');
+      this.emits = { source: emits.source, actions, ...(emits.value === undefined ? {} : { value: emits.value }) };
     } else if (typeof ports.publish !== 'function') throw new Error('Missing director publication owner');
     this.stages = new DirectorStageLane({ ...this.definition, script: null });
     this.script = script; this.ports = ports;
@@ -295,9 +372,14 @@ export class DirectorScriptStageLane {
     }
   }
   /** Deliver real flag/request edges at zero dt within the existing native tick's remaining allowance. */
-  changed(): void { this.deliver(this.script.dispatch(this.ports.observe())); }
+  changed(): void { if (this.ports.scope?.disposed !== true) this.deliver(this.script.dispatch(this.ports.observe())); }
+  /** Queue a declared native input and dispatch at zero dt on the existing clock. */
+  request(key: string, value = 0): void {
+    if (this.ports.scope?.disposed === true) return;
+    this.script.enqueue(key, value); this.changed();
+  }
   /** Advance once at the owner's existing clock phase, retaining fractional dt and native output order. */
-  update(dt: number): void { this.deliver(this.script.step(this.script.tick + 1, this.ports.observe(), dt)); }
+  update(dt: number): void { if (this.ports.scope?.disposed !== true) this.deliver(this.script.step(this.script.tick + 1, this.ports.observe(), dt)); }
   /** Versioned complete continuation: immutable stage rows, cursor and the unchanged AS native checkpoint. */
   snapshot(): string { return JSON.stringify({ version: 3, contract: this.definition, stages: this.stages.snapshot(), script: this.script.snapshot() }); }
   /** Restore both owners quietly and atomically; pre-row snapshots require an explicit migration and are refused. */
@@ -316,15 +398,17 @@ export class DirectorScriptStageLane {
   }
   private publish(actions: readonly DirectorAction[], source?: Readonly<DirectorEvent>): void {
     for (const action of actions) {
+      if (this.ports.scope?.disposed === true) return;
       const emits = this.emits;
       if (emits === undefined) {
         if (this.ports.publish === undefined) throw new Error('Missing director publication owner');
         this.ports.publish(action, source); continue;
       }
-      if (!('emit' in action) || action.value !== 0 || emits.source === 'matching' && (source === undefined || source.key !== action.emit)) throw new Error('Invalid director emit source');
+      if (!('emit' in action) || typeof action.value !== 'number' || (emits.value === 'literal' ? source !== undefined && (source.key !== action.emit || source.value !== action.value) : action.value !== 0)
+        || emits.source === 'matching' && (source === undefined || source.key !== action.emit)) throw new Error('Invalid director emit source');
       const run = emits.actions.get(action.emit);
       if (run === undefined) throw new Error('Unbound director emit action');
-      run(source?.value ?? 0);
+      run(emits.value === 'literal' ? action.value : source?.value ?? 0);
     }
   }
 }

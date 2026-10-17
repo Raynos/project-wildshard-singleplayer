@@ -11,9 +11,8 @@ import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
-import { preparePineDirector } from './directorClock';
+import { readDirectorProduct, type DirectorLane } from '@wildshard/game/plugin/director';
 import { preparePineNightDirector } from './nightDirector';
-import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
 import { installPineKing } from './king';
@@ -82,7 +81,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const trades = parseExchange(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/exchange.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/contracts.json'))));
   const content = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/native.json'))));
-  const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
+  const director = await readDirectorProduct(product), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
   const nav = readNavmesh(navBytes, `Pine headless needs its baked navmesh (${PINE_NAVMESH_ASSET})`, () => 0);
   const heightAt = bakedSamplers(grid).heightAt;
@@ -110,7 +109,7 @@ export interface PineInstall {
   readonly population: PineRosterPorts['population'];
   readonly combat: NativeCombatFrame; readonly items: ShardItems;
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
-  readonly director: () => DirectorLane;
+  readonly director: Awaited<ReturnType<typeof readDirectorProduct>>;
   /** Independent admitted night population handler; placement and roster owners remain native. */
   readonly nightDirector: () => DirectorLane;
   readonly bake: PineBake; readonly grid: BakedGrid; readonly nav: NonNullable<PineRosterPorts['nav']>; readonly heightAt: (x: number, z: number) => number;
@@ -193,7 +192,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
-  quest = installHollowQuest(host, { content: parts.content, counters: parts.counters, inventory: readItemInventory(parts.items), trades: parts.trades, contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
+  quest = installHollowQuest(host, { content: parts.content, counters: parts.counters, inventory: readItemInventory(parts.items), trades: parts.trades, contracts: parts.contracts, director: parts.director, quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(0) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster

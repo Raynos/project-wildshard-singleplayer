@@ -2,12 +2,25 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
-import { DirectorScriptStageLane } from '../src/game/plugin/director';
-import { createDriftwoodFinale, prepareDriftwoodDirector } from '../src/shards/driftwood-isle/runtime/director';
+import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/plugin/director';
+import declaration from '../src/shards/driftwood-isle/data/director.json';
+import module from '../src/shards/driftwood-isle/behaviour/director.json';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';
+import bindings from '../src/shards/driftwood-isle/data/directorBindings.json';
+
+function createDriftwoodFinale(scope: Scope, lane: ConstructorParameters<typeof DirectorScriptStageLane>[1], ports: {
+  flags: Flags; player: Vector3; rewardAt: Vector3; reward: { started: boolean; completed: boolean };
+  captain: ReadonlyMap<string, (value: number) => void>;
+}, restoring = false): DirectorScriptStageLane {
+  const { flags, player, rewardAt, reward } = ports;
+  return DirectorScriptStageLane.bind(stages, lane, bindings, new Map<string, unknown>([
+    ['flags', flags], ['player', player], ['rewardAt', rewardAt], ['reward', reward],
+    ['captain', Object.fromEntries([...ports.captain].map(([key, run]) => [key.slice('captain.'.length), run]))],
+  ]), scope, restoring);
+}
 
 test('page and native finale edges share their ordering and resume the old stage envelope quietly', async () => {
-  const create = await prepareDriftwoodDirector(), scope = new Scope('finale-controller'), flags = new Flags('finale-controller', false);
+  const create = await prepareEmbeddedDirector(declaration, module, 357), scope = new Scope('finale-controller'), flags = new Flags('finale-controller', false);
   const seen: string[] = [], player = new Vector3(30, 0, 30), rewardAt = new Vector3(), reward = { started: false, completed: false };
   const captain = new Map(['captain.restore', 'captain.wake', 'captain.dead'].map(key => [key, () => { seen.push(key); }]));
   try {

@@ -1,3 +1,7 @@
+import directorData from '../data/director.json' with { type: 'json' };
+import directorModule from '../behaviour/director.json' with { type: 'json' };
+import directorStages from '../data/watchStages.json' with { type: 'json' };
+import directorBindings from '../data/directorBindings.json' with { type: 'json' };
 import { cabinAmbienceRows } from './ambience';
 import traderStall from '../data/traderStall.json' with { type: 'json' };
 import { PINE_PANELS } from './panels';
@@ -50,6 +54,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cabinAmbienceRows()))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),

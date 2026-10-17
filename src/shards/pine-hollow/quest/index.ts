@@ -59,7 +59,7 @@ import type { Cabins } from '../runtime/world/homestead';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { pineSkins } from '../runtime/loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
-import { installPineClock } from '../runtime/directorClock';
+import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/plugin/director';
 import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
 import { hamletRoofs } from '../runtime/world/cabinBake';
@@ -380,13 +380,17 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const clockPage = bindQuestPageInteractions(clockRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['lamps', lm],
       ['caption', reward], ['objective', objective], ['native', { fastForward }]]) });
-  const clock = await installPineClock(ctx, { seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: event => { clockPage.run(event); } }, quest.current?.id === 'dawn');
+  const dawnAtBoot = quest.current?.id === 'dawn';
+  const director = await readDirectorProduct(ctx.product, ctx.scope);
+  const clock = DirectorScriptStageLane.bind(director.stages, director.create(), director.bindings,
+    new Map<string, unknown>([['flags', flags], ['clock', { day: () => sky.dayNight, night }], ['publication', { publish: clockPage.run }]]), ctx.scope);
+  if (dawnAtBoot) clock.request('dawn.request');
   ctx.scope.onDispose(flags.onChange((f, on) => {
     if (!on) return;
-    if (f === 'wait:night') clock.night();
+    if (f === 'wait:night') clock.request('night.request');
     if (f.startsWith('lit:')) syncLanterns();
   }));
-  function runDawn():void { clock.dawn(); }
+  function runDawn():void { clock.request('dawn.request'); }
 
   // ── the quest ──
 
@@ -441,7 +445,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       sky.dayNight.phase = (ff.from + ff.span * e) % 1;
       if (k >= 1) { const to = ff.to; ff = null; void sky.dayNight.set(to); }
     }
-    clock.tick(dt);
+    clock.update(dt);
     if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
       stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
       thralls.update(dt, t, pp);

@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { DirectorScriptStageLane } from '../src/game/plugin/director';
-import { prepareDriftwoodDirector } from '../src/shards/driftwood-isle/runtime/director';
+import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/plugin/director';
+import declaration from '../src/shards/driftwood-isle/data/director.json';
+import module from '../src/shards/driftwood-isle/behaviour/director.json';
 import rows from '../src/shards/driftwood-isle/data/finaleStages.json';
 import { prepareNalatiRaidDirector } from '../src/shards/nalati-grasslands/runtime/raidDirector';
 import raidRows from '../src/shards/nalati-grasslands/data/raidStages.json';
@@ -13,7 +14,7 @@ function actions(seen: string[]): Map<string, (value: number) => void> {
 }
 
 test('named emits run admitted native events in order and keep continuation restore quiet', async () => {
-  const create = await prepareDriftwoodDirector(), seen: string[] = [], observation = observe(), callbacks = actions(seen);
+  const create = await prepareEmbeddedDirector(declaration, module, 357), seen: string[] = [], observation = observe(), callbacks = actions(seen);
   const lane = new DirectorScriptStageLane(rows, create(), { observe: () => observation, emits: { source: 'matching', actions: callbacks } });
   callbacks.clear(); // Admission copies the validated map; later caller edits cannot remove a binding.
   observation['altar'] = 1; lane.changed();
@@ -27,7 +28,7 @@ test('named emits run admitted native events in order and keep continuation rest
 });
 
 test('preflights every named action and finite callback roster before author initialization', async () => {
-  const create = await prepareDriftwoodDirector(), seen: string[] = [], callbacks = actions(seen), script = create();
+  const create = await prepareEmbeddedDirector(declaration, module, 357), seen: string[] = [], callbacks = actions(seen), script = create();
   callbacks.delete('reward.finish');
   expect(() => new DirectorScriptStageLane(rows, script, { observe, emits: { source: 'optional', actions: callbacks } })).toThrow('Unbound director emit action');
   expect(script.tick).toBe(-1); expect(seen).toEqual([]);
@@ -41,7 +42,7 @@ test('preflights every named action and finite callback roster before author ini
 });
 
 test('matching sources refuse bootstrap and wrong-key events while optional preserves bootstrap and legacy publication', async () => {
-  const create = await prepareDriftwoodDirector(), seen: string[] = [], initial = rows.stages[0];
+  const create = await prepareEmbeddedDirector(declaration, module, 357), seen: string[] = [], initial = rows.stages[0];
   if (initial === undefined) throw new Error('Missing initial stage');
   const bootstrap = { ...rows, stages: [{ ...initial, do: [{ emit: 'captain.restore', value: 0 }] }, ...rows.stages.slice(1)] };
   expect(() => new DirectorScriptStageLane(bootstrap, create(), { observe, emits: { source: 'matching', actions: actions(seen) } })).toThrow('Invalid director emit source');

@@ -1,0 +1,126 @@
+{
+  "observations": {
+    "night-request": 0,
+    "dawn-request": 0,
+    "seen": {
+      "owner": "flags",
+      "path": [
+        "has"
+      ],
+      "args": [
+        "seen:dawn"
+      ]
+    },
+    "has-clock": {
+      "owner": "clock",
+      "path": [
+        "day"
+      ],
+      "args": [],
+      "present": true
+    },
+    "night": {
+      "owner": "clock",
+      "path": [
+        "night"
+      ],
+      "args": []
+    }
+  },
+  "actions": {
+    "night.consume": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "night.consume",
+          0
+        ]
+      }
+    ],
+    "night.start": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "night.start",
+          6
+        ]
+      }
+    ],
+    "dawn.start": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "dawn.start",
+          0
+        ]
+      }
+    ],
+    "dawn.sunrise": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "dawn.sunrise",
+          7
+        ]
+      }
+    ],
+    "dawn.lanterns": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "dawn.lanterns",
+          0
+        ]
+      }
+    ],
+    "dawn.caption": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "dawn.caption",
+          0
+        ]
+      }
+    ],
+    "dawn.finish": [
+      {
+        "kind": "call",
+        "owner": "publication",
+        "path": [
+          "publish"
+        ],
+        "args": [
+          "dawn.finish",
+          0
+        ]
+      }
+    ]
+  },
+  "changes": [],
+  "source": "matching",
+  "initialDt": 0.016666666666666666
+}

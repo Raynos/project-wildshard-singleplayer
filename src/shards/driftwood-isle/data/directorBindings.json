@@ -1,0 +1,131 @@
+{
+  "observations": {
+    "altar": {
+      "owner": "flags",
+      "path": [
+        "has"
+      ],
+      "args": [
+        "used:altar"
+      ]
+    },
+    "dead": {
+      "owner": "flags",
+      "path": [
+        "has"
+      ],
+      "args": [
+        "dead:captain"
+      ]
+    },
+    "seen": {
+      "owner": "flags",
+      "path": [
+        "has"
+      ],
+      "args": [
+        "seen:reward"
+      ]
+    },
+    "player-x": {
+      "owner": "player",
+      "path": [
+        "x"
+      ]
+    },
+    "player-z": {
+      "owner": "player",
+      "path": [
+        "z"
+      ]
+    },
+    "reward-x": {
+      "owner": "rewardAt",
+      "path": [
+        "x"
+      ]
+    },
+    "reward-z": {
+      "owner": "rewardAt",
+      "path": [
+        "z"
+      ]
+    }
+  },
+  "actions": {
+    "captain.restore": [
+      {
+        "kind": "call",
+        "owner": "captain",
+        "path": [
+          "restore"
+        ],
+        "args": []
+      }
+    ],
+    "captain.wake": [
+      {
+        "kind": "call",
+        "owner": "captain",
+        "path": [
+          "wake"
+        ],
+        "args": []
+      }
+    ],
+    "captain.dead": [
+      {
+        "kind": "call",
+        "owner": "captain",
+        "path": [
+          "dead"
+        ],
+        "args": []
+      }
+    ],
+    "reward.start": [
+      {
+        "kind": "set",
+        "owner": "reward",
+        "path": [
+          "started"
+        ],
+        "value": true
+      }
+    ],
+    "reward.finish": [
+      {
+        "kind": "set",
+        "owner": "reward",
+        "path": [
+          "completed"
+        ],
+        "value": true
+      },
+      {
+        "kind": "call",
+        "owner": "flags",
+        "path": [
+          "set"
+        ],
+        "args": [
+          "seen:reward"
+        ]
+      }
+    ]
+  },
+  "changes": [
+    {
+      "owner": "flags",
+      "path": [
+        "onChange"
+      ],
+      "keys": [
+        "used:altar",
+        "dead:captain"
+      ]
+    }
+  ],
+  "source": "optional",
+  "initialDt": 0
+}

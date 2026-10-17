@@ -6752,6 +6752,24 @@ share this binder; no clock, decision or random draw runs at binding time.
 
 ### Scripted director named emit bindings
 
+`embeddedDirectorBytes(declaration, bake)` checks an embedded bake's hash
+before decoding it. `prepareEmbeddedDirector(declaration, bake, seed)`
+verifies the bytes once and returns independent admitted lanes. Driftwood
+finale and Pine watch use these from their page and headless entry owners.
+The optional native `scope` port stops requests, dispatch, advancement and
+publication after disposal. `request(key, value?)` queues an admitted AS
+input and dispatches at zero delta. `emits.value: 'literal'` requires row
+values to satisfy their declared AS output and delivered same-key events
+to carry that exact value. Pine retains its 1/60 initialization delta;
+both shards retain their AS bytes and unchanged version-3 snapshots.
+`readDirectorProduct(product, scope?)` admits the named `directors/main.json`
+blob. `DirectorScriptStageLane.bind(stages, lane, bindings, owners, scope,
+restoring?)` reads bounded declared observations, applies ordered native
+method calls or field writes, and subscribes to declared flag edges. It
+borrows only supplied objects through the existing safe owner paths. Pine
+watch and Driftwood finale both use this data binding on page and headless
+hosts. Restore remains quiet, and disposal releases edge subscriptions.
+
 `src/game/plugin/director.ts#DirectorScriptStageLane` also accepts
 `DirectorScriptStagePorts` with `emits: {source, actions}` instead of
 `publish`. The copied action map has at most 64 named callbacks. Every

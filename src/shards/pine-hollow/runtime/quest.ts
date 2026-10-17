@@ -13,8 +13,7 @@ import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
-import { pineDirectorClock, type PineClockEvent } from './directorClock';
-import type { DirectorLane } from '@wildshard/game/plugin/director';
+import { DirectorScriptStageLane, type readDirectorProduct } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
 import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } from '@wildshard/game/inventoryLaw';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
@@ -91,7 +90,7 @@ export interface PineQuestPorts {
   /** the host's day clock (null: none, as a page without a sky clock: no fast-forward, no night wait) */
   readonly day: () => PineQuestDay | null;
   /** An admitted script instance owned by this quest, never shared across hosts or driven by a second step. */
-  readonly director: DirectorLane;
+  readonly director: Awaited<ReturnType<typeof readDirectorProduct>>;
   /** PineDayNight's night (0 day … 1 night) */
   readonly night: () => number;
 }
@@ -223,16 +222,16 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     const day = ports.day(); if (day === null) return;
     fast.on = { from: day.phase, span: (((to - day.phase) % 1) + 1) % 1, t: 0, dur, to };
   };
-  const publish = (event: PineClockEvent, value: number): void => {
+  const publish = (event: string, value: number): void => {
     if (event === 'night.consume') flags.clear('wait:night');
     else if (event === 'night.start') fastForward(NIGHT_PHASE, value);
     else if (event === 'dawn.sunrise') fastForward(SUNRISE_PHASE, value);
     else if (event === 'dawn.lanterns') transitions.setFlags(LANTERN_FLAGS);
     else if (event === 'dawn.finish') flags.set('seen:dawn');
   };
-  const clockPorts = { seen: () => flags.has('seen:dawn'), hasClock: () => ports.day() !== null, night: ports.night, publish };
-  const clock = pineDirectorClock(ports.director, clockPorts, () => !host.scope.disposed);
-  const restoreClock = (saved: string): void => { clock.load(saved); };
+  const clock = DirectorScriptStageLane.bind(ports.director.stages, ports.director.create(), ports.director.bindings,
+    new Map<string, unknown>([['flags', flags], ['clock', { day: ports.day, night: ports.night }], ['publication', { publish }]]), host.scope);
+  const restoreClock = (saved: string): void => { clock.restore(saved); };
 
   // ── the ride down the wire (the page's ZipRide law, quest/zipWire.ts) ──
   const cables = cableModes(host.scope), cableId = 'pine.zipline';
@@ -276,7 +275,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const syncFeats = (): void => { feats.syncFlags(flags); };
   const offFlags = flags.onChange((f, on) => {
     if (!on) return;
-    if (f === 'wait:night') clock.night();
+    if (f === 'wait:night') clock.request('night.request');
     if (!f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats();
   });
   host.scope.onDispose(offFlags);
@@ -315,12 +314,12 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       day.phase = (ff.from + ff.span * e) % 1;
       if (k >= 1) { day.phase = ff.to; fast.on = null; }
     }
-    if (chapter.current?.id === 'dawn') clock.dawn();
-    clock.tick(dt);
+    if (chapter.current?.id === 'dawn') clock.request('dawn.request');
+    clock.update(dt);
     const lead = stag.step(dt, chapter.current?.id === 'stag' && ports.night() > 0.5, host.player.position);
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
-    snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
+    snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
       rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),
       ...(trader.active || tradeSkins.size > 0 ? { trader: { modal: trader.snapshot(), skins: [...tradeSkins] } } : {}),
       ...(ports.ammunition?.changed === true ? { ammunition: ports.ammunition.snapshot() } : {}) }),

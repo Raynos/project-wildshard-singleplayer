@@ -10,7 +10,7 @@ import { islandSystems } from './world/systems';
 import { installAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { installDriftwoodAudio } from './audio/install';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
-import { driftwoodDirectorBytes } from './director';
+import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import type { Vector3 } from 'three';
 import { SECTIONS } from './sections';
 import { installDriftwoodAdventure } from '../quest/install';
@@ -100,7 +100,8 @@ export class DriftwoodPlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     await installDriftwoodAudio(ctx);
     // Warm the actual finale memory after audio, then install the same adventure in its owner.
-    this.adventure = await withPreparedScriptMemories([driftwoodDirectorBytes()], ctx.scope,
+    const director = await readDirectorProduct(ctx.product, ctx.scope);
+    this.adventure = await withPreparedScriptMemories([director.bytes], ctx.scope,
       null, () => installDriftwoodAdventure(ctx));
     ctx.scope.onDispose(() => { this.adventure = null; });
   }

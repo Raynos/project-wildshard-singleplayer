@@ -9,7 +9,7 @@ import { waveHeight } from '@wildshard/engine/world/waves';
 import { driftwoodBake, driftwoodSpecs, readEnemyPlacements, readKeeperRows } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captainEncounter';
-import { prepareDriftwoodDirector, createDriftwoodFinale } from '../runtime/director';
+import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/plugin/director';
 import NATIVE_SWORDS from '../data/nativeSwords.json' with { type: 'json' };
 import { installDriftwoodKills } from './kills';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -49,7 +49,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const keeper = readKeeperRows(JSON.parse(new TextDecoder().decode(await product.file('sim/keeper.json'))));
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
-  const createDirector = await prepareDriftwoodDirector();
+  const director = await readDirectorProduct(product);
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = readNavmesh(navigation, 'Driftwood declared navigation does not parse', () => 0), spots = driftwoodSpots();
   const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
@@ -65,9 +65,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const island = installIsland(host, { monkeyPose, decisions:nativeDecisionAuthority(shard,assets,host), placement, keeper, fauna, launch, population: species, bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     const captain = installCaptain(host, bake, island);
     const reward = { started: false, completed: false };
-    const finale = createDriftwoodFinale(host.scope, createDirector(), { flags: host.flags, player: host.player.position, rewardAt: spots.reward, reward,
-      captain: new Map([['captain.restore', () => { captain.publish('captain.restore'); }], ['captain.wake', () => { captain.publish('captain.wake'); }],
-        ['captain.dead', () => { /* The native encounter already owns death. */ }]]) }, context.restoring);
+    const finale = DirectorScriptStageLane.bind(director.stages, director.create(), director.bindings,
+      new Map<string, unknown>([['flags', host.flags], ['player', host.player.position], ['rewardAt', spots.reward], ['reward', reward],
+        ['captain', { restore: () => { captain.publish('captain.restore'); }, wake: () => { captain.publish('captain.wake'); }, dead: () => { /* Encounter owns death. */ } }]]),
+      host.scope, context.restoring);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
     const input = bindHeadlessCommands(context), { fact, coins } = input.ledger;
     if (context.combat === undefined) throw new Error('Driftwood requires its native combat frame');
