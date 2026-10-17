@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "82672058015604d4e1ac7d8e5825cebfeb35892c",
- "committedAt": "2026-10-17T12:35:29.000Z",
- "measuredAt": "2026-10-17T12:48:58.042Z",
+ "revision": "b6dbde66c1a7668a35dcbeeac0e6ec7e32591584",
+ "committedAt": "2026-10-17T14:12:50.000Z",
+ "measuredAt": "2026-10-17T14:26:14.757Z",
  "basis": "source",
  "plan": {
-  "lower": 0.358091783673617,
-  "upper": 0.6914251170069503
+  "lower": 0.36766354883733116,
+  "upper": 0.7009968821706645
  },
  "m3": {
-  "cut": 47849,
+  "cut": 49128,
   "mustGo": 80173.3,
-  "fraction": 0.5968196394560283
+  "fraction": 0.6127725813955519
  },
  "m2": {
   "ready": 0,
@@ -62,9 +62,9 @@
    "name": "Sky Reach",
    "wave": "W1",
    "goal": 10,
-   "custom": 948,
+   "custom": 521,
    "legacy": 6779,
-   "pct": 14,
+   "pct": 7.7,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -80,9 +80,9 @@
    "name": "Signal Dunes",
    "wave": "W1",
    "goal": 10,
-   "custom": 1176,
+   "custom": 392,
    "legacy": 4122,
-   "pct": 28.5,
+   "pct": 9.5,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -116,9 +116,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 11957,
+   "custom": 11889,
    "legacy": 21111,
-   "pct": 56.6,
+   "pct": 56.3,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -137,15 +137,15 @@
   "pastel-plain"
  ],
  "wave": {
-  "id": "W1",
-  "label": "W1 · Sky + Signal under 10%",
+  "id": "W2",
+  "label": "W2 · Pine + Driftwood under 20%",
   "until": null,
-  "goal": 10,
+  "goal": 20,
   "shards": [
-   "far-reach",
-   "sunscar-dunes"
+   "pine-hollow",
+   "driftwood-isle"
   ],
-  "pct": 39.2
+  "pct": 73.1
  },
  "waves": [
   {
@@ -154,6 +154,15 @@
    "start": {
     "far-reach": 19.3,
     "sunscar-dunes": 33.5
+   },
+   "endedAt": "2026-10-17T14:26:14.757Z"
+  },
+  {
+   "id": "W2",
+   "startedAt": "2026-10-14T04:19:00Z",
+   "start": {
+    "pine-hollow": 107.6,
+    "driftwood-isle": 104.2
    },
    "endedAt": null
   }
@@ -678,6 +687,19 @@
     "nalati-grasslands": 70.74021854071202,
     "nine-dragon-stack": 56.638719151153424
    }
+  },
+  {
+   "revision": "b6dbde66c1a7668a35dcbeeac0e6ec7e32591584",
+   "at": "2026-10-17T14:12:50.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 48.659938981459746,
+    "driftwood-isle": 37.79344090406012,
+    "far-reach": 7.685499336185278,
+    "sunscar-dunes": 9.509946627850557,
+    "nalati-grasslands": 70.74021854071202,
+    "nine-dragon-stack": 56.31661219269575
+   }
   }
  ],
  "events": [
@@ -716,6 +738,10 @@
   {
    "at": "2026-10-17T12:48:58.042Z",
    "label": "W1 starts"
+  },
+  {
+   "at": "2026-10-17T14:26:14.757Z",
+   "label": "W1 closes"
   }
  ]
 }
