@@ -46,7 +46,7 @@ import { buildTrophy, trophyPlaques, TrophyPlaques } from '../runtime/models/tro
 import { buildCaptainHat, buildSailclothCape } from '../runtime/models/captainHat';
 import interactables from '../data/interactables.generated.json' with { type: 'json' };
 import type { Adventure } from '../quest/adventure';
-import { ownEnteredTree } from '../quest/Spine';
+import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
 import { isOwnedId, type Owned } from '@wildshard/game/loot/Owned';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -96,7 +96,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   const entered = (placed: () => THREE.Object3D): THREE.Object3D => {
     if (scope === undefined) return placed();
     const object = scope.run(placed);
-    ownEnteredTree(object, scope);
+    ownQuestTree(object, scope);
     return object;
   };
   const c = adv.place({ poi: 'hut', x: KEEPSAKE_CONTENT.chime.x, z: KEEPSAKE_CONTENT.chime.z, y: floor + KEEPSAKE_CONTENT.chime.up });

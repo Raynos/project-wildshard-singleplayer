@@ -20,5 +20,8 @@
   "test/painted-look-rows.test.ts": [],
   "test/held-arms-platform.test.ts": [],
   "test/native-actor-interface.test.ts": [],
-  "test/population-platform.test.ts": []
+  "test/population-platform.test.ts": [],
+  "test/quest-step-runner.test.ts": [],
+  "test/quest-step-traces.test.ts": [],
+  "test/quest-step-native-parity.test.ts": ["pine-hollow", "driftwood-isle"]
 }

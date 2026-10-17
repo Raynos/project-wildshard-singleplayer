@@ -4,7 +4,7 @@ import type { Interactables, InteractHost } from '@wildshard/engine/world/intera
 import type { Scope } from '@wildshard/engine/app/scope';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
 import interactables from '../data/interactables.generated.json' with { type: 'json' };
-import { ownEnteredTree } from './Spine';
+import { ownQuestTree } from '@wildshard/game/quest/chapter';
 
 const { DRIFTWOOD_INTERACT } = interactables;
 
@@ -15,7 +15,7 @@ export async function installAdventureInteractables(scope: Scope, host: Interact
   if (scope.disposed) throw new Error('Driftwood adventure left while admitting its interactables');
   const before = new Set(host.scene.children);
   const kit = withOwner(scope, () => new Interactables(host).build(DRIFTWOOD_INTERACT, authoredSpots.rows));
-  for (const node of host.scene.children) if (!before.has(node) && node instanceof BatchedMesh) ownEnteredTree(node, scope);
+  for (const node of host.scene.children) if (!before.has(node) && node instanceof BatchedMesh) ownQuestTree(node, scope);
   scope.onDispose(() => { kit.dispose({ batches: false }); });
   return kit;
 }

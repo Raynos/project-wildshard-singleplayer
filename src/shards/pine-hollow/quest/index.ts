@@ -396,7 +396,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the quest ──
 
   // ── the stag ──
-  const stag = new StagLead(game.scene, animals);
+  const stag = new StagLead(game.scene, animals, native.lead);
   stag.onAppear = (first) => { if (first) consequences.run('stag.appear'); };
   stag.onDone = consequences.action('stag.complete');
 

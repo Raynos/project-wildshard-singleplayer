@@ -156,7 +156,8 @@
     "./herdShelter": "./herdShelter.ts",
     "./populationRespawn": "./populationRespawn.ts",
     "./nativeActors": "./nativeActors.ts",
-    "./populationRoster": "./populationRoster.ts"
+    "./populationRoster": "./populationRoster.ts",
+    "./questSteps": "./questSteps.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

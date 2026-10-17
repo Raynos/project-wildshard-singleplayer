@@ -13,8 +13,8 @@
     "src/shards/driftwood-isle/sim/captainEncounter": [
       "installCaptain"
     ],
-    "src/shards/driftwood-isle/sim/kills": [
-      "installDriftwoodKills"
+    "@wildshard/game/quest/killSteps": [
+      "installQuestKillSteps"
     ],
     "src/shards/driftwood-isle/species/monkeyPolicy": [
       "createMonkeyAnimation"
@@ -745,10 +745,13 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/driftwood-isle/sim/kills", "installDriftwoodKills"]
+            "$ref": ["@wildshard/game/quest/killSteps", "installQuestKillSteps"]
           },
           {
             "$ref": ["host"]
+          },
+          {
+            "$ref": ["constants", "questKillSteps"]
           },
           {
             "$ref": ["counters", "feats"]

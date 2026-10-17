@@ -29,6 +29,16 @@ class DirectorWorld extends ScriptWorld {
 const pendingSchema = v.array(v.strictObject({ type: v.number(), value: v.number() }));
 const worldSchema = v.pipe(v.array(v.strictObject({ id: v.number(), name: v.string(), position: v.tuple([v.number(), v.number(), v.number()]), fields: v.record(v.string(), v.number()), frozen: v.boolean(), interactive: v.boolean() })), v.length(1));
 
+/** Product JSON sorts input record keys. Retain an equivalent legacy record's
+ * order for byte-compatible saves; stage/action arrays and bindings stay exact. */
+function restoredStageContract(input: unknown, definition: DirectorStagesData): DirectorStagesData {
+  const saved = parseDirectorStages(input);
+  if (JSON.stringify({ ...saved, inputs: definition.inputs }) !== JSON.stringify(definition)
+    || Object.keys(saved.inputs).length !== Object.keys(definition.inputs).length
+    || Object.entries(saved.inputs).some(([key, value]) => definition.inputs[key] !== value)) throw new Error('Incompatible stage director contract');
+  return saved;
+}
+
 /** Bounded authoritative director lane; full Wasm state, quotas, failure history and pending typed input survive replay. */
 export class DirectorLane {
   readonly data: DirectorData;
@@ -210,8 +220,10 @@ export class DirectorStageLane {
   /** Refuse a foreign contract or malformed cursor before mutation. Restore never evaluates guards or emits effects. */
   restore(text: string): void {
     const saved = v.parse(v.strictObject({ version: v.literal(2), contract: v.unknown(), state: stageState }), JSON.parse(text));
-    if (JSON.stringify(saved.contract) !== JSON.stringify(this.definition) || saved.state.stage >= this.definition.stages.length
+    const contract = restoredStageContract(saved.contract, this.definition);
+    if (saved.state.stage >= this.definition.stages.length
       || (saved.state.tick === -1) !== (saved.state.stage === -1)) throw new Error('Incompatible stage director snapshot');
+    this.definition.inputs = contract.inputs;
     this.currentTick = saved.state.tick; this.currentStage = saved.state.stage;
   }
 }
@@ -385,10 +397,11 @@ export class DirectorScriptStageLane {
   /** Restore both owners quietly and atomically; pre-row snapshots require an explicit migration and are refused. */
   restore(text: string): void {
     const saved = v.parse(v.strictObject({ version: v.literal(3), contract: v.unknown(), stages: v.string(), script: v.string() }), JSON.parse(text));
-    if (JSON.stringify(saved.contract) !== JSON.stringify(this.definition)) throw new Error('Incompatible scripted stage snapshot');
+    const contract = restoredStageContract(saved.contract, this.definition);
     const stages = this.stages.snapshot(), script = this.script.snapshot();
     try { this.stages.restore(saved.stages); this.script.restore(saved.script); }
     catch (error) { this.stages.restore(stages); this.script.restore(script); throw error; }
+    this.definition.inputs = contract.inputs;
   }
   private observation(event?: DirectorEvent): Record<string, boolean> {
     return Object.fromEntries(Object.entries(this.definition.inputs).map(([name, binding]) => [name, binding === `event:${event?.key ?? ''}`]));

@@ -1,0 +1,60 @@
+{
+  "page": [
+    {
+      "when": [
+        {
+          "kind": "sailor"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "call",
+          "name": "hold-key"
+        },
+        {
+          "kind": "flag",
+          "flag": "dead:sailor"
+        },
+        {
+          "kind": "toast",
+          "text": "The drowned sailor collapses — his hold key clatters to the planks"
+        }
+      ]
+    },
+    {
+      "when": [
+        {
+          "kind": "captain"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "flag": "dead:captain"
+        }
+      ]
+    }
+  ],
+  "kills": [
+    {
+      "when": [
+        {
+          "kind": "sailor"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "flag": "dead:sailor"
+        }
+      ]
+    },
+    {
+      "effects": [
+        {
+          "kind": "kill"
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { QuestStepRowsSchema, QuestLeadRowsSchema } from '@wildshard/format/questSteps';
 import { NpcDialogueRowSchema } from '@wildshard/format/npcs';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
@@ -15,7 +16,7 @@ const table = v.strictObject({ external: names, rows: v.pipe(v.array(v.variant('
   v.strictObject({ ...base, kind: v.literal('pickup'), look: text, label: text, color: v.exactOptional(text), item: v.exactOptional(text), touch: v.exactOptional(v.boolean()) }),
   v.strictObject({ ...base, kind: v.literal('bench'), label: text }),
 ])), v.maxLength(256)) });
-const rows = v.strictObject({ table, graph: QuestGraphSchema, interactions: InteractionRowsSchema,
+const rows = v.strictObject({ lead: QuestLeadRowsSchema, steps: QuestStepRowsSchema, table, graph: QuestGraphSchema, interactions: InteractionRowsSchema,
   readings: v.strictObject({ speakers: v.record(text, NpcDialogueRowSchema), continuation: v.strictObject({ bare: text, wrapped: names }) }),
   policy: v.strictObject({ resinCount: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(64)), resinFlag: text, tokenFlag: text, tokenNames: names,
     readingDelay: v.pipe(finite, v.minValue(0)), lanternIds: v.strictObject({ pond: text, ridge: text, den: text }) }),

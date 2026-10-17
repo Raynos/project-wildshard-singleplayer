@@ -11,20 +11,21 @@
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Puffs } from '../runtime/combat/fxKit';
-import { StagWalk, STAG_PATH } from './stagWalk';
+import { QuestLeadWalk as StagWalk } from '@wildshard/game/quest/lead';
 
 // the walk's road and lengths are the renderer-free walk's (stagWalk.ts), which the headless quest runs alone
 type StagBody = Pick<Animal, 'position' | 'yaw' | 'herd' | 'setDrawLod' | 'update' | 'sampleTerrain' | 'setMotion' | 'lookTarget' | 'lookWeight' | 'place' | 'mesh' | 'alive' | 'hidden'>;
 
 export class StagLead {
   private a: StagBody | null = null;
-  private readonly walk = new StagWalk();
+  private readonly walk: StagWalk;
   private readonly puffs: Puffs;
   private readonly _v = new THREE.Vector3();
   onDone?: () => void;
   onAppear?: (first: boolean) => void;
 
-  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }) {
+  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, rows: unknown) {
+    this.walk = new StagWalk(rows);
     this.puffs = new Puffs(scene, new THREE.Color(0.75, 1.6, 2.0), 3);
   }
 
@@ -46,7 +47,7 @@ export class StagLead {
       a.setMotion(Math.atan2(player.x - a.position.x, player.z - a.position.z), 0, 3);
       a.lookTarget.copy(player); a.lookWeight = 1;
     } else if (this.walk.mode === 'trot') {
-      const next = STAG_PATH[this.walk.i + 1] ?? STAG_PATH[this.walk.i];
+      const next = this.walk.rows.path[this.walk.i + 1] ?? this.walk.rows.path[this.walk.i];
       if (next) a.setMotion(Math.atan2(next[0] - a.position.x, next[1] - a.position.z), 4.5, 4);
       a.lookWeight = 0;
     }
@@ -64,7 +65,7 @@ export class StagLead {
   }
 
   private appear(i: number, player: THREE.Vector3, first: boolean): void {
-    const p = STAG_PATH[i];
+    const p = this.walk.rows.path[i];
     if (!p) return;
     const yaw = Math.atan2(player.x - p[0], player.z - p[1]);
     if (this.a) { this.a.place(p[0], p[1], yaw); this.a.mesh.visible = true; } else this.a = this.spawnAt(p[0], p[1], yaw);

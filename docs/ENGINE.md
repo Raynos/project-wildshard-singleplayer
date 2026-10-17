@@ -8709,6 +8709,59 @@ retains the objective/captions and recreates only entered dialogue input;
 its timer cancels when the home cell exits. `installFeats` runs after the
 adventure's initial world poll, preserving synchronous flag-event order.
 
+### Quest step runner (G474 / G477)
+
+`game/quest/steps.QuestStepRunner` consumes strict
+`format/questSteps.QuestStepRows`: go-to, talk, kill, collect, deliver,
+lead, follow, wait and interact. Steps name existing flags, inventory
+items and declared owner calls. Dialogue signals arrive after reading;
+physical traversal and actor owners report their actual completion.
+The runner never creates an actor, interaction prompt, clock or save slot.
+Effects retain authored order. Deliveries call the inventory owner's
+atomic `take` before awarding anything. Optional `once` flags prevent
+repeated grants; flag conditions remain on the existing `QuestState`.
+
+The caller invokes `signal` in its original event phase and `update` from
+its existing clock. A wait's explicit `snapshot` / `restore` adapter is a
+map of elapsed seconds; shards with no waits keep their legacy envelopes
+unchanged. Admission checks every required seam before effects run.
+Legacy clock envelopes retain the original input-record key order when
+product JSON sorts that record. Bindings, stage order, actions and script
+bytes must still match; restore emits no actions and preserves save bytes.
+Live actor guards recheck the roster after reload and respawn; a historical
+death flag is only a fallback when the roster is unavailable.
+An `actors` capability map borrows its `actors` manager by reference,
+so replacement rosters are read without a shard callback.
+
+`game/quest/lead.QuestLeadWalk` consumes `QuestLeadRows`: waypoint tuples,
+appearance/reach distances, trot/fade durations and the pass-by margin.
+Its adapter retains the legacy `{i, mode, t}` envelope byte for byte.
+It decides appearance and completion; the native actor and renderer keep
+movement, collision, gait and effects. Pine's original lead rows ship in
+`data/questLead.json` with no TypeScript waypoint mirror.
+
+`game/quest/chapter.installQuestChapter` composes existing declared
+chapters, named NPC dialogue and chapter presentation. Figures, world
+placement, remaining discoveries and update registration are borrowed
+ports. `ownQuestTree` preserves registered piece ownership on re-entry.
+The chapter capability maps name their entries `world` and `quest`;
+figures and drop calls are keyed by the identities in the authored rows.
+`game/quest/killSteps.installQuestKillSteps` observes the existing actor
+death stream and runs ordered kill rows, then the existing achievement
+counters. Its declared adapter key and flat count envelope retain legacy
+save bytes, saturated rewards and silent restore. It owns no actors.
+`game/quest/hints.installQuestHints` consumes ordered `QuestHintRows`
+for wind-up windows, nearby hostiles, learned controls, available aim,
+prompt words and distance walked. It feeds the existing `FirstHints`
+owner; that owner keeps the shared control appearance and learned-control
+save. Scans are bounded and retain the authored event/update ordering.
+`QuestHintFeed` exposes the same predicates to renderer-free fixtures.
+Its installer borrows `hints`, the animal manager, `player` and `ui`
+under the capability map's `quest` entry; it creates no shard closures.
+The made-up Copper Town rows in `test/quest-step-runner.test.ts` exercise
+all nine step kinds and an independent lead path. G474 explicitly admits
+these as platform features before a real second shard adopts every part.
+
 ### Build-emitted numeric creature poses
 
 `game/plugin/channelPrograms.numericCreaturePose(input)` lends existing

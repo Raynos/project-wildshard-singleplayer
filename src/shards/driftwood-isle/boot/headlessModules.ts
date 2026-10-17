@@ -2,7 +2,7 @@ import type { HeadlessAssemblyModules } from '@wildshard/sdk/headlessAssembly';
 import { driftwoodBake as module0DriftwoodBake, driftwoodSpecs as module0DriftwoodSpecs, readEnemyPlacements as module0ReadEnemyPlacements, readKeeperRows as module0ReadKeeperRows } from '../sim/baked';
 import { installIsland as module1InstallIsland } from '../sim/keeper';
 import { installCaptain as module2InstallCaptain } from '../sim/captainEncounter';
-import { installDriftwoodKills as module3InstallDriftwoodKills } from '../sim/kills';
+import { installQuestKillSteps as module3InstallQuestKillSteps } from '@wildshard/game/quest/killSteps';
 import { createMonkeyAnimation as module4CreateMonkeyAnimation } from '../species/monkeyPolicy';
 import { driftwoodSpots as module5DriftwoodSpots, installDriftwoodQuest as module5InstallDriftwoodQuest } from '../runtime/quest';
 import { DRIFTWOOD_SEA as module6DRIFTWOOD_SEA, LOWERED_SEA as module6LOWERED_SEA } from '../world/sea';
@@ -23,7 +23,7 @@ export const headlessModules = {
   'src/shards/driftwood-isle/sim/baked': { driftwoodBake: module0DriftwoodBake, driftwoodSpecs: module0DriftwoodSpecs, readEnemyPlacements: module0ReadEnemyPlacements, readKeeperRows: module0ReadKeeperRows },
   'src/shards/driftwood-isle/sim/keeper': { installIsland: module1InstallIsland },
   'src/shards/driftwood-isle/sim/captainEncounter': { installCaptain: module2InstallCaptain },
-  'src/shards/driftwood-isle/sim/kills': { installDriftwoodKills: module3InstallDriftwoodKills },
+  '@wildshard/game/quest/killSteps': { installQuestKillSteps: module3InstallQuestKillSteps },
   'src/shards/driftwood-isle/species/monkeyPolicy': { createMonkeyAnimation: module4CreateMonkeyAnimation },
   'src/shards/driftwood-isle/runtime/quest': { driftwoodSpots: module5DriftwoodSpots, installDriftwoodQuest: module5InstallDriftwoodQuest },
   'src/shards/driftwood-isle/world/sea': { DRIFTWOOD_SEA: module6DRIFTWOOD_SEA, LOWERED_SEA: module6LOWERED_SEA },

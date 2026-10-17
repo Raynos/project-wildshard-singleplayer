@@ -5,7 +5,8 @@ import { Vector3 } from 'three';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { installDriftwoodKills, KILLS_STEP, SAILOR_DEAD_FLAG } from '../src/shards/driftwood-isle/sim/kills';
+import { installQuestKillSteps } from '../src/game/quest/killSteps';
+import rows from '../src/shards/driftwood-isle/data/questKillSteps.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
 
 test('native kill counters resume old progress, keep flag/emission order and refuse malformed saves', async () => {
@@ -13,11 +14,11 @@ test('native kill counters resume old progress, keep flag/emission order and ref
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
   const bodies: { kind: string; actor: ReturnType<typeof host.spawn> }[] = [], facts: string[] = [];
   try {
-    const kills = installDriftwoodKills(host, DRIFTWOOD_FEATS, () => bodies, (name, identity) => {
-      if (name === 'driftwood.sailor') expect(host.flags.has(SAILOR_DEAD_FLAG)).toBe(true);
+    const kills = installQuestKillSteps(host, rows, DRIFTWOOD_FEATS, () => bodies, (name, identity) => {
+      if (name === 'driftwood.sailor') expect(host.flags.has('dead:sailor')).toBe(true);
       facts.push(identity);
     });
-    const saved = host.adapters.get(KILLS_STEP); if (saved === undefined) throw new Error('Missing existing kill continuation');
+    const saved = host.adapters.get(rows.step); if (saved === undefined) throw new Error('Missing existing kill continuation');
     saved.restore({ sailor: 0, crab10: 4, monkey6: 0 });
     expect(kills.count('crab10')).toBe(4);
     expect(kills.count('missing')).toBe(0); expect(kills.count('__proto__')).toBe(0); expect(kills.count('toString')).toBe(0);

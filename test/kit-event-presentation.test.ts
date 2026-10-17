@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { InteractSfx } from '../src/engine/audio/interactSfx';
 import type { InteractEvent } from '../src/engine/world/interact/Interactables';
 import { PINE_KIT_EVENTS } from '../src/shards/pine-hollow/generators/questEvents';
-import { DRIFTWOOD_KIT_EVENTS } from '../src/shards/driftwood-isle/data/questEvents';
+import DRIFTWOOD_KIT_EVENTS from '../src/shards/driftwood-isle/data/questEvents.json' with { type: 'json' };
 
 function event(type: InteractEvent['type'], look: 'resin' | 'token' | 'seaglass' | 'shard' = 'seaglass'): InteractEvent {
   return { type, def: { kind: 'pickup', id: 'token-3', at: { poi: 'world', x: 0, z: 0 }, look, label: 'A pickup' }, at: new Vector3() };

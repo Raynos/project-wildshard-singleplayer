@@ -1,0 +1,15 @@
+{
+  "hostile": ["crab", "boar", "bear", "monkey", "sailor"],
+  "scanEvery": 0.2,
+  "maxScan": 1024,
+  "windupRadius": 10,
+  "hints": [
+    { "control": "dodge", "when": [{ "kind": "windup", "seconds": 2.5 }] },
+    { "control": "attack", "when": [{ "kind": "nearest", "relation": "lt", "radius": 6 }] },
+    { "control": "lock", "when": [{ "kind": "done", "control": "attack" }, { "kind": "lockable" }] },
+    { "control": "use", "when": [{ "kind": "prompt", "contains": "Talk to" }], "touch": "Tap to talk", "desk": "E to talk" },
+    { "control": "move", "when": [] },
+    { "control": "jump", "when": [{ "kind": "done", "control": "move" }, { "kind": "walked", "metres": 12 }, { "kind": "nearest", "relation": "gt", "radius": 15 }] }
+  ],
+  "system": { "id": "shard.driftwood.firstMinutes", "after": ["last place", "keepsakes", "game.loot"], "before": ["first hints", "engine.ui.firstHints", "main.world"] }
+}

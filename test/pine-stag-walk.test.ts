@@ -2,7 +2,11 @@ import { expect, test, vi } from 'vitest';
 import { SkinnedMesh, Scene, Vector3 } from 'three';
 import { Puffs } from '../src/shards/pine-hollow/runtime/combat/fxKit';
 import { StagLead } from '../src/shards/pine-hollow/quest/stagLead';
-import { StagWalk, STAG_PATH } from '../src/shards/pine-hollow/quest/stagWalk';
+import { QuestLeadWalk as StagWalk } from '../src/game/quest/lead';
+import leadJson from '../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
+import { parseQuestLeadRows } from '../src/format/questSteps';
+
+const LEAD = parseQuestLeadRows(leadJson);
 
 function fixture() {
   const effects: string[] = [], scene = new Scene();
@@ -17,7 +21,7 @@ function fixture() {
     onSound: () => { effects.push('call'); },
   };
   vi.spyOn(Puffs.prototype, 'burst').mockImplementation((_at, from) => { effects.push(from === 2.6 ? 'appear-puff' : 'fade-puff'); });
-  const lead = new StagLead(scene, animals);
+  const lead = new StagLead(scene, animals, LEAD);
   lead.onAppear = first => { effects.push(first ? 'first' : 'appear'); };
   lead.onDone = () => { effects.push('done'); };
   return { lead, actor, animals, effects };
@@ -48,7 +52,7 @@ test('page appearance, actor integration, decisions and fade effects retain thei
 test('the shared walk completes all bends once and resumes its existing saved fields', () => {
   const { lead, effects } = fixture();
   let t = 0;
-  for (const [x, z] of STAG_PATH) {
+  for (const [x, z] of LEAD.path) {
     const player = new Vector3(x, 0, z);
     lead.update(0.1, t += 0.1, true, player);
     lead.update(1.4, t += 1.4, true, player);
@@ -56,9 +60,9 @@ test('the shared walk completes all bends once and resumes its existing saved fi
   }
   expect(lead.active).toBe(false);
   expect(effects.filter(effect => effect === 'spawn')).toHaveLength(1);
-  expect(effects.filter(effect => effect === 'call')).toHaveLength(STAG_PATH.length);
+  expect(effects.filter(effect => effect === 'call')).toHaveLength(LEAD.path.length);
   expect(effects.filter(effect => effect === 'done')).toHaveLength(1);
-  const walk = new StagWalk(); walk.load({ i: 2, mode: 'gone', t: 0.8 });
+  const walk = new StagWalk(LEAD); walk.load({ i: 2, mode: 'gone', t: 0.8 });
   expect(walk.begin(true, { x: 0, z: 0 })).toBeNull();
   expect(walk.save()).toEqual({ i: 2, mode: 'gone', t: 0.8 });
   expect(walk.step(0.4, true, { x: 0, z: 0 })).toEqual({ kind: 'appear', first: false });

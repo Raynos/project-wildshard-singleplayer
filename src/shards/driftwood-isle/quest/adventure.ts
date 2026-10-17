@@ -17,11 +17,13 @@ import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { OCEAN } from '../world/sites';
 import frames from '../data/questFrames.json' with { type: 'json' };
-import { DRIFTWOOD_KIT_EVENTS } from '../data/questEvents';
+import DRIFTWOOD_KIT_EVENTS from '../data/questEvents.json' with { type: 'json' };
 import interactables from '../data/interactables.generated.json' with { type: 'json' };
 import { installAdventureInteractables } from './interactLifetime';
 import { installPlaces } from './Places';
-import { installSpine, ownEnteredTree, type Spine } from './Spine';
+import { installQuestChapter, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
+import { castawayRig } from '../runtime/npc/people';
+import deathRows from '../data/questDeaths.json' with { type: 'json' };
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench } from '@wildshard/game/quest/story';
 import { installQuestTrader, type QuestTrader } from '@wildshard/game/quest/trader';
 import { trader, tradeCounter, traderRigOf } from '../runtime/models/trader';
@@ -33,7 +35,7 @@ import { installCompletion, type Completion as Complete, type CompletionProgress
 import { installEcology } from './Ecology';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
 import { Zipline } from '../world/Zipline';
-import { ironSwordGuard, SWORD_GUARDED } from './guards';
+import { QuestStepRunner } from '@wildshard/game/quest/steps';
 
 const { SEA_GLASS_COUNT, SEA_GLASS_FLAG } = interactables;
 
@@ -85,7 +87,7 @@ export interface Adventure {
   flags: Flags;
   kit: Interactables;
   /** the quest spine (A1): quest state, objective line, the castaway — set once installed */
-  spine: Spine | null;
+  spine: QuestChapter | null;
   /** the island's named places + discovery (A5) */
   places: Places | null;
   /** the Drowned Captain + the golden-hour reward (A6) */
@@ -121,6 +123,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const story = await readQuestStory(ctx);
+  const stepRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/steps.json')));
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/stall.json')));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
@@ -142,9 +145,14 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       ['pickup', () => { w.music.sting('pickup'); }],
     ]) });
 
+  const steps = new QuestStepRunner(stepRows, { flags, actors: new Map([['actors', w.animals]]) });
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
-  adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration, story);
+  const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
+  const npc = castawayRig(w.sky, feet, place({ poi: 'hut', x: 0.7, z: -9.8 }));
+  adventure.spine = installQuestChapter(ctx, declaration, story, new Map([['world', w]]), new Map([['quest', { flags, facts: grants.facts, placement: { place },
+    figures: new Map([['castaway', npc]]), adventure, deaths: deathRows.page,
+    drops: [{ call: 'hold-key', item: 'hold-key' }], system: 'shard.driftwood-isle.installSpine' }]]));
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installQuestTrader(traderStall, { player: w.player, placed: { scope, sky: w.sky,
     ...(w.registry === undefined ? {} : { registry: w.registry }),
@@ -156,8 +164,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   observeStoryFlags(story, scope, flags, storyOwners);
   bindStoryBench(story, kit, w.player, storyOwners);
   if (w.ironDrop) {
-    const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)
-    w.ironDrop.guard = () => (all ? ironSwordGuard(all) : flags.has('dead:sailor') ? null : SWORD_GUARDED);
+    w.ironDrop.guard = steps.guard.bind(steps, 'iron-sword');
     w.ironDrop.onGuarded = (why) => { w.hud.toast(`${why} — beat him first`); sfx.interact('locked'); };
   }
   // ── A7: the zipline — a launch deck on the headland's cliff lip, on the line from the lookout platform to the sea cave,
@@ -173,7 +180,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     const registry = w.registry;
     if (registry) { scope.run(() => zip.place(registry)); w.game.scene.add(zip.group); }
     else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
-    ownEnteredTree(zip.group, scope);
+    ownQuestTree(zip.group, scope);
     w.prompts.push(zip.prompt);
     w.game.onUpdate((dt) => {
       zip.cables.update(zip.mode, dt);

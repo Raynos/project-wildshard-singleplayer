@@ -9,7 +9,7 @@ import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '@wildshard/game/plugin/quests';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
-import { StagWalk } from '../quest/stagWalk';
+import { QuestLeadWalk as StagWalk } from '@wildshard/game/quest/lead';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -23,6 +23,7 @@ import benchRows from '../data/questBench.json' with { type: 'json' };
 import { Exchange } from '@wildshard/game/loot/exchange';
 import { PINE_AMMO_SAVED, type PineAmmunition } from './weapons/ammunition';
 import baked from '../data/spots.generated.json' with { type: 'json' };
+import { QuestStepRunner } from '@wildshard/game/quest/steps';
 
 type SimHost = Parameters<typeof installQuestGraph>[0];
 
@@ -185,11 +186,10 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
         if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n);
       } }]]));
   const initialTrader = trader.snapshot();
+  const steps = new QuestStepRunner(content.steps, { flags, inventory: pack,
+    calls: new Map([['trader', () => { if (ports.ammunition !== undefined) trader.open(); }]]) });
   const dialogue = createReadingRoster(content.readings, people, (npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), kind => {
-    if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {
-      flags.set('errand:paid'); pack.add('lodge-ribbon', 3); pack.add('amber-resin', 4);
-    }
-    if (kind === 'trader' && ports.ammunition !== undefined) trader.open();
+    steps.signal({ kind: 'talk', target: kind });
   });
   const near = (p: { x: number; y: number; z: number } | null, radius: number): boolean => {
     if (p === null || radius <= 0) return false;
@@ -289,7 +289,8 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   }, host.scope);
   syncFeats();
 
-  const stag = new StagWalk();
+  const stag = new StagWalk(content.lead);
+  const followed = { kind: 'follow', target: 'stag' } as const;
   host.onStep(QUEST_STEP, dt => {
     const list = ports.commands();
     for (let c = 0; c < MAX_COMMANDS; c++) {
@@ -317,7 +318,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (chapter.current?.id === 'dawn') clock.request('dawn.request');
     clock.update(dt);
     const lead = stag.step(dt, chapter.current?.id === 'stag' && ports.night() > 0.5, host.player.position);
-    if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
+    if (lead?.kind === 'vanish' && lead.done) steps.signal(followed);
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
       rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),

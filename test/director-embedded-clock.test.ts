@@ -48,6 +48,30 @@ test('embedded admission refuses stale names and changed bytes and installs inde
   expect(first.tick).toBe(0); expect(second.tick).toBe(-1);
 });
 
+test('product-sorted input records restore legacy clock bytes without accepting changed bindings', async () => {
+  const create = await prepareEmbeddedDirector(declaration, module, 357), scope = new Scope('legacy-clock-order');
+  const oldEvents: [string, number][] = [], events: [string, number][] = [];
+  const old = pineDirectorClock(create(), { seen: () => false, night: () => 0, hasClock: () => true,
+    publish: (key, value) => { oldEvents.push([key, value]); } }, () => !scope.disposed);
+  const sorted = { ...rows, inputs: Object.fromEntries(Object.entries(rows.inputs).sort(([a], [b]) => a.localeCompare(b))) };
+  const lane = DirectorScriptStageLane.bind(sorted, create(), bindings, new Map<string, unknown>([
+    ['flags', new Flags('legacy-watch', false)], ['clock', { day: () => ({}), night: () => 0 }],
+    ['publication', { publish: (key: string, value: number) => { events.push([key, value]); } }],
+  ]), scope);
+  try {
+    old.dawn(); old.tick(0.5);
+    const saved = old.save();
+    lane.restore(saved);
+    expect(lane.snapshot()).toBe(saved); expect(events).toEqual([]);
+    const foreign = saved.replace('event:night.consume', 'event:night.start');
+    expect(() => lane.restore(foreign)).toThrow('Incompatible');
+    expect(lane.snapshot()).toBe(saved);
+    oldEvents.length = 0;
+    for (const dt of [0.1, 0.9, 1, 1, 1]) { old.tick(dt); lane.update(dt); }
+    expect(events).toEqual(oldEvents); expect(lane.snapshot()).toBe(old.save());
+  } finally { scope.dispose(); }
+});
+
 test('literal bindings reject invalid row payloads before initialization and mismatching delivered payloads', async () => {
   const create = await prepareEmbeddedDirector(declaration, module, 357), script = create(), publish = vi.fn();
   const actions = new Map(rows.stages.flatMap(stage => stage.do ?? []).map(action => [action.emit, publish]));

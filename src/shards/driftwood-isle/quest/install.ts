@@ -10,7 +10,7 @@ import { installAdventure, type Adventure } from './adventure';
 import { installKeepsakes } from '../loot/keepsakes';
 import { bindDriftwoodEffects } from '../loot/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
-import { installFirstMinutes } from '../runtime/onboarding/firstMinutes';
+import { installQuestHints } from '@wildshard/game/quest/hints';
 import { ironSwordDrop } from '../loadout/rows';
 import { loadZiplineGeometry } from '../runtime/models/zipline';
 import { preloadCaptainMesh } from '../species/captainMesh';
@@ -53,8 +53,8 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
     animals: () => h.animals.animals, menu: h.menu, presentation, minimap: h.minimap ?? null,
     before: ['body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'] });
   if (h.firstHints !== undefined) {
-    installFirstMinutes(ctx, { hints: h.firstHints, animals: () => h.animals.animals, player,
-      prompt: () => ctx.app.ui.prompt() });
+    const hintRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/hints.json')));
+    installQuestHints(ctx, hintRows, new Map([['quest', { hints: h.firstHints, animals: h.animals, player, ui: ctx.app.ui }]]));
   }
   return adventure;
 }

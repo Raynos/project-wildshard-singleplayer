@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { bindQuestDeathEffects } from '../src/game/plugin/quests';
 import { createAchievementCounters } from '../src/game/achievements';
 import { PINE_DEATH_EFFECTS, PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
-import { DRIFTWOOD_PAGE_DEATH_EFFECTS, DRIFTWOOD_KILL_DEATH_EFFECTS } from '../src/shards/driftwood-isle/data/questDeaths';
+import deathRows from '../src/shards/driftwood-isle/data/questDeaths.json' with { type: 'json' };
 import { recordKill, isFilled, type Board } from '../src/shards/pine-hollow/quest/contracts';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
@@ -38,7 +38,7 @@ test('death rows retain achievement, contract notice and key/flag order without 
     emit: name => { order.push(name); } });
   const sailor = { kind: 'sailor', position: { x: 4, z: 8 } }, keys: unknown[] = [];
   const drop = (body: typeof sailor): void => { keys.push(body.position); order.push('key'); };
-  const dwPage = bindQuestDeathEffects(DRIFTWOOD_PAGE_DEATH_EFFECTS, { flags, calls: new Map([['hold-key', drop]]), toast: () => { order.push('kill-toast'); } });
+  const dwPage = bindQuestDeathEffects(deathRows.page, { flags, calls: new Map([['hold-key', drop]]), toast: () => { order.push('kill-toast'); } });
   order.length = 0; dwPage(sailor); dw.kill(sailor.kind); // Page achievement listener retains its later priority.
   expect(keys[0]).toBe(sailor.position);
   expect(order.indexOf('key')).toBeLessThan(order.indexOf('dead:sailor'));
@@ -47,7 +47,7 @@ test('death rows retain achievement, contract notice and key/flag order without 
   expect(feat).toBeDefined(); if (feat !== undefined) expect(order.indexOf('kill-toast')).toBeLessThan(order.indexOf(feat));
   order.length = 0;
   drop(sailor); // The native quest keeps its original floor/state key listener ahead of kill continuation.
-  bindQuestDeathEffects(DRIFTWOOD_KILL_DEATH_EFFECTS, { flags, kill: dw.kill })(sailor);
+  bindQuestDeathEffects(deathRows.kills, { flags, kill: dw.kill })(sailor);
   expect(order[0]).toBe('key'); expect(order[1]).toBe('dead:sailor');
   dwPage({ kind: 'captain', position: { x: 0, z: 0 } }); expect(order).toContain('dead:captain');
   const before = [...order];

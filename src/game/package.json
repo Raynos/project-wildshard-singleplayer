@@ -135,7 +135,12 @@
     "./population/actors": "./population/actors.ts",
     "./population/roster": "./population/roster.ts",
     "./population/pageWaves": "./population/pageWaves.ts",
-    "./population/nativeWaves": "./population/nativeWaves.ts"
+    "./population/nativeWaves": "./population/nativeWaves.ts",
+    "./quest/steps": "./quest/steps.ts",
+    "./quest/lead": "./quest/lead.ts",
+    "./quest/chapter": "./quest/chapter.ts",
+    "./quest/killSteps": "./quest/killSteps.ts",
+    "./quest/hints": "./quest/hints.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

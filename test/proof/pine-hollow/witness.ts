@@ -22,7 +22,8 @@ import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
-import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
+import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
+import { parseQuestLeadRows } from '../../../src/format/questSteps';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../fixtures/weapon-oracle/nativeLoadout';
@@ -46,6 +47,7 @@ const LEVER_STEP = 'pine.lever', CROSSBOW_STEP = 'pine.crossbow';
 export const ENTRY = 'boot/headlessModules.ts';
 const ROOT = new URL('../../../', import.meta.url);
 const assets = new Map([PINE_TERRAIN.terrain, PINE_TERRAIN.navmesh].map(path => [path, new Uint8Array(readFileSync(new URL(path, ROOT)))] as const));
+const LEAD = parseQuestLeadRows(leadJson);
 const EYE = 1.68;
 
 /** One authoritative session: the host, the tick's lent commands and its committed effects. */
@@ -125,7 +127,7 @@ const CLIMB: readonly Point[] = [[38.48, 213.08], [37.3, 213.28], [34.19, 213.79
 const CAB = CLIMB.slice(0, 13);
 const reverse = (path: readonly Point[]): Point[] => [...path].reverse();
 /** the road below the porch, and the stag's first bend on the west road */
-const OFF_ROAD: Point = OFF_PORCH[OFF_PORCH.length - 1] ?? [0, -10], STAG_FIRST: Point = [STAG_PATH[0]?.[0] ?? 30, STAG_PATH[0]?.[1] ?? -2];
+const OFF_ROAD: Point = OFF_PORCH[OFF_PORCH.length - 1] ?? [0, -10], STAG_FIRST: Point = [LEAD.path[0]?.[0] ?? 30, LEAD.path[0]?.[1] ?? -2];
 /** the host's day clock's night (0 day … 1 night) */
 const night = (host: SimHost): number => host.dayClock?.night ?? 0;
 
@@ -169,7 +171,7 @@ function route(spots: PineSpots, nav: Navmesh, heightAt: (x: number, z: number) 
       done: host => night(host) > 0.5 || v.parse(v.object({ fast: v.nullable(v.unknown()) }), host.adapters.get(QUEST_STEP)?.snapshot()).fast !== null },
     { kind: 'wait', until: host => night(host) > 0.5 },
     // 8. off the porch and down the west road after the Ghost Stag, bend to bend, into the stones
-    { kind: 'go', path: OFF_PORCH }, walk(OFF_ROAD, STAG_FIRST), ...STAG_PATH.slice(1).map((bend, i) => walk(STAG_PATH[i] ?? STAG_FIRST, [bend[0], bend[1]])),
+    { kind: 'go', path: OFF_PORCH }, walk(OFF_ROAD, STAG_FIRST), ...LEAD.path.slice(1).map((bend, i) => walk(LEAD.path[i] ?? STAG_FIRST, [bend[0], bend[1]])),
     { kind: 'wait', until: host => host.flags.has('followed:stag') },
     // 9. the Antler King, by weapon play; 10. the dawn
     { kind: 'king' }, { kind: 'wait', until: host => host.flags.has(QUEST_DONE) },
