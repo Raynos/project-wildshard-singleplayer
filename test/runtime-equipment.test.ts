@@ -18,6 +18,9 @@ import { createSimHost } from '../src/engine/sim';
 import { bindNativeLoadout, createNativeLoadout, HOST_PROBE } from '../src/game/plugin/simulation';
 import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { PineAmmunition } from '../src/shards/pine-hollow/runtime/weapons/ammunition';
+import driftwood from '../src/shards/driftwood-isle/shard.config';
+import { readItemEquipment } from '../src/game/plugin/nativeItems';
+import { parseItems } from '../src/format/items';
 
 class NativeWeapon extends Weapon {
   readonly model = new Group();
@@ -64,6 +67,44 @@ test('Pine adopts all three live ranged owners without changing ammunition, iden
       expect(weapon.state).toBe(old.state); expect(weapon.state.ammo).toBe(8); expect(weapon.id).toBe(old.id);
       expect(weapon.row.meta).toBe(old.row.meta); expect(weapon.row.cues).toEqual(old.row.cues);
       expect(weapon.row.ui).toEqual({ ...old.row.ui, inputContext: declared.context }); expect(weapon.row.legacySlot).toBe(old.id);
+    }
+  } finally { scope.dispose(); app.engineScope.dispose(); }
+});
+
+test('factory DATA keeps Driftwood pickup rows and wood-first extras while Pine adopts all three owners', async () => {
+  const app = new App(), scope = new Scope('equipment-factories');
+  for (const definition of INPUT_CONTEXTS.filter(input => ['weapon.melee', 'weapon.ranged', 'weapon.bow'].includes(input.id))) app.input.register(definition, scope);
+  const ctx = { app, scope, game: { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } } };
+  try {
+    for (const shard of [driftwood, source]) {
+      const policy = shard.items.loadout.runtime;
+      if (policy === undefined) throw new Error('Missing real factory policy');
+      const log: string[] = [], owners = new Map(policy.owners.map(owner => [owner.item, new NativeWeapon(readItemEquipment(shard.items, owner.item))]));
+      const before = new Map([...owners].map(([id, weapon]) => [id, weapon.row]));
+      const target = { raycast: () => null };
+      const build = bindRuntimeEquipment(ctx, shard, { factories: new Map(policy.owners.map(owner => [owner.item, {
+        ...(owner.slot === 'primary' ? { prepare: () => { log.push('prepare'); return Promise.resolve(); } } : {}),
+        create: (item, targets, nolock) => {
+          expect(targets).toBe(target); expect(nolock).toBe(true);
+          expect(item).toBe(shard.items.rows.find(row => row.id === owner.item));
+          log.push(item.id); const weapon = owners.get(item.id); if (weapon === undefined) throw new Error('Missing owner'); return weapon;
+        },
+      }])) });
+      const kit = await build(target, true);
+      expect(log).toEqual(['prepare', ...policy.owners.map(owner => owner.item)]);
+      expect(kit.primary).toBe([...owners.values()][0]);
+      expect(kit.extras).toEqual(policy.owners.filter(owner => owner.slot === 'extra').map(owner => owners.get(owner.item)));
+      for (const owner of policy.owners) {
+        const weapon = owners.get(owner.item), row = before.get(owner.item);
+        if (weapon === undefined || row === undefined) throw new Error('Missing original owner');
+        if (owner.row === 'native') expect(weapon.row).toBe(row);
+        else { expect(weapon.row).not.toBe(row); expect(weapon.row.meta).toBe(row.meta); expect(weapon.row.legacySlot).toBe(weapon.id); }
+        if (owner.slot === 'rifle') expect(kit.rifle).toBe(weapon);
+        if (owner.slot === 'secondary') expect(kit.secondary).toBe(weapon);
+      }
+      expect(() => bindRuntimeEquipment(ctx, shard, { factories: new Map() })).toThrow('factory');
+      expect(() => parseItems({ ...shard.items, loadout: { ...shard.items.loadout, runtime: { ...policy, owners: [...policy.owners].reverse() } } })).toThrow();
+      expect(() => parseItems({ ...shard.items, loadout: { ...shard.items.loadout, runtime: { ...policy, owners: [policy.owners[0], policy.owners[0]] } } })).toThrow();
     }
   } finally { scope.dispose(); app.engineScope.dispose(); }
 });

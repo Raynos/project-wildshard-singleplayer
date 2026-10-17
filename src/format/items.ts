@@ -68,7 +68,11 @@ const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.varia
   pickups: v.exactOptional(v.pipe(v.record(name, ClaimedPickupSchema), v.maxEntries(128))),
   contexts: v.pipe(v.array(context), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
-  loadout: v.strictObject({ native: v.exactOptional(NativeLoadoutRowSchema), inventory: v.exactOptional(inventory), primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
+  loadout: v.strictObject({ runtime: v.exactOptional(v.strictObject({
+    pause: v.boolean(), sliceMs: v.exactOptional(v.pipe(finite, v.minValue(1), v.maxValue(1000))),
+    owners: v.pipe(v.array(v.strictObject({ item: weaponId, slot: v.picklist(['primary', 'rifle', 'secondary', 'extra']),
+      row: v.picklist(['native', 'declared']), presentation: v.exactOptional(v.boolean()) })), v.minLength(1), v.maxLength(16)),
+  })), native: v.exactOptional(NativeLoadoutRowSchema), inventory: v.exactOptional(inventory), primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
 /** Admit an item's JSON-only contacts without copying its original event-lifetime tag arrays. */
 export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
   v.assert(v.custom(isJsonData, 'JSON-only melee contacts'), input);
@@ -164,6 +168,12 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
     || new Set(items.contexts.map((r) => r.id)).size !== items.contexts.length) errors.push('unique item ids slots and contexts');
   if (weapons.some((r) => r.slot !== `declared.${r.id}`)) errors.push('stable weapon slot');
   if (weapons.some((r) => r.context !== 'weapon.melee' && !runtimeContexts.includes(r.context) && !items.contexts.some((c) => c.id === r.context))) errors.push('declared weapon context');
+  const owners = items.loadout.runtime?.owners;
+  if (owners !== undefined && (owners[0]?.slot !== 'primary' || owners[0].item !== items.loadout.primary
+    || owners.length !== weapons.length || new Set(owners.map(owner => owner.item)).size !== owners.length
+    || owners.some(owner => !weapons.some(row => row.id === owner.item))
+    || ['primary', 'rifle', 'secondary'].some(place => owners.filter(owner => owner.slot === place).length > 1)
+    || (owners.find(owner => owner.slot === 'secondary')?.item ?? null) !== items.loadout.secondary)) errors.push('runtime equipment owners');
   for (const id of [items.loadout.primary, items.loadout.secondary]) if (id !== null && !weapons.some((r) => r.id === id)) errors.push('weapon loadout reference');
   if (items.rows.length > 0 && items.loadout.primary === null) errors.push('primary weapon required');
   if (items.loadout.primary !== null && items.loadout.primary === items.loadout.secondary) errors.push('distinct loadout weapons');

@@ -7,7 +7,7 @@ import recipe from '../src/shards/driftwood-isle/data/ironSwordScene.json' with 
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
-import { buildIronSwordDisplay } from '../src/shards/driftwood-isle/runtime/loadout';
+import { buildIronSwordDisplay } from '../src/shards/driftwood-isle/runtime/fpArms';
 import { FP_ARMS_MATERIALS } from '../src/shards/driftwood-isle/runtime/const';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 

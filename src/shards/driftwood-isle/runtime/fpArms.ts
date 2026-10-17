@@ -12,10 +12,13 @@
 // the engine's trail.
 //
 // SHARD-PLATFORM M3: the arms are the toon arms (runtime/viewmodel/toonArms.ts); the look is data (data/fpArmsLook.ts).
-import type { Object3D } from 'three';
+import type { Object3D, Group, Material } from 'three';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import { fixedDraw } from './boot/modelGeometry';
+import { driftwoodRows } from './boot/rows';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ToonArms, type ToonArmsLooks } from './viewmodel/toonArms';
-import { FP_ARMS_LOOK } from './const';
+import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './const';
 
 const ARMS = new ToonArms(FP_ARMS_LOOK);
 
@@ -29,3 +32,14 @@ export function castawayArms(): ReturnType<InstanceType<typeof ToonArms>['load']
 /** the Model Explorer's card (driftwood-isle/runtime/models/gear.ts): the castaway arms at rest holding `kind`, on their own
  *  skeleton clone of the one parse (the held rigs' geometry), in camera space as held — the eye at the origin, −Z forward */
 export function castawaySpecimen(sky: Sky, kind: 'wood' | 'iron'): Promise<Object3D> { return ARMS.specimen(sky, kind); }
+
+/** Authored world pickup scene: original owned copies and borrowed world graph materials. */
+export function buildIronSwordDisplay(materials: ReadonlyMap<string, Material>): Group {
+  const blade = materials.get(FP_ARMS_MATERIALS.pickupBlade), fittings = materials.get(FP_ARMS_MATERIALS.pickupFittings);
+  if (blade === undefined || fittings === undefined) throw new Error('Iron sword display requires its graph materials');
+  const made=createClientScene(driftwoodRows('custom/fixedLayouts').ironSword,{
+    geometry: new Map([['blade', fixedDraw('ironSwordBlade').copy()], ['fittings', fixedDraw('ironSwordFittings').copy()]]),
+    materials: new Map([['blade', blade], ['fittings', fittings]]),
+  });
+  const root=made.group('pickup');if(root===null)throw new Error('Iron sword display requires its declared group');return root;
+}

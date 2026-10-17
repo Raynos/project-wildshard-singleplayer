@@ -2847,6 +2847,16 @@ and secondary in declared order. Each preparation is awaited, then paused before
 construction; the shared slice starts when equipment builds. `bindRuntimeEquipment`
 adopts these same instances through admitted item families, checking profiles and
 retaining native ammunition, legacy slots, metadata and declared presentation.
+Its `{ factories }` form returns the equipment builder. `items.loadout.runtime`
+declares owner item ids in construction order, primary/rifle/secondary/extra
+slots, task pauses and optional slice milliseconds. Each factory receives the
+admitted weapon spec and normal build arguments; missing factories refuse before
+construction. `row: "native"` retains the original row, including pickup/Owned
+locks; `row: "declared"` adopts the admitted row with optional native presentation.
+The normal equipment service owns unlocks. Driftwood's two swords and Pine's
+three ranged weapons use this path; extras retain their declared order.
+`createClientScene` also accepts a named geometry map, borrowed with the same
+validation as its resolver port; Driftwood's pickup and Far Reach's storm use it.
 W1 single-item kits and Pine's three ranged owners use the same builder.
 `game/plugin/simulation.bindNativeLoadout` supplies the existing slot/swap law,
 live body and aim readers, and optional step/snapshot registration at the native

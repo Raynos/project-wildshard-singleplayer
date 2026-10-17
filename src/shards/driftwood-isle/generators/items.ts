@@ -14,5 +14,5 @@ export const DRIFTWOOD_SWORDS = { version: 1,
       heavy: { id: `driftwood.${name}.heavy`, damage: profile.damage * 2, cooldown: 0.08, range: 2.2, width: 1, tags: ['actor.player', 'dmg.melee'], effect: null },
       charge: 0.45, profile: index === 0 ? DRIFTWOOD_MELEE_PROFILE : DRIFTWOOD_IRON_PROFILE };
   }),
-  contexts: [], loadout: { inventory: DRIFTWOOD_NATIVE_PACK, primary: 'weapon.driftwood-isle.wood', secondary: null, tools: [] },
+  contexts: [], loadout: { runtime: { pause: true, owners: [{ item: 'weapon.driftwood-isle.wood', slot: 'primary', row: 'native' }, { item: 'weapon.driftwood-isle.iron', slot: 'extra', row: 'native' }] }, inventory: DRIFTWOOD_NATIVE_PACK, primary: 'weapon.driftwood-isle.wood', secondary: null, tools: [] },
 };

@@ -10,11 +10,12 @@ it('draws authored instance poses and rejects crossed matrix counts before alloc
   const recipe = { version: 1, root: 'root', textures: [],
     materials: [{ kind: 'port', id: 'paint', source: 'paint' }],
     nodes: [{ kind: 'group', id: 'root', children: ['cards'] }, mesh] };
-  const ports = { geometry: () => geometry, materials: new Map([['paint', material]]) };
+  const ports = { geometry: new Map([['quad', geometry]]), materials: new Map([['paint', material]]) };
   const made = createClientScene(recipe, ports), cards = made.parts.get('cards');
   if (!(cards instanceof InstancedMesh)) throw new Error('Missing authored instances');
   const matrix = new Matrix4(); cards.getMatrixAt(1, matrix);
   expect(matrix.elements).toEqual(poses[1]?.elements); expect(cards.name).toBe('authored.cards');
   expect(() => createClientScene({ ...recipe, nodes: [recipe.nodes[0], { ...mesh, instances: 3 }] }, ports)).toThrow();
+  expect(() => createClientScene(recipe, { ...ports, geometry: new Map() })).toThrow('geometry');
   made.dispose(); geometry.dispose(); material.dispose();
 });

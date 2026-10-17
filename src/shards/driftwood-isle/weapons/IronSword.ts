@@ -4,7 +4,7 @@ import { WRECK } from '../world/sites';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { buildIronSwordDisplay } from '../runtime/loadout';
+import { buildIronSwordDisplay } from '../runtime/fpArms';
 import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Interactable } from '@wildshard/engine/world/interact/types';

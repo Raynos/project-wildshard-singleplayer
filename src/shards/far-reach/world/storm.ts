@@ -15,7 +15,8 @@ export type CrownStorm = ReturnType<typeof crownStorm>;
  */
 export function crownStorm(random: () => number): { readonly group: Object3D; readonly update: (dt: number, t: number) => void; readonly strike: (delay?: number) => void } {
   const look = SKY_LIBRARY.look('storm-ring'), bolt = new MeshBasicMaterial({ color: STORM.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
-  const scene = createClientScene(REST_SCENES.storm, { geometry: SKY_LIBRARY.geometry, materials: new Map([['storm-ring', look ?? bolt], ['storm-bolt', bolt]]) });
+  const geometry = new Map(REST_SCENES.storm.nodes.flatMap(row => row.kind === 'mesh' && row.geometry !== undefined ? [[row.geometry, SKY_LIBRARY.geometry(row.geometry)] as const] : []));
+  const scene = createClientScene(REST_SCENES.storm, { geometry, materials: new Map([['storm-ring', look ?? bolt], ['storm-bolt', bolt]]) });
   const ring = scene.parts.get('storm-ring'), shape: unknown = ring instanceof Mesh ? ring.geometry : null, bolts = Array.from({ length: STORM.bolts }, (_, i) => scene.parts.get(`storm-bolt-${String(i)}`));
   if (ring === undefined || !(shape instanceof BufferGeometry)) throw new Error('far-reach: the storm scene lost its ring');
   const position: unknown = shape.getAttribute('position'), flashes = new Float32Array(position instanceof BufferAttribute ? position.count : 0), flash = new BufferAttribute(flashes, 1);

@@ -1,4 +1,6 @@
 import { installCableModes } from '@wildshard/engine/player/modes';
+import { macrotask, slicer } from '@wildshard/engine/boot/plan';
+import { parseItems } from '@wildshard/format/items';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
@@ -536,9 +538,46 @@ function sortedJson(value: unknown): string {
 /** Compare admitted native profiles by JSON value, independent of wire/schema property order. */
 export function sameRuntimeProfile(left: unknown, right: unknown): boolean { return sortedJson(left) === sortedJson(right); }
 
+/** An existing native view/controller factory; item numbers come from the admitted row. */
+export interface RuntimeEquipmentFactory {
+  readonly prepare?: (due: () => Promise<void> | null) => Promise<void>;
+  readonly create: (item: Extract<Shardfile['items']['rows'][number], { kind: 'weapon' }>, ...args: Parameters<BuildEquipment>) => Awaited<ReturnType<BuildEquipment>>['primary'];
+}
+interface RuntimeEquipmentOwner { readonly id: string; readonly weapon: Awaited<ReturnType<BuildEquipment>>['primary']; readonly profile: unknown; readonly presentation?: boolean }
+/** Construct and admit native owners in DATA order, keeping native pickup rows when requested. */
 export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile,
-  owners: readonly { readonly id: string; readonly weapon: Awaited<ReturnType<BuildEquipment>>['primary']; readonly profile: unknown; readonly presentation?: boolean }[]): void {
-  if (owners.length === 0 || owners.length > 3 || new Set(owners.map(owner => owner.id)).size !== owners.length) throw new Error('Invalid runtime item owners');
+  ports: { readonly factories: ReadonlyMap<string, RuntimeEquipmentFactory> }): BuildEquipment;
+export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile,
+  owners: readonly RuntimeEquipmentOwner[]): DeclaredItems;
+export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile,
+  input: readonly RuntimeEquipmentOwner[] | { readonly factories: ReadonlyMap<string, RuntimeEquipmentFactory> }): BuildEquipment | DeclaredItems {
+  if ('factories' in input) {
+    const policy = parseItems(source.items).loadout.runtime;
+    if (policy === undefined) throw new Error('Missing runtime equipment factory policy');
+    const steps = policy.owners.map(owner => {
+      const item = source.items.rows.find(row => row.id === owner.item), factory = input.factories.get(owner.item);
+      if (item?.kind !== 'weapon' || factory === undefined) throw new Error('Unresolved runtime equipment factory');
+      return { owner, item, factory };
+    });
+    return async (...args) => {
+      const due = policy.sliceMs === undefined ? () => null : slicer(policy.sliceMs).due;
+      const owners: RuntimeEquipmentOwner[] = [];
+      const kit: { primary: Awaited<ReturnType<BuildEquipment>>['primary'] | null; rifle: Awaited<ReturnType<BuildEquipment>>['rifle']; secondary: Awaited<ReturnType<BuildEquipment>>['secondary'] } = { primary: null, rifle: null, secondary: null };
+      for (const [index, { owner, item, factory }] of steps.entries()) {
+        if (factory.prepare !== undefined) { await factory.prepare(due); if (policy.pause) await macrotask(); }
+        const weapon = factory.create(item, ...args);
+        owners.push({ id: item.id, weapon, profile: item.profile, ...(owner.presentation === undefined ? {} : { presentation: owner.presentation }) });
+        if (owner.slot !== 'extra') kit[owner.slot] = weapon;
+        if (index + 1 < steps.length && policy.pause) await macrotask();
+      }
+      const bound = bindRuntimeEquipment(ctx, source, owners);
+      if (kit.primary === null || bound.primary !== kit.primary) throw new Error('Runtime equipment requires its declared primary first');
+      return { primary: kit.primary, rifle: kit.rifle, secondary: kit.secondary,
+        extras: owners.filter(owner => owner.weapon !== kit.primary && owner.weapon !== kit.rifle && owner.weapon !== kit.secondary).map(owner => owner.weapon) };
+    };
+  }
+  const owners = input;
+  if (owners.length === 0 || owners.length > 16 || new Set(owners.map(owner => owner.id)).size !== owners.length) throw new Error('Invalid runtime item owners');
   const entries = owners.map(owner => {
     const declaration = source.items.rows.find(row => row.id === owner.id), native = owner.weapon.row;
     if (declaration?.kind !== 'weapon' || !sameRuntimeProfile(declaration.profile, owner.profile)) throw new Error('Runtime item profile differs from its constructed owner');
@@ -553,7 +592,7 @@ export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0]
       const entry = entries.find(value => value.owner.id === row.id);
       if (entry === undefined || !sameRuntimeProfile(ports.profile, entry.owner.profile)) throw new Error('Unbound runtime item profile');
       const { weapon } = entry.owner;
-      weapon.row = entry.owner.presentation === true ? { ...entry.presentation, ...row, ui: { ...row.ui, ...entry.presentation.ui }, legacySlot: weapon.id, meta: entry.native.meta }
+      if (source.items.loadout.runtime?.owners.find(owner => owner.item === entry.owner.id)?.row !== 'native') weapon.row = entry.owner.presentation === true ? { ...entry.presentation, ...row, ui: { ...row.ui, ...entry.presentation.ui }, legacySlot: weapon.id, meta: entry.native.meta }
         : { ...row, legacySlot: weapon.id, meta: entry.native.meta };
       return weapon;
     } });
@@ -562,7 +601,7 @@ export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0]
     const matches = entries.filter(entry => entry.declaration.family === name), first = matches[0];
     if (matches.length === 1 && first !== undefined) family.presentation = first.presentation;
   }
-  bindRuntimeItems(ctx, source, { families: new Map(), kit: families, icon: name => {
+  return bindRuntimeItems(ctx, source, { families: new Map(), kit: families, icon: name => {
     const entry = entries.find(value => value.native.ui.icon === name); if (entry === undefined) throw new Error('Unknown runtime item icon'); return entry.native.ui.icon;
   } });
 }

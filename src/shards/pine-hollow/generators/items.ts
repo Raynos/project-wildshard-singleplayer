@@ -28,4 +28,4 @@ export const PINE_ITEMS = { version: 1, pickups: pinePickups(), rows: [
     light: contact(`${row.id}.light`), heavy: contact(`${row.id}.heavy`), charge: 0.001 };
   return row.id === CROSSBOW.id ? Object.assign(declared, { profile: CROSSBOW_WEAPON_PROFILE }) : row.id === LONGBOW.id ? Object.assign(declared, { profile: BOW_PROFILE }) : row.id === LEVER.id ? Object.assign(declared, { profile: LEVER_WEAPON_PROFILE }) : declared;
 }), contexts: [], runtimeContexts: ['weapon.ranged', 'weapon.bow'],
-loadout: { native: NATIVE_LOADOUT, inventory: PINE_NATIVE_PACK, primary: CROSSBOW.id, secondary: LONGBOW.id, tools: [] } };
+loadout: { runtime: { pause: true, sliceMs: 30, owners: [{ item: CROSSBOW.id, slot: 'primary', row: 'declared', presentation: true }, { item: LEVER.id, slot: 'rifle', row: 'declared', presentation: true }, { item: LONGBOW.id, slot: 'secondary', row: 'declared' }] }, native: NATIVE_LOADOUT, inventory: PINE_NATIVE_PACK, primary: CROSSBOW.id, secondary: LONGBOW.id, tools: [] } };

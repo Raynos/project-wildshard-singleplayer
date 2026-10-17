@@ -2160,7 +2160,7 @@ export async function configuredShardfile(document: Pick<Document, 'getElementBy
 
 /** Caller-owned private assets; no resource is fetched or globally installed by scene construction. */
 export interface ClientScenePorts {
-  readonly geometry: (id: string) => unknown;
+  readonly geometry: ReadonlyMap<string, unknown> | ((id: string) => unknown);
   readonly objects?: ReadonlyMap<string, unknown>;
   readonly textures?: ReadonlyMap<string, unknown>;
   readonly materials?: ReadonlyMap<string, unknown>;
@@ -2282,7 +2282,7 @@ export function createClientScene(input: unknown, ports: ClientScenePorts): Clie
       on &&= target !== null;
     }
     if (node.kind === 'mesh' && on) {
-      const value: unknown = ports.geometry(node.geometry);
+      const value: unknown = typeof ports.geometry === 'function' ? ports.geometry(node.geometry) : ports.geometry.get(node.geometry);
       if (value !== null && !sceneGeometry(value)) throw new Error('Private geometry port differs from its declaration');
       geometry.set(id, value);
       if (value === null && node.missing === 'omit') on = false;

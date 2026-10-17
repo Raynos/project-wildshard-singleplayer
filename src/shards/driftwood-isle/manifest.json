@@ -364,8 +364,8 @@
       "export": "default"
     },
     "sword": {
-      "module": "./runtime/loadout",
-      "export": "loadSword"
+      "module": "./runtime/fpArms",
+      "export": "castawayArms"
     },
     "ktx2": {
       "module": "./ktx2.generated"

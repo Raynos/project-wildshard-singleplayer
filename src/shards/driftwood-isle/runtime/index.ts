@@ -16,7 +16,8 @@ import { installDriftwoodAdventure } from '../quest/install';
 import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
-import { installDriftwoodLoadout } from './loadout';
+import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
+import { Sword } from '@wildshard/game/weapons/Sword';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { FP_ARMS_MATERIALS } from './const';
 import { followToon } from './look/toon';
@@ -74,7 +75,20 @@ export class DriftwoodPlugin extends ShardPlugin {
     ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
     installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
     const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials, ctx.product.shardfile);
-    ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows, ctx);
+    ctx.rows.weapon(rows);
+    const world = shell.world;
+    shell.buildEquipment = bindRuntimeEquipment(ctx, ctx.product.shardfile, { factories: new Map([
+      ['weapon.driftwood-isle.wood', { create: (_item, targets, nolock, viewmodel) => {
+        if (viewmodel?.arms === undefined || viewmodel.ironArms === undefined) throw new Error('Driftwood requires both sword arms');
+        const { ironArms: _iron, swim: _swim, ...woodArms } = viewmodel;
+        return new Sword(world, targets, { row: rows[0], profile: rows[0], allowUnlocked: nolock, ...woodArms,
+          ...(world.game.level.camera ? { portraitFov: world.game.level.camera.portraitFov } : {}) });
+      } }],
+      ['weapon.driftwood-isle.iron', { create: (_item, targets, nolock, viewmodel) => {
+        if (viewmodel?.ironArms === undefined) throw new Error('Driftwood requires iron sword arms');
+        return new Sword(world, targets, { row: rows[1], profile: rows[1], allowUnlocked: nolock, blade: 'iron', arms: viewmodel.ironArms });
+      } }],
+    ]) });
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
     const quest = ctx.product.section('custom/questRows', SECTIONS); // the kit's rows from the product (W2b)
     ctx.rows.item(quest.items); ctx.rows.feat(quest.feats);

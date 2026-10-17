@@ -5,7 +5,7 @@ import { preloadHeldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
-import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/headless';
+import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks } from '../species/looks';
@@ -66,13 +66,6 @@ import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
 import { parseTradeCatalogue } from './trader';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
-
-/** A weapon's declared profile from the built `combat/items` section (data/items.ts attaches it at build). */
-function declaredProfile(ctx: ShardContext, id: string): unknown {
-  const row = ctx.product.section('combat/items').items.rows.find(item => item.id === id);
-  if (row?.kind !== 'weapon' || row.profile === undefined) throw new Error(`Pine Hollow: combat/items declares no profile for ${id}`);
-  return row.profile;
-}
 
 /** The client Wasm modules the play hook prepares before install: the four elites' brains, the night and the watch
  *  directors (named blobs of the product, hash-checked by the reader). */
@@ -178,18 +171,11 @@ export class PineHollow extends ShardPlugin {
     const items = ctx.product.section('combat/items').items;
     const CROSSBOW = readItemEquipment(items, 'weapon.crossbow'), LEVER = readItemEquipment(items, 'weapon.lever'), LONGBOW = readItemEquipment(items, 'weapon.longbow');
     const crossbowHeld = crossbowHeldRows(ctx.product), leverHeld = leverHeldRows(ctx.product);
-    rt.buildEquipment = runtimeEquipment([
-      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld, profile: declaredProfile(ctx, 'weapon.crossbow') }) },
-      { slot: 'rifle', create: (targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld, profile: declaredProfile(ctx, 'weapon.lever') }) },
-      { slot: 'secondary', create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: pineLongbow(), allowUnlocked: nolock }) },
-    ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
-      if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');
-      bindRuntimeEquipment(ctx, ctx.product.shardfile, [
-        { id: 'weapon.crossbow', weapon: weapons.primary, profile: declaredProfile(ctx, 'weapon.crossbow'), presentation: true },
-        { id: 'weapon.lever', weapon: weapons.rifle, profile: declaredProfile(ctx, 'weapon.lever'), presentation: true },
-        { id: 'weapon.longbow', weapon: weapons.secondary, profile: declaredProfile(ctx, 'weapon.longbow') },
-      ]);
-    } });
+    rt.buildEquipment = bindRuntimeEquipment(ctx, ctx.product.shardfile, { factories: new Map([
+      ['weapon.crossbow', { prepare: prepareCrossbowHands, create: (item, targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld, profile: item.profile }) }],
+      ['weapon.lever', { create: (item, targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld, profile: item.profile }) }],
+      ['weapon.longbow', { create: (_item, targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: pineLongbow(), allowUnlocked: nolock }) }],
+    ]) });
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo([...readItemAmmunition(ctx.product.shardfile.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
