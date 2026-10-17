@@ -1,5 +1,5 @@
 {
-  "why": "Nalati's map in its painterly palette as flat colours (G252, Jake's pick B): the green and gold steppe, the river's stone bed and blue water with an edge, the snowfields in two whites, the trails picked out with an edge; yurts, trees and rocks raised with an edge and a shadow",
+  "why": "Nalati's map in its painterly palette as flat colours (G252, Jake's pick B): the green and gold steppe, the river's stone bed and blue water with an edge (two water matches: the dark pools and ponds, and the light river the 'nalati-water' look graph draws in display colour since 4c967cd0f, where the old shader wrote linear values straight to the screen), the snowfields in two whites, the trails picked out with an edge; yurts, trees and rocks raised with an edge and a shadow",
   "inputs": ["shard.config.ts", "layout.ts", "world", "generators", "models", "generators/clientMotion.ts"],
   "style": {
     "kind": "ground",
@@ -45,6 +45,12 @@
         "fill": "#c99a66",
         "edge": "#6e4a2c",
         "min": 200
+      },
+      {
+        "match": "#769cb4",
+        "fill": "#4f86b8",
+        "edge": "#2f5274",
+        "min": 400
       }
     ],
     "raised": {
