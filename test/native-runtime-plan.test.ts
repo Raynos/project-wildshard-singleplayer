@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { parseNativeRuntimePlan } from '../src/format/nativeRuntimePlan';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { SKY_NATIVE_WORLD } from '../src/shards/far-reach/data/nativeWorld';
-import { SIGNAL_NATIVE_WORLD } from '../src/shards/sunscar-dunes/data/nativeWorld';
+import { SIGNAL_NATIVE_WORLD } from '../src/shards/sunscar-dunes/generators/rows/nativeWorld';
 
 it('admits both existing native policies without dropping owner metadata', () => {
   for (const recipe of [SKY_NATIVE_WORLD, SIGNAL_NATIVE_WORLD]) {

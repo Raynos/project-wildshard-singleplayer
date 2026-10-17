@@ -15,7 +15,7 @@ import { resolve } from 'node:path';
 import { bakeSignalSkitterer } from './species.ts';
 import { bakeSignalManta, bakeSignalStrider } from './hulls.ts';
 import { facetModel } from './facets.ts';
-import { MANTA_HULL, RAY_TINT, STRIDER_HULL } from '../data/hulls.ts';
+import { MANTA_HULL, RAY_TINT, STRIDER_HULL } from './rows/hulls.ts';
 import { FACET_AO_FLOOR } from '../data/facets.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');

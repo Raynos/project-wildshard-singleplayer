@@ -1,6 +1,6 @@
 import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import type { ModelFit } from '../data/hulls';
+import type { ModelFit } from './rows/hulls';
 
 /**
  * Build-time only (G320): the model library's facet intake, authored for the rig bake (`bake-signal-rigs.mjs`), so the bake

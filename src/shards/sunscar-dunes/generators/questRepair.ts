@@ -1,4 +1,5 @@
-import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../data/signalQuest';
+import { COMPLETE_FLAG, PAID_FLAG } from '../data/signalQuest';
+import { LATER_FLAGS } from './quests';
 import { SCOUT_FLAG } from '../data/flags';
 
 const later = [...LATER_FLAGS, COMPLETE_FLAG];

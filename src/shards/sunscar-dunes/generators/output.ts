@@ -1,8 +1,8 @@
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
-import { MATRIARCH_DECISION, MATRIARCH_MOVES } from '../data/matriarchDecision';
-import { SIGNAL_NATIVE_WORLD } from '../data/nativeWorld';
+import { MATRIARCH_DECISION, MATRIARCH_MOVES } from './rows/matriarchDecision';
+import { SIGNAL_NATIVE_WORLD } from './rows/nativeWorld';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 import { SIGNAL_STRIKES } from '../data/brains';
 import { SIGNAL_LASH_TARGETS } from './lashTargets';

@@ -1,8 +1,8 @@
-import DUNES from './duneRows.generated.json' with { type: 'json' };
-import LAYOUT from './layout.generated.json' with { type: 'json' };
-import { SHADOW_HALF } from './sand';
-import { SKY_SUN } from './sky';
-import sandMeans from './sand.json' with { type: 'json' };
+import DUNES from '../../data/duneRows.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import { SHADOW_HALF } from '../../data/sand';
+import { SKY_SUN } from '../../data/sky';
+import sandMeans from '../../data/sand.json' with { type: 'json' };
 
 const [sunX, sunY, sunZ] = SKY_SUN, toSun = 1 / Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
 

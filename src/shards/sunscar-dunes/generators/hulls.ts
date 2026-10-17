@@ -2,7 +2,7 @@ import { Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, ty
 import { skinnedGlb } from '@wildshard/sdk/bake/skinned';
 import { RAY_BODY, STRIDER_DIMS } from '../data/species/bodies';
 import { bindRigid, fitGeometry } from './facets';
-import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from '../data/hulls';
+import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from './rows/hulls';
 
 /** A fitted hull: its skeleton, its skinned geometry and its height. */
 interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }

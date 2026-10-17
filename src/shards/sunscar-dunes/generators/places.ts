@@ -1,6 +1,6 @@
 import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, TorusGeometry, Vector3, type Material } from 'three';
 import { BRAZIERS, CARAVAN, WELL } from "./layout";
-import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from '../data/places';
+import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from './rows/places';
 import { DUNE_FIELD } from "./duneRows";
 import { signalDunesField } from './tiles';
 import { bakePiece, foldKinds, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
