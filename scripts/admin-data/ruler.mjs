@@ -28,12 +28,12 @@ export const SHARDS = /** @type {const} */ ([
   { slug: 'nine-dragon-stack', name: 'Nine Dragon', wave: 'W3', goal: 20 },
 ]);
 
-/** The plan's order (G451, G452, G457). W2 closes on the clock; the W1 spike and W3 close when their shards reach their goal.
+/** The mini-plan order (G471): W1 below 10%, then W2 below 20%, then W3. Every wave closes on its shard goals.
  * @type {readonly {id:string;label:string;shards:readonly string[];goal:number;until:string|null;start:Record<string,number>|null}[]} */
 export const WAVES = [
-  { id: 'W2', label: 'W2 · Pine + Driftwood, with the format rewire', shards: ['pine-hollow', 'driftwood-isle'], goal: 20,
-    until: '2026-10-17T05:00:00Z', start: { 'pine-hollow': 107.6, 'driftwood-isle': 104.2 } },
-  { id: 'W1 spike', label: 'W1 spike · Sky + Signal to 90/10 with the Wasm API', shards: ['far-reach', 'sunscar-dunes'], goal: 10, until: null, start: null },
+  { id: 'W1', label: 'W1 · Sky + Signal under 10%', shards: ['far-reach', 'sunscar-dunes'], goal: 10, until: null, start: null },
+  { id: 'W2', label: 'W2 · Pine + Driftwood under 20%', shards: ['pine-hollow', 'driftwood-isle'], goal: 20,
+    until: null, start: { 'pine-hollow': 107.6, 'driftwood-isle': 104.2 } },
   { id: 'W3', label: 'W3 · Nalati + Nine', shards: ['nalati-grasslands', 'nine-dragon-stack'], goal: 20, until: null, start: null },
   { id: 'NEXT', label: 'NEXT', shards: [], goal: 20, until: null, start: null },
 ];
@@ -100,9 +100,12 @@ export function nextRuler(raw, prev, at) {
   const now = Object.fromEntries(shards.map((s) => [s.slug, s.pct]));
   const events = [...(prev?.events ?? [])];
   if (prev && prev.basis !== basis) events.push({ at: at.now, label: `P4 re-base: the ruler moves from the ${prev.basis} basis to ${basis}` });
-  // The waves: the first one not ended is current. W2 ends on its clock; the others when every shard is at its goal.
+  // Old reports may have closed W2 on the cancelled midnight deadline.
+  // Restart that schedule under G471 while retaining its measurement history.
+  const superseded = prev !== null && (prev.wave.until !== null || prev.waves.some(wave => wave.id === 'W1 spike'));
+  if (superseded) events.push({ at: at.now, label: 'G471: waves follow the mini-plan goals; midnight close cancelled' });
   /** @type {RulerWaveState[]} */
-  const waves = structuredClone(prev?.waves ?? []);
+  const waves = structuredClone(superseded ? [] : prev?.waves ?? []);
   /** @type {Partial<Record<string,number>>} */
   const last = prev?.history.at(-1)?.shards ?? now;
   let current = WAVES[WAVES.length - 1];
@@ -115,9 +118,9 @@ export function nextRuler(raw, prev, at) {
       waves.push(state);
     }
     if (state.endedAt === null) {
-      const done = wave.until !== null ? at.now >= wave.until : wave.shards.length > 0 && wave.shards.every((slug) => (now[slug] ?? Infinity) <= wave.goal);
+      const done = wave.shards.length > 0 && wave.shards.every((slug) => (now[slug] ?? Infinity) <= wave.goal);
       if (done && wave.id !== 'NEXT') {
-        state.endedAt = wave.until !== null && wave.until < at.now ? wave.until : at.now;
+        state.endedAt = at.now;
         events.push({ at: state.endedAt, label: `${wave.id} closes` });
       }
     }
