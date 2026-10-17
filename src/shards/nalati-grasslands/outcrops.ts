@@ -3,7 +3,7 @@
  * — the escarpment's ravines and rock bands, the upper face under the north rim — as real, smooth
  * meshes (soft-bevelled blocks with a couple of rounded stones leaning on them), painted like the POI rocks: warm
  * granite, lichen on the tops, a darker foot where they sink into the turf. The Crags and Eagle Rock are the POI
- * agent's (src/shards/nalati-grasslands/generators/places.ts, EagleRock.ts); the loose scatter is the dressing agent's.
+ * agent's (src/shards/nalati-grasslands/generators/places.ts); the loose scatter is the dressing agent's.
  *
  * Placed from the terrain alone (seeded, deterministic): candidates on a jittered 7 m grid over the escarpment band,
  * kept where the ground is steep, clustered by a noise field, kept off the roads, the river, the stream and the POI

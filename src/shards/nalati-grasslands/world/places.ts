@@ -36,7 +36,7 @@ export const PLACE_SETS: readonly PlaceRow[] = [
   { place: 'nalati-grasslands/bridge', id: 'nalati-grasslands/bridge', name: 'The Kunes bridge', file: 'src/shards/nalati-grasslands/world/Bridge.ts', pois: ['bridge'] },
   { place: 'nalati-grasslands/kunes-river', id: 'nalati-grasslands/kunes-river', name: 'The Kunes river', file: 'src/shards/nalati-grasslands/world/places.ts' },
   { place: 'nalati-grasslands/sky-road', id: 'nalati-grasslands/sky-road', name: 'The sky road', file: 'src/shards/nalati-grasslands/world/places.ts' },
-  { place: 'nalati-grasslands/eagle-rock', id: 'nalati-grasslands/eagle-rock-knoll', name: 'Eagle Rock', file: 'src/shards/nalati-grasslands/world/EagleRock.ts', pois: ['eagleRock'] },
+  { place: 'nalati-grasslands/eagle-rock', id: 'nalati-grasslands/eagle-rock-knoll', name: 'Eagle Rock', file: 'src/shards/nalati-grasslands/generators/places.ts', pois: ['eagleRock'] },
   { place: 'nalati-grasslands/horse-plains', id: 'nalati-grasslands/horse-plains', name: 'The horse plains', file: 'src/shards/nalati-grasslands/world/places.ts' },
   { place: 'nalati-grasslands/kokpar-field', id: 'nalati-grasslands/kokpar-field', name: 'Kokpar field', file: 'src/shards/nalati-grasslands/world/Bowl.ts', pois: ['kokpar'] },
   { place: 'nalati-grasslands/kurgan-field', id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/shards/nalati-grasslands/generators/places.ts', pois: ['kurgans', 'balbals'] },

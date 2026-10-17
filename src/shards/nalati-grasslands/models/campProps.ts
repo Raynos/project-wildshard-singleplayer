@@ -117,7 +117,7 @@ export const ribbonPost = defineModel<object>(bakedPainted<object>({
   defaults: {},
 }));
 
-// ── the rock places' models (painted by ../generators/places.ts; drawn by ../world/EagleRock.ts, ../world/Cairn.ts) ──────
+// ── the rock places' models (painted by ../generators/places.ts; drawn by ../world/index.ts, ../world/Cairn.ts) ──────
 
 const PLACES_FILE = 'src/shards/nalati-grasslands/generators/places.ts';
 

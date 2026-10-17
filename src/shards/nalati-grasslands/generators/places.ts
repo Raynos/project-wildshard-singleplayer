@@ -55,7 +55,7 @@ const recordingPlumes = (log: EffectRow[]): Plumes => ({ emitter: (p, o = {}) =>
 // ── the places (the builders, verbatim but for drawing: each mesh's geometry is kept with its material's kind) ─────────
 
 interface BuiltMesh { readonly name: string; readonly material: string; readonly slot: number; readonly geometry: THREE.BufferGeometry }
-export interface BuiltPlace { readonly name: string; readonly group: string | null; readonly surface: string; readonly tris: number; readonly meshes: BuiltMesh[]; readonly set: NalatiSet; readonly effects: EffectRow[]; readonly anchors?: PlaceAnchors }
+export interface BuiltPlace { readonly name: string; readonly group: string | null; readonly surface: string; readonly tris: number; readonly meshes: BuiltMesh[]; readonly set: NalatiSet; readonly effects: EffectRow[]; readonly anchors?: PlaceAnchors; readonly headings?: ReadonlyMap<string, readonly (readonly [number, number])[]> }
 
 /** the yurts: angle round the yard (deg, 0 = +x/west, 90 = +z/north), distance, radius, flue, palette */
 const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?: boolean; base: 'lattice' | 'reed' | 'felt' }[] = [
@@ -261,7 +261,7 @@ function summerCamp(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
  * block whose flat top is the terrace, boulders round its foot; a scramble of granite slabs steps round its flank from
  * the south foot (less than one turn, 0.3 m risers) to the summit, where a railed timber viewing deck looks north over
  * the valley and a blue flag flies (the flag and its streamer are the shard's cloth, not the model). Used once
- * (src/shards/nalati-grasslands/world/EagleRock.ts).
+ * (src/shards/nalati-grasslands/generators/places.ts).
  *
  * Fitted to the ground under it: placed at the tor's centre with `at.y` = the summit terrace's height, it sizes itself
  * from the knoll it stands on (its foot is the lowest ground 9 m out). Painted into its place's mesh
@@ -471,7 +471,7 @@ const cairnPaint: Paint<object> = (kit, at, _p, c) => {
 };
 const windCairnPainted: ModelDef<object> = { ...windCairn, build: painted(cairnPaint, { seed: 0xca19, fitted: true }) };
 
-/** Eagle Rock (world/EagleRock.ts's builder): the tor on B0's knoll, painted into its own mesh */
+/** Eagle Rock (its offline painter): the tor on B0's knoll, painted into its own mesh */
 function eagleRockPlace(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
   const kit = new PaintKit(0xea61);
   const set = new NalatiSet(kit, ctx);
@@ -769,6 +769,7 @@ function cragsPlace(ctx: PaintCtx): BuiltPlace {
   const downhill = (x: number, z: number) => { const e = 1.5; const gx = ground(x + e, z) - ground(x - e, z), gz = ground(x, z + e) - ground(x, z - e); const l = Math.hypot(gx, gz) || 1; return { x: -gx / l, z: -gz / l }; };
   const cave = CRAG_CAVE, cfx = -Math.sin(cave.rot), cfz = -Math.cos(cave.rot);
 
+  const headings: (readonly [number, number])[] = [];
   const placed: { x: number; z: number; r: number }[] = [];
   const free = (x: number, z: number, r: number) => placed.every((p) => Math.hypot(p.x - x, p.z - z) > p.r + r) && Math.hypot(x - cave.x, z - cave.z) > 14 && x > -249 && z > -249;
   // (the outcrops that stood on the steep faces are src/shards/nalati-grasslands/cragRock.ts's now: fins on the crests, ribs against the
@@ -787,6 +788,7 @@ function cragsPlace(ctx: PaintCtx): BuiltPlace {
     const w = rng.range(4.2, 5.8), d2 = rng.range(3.0, 4.0);
     const px = x + dh.x * 0.6, pz = z + dh.z * 0.6;
     set.paint(cragLedgePainted, { x: px, y: top, z: pz, yaw }, { w, d: d2, snowLine: CRAGS.snowLine });
+    headings.push([dh.x, dh.z]);
     placed.push({ x: px, z: pz, r: 3.2 });
     ledges.push({ x: px, y: top, z: pz, r: Math.min(w, d2) / 2 - 0.3 });
   }
@@ -803,7 +805,7 @@ function cragsPlace(ctx: PaintCtx): BuiltPlace {
   const geometry = kit.finish({ ground, aoH: 1.2 });
   return { name: 'crags', group: null, surface: 'rock', tris: geometry.getAttribute('position').count / 3,
     meshes: [{ name: 'nalati-crags', material: 'poi', slot: 0, geometry }], set, effects: [],
-    anchors: { ledges, cave: { x: porch.x, y: floorY, z: porch.z, facing: cave.rot } } };
+    headings: new Map([[cragLedge.id, headings]]), anchors: { ledges, cave: { x: porch.x, y: floorY, z: porch.z, facing: cave.rot } } };
 }
 
 // ── the bake's binary: each geometry's attributes as their own bytes, welded ──────────────────────────────────────────
@@ -815,9 +817,10 @@ const deckOf = (f: MemberData['floors'][number]): PlaceFloorRow => {
   if (typeof row !== 'object' || row === null) throw new Error('[nalati places] a floor without its row');
   return row as PlaceFloorRow;
 };
-const memberRow = (m: MemberData): MemberRow => ({
-  draw: m.draw, inKit: m.inKit, boxes: [...m.boxes], solid: m.solid.map(descRow), descs: m.descs.map(descRow), floors: m.floors.map(deckOf),
-  placements: m.placements.map(({ matrix, ...rest }) => (matrix === undefined ? rest : { ...rest, matrix: matrix.toArray() })),
+const memberRow = (m: MemberData, headings?: readonly (readonly [number, number])[]): MemberRow => ({
+  draw: m.draw, inKit: m.inKit, boxes: [...m.boxes], solid: m.solid.map((d, i) => Object.assign(descRow(d), headings?.[i] === undefined ? {} : { heading: headings[i] })), descs: m.descs.map(descRow),
+  floors: m.floors.map((f, i) => Object.assign(deckOf(f), headings?.[i] === undefined ? {} : { heading: headings[i] })),
+  placements: m.placements.map(({ matrix, ...rest }, i) => Object.assign(matrix === undefined ? rest : { ...rest, matrix: matrix.toArray() }, headings?.[i] === undefined ? {} : { heading: headings[i] })),
 });
 
 /** every painted model the places paint, for its Explorer specimens (its defaults, then each variant) */
@@ -855,7 +858,7 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
       name: p.name, group: p.group, surface: p.surface, tris: p.tris, anchors: p.anchors ?? {},
       meshes: p.meshes.map((m) => ({ name: m.name, material: m.material, slot: m.slot, geometry: writeGeometry(m.geometry, blocks, `${p.name}.${m.name}`) })),
       colliders: [...p.set.boxes], effects,
-      members: members.map(([id, m]) => [id, memberRow(m)] as const),
+      members: members.map(([id, m]) => [id, memberRow(m, p.headings?.get(id))] as const),
       instances: instances.map(([name, l]) => [name, { look: { ...l.look }, castShadow: l.castShadow, placements: l.placements.map((q) => ({ ...q })) }] as const),
     };
   });

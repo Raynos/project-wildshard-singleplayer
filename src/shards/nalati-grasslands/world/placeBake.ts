@@ -42,8 +42,8 @@ export interface TorFloorRow { readonly cx: number; readonly cz: number; readonl
 export type EffectRow = readonly [string, readonly number[], ...unknown[]];
 /** Numeric floor profiles, evaluated by the same model functions as their offline painters. */
 export type PlaceFloorRow = DeckRow | TorFloorRow | CragLedgeFloor | LeopardCaveFloor | KurganEntranceFloor;
-interface DescRow { readonly kind: string; readonly points?: readonly number[]; readonly [k: string]: unknown }
-interface PlacementRow { readonly x: number; readonly y: number; readonly z: number; readonly yaw?: number; readonly matrix?: readonly number[] }
+interface DescRow { readonly heading?: readonly [number, number]; readonly kind: string; readonly points?: readonly number[]; readonly [k: string]: unknown }
+interface PlacementRow { readonly heading?: readonly [number, number]; readonly x: number; readonly y: number; readonly z: number; readonly yaw?: number; readonly matrix?: readonly number[] }
 /** one model's copies in a place, as data */
 export interface MemberRow {
   readonly draw: string; readonly inKit: boolean; readonly placements: readonly PlacementRow[]; readonly boxes: readonly number[];
@@ -201,10 +201,16 @@ function replayEffects(ctx: PoiCtx, effects: readonly EffectRow[]): void {
   }
 }
 
-const desc = (d: DescRow): ColliderDesc => (d.points === undefined ? d as ColliderDesc : { ...d, points: Float32Array.from(d.points) } as ColliderDesc);
+const desc = (d: DescRow): ColliderDesc => {
+  const { heading, ...shape } = d;
+  // Preserve the browser's last atan2 bit; Node's native result can differ by one ULP.
+  if (heading !== undefined) return { ...shape, yaw: Math.atan2(heading[0], heading[1]) } as ColliderDesc;
+  return d.points === undefined ? shape as ColliderDesc : { ...shape, points: Float32Array.from(d.points) } as ColliderDesc;
+};
 const placement = (p: PlacementRow): Omit<Placement<object>, 'params'> => {
-  const { matrix, ...rest } = p;
-  return matrix === undefined ? rest : { ...rest, matrix: new THREE.Matrix4().fromArray(matrix) };
+  const { matrix, heading, ...rest } = p;
+  const at = heading === undefined ? rest : { ...rest, yaw: Math.atan2(heading[0], heading[1]) };
+  return matrix === undefined ? at : { ...at, matrix: new THREE.Matrix4().fromArray(matrix) };
 };
 const member = (m: MemberRow): MemberData => ({
   draw: m.draw === 'instanced' ? 'instanced' : 'merged', inKit: m.inKit, placements: m.placements.map(placement), boxes: [...m.boxes],

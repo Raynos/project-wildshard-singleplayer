@@ -355,9 +355,11 @@ export class NalatiSet {
 }
 
 /** Exact numeric floor profile recorded by the static painter. */
-export interface CragLedgeFloor { readonly kind: 'ledge'; readonly x: number; readonly z: number; readonly cs: number; readonly sn: number; readonly hw: number; readonly hd: number; readonly top: number }
+export interface CragLedgeFloor { readonly heading?: readonly [number, number]; readonly kind: 'ledge'; readonly x: number; readonly z: number; readonly cs: number; readonly sn: number; readonly hw: number; readonly hd: number; readonly top: number }
 export function cragLedgeFloor(row: CragLedgeFloor): Platform & { readonly row: CragLedgeFloor } {
-  const { x, z, cs, sn, hw, hd, top } = row;
+  const { x, z, hw, hd, top, heading } = row;
+  const yaw = heading === undefined ? 0 : Math.atan2(heading[0], heading[1]);
+  const cs = heading === undefined ? row.cs : Math.cos(yaw), sn = heading === undefined ? row.sn : Math.sin(yaw);
   const floor: Platform = (qx, qz) => { const dx = qx - x, dz = qz - z, lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; return Math.abs(lx) <= hw && Math.abs(lz) <= hd ? top : undefined; };
   return Object.assign(floor, { row });
 }

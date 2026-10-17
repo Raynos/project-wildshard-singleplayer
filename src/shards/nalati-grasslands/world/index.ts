@@ -37,14 +37,13 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { instancedQuad } from '@wildshard/sdk/looks/cardField';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
-import { cragLedge, leopardCave, kurganEntrance, kurganKerb } from '../models/campProps';
+import { cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/campProps';
 import { nomadCampSteps } from './NomadCamp';
 import { preloadNalatiPlaces, bakedPlaceSteps, bakedPlaceAnchors, placer } from './placeBake';
 import { buildBridge } from './Bridge';
 import { buildRoadFurniture } from './RoadFurniture';
 import { summerCampSteps } from './SummerCamp';
 import { buildBalbals, type Balbals } from './Balbals';
-import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Box } from './solid';
@@ -54,6 +53,7 @@ import type { Ground, PlumeOptions, Plumes, PoiCtx, PoiPiece, KurganEntrance, Le
  *  whose whole life (rise, swell, lean downwind, fade) the graph computes from its plume, seed and the look clock */
 const SMOKE_LOOK = 'nalati-camp-smoke';
 const KURGAN_PLACERS = new Map([placer(kurganKerb), placer(fieldstone), placer(kurganEntrance)]);
+const EAGLE_PLACERS = new Map([placer(eagleRock)]);
 const CRAG_PLACERS = new Map([placer(cragLedge), placer(leopardCave)]);
 interface Plume { x: number; y: number; z: number; puffs: number; rise: number; s0: number; s1: number; life: number }
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
@@ -140,7 +140,7 @@ export class NalatiPOIs {
     // the balbals stand only on the kurgan crowns (layout v2: the balbal circle is cut)
     run('balbals', (c) => { const b = buildBalbals(c, crownSpots); this.balbals = b.balbals; return b.piece; });
     yield;
-    run('eagleRock', buildEagleRock);
+    { const rock = yield* timed(bakedPlaceSteps('eagleRock', ctx, EAGLE_PLACERS)); add('eagleRock', rock.value, rock.ms); }
     yield;
     run('cairn', (c) => { const k = buildCairn(c); this.cairnTieSpot = k.tieSpot; return k.piece; });
     yield;
