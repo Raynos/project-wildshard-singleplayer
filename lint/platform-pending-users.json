@@ -1722,6 +1722,40 @@
           "row": "G483"
         }
       }
+    },
+    {
+      "module": "src/game/quest/contracts.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
+    },
+    {
+      "module": "src/game/quest/contractBoard.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
     }
   ]
 }

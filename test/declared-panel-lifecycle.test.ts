@@ -7,7 +7,7 @@ import { DataPanel } from '../src/sdk/dataPanels';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import { parsePanelDefinition } from '../src/format/panelTemplate';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
-import { claim, newBoard, reroll } from '../src/shards/pine-hollow/quest/contracts';
+import { claim, newBoard, reroll } from '../src/game/quest/contracts';
 import { cleanHorseName } from '../src/shards/nalati-grasslands/ride/horseNames';
 
 test('the persistent lodge board retains its frame, payouts, keys and scoped row listeners', () => {

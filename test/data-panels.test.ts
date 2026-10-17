@@ -7,7 +7,7 @@ import { expandPanelTemplates } from '../src/sdk/panelTemplates';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
-import { newBoard } from '../src/shards/pine-hollow/quest/contracts';
+import { newBoard } from '../src/game/quest/contracts';
 import { CONTRACTS } from './fixtures/pine-contracts';
 
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));

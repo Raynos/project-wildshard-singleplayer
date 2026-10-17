@@ -72,7 +72,6 @@
       "src/shards/pine-hollow/runtime/herds.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/kingCollisionBake.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/lodge.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/species/limbRig.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
     }
@@ -106,7 +105,7 @@
     "sim-in-runtime/nalati-grasslands": 19,
     "sim-in-runtime/nine-dragon-stack": 4,
     "sim-in-runtime/pastel-plain": 0,
-    "sim-in-runtime/pine-hollow": 7,
+    "sim-in-runtime/pine-hollow": 6,
     "sim-in-runtime/sunscar-dunes": 0
   },
   "debugRows": {
@@ -473,7 +472,6 @@
     "src/shards/pine-hollow/runtime/models/wildlife.ts": 1,
     "src/shards/pine-hollow/plugin.ts": 1,
     "src/shards/pine-hollow/quest/content.ts": 3,
-    "src/shards/pine-hollow/quest/contracts.ts": 1,
     "src/shards/pine-hollow/quest/featLaw.ts": 1,
     "src/shards/pine-hollow/quest/graph.ts": 1,
     "src/shards/pine-hollow/quest/hollowLog.ts": 1,
@@ -501,7 +499,6 @@
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts": 4,
     "src/shards/pine-hollow/runtime/king.ts": 2,
     "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": 1,
-    "src/shards/pine-hollow/runtime/lodge.ts": 1,
     "src/shards/pine-hollow/runtime/looks/keyedSky.ts": 1,
     "src/shards/pine-hollow/runtime/looks/paintedTextures.ts": 1,
     "src/shards/pine-hollow/runtime/nightDirector.ts": 3,
@@ -834,7 +831,6 @@
     "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": 2,
     "src/shards/pine-hollow/runtime/kingQueryPose.ts": 1,
     "src/shards/pine-hollow/runtime/kingQueryView.ts": 1,
-    "src/shards/pine-hollow/runtime/lodge.ts": 2,
     "src/shards/pine-hollow/runtime/looks/keyedSky.ts": 1,
     "src/shards/pine-hollow/runtime/looks/paintedTextures.ts": 1,
     "src/shards/pine-hollow/runtime/looks/rainFx.ts": 1,

@@ -1,8 +1,9 @@
 import { beforeAll, expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
-import { claim, draw, loadBoard, recordKill, saveBoard } from '../src/shards/pine-hollow/quest/contracts';
-import { PineLodge, PINE_LODGE_ACT, parseContractCatalogue, type ContractCatalogue } from '../src/shards/pine-hollow/runtime/lodge';
+import { claim, draw, loadBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
+import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
+import { parseContractCatalogue, type ContractCatalogue } from '../src/format/contracts';
 
 // Captured from the original play-read authoring and actual page board save API.
 const originals = {
@@ -37,14 +38,11 @@ test('compiled contract offers preserve every title, target, reward and determin
 
 test('the old board save restores silently on page and native, then claims the same offer and payout', () => {
   const contracts = catalogue();
-  let rewritten = '';
-  const board = loadBoard(contracts, { getItem: () => oldPageSave, setItem: (_key, value) => { rewritten = value; } });
-  saveBoard(board, { getItem: () => null, setItem: (_key, value) => { rewritten = value; } });
+  const board = loadBoard(contracts, oldPageSave);
+  const rewritten = saveBoard(board);
   expect(rewritten).toBe(oldPageSave);
   const events: string[] = [];
-  const native = new PineLodge({ contracts, prompt: { x: 0, y: 1.68, z: 0 }, radius: 3,
-    addItem: (id, n) => { events.push(`${id}:${String(n)}`); }, addBolts: n => { events.push(`bolts:${String(n)}`); },
-    ownSkin: id => { events.push(`skin:${id}`); }, streak: n => { events.push(`streak:${String(n)}`); } });
+  const native = new ContractBoard({ contracts, prompt: { x: 0, y: 1.68, z: 0 }, radius: 3 });
   const saved: unknown = JSON.parse(oldPageSave);
   native.restore({ version: 1, open: true, board: saved });
   expect(events).toEqual([]); expect(native.active).toBe(true);
@@ -54,15 +52,11 @@ test('the old board save restores silently on page and native, then claims the s
   const elite = contracts.elites[slot.target];
   const kill = { kind: slot.kind === 'species' ? slot.target : slot.kind === 'elite' ? elite?.kind ?? '' : 'deer',
     variant: elite?.variant, rarity: slot.kind === 'rarity' ? slot.target : 'common',
-    elite: slot.kind === 'elite' ? slot.target : null, thrall: slot.kind === 'thrall' };
-  for (let i = 0; i < slot.need; i++) { recordKill(board, kill); native.killed(kill); }
+    elite: slot.kind === 'elite' ? slot.target : null, tags: slot.kind === 'thrall' ? ['thrall'] : [] };
+  for (let i = 0; i < slot.need; i++) { recordKill(contracts, board, kill); native.killed(kill); }
   const reward = claim(contracts, board, 0);
   if (reward === null) throw new Error('The restored board must accept the completed offer');
-  native.use(PINE_LODGE_ACT.claim0, { x: 0, y: 1.68, z: 0 });
-  expect(events).toEqual([...reward.items.map(item => `${item.id}:${String(item.n)}`),
-    ...(reward.bolts > 0 ? [`bolts:${String(reward.bolts)}`] : []),
-    ...(reward.skin === undefined ? [] : [`skin:${reward.skin}`]), `streak:${String(board.streak)}`]);
-  let expected = '';
-  saveBoard(board, { getItem: () => null, setItem: (_key, value) => { expected = value; } });
+  expect(native.use(CONTRACT_ACTION.claim0, { x: 0, y: 1.68, z: 0 })).toEqual({ reward, streak: board.streak });
+  const expected = saveBoard(board);
   expect(native.snapshot().board).toEqual(JSON.parse(expected));
 });

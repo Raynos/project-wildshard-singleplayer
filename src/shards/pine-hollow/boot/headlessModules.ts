@@ -13,7 +13,7 @@ import { readDirectorProduct as module7ReadDirectorProduct } from '@wildshard/ga
 import { preparePopulationModule as module8PreparePopulationModule } from '../quest/waves';
 import { installNativePopulationWaves as nativeInstallWaves } from '../quest/nativeWaves';
 import { PINE_INTERACT as module9PINE_INTERACT, installHollowQuest as module9InstallHollowQuest, pineSpots as module9PineSpots } from '../runtime/quest';
-import { PINE_LODGE as module10PINE_LODGE, parseContractCatalogue as module10ParseContractCatalogue } from '../runtime/lodge';
+import { parseContractCatalogue as module10ParseContractCatalogue } from '@wildshard/format/contracts';
 import { parseAchievementCounterData as module11ParseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { parseExchange as module12ParseExchange } from '@wildshard/game/loot/exchange';
 import { parseWeatherProgram as module13ParseWeatherProgram } from '@wildshard/format/weatherProgram';
@@ -45,7 +45,7 @@ export const headlessModules = {
   'src/shards/pine-hollow/quest/waves': { preparePopulationModule: module8PreparePopulationModule },
   'src/shards/pine-hollow/quest/nativeWaves': { installNativePopulationWaves: nativeInstallWaves },
   'src/shards/pine-hollow/runtime/quest': { PINE_INTERACT: module9PINE_INTERACT, installHollowQuest: module9InstallHollowQuest, pineSpots: module9PineSpots },
-  'src/shards/pine-hollow/runtime/lodge': { PINE_LODGE: module10PINE_LODGE, parseContractCatalogue: module10ParseContractCatalogue },
+  '@wildshard/format/contracts': { parseContractCatalogue: module10ParseContractCatalogue },
   '@wildshard/format/achievementCounters': { parseAchievementCounterData: module11ParseAchievementCounterData },
   '@wildshard/game/loot/exchange': { parseExchange: module12ParseExchange },
   '@wildshard/format/weatherProgram': { parseWeatherProgram: module13ParseWeatherProgram },

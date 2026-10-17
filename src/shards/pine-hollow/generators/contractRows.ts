@@ -1,3 +1,5 @@
+import type { ContractCatalogue } from '@wildshard/format/contracts';
+
 /** Authored lodge offers; the native board keeps draw, kill, claim and save laws. */
 export type ContractKind = 'species' | 'rarity' | 'elite' | 'thrall';
 export type RewardItem = 'lodge-ribbon' | 'amber-resin';
@@ -69,6 +71,17 @@ export const CONTRACT_ROWS: readonly ContractRow[] = [
 });
 
 /** The finite catalogue ships as named product data; live board progress is never baked. */
-export function contractCatalogue(): { species: typeof SPECIES; rarity: typeof RARITY; elites: typeof ELITE_TARGETS; eliteIds: readonly string[]; rows: typeof CONTRACT_ROWS } {
-  return { species: SPECIES, rarity: RARITY, elites: ELITE_TARGETS, eliteIds: ELITES, rows: CONTRACT_ROWS };
+export function contractCatalogue(): ContractCatalogue {
+  return { id: 'pine.lodge', store: 'lodge', slots: 3, attempts: 24,
+    initial: [{ kind: 'species', target: 'deer' }], fallback: { kind: 'thrall', target: 'thrall' },
+    draws: [{ below: 0.45, kind: 'species', targets: SPECIES.map(row => row.id) },
+      { below: 0.65, kind: 'rarity', targets: RARITY.map(row => row.id) },
+      { below: 0.8, kind: 'elite', targets: ELITES }, { below: 1, kind: 'thrall', targets: ['thrall'] }],
+    ranks: { common: 0, uncommon: 1, rare: 2, legendary: 3 }, defaultRank: 'common',
+    matches: [{ kind: 'species', match: 'species', excludeTags: ['thrall'], excludeElite: false },
+      { kind: 'rarity', match: 'rarity', excludeTags: ['thrall'], excludeElite: true, belowRank: 3 },
+      { kind: 'elite', match: 'elite', excludeTags: [], excludeElite: false },
+      { kind: 'thrall', match: 'tag', excludeTags: [], excludeElite: false }],
+    milestones: [{ claimed: 3, skin: 'hollow-ash' }],
+    species: SPECIES, rarity: RARITY, elites: ELITE_TARGETS, eliteIds: ELITES, rows: [...CONTRACT_ROWS] };
 }

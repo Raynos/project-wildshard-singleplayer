@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./contracts": "./contracts.ts",
     "./bossEncounter": "./bossEncounter.ts",
     "./specimenCatalogue": "./specimenCatalogue.ts",
     "./exchange": "./exchange.ts",

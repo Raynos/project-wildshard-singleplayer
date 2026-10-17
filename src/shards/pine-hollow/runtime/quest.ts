@@ -17,8 +17,8 @@ import type { AchievementCounterData } from '@wildshard/format/achievementCounte
 import { DirectorScriptStageLane, type readDirectorProduct } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
 import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } from '@wildshard/game/inventoryLaw';
-import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
-import { eliteOf } from '../quest/contracts';
+import { ContractBoard, CONTRACT_ACTION } from '@wildshard/game/quest/contractBoard';
+import { eliteOf } from '@wildshard/game/quest/contracts';
 import { questBenchPose } from '@wildshard/game/quest/storyLaw';
 import benchRows from '../data/questBench.json' with { type: 'json' };
 import { Exchange } from '@wildshard/game/loot/exchange';
@@ -75,7 +75,7 @@ export interface PineQuestPorts {
   readonly content: PineQuestRows;
   readonly counters: AchievementCounterData;
   readonly inventory: NativeInventoryProfile<string>;
-  readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
+  readonly contracts: ConstructorParameters<typeof ContractBoard>[0]['contracts'];
   readonly trades: unknown;
   /** USE on the King's pending orb, after the quest's modal ownership check. */
   readonly takeKingReward?: (eye: { x: number; y: number; z: number }) => boolean;
@@ -106,7 +106,7 @@ export interface PineQuest {
   readonly riding: () => boolean;
   /** The dialogue modal owns use input and suppresses weapon actions until completion or cancellation. */
   readonly talking: () => boolean;
-  readonly lodge: PineLodge;
+  readonly lodge: ContractBoard;
   readonly trader: Exchange;
   readonly ownsTradeFinish: (skin: PineTradeSkin) => boolean;
   /** Lodge finish ownership is gameplay state; its material view remains on the page. */
@@ -241,9 +241,15 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
 
   let counts: Record<string, number> = {};
   const feats = createPineFacts(ports.counters, { read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
-  const lodge = new PineLodge({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius,
-    addItem: (id, n) => { pack.add(id, n); }, addBolts: ports.addBolts, ownSkin: () => { hollowAsh = true; },
-    streak: total => { feats.event('streak', total); } });
+  const lodge = new ContractBoard({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius });
+  const useBoard = (value: number): void => {
+    const claim = lodge.use(value, eye);
+    if (claim === null) return;
+    for (let i = 0; i < 16; i++) { const item = claim.reward.items[i]; if (item === undefined) break; pack.add(item.id, item.n); }
+    if (claim.reward.bolts > 0) ports.addBolts(claim.reward.bolts);
+    if (claim.reward.skin === 'hollow-ash') hollowAsh = true;
+    feats.event('streak', claim.streak);
+  };
   const initialLodge = lodge.snapshot();
 
   // ── the prompts ──
@@ -252,9 +258,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
   const act = (value: number): void => {
     if (cables.state(cableId).riding) return; // the ride owns the player
-    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(PINE_LODGE_ACT.close, eye); trader.use(PINE_TRADE_CLOSE); return; }
+    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(CONTRACT_ACTION.close, eye); trader.use(PINE_TRADE_CLOSE); return; }
     if (trader.active) { trader.use(PINE_TRADE_CLOSE); return; }
-    if (lodge.active) { lodge.use(PINE_LODGE_ACT.close, eye); return; }
+    if (lodge.active) { lodge.use(CONTRACT_ACTION.close, eye); return; }
     if (dialogue.active) { dialogue.press('ranger'); return; } // modal USE advances text; it cannot also take another prompt
     if (value === PINE_ACT.kingBow) { eye.copy(host.player.position); eye.y += EYE; ports.takeKingReward?.(eye); return; }
     const speaker = value === PINE_ACT.talk ? 'ranger' : value === PINE_ACT.miller ? 'miller' : value === PINE_ACT.trader ? 'trader' : null;
@@ -282,7 +288,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   host.scope.onDispose(offFlags);
   const killed = bindQuestDeathEffects(content.deaths, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
-      lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(ports.contracts, body.kind, body.variant), thrall: isPineThrall(body) });
+      lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(ports.contracts, body.kind, body.variant), tags: isPineThrall(body) ? ['thrall'] : [] });
     }]]) });
   host.events.on('actor.died', ({ actor }) => {
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
@@ -300,8 +306,8 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       if (command.actorId === PINE_INTERACT) act(command.value);
       else if (command.actorId === PINE_TRADE && !dialogue.active && !lodge.active && !cables.state(cableId).riding) trader.use(command.value);
       else if (command.actorId === PINE_AMMO && command.value === 0 && !dialogue.active && !trader.active && !lodge.active && !cables.state(cableId).riding && ports.canSelectAmmo?.() === true) ports.ammunition?.cycle();
-      else if (command.actorId === PINE_LODGE && !dialogue.active && !trader.active && !cables.state(cableId).riding) {
-        eye.copy(host.player.position); eye.y += EYE; lodge.use(command.value, eye);
+      else if (command.actorId === ports.contracts.id && !dialogue.active && !trader.active && !cables.state(cableId).riding) {
+        eye.copy(host.player.position); eye.y += EYE; useBoard(command.value);
       }
     }
     dialogue.advanceReading(dt, host.player.position);

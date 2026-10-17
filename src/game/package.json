@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/contracts": "./quest/contracts.ts",
+    "./quest/contractBoard": "./quest/contractBoard.ts",
     "./boss/native": "./boss/native.ts",
     "./boss/wake": "./boss/wake.ts",
     "./boss/nativeWake": "./boss/nativeWake.ts",

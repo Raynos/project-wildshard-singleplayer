@@ -1,4 +1,5 @@
 {
+  "test/contracts-platform.test.ts": [],
   "test/world-scenes-platform.test.ts": [],
   "test/scripts/skitterer-pack.test.ts": [
     "sunscar-dunes"

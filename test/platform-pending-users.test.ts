@@ -35,3 +35,15 @@ test('approved feature receipts survive a next-wave switch without waiving unrel
     decision:{path:'docs/plans/shard-platform/decisions.md',row:'G475'}}};
   expect(partitionPendingPlatformUsers('pine-hollow',[],rows,[wrongDecision]).exports).toEqual(rows);
 });
+
+test('G473 contracts and elites keep their approved credit across waves', () => {
+  const module = 'src/game/quest/contracts.ts';
+  const allowance: PendingPlatformUser = { module, shard: 'nalati-grasslands',
+    plan: { path: 'docs/plans/shard-platform/decisions.md', row: 'G484' },
+    documentation: 'docs/ENGINE.md', 'rechecked-by': 'end of W3',
+    approvedFeature: { name: 'contracts + elites', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G473' } } };
+  const rows = [{ path: module, name: 'draw', exported: true, lines: 8 }];
+  expect(partitionPendingPlatformUsers('pine-hollow', [], rows, [allowance]).exports).toEqual([]);
+  expect(partitionPendingPlatformUsers('pine-hollow', [], rows, [allowance]).pending).toHaveLength(1);
+  expect(partitionPendingPlatformUsers('pine-hollow', [], rows, []).exports).toEqual(rows);
+});

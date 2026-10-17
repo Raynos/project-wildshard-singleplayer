@@ -12,7 +12,7 @@
     "src/shards/pine-hollow/quest/waves": ["preparePopulationModule"],
     "src/shards/pine-hollow/quest/nativeWaves": ["installNativePopulationWaves"],
     "src/shards/pine-hollow/runtime/quest": ["PINE_INTERACT", "installHollowQuest", "pineSpots"],
-    "src/shards/pine-hollow/runtime/lodge": ["PINE_LODGE", "parseContractCatalogue"],
+    "@wildshard/format/contracts": ["parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/game/loot/exchange": ["parseExchange"],
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
@@ -209,7 +209,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/lodge", "parseContractCatalogue"]
+            "$ref": ["@wildshard/format/contracts", "parseContractCatalogue"]
           },
           {
             "$ref": ["contractsJson"]
@@ -1136,7 +1136,7 @@
                     "$ref": ["src/shards/pine-hollow/runtime/quest", "PINE_INTERACT"]
                   },
                   {
-                    "$ref": ["src/shards/pine-hollow/runtime/lodge", "PINE_LODGE"]
+                    "$ref": ["contracts", "id"]
                   }
                 ]
               ]

@@ -9153,3 +9153,38 @@ No animation, gameplay or geometry builder runs in this host. Both shards
 drive the host; the G483 platform approval is also recorded in the
 pending-user table. `residentWorldScope(context)` resolves a transitional
 world hook to its resident owner. Instance attributes remain bounded static data.
+
+
+## Contract boards (G473, G474)
+
+`format/contracts` admits finite offer rows, match rules, weighted draw bands,
+initial offers, fallback, board slots, saved-store identity and claim milestones.
+Targets, rarity ranks, excluded tags and all reward ids belong to the rows.
+`parseContractCatalogue` refuses duplicate offers, invalid selection bands and
+missing references before a board can use them.
+
+`game/quest/contracts` provides the deterministic serial draw and pure board
+operations: `newBoard`, `recordKill`, `claim`, `reroll`, `loadBoard`, `saveBoard`.
+A kill may advance several active offers; progress caps at each target count.
+Claiming consumes a completed slot once, increments the streak and draws its
+replacement. Tearing consumes a draw and resets the streak. Neither operation
+reads time. `saveBoard` returns a string and `loadBoard` accepts saved text; storage stays
+with the existing save owner, with no callback ports. Loading rebuilds
+descriptions and rewards from admitted rows,
+preserving the original serial and bounded progress of older saves.
+
+`game/quest/contractBoard` adds a renderer-free modal owner. Its constructor
+accepts only catalogue rows, prompt coordinates and a radius. `use` opens inside
+the prompt radius, closes, claims or tears a slot through `CONTRACT_ACTION`.
+Successful claims return `{ reward, streak }`; the caller's inventory and
+cosmetic owners apply those ids. It accepts no callback, subclass or reflected
+owner path. `snapshot` and `prepareRestore` retain the version-1 modal/board
+wire; restore validates the complete continuation before mutating live state
+and never reapplies rewards. Page panels use the same pure board operations.
+
+The host uses G473's approved-platform exception. A made-up second shard in
+`test/contracts-platform.test.ts` drives two slots, unrelated kinds and tags,
+a different rarity ladder, four-item rewards and a first-claim finish. Pine's
+catalogue fingerprint and old-save test retain its original three-slot serial
+sequence, words, rewards and save wire. The pending-user entry names the
+contracts + elites feature and the W3 recheck.

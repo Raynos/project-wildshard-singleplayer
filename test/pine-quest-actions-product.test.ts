@@ -9,7 +9,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '../src/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
-import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/shards/pine-hollow/quest/contracts';
+import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { Exchange } from '../src/game/loot/exchange';
 import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trades';
 
@@ -75,12 +75,12 @@ test('saved board and shop still decide acceptance, with costs before grants and
   const board = newBoard(CONTRACTS), original = board.slots[0];
   if (original === undefined) throw new Error('Missing initial contract');
   expect(claim(CONTRACTS, board, 0)).toBe(null); expect(events).toEqual([]);
-  for (let i = 0; i < 3; i++) recordKill(board, { kind: 'deer', elite: null, thrall: false });
-  let raw = ''; const store = { getItem: () => raw, setItem: (_key: string, value: string) => { raw = value; } };
-  saveBoard(board, store); const restored = loadBoard(CONTRACTS, store);
+  for (let i = 0; i < 3; i++) recordKill(CONTRACTS, board, { kind: 'deer', elite: null, tags: [] });
+  let raw = ''; const store = { getItem: (_key: string) => raw, setItem: (_key: string, value: string) => { raw = value; } };
+  store.setItem(CONTRACTS.store, saveBoard(board)); const restored = loadBoard(CONTRACTS, store.getItem(CONTRACTS.store));
   expect(claim(CONTRACTS, restored, 0)).not.toBe(null); page.run(`contract.${original.kind}.${original.target}`);
-  expect(events).toEqual(['add:lodge-ribbon:1', 'bolts:10']); saveBoard(restored, store);
-  expect(claim(CONTRACTS, loadBoard(CONTRACTS, store), 0)).toBe(null);
+  expect(events).toEqual(['add:lodge-ribbon:1', 'bolts:10']); store.setItem(CONTRACTS.store, saveBoard(restored));
+  expect(claim(CONTRACTS, loadBoard(CONTRACTS, store.getItem(CONTRACTS.store)), 0)).toBe(null);
   events.length = 0;
   const trade = TRADES.find(row => row.id === 'broadheads');
   if (trade === undefined) throw new Error('Missing trade');

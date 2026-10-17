@@ -3,7 +3,7 @@ import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parsePineQuestRows, parseTradeCatalogue, type TradeGood } from './rows';
 import type { Progress } from '@wildshard/game/Progress';
-import { parseContractCatalogue } from '../runtime/lodge';
+import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
@@ -70,7 +70,7 @@ import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow
 import { npcMaterial, makeNpcFigure, type NpcFigure } from '../runtime/models/people';
 import { preloadNpcModels } from '../runtime/quest/npcModels';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
-import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
+import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from '@wildshard/game/quest/contracts';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import './pinehollow.css';
@@ -254,7 +254,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const store = { getItem: (_key: string): string => String(lodge.read()), setItem: (_key: string, raw: string): void => {
     v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
   } };
-  const board: Board = loadBoard(contracts, store);
+  const board: Board = loadBoard(contracts, store.getItem(contracts.store));
+  const persistBoard = (): void => { try { store.setItem(contracts.store, saveBoard(board)); } catch { /* storage unavailable */ } };
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
@@ -268,14 +269,14 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       if (!r || contract === undefined) return;
       transactions.run(`contract.${contract.kind}.${contract.target}`);
       if (r.skin) transactions.run('contract.finish');
-      saveBoard(board, store);
+      persistBoard();
       transactions.run('contract.claimed');
       featFacts.event('streak', board.streak);
       hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
     };
     const onReroll = (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      reroll(contracts, board, value); saveBoard(board, store); kitSfx.interact('door');
+      reroll(contracts, board, value); persistBoard(); kitSfx.interact('door');
     };
     return new DataPanel(boardPanel, { scope, values: () => board, actions: new Map([['claim', onClaim], ['tear', onReroll]]) });
   });
@@ -333,9 +334,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── kills: the King, thralls, the contracts ──
   const killed = bindQuestDeathEffects(native.pageDeaths, { flags, kill: featFacts.kill, event: featFacts.event,
     calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
-      const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(contracts, a.kind, a.variant), thrall: isPineThrall(a) });
+      const moved = recordKill(contracts, board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(contracts, a.kind, a.variant), tags: isPineThrall(a) ? ['thrall'] : [] });
       if (moved.length === 0) return;
-      saveBoard(board, store);
+      persistBoard();
       for (const i of moved) {
         const c = board.slots[i];
         if (c) hud.toast(isFilled(c) ? `Contract filled · ${c.goal} — claim it at the lodge` : `Contract · ${c.goal} · ${c.have} / ${c.need}`);
@@ -500,7 +501,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(player.position); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },
-    fill: (i: number): void => { const c = board.slots[i]; if (c) { c.have = c.need; saveBoard(board, store); } },
+    fill: (i: number): void => { const c = board.slots[i]; if (c) { c.have = c.need; persistBoard(); } },
     test: (c: { all?: string[] }): boolean => test(flags, c),
   };
   ctx.debug.expose('pine.quest', debug);
