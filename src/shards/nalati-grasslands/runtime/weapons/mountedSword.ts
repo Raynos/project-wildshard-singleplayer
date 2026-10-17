@@ -1,7 +1,16 @@
+import * as THREE from 'three';
+import * as schema from 'valibot';
+import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { createModelLibrary } from '@wildshard/game/plugin/geometry';
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { viewmodelRowMaterial } from '@wildshard/engine/combat/view/ranged';
 import { app } from '@wildshard/engine/app/runtime';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { Targets } from '@wildshard/engine/combat/types';
-import type { Move, SwordRig, SwordWorld } from '@wildshard/engine/combat/view/melee';
+import type { Key, Move, SwordRig, SwordWorld } from '@wildshard/engine/combat/view/melee';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import type { WeaponHooks } from '@wildshard/game/plugin/weaponFamily';
 
@@ -155,12 +164,6 @@ export interface MountedSwordType<P extends MountedSwordProfile> {
   new (world: SwordWorld, targets?: Targets, opts?: MountedSwordRowOptions<P>): MountedSword<P>;
   readonly prototype: MountedSword<P>;
 }
-/** A variant's constructor: the base row's sword with the variant's profile, its power required. */
-export interface MountedSwordVariantType<P extends MountedSwordProfile> {
-  new (world: SwordWorld, targets: Targets, opts: { allowUnlocked?: boolean; power: MountedSwordPower<MountedSword<P>> }): MountedSword<P>;
-  readonly prototype: MountedSword<P>;
-}
-
 /**
  * Bind a shard's row to the family (SHARD-PLATFORM SF36): the shard writes data and a blade, never a subclass.
  *
@@ -176,17 +179,48 @@ export function mountedSwordType<P extends MountedSwordProfile>(row: MountedSwor
   };
 }
 
-/**
- * A reward row over a bound sword (SHARD-PLATFORM SF36): the same sword type (an `instanceof` the base holds) with the
- * variant's profile and a required power.
- *
- *   export const Naizagai = mountedSwordVariant(Sabre, NAIZAGAI_PROFILE);
- *   const nz = new Naizagai(world, targets, { allowUnlocked, power });
- */
-export function mountedSwordVariant<P extends MountedSwordProfile>(base: MountedSwordType<P>, profile: P): MountedSwordVariantType<P> {
-  return class extends base {
-    constructor(world: SwordWorld, targets: Targets, opts: { allowUnlocked?: boolean; power: MountedSwordPower<MountedSword<P>> }) {
-      super(world, targets, { ...opts, profile });
-    }
-  };
+/** Admit the built kylysh rows before any held or Explorer model is constructed. */
+const finite = schema.pipe(schema.number(), schema.finite()), triple = schema.tuple([finite, finite, finite]);
+const pose = schema.strictObject({ t: finite, pos: triple, q: schema.tuple([finite, finite, finite, finite]) });
+const move = schema.strictObject({ name: schema.picklist(['slash', 'backhand', 'finisher', 'heavy', 'pass-left', 'pass-right']), keys: schema.tuple([pose, pose, pose]),
+  damage: finite, hitStop: finite, windup: finite, slashEnd: finite, total: finite, stagger: finite, sweep: finite, reach: schema.exactOptional(finite),
+  kick: schema.strictObject({ pitch: finite, roll: finite, fov: schema.exactOptional(finite) }),
+  trail: schema.strictObject({ alpha: finite, color: triple, from: finite, inner: finite, life: finite }) });
+const SabreRows = schema.strictObject({ pool: schema.strictObject({ url: schema.string(), parts: schema.array(schema.string()) }),
+  blade: schema.strictObject({ length: finite, curve: finite }), rig: schema.strictObject({ tipY: finite, baseY: finite, tipX: finite }),
+  moves: schema.strictObject({ rest: pose, charge: pose, sprint: pose, combo: schema.array(move), heavy: move, passes: schema.strictObject({ left: move, right: move }) }) });
+function sabreKey(row: schema.InferOutput<typeof pose>): Key { return { t: row.t, pos: new THREE.Vector3(...row.pos), q: new THREE.Quaternion(...row.q) }; }
+function sabreMove(row: schema.InferOutput<typeof move>): Move {
+  return { ...row, keys: [sabreKey(row.keys[0]), sabreKey(row.keys[1]), sabreKey(row.keys[2])], trail: { ...row.trail, color: new THREE.Color(...row.trail.color) } };
 }
+type SabreProfile = MountedSwordProfile & { blade: { length: number; curve: number } };
+let prepared: { rows: schema.InferOutput<typeof SabreRows>; parts: ReturnType<typeof createModelLibrary<never, never>>; profile: SabreProfile; passes: MountedSwordPasses } | null = null;
+function sabreRows(): NonNullable<typeof prepared> { if (prepared === null) throw new Error('Sabre rows are not prepared'); return prepared; }
+export async function prepareSabre(product: Pick<ShardProduct, 'file' | 'shardfile'>): Promise<void> {
+  const rows = schema.parse(SabreRows, JSON.parse(new TextDecoder().decode(await product.file('weapons/sabre.json'))));
+  const item = product.shardfile.items.rows.find(row => row.id === 'weapon.sabre');
+  const policy = schema.parse(MeleeWeaponProfileSchema, item?.kind === 'weapon' ? item.profile : undefined);
+  if (policy.mounted === undefined) throw new Error('Sabre requires mounted passes');
+  const parts = createModelLibrary<never, never>({ meshes: [], hd: [], meshUrls: {}, hdUrls: {}, hdLooks: {}, aoFloor: 1, geometryPools: [rows.pool] }, 'nalati-sabre');
+  await parts.preload();
+  prepared = { rows, parts, passes: { left: sabreMove(rows.moves.passes.left), right: sabreMove(rows.moves.passes.right) }, profile: {
+    ...SWORD_WOOD, ...readItemEquipment(product.shardfile.items, 'weapon.sabre'), parent: SWORD_WOOD.id,
+    damage: policy.damage, swingScale: policy.swingScale, reach: policy.reach, cooldown: policy.cooldown, comboGap: policy.comboGap,
+    chainLag: policy.chainLag, heavyCharge: policy.heavyCharge, lunge: policy.lunge, sweep: policy.sweep,
+    hitStop: { body: 0.045, head: 0.045, kill: 0.045 }, portraitPullX: 0.85, mounted: policy.mounted, blade: rows.blade,
+    moves: { rest: sabreKey(rows.moves.rest), charge: sabreKey(rows.moves.charge), sprint: sabreKey(rows.moves.sprint), combo: rows.moves.combo.map(sabreMove), heavy: sabreMove(rows.moves.heavy) } } };
+}
+/** Independent mutable copies preserve skins, depth-clear materials and the opaque Explorer specimen. */
+export function buildSabre(material: THREE.Material, steel: THREE.Material): SwordRig {
+  const { rows, parts } = sabreRows();
+  const geometry = (name: string): THREE.BufferGeometry => { const part = parts.geometry(name); if (part === null) throw new Error(`Missing baked sabre part ${name}`); return part; };
+  return { ...rows.rig, material, sword: geometry('sword'), arms: geometry('arms'), extras: [{ geometry: geometry('steel'), material: steel }] };
+}
+export const Sabre = mountedSwordType<SabreProfile>({ get profile() { return sabreRows().profile; }, get passes() { return sabreRows().passes; },
+  rig: world => {
+    const material = painterlyMaterial(world.sky, { vertexColors: true, rim: 0.55, bands: 0.7, transparent: true, depthWrite: true }); material.name = 'nalati-viewmodel';
+    return buildSabre(material, viewmodelRowMaterial(world.sky, 'nalati-steel', { metalness: 0.55, roughness: 0.38, envMapIntensity: 0.7, transparent: true, depthWrite: true }));
+  } });
+export const sabreProfile = (): SabreProfile => sabreRows().profile;
+export type SabreWeapon = MountedSword<SabreProfile>;
+export type MountState = MountedSwordMount;

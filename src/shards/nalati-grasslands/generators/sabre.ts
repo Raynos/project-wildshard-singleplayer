@@ -1,16 +1,15 @@
-import items from '../../data/items.json' with { type: 'json' };
+import items from '../data/items.json' with { type: 'json' };
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as schema from 'valibot';
 import * as THREE from 'three';
-import type { SwordWorld, SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
-import { mountedSwordType, type MountedSwordMount, type MountedSwordRowOptions, type MountedSword as MountedSwordWeapon } from './mountedSword';
+import type { SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { key } from '@wildshard/game/weapons/starterMoves';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { lin } from '@wildshard/engine/math/color';
 import { forearm } from '@wildshard/engine/player/nalatiArms';
-import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';
+import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 
 /**
@@ -216,22 +215,3 @@ export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown:
   blade: SABRE_BLADE,
 };
 
-/** The sabre's row type: SABRE_PROFILE's shape (its `blade` shapes the kylysh). */
-export type SabreProfile = typeof SABRE_PROFILE;
-/** A built sabre (Naizagai included): the type the riding, skin and Titan code hold. */
-export type SabreWeapon = MountedSwordWeapon<SabreProfile>;
-/** The same built sabre under the class's old type name: combat/stormTitan.ts holds it. */
-// oxlint-disable-next-line no-redeclare -- TypeScript keeps a type alias and a const apart (type vs value space); this is the class's old type name
-export type Sabre = SabreWeapon;
-/** the B7 riding hook: the horse's ground speed (m/s) and heading (rad, the player's yaw convention) */
-export type MountState = MountedSwordMount;
-/** construction: the unlock policy and an optional profile over SABRE_PROFILE */
-export type SabreOptions = MountedSwordRowOptions<SabreProfile>;
-
-/** the kylysh on the world's sky: the painterly material, the PBR steel, the profile's blade */
-function sabreRig(world: SwordWorld, profile: SabreProfile): SwordRig {
-  return buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky), profile.blade); // portrait: the hand clear of the CROUCH / DODGE discs
-}
-
-/** The sabre as a row over the platform's mounted sword: SABRE_PROFILE (or `opts.profile`), the kylysh and its passes. */
-export const Sabre = mountedSwordType<SabreProfile>({ profile: SABRE_PROFILE, rig: sabreRig, passes: { left: PASS_LEFT, right: PASS_RIGHT } });

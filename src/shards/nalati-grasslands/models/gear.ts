@@ -12,7 +12,7 @@ import { RECURVE } from '../weapons/loadout';
 import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { rifleSpecimen } from '../runtime/weapons/magazineFirearm';
-import { buildSabre } from '../runtime/weapons/Sabre';
+import { buildSabre } from '../runtime/weapons/mountedSword';
 import { buildJavelin, buildSpear, type SpearParts } from '../runtime/weapons/Spear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
 import { goldenBowModel } from '../runtime/weapons/GoldenBow';

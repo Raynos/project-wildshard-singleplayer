@@ -23,7 +23,7 @@ import type { Wildlife } from '../creatures/wildlife';
 
 
 
-import type { Sabre } from '../runtime/weapons/Sabre';
+import type { SabreWeapon as Sabre } from '../runtime/weapons/mountedSword';
 import type { NalatiWeather } from '../world/installWeather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';

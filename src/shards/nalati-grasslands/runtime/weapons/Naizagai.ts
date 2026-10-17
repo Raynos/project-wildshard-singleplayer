@@ -1,7 +1,7 @@
-import { Sabre, SABRE_PROFILE, type SabreWeapon } from './Sabre';
-import { mountedSwordVariant } from './mountedSword';
+import { Sabre, sabreProfile, type SabreWeapon } from './mountedSword';
+import type { Targets } from '@wildshard/engine/combat/types';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Move } from '@wildshard/engine/combat/view/melee';
+import type { Move, SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
@@ -121,9 +121,6 @@ export function naizagaiModel(): THREE.Object3D {
 }
 
 export const NAIZAGAI_PROFILE = {
-  ...SABRE_PROFILE, id: 'weapon.naizagai' as const, parent: SABRE_PROFILE.id,
-  ui: { ...SABRE_PROFILE.ui, name: 'Naizagai' },
-  meta: { ...SABRE_PROFILE.meta, name: 'Naizagai' },
   powers: { crescentRange: CRESCENT_RANGE, crescentDamage: CRESCENT_DMG, crescentTime: CRESCENT_T,
     arcRadius: ARC_R, gallopMin: GALLOP_MIN, callRange: CALL_RANGE, callDamage: CALL_DMG,
     callRadius: CALL_R, callTime: CALL_T, stormMultiplier: 1.25, stormArcs: 2, clearArcs: 1 },
@@ -287,4 +284,10 @@ export class NaizagaiPower {
 
 /** The reward is a row over the sabre (an `instanceof Sabre`): NAIZAGAI_PROFILE, its power applied once it is built and told
  *  of every swing's start; the preloaded power meshes stay on the shard's Titan clock. */
-export const Naizagai = mountedSwordVariant(Sabre, NAIZAGAI_PROFILE);
+export class Naizagai extends Sabre {
+  constructor(world: SwordWorld, targets: Targets, opts: { allowUnlocked?: boolean; power: NaizagaiPower }) {
+    const base = sabreProfile();
+    super(world, targets, { ...opts, profile: { ...base, ...NAIZAGAI_PROFILE, id: 'weapon.naizagai', parent: base.id,
+      ui: { ...base.ui, name: 'Naizagai' }, meta: { ...base.meta, name: 'Naizagai' } } });
+  }
+}

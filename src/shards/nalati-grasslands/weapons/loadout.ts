@@ -16,7 +16,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 
-import { Sabre, type MountState, type SabreWeapon } from '../runtime/weapons/Sabre';
+import { Sabre, type MountState, type SabreWeapon } from '../runtime/weapons/mountedSword';
 import { Spear, type SpearWeapon } from '../runtime/weapons/Spear';
 import items from '../data/items.json' with { type: 'json' };
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';

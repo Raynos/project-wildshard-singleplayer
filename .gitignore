@@ -1938,3 +1938,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/data/monkeyClips.generated.json
 
 /src/shards/nalati-grasslands/bootMetadata.generated.json
+
+# Nalati sabre geometry and poses are reproducible build products.
+/public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb
+/src/shards/nalati-grasslands/data/sabre.generated.json
