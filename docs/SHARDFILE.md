@@ -60,6 +60,18 @@ an admitted migration WASM ABI exists. JavaScript/TypeScript assets and executab
 callback fields have no format arm. Build-time TypeScript config/generators compile to
 this data product and are not copied into it.
 
+**Scripts ship as compiled WASM, never as AssemblyScript source** (Jake, 2026-10-17).
+The built shard file (`out/<slug>/`) carries each script as a content-addressed `wasm`
+blob, and its script row points at it (`module: "blobs/wasm/<sha256>.wasm"`). The
+AssemblyScript source (`behaviour/*.as`) stays in the shard's source folder, in git;
+`wildshard build` compiles it, admits the binary (imports, exports, memory pages, hash)
+and refuses a shard over its AssemblyScript ceiling. Reasons: the game, the headless sim
+and a server all run the same bytes; admission can only vouch for the exact binary that
+runs; no compiler ships to the phone or runs at load; and it is the same rule as every
+other shard-file asset (GLB not Blender scripts, KTX2 not source images, JSON not
+generators). The row keeps provenance only: the `source` path, and a SHA-256 of that
+source so a build can prove which `.as` produced the `.wasm`.
+
 `runtime` is the explicitly temporary first-party transition exception: it carries
 a registry selector and bounded data metadata, never TypeScript bytes, a fetch URL
 or an executable callback.
