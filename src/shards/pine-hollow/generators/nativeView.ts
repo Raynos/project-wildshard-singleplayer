@@ -1,4 +1,4 @@
-import { KING_RIG, KING_BONES } from '../data/kingRig';
+import { KING_RIG, KING_BONES } from './kingRig';
 import rigBlend from '../data/kingBlend.json' with { type: 'json' };
 import rigClips from '../data/kingClips.generated.json' with { type: 'json' };
 import bossCollision from '../data/kingCollision.generated.json' with { type: 'json' };

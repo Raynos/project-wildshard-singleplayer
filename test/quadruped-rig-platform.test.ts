@@ -16,7 +16,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { readKingRig } from './fixtures/pine/kingRigOracle';
 import { advanceKingPose, kingRest, applyKingPose, newPose, clipPose } from './fixtures/pine/kingRigBefore';
 import { pineKingCollision } from '../src/shards/pine-hollow/generators/kingCollision';
-import { KING_RIG } from '../src/shards/pine-hollow/data/kingRig';
+import { KING_RIG } from '../src/shards/pine-hollow/generators/kingRig';
 import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };
 import clips from '../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
 import collision from '../src/shards/pine-hollow/data/kingCollision.generated.json' with { type: 'json' };

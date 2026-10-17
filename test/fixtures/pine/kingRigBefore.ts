@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { clamp, lookAngles, step } from '@wildshard/engine/entities/species/rigs';
 import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playBakedClip, readBakedClips, scaleLimbPose, zeroLimbPose, type BakedPoseClip, type LimbPose, type LimbPoseRest, type LimbRest, type LimbRigSpec } from './limbRigBefore';
-import { KING_GAITS as GAITS, KING_RIG as RIG } from '../../../src/shards/pine-hollow/data/kingRig';
+import { KING_GAITS as GAITS, KING_RIG as RIG } from '../../../src/shards/pine-hollow/generators/kingRig';
 import baked from '../../../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
 
 /**
@@ -15,7 +15,7 @@ import baked from '../../../src/shards/pine-hollow/data/kingClips.generated.json
  * shared timers every frame and the poses drive the bones.
  *
  * The skeleton and the solve are the limb rig's (../runtime/species/limbRig.ts, SHARD-PLATFORM M3): the bone names and
- * proportions (and the stand-in skeleton) are ../data/kingRig.ts, and every clip is baked from rows offline (../generators/kingClips.ts →
+ * proportions (and the stand-in skeleton) are ../generators/kingRig.ts, and every clip is baked from rows offline (../generators/kingClips.ts →
  * data/kingClips.generated.json, looked up here, never evaluated); this file keeps the King's
  * blend (`advanceKingPose`: walk ↔ charge by ground speed, the fight's named attack held and eased out, the recoil, the look).
  *

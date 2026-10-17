@@ -1,0 +1,164 @@
+{
+  "KING_COAT": {
+    "id": "warden",
+    "label": "The Antler King",
+    "weight": 1,
+    "rarity": "legendary",
+    "scale": [
+      2.6,
+      2.6
+    ],
+    "hp": 1500,
+    "tint": {
+      "body": [
+        0.15,
+        0.12,
+        0.09
+      ],
+      "bodyDark": [
+        0.09,
+        0.075,
+        0.055
+      ],
+      "neck": [
+        0.085,
+        0.075,
+        0.055
+      ],
+      "mane": [
+        0.13,
+        0.17,
+        0.08
+      ],
+      "belly": [
+        0.07,
+        0.06,
+        0.045
+      ],
+      "rump": [
+        0.19,
+        0.22,
+        0.12
+      ],
+      "legDark": [
+        0.065,
+        0.055,
+        0.045
+      ],
+      "antler": [
+        0.42,
+        0.38,
+        0.31
+      ],
+      "antlerTip": [
+        0.78,
+        0.74,
+        0.64
+      ]
+    },
+    "traits": {
+      "antlers": 1,
+      "antlerScale": 1.5,
+      "selfLight": 0.45
+    }
+  },
+  "KING_DRESS": {
+    "ribR": 0.36,
+    "ribAt": [
+      0,
+      -0.45,
+      0.47
+    ],
+    "ribHit": 1.15,
+    "open": {
+      "breathe": [
+        0.04,
+        3.1
+      ],
+      "ribs": [
+        0.45,
+        0.12,
+        0.3
+      ],
+      "core": 0.25,
+      "coreGlow": [
+        3,
+        9
+      ],
+      "ribGlow": [
+        1.6,
+        2.4
+      ]
+    },
+    "frameMat": {
+      "color": 2827552,
+      "roughness": 0.55,
+      "metalness": 0.75
+    },
+    "glowMat": {
+      "color": 0,
+      "roughness": 0.6,
+      "metalness": 0,
+      "fog": false
+    },
+    "amber": [
+      1,
+      0.56,
+      0.16
+    ],
+    "glow": {
+      "glass": 3,
+      "ribs": 2,
+      "core": 4
+    }
+  },
+  "KING_OWN_RIG": {
+    "dims": {
+      "bodyY": 1.85,
+      "bodyHalfLen": 0.45,
+      "bodyRadius": 0.56,
+      "headRadius": 0.32,
+      "legLen": 1.85,
+      "halfWidth": 0.8,
+      "feet": [
+        [
+          0.65,
+          1.25
+        ],
+        [
+          -0.66,
+          1.25
+        ],
+        [
+          0.57,
+          -1.42
+        ],
+        [
+          -0.6,
+          -1.42
+        ]
+      ],
+      "bodyAt": [
+        0,
+        -0.3,
+        -0.32
+      ],
+      "bodyPitch": 0.38,
+      "headAt": [
+        0,
+        -0.06,
+        0.12
+      ],
+      "fore": {
+        "bone": "chest",
+        "at": [
+          0,
+          -0.14,
+          0.05
+        ],
+        "halfLen": 0.22,
+        "radius": 0.69
+      }
+    }
+  }
+}

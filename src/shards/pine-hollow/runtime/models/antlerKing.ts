@@ -7,12 +7,14 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createModelLibrary, type ModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { InferOutput } from 'valibot';
-import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../../data/antlerKingLook';
+import authoredLook from '../../data/antlerKingLook.json' with { type: 'json' };
 import { limbAnimation } from '@wildshard/game/animation/limbView';
 import { bindLimbQueryView } from '@wildshard/game/animation/limbQueryView';
 import { readLimbCollisionBake } from '@wildshard/format/limbCollision';
 import { pineView } from '../world/context';
 import { SECTIONS } from '../sections';
+
+const { KING_COAT, KING_DRESS, KING_OWN_RIG } = authoredLook;
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark
@@ -44,7 +46,7 @@ import { SECTIONS } from '../sections';
 export const KING_SCALE = KING_COAT.scale[0];
 export const KING_ANTLER_SCALE = KING_COAT.traits.antlerScale;
 
-/** the coat (../data/antlerKingLook.ts `KING_COAT`): bark-dark hide, moss on the mane and the rump, pale weathered antlers */
+/** the coat (../data/antlerKingLook.json `KING_COAT`): bark-dark hide, moss on the mane and the rump, pale weathered antlers */
 export const KING_VARIANT: VariantDef = {
   ...KING_COAT, scale: [KING_COAT.scale[0], KING_COAT.scale[1]],
   tint: Object.fromEntries(Object.entries(KING_COAT.tint).map(([k, c]): [string, [number, number, number]] => [k, [c[0], c[1], c[2]]])),
@@ -93,7 +95,7 @@ export interface KingKit {
   frameMat: THREE.MeshStandardMaterial; glassMat: THREE.MeshStandardMaterial; ribMat: THREE.MeshStandardMaterial; coreMat: THREE.MeshStandardMaterial;
 }
 
-/** the baked lantern, ribcage and core, and their iron and amber (../data/antlerKingLook.ts `KING_DRESS`); a part that is not
+/** the baked lantern, ribcage and core, and their iron and amber (../data/antlerKingLook.json `KING_DRESS`); a part that is not
  *  loaded refuses, it is never rebuilt here */
 export function makeKingKit(sky: Sky): KingKit {
   const D = KING_DRESS;
@@ -189,7 +191,7 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
 // ─────────────── his own rig (E322 F-M1) ───────────────
 
 /** his body: the skeleton (the hull's own joints replace its rest positions) and the hit volumes
- *  (../data/antlerKingLook.ts `KING_OWN_RIG`), and no parts (the hull is the mesh) */
+ *  (../data/antlerKingLook.json `KING_OWN_RIG`), and no parts (the hull is the mesh) */
 function buildOwnRig(): AnimalSpecies {
   const R = KING_OWN_RIG;
   return {

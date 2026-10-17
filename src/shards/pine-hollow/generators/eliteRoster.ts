@@ -1,7 +1,7 @@
 import type { EliteDef } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { GHOST_LAIR } from '../data/eliteHomes';
+import { GHOST_LAIR } from './eliteHomes';
 
 /**
  * Pine Hollow's four named elites as data (PH-C3): their lairs, encounter rows, species identities and the boot swap that
