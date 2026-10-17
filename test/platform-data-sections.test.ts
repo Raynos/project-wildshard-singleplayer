@@ -8,7 +8,7 @@ import * as v from 'valibot';
 import pine from '../src/shards/pine-hollow/data/physics.generated.json';
 import driftwood from '../src/shards/driftwood-isle/data/physics.generated.json';
 import { STRINGS as PINE_STRINGS } from '../src/shards/pine-hollow/strings';
-import { STRINGS as DRIFTWOOD_STRINGS } from '../src/shards/driftwood-isle/runtime/strings';
+import DRIFTWOOD_STRINGS from '../src/shards/driftwood-isle/data/strings.json' with { type: 'json' };
 
 test('player-facing strings retain authored labels and refuse unsafe or executable entries', () => {
   expect(parseUiStrings(PINE_STRINGS)).toEqual(PINE_STRINGS);

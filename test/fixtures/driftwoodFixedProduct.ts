@@ -1,3 +1,5 @@
+import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
+import { encodeCanonicalJson } from '../../src/sdk/immutable';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -12,6 +14,8 @@ export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createS
     const bytes = new Uint8Array(await readFile(resolve('src/shards/driftwood-isle', row.source)));
     return {name: row.name, source: row.source, bytes, hash: createHash('sha256').update(bytes).digest('hex')};
   }));
+  const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups));
+  blobs.push({ name: 'models/fixed-geometry.json', source: 'data/fixedGeometry.json', bytes, hash: createHash('sha256').update(bytes).digest('hex') });
   const assets = new Map(blobs.map(row => [row.hash, row.bytes]));
   return createShardProduct({slug: 'driftwood-isle', revision: 1,
     shardfile: emptyShardfile({slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1}),

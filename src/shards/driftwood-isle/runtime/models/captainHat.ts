@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 
 /** Both cosmetics keep their baked geometry, ordinary kit material and native socket space. */
 const GARMENTS = {

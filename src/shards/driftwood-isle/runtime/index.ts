@@ -3,7 +3,6 @@ import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisio
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
-import { STRINGS } from './strings';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
 import { islandSystems } from './world/systems';
@@ -38,7 +37,7 @@ export class DriftwoodPlugin extends ShardPlugin {
   }
 
   override async world(ctx: ShardContext): Promise<void> {
-    ctx.strings(STRINGS);
+    ctx.strings(ctx.product.section('ui/strings'));
     const shell = ctx.game.runtime;
     if (shell === undefined) throw new Error('Driftwood plugin requires its world host');
     const world = shell.world;

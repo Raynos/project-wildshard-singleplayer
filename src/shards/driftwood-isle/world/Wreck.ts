@@ -12,7 +12,7 @@ import { shipwreck, wreckSiteKind } from '../runtime/models/fixedSites';
 import type { WreckAnchor, HoldBounds, WreckSpec } from '../assets/contracts/wreck';
 import { barrel as barrelModel, crate as crateModel, ropeCoil, driftLog } from '../runtime/models/cargo';
 import { reefRock } from '../runtime/models/shoreBoulder';
-import { fixedDraw } from '../runtime/boot/modelGeometry';
+import { fixedDraw } from '../runtime/boot/blobAssets';
 import bake from '../data/wreckBake.json' with { type: 'json' };
 
 /** Wreck Cove's authored draw, native floor query and existing model/registry ownership. */

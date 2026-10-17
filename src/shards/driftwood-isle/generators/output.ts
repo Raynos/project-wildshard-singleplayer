@@ -1,3 +1,5 @@
+import fixedInventory from '../data/fixedGeometry.json' with { type: 'json' };
+import strings from '../data/strings.json' with { type: 'json' };
 import directorData from '../data/director.json' with { type: 'json' };
 import directorModule from '../behaviour/director.json' with { type: 'json' };
 import directorStages from '../data/finaleStages.json' with { type: 'json' };
@@ -17,7 +19,7 @@ import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
-import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
+import {SECTIONS,WIRE_SCHEMAS,FixedGeometryGroupsSchema} from './sectionSchemas.generated';
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -41,6 +43,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
+  nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(FixedGeometryGroupsSchema, fixedInventory.groups)))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson(monkeyClips))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
@@ -49,7 +52,7 @@ const placements = emitNamedBlobs([
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

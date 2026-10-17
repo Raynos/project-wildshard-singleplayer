@@ -16,7 +16,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { SHRINE_RUNE, bakedSite, shrine, shrineMaterials, shrineRow, type ShrineSite } from '../models/fixedSites';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { fixedDraw } from '../boot/modelGeometry';
+import { fixedDraw } from '../boot/blobAssets';
 
 /** The placed shrine with its glyph pulse and its dusk writer. */
 export interface Shrine extends ModelSite { readonly update: (dt: number) => void; readonly setDusk: (k: number) => void }

@@ -3,7 +3,7 @@ import { Mesh, type Object3D } from 'three';
 import { admitBridgeFacts } from '../src/shards/driftwood-isle/boot/bridgeFacts';
 import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/runtime/models/ropeBridge';
 import { fakeWorld } from './fake/world';
-import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgePosts } from '../src/shards/driftwood-isle/generators/ropeBridge';
 

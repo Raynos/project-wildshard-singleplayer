@@ -10,7 +10,7 @@ import { creature, type CreatureParams } from '@wildshard/engine/models/creature
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { gullFlock } from '../world/Gulls';
-import { fixedGeometryReady, loadFixedGeometry } from '../boot/modelGeometry';
+import { fixedGeometryReady, loadFixedGeometry } from '../boot/blobAssets';
 
 const FILE = 'src/shards/driftwood-isle/runtime/models/creatures.ts';
 

@@ -12,7 +12,7 @@ import { driftwoodRows } from '../boot/rows';
  */
 import * as THREE from 'three';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { fixedDraw } from '../boot/modelGeometry';
+import { fixedDraw } from '../boot/blobAssets';
 
 /** the toon cascade (E150): the baked curtain, pool rings and foam puffs on their lent graphs (data/waterfallLook.ts), drawn
  *  after the sea */

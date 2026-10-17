@@ -17,7 +17,7 @@
  * No URL switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
-import { copyCoverGeometry, fixedDraw } from '../runtime/boot/modelGeometry';
+import { fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
 import { GROUND_COVER } from '../data/coverLook';
 import { driftLog } from '../runtime/models/cargo';
@@ -37,7 +37,7 @@ export class GroundCover extends StreamedCover {
   /** its placements: the dune line's drift logs (the named places' sets read them) */
   readonly placed: Placed[] = [];
   constructor(private readonly sky: Sky, opts: GroundCoverOpts) {
-    super({ row: GROUND_COVER, geometry: copyCoverGeometry(), cells: opts.cells, heightAt });
+    super({ row: GROUND_COVER, geometry: Object.fromEntries(Object.entries(fixedGeometryGroups().cover).map(([kind, slot]) => [kind, fixedDraw(slot).copy()])), cells: opts.cells, heightAt });
   }
 
   override build(): this {

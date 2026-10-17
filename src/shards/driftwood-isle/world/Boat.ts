@@ -22,7 +22,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
-import { fixedDraw } from '../runtime/boot/modelGeometry';
+import { fixedDraw } from '../runtime/boot/blobAssets';
 import { boatLayout, boat } from '../runtime/models/boat';
 
 export interface BoatSpec {

@@ -25,3 +25,9 @@ export function driftwoodRows<K extends RowSection>(name: K): v.InferOutput<(typ
 
 /** Only live view shadow choices remain; geometry counts and dimensions compile offline. */
 export function driftwoodTierShadows(): { bush: boolean; boulder: boolean } { return driftwoodRows('custom/fixedLayouts').shadowTiers[buildTier()]; }
+
+/** Native boot consumers borrow the same session-admitted named bytes as their sections. */
+export function driftwoodProduct(): ShardProduct {
+  if (admitted === null) throw new Error('Driftwood reads its product before its product is admitted');
+  return admitted;
+}

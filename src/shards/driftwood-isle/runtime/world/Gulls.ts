@@ -5,7 +5,7 @@
  */
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { fixedDraw } from '../boot/modelGeometry';
+import { fixedDraw } from '../boot/blobAssets';
 import { driftwoodRows } from '../boot/rows';
 
 /** A gull flock on `perches` (a copy of the look per flock: the world's, a Model Explorer card's). */

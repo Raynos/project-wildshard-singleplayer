@@ -1,3 +1,4 @@
+import geometry from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import { expect, it, vi } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { FIXED_DRAW_ROWS } from '../src/shards/driftwood-isle/generators/modelFiles';
@@ -5,7 +6,7 @@ import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { BoxGeometry } from 'three';
 import { DRIFTWOOD_FIXED_SOURCES as FIXED_MODEL_FILES, DRIFTWOOD_ASSET_NAMES } from '../src/shards/driftwood-isle/generators/assets';
 import { admitDriftwoodFixtureRows, admitDriftwoodFixtureAliases } from './fixtures/driftwoodRows';
-import { loadFixedGeometry, fixedGeometryReady, PIER_GEOMETRIES, copyCoverGeometry, fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { loadFixedGeometry, fixedGeometryReady, fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 
 it('declares inert handles before admission and refuses unresolved slot data', async () => {
   const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));
@@ -36,8 +37,8 @@ it('preloads fixed and cover handles from admitted geometry without fetching', a
     expect(fixedGeometryReady()).toBe(true);
     await fixedDraw('wendellHead').load();
     expect(fetch).not.toHaveBeenCalled();
-    const copies = [fixedDraw('wendellHead').copy(), fixedDraw('hat').copy(), fixedDraw('duneLogs').take(), ...Object.values(copyCoverGeometry())];
-    for (const pier of PIER_GEOMETRIES.values()) { copies.push(pier.deck.copy()); if (pier.cloth !== null) copies.push(pier.cloth.copy()); }
+    const copies = [fixedDraw('wendellHead').copy(), fixedDraw('hat').copy(), fixedDraw('duneLogs').take(), ...Object.values(geometry.groups.cover).map(slot => fixedDraw(slot).copy())];
+    for (const pier of Object.values(geometry.groups.piers)) { copies.push(fixedDraw(pier.deck).copy()); if (pier.cloth !== null) copies.push(fixedDraw(pier.cloth).copy()); }
     for (const copy of copies) { expect(copy.getAttribute('position').array.buffer).not.toBe(source.getAttribute('position').array.buffer); copy.dispose(); }
     expect(() => fixedDraw('duneLogs').copy()).toThrow('not loaded');
   } finally { fetch.mockRestore(); source.dispose(); }

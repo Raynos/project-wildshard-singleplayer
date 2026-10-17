@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { originalTrailside } from '../src/shards/driftwood-isle/generators/driftwoodTrailside.mjs';
 import { islandTrailsideSpec, trailsideSpecKey } from '../src/shards/driftwood-isle/generators/trailsideLayout';
 import { copyTrailsideGeometry } from '../src/shards/driftwood-isle/runtime/boot/trailsideGeometry';
-import { loadFixedGeometry } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { loadFixedGeometry } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { DRIFTWOOD_FIXED_SOURCES } from '../src/shards/driftwood-isle/generators/assets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import bake from '../src/shards/driftwood-isle/data/trailsideBake.json' with { type: 'json' };

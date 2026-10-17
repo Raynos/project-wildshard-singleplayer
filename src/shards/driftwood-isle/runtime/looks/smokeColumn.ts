@@ -1,7 +1,7 @@
 import { driftwoodRows } from '../boot/rows';
 import * as THREE from 'three';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { fixedGeometryReady, fixedDraw } from '../boot/modelGeometry';
+import { fixedGeometryReady, fixedDraw } from '../boot/blobAssets';
 
 /**
  * A thin, broken smoke column off a fire (SHARD-PLATFORM W2 C2): ONE mesh of camera-facing puff quads that the smoke's

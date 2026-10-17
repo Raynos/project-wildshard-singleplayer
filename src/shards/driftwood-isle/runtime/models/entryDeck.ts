@@ -11,7 +11,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { ENTRY_DECK_GEOMETRY } from '../boot/modelGeometry';
+import { fixedDraw, fixedGeometryGroups } from '../boot/blobAssets';
 
 export interface EntryDeckParams {
   /** how far in from the cell edge the deck runs, metres (the 15 m socket and its landing) */
@@ -21,7 +21,7 @@ export interface EntryDeckParams {
 }
 
 /** the Explorer's seabeds pick their own bake; the world's entries share the world's */
-const deckOf = (p: EntryDeckParams): keyof typeof ENTRY_DECK_GEOMETRY => p.bed === -6 ? 'deep' : p.bed === -2.5 ? 'shallow' : 'world';
+const deckOf = (p: EntryDeckParams): keyof ReturnType<typeof fixedGeometryGroups>['entryDecks'] => p.bed === -6 ? 'deep' : p.bed === -2.5 ? 'shallow' : 'world';
 
 export const entryDeck = defineModel<EntryDeckParams>({
   id: 'driftwood-isle/entry-deck', name: 'Entry road deck', category: 'buildings', pipeline: 'code',
@@ -33,5 +33,5 @@ export const entryDeck = defineModel<EntryDeckParams>({
   ],
   seed: 0xdec4,
   // the baked deck (generators/entryDeckGeometry.ts): placed only by the world build, after it loads the island's templates
-  build: (ctx, p) => [{ geometry: ENTRY_DECK_GEOMETRY[deckOf(p)].copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: false, receiveShadow: true }],
+  build: (ctx, p) => [{ geometry: fixedDraw(fixedGeometryGroups().entryDecks[deckOf(p)]).copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: false, receiveShadow: true }],
 });

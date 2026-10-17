@@ -1,7 +1,7 @@
 import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { fixedDraw as modelGeometry } from './modelGeometry';
+import { fixedDraw as modelGeometry } from './blobAssets';
 import { driftwoodRows } from './rows';
 
 const templates = {

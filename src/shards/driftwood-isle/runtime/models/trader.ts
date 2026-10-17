@@ -23,7 +23,7 @@ import type { Trader } from '../npc/Trader';
 import { traderRig } from '../npc/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 
-import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 

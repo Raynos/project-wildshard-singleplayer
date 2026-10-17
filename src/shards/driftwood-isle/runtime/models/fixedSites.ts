@@ -25,7 +25,7 @@ import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryMo
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { driftwoodRows } from '../boot/rows';
-import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
+import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 
 /** Where a building stands: its centre (world xz) and which way its front faces (rot, radians about +Y). */
 export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }

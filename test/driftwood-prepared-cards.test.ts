@@ -8,7 +8,7 @@ import { modelContext, seedOf, type ModelDef, type ModelPart } from '@wildshard/
 import * as lowPolyKit from '@wildshard/engine/world/lowpolyKit';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { loadFixedGeometry, fixedGeometryReady } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { loadFixedGeometry, fixedGeometryReady } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { barrel, crate, ropeCoil, driftLog } from '../src/shards/driftwood-isle/runtime/models/cargo';
 import { captainHat, sailclothCape } from '../src/shards/driftwood-isle/runtime/models/captainHat';
 import { seaGlassChime } from '../src/shards/driftwood-isle/runtime/models/seaGlassChime';

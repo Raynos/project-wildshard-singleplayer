@@ -69,8 +69,10 @@ for (const file of tooling) {
   const source = file.endsWith('.py') ? text.replaceAll(/^[ \t]*(?:"""[\s\S]*?"""|'''[\s\S]*?''')/gm, token => token.replaceAll(/[^\n]/g, ' ')) : text;
   const code = codeOnly(source, shell);
   for (const match of strings(code)) {
-    if (file.endsWith('.py') && /\b[fr]$/.test(code.slice(Math.max(0, match.index - 2), match.index))) continue;
+    const prefix = code.slice(Math.max(0, match.index - 2), match.index);
+    if (file.endsWith('.py') && /\bf$/.test(prefix)) continue;
     const path = match[0].slice(1, -1);
+    if (file.endsWith('.py') && /\br$/.test(prefix) && /[\\^$]/.test(path)) continue;
     if (PATH.test(path)) check(file, text, path, match.index);
   }
   // Match standalone tokens, never a suffix of /tmp/.../src or weapons-src/...; punctuation may follow prose paths.

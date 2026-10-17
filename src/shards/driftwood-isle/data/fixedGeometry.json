@@ -1,0 +1,617 @@
+{
+  "draws": [
+    {
+      "slot": "wendellHead",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/wendell-head.glb"
+    },
+    {
+      "slot": "pierWorld0Deck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-0-deck.glb"
+    },
+    {
+      "slot": "pierWorld0Cloth",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-0-cloth.glb"
+    },
+    {
+      "slot": "pierWorld1Deck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-1-deck.glb"
+    },
+    {
+      "slot": "pierWorld1Cloth",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-1-cloth.glb"
+    },
+    {
+      "slot": "pierWorld2Deck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-2-deck.glb"
+    },
+    {
+      "slot": "pierWorld3Deck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-3-deck.glb"
+    },
+    {
+      "slot": "pierWorld3Cloth",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-world-3-cloth.glb"
+    },
+    {
+      "slot": "pierSpecimenJettyDeck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-specimen-jetty-deck.glb"
+    },
+    {
+      "slot": "pierSpecimenLongDeck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-specimen-long-deck.glb"
+    },
+    {
+      "slot": "pierSpecimenLandingDeck",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-specimen-landing-deck.glb"
+    },
+    {
+      "slot": "pierSpecimenLandingCloth",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/pier-specimen-landing-cloth.glb"
+    },
+    {
+      "slot": "shrineKit",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-kit.glb"
+    },
+    {
+      "slot": "shrineWater",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-water.glb"
+    },
+    {
+      "slot": "shrineGlyphs",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-glyphs.glb"
+    },
+    {
+      "slot": "shrineSpecimenKit",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-specimen-kit.glb"
+    },
+    {
+      "slot": "shrineSpecimenWater",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-specimen-water.glb"
+    },
+    {
+      "slot": "shrineSpecimenGlyphs",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-specimen-glyphs.glb"
+    },
+    {
+      "slot": "trailside",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/trailside.glb"
+    },
+    {
+      "slot": "coveStructure",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cove-structure.glb"
+    },
+    {
+      "slot": "coveRocks",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cove-rocks.glb"
+    },
+    {
+      "slot": "coveGlow",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cove-glow.glb"
+    },
+    {
+      "slot": "covePools",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cove-pools.glb"
+    },
+    {
+      "slot": "ironSwordBlade",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/iron-sword-blade.glb"
+    },
+    {
+      "slot": "ironSwordFittings",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/iron-sword-fittings.glb"
+    },
+    {
+      "slot": "hat",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/captain-hat.glb"
+    },
+    {
+      "slot": "cape",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/sailcloth-cape.glb"
+    },
+    {
+      "slot": "boatHull",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/boat-hull.glb"
+    },
+    {
+      "slot": "boatSail",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/boat-sail.glb"
+    },
+    {
+      "slot": "boatGear",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/boat-gear.glb"
+    },
+    {
+      "slot": "tradeCounter",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/trade-counter.glb"
+    },
+    {
+      "slot": "trophyPlaques",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/trophy-plaques.glb"
+    },
+    {
+      "slot": "trophyDrop",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/trophy-drop.glb"
+    },
+    {
+      "slot": "chime",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/sea-glass-chime.glb"
+    },
+    {
+      "slot": "coverTuft",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-tuft.glb"
+    },
+    {
+      "slot": "coverFern",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-fern.glb"
+    },
+    {
+      "slot": "coverHibiscus",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-hibiscus.glb"
+    },
+    {
+      "slot": "coverDaisy",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-daisy.glb"
+    },
+    {
+      "slot": "coverPebble",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-pebble.glb"
+    },
+    {
+      "slot": "coverShells",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-shells.glb"
+    },
+    {
+      "slot": "coverStarfish",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-starfish.glb"
+    },
+    {
+      "slot": "coverBush",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-bush.glb"
+    },
+    {
+      "slot": "coverTuftFar",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-tuftFar.glb"
+    },
+    {
+      "slot": "coverFernFar",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-fernFar.glb"
+    },
+    {
+      "slot": "coverHibiscusFar",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-hibiscusFar.glb"
+    },
+    {
+      "slot": "coverDaisyFar",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-daisyFar.glb"
+    },
+    {
+      "slot": "coverBushFar",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-bushFar.glb"
+    },
+    {
+      "slot": "hutKit",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/hut-kit.glb"
+    },
+    {
+      "slot": "hutFlames",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/hut-flames.glb"
+    },
+    {
+      "slot": "lookout",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/lookout.glb"
+    },
+    {
+      "slot": "wreckKit",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/wreck-kit.glb"
+    },
+    {
+      "slot": "wreckGlow",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/wreck-glow.glb"
+    },
+    {
+      "slot": "wreckRocks",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/wreck-rocks.glb"
+    },
+    {
+      "slot": "shipwreckKit",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shipwreck-kit.glb"
+    },
+    {
+      "slot": "shipwreckGlow",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shipwreck-glow.glb"
+    },
+    {
+      "slot": "duneLogs",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cover-driftwood.glb"
+    },
+    {
+      "slot": "bridgePosts",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/bridge-posts.glb"
+    },
+    {
+      "slot": "bridgeSpecimenPosts",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb"
+    },
+    {
+      "slot": "waterfallSheet",
+      "channels": [
+        [
+          "_astep",
+          "aStep"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/waterfall-sheet.glb"
+    },
+    {
+      "slot": "waterfallRings",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb"
+    },
+    {
+      "slot": "waterfallPuffs",
+      "channels": [
+        [
+          "_acentre",
+          "aCentre"
+        ],
+        [
+          "_ainfo",
+          "aInfo"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/waterfall-puffs.glb"
+    },
+    {
+      "slot": "cargoBarrel",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cargo-barrel.glb"
+    },
+    {
+      "slot": "cargoBarrelLying",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cargo-barrel-lying.glb"
+    },
+    {
+      "slot": "cargoCrate",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cargo-crate.glb"
+    },
+    {
+      "slot": "cargoCrateBroken",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cargo-crate-broken.glb"
+    },
+    {
+      "slot": "cargoCoil",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/cargo-coil.glb"
+    },
+    {
+      "slot": "shrineFireflies",
+      "channels": [
+        [
+          "_afly",
+          "aFly"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/shrine-fireflies.glb"
+    },
+    {
+      "slot": "gull",
+      "channels": [
+        [
+          "_apart",
+          "aPart"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/gull.glb"
+    },
+    {
+      "slot": "castawaySmoke",
+      "channels": [
+        [
+          "_apuff",
+          "aPuff"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/castaway-smoke.glb"
+    },
+    {
+      "slot": "driftLogLong",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/drift-log-long.glb"
+    },
+    {
+      "slot": "driftLogShort",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/drift-log-short.glb"
+    },
+    {
+      "slot": "driftLogPale",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/drift-log-pale.glb"
+    },
+    {
+      "slot": "reefFish",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/reef-fish.glb"
+    },
+    {
+      "slot": "mooringLines",
+      "channels": [
+        [
+          "_amoor",
+          "aMoor"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/mooring-lines.glb"
+    },
+    {
+      "slot": "npcTraderBody",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-trader-body.glb"
+    },
+    {
+      "slot": "npcTraderHead",
+      "channels": [
+        [
+          "_sway",
+          "aSway"
+        ]
+      ],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-trader-head.glb"
+    },
+    {
+      "slot": "npcTraderUpper",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-trader-upper.glb"
+    },
+    {
+      "slot": "npcTraderFore",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-trader-fore.glb"
+    },
+    {
+      "slot": "npcCastawayBody",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-castaway-body.glb"
+    },
+    {
+      "slot": "npcCastawayCamp",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-castaway-camp.glb"
+    },
+    {
+      "slot": "npcCastawayHead",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-castaway-head.glb"
+    },
+    {
+      "slot": "npcCastawayArm",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-castaway-arm.glb"
+    },
+    {
+      "slot": "npcCastawayFlames",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/npc-castaway-flames.glb"
+    },
+    {
+      "slot": "entryDeckWorld",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/entry-deck-world.glb"
+    },
+    {
+      "slot": "entryDeckDeep",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/entry-deck-deep.glb"
+    },
+    {
+      "slot": "entryDeckShallow",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/entry-deck-shallow.glb"
+    }
+  ],
+  "groups": {
+    "cargo": {
+      "barrel": "cargoBarrel",
+      "lying": "cargoBarrelLying",
+      "crate": "cargoCrate",
+      "broken": "cargoCrateBroken",
+      "coil": "cargoCoil"
+    },
+    "driftLogs": {
+      "long": "driftLogLong",
+      "short": "driftLogShort",
+      "pale": "driftLogPale"
+    },
+    "npc": {
+      "trader": {
+        "body": "npcTraderBody",
+        "head": "npcTraderHead",
+        "upper": "npcTraderUpper",
+        "fore": "npcTraderFore"
+      },
+      "castaway": {
+        "body": "npcCastawayBody",
+        "camp": "npcCastawayCamp",
+        "head": "npcCastawayHead",
+        "arm": "npcCastawayArm",
+        "flames": "npcCastawayFlames"
+      }
+    },
+    "entryDecks": {
+      "world": "entryDeckWorld",
+      "deep": "entryDeckDeep",
+      "shallow": "entryDeckShallow"
+    },
+    "cover": {
+      "tuft": "coverTuft",
+      "fern": "coverFern",
+      "hibiscus": "coverHibiscus",
+      "daisy": "coverDaisy",
+      "pebble": "coverPebble",
+      "shells": "coverShells",
+      "starfish": "coverStarfish",
+      "bush": "coverBush",
+      "tuftFar": "coverTuftFar",
+      "fernFar": "coverFernFar",
+      "hibiscusFar": "coverHibiscusFar",
+      "daisyFar": "coverDaisyFar",
+      "bushFar": "coverBushFar"
+    },
+    "piers": {
+      "world-0": {
+        "deck": "pierWorld0Deck",
+        "cloth": "pierWorld0Cloth"
+      },
+      "world-1": {
+        "deck": "pierWorld1Deck",
+        "cloth": "pierWorld1Cloth"
+      },
+      "world-2": {
+        "deck": "pierWorld2Deck",
+        "cloth": null
+      },
+      "world-3": {
+        "deck": "pierWorld3Deck",
+        "cloth": "pierWorld3Cloth"
+      },
+      "specimen-jetty": {
+        "deck": "pierSpecimenJettyDeck",
+        "cloth": null
+      },
+      "specimen-long": {
+        "deck": "pierSpecimenLongDeck",
+        "cloth": null
+      },
+      "specimen-landing": {
+        "deck": "pierSpecimenLandingDeck",
+        "cloth": "pierSpecimenLandingCloth"
+      }
+    }
+  }
+}

@@ -13,7 +13,7 @@ import { driftwoodRows } from '../boot/rows';
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
-import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
+import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 

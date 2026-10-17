@@ -28,7 +28,7 @@ import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { driftwoodRows } from '../boot/rows';
-import { NPC_KIT_GEOMETRY, fixedDraw } from '../boot/modelGeometry';
+import { fixedDraw, fixedGeometryGroups } from '../boot/blobAssets';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -84,12 +84,12 @@ export class Castaway {
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
     this.group.rotation.y = this.bodyYaw;
     // his kit meshes are baked offline (generators/npcKits.ts); the camp, built about its fire, moves to where it burns
-    const kit = NPC_KIT_GEOMETRY.castaway;
-    const geometry = new Map<string, THREE.BufferGeometry>([['body', kit.body.copy()], ['camp', kit.camp.copy().translate(f.x, f.y, f.z)], ['head', kit.head.copy()], ['arm', kit.arm.copy()]]);
+    const kit = fixedGeometryGroups().npc.castaway;
+    const geometry = new Map<string, THREE.BufferGeometry>([['body', fixedDraw(kit.body).copy()], ['camp', fixedDraw(kit.camp).copy().translate(f.x, f.y, f.z)], ['head', fixedDraw(kit.head).copy()], ['arm', fixedDraw(kit.arm).copy()]]);
     // flames (unlit, bloom)
     const flameMat = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(1.8, 1.8, 1.8) });
     flameMat.name = 'castaway-flame';
-    this.flames = new THREE.Mesh(kit.flames.copy(), flameMat);
+    this.flames = new THREE.Mesh(fixedDraw(kit.flames).copy(), flameMat);
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──

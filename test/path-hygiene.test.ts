@@ -25,6 +25,9 @@ test('ownership declaration suffixes preserve the module existence check', () =>
     put('scripts/shard-components.mjs', "const owner = 'src/deleted.ts#live';");
     expect(run().status).toBe(1);
     put('scripts/shard-components.mjs', "const owner = 'src/live.ts#live';");
+    put('scripts/consumer.py', "source = r'test/missing.ts'\n");
+    expect(run().status).toBe(1);
+    put('scripts/consumer.py', '');
     put('scripts/consumer.mjs', "const source = 'src/missing.ts';");
     expect(run().status).toBe(1);
   } finally { rmSync(root, { recursive: true, force: true }); }

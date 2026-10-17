@@ -8,8 +8,9 @@ import {driftwoodRows} from '../boot/rows';
 import {pierParamsKey,type PierParams} from '../../assets/contracts/pier';
 import {PIER_DEFAULTS,PIER_VARIANTS} from '../../data/pierRows';
 import rows from '../../data/piers.generated.json' with {type:'json'};
-import {fixedGeometryReady,loadFixedGeometry,PIER_GEOMETRIES} from '../boot/modelGeometry';
+import {fixedGeometryReady,loadFixedGeometry,fixedDraw,fixedGeometryGroups} from '../boot/blobAssets';
 
+const pierDraws = (key: string): { deck: string; cloth: string | null } | undefined => Object.entries(fixedGeometryGroups().piers).find(([id]) => id === key)?.[1];
 const pair=(v:readonly number[]):[number,number]=>{const [a,b]=v;if(a===undefined||b===undefined||v.length!==2)throw new Error('Pier row requires a pair');return [a,b];};
 const admit=(p:typeof rows[number]['params']):PierParams=>({length:p.length,width:p.width,pileDepth:p.pileDepth,pennantDir:pair(p.pennantDir),
  landing:p.landing===null?null:{...p.landing,postGround:pair(p.landing.postGround)},
@@ -38,9 +39,9 @@ export const pier=defineModel<PierParams>({
  defaults:PIER_DEFAULTS,variants:PIER_VARIANTS,seed:SEED^0x9e37,
  ...libraryModel<PierParams,'still'|'pennant'>({
   draws:p=>{const key=pierGeometryKey(p);return [{draw:`${key}/deck`,material:'still',castShadow:true,receiveShadow:true},
-   ...(PIER_GEOMETRIES.get(key)?.cloth?[{draw:`${key}/cloth`,material:'pennant' as const,castShadow:true}]:[])];},
-  geometry:(_,draw)=>{const [key,part]=draw.split('/'),g=PIER_GEOMETRIES.get(key??'')?.[part==='cloth'?'cloth':'deck'];
-   if(!g)throw new Error(`Missing authored pier geometry ${draw}`);return g.copy();},
+   ...(pierDraws(key)?.cloth?[{draw:`${key}/cloth`,material:'pennant' as const,castShadow:true}]:[])];},
+  geometry:(_,draw)=>{const [key,part]=draw.split('/'),g=pierDraws(key??'')?.[part==='cloth'?'cloth':'deck'];
+   if(!g)throw new Error(`Missing authored pier geometry ${draw}`);return fixedDraw(g).copy();},
   material:(ctx,key)=>lowPolyLookMaterial(ctx.sky,key),colliders:pierColliders,
   loading:{id:'driftwood-isle/pier',ready:fixedGeometryReady,load:()=>loadFixedGeometry(),size:p=>[p.width+2,10,p.length]},
  }),

@@ -18,7 +18,7 @@ import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { SlotGeometry } from '../models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
-import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
+import { loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 import { driftwoodRows } from '../boot/rows';
 
 export type TrophyId = 'bear' | 'boar';

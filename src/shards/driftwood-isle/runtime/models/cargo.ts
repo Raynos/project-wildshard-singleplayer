@@ -8,7 +8,7 @@
  */
 import { defineModel, type ModelContext, type ModelPart, type ModelDef } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { CARGO_GEOMETRY, DRIFT_LOG_GEOMETRY, loadFixedGeometry } from '../boot/modelGeometry';
+import { fixedDraw, loadFixedGeometry, fixedGeometryGroups } from '../boot/blobAssets';
 
 /** Every wooden card copies the same prepared template before applying its authored scale. */
 function specimen(ctx: ModelContext, key: string, template: { copy: () => ModelPart['geometry'] }, sx = 1, sy = sx, sz = sy): readonly ModelPart[] {
@@ -17,8 +17,8 @@ function specimen(ctx: ModelContext, key: string, template: { copy: () => ModelP
     return sx === 1 && sy === 1 && sz === 1 ? geometry : geometry.scale(sx, sy, sz);
   }), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
 }
-function cargoSpecimen(ctx: ModelContext, id: string, kind: keyof typeof CARGO_GEOMETRY, k = 1): readonly ModelPart[] {
-  return specimen(ctx, `${id}:${kind}:${k}`, CARGO_GEOMETRY[kind], k);
+function cargoSpecimen(ctx: ModelContext, id: string, kind: keyof ReturnType<typeof fixedGeometryGroups>['cargo'], k = 1): readonly ModelPart[] {
+  return specimen(ctx, `${id}:${kind}:${k}`, fixedDraw(fixedGeometryGroups().cargo[kind]), k);
 }
 
 /** Existing card differences, with one preparation and catalog declaration for the cargo family. */
@@ -80,6 +80,6 @@ export const driftLog = cargoModel<DriftLogParams>({
   ],
   build: (ctx, p) => {
     const t = DRIFT_LOG_TEMPLATES[((Math.round(p.tone) % 3) + 3) % 3] ?? DRIFT_LOG_TEMPLATES[0], sx = p.len / t.len, sr = p.r0 / t.r0;
-    return specimen(ctx, `driftwood-isle/drift-log:${t.kind}:${sx}:${sr}`, DRIFT_LOG_GEOMETRY[t.kind], sx, sr, sr);
+    return specimen(ctx, `driftwood-isle/drift-log:${t.kind}:${sx}:${sr}`, fixedDraw(fixedGeometryGroups().driftLogs[t.kind]), sx, sr, sr);
   },
 });

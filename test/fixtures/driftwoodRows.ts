@@ -1,3 +1,5 @@
+import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
+import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
 import { DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/generators/assets';
@@ -14,6 +16,7 @@ export function admitDriftwoodFixtureAliases(byUrl: Readonly<Record<string, stri
   for (const row of DRIFTWOOD_CLIENT_SECTIONS) { const value: unknown = JSON.parse(JSON.stringify(row.value)); sections.set(row.name, value); }
   sections.set('custom/assets', { byUrl });
   const identity = { slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 1 };
-  admitDriftwoodRows(createShardProduct({ slug: 'driftwood-isle', revision: 1, shardfile: emptyShardfile(identity), sections, files: new Map(),
-    read: () => Promise.reject(new Error('no files in this fixture')), check: true }));
+  const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups)), hash = hashImmutableBytes(bytes);
+  admitDriftwoodRows(createShardProduct({ slug: 'driftwood-isle', revision: 1, shardfile: emptyShardfile(identity), sections, files: new Map([['models/fixed-geometry.json', { hash, url: '/fixed-geometry.json' }]]),
+    read: name => name === hash ? Promise.resolve(bytes) : Promise.reject(new Error('no such file in this fixture')), check: true }));
 }

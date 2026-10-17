@@ -17,7 +17,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { loadReefWorld } from '../runtime/boot/reefGeometry';
-import { loadFixedGeometry, fixedDraw } from '../runtime/boot/modelGeometry';
+import { loadFixedGeometry, fixedDraw } from '../runtime/boot/blobAssets';
 import { reefMaterial } from '../runtime/models/reef';
 import { SEABED } from '../data/seabedLook';
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };

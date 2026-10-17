@@ -1,5 +1,5 @@
 import type { BufferGeometry } from 'three';
-import { fixedDraw as modelGeometry } from './modelGeometry';
+import { fixedDraw as modelGeometry } from './blobAssets';
 import { driftwoodRows } from './rows';
 
 const template = modelGeometry('trailside');

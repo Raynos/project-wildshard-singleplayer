@@ -173,3 +173,12 @@ export const EnemyPlacementsSchema = v.strictObject({ seed: natural,
   practice: v.strictObject({ x: number, z: number }), hold: v.strictObject({ x: number, z: number }),
   page: v.strictObject({ phone: placement, desktop: placement }), native: placement });
 export type EnemyPlacements = v.InferOutput<typeof EnemyPlacementsSchema>;
+
+/** Named geometry bootstrap data; no private section or executable mirror is added. */
+export const FixedGeometryGroupsSchema = v.strictObject({
+    cargo: v.strictObject({ barrel: text, lying: text, crate: text, broken: text, coil: text }),
+    driftLogs: v.strictObject({ long: text, short: text, pale: text }),
+    npc: v.strictObject({ trader: v.strictObject({ body: text, head: text, upper: text, fore: text }), castaway: v.strictObject({ body: text, camp: text, head: text, arm: text, flames: text }) }),
+    entryDecks: v.strictObject({ world: text, deep: text, shallow: text }),
+    cover: v.record(text, text), piers: v.record(text, v.strictObject({ deck: text, cloth: v.nullable(text) })),
+});
