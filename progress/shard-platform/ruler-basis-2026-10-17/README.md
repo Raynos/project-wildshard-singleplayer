@@ -116,3 +116,9 @@ Validation on that exact tree: root and layer types, typed lint, all ten
 shardfile products, and 35 focused tests (including all 17 shard-headless
 cases) passed. The historical Git-object verifier also passed. No browser
 or look proof is needed for this tooling-only correction.
+
+The first push gate additionally selected the closure report fixture and
+caught its missing product. The follow-up gives that fixture an emitted
+product and explicitly checks missing-inventory refusal first; it keeps
+the no-percentage/no-source-fallback assertions. All eight focused report
+tests pass. The initial gate's other 350 selected tests passed.

@@ -7,6 +7,7 @@ import {join,dirname} from 'node:path';
 import {tmpdir} from 'node:os';
 import {runtimeClosures} from '../scripts/shard-runtime-closure.mjs';
 import {outputReport} from '../scripts/shard-output-report.mjs';
+import {platformOutput} from './fixtures/platformOutputs';
 
 it('reports per-shard raw escapes with no percentage or source fallback',async()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-closure-'));
@@ -19,6 +20,8 @@ it('reports per-shard raw escapes with no percentage or source fallback',async()
   expect(closure?.status).toBe('unclosed');
   expect(closure?.escapes).toBe(2);
   expect(closure?.files).toHaveLength(2);
+  await expect(outputReport(root,{build:false})).rejects.toThrow('section inventory missing');
+  platformOutput(root,'pine-hollow');
   const report=await outputReport(root,{build:false});
   expect(report.rows['pine-hollow']).toMatchObject({status:'unclosed',escapes:2,customPercent:null,port:null});
   expect(report.measures['pine-hollow']).toBeUndefined();
