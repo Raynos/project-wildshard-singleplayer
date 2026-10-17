@@ -11,12 +11,14 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { defineModel } from '@wildshard/engine/models/model';
 import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
+import { pickupLook } from '@wildshard/engine/world/interact/types';
 
 const TOKENS = 8, SCALE = 0.6, PITCH = 0.185, LEAN = -0.14;
 
 /** the rack + tokens in the rack's frame: origin on the mantel top under the rack's centre, +Z out into the room */
 export function tokenShelfGeometry(): THREE.BufferGeometry {
+  const carvedToken = pickupLook('token')?.parts[0]?.geometry;
+  if (carvedToken === undefined) throw new Error('Token shelf requires the installed pickup catalogue');
   const k = new LowPolyKit(8088);
   const len = TOKENS * PITCH + 0.12, r = (0.15 * SCALE);
   k.add(plank(len, 0.13, 0.03, k.rng, 0.004).translate(0, 0.015, 0), '#9a7048', { jitter: 0.05 });            // the base

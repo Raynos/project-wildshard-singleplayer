@@ -14,12 +14,24 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
+import { unzlibSync } from 'fflate';
+import * as v from 'valibot';
+import { readBakedGeometry } from '@wildshard/game/plugin/geometry';
+import { PickupCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';
+
+const tokens = v.parse(PickupCatalogueSchema, pickupRows).geometries.filter(row => row.key === 'token');
+/** The shelf's eight authored seed variants use the same prepared bytes as the legacy live shelf. */
+function carvedToken(seed: number): THREE.BufferGeometry {
+  const row = tokens.find(candidate => candidate.seed === seed);
+  if (row === undefined) throw new Error(`Missing prepared shelf token ${seed}`);
+  return readBakedGeometry(unzlibSync(Uint8Array.from(atob(row.data), character => character.codePointAt(0) ?? 0)), 0, row.geometry);
+}
 
 const uvScale = (g: THREE.BufferGeometry, su: number, sv: number): THREE.BufferGeometry => {
   const uv = g.getAttribute('uv');

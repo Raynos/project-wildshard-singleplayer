@@ -4731,6 +4731,17 @@ binary and checks its byte count and complete geometry coverage. `use(raw)`
 admits the same inflated bytes in Node (`catalogue.usePacked(raw)` for a
 complete catalogue); each build owns fresh typed arrays,
 retaining the original index, optional non-indexed expansion and bounds.
+
+`installPickupCatalogue(rows)` explicitly installs prepared pickup looks
+for interaction tables and the loot coin model. `PickupCatalogueSchema`
+declares each model's identity, specimen height, ordered lit/glow parts,
+bob/pulse values and finite seed-qualified geometries. Each geometry stores
+zlib-compressed base64 bytes with the existing packed-geometry metadata;
+an owner receives fresh arrays through `readBakedGeometry`. Registration
+keeps only encoded bytes, never decoded templates. Missing seeds refuse.
+Driftwood's glyphs/glass and Pine's flint/resin/tokens use the same host;
+the offline producer runs the real interaction cache to retain spawn order
+and includes Explorer, loot-burst and frozen shelf seeds.
 Parts bind their declared material slots in order and announce model-ready
 after their group fills. `specimenMaterial(sky, row)`,
 `loadSpecimenTexture(row)` and `loadBoundSpecimen(sky, row)` share material,

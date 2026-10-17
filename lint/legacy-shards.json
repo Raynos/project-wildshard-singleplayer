@@ -321,7 +321,7 @@
         "models/skinningKnife.ts": "85d67899fb028f60792bbeacb96b2d294ff9f5ff59a5a9a25c58f934dd0ec0de",
         "models/standingStone.ts": "2b583ca5bc62c6026c19f0c92cbb5374ab66f2869dd2b96207597da0810a9a6a",
         "models/stoneFirePit.ts": "10421ba4a481ed93d696d6ce15fc9457555a876512b2321a2b39e33a7756dea6",
-        "models/tokenShelf.ts": "9bd8171af67c70b2507838dab5155ec4be81eabd04710c78f5efe7f534a3a23e",
+        "models/tokenShelf.ts": "55d889e420b699a003d09d9f122bd926a73f34c4360bc8d4e807d81cd4b989ef",
         "models/traderStall.ts": "9e463f79c9ac6ab7cf4f8d0da0a940ff8dcc78d4281529f102cf4178827c817d",
         "models/treeStump.ts": "b52b88d8109e93d79f16c3969cee57706cd9277bf77a4fdff0ed30741084739a",
         "models/watermill.ts": "800ed44b65259f664eecb187dadf857a7d724f5835cf04c2b3af7590eaac333b",
@@ -470,6 +470,11 @@
           "original": "d22a5222b31b82cee052b38e3e593da80593cfb15c8619788c0ac9559cd3a919",
           "current": "a83363125e6c57f39a813bad8d976aded657801fc3ba359be82bc156078d9358",
           "reason": "Keep the frozen grazer definitions and model loadable after the primary moves to generated JSON (G469 coordinator-approved compatibility move)."
+        },
+        "models/tokenShelf.ts": {
+          "original": "9bd8171af67c70b2507838dab5155ec4be81eabd04710c78f5efe7f534a3a23e",
+          "current": "55d889e420b699a003d09d9f122bd926a73f34c4360bc8d4e807d81cd4b989ef",
+          "reason": "Preserve shelf seeds 1000..1007 after removing the live pickup geometry API; resolve the identical prepared token geometry through the installed look."
         }
       }
     },

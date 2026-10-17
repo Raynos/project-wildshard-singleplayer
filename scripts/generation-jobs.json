@@ -3,6 +3,38 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "shared-pickups",
+      "shard": null,
+      "entry": "scripts/bake-pickups.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "scripts/bake-pickups.mjs"
+      ],
+      "catalogueDependencies": [
+        "pine-spots"
+      ],
+      "inputRoots": [
+        "scripts/bake-pickups.mjs",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "src/engine",
+        "src/game",
+        "src/format",
+        "src/shards/driftwood-isle/data/interactables.ts",
+        "src/shards/driftwood-isle-legacy/quest/interactables.ts",
+        "src/shards/pine-hollow/generators/questTable.ts",
+        "src/shards/pine-hollow/generators/interactions.ts",
+        "src/shards/pine-hollow/data/spots.generated.json",
+        "src/shards/pine-hollow-legacy/quest/table.ts"
+      ],
+      "outputs": [
+        "src/game/data/pickupCatalogue.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "pine-layout",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-layout.mjs",

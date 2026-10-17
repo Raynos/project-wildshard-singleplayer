@@ -111,10 +111,11 @@ async function startSelected(): Promise<void> {
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
-  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
+  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
     retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
-    retried(() => import('./game/models/pickups')), retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
+    retried(() => import('./game/models/specimenCatalogue')), retried(() => import('./game/data/pickupCatalogue.json')),
+    retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
     retried(() => import('./game/systems/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/plugin/weaponFamily')),
   ]);
@@ -139,7 +140,7 @@ async function startSelected(): Promise<void> {
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
     installKitSpecies();
     installKitIcons();
-    installKitPickups();
+    installPickupCatalogue(PICKUP_CATALOGUE);
     installKitProps();
     const { startSession } = await retried(() => import('./game/session/session'));
     await startSession(manifest, {

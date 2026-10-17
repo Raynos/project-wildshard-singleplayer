@@ -1,4 +1,5 @@
-import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
+import { unzlibSync } from 'fflate';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -13,6 +14,42 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { painterlyMaterial, painterlyKnobs } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { bakedGeometryBytes, readBakedGeometry, fetchLaneBake, type BakedGeometryRow } from '../plugin/geometry';
+import { pickup } from '@wildshard/engine/models/interact';
+import { interactParts } from '@wildshard/engine/world/interact/kit';
+import { registerPickupLook, type PickupPart } from '@wildshard/engine/world/interact/types';
+import { installCoinModel } from '../loot/coinModel';
+
+/** Install prepared pickup looks shared by authored interaction tables and loot effects.
+ * Each request owns fresh geometry; unknown seeds refuse and no decoded template is retained. */
+export function installPickupCatalogue(input: unknown): void {
+  jsonData(input);
+  const rows = v.parse(PickupCatalogueSchema, input);
+  const keys = rows.geometries.map(row => `${row.key}:${row.seed}`);
+  if (new Set(keys).size !== keys.length || new Set(rows.looks.map(row => row.id)).size !== rows.looks.length
+    || new Set(rows.looks.map(row => row.model)).size !== rows.looks.length) throw new Error('Duplicate pickup declaration');
+  if (rows.looks.some(row => row.parts.some(part => !keys.includes(`${part.key}:${rows.seed}`)))) throw new Error('Missing pickup specimen geometry');
+  const geometry = (key: string, seed: number): THREE.BufferGeometry => {
+    const row = rows.geometries.find(candidate => candidate.key === key && candidate.seed === seed);
+    if (row === undefined) throw new Error(`No prepared pickup geometry: ${key}:${seed}`);
+    const compressed = Uint8Array.from(atob(row.data), character => character.codePointAt(0) ?? 0);
+    const bytes = unzlibSync(compressed);
+    if (bytes.length !== bakedGeometryBytes(row.geometry)) throw new Error(`Invalid prepared pickup bytes: ${key}:${seed}`);
+    return readBakedGeometry(bytes, 0, row.geometry);
+  };
+  for (const row of rows.looks) {
+    const model = pickup(row.model, row.name, row.lift, ctx => row.parts.map(part =>
+      interactParts[part.batch](ctx, geometry(part.key, rows.seed))), rows.file);
+    registerPickupLook(row.id, { model, batch: row.batch, lift: row.lift,
+      parts: row.parts.map(part => {
+        const bound: PickupPart = { key: part.key, batch: part.batch, geometry: seed => geometry(part.key, seed) };
+        if (part.bob !== undefined) bound.bob = part.bob;
+        if (part.pulse !== undefined) bound.pulse = part.pulse;
+        return bound;
+      }),
+    });
+  }
+  installCoinModel(seed => geometry(rows.coin, seed));
+}
 
 /** Data-only material binding. Cache identities are shared with live world users. */
 export interface SpecimenMaterialRow {

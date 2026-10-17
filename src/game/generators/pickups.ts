@@ -1,24 +1,14 @@
 import * as THREE from 'three';
-import { pickup as pickupModel } from '@wildshard/engine/models/interact';
 import { rock } from '@wildshard/engine/world/geometryKit';
-import { interactParts } from '@wildshard/engine/world/interact/kit';
-import { registerPickupLook, type PickupLook } from '@wildshard/engine/world/interact/types';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { coinModel, installCoinModel } from '../loot/coinModel';
 
 const M = new THREE.Matrix4();
 const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0): THREE.Matrix4 =>
   M.compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(1, 1, 1));
 const done = (kit: LowPolyKit): THREE.BufferGeometry => kit.finish({ ao: false });
 
-/**
- * The kit's pickups (moved from the engine's interactables, E405 LAYER-PURITY): a pickup row's `look` names one of these.
- * Each has its batched model (the far draw, the Model Explorer card) and the parts drawn up close, bobbing and spinning.
- * installKitPickups registers them.
- */
-const FILE = 'src/game/models/pickups.ts';
+/** Original pickup builders, retained only for offline exact-byte bakes. */
 const SEED = 0x1a7e;
-const { lit, glow } = interactParts;
 
 export function seaGlassGeometry(seed = SEED): THREE.BufferGeometry {
   const k = new LowPolyKit(seed);
@@ -77,30 +67,26 @@ export function tokenRimGeometry(seed = SEED): THREE.BufferGeometry {
   return done(k);
 }
 
-export const flintKit = pickupModel('shared/flint-kit', 'Flint & steel', 0, (ctx) => [lit(ctx, flintKitGeometry())], FILE);
-export const seaGlass = pickupModel('shared/sea-glass', 'Sea glass', 0.45, (ctx) => [glow(ctx, seaGlassGeometry())], FILE);
-export const doubloon = pickupModel('shared/doubloon', 'Doubloon', 0.6, (ctx) => [glow(ctx, coinModel(SEED))], FILE);
-export const resinDrop = pickupModel('shared/resin-drop', 'Resin drop', 0, (ctx) => [glow(ctx, resinDropGeometry())], FILE);
-export const carvedToken = pickupModel('shared/carved-token', 'Carved token', 0.55, (ctx) => [lit(ctx, carvedTokenGeometry(SEED)), glow(ctx, tokenRimGeometry())], FILE);
-export const glyphShard = pickupModel('shared/glyph-shard', 'Glyph shard', 1.2, (ctx) => [glow(ctx, glyphShardGeometry())], FILE);
+export function coinGeometry(seed = SEED): THREE.BufferGeometry {
+  const k = new LowPolyKit(seed);
+  k.add(new THREE.CylinderGeometry(0.07, 0.07, 0.014, 8).rotateX(Math.PI / 2), '#f2c44d', { jitter: 0.1 });
+  return done(k);
+}
 
-const LOOKS: Readonly<Record<string, PickupLook>> = {
-  flint: { model: flintKit, batch: 'lit', lift: 0, parts: [{ key: 'flint', batch: 'lit', geometry: flintKitGeometry }] },
-  seaglass: { model: seaGlass, batch: 'glow', lift: 0.45, parts: [{ key: 'seaglass', batch: 'glow', geometry: seaGlassGeometry, bob: [0.45, 0.07, 1.1], pulse: 2.2 }] },
-  coin: { model: doubloon, batch: 'glow', lift: 0.6, parts: [{ key: 'coin', batch: 'glow', geometry: coinModel, bob: [0.6, 0.06, 2.4], pulse: 1.4 }] },
-  resin: { model: resinDrop, batch: 'glow', lift: 0, parts: [{ key: 'resin', batch: 'glow', geometry: resinDropGeometry, bob: [0.0, 0.025, 0.35], pulse: 1.25 }] },
-  token: { model: carvedToken, batch: 'lit', lift: 0.55, parts: [
+/** Original part order, specimen heights and animation laws; no page imports this module. */
+export const authoredPickups = [
+  { id: 'flint', model: 'shared/flint-kit', name: 'Flint & steel', batch: 'lit', lift: 0,
+    parts: [{ key: 'flint', batch: 'lit', geometry: flintKitGeometry }] },
+  { id: 'seaglass', model: 'shared/sea-glass', name: 'Sea glass', batch: 'glow', lift: 0.45,
+    parts: [{ key: 'seaglass', batch: 'glow', geometry: seaGlassGeometry, bob: [0.45, 0.07, 1.1], pulse: 2.2 }] },
+  { id: 'coin', model: 'shared/doubloon', name: 'Doubloon', batch: 'glow', lift: 0.6,
+    parts: [{ key: 'coin', batch: 'glow', geometry: coinGeometry, bob: [0.6, 0.06, 2.4], pulse: 1.4 }] },
+  { id: 'resin', model: 'shared/resin-drop', name: 'Resin drop', batch: 'glow', lift: 0,
+    parts: [{ key: 'resin', batch: 'glow', geometry: resinDropGeometry, bob: [0, 0.025, 0.35], pulse: 1.25 }] },
+  { id: 'token', model: 'shared/carved-token', name: 'Carved token', batch: 'lit', lift: 0.55, parts: [
     { key: 'token', batch: 'lit', geometry: carvedTokenGeometry, bob: [0.55, 0.05, 1.3] },
     { key: 'token-rim', batch: 'glow', geometry: tokenRimGeometry, bob: [0.55, 0.05, 1.3], pulse: 0.9 },
   ] },
-  shard: { model: glyphShard, batch: 'glow', lift: 1.2, parts: [{ key: 'shard', batch: 'glow', geometry: glyphShardGeometry, bob: [1.2, 0.12, 0.9], pulse: 2.2 }] },
-};
-
-export function installKitPickups(): void {
-  installCoinModel((seed) => {
-    const k = new LowPolyKit(seed);
-    k.add(new THREE.CylinderGeometry(0.07, 0.07, 0.014, 8).rotateX(Math.PI / 2), '#f2c44d', { jitter: 0.1 });
-    return done(k);
-  });
-  for (const [id, look] of Object.entries(LOOKS)) registerPickupLook(id, look);
-}
+  { id: 'shard', model: 'shared/glyph-shard', name: 'Glyph shard', batch: 'glow', lift: 1.2,
+    parts: [{ key: 'shard', batch: 'glow', geometry: glyphShardGeometry, bob: [1.2, 0.12, 0.9], pulse: 2.2 }] },
+] as const;

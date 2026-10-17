@@ -31,7 +31,7 @@
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
-    "./models/pickups": "./models/pickups.ts",
+    "./data/pickupCatalogue": "./data/pickupCatalogue.json",
     "./models/creatures": "./models/creatures.ts",
     "./models/libraryModel": "./models/libraryModel.ts",
     "./systems/npc/npcRig": "./systems/npc/npcRig.ts",

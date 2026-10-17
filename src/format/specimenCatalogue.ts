@@ -35,3 +35,14 @@ export const PackedSpecimenSchema = v.object({ bin: assetPath, bytes: whole,
   rows: v.pipe(v.array(v.object({ key: text, parts: v.pipe(v.array(v.object({ material: text, geometry: geometrySchema })), v.maxLength(64)) })), v.maxLength(4096)) });
 export const assertSpecimenJson = (input: unknown): void => { if (!isJsonData(input)) throw new Error('Specimen declarations require plain JSON data'); };
 
+/** Seed-qualified prepared pickup parts. Compressed bytes stay encoded until an owner requests a copy. */
+export const PickupCatalogueSchema = v.strictObject({
+  file: text, seed: whole, coin: text,
+  geometries: v.pipe(v.array(v.strictObject({ key: text, seed: whole, geometry: geometrySchema,
+    data: v.pipe(v.string(), v.minLength(1), v.maxLength(1048576)) })), v.maxLength(256)),
+  looks: v.pipe(v.array(v.strictObject({ id: text, model: text, name: text, lift: finite, batch: v.picklist(['lit', 'glow']),
+    parts: v.pipe(v.array(v.strictObject({ key: text, batch: v.picklist(['lit', 'glow']),
+      bob: v.exactOptional(v.tuple([finite, finite, finite])), pulse: v.exactOptional(finite) })), v.maxLength(16)),
+  })), v.maxLength(64)),
+});
+

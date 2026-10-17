@@ -264,7 +264,7 @@ export const TRANSIENT_PREFIXES = ['plate:'];
 /** Weak actions yield to another reachable prompt. */
 export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }
 
-/** A pickup's look (E405: content registers its own — the game's, src/game/models/pickups.ts): its batched model, and the
+/** A pickup's look (E405: content registers its own — the game's specimen catalogue): its batched model, and the
  *  parts drawn up close, each on the lit or the glow batch, bobbing and spinning (`bob`: rest height, amplitude, spin) */
 export interface PickupPart { key: string; batch: 'lit' | 'glow'; geometry: (seed: number) => BufferGeometry; bob?: readonly [number, number, number]; pulse?: number }
 export interface PickupLook { model: ModelDef<Record<string, never>>; batch: 'lit' | 'glow'; lift: number; parts: readonly PickupPart[] }
