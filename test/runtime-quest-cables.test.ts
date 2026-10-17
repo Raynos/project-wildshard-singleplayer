@@ -4,7 +4,7 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { bindRuntimeQuest } from '../src/game/plugin/headless';
-import { absentShardProduct, createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
 
@@ -27,7 +27,9 @@ test('page quests bind admitted cable rows when authoring config has no modes', 
     const legacyScope = new Scope('unbound-legacy-quest');
     try {
       const legacy: typeof source = { ...source, runtime: { entry: 'runtime/index.ts', binds: ['quests'] } };
-      expect(() => bindRuntimeQuest({ app: new App(), scope: legacyScope, product: absentShardProduct('cable-quest') },
+      expect(() => bindRuntimeQuest({ app: new App(), scope: legacyScope }, source, 'cross',
+        { flags: new Flags('missing-product', false) })).toThrow('Runtime-bound modes require an admitted product');
+      expect(() => bindRuntimeQuest({ app: new App(), scope: legacyScope },
         legacy, 'cross', { flags: new Flags('legacy-quest', false) })).not.toThrow();
     } finally { legacyScope.dispose(); }
   } finally { scope.dispose(); }
