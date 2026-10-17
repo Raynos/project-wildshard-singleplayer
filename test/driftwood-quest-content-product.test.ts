@@ -5,9 +5,10 @@ import { parseQuestStory } from '../src/format/questStory';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/generators/quests';
-import { QUEST_HOST } from '../src/shards/driftwood-isle/data/questHost';
+import source from '../src/shards/driftwood-isle/shard.config';
 import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
 
+const QUEST_HOST = source.questHost;
 const DRIFTWOOD_QUEST = DRIFTWOOD_QUESTS.quests[0];
 if (DRIFTWOOD_QUEST === undefined) throw new Error('Missing declared chapter');
 

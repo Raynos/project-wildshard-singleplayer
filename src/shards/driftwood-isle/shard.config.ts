@@ -3,7 +3,6 @@ import LOOT from './data/loot.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import questRows from './data/questRows.generated.json' with { type: 'json' };
-import { QUEST_HOST } from './data/questHost';
 import { DRIFTWOOD_LEDGER } from './generators/ledger';
 import DRIFTWOOD_SWORDS from './data/items.generated.json' with { type: 'json' };
 import { DRIFTWOOD_SPAWNS } from './generators/spawns';
@@ -54,7 +53,7 @@ export default parseShardfile({
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
   clientChannels: skyChannels.clientChannels,
-  quests: questRows.quests, questHost: QUEST_HOST, questNpcs: questRows.npcs, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
+  quests: questRows.quests, questHost: questRows.host, questNpcs: questRows.npcs, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: AUDIO.audio,
   // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m

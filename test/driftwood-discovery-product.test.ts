@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { beforeAll, expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
