@@ -138,3 +138,5 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 20:50 · wT:pK · `python3 tmp/c3-close/prepare-close.py >tmp/c3-close/close-prepare.log && GIT_INDEX_FILE="$PWD/tmp/c3-close/close.index" SKIP_SWEEPGUARD=1 .githooks/pre-commit >tmp/c3-close/close-land.log 2>&1 && GIT_`
 - 2026-10-16 20:54 · wT:pE · `scripts/serve-build.sh stop 4400; SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py`
 - 2026-10-16 20:58 · wT:pE · `cat tmp/build-mirror/check2/tree/src/shards/driftwood-isle/look/map.baked.json; scripts/serve-build.sh stop 4400 && SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py`
+- 2026-10-16 21:01 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/take-map.py`
+- 2026-10-16 21:03 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/land.py > tmp/c9-native/land.log 2>&1`
