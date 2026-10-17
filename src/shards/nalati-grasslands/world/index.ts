@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/campProps';
+import { graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { app } from '@wildshard/engine/app/runtime';
 import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
@@ -21,6 +21,7 @@ import { buildCairn } from './Cairn';
 import { buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Box } from './solid';
 import { NO_PLUMES, type Ground, type PlumeOptions, type Plumes, type PoiCtx, type PoiPiece, type KurganEntrance, type Ledge } from './types';
+
 
 /**
  * Nalati POIs (B5) — builds every point of interest on the Nalati Grasslands and wires them into the player.

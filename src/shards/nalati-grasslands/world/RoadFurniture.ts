@@ -1,9 +1,11 @@
-/** Baked road furniture with its live canvas lettering atlas. */
 import { bakedPlaceSteps, bakedPlaceAnchors, placer } from './placeBake';
 import { boardSpots } from './painted';
-import { fence } from '../models/campProps';
+import { fence } from '../models/catalogue';
 import { signpost, letteringMesh } from '../models/signpost';
 import type { PoiCtx, PoiPiece } from './types';
+
+
+/** Baked road furniture with its live canvas lettering atlas. */
 
 export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
   const steps = bakedPlaceSteps('roads', ctx, new Map([placer(fence), placer(signpost)]));

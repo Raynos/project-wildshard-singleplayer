@@ -1,3 +1,16 @@
+import { specimenMaterial } from '@wildshard/sdk/kit/specimenCatalogue';
+import trailData from '../boot/specimens.generated.json' with { type: 'json' };
+import * as THREE from 'three';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { fencePost, plankStep, signpost } from '../models/catalogue';
+import { copyTrailsideGeometry } from '../runtime/boot/trailsideGeometry';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
+
+
 /**
  * Trailside — the wooden dressing along Driftwood Isle's sand paths: rope fences (posts with a
  * sagging rope), plank steps set into the steeper climbs, and signposts with arrow boards at the
@@ -5,7 +18,7 @@
  * decoration on the walkable slope.
  *
  * E306 / E315 M1: the fence post, the signpost and the plank step are models
- * (src/shards/driftwood-isle/runtime/models/trailside.ts). The trail builds them in its layout's order from one stream, between
+ * (src/shards/driftwood-isle/models/catalogue.ts). The trail builds them in its layout's order from one stream, between
  * what is its own — the ropes sagging between the posts, the steps' side rails, the trestle stairs. The offline
  * generator welds these into one baked mesh; this builder admits it and places each model `drawnInto` it
  * (its copies, its card, its colliders: pieces `trail-*`). The trail's
@@ -19,22 +32,14 @@
  * seaward rim, steps up the plateau ramp and the headland ramp, signposts at the pier landing and
  * the hut fork.
  */
-import * as THREE from 'three';
-import { modelContext } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { fencePost, plankStep, signpost, trailMaterial } from '../runtime/models/trailside';
-
-import { copyTrailsideGeometry } from '../runtime/boot/trailsideGeometry';
-import { readColliderRows } from '@wildshard/engine/models/colliders';
 
 /** Admit the trail weld; register its native treads at the original world-build phase. */
 export function buildTrailside(sky: Sky, key?: string): { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[]; place: (registry: WorldRegistry) => void } {
   const { geometry: geo, metadata, worldColliders } = copyTrailsideGeometry(key);
   const ctx = modelContext(sky), { posts, signs, planks } = metadata;
-  const mesh = new THREE.Mesh(geo, trailMaterial(ctx));
+  const materialRow = trailData.catalogue[0]?.source.material;
+  if (materialRow === undefined) throw new Error('Missing trail material declaration');
+  const mesh = new THREE.Mesh(geo, specimenMaterial(ctx.sky, materialRow));
   mesh.castShadow = true; mesh.receiveShadow = true;
   const into = (boxes: number[]): { object: THREE.Mesh; boxes: Float32Array } => ({ object: mesh, boxes: Float32Array.from(boxes) });
   const placed: Placed[] = [];

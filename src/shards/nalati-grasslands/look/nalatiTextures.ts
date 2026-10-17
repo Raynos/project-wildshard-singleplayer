@@ -1,3 +1,11 @@
+import { loadSpecimenTexture } from '@wildshard/sdk/kit/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import * as THREE from 'three';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { loadTexture } from '@wildshard/engine/core/assets';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+
+
 /**
  * The Nalati painted texture set (look pass, "painted assets" — docs/design/nalati/look-pass.md; painted-asset agent).
  *
@@ -32,10 +40,8 @@
  *
  * Bytes (measured): desktop 2.78 MB — cards 0.89 · the seven tiles 1.90; phone 0.92 MB — cards 0.32 · tiles 0.61. Nothing here is in the boot manifest: a module that adopts a file loads it lazily.
  */
-import * as THREE from 'three';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
-import { loadTexture } from '@wildshard/engine/core/assets';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+
+const campMaterialRows = specimenData.materials;
 
 export type NalatiTexName = 'meadow' | 'path' | 'gravel' | 'rock' | 'snow' | 'bark' | 'felt';
 
@@ -61,18 +67,10 @@ export function nalatiUrl(name: string): string {
   return `${DIR}${name}${isPhoneTier() ? '.phone' : ''}.webp`;
 }
 
-const cache = new Map<string, Promise<THREE.Texture>>();
-
 /** One painted tileable texture: sRGB, RepeatWrapping, mipmapped, anisotropic. Shared per name — set `repeat` on a clone. */
 export function loadNalatiTexture(name: NalatiTexName): Promise<THREE.Texture> {
-  const url = nalatiUrl(`tex/${name}`);
-  let p = cache.get(url);
-  if (!p) {
-    p = loadTexture(url, true).then((t) => { t.name = `nalati-${name}`; return t; });
-    cache.set(url, p);
-    const cached = p; void cacheUntilDisposed(cached, () => { if (cache.get(url) === cached) cache.delete(url); });
-  }
-  return p;
+  const row = campMaterialRows[name].texture;
+  return loadSpecimenTexture(row);
 }
 
 export async function loadNalatiTextures<K extends NalatiTexName>(names: readonly K[]): Promise<Record<K, THREE.Texture>> {

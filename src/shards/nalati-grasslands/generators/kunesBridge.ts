@@ -1,18 +1,21 @@
 import { logPainter } from './campProps';
-/**
- * The Kunes bridge, painted (generators only; SHARD-PLATFORM M3, the places bake): the painter that used to run on the
- * page, moved verbatim from models/kunesBridge.ts (whose header describes it); its deck floor is data (world/placeBake.ts
- * `deckFloor`). generators/places.ts paints the bridge and its Explorer specimen; the page draws the bake.
- */
 import * as THREE from 'three';
 import type { ModelDef } from '@wildshard/engine/models/model';
-import { kunesBridge, type KunesBridgeParams } from '../models/kunesBridge';
+import { kunesBridge } from './catalogue';
+import type { KunesBridgeParams } from '../data/campParams';
 import { deckFloor } from '../world/placeBake';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { M, v3 } from '../world/paint';
 import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import { slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';
+
+
+/**
+ * The Kunes bridge, painted (generators only; SHARD-PLATFORM M3, the places bake): the painter that used to run on the
+ * page, moved verbatim from models/kunesBridge.ts (whose header describes it); its deck floor is data (world/placeBake.ts
+ * `deckFloor`). generators/places.ts paints the bridge and its Explorer specimen; the page draws the bake.
+ */
 
 const C = {
   plank: new THREE.Color('#9a7550'),

@@ -395,7 +395,7 @@ export function checkModels(files) {
     // The typed geometry/catalogue factories now own these model definitions.
     // Recognize them only inside the existing model contract, not elsewhere.
     const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0)
-      + (inShardModels ? (code.match(/\b(?:defineGeometryModel|modelCatalogue)\(/g) ?? []).length : 0);
+      + (inShardModels ? (code.match(/\b(?:defineGeometryModel|modelCatalogue|defineSpecimenCatalogue)(?:<[^(]*>)?\(/g) ?? []).length : 0);
     if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
     if (inShardModels && calls === 0 && !MODEL_SUPPORT.has(file)) violations.push(`${file}: a file in a models folder that defines no model`);
     for (const id of defines) {

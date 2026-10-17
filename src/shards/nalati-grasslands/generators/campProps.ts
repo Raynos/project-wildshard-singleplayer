@@ -5,12 +5,17 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { M, v3, type ColorLike, type Painter, type PaintOpts } from '../world/paint';
 import { pole, lathe, blob } from '@wildshard/engine/world/geometryKit';
 import { TEX_MEAN } from '../look/nalatiTextures';
-import { painted, type Kit, type Paint, boardSpots, type SignpostParams } from '../world/painted';
-import { EAGLE_PERCH_H, ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, tetherLine, kurtBoard, ribbonPost, type BarrelParams, type CorralParams, type HitchingRailParams, type PalsParams, type RugLineParams, type RugParams, type SpanParams, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter, fence, graniteOutcrop, roundedBoulder, kokparGoal, kokparPost, stoneStep, signpostBaked as signpost } from '../models/campProps';
+import { painted, type Kit, type Paint, boardSpots } from '../world/painted';
+import type { SignpostParams, BarrelParams, CorralParams, HitchingRailParams, PalsParams, RugLineParams, RugParams, SpanParams } from '../data/campParams';
+import { ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, tetherLine, kurtBoard, ribbonPost, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter, fence, graniteOutcrop, roundedBoulder, kokparGoal, kokparPost, stoneStep, signpostBaked as signpost } from './catalogue';
 import { type Box, prism, supportHull } from '../world/solid';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { graniteBlock } from './granite';
+
+
+/** Bake-time T-bar height; the admitted places already carry the eagle's placement. */
+export const EAGLE_PERCH_H = 2.55;
 
 const toColor = (c: ColorLike, out: THREE.Color): THREE.Color => (c instanceof THREE.Color ? out.copy(c) : out.set(c));
 export const PC = {
@@ -116,7 +121,6 @@ export function logPainter(a: THREE.Vector3, b: THREE.Vector3, bark: ColorLike, 
     return r < 0.05 ? heart : en;
   };
 }
-
 
 /**
  * The camps' props, painted (generators only; SHARD-PLATFORM M3, the places bake): the painters that used to run on the
@@ -350,7 +354,6 @@ const ribbonPolePaint: Paint<object> = (kit, at, _p, c) => {
   return { boxes: [{ x, z, hw: 0.7, hd: 0.7, rot: 0, yBottom: y - 1, yTop: y + H }] };
 };
 
-
 /** the eagle's perch: a lashed tripod with a T-bar, a leather wrap where the eagle stands, its jesses to the bar end
  *  (the golden eagle on it is the generated `perchedEagle`, placed by the camp) */
 const eaglePerchPaint: Paint<object> = (kit, at, _p, c) => {
@@ -383,7 +386,6 @@ const benchPaint: Paint<object> = (kit, at, _p, c) => {
   return { boxes: [{ x, z, hw: 0.9, hd: 0.2, rot: -at.yaw, yBottom: y - 1, yTop: y + 0.46 }] };
 };
 
-
 /** the hitching rail: three carved posts, the rail, two tie rings with a rein hanging from each (it runs north–south,
  *  along z: its placement's yaw is not used) */
 const hitchingRailPaint: Paint<HitchingRailParams> = (kit, at, p, c) => {
@@ -408,7 +410,6 @@ const waterTroughPaint: Paint<object> = (kit, at, _p, c) => {
   for (const s of [-0.8, 0.8]) kit.add(new THREE.BoxGeometry(0.7, 0.2, 0.2).translate(0, 0.1, s), PC.wood, { matrix: M(tx, ty, tz), flat: true });
   return { boxes: [{ x: tx, z: tz, hw: 0.35, hd: 1.2, rot: 0, yBottom: ty - 1, yTop: ty + 0.45 }] };
 };
-
 
 /** the round pole corral: posts round a ring (the two by the gate taller), two rails, the gate gap facing −x (east), the
  *  gate panel swung open against the fence outside; a box per rail span */
@@ -464,7 +465,6 @@ const feedTroughPaint: Paint<object> = (kit, at, _p, c) => {
   kit.add(new THREE.BoxGeometry(0.5, 0.05, 1.7).translate(0, 0.51, 0), PC.hay, { matrix: M(fx, fy, fz, at.yaw), flat: true });
   return {};
 };
-
 
 /** the summer camp's tether line: two posts, a sagging rope between them (the horses are tied here) */
 const tetherLinePaint: Paint<SpanParams> = (kit, at, p, c) => {
@@ -588,8 +588,6 @@ const DRESS_COLORS = {
 };
 /** khadag / prayer-ribbon colours: sky blue and white first, then the five */
 const DRESS_RIBBONS = ['#6fb0e6', '#f3efe4', '#3f7fcf', '#f3efe4', '#d8402b', '#e8c23a', '#4f9a52', '#8cc2ea'];
-
-
 
 /** a prop's params carry the stream its builder shared across props (absent: the kit's own, for the specimen) */
 interface Streamed { readonly rng?: Rng }
@@ -817,8 +815,6 @@ function clutter(kit: Kit, rng: Rng, ground: Ground, kind: number, x: number, y:
 
 // ── the models ────────────────────────────────────────────────────────────────────────────────────────────────────
 
-
-
 export const fallenLogPainted: ModelDef<LogParams> = { ...fallenLog, build: painted(logPaint, { seed: 0xd701, finish: { aoH: 0.3, aoMin: 0.6, ao: false } }) };
 export const stumpPainted: ModelDef<StumpParams> = { ...stump, build: painted(stumpPaint, { seed: 0xd702, finish: { aoH: 0.35, ao: false } }) };
 export const ovooPainted: ModelDef<OvooParams> = { ...ovoo, build: painted(ovooPaint, { seed: 0xd703, finish: { aoH: 0.4, ao: { strength: 0.5 } } }) };
@@ -835,8 +831,6 @@ export const campClutterPainted: ModelDef<ClutterParams> = { ...campClutter, bui
  *
  * A copy is a run: `at` is its first point on the ground, `pts` the run's points relative to it (x, z), the first (0, 0).
  */
-
-
 
 /**
  * A split-rail fence along a polyline (posts every ~2.4 m, two rails, the rails sag slightly). One collider per
@@ -897,7 +891,6 @@ export function fenceRun(pts: readonly (readonly [number, number])[], o: { h?: n
   const [ax, az] = exact ? [x0, z0] : [0, 0];
   return { at: { x: ax, z: az }, params: { pts: pts.map(([x, z]) => [x - ax, z - az] as const), h: o.h ?? 1.15, spacing: o.spacing ?? 2.4 } };
 }
-
 
 export const fencePainted: ModelDef<FenceParams> = { ...fence, build: painted(paintFence, { seed: 0xfe9c, layers: ['rock'] }) };
 
@@ -987,8 +980,6 @@ const boulderPaint: Paint<RoundedBoulderParams> = (kit, at, p) => {
   return { descs };
 };
 
-
-
 export const graniteOutcropPainted: ModelDef<GraniteOutcropParams> = { ...graniteOutcrop, build: painted(outcropPaint, { seed: 0x0c7, finish: { ao: false, aoH: 0.8, aoMin: 0.6 } }) };
 export const roundedBoulderPainted: ModelDef<RoundedBoulderParams> = { ...roundedBoulder, build: painted(boulderPaint, { seed: 0x0c8, finish: { ao: false, aoH: 0.8, aoMin: 0.6 } }) };
 
@@ -1007,7 +998,6 @@ const paintKokparGoal: Paint<object> = (kit, at) => {
   return { descs: [prism(at.x, at.z, gy - 1, gy + 0.72, 2.6, 18, 0, 'earth', 2.3)] };
 };
 
-
 export const kokparGoalPainted: ModelDef<object> = { ...kokparGoal, build: painted(paintKokparGoal, { seed: 0x60ba }) };
 
 /**
@@ -1020,7 +1010,6 @@ const paintKokparPost: Paint<object> = (kit, at) => {
   kit.add(pole(v3(at.x, at.y - 0.3, at.z), v3(at.x, at.y + 1.25, at.z), 0.06, 0.05, 6), PC.woodGrey, { foot: 0.7 });
   return {};
 };
-
 
 export const kokparPostPainted: ModelDef<object> = { ...kokparPost, build: painted(paintKokparPost, { seed: 0x60ba }) };
 
@@ -1049,7 +1038,6 @@ const paintStoneStep: Paint<StoneStepParams> = (kit, at, p) => {
   return { descs: [{ kind: 'box', x: at.x, y: at.y + h / 2, z: at.z, hx: p.width / 2, hy: h / 2, hz: p.depth / 2 + 0.01, yaw: at.yaw, surface: 'stone' }] };
 };
 
-
 export const stoneStepPainted: ModelDef<StoneStepParams> = { ...stoneStep, build: painted(paintStoneStep, { seed: 0x70e7 }) };
 
 /** The signpost's physical geometry; the canvas lettering stays view code. */
@@ -1066,6 +1054,5 @@ const paintSignpost: Paint<SignpostParams> = (kit, at, p, c) => {
   }
   return { boxes: [{ x: s.x, z: s.z, hw: 0.14, hd: 0.14, rot: 0, yBottom: gy - 1, yTop: gy + H }] };
 };
-
 
 export const signpostPainted: ModelDef<SignpostParams> = { ...signpost, build: painted(paintSignpost, { seed: 0x5197, layers: ['rock'] }) };

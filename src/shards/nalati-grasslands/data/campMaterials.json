@@ -1,0 +1,10 @@
+{
+  "poi": { "id": "nalati-poi", "family": "painterly", "rim": 0.35, "bands": 0.8 },
+  "meadow": { "id": "nalati-texture:meadow", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/meadow.webp", "phoneUrl": "/assets/nalati/tex/meadow.phone.webp", "name": "nalati-meadow" } },
+  "path": { "id": "nalati-texture:path", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/path.webp", "phoneUrl": "/assets/nalati/tex/path.phone.webp", "name": "nalati-path" } },
+  "gravel": { "id": "nalati-texture:gravel", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/gravel.webp", "phoneUrl": "/assets/nalati/tex/gravel.phone.webp", "name": "nalati-gravel" } },
+  "rock": { "id": "nalati-texture:rock", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/rock.webp", "phoneUrl": "/assets/nalati/tex/rock.phone.webp", "name": "nalati-rock" } },
+  "snow": { "id": "nalati-texture:snow", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/snow.webp", "phoneUrl": "/assets/nalati/tex/snow.phone.webp", "name": "nalati-snow" } },
+  "bark": { "id": "nalati-texture:bark", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/bark.webp", "phoneUrl": "/assets/nalati/tex/bark.phone.webp", "name": "nalati-bark" } },
+  "felt": { "id": "nalati-texture:felt", "family": "painterly", "rim": 0.3, "bands": 0.8, "texture": { "url": "/assets/nalati/tex/felt.webp", "phoneUrl": "/assets/nalati/tex/felt.phone.webp", "name": "nalati-felt" } }
+}

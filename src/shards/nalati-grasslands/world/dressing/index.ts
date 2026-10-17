@@ -37,7 +37,7 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
 import { DressLayer, DRESSING_PLAN, type Inst, type DressPlan } from './layer';
-import { fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter } from '../../models/campProps';
+import { fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter } from '../../models/catalogue';
 import { NO_PLUMES, type PoiPiece } from '../types';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../modelView';

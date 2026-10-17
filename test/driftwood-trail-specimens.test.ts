@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { BoxGeometry, MeshStandardMaterial, Object3D } from 'three';
+import { BoxGeometry, MeshStandardMaterial, Object3D, Vector3 } from 'three';
+import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf, type ModelDef, type ModelBuild, type ModelPart } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { fencePost, signpost, plankStep } from '../src/shards/driftwood-isle/runtime/models/trailside';
+import { fencePost, signpost, plankStep } from '../src/shards/driftwood-isle/models/catalogue';
 import { fencePost as nativePost, signpost as nativeSign, plankStep as nativePlank } from '../src/shards/driftwood-isle/generators/trailsideModels';
 import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/generators/trailSpecimens';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
@@ -21,7 +22,11 @@ it('transfers sole geometry ownership and leaves no template behind', async () =
 });
 it('loads all authored trail cards through their native material and refuses unbaked shapes', async () => {
   admitDriftwoodFixtureRows();
-  const ctx = modelContext(null), material = new MeshStandardMaterial();
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing test sky');
+  Reflect.set(sky, 'csm', { lights: [] }); Reflect.set(sky, 'sunDir', new Vector3(0, 1, 0));
+  vi.spyOn(sky, 'setupMaterial').mockImplementation(() => undefined);
+  const ctx = modelContext(sky), material = new MeshStandardMaterial();
   ctx.once('driftwood-isle/trail:material', () => material);
   const emitted = new Map<string, Uint8Array>();
   const cards: (() => Promise<void>)[] = [];
@@ -52,6 +57,6 @@ it('loads all authored trail cards through their native material and refuses unb
   });
   try {
     for (const card of cards) await card();
-    expect(() => signpost.build(ctx, { arrows: [2], labels: ['UNBAKED'] }, new Rng(1))).toThrow('no authored');
+    expect(() => signpost.build(ctx, { arrows: [2], labels: ['UNBAKED'] }, new Rng(1))).toThrow('No authored specimen');
   } finally { mocked.mockRestore(); material.dispose(); }
 });

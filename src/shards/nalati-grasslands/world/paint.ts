@@ -1,4 +1,15 @@
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { specimenMaterial } from '@wildshard/sdk/kit/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { NalatiTexName } from '../look/nalatiTextures';
+import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
+
+
 /**
  * PaintKit — the model toolbox for Nalati's painterly POIs (B5). The painterly sibling of `lowpolyKit.ts`:
  * every static POI is one merged mesh on the ONE shared painterly material (`src/engine/world/painterly.ts`), so detail
@@ -16,15 +27,8 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
  * matrix), `blob(r, rng)` (a smooth displaced sphere for rocks / stone heaps), `poiMaterial(sky)` (the shared
  * material, cached per sky).
  */
-import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadNalatiTexture, type NalatiTexName } from '../look/nalatiTextures';
-import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
-import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
+
+const campMaterialRows = specimenData.materials;
 
 export type ColorLike = THREE.Color | string | number;
 /** per-face colour from the face centroid + normal, both in the part's LOCAL space (before `matrix`) */
@@ -229,35 +233,20 @@ export class PaintKit {
   }
 }
 
-
-const mats = new WeakMap<Sky, THREE.MeshLambertMaterial>();
 /** the one painterly material every Nalati POI mesh shares */
 export function poiMaterial(sky: Sky): THREE.MeshLambertMaterial {
-  let m = mats.get(sky);
-  if (!m) { m = painterlyMaterial(sky, { vertexColors: true, rim: 0.35, bands: 0.8 }); mats.set(sky, m); const cached = m; cacheUntilDisposed(cached, () => { if (mats.get(sky) === cached) mats.delete(sky); }); }
-  return m;
+  return texturedMaterial(sky, 'poi');
 }
 
-const texMats = new WeakMap<Sky, Map<NalatiTexName, THREE.MeshLambertMaterial>>();
 /**
  * The painterly material with a painted map (one per texture name, shared). It starts on a 1×1 white placeholder (the
  * same USE_MAP program, so no recompile) and swaps in the painted tile when it has loaded.
  */
-export function texturedMaterial(sky: Sky, name: NalatiTexName): THREE.MeshLambertMaterial {
-  let byName = texMats.get(sky);
-  if (!byName) { byName = new Map(); texMats.set(sky, byName); }
-  let m = byName.get(name);
-  if (!m) {
-    const mat = painterlyMaterial(sky, { vertexColors: true, rim: 0.3, bands: 0.8 });
-    const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-    white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
-    mat.map = white;
-    loadNalatiTexture(name).then((t) => { mat.map = t; return t; }).catch(() => null);                // on failure the placeholder stays: vertex colour only
-    byName.set(name, mat);
-    const cache = byName; cacheUntilDisposed(mat, () => { if (cache.get(name) === mat) cache.delete(name); });
-    m = mat;
-  }
-  return m;
+export function texturedMaterial(sky: Sky, name: NalatiTexName | 'poi'): THREE.MeshLambertMaterial {
+  const row = campMaterialRows[name];
+  const material = specimenMaterial(sky, row);
+  if (!(material instanceof THREE.MeshLambertMaterial)) throw new Error('Painted surface needs a Lambert material');
+  return material;
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────────────────────────────

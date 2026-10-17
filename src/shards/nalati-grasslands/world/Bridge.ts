@@ -1,3 +1,8 @@
+import { bakedPlaceSteps, placer } from './placeBake';
+import type { PoiCtx, PoiPiece } from './types';
+import { kunesBridge } from '../models/catalogue';
+
+
 /**
  * Bridge — the timber bridge carrying the N road over the Kunes at (0, 160) (map-01 "BRIDGE", deck −6): places the
  * Kunes bridge model (E306 / E315 M3, src/shards/nalati-grasslands/models/kunesBridge.ts), painted into its own mesh.
@@ -7,9 +12,6 @@
  *   const bridge = buildBridge(ctx);  // PoiPiece: the bridge registers itself (`register`: one `place` — the deck as plank
  *                                     // slabs, rails / cribs as boxes, its floor the deck)
  */
-import { bakedPlaceSteps, placer } from './placeBake';
-import type { PoiCtx, PoiPiece } from './types';
-import { kunesBridge } from '../models/kunesBridge';
 
 const PLACERS = new Map([placer(kunesBridge)]);
 

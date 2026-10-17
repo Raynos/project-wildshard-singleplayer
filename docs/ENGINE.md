@@ -4672,6 +4672,42 @@ part order, optional geometry fallback, clone and shadow policy, lazy LOD
 bands, optional specimen material and Float32 convex hulls. It never loads,
 fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
+`@wildshard/sdk/kit/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
+packed?, materials?)` returns a typed `.model(key)` binder and registers parameterized models from data alone. Each
+`SpecimenModelRow` declares its model metadata, defaults, partial variants,
+optional own-space collider rows and one specimen source. `owned` selects a
+bounded exact parameter record and an identity-space GLB with a loading-box
+size; `packed` selects the model id plus its ordered JSON parameters in a
+`PackedSpecimenBake`; `asset` borrows declared direct-child geometry and
+material-atlas slots from a prepared GLB, with an optional phone file and
+retained authoring attribute. An optional inert `instance` name and LOD
+marker lets existing placement owners read the same declared material look.
+Unknown owned
+parameters refuse rather than invoking procedural shard code. Registration
+does not fetch or build a specimen, and there are no shard callbacks.
+The authored catalogues produce generated boot JSON and parameter declarations,
+so pre-admission Explorer registration does not import authoring modules.
+Driftwood uses owned GLBs; Nalati uses packed parts and prepared assets.
+The exported `SpecimenCatalogueSchema` and `PackedSpecimenSchema` validate
+the wire shapes; constructors also refuse non-JSON values, accessors,
+cycles, callbacks, unbounded catalogues and paths outside `/assets/`.
+
+`createPackedSpecimens(bake)` lazily inflates the declared lane-shuffled
+binary and checks its byte count and complete geometry coverage. `use(raw)`
+admits the same inflated bytes in Node (`catalogue.usePacked(raw)` for a
+complete catalogue); each build owns fresh typed arrays,
+retaining the original index, optional non-indexed expansion and bounds.
+Parts bind their declared material slots in order and announce model-ready
+after their group fills. `specimenMaterial(sky, row)`,
+`loadSpecimenTexture(row)` and `loadBoundSpecimen(sky, row)` share material,
+texture and prepared geometry lifetimes with live world users. Material rows
+borrow a low-poly variant or declare painterly knobs, an optional mapped
+texture pair and a floor amount. They retain the original shader factories;
+no fitting, painting or shader generation occurs in this loader.
+`awaitSpecimenAssets(sky)` awaits only loads already requested. Driftwood's
+trail props and Nalati's camp/landmark, yurt and bridge catalogues use this
+host; Nalati's live draws borrow the same material and prepared-asset caches.
+
 The SDK model library's `models(rows)` method resolves those
 metadata rows through the original rig specimen builder. Sky and Signal
 use their declared rig libraries for both play and Model Explorer.

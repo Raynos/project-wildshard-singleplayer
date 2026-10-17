@@ -1,11 +1,10 @@
-/** Prepared model loading, painterly material binding and instancing. Painting runs only in generators/modelPainting.ts. */
+import { awaitSpecimenAssets, loadBoundSpecimen, type SpecimenAssetRow } from '@wildshard/sdk/kit/specimenCatalogue';
 import * as THREE from 'three';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { TIER } from '@wildshard/engine/core/tier';
-import { painterlyMaterial, painterlyKnobs } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+
+
+/** Prepared model loading, painterly material binding and instancing. Painting runs only in generators/modelPainting.ts. */
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
@@ -49,11 +48,6 @@ export type ModelPart = 'rocks' | 'balbal' | 'creatures';
 export function modelsOn(_part: ModelPart): boolean { return true; }
 
 const DIR = '/assets/nalati/baked/painted-models/';
-let loader: GLTFLoader | null = null;
-function gltfLoader(): GLTFLoader {
-  if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-  return loader;
-}
 
 /** a float copy of an attribute (de-quantises normalized ints) */
 function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute {
@@ -103,7 +97,6 @@ export function rawFromGltf(scene: THREE.Object3D, label: string): RawModel {
   return { geometry, map, box };
 }
 
-const raw = new Map<string, Promise<RawModel>>();
 const models = new WeakMap<Sky, Map<string, Promise<NalatiModel>>>();
 const modelMats = new WeakMap<THREE.Material, THREE.BufferGeometry>();
 const clonePaint = new WeakMap<THREE.BufferGeometry, THREE.BufferAttribute>();
@@ -122,29 +115,6 @@ export function setModelShade(_on: true, root?: THREE.Object3D): void {
   });
 }
 
-function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
-  const key = `${name}|${lod}`;
-  let pending = raw.get(key);
-  if (pending === undefined) {
-    const url = lod === 'far' ? `${DIR}${name}.far.glb` : `${DIR}${name}${TIER === 'phone' ? '.phone' : ''}.glb`;
-    pending = gltfLoader().loadAsync(url).then(({ scene }) => {
-      const found = scene.children.find(isMesh);
-      if (found === undefined) throw new Error(`nalati prepared model ${name}: no mesh`);
-      const geometry = found.geometry, paint = geometry.attributes['_paint_clone'];
-      if (paint instanceof THREE.BufferAttribute) { geometry.deleteAttribute('_paint_clone'); clonePaint.set(geometry, paint); }
-      geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-      const material = Array.isArray(found.material) ? found.material[0] : found.material;
-      const map = material instanceof THREE.MeshStandardMaterial ? material.map : null;
-      if (map !== null) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
-      const out = { geometry, map, box: geometry.boundingBox?.clone() ?? new THREE.Box3() };
-      cacheUntilDisposed(out, () => { if (raw.get(key) === pending) raw.delete(key); });
-      return out;
-    });
-    raw.set(key, pending);
-  }
-  return pending;
-}
-
 /** Await models already requested by the owned world before a bake snapshots its roots.
  * Recheck after producer callbacks: a completed model may request another model. This never
  * starts a load, rebuilds geometry or swallows a failed asset, unlike a timed capture delay.
@@ -152,7 +122,8 @@ function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
 export async function awaitNalatiModelLoads(sky: Sky): Promise<void> {
   const observed = new Set<Promise<unknown>>();
   for (;;) {
-    const pending = [...raw.values(), ...models.get(sky)?.values() ?? []].filter(promise => !observed.has(promise));
+    await awaitSpecimenAssets(sky);
+    const pending = [...models.get(sky)?.values() ?? []].filter(promise => !observed.has(promise));
     if (pending.length === 0) return;
     for (const promise of pending) observed.add(promise);
     await Promise.all(pending);
@@ -166,10 +137,15 @@ export function loadNalatiModel(sky: Sky, name: NalatiModelName, look: ModelLook
   const key = `${name}|${lod}|${look.rim ?? ''}|${look.bands ?? ''}|${look.sway ?? ''}|${new THREE.Color(look.color ?? 0xffffff).getHexString()}`;
   let p = bySky.get(key);
   if (!p) {
-    p = loadRaw(name, lod).then((r) => {
-      const material = painterlyMaterial(sky, { map: r.map, rim: look.rim ?? 0.35, bands: look.bands ?? 0.8, sway: look.sway ?? 0, color: look.color ?? 0xffffff });
+    const color = look.color instanceof THREE.Color ? [look.color.r, look.color.g, look.color.b] as const : look.color ?? 0xffffff;
+    const row: SpecimenAssetRow = { url: lod === 'far' ? `${DIR}${name}.far.glb` : `${DIR}${name}.glb`,
+      ...(lod === 'far' ? {} : { phoneUrl: `${DIR}${name}.phone.glb` }), geometrySlot: 0, materialSlot: 0, retainedAttribute: '_paint_clone',
+      material: { id: `nalati-model:${key}`, family: 'painterly', rim: look.rim ?? 0.35, bands: look.bands ?? 0.8, sway: look.sway ?? 0, color, floor: 0.2 } };
+    p = loadBoundSpecimen(sky, row).then((r) => {
+      const material = r.material;
+      if (!(material instanceof THREE.MeshLambertMaterial)) throw new Error('Prepared painted model needs a Lambert material');
+      if (r.retainedAttribute !== undefined) clonePaint.set(r.geometry, r.retainedAttribute);
       modelMats.set(material, r.geometry);
-      const knobs = painterlyKnobs(material); if (knobs !== undefined) knobs.uPFloorAmt.value = 0.2;
       const model = { name, geometry: r.geometry, box: r.box, material };
       const cache = bySky;
       cacheUntilDisposed(model, () => { cache.delete(key); });

@@ -1,3 +1,11 @@
+import * as THREE from 'three';
+import { TIER } from '@wildshard/engine/core/tier';
+import { defineModel, type ModelBuild, type ModelContext, announceModelReady as modelReady } from '@wildshard/engine/models/model';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { loadNalatiModel, type NalatiModel } from '../world/modelView';
+import { bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
+
+
 /**
  * The Nalati dressing's scatter models (E306 / E315 second pass; the shapes were src/world/nalati/dressing/models.ts, the
  * generated rocks' fitting src/shards/nalati-grasslands/world/dressing/index.ts): every small thing the shard repeats between the places,
@@ -12,13 +20,6 @@
  * material, culled per instance with per-instance draw distances) and placed `drawnInto` them; a big boulder or slab
  * collides as the hull of what its layer draws for it (the dressing's). Plants are walk-through.
  */
-import * as THREE from 'three';
-import { TIER } from '@wildshard/engine/core/tier';
-import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { loadNalatiModel, type NalatiModel } from '../world/modelView';
-import { bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
-import { modelReady } from '../world/painted';
 
 // ── the generated rocks ─────────────────────────────────────────────────────────────────────────────────────────
 

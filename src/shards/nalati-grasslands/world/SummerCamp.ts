@@ -1,7 +1,7 @@
 import { bakedPlaceSteps, placer } from './placeBake';
 import type { PoiCtx, PoiPiece } from './types';
-import { yurt } from '../models/yurt';
-import { cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest } from '../models/campProps';
+import { yurt, cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest } from '../models/catalogue';
+
 
 /**
  * SummerCamp — the jailau camp on the Sky Grassland (the real "Nomad Home" stop at the foot of the south mountain):

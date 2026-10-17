@@ -9,16 +9,18 @@ import { PaintKit, M, v3 } from '../world/paint';
 import { pole, lathe, blob, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { graniteBlock } from './granite';
-import { NalatiSet, painted, paintedSpecimen, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type FieldstoneParams, type FieldstoneLook, type MemberData, type Paint, type PaintCtx, type Board, generated, generatedBounds } from '../world/painted';
+import { NalatiSet, painted, paintedSpecimen, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type MemberData, type Paint, type PaintCtx, type GeneratedSpec, generatedBounds } from '../world/painted';
+import type { FieldstoneParams, FieldstoneLook, Board, CragLedgeParams, LeopardCaveParams, KurganEntranceParams, KurganKerbParams, FirewoodParams, ChurnParams } from '../data/campParams';
 import { Flutter } from '../world/Flutter';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from '../world/layout';
 import { prism, slab, supportHull, type Box } from '../world/solid';
-import { specimenKey, torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
-import { EAGLE_PERCH_H, eagleRock, windCairn, cragLedge, leopardCave, kurganEntrance, kurganKerb, fieldstoneBaked, type CragLedgeParams, type LeopardCaveParams, type KurganEntranceParams, type KurganKerbParams, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle, watchtower, saddledHorse, kokparRider, type FirewoodParams, type ChurnParams } from '../models/campProps';
+import { specimenKey } from '@wildshard/sdk/kit/specimenCatalogue';
+import { torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
+import { EAGLE_PERCH_H, ribbonPolePainted, eaglePerchPainted, stovePainted, campBenchPainted, rugRackPainted, feltRugPainted, cartPainted, barrelPainted, hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted, choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted, graniteOutcropPainted, roundedBoulderPainted, fencePainted, fallenLogPainted, stumpPainted, ovooPainted, viewpointPolePainted, skyGatewayPainted, campClutterPainted, kokparGoalPainted, kokparPostPainted, stoneStepPainted, signpostPainted, fenceRun, logEnds, type RockTint } from './campProps';
+import { eagleRock, windCairn, cragLedge, leopardCave, kurganEntrance, kurganKerb, fieldstoneBaked, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle, watchtower, saddledHorse, kokparRider } from './catalogue';
 import { yurtPainted } from './yurt';
 import { kunesBridgePainted } from './kunesBridge';
 import { yardGeometry, wearDisc, wearPath } from './yard';
-import { ribbonPolePainted, eaglePerchPainted, stovePainted, campBenchPainted, rugRackPainted, feltRugPainted, cartPainted, barrelPainted, hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted, choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted, graniteOutcropPainted, roundedBoulderPainted, fencePainted, fallenLogPainted, stumpPainted, ovooPainted, viewpointPolePainted, skyGatewayPainted, campClutterPainted, kokparGoalPainted, kokparPostPainted, stoneStepPainted, signpostPainted, fenceRun, logEnds, type RockTint } from './campProps';
 import { bakeDressing } from './dressingBake';
 import { writeGeometry, join } from './geometryWriter';
 import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from '../layout';
@@ -31,6 +33,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 import { zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER, outcropAt, edgeBermAt } from '../world/terrain';
 
+
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's places bake): the spring camp, the Kunes bridge and the summer camp, built
  * here by the builders that `world/NomadCamp.ts`, `world/Bridge.ts` and `world/SummerCamp.ts` used to run on the page
@@ -42,7 +45,10 @@ import { zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER, outcropAt, ed
  * generated (GLB) instances and per model the copies `place` registers. `world/placeBake.ts` draws them back bit-exact.
  */
 
-
+/** Placement-only bake marker. Specimen builds belong to the declared host. */
+function generated<P extends object>(spec: GeneratedSpec<P>): (() => never) & { readonly gen: GeneratedSpec<P> } {
+  return Object.assign((): never => { throw new Error('Placement bake markers cannot build live specimens'); }, { gen: spec });
+}
 
 const FLIP = Math.PI;
 const towerSize = generatedBounds('watchtower').getSize(new THREE.Vector3());
@@ -92,10 +98,6 @@ const kokparRiderPlaced: ModelDef<object> = { ...kokparRider, build: generated({
 };
 
 function finishBuild(steps: Generator<void, BuiltPlace>): BuiltPlace { for (;;) { const step = steps.next(); if (step.done === true) return step.value; } }
-
-
-
-
 
 // ── the cloth and smoke a place makes, recorded in order ──────────────────────────────────────────────────────────────
 
@@ -995,7 +997,6 @@ function onOval(t: number, k: number): { x: number; z: number; yaw: number } {
   return { x, z, yaw: Math.atan2(dx, dz) };
 }
 
-
 function kokparPlace(ctx: PaintCtx): BuiltPlace {
   const { ground, flutter } = ctx;
   const kit = new PaintKit(0x60ba);
@@ -1020,7 +1021,6 @@ function kokparPlace(ctx: PaintCtx): BuiltPlace {
     set.instance(saddledHorsePlaced, { x: p.x, y: ground(p.x, p.z) - 0.03, z: p.z, rot: p.yaw + Math.PI / 2 + rng.range(-0.3, 0.3) }, {});
   }
 
-
   // the riders: six laps round the oval at different radii and speeds, bunched as in a game (the goat carried by one)
   const riders = Array.from({ length: 6 }, (_, i) => ({ t: (i < 4 ? 0.35 * i : 3 + i * 0.5), k: 0.45 + (i % 3) * 0.14, w: 0.28 + (i % 2) * 0.03 + i * 0.006, bob: rng.range(0, 6) }));
   set.moving(kokparRiderPlaced, riders.map((r) => { const p = onOval(r.t, r.k); return { x: p.x, y: ground(p.x, p.z), z: p.z, rot: p.yaw }; }));
@@ -1044,7 +1044,6 @@ const SIGNS: Signpost[] = [
   { x: 12, z: 14, boards: [{ text: 'SNOW LOTUS VALLEY', dir: S }, { text: 'KOKPAR FIELD', dir: dirTo(12, 14, KOKPAR.x, KOKPAR.z) }, { text: 'SUMMER CAMP', dir: dirTo(12, 14, SUMMER_YURTS.x, SUMMER_YURTS.z) }, { text: 'HORSE PLAINS', dir: dirTo(12, 14, HORSE_PLAINS.x, HORSE_PLAINS.z) }] },
   { x: -170, z: 22, boards: [{ text: 'KURGAN FIELD', dir: dirTo(-170, 22, KF.x, KF.z) }, { text: 'WATCHTOWER', dir: dirTo(-170, 22, WATCHTOWER.x, WATCHTOWER.z) }, { text: 'E ROAD', dir: dirTo(-170, 22, -250, 0) }] },
 ];
-
 
 function roadsPlace(ctx: PaintCtx): BuiltPlace {
   const { ground } = ctx;
@@ -1075,7 +1074,6 @@ function roadsPlace(ctx: PaintCtx): BuiltPlace {
   if (wood) meshes.push({ name: 'nalati-roads-wood', material: 'rock', slot: 1, geometry: wood });
   return { name: 'roads', group: '', surface: 'wood', tris: geometry.getAttribute('position').count / 3 + (wood ? wood.getAttribute('position').count / 3 : 0), meshes, set, effects: [], anchors: { signposts: SIGNS.map(s => ({ x: s.x, z: s.z, boards: s.boards, y: ground(s.x, s.z) })) } };
 }
-
 
 /**
  * A stone stair up a slope the motor cannot climb (NALATI-MERGE P1): flat granite steps laid along a polyline from its
@@ -1149,7 +1147,6 @@ export function addStoneStair(set: NalatiSet, ground: Ground, pts: readonly (rea
 }
 
 /** Static dressing construction runs only in the existing places bake. */
-
 
 export function* dressingStatics(ctx: PaintCtx, plan: DressPlan): Generator<void, BuiltPlace> {
   const { ground, flutter } = ctx;
@@ -1239,7 +1236,6 @@ export function* dressingStatics(ctx: PaintCtx, plan: DressPlan): Generator<void
   return { name: 'dressing-statics', group: 'nalati-dress-statics', surface: 'wood', meshes, tris, set, effects: [] };
 }
 
-
 export function* dressingClutter(ctx: PaintCtx, spots: ClutterSpots): Generator<void, BuiltPlace> {
   const { ground } = ctx;
   const rng = new Rng(0xc1a7);
@@ -1252,7 +1248,6 @@ export function* dressingClutter(ctx: PaintCtx, spots: ClutterSpots): Generator<
 }
 
 /** The original outcrop placement and paint, offline over native terrain. */
-
 
 export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, BuiltPlace> {
   const heightAt = ctx.ground;
@@ -1405,7 +1400,6 @@ type KurganEntrance = NonNullable<PlaceAnchors['entrance']>;
 
 type ClutterSpots = readonly { readonly x: number; readonly z: number; readonly yaw: number; readonly kind: number }[];
 
-
 function dressingInput(input: { readonly plan: DressPlan; readonly clutter: ClutterSpots } | undefined): { readonly plan: DressPlan; readonly clutter: ClutterSpots } {
   if (input === undefined) throw new Error('[nalati places] dressing paint needs the explicit native placement rows');
   return input;
@@ -1517,7 +1511,6 @@ export function balbalGeometry(variant: number, seed = 0xba1): THREE.BufferGeome
   col.needsUpdate = true;
   return geo;
 }
-
 
 export function goatGeometry(): THREE.BufferGeometry {
   const kit = new PaintKit(0x9047);
@@ -1735,8 +1728,6 @@ const BUILD: Readonly<Record<PersonId, () => Parts>> = {
   elder: () => elder(0xe1d3), herderGate: () => herder(0x4e7a, 'tymaq', campPalette.coat), herderRail: () => herder(0x4e7b, 'kalpak', campPalette.coat2),
   child: () => child(0xc41d), cook: () => cook(0xc00c),
 };
-
-
 
   return BUILD[selected]();
 }

@@ -6,10 +6,8 @@ import { KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } fr
 import { inPoiClearing } from './clearings';
 import { NalatiSet } from './painted';
 import type { PoiCtx, PoiPiece } from './types';
-import { kokparPost, kokparGoal, saddledHorse, kokparRider } from '../models/campProps';
+import { kokparPost, kokparGoal, saddledHorse, kokparRider, herdHorse, snowLotus } from '../models/catalogue';
 import { bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
-import { herdHorse } from '../models/herdHorse';
-import { snowLotus } from '../models/snowLotus';
 import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -20,6 +18,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
+
 
 /**
  * Bowl — layout v2's new set pieces (docs/design/nalati/layout-v2.md, N9), all placed from `src/shards/nalati-grasslands/layout.ts`:

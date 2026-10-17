@@ -1,3 +1,12 @@
+import * as THREE from 'three';
+import { defineModel } from '@wildshard/engine/models/model';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { boardSpots, type BoardSpot } from '../world/painted';
+import type { Board, SignpostParams } from '../boot/specimenParams.generated';
+import { signpostBaked } from './catalogue';
+
+
 /**
  * The carved signpost (E306 / E315 second pass; was a block of src/shards/nalati-grasslands/world/RoadFurniture.ts): a larch post with a
  * turned cap and a pointed painted board per destination, each board a plank out from the post in the way it points,
@@ -6,12 +15,6 @@
  * layer, props.ts GRAIN); the lettering is one small canvas atlas on one extra mesh for all the shard's boards
  * (`letteringMesh`), so a signpost costs no draw of its own. Collides: the post as a box.
  */
-import * as THREE from 'three';
-import { defineModel } from '@wildshard/engine/models/model';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { boardSpots, type Board, type BoardSpot, type SignpostParams } from '../world/painted';
-import { signpostBaked } from './campProps';
 
 const LABEL_H = 64, ATLAS_W = 512;
 

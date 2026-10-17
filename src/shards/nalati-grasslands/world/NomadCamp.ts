@@ -1,7 +1,7 @@
 import { bakedPlaceSteps, placer } from './placeBake';
 import type { PoiCtx, PoiPiece } from './types';
-import { yurt } from '../models/yurt';
-import { ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campProps';
+import { yurt, ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/catalogue';
+
 
 /**
  * NomadCamp — the spring camp (kystau) in the Kunes valley, the shard's hub (map-01 "NOMAD CAMP", (95, 205)).

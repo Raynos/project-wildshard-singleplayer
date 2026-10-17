@@ -1,17 +1,20 @@
-/**
- * The yurt, painted (generators only; SHARD-PLATFORM M3, the places bake): the painter that used to run on the page,
- * moved verbatim from models/yurt.ts (whose header describes it). generators/places.ts paints the camps' yurts and the
- * Explorer's specimens with it; the page draws the bake (world/placeBake.ts).
- */
 import * as THREE from 'three';
 import type { ModelDef } from '@wildshard/engine/models/model';
-import { yurt, type YurtParams } from '../models/yurt';
+import { yurt } from './catalogue';
+import type { YurtParams } from '../data/campParams';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { M, v3 } from '../world/paint';
 import { lathe, pole, revolve, revolveUV } from '@wildshard/engine/world/geometryKit';
 import { prism, type Box } from '../world/solid';
 import { PC } from './campProps';
 import { painted, type Kit, type Paint } from '../world/painted';
+
+
+/**
+ * The yurt, painted (generators only; SHARD-PLATFORM M3, the places bake): the painter that used to run on the page,
+ * moved verbatim from models/yurt.ts (whose header describes it). generators/places.ts paints the camps' yurts and the
+ * Explorer's specimens with it; the page draws the bake (world/placeBake.ts).
+ */
 
 export interface YurtSpec {
   x: number; y: number; z: number;

@@ -1,0 +1,1314 @@
+[
+  {
+    "key": "ribbonPole",
+    "model": {
+      "id": "nalati-grasslands/ribbon-pole",
+      "name": "Yard ribbon pole",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "eaglePerch",
+    "model": {
+      "id": "nalati-grasslands/eagle-perch",
+      "name": "Eagle's perch",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "stove",
+    "model": {
+      "id": "nalati-grasslands/stove",
+      "name": "Camp stove",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "campBench",
+    "model": {
+      "id": "nalati-grasslands/camp-bench",
+      "name": "Camp bench",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "rugRack",
+    "model": {
+      "id": "nalati-grasslands/rug-rack",
+      "name": "Rug drying rack",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "pals": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "feltRug",
+    "model": {
+      "id": "nalati-grasslands/felt-rug",
+      "name": "Felt rug (syrmak)",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "w": 1.5,
+        "h": 2.2,
+        "pal": 1
+      },
+      "variants": [
+        {
+          "id": "palette-0",
+          "label": "Red",
+          "params": {
+            "pal": 0
+          }
+        },
+        {
+          "id": "palette-1",
+          "label": "Blue",
+          "params": {
+            "pal": 1
+          }
+        },
+        {
+          "id": "palette-2",
+          "label": "Orange",
+          "params": {
+            "pal": 2
+          }
+        },
+        {
+          "id": "palette-3",
+          "label": "Teal",
+          "params": {
+            "pal": 3
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "cart",
+    "model": {
+      "id": "nalati-grasslands/cart",
+      "name": "Cart (arba)",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "barrel",
+    "model": {
+      "id": "nalati-grasslands/barrel",
+      "name": "Barrel",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "s": 1
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "hitchingRail",
+    "model": {
+      "id": "nalati-grasslands/hitching-rail",
+      "name": "Hitching rail",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "length": 6.5,
+        "height": 1.1
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "waterTrough",
+    "model": {
+      "id": "nalati-grasslands/water-trough",
+      "name": "Water trough",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "saddleRack",
+    "model": {
+      "id": "nalati-grasslands/saddle-rack",
+      "name": "Saddle rack",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "corral",
+    "model": {
+      "id": "nalati-grasslands/corral",
+      "name": "Pole corral",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "r": 9,
+        "posts": 26
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "hayPile",
+    "model": {
+      "id": "nalati-grasslands/hay-pile",
+      "name": "Hay pile",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "feedTrough",
+    "model": {
+      "id": "nalati-grasslands/feed-trough",
+      "name": "Feed trough",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "rugLine",
+    "model": {
+      "id": "nalati-grasslands/rug-line",
+      "name": "Rug line",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "dx": 4.4,
+        "dz": 2.6,
+        "pals": [
+          1,
+          3,
+          0
+        ]
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "choppingBlock",
+    "model": {
+      "id": "nalati-grasslands/chopping-block",
+      "name": "Chopping block",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "milkCans",
+    "model": {
+      "id": "nalati-grasslands/milk-cans",
+      "name": "Milk cans",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "tetherLine",
+    "model": {
+      "id": "nalati-grasslands/tether-line",
+      "name": "Tether line",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {
+        "dx": 0,
+        "dz": 8
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kurtBoard",
+    "model": {
+      "id": "nalati-grasslands/kurt-board",
+      "name": "Kurt drying board",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "ribbonPost",
+    "model": {
+      "id": "nalati-grasslands/ribbon-post",
+      "name": "Ribbon post",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "eagleRock",
+    "model": {
+      "id": "nalati-grasslands/eagle-rock",
+      "name": "Eagle Rock",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "rock",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "windCairn",
+    "model": {
+      "id": "nalati-grasslands/wind-cairn",
+      "name": "Wind Cairn",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "stone",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "cragLedge",
+    "model": {
+      "id": "nalati-grasslands/crag-ledge",
+      "name": "Crag ledge",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "rock",
+      "defaults": {
+        "w": 5,
+        "d": 3.5,
+        "snowLine": 60
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "leopardCave",
+    "model": {
+      "id": "nalati-grasslands/leopard-cave",
+      "name": "Leopard's cave",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "rock",
+      "defaults": {
+        "snowLine": 60
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kurganEntrance",
+    "model": {
+      "id": "nalati-grasslands/kurgan-entrance",
+      "name": "Kurgan entrance",
+      "category": "buildings",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "footY": -0.9
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kurganKerb",
+    "model": {
+      "id": "nalati-grasslands/kurgan-kerb",
+      "name": "Kurgan kerb stone",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "stone",
+      "defaults": {
+        "s": 0.45,
+        "fallen": false
+      },
+      "variants": [
+        {
+          "id": "standing",
+          "label": "Standing",
+          "params": {}
+        },
+        {
+          "id": "fallen",
+          "label": "Fallen",
+          "params": {
+            "fallen": true
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "fieldstoneBaked",
+    "model": {
+      "id": "nalati-grasslands/fieldstone",
+      "name": "Fieldstone",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/campProps.ts",
+      "surface": "stone",
+      "defaults": {
+        "s": 0.3,
+        "squash": 0.55,
+        "rough": 0.22,
+        "lift": 0.1,
+        "look": "kurgan"
+      },
+      "variants": [
+        {
+          "id": "kurgan",
+          "label": "Kurgan field",
+          "params": {}
+        },
+        {
+          "id": "rubble",
+          "label": "Tower rubble",
+          "params": {
+            "s": 0.6,
+            "squash": 0.7,
+            "rough": 0.25,
+            "lift": -0.2,
+            "look": "rubble"
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "fallenLog",
+    "model": {
+      "id": "nalati-grasslands/fallen-log",
+      "name": "Fallen log",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "ax": 0,
+        "az": 0,
+        "bx": 4.5,
+        "bz": 1.2,
+        "r": 0.3,
+        "drift": false
+      },
+      "variants": [
+        {
+          "id": "spruce",
+          "label": "Spruce",
+          "params": {}
+        },
+        {
+          "id": "driftwood",
+          "label": "Driftwood",
+          "params": {
+            "drift": true,
+            "r": 0.22
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "stump",
+    "model": {
+      "id": "nalati-grasslands/stump",
+      "name": "Spruce stump",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "s": 0.3
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "ovoo",
+    "model": {
+      "id": "nalati-grasslands/ovoo",
+      "name": "Ovoo cairn",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "stone",
+      "defaults": {
+        "s": 1
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "viewpointPole",
+    "model": {
+      "id": "nalati-grasslands/viewpoint-pole",
+      "name": "Viewpoint ribbon pole",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "skyGateway",
+    "model": {
+      "id": "nalati-grasslands/sky-gateway",
+      "name": "Sky road gateway",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "campClutter",
+    "model": {
+      "id": "nalati-grasslands/camp-clutter",
+      "name": "Camp clutter",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "kind": 0
+      },
+      "variants": [
+        {
+          "id": "firewood-tipi",
+          "label": "Firewood tipi",
+          "params": {
+            "kind": 0
+          }
+        },
+        {
+          "id": "dung-cake-stack",
+          "label": "Dung-cake stack",
+          "params": {
+            "kind": 1
+          }
+        },
+        {
+          "id": "chopping-block",
+          "label": "Chopping block",
+          "params": {
+            "kind": 2
+          }
+        },
+        {
+          "id": "pots-and-a-bucket",
+          "label": "Pots and a bucket",
+          "params": {
+            "kind": 3
+          }
+        },
+        {
+          "id": "sacks",
+          "label": "Sacks",
+          "params": {
+            "kind": 4
+          }
+        },
+        {
+          "id": "folded-felts",
+          "label": "Folded felts",
+          "params": {
+            "kind": 5
+          }
+        },
+        {
+          "id": "kumis-churn",
+          "label": "Kumis churn",
+          "params": {
+            "kind": 6
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "fence",
+    "model": {
+      "id": "nalati-grasslands/fence",
+      "name": "Split-rail fence",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "pts": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            7.2
+          ],
+          [
+            2.4,
+            12
+          ]
+        ],
+        "h": 1.15,
+        "spacing": 2.4
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "graniteOutcrop",
+    "model": {
+      "id": "nalati-grasslands/granite-outcrop",
+      "name": "Granite outcrop",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "rock",
+      "defaults": {
+        "w": 4.2,
+        "h": 1.6,
+        "d": 2.4,
+        "rough": 0.22,
+        "pitch": 0.12,
+        "roll": 0,
+        "tint": "granite",
+        "lichen": 0.55,
+        "solid": true
+      },
+      "variants": [
+        {
+          "id": "escarpment",
+          "label": "Escarpment",
+          "params": {}
+        },
+        {
+          "id": "rim",
+          "label": "Rim band",
+          "params": {
+            "w": 5.5,
+            "h": 2.2,
+            "d": 2.8,
+            "rough": 0.24,
+            "tint": "warm",
+            "lichen": 0.5
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "roundedBoulder",
+    "model": {
+      "id": "nalati-grasslands/rounded-boulder",
+      "name": "Rounded boulder",
+      "category": "nature",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "rock",
+      "defaults": {
+        "r": 0.9,
+        "look": "bank",
+        "tint": "cool",
+        "solid": false
+      },
+      "variants": [
+        {
+          "id": "bank",
+          "label": "River bank",
+          "params": {}
+        },
+        {
+          "id": "channel",
+          "label": "In the current",
+          "params": {
+            "look": "channel"
+          }
+        },
+        {
+          "id": "lean",
+          "label": "Leaning on a block",
+          "params": {
+            "look": "lean",
+            "tint": "granite",
+            "r": 0.7
+          }
+        },
+        {
+          "id": "streambank",
+          "label": "Meltwater bank",
+          "params": {
+            "look": "streambank",
+            "r": 1.1
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kokparGoal",
+    "model": {
+      "id": "nalati-grasslands/kokpar-goal",
+      "name": "Kokpar goal",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "earth",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kokparPost",
+    "model": {
+      "id": "nalati-grasslands/kokpar-post",
+      "name": "Kokpar marker post",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "stoneStep",
+    "model": {
+      "id": "nalati-grasslands/stone-step",
+      "name": "Stone step",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "stone",
+      "defaults": {
+        "width": 1.8,
+        "depth": 0.4,
+        "height": 0.6,
+        "seed": 1441
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "signpostBaked",
+    "model": {
+      "id": "nalati-grasslands/signpost",
+      "name": "Carved signpost",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/models/signpost.ts",
+      "surface": "wood",
+      "defaults": {
+        "boards": [
+          {
+            "text": "NOMAD CAMP",
+            "dir": 1.5707963267948966
+          },
+          {
+            "text": "SKY GRASSLAND",
+            "dir": 3.141592653589793
+          },
+          {
+            "text": "KUNES BRIDGE",
+            "dir": 0
+          }
+        ]
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kazan",
+    "model": {
+      "id": "nalati-grasslands/kazan",
+      "name": "Kazan on its tripod",
+      "category": "props",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/cauldron.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/cauldron.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:cauldron|near||||ffffff",
+          "family": "painterly",
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "cauldron",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "chest",
+    "model": {
+      "id": "nalati-grasslands/chest",
+      "name": "Sandyq chest",
+      "category": "props",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/chest.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/chest.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:chest|near||||ffffff",
+          "family": "painterly",
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "chest",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "firewood",
+    "model": {
+      "id": "nalati-grasslands/firewood",
+      "name": "Firewood stack",
+      "category": "props",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "dy": 0
+      }
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/firewood.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/firewood.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:firewood|near||||ffffff",
+          "family": "painterly",
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "firewood",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "kumisChurn",
+    "model": {
+      "id": "nalati-grasslands/kumis-churn",
+      "name": "Kumis churn",
+      "category": "props",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {
+        "hw": 0.28,
+        "h": 1.1
+      }
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/kumis-churn.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/kumis-churn.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:kumis-churn|near||||ffffff",
+          "family": "painterly",
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "kumis-churn",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "groundSaddle",
+    "model": {
+      "id": "nalati-grasslands/ground-saddle",
+      "name": "Saddle on the grass",
+      "category": "props",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/saddle.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/saddle.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:saddle|near||||ffffff",
+          "family": "painterly",
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "saddle",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "perchedEagle",
+    "model": {
+      "id": "nalati-grasslands/perched-eagle",
+      "name": "Golden eagle on its perch",
+      "category": "props",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "wood",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/eagle.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/eagle.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:eagle|near||||ffffff",
+          "family": "painterly",
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "eagle",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "watchtower",
+    "model": {
+      "id": "nalati-grasslands/watchtower",
+      "name": "Watchtower",
+      "category": "buildings",
+      "pipeline": "hunyuan",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "stone",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/watchtower.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/watchtower.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:watchtower|near|0.3|0.8||ffffff",
+          "family": "painterly",
+          "rim": 0.3,
+          "bands": 0.8,
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "watchtower",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "saddledHorse",
+    "model": {
+      "id": "nalati-grasslands/saddled-horse",
+      "name": "Saddled horse (standing)",
+      "category": "props",
+      "pipeline": "hunyuan",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "flesh",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/horse-saddled.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/horse-saddled.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:horse-saddled|near|0.8|0.85||ffffff",
+          "family": "painterly",
+          "rim": 0.8,
+          "bands": 0.85,
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "horse-saddled",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "kokparRider",
+    "model": {
+      "id": "nalati-grasslands/kokpar-rider",
+      "name": "Kokpar rider",
+      "category": "people",
+      "pipeline": "hunyuan",
+      "file": "src/shards/nalati-grasslands/generators/places.ts",
+      "surface": "flesh",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/kokpar-rider.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/kokpar-rider.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:kokpar-rider|near|0.8|0.85||ffffff",
+          "family": "painterly",
+          "rim": 0.8,
+          "bands": 0.85,
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "kokpar-rider",
+          "lod": "near"
+        }
+      }
+    }
+  },
+  {
+    "key": "yurt",
+    "model": {
+      "id": "nalati-grasslands/yurt",
+      "name": "Yurt",
+      "category": "buildings",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/yurt.ts",
+      "surface": "felt",
+      "defaults": {
+        "r": 3,
+        "flue": true,
+        "palette": 0,
+        "old": false,
+        "base": "lattice",
+        "pennant": true
+      },
+      "variants": [
+        {
+          "id": "lattice",
+          "label": "Lattice",
+          "params": {}
+        },
+        {
+          "id": "reed",
+          "label": "Reed screen",
+          "params": {
+            "base": "reed",
+            "palette": 1,
+            "r": 3.5
+          }
+        },
+        {
+          "id": "felt",
+          "label": "Felt, old",
+          "params": {
+            "base": "felt",
+            "palette": 2,
+            "old": true,
+            "flue": false,
+            "pennant": false,
+            "r": 2.8
+          }
+        }
+      ]
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "kunesBridge",
+    "model": {
+      "id": "nalati-grasslands/kunes-bridge",
+      "name": "Kunes bridge",
+      "category": "buildings",
+      "pipeline": "code",
+      "file": "src/shards/nalati-grasslands/generators/kunesBridge.ts",
+      "surface": "wood",
+      "defaults": {
+        "width": 4.4,
+        "span": 30
+      }
+    },
+    "source": {
+      "kind": "packed"
+    }
+  },
+  {
+    "key": "herdHorse",
+    "model": {
+      "id": "nalati-grasslands/herd-horse",
+      "name": "Herd horse (far)",
+      "category": "props",
+      "pipeline": "hunyuan",
+      "file": "src/shards/nalati-grasslands/data/campCatalogue.json",
+      "surface": "flesh",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/horse-wild.far.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:horse-wild|far|0.8|0.85||ffffff",
+          "family": "painterly",
+          "rim": 0.8,
+          "bands": 0.85,
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "horse-wild",
+          "lod": "far"
+        }
+      }
+    }
+  },
+  {
+    "key": "snowLotus",
+    "model": {
+      "id": "nalati-grasslands/snow-lotus",
+      "name": "Snow lotus",
+      "category": "nature",
+      "pipeline": "trellis",
+      "file": "src/shards/nalati-grasslands/data/campCatalogue.json",
+      "surface": "grass",
+      "defaults": {}
+    },
+    "source": {
+      "kind": "asset",
+      "asset": {
+        "url": "/assets/nalati/baked/painted-models/snow-lotus.glb",
+        "phoneUrl": "/assets/nalati/baked/painted-models/snow-lotus.phone.glb",
+        "geometrySlot": 0,
+        "materialSlot": 0,
+        "retainedAttribute": "_paint_clone",
+        "material": {
+          "id": "nalati-model:snow-lotus|near|0.6|0.7||ffffff",
+          "family": "painterly",
+          "rim": 0.6,
+          "bands": 0.7,
+          "floor": 0.2
+        },
+        "instance": {
+          "name": "snow-lotus",
+          "lod": "near"
+        }
+      }
+    }
+  }
+]

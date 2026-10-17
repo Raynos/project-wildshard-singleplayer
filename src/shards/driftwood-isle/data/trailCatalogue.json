@@ -1,0 +1,247 @@
+[
+  {
+    "key": "fencePost",
+    "model": {
+      "id": "driftwood-isle/fence-post",
+      "name": "Fence post",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/driftwood-isle/generators/trailsideModels.ts",
+      "surface": "wood",
+      "defaults": {},
+      "seed": 9392
+    },
+    "source": {
+      "kind": "owned",
+      "material": {
+        "id": "driftwood-trail",
+        "family": "lowpoly",
+        "variant": "still"
+      },
+      "variants": [
+        {
+          "params": {},
+          "url": "/assets/driftwood-isle/baked/trail-71195c5f474dcd59692f73db2ac16ac5c4a488b49e6c00bad155e86dfb873ea4.glb",
+          "size": [
+            3,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    "colliders": [
+      {
+        "kind": "box",
+        "x": 0,
+        "y": 0.1,
+        "z": 0,
+        "hx": 0.16,
+        "hy": 1.1,
+        "hz": 0.16
+      }
+    ]
+  },
+  {
+    "key": "signpost",
+    "model": {
+      "id": "driftwood-isle/signpost",
+      "name": "Signpost",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/driftwood-isle/generators/trailsideModels.ts",
+      "surface": "wood",
+      "defaults": {
+        "arrows": [
+          -1.27,
+          0.35
+        ],
+        "labels": [
+          "HUT",
+          "LOOKOUT"
+        ]
+      },
+      "variants": [
+        {
+          "id": "two",
+          "label": "Two arrows",
+          "params": {}
+        },
+        {
+          "id": "one",
+          "label": "One arrow",
+          "params": {
+            "arrows": [
+              1.2
+            ],
+            "labels": [
+              "WRECK"
+            ]
+          }
+        },
+        {
+          "id": "three",
+          "label": "Three arrows",
+          "params": {
+            "arrows": [
+              0.45,
+              0.75,
+              -0.87
+            ],
+            "labels": [
+              "LOOKOUT",
+              "WRECK",
+              "SHRINE"
+            ]
+          }
+        }
+      ],
+      "seed": 9392
+    },
+    "source": {
+      "kind": "owned",
+      "material": {
+        "id": "driftwood-trail",
+        "family": "lowpoly",
+        "variant": "still"
+      },
+      "variants": [
+        {
+          "params": {
+            "arrows": [
+              -1.27,
+              0.35
+            ],
+            "labels": [
+              "HUT",
+              "LOOKOUT"
+            ]
+          },
+          "url": "/assets/driftwood-isle/baked/trail-a388307316b578e92a35be49f3e35d75992f50c6498c6e961c2bdaabb97cf78c.glb",
+          "size": [
+            4,
+            3,
+            4
+          ]
+        },
+        {
+          "params": {
+            "arrows": [
+              1.2
+            ],
+            "labels": [
+              "WRECK"
+            ]
+          },
+          "url": "/assets/driftwood-isle/baked/trail-f1645c1601d885caa3c32b2fdacb99a5ac354c10e770eec99b53cffa39c972bf.glb",
+          "size": [
+            4,
+            3,
+            4
+          ]
+        },
+        {
+          "params": {
+            "arrows": [
+              0.45,
+              0.75,
+              -0.87
+            ],
+            "labels": [
+              "LOOKOUT",
+              "WRECK",
+              "SHRINE"
+            ]
+          },
+          "url": "/assets/driftwood-isle/baked/trail-3b31606dd2e7bab937624a0cf40e503ea8ff1c5a152c9a86b04d4898187b9c11.glb",
+          "size": [
+            4,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    "colliders": [
+      {
+        "kind": "box",
+        "x": 0,
+        "y": 0.7,
+        "z": 0,
+        "hx": 0.12,
+        "hy": 1.7,
+        "hz": 0.12
+      }
+    ]
+  },
+  {
+    "key": "plankStep",
+    "model": {
+      "id": "driftwood-isle/plank-step",
+      "name": "Plank step",
+      "category": "props",
+      "pipeline": "code",
+      "file": "src/shards/driftwood-isle/generators/trailsideModels.ts",
+      "surface": "wood",
+      "defaults": {
+        "w": 2.4,
+        "roll": 0,
+        "yaw": 0,
+        "dark": false
+      },
+      "variants": [
+        {
+          "id": "light",
+          "label": "Light",
+          "params": {}
+        },
+        {
+          "id": "dark",
+          "label": "Dark",
+          "params": {
+            "dark": true
+          }
+        }
+      ],
+      "seed": 9392
+    },
+    "source": {
+      "kind": "owned",
+      "material": {
+        "id": "driftwood-trail",
+        "family": "lowpoly",
+        "variant": "still"
+      },
+      "variants": [
+        {
+          "params": {
+            "w": 2.4,
+            "roll": 0,
+            "yaw": 0,
+            "dark": false
+          },
+          "url": "/assets/driftwood-isle/baked/trail-0239a5bb72a630612f7e2303d248fdb6f93ab57672f1cd967c8ea71be3678c2d.glb",
+          "size": [
+            3,
+            2,
+            3
+          ]
+        },
+        {
+          "params": {
+            "w": 2.4,
+            "roll": 0,
+            "yaw": 0,
+            "dark": true
+          },
+          "url": "/assets/driftwood-isle/baked/trail-bcd26672d7cc0fa1190447ec2dc52216bd2031689ef2b8bc3fdaefb54d794acf.glb",
+          "size": [
+            3,
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  }
+]

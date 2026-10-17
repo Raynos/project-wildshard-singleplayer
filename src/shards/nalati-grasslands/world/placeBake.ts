@@ -1,3 +1,22 @@
+import * as THREE from 'three';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
+import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import type { Placed } from '@wildshard/engine/models/place';
+import type { Material } from '@wildshard/engine/physics/surface';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { readBakedGeometry, type BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
+import placesJson from '../data/places.json' with { type: 'json' };
+import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
+import type { NalatiTexName } from '../look/nalatiTextures';
+import { unshuffleBodyLanes } from '../species/bodies';
+import type { ModelPlacement, NalatiModelName } from './modelView';
+import { poiMaterial, texturedMaterial } from './paint';
+import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type CragLedgeFloor, type LeopardCaveFloor, type KurganEntranceFloor, flushInstances, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
+import type { Box } from './solid';
+import type { Platform, PoiCtx, PoiPiece, PlaceAnchors } from './types';
+import { yardMaterial } from './Yard';
+
+
 /**
  * Nalati's painted places, baked offline (SHARD-PLATFORM M3, the places bake): the spring camp, the Kunes bridge and the
  * summer camp are painted, AO-baked and contact-shaded at bake time by `generators/places.ts` (in Chromium:
@@ -5,28 +24,10 @@
  * the bake back: each place's meshes (every attribute's own float bytes, welded in the binary and expanded here into the
  * page's non-indexed arrays), its data boxes, its cloth and smoke, its generated (GLB) instances and, per model, the copies
  * `place` registers (colliders, floors, the catalog), in the order the builders made them. The models' Explorer specimens
- * are a second bake (`specimens.bin`), fetched the first time the Explorer builds one (`bakedPainted`).
+ * are a second bake (`specimens.bin`), declared by specimens.generated.json and loaded by the shared catalogue host.
  * Fetched once behind the loading screen (`preloadNalatiPlaces`, NalatiPOIs.buildSliced); a place asked for before it is a
  * page fault (`bakedPlaceSteps` throws, naming it).
  */
-import * as THREE from 'three';
-import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
-import type { ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
-import type { Placed } from '@wildshard/engine/models/place';
-import type { Material } from '@wildshard/engine/physics/surface';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { readBakedGeometry, type BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
-import placesJson from '../data/places.json' with { type: 'json' };
-import specimensJson from '../data/placeSpecimens.json' with { type: 'json' };
-import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
-import type { NalatiTexName } from '../look/nalatiTextures';
-import { unshuffleBodyLanes } from '../species/bodies';
-import type { ModelPlacement, NalatiModelName } from './modelView';
-import { poiMaterial, texturedMaterial } from './paint';
-import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type CragLedgeFloor, type LeopardCaveFloor, type KurganEntranceFloor, flushInstances, modelReady, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
-import type { Box } from './solid';
-import type { Platform, PoiCtx, PoiPiece, PlaceAnchors } from './types';
-import { yardMaterial } from './Yard';
 
 /** a baked geometry: its row, and whether the binary holds it welded (expanded to the page's non-indexed arrays) */
 export interface PlaceGeometryRow extends BakedGeometryRow { readonly expand: boolean }
@@ -62,7 +63,6 @@ export interface SpecimenRow { readonly key: string; readonly parts: readonly Pl
 export interface DressingGeoRow { readonly key: string; readonly geometry: PlaceGeometryRow }
 
 export const NALATI_PLACES_URL = '/assets/nalati/baked/places.bin';
-export const NALATI_SPECIMENS_URL = '/assets/nalati/baked/specimens.bin';
 /** the dressing's scatter shapes' bake (fetched beside the places') */
 export const NALATI_DRESSING_URL = '/assets/nalati/baked/dressing.bin';
 
@@ -76,7 +76,6 @@ function bakeOf<R>(v: unknown, what: string): Bake<R> {
   return v;
 }
 const PLACES = bakeOf<PlaceRow>(placesJson, 'places.json');
-const SPECIMENS = bakeOf<SpecimenRow>(specimensJson, 'placeSpecimens.json');
 const DRESSING = bakeOf<DressingGeoRow>(dressingJson, 'dressingGeos.json');
 
 /** the deck's floor function (placement only): the bridge painter's own `prof`, from its data */
@@ -291,55 +290,6 @@ export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap
     return put(m, { ...o, object: group, ...(split === undefined ? {} : { split }) }, group);
   });
   return { name: row.name, object, colliders: row.colliders.map((b) => ({ ...b })), surface: row.surface as Material, tris: row.tris, descs: members.flatMap(([, m]) => m.descs), register };
-}
-
-let specimens: { bytes: Uint8Array; at: number[] } | null = null;
-let specimensLoading: Promise<{ bytes: Uint8Array; at: number[] } | null> | null = null;
-/** the specimens bake, fetched the first time the Explorer builds one */
-function loadSpecimens(): Promise<{ bytes: Uint8Array; at: number[] } | null> {
-  specimensLoading ??= (async (): Promise<{ bytes: Uint8Array; at: number[] } | null> => {
-    try {
-      const raw = await fetchLanes(NALATI_SPECIMENS_URL);
-      specimens = { bytes: raw, at: offsets(SPECIMENS, raw, (r) => r.parts, 'specimens') };
-      return specimens;
-    } catch (error: unknown) { console.error('[nalati-grasslands] the baked specimens did not load:', error); return null; }
-  })();
-  return specimensLoading;
-}
-/** Hand the specimens bake's raw binary to the page (a test). */
-export function useNalatiSpecimens(raw: Uint8Array): void { specimens = { bytes: raw, at: offsets(SPECIMENS, raw, (r) => r.parts, 'specimens') }; specimensLoading = Promise.resolve(specimens); }
-
-/** a specimen's key: its model and its params as the Explorer builds them (`paramsOf`) */
-export const specimenKey = (id: string, params: object): string => `${id} ${JSON.stringify(params)}`;
-
-/** a baked specimen's parts (the Explorer's model, in its own space), when the specimens bake is in */
-export function bakedSpecimenParts(key: string, sky: PoiCtx['sky']): ModelPart[] | null {
-  const bake = specimens, i = SPECIMENS.rows.findIndex((r) => r.key === key), row = SPECIMENS.rows[i];
-  if (bake === null || row === undefined) return null;
-  let first = 0;
-  for (let k = 0; k < i; k++) first += SPECIMENS.rows[k]?.parts.length ?? 0;
-  return row.parts.map((p, k) => ({ geometry: geometryAt(bake.bytes, bake.at[first + k] ?? 0, p.geometry), material: p.material === 'poi' ? poiMaterial(sky) : texturedMaterial(sky, p.material as NalatiTexName), castShadow: true, receiveShadow: true }));
-}
-
-/**
- * A painted model whose painter runs offline (the places bake): its Explorer specimen is the baked one for the params it
- * is built with, drawn into the returned group when the specimens bake is in (`ws:model-ready` then, as a GLB model's).
- */
-export function bakedPainted<P extends object>(def: Omit<ModelDef<P>, 'build'>): ModelDef<P> {
-  return {
-    ...def,
-    build: (ctx, p) => {
-      const g = new THREE.Group(), key = specimenKey(def.id, p);
-      const fill = (): void => {
-        const parts = bakedSpecimenParts(key, ctx.sky);
-        if (parts === null) { console.warn(`[nalati-grasslands] no baked specimen ${key}`); return; }
-        for (const part of parts) { const m = new THREE.Mesh(part.geometry, part.material); m.castShadow = true; m.receiveShadow = true; g.add(m); }
-        modelReady(def.id);
-      };
-      if (specimens !== null) fill(); else void (async (): Promise<void> => { await loadSpecimens(); fill(); })();
-      return g;
-    },
-  };
 }
 
 /** Load a place a mesh at a time while preserving the caller's task budget. */

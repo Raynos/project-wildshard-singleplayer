@@ -1,3 +1,11 @@
+import { fencePost as fencePostDefinition, signpost as signpostDefinition, plankStep as plankStepDefinition } from './catalogue';
+import * as THREE from 'three';
+import TRAIL_FONT from '../data/trailFont.generated.json' with { type: 'json' };
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+
+
 /**
  * The trail dressing's models (E306 / E315 M1: models on the contract, src/engine/models/model.ts; they were built inside
  * src/shards/driftwood-isle/world/Trailside.ts): the rope-fence POST (a thick weathered piling with a rope lashing under its cap), the
@@ -9,11 +17,6 @@
  * steps' side rails, the trestle stairs), welds everything into one mesh (one draw, as before) and places each model
  * `drawnInto` it. The posts and signposts collide as the boxes they always had (own space, carried to each placement).
  */
-import * as THREE from 'three';
-import TRAIL_FONT from '../data/trailFont.generated.json' with { type: 'json' };
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '@wildshard/engine/core/rng';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 
 const C = {
   post: new THREE.Color('#6f5638'), postTop: new THREE.Color('#8a6d48'), rope: new THREE.Color('#d2bd85'),
@@ -47,10 +50,7 @@ const one = (ctx: ModelContext, parts: THREE.BufferGeometry[]): ModelPart[] =>
   [{ geometry: parts.length === 1 && parts[0] ? parts[0] : mergeGeometries(parts, false), material: trailMaterial(ctx), castShadow: true, receiveShadow: true }];
 
 export const fencePost = defineModel<Record<string, never>>({
-  id: 'driftwood-isle/fence-post', name: 'Fence post', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/trailside.ts', surface: 'wood',
-  defaults: {},
-  seed: 0x5ea1 ^ 0x7a11,
+  ...fencePostDefinition,
   build: (ctx, _p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
     const tilt = rng.range(-0.06, 0.06);
@@ -59,8 +59,6 @@ export const fencePost = defineModel<Record<string, never>>({
     for (let r = 0; r < 3; r++) add(new THREE.CylinderGeometry(0.175, 0.175, 0.07, 6).translate(0, 1.0 - r * 0.08, 0), r === 1 ? C.postTop : C.rope, 0.04);
     return one(ctx, parts);
   },
-  // from 1 m under the ground to its cap (the legacy box)
-  colliders: () => [{ kind: 'box', x: 0, y: 0.1, z: 0, hx: 0.16, hy: 1.1, hz: 0.16 }],
 });
 
 export interface SignpostParams {
@@ -91,11 +89,7 @@ function lettering(text: string, cx: number, side: 1 | -1): THREE.BufferGeometry
 }
 
 export const signpost = defineModel<SignpostParams>({
-  id: 'driftwood-isle/signpost', name: 'Signpost', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/trailside.ts', surface: 'wood',
-  defaults: { arrows: [-1.27, 0.35], labels: ['HUT', 'LOOKOUT'] },
-  variants: [{ id: 'two', label: 'Two arrows', params: {} }, { id: 'one', label: 'One arrow', params: { arrows: [1.2], labels: ['WRECK'] } }, { id: 'three', label: 'Three arrows', params: { arrows: [0.45, 0.75, -0.87], labels: ['LOOKOUT', 'WRECK', 'SHRINE'] } }],
-  seed: 0x5ea1 ^ 0x7a11,
+  ...signpostDefinition,
   build: (ctx, p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
     add(new THREE.CylinderGeometry(0.09, 0.11, 2.4, 6).translate(0, 1.1, 0), C.post, 0.06);
@@ -112,7 +106,6 @@ export const signpost = defineModel<SignpostParams>({
     });
     return one(ctx, parts);
   },
-  colliders: () => [{ kind: 'box', x: 0, y: 0.7, z: 0, hx: 0.12, hy: 1.7, hz: 0.12 }],
 });
 
 export interface PlankStepParams {
@@ -126,11 +119,7 @@ export interface PlankStepParams {
 }
 
 export const plankStep = defineModel<PlankStepParams>({
-  id: 'driftwood-isle/plank-step', name: 'Plank step', category: 'props', pipeline: 'code',
-  file: 'src/shards/driftwood-isle/runtime/models/trailside.ts', surface: 'wood',
-  defaults: { w: 2.4, roll: 0, yaw: 0, dark: false },
-  variants: [{ id: 'light', label: 'Light', params: {} }, { id: 'dark', label: 'Dark', params: { dark: true } }],
-  seed: 0x5ea1 ^ 0x7a11,
+  ...plankStepDefinition,
   build: (ctx, p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
     const g = new THREE.BoxGeometry(p.w, 0.14, 0.42); g.rotateZ(p.roll); g.rotateY(p.yaw); g.translate(0, 0.02, 0);

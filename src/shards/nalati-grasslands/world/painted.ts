@@ -1,3 +1,19 @@
+import type { Board } from '../boot/specimenParams.generated';
+import * as THREE from 'three';
+import { PaintKit, v3, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
+import { Flutter } from './Flutter';
+import { boxDescs, highest, type Box } from './solid';
+import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { ModelBuild, ModelContext, ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
+import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { NalatiTexName } from '../look/nalatiTextures';
+import { NO_PLUMES, type Ground, type Platform, type Plumes } from './types';
+
+
 /**
  * Nalati's models on the model contract (E306 / E315 M3; the contract is src/engine/models/model.ts): how a Nalati model is
  * built, drawn and placed.
@@ -30,19 +46,6 @@
  * old builder's order (a model's boxes, then its real-geometry colliders; models in the order first put), so the
  * physics world and the navmesh bake see exactly what they did.
  */
-import * as THREE from 'three';
-import { PaintKit, v3, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
-import { Flutter } from './Flutter';
-import { boxDescs, highest, type Box } from './solid';
-import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
-import type { Rng } from '@wildshard/engine/core/rng';
-import type { ModelBuild, ModelContext, ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
-import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { NalatiTexName } from '../look/nalatiTextures';
-import { NO_PLUMES, type Ground, type Platform, type Plumes } from './types';
 
 /** what a painted model paints into: a place's kit (its one rng stream) */
 export interface Kit {
@@ -141,27 +144,6 @@ export interface GeneratedSpec<P> {
   readonly collide?: (at: ModelPlacement, p: P) => Made;
 }
 
-/** tell the Explorer a model's specimen has filled in (it re-frames the card) */
-export function modelReady(id: string): void {
-  if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
-}
-
-/** a generated (GLB) model's `build`: its specimen is the loaded file (filled in when it lands) */
-export function generated<P extends object>(spec: GeneratedSpec<P>): GeneratedBuild<P> {
-  const build = (ctx: ModelContext): THREE.Object3D => {
-    const g = new THREE.Group();
-    loadNalatiModel(ctx.sky, spec.name, spec.look, spec.lod).then((m) => {
-      const mesh = new THREE.Mesh(m.geometry, m.material);
-      mesh.castShadow = true; mesh.receiveShadow = true;
-      g.add(mesh);
-      modelReady(spec.id);
-      return m;
-    }).catch((e: unknown) => { console.warn(`[nalati] model ${spec.name} failed`, e); });
-    return g;
-  };
-  return Object.assign(build, { gen: spec });
-}
-
 const _box = new THREE.Box3(), _part = new THREE.Box3(), _pt = new THREE.Vector3();
 
 /** one model's copies in a set as data: where they stand, their boxes, what they made (the places bake writes these rows,
@@ -178,7 +160,6 @@ export interface MemberData {
   readonly descs: ColliderDesc[];
   readonly floors: Platform[];
 }
-
 /** a set's generated models' instances of one model: their look and placements */
 export interface InstanceData { readonly look: ModelLook; readonly castShadow: boolean; readonly placements: ModelPlacement[] }
 
@@ -391,30 +372,6 @@ export function kurganEntranceFloor(row: KurganEntranceFloor): Platform & { read
   ]), { row });
 }
 
-export type FieldstoneLook = 'kurgan' | 'rubble';
-
-export interface FieldstoneParams {
-  /** radius, metres */
-  readonly s: number;
-  /** height over width */
-  readonly squash: number;
-  /** how lumpy */
-  readonly rough: number;
-  /** how far its centre sits over the ground, × its radius (negative: sunk) */
-  readonly lift: number;
-  /** its stone and lichen */
-  readonly look: FieldstoneLook;
-}
-
-
-export interface Board {
-  readonly text: string;
-  /** the way the arrow points (world yaw of the direction, atan2(dx, dz)) */
-  readonly dir: number;
-}
-
-export interface SignpostParams { readonly boards: readonly Board[] }
-
 /** one board's plank: its centre, its yaw (local +x = the pointing way), its width */
 export interface BoardSpot { readonly p: THREE.Vector3; readonly yaw: number; readonly w: number }
 
@@ -429,15 +386,9 @@ export function boardSpots(x: number, z: number, gy: number, boards: readonly Bo
   });
 }
 
-
 /** Native model bounds used by both authored collision recipes and live placement boxes. */
 export function generatedBounds(name: NalatiModelName, box = new THREE.Box3()): THREE.Box3 {
   const [w, h, d] = MODEL_SIZE[name];
   box.min.set(-w / 2, 0, -d / 2); box.max.set(w / 2, h, d / 2);
   return box;
-}
-
-/** Generated model data; its existing loader supplies the Explorer view. */
-export function generatedModel<P extends object>(def: Omit<ModelDef<P>, 'build'>, spec: GeneratedSpec<P>): ModelDef<P> {
-  return { ...def, build: generated(spec) };
 }
