@@ -1,3 +1,4 @@
+import { LoadoutSchema, type LoadoutRows } from './loadout';
 import * as v from 'valibot';
 import { HeldEquipmentSchema, type HeldEquipmentRows } from './heldEquipment';
 import { CompletionSchema, type CompletionRows } from './completion';
@@ -12,6 +13,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'held/loadout': LoadoutRows;
   'held/equipment': HeldEquipmentRows;
   'ui/completion': CompletionRows;
   'sim/runtime-plan': NativeRuntimePlanData;
@@ -26,6 +28,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'held/loadout': { schema: LoadoutSchema },
   'held/equipment': { schema: HeldEquipmentSchema },
   'ui/completion': { schema: CompletionSchema },
   'sim/runtime-plan': { schema: NativeRuntimePlanSchema },
@@ -42,6 +45,7 @@ export const PLATFORM_DATA_SECTIONS = {
 export type PlatformDataSectionName = keyof PlatformDataSections;
 
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
+export function parsePlatformDataSection(name: 'held/loadout', value: unknown): LoadoutRows;
 export function parsePlatformDataSection(name: 'held/equipment', value: unknown): HeldEquipmentRows;
 export function parsePlatformDataSection(name: 'actors/species-programs', value: unknown): SpeciesPrograms;
 export function parsePlatformDataSection(name: 'actors/moves', value: unknown): ActorMoves;

@@ -24,7 +24,7 @@ import { installKingPoseKeeper as populationPose } from '../runtime/kingPoseKeep
 import { installPineKing as module18InstallPineKing } from '../runtime/king';
 import { DayCycle as module19DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY as module20PINE_DAY } from '../look/dayKeys';
-import { PineAmmunition as module21PineAmmunition } from '../runtime/weapons/ammunition';
+import { NativeHeldAmmunition as module21NativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
 import { installWeatherContinuation as module23InstallWeatherContinuation } from '@wildshard/game/plugin/weather';
 import { installNativeHerdShelter as module24InstallNativeHerdShelter } from '@wildshard/sdk/populationShelter';
 import { proveTerrainEntries as module25ProveTerrainEntries } from '@wildshard/game/plugin/mover';
@@ -55,7 +55,7 @@ export const headlessModules = {
   'src/shards/pine-hollow/runtime/king': { installPineKing: module18InstallPineKing },
   '@wildshard/engine/world/dayCycle': { DayCycle: module19DayCycle },
   'src/shards/pine-hollow/look/dayKeys': { PINE_DAY: module20PINE_DAY },
-  'src/shards/pine-hollow/runtime/weapons/ammunition': { PineAmmunition: module21PineAmmunition },
+  '@wildshard/game/loadout/nativeAmmunition': { NativeHeldAmmunition: module21NativeHeldAmmunition },
   '@wildshard/game/plugin/weather': { installWeatherContinuation: module23InstallWeatherContinuation },
   '@wildshard/sdk/populationShelter': { installNativeHerdShelter: module24InstallNativeHerdShelter },
   '@wildshard/game/plugin/mover': { proveTerrainEntries: module25ProveTerrainEntries },

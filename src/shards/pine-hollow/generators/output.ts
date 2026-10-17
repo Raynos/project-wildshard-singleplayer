@@ -1,3 +1,4 @@
+import heldLoadout from '../data/loadout.json' with { type: 'json' };
 import heldTuning from '../data/heldTuning.json' with {type:'json'};
 import nightPopulation from '../data/nightPopulation.generated.json' with { type: 'json' };
 import nightTuning from '../data/populationWaves.json' with { type: 'json' };
@@ -110,7 +111,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['sim/scripts',KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['sim/scripts',KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

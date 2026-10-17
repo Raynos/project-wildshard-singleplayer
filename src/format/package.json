@@ -158,7 +158,8 @@
     "./nativeActors": "./nativeActors.ts",
     "./populationRoster": "./populationRoster.ts",
     "./questSteps": "./questSteps.ts",
-    "./heldEquipment": "./heldEquipment.ts"
+    "./heldEquipment": "./heldEquipment.ts",
+    "./loadout": "./loadout.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

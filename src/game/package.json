@@ -141,7 +141,13 @@
     "./quest/chapter": "./quest/chapter.ts",
     "./quest/killSteps": "./quest/killSteps.ts",
     "./quest/hints": "./quest/hints.ts",
-    "./plugin/heldEquipment": "./plugin/heldEquipment.ts"
+    "./plugin/heldEquipment": "./plugin/heldEquipment.ts",
+    "./loadout/held": "./loadout/held.ts",
+    "./loadout/pouch": "./loadout/pouch.ts",
+    "./loadout/persistence": "./loadout/persistence.ts",
+    "./loadout/events": "./loadout/events.ts",
+    "./loadout/effects": "./loadout/effects.ts",
+    "./loadout/nativeAmmunition": "./loadout/nativeAmmunition.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

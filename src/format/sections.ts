@@ -1,3 +1,4 @@
+import type { LoadoutRows } from './loadout';
 import type { HeldEquipmentRows } from './heldEquipment';
 import type { CompletionRows } from './completion';
 import type { SpeciesPrograms } from './speciesPrograms';
@@ -24,6 +25,7 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  'held/loadout': LoadoutRows;
   'held/equipment': HeldEquipmentRows;
   'ui/completion': CompletionRows;
   /** Existing native owners selected by admitted data, never client runtime code. */

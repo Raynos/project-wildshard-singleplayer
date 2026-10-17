@@ -41,7 +41,7 @@ import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
 import { placeCabins } from './world/cabins';
 import { placeDrawnModels } from './world/drawnModels';
 import { placePineHollowSets } from '../world/places';
-import { installPineLoadout } from '../loadout/loadout';
+import { installHeldLoadout } from '@wildshard/game/loadout/held';
 import { installPineCombat } from '../combat/install';
 import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
@@ -56,9 +56,8 @@ import { installWeather, loadPineRain } from '../world/weather';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
-import { pineFinishEffect } from '../loadout/effects';
+import { heldFinishEffect } from '@wildshard/game/loadout/effects';
 import { pineSkins, pineSkinRows, pineFinishCards, loadPineFinishes, type SkinId } from './loadout/skins';
-import { bindLoadoutDeath } from '../loadout/events';
 import { parseTradeCatalogue } from '../quest/rows';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
@@ -175,7 +174,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo([...readItemAmmunition(ctx.product.shardfile.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
-    ctx.rows.effect([...pineFinishCards().map(({ id }) => pineFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
+    ctx.rows.effect([...pineFinishCards().map(({ id }) => heldFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
     ctx.rows.skin(pineSkinRows());
   }
 
@@ -222,7 +221,7 @@ export class PineHollow extends ShardPlugin {
       drop.at.y = Math.max(drop.at.y, heightAt(drop.at.x, drop.at.z));
       skinDrops.spawn(drop.id, drop.at, true);
     });
-    const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx });
+    const loadout = installHeldLoadout({ source: ctx.product.shardfile, scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx }, ctx.product.section('held/loadout'));
     const rifleDrop = (() => {
       const position = pineRifleFloor(cabins === null ? null : { floorHeightAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') });
       if (position === null) return null;
@@ -250,7 +249,7 @@ export class PineHollow extends ShardPlugin {
     const decisions=await pageDecisionAuthority(ctx),decisionProgram=ctx.product.section('actors/species-programs').program;
     if(decisionProgram===undefined)throw new Error('Pine requires its King decision programme');
     const persistenceRows = await readAdventurePersistence(ctx);
-    const fights = ctx.scope.run(() => installPineCombat({ persistenceRows, decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
+    const fights = ctx.scope.run(() => installPineCombat({ pouchCapacity: ctx.product.section('held/loadout').pouch.capacity, persistenceRows, decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } }));
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
     const compendium = installPineCompendium({ context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });
@@ -277,8 +276,6 @@ export class PineHollow extends ShardPlugin {
     rt.hooks.audioUpdate = (dt) => { ambience.update(dt, game.camera); };
     rt.hooks.dispose = () => { ambience.dispose(); };
     rt.hooks.checkpoint = () => fights.onPlayerDeath();
-    const health = ctx.app.player;
-    installEnteredRuntimeService(ctx, (scope) => { bindLoadoutDeath(ctx.app.events, scope, health, { active: () => ctx.app.player === health, reset: () => { loadout.onPlayerDeath(); } }); });
     rt.hooks.eliteEngaged = () => fights.eliteEngaged();
     rt.hooks.isElite = (animal) => fights.isElite(animal);
     rt.hooks.harvestBusy = () => life?.busy ?? false;

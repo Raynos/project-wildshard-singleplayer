@@ -29,7 +29,6 @@ import * as THREE from 'three';
 
 
 
-import { POUCH_MAX } from '../loadout/ammo';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { pineSkins, type SkinId } from '../runtime/loadout/skins';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
@@ -63,6 +62,7 @@ import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, install
  */
 
 export interface PineCombatHost {
+  readonly pouchCapacity: number;
   persistenceRows: unknown;
   readonly decisionProgram:SpeciesProgramData; readonly decisions:SpeciesDecisionAuthority;
   context?: ShardContext;
@@ -170,7 +170,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     ...(persistence === undefined ? {} : { persistence: persistence.bosses }),
     reward: { model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'), grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); }, trophy: () => { ctx.addItem('amber-resin', 3); } },
     lockInput: on => { player.carried = on; introLock = on; legs(); weapons.setEnabled(!on); },
-    respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(POUCH_MAX - (h.crossbow.state.bolts ?? POUCH_MAX)); },
+    respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(h.pouchCapacity - (h.crossbow.state.bolts ?? h.pouchCapacity)); },
     skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
     toast: ctx.toast, feed: ctx.feed, pickupHum: on => { h.audio.pickupHum(on); },
     score: () => CatalogueScore.get(h.music, requireAudioProfile(source.audio.music, 'score.pine'),undefined,undefined,false), ambientScene: () => kingNight() ? 'night' : 'day', scorePhase: fight => fight.phase,

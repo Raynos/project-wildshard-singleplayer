@@ -71,7 +71,6 @@ import { codePart, loadCodeParts } from '../runtime/world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
-import type { AmmoKind } from '../loadout/ammo';
 import './pinehollow.css';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
@@ -84,6 +83,8 @@ import { placeTokenShelf } from './tokenShelf';
 import { BeaverPool } from '../world/beaverPool';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
+
+type AmmoKind = 'iron' | 'pitch' | 'broadhead' | 'cartridge' | 'arrow';
 
 export interface PineQuestHost {
   ctx: ShardContext;

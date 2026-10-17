@@ -13,7 +13,7 @@ import { projectileFlightStep } from '../../../src/engine/combat/projectileFligh
 export interface BoltFlight { gravity: number; drag: number }
 const PLAIN_FLIGHT: BoltFlight = { gravity: 1, drag: 1 };
 import { aimAt, bodyHit } from './headlessRanged';
-import type { BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
+type BoltKind = 'iron' | 'pitch' | 'broadhead';
 const boltDamage = (kind: BoltKind, animal: string): number => kind === 'broadhead' && (animal === 'deer' || animal === 'boar') ? 1.4 : 1;
 /** Frozen shipping flight law, independent of the adopted item rows. */
 export function boltFlight(kind: BoltKind, rain: number): BoltFlight {

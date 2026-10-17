@@ -1812,6 +1812,29 @@ sleeves are created. The fictional harbour fixture in
 `test/held-equipment-platform.test.ts` supplies different assets, materials,
 channels and tuning through this same host.
 
+**Held loadout (G474 / G477).** `@wildshard/game/loadout/held` installs
+`installHeldLoadout(host, rows)` from the platform `held/loadout` section
+(`@wildshard/format/loadout`). Rows declare ordered ammunition kinds, fallback,
+stack capacity, ownership identities, save fields, input, cues and presentation.
+`AmmoPouch` in `@wildshard/game/loadout/pouch` stashes the selected live stack,
+skips empty special stacks and preserves the fallback refill rule. Native weapon
+families retain their fire/reload clocks and live ammunition.
+`NativeHeldAmmunition` in `@wildshard/game/loadout/nativeAmmunition` adapts the
+same pouch to native continuations. Its constructor takes family ports, loadout
+rows, the native bow's capacity and an optional combat frame. The outer saved
+schema admits named stacks; `prepareRestore` validates the exact declared keys,
+caps and agreement with the live weapon before returning a mutation.
+`loadoutLegacySlot` in `@wildshard/game/loadout/persistence` explicitly registers the row's original shard-scoped v1 save
+ABI once per store; matching existing documents continue without a rename or
+reset. `restoreHeldOwnership` migrates a legacy pack flag before unlocking owned
+equipment. `Inventory.had` accepts legacy row identities even when absent from
+the current pack catalogue; `Owned.has` accepts row identities, while grants
+refuse unregistered identities. `bindLoadoutDeath` in `@wildshard/game/loadout/events` runs the pouch reset before
+respawn refill, and `heldFinishEffect` in `@wildshard/game/loadout/effects` produces the shared permanent cosmetic
+grant. Input and cue timers follow the existing entered-cell lifetime. Importing
+these modules installs no service. `test/held-loadout-platform.test.ts` drives a
+fictional harbour pouch and ownership rows, and resumes an existing Pine v1 save.
+
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
 `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`, `HitLine`,
 `makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `installRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,

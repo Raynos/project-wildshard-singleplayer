@@ -21,7 +21,7 @@ import { eliteOf } from '../quest/contracts';
 import { questBenchPose } from '@wildshard/game/quest/storyLaw';
 import benchRows from '../data/questBench.json' with { type: 'json' };
 import { Exchange } from '@wildshard/game/loot/exchange';
-import { PINE_AMMO_SAVED, type PineAmmunition } from './weapons/ammunition';
+import { NativeAmmunitionSavedSchema, type NativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 
@@ -65,7 +65,7 @@ const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>) => v
   dawn: v.pipe(v.string(), v.maxLength(1000000)), fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.optional(pack, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false),
-  trader: v.optional(TradeSaved), ammunition: v.optional(PINE_AMMO_SAVED) });
+  trader: v.optional(TradeSaved), ammunition: v.optional(NativeAmmunitionSavedSchema) });
 
 /** The day clock the quest fast-forwards (the host's, PineDayNight's law). */
 export interface PineQuestDay { phase: number; readonly night: number }
@@ -86,7 +86,7 @@ export interface PineQuestPorts {
   /** The actual crossbow owner applies the page quiver cap. */
   readonly addBolts: (count: number) => void;
   /** Required for native Mott trades; isolated old quest fixtures without a complete kit cannot open the shop. */
-  readonly ammunition?: PineAmmunition;
+  readonly ammunition?: NativeHeldAmmunition;
   readonly canSelectAmmo?: () => boolean;
   /** the host's day clock (null: none, as a page without a sky clock: no fast-forward, no night wait) */
   readonly day: () => PineQuestDay | null;

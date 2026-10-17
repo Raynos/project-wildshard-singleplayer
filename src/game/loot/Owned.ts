@@ -58,11 +58,13 @@ export class Owned {
     if (Array.isArray(worn)) for (const id of worn) if (isOwnedId(id) && isCosmetic(id) && this.have.has(id)) this.wearing.add(id);
   }
 
-  has(id: OwnedId): boolean { return this.have.has(id); }
+  /** Row-authored identity reads return false for an unregistered or unowned item. */
+  has(id: string): boolean { return isOwnedId(id) && this.have.has(id); }
   get all(): OwnedId[] { return [...this.have]; }
 
   /** true when it is new */
-  grant(id: OwnedId): boolean {
+  grant(id: string): boolean {
+    if (!isOwnedId(id)) throw new Error(`Unknown owned identity: ${id}`);
     if (this.have.has(id)) return false;
     this.have.add(id);
     this.changed();

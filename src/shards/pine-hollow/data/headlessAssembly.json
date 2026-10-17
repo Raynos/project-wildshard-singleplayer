@@ -23,7 +23,7 @@
     "src/shards/pine-hollow/runtime/king": ["installPineKing"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
-    "src/shards/pine-hollow/runtime/weapons/ammunition": ["PineAmmunition"],
+    "@wildshard/game/loadout/nativeAmmunition": ["NativeHeldAmmunition"],
     "@wildshard/game/plugin/weather": ["installWeatherContinuation"],
     "@wildshard/sdk/populationShelter": ["installNativeHerdShelter"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
@@ -1055,21 +1055,50 @@
       "value": {
         "$new": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/weapons/ammunition", "PineAmmunition"]
+            "$ref": [
+              "@wildshard/game/loadout/nativeAmmunition",
+              "NativeHeldAmmunition"
+            ]
           },
           {
             "crossbow": {
-              "$ref": ["crossbow"]
+              "$ref": [
+                "crossbow"
+              ]
             },
             "lever": {
-              "$ref": ["lever"]
+              "$ref": [
+                "lever"
+              ]
             },
             "longbow": {
-              "$ref": ["longbow"]
+              "$ref": [
+                "longbow"
+              ]
             }
           },
           {
-            "$ref": ["combat"]
+            "$call": [
+              {
+                "$ref": [
+                  "product",
+                  "section"
+                ]
+              },
+              "held/loadout"
+            ]
+          },
+          {
+            "$ref": [
+              "longbowRow",
+              "profile",
+              "quiver"
+            ]
+          },
+          {
+            "$ref": [
+              "combat"
+            ]
           }
         ]
       }

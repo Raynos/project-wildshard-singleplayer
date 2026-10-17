@@ -166,6 +166,7 @@ batch has one parity check. A board is only needed where the look changes.
    `LeverRifle`, `Crossbow`, `gear` and `heldTool`. The held host installs ranged feel. Nalati's W3 rows supply the
    second user.
    - G482 follow-up (sp-x6, feature #4, recheck 2026-10-18): resolve native held owners from the platform context and item ids; remove the public world/targets ports and cooperative-yield callback from `HeldEquipment`. This catalogue lands at 5/6 pending that data-only entry.
+   - G482 loadout follow-up (sp-x6, feature #4, recheck 2026-10-18): replace `HeldLoadoutHost` and the death reset callback with context/id resolution; convert native ammunition family ports to native owner ids. The first loadout slice scores 5/6 until these public seams are data-only.
 10. **NPC figure host with DW (≈358, L).** A game figure-rows host. Delete `standInPerson`, `npcModels` and the
     people wrapper. DW `runtime/npc/people.ts` moves onto it in the same landing.
 11. **Trophy wall with DW, and the geography bake (≈255, M–L).** The game compendium wall host plus DW trophy plaques.

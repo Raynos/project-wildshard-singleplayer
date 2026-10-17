@@ -27,6 +27,7 @@ const hosts = {
   'actors/strikes': [], // Consumed by the runtime's explicitly imported creature host.
   'actors/species-programs': [], // Metadata lent to existing page/native species and hunt owners.
   'held/equipment': ['game/plugin/heldEquipment#HeldEquipment'],
+  'held/loadout': ['game/loadout/held#installHeldLoadout', 'game/loadout/nativeAmmunition#NativeHeldAmmunition'],
   'combat/items': ['game/shardfile/items#installDeclaredItems'],
   'combat/encounters': ['game/plugin/simulation#createShardfileSim'],
   'combat/strikes': ['game/plugin/simulation#createShardfileSim'],

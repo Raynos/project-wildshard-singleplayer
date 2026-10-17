@@ -80,7 +80,8 @@ export class Inventory {
   /** what this shard's pack takes from a carcass: harvestOf, less the kinds it does not keep (empty = no [E] Harvest) */
   harvest(kind: string, variant?: string): ItemId[] { return harvestOf(kind, variant).filter((id) => this.keeps(id)); }
   /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
-  had(id: ItemId): boolean { return this.legacy.has(id); }
+  /** Legacy ownership reads accept row identities, including items absent from the live pack catalogue. */
+  had(id: string): boolean { const legacy: ReadonlySet<string> = this.legacy; return legacy.has(id); }
 
   private save() { inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
   /** Confirm the current pack is durable before leaving its live cell; failed storage remains retryable. */
