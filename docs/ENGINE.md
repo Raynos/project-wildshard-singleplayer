@@ -2212,6 +2212,18 @@ actions require explicit bindings. Declared ticking stages register through
 `ctx.system`; event owners call `advance(id)`. Missing owners and undeclared
 stage ids refuse. This transient page projection adds no saved cursor.
 
+### Approved platform feature receipts (G474–G477)
+
+The ruler records five approved features and their named future users in
+`lint/platform-pending-users.json`. `game/plugin/heldLauncher` (bolt flight,
+Nalati) and `engine/world/water/ripples` (Nalati) carry G474. G475 covers
+`engine/world/Atmosphere` (`ColourRampFog`, Nalati),
+`engine/world/lowpolyKit` (`bindLowPolyMaterial`, Nine) and
+`game/shardfile/hybrid` (`HybridResidentWorld`, Nine; G476 extends residency
+to every shard). The linked W3 rows state the adoption and its checks.
+These explicit feature receipts stay platform when their wave is next;
+ordinary G441 pending-user entries retain the current/completed-wave rule.
+
 ## 21. Shared content (the kit's, now the game's)
 
 SF54 dissolved `@wildshard/kit`: content that 2+ shards use (the rule of two) lives in `@wildshard/game`, its trusted

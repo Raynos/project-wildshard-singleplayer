@@ -28,6 +28,18 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | W3a / W3b | Nalati / Nine play folders into runtime/ | L / L | Codex (W3) | open |
 | Z1 | Delete v1 monolith reader, legacy discovery, `runtime/source.ts`; ratchets become errors | S | sp-x8 | open tail: `8475cc397` hardens the verified zero boundaries; `71f1792dc` removes unused monolith APIs and CLI v1 disk fallback (all 7 phone grid homes: 0 errors). Keep discovery/`defineAuthoredShard` until x1 source-mode activation and the last source-mode shard closes; keep Sky/Signal `runtime/source.ts` while world/build and models/gear consume them. Revisit on x1's activation SHA |
 
+## Approved platform features: named future users (G474–G477)
+
+These entries record Jake's platform approvals while their later users wait for W3.
+
+| Row | Future adoption | Verification | State |
+|---|---|---|---|
+| W3 Nalati colour-ramp fog (G475) | Nalati's authored valley/sky fog rows use `engine/world/Atmosphere.ts` `ColourRampFog` | Same fog colours and distance curve on the existing renderer | open |
+| W3 Nine low-poly material binding (G475) | Nine's toon material rows use `engine/world/lowpolyKit.ts` `bindLowPolyMaterial` | Borrowed material updates and scope teardown retain the current ink look | open |
+| W3 Nine resident world re-entry (G476) | Nine adopts `game/shardfile/hybrid.ts` `HybridResidentWorld`, rebinding movers on return | Fast return; only the last visited shard remains resident, under G476's phone proof | open |
+| W3 Nalati held bolt flight (G474) | Nalati's bow view adopts `game/plugin/heldLauncher.ts` for retained bolt flight, sticking and recovery | Existing flight, target hits, recovery and save continuation match | open |
+| W3 Nalati water ripples (G474) | Nalati's water rows adopt `engine/world/water/ripples.ts` for authored ford/pond disturbances | Same water ownership; bounded ripple pool and entry/exit teardown | open |
+
 ## W1 spike rows (G457, 2026-10-16; design `progress/shard-platform/wasm-api-design-2026-10-16/README.md` §8)
 
 They start at the W2 close (05:00Z 10-17). KA1–KA4 touch only the platform, so a Codex lane that runs out of W2 work starts

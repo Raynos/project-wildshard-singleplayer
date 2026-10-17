@@ -22,7 +22,7 @@ export const fogUniforms = {
 };
 
 /**
- * Pine Hollow's weather (PH-L10, src/shards/pine-hollow/world/weather.ts drives them), compiled into Pine Hollow's shaders only — every
+ * The caller's weather rows drive these uniforms, compiled into that caller's shaders only — every
  * other shard's program source stays byte-for-byte:
  *   uWet        0 dry … 1 soaked: every lit PBR surface (MeshStandard / Physical, the terrain's splat) darkens where it is
  *               porous and turns glossy, up-facing surfaces most (appended to `normal_fragment_begin`, which every
