@@ -92,7 +92,9 @@ export function authoredManifestSource(root, slug) {
     if (!legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
     if (typeof b.entry.retainHomeRuntime !== 'boolean' || !['declared', 'runtime'].includes(b.entry.stagesOwner)) throw new Error(`${file}: invalid entry ownership`);
     const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
-    native.push(`load: async () => { const [{ default: Runtime }, { default: Native }, { declaredRuntimeEntry }] = await Promise.all([import(${JSON.stringify(runtime)}), import(${JSON.stringify(legacy)}), import('@wildshard/game/shard/declaredEntry')]); return declaredRuntimeEntry(Runtime, Native, ${policy}); }`);
+    // Runtime and native entries share a linked module graph. Finish each namespace
+    // before reading its constructor; never snapshot exports from concurrent loads.
+    native.push(`load: async () => { const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
   }
   for (const key of ['load', 'ktx2']) if (b[key]) native.push(b[key].export ? `${key}: async () => ${lazy(b[key], true)}` : `${key}: () => import(${JSON.stringify(modulePath(b[key].module))})`);
   if (b.posesLoader) native.push(`dev: {poses: async () => ${lazy(b.posesLoader, true)}}`);

@@ -1,4 +1,7 @@
 import { describe, expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute only the generated build fixture's loader expression.
+import { runInNewContext } from 'node:vm';
+import * as ts from '@typescript/typescript6';
 // oxlint-disable-next-line import/no-nodejs-modules -- The Node fixture checks real authored and emitted asset files.
 import { readFileSync, existsSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the bounded build-only binding process.
@@ -81,8 +84,49 @@ test('declared entries compile literal runtime links without shard plugin wrappe
   for (const slug of ['pine-hollow', 'driftwood-isle']) {
     const source = authoredManifestSource(root, slug);
     expect(source).toContain("import('@wildshard/game/shard/declaredEntry')");
-    expect(source).toContain('declaredRuntimeEntry(Runtime, Native,');
+    expect(source).toContain('entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default,');
+    expect(source).not.toContain('await Promise.all([import(');
     expect(source).not.toContain('import("./plugin")');
     expect(source).toContain('import("./runtime/index")');
+  }
+});
+
+
+test('linked entry modules finish before the next namespace can observe their constructors', async () => {
+  for (const slug of ['driftwood-isle', 'pine-hollow']) {
+    const source = authoredManifestSource(root, slug), file = ts.createSourceFile('manifest.ts', source, ts.ScriptTarget.Latest, true);
+    let expression: ts.Expression | undefined;
+    const find = (node: ts.Node): void => {
+      if (ts.isPropertyAssignment(node) && node.name.getText(file) === 'load') expression = node.initializer;
+      ts.forEachChild(node, find);
+    };
+    find(file);
+    if (expression === undefined) throw new Error('Missing compiled runtime loader');
+    let initialized = false;
+    class Runtime { readonly kind = 'runtime'; }
+    class Native { readonly kind = 'native'; }
+    const authored = JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8')) as { runtimeEntry: string; bindings: { entry: { legacy: string } } };
+    const runtimePath = `./${authored.runtimeEntry.slice(0, -3)}`;
+    const loadModule = async (specifier: string): Promise<object> => {
+      if (specifier === runtimePath) {
+        await Promise.resolve(); await Promise.resolve(); initialized = true;
+        return { default: Runtime };
+      }
+      if (specifier === authored.bindings.entry.legacy) {
+        if (!initialized) throw new Error('Native entry observed an unfinished linked runtime');
+        return { default: Native };
+      }
+      if (specifier === '@wildshard/game/shard/declaredEntry') {
+        if (!initialized) throw new Error('Adapter observed an unfinished linked runtime');
+        return { declaredRuntimeEntry: (runtime: object, native: object): object => ({ runtime, native }) };
+      }
+      throw new Error('Unexpected compiled import');
+    };
+    const concurrent = [loadModule(runtimePath), loadModule(authored.bindings.entry.legacy), loadModule('@wildshard/game/shard/declaredEntry')];
+    await expect(Promise.all(concurrent)).rejects.toThrow('unfinished linked runtime');
+    await Promise.allSettled(concurrent); initialized = false;
+    const loader: unknown = runInNewContext(`(${expression.getText(file).replaceAll('import(', 'loadModule(')})`, { loadModule }, { timeout: 1000 });
+    if (typeof loader !== 'function') throw new Error('Compiled entry is not a loader');
+    expect(await Reflect.apply(loader, undefined, [])).toEqual({ runtime: Runtime, native: runtimePath === authored.bindings.entry.legacy ? Runtime : Native });
   }
 });
