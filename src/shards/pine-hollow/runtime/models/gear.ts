@@ -5,7 +5,7 @@
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
 import { crossbowModel, crossbowRows, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
-import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay } from '@wildshard/game/plugin/heldLauncher';
+import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay, bindHeldBow } from '@wildshard/game/plugin/heldLauncher';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
@@ -13,7 +13,7 @@ import { pineSkinRows, PINE_FINISH_VARIANTS, preparePineFinishes } from '../load
 import { loadCodeParts } from '../world/codeParts';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
 import { QUIVER_MAX } from '../weapons/Longbow';
-import { longbowModel, longbowRows } from '../weapons/longbowView';
+import { bakedHandRows, heldGeometry } from '../boot/crossbowGeometry';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/shards/pine-hollow/models/gear.ts';
@@ -52,7 +52,7 @@ export const leverAction: ModelDef<GearSkinParams> = defineModel<GearSkinParams>
 export const wardensLongbow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/wardens-longbow', name: "Warden's longbow", category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
-  build: (ctx) => ctx.once('gear:wardens-longbow', () => heldBowDisplay(ctx.sky, longbowRows(), longbowModel())).clone(),
+  build: (ctx) => ctx.once('gear:wardens-longbow', () => { const bow = bindHeldBow(bakedHandRows().heldBow, heldGeometry()); return heldBowDisplay(ctx.sky, bow.rows, bow.model); }).clone(),
 });
 
 /**
@@ -79,7 +79,10 @@ export const longbowArrow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/longbow-arrow', name: 'Longbow arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: {},
   specimenYaw: Math.PI / 2,
-  build: (ctx) => [ctx.once('gear:longbow-arrow-part', () => ({ ...heldBowArrow(ctx.sky, longbowRows(), longbowModel()), castShadow: true, receiveShadow: true }))],
+  build: (ctx) => [ctx.once('gear:longbow-arrow-part', () => {
+    const bow = bindHeldBow(bakedHandRows().heldBow, heldGeometry());
+    return { ...heldBowArrow(ctx.sky, bow.rows, bow.model), castShadow: true, receiveShadow: true };
+  })],
 });
 
 /** the Hollow's kit (src/main.ts): the crossbow (1), the lever-action (2, the cabin pickup), the longbow (3, the King's

@@ -36,6 +36,21 @@ export const BowWeaponProfileSchema = v.strictObject({
   spread: v.strictObject({ ...cone.entries, aimMultiplier: probability, motion: scalar }), flight, muzzle: scalar, pool: slots, substeps: v.pipe(slots, v.maxValue(64)), lifetime: duration,
 });
 
+/** Serializable held-bow feel, clocks and mounting policy. A null final gait
+ * bound represents infinity on the wire; view strategies come from the bake. */
+export const HeldBowBaseSchema = v.strictObject({
+  family: v.literal('bow'), parent: v.exactOptional(v.string()), quiver: count,
+  swayMax: scalar, speedBase: scalar, speedDraw: scalar, damageScale: scalar,
+  aimZoom: scalar, aimVmZoom: scalar, aimSway: scalar, aimSpread: scalar, aimIn: scalar,
+  arcFrom: scalar, arcColour: v.number(), arcMode: v.picklist(['setting', 'aim']), zoomLook: v.boolean(),
+  inspectZ: v.number(), inspectHidesArms: v.boolean(), transparentParts: v.boolean(), vmScale: scalar,
+  draw: v.exactOptional(BowWeaponProfileSchema.entries.draw.pipe[0]),
+  loose: v.exactOptional(v.strictObject({ ...cone.entries, aimMultiplier: v.exactOptional(probability), motion: scalar, muzzle: scalar })),
+  projectile: v.exactOptional(v.strictObject({ ...flight.entries, maxFlying: slots, substeps: slots, lifetime: duration })),
+  mounted: v.exactOptional(v.strictObject({ drawTime: duration, rearAngle: scalar, rearDraw: scalar, rearSpread: scalar, arc: v.boolean(),
+    gaits: v.pipe(v.array(v.strictObject({ below: v.nullable(scalar), spread: scalar })), v.minLength(1), v.maxLength(32)) })),
+});
+
 /** Magazine, per-round lever and single-bolt parameters for the shared firearm family. Rendering and sounds are separate. */
 export const FirearmWeaponProfileSchema = v.strictObject({
   family: v.literal('firearm'), action: v.picklist(['semi', 'lever', 'bolt']), magazine: slots, reserve: count,
@@ -199,3 +214,28 @@ export const HeldPresentationSchema = v.strictObject({
 export function parseHeldModelRows(input: unknown): v.InferOutput<typeof HeldModelRowsSchema> { return v.parse(HeldModelRowsSchema, input); }
 /** Admit a held firearm's presentation rows before building anything. */
 export function parseHeldPresentation(input: unknown): v.InferOutput<typeof HeldPresentationSchema> { return v.parse(HeldPresentationSchema, input); }
+
+/** Shared baked bow view rows: borrowed part names, material data and numeric shape samples. */
+const heldBowNumber = v.pipe(v.number(), v.finite());
+const heldBowTriple = v.tuple([heldBowNumber, heldBowNumber, heldBowNumber]), heldBowNumbers = v.pipe(v.array(heldBowNumber), v.maxLength(65536));
+const heldBowPose = v.strictObject({ pos: heldBowTriple, aim: heldBowTriple, cant: heldBowNumber, pitch: heldBowNumber });
+const heldBowPainterly = v.strictObject({ rim: v.exactOptional(heldBowNumber), bands: v.exactOptional(heldBowNumber), shade: v.exactOptional(heldBowNumber), transparent: v.exactOptional(v.boolean()) });
+const heldBowLook = v.strictObject({ set: v.exactOptional(v.string()), normalScale: v.exactOptional(v.tuple([heldBowNumber, heldBowNumber])), color: v.exactOptional(heldBowTriple),
+  roughness: heldBowNumber, metalness: heldBowNumber, envMapIntensity: v.exactOptional(heldBowNumber), specularIntensity: v.exactOptional(heldBowNumber),
+  anisotropy: v.exactOptional(heldBowNumber), anisotropyRotation: v.exactOptional(heldBowNumber), emissive: v.exactOptional(heldBowNumber), emissiveIntensity: v.exactOptional(heldBowNumber),
+  alphaTest: v.exactOptional(heldBowNumber), vertexColors: v.exactOptional(v.boolean()), forceSinglePass: v.exactOptional(v.boolean()), side: v.exactOptional(v.picklist([0, 1, 2])) });
+const heldBowMaterial = v.union([v.strictObject({ name: v.string(), painterly: heldBowPainterly }), v.strictObject({ name: v.string(), look: heldBowLook })]);
+/** Baked bow rows support both lit and painterly material data. */
+export const HeldBowRowsSchema = v.strictObject({
+  bake: v.strictObject({ look: v.string(), arrow: v.string(), ringU: heldBowNumbers, ringSign: heldBowNumbers, limbVerts: heldBowNumber, dynVerts: heldBowNumber,
+    sectionSamples: v.strictObject({ widths: heldBowNumbers, ridges: heldBowNumbers }), lWrist: heldBowTriple, rWrist: heldBowTriple, rHook: heldBowTriple, rWristDir: heldBowTriple }),
+  parts: v.strictObject({ stave: v.string(), nocked: v.string(), rightFist: v.string(), leftSleeve: v.string(), rightSleeve: v.string(), arrow: v.string() }),
+  materials: v.strictObject({ bow: heldBowMaterial, arrow: heldBowMaterial }),
+  arrow: v.strictObject({ gravity: heldBowNumber, drag: heldBowNumber, windCoupling: heldBowNumber, bury: heldBowNumber, recover: heldBowNumber, maxFlying: heldBowNumber, maxStuck: heldBowNumber }),
+  wind: v.union([v.strictObject({ base: heldBowNumber, gust: heldBowNumber }), v.strictObject({ field: v.literal('steppe') })]),
+  poses: v.strictObject({ rest: heldBowPose, drawn: heldBowPose, restPort: heldBowPose, drawnPort: heldBowPose, aim: heldBowPose, aimPort: heldBowPose }),
+  styles: v.exactOptional(v.record(v.string(), v.string())),
+});
+
+/** Complete held-bow binding; executable view strategies belong to the shared host. */
+export const HeldBowDefinitionSchema = v.strictObject({ base: HeldBowBaseSchema, bow: HeldBowRowsSchema });

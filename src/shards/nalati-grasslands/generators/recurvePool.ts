@@ -10,6 +10,20 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import { BOW_PROFILE } from '../data/bowProfile';
+import { BOW } from '@wildshard/game/weapons/starterBowProfile';
+import type { HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
+import type * as v from 'valibot';
+
+/** Original riding/feel/loose policy, emitted without executable view strategies. */
+export function recurveBase(): v.InferInput<typeof HeldBowBaseSchema> {
+  const { wind, ...base } = BOW; void wind;
+  return { ...base, quiver: BOW_PROFILE.quiver, speedBase: BOW_PROFILE.speedBase, speedDraw: BOW_PROFILE.speedDraw, damageScale: BOW_PROFILE.damageScale,
+    aimSpread: BOW_PROFILE.spread.aimMultiplier, draw: BOW_PROFILE.draw, loose: { ...BOW_PROFILE.spread, muzzle: BOW_PROFILE.muzzle },
+    projectile: { ...BOW_PROFILE.flight, maxFlying: BOW_PROFILE.pool, substeps: BOW_PROFILE.substeps, lifetime: BOW_PROFILE.lifetime }, mounted: {
+      drawTime: 0.9, rearAngle: 110, rearDraw: 0.2, rearSpread: 0.5, arc: false,
+      gaits: [{ below: 0.3, spread: 0.3 }, { below: 3.2, spread: 0.8 }, { below: 6.5, spread: 3 }, { below: 10.5, spread: 1.5 }, { below: null, spread: 1.8 }],
+    } };
+}
 
 type V3 = [number, number, number];
 const C = (hex: number) => new THREE.Color(hex);
@@ -268,7 +282,7 @@ const PARTS = { stave: 'recurve-stave', nocked: 'recurve-arrow-nocked', rightFis
 const CHANNELS = [{ name: 'paintRecurve', semantic: '_PAINT_RECURVE' }, { name: 'paintGolden', semantic: '_PAINT_GOLDEN' }, { name: 'paintSkyWolf', semantic: '_PAINT_SKY_WOLF' }];
 
 /** Every recurve part as one rest-geometry pool GLB, and the held bow draw's rows. */
-export async function recurvePool(): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: readonly string[]; channels: readonly unknown[] }; bow: unknown } }> {
+export async function recurvePool(): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: readonly string[]; channels: readonly unknown[] }; bow: unknown; base: ReturnType<typeof recurveBase> } }> {
   await MeshoptSimplifier.ready;
   const lf = gloveFist(L_FIST), rf = gloveFist(R_FIST);
   const stave = staveRest(lf.geometry);
@@ -304,5 +318,5 @@ export async function recurvePool(): Promise<{ glb: Uint8Array; rows: { pool: { 
     styles: { recurve: 'paintRecurve', golden: 'paintGolden', 'sky-wolf': 'paintSkyWolf' },
   };
   return { glb, rows: { pool: { url: '/assets/nalati/baked/recurve-pool.glb', parts: [...parts.keys()],
-    channels: CHANNELS.map(c => ({ name: c.name, source: `_${c.semantic.slice(1).toLowerCase()}`, width: 3, parts: [PARTS.stave] })) }, bow } };
+    channels: CHANNELS.map(c => ({ name: c.name, source: `_${c.semantic.slice(1).toLowerCase()}`, width: 3, parts: [PARTS.stave] })) }, bow, base: recurveBase() } };
 }

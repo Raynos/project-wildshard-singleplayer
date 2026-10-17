@@ -1,9 +1,7 @@
-import { BOW_PROFILE as BOW_ROW } from '../data/bowProfile';
 import { GoldenBow, type GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import { Bow } from '@wildshard/game/weapons/Bow';
-import { BOW as BOW_PROFILE, type BowProfile } from '@wildshard/game/weapons/starterBowProfile';
-import { heldBowProfile, loadHeldBow, type HeldBowRows } from '@wildshard/game/plugin/heldLauncher';
-import type { HeldFirearmModel } from '@wildshard/game/plugin/heldFirearm';
+import type { BowProfile } from '@wildshard/game/weapons/starterBowProfile';
+import { loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
 import { Naizagai, type NaizagaiPower } from '../runtime/weapons/Naizagai';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -25,16 +23,6 @@ import { BOW } from './equipment';
 /** The composite recurve's baked rows and parts (generators/recurvePool.ts): the held bow draw's (H3); the Golden Bow and the
  *  Sky-Wolf skin are its paints. */
 export const RECURVE = '/assets/nalati/baked/recurve-pool.json';
-/** Nalati's recurve: the kit bow's numbers, its riding numbers (content; other bows opt into mounting through their own
- * profile) and the baked recurve on the held bow draw. */
-const nalatiBow = ({ rows, model }: { readonly rows: HeldBowRows; readonly model: HeldFirearmModel }) => heldBowProfile({ ...BOW_PROFILE, quiver: BOW_ROW.quiver, speedBase: BOW_ROW.speedBase, speedDraw: BOW_ROW.speedDraw, damageScale: BOW_ROW.damageScale,
-  aimSpread: BOW_ROW.spread.aimMultiplier, draw: BOW_ROW.draw, loose: { ...BOW_ROW.spread, muzzle: BOW_ROW.muzzle },
-  projectile: { ...BOW_ROW.flight, maxFlying: BOW_ROW.pool, substeps: BOW_ROW.substeps, lifetime: BOW_ROW.lifetime }, mounted: {
-  drawTime: 0.9, rearAngle: 110, rearDraw: 0.2, rearSpread: 0.5, arc: false,
-  gaits: [{ below: 0.3, spread: 0.3 }, { below: 3.2, spread: 0.8 }, { below: 6.5, spread: 3 },
-    { below: 10.5, spread: 1.5 }, { below: Infinity, spread: 1.8 }],
-} }, rows, model);
-
 /** Nalati's authored three-slot loadout. The plugin registers the rifle as a practice loan;
  * the normal equipment service owns selection, swaps and reward replacements. */
 export interface NalatiWorld { game: Game; sky: Sky; player: Player; forest: Forest }
@@ -60,7 +48,7 @@ export async function buildNalatiLoadoutSliced(world: NalatiWorld, targets: Targ
   await yieldTask();
   const spear = new Spear(world, targets, { allowUnlocked });
   await yieldTask();
-  const profile = nalatiBow(await loadHeldBow(RECURVE));
+  const { profile } = await loadHeldBow(RECURVE);
   const bow = new Bow(world, targets, { row: BOW, profile, allowUnlocked });
   return loadoutOf(world, targets, allowUnlocked, sabre, spear, bow, profile);
 }

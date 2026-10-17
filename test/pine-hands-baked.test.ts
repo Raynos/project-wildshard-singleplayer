@@ -24,7 +24,9 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
     expect(Object.values(pool.hands).find(hand => hand.geometry === `hand-lever-${side}`), side).toBeDefined();
     expect(LEVER_DETAILS.rows.hands[side].at).toHaveLength(3);
   }
-  expect(pool.presentation).toEqual({hands:HANDS_MATERIAL,coat:COAT_MATERIAL,bow:LONGBOW_MATERIAL,arrow:ARROW_MATERIAL,poses:LONGBOW_POSES});
+  expect(pool.presentation).toEqual({hands:HANDS_MATERIAL,coat:COAT_MATERIAL});
+  expect(pool.heldBow.bow.materials).toEqual({bow:{name:'longbow',look:LONGBOW_MATERIAL},arrow:{name:'longbow-arrow',look:ARROW_MATERIAL}});
+  expect(pool.heldBow.bow.poses).toEqual(LONGBOW_POSES);
   expect(() => v.parse(SECTIONS['custom/handsPool'], { ...pool, presentation: undefined })).toThrow();
   expect(() => v.parse(SECTIONS['custom/handsPool'], { ...pool, presentation: { ...pool.presentation, extra: true } })).toThrow();
   // the crossbow's section hand rows name baked hands (runtime Crossbow.ts borrows them by part)
@@ -34,10 +36,10 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
   expect(parts).toEqual(expect.arrayContaining([`hand-${rows.hands.left.part}`, `hand-${rows.hands.right.part}`]));
   expect(rows.hands.left.elbow).toEqual(CROSSBOW_HAND_HOLDS.left.spec.elbow);
   // the held bow draw (heldLauncher heldBowProfile) reads the bake's serialised look and arrow
-  expect(pool.bow.look).toBe(JSON.stringify(LONGBOW_LOOK));
-  expect(v.parse(StaveBowLookSchema, JSON.parse(pool.bow.look))).toEqual(LONGBOW_LOOK);
+  expect(pool.heldBow.bow.bake.look).toBe(JSON.stringify(LONGBOW_LOOK));
+  expect(v.parse(StaveBowLookSchema, JSON.parse(pool.heldBow.bow.bake.look))).toEqual(LONGBOW_LOOK);
   expect(() => v.parse(StaveBowLookSchema, { ...LONGBOW_LOOK, gripH: Infinity })).toThrow();
   expect(() => v.parse(StaveBowLookSchema, { ...LONGBOW_LOOK, extra: true })).toThrow();
-  expect(pool.bow.arrow).toBe(JSON.stringify(LONGBOW_LOOK.arrow));
+  expect(pool.heldBow.bow.bake.arrow).toBe(JSON.stringify(LONGBOW_LOOK.arrow));
   expect(loaded.output.namedFiles?.some(file => file.name === pool.pool.url)).toBe(true);
 }, 30000);

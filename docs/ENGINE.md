@@ -3732,8 +3732,16 @@ lit rows or painterly ones (`{ name, painterly: { rim, bands, shade, transparent
 the arrow kind's flight, bury, recover and pools; `rows.wind` the pull (`base + gust × windGustAt`, along `WIND_DIR`, or
 `{ field: 'steppe' }` for the steppe's wind); `rows.poses` the six grip poses as triples; `rows.styles` (optional) style →
 a colour channel on the stave, the first the base: `Bow.setStyle` swaps the channel in (borrowed, never written).
-`loadHeldBow(url)` fetches a shard's baked rows file once per url (`{ pool: { url, parts, channels }, bow }`), parses it
-strictly and preloads the pool. `heldBowDisplay(sky, rows, model, paint?)` / `heldBowArrow` are the Model Explorer cards.
+`bindHeldBow({ base, bow }, library)` validates the complete serializable binding,
+borrows its named parts and returns `{ rows, model, profile }`. `base` follows
+`HeldBowBaseSchema` (`@wildshard/format/weaponProfiles`); a null mounted gait bound
+becomes infinity. It creates no mesh, clock or save. Pine compiles its original
+longbow binding into `custom/handsPool.heldBow`; Nalati emits its recurve binding
+beside the bake. `loadHeldBow(url)` fetches that file once per url
+(`{ pool: { url, parts, channels }, base, bow }`), parses it strictly and preloads
+the pool before using the same binder. `HeldBowDefinitionSchema` and
+`HeldBowRowsSchema` in `@wildshard/format/weaponProfiles` expose those data boundaries.
+`heldBowDisplay(sky, rows, model, paint?)` / `heldBowArrow` are the Model Explorer cards.
 Users: Pine's longbow; Nalati's recurve with its Golden Bow and Sky-Wolf paints (generators/recurvePool.ts).
 
 `@wildshard/engine/combat/contactWeapon` defines the renderer-free

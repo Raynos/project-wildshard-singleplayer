@@ -1,7 +1,7 @@
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import { SECTIONS } from './sections';
-import { preloadHeldGeometry } from './boot/crossbowGeometry';
+import { preloadHeldGeometry, bakedHandRows, heldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
@@ -57,8 +57,7 @@ import * as audioTerrain from '@wildshard/engine/world/Heightfield';
 import { installWeather, loadPineRain } from '../world/weather';
 import { leverHeldRows, leverRifle, preloadLeverModel } from './weapons/LeverRifle';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
-import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
-import { pineLongbow } from './weapons/longbowView';
+import { HeldLauncher, bindHeldBow } from '@wildshard/game/plugin/heldLauncher';
 import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { pineFinishEffect } from '../loadout/effects';
 import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
@@ -174,7 +173,7 @@ export class PineHollow extends ShardPlugin {
     rt.buildEquipment = bindRuntimeEquipment(ctx, ctx.product.shardfile, { factories: new Map([
       ['weapon.crossbow', { prepare: prepareCrossbowHands, create: (item, targets, nolock) => pineCrossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock, held: crossbowHeld, profile: item.profile }) }],
       ['weapon.lever', { create: (item, targets, nolock) => leverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, held: leverHeld, profile: item.profile }) }],
-      ['weapon.longbow', { create: (_item, targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: pineLongbow(), allowUnlocked: nolock }) }],
+      ['weapon.longbow', { create: (_item, targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: bindHeldBow(bakedHandRows().heldBow, heldGeometry()).profile, allowUnlocked: nolock }) }],
     ]) });
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);

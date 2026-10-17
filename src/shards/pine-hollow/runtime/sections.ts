@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { ClientChannelsSchema as Channels, PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
-import { HeldModelRowsSchema, HeldPresentationSchema } from '@wildshard/format/weaponProfiles';
+import { HeldModelRowsSchema, HeldPresentationSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -26,14 +26,10 @@ const texture = v.strictObject({ url:text, srgb:v.boolean(), repeat:v.boolean() 
 const frame = v.strictObject({ program:Channels, inputs, outputs });
 const long = v.pipe(v.string(), v.maxLength(4096));
 const triple = v.tuple([number, number, number]);
-const numbers = v.pipe(v.array(number), v.maxLength(16384));
 const bakedHand = v.strictObject({ geometry: text, sleeve: v.nullable(text), wrist: triple, dir: triple });
-const bakedBow = v.strictObject({ sectionSamples: v.strictObject({ widths: numbers, ridges: numbers }), look: long, arrow: long,
-  ringU: numbers, ringSign: numbers, limbVerts: natural, dynVerts: natural, lWrist: triple, rWrist: triple, rHook: triple, rWristDir: triple });
 const pair = v.tuple([number, number]), opt = v.exactOptional, flag = v.boolean();
 const look = v.strictObject({ set:opt(text), normalScale:opt(pair), color:opt(triple), roughness:number, metalness:number, envMapIntensity:opt(number), specularIntensity:opt(number),
   anisotropy:opt(number), anisotropyRotation:opt(number), emissive:opt(number), emissiveIntensity:opt(number), alphaTest:opt(number), vertexColors:opt(flag), forceSinglePass:opt(flag), side:opt(v.picklist([0,1,2])) });
-const bowPose = v.strictObject({ pos:triple, aim:triple, cant:number, pitch:number });
 const heldHand = v.strictObject({ part:text, at:triple, axis:triple, palm:triple, coat:flag, elbow:opt(triple) });
 const grip = v.strictObject({ at:triple, axis:triple, palm:triple }), pose = { px:number, py:number, pz:number, rx:number, ry:number, rz:number };
 /** The lever-action's rows on the held-firearm host (data/leverDetails.json): its model, view numbers, fists and presentation. */
@@ -81,7 +77,6 @@ export const SECTIONS = {
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk}),
   'custom/trophyMounts':mountPack,
   'custom/crossbowPool':v.strictObject({pool,hierarchy:PrivateSceneSchema,rows:crossbowRows}),
-  'custom/handsPool':v.strictObject({pool,hands:v.record(long,bakedHand),bow:bakedBow,presentation:v.strictObject({hands:look,coat:look,bow:look,arrow:look,
-    poses:v.strictObject({rest:bowPose,drawn:bowPose,restPort:bowPose,drawnPort:bowPose,aim:bowPose,aimPort:bowPose})})}),
+  'custom/handsPool':v.strictObject({pool,heldBow:HeldBowDefinitionSchema,hands:v.record(long,bakedHand),presentation:v.strictObject({hands:look,coat:look})}),
   'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;

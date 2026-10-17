@@ -22,7 +22,8 @@ import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import * as v from 'valibot';
 import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldMaterialRow, type HeldModelRows } from './heldFirearm';
-import { createModelLibrary } from './geometry';
+import { createModelLibrary, type ModelLibrary } from './geometry';
+import { HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { createClientScene } from './ui';
 import { HeldPlayback } from './weaponFamily';
 
@@ -394,38 +395,37 @@ export interface HeldBowRows {
   /** style → the stave's colour channel (the first is the base, painted on every new view) */
   readonly styles?: Readonly<Record<string, string>>;
 }
-const triple = v.tuple([finite, finite, finite]), numbers = v.pipe(v.array(finite), v.maxLength(65536));
-const PoseSchema = v.strictObject({ pos: triple, aim: triple, cant: finite, pitch: finite });
-const PainterlySchema = v.strictObject({ rim: v.exactOptional(finite), bands: v.exactOptional(finite), shade: v.exactOptional(finite), transparent: v.exactOptional(v.boolean()) });
-const MaterialSchema = v.strictObject({ name: v.string(), painterly: PainterlySchema });
-/** The bow's rows as a shard's bake writes them (painterly materials; a lit row is built in code). */
-const HeldBowRowsSchema = v.strictObject({
-  bake: v.strictObject({ look: v.string(), arrow: v.string(), ringU: numbers, ringSign: numbers, limbVerts: finite, dynVerts: finite,
-    sectionSamples: v.strictObject({ widths: numbers, ridges: numbers }), lWrist: triple, rWrist: triple, rHook: triple, rWristDir: triple }),
-  parts: v.strictObject({ stave: v.string(), nocked: v.string(), rightFist: v.string(), leftSleeve: v.string(), rightSleeve: v.string(), arrow: v.string() }),
-  materials: v.strictObject({ bow: MaterialSchema, arrow: MaterialSchema }),
-  arrow: v.strictObject({ gravity: finite, drag: finite, windCoupling: finite, bury: finite, recover: finite, maxFlying: finite, maxStuck: finite }),
-  wind: v.union([v.strictObject({ base: finite, gust: finite }), v.strictObject({ field: v.literal('steppe') })]),
-  poses: v.strictObject({ rest: PoseSchema, drawn: PoseSchema, restPort: PoseSchema, drawnPort: PoseSchema, aim: PoseSchema, aimPort: PoseSchema }),
-  styles: v.exactOptional(v.pipe(v.record(v.string(), v.string()), v.check(r => Object.keys(r).length > 0 && Object.keys(r).length <= 8, 'one to eight styles'))),
-});
 const names = v.pipe(v.array(v.pipe(v.string(), v.maxLength(256))), v.maxLength(32));
 const PoolSchema = v.strictObject({ url: v.pipe(v.string(), v.maxLength(512)), parts: names, channels: v.exactOptional(v.pipe(v.array(v.strictObject({
   name: v.string(), source: v.string(), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(names) })), v.maxLength(8))) });
-const HeldBowFileSchema = v.strictObject({ pool: PoolSchema, bow: HeldBowRowsSchema });
-const bowLoads = new Map<string, Promise<{ readonly rows: HeldBowRows; readonly model: HeldFirearmModel }>>();
+const HeldBowFileSchema = v.strictObject({ pool: PoolSchema, bow: HeldBowRowsSchema, base: HeldBowBaseSchema });
+/** Borrow named bow parts and construct its profile from admitted data. No mesh or clock is allocated here. */
+export function bindHeldBow(input: unknown, library: Pick<ModelLibrary<never, never>, 'geometry'>): { readonly rows: HeldBowRows; readonly model: HeldFirearmModel; readonly profile: BowProfile } {
+  const { bow: rows, base } = v.parse(HeldBowDefinitionSchema, input);
+  const { parent, mounted, ...values } = base;
+  if (base.draw !== undefined && base.draw.holdSteady >= base.draw.holdTire) throw new Error('Invalid held bow fatigue');
+  if (rows.styles !== undefined && (Object.keys(rows.styles).length === 0 || Object.keys(rows.styles).length > 8)) throw new Error('Invalid held bow styles');
+  if (mounted?.gaits.some(({ below }, index, gaits) => below === null
+    ? index !== gaits.length - 1 : index > 0 && below <= (gaits[index - 1]?.below ?? Infinity)) === true) throw new Error('Invalid held bow gaits');
+  if (parent !== undefined && !/^(weapon|tool)\.[a-zA-Z0-9.-]+$/u.test(parent)) throw new Error('Invalid held bow parent');
+  const model = { geometry: new Map(Object.values(rows.parts).map(id => [id, need(library.geometry(id, { borrow: true }), `bow part ${id}`)])) };
+  const profile = heldBowProfile({ ...values, ...(parent === undefined ? {} : { parent: parent as NonNullable<BowProfile['parent']> }),
+    ...(mounted === undefined ? {} : { mounted: { ...mounted, gaits: mounted.gaits.map(({ below, spread }) => ({ below: below ?? Infinity, spread })) } }) }, rows, model);
+  return { rows, model, profile };
+}
+const bowLoads = new Map<string, Promise<ReturnType<typeof bindHeldBow>>>();
 /** A baked bow from its rows file (a shard's bake writes it: the pool GLB's url, parts and paint channels, and the bow's
  *  rows), fetched once per url, parsed strictly (an unknown or missing field refuses) and its parts preloaded. */
-export function loadHeldBow(url: string): Promise<{ readonly rows: HeldBowRows; readonly model: HeldFirearmModel }> {
+export function loadHeldBow(url: string): Promise<ReturnType<typeof bindHeldBow>> {
   const known = bowLoads.get(url);
   if (known !== undefined) return known;
   const load = (async () => {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Held bow: ${url} did not load`);
-    const json: unknown = await response.json(), { pool, bow } = v.parse(HeldBowFileSchema, json);
+    const json: unknown = await response.json(), { pool, ...definition } = v.parse(HeldBowFileSchema, json);
     const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [pool] }, `[held bow ${url}]`);
     await library.preload();
-    return { rows: bow, model: { geometry: new Map(pool.parts.map(id => [id, need(library.geometry(id, { borrow: true }), `bow part ${id}`)])) } };
+    return bindHeldBow(definition, library);
   })();
   bowLoads.set(url, load);
   return load;

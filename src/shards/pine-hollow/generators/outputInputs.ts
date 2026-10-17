@@ -1,3 +1,5 @@
+import { PINE_HELD_BOW } from './longbow';
+import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
 import {parseAmbientLife} from '@wildshard/format/ambientLife';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
 import journal from '../data/journalBlobs.generated.json' with {type:'json'};
@@ -34,7 +36,8 @@ const values:Readonly<Record<string,unknown>>={
  'custom/paintedTextures':{...painted,textures:Object.fromEntries(Object.entries(painted.textures).map(([key,row])=>[key,{...row,url:named(row.url)}])),urls:painted.urls.map(named)},
  'custom/trophyMounts':{...trophies,url:named(trophies.url)},
  'custom/crossbowPool':{...crossbow,pool:{...crossbow.pool,url:named(crossbow.pool.url)}},
- 'custom/handsPool':{...hands,pool:{...hands.pool,url:named(hands.pool.url)}},
+ 'custom/handsPool':{pool:{...hands.pool,url:named(hands.pool.url)},hands:hands.hands,heldBow:PINE_HELD_BOW,
+   presentation:{hands:HANDS_MATERIAL,coat:COAT_MATERIAL}},
  'custom/kingKit':{...kingKit,pool:{...kingKit.pool,url:named(kingKit.pool.url)}},
 };
 
