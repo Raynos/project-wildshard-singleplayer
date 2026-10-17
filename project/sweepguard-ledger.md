@@ -148,3 +148,9 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 21:16 · wT:p5 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE="$PWD/tmp/sp-x5-directors/index" git commit-tree "$(cat tmp/sp-x5-directors/tree)" -p "$(cat tmp/sp-x5-directors/base)" -F tmp/sp-x5-directors/message > tmp/sp-x5-dire`
 - 2026-10-16 21:20 · wT:p5 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE="$PWD/tmp/sp-x5-directors/index" git commit-tree "$(cat tmp/sp-x5-directors/tree)" -p "$(cat tmp/sp-x5-directors/base)" -F tmp/sp-x5-directors/message > tmp/sp-x5-dire`
 - 2026-10-16 21:23 · wT:p5 · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x5-directors/land.py cat tmp/sp-x5-directors/landed git diff --cached --name-only git status --short src/game/plugin/director.ts src/shards/driftwood-isle/runtime/dire`
+- 2026-10-16 21:23 · wT:pE · `GIT_INDEX_FILE="$PWD/tmp/c9-pine/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json,pathlib;p=pathlib.Path("tmp/c9-pine");print(json.dumps({"base":(p/"base").read_text().strip(),"pat`
+- 2026-10-16 21:23 · wT:pE · `python3 tmp/c9-pine/prepare.py GIT_INDEX_FILE="$PWD/tmp/c9-pine/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json,pathlib;p=pathlib.Path("tmp/c9-pine");print(json.dumps({"base":(p/"`
+- 2026-10-16 21:27 · wT:p4 · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x4/prepare.py`
+- 2026-10-16 21:28 · wT:p4 · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x4/prepare.py`
+- 2026-10-16 21:29 · wT:p4 · `python3 - <<'PY' from pathlib import Path p=Path('src/shards/pine-hollow/runtime/species/rigs.ts');s=p.read_text();p.write_text(s.rstrip()+'\n') PY rg -n 'defineModel|file:|file\)' scripts/check-model`
+- 2026-10-16 21:29 · wT:p4 · `python3 - <<'PY' from pathlib import Path p=Path('src/sdk/looks/posedInstances.ts');s=p.read_text().replace("import { defineModel }", "import { defineBakedModels }") s=s.replace("      return live(def`
