@@ -14819,5 +14819,838 @@
     "colour": "p35"
    }
   }
+ },
+ "nine-portal-ring": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 24,
+   "samplers": 1,
+   "instructions": 48
+  },
+  "effectState": {
+   "fog": false
+  },
+  "nodes": {
+   "r0": {
+    "op": "time"
+   },
+   "r1": {
+    "op": "uv"
+   },
+   "r2": {
+    "op": "swizzle",
+    "in": [
+     "r1"
+    ],
+    "mask": "x"
+   },
+   "r3": {
+    "op": "mul",
+    "in": [
+     "r2",
+     18.8496
+    ]
+   },
+   "r4": {
+    "op": "mul",
+    "in": [
+     "r0",
+     2.4
+    ]
+   },
+   "r5": {
+    "op": "sub",
+    "in": [
+     "r3",
+     "r4"
+    ]
+   },
+   "r6": {
+    "op": "sin",
+    "in": [
+     "r5"
+    ]
+   },
+   "r7": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "r6"
+    ]
+   },
+   "r8": {
+    "op": "add",
+    "in": [
+     0.5,
+     "r7"
+    ]
+   },
+   "r9": {
+    "op": "mul",
+    "in": [
+     "r8",
+     "r8"
+    ]
+   },
+   "ra": {
+    "op": "mix",
+    "in": [
+     [
+      0.62,
+      0.42,
+      1.35
+     ],
+     [
+      0.45,
+      1.25,
+      1.45
+     ],
+     "r9"
+    ]
+   },
+   "rb": {
+    "op": "mul",
+    "in": [
+     "r0",
+     1.7
+    ]
+   },
+   "rc": {
+    "op": "sin",
+    "in": [
+     "rb"
+    ]
+   },
+   "rd": {
+    "op": "mul",
+    "in": [
+     0.35,
+     "rc"
+    ]
+   },
+   "re": {
+    "op": "add",
+    "in": [
+     1.15,
+     "rd"
+    ]
+   },
+   "rf": {
+    "op": "mul",
+    "in": [
+     "ra",
+     "re"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "rf"
+   }
+  }
+ },
+ "nine-portal-disc": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 60,
+   "samplers": 1,
+   "instructions": 120
+  },
+  "doubleSided": true,
+  "effectState": {
+   "blend": "additive",
+   "depthWrite": false,
+   "fog": false
+  },
+  "params": {
+   "r": {
+    "type": "float",
+    "value": 2.1,
+    "min": 0,
+    "max": 16
+   }
+  },
+  "nodes": {
+   "d0": {
+    "op": "time"
+   },
+   "d1": {
+    "op": "param",
+    "param": "r"
+   },
+   "d2": {
+    "op": "positionGeometry"
+   },
+   "d3": {
+    "op": "swizzle",
+    "in": [
+     "d2"
+    ],
+    "mask": "xy"
+   },
+   "d4": {
+    "op": "varying",
+    "in": [
+     "d3"
+    ]
+   },
+   "d5": {
+    "op": "div",
+    "in": [
+     "d4",
+     "d1"
+    ]
+   },
+   "d6": {
+    "op": "length",
+    "in": [
+     "d5"
+    ]
+   },
+   "d7": {
+    "op": "swizzle",
+    "in": [
+     "d5"
+    ],
+    "mask": "y"
+   },
+   "d8": {
+    "op": "swizzle",
+    "in": [
+     "d5"
+    ],
+    "mask": "x"
+   },
+   "d9": {
+    "op": "atan",
+    "in": [
+     "d7",
+     "d8"
+    ]
+   },
+   "da": {
+    "op": "mul",
+    "in": [
+     "d9",
+     3
+    ]
+   },
+   "db": {
+    "op": "mul",
+    "in": [
+     "d6",
+     9
+    ]
+   },
+   "dc": {
+    "op": "add",
+    "in": [
+     "da",
+     "db"
+    ]
+   },
+   "dd": {
+    "op": "mul",
+    "in": [
+     "d0",
+     2.2
+    ]
+   },
+   "de": {
+    "op": "sub",
+    "in": [
+     "dc",
+     "dd"
+    ]
+   },
+   "df": {
+    "op": "sin",
+    "in": [
+     "de"
+    ]
+   },
+   "dg": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "df"
+    ]
+   },
+   "dh": {
+    "op": "add",
+    "in": [
+     0.5,
+     "dg"
+    ]
+   },
+   "di": {
+    "op": "mul",
+    "in": [
+     "d9",
+     7
+    ]
+   },
+   "dj": {
+    "op": "mul",
+    "in": [
+     "d6",
+     16
+    ]
+   },
+   "dk": {
+    "op": "sub",
+    "in": [
+     "di",
+     "dj"
+    ]
+   },
+   "dl": {
+    "op": "mul",
+    "in": [
+     "d0",
+     3.1
+    ]
+   },
+   "dm": {
+    "op": "add",
+    "in": [
+     "dk",
+     "dl"
+    ]
+   },
+   "dn": {
+    "op": "sin",
+    "in": [
+     "dm"
+    ]
+   },
+   "do": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "dn"
+    ]
+   },
+   "dp": {
+    "op": "add",
+    "in": [
+     0.5,
+     "do"
+    ]
+   },
+   "dq": {
+    "op": "smoothstep",
+    "in": [
+     0.82,
+     1,
+     "d6"
+    ]
+   },
+   "dr": {
+    "op": "oneMinus",
+    "in": [
+     "dq"
+    ]
+   },
+   "ds": {
+    "op": "smoothstep",
+    "in": [
+     0,
+     0.55,
+     "d6"
+    ]
+   },
+   "dt": {
+    "op": "oneMinus",
+    "in": [
+     "ds"
+    ]
+   },
+   "du": {
+    "op": "mix",
+    "in": [
+     [
+      0.12,
+      0.75,
+      1
+     ],
+     [
+      1,
+      0.22,
+      0.7
+     ],
+     "dh"
+    ]
+   },
+   "dv": {
+    "op": "mul",
+    "in": [
+     0.55,
+     "dp"
+    ]
+   },
+   "dw": {
+    "op": "add",
+    "in": [
+     0.45,
+     "dv"
+    ]
+   },
+   "dx": {
+    "op": "mul",
+    "in": [
+     "du",
+     "dw"
+    ]
+   },
+   "dy": {
+    "op": "mul",
+    "in": [
+     [
+      0.75,
+      0.6,
+      1
+     ],
+     "dt"
+    ]
+   },
+   "dz": {
+    "op": "add",
+    "in": [
+     "dx",
+     "dy"
+    ]
+   },
+   "d10": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "dh"
+    ]
+   },
+   "d11": {
+    "op": "mul",
+    "in": [
+     "d10",
+     "dp"
+    ]
+   },
+   "d12": {
+    "op": "mul",
+    "in": [
+     0.35,
+     "dt"
+    ]
+   },
+   "d13": {
+    "op": "add",
+    "in": [
+     0.22,
+     "d11"
+    ]
+   },
+   "d14": {
+    "op": "add",
+    "in": [
+     "d13",
+     "d12"
+    ]
+   },
+   "d15": {
+    "op": "mul",
+    "in": [
+     "dr",
+     "d14"
+    ]
+   },
+   "d16": {
+    "op": "mul",
+    "in": [
+     "dz",
+     "d15"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "d16"
+   }
+  }
+ },
+ "nine-portal-sparks": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 64,
+   "samplers": 1,
+   "instructions": 140
+  },
+  "primitive": "points",
+  "effectState": {
+   "blend": "additive",
+   "depthWrite": false,
+   "fog": false
+  },
+  "params": {
+   "r": {
+    "type": "float",
+    "value": 2.1,
+    "min": 0,
+    "max": 16
+   }
+  },
+  "nodes": {
+   "k0": {
+    "op": "time"
+   },
+   "k1": {
+    "op": "param",
+    "param": "r"
+   },
+   "k2": {
+    "op": "attribute",
+    "name": "aAcross",
+    "type": "vec3"
+   },
+   "k3": {
+    "op": "attribute",
+    "name": "aSeed",
+    "type": "vec2"
+   },
+   "k4": {
+    "op": "swizzle",
+    "in": [
+     "k3"
+    ],
+    "mask": "x"
+   },
+   "k5": {
+    "op": "swizzle",
+    "in": [
+     "k3"
+    ],
+    "mask": "y"
+   },
+   "k6": {
+    "op": "mul",
+    "in": [
+     0.18,
+     "k5"
+    ]
+   },
+   "k7": {
+    "op": "add",
+    "in": [
+     0.22,
+     "k6"
+    ]
+   },
+   "k8": {
+    "op": "mul",
+    "in": [
+     "k0",
+     "k7"
+    ]
+   },
+   "k9": {
+    "op": "add",
+    "in": [
+     "k8",
+     "k4"
+    ]
+   },
+   "ka": {
+    "op": "fract",
+    "in": [
+     "k9"
+    ]
+   },
+   "kb": {
+    "op": "mul",
+    "in": [
+     "k4",
+     6.2832
+    ]
+   },
+   "kc": {
+    "op": "mul",
+    "in": [
+     2,
+     "k5"
+    ]
+   },
+   "kd": {
+    "op": "add",
+    "in": [
+     3,
+     "kc"
+    ]
+   },
+   "ke": {
+    "op": "mul",
+    "in": [
+     "ka",
+     "kd"
+    ]
+   },
+   "kf": {
+    "op": "add",
+    "in": [
+     "kb",
+     "ke"
+    ]
+   },
+   "kg": {
+    "op": "mul",
+    "in": [
+     "ka",
+     0.95
+    ]
+   },
+   "kh": {
+    "op": "sub",
+    "in": [
+     1.05,
+     "kg"
+    ]
+   },
+   "ki": {
+    "op": "mul",
+    "in": [
+     "k1",
+     "kh"
+    ]
+   },
+   "kj": {
+    "op": "cross",
+    "in": [
+     "k2",
+     [
+      0,
+      1,
+      0
+     ]
+    ]
+   },
+   "kk": {
+    "op": "positionGeometry"
+   },
+   "kl": {
+    "op": "cos",
+    "in": [
+     "kf"
+    ]
+   },
+   "km": {
+    "op": "mul",
+    "in": [
+     "k2",
+     "kl"
+    ]
+   },
+   "kn": {
+    "op": "mul",
+    "in": [
+     "km",
+     "ki"
+    ]
+   },
+   "ko": {
+    "op": "sin",
+    "in": [
+     "kf"
+    ]
+   },
+   "kp": {
+    "op": "mul",
+    "in": [
+     "ko",
+     "ki"
+    ]
+   },
+   "kq": {
+    "op": "combine",
+    "in": [
+     0,
+     "kp",
+     0
+    ]
+   },
+   "kr": {
+    "op": "sub",
+    "in": [
+     "k5",
+     0.5
+    ]
+   },
+   "ks": {
+    "op": "mul",
+    "in": [
+     "kr",
+     0.5
+    ]
+   },
+   "kt": {
+    "op": "mul",
+    "in": [
+     "kj",
+     "ks"
+    ]
+   },
+   "ku": {
+    "op": "add",
+    "in": [
+     "kk",
+     "kn"
+    ]
+   },
+   "kv": {
+    "op": "add",
+    "in": [
+     "ku",
+     "kq"
+    ]
+   },
+   "kw": {
+    "op": "add",
+    "in": [
+     "kv",
+     "kt"
+    ]
+   },
+   "kx": {
+    "op": "viewDepth",
+    "in": [
+     "kw"
+    ]
+   },
+   "ky": {
+    "op": "max",
+    "in": [
+     "kx",
+     0.001
+    ]
+   },
+   "kz": {
+    "op": "div",
+    "in": [
+     90,
+     "ky"
+    ]
+   },
+   "k10": {
+    "op": "clamp",
+    "in": [
+     "kz",
+     1.5,
+     14
+    ]
+   },
+   "k11": {
+    "op": "mul",
+    "in": [
+     "ka",
+     3.1416
+    ]
+   },
+   "k12": {
+    "op": "sin",
+    "in": [
+     "k11"
+    ]
+   },
+   "k13": {
+    "op": "varying",
+    "in": [
+     "k12"
+    ]
+   },
+   "k14": {
+    "op": "pointCoord"
+   },
+   "k15": {
+    "op": "mul",
+    "in": [
+     "k14",
+     2
+    ]
+   },
+   "k16": {
+    "op": "sub",
+    "in": [
+     "k15",
+     1
+    ]
+   },
+   "k17": {
+    "op": "dot",
+    "in": [
+     "k16",
+     "k16"
+    ]
+   },
+   "k18": {
+    "op": "oneMinus",
+    "in": [
+     "k17"
+    ]
+   },
+   "k19": {
+    "op": "mul",
+    "in": [
+     "k18",
+     "k18"
+    ]
+   },
+   "k1a": {
+    "op": "mul",
+    "in": [
+     "k19",
+     "k13"
+    ]
+   },
+   "k1b": {
+    "op": "mul",
+    "in": [
+     "k1a",
+     1.6
+    ]
+   },
+   "k1c": {
+    "op": "mul",
+    "in": [
+     [
+      0.85,
+      0.7,
+      1
+     ],
+     "k1b"
+    ]
+   },
+   "k1d": {
+    "op": "lte",
+    "in": [
+     "k18",
+     0
+    ]
+   }
+  },
+  "stages": {
+   "vertex.position": {
+    "position": "kw"
+   },
+   "points": {
+    "size": "k10"
+   },
+   "surface": {
+    "colour": "k1c",
+    "discard": "k1d"
+   }
+  }
  }
 }
