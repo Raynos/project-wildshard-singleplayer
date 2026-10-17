@@ -2,7 +2,7 @@
 
 `node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nalati-grasslands/run.mjs all`
 
-The real `runtime/headless.ts` installer loads the admitted terrain/navmesh, the 35 native boot actors, groups, raids, flock, weather, mounted player and three hosted elites. A 120-tick walk is encoded against the immutable native basis, decoded byte-exactly, reinstalled and restored; both worlds then reproduce the same complete 60-tick suffix. Hashes cover every controller and canonical native body/collider/contact state. Both scopes must dispose to zero.
+The declared `boot/headlessModules.ts` assembly loads the admitted assembly, retained native boot/species rows, terrain/navmesh, the 35 native boot actors, groups, raids, flock, weather, mounted player and three hosted elites. A 120-tick walk is encoded against the immutable native basis, decoded byte-exactly, reinstalled and restored; both worlds then reproduce the same complete 60-tick suffix. Hashes cover every controller and canonical native body/collider/contact state. Both scopes must dispose to zero.
 
 The native entry proof walks all 23 capsule lanes in each of the four declared openings (92 lanes), 40 m inward through the actual installed heightfield and world solids. It runs after the native continuation comparisons and leaves their tick counts, bodies and hashes unchanged. A real barrier fixture refuses the blocked route; the temporary capsule is always disposed.
 

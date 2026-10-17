@@ -1,0 +1,1378 @@
+{
+  "version": 1,
+  "modules": {
+    "@wildshard/format/weatherProgram": [
+      "parseWeatherProgram"
+    ],
+    "src/shards/nalati-grasslands/runtime/raidDirector": [
+      "prepareNalatiRaidDirector"
+    ],
+    "src/shards/nalati-grasslands/runtime/baked": [
+      "nalatiBake",
+      "NALATI_GROUND_RES",
+      "NALATI_GROUND_SIZE"
+    ],
+    "src/shards/nalati-grasslands/runtime/headless": [
+      "nalatiTerrainGrid",
+      "nalatiWorldQueries",
+      "nalatiDayClock",
+      "nalatiBootClock",
+      "installNalatiRoster",
+      "nalatiGrassView",
+      "installNalatiTrample",
+      "installNalatiWeather",
+      "nalatiLightningGround"
+    ],
+    "@wildshard/engine/world/BakedTerrain": [
+      "bakedSamplers"
+    ],
+    "@wildshard/engine/physics/navmesh": [
+      "readNavmesh"
+    ],
+    "@wildshard/sdk/headlessRuntime": [
+      "installNativeCollision"
+    ],
+    "src/shards/nalati-grasslands/runtime/headlessElites": [
+      "nalatiEliteBindings",
+      "installNalatiElites"
+    ],
+    "src/shards/nalati-grasslands/runtime/groups": [
+      "nalatiHeadlessEnv",
+      "installNalatiGroups"
+    ],
+    "src/shards/nalati-grasslands/runtime/headlessTaming": [
+      "nalatiTamingOf",
+      "installNalatiTaming"
+    ],
+    "src/shards/nalati-grasslands/runtime/headlessCreatures": [
+      "installNalatiCreatures"
+    ],
+    "src/shards/nalati-grasslands/wet": [
+      "nalatiWetAt"
+    ],
+    "src/shards/nalati-grasslands/runtime/headlessMounted": [
+      "installNalatiMountedPlayer"
+    ],
+    "src/shards/nalati-grasslands/world/terrain": [
+      "TERRAIN"
+    ],
+    "@wildshard/engine/core/noise": [
+      "clamp"
+    ],
+    "@wildshard/game/plugin/mover": [
+      "proveTerrainEntries"
+    ]
+  },
+  "constants": {},
+  "prepare": [
+    {
+      "name": "weatherJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "world/weather.json",
+          false
+        ]
+      }
+    },
+    {
+      "name": "weatherProgram",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/format/weatherProgram",
+              "parseWeatherProgram"
+            ]
+          },
+          {
+            "$ref": [
+              "weatherJson"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "raidDirector",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/raidDirector",
+              "prepareNalatiRaidDirector"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bake",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/baked",
+              "nalatiBake"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "boot",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "sim/headless-boot.json"
+        ]
+      }
+    },
+    {
+      "name": "grid",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "nalatiTerrainGrid"
+            ]
+          },
+          {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$ref": [
+                      "shard",
+                      "terrain",
+                      "sampling"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "absent"
+                    ]
+                  }
+                ]
+              },
+              {
+                "$ref": [
+                  "absent"
+                ]
+              },
+              {
+                "$call": [
+                  {
+                    "$ref": [
+                      "assets",
+                      "get"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "shard",
+                      "terrain",
+                      "sampling",
+                      "file"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$ref": [
+              "shard",
+              "identity",
+              "seed"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "samplers",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/engine/world/BakedTerrain",
+              "bakedSamplers"
+            ]
+          },
+          {
+            "$ref": [
+              "grid"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "heightAt",
+      "value": {
+        "$ref": [
+          "samplers",
+          "heightAt"
+        ]
+      }
+    },
+    {
+      "name": "queries",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "nalatiWorldQueries"
+            ]
+          },
+          {
+            "$ref": [
+              "grid"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "nav",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/engine/physics/navmesh",
+              "readNavmesh"
+            ]
+          },
+          {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$ref": [
+                      "shard",
+                      "navigation"
+                    ]
+                  },
+                  null
+                ]
+              },
+              {
+                "$ref": [
+                  "absent"
+                ]
+              },
+              {
+                "$call": [
+                  {
+                    "$ref": [
+                      "assets",
+                      "get"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "shard",
+                      "navigation",
+                      "file"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "Nalati headless needs its admitted navigation asset",
+          {
+            "$fn": 0
+          }
+        ]
+      }
+    }
+  ],
+  "install": [
+    {
+      "name": "world",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/sdk/headlessRuntime",
+              "installNativeCollision"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "bake"
+            ]
+          },
+          {
+            "resolution": {
+              "$ref": [
+                "src/shards/nalati-grasslands/runtime/baked",
+                "NALATI_GROUND_RES"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "water",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "host",
+              "useWater"
+            ]
+          },
+          {
+            "surfaceAt": {
+              "$ref": [
+                "queries",
+                "surfaceAt"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "clock",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "host",
+              "useDayClock"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "src/shards/nalati-grasslands/runtime/headless",
+                  "nalatiDayClock"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bindings",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headlessElites",
+              "nalatiEliteBindings"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "roster",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "installNalatiRoster"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "boot": {
+              "$ref": [
+                "boot"
+              ]
+            },
+            "bake": {
+              "$ref": [
+                "bake"
+              ]
+            },
+            "grid": {
+              "$ref": [
+                "grid"
+              ]
+            },
+            "spawnY": {
+              "$ref": [
+                "shard",
+                "spawn",
+                "y"
+              ]
+            },
+            "clock": {
+              "$call": [
+                {
+                  "$ref": [
+                    "src/shards/nalati-grasslands/runtime/headless",
+                    "nalatiBootClock"
+                  ]
+                },
+                {
+                  "$ref": [
+                    "clock"
+                  ]
+                }
+              ]
+            },
+            "elites": {
+              "$ref": [
+                "bindings"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "bodies",
+      "value": {
+        "$ref": [
+          "roster",
+          "bodies"
+        ]
+      }
+    },
+    {
+      "name": "grass",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "nalatiGrassView"
+            ]
+          },
+          {
+            "$ref": [
+              "grid"
+            ]
+          },
+          {
+            "$ref": [
+              "shard",
+              "identity",
+              "seed"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "trample",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "installNalatiTrample"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "grass",
+              "trample"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "env",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/groups",
+              "nalatiHeadlessEnv"
+            ]
+          },
+          {
+            "$ref": [
+              "grass"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "weather",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "installNalatiWeather"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "program": {
+              "$ref": [
+                "weatherProgram"
+              ]
+            },
+            "heightAt": {
+              "$ref": [
+                "heightAt"
+              ]
+            },
+            "clock": {
+              "$ref": [
+                "clock"
+              ]
+            },
+            "env": {
+              "$ref": [
+                "env"
+              ]
+            },
+            "bake": {
+              "$ref": [
+                "bake"
+              ]
+            },
+            "scare": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": [
+                      "creatures",
+                      "scare"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      0
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      1
+                    ]
+                  },
+                  60
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "groups",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/groups",
+              "installNalatiGroups"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "bodies": {
+              "$ref": [
+                "bodies"
+              ]
+            },
+            "herds": {
+              "$ref": [
+                "bake",
+                "herds"
+              ]
+            },
+            "normalY": {
+              "$ref": [
+                "queries",
+                "normalY"
+              ]
+            },
+            "grass": {
+              "$ref": [
+                "grass"
+              ]
+            },
+            "env": {
+              "$ref": [
+                "env"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "elites",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headlessElites",
+              "installNalatiElites"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "bindings": {
+              "$ref": [
+                "bindings"
+              ]
+            },
+            "taming": {
+              "$fn": {
+                "$coalesce": [
+                  {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "src/shards/nalati-grasslands/runtime/headlessTaming",
+                          "nalatiTamingOf"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "host"
+                        ]
+                      }
+                    ]
+                  },
+                  null
+                ]
+              }
+            },
+            "heightAt": {
+              "$ref": [
+                "heightAt"
+              ]
+            },
+            "ledges": {
+              "$ref": [
+                "bake",
+                "ledges"
+              ]
+            },
+            "phase": {
+              "$fn": {
+                "$ref": [
+                  "clock",
+                  "dayPhase"
+                ]
+              }
+            },
+            "storm": {
+              "$fn": {
+                "$ref": [
+                  "env",
+                  "storm"
+                ]
+              }
+            },
+            "environment": {
+              "$fn": {
+                "$ref": [
+                  "env"
+                ]
+              }
+            },
+            "packs": {
+              "$fn": {
+                "$ref": [
+                  "groups",
+                  "packs"
+                ]
+              }
+            },
+            "spawnPack": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": [
+                      "creatures",
+                      "spawnElitePack"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      0
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      1
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      2
+                    ]
+                  }
+                ]
+              }
+            },
+            "retirePack": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": [
+                      "creatures",
+                      "retirePack"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "bodies": {
+              "$fn": {
+                "$coalesce": [
+                  {
+                    "$ref": [
+                      "creatures",
+                      "bodies"
+                    ]
+                  },
+                  {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "bodies",
+                          "map"
+                        ]
+                      },
+                      {
+                        "$fn": {
+                          "$ref": [
+                            "args",
+                            0,
+                            "actor"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "herd": {
+              "$fn": {
+                "$coalesce": [
+                  {
+                    "$ref": [
+                      "groups",
+                      "herds",
+                      1
+                    ]
+                  },
+                  null
+                ]
+              }
+            },
+            "spawn": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": [
+                      "creatures",
+                      "spawnElite"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      0
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      1
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      2
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      3
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      4
+                    ]
+                  }
+                ]
+              }
+            },
+            "retire": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": [
+                      "creatures",
+                      "retireElite"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "forest",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headless",
+              "nalatiLightningGround"
+            ]
+          },
+          {
+            "$ref": [
+              "bake"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "creatures",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headlessCreatures",
+              "installNalatiCreatures"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "assembly",
+                  "merge"
+                ]
+              },
+              {
+                "boot": {
+                  "$ref": [
+                    "boot"
+                  ]
+                },
+                "raidDirector": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "raidDirector"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "shard",
+                        "identity",
+                        "seed"
+                      ]
+                    }
+                  ]
+                },
+                "elites": {
+                  "$ref": [
+                    "bindings"
+                  ]
+                },
+                "bodies": {
+                  "$ref": [
+                    "bodies"
+                  ]
+                },
+                "herds": {
+                  "$ref": [
+                    "roster",
+                    "herds"
+                  ]
+                },
+                "groups": {
+                  "$ref": [
+                    "groups"
+                  ]
+                },
+                "grid": {
+                  "$ref": [
+                    "grid"
+                  ]
+                },
+                "nav": {
+                  "$ref": [
+                    "nav"
+                  ]
+                },
+                "trees": {
+                  "$fn": {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "forest",
+                          "trees",
+                          "nearby"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          0
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          1
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          2
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "stream": {
+                  "$ref": [
+                    "roster",
+                    "stream"
+                  ]
+                },
+                "wildStream": {
+                  "$ref": [
+                    "roster",
+                    "wildStream"
+                  ]
+                },
+                "bake": {
+                  "$ref": [
+                    "bake"
+                  ]
+                },
+                "spawnY": {
+                  "$ref": [
+                    "shard",
+                    "spawn",
+                    "y"
+                  ]
+                },
+                "rideUpdate": {
+                  "$fn": {
+                    "$call": [
+                      {
+                        "$coalesce": [
+                          {
+                            "$ref": [
+                              "taming",
+                              "update"
+                            ]
+                          },
+                          {
+                            "$fn": {
+                              "$ref": [
+                                "absent"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "mounted": {
+                  "$fn": {
+                    "$eq": [
+                      {
+                        "$ref": [
+                          "mounted",
+                          "mounted"
+                        ]
+                      },
+                      true
+                    ]
+                  }
+                },
+                "crouching": {
+                  "$fn": {
+                    "$eq": [
+                      {
+                        "$ref": [
+                          "mounted",
+                          "rider",
+                          "crouching"
+                        ]
+                      },
+                      true
+                    ]
+                  }
+                }
+              },
+              {
+                "$if": [
+                  {
+                    "$eq": [
+                      {
+                        "$ref": [
+                          "context",
+                          "snapshot"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "absent"
+                        ]
+                      }
+                    ]
+                  },
+                  {},
+                  {
+                    "snapshot": {
+                      "$ref": [
+                        "context",
+                        "snapshot"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "mounted",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headlessMounted",
+              "installNalatiMountedPlayer"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "groups": {
+              "$ref": [
+                "groups"
+              ]
+            },
+            "mountable": {
+              "$call": [
+                {
+                  "$ref": [
+                    "boot",
+                    "mountable",
+                    "concat"
+                  ]
+                },
+                {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "creatures",
+                        "bondedHorseIds"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "heightAt": {
+              "$ref": [
+                "heightAt"
+              ]
+            },
+            "waterLevel": {
+              "$ref": [
+                "src/shards/nalati-grasslands/world/terrain",
+                "TERRAIN",
+                "waterLevel"
+              ]
+            },
+            "surfaceAt": {
+              "$ref": [
+                "queries",
+                "surfaceAt"
+              ]
+            },
+            "wetAt": {
+              "$ref": [
+                "src/shards/nalati-grasslands/wet",
+                "nalatiWetAt"
+              ]
+            },
+            "inBounds": {
+              "$ref": [
+                "queries",
+                "inBounds"
+              ]
+            },
+            "roads": {
+              "$ref": [
+                "boot",
+                "roads"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "taming",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nalati-grasslands/runtime/headlessTaming",
+              "installNalatiTaming"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "groups": {
+              "$ref": [
+                "groups"
+              ]
+            },
+            "creatures": {
+              "$ref": [
+                "creatures"
+              ]
+            },
+            "mounted": {
+              "$ref": [
+                "mounted"
+              ]
+            },
+            "environment": {
+              "$ref": [
+                "env"
+              ]
+            },
+            "context": {
+              "$ref": [
+                "context"
+              ]
+            },
+            "rest": {
+              "$ref": [
+                "boot",
+                "rest"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "initialize",
+      "value": {
+        "$if": [
+          {
+            "$not": {
+              "$ref": [
+                "context",
+                "restoring"
+              ]
+            }
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "elites",
+                  "initialize"
+                ]
+              }
+            ]
+          },
+          {
+            "$ref": [
+              "absent"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "level": {
+    "ground": {
+      "size": {
+        "$ref": [
+          "src/shards/nalati-grasslands/runtime/baked",
+          "NALATI_GROUND_SIZE"
+        ]
+      },
+      "height": 0
+    },
+    "speed": {
+      "$call": [
+        {
+          "$ref": [
+            "@wildshard/engine/core/noise",
+            "clamp"
+          ]
+        },
+        {
+          "$ref": [
+            "shard",
+            "authorCaps",
+            "speed"
+          ]
+        },
+        0,
+        5
+      ]
+    },
+    "lift": 0.1
+  },
+  "ports": {
+    "ground": false,
+    "heightAt": {
+      "$ref": [
+        "heightAt"
+      ]
+    }
+  },
+  "entries": {
+    "$fn": {
+      "$call": [
+        {
+          "$ref": [
+            "@wildshard/game/plugin/mover",
+            "proveTerrainEntries"
+          ]
+        },
+        {
+          "$ref": [
+            "args",
+            0,
+            "physics"
+          ]
+        },
+        {
+          "$ref": [
+            "shard",
+            "entryways"
+          ]
+        },
+        {
+          "$ref": [
+            "heightAt"
+          ]
+        },
+        {
+          "lanes": 23,
+          "walk": 40,
+          "start": 249,
+          "maxTicks": 800
+        }
+      ]
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type { RngState } from '@wildshard/engine/core/rng';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { ForagerContinuation as MarmotContinuation, type ForagerSnapshot as MarmotSnapshot } from '@wildshard/format/ambientLife';
 import baked from '../data/physics.generated.json' with { type: 'json' };
@@ -97,4 +98,19 @@ export function nalatiBake(): NalatiBake {
     // a never-hit body's hit time is -Infinity, which JSON writes as null (AnimalSim's own snapshot encodes it so)
     spawns: bake.spawns.map(spawn => ({ ...spawn, mem: Object.fromEntries(Object.entries(spawn.mem).map(([key, value]) => [key, value ?? -Infinity])) })), groups: bake.groups, flocks: bake.flocks, ledges: bake.ledges, marmots: bake.marmots, grass: bake.grass };
   return parsed;
+}
+
+/** Retained boot metadata before any native actor or controller is installed. */
+export interface NalatiBootBody {
+  readonly id: string; readonly kind: string; readonly variant: { readonly id: string }; readonly seed: number; readonly scale: number;
+  readonly herd: number; readonly position: { readonly x: number; readonly z: number }; readonly yaw: number;
+  readonly adopted: { readonly stream: RngState; readonly x: number; readonly z: number };
+}
+export interface NalatiBootHerd { readonly kind: string; readonly cx: number; readonly cz: number; readonly members: readonly NalatiBootBody[] }
+/** The product's deterministic boot and deferred native recipe rows. */
+export interface NalatiBootRows {
+  readonly streamSeed: number; readonly phases: readonly string[];
+  readonly roster: { readonly bodies: readonly NalatiBootBody[]; readonly herds: readonly NalatiBootHerd[];
+    readonly stream: RngState; readonly wildStream: RngState };
+  readonly species: Readonly<Record<string, unknown>>; readonly recipes: readonly AnimalSimSpec[];
 }

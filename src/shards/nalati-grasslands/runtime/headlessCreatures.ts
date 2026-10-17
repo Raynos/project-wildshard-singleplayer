@@ -14,8 +14,8 @@ import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import { WOLF_SPECIES } from '../species/wolf';
 import { KOKBORI, KOKBORI_SPECIES } from '../species/kokbori';
-import { nalatiTulparSpec } from './headlessHorse';
-import { nalatiCanidSpec } from './headlessCanid';
+import { nativeBodySpecSchema } from '@wildshard/sdk/headlessRuntime';
+import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { HORSE_SPECIES } from '../species/horse';
 import { LEOPARD_SPECIES } from '../species/leopard';
 import { SHEEPDOG_SPECIES } from '../species/sheepdog';
@@ -31,9 +31,8 @@ import { nalatiWetAt } from '../wet';
 import { pushWildMovers } from '../look/trampleMovers';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import { actHorseBody, actWolfBody, decideHorse, decideWolf, horseHeld } from './groupDispatch';
-import { NALATI_CREATURE_STREAM, nalatiSpawnSpecies, type NalatiBootHerd } from './bootRoster';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import type { NalatiBake } from './baked';
+import type { NalatiBake, NalatiBootHerd, NalatiBootRows } from './baked';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { creatureBodyDistance, keepsCreatureBody } from '@wildshard/engine/sim/bands';
@@ -78,6 +77,7 @@ export function nalatiHuntGround(grid: BakedGrid, trees: (x: number, z: number, 
 }
 
 const finite = v.pipe(v.number(), v.finite());
+const SpawnTable = v.pick(SpeciesSchema, ['kind', 'variants', 'spawnOnly']);
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 const Memory = v.record(v.string(), v.union([finite, v.boolean(), v.array(v.tuple([finite, finite, finite]))]));
 const RaidBody = v.strictObject({ id: v.string(), variant: v.string(), seed: finite, scale: finite,
@@ -159,11 +159,11 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  * The Aqbars binding comes from the native EliteCore; a dodge wakes targets before the ordinary decision loop.
  * A weapon's 'target.attack' wake still waits for the real weapon host (the probe is not a weapon).
  */
-export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
+export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootRows; bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
   trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']>;
   raidDirector: DirectorLane; wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: NalatiEliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
   const { groups } = ports, player = host.player.position, env = groups.env;
-  const rng = new Rng(NALATI_CREATURE_STREAM);
+  const rng = new Rng(ports.boot.streamSeed);
   // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it (its tags per kind, made once)
   const tags = new Map<string, `${string}.${string}`[]>(), hitPoint = new Vector3(), hitDir = new Vector3();
   const tagsOf = (kind: string): `${string}.${string}`[] => {
@@ -286,7 +286,9 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   };
   const placement = new Rng(0); placement.restore(ports.wildStream);
   const raids: v.InferOutput<typeof RaidPack>[] = [], elitePacks: v.InferOutput<typeof RaidPack>[] = [];
-  const ordinarySpecies = nalatiSpawnSpecies();
+  const speciesRows = new Map(Object.entries(ports.boot.species).map(([kind, row]) => [kind, v.parse(SpawnTable, row)]));
+  const ordinarySpecies = (kind: string): v.InferOutput<typeof SpawnTable> => { const row = speciesRows.get(kind); if (row === undefined) throw new Error(`Missing Nalati spawn species ${kind}`); return row; };
+  const deferredSpec = (kind: string, variant: string) => v.parse(nativeBodySpecSchema('axis'), ports.boot.recipes.find(row => row.kind === kind && row.variant === variant));
   const spawnSpecies = (kind: string): ReturnType<typeof ordinarySpecies> => kind === KOKBORI ? KOKBORI_SPECIES : ordinarySpecies(kind);
   const ray = new Vector3(), down = new Vector3(0, -1, 0);
   let nextId = Math.max(...bodies.map(a => Number(a.entityId.slice('creature:'.length)))) + 1;
@@ -297,7 +299,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     if (host.entities.size >= BODY_MAX || !/^creature:\d+$/u.test(saved.id) || Number(saved.id.slice(9)) < nextId || saved.scale <= 0) throw new Error('Invalid Nalati raid roster');
     nextId = Number(saved.id.slice(9)) + 1;
     const template = ports.bake.actors.find(a => a.kind === kind && a.variant === saved.variant);
-    const spec = kind === 'horse' && saved.variant === 'tulpar' ? nalatiTulparSpec() : kind === 'wolf' || kind === KOKBORI ? nalatiCanidSpec(ports.bake, kind, saved.variant) : template?.spec;
+    const spec = kind === 'horse' && saved.variant === 'tulpar' ? deferredSpec('horse', 'tulpar') : kind === 'wolf' || kind === KOKBORI ? deferredSpec(kind, saved.variant) : template?.spec;
     if (spec === undefined) throw new Error('Missing baked Nalati elite model');
     const [x, y, z] = saved.at;
     const actor = host.spawn({ id: saved.id, spec, seed: saved.seed, scale: saved.scale, at: { x, y, z }, yaw: saved.yaw });
@@ -325,7 +327,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   };
   const spawnPack = (x: number, z: number, variants: readonly string[], elite = false): PackBrain<AnimalSim> => {
     if ((!elite && raids.length >= 2) || decided().length >= GROUP_MAX || variants.length !== (elite ? 5 : 3) || host.entities.size + variants.length > BODY_MAX) throw new Error('Nalati raid pack bound exceeded');
-    for (let i = 0; i < 5; i++) { const variant = variants[i]; if (variant === undefined) break; nalatiCanidSpec(ports.bake, 'wolf', variant); }
+    for (let i = 0; i < 5; i++) { const variant = variants[i]; if (variant === undefined) break; deferredSpec('wolf', variant); }
     const herd = hunt.herds.length; hunt.addHerd('wolf', x, z);
     const record: v.InferOutput<typeof RaidPack> = { x, z, herd, bodies: [] };
     const place: WildPlacer<NalatiHuntBody> = { rng: placement, bodies: () => bodies,
@@ -355,7 +357,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
   const spawnBondedHorse = (x: number, z: number, yaw: number, argymaq: boolean): NalatiHuntBody => {
     if (bonded.length > 0 || ![x, z, yaw].every(Number.isFinite) || Math.abs(x) > CHUNK_HALF || Math.abs(z) > CHUNK_HALF) throw new Error('Invalid Nalati bonded adoption');
     // The page rolls and adopts at the manager's structure-aware floor BEFORE Taming places on heightAt.
-    nalatiTulparSpec();
+    deferredSpec('horse', 'tulpar');
     const rolled = spawnRolls(rng, 'horse', 'tulpar', bodies.some(a => a.kind === 'horse' && a.rarity === 'legendary'), spawnSpecies);
     const adopted = v.parse(Stream, rng.snapshot()), terrain = floor.heightAt(x, z), fromY = Math.max(ports.spawnY, terrain) + 1;
     ray.set(x, fromY, z);

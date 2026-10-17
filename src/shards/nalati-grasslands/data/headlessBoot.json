@@ -1,0 +1,4587 @@
+{
+  "mountable": [
+    "creature:21",
+    "creature:22"
+  ],
+  "phases": [
+    "dawn",
+    "day",
+    "golden"
+  ],
+  "recipes": [
+    {
+      "aggressive": false,
+      "dims": {
+        "bodyHalfLen": 0.78,
+        "bodyRadius": 0.3,
+        "bodyY": 1.1,
+        "feet": [
+          [
+            0.175,
+            0.605
+          ],
+          [
+            -0.175,
+            0.605
+          ],
+          [
+            0.18,
+            -0.67
+          ],
+          [
+            -0.18,
+            -0.67
+          ]
+        ],
+        "halfWidth": 0.27,
+        "headRadius": 0.2,
+        "legLen": 1.08
+      },
+      "hp": 150,
+      "kind": "horse",
+      "label": "Tulpar",
+      "mods": {
+        "chargeDamage": 25,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "rare",
+      "variant": "tulpar"
+    },
+    {
+      "aggressive": true,
+      "dims": {
+        "bodyHalfLen": 0.46,
+        "bodyRadius": 0.19,
+        "bodyY": 0.66,
+        "feet": [
+          [
+            0.1,
+            0.4
+          ],
+          [
+            -0.1,
+            0.4
+          ],
+          [
+            0.11,
+            -0.46
+          ],
+          [
+            -0.11,
+            -0.46
+          ]
+        ],
+        "halfWidth": 0.16,
+        "headRadius": 0.12,
+        "legLen": 0.6
+      },
+      "hp": 70,
+      "kind": "wolf",
+      "label": "Steppe wolf",
+      "lockable": true,
+      "mods": {
+        "chargeDamage": 12,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "common",
+      "variant": "grey"
+    },
+    {
+      "aggressive": true,
+      "dims": {
+        "bodyHalfLen": 0.46,
+        "bodyRadius": 0.19,
+        "bodyY": 0.66,
+        "feet": [
+          [
+            0.1,
+            0.4
+          ],
+          [
+            -0.1,
+            0.4
+          ],
+          [
+            0.11,
+            -0.46
+          ],
+          [
+            -0.11,
+            -0.46
+          ]
+        ],
+        "halfWidth": 0.16,
+        "headRadius": 0.12,
+        "legLen": 0.6
+      },
+      "hp": 70,
+      "kind": "wolf",
+      "label": "Steppe wolf",
+      "lockable": true,
+      "mods": {
+        "chargeDamage": 12,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "common",
+      "variant": "tawny"
+    },
+    {
+      "aggressive": true,
+      "dims": {
+        "bodyHalfLen": 0.46,
+        "bodyRadius": 0.19,
+        "bodyY": 0.66,
+        "feet": [
+          [
+            0.1,
+            0.4
+          ],
+          [
+            -0.1,
+            0.4
+          ],
+          [
+            0.11,
+            -0.46
+          ],
+          [
+            -0.11,
+            -0.46
+          ]
+        ],
+        "halfWidth": 0.16,
+        "headRadius": 0.12,
+        "legLen": 0.6
+      },
+      "hp": 70,
+      "kind": "wolf",
+      "label": "Dark wolf",
+      "lockable": true,
+      "mods": {
+        "chargeDamage": 12,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "uncommon",
+      "variant": "dark"
+    },
+    {
+      "aggressive": true,
+      "dims": {
+        "bodyHalfLen": 0.46,
+        "bodyRadius": 0.19,
+        "bodyY": 0.66,
+        "feet": [
+          [
+            0.1,
+            0.4
+          ],
+          [
+            -0.1,
+            0.4
+          ],
+          [
+            0.11,
+            -0.46
+          ],
+          [
+            -0.11,
+            -0.46
+          ]
+        ],
+        "halfWidth": 0.16,
+        "headRadius": 0.12,
+        "legLen": 0.6
+      },
+      "hp": 55,
+      "kind": "wolf",
+      "label": "Young wolf",
+      "lockable": true,
+      "mods": {
+        "chargeDamage": 12,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "common",
+      "variant": "scout"
+    },
+    {
+      "aggressive": true,
+      "dims": {
+        "bodyHalfLen": 0.46,
+        "bodyRadius": 0.19,
+        "bodyY": 0.66,
+        "feet": [
+          [
+            0.1,
+            0.4
+          ],
+          [
+            -0.1,
+            0.4
+          ],
+          [
+            0.11,
+            -0.46
+          ],
+          [
+            -0.11,
+            -0.46
+          ]
+        ],
+        "halfWidth": 0.16,
+        "headRadius": 0.12,
+        "legLen": 0.6
+      },
+      "hp": 110,
+      "kind": "wolf",
+      "label": "Greymane",
+      "lockable": true,
+      "mods": {
+        "chargeDamage": 18,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "rare",
+      "variant": "alpha"
+    },
+    {
+      "aggressive": true,
+      "dims": {
+        "bodyHalfLen": 0.46,
+        "bodyRadius": 0.19,
+        "bodyY": 0.66,
+        "feet": [
+          [
+            0.1,
+            0.4
+          ],
+          [
+            -0.1,
+            0.4
+          ],
+          [
+            0.11,
+            -0.46
+          ],
+          [
+            -0.11,
+            -0.46
+          ]
+        ],
+        "halfWidth": 0.16,
+        "headRadius": 0.12,
+        "legLen": 0.6
+      },
+      "hp": 650,
+      "kind": "kokbori",
+      "label": "Kokbori, Mother of the Pack",
+      "lockable": true,
+      "mods": {
+        "chargeDamage": 22,
+        "chargeDist": 1,
+        "damageTaken": 1,
+        "relentless": false,
+        "speed": 1
+      },
+      "rarity": "legendary",
+      "variant": "kokbori"
+    }
+  ],
+  "rest": {
+    "face": {
+      "x": 1,
+      "z": 0
+    },
+    "x": 69.1,
+    "z": 213.4
+  },
+  "roads": [
+    [
+      [
+        0,
+        -250
+      ],
+      [
+        0,
+        -190
+      ],
+      [
+        -4,
+        -150
+      ],
+      [
+        -2,
+        -110
+      ],
+      [
+        4,
+        -76
+      ],
+      [
+        2,
+        -50
+      ],
+      [
+        0,
+        -20
+      ],
+      [
+        6,
+        12
+      ]
+    ],
+    [
+      [
+        0,
+        250
+      ],
+      [
+        0,
+        190
+      ],
+      [
+        0,
+        156
+      ]
+    ],
+    [
+      [
+        -250,
+        0
+      ],
+      [
+        -190,
+        0
+      ],
+      [
+        -166,
+        16
+      ],
+      [
+        -142,
+        42
+      ],
+      [
+        -118,
+        66
+      ]
+    ],
+    [
+      [
+        250,
+        0
+      ],
+      [
+        190,
+        0
+      ],
+      [
+        165,
+        12
+      ],
+      [
+        140,
+        40
+      ],
+      [
+        120,
+        70
+      ]
+    ],
+    [
+      [
+        0,
+        156
+      ],
+      [
+        4,
+        147
+      ],
+      [
+        56,
+        141
+      ],
+      [
+        60,
+        133
+      ],
+      [
+        8,
+        126
+      ],
+      [
+        4,
+        118
+      ],
+      [
+        56,
+        111
+      ],
+      [
+        60,
+        103
+      ],
+      [
+        12,
+        96
+      ],
+      [
+        10,
+        88
+      ],
+      [
+        44,
+        82
+      ],
+      [
+        70,
+        78
+      ],
+      [
+        96,
+        74
+      ],
+      [
+        120,
+        70
+      ]
+    ],
+    [
+      [
+        0,
+        214
+      ],
+      [
+        40,
+        218
+      ],
+      [
+        62,
+        215.5
+      ],
+      [
+        74,
+        206.5
+      ]
+    ],
+    [
+      [
+        120,
+        70
+      ],
+      [
+        86,
+        54
+      ],
+      [
+        34,
+        40
+      ],
+      [
+        -26,
+        38
+      ]
+    ],
+    [
+      [
+        6,
+        12
+      ],
+      [
+        -30,
+        26
+      ]
+    ],
+    [
+      [
+        -96,
+        42
+      ],
+      [
+        -104,
+        60
+      ]
+    ],
+    [
+      [
+        147,
+        33
+      ],
+      [
+        180,
+        44
+      ],
+      [
+        198,
+        58
+      ],
+      [
+        196,
+        70
+      ],
+      [
+        188,
+        73.8
+      ],
+      [
+        178,
+        73.4
+      ],
+      [
+        171.5,
+        77.5
+      ]
+    ],
+    [
+      [
+        140,
+        -40
+      ],
+      [
+        122,
+        -48
+      ],
+      [
+        121,
+        -64
+      ],
+      [
+        127,
+        -71
+      ],
+      [
+        132,
+        -73.5
+      ],
+      [
+        137,
+        -73
+      ]
+    ],
+    [
+      [
+        -166,
+        -32
+      ],
+      [
+        -192,
+        -42
+      ],
+      [
+        -168,
+        -52
+      ],
+      [
+        -160,
+        -60
+      ],
+      [
+        -156,
+        -67
+      ]
+    ]
+  ],
+  "roster": {
+    "bodies": [
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1199749144,
+            "version": 1
+          },
+          "x": -151.79264762629865,
+          "z": 84.45180076599955
+        },
+        "herd": 0,
+        "id": "creature:0",
+        "kind": "wolf",
+        "position": {
+          "x": -151.79264762629865,
+          "z": 84.45180076599955
+        },
+        "scale": 1.16,
+        "seed": 0.550985875306651,
+        "variant": {
+          "hp": 110,
+          "id": "alpha",
+          "label": "Greymane",
+          "mods": {
+            "chargeDamage": 18
+          },
+          "rarity": "rare",
+          "scale": [
+            1.16,
+            1.16
+          ],
+          "tint": {
+            "back": [
+              0.34,
+              0.34,
+              0.36
+            ],
+            "cream": [
+              0.95,
+              0.94,
+              0.91
+            ],
+            "leg": [
+              0.7,
+              0.66,
+              0.6
+            ],
+            "side": [
+              0.72,
+              0.7,
+              0.66
+            ]
+          },
+          "traits": {
+            "ruff": 1.25,
+            "scar": 1
+          },
+          "weight": 0
+        },
+        "yaw": 4.794945122447951
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3599209430,
+            "version": 1
+          },
+          "x": -144.4472873584019,
+          "z": 91.44907554972457
+        },
+        "herd": 0,
+        "id": "creature:1",
+        "kind": "wolf",
+        "position": {
+          "x": -144.4472873584019,
+          "z": 91.44907554972457
+        },
+        "scale": 1.0075426276074722,
+        "seed": 0.6751566489692777,
+        "variant": {
+          "id": "grey",
+          "label": "Steppe wolf",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.05
+          ],
+          "weight": 50
+        },
+        "yaw": 1.7108870312550482
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1703702420,
+            "version": 1
+          },
+          "x": -156.82701476802686,
+          "z": 84.19433158658566
+        },
+        "herd": 0,
+        "id": "creature:2",
+        "kind": "wolf",
+        "position": {
+          "x": -156.82701476802686,
+          "z": 84.19433158658566
+        },
+        "scale": 0.941453486615792,
+        "seed": 0.024778958642855287,
+        "variant": {
+          "id": "tawny",
+          "label": "Steppe wolf",
+          "rarity": "common",
+          "scale": [
+            0.92,
+            1.02
+          ],
+          "tint": {
+            "back": [
+              0.3,
+              0.24,
+              0.19
+            ],
+            "cream": [
+              0.92,
+              0.84,
+              0.7
+            ],
+            "leg": [
+              0.72,
+              0.56,
+              0.37
+            ],
+            "side": [
+              0.72,
+              0.55,
+              0.34
+            ]
+          },
+          "weight": 30
+        },
+        "yaw": 4.131087878357645
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 4103162706,
+            "version": 1
+          },
+          "x": -148.88662999620485,
+          "z": 84.6973169203428
+        },
+        "herd": 0,
+        "id": "creature:3",
+        "kind": "wolf",
+        "position": {
+          "x": -148.88662999620485,
+          "z": 84.6973169203428
+        },
+        "scale": 0.983134837099351,
+        "seed": 0.8230876284651458,
+        "variant": {
+          "id": "grey",
+          "label": "Steppe wolf",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.05
+          ],
+          "weight": 50
+        },
+        "yaw": 1.6156298461309344
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2207655696,
+            "version": 1
+          },
+          "x": -155.4900063490583,
+          "z": 88.16680883920662
+        },
+        "herd": 0,
+        "id": "creature:4",
+        "kind": "wolf",
+        "position": {
+          "x": -155.4900063490583,
+          "z": 88.16680883920662
+        },
+        "scale": 0.846881890068762,
+        "seed": 0.8444272808264941,
+        "variant": {
+          "hp": 55,
+          "id": "scout",
+          "label": "Young wolf",
+          "rarity": "common",
+          "scale": [
+            0.84,
+            0.86
+          ],
+          "tint": {
+            "back": [
+              0.32,
+              0.29,
+              0.25
+            ],
+            "leg": [
+              0.74,
+              0.64,
+              0.5
+            ],
+            "side": [
+              0.72,
+              0.62,
+              0.48
+            ]
+          },
+          "traits": {
+            "ruff": 0.8
+          },
+          "weight": 12
+        },
+        "yaw": 1.5102474158440036
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 312148686,
+            "version": 1
+          },
+          "x": 66.21545754018342,
+          "z": 44.95752730915648
+        },
+        "herd": 1,
+        "id": "creature:5",
+        "kind": "horse",
+        "position": {
+          "x": 66.21545754018342,
+          "z": 44.95752730915648
+        },
+        "scale": 0.9814693819521926,
+        "seed": 0.3336882349103689,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 4.706983651688196
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2711608972,
+            "version": 1
+          },
+          "x": 56.182147985506525,
+          "z": 35.57232768433323
+        },
+        "herd": 1,
+        "id": "creature:6",
+        "kind": "horse",
+        "position": {
+          "x": 56.182147985506525,
+          "z": 35.57232768433323
+        },
+        "scale": 1.017345782276243,
+        "seed": 0.1138255454134196,
+        "variant": {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.7,
+              0.42,
+              0.22
+            ],
+            "coat": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "dorsal": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "mane": [
+              0.78,
+              0.52,
+              0.28
+            ],
+            "muzzle": [
+              0.4,
+              0.24,
+              0.15
+            ],
+            "points": [
+              0.58,
+              0.3,
+              0.13
+            ]
+          },
+          "traits": {
+            "blaze": 1,
+            "socks": 1
+          },
+          "weight": 24
+        },
+        "yaw": 5.51496265052522
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 816101962,
+            "version": 1
+          },
+          "x": 56.19769222912889,
+          "z": 39.505378799561434
+        },
+        "herd": 1,
+        "id": "creature:7",
+        "kind": "horse",
+        "position": {
+          "x": 56.19769222912889,
+          "z": 39.505378799561434
+        },
+        "scale": 0.9604557628766633,
+        "seed": 0.10416106833145022,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 3.7171633270243425
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3215562248,
+            "version": 1
+          },
+          "x": 68.57726604289445,
+          "z": 44.82780256310538
+        },
+        "herd": 1,
+        "id": "creature:8",
+        "kind": "horse",
+        "position": {
+          "x": 68.57726604289445,
+          "z": 44.82780256310538
+        },
+        "scale": 1.0190498325182125,
+        "seed": 0.37182129826396704,
+        "variant": {
+          "id": "dun",
+          "label": "Dun mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.84,
+              0.74,
+              0.56
+            ],
+            "coat": [
+              0.76,
+              0.62,
+              0.42
+            ],
+            "dorsal": [
+              0.24,
+              0.17,
+              0.12
+            ],
+            "mane": [
+              0.1,
+              0.08,
+              0.07
+            ],
+            "muzzle": [
+              0.3,
+              0.24,
+              0.2
+            ],
+            "points": [
+              0.1,
+              0.08,
+              0.07
+            ]
+          },
+          "weight": 14
+        },
+        "yaw": 5.9086788991644585
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1320055238,
+            "version": 1
+          },
+          "x": 71.29131196278891,
+          "z": 38.95049147099375
+        },
+        "herd": 1,
+        "id": "creature:9",
+        "kind": "horse",
+        "position": {
+          "x": 71.29131196278891,
+          "z": 38.95049147099375
+        },
+        "scale": 0.9848509875917807,
+        "seed": 0.8657430873718113,
+        "variant": {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.7,
+              0.42,
+              0.22
+            ],
+            "coat": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "dorsal": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "mane": [
+              0.78,
+              0.52,
+              0.28
+            ],
+            "muzzle": [
+              0.4,
+              0.24,
+              0.15
+            ],
+            "points": [
+              0.58,
+              0.3,
+              0.13
+            ]
+          },
+          "traits": {
+            "blaze": 1,
+            "socks": 1
+          },
+          "weight": 24
+        },
+        "yaw": 3.5298035728413932
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3719515524,
+            "version": 1
+          },
+          "x": 73.9448089943175,
+          "z": 37.17406401184148
+        },
+        "herd": 1,
+        "id": "creature:10",
+        "kind": "horse",
+        "position": {
+          "x": 73.9448089943175,
+          "z": 37.17406401184148
+        },
+        "scale": 1.0170328380330467,
+        "seed": 0.6752368386369199,
+        "variant": {
+          "id": "grey",
+          "label": "Grey mare",
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "tint": {
+            "belly": [
+              0.88,
+              0.88,
+              0.86
+            ],
+            "coat": [
+              0.8,
+              0.8,
+              0.78
+            ],
+            "dorsal": [
+              0.8,
+              0.8,
+              0.78
+            ],
+            "earIn": [
+              0.45,
+              0.4,
+              0.4
+            ],
+            "mane": [
+              0.55,
+              0.54,
+              0.53
+            ],
+            "muzzle": [
+              0.24,
+              0.22,
+              0.22
+            ],
+            "points": [
+              0.36,
+              0.35,
+              0.35
+            ]
+          },
+          "traits": {
+            "dapple": 1
+          },
+          "weight": 10
+        },
+        "yaw": 2.9314059894429905
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1824008514,
+            "version": 1
+          },
+          "x": 72.61892961514076,
+          "z": 29.012671529128077
+        },
+        "herd": 1,
+        "id": "creature:11",
+        "kind": "horse",
+        "position": {
+          "x": 72.61892961514076,
+          "z": 29.012671529128077
+        },
+        "scale": 0.9861970011866651,
+        "seed": 0.8760032916907221,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 4.218114414265039
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 4223468800,
+            "version": 1
+          },
+          "x": 59.655740427213075,
+          "z": 43.230807970427044
+        },
+        "herd": 1,
+        "id": "creature:12",
+        "kind": "horse",
+        "position": {
+          "x": 59.655740427213075,
+          "z": 43.230807970427044
+        },
+        "scale": 1.0121044089458884,
+        "seed": 0.8242413313128054,
+        "variant": {
+          "id": "black",
+          "label": "Black mare",
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "tint": {
+            "belly": [
+              0.18,
+              0.165,
+              0.16
+            ],
+            "coat": [
+              0.16,
+              0.15,
+              0.155
+            ],
+            "dorsal": [
+              0.13,
+              0.12,
+              0.125
+            ],
+            "earIn": [
+              0.1,
+              0.08,
+              0.08
+            ],
+            "mane": [
+              0.05,
+              0.045,
+              0.05
+            ],
+            "muzzle": [
+              0.14,
+              0.12,
+              0.12
+            ],
+            "points": [
+              0.07,
+              0.065,
+              0.068
+            ]
+          },
+          "weight": 8
+        },
+        "yaw": 3.0788486472272223
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2327961790,
+            "version": 1
+          },
+          "x": 56.95518555764241,
+          "z": 31.47633151362809
+        },
+        "herd": 1,
+        "id": "creature:13",
+        "kind": "horse",
+        "position": {
+          "x": 56.95518555764241,
+          "z": 31.47633151362809
+        },
+        "scale": 0.992269067664165,
+        "seed": 0.14917204156517982,
+        "variant": {
+          "id": "dun",
+          "label": "Dun mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.84,
+              0.74,
+              0.56
+            ],
+            "coat": [
+              0.76,
+              0.62,
+              0.42
+            ],
+            "dorsal": [
+              0.24,
+              0.17,
+              0.12
+            ],
+            "mane": [
+              0.1,
+              0.08,
+              0.07
+            ],
+            "muzzle": [
+              0.3,
+              0.24,
+              0.2
+            ],
+            "points": [
+              0.1,
+              0.08,
+              0.07
+            ]
+          },
+          "weight": 14
+        },
+        "yaw": 1.0513255978282143
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 432454780,
+            "version": 1
+          },
+          "x": 59.576455175194866,
+          "z": 30.492864146615727
+        },
+        "herd": 1,
+        "id": "creature:14",
+        "kind": "horse",
+        "position": {
+          "x": 59.576455175194866,
+          "z": 30.492864146615727
+        },
+        "scale": 1.0171170404274017,
+        "seed": 0.27194521203637123,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 5.814862566926223
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2831915066,
+            "version": 1
+          },
+          "x": 73.7534886429562,
+          "z": 42.560268721250964
+        },
+        "herd": 1,
+        "id": "creature:15",
+        "kind": "horse",
+        "position": {
+          "x": 73.7534886429562,
+          "z": 42.560268721250964
+        },
+        "scale": 1.0126984974136577,
+        "seed": 0.3705837440211326,
+        "variant": {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.7,
+              0.42,
+              0.22
+            ],
+            "coat": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "dorsal": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "mane": [
+              0.78,
+              0.52,
+              0.28
+            ],
+            "muzzle": [
+              0.4,
+              0.24,
+              0.15
+            ],
+            "points": [
+              0.58,
+              0.3,
+              0.13
+            ]
+          },
+          "traits": {
+            "blaze": 1,
+            "socks": 1
+          },
+          "weight": 24
+        },
+        "yaw": 0.1169122421155874
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 936408056,
+            "version": 1
+          },
+          "x": 64.85085109148098,
+          "z": 34.646559141349165
+        },
+        "herd": 1,
+        "id": "creature:16",
+        "kind": "horse",
+        "position": {
+          "x": 66.59997401683694,
+          "z": 43.10635202234936
+        },
+        "scale": 0.6109400448016822,
+        "seed": 0.5352435300592333,
+        "variant": {
+          "hp": 70,
+          "id": "foal-bay",
+          "label": "Foal",
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "tint": {
+            "belly": [
+              0.76,
+              0.6,
+              0.44
+            ],
+            "coat": [
+              0.66,
+              0.45,
+              0.3
+            ],
+            "dorsal": [
+              0.66,
+              0.45,
+              0.3
+            ],
+            "mane": [
+              0.3,
+              0.22,
+              0.16
+            ],
+            "muzzle": [
+              0.42,
+              0.33,
+              0.28
+            ],
+            "points": [
+              0.72,
+              0.58,
+              0.44
+            ]
+          },
+          "traits": {
+            "foal": 1,
+            "mane": 0.6
+          },
+          "weight": 0
+        },
+        "yaw": 4.706983651688196
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3335868342,
+            "version": 1
+          },
+          "x": 65.53425301708448,
+          "z": 35.55330713109786
+        },
+        "herd": 1,
+        "id": "creature:17",
+        "kind": "horse",
+        "position": {
+          "x": 56.01863620262193,
+          "z": 36.104372658488955
+        },
+        "scale": 0.6389768794458359,
+        "seed": 0.4553049551323056,
+        "variant": {
+          "hp": 70,
+          "id": "foal-chestnut",
+          "label": "Foal",
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "tint": {
+            "belly": [
+              0.84,
+              0.64,
+              0.46
+            ],
+            "coat": [
+              0.74,
+              0.46,
+              0.26
+            ],
+            "dorsal": [
+              0.74,
+              0.46,
+              0.26
+            ],
+            "mane": [
+              0.84,
+              0.62,
+              0.4
+            ],
+            "muzzle": [
+              0.5,
+              0.36,
+              0.28
+            ],
+            "points": [
+              0.8,
+              0.6,
+              0.42
+            ]
+          },
+          "traits": {
+            "foal": 1,
+            "mane": 0.6
+          },
+          "weight": 0
+        },
+        "yaw": 5.51496265052522
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1440361332,
+            "version": 1
+          },
+          "x": 65.819587898567,
+          "z": 38.264864560041474
+        },
+        "herd": 1,
+        "id": "creature:18",
+        "kind": "horse",
+        "position": {
+          "x": 57.477121076263,
+          "z": 38.34750339952486
+        },
+        "scale": 0.60321791020222,
+        "seed": 0.818662908161059,
+        "variant": {
+          "hp": 70,
+          "id": "foal-bay",
+          "label": "Foal",
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "tint": {
+            "belly": [
+              0.76,
+              0.6,
+              0.44
+            ],
+            "coat": [
+              0.66,
+              0.45,
+              0.3
+            ],
+            "dorsal": [
+              0.66,
+              0.45,
+              0.3
+            ],
+            "mane": [
+              0.3,
+              0.22,
+              0.16
+            ],
+            "muzzle": [
+              0.42,
+              0.33,
+              0.28
+            ],
+            "points": [
+              0.72,
+              0.58,
+              0.44
+            ]
+          },
+          "traits": {
+            "foal": 1,
+            "mane": 0.6
+          },
+          "weight": 0
+        },
+        "yaw": 3.7171633270243425
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3839821618,
+            "version": 1
+          },
+          "x": 67.55139427054498,
+          "z": 33.9784142338924
+        },
+        "herd": 1,
+        "id": "creature:19",
+        "kind": "horse",
+        "position": {
+          "x": 81,
+          "z": 40
+        },
+        "scale": 1.08,
+        "seed": 0.9395954797510058,
+        "variant": {
+          "hp": 150,
+          "id": "stallion",
+          "label": "Black stallion",
+          "mods": {
+            "chargeDamage": 25
+          },
+          "rarity": "rare",
+          "scale": [
+            1.08,
+            1.08
+          ],
+          "tint": {
+            "belly": [
+              0.18,
+              0.165,
+              0.16
+            ],
+            "coat": [
+              0.16,
+              0.15,
+              0.155
+            ],
+            "dorsal": [
+              0.13,
+              0.12,
+              0.125
+            ],
+            "earIn": [
+              0.1,
+              0.08,
+              0.08
+            ],
+            "mane": [
+              0.05,
+              0.045,
+              0.05
+            ],
+            "muzzle": [
+              0.14,
+              0.12,
+              0.12
+            ],
+            "points": [
+              0.07,
+              0.065,
+              0.068
+            ]
+          },
+          "traits": {
+            "mane": 1.7,
+            "stallion": 1
+          },
+          "weight": 0
+        },
+        "yaw": 0
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1944314608,
+            "version": 1
+          },
+          "x": -105.64752820926358,
+          "z": 212.86853231975385
+        },
+        "herd": 2,
+        "id": "creature:20",
+        "kind": "sheepdog",
+        "position": {
+          "x": -105.64752820926358,
+          "z": 212.86853231975385
+        },
+        "scale": 0.7124213903117924,
+        "seed": 0.9849416466895491,
+        "variant": {
+          "hp": 60,
+          "id": "collie",
+          "label": "Sheepdog",
+          "rarity": "common",
+          "scale": [
+            0.7,
+            0.72
+          ],
+          "tint": {
+            "back": [
+              0.06,
+              0.06,
+              0.065
+            ],
+            "cream": [
+              0.93,
+              0.92,
+              0.89
+            ],
+            "dark": [
+              0.05,
+              0.05,
+              0.05
+            ],
+            "earIn": [
+              0.3,
+              0.22,
+              0.2
+            ],
+            "eye": [
+              0.3,
+              0.18,
+              0.08
+            ],
+            "leg": [
+              0.92,
+              0.91,
+              0.88
+            ],
+            "side": [
+              0.08,
+              0.075,
+              0.08
+            ]
+          },
+          "traits": {
+            "dog": 1,
+            "ruff": 1.1
+          },
+          "weight": 1
+        },
+        "yaw": 0
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 48807598,
+            "version": 1
+          },
+          "x": 69.1,
+          "z": 213.4
+        },
+        "herd": -1,
+        "id": "creature:21",
+        "kind": "horse",
+        "position": {
+          "x": 69.1,
+          "z": 213.4
+        },
+        "scale": 1,
+        "seed": 0.18814943986944854,
+        "variant": {
+          "id": "camp-bay",
+          "label": "Camp horse",
+          "rarity": "common",
+          "scale": [
+            1,
+            1
+          ],
+          "traits": {
+            "tack": 1
+          },
+          "weight": 0
+        },
+        "yaw": 1.5707963267948966
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2448267884,
+            "version": 1
+          },
+          "x": 69.1,
+          "z": 216.9
+        },
+        "herd": -1,
+        "id": "creature:22",
+        "kind": "horse",
+        "position": {
+          "x": 69.1,
+          "z": 216.9
+        },
+        "scale": 1.02,
+        "seed": 0.3665867887903005,
+        "variant": {
+          "id": "camp-black",
+          "label": "Camp horse",
+          "rarity": "common",
+          "scale": [
+            1.02,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.18,
+              0.165,
+              0.16
+            ],
+            "coat": [
+              0.16,
+              0.15,
+              0.155
+            ],
+            "dorsal": [
+              0.13,
+              0.12,
+              0.125
+            ],
+            "earIn": [
+              0.1,
+              0.08,
+              0.08
+            ],
+            "mane": [
+              0.05,
+              0.045,
+              0.05
+            ],
+            "muzzle": [
+              0.14,
+              0.12,
+              0.12
+            ],
+            "points": [
+              0.07,
+              0.065,
+              0.068
+            ]
+          },
+          "traits": {
+            "blaze": 1,
+            "mane": 1.3,
+            "tack": 1
+          },
+          "weight": 0
+        },
+        "yaw": 1.5707963267948966
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 552760874,
+            "version": 1
+          },
+          "x": -108,
+          "z": 228
+        },
+        "herd": -1,
+        "id": "creature:23",
+        "kind": "horse",
+        "position": {
+          "x": -108,
+          "z": 228
+        },
+        "scale": 1,
+        "seed": 0.3340211238246411,
+        "variant": {
+          "id": "camp-bay",
+          "label": "Camp horse",
+          "rarity": "common",
+          "scale": [
+            1,
+            1
+          ],
+          "traits": {
+            "tack": 1
+          },
+          "weight": 0
+        },
+        "yaw": -2.498091544796509
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1056714150,
+            "version": 1
+          },
+          "x": 138,
+          "z": -68
+        },
+        "herd": -1,
+        "id": "creature:25",
+        "kind": "leopard",
+        "position": {
+          "x": 138,
+          "z": -68
+        },
+        "scale": 1.5,
+        "seed": 0.8329325423110276,
+        "variant": {
+          "hp": 700,
+          "id": "aqbars",
+          "label": "Aqbars the Pale",
+          "rarity": "legendary",
+          "scale": [
+            1.5,
+            1.5
+          ],
+          "weight": 1
+        },
+        "yaw": 0
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3456174436,
+            "version": 1
+          },
+          "x": -166.14427155981113,
+          "z": -67.6469361299405
+        },
+        "herd": 3,
+        "id": "creature:26",
+        "kind": "horse",
+        "position": {
+          "x": -166.14427155981113,
+          "z": -67.6469361299405
+        },
+        "scale": 1.0273889376129954,
+        "seed": 0.7223660666495562,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 4.151076635083881
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1560667426,
+            "version": 1
+          },
+          "x": -168.7504242266474,
+          "z": -71.27797236331608
+        },
+        "herd": 3,
+        "id": "creature:27",
+        "kind": "horse",
+        "position": {
+          "x": -168.7504242266474,
+          "z": -71.27797236331608
+        },
+        "scale": 1.0048461081366986,
+        "seed": 0.09523688443005085,
+        "variant": {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.7,
+              0.42,
+              0.22
+            ],
+            "coat": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "dorsal": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "mane": [
+              0.78,
+              0.52,
+              0.28
+            ],
+            "muzzle": [
+              0.4,
+              0.24,
+              0.15
+            ],
+            "points": [
+              0.58,
+              0.3,
+              0.13
+            ]
+          },
+          "traits": {
+            "blaze": 1,
+            "socks": 1
+          },
+          "weight": 24
+        },
+        "yaw": 5.417623228267572
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3960127712,
+            "version": 1
+          },
+          "x": -168.4029770084561,
+          "z": -74.91816094681315
+        },
+        "herd": 3,
+        "id": "creature:28",
+        "kind": "horse",
+        "position": {
+          "x": -168.4029770084561,
+          "z": -74.91816094681315
+        },
+        "scale": 0.9604512082622386,
+        "seed": 0.3020716735627502,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 0.950093847953783
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2064620702,
+            "version": 1
+          },
+          "x": -165.15476245896124,
+          "z": -70.15106681230523
+        },
+        "herd": 3,
+        "id": "creature:29",
+        "kind": "horse",
+        "position": {
+          "x": -165.15476245896124,
+          "z": -70.15106681230523
+        },
+        "scale": 1.0029768808884547,
+        "seed": 0.6617763622198254,
+        "variant": {
+          "id": "dun",
+          "label": "Dun mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.84,
+              0.74,
+              0.56
+            ],
+            "coat": [
+              0.76,
+              0.62,
+              0.42
+            ],
+            "dorsal": [
+              0.24,
+              0.17,
+              0.12
+            ],
+            "mane": [
+              0.1,
+              0.08,
+              0.07
+            ],
+            "muzzle": [
+              0.3,
+              0.24,
+              0.2
+            ],
+            "points": [
+              0.1,
+              0.08,
+              0.07
+            ]
+          },
+          "weight": 14
+        },
+        "yaw": 1.2404995313504432
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 169113692,
+            "version": 1
+          },
+          "x": -170.05217563225176,
+          "z": -59.75373939253985
+        },
+        "herd": 3,
+        "id": "creature:30",
+        "kind": "horse",
+        "position": {
+          "x": -170.05217563225176,
+          "z": -59.75373939253985
+        },
+        "scale": 0.9905623495625332,
+        "seed": 0.68023023288697,
+        "variant": {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "tint": {
+            "belly": [
+              0.7,
+              0.42,
+              0.22
+            ],
+            "coat": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "dorsal": [
+              0.62,
+              0.32,
+              0.14
+            ],
+            "mane": [
+              0.78,
+              0.52,
+              0.28
+            ],
+            "muzzle": [
+              0.4,
+              0.24,
+              0.15
+            ],
+            "points": [
+              0.58,
+              0.3,
+              0.13
+            ]
+          },
+          "traits": {
+            "blaze": 1,
+            "socks": 1
+          },
+          "weight": 24
+        },
+        "yaw": 2.7697183511895727
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2568573978,
+            "version": 1
+          },
+          "x": -175.2866252669702,
+          "z": -66.10311194015871
+        },
+        "herd": 3,
+        "id": "creature:31",
+        "kind": "horse",
+        "position": {
+          "x": -175.2866252669702,
+          "z": -66.10311194015871
+        },
+        "scale": 1.0099452734715306,
+        "seed": 0.5308335418812931,
+        "variant": {
+          "id": "grey",
+          "label": "Grey mare",
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "tint": {
+            "belly": [
+              0.88,
+              0.88,
+              0.86
+            ],
+            "coat": [
+              0.8,
+              0.8,
+              0.78
+            ],
+            "dorsal": [
+              0.8,
+              0.8,
+              0.78
+            ],
+            "earIn": [
+              0.45,
+              0.4,
+              0.4
+            ],
+            "mane": [
+              0.55,
+              0.54,
+              0.53
+            ],
+            "muzzle": [
+              0.24,
+              0.22,
+              0.22
+            ],
+            "points": [
+              0.36,
+              0.35,
+              0.35
+            ]
+          },
+          "traits": {
+            "dapple": 1
+          },
+          "weight": 10
+        },
+        "yaw": 4.683740502032003
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 673066968,
+            "version": 1
+          },
+          "x": -172.3884600072465,
+          "z": -69.3266863655487
+        },
+        "herd": 3,
+        "id": "creature:32",
+        "kind": "horse",
+        "position": {
+          "x": -172.3884600072465,
+          "z": -69.3266863655487
+        },
+        "scale": 0.9837323863035999,
+        "seed": 0.6982604663353413,
+        "variant": {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        "yaw": 2.2557917642900898
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3072527254,
+            "version": 1
+          },
+          "x": -170.1250788494263,
+          "z": -62.81579081237811
+        },
+        "herd": 3,
+        "id": "creature:33",
+        "kind": "horse",
+        "position": {
+          "x": -170.1250788494263,
+          "z": -62.81579081237811
+        },
+        "scale": 1.0211221508635209,
+        "seed": 0.38086043135263026,
+        "variant": {
+          "id": "black",
+          "label": "Black mare",
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "tint": {
+            "belly": [
+              0.18,
+              0.165,
+              0.16
+            ],
+            "coat": [
+              0.16,
+              0.15,
+              0.155
+            ],
+            "dorsal": [
+              0.13,
+              0.12,
+              0.125
+            ],
+            "earIn": [
+              0.1,
+              0.08,
+              0.08
+            ],
+            "mane": [
+              0.05,
+              0.045,
+              0.05
+            ],
+            "muzzle": [
+              0.14,
+              0.12,
+              0.12
+            ],
+            "points": [
+              0.07,
+              0.065,
+              0.068
+            ]
+          },
+          "weight": 8
+        },
+        "yaw": 5.006414250803107
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 1177020244,
+            "version": 1
+          },
+          "x": -169.74897461016275,
+          "z": -67.75261311292556
+        },
+        "herd": 3,
+        "id": "creature:34",
+        "kind": "horse",
+        "position": {
+          "x": -166.6641209402894,
+          "z": -65.86777683456783
+        },
+        "scale": 0.6114963161200285,
+        "seed": 0.42572753340937197,
+        "variant": {
+          "hp": 70,
+          "id": "foal-bay",
+          "label": "Foal",
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "tint": {
+            "belly": [
+              0.76,
+              0.6,
+              0.44
+            ],
+            "coat": [
+              0.66,
+              0.45,
+              0.3
+            ],
+            "dorsal": [
+              0.66,
+              0.45,
+              0.3
+            ],
+            "mane": [
+              0.3,
+              0.22,
+              0.16
+            ],
+            "muzzle": [
+              0.42,
+              0.33,
+              0.28
+            ],
+            "points": [
+              0.72,
+              0.58,
+              0.44
+            ]
+          },
+          "traits": {
+            "foal": 1,
+            "mane": 0.6
+          },
+          "weight": 0
+        },
+        "yaw": 4.151076635083881
+      },
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 3576480530,
+            "version": 1
+          },
+          "x": -160,
+          "z": -72
+        },
+        "herd": 3,
+        "id": "creature:35",
+        "kind": "argymaq",
+        "position": {
+          "x": -160,
+          "z": -72
+        },
+        "scale": 1.3,
+        "seed": 0.9317326685413718,
+        "variant": {
+          "hp": 750,
+          "id": "stallion",
+          "label": "Argymaq the Unbroken",
+          "mods": {
+            "chargeDamage": 25
+          },
+          "rarity": "legendary",
+          "scale": [
+            1.3,
+            1.3
+          ],
+          "tint": {
+            "belly": [
+              0.18,
+              0.165,
+              0.16
+            ],
+            "coat": [
+              0.16,
+              0.15,
+              0.155
+            ],
+            "dorsal": [
+              0.13,
+              0.12,
+              0.125
+            ],
+            "earIn": [
+              0.1,
+              0.08,
+              0.08
+            ],
+            "mane": [
+              0.05,
+              0.045,
+              0.05
+            ],
+            "muzzle": [
+              0.14,
+              0.12,
+              0.12
+            ],
+            "points": [
+              0.07,
+              0.065,
+              0.068
+            ]
+          },
+          "traits": {
+            "mane": 2.2,
+            "scar": 1,
+            "stallion": 1
+          },
+          "weight": 1
+        },
+        "yaw": 0
+      }
+    ],
+    "herds": [
+      {
+        "cx": -150,
+        "cz": 88,
+        "kind": "wolf",
+        "members": [
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1199749144,
+                "version": 1
+              },
+              "x": -151.79264762629865,
+              "z": 84.45180076599955
+            },
+            "herd": 0,
+            "id": "creature:0",
+            "kind": "wolf",
+            "position": {
+              "x": -151.79264762629865,
+              "z": 84.45180076599955
+            },
+            "scale": 1.16,
+            "seed": 0.550985875306651,
+            "variant": {
+              "hp": 110,
+              "id": "alpha",
+              "label": "Greymane",
+              "mods": {
+                "chargeDamage": 18
+              },
+              "rarity": "rare",
+              "scale": [
+                1.16,
+                1.16
+              ],
+              "tint": {
+                "back": [
+                  0.34,
+                  0.34,
+                  0.36
+                ],
+                "cream": [
+                  0.95,
+                  0.94,
+                  0.91
+                ],
+                "leg": [
+                  0.7,
+                  0.66,
+                  0.6
+                ],
+                "side": [
+                  0.72,
+                  0.7,
+                  0.66
+                ]
+              },
+              "traits": {
+                "ruff": 1.25,
+                "scar": 1
+              },
+              "weight": 0
+            },
+            "yaw": 4.794945122447951
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3599209430,
+                "version": 1
+              },
+              "x": -144.4472873584019,
+              "z": 91.44907554972457
+            },
+            "herd": 0,
+            "id": "creature:1",
+            "kind": "wolf",
+            "position": {
+              "x": -144.4472873584019,
+              "z": 91.44907554972457
+            },
+            "scale": 1.0075426276074722,
+            "seed": 0.6751566489692777,
+            "variant": {
+              "id": "grey",
+              "label": "Steppe wolf",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.05
+              ],
+              "weight": 50
+            },
+            "yaw": 1.7108870312550482
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1703702420,
+                "version": 1
+              },
+              "x": -156.82701476802686,
+              "z": 84.19433158658566
+            },
+            "herd": 0,
+            "id": "creature:2",
+            "kind": "wolf",
+            "position": {
+              "x": -156.82701476802686,
+              "z": 84.19433158658566
+            },
+            "scale": 0.941453486615792,
+            "seed": 0.024778958642855287,
+            "variant": {
+              "id": "tawny",
+              "label": "Steppe wolf",
+              "rarity": "common",
+              "scale": [
+                0.92,
+                1.02
+              ],
+              "tint": {
+                "back": [
+                  0.3,
+                  0.24,
+                  0.19
+                ],
+                "cream": [
+                  0.92,
+                  0.84,
+                  0.7
+                ],
+                "leg": [
+                  0.72,
+                  0.56,
+                  0.37
+                ],
+                "side": [
+                  0.72,
+                  0.55,
+                  0.34
+                ]
+              },
+              "weight": 30
+            },
+            "yaw": 4.131087878357645
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 4103162706,
+                "version": 1
+              },
+              "x": -148.88662999620485,
+              "z": 84.6973169203428
+            },
+            "herd": 0,
+            "id": "creature:3",
+            "kind": "wolf",
+            "position": {
+              "x": -148.88662999620485,
+              "z": 84.6973169203428
+            },
+            "scale": 0.983134837099351,
+            "seed": 0.8230876284651458,
+            "variant": {
+              "id": "grey",
+              "label": "Steppe wolf",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.05
+              ],
+              "weight": 50
+            },
+            "yaw": 1.6156298461309344
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 2207655696,
+                "version": 1
+              },
+              "x": -155.4900063490583,
+              "z": 88.16680883920662
+            },
+            "herd": 0,
+            "id": "creature:4",
+            "kind": "wolf",
+            "position": {
+              "x": -155.4900063490583,
+              "z": 88.16680883920662
+            },
+            "scale": 0.846881890068762,
+            "seed": 0.8444272808264941,
+            "variant": {
+              "hp": 55,
+              "id": "scout",
+              "label": "Young wolf",
+              "rarity": "common",
+              "scale": [
+                0.84,
+                0.86
+              ],
+              "tint": {
+                "back": [
+                  0.32,
+                  0.29,
+                  0.25
+                ],
+                "leg": [
+                  0.74,
+                  0.64,
+                  0.5
+                ],
+                "side": [
+                  0.72,
+                  0.62,
+                  0.48
+                ]
+              },
+              "traits": {
+                "ruff": 0.8
+              },
+              "weight": 12
+            },
+            "yaw": 1.5102474158440036
+          }
+        ]
+      },
+      {
+        "cx": 65,
+        "cz": 36,
+        "kind": "horse",
+        "members": [
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 312148686,
+                "version": 1
+              },
+              "x": 66.21545754018342,
+              "z": 44.95752730915648
+            },
+            "herd": 1,
+            "id": "creature:5",
+            "kind": "horse",
+            "position": {
+              "x": 66.21545754018342,
+              "z": 44.95752730915648
+            },
+            "scale": 0.9814693819521926,
+            "seed": 0.3336882349103689,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 4.706983651688196
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 2711608972,
+                "version": 1
+              },
+              "x": 56.182147985506525,
+              "z": 35.57232768433323
+            },
+            "herd": 1,
+            "id": "creature:6",
+            "kind": "horse",
+            "position": {
+              "x": 56.182147985506525,
+              "z": 35.57232768433323
+            },
+            "scale": 1.017345782276243,
+            "seed": 0.1138255454134196,
+            "variant": {
+              "id": "chestnut",
+              "label": "Chestnut mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.7,
+                  0.42,
+                  0.22
+                ],
+                "coat": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "dorsal": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "mane": [
+                  0.78,
+                  0.52,
+                  0.28
+                ],
+                "muzzle": [
+                  0.4,
+                  0.24,
+                  0.15
+                ],
+                "points": [
+                  0.58,
+                  0.3,
+                  0.13
+                ]
+              },
+              "traits": {
+                "blaze": 1,
+                "socks": 1
+              },
+              "weight": 24
+            },
+            "yaw": 5.51496265052522
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 816101962,
+                "version": 1
+              },
+              "x": 56.19769222912889,
+              "z": 39.505378799561434
+            },
+            "herd": 1,
+            "id": "creature:7",
+            "kind": "horse",
+            "position": {
+              "x": 56.19769222912889,
+              "z": 39.505378799561434
+            },
+            "scale": 0.9604557628766633,
+            "seed": 0.10416106833145022,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 3.7171633270243425
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3215562248,
+                "version": 1
+              },
+              "x": 68.57726604289445,
+              "z": 44.82780256310538
+            },
+            "herd": 1,
+            "id": "creature:8",
+            "kind": "horse",
+            "position": {
+              "x": 68.57726604289445,
+              "z": 44.82780256310538
+            },
+            "scale": 1.0190498325182125,
+            "seed": 0.37182129826396704,
+            "variant": {
+              "id": "dun",
+              "label": "Dun mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.84,
+                  0.74,
+                  0.56
+                ],
+                "coat": [
+                  0.76,
+                  0.62,
+                  0.42
+                ],
+                "dorsal": [
+                  0.24,
+                  0.17,
+                  0.12
+                ],
+                "mane": [
+                  0.1,
+                  0.08,
+                  0.07
+                ],
+                "muzzle": [
+                  0.3,
+                  0.24,
+                  0.2
+                ],
+                "points": [
+                  0.1,
+                  0.08,
+                  0.07
+                ]
+              },
+              "weight": 14
+            },
+            "yaw": 5.9086788991644585
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1320055238,
+                "version": 1
+              },
+              "x": 71.29131196278891,
+              "z": 38.95049147099375
+            },
+            "herd": 1,
+            "id": "creature:9",
+            "kind": "horse",
+            "position": {
+              "x": 71.29131196278891,
+              "z": 38.95049147099375
+            },
+            "scale": 0.9848509875917807,
+            "seed": 0.8657430873718113,
+            "variant": {
+              "id": "chestnut",
+              "label": "Chestnut mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.7,
+                  0.42,
+                  0.22
+                ],
+                "coat": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "dorsal": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "mane": [
+                  0.78,
+                  0.52,
+                  0.28
+                ],
+                "muzzle": [
+                  0.4,
+                  0.24,
+                  0.15
+                ],
+                "points": [
+                  0.58,
+                  0.3,
+                  0.13
+                ]
+              },
+              "traits": {
+                "blaze": 1,
+                "socks": 1
+              },
+              "weight": 24
+            },
+            "yaw": 3.5298035728413932
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3719515524,
+                "version": 1
+              },
+              "x": 73.9448089943175,
+              "z": 37.17406401184148
+            },
+            "herd": 1,
+            "id": "creature:10",
+            "kind": "horse",
+            "position": {
+              "x": 73.9448089943175,
+              "z": 37.17406401184148
+            },
+            "scale": 1.0170328380330467,
+            "seed": 0.6752368386369199,
+            "variant": {
+              "id": "grey",
+              "label": "Grey mare",
+              "rarity": "uncommon",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "tint": {
+                "belly": [
+                  0.88,
+                  0.88,
+                  0.86
+                ],
+                "coat": [
+                  0.8,
+                  0.8,
+                  0.78
+                ],
+                "dorsal": [
+                  0.8,
+                  0.8,
+                  0.78
+                ],
+                "earIn": [
+                  0.45,
+                  0.4,
+                  0.4
+                ],
+                "mane": [
+                  0.55,
+                  0.54,
+                  0.53
+                ],
+                "muzzle": [
+                  0.24,
+                  0.22,
+                  0.22
+                ],
+                "points": [
+                  0.36,
+                  0.35,
+                  0.35
+                ]
+              },
+              "traits": {
+                "dapple": 1
+              },
+              "weight": 10
+            },
+            "yaw": 2.9314059894429905
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1824008514,
+                "version": 1
+              },
+              "x": 72.61892961514076,
+              "z": 29.012671529128077
+            },
+            "herd": 1,
+            "id": "creature:11",
+            "kind": "horse",
+            "position": {
+              "x": 72.61892961514076,
+              "z": 29.012671529128077
+            },
+            "scale": 0.9861970011866651,
+            "seed": 0.8760032916907221,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 4.218114414265039
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 4223468800,
+                "version": 1
+              },
+              "x": 59.655740427213075,
+              "z": 43.230807970427044
+            },
+            "herd": 1,
+            "id": "creature:12",
+            "kind": "horse",
+            "position": {
+              "x": 59.655740427213075,
+              "z": 43.230807970427044
+            },
+            "scale": 1.0121044089458884,
+            "seed": 0.8242413313128054,
+            "variant": {
+              "id": "black",
+              "label": "Black mare",
+              "rarity": "uncommon",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "tint": {
+                "belly": [
+                  0.18,
+                  0.165,
+                  0.16
+                ],
+                "coat": [
+                  0.16,
+                  0.15,
+                  0.155
+                ],
+                "dorsal": [
+                  0.13,
+                  0.12,
+                  0.125
+                ],
+                "earIn": [
+                  0.1,
+                  0.08,
+                  0.08
+                ],
+                "mane": [
+                  0.05,
+                  0.045,
+                  0.05
+                ],
+                "muzzle": [
+                  0.14,
+                  0.12,
+                  0.12
+                ],
+                "points": [
+                  0.07,
+                  0.065,
+                  0.068
+                ]
+              },
+              "weight": 8
+            },
+            "yaw": 3.0788486472272223
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 2327961790,
+                "version": 1
+              },
+              "x": 56.95518555764241,
+              "z": 31.47633151362809
+            },
+            "herd": 1,
+            "id": "creature:13",
+            "kind": "horse",
+            "position": {
+              "x": 56.95518555764241,
+              "z": 31.47633151362809
+            },
+            "scale": 0.992269067664165,
+            "seed": 0.14917204156517982,
+            "variant": {
+              "id": "dun",
+              "label": "Dun mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.84,
+                  0.74,
+                  0.56
+                ],
+                "coat": [
+                  0.76,
+                  0.62,
+                  0.42
+                ],
+                "dorsal": [
+                  0.24,
+                  0.17,
+                  0.12
+                ],
+                "mane": [
+                  0.1,
+                  0.08,
+                  0.07
+                ],
+                "muzzle": [
+                  0.3,
+                  0.24,
+                  0.2
+                ],
+                "points": [
+                  0.1,
+                  0.08,
+                  0.07
+                ]
+              },
+              "weight": 14
+            },
+            "yaw": 1.0513255978282143
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 432454780,
+                "version": 1
+              },
+              "x": 59.576455175194866,
+              "z": 30.492864146615727
+            },
+            "herd": 1,
+            "id": "creature:14",
+            "kind": "horse",
+            "position": {
+              "x": 59.576455175194866,
+              "z": 30.492864146615727
+            },
+            "scale": 1.0171170404274017,
+            "seed": 0.27194521203637123,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 5.814862566926223
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 2831915066,
+                "version": 1
+              },
+              "x": 73.7534886429562,
+              "z": 42.560268721250964
+            },
+            "herd": 1,
+            "id": "creature:15",
+            "kind": "horse",
+            "position": {
+              "x": 73.7534886429562,
+              "z": 42.560268721250964
+            },
+            "scale": 1.0126984974136577,
+            "seed": 0.3705837440211326,
+            "variant": {
+              "id": "chestnut",
+              "label": "Chestnut mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.7,
+                  0.42,
+                  0.22
+                ],
+                "coat": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "dorsal": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "mane": [
+                  0.78,
+                  0.52,
+                  0.28
+                ],
+                "muzzle": [
+                  0.4,
+                  0.24,
+                  0.15
+                ],
+                "points": [
+                  0.58,
+                  0.3,
+                  0.13
+                ]
+              },
+              "traits": {
+                "blaze": 1,
+                "socks": 1
+              },
+              "weight": 24
+            },
+            "yaw": 0.1169122421155874
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 936408056,
+                "version": 1
+              },
+              "x": 64.85085109148098,
+              "z": 34.646559141349165
+            },
+            "herd": 1,
+            "id": "creature:16",
+            "kind": "horse",
+            "position": {
+              "x": 66.59997401683694,
+              "z": 43.10635202234936
+            },
+            "scale": 0.6109400448016822,
+            "seed": 0.5352435300592333,
+            "variant": {
+              "hp": 70,
+              "id": "foal-bay",
+              "label": "Foal",
+              "rarity": "common",
+              "scale": [
+                0.6,
+                0.64
+              ],
+              "tint": {
+                "belly": [
+                  0.76,
+                  0.6,
+                  0.44
+                ],
+                "coat": [
+                  0.66,
+                  0.45,
+                  0.3
+                ],
+                "dorsal": [
+                  0.66,
+                  0.45,
+                  0.3
+                ],
+                "mane": [
+                  0.3,
+                  0.22,
+                  0.16
+                ],
+                "muzzle": [
+                  0.42,
+                  0.33,
+                  0.28
+                ],
+                "points": [
+                  0.72,
+                  0.58,
+                  0.44
+                ]
+              },
+              "traits": {
+                "foal": 1,
+                "mane": 0.6
+              },
+              "weight": 0
+            },
+            "yaw": 4.706983651688196
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3335868342,
+                "version": 1
+              },
+              "x": 65.53425301708448,
+              "z": 35.55330713109786
+            },
+            "herd": 1,
+            "id": "creature:17",
+            "kind": "horse",
+            "position": {
+              "x": 56.01863620262193,
+              "z": 36.104372658488955
+            },
+            "scale": 0.6389768794458359,
+            "seed": 0.4553049551323056,
+            "variant": {
+              "hp": 70,
+              "id": "foal-chestnut",
+              "label": "Foal",
+              "rarity": "common",
+              "scale": [
+                0.6,
+                0.64
+              ],
+              "tint": {
+                "belly": [
+                  0.84,
+                  0.64,
+                  0.46
+                ],
+                "coat": [
+                  0.74,
+                  0.46,
+                  0.26
+                ],
+                "dorsal": [
+                  0.74,
+                  0.46,
+                  0.26
+                ],
+                "mane": [
+                  0.84,
+                  0.62,
+                  0.4
+                ],
+                "muzzle": [
+                  0.5,
+                  0.36,
+                  0.28
+                ],
+                "points": [
+                  0.8,
+                  0.6,
+                  0.42
+                ]
+              },
+              "traits": {
+                "foal": 1,
+                "mane": 0.6
+              },
+              "weight": 0
+            },
+            "yaw": 5.51496265052522
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1440361332,
+                "version": 1
+              },
+              "x": 65.819587898567,
+              "z": 38.264864560041474
+            },
+            "herd": 1,
+            "id": "creature:18",
+            "kind": "horse",
+            "position": {
+              "x": 57.477121076263,
+              "z": 38.34750339952486
+            },
+            "scale": 0.60321791020222,
+            "seed": 0.818662908161059,
+            "variant": {
+              "hp": 70,
+              "id": "foal-bay",
+              "label": "Foal",
+              "rarity": "common",
+              "scale": [
+                0.6,
+                0.64
+              ],
+              "tint": {
+                "belly": [
+                  0.76,
+                  0.6,
+                  0.44
+                ],
+                "coat": [
+                  0.66,
+                  0.45,
+                  0.3
+                ],
+                "dorsal": [
+                  0.66,
+                  0.45,
+                  0.3
+                ],
+                "mane": [
+                  0.3,
+                  0.22,
+                  0.16
+                ],
+                "muzzle": [
+                  0.42,
+                  0.33,
+                  0.28
+                ],
+                "points": [
+                  0.72,
+                  0.58,
+                  0.44
+                ]
+              },
+              "traits": {
+                "foal": 1,
+                "mane": 0.6
+              },
+              "weight": 0
+            },
+            "yaw": 3.7171633270243425
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3839821618,
+                "version": 1
+              },
+              "x": 67.55139427054498,
+              "z": 33.9784142338924
+            },
+            "herd": 1,
+            "id": "creature:19",
+            "kind": "horse",
+            "position": {
+              "x": 81,
+              "z": 40
+            },
+            "scale": 1.08,
+            "seed": 0.9395954797510058,
+            "variant": {
+              "hp": 150,
+              "id": "stallion",
+              "label": "Black stallion",
+              "mods": {
+                "chargeDamage": 25
+              },
+              "rarity": "rare",
+              "scale": [
+                1.08,
+                1.08
+              ],
+              "tint": {
+                "belly": [
+                  0.18,
+                  0.165,
+                  0.16
+                ],
+                "coat": [
+                  0.16,
+                  0.15,
+                  0.155
+                ],
+                "dorsal": [
+                  0.13,
+                  0.12,
+                  0.125
+                ],
+                "earIn": [
+                  0.1,
+                  0.08,
+                  0.08
+                ],
+                "mane": [
+                  0.05,
+                  0.045,
+                  0.05
+                ],
+                "muzzle": [
+                  0.14,
+                  0.12,
+                  0.12
+                ],
+                "points": [
+                  0.07,
+                  0.065,
+                  0.068
+                ]
+              },
+              "traits": {
+                "mane": 1.7,
+                "stallion": 1
+              },
+              "weight": 0
+            },
+            "yaw": 0
+          }
+        ]
+      },
+      {
+        "cx": -120,
+        "cz": 212,
+        "kind": "sheepdog",
+        "members": []
+      },
+      {
+        "cx": -168,
+        "cz": -66,
+        "kind": "horse",
+        "members": [
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3456174436,
+                "version": 1
+              },
+              "x": -166.14427155981113,
+              "z": -67.6469361299405
+            },
+            "herd": 3,
+            "id": "creature:26",
+            "kind": "horse",
+            "position": {
+              "x": -166.14427155981113,
+              "z": -67.6469361299405
+            },
+            "scale": 1.0273889376129954,
+            "seed": 0.7223660666495562,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 4.151076635083881
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1560667426,
+                "version": 1
+              },
+              "x": -168.7504242266474,
+              "z": -71.27797236331608
+            },
+            "herd": 3,
+            "id": "creature:27",
+            "kind": "horse",
+            "position": {
+              "x": -168.7504242266474,
+              "z": -71.27797236331608
+            },
+            "scale": 1.0048461081366986,
+            "seed": 0.09523688443005085,
+            "variant": {
+              "id": "chestnut",
+              "label": "Chestnut mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.7,
+                  0.42,
+                  0.22
+                ],
+                "coat": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "dorsal": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "mane": [
+                  0.78,
+                  0.52,
+                  0.28
+                ],
+                "muzzle": [
+                  0.4,
+                  0.24,
+                  0.15
+                ],
+                "points": [
+                  0.58,
+                  0.3,
+                  0.13
+                ]
+              },
+              "traits": {
+                "blaze": 1,
+                "socks": 1
+              },
+              "weight": 24
+            },
+            "yaw": 5.417623228267572
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3960127712,
+                "version": 1
+              },
+              "x": -168.4029770084561,
+              "z": -74.91816094681315
+            },
+            "herd": 3,
+            "id": "creature:28",
+            "kind": "horse",
+            "position": {
+              "x": -168.4029770084561,
+              "z": -74.91816094681315
+            },
+            "scale": 0.9604512082622386,
+            "seed": 0.3020716735627502,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 0.950093847953783
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 2064620702,
+                "version": 1
+              },
+              "x": -165.15476245896124,
+              "z": -70.15106681230523
+            },
+            "herd": 3,
+            "id": "creature:29",
+            "kind": "horse",
+            "position": {
+              "x": -165.15476245896124,
+              "z": -70.15106681230523
+            },
+            "scale": 1.0029768808884547,
+            "seed": 0.6617763622198254,
+            "variant": {
+              "id": "dun",
+              "label": "Dun mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.84,
+                  0.74,
+                  0.56
+                ],
+                "coat": [
+                  0.76,
+                  0.62,
+                  0.42
+                ],
+                "dorsal": [
+                  0.24,
+                  0.17,
+                  0.12
+                ],
+                "mane": [
+                  0.1,
+                  0.08,
+                  0.07
+                ],
+                "muzzle": [
+                  0.3,
+                  0.24,
+                  0.2
+                ],
+                "points": [
+                  0.1,
+                  0.08,
+                  0.07
+                ]
+              },
+              "weight": 14
+            },
+            "yaw": 1.2404995313504432
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 169113692,
+                "version": 1
+              },
+              "x": -170.05217563225176,
+              "z": -59.75373939253985
+            },
+            "herd": 3,
+            "id": "creature:30",
+            "kind": "horse",
+            "position": {
+              "x": -170.05217563225176,
+              "z": -59.75373939253985
+            },
+            "scale": 0.9905623495625332,
+            "seed": 0.68023023288697,
+            "variant": {
+              "id": "chestnut",
+              "label": "Chestnut mare",
+              "rarity": "common",
+              "scale": [
+                0.95,
+                1.02
+              ],
+              "tint": {
+                "belly": [
+                  0.7,
+                  0.42,
+                  0.22
+                ],
+                "coat": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "dorsal": [
+                  0.62,
+                  0.32,
+                  0.14
+                ],
+                "mane": [
+                  0.78,
+                  0.52,
+                  0.28
+                ],
+                "muzzle": [
+                  0.4,
+                  0.24,
+                  0.15
+                ],
+                "points": [
+                  0.58,
+                  0.3,
+                  0.13
+                ]
+              },
+              "traits": {
+                "blaze": 1,
+                "socks": 1
+              },
+              "weight": 24
+            },
+            "yaw": 2.7697183511895727
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 2568573978,
+                "version": 1
+              },
+              "x": -175.2866252669702,
+              "z": -66.10311194015871
+            },
+            "herd": 3,
+            "id": "creature:31",
+            "kind": "horse",
+            "position": {
+              "x": -175.2866252669702,
+              "z": -66.10311194015871
+            },
+            "scale": 1.0099452734715306,
+            "seed": 0.5308335418812931,
+            "variant": {
+              "id": "grey",
+              "label": "Grey mare",
+              "rarity": "uncommon",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "tint": {
+                "belly": [
+                  0.88,
+                  0.88,
+                  0.86
+                ],
+                "coat": [
+                  0.8,
+                  0.8,
+                  0.78
+                ],
+                "dorsal": [
+                  0.8,
+                  0.8,
+                  0.78
+                ],
+                "earIn": [
+                  0.45,
+                  0.4,
+                  0.4
+                ],
+                "mane": [
+                  0.55,
+                  0.54,
+                  0.53
+                ],
+                "muzzle": [
+                  0.24,
+                  0.22,
+                  0.22
+                ],
+                "points": [
+                  0.36,
+                  0.35,
+                  0.35
+                ]
+              },
+              "traits": {
+                "dapple": 1
+              },
+              "weight": 10
+            },
+            "yaw": 4.683740502032003
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 673066968,
+                "version": 1
+              },
+              "x": -172.3884600072465,
+              "z": -69.3266863655487
+            },
+            "herd": 3,
+            "id": "creature:32",
+            "kind": "horse",
+            "position": {
+              "x": -172.3884600072465,
+              "z": -69.3266863655487
+            },
+            "scale": 0.9837323863035999,
+            "seed": 0.6982604663353413,
+            "variant": {
+              "id": "bay",
+              "label": "Bay mare",
+              "rarity": "common",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "weight": 34
+            },
+            "yaw": 2.2557917642900898
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3072527254,
+                "version": 1
+              },
+              "x": -170.1250788494263,
+              "z": -62.81579081237811
+            },
+            "herd": 3,
+            "id": "creature:33",
+            "kind": "horse",
+            "position": {
+              "x": -170.1250788494263,
+              "z": -62.81579081237811
+            },
+            "scale": 1.0211221508635209,
+            "seed": 0.38086043135263026,
+            "variant": {
+              "id": "black",
+              "label": "Black mare",
+              "rarity": "uncommon",
+              "scale": [
+                0.96,
+                1.03
+              ],
+              "tint": {
+                "belly": [
+                  0.18,
+                  0.165,
+                  0.16
+                ],
+                "coat": [
+                  0.16,
+                  0.15,
+                  0.155
+                ],
+                "dorsal": [
+                  0.13,
+                  0.12,
+                  0.125
+                ],
+                "earIn": [
+                  0.1,
+                  0.08,
+                  0.08
+                ],
+                "mane": [
+                  0.05,
+                  0.045,
+                  0.05
+                ],
+                "muzzle": [
+                  0.14,
+                  0.12,
+                  0.12
+                ],
+                "points": [
+                  0.07,
+                  0.065,
+                  0.068
+                ]
+              },
+              "weight": 8
+            },
+            "yaw": 5.006414250803107
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 1177020244,
+                "version": 1
+              },
+              "x": -169.74897461016275,
+              "z": -67.75261311292556
+            },
+            "herd": 3,
+            "id": "creature:34",
+            "kind": "horse",
+            "position": {
+              "x": -166.6641209402894,
+              "z": -65.86777683456783
+            },
+            "scale": 0.6114963161200285,
+            "seed": 0.42572753340937197,
+            "variant": {
+              "hp": 70,
+              "id": "foal-bay",
+              "label": "Foal",
+              "rarity": "common",
+              "scale": [
+                0.6,
+                0.64
+              ],
+              "tint": {
+                "belly": [
+                  0.76,
+                  0.6,
+                  0.44
+                ],
+                "coat": [
+                  0.66,
+                  0.45,
+                  0.3
+                ],
+                "dorsal": [
+                  0.66,
+                  0.45,
+                  0.3
+                ],
+                "mane": [
+                  0.3,
+                  0.22,
+                  0.16
+                ],
+                "muzzle": [
+                  0.42,
+                  0.33,
+                  0.28
+                ],
+                "points": [
+                  0.72,
+                  0.58,
+                  0.44
+                ]
+              },
+              "traits": {
+                "foal": 1,
+                "mane": 0.6
+              },
+              "weight": 0
+            },
+            "yaw": 4.151076635083881
+          },
+          {
+            "adopted": {
+              "stream": {
+                "initial": 19001,
+                "scrambledFork": false,
+                "state": 3576480530,
+                "version": 1
+              },
+              "x": -160,
+              "z": -72
+            },
+            "herd": 3,
+            "id": "creature:35",
+            "kind": "argymaq",
+            "position": {
+              "x": -160,
+              "z": -72
+            },
+            "scale": 1.3,
+            "seed": 0.9317326685413718,
+            "variant": {
+              "hp": 750,
+              "id": "stallion",
+              "label": "Argymaq the Unbroken",
+              "mods": {
+                "chargeDamage": 25
+              },
+              "rarity": "legendary",
+              "scale": [
+                1.3,
+                1.3
+              ],
+              "tint": {
+                "belly": [
+                  0.18,
+                  0.165,
+                  0.16
+                ],
+                "coat": [
+                  0.16,
+                  0.15,
+                  0.155
+                ],
+                "dorsal": [
+                  0.13,
+                  0.12,
+                  0.125
+                ],
+                "earIn": [
+                  0.1,
+                  0.08,
+                  0.08
+                ],
+                "mane": [
+                  0.05,
+                  0.045,
+                  0.05
+                ],
+                "muzzle": [
+                  0.14,
+                  0.12,
+                  0.12
+                ],
+                "points": [
+                  0.07,
+                  0.065,
+                  0.068
+                ]
+              },
+              "traits": {
+                "mane": 2.2,
+                "scar": 1,
+                "stallion": 1
+              },
+              "weight": 1
+            },
+            "yaw": 0
+          }
+        ]
+      }
+    ],
+    "parked": [
+      {
+        "adopted": {
+          "stream": {
+            "initial": 19001,
+            "scrambledFork": false,
+            "state": 2952221160,
+            "version": 1
+          },
+          "x": -40,
+          "z": -95.6
+        },
+        "herd": -1,
+        "id": "creature:24",
+        "kind": "golden-king",
+        "position": {
+          "x": -40,
+          "z": -95.6
+        },
+        "scale": 1.22,
+        "seed": 0.640131551772356,
+        "variant": {
+          "hp": 2400,
+          "id": "king",
+          "label": "The Golden King",
+          "rarity": "legendary",
+          "scale": [
+            1.22,
+            1.22
+          ],
+          "weight": 1
+        },
+        "yaw": 0
+      }
+    ],
+    "stream": {
+      "initial": 19001,
+      "scrambledFork": false,
+      "state": 481243377,
+      "version": 1
+    },
+    "wildStream": {
+      "initial": 28685,
+      "scrambledFork": false,
+      "state": 3335878026,
+      "version": 1
+    }
+  },
+  "species": {
+    "argymaq": {
+      "kind": "argymaq",
+      "variants": [
+        {
+          "hp": 750,
+          "id": "stallion",
+          "label": "Argymaq the Unbroken",
+          "mods": {
+            "chargeDamage": 25
+          },
+          "rarity": "legendary",
+          "scale": [
+            1.3,
+            1.3
+          ],
+          "weight": 1
+        }
+      ]
+    },
+    "golden-king": {
+      "kind": "golden-king",
+      "variants": [
+        {
+          "hp": 2400,
+          "id": "king",
+          "label": "The Golden King",
+          "rarity": "legendary",
+          "scale": [
+            1.22,
+            1.22
+          ],
+          "weight": 1
+        }
+      ]
+    },
+    "horse": {
+      "kind": "horse",
+      "variants": [
+        {
+          "id": "bay",
+          "label": "Bay mare",
+          "rarity": "common",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 34
+        },
+        {
+          "id": "chestnut",
+          "label": "Chestnut mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "weight": 24
+        },
+        {
+          "id": "dun",
+          "label": "Dun mare",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.02
+          ],
+          "weight": 14
+        },
+        {
+          "id": "grey",
+          "label": "Grey mare",
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 10
+        },
+        {
+          "id": "black",
+          "label": "Black mare",
+          "rarity": "uncommon",
+          "scale": [
+            0.96,
+            1.03
+          ],
+          "weight": 8
+        },
+        {
+          "hp": 70,
+          "id": "foal-bay",
+          "label": "Foal",
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "weight": 0
+        },
+        {
+          "hp": 70,
+          "id": "foal-chestnut",
+          "label": "Foal",
+          "rarity": "common",
+          "scale": [
+            0.6,
+            0.64
+          ],
+          "weight": 0
+        },
+        {
+          "id": "camp-bay",
+          "label": "Camp horse",
+          "rarity": "common",
+          "scale": [
+            1,
+            1
+          ],
+          "weight": 0
+        },
+        {
+          "hp": 150,
+          "id": "tulpar",
+          "label": "Tulpar",
+          "rarity": "rare",
+          "scale": [
+            1.08,
+            1.08
+          ],
+          "weight": 0
+        },
+        {
+          "id": "camp-black",
+          "label": "Camp horse",
+          "rarity": "common",
+          "scale": [
+            1.02,
+            1.02
+          ],
+          "weight": 0
+        },
+        {
+          "hp": 150,
+          "id": "stallion",
+          "label": "Black stallion",
+          "mods": {
+            "chargeDamage": 25
+          },
+          "rarity": "rare",
+          "scale": [
+            1.08,
+            1.08
+          ],
+          "weight": 0
+        }
+      ]
+    },
+    "leopard": {
+      "kind": "leopard",
+      "variants": [
+        {
+          "hp": 700,
+          "id": "aqbars",
+          "label": "Aqbars the Pale",
+          "rarity": "legendary",
+          "scale": [
+            1.5,
+            1.5
+          ],
+          "weight": 1
+        }
+      ]
+    },
+    "sheepdog": {
+      "kind": "sheepdog",
+      "variants": [
+        {
+          "hp": 60,
+          "id": "collie",
+          "label": "Sheepdog",
+          "rarity": "common",
+          "scale": [
+            0.7,
+            0.72
+          ],
+          "weight": 1
+        }
+      ]
+    },
+    "wolf": {
+      "kind": "wolf",
+      "variants": [
+        {
+          "id": "grey",
+          "label": "Steppe wolf",
+          "rarity": "common",
+          "scale": [
+            0.95,
+            1.05
+          ],
+          "weight": 50
+        },
+        {
+          "id": "tawny",
+          "label": "Steppe wolf",
+          "rarity": "common",
+          "scale": [
+            0.92,
+            1.02
+          ],
+          "weight": 30
+        },
+        {
+          "id": "dark",
+          "label": "Dark wolf",
+          "rarity": "uncommon",
+          "scale": [
+            1,
+            1.08
+          ],
+          "weight": 8
+        },
+        {
+          "hp": 55,
+          "id": "scout",
+          "label": "Young wolf",
+          "rarity": "common",
+          "scale": [
+            0.84,
+            0.86
+          ],
+          "weight": 12
+        },
+        {
+          "hp": 110,
+          "id": "alpha",
+          "label": "Greymane",
+          "mods": {
+            "chargeDamage": 18
+          },
+          "rarity": "rare",
+          "scale": [
+            1.16,
+            1.16
+          ],
+          "weight": 0
+        }
+      ]
+    }
+  },
+  "streamSeed": 19001
+}

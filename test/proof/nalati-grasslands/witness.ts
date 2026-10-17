@@ -9,7 +9,7 @@ import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 
@@ -51,7 +51,7 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
       assert.equal(canonicalSimDigest(snapshotSimHost(restored)), suffixHash, 'Complete native suffix must match exactly');
     }
     const ticksExecuted = first.state.tick;
-    if (!gameplay) return { scope: 'native-boot-codec-suffix', entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
+    if (!gameplay) return { scope: 'native-boot-codec-suffix', entry: 'boot/headlessModules.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
       headless: { status: 'partial', stage: 'gameplay-coverage', nativeBoot: true, actors: 35, colliders, ticksExecuted, checkpointHash },
       replay: { status: 'partial', checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60, suffixHash, wholeShard: false } };
     if (plan.proveEntries === undefined) throw new Error('Native entry proof must be hosted');
@@ -59,7 +59,7 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
     assert.equal(entries.lanes, 92, 'Every native opening needs all 23 capsule lanes');
     assert.ok(entries.steps > 0);
     const taming = await nalatiTamingWitness(rapier, assets, replay);
-    return { taming, entries, entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
+    return { taming, entries, entry: 'boot/headlessModules.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
       headless: { status: 'partial', stage: 'gameplay-coverage', nativeBoot: true, actors: 35, colliders, ticksExecuted, checkpointHash },
       ...(replay ? { replay: { status: 'partial', checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60, suffixHash, wholeShard: false } } : {}) };
   } finally {

@@ -7,13 +7,13 @@ import type { Rapier } from '../../../src/engine/physics/rapier';
 import { createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
-import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { nalatiTamingOf } from '../../../src/shards/nalati-grasslands/runtime/headlessTaming';
 import { nalatiMountedOf } from '../../../src/shards/nalati-grasslands/runtime/headlessMounted';
 import { canonicalSimDigest } from '../../fake/simState';
 
-const MODULE = new URL('../../../src/shards/nalati-grasslands/runtime/headless.ts', import.meta.url).href;
+const MODULE = new URL('../../../src/shards/nalati-grasslands/boot/headlessModules.ts', import.meta.url).href;
 function law(host: SimHost) {
   const value = nalatiTamingOf(host); if (value === undefined) throw new Error('Missing native taming owner'); return value;
 }

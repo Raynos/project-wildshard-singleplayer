@@ -1,4 +1,5 @@
 {
+  "test/nalati-headless-assembly.test.ts": ["nalati-grasslands"],
   "test/shard-headless.test.ts": ["_template", "pastel-plain", "driftwood-isle", "pine-hollow", "nalati-grasslands", "nine-dragon-stack", "sunscar-dunes", "far-reach"],
   "test/pine-npc-figure-product.test.ts": ["pine-hollow"],
   "test/scripts/_template-boss.test.ts": ["_template"],

@@ -1,23 +1,13 @@
-import { prepareNalatiRaidDirector } from './raidDirector';
-import { installNalatiTaming, nalatiTamingOf } from './headlessTaming';
-import { proveNalatiEntryways } from './headlessEntryways';
-import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { SIM_API_VERSION, type SimHost, type SimLevel, type SimValue } from '@wildshard/engine/sim';
+import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { withOwner } from '@wildshard/engine/app/ownership';
-import { tagCollider } from '@wildshard/engine/physics/surface';
 import { castRay } from '@wildshard/engine/physics/query';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, nalatiBake, type NalatiBake, type NalatiBakedActor } from './baked';
-import { nalatiBootRoster, type NalatiBootBody, type NalatiBootClock, type NalatiBootHerd } from './bootRoster';
-import { installNalatiElites, nalatiEliteBindings, type NalatiEliteBindings } from './headlessElites';
-import { installNalatiCreatures, type NalatiHostCreatures } from './headlessCreatures';
-import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
+import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
+import type { NalatiEliteBindings } from './headlessElites';
 import type { RngState } from '@wildshard/engine/core/rng';
 import { SEED, TERRAIN } from '../world/terrain';
-import { nalatiWetAt } from '../wet';
-import { installNalatiGroups, nalatiHeadlessEnv, type NalatiGrassView } from './groups';
+import type { NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
@@ -27,15 +17,12 @@ import * as v from 'valibot';
 import { Wind } from '@wildshard/engine/world/steppeWind';
 import type { WildEnv } from '../creatures/env';
 import type { LightningPlayer, Lightning } from '../world/Lightning';
-import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
+import type { WeatherProgram } from '@wildshard/format/weatherProgram';
 import type { SunClock } from '../look/wildLight';
 import { exposeTrees, steppeStorm, stepStorm, stormEnv, stormWind, windEnv, yurtShelters, type StormWind, type YurtCircle } from '../world/weatherStep';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { Vector3 } from 'three';
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
-import { installNalatiMountedPlayer, nalatiMountedOf } from './headlessMounted';
-import { HITCH_HORSE_SPOTS } from '../world/layout';
-import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
 
 /** The manifest's sun (manifest.ts `sky.sun`, test-pinned): the page's clock starts on it (world/installWeather.ts
  *  `clockForSun(def.sky.sun)`, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
@@ -44,36 +31,7 @@ export const NALATI_SUN = { azimuth: 250, elevation: 26 } as const;
 export function nalatiDayClock(): ReturnType<typeof clockForSun> { return clockForSun(NALATI_SUN); }
 /** The boot's clock for the roster's elite rules (combat/elites.ts `condition`): the clock's day phase at install and no
  *  storm (the weather starts clear; the storm state machine is not hosted yet). */
-export function nalatiBootClock(clock: { readonly dayPhase: string }): NalatiBootClock { return { phase: clock.dayPhase, storm: false }; }
-
-const buffer = (bytes: Uint8Array): ArrayBuffer => { const copy = new ArrayBuffer(bytes.byteLength); new Uint8Array(copy).set(bytes); return copy; };
-/** The creatures' paths and navmesh steering from the admitted navigation row's bytes (the page's same WSNM payload), in
- *  its own (authored) frame: this host shifts no level. */
-export function nalatiNavmesh(bytes: Uint8Array | undefined): Navmesh {
-  const nav = bytes === undefined ? null : parseNavmesh(buffer(bytes));
-  if (nav === null) throw new Error('Nalati headless needs its admitted navigation asset');
-  nav.datum = () => 0;
-  return nav;
-}
-
-/** Install the browser-baked native world into the host's physics, owned by its scope: Rapier's own 256² heightfield and
- *  every solid WORLD collider the page built (cuboids, capsules, meshes, convex hulls). */
-export function addNalatiWorld(host: SimHost, bake: NalatiBake): void {
-  const { R, world } = host.physics, g = bake.ground, n = NALATI_GROUND_RES - 1;
-  withOwner(host.scope, () => {
-    const ground = world.createCollider(R.ColliderDesc.heightfield(n, n, g.heights, g.scale).setTranslation(g.at.x, g.at.y, g.at.z).setCollisionGroups(g.groups).setFriction(g.friction));
-    tagCollider(ground, 'ground');
-    bake.solids.forEach(solid => {
-      const desc = solid.shape === 1 && solid.half !== undefined ? R.ColliderDesc.cuboid(solid.half[0], solid.half[1], solid.half[2])
-        : solid.shape === 2 && solid.halfHeight !== undefined && solid.radius !== undefined ? R.ColliderDesc.capsule(solid.halfHeight, solid.radius)
-          : solid.shape === 6 && solid.points !== undefined && solid.indices !== undefined ? R.ColliderDesc.trimesh(solid.points, solid.indices)
-            : solid.shape === 9 && solid.points !== undefined ? R.ColliderDesc.convexHull(solid.points) : null;
-      if (desc === null) throw new Error(`Unbuildable baked Nalati collider shape ${String(solid.shape)}`);
-      world.createCollider(desc.setTranslation(solid.at[0], solid.at[1], solid.at[2]).setRotation({ x: solid.rot[0], y: solid.rot[1], z: solid.rot[2], w: solid.rot[3] })
-        .setCollisionGroups(solid.groups).setFriction(solid.friction));
-    });
-  });
-}
+export function nalatiBootClock(clock: { readonly dayPhase: string }): { phase: string; storm: boolean } { return { phase: clock.dayPhase, storm: false }; }
 
 /** The page's terrain grid (the boot roster's ground, the bodies' height query) from the admitted query terrain's sampling
  *  bytes (shard.config `terrain`, G384: the page's own native heights and splat, re-encoded without resampling), refused
@@ -244,12 +202,13 @@ export interface NalatiBody { readonly boot: NalatiBootBody; readonly baked: Nal
  * terrain itself when that is the ground's heightfield). The Golden King stays parked (no body), as the page parks him.
  * The host runs on the page's distance bands, installed before any spawn (and before a restoring host restores its clocks).
  */
-export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: NalatiBootClock; elites: NalatiEliteBindings }): {
+export function installNalatiRoster(host: SimHost, ports: { boot: NalatiBootRows; bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: { readonly phase: string; readonly storm: boolean }; elites: NalatiEliteBindings }): {
   bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; stream: RngState; wildStream: RngState;
 } {
   const { bake } = ports, s = bakedSamplers(ports.grid);
   host.useBodyBands({ present: a => !ports.elites.absent.has(a) && (!('hidden' in a) || a.hidden !== true), rate: a => a.driven || a.state === 'sidestep' || ports.elites.pinned.has(a) ? 'always' : 'ai' });
-  const roster = nalatiBootRoster({ normalY: (x, z) => s.normalAt(x, z)[1], heightAt: s.heightAt, waterLevel: () => TERRAIN.waterLevel(), wetAt: nalatiWetAt }, ports.clock);
+  if (!ports.boot.phases.includes(ports.clock.phase) || ports.clock.storm) throw new Error('Nalati boot phase is not hosted');
+  const roster = structuredClone(ports.boot.roster);
   if (roster.bodies.length !== bake.actors.length || JSON.stringify(roster.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.id) }))) !== JSON.stringify(bake.herds))
     throw new Error('Nalati roster diverges from the page\'s list');
   const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
@@ -276,72 +235,12 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
   return { bodies, herds: roster.herds, stream: roster.stream, wildStream: roster.wildStream };
 }
 
-/**
- * Nalati Grasslands' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
- * world (the terrain heightfield as Rapier built it and every solid WORLD collider; `ground: false`), the page's terrain grid
- * as the height query, the page's day clock on the host's tick (from the manifest's sun; the level's `day.start` moves it), the
- * steppe weather (its own wind and the storm's state machine on the page's seed, the creatures' light, storm and wind;
- * the lightning's world from the bake's tree tops and yurts, its player damage and a landed strike's scare), the player's trail on the host's trample map, and the creature manager's 35 load-time bodies at their tick-0 spots on the page's distance bands,
- * restored exactly by an identical install before the host restores, the declared groups (runtime/groups.ts: the pack,
- * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
- * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
- * progress/shard-platform/handoffs/sf72-nalati12.md): the remaining dusk/night/storm elite brains, the
- * Golden King and the Storm Titan, taming/companions, the weapons, the dusk / night spawns as the day clock
- * passes them, the quests and their facts. The entry proof walks the installed native world.
- */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, product }) => {
-  const weatherProgram=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await product.file('world/weather.json'))));
-  const raidDirector = await prepareNalatiRaidDirector();
-  const bake = nalatiBake(), grid = nalatiTerrainGrid(shard.terrain?.sampling === undefined ? undefined : assets.get(shard.terrain.sampling.file), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
-  const nav = nalatiNavmesh(shard.navigation === null ? undefined : assets.get(shard.navigation.file));
-  const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: NALATI_GROUND_SIZE, height: 0 },
-    player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
-    // the host's player strike is a zero-damage probe, never the sabre or the bow: the weapons are declared items (data/items.ts)
-    entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, proveEntries: host => proveNalatiEntryways(host, shard.entryways, heightAt), install: (host, context) => {
-    // the creature floor casts into this world at install, restoring too (the saved physics then replaces it)
-    addNalatiWorld(host, bake);
-    // The manifest's basinBody('river', TERRAIN): the Kunes and brook mask, at their shared rest level.
-    // Install before restore too, so the saved swimmer uses the same water on its first resumed tick.
-    const surfaceAt = (x: number, z: number): number | null => TERRAIN.pondMask(x, z) > 0 ? TERRAIN.waterLevel() : null;
-    host.useWater({ surfaceAt });
-    // the page's day clock, stepped at the start of every tick (restoring too: the host then restores its saved `day`); the
-    // roster reads it at install, the boot's phase (the level's `day.start`, if any, moves both)
-    const clock = host.useDayClock(nalatiDayClock());
-    const bindings = nalatiEliteBindings();
-    const roster = installNalatiRoster(host, { bake, grid, spawnY: shard.spawn.y, clock: nalatiBootClock(clock), elites: bindings }), bodies = roster.bodies, normal = bakedSamplers(grid).normalAt;
-    // the groups' setup draws on the 'ai' stream, restoring too (the host then restores the stream and the bodies' memories)
-    const grass = nalatiGrassView(grid, shard.identity.seed);
-    installNalatiTrample(host, grass.trample);
-    // the weather after the grass (the page's frame order), into the wild view the groups read
-    const env = nalatiHeadlessEnv(grass);
-    // a landed strike scares the creatures (installWeather.ts `bind({ scare })`: Wildlife.scare within 60 m), installed below
-    let scare: ((x: number, z: number) => void) | null = null;
-    installNalatiWeather(host, { program:weatherProgram, heightAt, clock, env, bake, scare: (x, z) => {
-      if (scare === null) throw new Error('Nalati headless strike before its creatures are installed');
-      scare(x, z);
-    } });
-    const groups = installNalatiGroups(host, { bodies, herds: bake.herds, normalY: (x, z) => normal(x, z)[1], grass, env });
-    const installed: { creatures?: NalatiHostCreatures } = {};
-    const manager = (): NalatiHostCreatures => { const value = installed.creatures; if (value === undefined) throw new Error('Nalati elite used before manager install'); return value; };
-    // The page's elite rules run after weather and BEFORE Wildlife. Setup adopts the already rolled boot actors;
-    // a restoring install only reconnects saved identities after the manager has reinstalled its deferred roster.
-    const elites = installNalatiElites(host, { bindings, taming: () => nalatiTamingOf(host) ?? null, heightAt, ledges: bake.ledges, phase: () => clock.dayPhase, storm: () => env.storm,
-      environment: () => env, packs: () => groups.packs,
-      spawnPack: (x, z, variants) => manager().spawnElitePack(x, z, variants), retirePack: pack => { manager().retirePack(pack); },
-      bodies: () => installed.creatures?.bodies ?? bodies.map(b => b.actor), herd: () => groups.herds[1] ?? null,
-      spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
-    // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
-    const forest = nalatiLightningGround(bake).trees;
-    installed.creatures = installNalatiCreatures(host, { raidDirector: raidDirector(shard.identity.seed), elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, rideUpdate: dt => { nalatiTamingOf(host)?.update(dt); }, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
-    // The same two camp identities and authored road order as ride/ride.ts; taming adds other mountables later.
-    const mountable = [...bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId), ...manager().bondedHorseIds()];
-    const mounted = installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, surfaceAt, wetAt: nalatiWetAt,
-      inBounds: (x, z, margin) => Math.abs(x) < NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) < NALATI_GROUND_SIZE / 2 - margin,
-      roads: [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL] });
-    const rest = HITCH_HORSE_SPOTS[0]; if (rest === undefined) throw new Error('Missing Nalati hitch rest');
-    installNalatiTaming(host, { groups, creatures: manager(), mounted, environment: env, context, rest });
-    scare = (x, z) => { manager().scare(x, z, 60); };
-    if (!context.restoring) elites.initialize();
-  } };
-};
+/** Native queries retain the page's strict riding bounds and water mask. */
+export function nalatiWorldQueries(grid: BakedGrid): {
+  normalY: (x: number, z: number) => number; surfaceAt: (x: number, z: number) => number | null;
+  inBounds: (x: number, z: number, margin: number) => boolean;
+} {
+  const normal = bakedSamplers(grid).normalAt;
+  return { normalY: (x, z) => normal(x, z)[1], surfaceAt: (x, z) => TERRAIN.pondMask(x, z) > 0 ? TERRAIN.waterLevel() : null,
+    inBounds: (x, z, margin) => Math.abs(x) < NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) < NALATI_GROUND_SIZE / 2 - margin };
+}
