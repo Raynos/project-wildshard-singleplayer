@@ -1,12 +1,13 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ResidencyAllocator, type ResidencyClaim, type ResidencyLease } from '../src/game/grid/allocator';
+import { ResidencyAllocator, type ResidencyClaim } from '../src/game/grid/allocator';
 import { ReferenceResidencyAllocator } from './fixtures/grid/allocator-before';
 import { MemoryAdmission } from '../src/format/product';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import recorded from './fixtures/grid/pine-ledger-sequence.json' with { type: 'json' };
 
-type Ledger = Pick<ResidencyAllocator, 'reserve' | 'reservePageComponent' | 'markMeasuredPage' | 'cost' | 'entries' | 'has'>;
+type Ledger = Pick<ReferenceResidencyAllocator, 'reserve' | 'reservePageComponent' | 'markMeasuredPage' | 'cost' | 'entries' | 'has'>;
+type LedgerLease = NonNullable<ReturnType<Ledger['reserve']>>;
 function pair(playing?: number, developer = true) {
   return [new ReferenceResidencyAllocator({ ...(playing === undefined ? {} : { playing }), memory: new MemoryAdmission(() => developer) }),
     new ResidencyAllocator({ ...(playing === undefined ? {} : { playing }), memory: new MemoryAdmission(() => developer) })];
@@ -22,7 +23,7 @@ const Claim = v.object({ id: v.string(), category: v.picklist(['l0', 'l1', 'far'
 test('recorded Pine retained allocations keep every admission and total identical', () => {
   const ledgers = pair(), parent = v.parse(Claim, recorded.parent), claims = v.parse(v.array(Claim), recorded.claims);
   const held = ledgers.map(ledger => {
-    const lease = ledger.reserve(parent); ledger.markMeasuredPage(parent.id); return { lease, assets: [] as (ResidencyLease | null)[] };
+    const lease = ledger.reserve(parent); ledger.markMeasuredPage(parent.id); return { lease, assets: [] as (LedgerLease | null)[] };
   });
   same(ledgers);
   for (const claim of claims) {
@@ -41,7 +42,7 @@ test('recorded Pine retained allocations keep every admission and total identica
 
 test.each([false, true])('indexed coverage, holds, ordering and refusal match the original (Developer %s)', developer => {
   const ledgers = pair(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000, developer);
-  const leases = ledgers.map(() => new Map<string, ResidencyLease | null>()), unholds = ledgers.map(() => new Map<string, () => void>());
+  const leases = ledgers.map(() => new Map<string, LedgerLease | null>()), unholds = ledgers.map(() => new Map<string, () => void>());
   const events = ledgers.map(() => [] as string[]);
   const run = (action: (ledger: Ledger, i: number) => unknown) => {
     const outcomes = ledgers.map((ledger, i) => result(() => action(ledger, i)));
