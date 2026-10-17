@@ -1,16 +1,14 @@
 import * as v from 'valibot';
 import { Euler, Quaternion } from 'three';
-import { lowerMoverMotion, MoverMotionSchema, MoverTransitSchema, type MoverMotion, type MoverTransit } from '@wildshard/format/moverMotion';
+import { lowerMoverMotion, MoverMotionSchema, MoverCarrySchema, type MoverMotion, type MoverCarry as CarryRows } from '@wildshard/format/moverMotion';
 import type { ScriptEntity, ScriptEffect } from '../script/effects';
 
 /** Admitted stop/driver data; native execution never accepts a function or an executable URL. */
-export type NativeMoverMotion = MoverMotion & { at: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number } };
+export type NativeMoverMotion = MoverMotion & { at: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number }; carry?: CarryRows };
 /** The existing caller supplies time, command and permission; the mechanic installs no clock. */
 export interface MoverFrame { readonly tick: number; readonly dt: number; readonly action: number; readonly permission: number; readonly time?: number }
-/** A surface track returns carry/presentation data, never a callback into authored code. */
-export interface MoverCarry { readonly riding: boolean; readonly position: readonly [number, number, number]; readonly yaw?: number; readonly visible: boolean; readonly arrived?: 1 | -1 }
 /** A detached next state; the existing world validates and commits it before publishing collision or views. */
-export interface MoverAdvance { readonly entity: ScriptEntity; readonly effects: readonly ScriptEffect[]; readonly carry?: MoverCarry }
+export interface MoverAdvance { readonly entity: ScriptEntity; readonly effects: readonly ScriptEffect[] }
 const tau = 2 * Math.PI;
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 const clamp = (x: number): number => Math.min(1, Math.max(0, x));
@@ -26,19 +24,17 @@ function sine(value: number): number {
  */
 export class MoverMechanic {
   private readonly fixed: NativeMoverMotion | undefined;
-  private readonly transit: MoverTransit | undefined;
+  private readonly carry: CarryRows | undefined;
   private readonly parameters: readonly number[];
   /** Former fixed-driver identity; no bytes are needed to execute the admitted row. */
   readonly module: string | undefined;
-  constructor(input: NativeMoverMotion | MoverTransit) {
-    if ('kind' in input) { this.transit = v.parse(MoverTransitSchema, input); this.parameters = []; }
-    else {
-      const motion = v.parse(MoverMotionSchema, { driver: input.driver, trigger: input.trigger, ...(input.track === undefined ? {} : { track: input.track }) });
-      if (Object.values(input.at).some(value => !Number.isFinite(value) || Math.abs(value) > 250)
-        || Object.values(input.euler).some(value => !Number.isFinite(value) || Math.abs(value) > Math.PI)) throw new Error('Invalid mover rest pose');
-      this.fixed = { ...motion, at: { ...input.at }, euler: { ...input.euler } };
-      const lowered = lowerMoverMotion(motion, input); this.parameters = lowered.input; this.module = lowered.module;
-    }
+  constructor(input: NativeMoverMotion) {
+    const motion = v.parse(MoverMotionSchema, { driver: input.driver, trigger: input.trigger, ...(input.track === undefined ? {} : { track: input.track }) });
+    if (Object.values(input.at).some(value => !Number.isFinite(value) || Math.abs(value) > 250)
+      || Object.values(input.euler).some(value => !Number.isFinite(value) || Math.abs(value) > Math.PI)) throw new Error('Invalid mover rest pose');
+    this.fixed = { ...motion, at: { ...input.at }, euler: { ...input.euler } };
+    this.carry = input.carry === undefined ? undefined : v.parse(MoverCarrySchema, input.carry);
+    const lowered = lowerMoverMotion(motion, input); this.parameters = lowered.input; this.module = lowered.module;
   }
   /** Door progress and angle share the track phase law; no object or authored update closure enters the mechanic. */
   static approach(value: number, target: number, dt: number, seconds: number): number {
@@ -61,24 +57,6 @@ export class MoverMechanic {
     const effects: ScriptEffect[] = [];
     const field = (id: number, value: number): void => { fields[id] = value; effects.push({ op: 1, a: id, b: value, c: 0, d: 0 }); };
     const position = (x: number, y: number, z: number): void => { entity.position = [x, y, z]; effects.push({ op: 4, a: x, b: y, c: z, d: 0 }); };
-    const transit = this.transit;
-    if (transit !== undefined) {
-      let phase = fields[5] ?? 0, active = fields[6] ?? 0;
-      if (active !== 1 && active !== 0.5 && (frame.action === 1 || frame.action === 2)) { phase = 0; active = frame.action === 1 ? 1 : 0.5; }
-      if (active !== 1 && active !== 0.5) return { entity, effects };
-      const forward = active === 1, from = forward ? transit.from : transit.to, to = forward ? transit.to : transit.from;
-      phase = Math.min(1, phase + frame.dt / transit.seconds);
-      const e = phase * phase * (3 - 2 * phase), x = lerp(from[0], to[0], e), z = lerp(from[2], to[2], e);
-      const water = Math.min(1, Math.min(phase, 1 - phase) * transit.bankRamp), bank = lerp(from[1], to[1], e), time = frame.time ?? frame.tick / 60;
-      const y = bank + (transit.water - bank) * water + Math.sin(time * transit.bob[0]) * transit.bob[1] * water;
-      const heading = Math.atan2(to[0] - from[0], to[2] - from[2]);
-      position(x, y, z); field(1, Math.sin(time * transit.pitch[0]) * transit.pitch[1] * water); field(2, heading);
-      field(3, Math.sin(time * transit.roll[0] + transit.roll[2]) * transit.roll[1] * water); field(5, phase);
-      const riding = phase < 1; field(6, riding ? active : forward ? 0 : 0.25);
-      if (!riding && forward) entity.position = [...transit.to];
-      return { entity, effects, carry: { riding, position: riding ? [x, y + transit.seat, z] : transit.landings[forward ? 1 : 0],
-        visible: riding || forward, ...(riding ? {} : { yaw: heading + transit.yaw, arrived: forward ? 1 : -1 }) } };
-    }
     const motion = this.fixed;
     if (motion === undefined) throw new Error('Missing admitted motion');
     const p = (i: number): number => { const value = this.parameters[i]; if (value === undefined) throw new Error('Missing mover parameter'); return value; };
@@ -93,18 +71,35 @@ export class MoverMechanic {
     }
     if (driver.kind === 'winch') {
       let phase = fields[5] ?? 0, active = fields[6] ?? 0;
-      if (active === 0) { if (frame.action === 1 || frame.action === 3) active = 1; }
+      const commanded = driver.return === 'command', reverse = active === 0.5 || commanded && (active === 0 || active === 0.25) && frame.action === 2;
+      if (commanded) {
+        if (active === 0 || active === 0.25) {
+          if (frame.action === 1) { phase = 0; active = 1; }
+          else if (frame.action === 2) { phase = 1; active = 0.5; }
+        }
+      } else if (active === 0) { if (frame.action === 1 || frame.action === 3) active = 1; }
       else if (active === 1) { if (frame.action === 1 || frame.action === 2) active = 0.5; }
       else if (active === 0.5) { if (frame.action === 1 || frame.action === 3) active = 1; }
       else if (active >= 0.2 && active <= 0.4) {
         if (frame.action === 1 || frame.action === 2) active = 0.5;
         else { active += 0.2 * frame.dt / driver.dwell; if (active >= 0.4 - 1e-9) active = 0.5; }
       }
-      if (active === 1) { phase += frame.dt / p(6); if (phase >= 0.996) { phase = 1; active = 0.2; } }
-      else if (active === 0.5) { phase -= frame.dt / p(6); if (phase <= 0.004) { phase = 0; active = 0; } }
-      const top = 1 / 0.9, e = phase < 0.1 ? top * phase * phase / 0.2 : phase > 0.9 ? 1 - top * (1 - phase) * (1 - phase) / 0.2 : top * (phase - 0.05);
-      position(lerp(p(0), p(3), e), lerp(p(1), p(4), e), lerp(p(2), p(5), e));
-      field(4, driver.gate ? Number(phase > 0 || active !== 0) : 1); field(5, phase); field(6, active); return { entity, effects };
+      const cutoff = driver.snap ?? 0.004;
+      if (active === 1) { phase += frame.dt / p(6); if (phase >= 1 - cutoff) { phase = 1; active = commanded ? 0.25 : 0.2; } }
+      else if (active === 0.5) { phase -= frame.dt / p(6); if (phase <= cutoff) { phase = 0; active = 0; } }
+      const top = 1 / 0.9, e = driver.ease === 'smoothstep' ? phase * phase * (3 - 2 * phase)
+        : phase < 0.1 ? top * phase * phase / 0.2 : phase > 0.9 ? 1 - top * (1 - phase) * (1 - phase) / 0.2 : top * (phase - 0.05);
+      const x = lerp(p(0), p(3), e), z = lerp(p(2), p(5), e), bank = lerp(p(1), p(4), e), carry = this.carry;
+      if (carry === undefined) position(x, bank, z);
+      else {
+        const surface = carry.surface, water = Math.min(1, Math.min(phase, 1 - phase) * surface.bankRamp), time = frame.time ?? frame.tick / 60;
+        position(x, bank + (surface.level - bank) * water + Math.sin(time * surface.bob[0]) * surface.bob[1] * water, z);
+        field(1, Math.sin(time * surface.pitch[0]) * surface.pitch[1] * water);
+        field(2, Math.atan2((p(3) - p(0)) * (reverse ? -1 : 1), (p(5) - p(2)) * (reverse ? -1 : 1)));
+        field(3, Math.sin(time * surface.roll[0] + surface.roll[2]) * surface.roll[1] * water);
+      }
+      field(4, carry !== undefined ? Number(phase > 0 || active !== 0) : driver.gate ? Number(phase > 0 || active !== 0) : 1);
+      field(5, phase); field(6, active); return { entity, effects };
     }
     if (driver.kind === 'waves') {
       const time = frame.tick / 60, x = motion.at.x, z = motion.at.z;

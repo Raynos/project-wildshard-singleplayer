@@ -1,3 +1,4 @@
+import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
@@ -141,6 +142,22 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
   return { ...plan, install: (host, context) => {
     installCableModes(host.scope, preparation.shard.modes?.traverse ?? [], host.flags).bindNative(host);
+    const carried = preparation.product.shardfile.runtime?.binds?.includes('movers') === true
+      ? preparation.product.shardfile.movers.filter(row => row.carry !== undefined) : [];
+    if (carried.length > 0) {
+      let motion: MoverRuntime | null = null;
+      host.onStep('movers.commands', () => {
+        if (motion === null) throw new Error('Missing installed mover owner');
+        for (const command of context.commands()) if (command.kind === 'script' && carried.some(row => row.id === command.actorId)) {
+          if (command.value !== 1 && command.value !== 2) throw new Error('Invalid mover ride command');
+          motion.command(command.actorId, command.value);
+        }
+      });
+      motion = new MoverScriptDriver(carried, host).install(host, { content: { identity: preparation.shard.identity,
+        sim: { ...preparation.shard.sim, bindings: [] }, state: preparation.shard.state }, assets: new Map(),
+        rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 } },
+      { id: 'movers.carried', restoring: context.restoring, restoreFlags: new Set(host.flags.all), drive: true });
+    }
     plan.install(host, context);
   } };
 }

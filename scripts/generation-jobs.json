@@ -5412,6 +5412,43 @@
       "seedOutputs": []
     },
     {
+      "id": "pine-canoe-mover",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/canoe.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/canoe.ts",
+        "canoeMovers",
+        "src/shards/pine-hollow/data/movers.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/generators/canoe.ts",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "src/shards/pine-hollow/data/timberWorld.generated.json",
+        "src/shards/pine-hollow/data/layout.ts",
+        "src/format",
+        "src/sdk/bake/terrain.ts",
+        "src/sdk/immutable.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/movers.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {},
+      "seedOutputs": [],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/movers.generated.json"
+      ]
+    },
+    {
       "id": "pine-hdri-keys",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-hdri-keys.mjs",

@@ -33,7 +33,8 @@ const wave = v.tuple([bounded(-1, 1), bounded(-1, 1), bounded(0, 10), bounded(0.
 /** Numeric fixed policies compiled to the session's existing fenced guest driver. */
 export const MoverDriverSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('waves'), damping: bounded(0, 1), waves: v.tuple([wave, wave, wave, wave]) }),
-  v.strictObject({ kind: v.literal('winch'), mode: v.literal('ride'), dwell: bounded(0.005, 3600), gate: v.boolean() }),
+  v.strictObject({ kind: v.literal('winch'), mode: v.literal('ride'), dwell: bounded(0.005, 3600), gate: v.boolean(),
+    return: v.exactOptional(v.literal('command')), ease: v.exactOptional(v.literal('smoothstep')), snap: v.exactOptional(bounded(0, 0.01)) }),
   v.strictObject({ kind: v.literal('winch'), mode: v.literal('hinge'), speed: bounded(0.005, 100) }),
   v.strictObject({ kind: v.literal('static') }),
   v.strictObject({ kind: v.literal('track') }),
@@ -47,15 +48,16 @@ export const MoverMotionSchema = v.strictObject({
 export type MoverMotion = v.InferOutput<typeof MoverMotionSchema>;
 /** Validated stop keys from an ordinary three.js AnimationClip. */
 export type MoverTrack = v.InferOutput<typeof MoverTrackSchema>;
-/** A reversible seated track with bounded bank blending and clock-driven surface motion. */
-export const MoverTransitSchema = v.strictObject({ kind: v.literal('transit'),
-  from: point, to: point, landings: v.tuple([point, point]), seconds: bounded(0.005, 3600),
-  water: bounded(-250, 250), bankRamp: bounded(0, 100), seat: bounded(-10, 10), yaw: bounded(-Math.PI, Math.PI),
-  bob: v.tuple([bounded(0, 10), bounded(0, 1)]),
-  pitch: v.tuple([bounded(0, 10), bounded(0, 1)]), roll: v.tuple([bounded(0, 10), bounded(0, 1), bounded(-10, 10)]),
+/** A seated path borrows the same mover's position/phase, never a second controller. */
+export const MoverCarrySchema = v.strictObject({
+  seat: bounded(-10, 10), landings: v.tuple([point, point]), yaw: bounded(-Math.PI, Math.PI),
+  surface: v.strictObject({ level: bounded(-250, 250), bankRamp: bounded(0, 100), bob: v.tuple([bounded(0, 10), bounded(0, 1)]),
+    pitch: v.tuple([bounded(0, 10), bounded(0, 1)]), roll: v.tuple([bounded(0, 10), bounded(0, 1), bounded(-10, 10)]) }),
+  prompts: v.tuple([v.strictObject({ at: point, radius: bounded(0.005, 10), label: v.pipe(v.string(), v.maxLength(128)) }),
+    v.strictObject({ at: point, radius: bounded(0.005, 10), label: v.pipe(v.string(), v.maxLength(128)) })]),
+  arrival: v.exactOptional(v.strictObject({ flag: v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9._:-]{0,127}$/u)), hint: v.pipe(v.string(), v.maxLength(512)) })),
 });
-/** Surface-track data consumed by the same engine mechanic as fixed platform motion. */
-export type MoverTransit = v.InferOutput<typeof MoverTransitSchema>;
+export type MoverCarry = v.InferOutput<typeof MoverCarrySchema>;
 /** Derive the executable guest and parameters; unsupported clip/driver/trigger combinations fail closed. */
 export function lowerMoverMotion(input: unknown, rest: { at: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number } }): { module: string; input: number[] } {
   const motion = v.parse(MoverMotionSchema, input), { driver, trigger, track } = motion;

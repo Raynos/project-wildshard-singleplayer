@@ -4,7 +4,7 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { parseQuestPageInteractions } from '../src/format/questInteractions';
 import { PINE_MILL_DOOR } from '../src/shards/pine-hollow/generators/questConsequences';
-import { PINE_CANOE } from '../src/shards/pine-hollow/generators/canoe';
+import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 
 // The gate may refuse a use, but never sets quest flags or advances the door itself.
 test('the mill door uses admitted ordered conditions and preserves both refusals and old-save access', () => {
@@ -24,8 +24,11 @@ test('the mill door uses admitted ordered conditions and preserves both refusals
   }
 });
 
-test('canoe data keeps the original bank minima, live landing samples and surface clock tuning', () => {
-  expect(PINE_CANOE).toEqual({ kind: 'transit', from: [-69, -3, 119], to: [-87.6, -3, 118.4],
-    landings: [[-67.8 + 2.6, 0, 119 + 1.4], [-89.8, 0, 118.6]], seconds: 9, water: -2.98,
-    bankRamp: 8, seat: -0.45, yaw: Math.PI, bob: [1.9, 0.03], pitch: [1.3, 0.02], roll: [2.1, 0.035, 1] });
+test('canoe uses the existing ride driver with offline bank/landing samples', () => {
+  const row = canoeMover(() => 2);
+  expect(row.driver).toEqual({ kind: 'winch', mode: 'ride', dwell: 1, gate: false, return: 'command', ease: 'smoothstep', snap: 0 });
+  expect(row.track?.position).toEqual([[-69, 2, 119], [-87.6, 2, 118.4]]);
+  expect(row.carry?.landings).toEqual([[-67.8 + 2.6, 2, 119 + 1.4], [-89.8, 2, 118.6]]);
+  expect(row.carry?.surface).toEqual({ level: -2.98, bankRamp: 8, bob: [1.9, 0.03], pitch: [1.3, 0.02], roll: [2.1, 0.035, 1] });
+  expect(row.kind).toBe('channel'); expect(row.execution).toBe('native'); expect(row.boxes).toEqual([]);
 });

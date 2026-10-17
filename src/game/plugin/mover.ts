@@ -1,3 +1,5 @@
+import type { Flags } from '@wildshard/engine/world/interact/flags';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { castRay, floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
 import { MathUtils, Object3D, Vector3 } from 'three';
@@ -149,10 +151,12 @@ export function moverQueries(data: MoverData, physicsQueries: ScriptQuery): Scri
 export interface MoverView { pose: (value: MoverPose, fields: Readonly<Record<number, number>>) => void; chain?: RopeChain }
 /** Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems. */
 export interface MoverInstallation {
+  flags?: Pick<Flags, 'has' | 'set'>;
+  prompts?: Interactable[];
   data: MoverData; modules: ReadonlyMap<string, string>; views?: ReadonlyMap<string, MoverView>; systemId: string;
   /** Bounded authored bindings borrow rendered groups or native chains from the constructed world. */
   borrowed?: { rows: readonly { readonly id: string; readonly target: string; readonly chain?: boolean;
-    readonly group?: 'group'; readonly afterPose?: 'refreshPose' }[]; targets: unknown };
+    readonly group?: 'group'; readonly visibility?: 'enabled'; readonly order?: 'XYZ'; readonly afterPose?: 'refreshPose' }[]; targets: unknown };
   shared?: { host: ScriptHost; tick: () => number };
   /** Additional consuming item roles join this installer's single host and tick. Incompatible with an injected shared host. */
   composition?: MoverRoleComposition;
@@ -173,24 +177,34 @@ export interface MoverActivationPorts {
   shared?: (field: number) => number | boolean | undefined;
 }
 /** The shared script host already owns modules, entity handles and one beginTick per fixed step. */
-export interface MoverPorts { physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
+export interface MoverPorts { flags?: Pick<Flags, 'has' | 'set'>; physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
 function nativeMotion(row: MoverData[number]): NativeMoverMotion {
   if (row.driver === undefined || row.trigger === undefined) throw new Error('Missing admitted native mover motion');
-  return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }) };
+  return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }), ...(row.carry === undefined ? {} : { carry: row.carry }) };
 }
 function continuationRows(rows: MoverData): MoverData {
   return rows.map(({ execution: _execution, ...source }) => {
     const { track: _track, driver, trigger: _trigger, ...compiled } = source;
-    return driver?.kind === 'track' || driver?.kind === 'pendulum' || source.restoreFrom !== undefined ? source : compiled;
+    return driver?.kind === 'track' || driver?.kind === 'pendulum' || source.restoreFrom !== undefined || source.carry !== undefined ? source : compiled;
   });
 }
 /** Native handle identity is restored before reconnecting to the replacement world. */
 export interface MoverBodyState { id: string; handle: number }
 const continuation = v.strictObject({ lifecycle: v.exactOptional(MoverLifecycleStateSchema), pending: v.pipe(v.array(v.tuple([v.string(), v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3))])), v.maxLength(32)),
   bodies: v.pipe(v.array(v.strictObject({ id: v.string(), handle: v.pipe(v.number(), v.finite(), v.minValue(0)) })), v.maxLength(32)) });
+/** Installed owners are scoped; an empty scope has no active mover ride. */
+const installedMovers = new WeakMap<Scope, Set<MoverRuntime>>();
+/** Borrow active carry state from installed mover owners; never create another controller. */
+export function moversRiding(scope: Scope): boolean { return [...installedMovers.get(scope) ?? []].some(owner => owner.riding()); }
+export interface MoverRideTransition { readonly riding: boolean; readonly arrived?: 1 | -1; readonly hint?: string }
+interface CarryPose { readonly riding: boolean; readonly at: readonly [number, number, number]; readonly yaw: number }
 /** Data/script bridge to engine physics; imported code installs nothing, and presentation only reads published state. */
 export class MoverRuntime {
   readonly data: MoverData;
+  private readonly rideEvents = new Map<string, MoverRideTransition[]>();
+  private readonly carryPoses = new Map<string, CarryPose>();
+  private readonly previousRides = new Map<string, boolean>();
+  private readonly flags: Pick<Flags, 'has' | 'set'> | undefined;
   readonly chains = new Map<string, RopeChain>();
   private readonly sinks = new Map<string, (pose: MoverPose) => void>();
   /** the presentation-only views (adopted rows), for {@link showRest} */
@@ -207,7 +221,11 @@ export class MoverRuntime {
   private readonly activation: MoverActivationPorts;
   private readonly mechanics = new Map<string, MoverMechanic>();
   constructor(data: MoverData, ports: MoverPorts) {
-    this.data = parseMovers(data); this.host = ports.host; this.activation = ports.activation ?? {};
+    this.data = parseMovers(data); this.flags = ports.flags;
+    const owners = installedMovers.get(ports.scope) ?? new Set<MoverRuntime>(); owners.add(this); installedMovers.set(ports.scope, owners);
+    ports.scope.onDispose(() => { owners.delete(this); if (owners.size === 0) installedMovers.delete(ports.scope); });
+    for (const row of this.data) if (row.carry?.arrival !== undefined && this.flags === undefined) throw new Error('Mover arrival requires the actual flags owner');
+    this.host = ports.host; this.activation = ports.activation ?? {};
     for (const row of this.data) if (row.execution === 'native') this.mechanics.set(row.id, new MoverMechanic(nativeMotion(row)));
     this.lifecycle = new MoverLifecycle(this.data.map(row => ({ id: row.id,
       ...(row.atEnd === undefined ? {} : { atEnd: row.atEnd }), ...(row.restoreFrom === undefined ? {} : { restoreFrom: row.restoreFrom }) })));
@@ -237,6 +255,7 @@ export class MoverRuntime {
     for (const m of this.data) {
       const adopted = ports.adopt?.(m.id);
       if (adopted !== undefined) {
+        if (m.carry !== undefined) this.rideEvents.set(m.id, []);
         const chain = adopted.chain; let enabled = m.enabled;
         this.sinks.set(m.id, (pose) => { if (chain !== undefined && enabled !== pose.enabled) { enabled = pose.enabled; chain.setEnabled(enabled); } adopted.pose(pose, this.host.world.entity(m.entity)?.fields ?? {}); });
         this.views.set(m.id, (pose) => { adopted.pose(pose, this.host.world.entity(m.entity)?.fields ?? {}); });
@@ -252,7 +271,54 @@ export class MoverRuntime {
     }
   }
   /** Queue a host-validated interact command; scene dispatch resolves the stable mover id, never an arbitrary function export. */
-  command(id: string, action: 1 | 2 | 3): void { if (!this.data.some((m) => m.id === id)) throw new Error('Unknown mover'); this.pending.set(id, action); }
+  command(id: string, action: 1 | 2 | 3): void {
+    const row = this.data.find(m => m.id === id); if (row === undefined) throw new Error('Unknown mover');
+    if (row.carry !== undefined && (this.riding() || action === 3)) return;
+    this.pending.set(id, action);
+  }
+  /** Live ride state is the same entity/command queue the motion host owns. */
+  riding(id?: string): boolean {
+    const rows = id === undefined ? this.data : this.data.filter(row => row.id === id);
+    if (id !== undefined && rows.length === 0) throw new Error('Unknown mover');
+    return rows.some(row => row.carry !== undefined && (this.pending.has(row.id) || [1, 0.5].includes(this.host.world.entity(row.entity)?.fields[6] ?? 0)));
+  }
+  /** View-only edges, including first arrival hints, never an authored update hook. */
+  takeRideTransitions(id: string): readonly MoverRideTransition[] { return this.rideEvents.get(id)?.splice(0) ?? []; }
+  /** Borrow the same declared prompts on the page; the native command names are the stable mover ids. */
+  ridePrompts(): Interactable[] {
+    const busy = (): boolean => this.riding();
+    return this.data.flatMap(row => row.carry?.prompts.map((prompt, end): Interactable => ({ position: new Vector3(...prompt.at),
+      get radius() { return busy() ? 0 : prompt.radius; }, label: prompt.label,
+      onInteract: () => { this.command(row.id, end === 0 ? 1 : 2); } })) ?? []);
+  }
+  private publishCarry(row: MoverData[number], entity: NonNullable<ReturnType<ScriptWorld['entity']>>): void {
+    const carry = row.carry; if (carry === undefined) return;
+    const active = entity.fields[6] ?? 0, riding = active === 1 || active === 0.5, was = this.previousRides.get(row.id) ?? false;
+    this.previousRides.set(row.id, riding);
+    if (!riding && !was) return;
+    const arrived = active === 0.25 ? 1 : -1, hint = !riding && arrived === 1 && carry.arrival !== undefined && this.flags?.has(carry.arrival.flag) === false ? carry.arrival.hint : undefined;
+    if (!riding && arrived === 1 && carry.arrival !== undefined) this.flags?.set(carry.arrival.flag);
+    this.carryPoses.set(row.id, { riding, at: riding ? [entity.position[0], entity.position[1] + carry.seat, entity.position[2]] : carry.landings[arrived === 1 ? 1 : 0], yaw: (entity.fields[2] ?? 0) + carry.yaw });
+    if (was !== riding) {
+      const queue = this.rideEvents.get(row.id); if ((queue?.length ?? 0) >= 2) throw new Error('Mover ride transitions were not consumed');
+      queue?.push({ riding, ...(!riding ? { arrived } : {}), ...(hint === undefined ? {} : { hint }) });
+    }
+  }
+  /** The page's actual player receives carry in the mover's fixed phase. */
+  carryPlayer(player: { position: Vector3; velocity: Vector3; carried: boolean; yaw: number }): void {
+    for (const carry of this.carryPoses.values()) { player.position.set(...carry.at); player.velocity.set(0, 0, 0); player.carried = carry.riding; if (!carry.riding) player.yaw = carry.yaw; }
+    this.carryPoses.clear();
+  }
+  private carryNative(host: SimHost): void {
+    for (const carry of this.carryPoses.values()) { host.player.position.set(...carry.at); host.player.motor.resetAt(host.player.position); host.playerFall.vy = 0; host.playerFall.grounded = false; if (!carry.riding) host.player.yaw = carry.yaw; }
+    this.carryPoses.clear();
+  }
+  /** Protect ordinary walking while the existing fixed mover lane publishes carry. */
+  bindNativeCarry(host: SimHost): void {
+    if (!this.data.some(row => row.carry !== undefined)) return;
+    host.events.answer('player.traversal', dt => typeof dt === 'number' ? this.riding() : dt, host.scope);
+    host.onStep('movers.carry', () => { this.carryNative(host); }, undefined, 'afterBodies');
+  }
   /** Read this mover role's ABI input without starting a tick or touching any other script role's allowance. */
   scriptInput(id: string, tick: number, permission = 0): readonly number[] {
     const m = this.data.find(row => row.id === id), e = m === undefined ? undefined : this.host.world.entity(m.entity);
@@ -274,6 +340,8 @@ export class MoverRuntime {
     if (ok) {
       const row = this.data.find(value => value.id === id), entity = row === undefined ? undefined : this.host.world.entity(row.entity);
       if (entity === undefined) throw new Error('Missing mover publication');
+      const published = this.data.find(value => value.id === id); if (published === undefined) throw new Error('Missing mover declaration');
+      this.publishCarry(published, entity);
       this.lifecycle.observe(id, entity.fields); this.sinks.get(id)?.(this.pose(id));
     }
   }
@@ -337,6 +405,7 @@ export class MoverRuntime {
   }
   /** After native world/tag restore, reconnect existing bodies and reset only durable lift road poses. */
   reconnect(resetIds: ReadonlySet<string> = new Set()): void {
+    for (const row of this.data) if (row.carry !== undefined) this.previousRides.set(row.id, [1, 0.5].includes(this.host.world.entity(row.entity)?.fields[6] ?? 0));
     if (this.data.some(row => row.kind === 'chain') || [...resetIds].some(id => !this.data.some(row => row.id === id))) throw new Error('Unsupported mover native reconnect');
     const bodies = new Map<string, KinematicMover>();
     for (const row of this.data) {
@@ -362,7 +431,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
   if (borrowed !== undefined) {
     const identifier = v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_.-]{1,128}$/u));
     const rows = v.parse(v.pipe(v.array(v.strictObject({ id: identifier, target: identifier,
-      chain: v.exactOptional(v.boolean()), group: v.exactOptional(v.literal('group')),
+      chain: v.exactOptional(v.boolean()), group: v.exactOptional(v.literal('group')), visibility: v.exactOptional(v.literal('enabled')), order: v.exactOptional(v.literal('XYZ')),
       afterPose: v.exactOptional(v.literal('refreshPose')) })), v.maxLength(32)), borrowed.rows);
     if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Duplicate borrowed mover binding');
     const targets = borrowed.targets;
@@ -380,8 +449,9 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
         if (row.afterPose !== undefined && !hasPosePresentation(target)) throw new Error('Missing borrowed pose presentation');
         group.userData['declaredMotion'] = true;
         views.set(row.id, { pose: pose => {
+          if (row.visibility === 'enabled') group.visible = pose.enabled;
           group.position.set(pose.position.x, pose.position.y, pose.position.z);
-          group.rotation.set(pose.euler.x, pose.euler.y, pose.euler.z, 'YXZ');
+          group.rotation.set(pose.euler.x, pose.euler.y, pose.euler.z, row.order ?? 'YXZ');
           if (row.afterPose !== undefined && hasPosePresentation(target)) target.refreshPose();
         } });
       }
@@ -402,12 +472,15 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     else { composition = await createComposedMoverHost(options.data, assets, query, options.composition); host = composition.host; }
   }
   if (ctx.scope.disposed) throw new Error('Mover scope left during admission');
-  const runtime = new MoverRuntime(options.data, { physics: world.physics, scope: ctx.scope, host, adopt: (id) => views.get(id), ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }), activation: { ground: () => world.player.motor.result, ...options.activation } });
+  const runtime = new MoverRuntime(options.data, { ...(options.flags === undefined ? {} : { flags: options.flags }), physics: world.physics, scope: ctx.scope, host, adopt: (id) => views.get(id), ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }), activation: { ground: () => world.player.motor.result, ...options.activation } });
+  options.prompts?.push(...runtime.ridePrompts());
+  ctx.scope.onDispose(() => { if (runtime.riding()) world.player.carried = false; });
   const installedHost = host;
   ctx.system({ id: options.systemId, phase: 'fixed.pre', before: ['physics.movers'], run: () => {
     const current = options.shared === undefined ? ++tick : options.shared.tick();
     if (options.shared === undefined) { if (composition === undefined) installedHost.beginTick(current); else composition.step(current); }
     runtime.step(current, options.permissions?.());
+    runtime.carryPlayer(world.player);
   } });
   if (options.onDispose !== undefined) ctx.scope.onDispose(options.onDispose);
   ctx.debug.expose(`movers.${options.systemId}`, { showRest: () => { runtime.showRest(); } }); // the map bake poses movers at rest
@@ -474,11 +547,11 @@ export class MoverScriptDriver {
     const lane = 'host' in input ? input : this.compose({ ...input.content, sim: { ...input.content.sim, scripts: [...input.assets.keys()] } }, input.assets,
       { rules: input.rules, entities: [], actors: new Map(), query: () => [] }, undefined, options.permissions,
       { roles: [], ...(input.declarations === undefined ? {} : { declarations: input.declarations }) });
-    const runtime = new MoverRuntime(this.data, { host: lane.host, physics: () => sim.physics, scope: sim.scope,
+    const runtime = new MoverRuntime(this.data, { flags: sim.flags, host: lane.host, physics: () => sim.physics, scope: sim.scope,
       ...(options.restoring === undefined ? {} : { restoring: options.restoring }),
       ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }),
       activation: { ground: () => sim.hasPlayerMotor ? sim.player.motor.result : undefined, ...options.activation } });
-    this.runtime = runtime;
+    this.runtime = runtime; runtime.bindNativeCarry(sim);
     sim.onStep(options.id, () => { if (options.drive === true) lane.step(sim.state.tick); runtime.capture(); }, {
       snapshot: () => runtime.snapshotState(this.resetIds), restore: value => {
         if (typeof value !== 'string') throw new Error('Invalid mover continuation'); runtime.restoreState(value);

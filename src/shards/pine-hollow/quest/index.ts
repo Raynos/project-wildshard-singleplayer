@@ -1,5 +1,5 @@
 import { parseContractCatalogue } from '../runtime/lodge';
-import { MoverTransitSchema } from '@wildshard/format/moverMotion';
+import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
@@ -51,7 +51,7 @@ import source from '../shard.config';
  *
  *   src/shards/pine-hollow/runtime/models/people.ts   the ranger / miller / trader stand-ins — ONE factory PH-M4 swaps
  *   contracts.ts   the lodge's rotating three (pure)      trades.ts   the trader's swaps (pure)
- *   rides.ts       the zipline ride, the canoe to the islet             hollowLog.ts   the hollow-log passage
+ *   world/movers   the admitted canoe path and carry             hollowLog.ts   the hollow-log passage
  *   stagLead.ts    beat 5, the pale stag down the west road            nightThralls.ts the old-growth's night + the millrace
  *   ui.ts          the board, the slate, the counter                     beats.ts       `?quest=<beat>` dev jumps
  *
@@ -78,7 +78,6 @@ import { pineBenchPose } from './benchPose';
 import { tradeCost, tradeShopState, type Room } from './trades';
 import { parseTradeCatalogue, type TradeItem, type TradeGood } from '../runtime/trader';
 import { BoardPanel, CountChip } from './ui';
-import { CanoeRide } from './rides';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../runtime/world/context';
@@ -131,7 +130,6 @@ async function loadQuest() {
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
-  const canoeRow = v.parse(MoverTransitSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('movers/canoe.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
   const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/mill-door.json'))));
@@ -335,24 +333,18 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the rides ──
   const cableId = 'pine.zipline';
-  let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> } | null = null, canoe: CanoeRide | null = null;
+  let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> } | null = null, canoe: { group: THREE.Mesh } | null = null;
+  let motion: MoverRuntime | null = null;
   if (lm) {
     const trolley = new THREE.Mesh(codePart('zip-trolley'), npcMaterial(sky)); trolley.castShadow = true; trolley.name = 'zip-trolley';
     zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
       { position: new THREE.Vector3(lm.zip.launch.x, lm.zip.launch.y + 1.1, lm.zip.launch.z), radius: 2.3, label: 'Ride the zipline' }, game.camera) };
     game.scene.add(zip.trolley); h.interactables.push(zip.prompt);
-    for (const at of [canoeRow.from, canoeRow.to]) at[1] = Math.max(heightAt(at[0], at[2]), at[1]);
-    for (const at of canoeRow.landings) at[1] = floorAt(at[0], at[2]);
-    const shoreBank = new THREE.Vector3(...canoeRow.from);
-    canoe = new CanoeRide(sky, canoeRow);
-    game.scene.add(canoe.mesh);
-    h.interactables.push(canoe.out, canoe.back);
-    canoe.onRide = (on, arrived) => {
-      h.weapons.visible = !on; h.weapons.setEnabled(!on);
-      if (on) { lm.setCanoeAway(true); kitSfx.interact('door', shoreBank, { gain: 0.6 }); }
-      if (arrived === 'islet') { if (!flags.has('secret:islet')) hud.toast('The islet. Nobody has stood here in a long time'); flags.set('secret:islet'); }
-      if (arrived === 'shore') lm.setCanoeAway(false);
-    };
+    const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
+    canoe = { group: new THREE.Mesh(codePart('canoe'), npcMaterial(sky)) }; canoe.group.castShadow = true; canoe.group.visible = false; canoe.group.name = 'canoe-ride';
+    game.scene.add(canoe.group);
+    motion = await installDeclaredMovers(ctx, world, { data: ctx.product.shardfile.movers, modules: new Map(), flags, prompts: h.interactables, systemId: 'pine.movers',
+      borrowed: { rows: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }], targets: { canoe } } });
   }
 
   // ── the hollow log: a model (E315 M2) placed once on its bed; its materials are the cabins' (already loaded, so it
@@ -435,7 +427,15 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
         else { kitSfx.interact('plate', lm.zip.landing); hud.toast('Down the line and into the Hollow'); }
       }
     }
-    canoe?.update(dt, t, player);
+    for (const event of motion?.takeRideTransitions('pine.canoe') ?? []) {
+      h.weapons.visible = !event.riding; h.weapons.setEnabled(!event.riding);
+      if (event.riding && motion !== null) {
+        const at = motion.data.find(row => row.id === 'pine.canoe')?.at; if (at === undefined) throw new Error('Missing canoe rest pose');
+        lm?.setCanoeAway(true); kitSfx.interact('door', new THREE.Vector3(at.x, at.y, at.z), { gain: 0.6 });
+      }
+      if (event.arrived === -1) lm?.setCanoeAway(false);
+      if (event.hint !== undefined) hud.toast(event.hint);
+    }
     if (ff && sky.dayNight) {
       ff.t += dt;
       const k = Math.min(1, ff.t / ff.dur), e = k * k * (3 - 2 * k);
@@ -483,7 +483,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     flags, quest, board, kit, stag, thralls, people, content: pineQuestContent(contracts, trades),
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
-    zip, cables, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
+    zip, cables, canoe, movers: motion, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(player.position); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },

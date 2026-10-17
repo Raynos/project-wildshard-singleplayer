@@ -1,3 +1,4 @@
+import { moversRiding } from '@wildshard/game/plugin/mover';
 import { PINE_DEATH_EFFECTS } from '../data/questDeaths';
 import { cableModes } from '@wildshard/engine/player/modes';
 import * as v from 'valibot';
@@ -339,7 +340,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       restoreDialogue(); restoreLodge(); restoreTrader(); restoreAmmo?.(); hollowAsh = saved.hollowAsh; tradeSkins = new Set(saved.trader?.skins);
     },
   });
-  return { quests, stag, pack, cables, riding: () => cables.state(cableId).riding, talking: () => dialogue.active || lodge.active || trader.active, lodge, trader,
+  return { quests, stag, pack, cables, riding: () => cables.state(cableId).riding || moversRiding(host.scope), talking: () => dialogue.active || lodge.active || trader.active, lodge, trader,
     ownsTradeFinish: skin => tradeSkins.has(skin) || skin === 'hollow-ash' && hollowAsh,
     ownsLodgeFinish: () => hollowAsh, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
 }

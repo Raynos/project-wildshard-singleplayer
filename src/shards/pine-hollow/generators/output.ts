@@ -5,7 +5,7 @@ import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
 import { tradeCatalogue } from './trades';
-import { PINE_CANOE } from './canoe';
+import movers from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { PINE_SPECIES_PROGRAMS } from './speciesPrograms';
@@ -45,7 +45,6 @@ const clientJson=emitNamedBlobs([
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),
   nameBlob('quests/trades.json', 'json', new TextEncoder().encode(encodeCanonicalJson(tradeCatalogue()))),
   nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue()))),
-  nameBlob('movers/canoe.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_CANOE))),
   ...([['quests/mill-door.json', PINE_MILL_DOOR], ['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>
     nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(rows))))),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
@@ -65,4 +64,4 @@ export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<P
 export const mirrors = [...RUNTIME_MIRRORS];
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
-export const sections = { 'state/modes': { modes: PINE_MODES } };
+export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

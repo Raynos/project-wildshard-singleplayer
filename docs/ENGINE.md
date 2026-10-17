@@ -7997,13 +7997,6 @@ native module inventories (including typed numeric/brain role contracts); every
 remaining contract field is checked unchanged. Unmarked rows retain their guest
 execution. The native row itself proves each retired module identity.
 
-The same mechanic admits a bounded reversible surface track: endpoints, landing
-points, duration, bank blend, seated offset and clock-driven surface waves.
-Its carry result is data (riding, position, heading, visibility and arrival),
-so the client borrows its real rider/view and keeps only model/audio/UI work.
-Pine's canoe uses this track; its hinged doors use the mechanic's reversible
-quadratic phase. Neither path introduces an authored update callback.
-
 ### Declared ambience lifecycle (G466 C8)
 
 `installDeclaredAudio(rows, ports, 'ambience')` binds the existing
@@ -8258,3 +8251,17 @@ Pine's legendary pickups use the radial profile through `ClaimedPickupRoster`.
 That roster's optional death policy matches kind/variant and resolves source or
 player-side placement as data; its caller keeps the existing terrain query,
 claim effects and death-listener order. No contact callback port is added.
+
+### Commanded carries on admitted mover paths
+
+The existing `winch/ride` motion accepts optional `return: 'command'`,
+`smoothstep` easing and a bounded endpoint snap. Default platform rides
+retain their existing guest ABI, dwell and easing. Native channel rows
+may add `carry`: baked seat/landing positions, surface oscillation,
+arrival flag/hint and two prompt rows. Guest execution refuses this data.
+`MoverRuntime` owns commands, carry, release and publication on the
+existing fixed mover tick; the page borrows its pose and transition queue.
+The native installer drives the same owner and carries its ordinary
+mover/script continuation. A restore just before arrival still releases
+at the baked landing. Terrain and deck queries run only in the producer.
+No shard callback, extra ride controller or clock enters the row.
