@@ -1,6 +1,6 @@
 /**
  * PineLandmarks — Pine Hollow's landmarks (PINE-HOLLOW-REMASTER PH-B3 and the B6-adjacent buildings), every site from
- * src/shards/pine-hollow/data/layout.ts:
+ * src/shards/pine-hollow/data/layout.generated.ts:
  *
  *   · the FIRE LOOKOUT on the ridge pad: four splayed peeled-log legs with girts and X-bracing, a stair of five flights
  *     inside a railed cage (treads the character climbs), a 6 m deck with a railing, the glazed cab with a hipped moss

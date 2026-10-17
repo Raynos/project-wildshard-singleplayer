@@ -11,7 +11,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import eliteRows from '../data/eliteRuntime.generated.json' with { type: 'json' };
 import { swapRolledElites } from '../combat/eliteScripts';
 import { pineEliteStreams } from '../combat/eliteStreams';
-import { SPAWN } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { PINE_FAUNA } from '../data/fauna.generated';
 import { PINE_HERD_STREAM, PINE_KING_KIND, pineHuntGround } from './herds';
 import type { PineBake } from './baked';
@@ -166,7 +166,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     const body = intake.byId.get(a.entityId);
     if (body === undefined) { hunt.forget(a); host.retire(a.entityId); } else intake.retire(body);
   };
-  Array.from(hunt.placeHerds(PINE_FAUNA, SPAWN, spawn)); // every herd in one go
+  Array.from(hunt.placeHerds(PINE_FAUNA, LAYOUT.SPAWN, spawn)); // every herd in one go
   swapRolledElites({ bodies: list.map(b => b.actor), herds: hunt.herds, retire, spawn });
   // the King's prewarm: his body, an elk thrall and a boar thrall at his clearing, parked out of the list (no body here)
   ([[PINE_KING_KIND, kingRow.variant], ['elk', 'thrall'], ['boar', 'thrall']] as const).forEach(([kind, variant]) => {

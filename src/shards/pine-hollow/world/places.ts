@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's named places as Sets (E315 M12, Jake: every named place is a Set). The discovery list
- * (src/shards/pine-hollow/data/layout.ts `PINE_HOLLOW_POIS`) names eighteen places; the Warden's Hollow quest names one more that
+ * (src/shards/pine-hollow/data/layout.generated.ts `PINE_HOLLOW_POIS`) names eighteen places; the Warden's Hollow quest names one more that
  * is not among them (`PINE_HOLLOW_QUEST_PLACES`). Each place's Set lists the models placed there — every copy whose box
  * centre stands within the place's radius, of every `place` call the shard made (the forest's trees and floor, the
  * scatter, the homestead, the landmarks, the crags, the quest's props). A place's welded ground stays world. The mill
@@ -12,7 +12,7 @@
 import { placedGroups } from '@wildshard/engine/models/place';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import { PINE_HOLLOW_POIS } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 /** the quest's named places that are not discovery places (the stag's lead ends on the west road) */
 export const PINE_HOLLOW_QUEST_PLACES = [
@@ -44,7 +44,7 @@ const PLACE_SETS = [
 /** Register a Set for every named place (the hamlet's comes from ./cabins.ts); returns how many. */
 export function placePineHollowSets(registry: WorldRegistry): number {
   const where = new Map<string, { name: string; x: number; z: number; r: number }>([
-    ...PINE_HOLLOW_POIS.map((p) => [p.id, { name: p.name, x: p.x, z: p.z, r: p.r }] as const),
+    ...LAYOUT.PINE_HOLLOW_POIS.map((p) => [p.id, { name: p.name, x: p.x, z: p.z, r: p.r }] as const),
     ...PINE_HOLLOW_QUEST_PLACES.map((p) => [p.id, { name: p.label, x: p.x, z: p.z, r: p.r }] as const),
   ]);
   const sets = PLACE_SETS.flatMap((s) => { const p = where.get(s.at); return p === undefined ? [] : [{ ...s, ...p, id: s.place }]; });

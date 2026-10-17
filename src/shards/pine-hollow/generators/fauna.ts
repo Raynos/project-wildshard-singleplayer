@@ -1,6 +1,6 @@
 import { PineSeedStream } from './seedStream';
 import { pineTrailDistance } from './cragGround';
-import { SPAWN, CABIN_SITES, POND, HAMLET, KINGS_CLEARING, DEN } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { ridgeFootZ } from '../behaviour/layout';
 
 interface HerdFact { kind: string; count: number; canopy: boolean; trailBand: [number, number]; anchor: { x: number; z: number; rMin: number; rMax: number }; variants?: string[] | undefined }
@@ -107,12 +107,12 @@ function pineHerdFacts(): HerdFact[] { return [
     seed: 1337, half: 250, margin: 25, spacing: 56, jitter: 15, ring: 20,
     trailDistance: pineTrailDistance,
     avoid: [
-      { x: POND.x, z: POND.z, r: POND.r + 12 },                          // the pond and its shore
-      ...CABIN_SITES.map((c) => ({ x: c.x, z: c.z, r: 35 })),           // cabin pads (the manager's cabinMask reaches ~30 m)
-      { x: SPAWN.x, z: SPAWN.z - 5, r: 60 },                              // the south-gate spawn
-      { x: HAMLET.x, z: HAMLET.z, r: HAMLET.blend },                      // the mill hamlet
-      { x: KINGS_CLEARING.x, z: KINGS_CLEARING.z, r: KINGS_CLEARING.blend }, // the King's arena (his thralls come at night)
-      { x: DEN.x, z: DEN.z, r: 55 },                                      // bear country: the Den keeps its own
+      { x: LAYOUT.POND.x, z: LAYOUT.POND.z, r: LAYOUT.POND.r + 12 },                          // the pond and its shore
+      ...LAYOUT.CABIN_SITES.map((c) => ({ x: c.x, z: c.z, r: 35 })),           // cabin pads (the manager's cabinMask reaches ~30 m)
+      { x: LAYOUT.SPAWN.x, z: LAYOUT.SPAWN.z - 5, r: 60 },                              // the south-gate spawn
+      { x: LAYOUT.HAMLET.x, z: LAYOUT.HAMLET.z, r: LAYOUT.HAMLET.blend },                      // the mill hamlet
+      { x: LAYOUT.KINGS_CLEARING.x, z: LAYOUT.KINGS_CLEARING.z, r: LAYOUT.KINGS_CLEARING.blend }, // the King's arena (his thralls come at night)
+      { x: LAYOUT.DEN.x, z: LAYOUT.DEN.z, r: 55 },                                      // bear country: the Den keeps its own
       ...[-215, -155, -95, -35, 25, 85, 135].map((x) => ({ x, z: ridgeFootZ(x) + 52, r: 34 })), // the ridge's crags
     ],
     emptyWeight: 10,
@@ -125,8 +125,8 @@ function pineHerdFacts(): HerdFact[] { return [
   // ── bears ── all three live in the Den (NW corner, layout v2; v1 had them at (−150, −150) = SE and (+150, −150) = SW):
   // the two black bears on the bowl's floor in front of the cave, the lone brown bear at its mouth toward the path.
   // Bears hunt you (see bear.ts).
-  { kind: 'bear', count: 2, anchor: { x: DEN.x + 6, z: DEN.z + 6, rMin: 0, rMax: 10 }, canopy: false, trailBand: [18, 220], variants: ['black', 'black-blaze', 'black-old'] },
-  { kind: 'bear', count: 1, anchor: { x: DEN.x - 8, z: DEN.z - 14, rMin: 0, rMax: 10 }, canopy: false, trailBand: [18, 220], variants: ['brown', 'brown-old'] },
+  { kind: 'bear', count: 2, anchor: { x: LAYOUT.DEN.x + 6, z: LAYOUT.DEN.z + 6, rMin: 0, rMax: 10 }, canopy: false, trailBand: [18, 220], variants: ['black', 'black-blaze', 'black-old'] },
+  { kind: 'bear', count: 1, anchor: { x: LAYOUT.DEN.x - 8, z: LAYOUT.DEN.z - 14, rMin: 0, rMax: 10 }, canopy: false, trailBand: [18, 220], variants: ['brown', 'brown-old'] },
 ]; }
 
 /** Emit typed literal plans; native herd placement still owns every live actor. */

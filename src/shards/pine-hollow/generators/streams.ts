@@ -7,12 +7,14 @@
  * anchors); the page draws it (../runtime/world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
  * the stale gate.
  */
-import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, POND, type XZ } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { creekSpan, creekSurfaceAt } from '../behaviour/layout';
 import * as THREE from 'three';
 import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { streamGeometry } from './streamCodec';
+
+type XZ = [number, number];
 
 /** Original renderer queries, supplied explicitly instead of installing a mutable page field. */
 export type PineStreamGround = Pick<NativeTerrainSource, 'heightAt' | 'normalAt'>;
@@ -20,7 +22,7 @@ const smoothstep = (a: number, b: number, x: number): number => { const t = Math
 const { dam: S_DAM } = creekSpan();
 /** flow speed (m/s): quick over the crest and down the dam's face, a gentle run after */
 function creekFlowAt(s: number): number {
-  return CREEK_WATER.run + (CREEK_WATER.dam - CREEK_WATER.run) * smoothstep(S_DAM - 1.5, S_DAM, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 6, s));
+  return LAYOUT.CREEK_WATER.run + (LAYOUT.CREEK_WATER.dam - LAYOUT.CREEK_WATER.run) * smoothstep(S_DAM - 1.5, S_DAM, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 6, s));
 }
 /** white water 0..1: the dam's face, a tail of foam drifting off it, a few bubbles in the run */
 function creekFoamAt(s: number): number {
@@ -83,9 +85,9 @@ class Path {
 /** the creek: from just before the dam's crest (the outlet above it is the pond's own water) to the slab's edge */
 function buildCreek(b: Builder, ground: PineStreamGround): void {
   const { heightAt } = ground;
-  const path = new Path(CREEK), { dam, end } = creekSpan();
+  const path = new Path(LAYOUT.CREEK), { dam, end } = creekSpan();
   const stations: number[] = [];
-  for (let s = dam - CREEK_WATER.lead; s < end - 0.2;) { stations.push(s); s += s > dam - 2.5 && s < dam + 8 ? 0.5 : 1.5; }
+  for (let s = dam - LAYOUT.CREEK_WATER.lead; s < end - 0.2;) { stations.push(s); s += s > dam - 2.5 && s < dam + 8 ? 0.5 : 1.5; }
   stations.push(end - 0.2);
   let travel = 0, prev = stations[0] ?? 0;
   const base = b.count;
@@ -107,12 +109,12 @@ function buildCreek(b: Builder, ground: PineStreamGround): void {
 /** the waterfall: the ridge-top stream's last metres, down the Ridge's face, the short run below it, into the pond */
 function buildFall(b: Builder, out: Anchors, ground: PineStreamGround): void {
   const { heightAt, normalAt } = ground;
-  const wl = POND.level;
+  const wl = LAYOUT.POND.level;
   const entry = pondEntry(ground);
   // start 9 m above the lip on the ridge-top stream (further up its bed is too rough to hold water: it climbs again)
-  const r2 = RIDGE_STREAM[2] ?? [WATERFALL.lip.x, WATERFALL.lip.z + 16], lip = WATERFALL.lip;
+  const r2 = LAYOUT.RIDGE_STREAM[2] ?? [LAYOUT.WATERFALL.lip.x, LAYOUT.WATERFALL.lip.z + 16], lip = LAYOUT.WATERFALL.lip;
   const start: XZ = [r2[0] + (lip.x - r2[0]) * 0.44, r2[1] + (lip.z - r2[1]) * 0.44];
-  const path = new Path([start, [lip.x, lip.z], [WATERFALL.foot.x, WATERFALL.foot.z], entry]);
+  const path = new Path([start, [lip.x, lip.z], [LAYOUT.WATERFALL.foot.x, LAYOUT.WATERFALL.foot.z], entry]);
   const COLS = 9, step = 0.7;
   const lipS = Math.hypot(lip.x - start[0], lip.z - start[1]);
   let yRun = Infinity, travel = 0, top = 0, rows = 0, faceFootFound = false;
@@ -142,14 +144,14 @@ function buildFall(b: Builder, out: Anchors, ground: PineStreamGround): void {
     rows++;
   }
   b.grid(base, rows, COLS);
-  if (!faceFootFound) out.faceFoot = [WATERFALL.foot.x, heightAt(WATERFALL.foot.x, WATERFALL.foot.z) + 0.6, WATERFALL.foot.z];
+  if (!faceFootFound) out.faceFoot = [LAYOUT.WATERFALL.foot.x, heightAt(LAYOUT.WATERFALL.foot.x, LAYOUT.WATERFALL.foot.z) + 0.6, LAYOUT.WATERFALL.foot.z];
   out.plunge = [entry[0], wl, entry[1]];
 }
 
 /** where the line from the fall's foot toward the pond's centre first meets the water */
 function pondEntry(ground: PineStreamGround): XZ {
   const { heightAt } = ground;
-  const wl = POND.level, f = WATERFALL.foot;
+  const wl = LAYOUT.POND.level, f = LAYOUT.WATERFALL.foot;
   const dx = -100 - f.x, dz = 110 - f.z, l = Math.hypot(dx, dz);
   for (let t = 0; t < l; t += 0.25) {
     const x = f.x + (dx / l) * t, z = f.z + (dz / l) * t;
@@ -160,7 +162,7 @@ function pondEntry(ground: PineStreamGround): XZ {
 
 /** the plunge ring: foam spreading outward on the pond's surface from where the fall lands (an overlay: no reflection) */
 function buildRing(b: Builder, out: Anchors): void {
-  const wl = POND.level, R = 6.5, RINGS = 8, SEGS = 28, cx = out.plunge[0], cz = out.plunge[2];
+  const wl = LAYOUT.POND.level, R = 6.5, RINGS = 8, SEGS = 28, cx = out.plunge[0], cz = out.plunge[2];
   const base = b.count;
   for (let r = 0; r < RINGS; r++) {
     const rr = (r / (RINGS - 1)) * R, fade = (1 - rr / R) ** 0.8;

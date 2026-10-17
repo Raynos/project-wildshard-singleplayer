@@ -1,4 +1,11 @@
-import { CREEK, BEAVER_DAM, BEAVER_POOL, POND, CREEK_BED, CREEK_WATER, beaverPoolLevel, type XZ } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+
+type XZ = [number, number];
+
+// Keep the authored shared roads and pool cell in one JSON intake.
+LAYOUT.SPURS['den'] = LAYOUT.DEN_TRAIL;
+LAYOUT.SPURS['lookout'] = LAYOUT.LOOKOUT_TRAIL;
+LAYOUT.GRADED.paths[0] = LAYOUT.LOOKOUT_TRAIL;
 
 /** Exact native ridge-foot profile shared by runtime and author placements. */
 export function ridgeFootZ(x: number): number {
@@ -32,13 +39,13 @@ export function arcTo(poly: readonly XZ[], i: number): number {
 
 /** the creek's bed height at arc length `s` from the outlet: level in the outlet, the dam's sill, then a steady fall */
 export function creekBedAt(s: number): number {
-  const sDam = arcTo(CREEK, BEAVER_DAM.at), sEnd = arcTo(CREEK, CREEK.length - 1), P = BEAVER_POOL, rEnd = P.riffle + P.slope;
-  if (s <= P.riffle - 4) return CREEK_BED.outlet;
-  if (s <= P.riffle) return CREEK_BED.outlet + (P.crest - CREEK_BED.outlet) * ((s - P.riffle + 4) / 4);   // up the riffle
+  const sDam = arcTo(LAYOUT.CREEK, LAYOUT.BEAVER_DAM.at), sEnd = arcTo(LAYOUT.CREEK, LAYOUT.CREEK.length - 1), P = LAYOUT.BEAVER_POOL, rEnd = P.riffle + P.slope;
+  if (s <= P.riffle - 4) return LAYOUT.CREEK_BED.outlet;
+  if (s <= P.riffle) return LAYOUT.CREEK_BED.outlet + (P.crest - LAYOUT.CREEK_BED.outlet) * ((s - P.riffle + 4) / 4);   // up the riffle
   if (s <= rEnd) return P.crest + (P.bed - P.crest) * ((s - P.riffle) / P.slope);                         // down into the pool
-  if (s <= sDam) return P.bed + (CREEK_BED.sill - P.bed) * ((s - rEnd) / (sDam - rEnd));                   // on to the sluice
-  if (s <= sDam + 3) return CREEK_BED.sill + (CREEK_BED.afterDam - CREEK_BED.sill) * ((s - sDam) / 3);
-  return CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - sDam - 3) / (sEnd - sDam - 3));
+  if (s <= sDam) return P.bed + (LAYOUT.CREEK_BED.sill - P.bed) * ((s - rEnd) / (sDam - rEnd));                   // on to the sluice
+  if (s <= sDam + 3) return LAYOUT.CREEK_BED.sill + (LAYOUT.CREEK_BED.afterDam - LAYOUT.CREEK_BED.sill) * ((s - sDam) / 3);
+  return LAYOUT.CREEK_BED.afterDam + (LAYOUT.CREEK_BED.edge - LAYOUT.CREEK_BED.afterDam) * ((s - sDam - 3) / (sEnd - sDam - 3));
 }
 
 // ── the water on the creek (PH-L9) ──────────────────────────────────────────────────────────────────────────────────
@@ -52,26 +59,26 @@ export function creekBedAt(s: number): number {
  */
 /** depth over the bed in the run, the sheet over the crest, flow speeds (m/s) in the run / down the dam's face, how far
  *  before the crest the ribbon starts, and the half-width of the wetted strip the physics asks about */
-const S_DAM = arcTo(CREEK, BEAVER_DAM.at), S_END = arcTo(CREEK, CREEK.length - 1);
+const S_DAM = arcTo(LAYOUT.CREEK, LAYOUT.BEAVER_DAM.at), S_END = arcTo(LAYOUT.CREEK, LAYOUT.CREEK.length - 1);
 /** the dam's crest and the creek's end (arc lengths) */
 export function creekSpan(): { dam: number; end: number } { return { dam: S_DAM, end: S_END }; }
 /** the creek's water surface at arc length `s`: the pond's level to the riffle, then the beaver pool's (or, drained, the
  *  trickle a few cm over its bed) to the dam */
 export function creekSurfaceAt(s: number): number {
-  if (s < BEAVER_POOL.riffle) return POND.level;
-  if (s < S_DAM - CREEK_WATER.lead) return Math.max(beaverPoolLevel.y, creekBedAt(s) + 0.05);
-  if (s <= S_DAM) return creekBedAt(s) + CREEK_WATER.crest;
-  const run = CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - S_DAM - 3) / (S_END - S_DAM - 3)) + CREEK_WATER.depth;
-  return Math.max(creekBedAt(s) + CREEK_WATER.crest, run);
+  if (s < LAYOUT.BEAVER_POOL.riffle) return LAYOUT.POND.level;
+  if (s < S_DAM - LAYOUT.CREEK_WATER.lead) return Math.max(LAYOUT.beaverPoolLevel.y, creekBedAt(s) + 0.05);
+  if (s <= S_DAM) return creekBedAt(s) + LAYOUT.CREEK_WATER.crest;
+  const run = LAYOUT.CREEK_BED.afterDam + (LAYOUT.CREEK_BED.edge - LAYOUT.CREEK_BED.afterDam) * ((s - S_DAM - 3) / (S_END - S_DAM - 3)) + LAYOUT.CREEK_WATER.depth;
+  return Math.max(creekBedAt(s) + LAYOUT.CREEK_WATER.crest, run);
 }
 // ── the beaver pool (E322 F-L6) ──────────────────────────────────────────────────────────────────────────────────────
 /** the pool's reach, riffle crest to the dam's upstream face (the pond's surface mesh leaves it to the pool's own) */
 export function inBeaverPool(x: number, z: number): boolean {
-  const n = nearestOnPolyline(CREEK, x, z);
-  return n.d < 12 && n.s >= BEAVER_POOL.riffle && n.s <= S_DAM - CREEK_WATER.lead;
+  const n = nearestOnPolyline(LAYOUT.CREEK, x, z);
+  return n.d < 12 && n.s >= LAYOUT.BEAVER_POOL.riffle && n.s <= S_DAM - LAYOUT.CREEK_WATER.lead;
 }
 /** the running water's surface at (x, z), or null off the creek: the terrain's `streamAt` (wading, the dry test) */
 export function creekWaterAt(x: number, z: number): number | null {
-  const n = nearestOnPolyline(CREEK, x, z);
-  return n.d <= CREEK_WATER.halfWidth ? creekSurfaceAt(n.s) : null;
+  const n = nearestOnPolyline(LAYOUT.CREEK, x, z);
+  return n.d <= LAYOUT.CREEK_WATER.halfWidth ? creekSurfaceAt(n.s) : null;
 }

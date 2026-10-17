@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { BEAR_CAVE } from '../data/layout.ts';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 const root=resolve(import.meta.dirname,'../../../..');
 async function hero(id,phone=false){
@@ -21,8 +21,8 @@ async function hero(id,phone=false){
 }
 function same(a,b){const p=a.getAttribute('position'),q=b.getAttribute('position');if(p.count!==q.count||a.index?.count!==b.index?.count)throw new Error('Landmark tiers require separate facts');for(let i=0;i<p.count;i++)for(let k=0;k<3;k++)if(p.getComponent(i,k)!==q.getComponent(i,k))throw new Error('Landmark tier positions differ');for(let i=0;i<(a.index?.count??0);i++)if(a.index.getX(i)!==b.index.getX(i))throw new Error('Landmark tier indices differ');}
 function lamp(g){const pos=g.getAttribute('position'),bb=g.boundingBox,h=bb.max.y-bb.min.y,v=new THREE.Vector3();let px=0,pz=0,pn=0,far=0,count=0;for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);if(v.y<bb.min.y+h*.3){px+=v.x;pz+=v.z;pn++;}}px/=Math.max(1,pn);pz/=Math.max(1,pn);for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);if(v.y>bb.min.y+h*.5)far=Math.max(far,Math.hypot(v.x-px,v.z-pz));}const point=new THREE.Vector3();for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);if(v.y>bb.min.y+h*.45&&Math.hypot(v.x-px,v.z-pz)>far*.7){point.add(v);count++;}}if(count===0)point.set(px,bb.min.y+h*.7,pz);else point.divideScalar(count);return point.toArray();}
-function arch(g,m,floorY){const b=g.boundingBox,w=b.max.x-b.min.x,h=b.max.y-b.min.y,d=b.max.z-b.min.z,pos=g.getAttribute('position'),index=g.index,triangles=(index?.count??pos.count)/3,mask=new Uint8Array(Math.ceil(triangles/4)),c=Math.cos(BEAR_CAVE.rot),s=Math.sin(BEAR_CAVE.rot),v=new THREE.Vector3();
-  for(let t=0;t<triangles;t++){let xs=0,zs=0,ys=0;for(let k=0;k<3;k++){v.fromBufferAttribute(pos,index?index.getX(t*3+k):t*3+k).applyMatrix4(m);const dx=v.x-BEAR_CAVE.x,dz=v.z-BEAR_CAVE.z;xs+=dx*c-dz*s;zs+=dx*s+dz*c;ys+=v.y;}if(Math.abs(xs/3)<2.6&&ys/3-floorY>-.3&&ys/3-floorY<4.8&&zs/3>-.6)mask[Math.floor(t/4)]|=1<<(t%4);}
+function arch(g,m,floorY){const b=g.boundingBox,w=b.max.x-b.min.x,h=b.max.y-b.min.y,d=b.max.z-b.min.z,pos=g.getAttribute('position'),index=g.index,triangles=(index?.count??pos.count)/3,mask=new Uint8Array(Math.ceil(triangles/4)),c=Math.cos(LAYOUT.BEAR_CAVE.rot),s=Math.sin(LAYOUT.BEAR_CAVE.rot),v=new THREE.Vector3();
+  for(let t=0;t<triangles;t++){let xs=0,zs=0,ys=0;for(let k=0;k<3;k++){v.fromBufferAttribute(pos,index?index.getX(t*3+k):t*3+k).applyMatrix4(m);const dx=v.x-LAYOUT.BEAR_CAVE.x,dz=v.z-LAYOUT.BEAR_CAVE.z;xs+=dx*c-dz*s;zs+=dx*s+dz*c;ys+=v.y;}if(Math.abs(xs/3)<2.6&&ys/3-floorY>-.3&&ys/3-floorY<4.8&&zs/3>-.6)mask[Math.floor(t/4)]|=1<<(t%4);}
   return {vertices:pos.count,triangles,excluded:[...mask].map(n=>n.toString(16)).join(''),dark:{w:w*.5,h:h*.72,x:0,y:h*.36,z:d*.05},boxes:[{x:-w*.36,y:h*.5,z:0,hx:w*.14,hy:h*.5,hz:d*.45},{x:w*.36,y:h*.5,z:0,hx:w*.14,hy:h*.5,hz:d*.45},{x:0,y:h*.86,z:0,hx:w*.5,hy:h*.14,hz:d*.45}],wall:{x:0,y:h*.4,z:-d*.1,hx:w*.24,hy:h*.4,hz:.3}};
 }
 /** No runtime world, controller or renderer service is installed by this producer. */

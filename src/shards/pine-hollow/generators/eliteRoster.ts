@@ -1,6 +1,6 @@
 import type { EliteDef } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
-import { DEN } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { GHOST_LAIR } from '../data/eliteHomes';
 
 /**
@@ -11,7 +11,7 @@ import { GHOST_LAIR } from '../data/eliteHomes';
 // the lairs (x = WEST, z = NORTH: pineHollowLayout.ts's axis note). Chosen on open ground off the trails, one per zone.
 export const IRONHIDE_LAIR = { x: -44, z: -76, r: 16 };
 export const IMPERIAL_LAIR = { x: -40, z: 78, r: 20 };
-export const BLACKPAW_LAIR = { x: DEN.x + 2, z: DEN.z + 2, r: 20 };
+export const BLACKPAW_LAIR = { x: LAYOUT.DEN.x + 2, z: LAYOUT.DEN.z + 2, r: 20 };
 
 export const PINE_ELITE_DEFS: Record<string, EliteDef> = {
   ironhide: {

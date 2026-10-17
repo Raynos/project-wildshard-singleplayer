@@ -63,7 +63,7 @@ import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/pl
 import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
 import { hamletRoofs } from '../runtime/world/cabinBake';
-import { LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { npcMaterial, makeNpcFigure, type NpcFigure } from '../runtime/models/people';
 import { preloadNpcModels } from '../runtime/quest/npcModels';
@@ -158,9 +158,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const { floorAt, place } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
 
   // ── the tower's frame (the lookout: local −Z faces the landing), its deck height ──
-  const towerY = heightAt(LOOKOUT.x, LOOKOUT.z), deckY = towerY + 11;
+  const towerY = heightAt(LAYOUT.LOOKOUT.x, LAYOUT.LOOKOUT.z), deckY = towerY + 11;
   const tower = (lx: number, lz: number): { x: number; z: number } => {
-    const [x, z] = yawWorld({ x: LOOKOUT.x, z: LOOKOUT.z, yaw: ZIP_YAW }, lx, lz); return { x, z };
+    const [x, z] = yawWorld({ x: LAYOUT.LOOKOUT.x, z: LAYOUT.LOOKOUT.z, yaw: ZIP_YAW }, lx, lz); return { x, z };
   };
 
   // ── the table's sites ──
@@ -402,12 +402,12 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the map (C9's hook): the places with discovery, the live quest markers ──
   const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
   h.fullMap.setPois((): MapPoi[] => [
-    ...PINE_HOLLOW_POIS.map((p): MapPoi => (flags.has(`seen:${p.id}`) ? { x: p.x, z: p.z, label: p.name, kind: 'place' } : { x: p.x, z: p.z, label: '?', kind: 'unknown' })),
+    ...LAYOUT.PINE_HOLLOW_POIS.map((p): MapPoi => (flags.has(`seen:${p.id}`) ? { x: p.x, z: p.z, label: p.name, kind: 'place' } : { x: p.x, z: p.z, label: '?', kind: 'unknown' })),
     ...liveMarkers().map((m): MapPoi => ({ x: m.x, z: m.z, label: m.label, kind: 'quest' })),
   ], { declutter: true });
   // the zones a place's name does not already say (the Ridge, the old-growth, the Hollow), the real pines, the hamlet's roofs
-  const placeNames = new Set(PINE_HOLLOW_POIS.map((p) => p.name.toUpperCase()));
-  h.fullMap.setZones(PINE_HOLLOW_ZONES.filter((zn) => !placeNames.has(zn.label)));
+  const placeNames = new Set(LAYOUT.PINE_HOLLOW_POIS.map((p) => p.name.toUpperCase()));
+  h.fullMap.setZones(LAYOUT.PINE_HOLLOW_ZONES.filter((zn) => !placeNames.has(zn.label)));
   h.fullMap.setFeatures({ trees: h.trees, roofs: hamletRoofs() });
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
@@ -456,7 +456,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       const cam = game.camera.position;
       for (const p of people) p.lod(cam);
       if (zip) zip.trolley.visible = cables.state(cableId).riding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
-      if (!perfLap.active) for (const p of PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`); // E350 F-J1: a lap's spot is not discovered
+      if (!perfLap.active) for (const p of LAYOUT.PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`); // E350 F-J1: a lap's spot is not discovered
       if (!perfLap.active && hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
         flags.set('secret:log'); hud.toast('Inside the fallen giant. It smells of rain and old resin');
       }

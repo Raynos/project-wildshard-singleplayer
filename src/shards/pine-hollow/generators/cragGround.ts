@@ -1,13 +1,13 @@
 /** Explicit original renderer queries and authored exclusion rows, without active levels or engine services. */
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
-import { CABIN_SITES, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 /** Queries the original crag recipe uses; heights and normals come from the retained renderer lattice. */
 export interface CragGround {
   heightAt: NativeTerrainSource['heightAt']; normalAt: NativeTerrainSource['normalAt'];
   trailDistance: (x: number, z: number) => number; cabinMask: (x: number, z: number) => number;
 }
-const trails = [S_ROAD, N_ROAD, W_ROAD, E_ROAD, ...Object.values(SPURS)];
+const trails = [LAYOUT.S_ROAD, LAYOUT.N_ROAD, LAYOUT.W_ROAD, LAYOUT.E_ROAD, ...Object.values(LAYOUT.SPURS)];
 const clamp = (x: number, a: number, b: number): number => Math.min(b, Math.max(a, x));
 function segmentSquared(px: number, pz: number, ax: number, az: number, bx: number, bz: number): number {
   const vx = bx - ax, vz = bz - az, wx = px - ax, wz = pz - az, l2 = vx * vx + vz * vz;
@@ -22,7 +22,7 @@ export function pineCragQueries(source: NativeTerrainSource): CragGround {
     trailDistance: pineTrailDistance,
     cabinMask: (x, z) => {
       let mask = 0;
-      for (const cabin of CABIN_SITES) {
+      for (const cabin of LAYOUT.CABIN_SITES) {
         const distance = Math.hypot(x - cabin.x, z - cabin.z), t = clamp((distance - 22) / (11 - 22), 0, 1);
         mask = Math.max(mask, t * t * (3 - 2 * t));
       }

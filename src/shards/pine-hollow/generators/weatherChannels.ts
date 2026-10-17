@@ -1,5 +1,5 @@
 // Private visual scalar DAGs; native clocks, rain, animals and audio stay with their owners.
-import { OLD_GROWTH } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import {parseClientChannels} from '@wildshard/format/clientChannels';
 
 const PINE_WEATHER_CHANNELS = [
@@ -110,7 +110,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.x
+          "value": LAYOUT.OLD_GROWTH.x
         },
         {
           "op": "sub",
@@ -119,7 +119,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.ax
+          "value": LAYOUT.OLD_GROWTH.ax
         },
         {
           "op": "div",
@@ -132,7 +132,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.z
+          "value": LAYOUT.OLD_GROWTH.z
         },
         {
           "op": "sub",
@@ -141,7 +141,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.az
+          "value": LAYOUT.OLD_GROWTH.az
         },
         {
           "op": "div",
@@ -296,7 +296,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.x
+          "value": LAYOUT.OLD_GROWTH.x
         },
         {
           "op": "sub",
@@ -305,7 +305,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.ax
+          "value": LAYOUT.OLD_GROWTH.ax
         },
         {
           "op": "div",
@@ -318,7 +318,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.z
+          "value": LAYOUT.OLD_GROWTH.z
         },
         {
           "op": "sub",
@@ -327,7 +327,7 @@ const PINE_WEATHER_CHANNELS = [
         },
         {
           "op": "constant",
-          "value": OLD_GROWTH.az
+          "value": LAYOUT.OLD_GROWTH.az
         },
         {
           "op": "div",

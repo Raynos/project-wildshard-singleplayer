@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PineSeedStream as Rng } from './seedStream';
 import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
-import { CABIN_SITES, HAMLET_SITES } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { BOARDS, BOARD_LEN, PROP_BOXES, boxUV, logGeo, swapUV, type BakedBuilding, type BakedGeometry, type BakedLight, type BakedNode, type CabinRows,
   type Collider, type Floor, type KitMat as MatKey, type LightKind, type PropKind, type Room } from './cabinShapes';
 
@@ -1164,7 +1164,7 @@ const FLOOR_Y = 0.22; // Cabin.ts FLOOR: the floor's top above the pad
 
 /** the hamlet's five buildings (PH-B3 / C6: the lodge, trader, miller, mill, shed), one cluster after the three cabins */
 export function hamletBuildings(): ExtraBuilding[] {
-  const s = HAMLET_SITES;
+  const s = LAYOUT.HAMLET_SITES;
   return [
     { // the hunting lodge: a long log hall, a deep porch, the contract board stands by its steps (a prop, below)
       id: 'hunting-lodge', x: s.lodge.x, z: s.lodge.z, rot: kitRot(s.lodge.rot),
@@ -1271,7 +1271,7 @@ function buildPineCabins(heightAt: (x: number, z: number) => number, sink: Geome
     b.build();
     buildings.push(b.record(id, hamlet));
   };
-  CABIN_SITES.forEach((site, i) => {
+  LAYOUT.CABIN_SITES.forEach((site, i) => {
     const spec = CABIN_SPECS[i];
     if (spec === undefined) throw new Error(`[cabin bake] no spec for site ${String(i)}`);
     build(spec, i, site.x, site.z, site.rot, `cabin-${String(i + 1)}`, false);
@@ -1281,7 +1281,7 @@ function buildPineCabins(heightAt: (x: number, z: number) => number, sink: Geome
   for (const e of extra) { sx += e.x; sz += e.z; }
   const cx = sx / extra.length, cz = sz / extra.length;
   extra.forEach((e, j) => {
-    build(e.spec, CABIN_SITES.length + j, e.x, e.z, e.rot, e.id, true);
+    build(e.spec, LAYOUT.CABIN_SITES.length + j, e.x, e.z, e.rot, e.id, true);
     pad = Math.max(pad, Math.hypot(e.x - cx, e.z - cz) + Math.max(e.spec.W, e.spec.L));
   });
   return { bin: sink.bytes(), rows: { geometries: sink.rows, buildings, hamlet: extra.length === 0 ? null : { at: [cx, heightAt(cx, cz), cz], pad } } };

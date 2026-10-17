@@ -15,11 +15,13 @@
  * over crags.glb), turned, rolled and sunk more freely, boulders in their joints, the lookout's hero crag.
  */
 import type * as THREE from 'three';
-import { DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, type XZ } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { ridgeFootZ, nearestOnPolyline } from '../behaviour/layout';
 import { PineSeedStream as Rng } from './seedStream';
 import type { CragGround } from './cragGround';
 import { CRAG_HERO, CRAG_IDS, SKIN_STEPS, SKIN_TILE, caveLocal, skinBytes, type CragTier as Tier, type CragId, type CragPlace, type CragSize, type CragSizes } from './cragRows';
+
+type XZ = [number, number];
 
 const CHUNK_HALF = 250;
 const inChunk = (x: number, z: number, margin = 0): boolean => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;
@@ -56,14 +58,14 @@ function blocked(x: number, z: number, r: number, trailPad: number, ground: Crag
   const { trailDistance, cabinMask } = ground;
   if (!inChunk(x, z, 4 + r * 0.5)) return true;
   if (trailDistance(x, z) < r * 0.75 + trailPad) return true;
-  if (Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z) < LOOKOUT.r + 10 + r * 0.6) return true;
-  if (z > 120 && segDist(x, z, [ZIPLINE.from.x, ZIPLINE.from.z], [ZIPLINE.to.x, ZIPLINE.to.z]) < 7 + r * 0.6) return true;
-  if (segDist(x, z, [WATERFALL.lip.x, WATERFALL.lip.z], [WATERFALL.foot.x, WATERFALL.foot.z]) < 12 + r * 0.6) return true;
-  if (nearestOnPolyline(RIDGE_STREAM, x, z).d < 7 + r * 0.6) return true;
-  if (Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r * 0.5) return true;
-  for (const c of CABIN_SITES) if (Math.hypot(x - c.x, z - c.z) < 16 + r * 0.5) return true;
+  if (Math.hypot(x - LAYOUT.LOOKOUT.x, z - LAYOUT.LOOKOUT.z) < LAYOUT.LOOKOUT.r + 10 + r * 0.6) return true;
+  if (z > 120 && segDist(x, z, [LAYOUT.ZIPLINE.from.x, LAYOUT.ZIPLINE.from.z], [LAYOUT.ZIPLINE.to.x, LAYOUT.ZIPLINE.to.z]) < 7 + r * 0.6) return true;
+  if (segDist(x, z, [LAYOUT.WATERFALL.lip.x, LAYOUT.WATERFALL.lip.z], [LAYOUT.WATERFALL.foot.x, LAYOUT.WATERFALL.foot.z]) < 12 + r * 0.6) return true;
+  if (nearestOnPolyline(LAYOUT.RIDGE_STREAM, x, z).d < 7 + r * 0.6) return true;
+  if (Math.hypot(x - LAYOUT.POND.x, z - LAYOUT.POND.z) < LAYOUT.POND.r + 6 + r * 0.5) return true;
+  for (const c of LAYOUT.CABIN_SITES) if (Math.hypot(x - c.x, z - c.z) < 16 + r * 0.5) return true;
   if (cabinMask(x, z) > 0.05) return true;
-  if (Math.hypot(x - DEN.x, z - DEN.z) < DEN.r - 6) return true;
+  if (Math.hypot(x - LAYOUT.DEN.x, z - LAYOUT.DEN.z) < LAYOUT.DEN.r - 6) return true;
   const [lx, lz] = caveLocal(x, z);
   if (lz > -9 - r && lz < 20 + r && Math.abs(lx) < 10 + r) return true;
   return false;
@@ -72,7 +74,7 @@ function blocked(x: number, z: number, r: number, trailPad: number, ground: Crag
 /** the crag country: the Ridge from a little below its foot, the pass, and the Den's walls */
 function cragCountry(x: number, z: number): boolean {
   if (z > ridgeFootZ(x) - 12) return true;
-  return Math.hypot(x - DEN.x, z - DEN.z) < DEN.r + 40 && (z > DEN.z + 4 || x > DEN.x + 4);
+  return Math.hypot(x - LAYOUT.DEN.x, z - LAYOUT.DEN.z) < LAYOUT.DEN.r + 40 && (z > LAYOUT.DEN.z + 4 || x > LAYOUT.DEN.x + 4);
 }
 
 /** the terrain's slope angle (radians) at (x, z) and its downhill heading (the yaw whose front faces down the slope) */
@@ -116,7 +118,7 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
     const hs = size(CRAG_HERO), { x, z, sink } = CRAG_HERO_SPOT;
     const [nx, , nz] = normalAt(x, z, 6);
     // its front half-way between down the slope and toward the lookout
-    const down = Math.atan2(nx, nz), look = Math.atan2(LOOKOUT.x - x, LOOKOUT.z - z);
+    const down = Math.atan2(nx, nz), look = Math.atan2(LAYOUT.LOOKOUT.x - x, LAYOUT.LOOKOUT.z - z);
     const yaw = down + Math.atan2(Math.sin(look - down), Math.cos(look - down)) * 0.5;
     const scale = 1.0;
     out.push({ id: CRAG_HERO, x, y: heightAt(x, z) - sink, z, yaw, scale, tiltX: -0.08, tiltZ: 0.03 });
@@ -136,7 +138,7 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
   cands.sort((p, q) => q.w - p.w);
   for (const c of cands) {
     // the plateau behind the crest is rugged, not a cliff: only its steepest knuckles take a module, spaced wider
-    const plateau = c.z > ridgeFootZ(c.x) + RIDGE.climb + 4 && Math.hypot(c.x - DEN.x, c.z - DEN.z) > DEN.r + 30;
+    const plateau = c.z > ridgeFootZ(c.x) + LAYOUT.RIDGE.climb + 4 && Math.hypot(c.x - LAYOUT.DEN.x, c.z - LAYOUT.DEN.z) > LAYOUT.DEN.r + 30;
     if (plateau && (c.a < 0.8 || rng.next() < 0.45)) continue;
     const id = CLIFFS[rng.int(0, CLIFFS.length - 1)] ?? 'cliff-a';
     const sz = size(id);
@@ -163,7 +165,7 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
 
   // ── tors on the crest and the plateau behind it ──
   for (let x = -CHUNK_HALF + 14; x < 150; x += rng.range(24, 40)) {
-    const z = ridgeFootZ(x) + RIDGE.climb + rng.range(-4, 16);
+    const z = ridgeFootZ(x) + LAYOUT.RIDGE.climb + rng.range(-4, 16);
     if (!inChunk(x, z, 10)) continue;
     const s = slopeAt(x, z, ground);
     if (s.a > 0.5) continue;
@@ -241,8 +243,8 @@ export function skinWeight(x: number, z: number, ground: CragGround): number {
   if (w <= 0) return 0;
   // not over the trails (the lookout's graded traverse, the N road's pass), the lookout's pad, the waterfall's lip, the cave's hood
   w *= ss(3, 7, trailDistance(x, z));
-  w *= ss(LOOKOUT.r + 3, LOOKOUT.r + 8, Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z));
-  w *= ss(5, 10, segDist(x, z, [WATERFALL.lip.x, WATERFALL.lip.z], [WATERFALL.foot.x, WATERFALL.foot.z]));
+  w *= ss(LAYOUT.LOOKOUT.r + 3, LAYOUT.LOOKOUT.r + 8, Math.hypot(x - LAYOUT.LOOKOUT.x, z - LAYOUT.LOOKOUT.z));
+  w *= ss(5, 10, segDist(x, z, [LAYOUT.WATERFALL.lip.x, LAYOUT.WATERFALL.lip.z], [LAYOUT.WATERFALL.foot.x, LAYOUT.WATERFALL.foot.z]));
   const [lx, lz] = caveLocal(x, z);
   if (lz > -8 && lz < 18 && Math.abs(lx) < 9) w *= ss(9, 6, Math.abs(lx)) < 1 ? 1 - ss(9, 6, Math.abs(lx)) * ss(-8, -4, lz) * ss(18, 14, lz) : 0;
   return w;

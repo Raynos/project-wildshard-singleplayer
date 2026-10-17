@@ -1,4 +1,4 @@
-import { PINE_HOLLOW_POIS } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { JOURNAL_ANIMALS, JOURNAL_PLACE_NOTES } from './journalPages';
 import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from './trophyWall';
 
@@ -20,7 +20,7 @@ export const JOURNAL = {
     stag: { x: 0, y: 0, w: 0.2, h: 1 }, elk: { x: 0.2, y: 0, w: 0.2, h: 1 }, boar: { x: 0.4, y: 0, w: 0.2, h: 1 },
     bear: { x: 0.6, y: 0, w: 0.2, h: 1 }, king: { x: 0.8, y: 0, w: 0.2, h: 1 },
   } },
-  entries: [...JOURNAL_ANIMALS, ...PINE_HOLLOW_POIS.map(place => ({
+  entries: [...JOURNAL_ANIMALS, ...LAYOUT.PINE_HOLLOW_POIS.map(place => ({
     id: place.id, kind: 'place', tab: 'places', name: place.name, notes: JOURNAL_PLACE_NOTES[place.id] ?? '',
     place: { x: place.x, z: place.z, r: place.r }, plate: { sketch: `${art}/place-${place.id}.webp` },
   }))], trophies: PINE_HOLLOW_TROPHIES, wall: RANGER_WALL,

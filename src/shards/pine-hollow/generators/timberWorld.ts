@@ -7,7 +7,7 @@ import { pineLookoutScene, pineSiteTimberScene, timberDraws } from './timberScen
 import { bakeSiteTimbers } from './siteTimbers';
 import { TimberRecorder } from './timberBake';
 import { landingSite, bridgeSite, timberFrame, ZIP_YAW } from './timberPlacement';
-import { LOOKOUT } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { pineCragWorldScene } from './cragScene';
 import type { SkinBake } from './crags';
 import type { CragTier } from './cragRows';
@@ -17,7 +17,7 @@ import { pineStreamScene, type PineStreamGround } from './streams';
 export function pineTimberPlacements(heightAt: (x: number, z: number) => number): { lookout: { matrix: number[]; yaw: number }; landing: { matrix: number[]; yaw: number }; bridge: { matrix: number[]; yaw: number; turn: [number, number] } } {
   const bridge = bridgeSite(heightAt);
   return {
-    lookout: { matrix: [...timberFrame(LOOKOUT.x, heightAt(LOOKOUT.x, LOOKOUT.z), LOOKOUT.z, ZIP_YAW).elements], yaw: ZIP_YAW },
+    lookout: { matrix: [...timberFrame(LAYOUT.LOOKOUT.x, heightAt(LAYOUT.LOOKOUT.x, LAYOUT.LOOKOUT.z), LAYOUT.LOOKOUT.z, ZIP_YAW).elements], yaw: ZIP_YAW },
     landing: { matrix: [...landingSite(heightAt).at.elements], yaw: ZIP_YAW },
     bridge: { matrix: [...bridge.at.elements], yaw: bridge.yaw, turn: bridge.turn },
   };

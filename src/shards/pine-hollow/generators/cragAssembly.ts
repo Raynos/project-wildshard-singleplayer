@@ -4,7 +4,7 @@ import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { pineCragScene } from './cragScene';
 import type { CragPlace, CragTier } from './cragRows';
 import type { SkinBake } from './crags';
-import { BEAR_CAVE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 interface CaveMeta { cuts: { lx: number; lz: number; hw: number; hd: number; below: number }[]; holes: { lx: number; lz: number; hw: number; hd: number; y0: number; y1: number }[] }
 interface Plan { lod0: number; lod1: number; near: number; far: number; r: number; x: number; y: number; z: number; cave: boolean }
@@ -27,7 +27,7 @@ export function pineCragAssembly(kit: ReadonlyMap<string, THREE.BufferGeometry>,
   const source = pineCragScene(skin), tiers: Record<CragTier, AssemblyTier> = {
     phone: {kinds:cragKinds('phone',kit,hulls,places),slots:[],plans:[],reserve:{instances:0,vertices:0,indices:0}}, desktop: {kinds:cragKinds('desktop',kit,hulls,places),slots:[],plans:[],reserve:{instances:0,vertices:0,indices:0}} };
   const size = (geometry: THREE.BufferGeometry | undefined) => geometry === undefined ? {v:0,i:0} : {v:geometry.getAttribute('position').count,i:geometry.index?.count ?? geometry.getAttribute('position').count};
-  const caveMatrix = new THREE.Matrix4().makeRotationY(BEAR_CAVE.rot).setPosition(BEAR_CAVE.x,0,BEAR_CAVE.z);
+  const caveMatrix = new THREE.Matrix4().makeRotationY(LAYOUT.BEAR_CAVE.rot).setPosition(LAYOUT.BEAR_CAVE.x,0,LAYOUT.BEAR_CAVE.z);
   for (const tier of ['phone','desktop'] as const) {
     const row=tiers[tier], geometries: THREE.BufferGeometry[] = [], near=tier==='phone'?95:170;
     for (const piece of source.children) {
@@ -56,14 +56,14 @@ export function pineCragAssembly(kit: ReadonlyMap<string, THREE.BufferGeometry>,
     for(const group of groups){row.reserve.instances+=group.length;for(const id of new Set(group.map(place=>place.id)))for(const geometry of [kit.get(id),kit.get(`${id}-lod1`)??kit.get(id)]){const n=size(geometry);row.reserve.vertices+=n.v;row.reserve.indices+=n.i;}}
     for(const geometry of geometries){const n=size(geometry);row.reserve.vertices+=n.v;row.reserve.indices+=n.i;}
   }
-  const {grid}=ground, res=grid.res, chunk=grid.size, d=chunk/(res-1), half=chunk/2, cos=Math.cos(BEAR_CAVE.rot), sin=Math.sin(BEAR_CAVE.rot);
-  const world=(x:number,z:number)=>[BEAR_CAVE.x+x*cos+z*sin,BEAR_CAVE.z-x*sin+z*cos] as const;
+  const {grid}=ground, res=grid.res, chunk=grid.size, d=chunk/(res-1), half=chunk/2, cos=Math.cos(LAYOUT.BEAR_CAVE.rot), sin=Math.sin(LAYOUT.BEAR_CAVE.rot);
+  const world=(x:number,z:number)=>[LAYOUT.BEAR_CAVE.x+x*cos+z*sin,LAYOUT.BEAR_CAVE.z-x*sin+z*cos] as const;
   const cells=new Set<number>(), triangles:number[]=[];
   for(const cut of meta.cuts){const [x,z]=world(cut.lx,cut.lz),r=Math.hypot(cut.hw,cut.hd)+3*d;
     const i0=Math.max(0,Math.floor((x-r+half)/d)),i1=Math.min(res-2,Math.ceil((x+r+half)/d)),k0=Math.max(0,Math.floor((z-r+half)/d)),k1=Math.min(res-2,Math.ceil((z+r+half)/d));
     for(let iz=k0;iz<=k1;iz++)for(let ix=i0;ix<=i1;ix++){const dx=ix*d-half-x,dz=iz*d-half-z,lx=dx*cos-dz*sin,lz=dx*sin+dz*cos;if(Math.abs(lx)<=cut.hw+2.5*d&&Math.abs(lz)<=cut.hd+2.5*d)cells.add(iz*res+ix);}
   }
-  const local=(x:number,z:number)=>{const dx=x-BEAR_CAVE.x,dz=z-BEAR_CAVE.z;return [dx*cos-dz*sin,dx*sin+dz*cos] as const;};
+  const local=(x:number,z:number)=>{const dx=x-LAYOUT.BEAR_CAVE.x,dz=z-LAYOUT.BEAR_CAVE.z;return [dx*cos-dz*sin,dx*sin+dz*cos] as const;};
   for(const cell of cells){const ix=cell%res,iz=Math.floor(cell/res),x0=ix*d-half,x1=x0+d,z0=iz*d-half,z1=z0+d;
     const pairs=[[[x0,z0],[x0,z1],[x1,z0]],[[x0,z1],[x1,z1],[x1,z0]]] as const;
     for(const [side,points]of pairs.entries()){const localPoints=points.map(([x,z])=>local(x,z)),ys=points.map(([x,z])=>ground.heightAt(x,z)),minX=Math.min(...localPoints.map(p=>p[0])),maxX=Math.max(...localPoints.map(p=>p[0])),minZ=Math.min(...localPoints.map(p=>p[1])),maxZ=Math.max(...localPoints.map(p=>p[1])),y0=Math.min(...ys),y1=Math.max(...ys);

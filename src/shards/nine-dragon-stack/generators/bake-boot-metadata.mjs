@@ -1,3 +1,4 @@
+import { NINE_MANIFEST_ROWS } from './manifestRows.ts';
 import { bootSources } from './bootFiles.ts';
 import manifest from '../data/manifest.json' with { type: 'json' };
 import strings from '../data/strings.json' with { type: 'json' };
@@ -38,5 +39,5 @@ const sources = { modes: {
   desktop: { img: resolveMode('desktop', 'img'), ktx2: resolveMode('desktop', 'ktx2') },
 } };
 const writer = byteWriter(process.argv.includes('--check'), 'nine-boot-metadata');
-writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes({ sources, manifest, ceilings, runtimeCost, samples, strings }));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes({ sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS }));
 writer.finish();

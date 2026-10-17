@@ -39,7 +39,7 @@ import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { antlerKingFight, KING_KIND } from '../runtime/antlerKing';
 import { ANTLER_KING_PRESENTATION } from '../data/antlerKing';
-import { KINGS_CLEARING } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { PINE_PHASES } from '../look/dayKeys';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
@@ -179,7 +179,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   if (params.get('boss') === KING_KIND) {
     forcedNight = true; void ctx.sky.dayNight?.set(PINE_PHASES.night);
     const from = Number(params.get('from') ?? '26');
-    player.spawn(KINGS_CLEARING.x, KINGS_CLEARING.z + (Number.isFinite(from) ? from : 26), 0);
+    player.spawn(LAYOUT.KINGS_CLEARING.x, LAYOUT.KINGS_CLEARING.z + (Number.isFinite(from) ? from : 26), 0);
     king.fight.setPresent(true); king.boss.arm();
     const phase = Number(params.get('bossPhase') ?? '1');
     if (phase > 1) king.boss.devStartAt(phase - 1);

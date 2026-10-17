@@ -7,7 +7,7 @@ import { TimberRecorder } from './timberBake';
 import { bakeFireLookout } from './fireLookout';
 import { bakeSiteTimbers } from './siteTimbers';
 import { timberFrame, ZIP_YAW, landingSite, bridgeSite } from './timberPlacement';
-import { LOOKOUT } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 /** Original non-indexed material draws, before any world placement or finishing policy. */
 export function timberDraws(timber: TimberBuilder): Map<string, THREE.BufferGeometry> {
@@ -35,7 +35,7 @@ function addTimber(scene: THREE.Scene, timber: TimberBuilder, identity: string, 
 /** Original lookout at its crag-top site; no collider, rider or lamp owner is installed at author time. */
 export function pineLookoutScene(heightAt: (x: number, z: number) => number): THREE.Scene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.lookout';
-  const frame = timberFrame(LOOKOUT.x, heightAt(LOOKOUT.x, LOOKOUT.z), LOOKOUT.z, ZIP_YAW);
+  const frame = timberFrame(LAYOUT.LOOKOUT.x, heightAt(LAYOUT.LOOKOUT.x, LAYOUT.LOOKOUT.z), LAYOUT.LOOKOUT.z, ZIP_YAW);
   bakeFireLookout(new TimberRecorder(timber => { addTimber(scene, timber, 'fire-lookout', frame); }));
   return scene;
 }

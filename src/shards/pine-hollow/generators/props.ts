@@ -14,10 +14,10 @@ import * as THREE from 'three';
 import { PineSeedStream as Rng } from './seedStream';
 import type { CragGround } from './cragGround';
 import { inEntryLanes, type EntryLaneSource, type PropPose, type PropRows } from './propRows';
-import { CABIN_SITES, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 const CHUNK_HALF = 250, PINE_SEED = 1337, ROCK_SOLID_ABOVE = 0.35;
-const TRAILS = [S_ROAD, N_ROAD, W_ROAD, E_ROAD, ...Object.values(SPURS)];
+const TRAILS = [LAYOUT.S_ROAD, LAYOUT.N_ROAD, LAYOUT.W_ROAD, LAYOUT.E_ROAD, ...Object.values(LAYOUT.SPURS)];
 const inChunk = (x: number, z: number, margin = 0): boolean => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;
 const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
@@ -104,7 +104,7 @@ export function bakePineProps(kit: PropKit, trunks: readonly Trunk[], ground: Cr
   while (stumps.length + gated < 70 && tries++ < 20000) {
     let x: number, z: number;
     if (stumpRng.next() < 0.4) {
-      const c = stumpRng.pick(CABIN_SITES);
+      const c = stumpRng.pick(LAYOUT.CABIN_SITES);
       const a = stumpRng.range(0, Math.PI * 2), d = stumpRng.range(9, 22);
       x = c.x + Math.cos(a) * d; z = c.z + Math.sin(a) * d;
     } else { const p = trailPoint(stumpRng); const a = stumpRng.range(0, Math.PI * 2), d = stumpRng.range(3.5, 14); x = p[0] + Math.cos(a) * d; z = p[1] + Math.sin(a) * d; }

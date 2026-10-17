@@ -1,5 +1,5 @@
 import type { RoamingBossRow } from '@wildshard/sdk/phasedBoss';
-import { KINGS_CLEARING } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { ANTLER_KING_PHASES } from '../data/antlerKing';
 import KING_ATTACK_TIMING from '../data/kingTiming.json' with { type: 'json' };
 
@@ -7,7 +7,7 @@ import KING_ATTACK_TIMING from '../data/kingTiming.json' with { type: 'json' };
 export const ANTLER_KING_FIGHT = {
   kind: 'roaming', decision: {mode:'king.mode',request:'king.request',rings:'king.rings',adds:'king.adds',lane:'king.lane',phase:'king.phase',fight:'king.fighting',
     modeT:'king.mode-t',strikeCd:'king.strike-cd',burstCd:'king.burst-cd',summonCd:'king.summon-cd',chain:'king.chain',
-    modes:['dormant','intro','dead','stalk','sweep','stomp','waves','open','call','stalk3']}, origin: KINGS_CLEARING,
+    modes:['dormant','intro','dead','stalk','sweep','stomp','waves','open','call','stalk3']}, origin: LAYOUT.KINGS_CLEARING,
   phases: [
     {at: ANTLER_KING_PHASES[0].at,beginMode:'stalk',chaseSpeed:2.3,recoverySeconds:3.2,burstCooldown:9,summons:false,rings:1,darkness:false},
     {at: ANTLER_KING_PHASES[1].at,beginMode:'stalk',chaseSpeed:2.8,recoverySeconds:2.6,burstCooldown:7.5,summons:true,rings:2,darkness:false,enter:{mode:'stalk',drop:true,summonDelay:1.2}},

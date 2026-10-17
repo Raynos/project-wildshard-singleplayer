@@ -1,7 +1,7 @@
-import { KINGS_CLEARING as C } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 /** The encounter's admitted numeric observations and one-shot mechanic requests. */
 export const KING_FIELDS = [
- ['mode',0],['mode-t',0],['strike-cd',2],['burst-cd',4],['summon-cd',0],['chain',0],['phase',0],['fighting',0],['request',0],['rings',0],['adds',0],['lane',0],['pose',0],['home-x',C.x],['home-z',C.z],
+ ['mode',0],['mode-t',0],['strike-cd',2],['burst-cd',4],['summon-cd',0],['chain',0],['phase',0],['fighting',0],['request',0],['rings',0],['adds',0],['lane',0],['pose',0],['home-x',LAYOUT.KINGS_CLEARING.x],['home-z',LAYOUT.KINGS_CLEARING.z],
 ].map(([key,value],i)=>({id:100+i,name:`king.${String(key)}`,type:'f64' as const,privacy:'public' as const,default:Number(value),min:-10000,max:10000}));
 export const KING_MOVES = [
  ...[1.2,1,.8].map((turn,i)=>({id:`king.face.${i}`,kind:'stalk',ground:true,above:0,standOff:0,speed:0,turn,ready:{kind:'over',radius:.001,height:600}})),

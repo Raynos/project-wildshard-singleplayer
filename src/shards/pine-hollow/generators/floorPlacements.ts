@@ -3,7 +3,7 @@ import { PineSeedStream as Rng } from './seedStream';
 import { Noise2D, smoothstep, lerp } from './floorNoise';
 import { pineCragQueries } from './cragGround';
 import { ridgeFootZ, nearestOnPolyline } from '../behaviour/layout';
-import { OLD_GROWTH, RIDGE, ZIPLINE, POND, HAMLET, KINGS_CLEARING, LOOKOUT, DEN, BEAR_CAVE, CREEK, WATERFALL, CREEK_BRIDGE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 interface Tree { readonly x: number; readonly z: number; readonly r: number }
 export interface UnderPlacement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }
@@ -14,22 +14,22 @@ const FERN_MAX = 6000, SHRUB_MAX = 1500, LITTER_MAX = 5000, STONE_MAX = 3000, MO
 type Kind = 'fern' | 'shrub' | 'litter' | 'stone' | 'moss' | 'reed';
 /** 0 → 1 inside the old-growth's soft ellipse */
 function oldGrowthMask(x: number, z: number): number {
-  const e = Math.hypot((x - OLD_GROWTH.x) / OLD_GROWTH.ax, (z - OLD_GROWTH.z) / OLD_GROWTH.az);
+  const e = Math.hypot((x - LAYOUT.OLD_GROWTH.x) / LAYOUT.OLD_GROWTH.ax, (z - LAYOUT.OLD_GROWTH.z) / LAYOUT.OLD_GROWTH.az);
   return smoothstep(1.0, 0.72, e);
 }
 
 /** the ridge's rise at (x, z): 0 at its foot → 1 at the crest and on to the north edge, cut by the pass, faded toward the Den */
 function ridgeWeight(x: number, z: number): number {
-  const u = (z - ridgeFootZ(x)) / RIDGE.climb;
+  const u = (z - ridgeFootZ(x)) / LAYOUT.RIDGE.climb;
   if (u <= 0) return 0;
-  const west = smoothstep(RIDGE.westFade[1], RIDGE.westFade[0], x);
-  const pass = smoothstep(RIDGE.passHalf, RIDGE.passOpen, Math.abs(x));
+  const west = smoothstep(LAYOUT.RIDGE.westFade[1], LAYOUT.RIDGE.westFade[0], x);
+  const pass = smoothstep(LAYOUT.RIDGE.passHalf, LAYOUT.RIDGE.passOpen, Math.abs(x));
   return smoothstep(0, 1, u) * west * pass;
 }
 
 /** metres from (x, z) to the zipline's ground track */
 function ziplineDistance(x: number, z: number): number {
-  return nearestOnPolyline([[ZIPLINE.from.x, ZIPLINE.from.z], [ZIPLINE.to.x, ZIPLINE.to.z]], x, z).d;
+  return nearestOnPolyline([[LAYOUT.ZIPLINE.from.x, LAYOUT.ZIPLINE.from.z], [LAYOUT.ZIPLINE.to.x, LAYOUT.ZIPLINE.to.z]], x, z).d;
 }
 
 /** E143: the keep multiplier on the whole forest (the look loop's was 1, with the Hollow grove's × 2.4 on top) */
@@ -41,12 +41,12 @@ const FOREST_KEEP = 0.7;
  * cut, the waterfall's foot and the footbridge keep their ferns but lose their trees.
  */
 function forestDensity(x: number, z: number): number {
-  if (Math.hypot(x - HAMLET.x, z - HAMLET.z) < HAMLET.r + 6) return 0;
-  if (Math.hypot(x - KINGS_CLEARING.x, z - KINGS_CLEARING.z) < KINGS_CLEARING.clear) return 0;
-  if (Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z) < LOOKOUT.r + 5) return 0;
-  if (Math.hypot(x - DEN.x, z - DEN.z) < 14 || Math.hypot(x - BEAR_CAVE.x, z - BEAR_CAVE.z) < 9) return 0;
-  if (nearestOnPolyline(CREEK, x, z).d < 7 || ziplineDistance(x, z) < ZIPLINE.corridor) return 0.02;
-  if (Math.hypot(x - WATERFALL.foot.x, z - WATERFALL.foot.z) < 10 || Math.hypot(x - CREEK_BRIDGE.x, z - CREEK_BRIDGE.z) < 10) return 0.02;
+  if (Math.hypot(x - LAYOUT.HAMLET.x, z - LAYOUT.HAMLET.z) < LAYOUT.HAMLET.r + 6) return 0;
+  if (Math.hypot(x - LAYOUT.KINGS_CLEARING.x, z - LAYOUT.KINGS_CLEARING.z) < LAYOUT.KINGS_CLEARING.clear) return 0;
+  if (Math.hypot(x - LAYOUT.LOOKOUT.x, z - LAYOUT.LOOKOUT.z) < LAYOUT.LOOKOUT.r + 5) return 0;
+  if (Math.hypot(x - LAYOUT.DEN.x, z - LAYOUT.DEN.z) < 14 || Math.hypot(x - LAYOUT.BEAR_CAVE.x, z - LAYOUT.BEAR_CAVE.z) < 9) return 0;
+  if (nearestOnPolyline(LAYOUT.CREEK, x, z).d < 7 || ziplineDistance(x, z) < LAYOUT.ZIPLINE.corridor) return 0.02;
+  if (Math.hypot(x - LAYOUT.WATERFALL.foot.x, z - LAYOUT.WATERFALL.foot.z) < 10 || Math.hypot(x - LAYOUT.CREEK_BRIDGE.x, z - LAYOUT.CREEK_BRIDGE.z) < 10) return 0.02;
   // E143 (Jake: "way too many trees … green, green, green foliage" — a hunting shard needs sight lines): the whole shard at
   // FOREST_KEEP of the look loop's forest and the old-growth × 1.6, not × 4 (which saturated its 8.5 m grid into a wall),
   // and no Hollow grove (PH-L1 round 2's × 2.4 and its second grid): paths, clearings and animals at 40–80 m read again
@@ -60,11 +60,11 @@ export function* pineFloorPlacements(trees: readonly Tree[], source: NativeTerra
   const cluster = new Noise2D(1337 + 78);
   const ferns: Placement[] = [], shrubs: Placement[] = [], litter: Placement[] = [], stones: Placement[] = [], moss: Placement[] = [], reeds: Placement[] = [];
   const half = 250 - 8;
-  const wl = POND.level;
+  const wl = LAYOUT.POND.level;
   const { heightAt, normalAt, splatAt } = source;
   const { trailDistance, cabinMask } = pineCragQueries(source);
   const pondNoise = new Noise2D(1337);
-  const pondMask = (x: number, z: number): number => smoothstep(POND.r + 10, POND.r * 0.3, Math.hypot(x - POND.x, z - POND.z) + pondNoise.get(x * 0.05, z * 0.05) * 3);
+  const pondMask = (x: number, z: number): number => smoothstep(LAYOUT.POND.r + 10, LAYOUT.POND.r * 0.3, Math.hypot(x - LAYOUT.POND.x, z - LAYOUT.POND.z) + pondNoise.get(x * 0.05, z * 0.05) * 3);
   const cells = new Map<string, Tree[]>();
   for (const tree of trees) { const key = `${Math.floor(tree.x / 16)},${Math.floor(tree.z / 16)}`; const row = cells.get(key) ?? []; row.push(tree); cells.set(key, row); }
   const grid = { nearby: (x: number, z: number, radius: number): Tree[] => {
@@ -143,8 +143,8 @@ export function* pineFloorPlacements(trees: readonly Tree[], source: NativeTerra
       const x = rng.range(-half, half), z = rng.range(-half, half);
       tryPlace('fern', x, z);
     } else {
-      const a = rng.range(0, Math.PI * 2), d = POND.r + rng.range(-4, 14);
-      tryPlace('fern', POND.x + Math.cos(a) * d, POND.z + Math.sin(a) * d);
+      const a = rng.range(0, Math.PI * 2), d = LAYOUT.POND.r + rng.range(-4, 14);
+      tryPlace('fern', LAYOUT.POND.x + Math.cos(a) * d, LAYOUT.POND.z + Math.sin(a) * d);
     }
   }
   yield;
@@ -162,8 +162,8 @@ export function* pineFloorPlacements(trees: readonly Tree[], source: NativeTerra
   }
   yield;
   for (let i = 0; i < 40000 && reeds.length < REED_MAX; i++) {
-    const a = rng.range(0, Math.PI * 2), d = rng.range(POND.r * 0.3, POND.r + 10);
-    tryPlace('reed', POND.x + Math.cos(a) * d, POND.z + Math.sin(a) * d);
+    const a = rng.range(0, Math.PI * 2), d = rng.range(LAYOUT.POND.r * 0.3, LAYOUT.POND.r + 10);
+    tryPlace('reed', LAYOUT.POND.x + Math.cos(a) * d, LAYOUT.POND.z + Math.sin(a) * d);
   }
   return { ferns, shrubs, litter, stones, moss, reeds };
 }

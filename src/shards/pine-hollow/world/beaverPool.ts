@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's beaver pool (E322 F-L6, Jake's pick "Local pool"): the dam's own small pool on the creek between the
- * gravel riffle at the pond's outlet and the dam (its bowl: BEAVER_POOL in src/shards/pine-hollow/data/layout.ts, carved by the
+ * gravel riffle at the pond's outlet and the dam (its bowl: BEAVER_POOL in src/shards/pine-hollow/data/layout.generated.ts, carved by the
  * chunk's landscape). Full, it stands at the pond's level; when the sluice opens (`open:dam-sluice`) it drains over
  * DRAIN_S to a muddy bed and the pond's outflow runs on as a trickle down the bed and out through the sluice.
  *
@@ -21,7 +21,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineWaterSurface, setWaterFade } from './water';
-import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { loadSiteTimbers } from '../runtime/world/timberSites';
 import { pineModels } from '../runtime/world/context';
@@ -64,7 +64,7 @@ export class BeaverPool {
   }
 
   /** the pool's level now (m) */
-  get level(): number { return beaverPoolLevel.y; }
+  get level(): number { return LAYOUT.beaverPoolLevel.y; }
 
   update(dt: number): void {
     const goal = this.open ? 1 : 0;
@@ -75,9 +75,9 @@ export class BeaverPool {
 
   /** lay the surface at the level `t` gives: fast at first, slowing as the head falls (an orifice drains as √head) */
   private apply(): void {
-    const P = BEAVER_POOL, e = 1 - (1 - this.t) ** 2;
+    const P = LAYOUT.BEAVER_POOL, e = 1 - (1 - this.t) ** 2;
     const level = P.full + (P.drained - P.full) * e;
-    beaverPoolLevel.y = level;
+    LAYOUT.beaverPoolLevel.y = level;
     const geo = this.still.geometry;
     const pos = geo.getAttribute('position'), aw = geo.getAttribute('aWater');
     for (let k = 0; k < pos.count; k++) {

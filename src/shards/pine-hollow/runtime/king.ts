@@ -6,7 +6,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
 import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
 import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
-import { KINGS_CLEARING } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { kingDormant, kingFight, kingFightState, kingPresence, restoreKingFight, type KingCoreEnv, type KingFight } from '../combat/kingFight';
 import { Lane } from '../combat/lane';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
@@ -82,8 +82,8 @@ function headlessKing(host: SimHost, ports: PineKingPorts): { fight: KingFight<P
         // the page's prewarm spawned him at the clearing's centre facing north (his first body); a fallen King's next night is
         // the declared row (pine.antler-king: the clearing, yaw 0, 'warden') spawned live through the manager: the stream's
         // rolls and memory draws, the next entity id. Either way he is pinned out of the manager's thinking.
-        const a = own.first ? ports.spawnLoose(row.kind, KINGS_CLEARING.x, KINGS_CLEARING.z, 0, row.variant)
-          : ports.adoptParked(row.id, KINGS_CLEARING.x, KINGS_CLEARING.z, 0);
+        const a = own.first ? ports.spawnLoose(row.kind, LAYOUT.KINGS_CLEARING.x, LAYOUT.KINGS_CLEARING.z, 0, row.variant)
+          : ports.adoptParked(row.id, LAYOUT.KINGS_CLEARING.x, LAYOUT.KINGS_CLEARING.z, 0);
         own.first = true;
         a.scripted = true;
         return a;

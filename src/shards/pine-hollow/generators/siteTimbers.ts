@@ -14,7 +14,7 @@
  */
 import type * as THREE from 'three';
 import { PINE_TIMBER_SEED as SEED, type SiteTimberRows } from './timberRows';
-import { ZIPLINE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { TimberBuilder, V } from './timberKit';
 import { BRIDGE, BRIDGE_HALF, LANDING, bridgeSite, landingSite } from './timberPlacement';
 import { TimberRecorder } from './timberBake';
@@ -22,7 +22,7 @@ import { TimberRecorder } from './timberBake';
 type V3 = THREE.Vector3;
 type Ground = (lx: number, lz: number) => number;
 
-const LANDING_DIMS = { hx: 1.5, hz: 1.6, deck: ZIPLINE.to.deck, gantry: 3.8, cable: 3.3 };
+const LANDING_DIMS = { hx: 1.5, hz: 1.6, deck: LAYOUT.ZIPLINE.to.deck, gantry: 3.8, cable: 3.3 };
 
 function buildLanding(t: TimberBuilder, g: (lx: number, lz: number) => number): void {
   // the N road runs under the deck along local Z (the cable's line): the posts stand 3 m apart either side of it, the

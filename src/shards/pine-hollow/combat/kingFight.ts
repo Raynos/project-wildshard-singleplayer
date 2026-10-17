@@ -3,7 +3,7 @@ import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { BossBrain } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
-import { KINGS_CLEARING } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import type { LaneState } from './lane';
@@ -82,7 +82,7 @@ export function restoreKingFight<B extends KingBody>(fight: KingFight<B>, saved:
 /** Before the boss brain's tick: the King comes at night when the player is within 80 m (armed at the stones) and goes by
  *  day or past 110 m (the page's AntlerKing and the headless step alike). */
 export function kingPresence<B extends KingBody>(boss: BossBrain, fight: KingFight<B>, player: { readonly x: number; readonly z: number }, night: boolean): void {
-  const d = Math.hypot(player.x - KINGS_CLEARING.x, player.z - KINGS_CLEARING.z), s = boss.state;
+  const d = Math.hypot(player.x - LAYOUT.KINGS_CLEARING.x, player.z - LAYOUT.KINGS_CLEARING.z), s = boss.state;
   if (s === 'dormant') { if (night && d < 80) { fight.setPresent(true); boss.arm(); } }
   else if ((s === 'armed' || s === 'victory') && (d > 110 || !night)) { boss.disarm(); fight.setPresent(false); }
 }

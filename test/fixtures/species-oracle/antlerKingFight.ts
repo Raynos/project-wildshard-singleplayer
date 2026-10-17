@@ -2,14 +2,14 @@
 import { Vector3 } from 'three';
 import type { BossBrain, BossScript } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
-import { KINGS_CLEARING } from '../../../src/shards/pine-hollow/data/layout';
+import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import { KING_PHASE_AT, burnTick, headingTo, wallPush } from '../pine/combatMath';
 import { PINE_LEVEL_SEED } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 import { PINE_STRIKES, pineContact } from './pineStrikes';
 import type { Lane, LaneBody, LaneState } from '../../../src/shards/pine-hollow/combat/lane';
 import { AntlerKingGoals, type KingGoalEnv } from './antlerKingGoals';
 
-const C = KINGS_CLEARING;
+const C = LAYOUT.KINGS_CLEARING;
 /** the arena's threshold, the soft wall, the fog wall and his own leash round the clearing's centre (m) */
 export const KING_ARENA_IN = 22, KING_WALL_R = 27.5, KING_FOG_R = 31, KING_LEASH_R = 24;
 /** the rearing strike's slam: the forehooves land 4.0 m ahead, ±1.7 m off his line (4.4 m out): the root ring bursts from there */
@@ -363,7 +363,7 @@ export abstract class AntlerKingCore<B extends KingBody> extends AntlerKingGoals
 /** Before the boss brain's tick: the King comes at night when the player is within 80 m (armed at the stones) and goes by
  *  day or past 110 m (the page's AntlerKing and the headless step alike). */
 export function kingPresence<B extends KingBody>(boss: BossBrain, fight: AntlerKingCore<B>, player: { readonly x: number; readonly z: number }, night: boolean): void {
-  const d = Math.hypot(player.x - KINGS_CLEARING.x, player.z - KINGS_CLEARING.z), s = boss.state;
+  const d = Math.hypot(player.x - LAYOUT.KINGS_CLEARING.x, player.z - LAYOUT.KINGS_CLEARING.z), s = boss.state;
   if (s === 'dormant') { if (night && d < 80) { fight.setPresent(true); boss.arm(); } }
   else if ((s === 'armed' || s === 'victory') && (d > 110 || !night)) { boss.disarm(); fight.setPresent(false); }
 }

@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
-import { BEAR_CAVE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { moduleBytes, stepEliteScript, EliteScriptLane, type EliteScriptPorts } from '@wildshard/game/plugin/brain';
 import eliteRows from '../data/eliteRuntime.generated.json' with { type: 'json' };
 import { parseEliteScript } from '@wildshard/format/eliteScripts';
@@ -69,7 +69,7 @@ export interface PineEliteWorld<B extends PineEliteBody> {
 }
 
 /** where Blackpaw waits: a step inside the cave mouth (the mouth faces SE: (−sin rot, −cos rot)) */
-export const BLACKPAW_MOUTH = { x: BEAR_CAVE.x - Math.sin(BEAR_CAVE.rot) * 1.5, z: BEAR_CAVE.z - Math.cos(BEAR_CAVE.rot) * 1.5 };
+export const BLACKPAW_MOUTH = { x: LAYOUT.BEAR_CAVE.x - Math.sin(LAYOUT.BEAR_CAVE.rot) * 1.5, z: LAYOUT.BEAR_CAVE.z - Math.cos(LAYOUT.BEAR_CAVE.rot) * 1.5 };
 const MOUTH = BLACKPAW_MOUTH;
 const NEVER=-1e6;
 const contact = new StrikeRunner();
@@ -248,13 +248,13 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     this.setMode('stare');
   }
   private lurk(a: B): void {
-    a.place(MOUTH.x, MOUTH.z, BEAR_CAVE.rot + Math.PI);
+    a.place(MOUTH.x, MOUTH.z, LAYOUT.BEAR_CAVE.rot + Math.PI);
     a.hidden = true; this.env.show(a, false);
     this.setMode('lurk');
   }
   burstOut(a: B): void {
     const p = this.env.player.position;
-    a.place(MOUTH.x - Math.sin(BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(BEAR_CAVE.rot) * 2.5, Math.atan2(p.x - MOUTH.x, p.z - MOUTH.z));
+    a.place(MOUTH.x - Math.sin(LAYOUT.BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(LAYOUT.BEAR_CAVE.rot) * 2.5, Math.atan2(p.x - MOUTH.x, p.z - MOUTH.z));
     a.hidden = false; this.env.show(a, true);
     this.env.fx.burstOut(a);
     this.sig();

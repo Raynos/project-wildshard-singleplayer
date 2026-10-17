@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import L from '../../data/layout.generated.json' with { type: 'json' };
 
 const ROOT = resolve(import.meta.dirname, '../../../../..');
 const OUT = process.argv[2] ?? resolve(ROOT, 'cave-in.json');
@@ -18,7 +19,6 @@ const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 const registry = await src('game/shard/registry.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
-const L = await src('shards/pine-hollow/data/layout.ts');
 registry.setActiveChunk('pine-hollow');
 const buf = readFileSync(resolve(ROOT, 'public/assets/baked/pine-hollow/terrain.bin'));
 HF._installBakedTerrain(BT.bakedSamplers(BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))));

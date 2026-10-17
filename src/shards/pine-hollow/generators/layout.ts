@@ -93,9 +93,9 @@ export const BEAVER_POOL = {
   crest: POND.level - 0.05, bed: POND.level - 0.62, full: POND.level, drained: POND.level - 0.68,
 };
 /** the pool's water level now: `full` until the sluice opens, then falling to `drained` (src/shards/pine-hollow/world/beaverPool.ts sets it
- *  from the quest flag, so a reload with the sluice open starts drained). The one piece of run-time state in this file:
- *  the creek's `streamAt` (wading, swimming, the animals' dry test) reads it. */
+ *  from the quest flag, so a reload with the sluice open starts drained). The generated intake keeps this one shared cell. */
 export const beaverPoolLevel = { y: BEAVER_POOL.full };
+
 /** creek bed: half-width of the flat bed, bank slope (rise / run, ~31°), bed height at the outlet, the sluice's floor under
  *  the dam (the pool drains to it), the toe below the dam and the south edge */
 export const CREEK_BED = { half: 2.6, bank: 0.6, outlet: POND.level - 0.45, sill: POND.level - 0.8, afterDam: POND.level - 1.3, edge: -9 };

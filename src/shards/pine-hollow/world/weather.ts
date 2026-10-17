@@ -50,7 +50,7 @@ import rainRows from '../data/rain.json' with { type: 'json' };
 import { HerdShelter } from '../runtime/species/herdShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
-import { BEAR_CAVE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
@@ -94,7 +94,7 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   const weather=installWeatherContinuation(installation,rows,pine.clock,'live');
   weather.setMode(setting('weather'), atT);
   // the rain (PH-L10, E322 F-L5): the cover map's crowns and roofs, and the bear cave's mouth under its arch, where none falls
-  const hood = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, rot: BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(BEAR_CAVE.x, BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
+  const hood = { x: LAYOUT.BEAR_CAVE.x, z: LAYOUT.BEAR_CAVE.z, rot: LAYOUT.BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(LAYOUT.BEAR_CAVE.x, LAYOUT.BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
   const fx = new RainFx({ name: 'pine-weather', roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, baked: h.rain, hood, channels: ctx.product.shardfile.clientChannels }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
   if (entered === undefined) {

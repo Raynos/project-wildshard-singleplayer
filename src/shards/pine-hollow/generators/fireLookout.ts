@@ -14,14 +14,14 @@
 import * as THREE from 'three';
 import { PINE_TIMBER_SEED as SEED, LOOKOUT_SEED, type LookoutRows } from './timberRows';
 import { boxUV } from './cabinShapes';
-import { ZIPLINE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { TimberBuilder, V } from './timberKit';
 import { TimberRecorder } from './timberBake';
 
 type V3 = THREE.Vector3;
 
 /** tower frame: local −Z faces the zipline's landing (the launch side), local +X the trail's arrival (the stair's door) */
-const TOWER = { base: 3.0, top: 2.1, deck: ZIPLINE.from.deck, deckHalf: 3.4, cab: 2.4, cabH: 2.3, flights: 5, flightRise: ZIPLINE.from.deck / 5, riser: 7, tread: 0.36, stairHalf: 1.26, landing: 0.9 } as const;
+const TOWER = { base: 3.0, top: 2.1, deck: LAYOUT.ZIPLINE.from.deck, deckHalf: 3.4, cab: 2.4, cabH: 2.3, flights: 5, flightRise: LAYOUT.ZIPLINE.from.deck / 5, riser: 7, tread: 0.36, stairHalf: 1.26, landing: 0.9 } as const;
 const LAUNCH = { half: 0.8, out: 1.4, gantry: 3.6, cable: 3.3 };
 
 function buildLookout(t: TimberBuilder): void {

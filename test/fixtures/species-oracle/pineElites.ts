@@ -8,7 +8,7 @@ import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '.
 import { PINE_STRIKES, pineContact, PINE_LANES } from './pineStrikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
-import { BEAR_CAVE } from '../../../src/shards/pine-hollow/data/layout';
+import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/generators/eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 
@@ -220,7 +220,7 @@ export interface PineEliteWorld<B extends PineEliteBody> {
 }
 
 /** where Blackpaw waits: a step inside the cave mouth (the mouth faces SE: (−sin rot, −cos rot)) */
-export const BLACKPAW_MOUTH = { x: BEAR_CAVE.x - Math.sin(BEAR_CAVE.rot) * 1.5, z: BEAR_CAVE.z - Math.cos(BEAR_CAVE.rot) * 1.5 };
+export const BLACKPAW_MOUTH = { x: LAYOUT.BEAR_CAVE.x - Math.sin(LAYOUT.BEAR_CAVE.rot) * 1.5, z: LAYOUT.BEAR_CAVE.z - Math.cos(LAYOUT.BEAR_CAVE.rot) * 1.5 };
 const MOUTH = BLACKPAW_MOUTH;
 
 /** A script's own state beyond its brain's, as plain values (a renderer-free continuation). */
@@ -364,7 +364,7 @@ export class Blackpaw<B extends PineEliteBody> extends PineEliteScript<B> {
   get ringR(): number { return this.p2 ? 11 : 8; }
   /** in the cave: out of sight at the mouth */
   private lurk(a: B): void {
-    a.place(MOUTH.x, MOUTH.z, BEAR_CAVE.rot + Math.PI);
+    a.place(MOUTH.x, MOUTH.z, LAYOUT.BEAR_CAVE.rot + Math.PI);
     a.hidden = true; this.env.show(a, false);
     this.setMode('lurk');
   }
@@ -382,7 +382,7 @@ export class Blackpaw<B extends PineEliteBody> extends PineEliteScript<B> {
   }
   burstOut(a: B): void {
     const p = this.env.player.position;
-    a.place(MOUTH.x - Math.sin(BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(BEAR_CAVE.rot) * 2.5, headingTo(MOUTH.x, MOUTH.z, p.x, p.z));
+    a.place(MOUTH.x - Math.sin(LAYOUT.BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(LAYOUT.BEAR_CAVE.rot) * 2.5, headingTo(MOUTH.x, MOUTH.z, p.x, p.z));
     a.hidden = false; this.env.show(a, true);
     this.env.fx.burstOut(a);
     this.sig();

@@ -11,12 +11,14 @@
  */
 import * as THREE from 'three';
 import type { CragGround } from './cragGround';
-import { BEAVER_POOL, POND, CREEK, CREEK_WATER, type XZ } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { creekBedAt, creekSpan, inBeaverPool } from '../behaviour/layout';
 import type { PoolRows } from './poolRows';
 
+type XZ = [number, number];
+
 const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const pondGrid = (): { cell: number; x0: number; z0: number } => { const half = POND.r + 15; return { cell: (half * 2) / 128, x0: POND.x - half, z0: POND.z - half }; };
+const pondGrid = (): { cell: number; x0: number; z0: number } => { const half = LAYOUT.POND.r + 15; return { cell: (half * 2) / 128, x0: LAYOUT.POND.x - half, z0: LAYOUT.POND.z - half }; };
 
 /** the trickle's across-channel offsets (m) and its depth code there (0 at the edges: they fade into the mud) */
 const TRICKLE_ACROSS = [-0.9, -0.45, 0, 0.45, 0.9];
@@ -28,11 +30,11 @@ const f32 = (a: readonly number[]): number[] => a.map((v) => Math.fround(v));
 /** the creek's polyline point and unit direction at arc length `s` */
 function creekAt(s: number): { x: number; z: number; tx: number; tz: number } {
   let acc = 0;
-  for (let i = 0; i + 1 < CREEK.length; i++) {
-    const a: XZ | undefined = CREEK[i], b: XZ | undefined = CREEK[i + 1];
+  for (let i = 0; i + 1 < LAYOUT.CREEK.length; i++) {
+    const a: XZ | undefined = LAYOUT.CREEK[i], b: XZ | undefined = LAYOUT.CREEK[i + 1];
     if (!a || !b) continue;
     const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (s <= acc + l || i + 2 === CREEK.length) {
+    if (s <= acc + l || i + 2 === LAYOUT.CREEK.length) {
       const u = l > 0 ? (s - acc) / l : 0;
       return { x: a[0] + (b[0] - a[0]) * u, z: a[1] + (b[1] - a[1]) * u, tx: (b[0] - a[0]) / (l || 1), tz: (b[1] - a[1]) / (l || 1) };
     }
@@ -43,7 +45,7 @@ function creekAt(s: number): { x: number; z: number; tx: number; tz: number } {
 
 /** the pool's cells on the pond surface's grid: those whose centre is in the pool's reach and not always above the water */
 function still(heightAt: CragGround['heightAt']): PoolRows['still'] {
-  const { cell, x0, z0 } = pondGrid(), P = BEAVER_POOL, { dam } = creekSpan();
+  const { cell, x0, z0 } = pondGrid(), P = LAYOUT.BEAVER_POOL, { dam } = creekSpan();
   // the reach's bounding box, from the creek's line ± 12 m
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (let s = P.riffle; s <= dam; s += 1) {
@@ -76,7 +78,7 @@ function still(heightAt: CragGround['heightAt']): PoolRows['still'] {
 
 /** the trickle: the channel's line from the riffle's crest to under the dam, a few cm over the bed, tumbling off the riffle */
 function trickle(heightAt: CragGround['heightAt']): PoolRows['trickle'] {
-  const P = BEAVER_POOL, { dam } = creekSpan(), end = dam - CREEK_WATER.lead + 0.4, speed = 0.45;
+  const P = LAYOUT.BEAVER_POOL, { dam } = creekSpan(), end = dam - LAYOUT.CREEK_WATER.lead + 0.4, speed = 0.45;
   const pos: number[] = [], uv: number[] = [], aw: number[] = [], idx: number[] = [];
   let rows = 0;
   for (let s = P.riffle - 0.6; s <= end + 1e-6; s += 0.5) {

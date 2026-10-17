@@ -16,7 +16,7 @@ import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
-import { BEAR_CAVE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';
@@ -123,7 +123,7 @@ function caveRoof(heightAt: (x: number, z: number) => number): THREE.BufferGeome
   for (const ordinal of row.triangles) {
     const cell = Math.floor(ordinal / 2), x0 = (cell % res) * d - half, x1 = x0 + d, z0 = Math.floor(cell / res) * d - half, z1 = z0 + d;
     const corners = ordinal % 2 === 0 ? [[x0, z0], [x0, z1], [x1, z0]] : [[x0, z1], [x1, z1], [x1, z0]];
-    for (const [x = 0, z = 0] of corners) verts.push(x - BEAR_CAVE.x, heightAt(x, z), z - BEAR_CAVE.z);
+    for (const [x = 0, z = 0] of corners) verts.push(x - LAYOUT.BEAR_CAVE.x, heightAt(x, z), z - LAYOUT.BEAR_CAVE.z);
   }
   const g = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   return g.setIndex(Array.from({ length: verts.length / 3 }, (_, i) => i));

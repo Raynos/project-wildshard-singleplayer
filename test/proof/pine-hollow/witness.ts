@@ -18,7 +18,7 @@ import { PINE_TERRAIN } from '../../../src/shards/pine-hollow/data/terrainBindin
 import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
-import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/data/layout';
+import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
@@ -105,7 +105,7 @@ const PORCH: readonly Point[] = [[0, -190], [-8, -150], [-30, -95], [-12, -52], 
 const OFF_PORCH: readonly Point[] = [[-9.56, -34.66], [-7.99, -35.02], [-5.71, -31.7], [0, -10]];
 const LOOKOUT_FOOT: Point = [41.23, 211.92];
 /** the lookout trail's foot on the den spur (layout.ts LOOKOUT_TRAIL: one graded traverse up the ridge's face to the pad) */
-const TRAIL_FOOT: Point = LOOKOUT_TRAIL[0] ?? [150, 142];
+const TRAIL_FOOT: Point = LAYOUT.LOOKOUT_TRAIL[0] ?? [150, 142];
 const CLIMB: readonly Point[] = [[38.48, 213.08], [37.3, 213.28], [34.19, 213.79], [34.35, 214.78], [37.81, 214.21], [37.65, 213.22], [34.19, 213.79], [34.35, 214.78],
   [37.81, 214.21], [37.65, 213.22], [34.34, 213.77], [34.19, 212.83], [34.78, 212.73], [34.53, 211.25], [35.53, 211.14]];
 /** up the flights and out of the hatch into the cab (the fire finder's flint; the door to the catwalk and the launch is next) */
@@ -145,7 +145,7 @@ function route(spots: PineSpots, nav: Navmesh, heightAt: (x: number, z: number) 
     // 3. the pond's lantern
     walk(atGlass, atPond), act(PINE_ACT.pond, lanterns.pond, lanterns.pond.radius, 'lit:pond'),
     // 4. the lookout: up the five flights to the fire finder's flint, down to the ridge lantern
-    walk(atPond, TRAIL_FOOT), { kind: 'go', path: [...LOOKOUT_TRAIL.slice(1, -1), LOOKOUT_FOOT, ...CAB] }, act(PINE_ACT.flint, flint, 2.5, 'taken:ridge-flint'),
+    walk(atPond, TRAIL_FOOT), { kind: 'go', path: [...LAYOUT.LOOKOUT_TRAIL.slice(1, -1), LOOKOUT_FOOT, ...CAB] }, act(PINE_ACT.flint, flint, 2.5, 'taken:ridge-flint'),
     { kind: 'go', path: [[34.3, 213.0], ...reverse(CAB).slice(1), LOOKOUT_FOOT, atRidge] }, act(PINE_ACT.ridge, lanterns.ridge, lanterns.ridge.radius, 'lit:ridge'),
     // 5. up again to the launch; the zipline down to the Hollow
     { kind: 'go', path: [LOOKOUT_FOOT, ...CLIMB] }, act(PINE_ACT.zip, zip.prompt, zip.prompt.radius, 'used:ph-zip'), { kind: 'ride' },
@@ -255,7 +255,7 @@ const RIBS = AIM_RIBS;
  * rounds are spent.
  */
 function kingPlay(host: SimHost): HeadlessCommand[] {
-  const p = host.player.position, row = kingRow(host), C = KINGS_CLEARING;
+  const p = host.player.position, row = kingRow(host), C = LAYOUT.KINGS_CLEARING;
   const king = row.fight.king === null ? undefined : host.entities.get(row.fight.king);
   const cx = C.x - p.x, cz = C.z - p.z, toCentre = Math.hypot(cx, cz);
   if (king === undefined || row.boss.state !== 'fight') {
