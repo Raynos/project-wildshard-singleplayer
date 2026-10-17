@@ -55,9 +55,12 @@ const { default: loot } = await import('../src/shards/driftwood-isle/data/loot.g
 for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
 const { DRIFTWOOD_LOOKS } = await import('../src/shards/driftwood-isle/species/install');
 const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
+const { MONKEY_CLIPS } = await import('../src/shards/driftwood-isle/generators/monkeyClips');
+const { createMonkeyAnimation } = await import('../src/shards/driftwood-isle/species/monkeyPolicy');
+const monkeyAnimate = createMonkeyAnimation(MONKEY_CLIPS);
 for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
-  if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look));
+  if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
 const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/rows');
 installNalatiSpeciesForTests();

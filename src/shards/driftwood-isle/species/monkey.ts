@@ -1,5 +1,4 @@
 import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
-import { animateMonkey } from './monkeyPose';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -57,5 +56,4 @@ export const MONKEY_LOOK: SpeciesLook = {
   rig: 'custom',
   // the lofted body, baked offline (generators/creatureBodies.ts, the elder's grey coat included)
   build: (v) => creatureBody('monkey', v.id),
-  animate: animateMonkey,
 };

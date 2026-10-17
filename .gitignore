@@ -1934,3 +1934,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Build-only creature numeric pose rows.
 /src/shards/driftwood-isle/data/crabClips.generated.json
+
+/src/shards/driftwood-isle/data/monkeyClips.generated.json

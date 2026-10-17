@@ -5,7 +5,6 @@ import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreature
 import { createNativeCreaturePoses, stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
 import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
-import { animateMonkey } from '../species/monkeyPose';
 import sailorClips from '../data/sailorClips.generated.json' with { type: 'json' };
 import captainClips from '../data/captainClips.generated.json' with { type: 'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
@@ -45,11 +44,12 @@ const ANIM_LOD = 140;
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
 const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
-const POSE_CALLBACKS = new Map([['crab', numericCreaturePose(crabClips)], ['monkey', animateMonkey], ['sailor', (c: AnimalRigContext) => { stepCreatureLift(c.animal, c.dt, 1.5, 1.5, -2.3, 6); poseSailor(c); }], ['captain', numericCreaturePose(captainClips)]]);
+const POSE_CALLBACKS = new Map([['crab', numericCreaturePose(crabClips)], ['sailor', (c: AnimalRigContext) => { stepCreatureLift(c.animal, c.dt, 1.5, 1.5, -2.3, 6); poseSailor(c); }], ['captain', numericCreaturePose(captainClips)]]);
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
+  readonly monkeyPose: (c: AnimalRigContext) => void;
   readonly decisions: SpeciesDecisionAuthority;
   readonly population: SpeciesPrograms;
   readonly launch: BodyLaunchRow;
@@ -191,7 +191,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     throwCoconut: (from: Vector3, to: Vector3, thrower: HuntBody): void => { volley.throw(from, to, thrower); },
   };
   const brainPorts = { host, hunt, rng, world, heightAt, waterLevel: ports.waterLevel };
-  const poses = createNativeCreaturePoses([...bake.actors, { kind: 'captain', variant: 'captain', pose: bake.captain.pose }], ROSTER, POSE_CALLBACKS);
+  const callbacks = new Map(POSE_CALLBACKS); callbacks.set('monkey', ports.monkeyPose);
+  const poses = createNativeCreaturePoses([...bake.actors, { kind: 'captain', variant: 'captain', pose: bake.captain.pose }], ROSTER, callbacks);
   // the shared native roster (G454 rows): the island's scale tables, any heightfield as the floor, the melee turn cap, the
   // fauna adopted by the hunting brain, every body on the native pose roster
   const intake = createNativeCreatureRoster<IslandBody>(host, {

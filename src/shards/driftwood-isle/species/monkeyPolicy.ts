@@ -1,4 +1,7 @@
-import { Vector3 } from 'three';
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+import { parse, tuple, unknown } from 'valibot';
+import { MathUtils, Vector3 } from 'three';
 import { selectCreatureSites } from '@wildshard/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
@@ -59,4 +62,26 @@ export function throwMonkeyCoconut<A extends AnimalSim>(a: A, c: MonkeyStrikePor
   _from.set(a.position.x, a.position.y + 0.95 * a.scale, a.position.z);
   _to.set(c.player.x, c.player.y + 0.9, c.player.z);
   c.world.throwCoconut?.(_from, _to, a);
+}
+
+/** Authoritative root transition stays shard-owned, at the existing near-pose phase. */
+export function stepMonkeyRoot(a: Pick<AnimalSim, 'mem' | 'position' | 'yOffset'>, dt: number): void {
+  const m = a.mem as MonkeyMem;
+  if (m.drop) {
+    m.vy = (m.vy || 0) - 9.8 * dt;
+    a.yOffset += m.vy * dt;
+    if (a.yOffset <= 0) { a.yOffset = 0; m.drop = 0; m.vy = 0; m.land = 0.35; }
+  } else if (m.climb && m.perchH > 0) {
+    a.yOffset = Math.min(m.perchH, a.yOffset + 2.2 * dt);
+    const k = m.perchH > 0.01 ? a.yOffset / m.perchH : 1;
+    a.position.x = MathUtils.lerp(m.bx, m.px, k); a.position.z = MathUtils.lerp(m.bz, m.pz, k);
+    if (a.yOffset >= m.perchH - 1e-3) { m.climb = 0; a.position.x = m.px; a.position.z = m.pz; }
+  }
+  m.land = Math.max(0, (m.land || 0) - dt);
+}
+
+/** Admit both ordered passes from the built product, before the page/native owner spawns a rig. */
+export function createMonkeyAnimation(input: unknown): (c: AnimalRigContext) => void {
+  const poses = parse(tuple([unknown(), unknown()]), input).map(numericCreaturePose);
+  return c => { stepMonkeyRoot(c.animal, c.dt); for (const pose of poses) pose(c); };
 }

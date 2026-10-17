@@ -73,7 +73,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     const arms = await runtimeLookMaterials(ctx, ctx.product.shardfile, true, Object.values(driftwoodRows('custom/fixedLayouts').nativeView.FP_ARMS_MATERIALS));
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded while compiling its arms');
     ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
-    installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
+    await installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
     const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials, ctx.product.shardfile);
     ctx.rows.weapon(rows);
     const world = shell.world;
