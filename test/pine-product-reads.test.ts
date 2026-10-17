@@ -3,7 +3,7 @@ import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
-import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
+import { SECTIONS } from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
 // emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).
@@ -29,6 +29,7 @@ test('Pine client reads resolve against the emitted output', async () => {
   const held = v.parse(HeldEquipmentSchema, outputPlatformPayloads(loaded.output.platform,['held/equipment']).get('held/equipment'));
   const wanted = [held.firearm.pool.url, held.launcher.pool.url, value('custom/trophyMounts').url,
     ...Object.values(value('custom/paintedTextures').textures).map(row => row.url),
-    'world/ambience.json', ...['ironhide', 'ghostStag', 'blackpaw', 'imperialBull', 'night', 'director'].map(stem => `behaviour/${stem}.wasm`)];
+    'world/ambience.json', 'actors/elites.json', ...['night', 'director'].map(stem => `behaviour/${stem}.wasm`),
+    ...['ironhide', 'ghost-stag', 'blackpaw', 'imperial-bull'].map(stem => `behaviour/elites/${stem}.wasm`)];
   for (const name of wanted) expect(names.has(name), name).toBe(true);
 }, 30000);

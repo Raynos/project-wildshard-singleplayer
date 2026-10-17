@@ -1,4 +1,7 @@
-import {parseSpawnScript} from '../src/format/spawnScripts';
+import {parseSpawnScript, SpawnScriptsSchema} from '../src/format/spawnScripts';
+import {parseEliteFeature} from '../src/format/eliteFeature';
+import elites from '../src/shards/pine-hollow/behaviour/elites.generated.json' with {type:'json'};
+import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 import {HeldEquipmentSchema} from '../src/format/heldEquipment';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
@@ -6,7 +9,7 @@ import * as v from 'valibot';
 import {readFileSync} from 'node:fs';
 import {readProjectAssets} from '../src/sdk/project';
 import {validateDefinedSection} from '../src/sdk/sections';
-import {SECTIONS} from '../src/shards/pine-hollow/runtime/sections';
+import {SECTIONS} from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
 import {ClaimedPickupSchema} from '../src/format/lootEconomy';
 
 test('Pine emits every client section with checked schemas and named immutable assets',async()=>{
@@ -24,7 +27,17 @@ test('Pine emits every client section with checked schemas and named immutable a
  }
  const names=loaded.output.namedFiles?.map(row=>row.name)??[];
  expect(names).toEqual(expect.arrayContaining(['models/held/crossbow-pool.glb','models/held/lever-details.glb','models/king/kit.glb','behaviour/night.wasm','behaviour/director.wasm']));
- for(const stem of ['ironhide','ghostStag','blackpaw','imperialBull','night','director']){
+ const fights=parseEliteFeature(elites).fights;
+ expect(fights.map(fight=>fight.def.id).sort()).toEqual(['blackpaw','ghost-stag','imperial-bull','ironhide']);
+ const programs=v.parse(SpawnScriptsSchema,outputPlatformPayloads(loaded.output.platform,['actors/spawn-scripts']).get('actors/spawn-scripts'));
+ for(const fight of fights){
+  const file=loaded.output.namedFiles?.find(row=>row.name===`behaviour/elites/${fight.def.id}.wasm`);
+  expect(file?.path).toBe(fight.program.script.module);
+  expect(file?.hash).toBe(fight.program.script.module.slice('blobs/wasm/'.length,-'.wasm'.length));
+  expect(programs.find(row=>row.step===fight.program.step)).toEqual({...fight.program,bytes:''});
+ }
+ expect(programs).toHaveLength(fights.length+1);
+ for(const stem of ['night','director']){
   const original:unknown=JSON.parse(readFileSync(`src/shards/pine-hollow/behaviour/${stem==='night'?'night.generated':stem}.json`,'utf8'));
   const module=stem==='night'
    ?parseSpawnScript(original).script.module.slice('blobs/wasm/'.length,-'.wasm'.length)

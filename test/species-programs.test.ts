@@ -14,6 +14,9 @@ import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generator
 import { PINE_BOAR, PINE_SPECIES, pineDeer, pineElk } from '../src/shards/pine-hollow/generators/speciesRows';
 import { speciesBrains } from '../src/sdk/speciesBrains';
 import { BOAR } from '../src/game/systems/species/boar';
+import { readProjectAssets } from '../src/sdk/project';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { admitPineView } from '../src/shards/pine-hollow/runtime/world/context';
 
 test('both populations admit the same gameplay fields without visual or callback metadata', () => {
   const pine = readSpeciesPrograms(structuredClone(PINE_SPECIES_PROGRAMS));
@@ -32,7 +35,14 @@ test('both populations admit the same gameplay fields without visual or callback
 });
 
 // The gameplay bake strips tint/traits; the existing view must restore exactly the same factory variants.
-test('both emitted populations keep the original resolved visual variants', () => {
+test('both emitted populations keep the original resolved visual variants', async () => {
+  const loaded = await readProjectAssets('src/shards/pine-hollow');
+  const file = loaded.output.namedFiles?.find(row => row.name === 'look/native-view.json');
+  const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
+  if (file === undefined || bytes === undefined) throw new Error('Missing admitted Pine native view');
+  await admitPineView(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile: loaded.shard,
+    sections: new Map(), files: new Map([['look/native-view.json', { hash: file.hash, url: file.path }]]),
+    read: () => Promise.resolve(bytes) }));
   registerKing();
   const authored = [...PINE_SPECIES, pineDeer(), pineElk(), ISLAND_BOAR, ISLAND_BEAR];
   const programs = [...PINE_SPECIES_PROGRAMS.page, ...DRIFTWOOD_SPECIES_PROGRAMS.page];
