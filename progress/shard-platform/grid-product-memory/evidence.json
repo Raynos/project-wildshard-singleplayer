@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "date": "2026-10-17",
+  "measurement": "grid residency model, decimal MB; no native-memory or FPS qualification",
+  "caps": { "playingMB": 1200, "loadingMB": 1800, "reportOnly": true, "changed": false },
+  "before": "d398e258e7ea384e053ecd4e1db8e4132c990818",
+  "after": "e6066d1f437becce2298faa45efd935b560e3a87",
+  "productBytes": { "before": 436113942, "after": 46498927, "releasedClaimBytes": 389615015 },
+  "settings": { "gridScenario": "milestone", "developer": "on", "memorySaver": "off", "frames": 30, "settleSeconds": 1, "desktopTextures": "auto", "simulatorRequestedPins": { "textures": "ktx2", "ktx2Probe": "skip" }, "simulatorResidentModesVerified": false },
+  "runs": [
+    {
+      "surface": "desktop", "phase": "before", "successfulRoutes": 8, "requiredRoutes": 8, "qualifiedComplete": true, "refusals": 0,
+      "harnessRevision": "e6066d1f437becce2298faa45efd935b560e3a87",
+      "record": "d398e258e-7085-1792230533751.json",
+      "standingMB": { "template-interior": 1001.03, "template-return": 1306.75, "nine-dragon-stack-road-entry": 1644.99, "far-reach-road-entry": 1220.56, "nalati-grasslands-road-entry": 1531.15, "pine-hollow-road-entry": 1167.55, "sunscar-dunes-road-entry": 1041.86, "driftwood-isle-road-entry": 1306.71 },
+      "sampledJourney": { "playingPeakMB": 1644.992041, "loadingPeakMB": 1724.992041 }
+    },
+    {
+      "surface": "desktop", "phase": "after", "successfulRoutes": 8, "requiredRoutes": 8, "qualifiedComplete": true, "refusals": 0,
+      "harnessRevision": "230be1cccbcf9d2dd6da6d6eb122dd6b294abb1b",
+      "record": "e6066d1f4-78671-1792231138901.json",
+      "standingMB": { "template-interior": 568.56, "template-return": 873.74, "nine-dragon-stack-road-entry": 1194.70, "far-reach-road-entry": 787.84, "nalati-grasslands-road-entry": 1098.67, "pine-hollow-road-entry": 742.18, "sunscar-dunes-road-entry": 614.07, "driftwood-isle-road-entry": 874.24 },
+      "sampledJourney": { "playingPeakMB": 1198.633954, "loadingPeakMB": 1278.633954 }
+    },
+    {
+      "surface": "sim", "phase": "before", "successfulRoutes": 7, "requiredRoutes": 8, "qualifiedComplete": false, "observedRefusals": 0,
+      "harnessRevision": "432ed6b03a48f2171e51c4d2cbcaa18b88396235",
+      "record": "d398e258e-7086-1792230533751.json",
+      "error": "Ten-minute run budget exhausted after approximately five minutes waiting for the Simulator lane",
+      "standingMB": { "template-interior": 1030.69, "template-return": 1336.42, "nine-dragon-stack-road-entry": 1674.66, "far-reach-road-entry": 1249.98, "nalati-grasslands-road-entry": 1560.81, "pine-hollow-road-entry": 1939.09, "sunscar-dunes-road-entry": 1071.52, "driftwood-isle-road-entry": null },
+      "sampledJourney": { "playingPeakMB": 1946.400077, "loadingPeakMB": 2026.400077 }
+    },
+    {
+      "surface": "sim", "phase": "after", "successfulRoutes": 5, "requiredRoutes": 8, "qualifiedComplete": false, "observedRefusals": 0,
+      "harnessRevision": "d680489e7596b10dc2ef66acc811631d9bd074a2",
+      "record": "e6066d1f4-83876-1792231203916.json",
+      "error": "Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue",
+      "runtimeFailure": { "kind": "gpu-recovery", "leg": "pine-hollow-road-entry", "phase": "travel", "waypoint": 0, "reason": "graphics recovery: the GPU process restarted: every canvas was wiped", "lastPlayingMB": 580.134804, "lastLoadingMB": 660.134804 },
+      "standingMB": { "template-interior": 598.22, "template-return": 903.95, "nine-dragon-stack-road-entry": 1242.18, "far-reach-road-entry": 739.01, "nalati-grasslands-road-entry": 801.55, "pine-hollow-road-entry": null, "sunscar-dunes-road-entry": null, "driftwood-isle-road-entry": null },
+      "sampledJourney": { "playingPeakMB": 1242.184938, "loadingPeakMB": 1322.184938 }
+    }
+  ],
+  "intermediateDesktopNine": { "revision": "02c15e81d", "entryPlayingMB": 1171.19, "settledPlayingMB": 1214.27, "entryL0Bytes": 272199474, "settledL0Bytes": 311005726, "productsBytes": 48071887, "nearBytes": 20235604 },
+  "finalNineCategoriesBytes": { "l0": 311005726, "l1": 0, "far": 14400000, "libraries": 9120000, "sims": 347653749, "commons": 1103448, "products": 46498927, "overlap": 80000000, "desktopNear": 4177788, "simulatorNear": 20235604, "desktopPage": 13140672, "simulatorPage": 42806236, "engineBase": 286859328 },
+  "lateNineL0Claims": [
+    { "id": "render:nine-dragon-stack:l0/3/2", "accountedBytes": 29779944 },
+    { "id": "render:nine-dragon-stack:l0/3/1", "accountedBytes": 4924220 }
+  ],
+  "largestNineL0Claims": [
+    { "id": "render:nine-dragon-stack:l0/3/3", "accountedBytes": 94708960 },
+    { "id": "render:nine-dragon-stack:l0/4/4", "accountedBytes": 43311576 }
+  ],
+  "finalProductClaimsBytes": { "_template": 2819739, "blender-template": 1436484, "driftwood-isle": 5410946, "far-reach": 8812928, "nalati-grasslands": 7294476, "nine-dragon-stack": 2946425, "pastel-plain": 2828388, "pine-hollow": 8766142, "sunscar-dunes": 5121583, "edges": 1061816 },
+  "sourceInventory": {
+    "basis": "sourceProgressInventory in exact e6066d1f4 build mirror",
+    "customLines": { "_template": 1003, "blender-template": 106, "driftwood-isle": 6661, "far-reach": 1303, "ink-cel-valley": 1108, "nalati-grasslands": 20948, "nine-dragon-stack": 12636, "pastel-plain": 736, "pine-hollow": 10584, "sunscar-dunes": 1368 },
+    "componentLines": {
+      "driftwood-isle": { "C1": 2479, "C2": 733, "C3": 0, "C4": 893, "C5": 830, "C6": 691, "C7": 0, "C8": 25, "C9": 1010 },
+      "far-reach": { "C1": 350, "C2": 158, "C3": 60, "C4": 74, "C5": 33, "C6": 119, "C7": 41, "C8": 13, "C9": 455 },
+      "pine-hollow": { "C1": 2943, "C2": 1041, "C3": 712, "C4": 2391, "C5": 1470, "C6": 1011, "C7": 26, "C8": 55, "C9": 935 },
+      "sunscar-dunes": { "C1": 185, "C2": 290, "C3": 46, "C4": 232, "C5": 60, "C6": 119, "C7": 0, "C8": 13, "C9": 423 }
+    },
+    "taskNetCustomLines": { "_template": 0, "blender-template": 0, "driftwood-isle": 0, "far-reach": 0, "ink-cel-valley": 0, "nalati-grasslands": 0, "nine-dragon-stack": 0, "pastel-plain": 0, "pine-hollow": 0, "sunscar-dunes": 0 },
+    "taskRuntimeFilesDeleted": []
+  },
+  "checks": { "revision": "e6066d1f4", "rootTypes": "pass", "layerTypes": "pass", "typedLint": "pass", "allTenProducts": "pass", "focusedProductCases": 14, "focusedLedgerCases": 3, "shardHeadlessCases": 17, "totalCases": 34, "productionBoot02c15e81d": "pass", "finalGridBootAndSignalRoad": "pass", "carrierLocalGate": "pass", "carrierPushedTip": "d680489e7" },
+  "proofIds": [
+    "20261017T043225-grid-memory-final-types-79428",
+    "20261017T043426-grid-memory-production-boot-85510",
+    "20261017T043646-grid-memory-desktop-final-1746",
+    "20261017T043646-grid-memory-simulator-final-1744",
+    "20261017T044904-grid-memory-ground-check-build-9013",
+    "20261017T044931-grid-memory-ground-desktop-10788",
+    "20261017T044932-grid-memory-ground-simulator-10787",
+    "20261017T045045-grid-memory-ground-boot-retry-16452",
+    "20261017T050219-grid-memory-carrier-final-1867"
+  ],
+  "remaining": ["Nine late L0/near residency and Simulator cap overage", "Complete Simulator traversal after GPU recovery is addressed", "Optional tier-separated product download"],
+  "limitations": ["G433 caps remain report-only", "Harness complete=true is not accepted when routes are missing or a runtime error exists", "No native-memory, physical-device or FPS pass is claimed", "Comparison revisions include concurrent mainline landings; stable product-category reduction is the attributed result"]
+}
