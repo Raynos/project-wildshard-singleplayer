@@ -3,6 +3,50 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nalati-layout",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-layout.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-layout.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-layout.mjs",
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/shards/nalati-grasslands/generators/poiLayout.ts",
+        "src/shards/nalati-grasslands/generators/clearings.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/layout.generated.json",
+        "src/shards/nalati-grasslands/boot/layout.generated.d.json.ts",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.d.json.ts",
+        "src/shards/nalati-grasslands/boot/clearings.generated.json",
+        "src/shards/nalati-grasslands/boot/clearings.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/data/layout.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/layout.generated.json": "0c1fea5a19edda97dedb5b09954a247dfa2f32c6e2c7ca66a626623e51f8de65",
+        "src/shards/nalati-grasslands/boot/layout.generated.d.json.ts": "b72a09fa458cb1b59c3ef78b1e3e5a2b9c8371e84a02689043bb49915c349a4b",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.json": "04da84f5bd551819a189d35a55546c6fa06240ae17c5cbe5c3ceef440984de4a",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.d.json.ts": "7298b7c93b1f048c254f97965924a78b397f2fb3a8c9c28b1b383d627f0a7c04",
+        "src/shards/nalati-grasslands/boot/clearings.generated.json": "9135ccd52e7a226830a070429cd49771de964aa056937184feb92aab3b0206c3",
+        "src/shards/nalati-grasslands/boot/clearings.generated.d.json.ts": "57d660b1073c0d692628b565c8bab543121ff714e50053b250d1858b8e51db18",
+        "src/shards/nalati-grasslands/data/layout.generated.json": "0c1fea5a19edda97dedb5b09954a247dfa2f32c6e2c7ca66a626623e51f8de65",
+        "src/shards/nalati-grasslands/data/layout.generated.d.json.ts": "b72a09fa458cb1b59c3ef78b1e3e5a2b9c8371e84a02689043bb49915c349a4b",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json": "04da84f5bd551819a189d35a55546c6fa06240ae17c5cbe5c3ceef440984de4a",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts": "7298b7c93b1f048c254f97965924a78b397f2fb3a8c9c28b1b383d627f0a7c04"
+      }
+    },
+    {
       "id": "shared-pickups",
       "shard": null,
       "entry": "scripts/bake-pickups.mjs",

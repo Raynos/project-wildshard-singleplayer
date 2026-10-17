@@ -52,7 +52,7 @@ try {
   await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(3000);
   await page.evaluate(async () => {
-    const L = await import('/src/shards/nalati-grasslands/world/layout.ts');
+    const L = (await import('/src/shards/nalati-grasslands/data/poiLayout.generated.json', { with: { type: 'json' } })).default;
     const w = window.__wildshard?.world, hf = window.__hf;
     const t = { L, trace: [], timer: 0 };
     t.input = (x, y, g) => { w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; };

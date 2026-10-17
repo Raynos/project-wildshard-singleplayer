@@ -14,14 +14,17 @@ import { Mount } from './Mount';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';
-import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';
-import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
+import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { Reins } from './Reins';
 import { SheepRaid } from '../creatures/sheepRaid';
 import { DataPanel } from '@wildshard/sdk/dataPanels';
 import type { PanelDefinition } from '@wildshard/format/panelTemplate';
 import { cleanHorseName } from './horseNames';
 import './ride.css';
+
+const { HITCH_HORSE_SPOTS, HITCHING_RAIL } = poiLayoutRows;
+const { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } = layoutRows;
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
 const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];

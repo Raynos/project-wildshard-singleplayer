@@ -1,4 +1,6 @@
-import { KOKBORI_DEN, HORSE_PLAINS, PASTURE } from '../layout';
+import layoutRows from './layout.generated.json' with { type: 'json' };
+
+const { KOKBORI_DEN, HORSE_PLAINS, PASTURE } = layoutRows;
 
 /** Shipping population counts and placement anchors, consumed by the original native placement owner. */
 export interface WildlifeLayout {

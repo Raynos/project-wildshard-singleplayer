@@ -18,7 +18,9 @@ import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
 import { placeDog, placeHerd, placePack, type WildPlacer } from './wildPlacement';
 import { NALATI_WILDLIFE, type WildlifeLayout } from '../data/fauna';
-import { HITCH_HORSE_SPOTS } from '../world/layout';
+import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
+
+const { HITCH_HORSE_SPOTS } = poiLayoutRows;
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild

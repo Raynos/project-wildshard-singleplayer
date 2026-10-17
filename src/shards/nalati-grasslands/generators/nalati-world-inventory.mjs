@@ -51,7 +51,7 @@ export function inventoryNalatiWorld(root, edges) {
   });
   const source = 'src/shards/nalati-grasslands';
   return { version: 1, terrain: nativeTerrainWitness(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')), edges),
-    sourceFiles: [...files(`${source}/world`), ...files(`${source}/look`), ...files(`${source}/models`), ...['layout.ts', 'generators/places.ts', 'generators/cragGeometry.ts'].map(name => inspect(`${source}/${name}`))].sort((a, b) => a.path.localeCompare(b.path)),
+    sourceFiles: [...files(`${source}/world`), ...files(`${source}/look`), ...files(`${source}/models`), ...['generators/layout.ts', 'boot/layout.generated.json', 'boot/poiLayout.generated.json', 'boot/clearings.generated.json', 'generators/places.ts', 'generators/cragGeometry.ts'].map(name => inspect(`${source}/${name}`))].sort((a, b) => a.path.localeCompare(b.path)),
     modelInputs: files('public/assets/nalati/models'), textureInputs: files('public/assets/nalati/tex'),
     hierarchy: [{ lod: 0, size: 62.5, count: 64 }, { lod: 1, size: 125, count: 16 }, { lod: 'far', size: 500, count: 1 }],
     preserveTerrainAttributes: ['position', 'normal', 'color', '_surf', '_rdir', '_zone'],

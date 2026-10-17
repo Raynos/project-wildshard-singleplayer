@@ -10,8 +10,10 @@ import type { NalatiMountedPlayer } from './headlessMounted';
 import { NalatiTamingLaw } from './tamingLaw';
 import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
-import { HITCHING_RAIL } from '../world/layout';
+import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { WildEnv } from '../creatures/env';
+
+const { HITCHING_RAIL } = poiLayoutRows;
 
 const finite = v.pipe(v.number(), v.finite());
 const Saved = v.strictObject({ version: v.literal(1), law: v.string(), bond: v.nullable(v.picklist(['1', 'argymaq'])),

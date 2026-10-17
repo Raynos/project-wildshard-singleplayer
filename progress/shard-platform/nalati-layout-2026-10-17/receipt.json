@@ -1,0 +1,299 @@
+{
+  "scope": "Nalati offline layout rows; terrain remains live",
+  "candidate": "375f414614dc82e7c914ce44c364fe48785b56f9",
+  "parent": "d680489e7596b10dc2ef66acc811631d9bd074a2",
+  "numericBaseline": "e6066d1f437becce2298faa45efd935b560e3a87",
+  "bakedBootRows": {
+    "files": 3,
+    "jsonBytes": 9800
+  },
+  "sourceRuler": {
+    "tool": "scripts/shard-platform.mjs sourceProgressLines/sourceProgressInventory in build mirror",
+    "before": 20971,
+    "after": 20878,
+    "net": -93,
+    "otherShardNet": 0,
+    "deleted": [
+      {
+        "module": "layout.ts",
+        "lines": 86
+      },
+      {
+        "module": "world/layout.ts",
+        "lines": 28
+      },
+      {
+        "module": "world/clearings.ts",
+        "lines": 28
+      }
+    ],
+    "perShardNet": {
+      "_template": 0,
+      "blender-template": 0,
+      "driftwood-isle": 0,
+      "far-reach": 0,
+      "ink-cel-valley": 0,
+      "nalati-grasslands": -93,
+      "nine-dragon-stack": 0,
+      "pastel-plain": 0,
+      "pine-hollow": 0,
+      "sunscar-dunes": 0
+    }
+  },
+  "numericParity": {
+    "points": 63001,
+    "spacingMetres": 2,
+    "float64Answers": 1386022,
+    "parentAndCandidateSha256": "9f40d4d1499e7dcecdbc4864654c24ff250f6f766b5b5d99d18a9715a844a1bd",
+    "nativeVertexMatches": 65536
+  },
+  "checks": {
+    "rootTypes": "passed",
+    "layerTypes": "passed",
+    "typedLint": "passed",
+    "products": 10,
+    "focusedCases": 23,
+    "shardHeadlessCases": 17
+  },
+  "completedProofs": {
+    "check": "20261017T052845-nalati-layout-rebased-check-82482",
+    "map": "20261017T055500-nalati-layout-map-final-34521",
+    "walk": "20261017T052841-nalati-layout-rebased-look-walk-81769",
+    "look": "20261017T055458-nalati-layout-parent-final-look-33619",
+    "ruler": "20261017T055456-nalati-layout-parent-final-33004"
+  },
+  "liveConsumers": [
+    {
+      "law": "TERRAIN analytic field, trail distance and water channels",
+      "callers": [
+        "manifest.ts ground.terrain / navmesh.excludeGroundAt",
+        "boot/headlessModules.ts numeric-program TERRAIN binding",
+        "runtime/headless.ts grass/water view",
+        "runtime/headlessCreatures.ts trail/cabin/water channels beside baked height samples",
+        "runtime/audio/sound.ts gravel footsteps"
+      ],
+      "reason": "The existing native height bake does not encode the analytic under-berm field, exact trail-distance function or non-height masks. Those live channels retain their original sampler."
+    },
+    {
+      "law": "analytic under-berm height / edgeBermAt",
+      "callers": [
+        "manifest.ts forest.mask",
+        "generators/places.ts outcropsPlace"
+      ],
+      "reason": "Existing WSTR sampler contains the finished ground; it cannot recover the analytic ground beneath the berm without changing the forest mask."
+    },
+    {
+      "law": "river centre/half-width",
+      "callers": [
+        "edge.ts edgeRise",
+        "runtime/headless.ts nalatiGrassView",
+        "runtime/index.ts grass layout",
+        "runtime/audio/sound.ts ambience"
+      ]
+    },
+    {
+      "law": "snow-valley profiles",
+      "callers": [
+        "world/terrain.ts landscape",
+        "generators/dressingPlan.ts"
+      ]
+    },
+    {
+      "law": "groundColor / surfaceAt",
+      "callers": [
+        "look/terrainPainter.ts",
+        "game/systems/looks/grassField.ts"
+      ]
+    },
+    {
+      "law": "riverMask / brookMask / zoneAt",
+      "callers": [
+        "wet.ts",
+        "runtime/headless.ts",
+        "runtime/audio/sound.ts",
+        "generators/places.ts"
+      ]
+    },
+    {
+      "law": "clearance predicates over baked footprints",
+      "callers": [
+        "manifest.ts forest.mask",
+        "world/Bowl.ts",
+        "generators/places.ts"
+      ]
+    }
+  ],
+  "physicsWalk": {
+    "stuck": 0,
+    "legs": [
+      {
+        "name": "road-camp",
+        "seconds": 26.6,
+        "end": {
+          "x": 94.218,
+          "y": -4.337,
+          "z": 204.057
+        }
+      },
+      {
+        "name": "bridge",
+        "seconds": 13.5,
+        "end": {
+          "x": 0.199,
+          "y": -7.037,
+          "z": 142.749
+        }
+      },
+      {
+        "name": "eagle-rock",
+        "seconds": 38.7,
+        "end": {
+          "x": 181.197,
+          "y": 65.02,
+          "z": 85.739
+        }
+      },
+      {
+        "name": "kurgan-crown",
+        "seconds": 2.5,
+        "end": {
+          "x": -94.252,
+          "y": 31.806,
+          "z": 103.33
+        }
+      },
+      {
+        "name": "great-kurgan-crown",
+        "seconds": 6.7,
+        "end": {
+          "x": -191.035,
+          "y": 39.585,
+          "z": 72.229
+        }
+      },
+      {
+        "name": "great-kurgan-door",
+        "seconds": 3.4,
+        "end": {
+          "x": -172.843,
+          "y": 34.935,
+          "z": 75
+        }
+      },
+      {
+        "name": "dungeon",
+        "seconds": 4.9,
+        "end": {
+          "x": -38.894,
+          "y": 140.47,
+          "z": -94.808
+        }
+      },
+      {
+        "name": "leopard-cave",
+        "seconds": 39.7,
+        "end": {
+          "x": 137.208,
+          "y": 54.117,
+          "z": -65.902
+        }
+      },
+      {
+        "name": "summer-camp",
+        "seconds": 4.3,
+        "end": {
+          "x": -87.237,
+          "y": 28.361,
+          "z": -24.184
+        }
+      },
+      {
+        "name": "cairn",
+        "seconds": 4.9,
+        "end": {
+          "x": -26.538,
+          "y": 33.54,
+          "z": -41.344
+        }
+      },
+      {
+        "name": "watchtower",
+        "seconds": 9.5,
+        "end": {
+          "x": -199.721,
+          "y": 44.131,
+          "z": -37.433
+        }
+      },
+      {
+        "name": "argymaq-pasture",
+        "seconds": 23.5,
+        "end": {
+          "x": -159.533,
+          "y": 51.847,
+          "z": -71.507
+        }
+      }
+    ],
+    "build": "375f414-mvc9byjt"
+  },
+  "lookParity": {
+    "passed": true,
+    "poses": 12,
+    "parentBuild": "d680489-mvca6jit",
+    "candidateBuild": "375f414-mvc9byjt",
+    "exact": [
+      "pixels",
+      "draws",
+      "triangles",
+      "GPU bytes",
+      "programs",
+      "shaders",
+      "colliders"
+    ]
+  },
+  "memory": {
+    "phone": {
+      "residentBootBytes": {
+        "parent": 1800028160,
+        "candidate": 1790689280,
+        "delta": -9338880
+      },
+      "residentFinalBytes": {
+        "parent": 1752858624,
+        "candidate": 1812054016,
+        "delta": 59195392
+      },
+      "gpuBytes": {
+        "parent": 229191192,
+        "candidate": 229191192,
+        "delta": 0
+      }
+    },
+    "desktop": {
+      "residentBootBytes": {
+        "parent": 2333327360,
+        "candidate": 2201763840,
+        "delta": -131563520
+      },
+      "residentFinalBytes": {
+        "parent": 2162147328,
+        "candidate": 2224963584,
+        "delta": 62816256
+      },
+      "gpuBytes": {
+        "parent": 553131454,
+        "candidate": 553131454,
+        "delta": 0
+      }
+    }
+  },
+  "memoryMethod": "Chromium renderer + GPU process RSS via CDP/ps; local harness observation, not a physical-device reading",
+  "officialMap": {
+    "inputsAndPixelsVerified": true,
+    "tilesHash": "0cd37d0b601e81572000a19d4f280b8cbcf5d591f36973c562094ba8b97ddbab",
+    "pixelHash": "4ebc71c9719a690290d961dd4646e72fe88ccdca0726cc2b40cb319d2bbd7eeb",
+    "bytes": 134432,
+    "proof": "20261017T055500-nalati-layout-map-final-34521"
+  }
+}

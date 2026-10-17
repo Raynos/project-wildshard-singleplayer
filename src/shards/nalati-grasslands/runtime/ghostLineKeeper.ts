@@ -1,8 +1,10 @@
 import * as schema from 'valibot';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { BOWL } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { HORSE_SPEED } from '../species/horse';
+
+const { BOWL } = layoutRows;
 
 /** One admitted night line; identity, death and body ownership remain with the real ghost roster. */
 export interface GhostLineMember<A extends AnimalSim> { readonly a: A; readonly slot: number; dead: boolean }

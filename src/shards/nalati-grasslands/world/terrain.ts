@@ -1,14 +1,34 @@
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import {
-  RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
-  WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,
-  LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
-  EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL,
-} from '../layout';
-import { edgeRise } from '../edge';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
+import { edgeRise, riverZAt, riverHalfAt } from '../edge';
+import clearings from '../boot/clearings.generated.json' with { type: 'json' };
+import places from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game/shard/manifest';
+
+const { RIVER_LEVEL, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
+  WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, GLACIER, MELT_STREAM,
+  LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
+  EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL, } = layoutRows;
+const { POI_CLEARINGS, PASTURE_CLEARING } = clearings;
+
+export function snowValleyX(z: number): number { return -12 + 8 * Math.sin(z * 0.02 + 1); }
+export function snowValleyHalf(z: number): number { return 24 + 6 * Math.sin(z * 0.031 + 0.4); }
+export function snowValleyFloor(z: number): number {
+  const t = Math.min(1, Math.max(0, (-55 - z) / 190));
+  return 31 * (1 - t) ** 1.15;
+}
+
+export function inPoiClearing(x: number, z: number, margin = 0): boolean {
+  for (const c of POI_CLEARINGS) { const dx = x - c.x, dz = z - c.z, r = c.r + margin; if (dx * dx + dz * dz < r * r) return true; }
+  return false;
+}
+
+export function inSpruceClearing(x: number, z: number): boolean {
+  const dx = x - PASTURE_CLEARING.x, dz = z - PASTURE_CLEARING.z;
+  return dx * dx + dz * dz < PASTURE_CLEARING.r * PASTURE_CLEARING.r || inPoiClearing(x, z, 8);
+}
 
 export const SEED = 0x4a1a;
 
@@ -17,7 +37,7 @@ export const SEED = 0x4a1a;
 /** The Kunes: water surface height, and the braided corridor's centreline / half-width as functions of x. */
 export const RIVER = { level: RIVER_LEVEL, z: riverZAt, half: riverHalfAt };
 /** the timber bridge carrying the N road over the river (deck height; the POI agent builds it) */
-export const BRIDGE = { x: BRIDGE_XZ.x, z: BRIDGE_XZ.z, deckY: BRIDGE_XZ.deckY, span: RIVER.half(0) * 2 + 8 };
+export const BRIDGE = places.BRIDGE;
 /** the meltwater stream (Snow Lotus Valley) is `BROOK` to the water / wet-ground / dressing modules; `RIM_Z` = the north
  *  rim's mean z (the top of the escarpment), the band outcrops / wet ground work from */
 

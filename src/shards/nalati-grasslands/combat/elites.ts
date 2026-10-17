@@ -47,7 +47,9 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { bakedActorGeometry } from '../world/placeBake';
 import { argymaqDefinition, eliteRuleHolds } from './eliteRoster';
 import { ARGYMAQ as ARGYMAQ_KIND, NALATI_ELITE_DEFS } from '../data/eliteEncounters';
-import { EAGLE_ROCK } from '../world/layout';
+import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
+
+const { EAGLE_ROCK } = poiLayoutRows;
 
 /**
  * Nalati's five NAMED ELITES (plan NALATI.md row B12; design docs/design/nalati/elites-and-bosses.md §1 "The five Nalati

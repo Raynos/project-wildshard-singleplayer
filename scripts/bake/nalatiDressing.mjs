@@ -29,8 +29,8 @@ async function bakeNalatiDressing(dressingRecipe) {
       import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
     const [layout, terrain, { inPoiClearing }] = await Promise.all([
-      import('../../src/shards/nalati-grasslands/layout.ts'), import('../../src/shards/nalati-grasslands/world/terrain.ts'),
-      import('../../src/shards/nalati-grasslands/world/clearings.ts'),
+      import('../../src/shards/nalati-grasslands/generators/layout.ts'), import('../../src/shards/nalati-grasslands/world/terrain.ts'),
+      import('../../src/shards/nalati-grasslands/world/terrain.ts'),
     ]);
     const [noise, heightfield, grass, { terrainHeight: heightAt }] = await Promise.all([
       import('@wildshard/engine/core/noise'), import('@wildshard/engine/world/Heightfield'),

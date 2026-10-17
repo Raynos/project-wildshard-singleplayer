@@ -29,7 +29,7 @@ Object.assign(globalThis, { location: new URL('http://localhost/') });
 const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 const { parseNavmesh } = await src('engine/physics/navmesh.ts');
 const { createFindNearestPolyResult, DEFAULT_QUERY_FILTER, findNearestPoly, getNodeRefIndex } = await import('navcat');
-const L = await src('shards/nalati-grasslands/layout.ts');
+const L = await src('shards/nalati-grasslands/generators/layout.ts');
 const registry = await src('game/shard/registry.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');

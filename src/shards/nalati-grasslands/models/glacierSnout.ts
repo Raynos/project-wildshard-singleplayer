@@ -12,7 +12,9 @@ import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { poiMaterial } from '../world/paint';
-import { GLACIER } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
+
+const { GLACIER } = layoutRows;
 
 const ICE = { mid: new THREE.Color('#bcd6e8'), deep: new THREE.Color('#6f9fc4'), dark: new THREE.Color('#10202c') };
 

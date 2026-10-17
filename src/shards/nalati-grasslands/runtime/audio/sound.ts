@@ -36,12 +36,14 @@ import { SteppeAmbience } from './SteppeAmbience';
 import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } from './synth';
 import type { Nalati } from '../state';
 import type { NalatiWeather } from '../../world/installWeather';
-import { MELT_STREAM as BROOK } from '../../layout';
+import layoutRows from '../../boot/layout.generated.json' with { type: 'json' };
 import { requireAudioProfile, requireAudioZone } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
 
 import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../../world/terrain';
 import { smoothstep } from '@wildshard/engine/core/noise';
+
+const { MELT_STREAM: BROOK } = layoutRows;
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music, animals?: AnimalManager, wildlife?: Wildlife) => void;

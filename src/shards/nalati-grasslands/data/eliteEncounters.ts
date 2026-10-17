@@ -1,5 +1,8 @@
-import { EAGLE_ROCK, CRAG_CAVE } from '../world/layout';
-import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../layout';
+import poiLayoutRows from './poiLayout.generated.json' with { type: 'json' };
+import layoutRows from './layout.generated.json' with { type: 'json' };
+
+const { EAGLE_ROCK, CRAG_CAVE } = poiLayoutRows;
+const { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } = layoutRows;
 
 /** Existing legendary stallion kind, preserved for the native spawn and saved identities. */
 export const ARGYMAQ = 'argymaq';

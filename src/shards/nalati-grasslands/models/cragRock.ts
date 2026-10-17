@@ -16,7 +16,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../look/nalatiTextures';
-import { SNOW_LINE } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import cragRows from '../boot/cragRock.generated.json' with { type: 'json' };
 import { assetBytes } from '@wildshard/sdk/assets';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
@@ -26,6 +26,8 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { CRAG_GLSL } from '../runtime/looks/cragGlsl';
+
+const { SNOW_LINE } = layoutRows;
 
 /** the GLSL below is trusted custom code (runtime/looks/cragGlsl.ts); `@{name}` splices the fragments this module passes */
 const CRAG_GLSL_FAMILY = new ShaderFamily(CRAG_GLSL, {});

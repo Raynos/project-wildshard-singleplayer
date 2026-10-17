@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { bakedPlaceSteps, placer } from './placeBake';
-import { WIND_CAIRN } from './layout';
+import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { PoiCtx, PoiPiece } from './types';
 import { windCairn } from '../models/catalogue';
+
+const { WIND_CAIRN } = poiLayoutRows;
 
 
 /**

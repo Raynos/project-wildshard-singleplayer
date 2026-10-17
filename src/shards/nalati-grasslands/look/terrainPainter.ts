@@ -12,10 +12,12 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { applyPaintedTerrain, bindPaintedTerrainBake } from '@wildshard/engine/render/families/paintedTerrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR, parsePaintedTerrain } from '@wildshard/format/materialFamilies';
 import { NALATI_GRASSLANDS as def } from '../manifest';
-import { SNOW_LINE, GLACIER } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { zoneWeights } from './zones';
 import { bakeUniforms } from './bake';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, type NalatiTexName } from './nalatiTextures';
+
+const { SNOW_LINE, GLACIER } = layoutRows;
 
 /** the manifest's terrain field (what `terrainFor(def)` returned) */
 function terrain(): NonNullable<typeof def.ground.terrain> {

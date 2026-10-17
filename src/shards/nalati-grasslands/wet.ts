@@ -7,7 +7,9 @@
  *   nalatiWetAt(x, z) → true in the water / the corridor
  */
 import { riverMask } from './world/terrain';
-import { MELT_STREAM as BROOK, RIM_N as RIM_Z } from './layout';
+import layoutRows from './boot/layout.generated.json' with { type: 'json' };
+
+const { MELT_STREAM: BROOK, RIM_N: RIM_Z } = layoutRows;
 
 /** m either side of the brook's centreline that count as its bed (the ribbon is 3.8 m wide) */
 const BROOK_HALF = 2.6;

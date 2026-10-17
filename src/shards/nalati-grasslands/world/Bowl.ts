@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
 import { poiMaterial } from './paint';
 import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
-import { KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } from '../layout';
-import { inPoiClearing } from './clearings';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
+import { inPoiClearing } from './terrain';
 import { NalatiSet } from './painted';
 import type { PoiCtx, PoiPiece } from './types';
 import { kokparPost, kokparGoal, saddledHorse, kokparRider, herdHorse, snowLotus } from '../models/catalogue';
@@ -18,6 +18,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
+
+const { KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } = layoutRows;
 
 
 /**

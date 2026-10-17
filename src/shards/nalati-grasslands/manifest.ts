@@ -4,9 +4,8 @@ import exploreHorse from './explore/playground-horse.webp';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { basinBody } from '@wildshard/engine/world/water/body';
 import { nalatiWetAt } from './wet';
-import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt } from './world/terrain';
-import { NALATI_MAP } from './layout';
-import { inSpruceClearing } from './world/clearings';
+import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt, inSpruceClearing } from './world/terrain';
+import layoutRows from './boot/layout.generated.json' with { type: 'json' };
 import { edgeSpruceMask } from './edge';
 import { NALATI_MINIMAP } from './look/minimap';
 import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
@@ -17,6 +16,8 @@ import exploreWorld from './explore/world-nalati-grasslands.webp';
 import exploreModels from './explore/models-nalati-grasslands.webp';
 import exploreSets from './explore/sets-nalati-grasslands.webp';
 import explorePractice from './explore/practice-nalati-grasslands.webp';
+
+const { NALATI_MAP } = layoutRows;
 
 
 const EXPLORE = { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice } satisfies NonNullable<ShardManifest['explore']>;

@@ -18,9 +18,11 @@
 import * as THREE from 'three';
 import { poiMaterial } from './world/paint';
 import { bakedActorGeometry } from './world/placeBake';
-import { KOKPAR } from './layout';
+import layoutRows from './boot/layout.generated.json' with { type: 'json' };
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+
+const { KOKPAR } = layoutRows;
 
 /** a point on the field's oval at angle t, scaled by k (1 = its edge) — Bowl.ts buildKokpar's own `onOval` */
 export function kokparOval(t: number, k: number): { x: number; z: number } {

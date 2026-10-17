@@ -1,4 +1,4 @@
-import { GREAT_KURGAN_DOOR } from './layout';
+import { GREAT_KURGAN_DOOR } from './poiLayout';
 /**
  * Where nothing should grow or be scattered: the POI footprints (B5), as plain circles, derived from the layout data
  * (`src/shards/nalati-grasslands/layout.ts`, layout v2) — which has no imports, so the chunk def and the placers (spruce mask, grass,
@@ -8,7 +8,7 @@ import { GREAT_KURGAN_DOOR } from './layout';
  */
 import {
   CAMP, PASTURE, BRIDGE_XZ, SUMMER_YURTS, EAGLE_ROCK, CAIRN, KURGANS, LEOPARD_CAVE, WATCHTOWER, KOKPAR,
-} from '../layout';
+} from './layout';
 
 export interface Clearing { x: number; z: number; r: number }
 

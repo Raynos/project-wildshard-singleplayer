@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
 import type { GhostLine } from '../../../src/shards/nalati-grasslands/runtime/ghostLineKeeper';
-import { BOWL } from '../../../src/shards/nalati-grasslands/layout';
+import { BOWL } from '../../../src/shards/nalati-grasslands/generators/layout';
 import { HORSE_SPEED } from '../../../src/shards/nalati-grasslands/species/horse';
 const RIDGE: readonly (readonly [number, number])[] = Array.from({ length: 16 }, (_, i): readonly [number, number] => {
   const t = (i / 16) * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t);

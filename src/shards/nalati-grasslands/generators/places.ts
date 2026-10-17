@@ -14,7 +14,7 @@ import { graniteBlock } from './granite';
 import { NalatiSet, painted, paintedSpecimen, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type MemberData, type Paint, type PaintCtx, type GeneratedSpec, generatedBounds } from '../world/painted';
 import type { FieldstoneParams, FieldstoneLook, Board, CragLedgeParams, LeopardCaveParams, KurganEntranceParams, KurganKerbParams, FirewoodParams, ChurnParams } from '../data/campParams';
 import { Flutter } from '../world/Flutter';
-import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from '../world/layout';
+import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from './poiLayout';
 import { prism, slab, supportHull, type Box } from '../world/solid';
 import { specimenKey } from '@wildshard/game/models/specimenCatalogue';
 import { torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
@@ -25,15 +25,14 @@ import { kunesBridgePainted } from './kunesBridge';
 import { yardGeometry, wearDisc, wearPath } from './yard';
 import { bakeDressing } from './dressingBake';
 import { writeGeometry, join } from './geometryWriter';
-import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from '../layout';
+import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
-import { inPoiClearing } from '../world/clearings';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
-import { zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER, outcropAt, edgeBermAt } from '../world/terrain';
+import { inPoiClearing, zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER, outcropAt, edgeBermAt } from '../world/terrain';
 
 
 /**

@@ -10,9 +10,11 @@ import { smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { MinimapPalette, MapOverlay } from '@wildshard/engine/ui/Minimap';
 import type { MapPoi } from '@wildshard/format/minimap';
-import { NALATI_MAP, SNOW_LINE } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { riverMask } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
+
+const { NALATI_MAP, SNOW_LINE } = layoutRows;
 
 type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number, out: RGB): RGB => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; return out; };

@@ -61,9 +61,11 @@ import { reseedGrassV2 } from '../look/grass';
 import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from '../weapons/nalatiSkins';
-import { HITCHING_RAIL } from '../world/layout';
+import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { registerNalatiPlaces } from '../world/places';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
+
+const { HITCHING_RAIL } = poiLayoutRows;
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 

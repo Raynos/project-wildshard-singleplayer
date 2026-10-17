@@ -31,7 +31,9 @@ import { HORSE_SPEED } from '../species/horse';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
 
 import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
-import { BOWL } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
+
+const { BOWL } = layoutRows;
 
 
 /**

@@ -23,7 +23,17 @@
  */
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D, smoothstep, clamp } from '@wildshard/engine/core/noise';
-import { CAMP, PASTURE, riverZAt, riverHalfAt } from './layout';
+import layout from './boot/layout.generated.json' with { type: 'json' };
+
+const { CAMP, PASTURE } = layout;
+
+export function riverZAt(x: number): number {
+  return 168 + 4 * Math.exp(-((x / 70) ** 2)) + 5 * Math.sin(x * 0.017) + 3 * Math.sin(x * 0.041 + 1.3) - 3 * Math.sin(1.3);
+}
+export function riverHalfAt(x: number): number {
+  const s = Math.min(1, Math.max(0, (Math.abs(x) - 8) / 52));
+  return (15 + 3 * Math.sin(x * 0.009 + 2.1) + 2 * Math.sin(x * 0.031)) * (0.62 + 0.38 * s * s * (3 - 2 * s));
+}
 
 const bn = new Noise2D(0x4a1a + 313), bn2 = new Noise2D(0x4a1a + 317);
 const ROAD_HALF = ROAD_WIDTH / 2;

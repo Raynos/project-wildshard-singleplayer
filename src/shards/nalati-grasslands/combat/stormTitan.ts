@@ -36,12 +36,14 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 import { wildEnv } from '../creatures/env';
 
-import { CAIRN } from '../layout';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../runtime/weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+
+const { CAIRN } = layoutRows;
 
 const finite = v.pipe(v.number(), v.finite()), text = v.string();
 const phaseRow = v.object({ at: finite, caption: text, name: text });
