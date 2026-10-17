@@ -1,0 +1,846 @@
+{
+  "conversion": "a68cc666a3eaac51cd0d66aa072b18521b4efbca",
+  "greenPredecessor": "a31f94b01f8068bb26a7b1aa032095a5df4890f6",
+  "restoreRepairs": [
+    "c0e16914cd08cf2da7c06248a8700c85bfde375f",
+    "e33958a4dfa0b6549daf257157708fcf1c2b0108"
+  ],
+  "approval": "Coordinator 2026-10-17: the capped 10 Hz AS decisions deliberately replace legacy 20/60 Hz cadence. G415 similar behaviour and G416 no exact-tick gates; record separately after verifying phases, outcomes, bounded progress and damage.",
+  "method": "Matched original native witness recorders with read-only state/phase/health observation; no input, actor, reward, clock or save edits. Original replay expectations remain strict. New tables are produced only by run.mjs checkpoints, then checked by run.mjs replay.",
+  "observedTicks": {
+    "driftwood-isle": {
+      "captain": [
+        18898,
+        18898
+      ],
+      "victory": [
+        19681,
+        19816
+      ],
+      "final": [
+        19843,
+        19978
+      ]
+    },
+    "pine-hollow": {
+      "dam": [
+        8000,
+        8000
+      ],
+      "ridge": [
+        16000,
+        16000
+      ],
+      "night": [
+        24000,
+        24000
+      ],
+      "king": [
+        27851,
+        27752
+      ],
+      "fallen": [
+        30504,
+        30581
+      ],
+      "dawn": [
+        31223,
+        31300
+      ]
+    }
+  },
+  "interpretation": "Both fights reach all three phases and victory without stalls. The new Captain tape exercises sink and under states; the old fast tape does not. The new King tape does not choose optional sweep; the published-guest test separately proves sweep, rings, summons and lanes plus exact restore. Captain takes one additional 24-damage swing; Pine damage decreases from 88.93 to 77. These are the approved cadence changes, not relaxed replay comparisons.",
+  "native": {
+    "driftwood-isle": {
+      "before": {
+        "phases": [
+          1,
+          2,
+          3
+        ],
+        "states": [
+          {
+            "tick": 18666,
+            "phase": 1,
+            "state": "0",
+            "hp": 320
+          },
+          {
+            "tick": 18671,
+            "phase": 1,
+            "state": "1",
+            "hp": 320
+          },
+          {
+            "tick": 18743,
+            "phase": 1,
+            "state": "2",
+            "hp": 320
+          },
+          {
+            "tick": 18839,
+            "phase": 1,
+            "state": "3",
+            "hp": 255
+          },
+          {
+            "tick": 18881,
+            "phase": 1,
+            "state": "2",
+            "hp": 227
+          },
+          {
+            "tick": 18935,
+            "phase": 2,
+            "state": "2",
+            "hp": 190
+          },
+          {
+            "tick": 19067,
+            "phase": 3,
+            "state": "2",
+            "hp": 97
+          },
+          {
+            "tick": 19109,
+            "phase": 3,
+            "state": "3",
+            "hp": 69
+          },
+          {
+            "tick": 19205,
+            "phase": 3,
+            "state": "2",
+            "hp": 4
+          }
+        ],
+        "firstTick": 18666,
+        "lastTick": 19843,
+        "minimumPlayerHealth": 100,
+        "damageTaken": 0,
+        "finalPlayerHealth": 100,
+        "flags": [
+          "taken:glass-2",
+          "glass:2",
+          "taken:glass-3",
+          "glass:3",
+          "talked:castaway",
+          "open:castaway-chest",
+          "has:flint",
+          "taken:glass-8",
+          "glass:8",
+          "lit:beacon",
+          "taken:shard-lookout",
+          "shard:lookout",
+          "dead:creature:33",
+          "dead:sailor",
+          "key:hold",
+          "taken:hold-key",
+          "lever:hold-pump",
+          "lever:hold-winch",
+          "winch:up",
+          "open:strongbox",
+          "shard:wreck",
+          "dead:creature:16",
+          "dead:creature:18",
+          "dead:creature:14",
+          "open:sluice",
+          "taken:shard-cave",
+          "shard:cave",
+          "taken:glass-11",
+          "glass:11",
+          "used:altar",
+          "quest:shrine-set",
+          "dead:captain",
+          "dead:creature:34",
+          "seen:reward",
+          "quest:driftwood-done",
+          "seen:complete"
+        ]
+      },
+      "after": {
+        "phases": [
+          1,
+          2,
+          3
+        ],
+        "states": [
+          {
+            "tick": 18666,
+            "phase": 1,
+            "state": "0",
+            "hp": 320
+          },
+          {
+            "tick": 18673,
+            "phase": 1,
+            "state": "1",
+            "hp": 320
+          },
+          {
+            "tick": 18745,
+            "phase": 1,
+            "state": "2",
+            "hp": 320
+          },
+          {
+            "tick": 18781,
+            "phase": 1,
+            "state": "3",
+            "hp": 283
+          },
+          {
+            "tick": 18847,
+            "phase": 1,
+            "state": "2",
+            "hp": 255
+          },
+          {
+            "tick": 18901,
+            "phase": 2,
+            "state": "2",
+            "hp": 190
+          },
+          {
+            "tick": 18925,
+            "phase": 2,
+            "state": "3",
+            "hp": 190
+          },
+          {
+            "tick": 18991,
+            "phase": 2,
+            "state": "2",
+            "hp": 134
+          },
+          {
+            "tick": 19039,
+            "phase": 3,
+            "state": "2",
+            "hp": 97
+          },
+          {
+            "tick": 19063,
+            "phase": 3,
+            "state": "4",
+            "hp": 97
+          },
+          {
+            "tick": 19123,
+            "phase": 3,
+            "state": "5",
+            "hp": 69
+          },
+          {
+            "tick": 19189,
+            "phase": 3,
+            "state": "1",
+            "hp": 69
+          },
+          {
+            "tick": 19267,
+            "phase": 3,
+            "state": "2",
+            "hp": 41
+          },
+          {
+            "tick": 19303,
+            "phase": 3,
+            "state": "3",
+            "hp": 41
+          }
+        ],
+        "firstTick": 18666,
+        "lastTick": 19978,
+        "minimumPlayerHealth": 76,
+        "damageTaken": 24,
+        "finalPlayerHealth": 94.8666666666656,
+        "flags": [
+          "taken:glass-2",
+          "glass:2",
+          "taken:glass-3",
+          "glass:3",
+          "talked:castaway",
+          "open:castaway-chest",
+          "has:flint",
+          "taken:glass-8",
+          "glass:8",
+          "lit:beacon",
+          "taken:shard-lookout",
+          "shard:lookout",
+          "dead:creature:33",
+          "dead:sailor",
+          "key:hold",
+          "taken:hold-key",
+          "lever:hold-pump",
+          "lever:hold-winch",
+          "winch:up",
+          "open:strongbox",
+          "shard:wreck",
+          "dead:creature:16",
+          "dead:creature:18",
+          "dead:creature:14",
+          "open:sluice",
+          "taken:shard-cave",
+          "shard:cave",
+          "taken:glass-11",
+          "glass:11",
+          "used:altar",
+          "quest:shrine-set",
+          "dead:captain",
+          "dead:creature:34",
+          "seen:reward",
+          "quest:driftwood-done",
+          "seen:complete"
+        ]
+      }
+    },
+    "pine-hollow": {
+      "before": {
+        "phases": [
+          0,
+          1,
+          2
+        ],
+        "states": [
+          {
+            "tick": 25911,
+            "phase": 0,
+            "state": "dormant",
+            "hp": 1500
+          },
+          {
+            "tick": 26980,
+            "phase": 0,
+            "state": "intro",
+            "hp": 1500
+          },
+          {
+            "tick": 27232,
+            "phase": 0,
+            "state": "stalk",
+            "hp": 1500
+          },
+          {
+            "tick": 27412,
+            "phase": 0,
+            "state": "stomp",
+            "hp": 1500
+          },
+          {
+            "tick": 27472,
+            "phase": 0,
+            "state": "waves",
+            "hp": 1500
+          },
+          {
+            "tick": 27624,
+            "phase": 0,
+            "state": "open",
+            "hp": 1500
+          },
+          {
+            "tick": 27760,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 900
+          },
+          {
+            "tick": 27819,
+            "phase": 1,
+            "state": "stomp",
+            "hp": 900
+          },
+          {
+            "tick": 27879,
+            "phase": 1,
+            "state": "waves",
+            "hp": 900
+          },
+          {
+            "tick": 28079,
+            "phase": 1,
+            "state": "open",
+            "hp": 900
+          },
+          {
+            "tick": 28236,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 751
+          },
+          {
+            "tick": 28237,
+            "phase": 1,
+            "state": "call",
+            "hp": 751
+          },
+          {
+            "tick": 28334,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 751
+          },
+          {
+            "tick": 28636,
+            "phase": 1,
+            "state": "sweep",
+            "hp": 751
+          },
+          {
+            "tick": 28690,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 751
+          },
+          {
+            "tick": 28750,
+            "phase": 1,
+            "state": "stomp",
+            "hp": 751
+          },
+          {
+            "tick": 28810,
+            "phase": 1,
+            "state": "waves",
+            "hp": 751
+          },
+          {
+            "tick": 29010,
+            "phase": 1,
+            "state": "open",
+            "hp": 751
+          },
+          {
+            "tick": 29062,
+            "phase": 2,
+            "state": "stomp",
+            "hp": 450
+          },
+          {
+            "tick": 29122,
+            "phase": 2,
+            "state": "waves",
+            "hp": 450
+          },
+          {
+            "tick": 29322,
+            "phase": 2,
+            "state": "open",
+            "hp": 450
+          },
+          {
+            "tick": 29515,
+            "phase": 2,
+            "state": "stalk3",
+            "hp": 112
+          },
+          {
+            "tick": 30234,
+            "phase": 2,
+            "state": "stomp",
+            "hp": 30
+          },
+          {
+            "tick": 30294,
+            "phase": 2,
+            "state": "waves",
+            "hp": 30
+          },
+          {
+            "tick": 30494,
+            "phase": 2,
+            "state": "open",
+            "hp": 30
+          },
+          {
+            "tick": 30504,
+            "phase": 2,
+            "state": "dead",
+            "hp": 0
+          }
+        ],
+        "firstTick": 25911,
+        "lastTick": 31223,
+        "minimumPlayerHealth": 49.66666666666575,
+        "damageTaken": 88.93333333333334,
+        "finalPlayerHealth": 86.93333333333183,
+        "flags": [
+          "talked:ranger",
+          "owned:lever-rifle",
+          "lever:dam-log-a",
+          "lever:dam-log-b",
+          "open:dam-sluice",
+          "taken:pond-glass",
+          "lit:pond",
+          "taken:resin-24",
+          "resin:24",
+          "taken:resin-25",
+          "resin:25",
+          "taken:ridge-flint",
+          "lit:ridge",
+          "used:ph-zip",
+          "dead:actor.player",
+          "dead:creature:159",
+          "dead:creature:160",
+          "lit:den",
+          "followed:stag",
+          "dead:creature:171",
+          "dead:creature:172",
+          "dead:creature:161",
+          "dead:king",
+          "seen:dawn",
+          "quest:warden-done"
+        ]
+      },
+      "after": {
+        "phases": [
+          0,
+          1,
+          2
+        ],
+        "states": [
+          {
+            "tick": 25911,
+            "phase": 0,
+            "state": "dormant",
+            "hp": 1500
+          },
+          {
+            "tick": 26980,
+            "phase": 0,
+            "state": "intro",
+            "hp": 1500
+          },
+          {
+            "tick": 27244,
+            "phase": 0,
+            "state": "stalk",
+            "hp": 1500
+          },
+          {
+            "tick": 27304,
+            "phase": 0,
+            "state": "stomp",
+            "hp": 1500
+          },
+          {
+            "tick": 27370,
+            "phase": 0,
+            "state": "waves",
+            "hp": 1500
+          },
+          {
+            "tick": 27526,
+            "phase": 0,
+            "state": "open",
+            "hp": 1500
+          },
+          {
+            "tick": 27661,
+            "phase": 1,
+            "state": "open",
+            "hp": 900
+          },
+          {
+            "tick": 27664,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 900
+          },
+          {
+            "tick": 27724,
+            "phase": 1,
+            "state": "stomp",
+            "hp": 900
+          },
+          {
+            "tick": 27790,
+            "phase": 1,
+            "state": "waves",
+            "hp": 900
+          },
+          {
+            "tick": 27994,
+            "phase": 1,
+            "state": "open",
+            "hp": 900
+          },
+          {
+            "tick": 28150,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 751
+          },
+          {
+            "tick": 28156,
+            "phase": 1,
+            "state": "call",
+            "hp": 751
+          },
+          {
+            "tick": 28252,
+            "phase": 1,
+            "state": "stalk",
+            "hp": 751
+          },
+          {
+            "tick": 28606,
+            "phase": 1,
+            "state": "stomp",
+            "hp": 751
+          },
+          {
+            "tick": 28672,
+            "phase": 1,
+            "state": "waves",
+            "hp": 751
+          },
+          {
+            "tick": 28876,
+            "phase": 1,
+            "state": "open",
+            "hp": 751
+          },
+          {
+            "tick": 28986,
+            "phase": 2,
+            "state": "open",
+            "hp": 450
+          },
+          {
+            "tick": 28990,
+            "phase": 2,
+            "state": "stomp",
+            "hp": 450
+          },
+          {
+            "tick": 29056,
+            "phase": 2,
+            "state": "waves",
+            "hp": 450
+          },
+          {
+            "tick": 29260,
+            "phase": 2,
+            "state": "open",
+            "hp": 450
+          },
+          {
+            "tick": 29452,
+            "phase": 2,
+            "state": "stalk3",
+            "hp": 112
+          },
+          {
+            "tick": 30581,
+            "phase": 2,
+            "state": "dead",
+            "hp": 0
+          }
+        ],
+        "firstTick": 25911,
+        "lastTick": 31300,
+        "minimumPlayerHealth": 59,
+        "damageTaken": 77,
+        "finalPlayerHealth": 100,
+        "flags": [
+          "talked:ranger",
+          "owned:lever-rifle",
+          "lever:dam-log-a",
+          "lever:dam-log-b",
+          "open:dam-sluice",
+          "taken:pond-glass",
+          "lit:pond",
+          "taken:resin-24",
+          "resin:24",
+          "taken:resin-25",
+          "resin:25",
+          "taken:ridge-flint",
+          "lit:ridge",
+          "used:ph-zip",
+          "dead:actor.player",
+          "dead:creature:159",
+          "dead:creature:160",
+          "lit:den",
+          "followed:stag",
+          "dead:creature:171",
+          "dead:creature:172",
+          "dead:creature:161",
+          "dead:king",
+          "seen:dawn",
+          "quest:warden-done"
+        ]
+      }
+    },
+    "sunscar-dunes": {
+      "before": {
+        "headless": {
+          "status": "passed",
+          "ticksExecuted": 12671,
+          "hash": "afc153106ab3dab809b94ea012c9dfe4da99b2dc64f87fbf35600f366cfef4f5",
+          "victoryTick": 12551,
+          "attempts": 1,
+          "questComplete": true,
+          "facts": [
+            "sunscar.signal",
+            "sunscar.matriarch"
+          ],
+          "coins": 25,
+          "blows": 11,
+          "shovedTicks": 121,
+          "entries": {
+            "lanes": 92,
+            "steps": 46095
+          }
+        },
+        "replay": {
+          "status": "passed",
+          "checkpointCaptured": true,
+          "checkpointTick": 10830,
+          "checkpoint": {
+            "state": "fight",
+            "phase": 1,
+            "storm": 0.8,
+            "hp": 396
+          },
+          "suffixTicksExecuted": 1841,
+          "victoryTick": 12551,
+          "hash": "afc153106ab3dab809b94ea012c9dfe4da99b2dc64f87fbf35600f366cfef4f5",
+          "replayHash": "afc153106ab3dab809b94ea012c9dfe4da99b2dc64f87fbf35600f366cfef4f5",
+          "workerTicks": 60,
+          "workerExact": true,
+          "suffixFacts": [
+            "sunscar.signal",
+            "sunscar.matriarch"
+          ],
+          "suffixCoins": 25
+        }
+      },
+      "after": {
+        "headless": {
+          "status": "passed",
+          "ticksExecuted": 12563,
+          "hash": "a1e322f6b4635464ec65742c71d350138ad2c407fe56c8ddbfa493eb253a487c",
+          "victoryTick": 12443,
+          "attempts": 1,
+          "questComplete": true,
+          "facts": [
+            "sunscar.signal",
+            "sunscar.matriarch"
+          ],
+          "coins": 25,
+          "blows": 11,
+          "shovedTicks": 121,
+          "entries": {
+            "lanes": 92,
+            "steps": 46095
+          }
+        },
+        "replay": {
+          "status": "passed",
+          "checkpointCaptured": true,
+          "checkpointTick": 10830,
+          "checkpoint": {
+            "state": "fight",
+            "phase": 1,
+            "storm": 0.807,
+            "hp": 378
+          },
+          "suffixTicksExecuted": 1733,
+          "victoryTick": 12443,
+          "hash": "a1e322f6b4635464ec65742c71d350138ad2c407fe56c8ddbfa493eb253a487c",
+          "replayHash": "a1e322f6b4635464ec65742c71d350138ad2c407fe56c8ddbfa493eb253a487c",
+          "workerTicks": 60,
+          "workerExact": true,
+          "suffixFacts": [
+            "sunscar.signal",
+            "sunscar.matriarch"
+          ],
+          "suffixCoins": 25
+        }
+      },
+      "pinnedCheckpointTable": false,
+      "note": "Peer sp-x4 ran the official headless and replay proofs on the same program before/after observation binding; no Signal checkpoint manifest exists to rebake."
+    }
+  },
+  "recordedSource": "e33958a4dfa0b6549daf257157708fcf1c2b0108",
+  "replays": {
+    "driftwood-isle": {
+      "status": "passed",
+      "resumedFrom": "captain",
+      "prefixTicks": 0,
+      "checkpointCaptured": true,
+      "checkpointTick": 18898,
+      "hp": 190,
+      "encounter": {
+        "boss": {
+          "state": "fight",
+          "phase": 0,
+          "checkpoint": 0,
+          "attempts": 1,
+          "t": 0,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": false,
+            "rewardTaken": false,
+            "kills": 0
+          }
+        },
+        "attempt": true,
+        "waitForReturn": false
+      },
+      "suffixTicksExecuted": 1000,
+      "hash": "5ac20ce6da0d12b8ee015703d848da2b0d786364b416af613f05b89c660141a7",
+      "replayHash": "5ac20ce6da0d12b8ee015703d848da2b0d786364b416af613f05b89c660141a7",
+      "effects": [
+        {
+          "tick": 19816,
+          "effect": {
+            "kind": "fact",
+            "name": "driftwood.quest",
+            "actorId": "quest:1"
+          }
+        },
+        {
+          "tick": 19816,
+          "effect": {
+            "kind": "fact",
+            "name": "driftwood.quest",
+            "actorId": "sealed-ring"
+          }
+        }
+      ],
+      "workerTicks": 60,
+      "workerExact": true,
+      "victory": true,
+      "reward": {
+        "elapsed": -2,
+        "player": {
+          "pitch": 0.6632251157578453,
+          "carried": true
+        }
+      }
+    },
+    "pine-hollow": {
+      "status": "passed",
+      "checkpointCaptured": true,
+      "checkpointTick": 27752,
+      "suffixTicksExecuted": 1200,
+      "hash": "9c4767f57fb5f76630d4946ec3f2a4d96d7d75f95327134b5126ff3db53a7732",
+      "replayHash": "9c4767f57fb5f76630d4946ec3f2a4d96d7d75f95327134b5126ff3db53a7732",
+      "checkpoint": {
+        "state": "fight",
+        "phase": 1
+      },
+      "facts": [
+        "pine.feat.elk3/elk3:1",
+        "pine.feat.thralls/thralls:1",
+        "pine.feat.boar5/boar5:1",
+        "pine.feat.thralls/thralls:2"
+      ],
+      "restoredReemits": 0
+    }
+  }
+}
