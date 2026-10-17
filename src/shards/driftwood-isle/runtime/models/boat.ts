@@ -15,25 +15,8 @@ import { defineModel } from '@wildshard/engine/models/model';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 export const boatLayout = (): ReturnType<typeof driftwoodRows<'custom/fixedLayouts'>>['nativeView']['BOAT_LAYOUT'] => driftwoodRows('custom/fixedLayouts').nativeView.BOAT_LAYOUT;
-
-/**
- * PHYSICS P4, own space: the four gunwale / bow / stern walls (they keep you in the boat once you're in, and keep a
- * swimmer out of the hull; from the pier deck you step over them) and the floor boards as a slab whose top is the
- * floor, widened to the walls' inner faces so the tub is closed. A kinematic body re-poses them every step.
- */
-export function boatColliders(layout: ReturnType<typeof boatLayout> = boatLayout()): ColliderDesc[] {
-  const { length: LENGTH, beam: BEAM, floor: BOAT_FLOOR } = layout;
-  const yTop = 0.8, yBottom = -1.2, wy = (yTop + yBottom) / 2, wh = (yTop - yBottom) / 2, t = 0.08;
-  const wall = (x: number, z: number, hx: number, hz: number): ColliderDesc => ({ kind: 'box', x, y: wy, z, hx, hy: wh, hz });
-  const floorTop = BOAT_FLOOR, fh = 0.1;
-  return [
-    wall(-BEAM / 2, 0, t, LENGTH / 2), wall(BEAM / 2, 0, t, LENGTH / 2), wall(0, -LENGTH / 2, BEAM / 2, t), wall(0, LENGTH / 2, BEAM / 2, t),
-    { kind: 'box', x: 0, y: floorTop - fh, z: 0, hx: BEAM / 2 - t, hy: fh, hz: LENGTH / 2 - t },
-  ];
-}
 
 const DRAWS = { hull: fixedDraw('boatHull'), sail: fixedDraw('boatSail'), gear: fixedDraw('boatGear') };
 
@@ -48,7 +31,7 @@ export const boat = defineModel<Record<string, never>>({
       { draw: 'gear', material: 'gear', receiveShadow: true }],
     geometry: (_, draw) => DRAWS[draw].copy(),
     material: (ctx, key) => key === 'hull' ? lowPolyLookMaterial(ctx.sky, 'solid', (m) => { m.side = THREE.FrontSide; }) : lowPolyLookMaterial(ctx.sky, key === 'gear' ? 'still' : 'default'),
-    colliders: () => boatColliders(),
+    colliders: () => structuredClone(driftwoodRows('custom/fixedLayouts').boat.colliders),
     loading: { id: 'driftwood-isle/boat', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [boatLayout().beam, 5.6, boatLayout().length] },
   }),
 });

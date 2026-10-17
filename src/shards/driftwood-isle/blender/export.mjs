@@ -1,3 +1,4 @@
+import SHORE from '../data/shoreBoulders.generated.json' with {type:'json'};
 import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 // Driftwood Isle's half of scripts/blender/lib/export-scene.mjs (DRIFTWOOD-REMASTER X2, E52): the game's low-poly ground
 // colour, and the cove's layout specs + bake occluders. Moved here unchanged from export-scene.mjs (PH-0.3): the exported
@@ -27,7 +28,6 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const terrainLayout = await imp('src/shards/driftwood-isle/data/layout.ts');
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
-  const { scatterShoreBoulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
   const { buildTrailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
   const { islandTrailsideSpec, trailsideSpecKey } = await imp('src/shards/driftwood-isle/generators/trailsideLayout.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
@@ -37,7 +37,8 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const { HUT } = island;
   if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
   const palms = FOLIAGE.tiers.desktop.palms.specs;
-  const rocks = scatterShoreBoulders(def.seed);
+  if (SHORE.seed !== def.seed) throw new Error('Shore placements require their authored seed');
+  const rocks = structuredClone(SHORE.specs);
   const bushes = FOLIAGE.tiers.desktop.bushes.specs;
   const trailside = islandTrailsideSpec();
 

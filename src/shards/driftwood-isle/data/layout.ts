@@ -36,6 +36,9 @@ export const GULLY = { x: 24, z: 22, width: 11, depth: 7, length: 64 };
 
 export const SPAWN = { x: 0, y: 1.2, z: -194, yaw: Math.PI };
 
+/** E308: moored beside the south pier, nine metres behind the player's start. */
+export const BOAT_MOOR = { x: -4.2, z: SPAWN.z - 9 };
+
 /** metres from the pier's sea end to the piling that flies the pennant (E111; E308 moved it from the sea-end bollard to
  *  half way down, just past the boat's bow — Jake: "also the flag on the pier also halfway down") */
 export const PIER_PENNANT_AT = 43.2;

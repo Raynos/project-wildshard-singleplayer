@@ -1,6 +1,6 @@
 import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import type { OceanDef } from '@wildshard/game/shard/manifest';
-import { PLATEAU, HEADLAND, SPAWN } from '../data/layout';
+import { PLATEAU, HEADLAND } from '../data/layout';
 import { BRIDGE_SPANS } from '../data/bridgeRows';
 import { SHRINE_SITES } from '../data/shrineSites';
 import { WRECK_SITES } from '../data/wreckSites';
@@ -41,10 +41,5 @@ export const SHRINE = SHRINE_SITES.world;
 export const BRIDGE = BRIDGE_SPANS.world;
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
 export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
-
-
-/** the sailboat you arrived in, moored alongside the pier's west side by the spawn (it was at the sea end, 9 m behind the
- *  old spawn; E308, Jake: "move the boat to halfway down the pier too") — bow out to sea, its bow line on the pennant's piling */
-export const BOAT_MOOR = { x: -4.2, z: SPAWN.z - 9 };
 
 

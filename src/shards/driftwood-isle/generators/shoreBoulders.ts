@@ -4,7 +4,8 @@ import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { SEED, WORLD_DROP, SHORE_LEVEL } from '../data/landscapeRows';
 import { WRECK_SITES } from '../data/wreckSites';
 import { driftwoodGroundBytes } from './groundRows';
-import type { BoulderSpec } from '../world/Boulders';
+
+export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 
 interface Ground { heightAt: (x: number, z: number) => number }
 const inChunk = (x: number, z: number, margin: number): boolean => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;

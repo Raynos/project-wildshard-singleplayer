@@ -130,7 +130,14 @@ export const SECTIONS = {
     ])), v.maxLength(128)) })), v.length(7)),
     npcScenes: v.strictObject({ castaway: npcScene, trader: npcScene }),
     chimeSlots: runs,
-    gullPerches: v.pipe(v.array(point), v.maxLength(10)),
+    gullPerches: v.pipe(v.array(point), v.maxLength(256)),
+    boat: v.strictObject({ spec: v.strictObject({ x: number, z: number, heading: v.literal(0), waterY: number }), placement: point,
+      walls: boxes, floors, cleats: v.tuple([number, number]),
+      colliders: v.pipe(v.array(v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number })), v.length(5)) }),
+    shoreBoulders: v.strictObject({
+      placements: v.pipe(v.array(v.strictObject({ ...point.entries, yaw: number, leanX: number, leanZ: number, params: v.strictObject({ r: number, squash: number }) })), v.maxLength(512)),
+      boxes: v.pipe(v.array(box), v.maxLength(512)),
+    }),
     /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */
     cove,
     /** the shrine's two admitted sites (knoll and flat Explorer specimen): origin, colliders, stair descriptors, anchors, levels */

@@ -3,10 +3,11 @@ import { Mover } from '@wildshard/sdk/movers';
 import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
-import { BOAT_MOOR, BRIDGE } from '../world/sites';
+import { BRIDGE } from '../world/sites';
+import { BOAT_MOOR } from '../data/layout';
 import { LOWERED_SEA, WORLD_DROP } from '../world/sea';
 import { driftwoodGroundField } from './groundRows';
-import { boatColliders } from '../runtime/models/boat';
+import { boatColliders } from './staticWorld';
 import { BOAT_LAYOUT } from './boatLayout';
 import { ropeBridgeSegments } from './ropeBridge';
 

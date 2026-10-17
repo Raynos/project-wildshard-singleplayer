@@ -8,20 +8,19 @@ import { readDriftwoodBlob, loadFixedGeometry } from '../runtime/boot/blobAssets
  * budget), then the rope bridge's jointed deck, the island's walkway ramps and the Blender spawn cove over the procedural
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR } from '../world/sites';
+import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from '../world/sites';
 import manifest from '../discovery.generated';
 import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
-import { placeShoreBoulders, SHORE_PERCHES } from './Boulders';
+import { shoreBoulder } from '../runtime/models/shoreBoulder';
 import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/models/fixedSites';
 import { Wreck } from './Wreck';
 import { placeShrine, type Shrine } from '../runtime/world/Shrine';
@@ -40,11 +39,11 @@ import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { onDeck } from './entryDeck';
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext } from '@wildshard/engine/models/model';
-import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
+import { place, placeSliced, placeModelSite, type ModelSite, type Placed } from '@wildshard/engine/models/place';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
-  ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Awaited<ReturnType<typeof placeShoreBoulders>> | null;
+  ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
   gulls: AmbientFlockDraw | null; trailside: ReturnType<typeof buildTrailside> | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Awaited<ReturnType<typeof placeIslandPalms>> | null; cover: GroundCover | null;
@@ -115,13 +114,13 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
   // SF46 (G164): lowered with everything else, it stays moored by the pier
-  const boat = new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moored: true }).place(registry);
+  const boat = new Boat(sky).place(registry);
   statics.push(...boat.colliders);
   if (boat.ropes) game.scene.add(boat.ropes);
   await stages.next('Pier and boat');
   // faceted shore boulders along the beach
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-  const rocks = await stages.build('Shore boulders', () => placeShoreBoulders(sky, registry, slice.due), { values: value => value.colliders });
+  const rocks = await stages.build('Shore boulders', async () => ({ placed: await placeSliced(shoreBoulder, structuredClone(fixed.shoreBoulders.placements), { ctx: modelContext(sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } }, slice.due), colliders: structuredClone(fixed.shoreBoulders.boxes) }), { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
   const hut = await stages.build('Hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'hut' } }); }, { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
@@ -142,13 +141,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const foliage = fixed.foliage.tiers[game.tier];
   const bushes = await stages.build('Bushes', () => placeIslandBushes(sky, foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-  const gulls = await stages.build('Gulls', () => gullFlock([
-      ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
-      ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
-      new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
-      ...SHORE_PERCHES.map((p) => new THREE.Vector3().fromArray(p)),
-      ...driftwoodRows('custom/fixedLayouts').gullPerches,
-  ]), { objects: value => [value.group] });
+  const gulls = await stages.build('Gulls', () => gullFlock(fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
   const trailside = buildTrailside(sky);
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their

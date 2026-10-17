@@ -13,7 +13,7 @@ import { BOAT_LAYOUT } from './boatLayout';
 import { BOAT_CLEATS } from './boatFrame';
 import { pierPosts } from '../world/pierLayout';
 import { LOWERED_SEA } from '../world/sea';
-import { BOAT_MOOR } from '../world/sites';
+import { BOAT_MOOR } from '../data/layout';
 
 interface XZ { x: number; z: number }
 

@@ -4,7 +4,7 @@
  * mooring lines to the pier's bollards (world geometry between two placed models: a separate static mesh, so they don't
  * bob; baked offline with the pier's post choice, generators/mooringLines.ts, the fixed-model template `mooring-lines`) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
  *
- *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moored: true }).place(registry);
+ *   const boat = new Boat(sky).place(registry);
  *   scene.add(boat.group); if (boat.ropes) scene.add(boat.ropes);
  *   its registry piece.push(...boat.colliders);
  *   player.platforms.push((x, z) => boat.floorHeightAt(x, z));   // you can jump in
@@ -23,16 +23,8 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
 import { fixedDraw } from '../runtime/boot/blobAssets';
-import { boatLayout, boat } from '../runtime/models/boat';
-
-export interface BoatSpec {
-  x: number; z: number;
-  heading?: number;
-  /** still-water level; the hull floats with its waterline here */
-  waterY: number;
-  /** draw the baked mooring lines to the south pier's posts (generators/mooringLines.ts: the world's boat at BOAT_MOOR) */
-  moored?: boolean;
-}
+import { boat } from '../runtime/models/boat';
+import { driftwoodRows } from '../runtime/boot/rows';
 
 export class Boat {
   /** the placed boat (the hull with its gear, the sail): posed on the swell every frame */
@@ -42,31 +34,23 @@ export class Boat {
   colliders: Collider[] = [];
   private t = 0;
   /** The gameplay installer projects an admitted fixed-step script; dev model pages retain their preview clock. */
-  private floorY: number;
+  private readonly row = driftwoodRows('custom/fixedLayouts').boat;
+  private readonly spec = this.row.spec;
 
-  constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + boatLayout().floor; }
+  constructor(private sky: Sky) {}
 
   /** the game's: placed and registered (piece `boat`, the catalog's Sailboat; its colliders ride it) */
   place(registry: WorldRegistry): this {
-    const heading = this.spec.heading ?? 0;
-    const placed = place(boat, [{ x: this.spec.x, y: this.spec.waterY, z: this.spec.z, ...(heading === 0 ? {} : { yaw: heading }) }], { ctx: modelContext(this.sky), draw: 'single', registry,
+    const placed = place(boat, [this.row.placement], { ctx: modelContext(this.sky), draw: 'single', registry,
       piece: { id: 'boat', follows: 'copy', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;
     const mat = lowPolyLookMaterial(this.sky, 'still');
 
-    // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
-    if (this.spec.moored === true) {
-      this.moorings = new MooringLines(fixedDraw('mooringLines').copy(), [-boatLayout().length / 2 + 0.3, boatLayout().length / 2 - 0.3], mat);
-      this.ropes = this.moorings.mesh;
-    }
-    // gunwales + bow / stern as thin walls: they keep you in the boat once you're in, and keep a swimmer out
-    // of the hull; from the pier deck (above yTop) you step over them and drop onto the floor
-    {
-      const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h), yTop = this.spec.waterY + 0.8, yBottom = this.spec.waterY - 1.2;
-      const wall = (lx: number, lz: number, hw: number, hd: number) => this.colliders.push({ x: this.spec.x + lx * cs + lz * sn, z: this.spec.z - lx * sn + lz * cs, hw, hd, rot: -h, yTop, yBottom });
-      wall(-boatLayout().beam / 2, 0, 0.08, boatLayout().length / 2); wall(boatLayout().beam / 2, 0, 0.08, boatLayout().length / 2); wall(0, -boatLayout().length / 2, boatLayout().beam / 2, 0.08); wall(0, boatLayout().length / 2, boatLayout().beam / 2, 0.08);
-    }
+    this.moorings = new MooringLines(fixedDraw('mooringLines').copy(), this.row.cleats, mat);
+    this.ropes = this.moorings.mesh;
+    // JSON has no signed zero; retain the original heading-zero wall orientation.
+    this.colliders = this.row.walls.map(row => ({ ...row, rot: -0 }));
     return this;
   }
 
@@ -75,7 +59,7 @@ export class Boat {
 
   /** the boat's floor if (x, z) is inside the hull */
   floorHeightAt(x: number, z: number): number | undefined {
-    return floorAtRects([{ x: this.spec.x, z: this.spec.z, hw: boatLayout().beam / 2 * 0.8, hd: boatLayout().length / 2 - 0.3, y: this.floorY, rot: this.spec.heading ?? 0 }], x, z, 'first');
+    return floorAtRects(this.row.floors, x, z, 'first');
   }
 
   private moorings: MooringLinesSet | null = null;
@@ -88,7 +72,7 @@ export class Boat {
     this.t += dt;
     const g = this.group, x = this.spec.x, z = this.spec.z, w = this.spec.waterY;
     const damp = seaDamp(w - heightAt(x, z));
-    const h = this.spec.heading ?? 0, fx = -Math.sin(h), fz = -Math.cos(h), sx = Math.cos(h), sz = -Math.sin(h);   // bow (local −z), starboard (+x)
+    const h = this.spec.heading, fx = -Math.sin(h), fz = -Math.cos(h), sx = Math.cos(h), sz = -Math.sin(h);   // bow (local −z), starboard (+x)
     const hFore = waveHeight(x + fx * 2, z + fz * 2, undefined, damp), hAft = waveHeight(x - fx * 2, z - fz * 2, undefined, damp);
     const hStar = waveHeight(x + sx * 2, z + sz * 2, undefined, damp), hPort = waveHeight(x - sx * 2, z - sz * 2, undefined, damp);
     g.rotation.order = 'YXZ';
