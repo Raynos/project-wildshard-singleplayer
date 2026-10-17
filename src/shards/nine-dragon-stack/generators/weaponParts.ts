@@ -7,9 +7,9 @@
 // (the upper edge), so a viewer looking at the flat sees the head in profile, as on the weapon sheet (round-1 08).
 // Fei Zhua local frame: +y runs from the elbow to the claw, +z is the back of the forearm (the top in first person).
 import { Vector3 } from 'three';
-import { E, type Kit } from '../kit';
+import { E, type Kit } from './kit';
 import { type KitX, type XLook, curve } from './kitx';
-import { WEAPON_LOOKS } from '../../data/weaponLooks';
+import { WEAPON_LOOKS } from '../data/weaponLooks';
 
 const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
 
