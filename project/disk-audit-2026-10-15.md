@@ -144,6 +144,24 @@ Siblings, same idea and smaller: `~/.cache/wildshard-parity` 14 GB, `~/.cache/wi
 | `~/projects/games/rockhop` | 39 GB | `.git` 38 GB; Jake's call per the dotfiles README |
 | `~/projects/games/wildshard-singleplayer` | 35 GB | |
 
+## 6. 2026-10-17 16:47 check: wildshard `./tmp` +11 GB in 4 h, `$TMPDIR` 7.2 → 13 GB (OPEN)
+
+The boot purge is fine at 153k files. These are disk findings.
+
+- **`wildshard-generation-*` copies leak into `$TMPDIR`:** there are **70** of them (4.6 GB, 42k files; there were 2 on
+  10-15). They are spread from 10-16 21:00 to 10-17 14:00, none are held open, and no `scripts/generate` process is alive.
+  `generate.mjs` removes the copy in a `finally` (line 191), so these come from jobs that were **killed** (SIGKILL or an
+  outer timeout skips `finally`). Fix: put the copy under `./tmp/generation/` (the repo's scratch rule) and have
+  `generate.mjs` sweep its own `wildshard-generation-*` entries older than an hour at startup when no lock holds them.
+- **Instruments traces in `$TMPDIR`: 5.9 GB** in 6 `instruments*.ktrace` files (3.3 GB, 1.2 GB, 945 MB, …, 10:54–16:37).
+  They come from the frame-floor xctrace runs (`progress/frame-floor/sim-road-part6/7-2026-10-17`). No xctrace is running,
+  so these are leftovers. Few files, so no boot cost, but xctrace leaves its raw `.ktrace` behind after exporting.
+  Delete it after each recording, or record with `--output` under `./tmp/<task>`.
+- **`./tmp` 25 → 36 GB (222k files):** `build-mirror` 26 GB (`check2` grew 4.7 → **7.7 GB**; all 5 slots `check`,
+  `check2`, `check3`, `commit` and `gate` are still present). New per-agent scratch over 1 GB: `sp-x5-z2` **2.5 GB**,
+  `elites-cold-generation-20261017T153442-44564` 1.7 GB, `sp-x1-road8` 1.6 GB, `sp-x7-deploy` 1.3 GB, `sp-x7-ci8` 1.1 GB.
+  They are in the right place, but nothing deletes them when the task ends.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
