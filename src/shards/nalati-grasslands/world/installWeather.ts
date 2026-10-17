@@ -38,7 +38,7 @@ import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../runtime/audio/synth';
 import type { SteppeStorm as Weather, Exposed, LightningPlayer } from './Weather';
 import { steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
-import { STORM_PHASES } from './weatherProfile';
+import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { WeatherFX } from './WeatherFX';
 import { waterOf } from '../water';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -108,7 +108,8 @@ function waterDimmer(root: THREE.Object3D | undefined): ((L: SkyLook, dayFog: nu
   };
 }
 
-export function wireWeather(ctx: WeatherCtx): NalatiWeather {
+export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
+  const program=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.ctx.product.file('world/weather.json'))));
   const { game, sky, player, forest } = ctx;
   const def = ctx.manifest;
   const qs = ctx.ctx.app.params;
@@ -142,11 +143,11 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       lp.sheltered = indoors || held || yurtShelters(yurts, p.x, p.z);
       return lp;
     },
-  });
+  }, program);
   const wq = qs.get('weather');
   if (wq) {
     const [ph = '', at = '0'] = wq.split(':');
-    const phase = STORM_PHASES.find((p) => p === ph);
+    const phase = weather.profile.states.find((p) => p === ph);
     if (phase) weather.force(phase, Number.parseFloat(at) || 0);
   }
 

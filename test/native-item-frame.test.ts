@@ -8,7 +8,8 @@ import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/
 import { fillNativeCombatFrame } from '../src/sdk/headlessRuntime';
 import { parseItems } from '../src/format/items';
 import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
-import { PineGustClock } from '../src/shards/pine-hollow/runtime/weapons/gustClock';
+import { GustContinuation } from '../src/engine/world/weatherContinuation';
+import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import { installPineCrossbow, boltFlight } from './fixtures/weapon-oracle/headlessCrossbow';
 import { installPineLongbow } from './fixtures/weapon-oracle/nativeLongbow';
 import { installPineLever } from './fixtures/weapon-oracle/nativeLever';
@@ -47,7 +48,7 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const level = fixtureLevel(-8);
   let rain = 0;
-  const frame = createNativeCombatFrame(), gust = new PineGustClock(() => 0.3);
+  const frame = createNativeCombatFrame(), gust = new GustContinuation(weatherProgram.air);
   let old = createSimHost(level, { rapier }), current = createSimHost(level, { rapier });
   const install = (host: SimHost): void => {
     installNativeItems(host, frame, { kind: 'bolt', ...declaration('weapon.crossbow') });
@@ -71,7 +72,7 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
   try {
     current.events.on('damage.dealt', () => { contacts++; }, current.scope);
     for (let tick = 0; tick < 1500; tick++) {
-      rain = (tick % 101) / 100; gust.advance(1 / 60);
+      rain = (tick % 101) / 100; gust.advance(1 / 60, 0.3);
       const wind = gust.snapshot(); frame.rain = rain;
       frame.wind = { clock: { time: wind.time, gust: wind.gust }, field: { x: -0.55, z: 0.83, frontLength: 150, frontSpeed: 11, secondaryLength: 0.61 * 150 }, base: 1.2, scale: 7 };
       frame.aim = tick % 11 === 0 ? 0.8 : 0.5; frame.adsBlend = (tick % 61) / 60; frame.aimed = (tick % 41) / 40;

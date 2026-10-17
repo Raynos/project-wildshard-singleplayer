@@ -1,7 +1,7 @@
 /**
  * Pine Hollow's weather, wired (PINE-HOLLOW-REMASTER PH-L10 + the weather half of PH-C7). One `installPineWeather` call in
  * main.ts, after the ambience and the quest; nothing else knows the weather exists. The state machine is
- * src/shards/pine-hollow/world/weatherProfile.ts, the rain and the puddles the SDK's rain system (@wildshard/sdk/looks/rainFx)
+ * the admitted world/weather.json numeric program, the rain and the puddles the SDK's rain system (@wildshard/sdk/looks/rainFx)
  * dressed by data/weatherLook.ts (its sizes, its programs, the bear cave's hood); this file turns their numbers into:
  *
  *   · THE SKY — the clock's `PineDayNight.mod` (overcast: the sun behind the deck, the sky and the IBL greyed; the fog
@@ -41,7 +41,9 @@ import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind'
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
+import { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
+import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
+import { wetFlight } from '@wildshard/engine/combat/ammo';
 import { loadRainBake, RainFx, type RainBake } from '../runtime/looks/rainFx';
 import rainRows from '../data/rain.json' with { type: 'json' };
 import { HerdShelter } from '../runtime/species/herdShelter';
@@ -75,17 +77,18 @@ export interface PineWeatherHost {
 /** The tier's rain bake (generators/bake-pine-rain.mjs: the puddles, the crowns' cover), fetched before `installWeather`. */
 export const loadPineRain = (): Promise<RainBake> => loadRainBake(`/assets/pine-hollow/baked/rain${TIER === 'phone' ? '.phone' : ''}.bin`, rainRows[TIER]);
 
-export interface PineWeatherRig { weather: PineWeather; fx: InstanceType<typeof RainFx>; setMode: (m: PineWeatherMode, at?: number) => void }
+export interface PineWeatherRig { weather: WeatherContinuation; fx: InstanceType<typeof RainFx>; setMode: (m: string, at?: number) => void }
 
-export function installWeather(ctx: ShardContext, host: PineWeatherHost): PineWeatherRig | null {
-  return installPineWeather(host, ctx, retainsRuntimeServices(ctx) ? ctx : undefined);
+export async function installWeather(ctx: ShardContext, host: PineWeatherHost): Promise<PineWeatherRig | null> {
+  const rows=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.product.file('world/weather.json'))));
+  return installPineWeather(host, ctx, rows, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-function installPineWeather(h: PineWeatherHost, ctx: ShardContext, entered?: ShardContext): PineWeatherRig | null {
+function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, entered?: ShardContext): PineWeatherRig | null {
   const pine = pineBackdrop(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
-  const weather = new PineWeather({ seed: SEED, mode: 'live' });
+  const weather = new WeatherContinuation(rows, { seed: SEED, mode: 'live' });
   weather.setMode(setting('weather'), atT);
   // the rain (PH-L10, E322 F-L5): the cover map's crowns and roofs, and the bear cave's mouth under its arch, where none falls
   const hood = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, rot: BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(BEAR_CAVE.x, BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
@@ -107,7 +110,7 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, entered?: Sha
     veil, particles: h.particles?.params ?? null, water: waterWeather, wind: windBoost, windVector: wind }));
   const channels=installChannelPrograms(ctx.product.shardfile.clientChannels,'weather',roots);
   const answers = (scope: Scope): void => {
-    h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? wetProjectile(input, weather.rain) : input, scope);
+    h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? (input.ammo.wet === undefined ? input : { ...input, ...wetFlight(input, rows.wetProjectile, weather.rain) }) : input, scope);
     h.game.app.events.answer('creature.wander-goal', (query) => {
       if (h.game.app.levelScope !== h.game.levelScope) return query;
       return { ...query, goal: shelter.wanderGoal(query.herd, weather.rain) ?? query.goal };

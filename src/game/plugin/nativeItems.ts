@@ -1,4 +1,4 @@
-import type { AmmoRow } from '@wildshard/engine/combat/ammo';
+import { wetFlight, type AmmoRow } from '@wildshard/engine/combat/ammo';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { parseItems } from '@wildshard/format/items';
 import * as v from 'valibot';
@@ -298,9 +298,7 @@ function ammoRow(row: Policy, id: string): Policy['ammunition'][number] {
   return ammo;
 }
 function ammoFlight(row: Policy, id: string, rain: number): { gravity: number; drag: number } {
-  const ammo = ammoRow(row, id), wet = Math.min(1, Math.max(0, rain));
-  return ammo.wet === undefined ? { ...ammo.flight } : {
-    gravity: ammo.flight.gravity * (1 + ammo.wet.gravity * wet), drag: ammo.flight.drag * (1 + ammo.wet.drag * wet) };
+  const ammo = ammoRow(row,id);return wetFlight(ammo.flight,ammo.wet,rain);
 }
 function ammoDamage(row: Policy, id: string, kind: string): number {
   const ammo = ammoRow(row, id); return ammo.targets.includes(kind) ? ammo.damage : 1;

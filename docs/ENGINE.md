@@ -8226,3 +8226,26 @@ explicit per-increment write override. The public counter data carries no
 storage callback or presentation-only feat metadata. Their ledger author
 assembly likewise stays build-only. Driftwood emits its trader prompt/action
 rows as `quests/trader.json`; the existing strict page binder consumes it.
+
+### Seeded weather programs and wind continuation (H4 continuation)
+
+`@wildshard/format/weatherProgram.parseWeatherProgram` admits bounded phase,
+mode, numeric expression and optional projectile-wind data. Expressions reuse
+`AudioMixExpressionSchema` and the server-safe scalar evaluator; they do not
+install an audio service. Ordered temporary values precede output evaluation.
+`@wildshard/engine/world/weatherContinuation.WeatherContinuation` applies these
+rows on the existing `Weather` transition loop. Pine and Nalati are real users:
+their differences are phase lengths, mode policies and numeric DATA. The host
+knows no shard names, requires no DOM, and replaces both private profile bodies.
+Nalati retains its separate lightning owner and the existing phase hook order.
+
+Optional cadence and wind state use `captureContinuation` and the atomic
+`prepareContinuationRestore`; validation draws no RNG, emits no event and
+preserves the borrowed gust publication's identity. The v1 envelope retains
+weather, wind, cadence and boost. `@wildshard/game/plugin/weather` installs this
+owner from admitted rows and a borrowed day clock at the declared step id.
+Both Pine and Nalati read `world/weather.json` through their admitted product
+in page and native paths;
+H4's existing channel programs remain the weather's read-only visual consumer.
+`@wildshard/engine/combat/ammo.wetFlight` shares exact wet-flight arithmetic
+between the page request and authoritative item policies.

@@ -2,7 +2,7 @@
   "about": "Per-shard ceilings on runtime/ source files (lint/runtime-files.mjs). Shrink-only: lower a ceiling as files leave runtime/; a rise needs a new raises line {slug, from, to, why}. Any slug without a line keeps the 128 default.",
   "ceilings": {
     "driftwood-isle": 128,
-    "pine-hollow": 151
+    "pine-hollow": 149
   },
   "default": 128,
   "raises": [

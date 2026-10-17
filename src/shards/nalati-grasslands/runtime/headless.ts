@@ -27,7 +27,7 @@ import * as v from 'valibot';
 import { Wind } from '@wildshard/engine/world/steppeWind';
 import type { WildEnv } from '../creatures/env';
 import type { LightningPlayer, SteppeStorm } from '../world/Weather';
-import { STORM_PHASES } from '../world/weatherProfile';
+import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import type { SunClock } from '../look/wildLight';
 import { exposeTrees, steppeStorm, stepStorm, stormEnv, stormWind, windEnv, yurtShelters, type StormWind, type YurtCircle } from '../world/weatherStep';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
@@ -150,13 +150,13 @@ export function nalatiWeatherOf(host: SimHost): NalatiHostWeather | undefined { 
 const num = v.pipe(v.number(), v.finite());
 const WindValue = v.strictObject({ speed: num, dir: num, gustiness: num, time: num, travel: num, wander: v.boolean(), baseSpeed: num, baseDir: num,
   target: v.strictObject({ speed: num, dir: num, gustiness: num, rate: num }) });
-const StormValue = v.strictObject({ state: v.picklist(STORM_PHASES), phaseT: num, phaseLen: num, mode: v.string(), hold: v.boolean(),
+const StormValue = v.strictObject({ state: v.string(), phaseT: num, phaseLen: num, mode: v.string(), hold: v.boolean(),
   n: v.strictObject({ overcast: num, rain: num, wet: num, wind: num, fog: num, front: num, rainbow: num }),
   rng: v.strictObject({ version: num, state: num, initial: num, scrambledFork: v.boolean() }),
   flash: num, windSpeed: v.nullable(num), windGustiness: num, getLow: v.boolean(), stormFrom: num,
   pending: v.nullable(v.strictObject({ x: num, y: num, z: num, kind: v.picklist(['tree', 'player', 'ground', 'thing']), t: num })),
   nextBolt: num, nextGust: num, windTarget: num, getLowFor: num, getLowTick: num });
-const WeatherValue = v.strictObject({ wind: WindValue, storm: StormValue, asked: v.nullable(num) });
+const WeatherValue = (states:readonly string[]) => v.strictObject({ wind: WindValue, storm: v.strictObject({...StormValue.entries,state:v.picklist(states)}), asked: v.nullable(num) });
 
 /** A baked spruce as the lightning reads it: its trunk circle (the grid's bucket key) and its top. */
 interface NalatiTree { readonly x: number; readonly z: number; readonly r: number; readonly top: number }
@@ -188,7 +188,7 @@ export function nalatiLightningGround(bake: Pick<NalatiBake, 'trees' | 'tops' | 
  * binds it: the packs break, the herds stampede, the flock bolts, the 'scare' signal); strikes land only in the storm phase,
  * 12–18 min in.
  */
-export function installNalatiWeather(host: SimHost, ports: { heightAt: (x: number, z: number) => number; clock: SunClock; env: Pick<WildEnv, 'light' | 'storm' | 'wind' | 'playerCrouched' | 'playerMounted'>;
+export function installNalatiWeather(host: SimHost, ports: { program:WeatherProgram; heightAt: (x: number, z: number) => number; clock: SunClock; env: Pick<WildEnv, 'light' | 'storm' | 'wind' | 'playerCrouched' | 'playerMounted'>;
   bake: Pick<NalatiBake, 'trees' | 'tops' | 'yurts'>; scare: (x: number, z: number) => void }): NalatiHostWeather {
   const wind = new Wind({ value: 1 }), env = ports.env, clock = ports.clock, ground = nalatiLightningGround(ports.bake);
   const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
@@ -202,7 +202,8 @@ export function installNalatiWeather(host: SimHost, ports: { heightAt: (x: numbe
       lp.sheltered = yurtShelters(ground.yurts, p.x, p.z);
       return lp;
     },
-  });
+  }, ports.program);
+  const savedSchema=WeatherValue(storm.profile.states);
   storm.onStrike(strike => { ports.scare(strike.x, strike.z); });
   storm.onPlayerHit(dmg => {
     const health = host.player.health;
@@ -221,7 +222,7 @@ export function installNalatiWeather(host: SimHost, ports: { heightAt: (x: numbe
       return { wind: { ...w, target: { ...w.target } }, storm: { ...s, n: { ...s.n }, rng: { ...s.rng }, pending: s.pending === null ? null : { ...s.pending } }, asked: ask.asked };
     },
     restore: value => {
-      const saved = v.parse(WeatherValue, value);
+      const saved = v.parse(savedSchema, value);
       wind.restore(saved.wind); storm.restore(saved.storm); ask.asked = saved.asked;
       view();
     },
@@ -288,7 +289,8 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * Golden King and the Storm Titan, taming/companions, the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts. The entry proof walks the installed native world.
  */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, product }) => {
+  const weatherProgram=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await product.file('world/weather.json'))));
   const raidDirector = await prepareNalatiRaidDirector();
   const bake = nalatiBake(), grid = nalatiTerrainGrid(shard.terrain?.sampling === undefined ? undefined : assets.get(shard.terrain.sampling.file), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
   const nav = nalatiNavmesh(shard.navigation === null ? undefined : assets.get(shard.navigation.file));
@@ -315,7 +317,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const env = nalatiHeadlessEnv(grass);
     // a landed strike scares the creatures (installWeather.ts `bind({ scare })`: Wildlife.scare within 60 m), installed below
     let scare: ((x: number, z: number) => void) | null = null;
-    installNalatiWeather(host, { heightAt, clock, env, bake, scare: (x, z) => {
+    installNalatiWeather(host, { program:weatherProgram, heightAt, clock, env, bake, scare: (x, z) => {
       if (scare === null) throw new Error('Nalati headless strike before its creatures are installed');
       scare(x, z);
     } });

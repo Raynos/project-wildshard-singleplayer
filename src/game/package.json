@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./plugin/weather": "./plugin/weather.ts",
     "./plugin/channelPrograms": "./plugin/channelPrograms.ts",
     "./shard/declaredRows": "./shard/declaredRows.ts",
     "./plugin/nativeItems": "./plugin/nativeItems.ts",

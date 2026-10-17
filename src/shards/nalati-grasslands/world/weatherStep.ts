@@ -1,3 +1,4 @@
+import type { WeatherProgram } from '@wildshard/format/weatherProgram';
 import type { WildEnv } from '../creatures/env';
 import { wildLight, type SunClock } from '../look/wildLight';
 import { SteppeStorm, type Exposed, type LightningWorld } from './Weather';
@@ -23,8 +24,8 @@ export interface SteppeWindPort {
 }
 
 /** The storm on the level's seed, coming FROM the opposite of its heading. */
-export function steppeStorm(seed: number, world: LightningWorld): SteppeStorm {
-  const weather = new SteppeStorm({ seed, world });
+export function steppeStorm(seed: number, world: LightningWorld, program:WeatherProgram): SteppeStorm {
+  const weather = new SteppeStorm({ seed, world, program });
   weather.stormFrom = Math.atan2(Math.cos(STORM_HEADING), Math.sin(STORM_HEADING));
   return weather;
 }

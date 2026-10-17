@@ -29,6 +29,8 @@ function boundedMix(expr:AudioMixExpr):boolean {
   return pending.length===0;
 }
 const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','%','pow','cos','exp','tanh','lerp','round','floor','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
+/** Shared bounded numeric algebra for non-audio scalar programs too. */
+export const AudioMixExpressionSchema = mixExpr;
 const mixValues=(max:number)=>v.pipe(v.array(v.tuple([id,mixExpr])),v.maxLength(max));
 /** Ordered weights, levels, filters, sends and diagnostics. All graph/geometry ports remain native. */
 export const AudioMixSchema = v.strictObject({values:mixValues(256),levels:mixValues(64),cutoffs:mixValues(16),

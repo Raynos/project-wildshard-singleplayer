@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./world/weatherContinuation": "./world/weatherContinuation.ts",
     "./audio/declaredAmbience": "./audio/declaredAmbience.ts",
     "./audio/declaredBank": "./audio/declaredBank.ts",
     "./sim/moverLifecycle": "./sim/moverLifecycle.ts",

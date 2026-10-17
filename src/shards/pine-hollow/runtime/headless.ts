@@ -22,14 +22,14 @@ import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } fro
 import { isStandaloneEdgeWall } from '@wildshard/engine/physics/terrain';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
 import ENTRY_WALK from '../data/entryWalk.json' with { type: 'json' }; // the entry proof's capsule walk, walk m in from each edge
-import { installPineAir } from './air';
+import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
+import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
 import { installPineNight } from './nightPopulation';
 import { PINE_LODGE, parseContractCatalogue } from './lodge';
 import { parseTradeCatalogue } from './trader';
 import { parseAchievementCounterData, type AchievementCounterData } from '@wildshard/format/achievementCounters';
-import type { PineWeatherMode } from '../world/weatherProfile';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
  *  brain's ground, the bodies' ground follow) and the navmesh (the brain's paths). Pine's shardfile admits no assets. */
@@ -84,6 +84,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const heightAt = bakedSamplers(grid).heightAt;
   const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
+  const weather = parseWeatherProgram(JSON.parse(new TextDecoder().decode(await product.file('world/weather.json'))));
   return { level, ports: { ground: false, heightAt }, proveEntries: () => {
     // on a fresh host of the grid's world (the bake without the standalone edge walls), its query pipeline built by a step
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
@@ -91,7 +92,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   }, install: (host, context) => {
     const input = bindHeadlessCommands(context), combat = context.combat;
     if (combat === undefined) throw new Error('Pine requires its native combat frame');
-    installPine(host, { counters, trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+    installPine(host, { weather, counters, trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
       interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
@@ -116,7 +117,8 @@ export interface PineInstall {
   /** Match the phone or desktop population limit; absent is the native phone tier. */
   readonly nightMax?: 3 | 4;
   /** Explicit native input setting; absent is the page's ordinary live weather. */
-  readonly weatherMode?: PineWeatherMode;
+  readonly weatherMode?: string;
+  readonly weather: WeatherProgram;
   /** the platform's fact effect (the page feat law files committed flags and creature deaths) */
   readonly fact?: (name: string, entity: string) => void;
   /** the shard's declared quest rows (absent: PINE_QUESTS, the shardfile's own) */
@@ -130,7 +132,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: NativeBoltItem;
   lever: NativeCycleItem; longbow: NativeBowItem; loadout: ReturnType<typeof bindNativeLoadout<number>>;
   quest: ReturnType<typeof installHollowQuest>;
-  air: ReturnType<typeof installPineAir>;
+  air: ReturnType<typeof installWeatherContinuation>;
   thralls: ReturnType<typeof installPineNight>;
   ammunition: PineAmmunition;
 } {
@@ -169,8 +171,8 @@ export function installPine(host: SimHost, parts: PineInstall): {
     } },
   });
   observeNativeCombatMotion(host, frame, 7.2);
-  let air: ReturnType<typeof installPineAir> | null = null;
-  const atmosphere = (): ReturnType<typeof installPineAir> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
+  let air: ReturnType<typeof installWeatherContinuation> | null = null;
+  const atmosphere = (): ReturnType<typeof installWeatherContinuation> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
   const declared = (id: string) => {
     const item = parts.items.rows.find(row => row.id === id);
     if (item?.kind !== 'weapon' || item.ranged === undefined || item.profile === undefined) throw new Error('Missing native ranged item row');
@@ -191,7 +193,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
   const thralls = installPineNight(host, parts.nightDirector(), { night, heightAt, spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant),
     retire: actor => { installedRoster().retire(actor); }, find: id => installedRoster().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
-  air = installPineAir(host, () => day.phase, parts.weatherMode, frame);
+  air = installWeatherContinuation(host, parts.weather, day, parts.weatherMode, frame);
   const shelter = installPineRainShelter(host, () => roster?.hunt.herds ?? [], bake.shelterTrees, () => atmosphere().weather.rain);
   roster = installPineRoster(host, { population: parts.population, bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved,
     wanderGoal: herd => shelter.wanderGoal(herd, atmosphere().weather.rain) });

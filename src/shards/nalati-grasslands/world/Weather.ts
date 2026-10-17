@@ -1,5 +1,6 @@
-import { Rng, type RngState } from '@wildshard/engine/core/rng';
-import { Weather as EngineWeather } from '@wildshard/engine/world/weather';
+import type { RngState } from '@wildshard/engine/core/rng';
+import { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
+import type { WeatherProgram } from '@wildshard/format/weatherProgram';
 /**
  * Weather — the steppe storm as a seeded state machine (Nalati B10; docs/design/nalati/stealth-and-storms.md "Steppe
  * storms", the plan's Decisions: a storm every 20–30 min of play, lightning CAN hit the player — 60, GET LOW first).
@@ -28,7 +29,8 @@ import { Weather as EngineWeather } from '@wildshard/engine/world/weather';
  * height (+1.5 m for a mounted rider, +1 m on a ridge crest), and the highest one takes the bolt. Anything sheltered
  * (inside / beside a yurt) scores nothing.
  */
-import { LEN, STORM_PHASES, steppeProfile, type SteppeNumbers, type StormPhase } from './weatherProfile';
+export type StormPhase = string;
+interface SteppeNumbers { overcast:number;rain:number;wet:number;wind:number;fog:number;front:number;rainbow:number }
 
 
 /** something tall the lightning may pick (a spruce, a balbal, a yurt's crown) */
@@ -56,6 +58,7 @@ export interface Strike {
 }
 
 export interface WeatherOpts {
+  program: WeatherProgram;
   seed: number;
   world: LightningWorld;
   /** minutes of clear weather before the first storm (default 12–18) and between storms (default 20–30) */
@@ -90,9 +93,9 @@ const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 type Fn<A extends unknown[]> = (...a: A) => void;
 
-export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
-  get front(): number { return this.n.front; }
-  get rainbow(): number { return this.n.rainbow; }
+export class SteppeStorm extends WeatherContinuation {
+  get front(): number { return this.n['front'] ?? 0; }
+  get rainbow(): number { return this.n['rainbow'] ?? 0; }
   /** 0 … 1 the lightning flash (decays in ~0.25 s) */
   flash = 0;
   /** the wind the storm asks for, m/s (null = leave the wind to itself) */
@@ -118,7 +121,10 @@ export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
   private readonly hitFns: Fn<[number]>[] = [];
 
   constructor(opts: WeatherOpts) {
-    super(steppeProfile(opts), new Rng(opts.seed ^ 0x57a3));
+    super({...opts.program,
+      ...(opts.clear===undefined?{}:{length:{...opts.program.length,clear:[opts.clear[0]*60,opts.clear[1]*60]}}),
+      ...(opts.firstClear===undefined?{}:{firstLength:{clear:[opts.firstClear[0]*60,opts.firstClear[1]*60]}}),
+    },{seed:opts.seed});
     this.world = opts.world;
   }
 
@@ -128,7 +134,7 @@ export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
   override get phaseLeft(): number { return Math.max(0, this.phaseLen - this.phaseT); }
   /** seconds until the gust front hits (0 once it has) */
   get untilStorm(): number {
-    if (this.state === 'clear') return this.phaseLeft + LEN.building[0];
+    if (this.state === 'clear') return this.phaseLeft + (this.profile.length['building']?.[0] ?? 0);
     if (this.state === 'building') return this.phaseLeft;
     return 0;
   }
@@ -145,7 +151,7 @@ export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
     if (p?.ref !== undefined) throw new Error('A storm with an armed strike on a tree or a thing cannot be saved');
     const n = this.n;
     return { state: this.state, phaseT: this.phaseT, phaseLen: this.phaseLen, mode: this.mode, hold: this.hold,
-      n: { overcast: n.overcast, rain: n.rain, wet: n.wet, wind: n.wind, fog: n.fog, front: n.front, rainbow: n.rainbow }, rng: this.rng.snapshot(),
+      n: { overcast: n.overcast, rain: n.rain, wet: n.wet, wind: n.wind, fog: n.fog, front: n['front'] ?? 0, rainbow: n['rainbow'] ?? 0 }, rng: this.rng.snapshot(),
       flash: this.flash, windSpeed: this.windSpeed, windGustiness: this.windGustiness, getLow: this.getLow, stormFrom: this.stormFrom,
       pending: p === null ? null : { x: p.x, y: p.y, z: p.z, kind: p.kind, t: p.t },
       nextBolt: this.nextBolt, nextGust: this.nextGust, windTarget: this.windTarget, getLowFor: this.getLowFor, getLowTick: this.getLowTick };
@@ -156,7 +162,7 @@ export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
     const { n, pending: p } = saved;
     const numbers = [saved.phaseT, saved.phaseLen, n.overcast, n.rain, n.wet, n.wind, n.fog, n.front, n.rainbow, saved.flash, saved.windGustiness, saved.stormFrom,
       saved.nextBolt, saved.nextGust, saved.windTarget, saved.getLowFor, saved.getLowTick];
-    if (!STORM_PHASES.includes(saved.state) || this.profile.modes[saved.mode] === undefined || typeof saved.hold !== 'boolean' || typeof saved.getLow !== 'boolean'
+    if (!this.profile.states.includes(saved.state) || this.profile.modes[saved.mode] === undefined || typeof saved.hold !== 'boolean' || typeof saved.getLow !== 'boolean'
       || !numbers.every(finite) || !(saved.windSpeed === null || finite(saved.windSpeed))
       || !(p === null || ([p.x, p.y, p.z, p.t].every(finite) && STRIKE_KINDS.has(p.kind)))) throw new RangeError('Invalid storm state');
     this.rng.restore(saved.rng);

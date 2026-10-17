@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { readItemAmmunition } from '../src/game/plugin/nativeItems';
 import { parseItems } from '../src/format/items';
-import { wetProjectile } from '../src/shards/pine-hollow/world/weatherProfile';
+import { wetFlight } from '../src/engine/combat/ammo';
+import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 import { boltFlight } from './fixtures/weapon-oracle/headlessCrossbow';
 
@@ -18,7 +19,7 @@ test('page ammunition keeps shipping labels, wet multipliers and every native fl
     expect(ammo.row).toEqual({ id: `ammo.${kind}`, label, name, flight: { gravity, drag }, tags: [`ammo.${kind}`], pouchMax: 30, ...(wet === undefined ? {} : { wet }) });
     expect(ammo.damage).toEqual({ default: 1, kinds: kind === 'broadhead' ? { deer: 1.4, boar: 1.4 } : {} });
     for (let step = -1; step <= 101; step++) {
-      const actual = wetProjectile({ ammo: ammo.row, gravity, drag }, step / 100);
+      const actual = wetFlight({ gravity, drag }, ammo.row.wet === undefined ? undefined : weatherProgram.wetProjectile, step / 100);
       const original = boltFlight(kind, step / 100);
       expect([actual.gravity, actual.drag]).toEqual([original.gravity, original.drag]);
     }
