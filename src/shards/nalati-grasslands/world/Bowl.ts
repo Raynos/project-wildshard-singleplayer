@@ -43,7 +43,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
-import { NALATI_FAR_HERD_CHANNELS } from '../data/clientMotion';
+import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
 
 /** the GLSL below is trusted custom code (runtime/looks/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
 const BOWL_GLSL_FAMILY = new ShaderFamily(BOWL_GLSL, {});
@@ -194,7 +194,7 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
   const group = new THREE.Group();
   group.name = 'nalati-far-herds';
   const rng = new Rng(0x4e4d);
-  const drift = createClientChannels(NALATI_FAR_HERD_CHANNELS[0]), commit = createClientChannels(NALATI_FAR_HERD_CHANNELS[1]);
+  const drift = createClientChannels(herdChannels.clientChannels[0]), commit = createClientChannels(herdChannels.clientChannels[1]);
   const proposal = { time: 0, delta: 0, values: Array.from({ length: 9 }, () => 0) }, acceptance = { time: 0, delta: 0, values: Array.from({ length: 7 }, () => 0) };
   const missingPose = new Error('Missing declared decorative horse pose');
   const blocked = (x: number, z: number): boolean =>

@@ -2,7 +2,6 @@ import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { COMPARE } from './explore/compare';
 import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
-import { NALATI_RUNTIME_COST } from './data/runtimeCost';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { basinBody } from '@wildshard/engine/world/water/body';
 import { nalatiWetAt } from './wet';
@@ -39,7 +38,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: ['tool.hoverboard'], start: ['bow', 'sabre', 'spear', 'tool.hoverboard'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   budgets: NALATI_BUDGET_INPUTS,
-  runtimeCost: NALATI_RUNTIME_COST,
+  runtimeCost: bootMetadata.runtimeCost,
   audio: { bed: 'steppe', ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioCatalogue('nalati-grasslands') },
   boot: { audio: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioFiles('nalati-grasslands'), explore: { art: [...Object.values(EXPLORE), exploreHorse, ...COMPARE.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootMetadata.files, sources: bootMetadata.sources, steps: bootMetadata.steps, bytes: { trees: 'spruce bark' }, lateReads: bootMetadata.lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },

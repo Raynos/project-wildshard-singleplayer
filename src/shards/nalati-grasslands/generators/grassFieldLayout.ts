@@ -1,4 +1,3 @@
-import { RIVER } from '../world/terrain';
 
 interface Zone { x: number; z: number; r: number; h: number }
 const TALL_GRASS = 1.12;
@@ -34,9 +33,6 @@ const NALATI_TALL: Zone[] = [
   { x: 205, z: -175, r: 26, h: TALL_GRASS },   // SW corner fold
   { x: 45, z: -35, r: 18, h: TALL_GRASS },     // rim-top patch by the waterfall
 ];
-/** the Kunes corridor: the chunk def's own `RIVER` (centreline z, half-width) — one formula for the terrain, the water and the grass */
-const riverZ = RIVER.z;
-const riverHalf = RIVER.half;
 
 
-export const NALATI_GRASS_LAYOUT = { short: NALATI_SHORT, tall: NALATI_TALL, bare: NALATI_YURTS, valley: MEADOW_VALLEY, plateau: MEADOW_PLATEAU, riverZ, riverHalf };
+export const NALATI_GRASS_LAYOUT = { short: NALATI_SHORT, tall: NALATI_TALL, bare: NALATI_YURTS, valley: MEADOW_VALLEY, plateau: MEADOW_PLATEAU };

@@ -3,8 +3,8 @@ import { prepareSabre } from './weapons/mountedSword';
 import { prepareSpear } from './weapons/javelinSpear';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
-import { STRINGS } from '../strings';
-import { NALATI_FEATS } from '../data/feats';
+import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
+import type { AchievementDef } from '@wildshard/game/achievements';
 import { renderFinds } from '@wildshard/game/bag/bag';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -16,7 +16,8 @@ import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { rifle as buildRifle } from './weapons/magazineFirearm';
-import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
+import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
+import { RIVER } from '../world/terrain';
 import { prepareGrassV2 } from '../look/grass';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
@@ -43,6 +44,12 @@ function host(ctx: ShardContext): ShardRuntime {
   return rt;
 }
 
+function readFeat(feat: (typeof NALATI_FEATS)[number]): AchievementDef {
+  const icon = feat.icon;
+  if (icon !== 'laurel' && icon !== 'ghost') throw new Error(`Unknown Nalati feat icon ${icon}`);
+  return { ...feat, icon };
+}
+
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
   private loadout: NalatiLoadout | null = null;
@@ -60,12 +67,11 @@ export class NalatiPlugin extends ShardPlugin {
       cosmetics: () => nalatiSkinsSave.read(ctx.product.shardfile.identity.slug),
       bond: () => tulparSave.read(ctx.product.shardfile.identity.slug),
     });
-    ctx.strings(STRINGS);
-    ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
+    ctx.strings(bootMetadata.strings);
     const { Grass } = await import('@wildshard/engine/world/Grass');
     await import('@wildshard/game/systems/looks/trample');
     const grassField = await import('@wildshard/game/systems/looks/grassField');
-    grassField.configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);
+    grassField.configureGrassField({ ...bootMetadata.grassLayout, riverZ: RIVER.z, riverHalf: RIVER.half }, ctx.scope);
     // the grass step also builds the shared mote / mist / needle field the steppe has always carried (main.ts built it for
     // every forest shard before the plugin split; R2: dropping it lost a Points, two InstancedMeshes and three textures)
     const { grass, particles } = await step('grass', async () => {
@@ -106,7 +112,7 @@ export class NalatiPlugin extends ShardPlugin {
     if (world === null) throw new Error('Nalati equipment requires a world');
     ctx.rows.species(NALATI_SPECIES);
     ctx.rows.speciesLook(NALATI_LOOKS);
-    ctx.rows.feat(NALATI_FEATS);
+    ctx.rows.feat(NALATI_FEATS.map(readFeat));
     ctx.rows.weapon(['weapon.bow', 'weapon.sabre', 'weapon.spear', 'weapon.rifle'].map(id => readItemEquipment(ctx.product.shardfile.items, id)));
     shell.buildEquipment = async (targets, nolock) => {
       const kit = await buildNalatiLoadoutSliced(world, targets, nolock, macrotask); // SF67: a task apart per weapon

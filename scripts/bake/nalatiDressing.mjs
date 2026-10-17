@@ -20,9 +20,10 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/manifest.ts');
     await prepareNativeTerrain(NALATI_GRASSLANDS, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
     const { configureGrassField } = await import('@wildshard/game/systems/looks/grassField');
-    const { NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/look/grassFieldLayout.ts');
+    const { NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/generators/grassFieldLayout.ts');
     const { pageScope } = await import('@wildshard/engine/app/resources');
-    configureGrassField(NALATI_GRASS_LAYOUT, pageScope);
+    const { RIVER } = await import('../../src/shards/nalati-grasslands/world/terrain.ts');
+    configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
     const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { buildOutcrops }, { buildCragRock }] = await Promise.all([
       import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/world/Spruce.ts'),
       import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/outcrops.ts'), import('../../src/shards/nalati-grasslands/cragRock.ts'),

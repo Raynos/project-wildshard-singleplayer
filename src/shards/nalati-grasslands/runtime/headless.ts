@@ -6,11 +6,11 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
 import type { NalatiEliteBindings } from './headlessElites';
 import type { RngState } from '@wildshard/engine/core/rng';
-import { SEED, TERRAIN } from '../world/terrain';
+import { SEED, TERRAIN, RIVER } from '../world/terrain';
 import type { NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
-import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
+import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from '../look/trampleMovers';
 import { clockForSun } from '../look/dayKeys';
 import * as v from 'valibot';
@@ -53,7 +53,7 @@ export function nalatiTerrainGrid(bytes: Uint8Array | undefined, seed: number): 
 export function nalatiGrassView(grid: BakedGrid, seed: number): NalatiGrassView & { readonly trample: TrampleField } {
   const s = bakedSamplers(grid);
   const field = new GrassField({ seed, half: NALATI_GROUND_SIZE / 2, heightAt: s.heightAt, normalAt: (x, z, eps) => s.normalAt(x, z, eps), splatAt: s.splatAt,
-    trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask, pondMask: TERRAIN.pondMask, waterLevel: TERRAIN.waterLevel, paint: () => false, layout: NALATI_GRASS_LAYOUT });
+    trailDistance: TERRAIN.trailDistance, cabinMask: TERRAIN.cabinMask, pondMask: TERRAIN.pondMask, waterLevel: TERRAIN.waterLevel, paint: () => false, layout: { ...bootMetadata.grassLayout, riverZ: RIVER.z, riverHalf: RIVER.half } });
   return { field, trample: new TrampleField() };
 }
 

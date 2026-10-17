@@ -46,8 +46,8 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
         "src/shards/nalati-grasslands/data/persistence.json",
-        "src/shards/nalati-grasslands/data/feats.ts",
-        "src/shards/nalati-grasslands/data/ledger.ts",
+        "src/shards/nalati-grasslands/data/feats.json",
+        "src/shards/nalati-grasslands/generators/ledger.ts",
         "src/sdk/ledger.ts",
         "src/format",
         "scripts/bake-output.mjs",
@@ -382,13 +382,16 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/sdk/package.json"
+        "src/sdk/package.json",
+        "src/shards/nalati-grasslands/generators/clientMotion.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/weatherChannels.generated.json"
+        "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
+        "src/shards/nalati-grasslands/data/herdChannels.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/weatherChannels.generated.json"
+        "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
+        "src/shards/nalati-grasslands/data/herdChannels.generated.json"
       ],
       "platform": "portable"
     },
@@ -660,7 +663,11 @@
         "src/engine/app/identity.ts",
         "src/engine/package.json",
         "src/game/shard/list.ts",
-        "src/game/identity.ts"
+        "src/game/identity.ts",
+        "src/shards/nalati-grasslands/generators/grassFieldLayout.ts",
+        "src/shards/nalati-grasslands/data/runtimeCost.json",
+        "src/shards/nalati-grasslands/data/budgetCeilings.json",
+        "src/shards/nalati-grasslands/data/strings.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json"

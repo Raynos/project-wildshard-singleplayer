@@ -45,7 +45,7 @@ the canonical folders at the shard's milestone.
 ## Budgets
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 35.5 s. F2 ceilings for the poses `camp`,
-`bridge`, `plains` in `budgetCeilings.ts`; desktop keeps its F2 ceilings until X7 maps desktop GPUs.
+`bridge`, `plains` in `data/budgetCeilings.json`; desktop keeps its F2 ceilings until X7 maps desktop GPUs.
 
 ## Look
 

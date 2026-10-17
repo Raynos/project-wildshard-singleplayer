@@ -1,0 +1,18 @@
+{
+  "death.verb.deer": "Trampled by",
+  "death.verb.wolf": "Torn down by",
+  "death.verb.kokbori": "Torn down by",
+  "death.verb.leopard": "Mauled by",
+  "death.verb.eagle": "Stooped on by",
+  "death.verb.horse": "Trampled by",
+  "death.verb.argymaq": "Trampled by",
+  "death.verb.ghost-rider": "Ridden down by",
+  "death.verb.golden-king": "Cut down by",
+  "death.verb.storm-titan": "Struck down by",
+  "respawn.default": "respawning on the north road",
+  "cause.ride": "Thrown from the saddle",
+  "cause.ride.text": "Thrown from the saddle",
+  "cause.lightning": "Struck by lightning",
+  "cause.lightning.text": "Struck by lightning",
+  "cause.stormTitan": "the Storm Titan"
+}

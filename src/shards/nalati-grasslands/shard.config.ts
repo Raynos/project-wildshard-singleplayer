@@ -1,23 +1,23 @@
 import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
 import { NALATI_MODES } from './data/modes';
-import { NALATI_FAR_HERD_CHANNELS } from './data/clientMotion';
+import herdChannels from './data/herdChannels.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import audio from './data/audio.generated.json' with {type:'json'};
-import { NALATI_EDGES } from './data/edges';
-import { NALATI_RUNTIME_COST } from './data/runtimeCost';
+import { NALATI_EDGES } from './generators/edges';
+import NALATI_RUNTIME_COST from './data/runtimeCost.json' with { type: 'json' };
 import questContent from './data/questContent.json' with { type: 'json' };
-import { NALATI_LEDGER } from './data/ledger';
-import { NALATI_STATE } from './data/state';
+import { NALATI_LEDGER } from './generators/ledger';
+import { NALATI_STATE } from './generators/state';
 import items from './data/items.json' with { type: 'json' };
-import { NALATI_RUNTIME_SPAWNS } from './data/spawns';
+import { NALATI_RUNTIME_SPAWNS } from './generators/spawns';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import queryTerrain from './data/terrain.generated.json' with { type: 'json' };
 import lookGraphs from './data/lookGraphs.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
-// on Nalati's real boundary rows (./data/edges.ts, the committed bake's): N23 already cut each midpoint through the berm as a
+// on Nalati's real boundary rows (./generators/edges.ts, the committed bake's): N23 already cut each midpoint through the berm as a
 // gap at exactly road height (17.6 m of zero samples, 35 m and more deep), so each 8 × 15 m socket footprint is flat at
 // y = 0, clear and dry with no change to the world (progress/shard-platform/sf48/grid-entries.json).
 const row = (side: keyof typeof NALATI_EDGES): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } => ({
@@ -36,6 +36,6 @@ export default parseShardfile({ ...base,
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: files.reduce((sum, file) => sum + file.compressed, 0) } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
-  clientChannels: [...NALATI_FAR_HERD_CHANNELS,...weatherChannels.clientChannels],
+  clientChannels: [...herdChannels.clientChannels,...weatherChannels.clientChannels],
   modes: NALATI_MODES, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

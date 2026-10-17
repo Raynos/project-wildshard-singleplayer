@@ -61,7 +61,7 @@ export function inventoryNalatiWorld(root, edges) {
 
 if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
   const root = resolve(fileURLToPath(new URL('../../../..', import.meta.url)));
-  const { NALATI_EDGES } = await import('../data/edges.ts');
+  const { NALATI_EDGES } = await import('./edges.ts');
   const report = inventoryNalatiWorld(root, NALATI_EDGES);
   if (relative(root, process.cwd()).startsWith('..')) throw new Error('Run the inventory from the repository or its scratch export');
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

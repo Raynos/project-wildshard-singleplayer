@@ -1,6 +1,6 @@
 import {fileURLToPath} from 'node:url';
-import {NALATI_FEATS} from '../data/feats.ts';
-import {NALATI_QUEST_FEATS} from '../data/ledger.ts';
+import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
+import {NALATI_QUEST_FEATS} from './ledger.ts';
 import policy from '../data/persistence.json' with {type:'json'};
 import {encodeCanonicalJson} from '@wildshard/sdk/immutable';
 import {byteWriter} from '../../../../scripts/bake-output.mjs';
