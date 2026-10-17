@@ -1,10 +1,10 @@
 import type * as THREE from 'three';
 import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import { TIER } from '@wildshard/engine/core/tier';
-import { riggedHulls, type RiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
+import { riggedHulls, type RiggedHullFamilyRow, type RiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import coatPages from '../../data/coatPages.generated.json' with { type: 'json' };
-import { PINE_HULLS } from '../../data/creatureHulls';
+import hulls from '../../data/creatureHulls.json' with { type: 'json' };
 import { pineCoatUrl, pineRigFiles } from './rigs';
 
 /**
@@ -14,6 +14,10 @@ import { pineCoatUrl, pineRigFiles } from './rigs';
  * clumps, baked per tier by generators/bake-pine-thrall-extras.mjs into a node per thrall, `<kind>_<variant>`). The rigs
  * and their separate KTX2 maps are the product's named blobs (rigs.ts `pineRigFiles`, W2a).
  */
+const rgb = ([r = 0, g = 0, b = 0]: readonly number[]): [number, number, number] => [r, g, b];
+/** the family row (../../data/creatureHulls.json, the generators' coat recipes beside it): its hulls, flaps and fur tones */
+const PINE_HULLS: RiggedHullFamilyRow = { ...hulls, fur: Object.fromEntries(Object.entries(hulls.fur).map(([hull, coats]) =>
+  [hull, Object.fromEntries(Object.entries(coats).map(([id, f]) => [id, { rim: rgb(f.rim), sheenColor: rgb(f.sheenColor) }]))])) };
 const COAT_PAGES: Readonly<Record<string, { image: string }>> = { ...coatPages.tiers.phone, ...coatPages.tiers.desktop };
 const thrallParts = new Map<string, THREE.BufferGeometry>();
 let partsLoading: Promise<void> | null = null;

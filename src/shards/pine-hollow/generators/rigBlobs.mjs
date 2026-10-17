@@ -1,6 +1,6 @@
 // Split existing creature assets into admitted geometry and the exact KTX2 maps already shipped by bake-ktx2.
 import {readFileSync} from 'node:fs';
-import {PINE_HULLS} from '../data/creatureHulls.ts';
+import {PINE_HULLS} from './creatureHulls.ts';
 import {glbKtx2Key} from '../../../../scripts/ktx2-settings.mjs';
 import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {split,geometry,texture} from './glbParts.mjs';

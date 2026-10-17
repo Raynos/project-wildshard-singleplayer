@@ -3,7 +3,7 @@ import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { BoneDef, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
-import { PINE_HULLS } from '../data/creatureHulls';
+import { PINE_HULLS } from './creatureHulls';
 import { PINE_LOFTS } from './creatureLofts';
 
 /**

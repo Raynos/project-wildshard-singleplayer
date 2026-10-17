@@ -1,4 +1,4 @@
-import type { HullFlapRow } from '../data/creatureHulls';
+import type { HullFlapRow } from './creatureHulls';
 
 /**
  * Collapse a generator's flap in place. A flap is not a separate part — it IS the surface pulled back and down (deleting

@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { riggedHullMap, riggedHulls, type RiggedHullFamilyRow } from '@wildshard/sdk/looks/riggedHulls';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
-import { PINE_HULLS } from '../src/shards/pine-hollow/data/creatureHulls';
+import { PINE_HULLS } from '../src/shards/pine-hollow/generators/creatureHulls';
 import { pineBirdFiles, pineCoatUrl, pineRigFiles } from '../src/shards/pine-hollow/runtime/species/rigs';
 
 afterEach(() => { vi.restoreAllMocks(); });

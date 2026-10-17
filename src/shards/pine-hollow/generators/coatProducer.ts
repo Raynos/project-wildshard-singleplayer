@@ -1,7 +1,7 @@
 import { readRigRest } from '@wildshard/sdk/bake/rig';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import * as THREE from 'three';
-import { PINE_HULLS } from '../data/creatureHulls';
+import { PINE_HULLS } from './creatureHulls';
 import { coatVariant, COAT_PALETTES } from './coatRecipes';
 import { coatDiffers, paintCoatPixels, type CoatBone, type CoatSpec } from './coatPixels';
 import { pressFlap } from './coatFlap';
