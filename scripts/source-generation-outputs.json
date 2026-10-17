@@ -20,7 +20,7 @@
       "src/shards/sunscar-dunes/data/striderRig.baked.ts"
     ],
     "progress/shard-platform/sf48/edges.mjs": [
-      "src/shards/nalati-grasslands/data/edges.ts"
+      "src/shards/nalati-grasslands/generators/edges.ts"
     ],
     "scripts/nalati-panorama.py": [
       "src/shards/nalati-grasslands/look/panoramaData.ts"
