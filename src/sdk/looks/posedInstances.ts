@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { TIER } from '@wildshard/engine/core/tier';
 import { uploadTexture } from '@wildshard/engine/core/assets';
+import { pageScope } from '@wildshard/engine/app/resources';
 import { defineBakedModels } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
@@ -158,7 +159,12 @@ export class PosedDraw {
     let assets: PosedAssetSet | null = null, loading: Promise<void> | null = null;
     const preload = (): Promise<void> => (loading ??= (async () => {
       const files = row.tiers[TIER];
-      assets = await load({ ...row.assets, geometry: product.url(files.geometry), atlas: product.url(files.atlas) });
+      const set = await load({ ...row.assets, geometry: product.url(files.geometry), atlas: product.url(files.atlas) });
+      // The library is page-wide but its atlas belongs to the scope that first drew it: a retired resident frees the
+      // GPU allocation, and its compressed mips were dropped at that first draw, so it cannot upload again. Forget the
+      // set with it; the next entry's preload loads a fresh one (a grid re-entry hit "lost its allocation" here).
+      pageScope.listenOnceEmitter(set.atlas, 'dispose', () => { if (assets === set) { assets = null; loading = null; } });
+      assets = set;
     })());
     const ready = (): PosedAssetSet => { if (assets === null) throw new Error('Required posed library is not loaded'); return assets; };
     const draw = (capacity: number): PosedDraw => {

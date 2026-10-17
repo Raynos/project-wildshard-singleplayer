@@ -59,3 +59,32 @@ test('Driftwood flock uses the same data draw with its original scale and channe
   for (const attribute of attributes) if (attribute !== undefined) expect([...draw.mesh.geometry.getAttribute(attribute).array]).toEqual([...old.mesh.geometry.getAttribute(attribute).array]);
   draw.mesh.geometry.dispose(); old.mesh.geometry.dispose(); source.dispose(); material.dispose();
 });
+
+test('a disposed atlas drops the page-wide library set so a re-entry loads a fresh one', async () => {
+  // Grid re-entry (OT, 2026-10-17): a retired resident freed the atlas it first drew; its compressed mips were
+  // dropped at that draw, so the cached set threw "lost its allocation after mip retirement" on the next entry.
+  const source = geometry(), material = new MeshBasicMaterial(), disposals: (() => void)[] = [], atlases: Texture[] = [];
+  const load = vi.fn<(input: unknown) => Promise<PosedAssetSet>>(() => {
+    const atlas = new Texture(); atlases.push(atlas);
+    return Promise.resolve({ geometry: source, atlas, ranges: WILDLIFE_DRAW.assets.ranges.map(row => ({ ...row, box: [0, 0, 0, 1, 1, 1] })) });
+  });
+  const setTexture = vi.fn<(id: string, name: string, texture: Texture) => void>();
+  lendLooks({ onDispose: run => { disposals.push(run); } }, { materials: new Map([[WILDLIFE_DRAW.name, material]]), setParam: () => undefined, setTexture, bindMeshMap: () => material });
+  const product = { url: (name: string) => `/test/posed-reentry/${name}`, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(WILDLIFE_DRAW))) };
+  try {
+    const library = await PosedDraw.library(product, 'draw.json', load);
+    await library.preload();
+    const first = library.draw(1), [old] = atlases;
+    if (old === undefined) throw new Error('No first atlas');
+    old.dispose();
+    expect(() => library.draw(1)).toThrow('not loaded');
+    await library.preload(); await library.preload();
+    expect(load).toHaveBeenCalledTimes(2);
+    const second = library.draw(1), fresh = atlases[1];
+    expect(fresh).toBeDefined(); expect(fresh).not.toBe(old);
+    expect(setTexture).toHaveBeenLastCalledWith(WILDLIFE_DRAW.name, 'atlas', fresh);
+    // a stale set's late dispose never drops the live one
+    old.dispose(); expect(() => library.draw(1).mesh.geometry.dispose()).not.toThrow();
+    first.mesh.geometry.dispose(); second.mesh.geometry.dispose();
+  } finally { disposals.forEach(run => { run(); }); source.dispose(); material.dispose(); for (const atlas of atlases) atlas.dispose(); }
+});
