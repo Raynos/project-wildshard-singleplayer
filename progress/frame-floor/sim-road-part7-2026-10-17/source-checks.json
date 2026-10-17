@@ -1,0 +1,140 @@
+{
+  "checkedSource": {
+    "base": "6ac01025425f4c5fcfcb7cb8c682ec66bb8a644c",
+    "tree": "514807e0c522b3bf2551e11968baca90fe780fcd",
+    "paths": [
+      "src/engine/core/deflate.ts",
+      "src/game/plugin/geometry.ts",
+      "src/sdk/kit/geometryPack.ts",
+      "src/shards/nalati-grasslands/species/bodies.ts",
+      "src/shards/nalati-grasslands/world/placeBake.ts",
+      "test/whole-geometry-pacing.test.ts",
+      "src/engine/entities/AnimalFactory.ts",
+      "src/shards/driftwood-isle/creatures/Enemies.ts",
+      "src/shards/driftwood-isle/creatures/install.ts",
+      "src/shards/pine-hollow/runtime/index.ts",
+      "test/animal-model-preparation.test.ts",
+      "scripts/gate-test-products.json",
+      "test/setup.ts",
+      "test/nalati-crag-bake.test.ts",
+      "test/nalati-static-landmarks.test.ts",
+      "docs/ENGINE.md",
+      "src/engine/core/ktx2.ts",
+      "test/ktx2-widen-etc2.test.ts",
+      "src/shards/pine-hollow/runtime/looks/rainFx.ts"
+    ],
+    "manualAddition": "Lane restoration shares that page lifetime as well. `fetchLaneBytes(url)` restores\nfour-byte lanes in bounded batches under the shared frame budget; the SDK's lazy\n`fetchLaneBake(url)` facade shares it with the existing geometry reader. Species,\nplace and dressing bakes use the same paced reader as crags and other shards.\n`AnimalFactory.prepareModels(rows)` prepares each declared kind/variant with its\noriginal key seed and cache, under the calling construction scope. A null or\nomitted variant prepares all declared variants without rolling placement RNG.\nIt checks the shared frame budget before each model and refuses further work after retirement.\nDriftwood awaits it before enemy placement; Pine uses it for its existing boss\nvariant preparation. It creates no actors and consumes no placement RNG.\nThe existing probe-skipped KTX2 safety conversion also uses that frame budget:\n`widenRgbEtc2Async(texture)` widens RGB ETC2 to opaque RGBA ETC2/EAC in batches,\npublishing only complete mips. The synchronous bake helper uses identical steps.\n",
+    "pineOld": "    const warm = [[KING_KIND, 'warden'], ['elk', thrallVariant('elk')], ['boar', thrallVariant('boar')]] as const;\n    for (let i = 0; i < 3; i++) {\n      const [kind, variant] = warm[i] ?? warm[0];\n      ctx.scope.run(() => animals.factory.model(kind, variant)); await macrotask();\n    }\n",
+    "pineNew": "    await ctx.scope.run(() => animals.factory.prepareModels([\n      { kind: KING_KIND, variant: 'warden' }, { kind: 'elk', variant: thrallVariant('elk') }, { kind: 'boar', variant: thrallVariant('boar') },\n    ]));\n"
+  },
+  "mapBakes": {
+    "tree": "514807e0c522b3bf2551e11968baca90fe780fcd",
+    "rows": [
+      {
+        "slug": "nalati-grasslands",
+        "stamp": "src/shards/nalati-grasslands/look/map.baked.json",
+        "image": "public/assets/nalati-grasslands/map/top.webp",
+        "tilesHash": "c070e8b0853fedf127f589a801a7962989c33c3bd76aaaa40684adcaa0dc377c"
+      },
+      {
+        "slug": "pine-hollow",
+        "stamp": "src/shards/pine-hollow/look/map.baked.json",
+        "image": "public/assets/pine-hollow/map/top.webp",
+        "tilesHash": "9c302d18d9bca4bfc651a11880c1453b87e56559b721e49f441fcc70aa8e0e94"
+      }
+    ]
+  },
+  "proofs": [
+    {
+      "id": "20261017T141455-sp-x1-road7-landable-checks-60730",
+      "label": "sp-x1-road7-landable-checks",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792264496,
+      "endedAt": 1792264891,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T141455-sp-x1-road7-landable-checks-60730.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/check.py"
+    },
+    {
+      "id": "20261017T141456-sp-x1-road7-landable-maps-60816",
+      "label": "sp-x1-road7-landable-maps",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792264496,
+      "endedAt": 1792265233,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T141456-sp-x1-road7-landable-maps-60816.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/serve-map.py"
+    }
+  ],
+  "landing": {
+    "sha": "64265f9326e29a52c3c41fd989d93cf46ccf2ae7",
+    "parent": "ef7f29ccd7de1ea6cae366c7378ea149b62b5578",
+    "tree": "e449cb70836807ee0964ec5107fcf1e2368e34db",
+    "net": {
+      "_template": 0,
+      "blender-template": 0,
+      "driftwood-isle": 12,
+      "far-reach": 0,
+      "ink-cel-valley": 0,
+      "nalati-grasslands": -11,
+      "nine-dragon-stack": 0,
+      "pastel-plain": 0,
+      "pine-hollow": -3,
+      "sunscar-dunes": 0
+    }
+  },
+  "finalProof": {
+    "id": "20261017T142721-sp-x1-road7-landing-validation-41483",
+    "label": "sp-x1-road7-landing-validation",
+    "state": "passed",
+    "rc": 0,
+    "startedAt": 1792265241,
+    "endedAt": 1792265625,
+    "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T142721-sp-x1-road7-landing-validation-41483.log",
+    "pane": "wT:p3",
+    "command": "python3 tmp/sp-x1-road7/final-validate.py"
+  },
+  "finalRuler": {
+    "beforeSha": "ef7f29ccd7de1ea6cae366c7378ea149b62b5578",
+    "afterTree": "e449cb70836807ee0964ec5107fcf1e2368e34db",
+    "before": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 5509,
+      "far-reach": 528,
+      "ink-cel-valley": 1105,
+      "nalati-grasslands": 20078,
+      "nine-dragon-stack": 11889,
+      "pastel-plain": 733,
+      "pine-hollow": 8408,
+      "sunscar-dunes": 392
+    },
+    "after": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 5521,
+      "far-reach": 528,
+      "ink-cel-valley": 1105,
+      "nalati-grasslands": 20067,
+      "nine-dragon-stack": 11889,
+      "pastel-plain": 733,
+      "pine-hollow": 8405,
+      "sunscar-dunes": 392
+    },
+    "net": {
+      "_template": 0,
+      "blender-template": 0,
+      "driftwood-isle": 12,
+      "far-reach": 0,
+      "ink-cel-valley": 0,
+      "nalati-grasslands": -11,
+      "nine-dragon-stack": 0,
+      "pastel-plain": 0,
+      "pine-hollow": -3,
+      "sunscar-dunes": 0
+    },
+    "note": "Source-basis component inventories in build-mirror check2; both sides have their own complete all-ten products. AFTER includes official map stamps and images."
+  }
+}

@@ -1,0 +1,5839 @@
+{
+  "source": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+  "records": [
+    {
+      "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "runId": "80357-1792270946150",
+      "elapsedSeconds": 165.413,
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-17T21:05:11.555Z",
+      "device": "frame-floor-iphone-17-pro",
+      "frames": 120,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "nalati-grasslands-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "harnessRevision": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "path": ".git/proofs/artifacts/20261017-sp-x1-sim-road7/after-cold-pair-1/17ef0c2e8-80357-1792270946150.json",
+      "quietValidity": {
+        "source": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+        "ktx2ProbeSkip": true,
+        "startedAt": 1792270946.117752,
+        "endedAt": 1792271111.570691,
+        "pushEvents": [],
+        "pushersAtEnd": [],
+        "timingCredit": true
+      },
+      "metadata": {
+        "renderer": "Apple GPU",
+        "viewport": [
+          402,
+          714
+        ],
+        "devicePixelRatio": 3,
+        "renderScale": 2,
+        "canvas": [
+          804,
+          1428
+        ],
+        "textures": {
+          "mode": "ktx2",
+          "why": "pinned (harness textures: ktx2)",
+          "probe": {
+            "ran": false,
+            "note": "skipped (harness pin, measurement only: pixels may be wrong)",
+            "families": {},
+            "formats": [],
+            "veto": null
+          }
+        },
+        "gfx": {
+          "dpr": "2",
+          "aa": "auto"
+        },
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "clock": "live",
+        "ktx2ProbeSkip": true
+      }
+    },
+    {
+      "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "runId": "89757-1792271111644",
+      "elapsedSeconds": 164.181,
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-17T21:07:55.817Z",
+      "device": "frame-floor-iphone-17-pro",
+      "frames": 120,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "nalati-grasslands-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "harnessRevision": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "path": ".git/proofs/artifacts/20261017-sp-x1-sim-road7/after-cold-pair-2/17ef0c2e8-89757-1792271111644.json",
+      "quietValidity": {
+        "source": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+        "ktx2ProbeSkip": true,
+        "startedAt": 1792271111.612179,
+        "endedAt": 1792271275.833649,
+        "pushEvents": [],
+        "pushersAtEnd": [],
+        "timingCredit": true
+      },
+      "metadata": {
+        "renderer": "Apple GPU",
+        "viewport": [
+          402,
+          714
+        ],
+        "devicePixelRatio": 3,
+        "renderScale": 2,
+        "canvas": [
+          804,
+          1428
+        ],
+        "textures": {
+          "mode": "ktx2",
+          "why": "pinned (harness textures: ktx2)",
+          "probe": {
+            "ran": false,
+            "note": "skipped (harness pin, measurement only: pixels may be wrong)",
+            "families": {},
+            "formats": [],
+            "veto": null
+          }
+        },
+        "gfx": {
+          "dpr": "2",
+          "aa": "auto"
+        },
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "clock": "live",
+        "ktx2ProbeSkip": true
+      }
+    }
+  ],
+  "rows": [
+    {
+      "row": "spawn",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 18559,
+            "endMs": 22559
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 41,
+          "gameP95Ms": 34,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 6.000000000003638,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.999999999996362,
+                "maxMs": 2.000000000003638,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 38,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 17897,
+            "endMs": 21897
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 50,
+          "gameP95Ms": 34,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 2.999999999996362,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-deck-east",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 29242,
+            "endMs": 33242
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 34,
+          "callbackMaxMs": 37,
+          "gameP95Ms": 34,
+          "workP95Ms": 3,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000003638,
+                "maxMs": 2.000000000007276,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 36,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 28547,
+            "endMs": 32547
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000003638,
+                "maxMs": 4.000000000003638,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-crossroads",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 35409,
+            "endMs": 39409
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 37,
+          "gameP95Ms": 34,
+          "workP95Ms": 4,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 3,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 34814,
+            "endMs": 38814
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 40,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 5.000000000007276,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-far-reach-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 137,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 40792,
+            "endMs": 44893
+          },
+          "frames": 120,
+          "p99Ms": 48,
+          "callbackP95Ms": 38,
+          "callbackMaxMs": 106,
+          "gameP95Ms": 34,
+          "workP95Ms": 7,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 7,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 1,
+            "at": [
+              [
+                41726,
+                137
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 131,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 40064,
+            "endMs": 44147
+          },
+          "frames": 120,
+          "p99Ms": 46,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 96,
+          "gameP95Ms": 35,
+          "workP95Ms": 7,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 4,
+                "maxMs": 7,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 1,
+            "at": [
+              [
+                41030,
+                131
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-far-reach-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 43,
+          "maxMs": 137,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 39777,
+            "endMs": 49943
+          },
+          "frames": 300,
+          "p99Ms": 53,
+          "callbackP95Ms": 44,
+          "callbackMaxMs": 106,
+          "gameP95Ms": 43,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 300,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 300,
+                "p95Ms": 3,
+                "maxMs": 9,
+                "calls": 5706
+              },
+              {
+                "id": "far-reach",
+                "samples": 289,
+                "p95Ms": 1,
+                "maxMs": 2,
+                "calls": 239
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 4,
+            "over100Ms": 1,
+            "at": [
+              [
+                39976,
+                54
+              ],
+              [
+                40283,
+                53
+              ],
+              [
+                41726,
+                137
+              ],
+              [
+                47943,
+                80
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 2,
+              "maxMs": 137,
+              "totalMs": 190,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 80,
+              "totalMs": 80,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 131,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 39064,
+            "endMs": 49214
+          },
+          "frames": 300,
+          "p99Ms": 59,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 96,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 300,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 300,
+                "p95Ms": 3.999999999992724,
+                "maxMs": 16.000000000007276,
+                "calls": 5709
+              },
+              {
+                "id": "far-reach",
+                "samples": 291,
+                "p95Ms": 0.999999999992724,
+                "maxMs": 3,
+                "calls": 220
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 4,
+            "over100Ms": 1,
+            "at": [
+              [
+                39297,
+                65
+              ],
+              [
+                39447,
+                59
+              ],
+              [
+                41030,
+                131
+              ],
+              [
+                47380,
+                73
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 2,
+              "maxMs": 131,
+              "totalMs": 190,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 73,
+              "totalMs": 73,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 65,
+              "totalMs": 65,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-far-reach-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 36,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 51976,
+            "endMs": 55976
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 38,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 1,
+                "maxMs": 1.000000000007276,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 51347,
+            "endMs": 55347
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 1.000000000007276,
+                "maxMs": 1.000000000007276,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 42,
+          "maxMs": 76,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 57409,
+            "endMs": 61493
+          },
+          "frames": 120,
+          "p99Ms": 68,
+          "callbackP95Ms": 43,
+          "callbackMaxMs": 76,
+          "gameP95Ms": 42,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 5.999999999992724,
+                "calls": 2283
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 95,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                59880,
+                68
+              ],
+              [
+                60909,
+                76
+              ],
+              [
+                61276,
+                54
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 42,
+          "maxMs": 75,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 56797,
+            "endMs": 60897
+          },
+          "frames": 120,
+          "p99Ms": 71,
+          "callbackP95Ms": 42,
+          "callbackMaxMs": 77,
+          "gameP95Ms": 42,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 5,
+                "calls": 2292
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 92,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                59367,
+                55
+              ],
+              [
+                60314,
+                75
+              ],
+              [
+                60730,
+                71
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 76,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 56393,
+            "endMs": 79543
+          },
+          "frames": 690,
+          "p99Ms": 46,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 76,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 690,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 690,
+                "p95Ms": 3,
+                "maxMs": 6.999999999970896,
+                "calls": 13116
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 635,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 3.000000000014552,
+                "calls": 1286
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 6,
+            "over100Ms": 0,
+            "at": [
+              [
+                56593,
+                57
+              ],
+              [
+                59880,
+                68
+              ],
+              [
+                60909,
+                76
+              ],
+              [
+                61276,
+                54
+              ],
+              [
+                67894,
+                56
+              ],
+              [
+                68809,
+                75
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:world",
+              "frames": 2,
+              "maxMs": 76,
+              "totalMs": 144,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 2,
+              "maxMs": 57,
+              "totalMs": 113,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:activate",
+              "frames": 1,
+              "maxMs": 75,
+              "totalMs": 75,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterWorld",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 80,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 55814,
+            "endMs": 78980
+          },
+          "frames": 690,
+          "p99Ms": 50,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 77,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 690,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 690,
+                "p95Ms": 2.999999999985448,
+                "maxMs": 7,
+                "calls": 13131
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 633,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 5,
+                "calls": 1288
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 5,
+            "over100Ms": 0,
+            "at": [
+              [
+                56014,
+                54
+              ],
+              [
+                59367,
+                55
+              ],
+              [
+                60314,
+                75
+              ],
+              [
+                60730,
+                71
+              ],
+              [
+                68247,
+                80
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:world",
+              "frames": 2,
+              "maxMs": 75,
+              "totalMs": 130,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:activate",
+              "frames": 1,
+              "maxMs": 80,
+              "totalMs": 80,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterKit",
+              "frames": 1,
+              "maxMs": 71,
+              "totalMs": 71,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 45,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 81609,
+            "endMs": 85609
+          },
+          "frames": 120,
+          "p99Ms": 37,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 44,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 3.000000000014552,
+                "calls": 2280
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 37,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 81080,
+            "endMs": 85080
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 42,
+          "maxMs": 99,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 86992,
+            "endMs": 91126
+          },
+          "frames": 120,
+          "p99Ms": 71,
+          "callbackP95Ms": 43,
+          "callbackMaxMs": 99,
+          "gameP95Ms": 42,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4.999999999985448,
+                "calls": 2286
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 115,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                87192,
+                71
+              ],
+              [
+                87285,
+                99
+              ],
+              [
+                88776,
+                67
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 36,
+          "maxMs": 94,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 86464,
+            "endMs": 90614
+          },
+          "frames": 120,
+          "p99Ms": 78,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 91,
+          "gameP95Ms": 37,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 16,
+                "calls": 2292
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 116,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 4,
+            "over100Ms": 0,
+            "at": [
+              [
+                86630,
+                74
+              ],
+              [
+                86730,
+                94
+              ],
+              [
+                88080,
+                78
+              ],
+              [
+                89714,
+                68
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 260,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 260 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 85992,
+            "endMs": 114409
+          },
+          "frames": 840,
+          "p99Ms": 48,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 262,
+          "gameP95Ms": 35,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 840,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 840,
+                "p95Ms": 3,
+                "maxMs": 25,
+                "calls": 15969
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 805,
+                "p95Ms": 1,
+                "maxMs": 4,
+                "calls": 1216
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 6,
+            "over100Ms": 2,
+            "at": [
+              [
+                87192,
+                71
+              ],
+              [
+                87285,
+                99
+              ],
+              [
+                88776,
+                67
+              ],
+              [
+                93826,
+                260
+              ],
+              [
+                94409,
+                65
+              ],
+              [
+                104242,
+                105
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:play",
+              "frames": 2,
+              "maxMs": 260,
+              "totalMs": 325,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:world",
+              "frames": 3,
+              "maxMs": 99,
+              "totalMs": 237,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 105,
+              "totalMs": 105,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 36,
+          "maxMs": 241,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 241 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 85447,
+            "endMs": 113880
+          },
+          "frames": 840,
+          "p99Ms": 51,
+          "callbackP95Ms": 38,
+          "callbackMaxMs": 243,
+          "gameP95Ms": 36,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 840,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 840,
+                "p95Ms": 3,
+                "maxMs": 16,
+                "calls": 15981
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 805,
+                "p95Ms": 1,
+                "maxMs": 4,
+                "calls": 1243
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 9,
+            "over100Ms": 1,
+            "at": [
+              [
+                86630,
+                74
+              ],
+              [
+                86730,
+                94
+              ],
+              [
+                88080,
+                78
+              ],
+              [
+                89714,
+                68
+              ],
+              [
+                93097,
+                241
+              ],
+              [
+                93664,
+                55
+              ],
+              [
+                93947,
+                51
+              ],
+              [
+                103497,
+                86
+              ],
+              [
+                113566,
+                51
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 4,
+              "maxMs": 94,
+              "totalMs": 314,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 2,
+              "maxMs": 241,
+              "totalMs": 296,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 86,
+              "totalMs": 86,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:afterPlay",
+              "frames": 1,
+              "maxMs": 51,
+              "totalMs": 51,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 51,
+              "totalMs": 51,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 40,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 116543,
+            "endMs": 120542
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 40,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4.000000000014552,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 2.000000000014552,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 36,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 115930,
+            "endMs": 119930
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 42,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 2.000000000014552,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 37,
+          "maxMs": 58,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 122014,
+            "endMs": 126026
+          },
+          "frames": 120,
+          "p99Ms": 43,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 58,
+          "gameP95Ms": 37,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 10.999999999985448,
+                "calls": 2283
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 1,
+                "calls": 119
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 0,
+            "at": [
+              [
+                124879,
+                58
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 38,
+          "maxMs": 58,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 121347,
+            "endMs": 125347
+          },
+          "frames": 120,
+          "p99Ms": 45,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 59,
+          "gameP95Ms": 38,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 7.000000000014552,
+                "calls": 2277
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 1,
+                "calls": 113
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 0,
+            "at": [
+              [
+                124247,
+                58
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 78,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 121009,
+            "endMs": 141059
+          },
+          "frames": 600,
+          "p99Ms": 40,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 69,
+          "gameP95Ms": 35,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 600,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 600,
+                "p95Ms": 3,
+                "maxMs": 10.999999999985448,
+                "calls": 11406
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 588,
+                "p95Ms": 1.999999999985448,
+                "maxMs": 7,
+                "calls": 2862
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 2,
+            "over100Ms": 0,
+            "at": [
+              [
+                124879,
+                58
+              ],
+              [
+                130826,
+                78
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:activate",
+              "frames": 1,
+              "maxMs": 78,
+              "totalMs": 78,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "driftwood-isle:afterKit",
+              "frames": 1,
+              "maxMs": 58,
+              "totalMs": 58,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 69,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 120347,
+            "endMs": 140364
+          },
+          "frames": 600,
+          "p99Ms": 44,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 59,
+          "gameP95Ms": 35,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 600,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 600,
+                "p95Ms": 2.999999999970896,
+                "maxMs": 7.000000000014552,
+                "calls": 11397
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 589,
+                "p95Ms": 2,
+                "maxMs": 7,
+                "calls": 2841
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                124247,
+                58
+              ],
+              [
+                130214,
+                69
+              ],
+              [
+                130864,
+                52
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:activate",
+              "frames": 1,
+              "maxMs": 69,
+              "totalMs": 69,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "driftwood-isle:afterKit",
+              "frames": 1,
+              "maxMs": 58,
+              "totalMs": 58,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 52,
+              "totalMs": 52,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 143126,
+            "endMs": 147126
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 41,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000029104,
+                "maxMs": 3,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.0000000000291038,
+                "maxMs": 2,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 142431,
+            "endMs": 146430
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 42,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 3.000000000029104,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.0000000000291038,
+                "maxMs": 2.000000000029104,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    }
+  ],
+  "normalProbeRecords": [
+    {
+      "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "runId": "94994-1792271275907",
+      "elapsedSeconds": 92.489,
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-17T21:09:28.388Z",
+      "device": "frame-floor-iphone-17-pro",
+      "frames": 120,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridRoutes": [
+        "pine-hollow-road-entry"
+      ],
+      "harnessRevision": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "path": ".git/proofs/artifacts/20261017-sp-x1-sim-road7/normal-probe-after-1/17ef0c2e8-94994-1792271275907.json",
+      "quietValidity": {
+        "source": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+        "ktx2ProbeSkip": false,
+        "startedAt": 1792271275.8745768,
+        "endedAt": 1792271368.404425,
+        "pushEvents": [],
+        "pushersAtEnd": [],
+        "timingCredit": true
+      },
+      "metadata": {
+        "renderer": "Apple GPU",
+        "viewport": [
+          402,
+          714
+        ],
+        "devicePixelRatio": 3,
+        "renderScale": 2,
+        "canvas": [
+          804,
+          1428
+        ],
+        "textures": {
+          "mode": "img",
+          "why": "pinned (harness textures: ktx2); overruled: KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S",
+          "probe": {
+            "ran": true,
+            "note": "SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0",
+            "families": {
+              "astc": false,
+              "etc2": false
+            },
+            "formats": [
+              {
+                "family": "astc",
+                "format": "RGBA_ASTC_4x4",
+                "ok": true
+              },
+              {
+                "family": "astc",
+                "format": "SRGB8_ALPHA8_ASTC_4x4",
+                "ok": false,
+                "level": 1,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "expected": [
+                  154,
+                  34,
+                  8,
+                  153
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "RGB8_ETC2",
+                "ok": false,
+                "level": 0,
+                "read": [
+                  2,
+                  2,
+                  2,
+                  255
+                ],
+                "expected": [
+                  206,
+                  104,
+                  53,
+                  255
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "SRGB8_ETC2",
+                "ok": false,
+                "level": 0,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "expected": [
+                  157,
+                  35,
+                  9,
+                  255
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "RGBA8_ETC2_EAC",
+                "ok": false,
+                "level": 1,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "expected": [
+                  206,
+                  104,
+                  53,
+                  155
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "SRGB8_ALPHA8_ETC2_EAC",
+                "ok": false,
+                "level": 1,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "expected": [
+                  157,
+                  35,
+                  9,
+                  155
+                ]
+              }
+            ],
+            "veto": "KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S"
+          }
+        },
+        "gfx": {
+          "dpr": "2",
+          "aa": "auto"
+        },
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "clock": "live",
+        "ktx2ProbeSkip": false
+      }
+    },
+    {
+      "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "runId": "99687-1792271368481",
+      "elapsedSeconds": 90.295,
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-17T21:10:58.768Z",
+      "device": "frame-floor-iphone-17-pro",
+      "frames": 120,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridRoutes": [
+        "pine-hollow-road-entry"
+      ],
+      "harnessRevision": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "path": ".git/proofs/artifacts/20261017-sp-x1-sim-road7/normal-probe-after-2/17ef0c2e8-99687-1792271368481.json",
+      "quietValidity": {
+        "source": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+        "ktx2ProbeSkip": false,
+        "startedAt": 1792271368.447629,
+        "endedAt": 1792271458.785214,
+        "pushEvents": [],
+        "pushersAtEnd": [],
+        "timingCredit": true
+      },
+      "metadata": {
+        "renderer": "Apple GPU",
+        "viewport": [
+          402,
+          714
+        ],
+        "devicePixelRatio": 3,
+        "renderScale": 2,
+        "canvas": [
+          804,
+          1428
+        ],
+        "textures": {
+          "mode": "img",
+          "why": "pinned (harness textures: ktx2); overruled: KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S",
+          "probe": {
+            "ran": true,
+            "note": "SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0",
+            "families": {
+              "astc": false,
+              "etc2": false
+            },
+            "formats": [
+              {
+                "family": "astc",
+                "format": "RGBA_ASTC_4x4",
+                "ok": true
+              },
+              {
+                "family": "astc",
+                "format": "SRGB8_ALPHA8_ASTC_4x4",
+                "ok": false,
+                "level": 1,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "expected": [
+                  154,
+                  34,
+                  8,
+                  153
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "RGB8_ETC2",
+                "ok": false,
+                "level": 0,
+                "read": [
+                  2,
+                  2,
+                  2,
+                  255
+                ],
+                "expected": [
+                  206,
+                  104,
+                  53,
+                  255
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "SRGB8_ETC2",
+                "ok": false,
+                "level": 0,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "expected": [
+                  157,
+                  35,
+                  9,
+                  255
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "RGBA8_ETC2_EAC",
+                "ok": false,
+                "level": 1,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "expected": [
+                  206,
+                  104,
+                  53,
+                  155
+                ]
+              },
+              {
+                "family": "etc2",
+                "format": "SRGB8_ALPHA8_ETC2_EAC",
+                "ok": false,
+                "level": 1,
+                "read": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "expected": [
+                  157,
+                  35,
+                  9,
+                  155
+                ]
+              }
+            ],
+            "veto": "KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S"
+          }
+        },
+        "gfx": {
+          "dpr": "2",
+          "aa": "auto"
+        },
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "clock": "live",
+        "ktx2ProbeSkip": false
+      }
+    }
+  ],
+  "normalProbeRows": [
+    {
+      "row": "spawn",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 37,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 19426,
+            "endMs": 23426
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.000000000003638,
+                "maxMs": 2,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 43,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 19527,
+            "endMs": 23527
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 44,
+          "gameP95Ms": 34,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000003638,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.000000000003638,
+                "maxMs": 2,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-deck-east",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 29992,
+            "endMs": 33992
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 40,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 6,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 36344,
+            "endMs": 40344
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 38,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 54,
+          "maxMs": 102,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 41376,
+            "endMs": 45626
+          },
+          "frames": 120,
+          "p99Ms": 73,
+          "callbackP95Ms": 55,
+          "callbackMaxMs": 103,
+          "gameP95Ms": 53,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 15,
+                "calls": 2301
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 118,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 7,
+            "over100Ms": 1,
+            "at": [
+              [
+                41510,
+                73
+              ],
+              [
+                41610,
+                102
+              ],
+              [
+                43010,
+                59
+              ],
+              [
+                43251,
+                54
+              ],
+              [
+                43305,
+                56
+              ],
+              [
+                44092,
+                67
+              ],
+              [
+                44440,
+                65
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 56,
+          "maxMs": 90,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 41590,
+            "endMs": 45844
+          },
+          "frames": 120,
+          "p99Ms": 81,
+          "callbackP95Ms": 57,
+          "callbackMaxMs": 90,
+          "gameP95Ms": 56,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 8.000000000007276,
+                "calls": 2316
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 113,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 9,
+            "over100Ms": 0,
+            "at": [
+              [
+                41894,
+                56
+              ],
+              [
+                41977,
+                90
+              ],
+              [
+                43360,
+                81
+              ],
+              [
+                43494,
+                60
+              ],
+              [
+                43633,
+                51
+              ],
+              [
+                43684,
+                55
+              ],
+              [
+                43894,
+                60
+              ],
+              [
+                44006,
+                68
+              ],
+              [
+                44377,
+                61
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 38,
+          "maxMs": 202,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 202 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 40359,
+            "endMs": 67026
+          },
+          "frames": 780,
+          "p99Ms": 63,
+          "callbackP95Ms": 40,
+          "callbackMaxMs": 207,
+          "gameP95Ms": 38,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 780,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 780,
+                "p95Ms": 3,
+                "maxMs": 15,
+                "calls": 14862
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 750,
+                "p95Ms": 1.000000000007276,
+                "maxMs": 4,
+                "calls": 1327
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 16,
+            "over100Ms": 4,
+            "at": [
+              [
+                40564,
+                63
+              ],
+              [
+                40793,
+                53
+              ],
+              [
+                41152,
+                60
+              ],
+              [
+                41510,
+                73
+              ],
+              [
+                41610,
+                102
+              ],
+              [
+                43010,
+                59
+              ],
+              [
+                43251,
+                54
+              ],
+              [
+                43305,
+                56
+              ],
+              [
+                44092,
+                67
+              ],
+              [
+                44440,
+                65
+              ],
+              [
+                46026,
+                202
+              ],
+              [
+                46576,
+                54
+              ],
+              [
+                48168,
+                54
+              ],
+              [
+                52540,
+                109
+              ],
+              [
+                53809,
+                54
+              ],
+              [
+                55926,
+                106
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 7,
+              "maxMs": 102,
+              "totalMs": 476,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:afterPlay",
+              "frames": 4,
+              "maxMs": 109,
+              "totalMs": 271,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 1,
+              "maxMs": 202,
+              "totalMs": 202,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 3,
+              "maxMs": 63,
+              "totalMs": 176,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 106,
+              "totalMs": 106,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 40,
+          "maxMs": 219,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 219 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 40577,
+            "endMs": 66260
+          },
+          "frames": 750,
+          "p99Ms": 61,
+          "callbackP95Ms": 41,
+          "callbackMaxMs": 220,
+          "gameP95Ms": 40,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 750,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 750,
+                "p95Ms": 3,
+                "maxMs": 14,
+                "calls": 14301
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 716,
+                "p95Ms": 1.000000000007276,
+                "maxMs": 4,
+                "calls": 1238
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 17,
+            "over100Ms": 1,
+            "at": [
+              [
+                40844,
+                72
+              ],
+              [
+                40916,
+                61
+              ],
+              [
+                41149,
+                56
+              ],
+              [
+                41894,
+                56
+              ],
+              [
+                41977,
+                90
+              ],
+              [
+                43360,
+                81
+              ],
+              [
+                43494,
+                60
+              ],
+              [
+                43633,
+                51
+              ],
+              [
+                43684,
+                55
+              ],
+              [
+                43894,
+                60
+              ],
+              [
+                44006,
+                68
+              ],
+              [
+                44377,
+                61
+              ],
+              [
+                45944,
+                219
+              ],
+              [
+                46262,
+                60
+              ],
+              [
+                46510,
+                57
+              ],
+              [
+                52523,
+                83
+              ],
+              [
+                55910,
+                94
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 9,
+              "maxMs": 90,
+              "totalMs": 582,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 2,
+              "maxMs": 219,
+              "totalMs": 279,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 3,
+              "maxMs": 72,
+              "totalMs": 189,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:afterPlay",
+              "frames": 2,
+              "maxMs": 83,
+              "totalMs": 140,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 94,
+              "totalMs": 94,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 69092,
+            "endMs": 73092
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 44,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 68394,
+            "endMs": 72394
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 41,
+          "gameP95Ms": 35,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    }
+  ],
+  "unpairedStandingRows": [
+    {
+      "cohort": "normal-probe-after",
+      "row": "grid-deck-north",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 36126,
+            "endMs": 40126
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 38,
+          "gameP95Ms": 34,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        }
+      ]
+    },
+    {
+      "cohort": "normal-probe-after",
+      "row": "grid-crossroads",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 34,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 30210,
+            "endMs": 34210
+          },
+          "frames": 120,
+          "p99Ms": 34,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4.000000000003638,
+                "calls": 2280
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ]
+    }
+  ],
+  "roadRows": [
+    {
+      "row": "grid-far-reach-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 137,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 40792,
+            "endMs": 44893
+          },
+          "frames": 120,
+          "p99Ms": 48,
+          "callbackP95Ms": 38,
+          "callbackMaxMs": 106,
+          "gameP95Ms": 34,
+          "workP95Ms": 7,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 7,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 1,
+            "at": [
+              [
+                41726,
+                137
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 131,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 40064,
+            "endMs": 44147
+          },
+          "frames": 120,
+          "p99Ms": 46,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 96,
+          "gameP95Ms": 35,
+          "workP95Ms": 7,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 4,
+                "maxMs": 7,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 1,
+            "at": [
+              [
+                41030,
+                131
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-far-reach-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 43,
+          "maxMs": 137,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 39777,
+            "endMs": 49943
+          },
+          "frames": 300,
+          "p99Ms": 53,
+          "callbackP95Ms": 44,
+          "callbackMaxMs": 106,
+          "gameP95Ms": 43,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 300,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 300,
+                "p95Ms": 3,
+                "maxMs": 9,
+                "calls": 5706
+              },
+              {
+                "id": "far-reach",
+                "samples": 289,
+                "p95Ms": 1,
+                "maxMs": 2,
+                "calls": 239
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 4,
+            "over100Ms": 1,
+            "at": [
+              [
+                39976,
+                54
+              ],
+              [
+                40283,
+                53
+              ],
+              [
+                41726,
+                137
+              ],
+              [
+                47943,
+                80
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 2,
+              "maxMs": 137,
+              "totalMs": 190,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 80,
+              "totalMs": 80,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 131,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 39064,
+            "endMs": 49214
+          },
+          "frames": 300,
+          "p99Ms": 59,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 96,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 300,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 300,
+                "p95Ms": 3.999999999992724,
+                "maxMs": 16.000000000007276,
+                "calls": 5709
+              },
+              {
+                "id": "far-reach",
+                "samples": 291,
+                "p95Ms": 0.999999999992724,
+                "maxMs": 3,
+                "calls": 220
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 4,
+            "over100Ms": 1,
+            "at": [
+              [
+                39297,
+                65
+              ],
+              [
+                39447,
+                59
+              ],
+              [
+                41030,
+                131
+              ],
+              [
+                47380,
+                73
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 2,
+              "maxMs": 131,
+              "totalMs": 190,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 73,
+              "totalMs": 73,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 65,
+              "totalMs": 65,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-far-reach-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 36,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 51976,
+            "endMs": 55976
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 38,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 1,
+                "maxMs": 1.000000000007276,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 51347,
+            "endMs": 55347
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 1.000000000007276,
+                "maxMs": 1.000000000007276,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 42,
+          "maxMs": 76,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 57409,
+            "endMs": 61493
+          },
+          "frames": 120,
+          "p99Ms": 68,
+          "callbackP95Ms": 43,
+          "callbackMaxMs": 76,
+          "gameP95Ms": 42,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 5.999999999992724,
+                "calls": 2283
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 95,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                59880,
+                68
+              ],
+              [
+                60909,
+                76
+              ],
+              [
+                61276,
+                54
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 42,
+          "maxMs": 75,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 56797,
+            "endMs": 60897
+          },
+          "frames": 120,
+          "p99Ms": 71,
+          "callbackP95Ms": 42,
+          "callbackMaxMs": 77,
+          "gameP95Ms": 42,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000007276,
+                "maxMs": 5,
+                "calls": 2292
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 92,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                59367,
+                55
+              ],
+              [
+                60314,
+                75
+              ],
+              [
+                60730,
+                71
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 76,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 56393,
+            "endMs": 79543
+          },
+          "frames": 690,
+          "p99Ms": 46,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 76,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 690,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 690,
+                "p95Ms": 3,
+                "maxMs": 6.999999999970896,
+                "calls": 13116
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 635,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 3.000000000014552,
+                "calls": 1286
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 6,
+            "over100Ms": 0,
+            "at": [
+              [
+                56593,
+                57
+              ],
+              [
+                59880,
+                68
+              ],
+              [
+                60909,
+                76
+              ],
+              [
+                61276,
+                54
+              ],
+              [
+                67894,
+                56
+              ],
+              [
+                68809,
+                75
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:world",
+              "frames": 2,
+              "maxMs": 76,
+              "totalMs": 144,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 2,
+              "maxMs": 57,
+              "totalMs": 113,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:activate",
+              "frames": 1,
+              "maxMs": 75,
+              "totalMs": 75,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterWorld",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 80,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 55814,
+            "endMs": 78980
+          },
+          "frames": 690,
+          "p99Ms": 50,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 77,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 690,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 690,
+                "p95Ms": 2.999999999985448,
+                "maxMs": 7,
+                "calls": 13131
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 633,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 5,
+                "calls": 1288
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 5,
+            "over100Ms": 0,
+            "at": [
+              [
+                56014,
+                54
+              ],
+              [
+                59367,
+                55
+              ],
+              [
+                60314,
+                75
+              ],
+              [
+                60730,
+                71
+              ],
+              [
+                68247,
+                80
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:world",
+              "frames": 2,
+              "maxMs": 75,
+              "totalMs": 130,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:activate",
+              "frames": 1,
+              "maxMs": 80,
+              "totalMs": 80,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterKit",
+              "frames": 1,
+              "maxMs": 71,
+              "totalMs": 71,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-nalati-grasslands-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 45,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 81609,
+            "endMs": 85609
+          },
+          "frames": 120,
+          "p99Ms": 37,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 44,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 3.000000000014552,
+                "calls": 2280
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 37,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 81080,
+            "endMs": 85080
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 42,
+          "maxMs": 99,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 86992,
+            "endMs": 91126
+          },
+          "frames": 120,
+          "p99Ms": 71,
+          "callbackP95Ms": 43,
+          "callbackMaxMs": 99,
+          "gameP95Ms": 42,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4.999999999985448,
+                "calls": 2286
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 115,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                87192,
+                71
+              ],
+              [
+                87285,
+                99
+              ],
+              [
+                88776,
+                67
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 36,
+          "maxMs": 94,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 86464,
+            "endMs": 90614
+          },
+          "frames": 120,
+          "p99Ms": 78,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 91,
+          "gameP95Ms": 37,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 16,
+                "calls": 2292
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 116,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 4,
+            "over100Ms": 0,
+            "at": [
+              [
+                86630,
+                74
+              ],
+              [
+                86730,
+                94
+              ],
+              [
+                88080,
+                78
+              ],
+              [
+                89714,
+                68
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 260,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 260 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 85992,
+            "endMs": 114409
+          },
+          "frames": 840,
+          "p99Ms": 48,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 262,
+          "gameP95Ms": 35,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 840,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 840,
+                "p95Ms": 3,
+                "maxMs": 25,
+                "calls": 15969
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 805,
+                "p95Ms": 1,
+                "maxMs": 4,
+                "calls": 1216
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 6,
+            "over100Ms": 2,
+            "at": [
+              [
+                87192,
+                71
+              ],
+              [
+                87285,
+                99
+              ],
+              [
+                88776,
+                67
+              ],
+              [
+                93826,
+                260
+              ],
+              [
+                94409,
+                65
+              ],
+              [
+                104242,
+                105
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:play",
+              "frames": 2,
+              "maxMs": 260,
+              "totalMs": 325,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:world",
+              "frames": 3,
+              "maxMs": 99,
+              "totalMs": 237,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 105,
+              "totalMs": 105,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 36,
+          "maxMs": 241,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 241 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 85447,
+            "endMs": 113880
+          },
+          "frames": 840,
+          "p99Ms": 51,
+          "callbackP95Ms": 38,
+          "callbackMaxMs": 243,
+          "gameP95Ms": 36,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 840,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 840,
+                "p95Ms": 3,
+                "maxMs": 16,
+                "calls": 15981
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 805,
+                "p95Ms": 1,
+                "maxMs": 4,
+                "calls": 1243
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 9,
+            "over100Ms": 1,
+            "at": [
+              [
+                86630,
+                74
+              ],
+              [
+                86730,
+                94
+              ],
+              [
+                88080,
+                78
+              ],
+              [
+                89714,
+                68
+              ],
+              [
+                93097,
+                241
+              ],
+              [
+                93664,
+                55
+              ],
+              [
+                93947,
+                51
+              ],
+              [
+                103497,
+                86
+              ],
+              [
+                113566,
+                51
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 4,
+              "maxMs": 94,
+              "totalMs": 314,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 2,
+              "maxMs": 241,
+              "totalMs": 296,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 86,
+              "totalMs": 86,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:afterPlay",
+              "frames": 1,
+              "maxMs": 51,
+              "totalMs": 51,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 51,
+              "totalMs": 51,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 40,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 116543,
+            "endMs": 120542
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 40,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4.000000000014552,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 2.000000000014552,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 34,
+          "maxMs": 36,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 115930,
+            "endMs": 119930
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 42,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 2.000000000014552,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 37,
+          "maxMs": 58,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 122014,
+            "endMs": 126026
+          },
+          "frames": 120,
+          "p99Ms": 43,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 58,
+          "gameP95Ms": 37,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 10.999999999985448,
+                "calls": 2283
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 1,
+                "calls": 119
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 0,
+            "at": [
+              [
+                124879,
+                58
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 38,
+          "maxMs": 58,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 121347,
+            "endMs": 125347
+          },
+          "frames": 120,
+          "p99Ms": 45,
+          "callbackP95Ms": 39,
+          "callbackMaxMs": 59,
+          "gameP95Ms": 38,
+          "workP95Ms": 5,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 7.000000000014552,
+                "calls": 2277
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 1,
+                "calls": 113
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 1,
+            "over100Ms": 0,
+            "at": [
+              [
+                124247,
+                58
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 35,
+          "maxMs": 78,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 121009,
+            "endMs": 141059
+          },
+          "frames": 600,
+          "p99Ms": 40,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 69,
+          "gameP95Ms": 35,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 600,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 600,
+                "p95Ms": 3,
+                "maxMs": 10.999999999985448,
+                "calls": 11406
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 588,
+                "p95Ms": 1.999999999985448,
+                "maxMs": 7,
+                "calls": 2862
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 2,
+            "over100Ms": 0,
+            "at": [
+              [
+                124879,
+                58
+              ],
+              [
+                130826,
+                78
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:activate",
+              "frames": 1,
+              "maxMs": 78,
+              "totalMs": 78,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "driftwood-isle:afterKit",
+              "frames": 1,
+              "maxMs": 58,
+              "totalMs": 58,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 69,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 120347,
+            "endMs": 140364
+          },
+          "frames": 600,
+          "p99Ms": 44,
+          "callbackP95Ms": 37,
+          "callbackMaxMs": 59,
+          "gameP95Ms": 35,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 600,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 600,
+                "p95Ms": 2.999999999970896,
+                "maxMs": 7.000000000014552,
+                "calls": 11397
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 589,
+                "p95Ms": 2,
+                "maxMs": 7,
+                "calls": 2841
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 3,
+            "over100Ms": 0,
+            "at": [
+              [
+                124247,
+                58
+              ],
+              [
+                130214,
+                69
+              ],
+              [
+                130864,
+                52
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:activate",
+              "frames": 1,
+              "maxMs": 69,
+              "totalMs": 69,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "driftwood-isle:afterKit",
+              "frames": 1,
+              "maxMs": 58,
+              "totalMs": 58,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 52,
+              "totalMs": 52,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    },
+    {
+      "row": "grid-driftwood-isle-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 143126,
+            "endMs": 147126
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 41,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000029104,
+                "maxMs": 3,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.0000000000291038,
+                "maxMs": 2,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 142431,
+            "endMs": 146430
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 42,
+          "gameP95Ms": 35,
+          "workP95Ms": 9,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 3.000000000029104,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.0000000000291038,
+                "maxMs": 2.000000000029104,
+                "calls": 960
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    }
+  ],
+  "normalProbeRoadRows": [
+    {
+      "row": "grid-pine-hollow-road-entry-travel",
+      "runs": [
+        {
+          "p95Ms": 54,
+          "maxMs": 102,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 41376,
+            "endMs": 45626
+          },
+          "frames": 120,
+          "p99Ms": 73,
+          "callbackP95Ms": 55,
+          "callbackMaxMs": 103,
+          "gameP95Ms": 53,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 15,
+                "calls": 2301
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 118,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 7,
+            "over100Ms": 1,
+            "at": [
+              [
+                41510,
+                73
+              ],
+              [
+                41610,
+                102
+              ],
+              [
+                43010,
+                59
+              ],
+              [
+                43251,
+                54
+              ],
+              [
+                43305,
+                56
+              ],
+              [
+                44092,
+                67
+              ],
+              [
+                44440,
+                65
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 56,
+          "maxMs": 90,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "frame cost / scheduling",
+          "window": null,
+          "sampleRange": {
+            "startMs": 41590,
+            "endMs": 45844
+          },
+          "frames": 120,
+          "p99Ms": 81,
+          "callbackP95Ms": 57,
+          "callbackMaxMs": 90,
+          "gameP95Ms": 56,
+          "workP95Ms": 6,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 8.000000000007276,
+                "calls": 2316
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 113,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 9,
+            "over100Ms": 0,
+            "at": [
+              [
+                41894,
+                56
+              ],
+              [
+                41977,
+                90
+              ],
+              [
+                43360,
+                81
+              ],
+              [
+                43494,
+                60
+              ],
+              [
+                43633,
+                51
+              ],
+              [
+                43684,
+                55
+              ],
+              [
+                43894,
+                60
+              ],
+              [
+                44006,
+                68
+              ],
+              [
+                44377,
+                61
+              ]
+            ]
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry-drive",
+      "runs": [
+        {
+          "p95Ms": 38,
+          "maxMs": 202,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 202 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 40359,
+            "endMs": 67026
+          },
+          "frames": 780,
+          "p99Ms": 63,
+          "callbackP95Ms": 40,
+          "callbackMaxMs": 207,
+          "gameP95Ms": 38,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 780,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 780,
+                "p95Ms": 3,
+                "maxMs": 15,
+                "calls": 14862
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 750,
+                "p95Ms": 1.000000000007276,
+                "maxMs": 4,
+                "calls": 1327
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 16,
+            "over100Ms": 4,
+            "at": [
+              [
+                40564,
+                63
+              ],
+              [
+                40793,
+                53
+              ],
+              [
+                41152,
+                60
+              ],
+              [
+                41510,
+                73
+              ],
+              [
+                41610,
+                102
+              ],
+              [
+                43010,
+                59
+              ],
+              [
+                43251,
+                54
+              ],
+              [
+                43305,
+                56
+              ],
+              [
+                44092,
+                67
+              ],
+              [
+                44440,
+                65
+              ],
+              [
+                46026,
+                202
+              ],
+              [
+                46576,
+                54
+              ],
+              [
+                48168,
+                54
+              ],
+              [
+                52540,
+                109
+              ],
+              [
+                53809,
+                54
+              ],
+              [
+                55926,
+                106
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 7,
+              "maxMs": 102,
+              "totalMs": 476,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:afterPlay",
+              "frames": 4,
+              "maxMs": 109,
+              "totalMs": 271,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 1,
+              "maxMs": 202,
+              "totalMs": 202,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 3,
+              "maxMs": 63,
+              "totalMs": 176,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 106,
+              "totalMs": 106,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 1
+        },
+        {
+          "p95Ms": 40,
+          "maxMs": 219,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": false,
+          "pass": false,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": "long frame: max 219 ms > 200 ms",
+          "window": "whole-drive",
+          "sampleRange": {
+            "startMs": 40577,
+            "endMs": 66260
+          },
+          "frames": 750,
+          "p99Ms": 61,
+          "callbackP95Ms": 41,
+          "callbackMaxMs": 220,
+          "gameP95Ms": 40,
+          "workP95Ms": 11,
+          "cpu": {
+            "enabled": true,
+            "frames": 750,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 750,
+                "p95Ms": 3,
+                "maxMs": 14,
+                "calls": 14301
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 716,
+                "p95Ms": 1.000000000007276,
+                "maxMs": 4,
+                "calls": 1238
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 17,
+            "over100Ms": 1,
+            "at": [
+              [
+                40844,
+                72
+              ],
+              [
+                40916,
+                61
+              ],
+              [
+                41149,
+                56
+              ],
+              [
+                41894,
+                56
+              ],
+              [
+                41977,
+                90
+              ],
+              [
+                43360,
+                81
+              ],
+              [
+                43494,
+                60
+              ],
+              [
+                43633,
+                51
+              ],
+              [
+                43684,
+                55
+              ],
+              [
+                43894,
+                60
+              ],
+              [
+                44006,
+                68
+              ],
+              [
+                44377,
+                61
+              ],
+              [
+                45944,
+                219
+              ],
+              [
+                46262,
+                60
+              ],
+              [
+                46510,
+                57
+              ],
+              [
+                52523,
+                83
+              ],
+              [
+                55910,
+                94
+              ]
+            ]
+          },
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 9,
+              "maxMs": 90,
+              "totalMs": 582,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 2,
+              "maxMs": 219,
+              "totalMs": 279,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 3,
+              "maxMs": 72,
+              "totalMs": 189,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:afterPlay",
+              "frames": 2,
+              "maxMs": 83,
+              "totalMs": 140,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 94,
+              "totalMs": 94,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "run": 2
+        }
+      ],
+      "bothPass": false
+    },
+    {
+      "row": "grid-pine-hollow-road-entry",
+      "runs": [
+        {
+          "p95Ms": 34,
+          "maxMs": 35,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 69092,
+            "endMs": 73092
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 35,
+          "callbackMaxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000014552,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 1
+        },
+        {
+          "p95Ms": 35,
+          "maxMs": 44,
+          "medianFps": 30.303,
+          "medianFpsRounded": 30,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "pass": true,
+          "strictPass": false,
+          "skipped": 0,
+          "contextLost": false,
+          "miss": null,
+          "window": null,
+          "sampleRange": {
+            "startMs": 68394,
+            "endMs": 72394
+          },
+          "frames": 120,
+          "p99Ms": 35,
+          "callbackP95Ms": 36,
+          "callbackMaxMs": 41,
+          "gameP95Ms": 35,
+          "workP95Ms": 10,
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 1.000000000014552,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "longFrames": {
+            "over50Ms": 0,
+            "over100Ms": 0,
+            "at": []
+          },
+          "longFrameHooks": null,
+          "run": 2
+        }
+      ],
+      "bothPass": true
+    }
+  ]
+}

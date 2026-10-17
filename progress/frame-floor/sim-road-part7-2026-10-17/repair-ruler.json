@@ -1,0 +1,40 @@
+{
+  "beforeSha": "538918559eda83a3739910f602ccfae03f351333",
+  "afterTree": "bd2215e72dd0fc2e7b19d6571f2aaf635aeb6f64",
+  "before": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5517,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20067,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 8093,
+    "sunscar-dunes": 392
+  },
+  "after": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5517,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20067,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 8093,
+    "sunscar-dunes": 392
+  },
+  "net": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  }
+}

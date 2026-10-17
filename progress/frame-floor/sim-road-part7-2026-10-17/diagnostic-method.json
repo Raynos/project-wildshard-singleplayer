@@ -1,0 +1,82 @@
+{
+  "native-command": {
+    "command": [
+      "xcrun",
+      "xctrace",
+      "record",
+      "--template",
+      "Time Profiler",
+      "--all-processes",
+      "--time-limit",
+      "200s",
+      "--no-prompt",
+      "--output",
+      "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x1-road7/before.trace"
+    ],
+    "pid": 36804
+  },
+  "native-status": {
+    "nativeRC": 0,
+    "samplesExportRC": 0,
+    "simulatorDylibOverlapWarnings": 4469,
+    "note": "Compact process/clock/stack evidence retained; raw all-process data is temporary.",
+    "rawDeleted": true
+  },
+  "instrumentation": [
+    {
+      "file": "AnimalFactory-CxuC3Mpu.js",
+      "label": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+      "start": 5257,
+      "end": 9469,
+      "generated": {
+        "line": 1,
+        "column": 5246
+      },
+      "originalLine": 310
+    },
+    {
+      "file": "ambientLife-DgL1Dn9w.js",
+      "label": "lanes.restore@src/shards/nalati-grasslands/species/bodies.ts:38",
+      "start": 1750135,
+      "end": 1750335,
+      "generated": {
+        "line": 1,
+        "column": 1750120
+      },
+      "originalLine": 38
+    },
+    {
+      "file": "geometry-CmPnVafk.js",
+      "label": "geometry.read@src/game/plugin/geometry.ts:1285",
+      "start": 59004,
+      "end": 59676,
+      "generated": {
+        "line": 49,
+        "column": 47733
+      },
+      "originalLine": 1285
+    },
+    {
+      "file": "geometry-CmPnVafk.js",
+      "label": "pool.restore@src/game/plugin/geometry.ts:225",
+      "start": 31413,
+      "end": 36311,
+      "generated": {
+        "line": 49,
+        "column": 20110
+      },
+      "originalLine": 225
+    },
+    {
+      "file": "geometry-CmPnVafk.js",
+      "label": "facet.restore@src/game/plugin/geometry.ts:323",
+      "start": 36436,
+      "end": 37335,
+      "generated": {
+        "line": 49,
+        "column": 25130
+      },
+      "originalLine": 323
+    }
+  ]
+}

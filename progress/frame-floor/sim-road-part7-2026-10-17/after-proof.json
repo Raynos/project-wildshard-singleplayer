@@ -1,0 +1,11 @@
+{
+  "id": "20261017T160003-sp-x1-road7-cold-quiet-pairs-71347",
+  "label": "sp-x1-road7-cold-quiet-pairs",
+  "state": "failed",
+  "rc": 2,
+  "startedAt": 1792270803,
+  "endedAt": 1792271459,
+  "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T160003-sp-x1-road7-cold-quiet-pairs-71347.log",
+  "pane": "wT:p3",
+  "command": "python3 tmp/sp-x1-road7/quiet-after.py"
+}

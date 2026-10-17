@@ -1,0 +1,48 @@
+{
+  "source": {
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "performanceFixSha": "64265f9326e29a52c3c41fd989d93cf46ccf2ae7",
+    "safariRepairSha": "87c717f317a2c27808849bf523cb45a0d897256e",
+    "pineAbiFixSha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "url": "http://127.0.0.1:4480/",
+    "servedVersion": {
+      "build": "17ef0c2-mvcvojod",
+      "time": "2026-10-17T20:57:54.177Z"
+    },
+    "coldGeneration": true,
+    "strictMapInputs": "CI=1"
+  },
+  "proof": {
+    "id": "20261017T154552-sp-x1-road7-await-abi-land-serve-4514",
+    "label": "sp-x1-road7-await-abi-land-serve",
+    "state": "passed",
+    "rc": 0,
+    "startedAt": 1792269952,
+    "endedAt": 1792270782,
+    "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T154552-sp-x1-road7-await-abi-land-serve-4514.log",
+    "pane": "wT:p3",
+    "command": "python3 tmp/sp-x1-road7/wait-abi-landing.py"
+  },
+  "simulatorDriftwood": {
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "complete": true,
+    "elapsedSeconds": 46.983,
+    "errors": [],
+    "floorPass": false,
+    "timingCredit": false
+  },
+  "realPineGrid": {
+    "url": "http://127.0.0.1:4480/",
+    "witnessFailures": [],
+    "console": [],
+    "complete": true,
+    "timingCredit": false
+  },
+  "ownerRepair": {
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "preparedModules": [
+      "behaviour/director.wasm"
+    ],
+    "ownerReport": "sp-x4 cold and HEAD real GRID phone pass; previews closed; strict all10 green"
+  }
+}

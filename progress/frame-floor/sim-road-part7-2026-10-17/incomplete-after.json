@@ -1,0 +1,132 @@
+{
+  "source": "87c717f317a2c27808849bf523cb45a0d897256e",
+  "complete": false,
+  "pass": false,
+  "when": "2026-10-17T20:30:37.018Z",
+  "elapsedSeconds": 294.406,
+  "error": "Error: Grid floor route pine-hollow-road-entry timed out (waypoint 0/1, feet 0, 0.5, 298.4, current null)",
+  "consoleErrors": [
+    {
+      "level": "error",
+      "text": "[grid] pine-hollow: admission failed; it stays closed until a retry Error: Import signature outside ABI"
+    }
+  ],
+  "quietValidity": {
+    "source": "87c717f317a2c27808849bf523cb45a0d897256e",
+    "ktx2ProbeSkip": true,
+    "startedAt": 1792268742.588851,
+    "endedAt": 1792269037.031086,
+    "pushEvents": [],
+    "pushersAtEnd": [],
+    "timingCredit": true
+  },
+  "timingCredit": false,
+  "reason": "Incomplete cohort; Pine GRID runtime admission failed. No paired timing credit.",
+  "partialRows": [
+    {
+      "pose": {
+        "name": "spawn",
+        "x": -3.9819389561213114e-06,
+        "y": 1.2132999940542504,
+        "z": -194.00000390673316,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "p95Ms": 34,
+      "maxMs": 35,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-deck-north",
+        "x": 0,
+        "y": 3,
+        "z": 262,
+        "yaw": 3.141592653589793,
+        "pitch": -0.05
+      },
+      "p95Ms": 34,
+      "maxMs": 34,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-crossroads",
+        "x": 277.5,
+        "y": 1.7,
+        "z": 277.5,
+        "yaw": -2.356194490192345,
+        "pitch": -0.12
+      },
+      "p95Ms": 34,
+      "maxMs": 38,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-far-reach-road-entry-travel"
+      },
+      "p95Ms": 34,
+      "maxMs": 138,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-far-reach-road-entry-drive"
+      },
+      "p95Ms": 44,
+      "maxMs": 138,
+      "pass": false,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-far-reach-road-entry"
+      },
+      "p95Ms": 34,
+      "maxMs": 35,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-nalati-grasslands-road-entry-travel"
+      },
+      "p95Ms": 43,
+      "maxMs": 71,
+      "pass": false,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-nalati-grasslands-road-entry-drive"
+      },
+      "p95Ms": 34,
+      "maxMs": 86,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    },
+    {
+      "pose": {
+        "name": "grid-nalati-grasslands-road-entry"
+      },
+      "p95Ms": 34,
+      "maxMs": 36,
+      "pass": true,
+      "cpuPass": true,
+      "maxFramePass": true
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+  "performanceFixSha": "64265f9326e29a52c3c41fd989d93cf46ccf2ae7",
+  "safariRepairSha": "87c717f317a2c27808849bf523cb45a0d897256e",
+  "pineAbiFixSha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+  "url": "http://127.0.0.1:4480/",
+  "servedVersion": {
+    "build": "17ef0c2-mvcvojod",
+    "time": "2026-10-17T20:57:54.177Z"
+  },
+  "coldGeneration": true,
+  "strictMapInputs": "CI=1"
+}

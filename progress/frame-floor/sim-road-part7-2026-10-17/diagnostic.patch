@@ -1,0 +1,83 @@
+--- a/scripts/frame-floor-task-clock.mjs
++++ b/tmp/sp-x1-road7/task-clock.mjs
+@@ -72,6 +72,25 @@
+       }
+     });
+   };
++  // Diagnostic only: exact synchronous work in explicit promise reactions.
++  // Native async-await continuations may bypass Promise.prototype.then.
++  const originalThen = Promise.prototype.then;
++  Promise.prototype.then = function then(fulfilled, rejected) {
++    const scheduled = new Error('promise reaction scheduled').stack ?? '';
++    const observe = fn => typeof fn !== 'function' ? fn : function reaction(...args) {
++      const start = now();
++      try { return Reflect.apply(fn, this, args); }
++      finally {
++        const ms = now() - start;
++        if (ms >= minMs && calls.length < cap) calls.push([round(start), round(ms), 'Promise.reaction', scheduled]);
++      }
++    };
++    return Reflect.apply(originalThen, this, [observe(fulfilled), observe(rejected)]);
++  };
++  for (const Type of [Float32Array, Float64Array, Uint8Array, Uint16Array, Uint32Array]) {
++    measure(Type.prototype, 'set', `${Type.name}.set`);
++  }
++  W.__frameFloorTaskOperation = (start, ms, label) => { if (ms >= minMs && calls.length < cap) calls.push([round(start), round(ms), label, label]); };
+   measure(JSON, 'parse', 'JSON.parse');
+   measure(TextDecoder.prototype, 'decode', 'TextDecoder.decode');
+   // Keep the exact query span and its caller, not just the adjacent frame's
+--- a/scripts/frame-floor.mjs
++++ b/tmp/sp-x1-road7/frame-floor.mjs
+@@ -16,20 +16,20 @@
+ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+ import { join, resolve as resolvePath } from 'node:path';
+ import { setTimeout as sleep } from 'node:timers/promises';
+-import { saveFixtureCode } from './debug-settings.mjs';
+-import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
+-import { validateFrameFloorArgs } from './frame-floor-args.mjs';
+-import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
+-import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
+-import { GL_INIT } from './parity/glbytes.mjs';
+-import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
+-import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
+-import { startScriptProfile } from './frame-floor-script-profile.mjs';
+-import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
+-import { gpuBisect, settleTrace } from './frame-floor-gpu-bisect.mjs';
+-import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from './public-grid.mjs';
+-
+-const ROOT = resolvePath(import.meta.dirname, '..');
++import { saveFixtureCode } from '../../scripts/debug-settings.mjs';
++import { frameFloorSettingsCode } from '../../scripts/frame-floor-settings.mjs';
++import { validateFrameFloorArgs } from '../../scripts/frame-floor-args.mjs';
++import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from '../../scripts/frame-floor-navigation.mjs';
++import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from '../../scripts/frame-floor-grid.mjs';
++import { GL_INIT } from '../../scripts/parity/glbytes.mjs';
++import { PROGRAM_NAMES_SCRIPT } from '../../scripts/frame-floor-programs.mjs';
++import { TASK_CLOCK_SCRIPT } from './task-clock.mjs';
++import { startScriptProfile } from '../../scripts/frame-floor-script-profile.mjs';
++import { startWebKitTimeline, timelineLongFrames } from '../../scripts/frame-floor-webkit-timeline.mjs';
++import { gpuBisect, settleTrace } from '../../scripts/frame-floor-gpu-bisect.mjs';
++import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from '../../scripts/public-grid.mjs';
++
++const ROOT = resolvePath(import.meta.dirname, '../..');
+ const SCRIPT = import.meta.filename;
+ const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'blender-template', 'pastel-plain', 'ink-cel-valley', 'grid'];
+ const args = process.argv.slice(2);
+@@ -222,7 +222,7 @@
+  *  (the whole drive, then whatever its cells still build after it: Pine's afterKit outlived the 120-frame travel row). */
+ function sample(n, timeline = false) {
+   const g = window.__wildshard.world.game, meter = g.app?.cpu;
+-  const whole = n === 0;
++  const whole = n === 0; const nativeStart = [performance.now(), Date.now()];
+   if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
+   meter.enabled = true;
+   return new Promise((resolve, reject) => {
+@@ -277,7 +277,7 @@
+       clearTimeout(timeout);
+       const pct = (v, p) => { const sorted = [...v].sort((a, b) => a - b); return sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)]; };
+       const round = (v) => Math.round(v * 1000) / 1000;
+-      resolve({ sampleRange: { startMs: round(firstTimestamp), endMs: round(last) }, frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
++      resolve({ nativeAnchors: [nativeStart, [performance.now(), Date.now()]], sampleRange: { startMs: round(firstTimestamp), endMs: round(last) }, frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
+         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
+         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
+         // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames

@@ -1,0 +1,41 @@
+{
+  "beforeSha": "ef7f29ccd7de1ea6cae366c7378ea149b62b5578",
+  "afterTree": "e449cb70836807ee0964ec5107fcf1e2368e34db",
+  "before": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5509,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20078,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 8408,
+    "sunscar-dunes": 392
+  },
+  "after": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 5521,
+    "far-reach": 528,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20067,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 8405,
+    "sunscar-dunes": 392
+  },
+  "net": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 12,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": -11,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": -3,
+    "sunscar-dunes": 0
+  },
+  "note": "Source-basis component inventories in build-mirror check2; both sides have their own complete all-ten products. AFTER includes official map stamps and images."
+}

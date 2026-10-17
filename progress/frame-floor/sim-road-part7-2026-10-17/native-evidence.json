@@ -1,0 +1,3944 @@
+{
+  "source": "f8e5ff1891e92ee74862cdad2db04ec2c0fc8a78",
+  "timingCredit": false,
+  "traceStart": "2026-10-17T13:21:01.421-05:00",
+  "traceStartEpochMs": 1792261261421.0,
+  "traceDurationSeconds": 166.009199,
+  "processes": [
+    {
+      "name": "com.apple.WebKit.WebContent",
+      "pid": "38024",
+      "path": "/Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent"
+    },
+    {
+      "name": "com.apple.WebKit.WebContent",
+      "pid": "37827",
+      "path": "/Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent"
+    },
+    {
+      "name": "com.apple.WebKit.WebContent",
+      "pid": "37769",
+      "path": "/Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent"
+    }
+  ],
+  "sampleCounts": {
+    "37769": 1395,
+    "37827": 92650,
+    "38024": 1191
+  },
+  "note": "Time Profiler running sample weights at 1kHz. Nested categories must not be added. Promise instrumentation is diagnostic. Recorder/export report overlapping Simulator dylib mappings; unknown frames are not assigned authored identities.",
+  "routes": [
+    {
+      "route": "grid-nalati-grasslands-road-entry-travel",
+      "anchors": [
+        [
+          45071,
+          1792261326535
+        ],
+        [
+          69505,
+          1792261350969
+        ]
+      ],
+      "anchorDriftMs": 0,
+      "frames": [
+        {
+          "pageStartMs": 46458,
+          "intervalMs": 37,
+          "traceStartMs": 66501.0,
+          "traceEndMs": 66538.0,
+          "samples": {
+            "mainSampleMs": 18.0,
+            "microtaskSampleMs": 14.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::mapProtoFuncGet(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              1.0
+            ],
+            [
+              "0x1171327a5",
+              1.0
+            ],
+            [
+              "0x19202e761",
+              1.0
+            ],
+            [
+              "0x118085311",
+              1.0
+            ],
+            [
+              "0x115f0407d",
+              1.0
+            ],
+            [
+              "0x115f04175",
+              1.0
+            ],
+            [
+              "0x1180839f5",
+              1.0
+            ],
+            [
+              "0x115f04559",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "JSC::mapProtoFuncGet(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x117647cbf",
+                "0x117199903",
+                "0x115edfac7",
+                "0x1162fe06b",
+                "0x1172bb84f",
+                "0x117d3becb",
+                "0x11659518b",
+                "0x11761fd5b"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1171327a5",
+                "0x117156c93",
+                "0x11581270b",
+                "0x1171a8cb7",
+                "0x117eba42f",
+                "0x11628b187",
+                "0x117b18ffb",
+                "0x1168b2b5b",
+                "0x1172aa4d7",
+                "0x117f91d4b"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 46793,
+          "intervalMs": 36,
+          "traceStartMs": 66836.0,
+          "traceEndMs": 66872.0,
+          "samples": {
+            "mainSampleMs": 13.0,
+            "microtaskSampleMs": 5.0
+          },
+          "leafSampleMs": [
+            [
+              "0x11752f841",
+              1.0
+            ],
+            [
+              "0x1154c00cd",
+              1.0
+            ],
+            [
+              "JSC::JSObject::getOwnPropertySlotByIndex(JSC::JSObject*, JSC::JSGlobalObject*, unsigned int, JSC::PropertySlot&)",
+              1.0
+            ],
+            [
+              "operationPutByValDirectBeyondArrayBoundsStrict",
+              1.0
+            ],
+            [
+              "JSC::FastStringifier<unsigned char, (JSC::BufferMode)1>::append(JSC::JSValue)",
+              1.0
+            ],
+            [
+              "std::__1::span<char16_t, 18446744073709551615ul> WTF::StringBuilder::extendBufferForAppending<char16_t>(unsigned int)",
+              1.0
+            ],
+            [
+              "WTF::fastMalloc(unsigned long)",
+              1.0
+            ],
+            [
+              "clock_gettime",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11752f841",
+                "0x117e999e3",
+                "0x1170d149f",
+                "0x117224e43",
+                "0x117e9010b",
+                "0x116c25737",
+                "0x116553633",
+                "0x117b08c6f",
+                "0x117d3bc8f",
+                "0x11659518b"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1154c00cd",
+                "0x117ec18e3",
+                "0x1154c0807",
+                "0x11791ca13",
+                "0x1154c0807",
+                "0x11796d0b3",
+                "0x11659518b",
+                "0x116615a57",
+                "0x1158848bf",
+                "llint_call_javascript"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 46829,
+          "intervalMs": 50,
+          "traceStartMs": 66872.0,
+          "traceEndMs": 66922.0,
+          "samples": {
+            "mainSampleMs": 48.0,
+            "microtaskSampleMs": 44.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "0x115f0417d",
+              3.0
+            ],
+            [
+              "0x115f043a1",
+              3.0
+            ],
+            [
+              "0x115f04175",
+              3.0
+            ],
+            [
+              "JSC::JSObject::tryGetIndexQuickly(unsigned int, JSC::ArrayProfile*) const",
+              2.0
+            ],
+            [
+              "operationPutByValStrictGaveUp",
+              1.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              1.0
+            ],
+            [
+              "0x19201f025",
+              1.0
+            ],
+            [
+              "WTF::StringImpl::hashSlowCase() const",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "operationPutByValStrictGaveUp",
+                "0x11543c0cb",
+                "0x117e5f797",
+                "0x117d9f823",
+                "0x117e999e3",
+                "0x1170d149f",
+                "0x117224e43",
+                "0x117e9010b",
+                "0x116c25737",
+                "0x116553633"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "operationGetByIdGaveUp",
+                "0x115405797",
+                "0x1162b198f",
+                "0x117c67fab",
+                "0x117b5ec4f",
+                "0x117b7f9a3",
+                "0x115d9711b",
+                "0x117cac2df",
+                "0x1171400e7",
+                "0x117ebb4a7"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 46879,
+          "intervalMs": 36,
+          "traceStartMs": 66922.0,
+          "traceEndMs": 66958.0,
+          "samples": {
+            "mainSampleMs": 34.0,
+            "microtaskSampleMs": 24.0,
+            "gcSampleMs": 3.0
+          },
+          "leafSampleMs": [
+            [
+              "0x11577b551",
+              2.0
+            ],
+            [
+              "pas_thread_local_cache_flush_deallocation_log",
+              2.0
+            ],
+            [
+              "0x1170c7841",
+              1.0
+            ],
+            [
+              "JSC::Wasm::WasmCallingConvention::marshallLocation(JSC::Wasm::CallRole, JSC::Wasm::Type, unsigned long&, unsigned long&, unsigned long&) const",
+              1.0
+            ],
+            [
+              "0x11766a6a5",
+              1.0
+            ],
+            [
+              "0x115404041",
+              1.0
+            ],
+            [
+              "0x115418061",
+              1.0
+            ],
+            [
+              "JSC::BaselineJITPlan::BaselineJITPlan(JSC::CodeBlock*)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1170c7841",
+                "0x117eacbcb",
+                "0x116c50fb7",
+                "0x1172bb7b3",
+                "0x117d3becb",
+                "0x11659518b",
+                "0x11761fd5b",
+                "0x1154c0807",
+                "0x117ec18e3",
+                "0x1154c0807"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "JSC::Wasm::WasmCallingConvention::marshallLocation(JSC::Wasm::CallRole, JSC::Wasm::Type, unsigned long&, unsigned long&, unsigned long&) const",
+                "JSC::Wasm::WasmCallingConvention::callInformationFor(JSC::Wasm::FunctionSignature const&, JSC::Wasm::CallRole) const",
+                "operationJSToWasmEntryWrapperBuildFrame",
+                "0x115490f5f",
+                "0x115c4484f",
+                "0x117e26c6b",
+                "0x117b2d027",
+                "0x117d3becb",
+                "0x11659518b",
+                "0x11761fd5b"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 47079,
+          "intervalMs": 47,
+          "traceStartMs": 67122.0,
+          "traceEndMs": 67169.0,
+          "samples": {
+            "mainSampleMs": 44.0,
+            "microtaskSampleMs": 39.0
+          },
+          "leafSampleMs": [
+            [
+              "<deduplicated_symbol>",
+              3.0
+            ],
+            [
+              "bmalloc_heap_config_specialized_local_allocator_try_allocate_small_segregated_slow",
+              2.0
+            ],
+            [
+              "JSC::JSObject::attemptToInterceptPutByIndexOnHoleForPrototype(JSC::JSGlobalObject*, JSC::JSValue, unsigned int, JSC::JSValue, bool, bool&)",
+              2.0
+            ],
+            [
+              "_platform_memmove",
+              1.0
+            ],
+            [
+              "0x117238269",
+              1.0
+            ],
+            [
+              "0x11691a7b1",
+              1.0
+            ],
+            [
+              "0x117dbf201",
+              1.0
+            ],
+            [
+              "JSC::JSObject::constructConvertedArrayStorageWithoutCopyingElements(JSC::VM&, unsigned int)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "<deduplicated_symbol>",
+                "OTL::Lookup const* TBaseFont::NthLookup<OTL::GSUB>(OTL::GSUB const&, unsigned int) const",
+                "OTL::GSUB::ApplyLookups(TRunGlue&, int, OTL::GlyphLookups&, SyncState&, void (*)(void*, CFRange, long), void*) const",
+                "TOpenTypeMorph::ShapeGlyphs(SyncState&)",
+                "TShapingEngine::ShapeGlyphs(TRunGlue&, ShapingType, __CFString const*, std::__1::optional<ScriptAndLangSys>*, TCharStream const*)",
+                "CTFontShapeGlyphs",
+                "0x191b7bea7",
+                "0x191ad33d7",
+                "0x191ad663f",
+                "0x191a3d7db"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "_platform_memmove",
+                "JSC::Wasm::WasmCallingConvention::callInformationFor(JSC::Wasm::FunctionSignature const&, JSC::Wasm::CallRole) const",
+                "operationJSToWasmEntryWrapperBuildFrame",
+                "0x115490f5f",
+                "0x117b145ab",
+                "0x117b2d48b",
+                "0x117d3becb",
+                "0x11659518b",
+                "0x11761fd5b",
+                "0x1154c0807"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 47309,
+          "intervalMs": 37,
+          "traceStartMs": 67352.0,
+          "traceEndMs": 67389.0,
+          "samples": {
+            "mainSampleMs": 23.0,
+            "microtaskSampleMs": 13.0
+          },
+          "leafSampleMs": [
+            [
+              "kevent_id",
+              2.0
+            ],
+            [
+              "mach_msg2_trap",
+              2.0
+            ],
+            [
+              "0x190a2cf95",
+              1.0
+            ],
+            [
+              "operationGetByValGeneric",
+              1.0
+            ],
+            [
+              "0x18f4148d9",
+              1.0
+            ],
+            [
+              "0x1168f9981",
+              1.0
+            ],
+            [
+              "0x117dbf215",
+              1.0
+            ],
+            [
+              "__psynch_cvsignal",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x190a2cf95",
+                "JSC::typedArrayViewProtoGetterFuncBuffer(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x11541c0af",
+                "0x117aeb0db",
+                "0x116fb5083",
+                "0x1170e327f",
+                "0x117c46da7",
+                "0x117259b3b",
+                "0x115a3acff"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "operationGetByValGeneric",
+                "0x116e7df7b",
+                "0x1162b23cb",
+                "0x117c67fab",
+                "0x11543015b",
+                "0x1162a05cf",
+                "0x117b7f9a3",
+                "0x115d9711b",
+                "0x117cac2df",
+                "0x1171400e7"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 47745,
+          "intervalMs": 56,
+          "traceStartMs": 67788.0,
+          "traceEndMs": 67844.0,
+          "samples": {
+            "mainSampleMs": 55.0,
+            "microtaskSampleMs": 50.0
+          },
+          "leafSampleMs": [
+            [
+              "0x1180e8879",
+              7.0
+            ],
+            [
+              "_platform_memmove",
+              4.0
+            ],
+            [
+              "0x1180e8889",
+              4.0
+            ],
+            [
+              "0x1181a9fa5",
+              3.0
+            ],
+            [
+              "0x1180e8869",
+              2.0
+            ],
+            [
+              "0x1180e889d",
+              2.0
+            ],
+            [
+              "0x1180e8891",
+              2.0
+            ],
+            [
+              "__bzero",
+              2.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 7.0,
+              "leafFrames": [
+                "0x1180e8879",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17",
+                "0x1909eed5f",
+                "0x1909c627f",
+                "0x1909e76cf"
+              ]
+            },
+            {
+              "sampleMs": 4.0,
+              "leafFrames": [
+                "0x1180e8889",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17",
+                "0x1909eed5f",
+                "0x1909c627f",
+                "0x1909e76cf"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "BufferGeometry.computeBoundingSphere",
+              "pageStartMs": 47779,
+              "ms": 6
+            },
+            {
+              "operation": "BufferGeometry.toNonIndexed",
+              "pageStartMs": 47788,
+              "ms": 13
+            }
+          ]
+        },
+        {
+          "pageStartMs": 48062,
+          "intervalMs": 54,
+          "traceStartMs": 68105.0,
+          "traceEndMs": 68159.0,
+          "samples": {
+            "mainSampleMs": 44.0,
+            "microtaskSampleMs": 16.0,
+            "gcSampleMs": 6.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              5.0
+            ],
+            [
+              "__bzero",
+              3.0
+            ],
+            [
+              "JSC::JSObject::getIndexQuicklyForTypedArray(unsigned int, JSC::ArrayProfile*) const",
+              2.0
+            ],
+            [
+              "0x181c37bad",
+              2.0
+            ],
+            [
+              "0x117958a4d",
+              1.0
+            ],
+            [
+              "0x115b1c549",
+              1.0
+            ],
+            [
+              "0x1181d9fe1",
+              1.0
+            ],
+            [
+              "JSC::SlotVisitor::appendSlow(JSC::JSCell*, WTF::Dependency)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "_platform_memmove",
+                "0x181c3247b",
+                "0x181c2a433",
+                "0x181c267e7",
+                "0x181c3758f",
+                "0x181c2e787",
+                "0x181c2e5bf",
+                "0x181af1df7",
+                "0x181af2293",
+                "0x181af20d3"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "__bzero",
+                "0x181af20bb",
+                "IIOReadPlugin::callDecodeImage(IIODecodeParameter*, IIOImageType, __IOSurface**, __CVBuffer**, CGImageBlockSet**)",
+                "IIO_Reader::CopyImageBlockSetProc(void*, CGImageProvider*, CGRect, CGSize, __CFDictionary const*)",
+                "IIOImageProviderInfo::copyImageBlockSetWithOptions(CGImageProvider*, CGRect, CGSize, __CFDictionary const*)",
+                "IIOImageProviderInfo::CopyImageBlockSetWithOptions(void*, CGImageProvider*, CGRect, CGSize, __CFDictionary const*)",
+                "imageProvider_retain_data",
+                "CGDataProviderRetainData",
+                "CGAccessSessionCreate",
+                "CGDataProviderCopyData"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 48174,
+          "intervalMs": 38,
+          "traceStartMs": 68217.0,
+          "traceEndMs": 68255.0,
+          "samples": {
+            "mainSampleMs": 12.0,
+            "microtaskSampleMs": 8.0
+          },
+          "leafSampleMs": [
+            [
+              "0x1154181e1",
+              1.0
+            ],
+            [
+              "0x115b17701",
+              1.0
+            ],
+            [
+              "0x191a9c325",
+              1.0
+            ],
+            [
+              "JSC::ASTBuilder::Statement JSC::Parser<JSC::Lexer<char16_t>>::parseStatement<JSC::ASTBuilder>(JSC::ASTBuilder&, JSC::Identifier const*&, unsigned int*)",
+              1.0
+            ],
+            [
+              "0x116d2e9c1",
+              1.0
+            ],
+            [
+              "0x115b1c595",
+              1.0
+            ],
+            [
+              "0x116d2e36d",
+              1.0
+            ],
+            [
+              "0x116d2eb4d",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1154181e1",
+                "0x117ee04df",
+                "0x117ee5f7f",
+                "0x118183e0f",
+                "0x117a61987",
+                "0x1181a6e4b",
+                "0x117ec18e3",
+                "0x1181a6e4b",
+                "0x11796d1b3",
+                "0x118183e0f"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x115b17701",
+                "0x117c67fab",
+                "0x11543015b",
+                "0x1162a05cf",
+                "0x117b7f9a3",
+                "0x115d9711b",
+                "0x117cac2df",
+                "0x1171400e7",
+                "0x117ebb4a7",
+                "0x11810f1f3"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 48679,
+          "intervalMs": 57,
+          "traceStartMs": 68722.0,
+          "traceEndMs": 68779.0,
+          "samples": {
+            "mainSampleMs": 45.0,
+            "microtaskSampleMs": 40.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+              6.0
+            ],
+            [
+              "JSC::JSObject::hasProperty(JSC::JSGlobalObject*, JSC::PropertyName) const",
+              6.0
+            ],
+            [
+              "_platform_memmove",
+              3.0
+            ],
+            [
+              "fast_float::from_chars_result_t<char> fast_float::from_chars_advanced<double, char>(char const*, char const*, double&, fast_float::parse_options_t<char>)",
+              2.0
+            ],
+            [
+              "operationGetByValObjectString",
+              2.0
+            ],
+            [
+              "0x1176faffd",
+              1.0
+            ],
+            [
+              "pas_thread_local_cache_flush_deallocation_log",
+              1.0
+            ],
+            [
+              "JSC::JSObject::convertFromCopyOnWrite(JSC::VM&)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 6.0,
+              "leafFrames": [
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::jsonProtoFuncParse(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x1154c0807",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913"
+              ]
+            },
+            {
+              "sampleMs": 5.0,
+              "leafFrames": [
+                "JSC::JSObject::hasProperty(JSC::JSGlobalObject*, JSC::PropertyName) const",
+                "JSC::CommonSlowPaths::opInByVal(JSC::JSGlobalObject*, JSC::JSValue, JSC::JSValue, JSC::ArrayProfile*)",
+                "operationEnumeratorInByVal",
+                "0x11822a387",
+                "0x1176d073f",
+                "0x118197def",
+                "0x11748c317",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "JSON.parse",
+              "pageStartMs": 48699,
+              "ms": 9
+            }
+          ]
+        },
+        {
+          "pageStartMs": 48736,
+          "intervalMs": 38,
+          "traceStartMs": 68779.0,
+          "traceEndMs": 68817.0,
+          "samples": {
+            "mainSampleMs": 34.0,
+            "microtaskSampleMs": 19.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::JITWorklist::removeAllReadyPlansForVM(JSC::VM&, WTF::Vector<WTF::RefPtr<JSC::JITPlan, WTF::RawPtrTraits<JSC::JITPlan>, WTF::DefaultRefDerefTraits<JSC::JITPlan>>, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&, JSC::JITCompilationKey)",
+              2.0
+            ],
+            [
+              "__bzero",
+              2.0
+            ],
+            [
+              "0x11583c3ed",
+              2.0
+            ],
+            [
+              "0x1cc2cae08",
+              2.0
+            ],
+            [
+              "0x116d74ac9",
+              1.0
+            ],
+            [
+              "0x11717def9",
+              1.0
+            ],
+            [
+              "0x117749849",
+              1.0
+            ],
+            [
+              "0x1176cefc9",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "__bzero",
+                "_xzm_segment_group_clear_chunk",
+                "xzm_segment_group_alloc_chunk",
+                "_xzm_malloc_large_huge",
+                "0x1803cbe2f",
+                "0x1803cbca7",
+                "CGCFDataIncreaseLength",
+                "CGDataProviderCopyData",
+                "0x18f58452b",
+                "WebKit::RemoteResourceCacheProxy::recordNativeImageUse(WebCore::NativeImage&, WebCore::DestinationColorSpace const&)"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x1cc2cae08",
+                "0x117b0eacf",
+                "0x117b0eacf",
+                "0x118243173",
+                "0x117156f27",
+                "0x118232f17",
+                "0x118240777",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 48995,
+          "intervalMs": 46,
+          "traceStartMs": 69038.0,
+          "traceEndMs": 69084.0,
+          "samples": {
+            "mainSampleMs": 44.0,
+            "microtaskSampleMs": 39.0,
+            "gcSampleMs": 29.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              3.0
+            ],
+            [
+              "JSC::CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(JSC::ConcurrentJSLocker const&, unsigned int&, unsigned int&)",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+              2.0
+            ],
+            [
+              "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+              2.0
+            ],
+            [
+              "hypot",
+              1.0
+            ],
+            [
+              "JSC::InlineCacheCompiler::compileOneAccessCaseHandler(WTF::Vector<JSC::AccessCase*, 16ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc> const&, JSC::CodeBlock*, JSC::AccessCase&, WTF::Vector<JSC::WatchpointSet*, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&&)",
+              1.0
+            ],
+            [
+              "0x117a53b51",
+              1.0
+            ],
+            [
+              "0x1917e88bd",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(JSC::ConcurrentJSLocker const&, unsigned int&, unsigned int&)",
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()",
+                "JSC::Heap::collectIfNecessaryOrDefer(JSC::GCDeferralContext*)"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()",
+                "JSC::Heap::collectIfNecessaryOrDefer(JSC::GCDeferralContext*)"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Rapier.convexHull",
+              "pageStartMs": 49006,
+              "ms": 29
+            }
+          ]
+        },
+        {
+          "pageStartMs": 49062,
+          "intervalMs": 51,
+          "traceStartMs": 69105.0,
+          "traceEndMs": 69156.0,
+          "samples": {
+            "mainSampleMs": 48.0,
+            "microtaskSampleMs": 42.0,
+            "gcSampleMs": 29.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              5.0
+            ],
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::MarkedBlock::aboutToMarkSlow(unsigned int, JSC::HeapCell*)",
+              2.0
+            ],
+            [
+              "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "0x117dbf331",
+              2.0
+            ],
+            [
+              "0x117dbf1ed",
+              2.0
+            ],
+            [
+              "0x117ede34d",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 4.0,
+              "leafFrames": [
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)",
+                "JSC::SlotVisitor::drainFromShared(JSC::SlotVisitor::SharedDrainMode, WTF::MonotonicTime)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()",
+                "JSC::Heap::collectIfNecessaryOrDefer(JSC::GCDeferralContext*)"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+                "_ZZN3JSC8Subspace27forEachMarkedCellInParallelIRNS_11SlotVisitorEZZNS_4Heap18addCoreConstraintsEvENK4$_11clIS2_EEDaRT_EUlS9_PNS_8HeapCellENSA_4KindEE_EEN3WTF3RefINSE_10SharedTaskIFvS9_EEENSE_12RawPtrTraitsISI_EENSE_21DefaultRefDerefTraitsISI_EEEERKT0_EN4Task3runES3_",
+                "JSC::MarkingConstraintSolver::runExecutionThread(JSC::SlotVisitor&, JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::Heap::runTaskInParallel(WTF::RefPtr<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>>)",
+                "JSC::MarkingConstraintSolver::execute(JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::MarkingConstraintSet::executeConvergenceImpl(JSC::SlotVisitor&)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Rapier.convexHull",
+              "pageStartMs": 49080,
+              "ms": 24
+            }
+          ]
+        },
+        {
+          "pageStartMs": 49202,
+          "intervalMs": 44,
+          "traceStartMs": 69245.0,
+          "traceEndMs": 69289.0,
+          "samples": {
+            "mainSampleMs": 21.0,
+            "microtaskSampleMs": 10.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              2.0
+            ],
+            [
+              "0x11581d09d",
+              2.0
+            ],
+            [
+              "0x11762f401",
+              1.0
+            ],
+            [
+              "aj_mosquito_spray",
+              1.0
+            ],
+            [
+              "aj_prog_decode_AC_first",
+              1.0
+            ],
+            [
+              "0x191ad5bc9",
+              1.0
+            ],
+            [
+              "JSC::Structure::findStructuresAndMapForMaterialization(WTF::Vector<JSC::Structure*, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&, JSC::Structure*&, JSC::PropertyTable*&)",
+              1.0
+            ],
+            [
+              "0x1168f87f5",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x11581d09d",
+                "0x118273633",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17",
+                "0x1909eed5f",
+                "0x1909c627f"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11762f401",
+                "0x115490fc3",
+                "0x117afcd83",
+                "0x1167aa89f",
+                "0x1170d1faf",
+                "0x11744099f",
+                "0x117e9010b",
+                "0x116c25737",
+                "0x116553633",
+                "0x117b08c6f"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "System.game.grid.session",
+              "pageStartMs": 49203,
+              "ms": 4
+            },
+            {
+              "operation": "Game.runPhase:fixed.post",
+              "pageStartMs": 49203,
+              "ms": 4
+            },
+            {
+              "operation": "Game.runFixed",
+              "pageStartMs": 49203,
+              "ms": 4
+            },
+            {
+              "operation": "Renderer.initTexture",
+              "pageStartMs": 49212,
+              "ms": 7
+            }
+          ]
+        },
+        {
+          "pageStartMs": 49305,
+          "intervalMs": 41,
+          "traceStartMs": 69348.0,
+          "traceEndMs": 69389.0,
+          "samples": {
+            "mainSampleMs": 15.0,
+            "microtaskSampleMs": 9.0
+          },
+          "leafSampleMs": [
+            [
+              "0x1162f9981",
+              1.0
+            ],
+            [
+              "0x117ba4d01",
+              1.0
+            ],
+            [
+              "0x191b8ab35",
+              1.0
+            ],
+            [
+              "0x11827358d",
+              1.0
+            ],
+            [
+              "0x11581cffd",
+              1.0
+            ],
+            [
+              "0x1181938a1",
+              1.0
+            ],
+            [
+              "0x11810c5e9",
+              1.0
+            ],
+            [
+              "bmalloc_medium_bitfit_page_config_specialized_allocator_try_allocate",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1162f9981",
+                "0x115aab443",
+                "0x117958b33",
+                "0x11796d63b",
+                "0x118183e0f",
+                "0x116615a57",
+                "0x1158848bf",
+                "llint_call_javascript",
+                "JSC::Interpreter::executeCall(JSC::JSObject*, JSC::CallData const&, JSC::JSValue, JSC::JSCell*, JSC::ArgList const&)",
+                "JSC::profiledCall(JSC::JSGlobalObject*, JSC::ProfilingReason, JSC::JSValue, JSC::CallData const&, JSC::JSValue, JSC::ArgList const&, WTF::NakedPtr<JSC::Exception>&)"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x117ba4d01",
+                "0x117ee43b3",
+                "0x117ee4613",
+                "0x11812d12b",
+                "0x1172aa4d7",
+                "0x1154c0807",
+                "0x1174378e7",
+                "0x117964233",
+                "0x1177de233",
+                "0x11790bc0b"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 49346,
+          "intervalMs": 51,
+          "traceStartMs": 69389.0,
+          "traceEndMs": 69440.0,
+          "samples": {
+            "mainSampleMs": 45.0,
+            "microtaskSampleMs": 40.0,
+            "gcSampleMs": 31.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+              3.0
+            ],
+            [
+              "JSC::SlotVisitor::markAuxiliary(void const*)",
+              3.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              3.0
+            ],
+            [
+              "void JSC::CodeBlock::determineLiveness<JSC::SlotVisitor>(JSC::ConcurrentJSLocker const&, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::JSObject::getOwnPropertySlotByIndex(JSC::JSObject*, JSC::JSGlobalObject*, unsigned int, JSC::PropertySlot&)",
+              1.0
+            ],
+            [
+              "0x11821e1f9",
+              1.0
+            ],
+            [
+              "0x1924e7ca5",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::SlotVisitor::markAuxiliary(void const*)",
+                "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()"
+              ]
+            },
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()",
+                "JSC::Heap::collectIfNecessaryOrDefer(JSC::GCDeferralContext*)",
+                "JSC::LocalAllocator::allocateSlowCase(JSC::Heap&, unsigned long, JSC::GCDeferralContext*, JSC::AllocationFailureMode)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 49489,
+          "intervalMs": 40,
+          "traceStartMs": 69532.0,
+          "traceEndMs": 69572.0,
+          "samples": {
+            "mainSampleMs": 12.0,
+            "microtaskSampleMs": 4.0
+          },
+          "leafSampleMs": [
+            [
+              "0x191802539",
+              1.0
+            ],
+            [
+              "0x116f7e575",
+              1.0
+            ],
+            [
+              "0x1909dec95",
+              1.0
+            ],
+            [
+              "0x1177e150d",
+              1.0
+            ],
+            [
+              "WTF::WeakHashSet<WebKit::RemoteLayerBackingStore, WTF::DefaultWeakPtrImpl>::add(WebKit::RemoteLayerBackingStore const*)",
+              1.0
+            ],
+            [
+              "0x115414141",
+              1.0
+            ],
+            [
+              "0x18f4148dd",
+              1.0
+            ],
+            [
+              "JSC::StackVisitor::StackVisitor(JSC::CallFrame*, JSC::VM&, bool)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x191802539",
+                "0x191ffe743",
+                "0x191ea213b",
+                "0x191e1df0f",
+                "0x191e16b9b",
+                "0x191e1cbef",
+                "0x191e17857",
+                "0x191e12e8f",
+                "0x1917b6d33",
+                "0x19194328b"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x116f7e575",
+                "0x1176dcc0f",
+                "0x116c5160b",
+                "0x1172bb7b3",
+                "0x117d3becb",
+                "0x118183e0f",
+                "0x11761fd5b",
+                "0x1154c0807",
+                "0x117ec18e3",
+                "0x1154c0807"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Renderer.initTexture",
+              "pageStartMs": 49497,
+              "ms": 4
+            }
+          ]
+        },
+        {
+          "pageStartMs": 49617,
+          "intervalMs": 49,
+          "traceStartMs": 69660.0,
+          "traceEndMs": 69709.0,
+          "samples": {
+            "mainSampleMs": 29.0,
+            "microtaskSampleMs": 8.0,
+            "gcSampleMs": 19.0
+          },
+          "leafSampleMs": [
+            [
+              "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              2.0
+            ],
+            [
+              "JSC::RecordedStatuses::finalize(JSC::VM&)",
+              2.0
+            ],
+            [
+              "JSC::InlineCacheHandler::visitWeak(JSC::VM&)",
+              2.0
+            ],
+            [
+              "0x1178efc79",
+              1.0
+            ],
+            [
+              "0x1170b1d8d",
+              1.0
+            ],
+            [
+              "0x191f2ab49",
+              1.0
+            ],
+            [
+              "JSC::Heap::stopThePeriphery(JSC::GCConductor)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+                "_ZZN3JSC8Subspace27forEachMarkedCellInParallelIRNS_11SlotVisitorEZZNS_4Heap18addCoreConstraintsEvENK4$_11clIS2_EEDaRT_EUlS9_PNS_8HeapCellENSA_4KindEE_EEN3WTF3RefINSE_10SharedTaskIFvS9_EEENSE_12RawPtrTraitsISI_EENSE_21DefaultRefDerefTraitsISI_EEEERKT0_EN4Task3runES3_",
+                "JSC::MarkingConstraintSolver::runExecutionThread(JSC::SlotVisitor&, JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::Heap::runTaskInParallel(WTF::RefPtr<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>>)",
+                "JSC::MarkingConstraintSolver::execute(JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::MarkingConstraintSet::executeConvergenceImpl(JSC::SlotVisitor&)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::AccessCase::visitWeak(JSC::VM&) const",
+                "JSC::InlineCacheHandler::visitWeak(JSC::VM&)",
+                "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Rapier.convexHull",
+              "pageStartMs": 49622,
+              "ms": 4
+            }
+          ]
+        },
+        {
+          "pageStartMs": 49695,
+          "intervalMs": 43,
+          "traceStartMs": 69738.0,
+          "traceEndMs": 69781.0,
+          "samples": {
+            "mainSampleMs": 39.0,
+            "microtaskSampleMs": 10.0,
+            "gcSampleMs": 26.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              4.0
+            ],
+            [
+              "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+              3.0
+            ],
+            [
+              "bool JSC::Structure::markIfCheap<JSC::SlotVisitor>(JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "syscall_thread_switch",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "0x1176319ed",
+              1.0
+            ],
+            [
+              "0x1179f36b1",
+              1.0
+            ],
+            [
+              "0x116fe0001",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 4.0,
+              "leafFrames": [
+                "JSC::AccessCase::visitWeak(JSC::VM&) const",
+                "JSC::InlineCacheHandler::visitWeak(JSC::VM&)",
+                "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::Structure* JSC::JSObject::visitButterflyImpl<JSC::SlotVisitor>(JSC::SlotVisitor&)::'lambda'(unsigned char)::operator()(unsigned char) const",
+                "JSC::JSObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)",
+                "JSC::SlotVisitor::drainFromShared(JSC::SlotVisitor::SharedDrainMode, WTF::MonotonicTime)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 49862,
+          "intervalMs": 111,
+          "traceStartMs": 69905.0,
+          "traceEndMs": 70016.0,
+          "samples": {
+            "mainSampleMs": 101.0,
+            "microtaskSampleMs": 91.0,
+            "gcSampleMs": 26.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+              4.0
+            ],
+            [
+              "JSC::JSObject::setIndexQuickly(JSC::VM&, unsigned int, JSC::JSValue)",
+              3.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              3.0
+            ],
+            [
+              "mach_msg2_trap",
+              3.0
+            ],
+            [
+              "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(JSC::ConcurrentJSLocker const&, unsigned int&, unsigned int&)",
+              2.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)",
+                "JSC::SlotVisitor::drainFromShared(JSC::SlotVisitor::SharedDrainMode, WTF::MonotonicTime)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()",
+                "JSC::Heap::collectIfNecessaryOrDefer(JSC::GCDeferralContext*)",
+                "JSC::LocalAllocator::allocateSlowCase(JSC::Heap&, unsigned long, JSC::GCDeferralContext*, JSC::AllocationFailureMode)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 50029,
+          "intervalMs": 39,
+          "traceStartMs": 70072.0,
+          "traceEndMs": 70111.0,
+          "samples": {
+            "mainSampleMs": 15.0,
+            "microtaskSampleMs": 7.0
+          },
+          "leafSampleMs": [
+            [
+              "mach_absolute_time",
+              2.0
+            ],
+            [
+              "0x11807107d",
+              1.0
+            ],
+            [
+              "operationGetByValGeneric",
+              1.0
+            ],
+            [
+              "0x1180a3b01",
+              1.0
+            ],
+            [
+              "JSC::DFG::DesiredIdentifiers::reallyAdd(JSC::VM&, JSC::DFG::CommonData*)",
+              1.0
+            ],
+            [
+              "pas_thread_local_cache_flush_deallocation_log",
+              1.0
+            ],
+            [
+              "JSC::HeapCellType::finishSweep(JSC::MarkedBlock::Handle&, JSC::FreeList*) const",
+              1.0
+            ],
+            [
+              "JSC::JSObject* JSC::constructGenericTypedArrayViewWithArguments<JSC::JSGenericTypedArrayView<JSC::Uint16Adaptor>>(JSC::JSGlobalObject*, JSC::Structure*, JSC::JSValue, unsigned long, std::__1::optional<unsigned long>)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "mach_absolute_time",
+                "JSC::IncrementalSweeper::doSweep(JSC::VM&, WTF::MonotonicTime, JSC::IncrementalSweeper::SweepTrigger)",
+                "JSC::JSRunLoopTimer::Manager::timerDidFireCallback()",
+                "WTF::RunLoop::TimerBase::start(WTF::Seconds, bool)::$_0::__invoke(__CFRunLoopTimer*, void*)",
+                "__CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__",
+                "__CFRunLoopDoTimer",
+                "__CFRunLoopDoTimers",
+                "__CFRunLoopRun",
+                "_CFRunLoopRunSpecificWithOptions",
+                "-[NSRunLoop(NSRunLoop) runMode:beforeDate:]"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11807107d",
+                "0x117588e17",
+                "0x115ea867b",
+                "0x11819df67",
+                "0x1156a6977",
+                "0x1170d24cf",
+                "0x11744099f",
+                "0x117e9010b",
+                "0x116c25737",
+                "0x116553633"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 50128,
+          "intervalMs": 50,
+          "traceStartMs": 70171.0,
+          "traceEndMs": 70221.0,
+          "samples": {
+            "mainSampleMs": 34.0,
+            "microtaskSampleMs": 27.0,
+            "gcSampleMs": 22.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              5.0
+            ],
+            [
+              "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+              2.0
+            ],
+            [
+              "JSC::FunctionExecutable::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+              2.0
+            ],
+            [
+              "0x1174edb05",
+              1.0
+            ],
+            [
+              "operationSpreadGeneric",
+              1.0
+            ],
+            [
+              "0x117844a71",
+              1.0
+            ],
+            [
+              "0x117b21339",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 4.0,
+              "leafFrames": [
+                "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::waitForCollection(unsigned long long)",
+                "JSC::Wasm::Memory::tryCreate(JSC::VM&, JSC::PageCount, JSC::PageCount, JSC::MemorySharingMode, std::__1::optional<JSC::MemoryMode>, WTF::Function<void (JSC::Wasm::Memory::GrowSuccess, JSC::PageCount, JSC::PageCount)>&&, JSC::JSCell*)"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::SlotVisitor::appendHiddenSlow(JSC::JSCell*, WTF::Dependency)",
+                "JSC::JSFinalObject::visitChildren(JSC::JSCell*, JSC::SlotVisitor&)",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)::$_0::operator()(JSC::MarkStackArray&) const",
+                "JSC::SlotVisitor::drain(WTF::MonotonicTime)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::waitForCollection(unsigned long long)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 50178,
+          "intervalMs": 39,
+          "traceStartMs": 70221.0,
+          "traceEndMs": 70260.0,
+          "samples": {
+            "mainSampleMs": 23.0,
+            "microtaskSampleMs": 15.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              3.0
+            ],
+            [
+              "0x11821e1f9",
+              1.0
+            ],
+            [
+              "0x117c00391",
+              1.0
+            ],
+            [
+              "0x1901cb5b5",
+              1.0
+            ],
+            [
+              "_pthread_qos_class_decode",
+              1.0
+            ],
+            [
+              "mach_absolute_time",
+              1.0
+            ],
+            [
+              "0x191651a31",
+              1.0
+            ],
+            [
+              "bool WTF::equalInternal<char16_t>(WTF::StringImpl const*, std::__1::span<char16_t const, 18446744073709551615ul>)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "_platform_memmove",
+                "void WTF::stringTypeAdapterAccumulator<unsigned char, WTF::StringTypeAdapter<WTF::String>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>>(std::__1::span<unsigned char, 18446744073709551615ul>, WTF::StringTypeAdapter<WTF::String>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>)",
+                "WTF::RefPtr<WTF::StringImpl, WTF::RawPtrTraits<WTF::StringImpl>, WTF::DefaultRefDerefTraits<WTF::StringImpl>> WTF::tryMakeStringImplFromAdaptersInternal<WTF::StringTypeAdapter<WTF::String>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<WTF::String>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>>(unsigned int, bool, WTF::StringTypeAdapter<WTF::String>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<WTF::String>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>, WTF::StringTypeAdapter<char>, WTF::StringTypeAdapter<unsigned int>)",
+                "JSC::StackFrame::toString(JSC::VM&) const",
+                "JSC::Interpreter::stackTraceAsString(JSC::VM&, WTF::Vector<JSC::StackFrame, 0ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc> const&)",
+                "JSC::ErrorInstance::computeErrorInfo(JSC::VM&)",
+                "JSC::ErrorInstance::materializeErrorInfoIfNeeded(JSC::VM&)",
+                "JSC::ErrorInstance::getOwnPropertySlot(JSC::JSObject*, JSC::JSGlobalObject*, JSC::PropertyName, JSC::PropertySlot&)",
+                "operationGetByIdOptimize",
+                "0x11543c10b"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11821e1f9",
+                "0x1181921c7",
+                "0x1171af4d3",
+                "0x1171afe7f",
+                "0x1171b007b",
+                "0x11712e5eb",
+                "0x11714cd83",
+                "0x118183e0f",
+                "0x117a61987",
+                "0x117b2df4b"
+              ]
+            }
+          ],
+          "exactCalls": []
+        }
+      ]
+    },
+    {
+      "route": "grid-pine-hollow-road-entry-travel",
+      "anchors": [
+        [
+          76159,
+          1792261357623
+        ],
+        [
+          108022,
+          1792261389487
+        ]
+      ],
+      "anchorDriftMs": 1,
+      "frames": [
+        {
+          "pageStartMs": 77495,
+          "intervalMs": 97,
+          "traceStartMs": 97538.0,
+          "traceEndMs": 97635.0,
+          "samples": {
+            "mainSampleMs": 66.0,
+            "microtaskSampleMs": 56.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::JITWorklist::removeAllReadyPlansForVM(JSC::VM&, WTF::Vector<WTF::RefPtr<JSC::JITPlan, WTF::RawPtrTraits<JSC::JITPlan>, WTF::DefaultRefDerefTraits<JSC::JITPlan>>, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&, JSC::JITCompilationKey)",
+              4.0
+            ],
+            [
+              "0x1187ad105",
+              2.0
+            ],
+            [
+              "WTF::StringImpl::hashSlowCase() const",
+              2.0
+            ],
+            [
+              "_platform_memmove",
+              2.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              2.0
+            ],
+            [
+              "JSC::JSObject::setIndexQuickly(JSC::VM&, unsigned int, JSC::JSValue)",
+              2.0
+            ],
+            [
+              "0x117a8c1d5",
+              1.0
+            ],
+            [
+              "pas_segregated_page_construct",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::JITWorklist::removeAllReadyPlansForVM(JSC::VM&, WTF::Vector<WTF::RefPtr<JSC::JITPlan, WTF::RawPtrTraits<JSC::JITPlan>, WTF::DefaultRefDerefTraits<JSC::JITPlan>>, 8ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&, JSC::JITCompilationKey)",
+                "JSC::JITWorklist::completeAllReadyPlansForVM(JSC::VM&, JSC::JITCompilationKey)",
+                "JSC::LLInt::jitCompileAndSetHeuristics(JSC::VM&, JSC::CodeBlock*)",
+                "llint_replace",
+                "llint_op_ret",
+                "0x118a0666f",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x1187ad105",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17",
+                "0x190eb48c3",
+                "0x190f9421f"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 77612,
+          "intervalMs": 137,
+          "traceStartMs": 97655.0,
+          "traceEndMs": 97792.0,
+          "samples": {
+            "mainSampleMs": 15.0,
+            "microtaskSampleMs": 9.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "0x116e768b1",
+              1.0
+            ],
+            [
+              "JSC::JSObject::attemptToInterceptPutByIndexOnHoleForPrototype(JSC::JSGlobalObject*, JSC::JSValue, unsigned int, JSC::JSValue, bool, bool&)",
+              1.0
+            ],
+            [
+              "0x118703edd",
+              1.0
+            ],
+            [
+              "0x19ab75059",
+              1.0
+            ],
+            [
+              "__bzero",
+              1.0
+            ],
+            [
+              "0x117f97c79",
+              1.0
+            ],
+            [
+              "0x117f97c41",
+              1.0
+            ],
+            [
+              "_platform_memmove",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x116e768b1",
+                "0x116f687a3",
+                "0x11877c27b",
+                "0x116f2889f",
+                "0x117d3becb",
+                "0x1155d2b73",
+                "0x11761fd5b",
+                "0x1154c0807",
+                "0x117ec18e3",
+                "0x1154c0807"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "JSC::JSObject::attemptToInterceptPutByIndexOnHoleForPrototype(JSC::JSGlobalObject*, JSC::JSValue, unsigned int, JSC::JSValue, bool, bool&)",
+                "operationArrayPushMultipleSlow",
+                "0x117bdca7f",
+                "0x117c246e3",
+                "0x117c5bb6f",
+                "0x116077827",
+                "0x1154c0807",
+                "0x11812d763",
+                "0x117fe8307",
+                "0x1154c0807"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 77770,
+          "intervalMs": 42,
+          "traceStartMs": 97813.0,
+          "traceEndMs": 97855.0,
+          "samples": {
+            "mainSampleMs": 11.0,
+            "microtaskSampleMs": 5.0
+          },
+          "leafSampleMs": [
+            [
+              "0x11707bf3d",
+              1.0
+            ],
+            [
+              "0x1170968b1",
+              1.0
+            ],
+            [
+              "operationGetByIdOptimize",
+              1.0
+            ],
+            [
+              "semaphore_signal_trap",
+              1.0
+            ],
+            [
+              "operationSpreadGeneric",
+              1.0
+            ],
+            [
+              "operationGetByValGeneric",
+              1.0
+            ],
+            [
+              "0x11831c685",
+              1.0
+            ],
+            [
+              "strncasecmp_l",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11707bf3d",
+                "0x11742bca7",
+                "0x116c4a50f",
+                "0x116c50927",
+                "0x1172bb7b3",
+                "0x117d3becb",
+                "0x1155d2b73",
+                "0x11761fd5b",
+                "0x1154c0807",
+                "0x117ec18e3"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1170968b1",
+                "0x1155d2b73",
+                "0x117a9a757",
+                "0x1158848bf",
+                "llint_call_javascript",
+                "JSC::Interpreter::executeCall(JSC::JSObject*, JSC::CallData const&, JSC::JSValue, JSC::JSCell*, JSC::ArgList const&)",
+                "JSC::profiledCall(JSC::JSGlobalObject*, JSC::ProfilingReason, JSC::JSValue, JSC::CallData const&, JSC::JSValue, JSC::ArgList const&, WTF::NakedPtr<JSC::Exception>&)",
+                "0x1909c6273",
+                "0x1909c5cab",
+                "0x18fdf7843"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Renderer.compile",
+              "pageStartMs": 77775,
+              "ms": 4
+            }
+          ]
+        },
+        {
+          "pageStartMs": 78012,
+          "intervalMs": 47,
+          "traceStartMs": 98055.0,
+          "traceEndMs": 98102.0,
+          "samples": {
+            "mainSampleMs": 25.0,
+            "microtaskSampleMs": 18.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              5.0
+            ],
+            [
+              "0x117786af9",
+              1.0
+            ],
+            [
+              "0x11787e701",
+              1.0
+            ],
+            [
+              "0x11554ed01",
+              1.0
+            ],
+            [
+              "WTF::canCurrentThreadAccessThreadLocalData(WTF::Thread&)",
+              1.0
+            ],
+            [
+              "__mmap",
+              1.0
+            ],
+            [
+              "0x1904762c5",
+              1.0
+            ],
+            [
+              "WTF::VectorTypeOperations<JSC::Stringifier::Holder>::destruct(JSC::Stringifier::Holder*, JSC::Stringifier::Holder*)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x117786af9",
+                "0x1187a0c13",
+                "0x117b2d027",
+                "0x117d3becb",
+                "0x1155d2b73",
+                "0x11761fd5b",
+                "0x1154c0807",
+                "0x117ec18e3",
+                "0x1154c0807",
+                "0x117e88033"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11787e701",
+                "0x11795e24f",
+                "0x117a8b903",
+                "0x1154c0807",
+                "0x1183182a7",
+                "0x1155d2b73",
+                "0x117a9a757",
+                "0x1158848bf",
+                "llint_call_javascript",
+                "JSC::Interpreter::executeCall(JSC::JSObject*, JSC::CallData const&, JSC::JSValue, JSC::JSCell*, JSC::ArgList const&)"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 78045,
+              "ms": 9
+            }
+          ]
+        },
+        {
+          "pageStartMs": 79745,
+          "intervalMs": 88,
+          "traceStartMs": 99788.0,
+          "traceEndMs": 99876.0,
+          "samples": {
+            "mainSampleMs": 72.0,
+            "microtaskSampleMs": 65.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+              10.0
+            ],
+            [
+              "fast_float::from_chars_result_t<char> fast_float::from_chars_advanced<double, char>(char const*, char const*, double&, fast_float::parse_options_t<char>)",
+              8.0
+            ],
+            [
+              "_platform_memmove",
+              3.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              2.0
+            ],
+            [
+              "0x118802fd1",
+              2.0
+            ],
+            [
+              "0x118802c4d",
+              2.0
+            ],
+            [
+              "0x1164b508d",
+              2.0
+            ],
+            [
+              "0x117dfaa0d",
+              2.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 5.0,
+              "leafFrames": [
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::jsonProtoFuncParse(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x1154c0807",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript"
+              ]
+            },
+            {
+              "sampleMs": 5.0,
+              "leafFrames": [
+                "fast_float::from_chars_result_t<char> fast_float::from_chars_advanced<double, char>(char const*, char const*, double&, fast_float::parse_options_t<char>)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::jsonProtoFuncParse(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x1154c0807",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "JSON.parse",
+              "pageStartMs": 79773,
+              "ms": 20
+            }
+          ]
+        },
+        {
+          "pageStartMs": 79895,
+          "intervalMs": 50,
+          "traceStartMs": 99938.0,
+          "traceEndMs": 99988.0,
+          "samples": {
+            "mainSampleMs": 49.0,
+            "microtaskSampleMs": 42.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              5.0
+            ],
+            [
+              "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+              5.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              3.0
+            ],
+            [
+              "JSC::JSObject::tryGetIndexQuickly(unsigned int, JSC::ArrayProfile*) const",
+              2.0
+            ],
+            [
+              "0x1157cc281",
+              1.0
+            ],
+            [
+              "0x1187f5671",
+              1.0
+            ],
+            [
+              "operationMapSet",
+              1.0
+            ],
+            [
+              "kevent_id",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "_platform_memmove",
+                "JSC::JSGenericTypedArrayView<JSC::Uint8Adaptor>::setFromTypedArray(JSC::JSGlobalObject*, unsigned long, JSC::JSArrayBufferView*, unsigned long, unsigned long, JSC::CopyType)::'lambda'(JSC::JSArrayBufferView*)::operator()(JSC::JSArrayBufferView*) const",
+                "JSC::JSGenericTypedArrayView<JSC::Uint8Adaptor>::setFromTypedArray(JSC::JSGlobalObject*, unsigned long, JSC::JSArrayBufferView*, unsigned long, unsigned long, JSC::CopyType)",
+                "JSC::typedArrayViewProtoFuncSet(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x1154c0807",
+                "0x117b0e93f",
+                "0x118971237",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+                "JSC::LocalAllocator::tryAllocateIn(JSC::MarkedBlock::Handle*, unsigned long)",
+                "JSC::LocalAllocator::allocateSlowCase(JSC::Heap&, unsigned long, JSC::GCDeferralContext*, JSC::AllocationFailureMode)",
+                "void* JSC::tryAllocateCell<JSC::JSCellButterfly>(JSC::VM&, unsigned long)",
+                "JSC::constructSet(JSC::JSGlobalObject*, JSC::CallFrame*)::$_0::operator()(JSC::VM&, JSC::JSGlobalObject*, JSC::JSValue) const",
+                "JSC::constructSet(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541048f",
+                "0x1183628df",
+                "0x116c4a50f",
+                "0x116c50927"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 79911,
+              "ms": 10
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 79926,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 79935,
+              "ms": 8
+            }
+          ]
+        },
+        {
+          "pageStartMs": 79945,
+          "intervalMs": 36,
+          "traceStartMs": 99988.0,
+          "traceEndMs": 100024.0,
+          "samples": {
+            "mainSampleMs": 35.0,
+            "microtaskSampleMs": 27.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+              3.0
+            ],
+            [
+              "JSC::JSObject::convertContiguousToArrayStorage(JSC::VM&, JSC::TransitionKind)",
+              2.0
+            ],
+            [
+              "JSC::arrayProtoFuncIncludes(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              2.0
+            ],
+            [
+              "0x11814004d",
+              2.0
+            ],
+            [
+              "JSC::BlockDirectory::findBlockForAllocation(JSC::LocalAllocator&)",
+              1.0
+            ],
+            [
+              "0x1181ae835",
+              1.0
+            ],
+            [
+              "0x11884d7a1",
+              1.0
+            ],
+            [
+              "0x191e35ba9",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x11814004d",
+                "0x117cf098b",
+                "0x116d74663",
+                "0x117192c5f",
+                "0x1174e965b",
+                "0x1181df5ef",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "JSC::BlockDirectory::findBlockForAllocation(JSC::LocalAllocator&)",
+                "JSC::LocalAllocator::allocateSlowCase(JSC::Heap&, unsigned long, JSC::GCDeferralContext*, JSC::AllocationFailureMode)",
+                "void* JSC::tryAllocateCell<JSC::JSCellButterfly>(JSC::VM&, unsigned long)",
+                "JSC::constructSet(JSC::JSGlobalObject*, JSC::CallFrame*)::$_0::operator()(JSC::VM&, JSC::JSGlobalObject*, JSC::JSValue) const",
+                "JSC::constructSet(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541048f",
+                "0x1183628df",
+                "0x116c4a50f",
+                "0x116c50927",
+                "0x1172bb7b3"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 79951,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 79960,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 79969,
+              "ms": 8
+            }
+          ]
+        },
+        {
+          "pageStartMs": 79981,
+          "intervalMs": 52,
+          "traceStartMs": 100024.0,
+          "traceEndMs": 100076.0,
+          "samples": {
+            "mainSampleMs": 41.0,
+            "microtaskSampleMs": 28.0,
+            "gcSampleMs": 8.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              3.0
+            ],
+            [
+              "syscall_thread_switch",
+              2.0
+            ],
+            [
+              "JSC::JSObject::tryGetIndexQuickly(unsigned int, JSC::ArrayProfile*) const",
+              2.0
+            ],
+            [
+              "JSC::arrayProtoFuncIncludes(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              2.0
+            ],
+            [
+              "mach_absolute_time",
+              2.0
+            ],
+            [
+              "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+              1.0
+            ],
+            [
+              "semaphore_signal_trap",
+              1.0
+            ],
+            [
+              "0x115405799",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "_platform_memmove",
+                "JSC::ArrayBuffer::tryCreate(std::__1::span<unsigned char const, 18446744073709551615ul>)",
+                "0x1909dad4b",
+                "0x1904b6d73",
+                "0x1904bbc03",
+                "0x19077c76f",
+                "0x190770587",
+                "0x1909f5923",
+                "jsc_llint_885_doVMEntry__copyArgsDone_LowLevelInterpreter64_asm_177",
+                "JSC::Interpreter::executeCall(JSC::JSObject*, JSC::CallData const&, JSC::JSValue, JSC::JSCell*, JSC::ArgList const&)"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "syscall_thread_switch",
+                "WTF::LockAlgorithm<unsigned char, (unsigned char)1, (unsigned char)2, WTF::EmptyLockHooks<unsigned char>>::lockSlow(WTF::Atomic<unsigned char>&)",
+                "WTF::Ref<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>> JSC::MarkedSpace::forEachWeakInParallel<JSC::SlotVisitor&>(JSC::SlotVisitor&)::Task::run(JSC::SlotVisitor&)",
+                "JSC::MarkingConstraintSolver::runExecutionThread(JSC::SlotVisitor&, JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::Heap::runTaskInParallel(WTF::RefPtr<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>>)",
+                "JSC::MarkingConstraintSolver::execute(JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::MarkingConstraintSet::executeConvergenceImpl(JSC::SlotVisitor&)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 80017,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 80025,
+              "ms": 8
+            }
+          ]
+        },
+        {
+          "pageStartMs": 80033,
+          "intervalMs": 41,
+          "traceStartMs": 100076.0,
+          "traceEndMs": 100117.0,
+          "samples": {
+            "mainSampleMs": 39.0,
+            "microtaskSampleMs": 33.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::arrayProtoFuncIncludes(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              3.0
+            ],
+            [
+              "operationCompareStringEq",
+              3.0
+            ],
+            [
+              "JSC::typedArrayViewProtoFuncSet(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              2.0
+            ],
+            [
+              "JSC::JSObject::tryGetIndexQuickly(unsigned int, JSC::ArrayProfile*) const",
+              2.0
+            ],
+            [
+              "JSC::JSString::equalSlowCase(JSC::JSGlobalObject*, JSC::JSString*) const",
+              2.0
+            ],
+            [
+              "_platform_memmove",
+              1.0
+            ],
+            [
+              "<deduplicated_symbol>",
+              1.0
+            ],
+            [
+              "0x1176cf941",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::arrayProtoFuncIncludes(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x1181403eb",
+                "0x117cf08a3",
+                "0x116d74663",
+                "0x117192c5f",
+                "0x1174e965b",
+                "0x1181df5ef",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "_platform_memmove",
+                "JSC::JSGenericTypedArrayView<JSC::Uint8Adaptor>::setFromTypedArray(JSC::JSGlobalObject*, unsigned long, JSC::JSArrayBufferView*, unsigned long, unsigned long, JSC::CopyType)::'lambda'(JSC::JSArrayBufferView*)::operator()(JSC::JSArrayBufferView*) const",
+                "JSC::JSGenericTypedArrayView<JSC::Uint8Adaptor>::setFromTypedArray(JSC::JSGlobalObject*, unsigned long, JSC::JSArrayBufferView*, unsigned long, unsigned long, JSC::CopyType)",
+                "JSC::typedArrayViewProtoFuncSlice(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11870ae3b",
+                "0x11870ae6b",
+                "0x118673677",
+                "0x117199903",
+                "0x115edfac7",
+                "0x1162fe06b"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 80040,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 80048,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 80057,
+              "ms": 8
+            },
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 80066,
+              "ms": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "grid-driftwood-isle-road-entry-travel",
+      "anchors": [
+        [
+          114798,
+          1792261396263
+        ],
+        [
+          136022,
+          1792261417487
+        ]
+      ],
+      "anchorDriftMs": 0,
+      "frames": [
+        {
+          "pageStartMs": 116579,
+          "intervalMs": 52,
+          "traceStartMs": 136623.0,
+          "traceEndMs": 136675.0,
+          "samples": {
+            "mainSampleMs": 40.0,
+            "gcSampleMs": 27.0,
+            "microtaskSampleMs": 6.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::MarkedBlock::Handle::stopAllocating(JSC::FreeList const&)",
+              5.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              3.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              3.0
+            ],
+            [
+              "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "JSC::RecordedStatuses::finalize(JSC::VM&)",
+              2.0
+            ],
+            [
+              "JSC::Heap::finalizeUnconditionalFinalizers()",
+              2.0
+            ],
+            [
+              "JSC::setProtoFuncAdd(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::AccessCase::visitWeak(JSC::VM&) const",
+                "JSC::InlineCacheHandler::visitWeak(JSC::VM&)",
+                "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()"
+              ]
+            },
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::stopIfNecessarySlow()",
+                "JSC::IncrementalSweeper::sweepNextBlock(JSC::VM&, JSC::IncrementalSweeper::SweepTrigger)",
+                "JSC::IncrementalSweeper::doSweep(JSC::VM&, WTF::MonotonicTime, JSC::IncrementalSweeper::SweepTrigger)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 118029,
+          "intervalMs": 44,
+          "traceStartMs": 138073.0,
+          "traceEndMs": 138117.0,
+          "samples": {
+            "mainSampleMs": 35.0,
+            "microtaskSampleMs": 28.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::JSObject::canGetIndexQuicklyForTypedArray(unsigned int) const",
+              2.0
+            ],
+            [
+              "JSC::typedArrayViewProtoFuncSome(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              2.0
+            ],
+            [
+              "llint_call_javascript",
+              2.0
+            ],
+            [
+              "operationGetByValOptimize",
+              2.0
+            ],
+            [
+              "DYLD-STUB$$memcpy",
+              1.0
+            ],
+            [
+              "0x118683081",
+              1.0
+            ],
+            [
+              "JSC::sanitizeStackForVM(JSC::VM&)",
+              1.0
+            ],
+            [
+              "operationCreateLexicalEnvironmentUndefined",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::typedArrayViewProtoFuncSome(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17",
+                "0x190eb4b63"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "DYLD-STUB$$memcpy",
+                "JSC::JSObject::convertFromCopyOnWrite(JSC::VM&)",
+                "JSC::JSObject::switchToSlowPutArrayStorage(JSC::VM&)",
+                "operationNewArrayBuffer",
+                "0x11916093b",
+                "0x117db5287",
+                "0x11721c707",
+                "0x11793cb7f",
+                "0x1171872eb",
+                "0x118ca4e3b"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "BufferGeometry.computeBoundingBox",
+              "pageStartMs": 118060,
+              "ms": 4
+            },
+            {
+              "operation": "BufferGeometry.computeBoundingSphere",
+              "pageStartMs": 118064,
+              "ms": 9
+            }
+          ]
+        },
+        {
+          "pageStartMs": 118092,
+          "intervalMs": 37,
+          "traceStartMs": 138136.0,
+          "traceEndMs": 138173.0,
+          "samples": {
+            "mainSampleMs": 23.0,
+            "microtaskSampleMs": 17.0
+          },
+          "leafSampleMs": [
+            [
+              "0x116ad9fad",
+              2.0
+            ],
+            [
+              "JSC::JSObject::tryGetIndexQuickly(unsigned int, JSC::ArrayProfile*) const",
+              2.0
+            ],
+            [
+              "0x1186de9fd",
+              1.0
+            ],
+            [
+              "DYLD-STUB$$pthread_getspecific",
+              1.0
+            ],
+            [
+              "JSC::Interpreter::getStackTrace(JSC::JSCell*, WTF::Vector<JSC::StackFrame, 0ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&, unsigned long, unsigned long, JSC::JSCell*, JSC::JSCell*, JSC::CallLinkInfo*)",
+              1.0
+            ],
+            [
+              "0x116bee0f5",
+              1.0
+            ],
+            [
+              "0x116bf1441",
+              1.0
+            ],
+            [
+              "0x116bedb0d",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x116ad9fad",
+                "llint_call_javascript",
+                "JSC::typedArrayViewProtoFuncSome(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1186de9fd",
+                "0x1187775c7",
+                "0x1171400e7",
+                "0x118e9cc63",
+                "0x117ee5883",
+                "0x118d5aae3",
+                "0x11812daeb",
+                "0x117fe8307",
+                "0x1154c0807",
+                "0x11705173f"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "BufferGeometry.computeBoundingSphere",
+              "pageStartMs": 118111,
+              "ms": 5
+            }
+          ]
+        },
+        {
+          "pageStartMs": 118295,
+          "intervalMs": 45,
+          "traceStartMs": 138339.0,
+          "traceEndMs": 138384.0,
+          "samples": {
+            "mainSampleMs": 33.0,
+            "microtaskSampleMs": 26.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::typedArrayViewProtoFuncSome(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              3.0
+            ],
+            [
+              "vmEntryToJavaScriptWith3Arguments",
+              2.0
+            ],
+            [
+              "operationGetByValOptimize",
+              2.0
+            ],
+            [
+              "kevent_id",
+              1.0
+            ],
+            [
+              "JSC::BlockDirectory::tryAllocateBlock(JSC::Heap&)",
+              1.0
+            ],
+            [
+              "0x117bc8089",
+              1.0
+            ],
+            [
+              "operationGetByIdMegamorphicGeneric",
+              1.0
+            ],
+            [
+              "llint_op_ret",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::typedArrayViewProtoFuncSome(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17",
+                "0x190eb4b63"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "vmEntryToJavaScriptWith3Arguments",
+                "JSC::typedArrayViewProtoFuncSome(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)",
+                "0x190eed57b",
+                "0x1909e9913",
+                "0x190ebb863",
+                "0x190eeda17"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "BufferGeometry.computeBoundingBox",
+              "pageStartMs": 118324,
+              "ms": 5
+            },
+            {
+              "operation": "BufferGeometry.computeBoundingSphere",
+              "pageStartMs": 118330,
+              "ms": 10
+            }
+          ]
+        },
+        {
+          "pageStartMs": 118340,
+          "intervalMs": 39,
+          "traceStartMs": 138384.0,
+          "traceEndMs": 138423.0,
+          "samples": {
+            "mainSampleMs": 35.0,
+            "microtaskSampleMs": 28.0,
+            "gcSampleMs": 1.0
+          },
+          "leafSampleMs": [
+            [
+              "JSC::ownPropertyKeys(JSC::JSGlobalObject*, JSC::JSObject*, JSC::PropertyNameMode, JSC::DontEnumPropertiesMode)",
+              2.0
+            ],
+            [
+              "_platform_memmove",
+              2.0
+            ],
+            [
+              "JSC::tryCreateArrayButterfly(JSC::VM&, JSC::JSObject*, unsigned int)",
+              1.0
+            ],
+            [
+              "0x117bf5069",
+              1.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              1.0
+            ],
+            [
+              "WTF::ThreadSafeRefCountedAndCanMakeThreadSafeWeakPtr<WebCore::PlatformCALayer, (WTF::DestructionThread)1>::deref() const",
+              1.0
+            ],
+            [
+              "0x117c66ced",
+              1.0
+            ],
+            [
+              "<deduplicated_symbol>",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "JSC::tryCreateArrayButterfly(JSC::VM&, JSC::JSObject*, unsigned int)",
+                "JSC::JSArray::tryCreate(JSC::VM&, JSC::Structure*, unsigned int, unsigned int)",
+                "operationNewArrayWithSpreadSlow",
+                "0x11872b01b",
+                "0x11871d563",
+                "0x115f12823",
+                "0x116fe2a2f",
+                "0x116c25737",
+                "0x116553633",
+                "0x117b08c6f"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x117bf5069",
+                "0x1156c396b",
+                "0x116145f3b",
+                "0x116ba5f33",
+                "0x11793ccb3",
+                "0x1171872eb",
+                "0x118ca4e3b",
+                "0x1178c617b",
+                "0x117a769b7",
+                "0x11866e1b3"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 118431,
+          "intervalMs": 37,
+          "traceStartMs": 138475.0,
+          "traceEndMs": 138512.0,
+          "samples": {
+            "mainSampleMs": 31.0,
+            "microtaskSampleMs": 29.0,
+            "gcSampleMs": 2.0
+          },
+          "leafSampleMs": [
+            [
+              "_platform_memmove",
+              4.0
+            ],
+            [
+              "pas_thread_local_cache_flush_deallocation_log",
+              2.0
+            ],
+            [
+              "bmalloc_heap_config_specialized_local_allocator_try_allocate_small_segregated_slow",
+              2.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              1.0
+            ],
+            [
+              "WTF::String::String(std::__1::span<unsigned char const, 18446744073709551615ul>)",
+              1.0
+            ],
+            [
+              "0x1174fa505",
+              1.0
+            ],
+            [
+              "JSC::InlineCacheCompiler::compileHandler(JSC::GCSafeConcurrentJSLocker const&, WTF::Vector<JSC::AccessCase*, 16ul, WTF::CrashOnOverflow, 16ul, WTF::FastMalloc>&&, JSC::CodeBlock*, JSC::AccessCase&)",
+              1.0
+            ],
+            [
+              "operationToLowerCase",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "operationGetByIdGaveUp",
+                "0x11543c10b",
+                "0x11910a5ab",
+                "0x118e27b4f",
+                "0x11649d56f",
+                "0x11911411b",
+                "0x1187775c7",
+                "0x1171400e7",
+                "0x118e9d0cf",
+                "0x117ee5883"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "WTF::String::String(std::__1::span<unsigned char const, 18446744073709551615ul>)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::JSValue JSC::LiteralParser<unsigned char, (JSC::JSONReviverMode)0>::parseRecursively<(JSC::ParserMode)0>(JSC::VM&, unsigned char*)",
+                "JSC::jsonProtoFuncParse(JSC::JSGlobalObject*, JSC::CallFrame*)",
+                "0x11541003b",
+                "0x1191607a3",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "llint_call_javascript",
+                "JSC::runInternalMicrotask(JSC::JSGlobalObject*, JSC::InternalMicrotask, unsigned char, std::__1::span<JSC::JSValue const, 3ul>)"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 118456,
+              "ms": 9
+            }
+          ]
+        },
+        {
+          "pageStartMs": 118468,
+          "intervalMs": 44,
+          "traceStartMs": 138512.0,
+          "traceEndMs": 138556.0,
+          "samples": {
+            "mainSampleMs": 20.0,
+            "gcSampleMs": 6.0,
+            "microtaskSampleMs": 6.0
+          },
+          "leafSampleMs": [
+            [
+              "0x1176cf551",
+              1.0
+            ],
+            [
+              "WTF::Ref<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>> JSC::MarkedSpace::forEachWeakInParallel<JSC::SlotVisitor&>(JSC::SlotVisitor&)::Task::run(JSC::SlotVisitor&)",
+              1.0
+            ],
+            [
+              "JSC::ArrayBufferContents::~ArrayBufferContents()",
+              1.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              1.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              1.0
+            ],
+            [
+              "JSC::Heap::finalizeUnconditionalFinalizers()",
+              1.0
+            ],
+            [
+              "JSC::WeakSet::sweep()",
+              1.0
+            ],
+            [
+              "0x1186bc485",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1176cf551",
+                "0x1170c7a8f",
+                "0x11874514f",
+                "0x116c50fb7",
+                "0x1172bb7b3",
+                "0x117d3becb",
+                "0x118d9c323",
+                "0x11761fd5b",
+                "0x1154c0807",
+                "0x118d8561f"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "WTF::Ref<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>> JSC::MarkedSpace::forEachWeakInParallel<JSC::SlotVisitor&>(JSC::SlotVisitor&)::Task::run(JSC::SlotVisitor&)",
+                "JSC::MarkingConstraintSolver::runExecutionThread(JSC::SlotVisitor&, JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::Heap::runTaskInParallel(WTF::RefPtr<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>>)",
+                "JSC::MarkingConstraintSolver::execute(JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::MarkingConstraintSet::executeConvergenceImpl(JSC::SlotVisitor&)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "System.game.grid.session",
+              "pageStartMs": 118470,
+              "ms": 11
+            },
+            {
+              "operation": "Game.runPhase:fixed.post",
+              "pageStartMs": 118470,
+              "ms": 11
+            },
+            {
+              "operation": "Game.runFixed",
+              "pageStartMs": 118470,
+              "ms": 12
+            }
+          ]
+        },
+        {
+          "pageStartMs": 118700,
+          "intervalMs": 45,
+          "traceStartMs": 138744.0,
+          "traceEndMs": 138789.0,
+          "samples": {
+            "mainSampleMs": 12.0,
+            "microtaskSampleMs": 6.0
+          },
+          "leafSampleMs": [
+            [
+              "semaphore_signal_trap",
+              1.0
+            ],
+            [
+              "operationGetByIdMegamorphicGeneric",
+              1.0
+            ],
+            [
+              "0x11647fb2d",
+              1.0
+            ],
+            [
+              "0x1187050e1",
+              1.0
+            ],
+            [
+              "0x116d2e379",
+              1.0
+            ],
+            [
+              "0x116c91ab5",
+              1.0
+            ],
+            [
+              "operationGetByValOptimize",
+              1.0
+            ],
+            [
+              "JSC::JSObject::canGetIndexQuicklyForTypedArray(unsigned int) const",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "semaphore_signal_trap",
+                "IPC::Error IPC::StreamClientConnection::send<Messages::RemoteGraphicsContextGL::BindBuffer, WebKit::RemoteGraphicsContextGLIdentifierType, WTF::ObjectIdentifierThreadSafeAccessTraits<unsigned long long>, unsigned long long>(Messages::RemoteGraphicsContextGL::BindBuffer&&, WTF::ObjectIdentifierGeneric<WebKit::RemoteGraphicsContextGLIdentifierType, WTF::ObjectIdentifierThreadSafeAccessTraits<unsigned long long>, unsigned long long>)",
+                "IPC::Error WebKit::RemoteGraphicsContextGLProxy::send<Messages::RemoteGraphicsContextGL::BindBuffer>(Messages::RemoteGraphicsContextGL::BindBuffer&&)",
+                "WebKit::RemoteGraphicsContextGLProxy::bindBuffer(unsigned int, unsigned int)",
+                "0x19134facb",
+                "0x19006d457",
+                "0x11541003b",
+                "0x117b45b33",
+                "0x119028a8f",
+                "0x117b09c3b"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "operationGetByIdMegamorphicGeneric",
+                "0x117a5c513",
+                "0x117a8b903",
+                "0x1154c0807",
+                "0x1183182a7",
+                "0x118d9c323",
+                "0x1170a2357",
+                "0x118e0619f",
+                "llint_call_javascript",
+                "JSC::Interpreter::executeCall(JSC::JSObject*, JSC::CallData const&, JSC::JSValue, JSC::JSCell*, JSC::ArgList const&)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 118930,
+          "intervalMs": 56,
+          "traceStartMs": 138974.0,
+          "traceEndMs": 139030.0,
+          "samples": {
+            "mainSampleMs": 45.0,
+            "microtaskSampleMs": 41.0
+          },
+          "leafSampleMs": [
+            [
+              "0x116063ad1",
+              3.0
+            ],
+            [
+              "0x116064a89",
+              3.0
+            ],
+            [
+              "0x11654cbd9",
+              2.0
+            ],
+            [
+              "0x1160649e5",
+              2.0
+            ],
+            [
+              "0x11654cb0d",
+              2.0
+            ],
+            [
+              "0x117844c19",
+              1.0
+            ],
+            [
+              "0x117c08a15",
+              1.0
+            ],
+            [
+              "JSC::MegamorphicCache::initAsHit(JSC::StructureID, WTF::UniquedStringImpl*, JSC::JSCell*, unsigned short, bool)",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "0x116063ad1",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x11608894b",
+                "0x1160c9833",
+                "0x118b64527",
+                "0x115fa58c3",
+                "0x118a9d9b7",
+                "0x115fa58c3",
+                "0x118d9c323",
+                "0x117ed20db"
+              ]
+            },
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "0x116064a89",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x11608894b",
+                "0x1160c9833",
+                "0x118b64527",
+                "0x115fa58c3",
+                "0x118a9d9b7",
+                "0x115fa58c3",
+                "0x118d9c323",
+                "0x117ed20db"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 118986,
+          "intervalMs": 38,
+          "traceStartMs": 139030.0,
+          "traceEndMs": 139068.0,
+          "samples": {
+            "mainSampleMs": 33.0,
+            "microtaskSampleMs": 26.0
+          },
+          "leafSampleMs": [
+            [
+              "0x115408c29",
+              2.0
+            ],
+            [
+              "0x116063989",
+              2.0
+            ],
+            [
+              "0x1160649e5",
+              2.0
+            ],
+            [
+              "0x116064541",
+              2.0
+            ],
+            [
+              "0x116064a89",
+              2.0
+            ],
+            [
+              "OTL::ClassDefTable::PopulateGlyphClassBitmap(unsigned short, unsigned char*, long) const",
+              1.0
+            ],
+            [
+              "void* JSC::tryAllocateCell<JSC::JSCellButterfly>(JSC::VM&, unsigned long)",
+              1.0
+            ],
+            [
+              "0x118208401",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x115408c29",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x11608894b",
+                "0x1160c9833",
+                "0x118b64527",
+                "0x115fa58c3",
+                "0x118a9d9b7",
+                "0x115fa58c3",
+                "0x118d9c323",
+                "0x117ed20db"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "0x116063989",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x11608894b",
+                "0x1160c9833",
+                "0x118b64527",
+                "0x115fa58c3",
+                "0x118a9d9b7",
+                "0x115fa58c3",
+                "0x118d9c323",
+                "0x117ed20db"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Renderer.initTexture",
+              "pageStartMs": 118994,
+              "ms": 6
+            }
+          ]
+        },
+        {
+          "pageStartMs": 119112,
+          "intervalMs": 114,
+          "traceStartMs": 139156.0,
+          "traceEndMs": 139270.0,
+          "samples": {
+            "mainSampleMs": 113.0,
+            "microtaskSampleMs": 107.0
+          },
+          "leafSampleMs": [
+            [
+              "0x116063ad1",
+              6.0
+            ],
+            [
+              "0x116064a55",
+              3.0
+            ],
+            [
+              "0x115415455",
+              3.0
+            ],
+            [
+              "0x116064b19",
+              3.0
+            ],
+            [
+              "0x11606357d",
+              3.0
+            ],
+            [
+              "0x116064a89",
+              3.0
+            ],
+            [
+              "_platform_memmove",
+              2.0
+            ],
+            [
+              "0x116064269",
+              2.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 5.0,
+              "leafFrames": [
+                "0x116063ad1",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x11608894b",
+                "0x1160c9833",
+                "0x11556034f",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x1181df5ef"
+              ]
+            },
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "0x115415455",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x11608894b",
+                "0x1160c9833",
+                "0x11556034f",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1561_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "jsc_llint_commonCallOp__llintOpWithMetadata__llintOpWithReturn__llintOp__commonOp__fn__fn__makeReturn__fn__fn__fn__1580_callHelper__dispatch_LowLevelInterpreter64_asm_2543",
+                "0x1181df5ef"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Promise.reaction",
+              "pageStartMs": 119124,
+              "ms": 102
+            }
+          ]
+        },
+        {
+          "pageStartMs": 119226,
+          "intervalMs": 81,
+          "traceStartMs": 139270.0,
+          "traceEndMs": 139351.0,
+          "samples": {
+            "mainSampleMs": 39.0,
+            "microtaskSampleMs": 31.0,
+            "gcSampleMs": 26.0
+          },
+          "leafSampleMs": [
+            [
+              "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+              3.0
+            ],
+            [
+              "JSC::CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(JSC::ConcurrentJSLocker const&, unsigned int&, unsigned int&)",
+              3.0
+            ],
+            [
+              "JSC::AccessCase::visitWeak(JSC::VM&) const",
+              2.0
+            ],
+            [
+              "JSC::StructureStubInfo::visitWeak(JSC::ConcurrentJSLockerBase const&, JSC::CodeBlock*)",
+              2.0
+            ],
+            [
+              "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+              2.0
+            ],
+            [
+              "JSC::Heap::finalizeUnconditionalFinalizers()",
+              2.0
+            ],
+            [
+              "0x117a36715",
+              1.0
+            ],
+            [
+              "0x115408295",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "void JSC::WeakMapImpl<JSC::WeakMapBucket<JSC::WeakMapBucketDataKeyValue>>::visitOutputConstraints<JSC::SlotVisitor>(JSC::JSCell*, JSC::SlotVisitor&)",
+                "_ZZN3JSC8Subspace27forEachMarkedCellInParallelIRNS_11SlotVisitorEZZNS_4Heap18addCoreConstraintsEvENK4$_11clIS2_EEDaRT_EUlS9_PNS_8HeapCellENSA_4KindEE_EEN3WTF3RefINSE_10SharedTaskIFvS9_EEENSE_12RawPtrTraitsISI_EENSE_21DefaultRefDerefTraitsISI_EEEERKT0_EN4Task3runES3_",
+                "JSC::MarkingConstraintSolver::runExecutionThread(JSC::SlotVisitor&, JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::Heap::runTaskInParallel(WTF::RefPtr<WTF::SharedTask<void (JSC::SlotVisitor&)>, WTF::RawPtrTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>, WTF::DefaultRefDerefTraits<WTF::SharedTask<void (JSC::SlotVisitor&)>>>)",
+                "JSC::MarkingConstraintSolver::execute(JSC::MarkingConstraintSolver::SchedulerPreference, WTF::ScopedLambda<std::__1::optional<unsigned int> ()>)",
+                "JSC::MarkingConstraintSet::executeConvergenceImpl(JSC::SlotVisitor&)",
+                "JSC::Heap::runFixpointPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)"
+              ]
+            },
+            {
+              "sampleMs": 3.0,
+              "leafFrames": [
+                "JSC::CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(JSC::ConcurrentJSLocker const&, unsigned int&, unsigned int&)",
+                "JSC::CodeBlock::finalizeUnconditionally(JSC::VM&, JSC::CollectionScope)",
+                "JSC::Heap::finalizeUnconditionalFinalizers()",
+                "JSC::Heap::runEndPhase(JSC::GCConductor)",
+                "JSC::Heap::runCurrentPhase(JSC::GCConductor, JSC::CurrentThreadState*)",
+                "WTF::ScopedLambdaFunctor<void (JSC::CurrentThreadState&), JSC::Heap::collectInMutatorThread()::$_0>::implFunction(void*, JSC::CurrentThreadState&)",
+                "JSC::callWithCurrentThreadState(WTF::ScopedLambda<void (JSC::CurrentThreadState&)> const&)",
+                "JSC::Heap::collectInMutatorThread()",
+                "JSC::Heap::waitForCollection(unsigned long long)",
+                "JSC::Wasm::Memory::tryCreate(JSC::VM&, JSC::PageCount, JSC::PageCount, JSC::MemorySharingMode, std::__1::optional<JSC::MemoryMode>, WTF::Function<void (JSC::Wasm::Memory::GrowSuccess, JSC::PageCount, JSC::PageCount)>&&, JSC::JSCell*)"
+              ]
+            }
+          ],
+          "exactCalls": []
+        },
+        {
+          "pageStartMs": 119362,
+          "intervalMs": 48,
+          "traceStartMs": 139406.0,
+          "traceEndMs": 139454.0,
+          "samples": {
+            "mainSampleMs": 46.0,
+            "microtaskSampleMs": 36.0
+          },
+          "leafSampleMs": [
+            [
+              "WTF::equal(WTF::StringImpl const&, WTF::StringImpl const&)",
+              2.0
+            ],
+            [
+              "JSC::objectConstructorValues(JSC::JSGlobalObject*, JSC::CallFrame*)",
+              2.0
+            ],
+            [
+              "WTF::ASCIILiteral JSC::JSObject::putDirectInternal<(JSC::JSObject::PutMode)0>(JSC::VM&, JSC::PropertyName, JSC::JSValue, unsigned int, JSC::PutPropertySlot&)",
+              2.0
+            ],
+            [
+              "JSC::JSArray::tryCreateUninitializedRestricted(JSC::ObjectInitializationScope&, JSC::GCDeferralContext*, JSC::Structure*, unsigned int)",
+              2.0
+            ],
+            [
+              "operationGetByIdGaveUp",
+              2.0
+            ],
+            [
+              "WTF::HashTable<WTF::Packed<WTF::StringImpl*>, WTF::Packed<WTF::StringImpl*>, WTF::IdentityExtractor, WTF::DefaultHash<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::FastMalloc>::rehash(WTF::Checked<unsigned int, WTF::CrashOnOverflow>, WTF::Packed<WTF::StringImpl*>*)",
+              2.0
+            ],
+            [
+              "JSC::HeapCellType::finishSweep(JSC::MarkedBlock::Handle&, JSC::FreeList*) const",
+              2.0
+            ],
+            [
+              "0x1171af895",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "WTF::HashTable<WTF::Packed<WTF::StringImpl*>, WTF::Packed<WTF::StringImpl*>, WTF::IdentityExtractor, WTF::DefaultHash<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::FastMalloc>::rehash(WTF::Checked<unsigned int, WTF::CrashOnOverflow>, WTF::Packed<WTF::StringImpl*>*)",
+                "WTF::HashTableAddResult<WTF::HashTableIterator<WTF::HashTable<WTF::Packed<WTF::StringImpl*>, WTF::Packed<WTF::StringImpl*>, WTF::IdentityExtractor, WTF::DefaultHash<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::FastMalloc>, WTF::Packed<WTF::StringImpl*>, WTF::Packed<WTF::StringImpl*>, WTF::IdentityExtractor, WTF::DefaultHash<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>>> WTF::HashTable<WTF::Packed<WTF::StringImpl*>, WTF::Packed<WTF::StringImpl*>, WTF::IdentityExtractor, WTF::DefaultHash<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::HashTraits<WTF::Packed<WTF::StringImpl*>>, WTF::FastMalloc>::add<(WTF::ShouldValidateKey)0>(WTF::Packed<WTF::StringImpl*>&&)",
+                "WTF::AtomStringImpl::addSlowCase(WTF::StringImpl&)",
+                "operationGetByValGeneric",
+                "0x11701c09b",
+                "0x118319a6f",
+                "0x11831baf7",
+                "0x11831baf7",
+                "0x11831baf7",
+                "0x11831baf7"
+              ]
+            },
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::HeapCellType::finishSweep(JSC::MarkedBlock::Handle&, JSC::FreeList*) const",
+                "JSC::MarkedBlock::Handle::sweep(JSC::FreeList*)",
+                "JSC::IncrementalSweeper::sweepNextBlock(JSC::VM&, JSC::IncrementalSweeper::SweepTrigger)",
+                "JSC::IncrementalSweeper::doSweep(JSC::VM&, WTF::MonotonicTime, JSC::IncrementalSweeper::SweepTrigger)",
+                "JSC::JSRunLoopTimer::Manager::timerDidFireCallback()",
+                "WTF::RunLoop::TimerBase::start(WTF::Seconds, bool)::$_0::__invoke(__CFRunLoopTimer*, void*)",
+                "__CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__",
+                "__CFRunLoopDoTimer",
+                "__CFRunLoopDoTimers",
+                "__CFRunLoopRun"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Renderer.compile",
+              "pageStartMs": 119383,
+              "ms": 21
+            }
+          ]
+        },
+        {
+          "pageStartMs": 119829,
+          "intervalMs": 37,
+          "traceStartMs": 139873.0,
+          "traceEndMs": 139910.0,
+          "samples": {
+            "mainSampleMs": 36.0,
+            "microtaskSampleMs": 30.0
+          },
+          "leafSampleMs": [
+            [
+              "operationGetByIdGaveUp",
+              3.0
+            ],
+            [
+              "operationGetByValGeneric",
+              2.0
+            ],
+            [
+              "operationGetByValObjectString",
+              2.0
+            ],
+            [
+              "JSC::NumericStrings::addJSString(JSC::VM&, int)",
+              2.0
+            ],
+            [
+              "0x1176cf4a9",
+              1.0
+            ],
+            [
+              "0x117844ffd",
+              1.0
+            ],
+            [
+              "0x1169053c1",
+              1.0
+            ],
+            [
+              "0x118cabed1",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 2.0,
+              "leafFrames": [
+                "JSC::NumericStrings::addJSString(JSC::VM&, int)",
+                "operationInt32ToStringWithValidRadix",
+                "0x11701c05f",
+                "0x118319a6f",
+                "0x116faa203",
+                "0x11831bd8f",
+                "0x116faa203",
+                "0x11831bd8f",
+                "0x116faa203",
+                "0x11831bd8f"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1176cf4a9",
+                "0x11784452b",
+                "0x11784494b",
+                "0x11784494b",
+                "0x117844ccf",
+                "0x11784494b",
+                "0x11784494b",
+                "0x11784494b",
+                "0x11784494b",
+                "0x11784494b"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Renderer.compile",
+              "pageStartMs": 119835,
+              "ms": 29
+            }
+          ]
+        },
+        {
+          "pageStartMs": 119866,
+          "intervalMs": 46,
+          "traceStartMs": 139910.0,
+          "traceEndMs": 139956.0,
+          "samples": {
+            "mainSampleMs": 25.0,
+            "microtaskSampleMs": 18.0
+          },
+          "leafSampleMs": [
+            [
+              "operationGetByValObjectString",
+              2.0
+            ],
+            [
+              "WTF::ASCIILiteral JSC::JSObject::putDirectInternal<(JSC::JSObject::PutMode)0>(JSC::VM&, JSC::PropertyName, JSC::JSValue, unsigned int, JSC::PutPropertySlot&)",
+              2.0
+            ],
+            [
+              "JSC::JSObject::putInlineSlow(JSC::JSGlobalObject*, JSC::PropertyName, JSC::JSValue, JSC::PutPropertySlot&)",
+              2.0
+            ],
+            [
+              "0x11784470d",
+              1.0
+            ],
+            [
+              "0x1170898ad",
+              1.0
+            ],
+            [
+              "0x18f3900e1",
+              1.0
+            ],
+            [
+              "0x1176f86b9",
+              1.0
+            ],
+            [
+              "0x11576e475",
+              1.0
+            ]
+          ],
+          "topStacks": [
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x11784470d",
+                "0x11784494b",
+                "0x11784494b",
+                "0x11784494b",
+                "0x1189d511f",
+                "0x1175b4197",
+                "0x118727cd7",
+                "0x115d99d43",
+                "0x118318217",
+                "0x118d9c323"
+              ]
+            },
+            {
+              "sampleMs": 1.0,
+              "leafFrames": [
+                "0x1170898ad",
+                "0x116b5e8f7",
+                "0x11884d8e7",
+                "0x1181aace3",
+                "0x118e9c02f",
+                "0x117ee5883",
+                "0x118d5a943",
+                "0x11812daeb",
+                "0x117fe8307",
+                "0x1154c0807"
+              ]
+            }
+          ],
+          "exactCalls": [
+            {
+              "operation": "Renderer.compile",
+              "pageStartMs": 119872,
+              "ms": 17
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

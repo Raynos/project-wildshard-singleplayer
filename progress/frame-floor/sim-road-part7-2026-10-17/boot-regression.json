@@ -1,0 +1,734 @@
+{
+  "origin": {
+    "sha": "ef7f29ccd7de1ea6cae366c7378ea149b62b5578",
+    "runId": "87608-1792266977127",
+    "when": "2026-10-17T19:56:34.715Z",
+    "elapsedSeconds": 17.597,
+    "surface": "sim",
+    "device": "frame-floor-iphone-17-pro",
+    "complete": false,
+    "pass": false,
+    "harnessRevision": "016f282417d5b650a6f1857769b07f6bceb00ada",
+    "criteria": {
+      "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+      "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+      "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+      "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+      "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+    },
+    "glObserver": "off",
+    "glTime": false,
+    "frameTimeline": false,
+    "error": "Load failure: Driftwood Isle could not load \u2014 BUILD ef7f29c-mvcth5c0 \u00b7 STAGE level.world \u2014 undefined is not a constructor (evaluating 'new this.Runtime')",
+    "errors": [],
+    "loading": "\nProject Wildshard\nA world that does not exist yet, arriving one chunk at a time.\n\n\n\nLoading chunk \u00b7Driftwood Isle00:04.3\nBuilding the world \u00b7 76%\n\ntierphone \u00b7 1206\u00d72142 \u00b7 8 cores \u00b7 offline cache\n\n\ndownload19.3 MB / 19.3 MB \u00b7 136 / 136 files99\n\n\n\nsetupstep 10 / 16 \u00b7 Props53\n\n\n\u25b8 Renderer18 ms\u25b8 Sky \u00b7 lighting741 ms\u25b8 Terrain \u00b7 heightfield256\u00b2 heightfield48 ms\u25b8 Tree cards1 ms\u25b8 Trees0 trees10 ms\u25b8 Physics \u00b7 Rapier \u00b7 navmesh5 colliders5 ms\u25b8 Chunk edge \u00b7 water \u00b7 horizon11 ms\u25b8 Grass \u00b7 ground cover0 ms\u25b8 Buildings0 ms\u25b8 Props1.6 s\nLoad 1 \u00b7 JS heap unavailable on Safari\nLongest page pause 0.1s at Props\nLast reload: none recorded\nTotal RAM / CPU unavailable in page\n\n\n",
+    "url": "http://localhost:4471/frame-floor-safari.html?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0",
+    "scan": null,
+    "rows": [],
+    "bootTimes": null,
+    "console": [
+      {
+        "level": "warn",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      }
+    ]
+  },
+  "repair": {
+    "sha": "3442448a91d996865b3ee031a8a44ee7c128a687",
+    "runId": "11538-1792267372570",
+    "when": "2026-10-17T20:03:43.252Z",
+    "elapsedSeconds": 50.692,
+    "surface": "sim",
+    "device": "frame-floor-iphone-17-pro",
+    "complete": true,
+    "pass": false,
+    "harnessRevision": "538918559eda83a3739910f602ccfae03f351333",
+    "criteria": {
+      "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+      "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+      "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+      "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+      "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+    },
+    "glObserver": "off",
+    "glTime": false,
+    "frameTimeline": false,
+    "error": null,
+    "errors": [],
+    "loading": null,
+    "url": null,
+    "scan": [
+      {
+        "pose": {
+          "name": "pier",
+          "x": 0,
+          "z": -194,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "p95Ms": 53,
+        "workP95Ms": 39,
+        "calls": 207,
+        "triangles": 1248823
+      },
+      {
+        "pose": {
+          "name": "beach",
+          "x": -10,
+          "z": -150,
+          "yaw": 4.3,
+          "pitch": 0
+        },
+        "p95Ms": 61,
+        "workP95Ms": 45,
+        "calls": 322,
+        "triangles": 1676120
+      },
+      {
+        "pose": {
+          "name": "wreck",
+          "x": 105,
+          "z": 0,
+          "yaw": -1.5707963267948966,
+          "pitch": 0
+        },
+        "p95Ms": 49,
+        "workP95Ms": 41,
+        "calls": 174,
+        "triangles": 967289
+      }
+    ],
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -3.8657464416225196e-06,
+          "y": 1.211999994123471,
+          "z": -194.00000102562757,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "sampleRange": {
+          "startMs": 19417,
+          "endMs": 20417
+        },
+        "frames": 30,
+        "skipped": 0,
+        "medianFps": 33.333,
+        "p50Ms": 30,
+        "p95Ms": 49,
+        "p99Ms": 55,
+        "maxMs": 55,
+        "callbackP95Ms": 43,
+        "callbackP99Ms": 51,
+        "callbackMaxMs": 51,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              19747,
+              55
+            ]
+          ]
+        },
+        "gameP95Ms": 49,
+        "workP95Ms": 28,
+        "calls": 291,
+        "triangles": 1612375,
+        "position": {
+          "x": -6.675607620576507e-06,
+          "y": 1.2141828913219797,
+          "z": -194.00000703871865
+        },
+        "cpu": {
+          "enabled": true,
+          "frames": 30,
+          "owners": [
+            {
+              "id": "driftwood-isle",
+              "samples": 30,
+              "p95Ms": 2.000000000003638,
+              "maxMs": 3,
+              "calls": 1320
+            }
+          ]
+        },
+        "contextLost": false,
+        "floorFps": 30,
+        "medianFpsRounded": 33,
+        "strictMs": 33.3,
+        "limitMs": 35,
+        "cpuLimitMs": 8.333333333333334,
+        "cpuPass": true,
+        "maxFrameLimitMs": 200,
+        "maxFramePass": true,
+        "pass": false,
+        "strictP95Pass": false,
+        "strictPass": false,
+        "miss": "frame cost / scheduling"
+      },
+      {
+        "pose": {
+          "name": "beach",
+          "x": -10,
+          "z": -150,
+          "yaw": 4.3,
+          "pitch": 0
+        },
+        "sampleRange": {
+          "startMs": 27281,
+          "endMs": 28301
+        },
+        "frames": 30,
+        "skipped": 0,
+        "medianFps": 31.25,
+        "p50Ms": 32,
+        "p95Ms": 50,
+        "p99Ms": 51,
+        "maxMs": 51,
+        "callbackP95Ms": 49,
+        "callbackP99Ms": 53,
+        "callbackMaxMs": 53,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              28061,
+              51
+            ]
+          ]
+        },
+        "gameP95Ms": 50,
+        "workP95Ms": 37,
+        "calls": 231,
+        "triangles": 1246005,
+        "position": {
+          "x": -9.99948005515239,
+          "y": 0.7056628473816087,
+          "z": -150.00001724491057
+        },
+        "cpu": {
+          "enabled": true,
+          "frames": 30,
+          "owners": [
+            {
+              "id": "driftwood-isle",
+              "samples": 30,
+              "p95Ms": 2.000000000003638,
+              "maxMs": 16,
+              "calls": 1323
+            }
+          ]
+        },
+        "contextLost": false,
+        "floorFps": 30,
+        "medianFpsRounded": 31,
+        "strictMs": 33.3,
+        "limitMs": 35,
+        "cpuLimitMs": 8.333333333333334,
+        "cpuPass": true,
+        "maxFrameLimitMs": 200,
+        "maxFramePass": true,
+        "pass": false,
+        "strictP95Pass": false,
+        "strictPass": false,
+        "miss": "frame cost / scheduling"
+      },
+      {
+        "pose": {
+          "name": "pier",
+          "x": 0,
+          "z": -194,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "sampleRange": {
+          "startMs": 30467,
+          "endMs": 31468
+        },
+        "frames": 30,
+        "skipped": 0,
+        "medianFps": 30.303,
+        "p50Ms": 33,
+        "p95Ms": 49,
+        "p99Ms": 50,
+        "maxMs": 50,
+        "callbackP95Ms": 49,
+        "callbackP99Ms": 49,
+        "callbackMaxMs": 49,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        },
+        "gameP95Ms": 48,
+        "workP95Ms": 37,
+        "calls": 207,
+        "triangles": 1245484,
+        "position": {
+          "x": -1.0744658605656154e-05,
+          "y": 1.213983879402658,
+          "z": -193.99999932415463
+        },
+        "cpu": {
+          "enabled": true,
+          "frames": 30,
+          "owners": [
+            {
+              "id": "driftwood-isle",
+              "samples": 30,
+              "p95Ms": 2,
+              "maxMs": 2.000000000003638,
+              "calls": 1320
+            }
+          ]
+        },
+        "contextLost": false,
+        "floorFps": 30,
+        "medianFpsRounded": 30,
+        "strictMs": 33.3,
+        "limitMs": 35,
+        "cpuLimitMs": 8.333333333333334,
+        "cpuPass": true,
+        "maxFrameLimitMs": 200,
+        "maxFramePass": true,
+        "pass": false,
+        "strictP95Pass": false,
+        "strictPass": false,
+        "miss": "frame cost / scheduling"
+      }
+    ],
+    "bootTimes": {
+      "phone:8": {
+        "renderer": 18.000000000000227,
+        "sky": 797,
+        "terrain": 55,
+        "cards": 0,
+        "forest": 9,
+        "physics": 6.999999999999545,
+        "edge": 14.000000000000455,
+        "grass": 0,
+        "cabins": 0,
+        "props": 2887,
+        "animals": 144.9999999999991,
+        "weapon": 21,
+        "menu": 11,
+        "shaders": 9635.000000000002,
+        "firstFrame": 211,
+        "audio": 331.9999999999982
+      }
+    },
+    "console": [
+      {
+        "level": "warn",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      },
+      {
+        "level": "info",
+        "text": "[shadow] 8 casters in 246 pieces (328037 tris)"
+      },
+      {
+        "level": "warn",
+        "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+      },
+      {
+        "level": "warn",
+        "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+      },
+      {
+        "level": "warn",
+        "text": "THREE.TSL: Vertex attribute \"normal\" not found on geometry. Stack trace not available. Enable \"THREE.Node.captureStackTrace\" to capture stack traces."
+      }
+    ],
+    "timingCredit": false,
+    "reason": "Boot regression proof under ordinary shared load; floor did not pass."
+  },
+  "failedFirstAfter": {
+    "sha": "64265f9326e29a52c3c41fd989d93cf46ccf2ae7",
+    "runId": "8930-1792266095394",
+    "when": "2026-10-17T19:43:18.945Z",
+    "elapsedSeconds": 103.565,
+    "surface": "sim",
+    "device": "frame-floor-iphone-17-pro",
+    "complete": false,
+    "pass": false,
+    "harnessRevision": "a076d3a79be313cb1b18be52e009122fab49197b",
+    "criteria": {
+      "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+      "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+      "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+      "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+      "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+    },
+    "glObserver": "on",
+    "glTime": false,
+    "frameTimeline": false,
+    "error": "The title never showed INFINITE WILDSHARD",
+    "errors": [],
+    "loading": "\nProject Wildshard\nA world that does not exist yet, arriving one chunk at a time.\n\n\n\nLoading chunk \u00b7Driftwood Isle01:30.9\nBuilding the world \u00b7 55%\n\ntierphone \u00b7 1206\u00d72142 \u00b7 8 cores \u00b7 offline cache\n\n\ndownload18.8 MB / 18.8 MB \u00b7 136 / 136 files99\n\n\n\nsetupstep 10 / 16 \u00b7 Props10\n\n\n\u25b8 Renderer22 ms\u25b8 Sky \u00b7 lighting719 ms\u25b8 Terrain \u00b7 heightfield256\u00b2 heightfield21 ms\u25b8 Tree cards0 ms\u25b8 Trees0 trees10 ms\u25b8 Physics \u00b7 Rapier \u00b7 navmesh5 colliders4 ms\u25b8 Chunk edge \u00b7 water \u00b7 horizon15 ms\u25b8 Grass \u00b7 ground cover0 ms\u25b8 Buildings0 ms\u25b8 Props87.3 s\nLoad 1 \u00b7 JS heap unavailable on Safari\nLongest page pause <0.1s at Props\nLast reload: shard switch to driftwood-isle (fresh page) (before an earlier launch) \u00b7 63 min ago \u00b7 build f8e5ff1 \u00b7 nav navigate\nTotal RAM / CPU unavailable in page\n\n\n",
+    "url": "http://127.0.0.1:4400/frame-floor-safari.html?mute=1&nolock=1&sw=0",
+    "scan": null,
+    "rows": [],
+    "bootTimes": null,
+    "console": [
+      {
+        "level": "warn",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      }
+    ],
+    "quietValidity": {
+      "source": "64265f9326e29a52c3c41fd989d93cf46ccf2ae7",
+      "ktx2ProbeSkip": true,
+      "startedAt": 1792266095.350396,
+      "endedAt": 1792266198.9587011,
+      "pushEvents": [],
+      "pushersAtEnd": [],
+      "timingCredit": true
+    },
+    "timingCredit": false
+  },
+  "repairLanded": {
+    "sha": "87c717f317a2c27808849bf523cb45a0d897256e",
+    "runId": "82028-1792268219410",
+    "when": "2026-10-17T20:17:41.636Z",
+    "elapsedSeconds": 42.237,
+    "surface": "sim",
+    "device": "frame-floor-iphone-17-pro",
+    "complete": true,
+    "pass": false,
+    "harnessRevision": "d09a59c2234a697809236ff3d421b0f27529fc9b",
+    "criteria": {
+      "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+      "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+      "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+      "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+      "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+    },
+    "glObserver": "off",
+    "glTime": false,
+    "frameTimeline": false,
+    "errors": [],
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -3.8667315568341465e-06,
+          "y": 1.2121999941038666,
+          "z": -194.00000100973307,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "sampleRange": {
+          "startMs": 16662,
+          "endMs": 17670
+        },
+        "frames": 30,
+        "skipped": 0,
+        "medianFps": 30.303,
+        "p50Ms": 33,
+        "p95Ms": 46,
+        "p99Ms": 52,
+        "maxMs": 52,
+        "callbackP95Ms": 46,
+        "callbackP99Ms": 50,
+        "callbackMaxMs": 50,
+        "longFrames": {
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "at": [
+            [
+              17331,
+              52
+            ]
+          ]
+        },
+        "gameP95Ms": 45,
+        "workP95Ms": 25,
+        "calls": 291,
+        "triangles": 1612375,
+        "position": {
+          "x": -6.675335543104843e-06,
+          "y": 1.2143828913169272,
+          "z": -194.0000078681541
+        },
+        "cpu": {
+          "enabled": true,
+          "frames": 30,
+          "owners": [
+            {
+              "id": "driftwood-isle",
+              "samples": 30,
+              "p95Ms": 2,
+              "maxMs": 2,
+              "calls": 1323
+            }
+          ]
+        },
+        "contextLost": false,
+        "floorFps": 30,
+        "medianFpsRounded": 30,
+        "strictMs": 33.3,
+        "limitMs": 35,
+        "cpuLimitMs": 8.333333333333334,
+        "cpuPass": true,
+        "maxFrameLimitMs": 200,
+        "maxFramePass": true,
+        "pass": false,
+        "strictP95Pass": false,
+        "strictPass": false,
+        "miss": "frame cost / scheduling"
+      },
+      {
+        "pose": {
+          "name": "beach",
+          "x": -10,
+          "z": -150,
+          "yaw": 4.3,
+          "pitch": 0
+        },
+        "sampleRange": {
+          "startMs": 24262,
+          "endMs": 25256
+        },
+        "frames": 30,
+        "skipped": 0,
+        "medianFps": 30.303,
+        "p50Ms": 33,
+        "p95Ms": 41,
+        "p99Ms": 42,
+        "maxMs": 42,
+        "callbackP95Ms": 42,
+        "callbackP99Ms": 43,
+        "callbackMaxMs": 43,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        },
+        "gameP95Ms": 41,
+        "workP95Ms": 15,
+        "calls": 231,
+        "triangles": 1246005,
+        "position": {
+          "x": -9.99948005515239,
+          "y": 0.7056628473816087,
+          "z": -150.00001724491057
+        },
+        "cpu": {
+          "enabled": true,
+          "frames": 30,
+          "owners": [
+            {
+              "id": "driftwood-isle",
+              "samples": 30,
+              "p95Ms": 2,
+              "maxMs": 2,
+              "calls": 1320
+            }
+          ]
+        },
+        "contextLost": false,
+        "floorFps": 30,
+        "medianFpsRounded": 30,
+        "strictMs": 33.3,
+        "limitMs": 35,
+        "cpuLimitMs": 8.333333333333334,
+        "cpuPass": true,
+        "maxFrameLimitMs": 200,
+        "maxFramePass": true,
+        "pass": false,
+        "strictP95Pass": false,
+        "strictPass": false,
+        "miss": "frame cost / scheduling"
+      },
+      {
+        "pose": {
+          "name": "wreck",
+          "x": 105,
+          "z": 0,
+          "yaw": -1.5707963267948966,
+          "pitch": 0
+        },
+        "sampleRange": {
+          "startMs": 27462,
+          "endMs": 28462
+        },
+        "frames": 30,
+        "skipped": 0,
+        "medianFps": 30.303,
+        "p50Ms": 33,
+        "p95Ms": 34,
+        "p99Ms": 34,
+        "maxMs": 34,
+        "callbackP95Ms": 37,
+        "callbackP99Ms": 38,
+        "callbackMaxMs": 38,
+        "longFrames": {
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "at": []
+        },
+        "gameP95Ms": 34,
+        "workP95Ms": 18,
+        "calls": 175,
+        "triangles": 948313,
+        "position": {
+          "x": 105.00376461073665,
+          "y": 2.809997570580167,
+          "z": -0.006748606287146686
+        },
+        "cpu": {
+          "enabled": true,
+          "frames": 30,
+          "owners": [
+            {
+              "id": "driftwood-isle",
+              "samples": 30,
+              "p95Ms": 1.999999999996362,
+              "maxMs": 2,
+              "calls": 1320
+            }
+          ]
+        },
+        "contextLost": false,
+        "floorFps": 30,
+        "medianFpsRounded": 30,
+        "strictMs": 33.3,
+        "limitMs": 35,
+        "cpuLimitMs": 8.333333333333334,
+        "cpuPass": true,
+        "maxFrameLimitMs": 200,
+        "maxFramePass": true,
+        "pass": true,
+        "strictP95Pass": false,
+        "strictPass": false,
+        "miss": null
+      }
+    ],
+    "scan": [
+      {
+        "pose": {
+          "name": "pier",
+          "x": 0,
+          "z": -194,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "p95Ms": 34,
+        "workP95Ms": 14,
+        "calls": 207,
+        "triangles": 1248823
+      },
+      {
+        "pose": {
+          "name": "beach",
+          "x": -10,
+          "z": -150,
+          "yaw": 4.3,
+          "pitch": 0
+        },
+        "p95Ms": 36,
+        "workP95Ms": 19,
+        "calls": 322,
+        "triangles": 1676120
+      },
+      {
+        "pose": {
+          "name": "wreck",
+          "x": 105,
+          "z": 0,
+          "yaw": -1.5707963267948966,
+          "pitch": 0
+        },
+        "p95Ms": 34,
+        "workP95Ms": 15,
+        "calls": 174,
+        "triangles": 967289
+      }
+    ],
+    "bootTimes": {
+      "phone:8": {
+        "renderer": 20.5,
+        "sky": 693,
+        "terrain": 27.000000000000114,
+        "cards": 0,
+        "forest": 9.500000000000114,
+        "physics": 5,
+        "edge": 12.499999999999773,
+        "grass": 0,
+        "cabins": 0,
+        "props": 1877.5,
+        "animals": 130.50000000000023,
+        "weapon": 17.5,
+        "menu": 13.999999999999545,
+        "shaders": 8724.5,
+        "firstFrame": 314.5,
+        "audio": 335.9999999999991
+      }
+    },
+    "console": [
+      {
+        "level": "warn",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      },
+      {
+        "level": "info",
+        "text": "[shadow] 8 casters in 246 pieces (328037 tris)"
+      },
+      {
+        "level": "warn",
+        "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+      },
+      {
+        "level": "warn",
+        "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+      },
+      {
+        "level": "warn",
+        "text": "THREE.TSL: Vertex attribute \"normal\" not found on geometry. Stack trace not available. Enable \"THREE.Node.captureStackTrace\" to capture stack traces."
+      }
+    ],
+    "timingCredit": false,
+    "reason": "Actual landed boot regression under ordinary shared load; floor did not pass."
+  },
+  "interruptedAfter": {
+    "source": "87c717f317a2c27808849bf523cb45a0d897256e",
+    "proof": {
+      "id": "20261017T151751-sp-x1-road7-quiet-repaired-85157",
+      "label": "sp-x1-road7-quiet-repaired",
+      "state": "failed",
+      "rc": 130,
+      "startedAt": 1792268271,
+      "endedAt": 1792268309,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T151751-sp-x1-road7-quiet-repaired-85157.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/quiet-after.py"
+    },
+    "timingCredit": false,
+    "reason": "Stopped/discarded on deploy-critical ambient test repair notice before first pass completed."
+  },
+  "replay": {
+    "harness": "scripts/frame-floor.mjs",
+    "args": [
+      "--rev=87c717f317a2c27808849bf523cb45a0d897256e",
+      "--serve-base=<exact-served-build>",
+      "--devserver",
+      "--surface=sim",
+      "--shards=driftwood-isle",
+      "--frames=30",
+      "--textures=ktx2",
+      "--ktx2-probe=skip",
+      "--output-dir=<own-output>"
+    ],
+    "assertions": [
+      "harness exit status is 0 or 2; status 3 is a boot failure",
+      "record.sha equals the exact served SHA",
+      "record.complete is true",
+      "record.results[0].rows[0].errors is empty",
+      "actual drawn baseline rows exist after Props and world ready"
+    ],
+    "floorCredit": "None for these ordinary-load boot regression runs."
+  }
+}

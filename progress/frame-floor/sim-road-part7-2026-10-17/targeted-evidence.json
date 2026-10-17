@@ -1,0 +1,2369 @@
+[
+  {
+    "route": "grid-nalati-grasslands-road-entry-travel",
+    "range": {
+      "startMs": 43831,
+      "endMs": 47881
+    },
+    "anchors": [
+      [
+        42803.00000000001,
+        1792262433208
+      ],
+      [
+        68006,
+        1792262458412
+      ]
+    ],
+    "p95": 43,
+    "max": 64,
+    "frames": [
+      {
+        "startMs": 44597,
+        "endMs": 44650,
+        "intervalMs": 53,
+        "callbackAtMs": 44658,
+        "callbackDelayMs": 8,
+        "callbackIntervalMs": 57,
+        "gameRafMs": 44650,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 44597,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 44606,
+            "syncMs": 0,
+            "upperBoundMs": 44,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/workSlice.ts:47:9 () | Promise@[native code] <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 44847,
+        "endMs": 44888,
+        "intervalMs": 41,
+        "callbackAtMs": 44894,
+        "callbackDelayMs": 6,
+        "callbackIntervalMs": 43,
+        "gameRafMs": 44888,
+        "frameDelta": 1,
+        "updateMs": 4,
+        "renderMs": 2,
+        "workMs": 6,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 44847,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 44853,
+            "syncMs": 0,
+            "upperBoundMs": 35,
+            "end": "e",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 45447,
+        "endMs": 45511,
+        "intervalMs": 64,
+        "callbackAtMs": 45518,
+        "callbackDelayMs": 7,
+        "callbackIntervalMs": 68,
+        "gameRafMs": 45511,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 1,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 45458,
+            "ms": 27,
+            "operation": "lanes.restore@src/shards/nalati-grasslands/species/bodies.ts:38",
+            "stack": "lanes.restore@src/shards/nalati-grasslands/species/bodies.ts:38"
+          },
+          {
+            "start": 45488,
+            "ms": 7,
+            "operation": "BufferGeometry.computeBoundingSphere",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nQ@../../../../build-mirror/check2/tree/src/game/plugin/geometry.ts:1304:4 ()\nTt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:118:12 ()\nUt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:290:28 ()\nWt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:322:32 ()"
+          },
+          {
+            "start": 45486,
+            "ms": 12,
+            "operation": "geometry.read@src/game/plugin/geometry.ts:1285",
+            "stack": "geometry.read@src/game/plugin/geometry.ts:1285"
+          },
+          {
+            "start": 45498,
+            "ms": 12,
+            "operation": "BufferGeometry.toNonIndexed",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nTt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:120:17 ()\nUt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:290:28 ()\nWt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:322:32 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 45452,
+            "syncMs": 0,
+            "upperBoundMs": 59,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 45794,
+        "endMs": 45831,
+        "intervalMs": 37,
+        "callbackAtMs": 45835,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 37,
+        "gameRafMs": 45831,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 45771,
+            "syncMs": 0,
+            "upperBoundMs": 24,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          },
+          {
+            "start": 45800,
+            "syncMs": 0,
+            "upperBoundMs": 5,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 45864,
+        "endMs": 45911,
+        "intervalMs": 47,
+        "callbackAtMs": 45914,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 45,
+        "gameRafMs": 45911,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": []
+      },
+      {
+        "startMs": 46197,
+        "endMs": 46238,
+        "intervalMs": 41,
+        "callbackAtMs": 46241,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 40,
+        "gameRafMs": 46238,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 46197,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 46431,
+        "endMs": 46489,
+        "intervalMs": 58,
+        "callbackAtMs": 46493,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 59,
+        "gameRafMs": 46489,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": []
+      },
+      {
+        "startMs": 46814,
+        "endMs": 46859,
+        "intervalMs": 45,
+        "callbackAtMs": 46864.00000000001,
+        "callbackDelayMs": 5.000000000007276,
+        "callbackIntervalMs": 30.000000000007276,
+        "gameRafMs": 46859,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 1,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 46815,
+            "ms": 4,
+            "operation": "System.game.grid.live.pre",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:679:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 46815,
+            "ms": 4,
+            "operation": "Game.runPhase:fixed.pre",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:679:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 46819,
+            "ms": 12,
+            "operation": "System.game.grid.session",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:681:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 46819,
+            "ms": 12,
+            "operation": "Game.runPhase:fixed.post",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:681:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 46814,
+            "ms": 17,
+            "operation": "Game.runFixed",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 46814,
+            "syncMs": 20,
+            "upperBoundMs": 20,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 46837,
+            "syncMs": 0,
+            "upperBoundMs": 9,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          },
+          {
+            "start": 46846,
+            "syncMs": 0,
+            "upperBoundMs": 13,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 46944,
+        "endMs": 46981,
+        "intervalMs": 37,
+        "callbackAtMs": 46986.00000000001,
+        "callbackDelayMs": 5.000000000007276,
+        "callbackIntervalMs": 39.000000000007276,
+        "gameRafMs": 46981,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 2,
+        "workMs": 5,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 46949,
+            "syncMs": 0,
+            "upperBoundMs": 12,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          },
+          {
+            "start": 46961,
+            "syncMs": 0,
+            "upperBoundMs": 8,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 47114,
+        "endMs": 47152,
+        "intervalMs": 38,
+        "callbackAtMs": 47156,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 38.999999999992724,
+        "gameRafMs": 47152,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 47120,
+            "syncMs": 0,
+            "upperBoundMs": 17,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 47347,
+        "endMs": 47390,
+        "intervalMs": 43,
+        "callbackAtMs": 47394,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 43,
+        "gameRafMs": 47390,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 47347,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 47354,
+            "syncMs": 0,
+            "upperBoundMs": 17,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 47647,
+        "endMs": 47691,
+        "intervalMs": 44,
+        "callbackAtMs": 47694,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 44,
+        "gameRafMs": 47691,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 47652,
+            "syncMs": 0,
+            "upperBoundMs": 17,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      }
+    ],
+    "allSlowCalls": [
+      {
+        "start": 45458,
+        "ms": 27,
+        "operation": "lanes.restore@src/shards/nalati-grasslands/species/bodies.ts:38",
+        "stack": "lanes.restore@src/shards/nalati-grasslands/species/bodies.ts:38"
+      },
+      {
+        "start": 45486,
+        "ms": 12,
+        "operation": "geometry.read@src/game/plugin/geometry.ts:1285",
+        "stack": "geometry.read@src/game/plugin/geometry.ts:1285"
+      },
+      {
+        "start": 45498,
+        "ms": 12,
+        "operation": "BufferGeometry.toNonIndexed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nTt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:120:17 ()\nUt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:290:28 ()\nWt@../../../../build-mirror/check2/tree/src/shards/nalati-grasslands/world/placeBake.ts:322:32 ()"
+      },
+      {
+        "start": 46819,
+        "ms": 12,
+        "operation": "System.game.grid.session",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:681:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 46819,
+        "ms": 12,
+        "operation": "Game.runPhase:fixed.post",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:681:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 46814,
+        "ms": 17,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 50088,
+        "ms": 13,
+        "operation": "geometry.read@src/game/plugin/geometry.ts:1285",
+        "stack": "geometry.read@src/game/plugin/geometry.ts:1285"
+      },
+      {
+        "start": 52155,
+        "ms": 13,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 52220,
+        "ms": 10,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 53053,
+        "ms": 12,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 56541,
+        "ms": 15,
+        "operation": "Renderer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nM@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:284:13 ()\nj@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:240:12 ()"
+      },
+      {
+        "start": 56765,
+        "ms": 20,
+        "operation": "System.physics.step",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:680:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 56765,
+        "ms": 20,
+        "operation": "Game.runPhase:fixed.step",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:680:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 56764,
+        "ms": 23,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 56866,
+        "ms": 13,
+        "operation": "System.physics.step",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:680:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 56866,
+        "ms": 13,
+        "operation": "Game.runPhase:fixed.step",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:680:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 56865,
+        "ms": 19,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 57738,
+        "ms": 21,
+        "operation": "Game.runPhase:update",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1027:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 67470,
+        "ms": 14,
+        "operation": "System.grid.runtime.nalati-grasslands.animals",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1027:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 67470,
+        "ms": 16,
+        "operation": "Game.runPhase:update",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1027:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      }
+    ]
+  },
+  {
+    "route": "grid-pine-hollow-road-entry-travel",
+    "range": {
+      "startMs": 75522,
+      "endMs": 79681
+    },
+    "anchors": [
+      [
+        74513,
+        1792262464919
+      ],
+      [
+        103925,
+        1792262494331
+      ]
+    ],
+    "p95": 42,
+    "max": 125,
+    "frames": [
+      {
+        "startMs": 75522,
+        "endMs": 75564,
+        "intervalMs": 42,
+        "callbackAtMs": 75568,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 44,
+        "gameRafMs": 75564,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": []
+      },
+      {
+        "startMs": 75764,
+        "endMs": 75849,
+        "intervalMs": 85,
+        "callbackAtMs": 75852,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 82,
+        "gameRafMs": 75849,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [
+          {
+            "start": 75764,
+            "ms": 4,
+            "operation": "Game.runFixed",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 75764,
+            "syncMs": 5,
+            "upperBoundMs": 6,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 75867,
+        "endMs": 75992,
+        "intervalMs": 125,
+        "callbackAtMs": 75995,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 125,
+        "gameRafMs": 75992,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 75870,
+            "syncMs": 0,
+            "upperBoundMs": 61,
+            "end": "e",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 ()"
+          },
+          {
+            "start": 75932,
+            "syncMs": 0,
+            "upperBoundMs": 60,
+            "end": "e",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 77347,
+        "endMs": 77409,
+        "intervalMs": 62,
+        "callbackAtMs": 77420,
+        "callbackDelayMs": 11,
+        "callbackIntervalMs": 69,
+        "gameRafMs": 77409,
+        "frameDelta": 1,
+        "updateMs": 8,
+        "renderMs": 1,
+        "workMs": 9,
+        "calls": [
+          {
+            "start": 77355,
+            "ms": 17,
+            "operation": "JSON.parse",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nee@../../../../build-mirror/check2/tree/src/shards/pine-hollow/runtime/world/timberSites.ts:102:39 ()"
+          }
+        ],
+        "tasks": []
+      },
+      {
+        "startMs": 77464,
+        "endMs": 77508,
+        "intervalMs": 44,
+        "callbackAtMs": 77517,
+        "callbackDelayMs": 9,
+        "callbackIntervalMs": 50,
+        "gameRafMs": 77508,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 77479,
+            "ms": 10,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77491,
+            "ms": 8,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77500,
+            "ms": 8,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 77467,
+            "syncMs": 0,
+            "upperBoundMs": 10,
+            "end": "e",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100 <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100 <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 77479,
+            "syncMs": 0,
+            "upperBoundMs": 12,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77491,
+            "syncMs": 0,
+            "upperBoundMs": 9,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77500,
+            "syncMs": 0,
+            "upperBoundMs": 8,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 77508,
+        "endMs": 77546,
+        "intervalMs": 38,
+        "callbackAtMs": 77549,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 32,
+        "gameRafMs": 77546,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [
+          {
+            "start": 77520,
+            "ms": 9,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77529,
+            "ms": 7,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77538,
+            "ms": 7,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 77508,
+            "syncMs": 9,
+            "upperBoundMs": 9,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 77520,
+            "syncMs": 0,
+            "upperBoundMs": 9,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77529,
+            "syncMs": 0,
+            "upperBoundMs": 9,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77538,
+            "syncMs": 0,
+            "upperBoundMs": 8,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 77546,
+        "endMs": 77585,
+        "intervalMs": 39,
+        "callbackAtMs": 77589,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 40,
+        "gameRafMs": 77585,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 77566,
+            "ms": 7,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77577,
+            "ms": 8,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 77557,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:12 () | Promise@[native code] <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          },
+          {
+            "start": 77566,
+            "syncMs": 0,
+            "upperBoundMs": 11,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77577,
+            "syncMs": 0,
+            "upperBoundMs": 8,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 77585,
+        "endMs": 77628,
+        "intervalMs": 43,
+        "callbackAtMs": 77632,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 43,
+        "gameRafMs": 77628,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 1,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 77593,
+            "ms": 8,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77601,
+            "ms": 7,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77609,
+            "ms": 8,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 77619,
+            "ms": 9,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 77589,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:12 () | Promise@[native code] <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:12 () | Promise@[native code]"
+          },
+          {
+            "start": 77593,
+            "syncMs": 0,
+            "upperBoundMs": 8,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77601,
+            "syncMs": 0,
+            "upperBoundMs": 8,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77609,
+            "syncMs": 0,
+            "upperBoundMs": 10,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          },
+          {
+            "start": 77619,
+            "syncMs": 0,
+            "upperBoundMs": 9,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 78814,
+        "endMs": 78851,
+        "intervalMs": 37,
+        "callbackAtMs": 78854,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 36,
+        "gameRafMs": 78851,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 78814,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 78831,
+            "syncMs": 0,
+            "upperBoundMs": 20,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:12 () | Promise@[native code] <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/compressedUpload.ts:19:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 79014,
+        "endMs": 79064,
+        "intervalMs": 50,
+        "callbackAtMs": 79069,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 50,
+        "gameRafMs": 79064,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 79014,
+            "syncMs": 5,
+            "upperBoundMs": 5,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 79020,
+            "syncMs": 0,
+            "upperBoundMs": 22,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | set@http://127.0.0.1:4400/frame-floor-safari.html:278:122 | @../../../../build-mirror/check2/tree/src/engine/boot/plan.ts:94:4 () | Promise@[native code] | D@../../../../build-mirror/check2/tree/src/engine/boot/plan.ts:92:44 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          },
+          {
+            "start": 79043,
+            "syncMs": 0,
+            "upperBoundMs": 17,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100 <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100 <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 79060,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/game/grid/cellScreen.ts:359:68 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | y@../../../../build-mirror/check2/tree/src/game/grid/cellScreen.ts:359:46 () | upload@../../../../build-mirror/check2/tree/src/game/grid/cellScreen.ts:367:23 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 79090,
+        "endMs": 79131,
+        "intervalMs": 41,
+        "callbackAtMs": 79135,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 40.99999999998545,
+        "gameRafMs": 79131,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 79090,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 79095,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "e",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 ()"
+          },
+          {
+            "start": 79099,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      }
+    ],
+    "allSlowCalls": [
+      {
+        "start": 74823,
+        "ms": 10,
+        "operation": "Promise.reaction",
+        "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+      },
+      {
+        "start": 75399,
+        "ms": 15,
+        "operation": "Uint8Array.set",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:81:10 ()\nmap@[native code]\nwt@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:77:36 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:77 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+      },
+      {
+        "start": 75380,
+        "ms": 41,
+        "operation": "Promise.reaction",
+        "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+      },
+      {
+        "start": 77355,
+        "ms": 17,
+        "operation": "JSON.parse",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nee@../../../../build-mirror/check2/tree/src/shards/pine-hollow/runtime/world/timberSites.ts:102:39 ()"
+      },
+      {
+        "start": 77479,
+        "ms": 10,
+        "operation": "Promise.reaction",
+        "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:426:4 ()\n@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:58:6 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/KTX2Loader.js:393:8 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+      },
+      {
+        "start": 78518,
+        "ms": 19,
+        "operation": "Renderer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrender@../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../build-mirror/check2/tree/src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1039:17 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 78518,
+        "ms": 19,
+        "operation": "Composer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1039:17 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 81639,
+        "ms": 19,
+        "operation": "Renderer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrender@../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../build-mirror/check2/tree/src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1039:17 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 81639,
+        "ms": 19,
+        "operation": "Composer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1039:17 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 83270,
+        "ms": 11,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 84740,
+        "ms": 23,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 84776,
+        "ms": 22,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 84807,
+        "ms": 21,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 84835,
+        "ms": 21,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 84863,
+        "ms": 26,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85003,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85033,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85069,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85104,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85134,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85170,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85304,
+        "ms": 21,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85572,
+        "ms": 25,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 85614,
+        "ms": 27,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 86504,
+        "ms": 25,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 86604,
+        "ms": 22,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 86632,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 86708,
+        "ms": 27,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 90743,
+        "ms": 11,
+        "operation": "ShadowMap.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17774:13 ()\n@../../../../build-mirror/check2/tree/src/engine/render/frameCounter.ts:31:4 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nM@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:284:13 ()\nj@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:240:12 ()"
+      },
+      {
+        "start": 90742,
+        "ms": 13,
+        "operation": "Renderer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nM@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:284:13 ()\nj@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:240:12 ()"
+      },
+      {
+        "start": 93107,
+        "ms": 13,
+        "operation": "Game.runPhase:update",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1027:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 93770,
+        "ms": 10,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 100639,
+        "ms": 38,
+        "operation": "Renderer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrender@../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6920:15 ()\nrender@../../../../build-mirror/check2/tree/src/engine/core/worldDepth.ts:141:80 ()\nrender@../../../../../node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1312:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1039:17 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 100639,
+        "ms": 38,
+        "operation": "Composer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1039:17 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      }
+    ]
+  },
+  {
+    "route": "grid-driftwood-isle-road-entry-travel",
+    "range": {
+      "startMs": 111664,
+      "endMs": 115764
+    },
+    "anchors": [
+      [
+        110647,
+        1792262501053
+      ],
+      [
+        131823,
+        1792262522230
+      ]
+    ],
+    "p95": 40,
+    "max": 108,
+    "frames": [
+      {
+        "startMs": 113897,
+        "endMs": 113936,
+        "intervalMs": 39,
+        "callbackAtMs": 113940,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 39,
+        "gameRafMs": 113936,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 113927,
+            "ms": 9,
+            "operation": "BufferGeometry.computeBoundingSphere",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nQr@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts:26:42 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 113897,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 113904,
+            "syncMs": 1,
+            "upperBoundMs": 5,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114065,
+        "endMs": 114112,
+        "intervalMs": 47,
+        "callbackAtMs": 114119,
+        "callbackDelayMs": 7,
+        "callbackIntervalMs": 50,
+        "gameRafMs": 114112,
+        "frameDelta": 1,
+        "updateMs": 4,
+        "renderMs": 2,
+        "workMs": 6,
+        "calls": [
+          {
+            "start": 114093,
+            "ms": 5,
+            "operation": "BufferGeometry.computeBoundingBox",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nQr@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts:26:11 ()"
+          },
+          {
+            "start": 114098,
+            "ms": 14,
+            "operation": "BufferGeometry.computeBoundingSphere",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nQr@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts:26:42 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 114065,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114112,
+        "endMs": 114151,
+        "intervalMs": 39,
+        "callbackAtMs": 114155,
+        "callbackDelayMs": 4,
+        "callbackIntervalMs": 36,
+        "gameRafMs": 114151,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 114112,
+            "syncMs": 7,
+            "upperBoundMs": 7,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 114119,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "e",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 ()"
+          },
+          {
+            "start": 114123,
+            "syncMs": 0,
+            "upperBoundMs": 28,
+            "end": "e",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114171,
+        "endMs": 114218,
+        "intervalMs": 47,
+        "callbackAtMs": 114221,
+        "callbackDelayMs": 3,
+        "callbackIntervalMs": 47,
+        "gameRafMs": 114218,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 1,
+        "workMs": 3,
+        "calls": [
+          {
+            "start": 114179,
+            "ms": 5,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:2711:8 ()\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:549:9 ()\nvalue@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:173:16 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:324:10 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:45261:37 ()\nreaction@http://127.0.0.1:4400/frame-floor-safari.html:147:33"
+          },
+          {
+            "start": 114207,
+            "ms": 8,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:2711:8 ()\nparse@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:549:9 ()\nvalue@../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:173:16 ()\n@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:567:9 ()\nPromise@[native code]\nparseAsync@../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js:565:13 ()\nbuild@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/world/BlenderIsland.ts:175:18 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 114188,
+            "syncMs": 0,
+            "upperBoundMs": 4,
+            "end": "e",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100 <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100 <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | tick@ | wrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+          },
+          {
+            "start": 114195,
+            "syncMs": 0,
+            "upperBoundMs": 23,
+            "end": "e",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/core/ktx2.ts:191:34 () | @[native code] <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | _initWorker@../../../../build-mirror/check2/tree/src/engine/core/scopedWorkerPool.ts:19:44 () | @../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/utils/WorkerPool.js:138:9 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114470,
+        "endMs": 114515,
+        "intervalMs": 45,
+        "callbackAtMs": 114520,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 46,
+        "gameRafMs": 114515,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 114470,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114697,
+        "endMs": 114743,
+        "intervalMs": 46,
+        "callbackAtMs": 114749.00000000001,
+        "callbackDelayMs": 6.000000000014552,
+        "callbackIntervalMs": 48,
+        "gameRafMs": 114743,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 1,
+        "workMs": 4,
+        "calls": [
+          {
+            "start": 114705,
+            "ms": 19,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          },
+          {
+            "start": 114725,
+            "ms": 17,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 114697,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 114704,
+            "syncMs": 0,
+            "upperBoundMs": 39,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114864,
+        "endMs": 114972,
+        "intervalMs": 108,
+        "callbackAtMs": 114979,
+        "callbackDelayMs": 7,
+        "callbackIntervalMs": 110.99999999998545,
+        "gameRafMs": 114972,
+        "frameDelta": 1,
+        "updateMs": 5,
+        "renderMs": 2,
+        "workMs": 7,
+        "calls": [
+          {
+            "start": 114877,
+            "ms": 18,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          },
+          {
+            "start": 114895,
+            "ms": 18,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          },
+          {
+            "start": 114914,
+            "ms": 18,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          },
+          {
+            "start": 114933,
+            "ms": 17,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          },
+          {
+            "start": 114951,
+            "ms": 19,
+            "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+            "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+          },
+          {
+            "start": 114877,
+            "ms": 94,
+            "operation": "Promise.reaction",
+            "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nbuild@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/creatures/Enemies.ts:158:91 ()\nf@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/creatures/install.ts:40:117 ()\n@../../../../build-mirror/check2/tree/src/game/grid/regionalRuntime.ts:267:28 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 114864,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 114870,
+            "syncMs": 0,
+            "upperBoundMs": 5,
+            "end": "e",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          },
+          {
+            "start": 114875,
+            "syncMs": 0,
+            "upperBoundMs": 96,
+            "end": "e",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | set@http://127.0.0.1:4400/frame-floor-safari.html:278:122 | @../../../../build-mirror/check2/tree/src/engine/boot/plan.ts:94:4 () | Promise@[native code] | D@../../../../build-mirror/check2/tree/src/engine/boot/plan.ts:92:44 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 114972,
+        "endMs": 115034,
+        "intervalMs": 62,
+        "callbackAtMs": 115039,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 60,
+        "gameRafMs": 115034,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 2,
+        "workMs": 5,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 114972,
+            "syncMs": 7,
+            "upperBoundMs": 7,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 114986,
+            "syncMs": 0,
+            "upperBoundMs": 47,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/script/host.ts:74:68 () | Promise@[native code]"
+          }
+        ]
+      },
+      {
+        "startMs": 115100,
+        "endMs": 115140,
+        "intervalMs": 40,
+        "callbackAtMs": 115147,
+        "callbackDelayMs": 7,
+        "callbackIntervalMs": 42,
+        "gameRafMs": 115140,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 2,
+        "workMs": 5,
+        "calls": [
+          {
+            "start": 115119,
+            "ms": 17,
+            "operation": "Renderer.compile",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 115100,
+            "syncMs": 5,
+            "upperBoundMs": 5,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 115106,
+            "syncMs": 0,
+            "upperBoundMs": 34,
+            "end": "t",
+            "kind": "message",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | addEventListener@http://127.0.0.1:4400/frame-floor-safari.html:266:74 | listen@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:202:11 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:85:13 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | n@../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:81:12 () | @../../../../build-mirror/check2/tree/src/engine/core/framePacing.ts:89:4 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 115193,
+        "endMs": 115231,
+        "intervalMs": 38,
+        "callbackAtMs": 115236,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 37.99999999998545,
+        "gameRafMs": 115231,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 2,
+        "workMs": 4,
+        "calls": [],
+        "tasks": [
+          {
+            "start": 115193,
+            "syncMs": 4,
+            "upperBoundMs": 5,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 115558,
+        "endMs": 115597,
+        "intervalMs": 39,
+        "callbackAtMs": 115602,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 39,
+        "gameRafMs": 115597,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 2,
+        "workMs": 5,
+        "calls": [
+          {
+            "start": 115564,
+            "ms": 18,
+            "operation": "Renderer.compile",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 115558,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 115564,
+            "syncMs": 0,
+            "upperBoundMs": 19,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | l@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:678:37 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:683:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 115597,
+        "endMs": 115633,
+        "intervalMs": 36,
+        "callbackAtMs": 115638,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 36,
+        "gameRafMs": 115633,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 3,
+        "workMs": 5,
+        "calls": [
+          {
+            "start": 115604,
+            "ms": 27,
+            "operation": "Renderer.compile",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 115597,
+            "syncMs": 5,
+            "upperBoundMs": 5,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 115604,
+            "syncMs": 0,
+            "upperBoundMs": 29,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | l@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:678:37 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:59 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | l@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:678:37 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:59 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 115657,
+        "endMs": 115697,
+        "intervalMs": 40,
+        "callbackAtMs": 115702,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 41,
+        "gameRafMs": 115697,
+        "frameDelta": 1,
+        "updateMs": 3,
+        "renderMs": 2,
+        "workMs": 5,
+        "calls": [
+          {
+            "start": 115663,
+            "ms": 19,
+            "operation": "Renderer.compile",
+            "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+          }
+        ],
+        "tasks": [
+          {
+            "start": 115657,
+            "syncMs": 4,
+            "upperBoundMs": 4,
+            "end": "t",
+            "kind": "raf",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | r@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:980:60 () | s@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:994:6 ()"
+          },
+          {
+            "start": 115663,
+            "syncMs": 0,
+            "upperBoundMs": 21,
+            "end": "t",
+            "kind": "timeout",
+            "site": "site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | requestAnimationFrame@http://127.0.0.1:4400/frame-floor-safari.html:258:136 | raf@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:22 () | l@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:678:37 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:683:4 () <= site@http://127.0.0.1:4400/frame-floor-safari.html:97:33 | setTimeout@http://127.0.0.1:4400/frame-floor-safari.html:256:131 | timeout@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:242:15 () | @../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:681:34 () | m@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()"
+          }
+        ]
+      },
+      {
+        "startMs": 115725,
+        "endMs": 115764,
+        "intervalMs": 39,
+        "callbackAtMs": 115769,
+        "callbackDelayMs": 5,
+        "callbackIntervalMs": 40,
+        "gameRafMs": 115764,
+        "frameDelta": 1,
+        "updateMs": 2,
+        "renderMs": 3,
+        "workMs": 5,
+        "calls": [],
+        "tasks": []
+      }
+    ],
+    "allSlowCalls": [
+      {
+        "start": 111632,
+        "ms": 10,
+        "operation": "System.game.grid.session",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunPhase@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:660:17 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:681:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 111632,
+        "ms": 10,
+        "operation": "Game.runPhase:fixed.post",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nrunFixed@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:681:11 ()\nmeasuredCall@http://127.0.0.1:4400/frame-floor-safari.html:122:33\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 111632,
+        "ms": 11,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 114098,
+        "ms": 14,
+        "operation": "BufferGeometry.computeBoundingSphere",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nQr@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts:26:42 ()"
+      },
+      {
+        "start": 114705,
+        "ms": 19,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114725,
+        "ms": 17,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114752,
+        "ms": 19,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114778,
+        "ms": 17,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114803,
+        "ms": 19,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114837,
+        "ms": 21,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114877,
+        "ms": 18,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114895,
+        "ms": 18,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114914,
+        "ms": 18,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114933,
+        "ms": 17,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114951,
+        "ms": 19,
+        "operation": "creature.model@src/engine/entities/AnimalFactory.ts:310",
+        "stack": "creature.model@src/engine/entities/AnimalFactory.ts:310"
+      },
+      {
+        "start": 114877,
+        "ms": 94,
+        "operation": "Promise.reaction",
+        "stack": "then@http://127.0.0.1:4400/frame-floor-safari.html:144:32\nbuild@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/creatures/Enemies.ts:158:91 ()\nf@../../../../build-mirror/check2/tree/src/shards/driftwood-isle/creatures/install.ts:40:117 ()\n@../../../../build-mirror/check2/tree/src/game/grid/regionalRuntime.ts:267:28 ()"
+      },
+      {
+        "start": 115119,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115148,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115174,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115538,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115564,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115604,
+        "ms": 27,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115640,
+        "ms": 16,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115663,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115704,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115772,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115798,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115838,
+        "ms": 16,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115864,
+        "ms": 35,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115909,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115937,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 115965,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116002,
+        "ms": 22,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116032,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116072,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116101,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116139,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116171,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116205,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116237,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116272,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116312,
+        "ms": 21,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116341,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116370,
+        "ms": 22,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116412,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116439,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116539,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116574,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116604,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116638,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116672,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116704,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116737,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116771,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116803,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116838,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116878,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116905,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116938,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 116976,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117002,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117038,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117071,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117105,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117139,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117172,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117204,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117240,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117280,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117309,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117337,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117371,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117405,
+        "ms": 20,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117437,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117472,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117510,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117539,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117565,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117604,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117629,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117671,
+        "ms": 16,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117771,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117838,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117864,
+        "ms": 15,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 117976,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118005,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118029,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118071,
+        "ms": 16,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118095,
+        "ms": 18,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118204,
+        "ms": 19,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118232,
+        "ms": 17,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 118572,
+        "ms": 10,
+        "operation": "Renderer.compile",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nIe@../../../../build-mirror/check2/tree/src/engine/render/precompile.ts:783:15 ()"
+      },
+      {
+        "start": 119541,
+        "ms": 11,
+        "operation": "Renderer.render",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\nM@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:284:13 ()\nj@../../../../build-mirror/check2/tree/src/engine/render/parkedDraws.ts:240:12 ()\nwarmEnteredStages@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:861:26 ()"
+      },
+      {
+        "start": 119999,
+        "ms": 10,
+        "operation": "Game.runFixed",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1026:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      },
+      {
+        "start": 121188,
+        "ms": 10,
+        "operation": "Game.runPhase:update",
+        "stack": "measuredCall@http://127.0.0.1:4400/frame-floor-safari.html:127:181\ns@../../../../build-mirror/check2/tree/src/engine/core/Game.ts:1027:11 ()\nm@../../../../build-mirror/check2/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check2/tree/src/engine/app/scope.ts:261:96 ()\nwrapped@http://127.0.0.1:4400/frame-floor-safari.html:254:100"
+      }
+    ]
+  }
+]

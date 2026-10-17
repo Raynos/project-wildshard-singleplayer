@@ -1,0 +1,90 @@
+{
+  "sha": "87c717f317a2c27808849bf523cb45a0d897256e",
+  "parent": "caa8ef651eb54654d0b3d9f5f51ae7e613da09f7",
+  "tree": "2b6427d6c9c989f8f7e2508b3ad949749cf702c6",
+  "validatedSource": {
+    "base": "538918559eda83a3739910f602ccfae03f351333",
+    "tree": "bd2215e72dd0fc2e7b19d6571f2aaf635aeb6f64",
+    "paths": [
+      "scripts/authored-manifest.mjs",
+      "test/authored-manifest.test.ts",
+      "scripts/gate-test-products.json"
+    ]
+  },
+  "ruler": {
+    "beforeSha": "538918559eda83a3739910f602ccfae03f351333",
+    "afterTree": "bd2215e72dd0fc2e7b19d6571f2aaf635aeb6f64",
+    "before": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 5517,
+      "far-reach": 528,
+      "ink-cel-valley": 1105,
+      "nalati-grasslands": 20067,
+      "nine-dragon-stack": 11889,
+      "pastel-plain": 733,
+      "pine-hollow": 8093,
+      "sunscar-dunes": 392
+    },
+    "after": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 5517,
+      "far-reach": 528,
+      "ink-cel-valley": 1105,
+      "nalati-grasslands": 20067,
+      "nine-dragon-stack": 11889,
+      "pastel-plain": 733,
+      "pine-hollow": 8093,
+      "sunscar-dunes": 392
+    },
+    "net": {
+      "_template": 0,
+      "blender-template": 0,
+      "driftwood-isle": 0,
+      "far-reach": 0,
+      "ink-cel-valley": 0,
+      "nalati-grasslands": 0,
+      "nine-dragon-stack": 0,
+      "pastel-plain": 0,
+      "pine-hollow": 0,
+      "sunscar-dunes": 0
+    }
+  },
+  "previewTree": "3442448a91d996865b3ee031a8a44ee7c128a687",
+  "proofs": [
+    {
+      "id": "20261017T145622-sp-x1-road7-ordered-import-repair-88274",
+      "label": "sp-x1-road7-ordered-import-repair",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792266982,
+      "endedAt": 1792267423,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T145622-sp-x1-road7-ordered-import-repair-88274.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/repair-preview.py"
+    },
+    {
+      "id": "20261017T150256-sp-x1-road7-repair-final-checks-12146",
+      "label": "sp-x1-road7-repair-final-checks",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792267376,
+      "endedAt": 1792267916,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T150256-sp-x1-road7-repair-final-checks-12146.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/check-repair-final.py"
+    },
+    {
+      "id": "20261017T150706-sp-x1-road7-land-repair-31312",
+      "label": "sp-x1-road7-land-repair",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792267626,
+      "endedAt": 1792267935,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T150706-sp-x1-road7-land-repair-31312.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/wait-land-repair.py"
+    }
+  ]
+}

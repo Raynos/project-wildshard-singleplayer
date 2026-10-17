@@ -1,0 +1,839 @@
+{
+  "origin": {
+    "sha": "99cba0b9a01146c58744fb9e3e1ad3feeec47bb6"
+  },
+  "classification": "Cold source bug; valid v1 module routed to v0 memory preparation in grid play.",
+  "module": "behaviour/night.wasm",
+  "hash": "3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135",
+  "import": "env.ws_read",
+  "actual": "(i32, f64, f64) -> f64",
+  "selectedAbi": 0,
+  "expected": null,
+  "sites": [
+    "src/shards/pine-hollow/runtime/index.ts:66",
+    "src/shards/pine-hollow/runtime/index.ts:174",
+    "src/engine/script/host.ts:79"
+  ],
+  "coldRemovalCount": 2165,
+  "coldPreparation": "Within one locked check2 mirror lease: remove untracked src/public/scripts/lint files, fresh isolated generation/product caches, gen --proof, all10 without reuse, native admission scan, exact serve. No repository copy.",
+  "coldNativeAdmission": [
+    {
+      "path": "src/shards/pine-hollow/behaviour/blackpaw.json",
+      "abi": 0,
+      "module": "0091f973a1b908e5c2edc993ce8eb20dbff93ffe4072b087b20277c6dafeed8c",
+      "imports": [
+        {
+          "module": "env",
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "module": "env",
+          "name": "enter",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "leave",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "fuel",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite32",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite64",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "query",
+          "kind": "function"
+        }
+      ],
+      "error": null
+    },
+    {
+      "path": "src/shards/pine-hollow/behaviour/director.json",
+      "abi": 0,
+      "module": "4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
+      "imports": [
+        {
+          "module": "env",
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "module": "env",
+          "name": "enter",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "leave",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "fuel",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite32",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite64",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "query",
+          "kind": "function"
+        }
+      ],
+      "error": null
+    },
+    {
+      "path": "src/shards/pine-hollow/behaviour/ghostStag.json",
+      "abi": 0,
+      "module": "114f3919809a532d7238fe0d1c97f8f1d0863ab812989c4bf978542dd81f6142",
+      "imports": [
+        {
+          "module": "env",
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "module": "env",
+          "name": "enter",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "leave",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "fuel",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite32",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite64",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "query",
+          "kind": "function"
+        }
+      ],
+      "error": null
+    },
+    {
+      "path": "src/shards/pine-hollow/behaviour/imperialBull.json",
+      "abi": 0,
+      "module": "7f9bb07bdc290ded141e654f561af91bde6bda3c0142fb8f84d1b04fd27fac65",
+      "imports": [
+        {
+          "module": "env",
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "module": "env",
+          "name": "enter",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "leave",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "fuel",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite32",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite64",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "query",
+          "kind": "function"
+        }
+      ],
+      "error": null
+    },
+    {
+      "path": "src/shards/pine-hollow/behaviour/ironhide.json",
+      "abi": 0,
+      "module": "fd0fa3a338ad78dd2f6e3f314449b80791eb251dd868924440f44ff8da82ccf5",
+      "imports": [
+        {
+          "module": "env",
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "module": "env",
+          "name": "enter",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "leave",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "fuel",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite32",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite64",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "query",
+          "kind": "function"
+        }
+      ],
+      "error": null
+    },
+    {
+      "path": "src/shards/pine-hollow/behaviour/night.generated.json",
+      "abi": 1,
+      "module": "blobs/wasm/3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135.wasm",
+      "imports": [
+        {
+          "module": "env",
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "module": "env",
+          "name": "enter",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "leave",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "fuel",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite32",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "finite64",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "ws_read",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "abort",
+          "kind": "function"
+        },
+        {
+          "module": "env",
+          "name": "ws_list",
+          "kind": "function"
+        }
+      ],
+      "error": null
+    }
+  ],
+  "warmPackagedImports": [
+    {
+      "file": "0091f973a1b908e5c2edc993ce8eb20dbff93ffe4072b087b20277c6dafeed8c.wasm",
+      "abi": 0,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "query",
+          "signature": [
+            127,
+            127,
+            127,
+            127
+          ]
+        }
+      ],
+      "failures": []
+    },
+    {
+      "file": "114f3919809a532d7238fe0d1c97f8f1d0863ab812989c4bf978542dd81f6142.wasm",
+      "abi": 0,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "query",
+          "signature": [
+            127,
+            127,
+            127,
+            127
+          ]
+        }
+      ],
+      "failures": []
+    },
+    {
+      "file": "3cad664c64f89dbb6b3cdb7edc534d2bf55bf6dbfb19372d6a4fc0f34b88ca83.wasm",
+      "abi": 1,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "ws_read",
+          "signature": [
+            127,
+            124,
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "abort",
+          "signature": [
+            127,
+            127,
+            127,
+            127,
+            0
+          ]
+        }
+      ],
+      "failures": []
+    },
+    {
+      "file": "3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135.wasm",
+      "abi": 1,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "ws_read",
+          "signature": [
+            127,
+            124,
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "abort",
+          "signature": [
+            127,
+            127,
+            127,
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "ws_list",
+          "signature": [
+            127,
+            124,
+            124,
+            127,
+            127,
+            127
+          ]
+        }
+      ],
+      "failures": []
+    },
+    {
+      "file": "4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251.wasm",
+      "abi": 0,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "query",
+          "signature": [
+            127,
+            127,
+            127,
+            127
+          ]
+        }
+      ],
+      "failures": []
+    },
+    {
+      "file": "7f9bb07bdc290ded141e654f561af91bde6bda3c0142fb8f84d1b04fd27fac65.wasm",
+      "abi": 0,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "query",
+          "signature": [
+            127,
+            127,
+            127,
+            127
+          ]
+        }
+      ],
+      "failures": []
+    },
+    {
+      "file": "fd0fa3a338ad78dd2f6e3f314449b80791eb251dd868924440f44ff8da82ccf5.wasm",
+      "abi": 0,
+      "imports": [
+        {
+          "mod": "env",
+          "field": "enter",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "leave",
+          "signature": [
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "fuel",
+          "signature": [
+            127,
+            0
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite32",
+          "signature": [
+            125,
+            125
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "finite64",
+          "signature": [
+            124,
+            124
+          ]
+        },
+        {
+          "mod": "env",
+          "field": "query",
+          "signature": [
+            127,
+            127,
+            127,
+            127
+          ]
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "warmInstrumentedGrid": {
+    "base": "http://127.0.0.1:4400/",
+    "result": {
+      "failure": [
+        "[grid] pine-hollow: admission failed; it stays closed until a retry",
+        "Error: Import signature outside ABI {\"abi\":0,\"import\":\"ws_read\",\"actual\":[127,124,124,124],\"expected\":null,\"stack\":\"Error\\n    at F (http://127.0.0.1:4400/assets/directorStages-DMmW8fiZ.js:1:3626)\\n    at http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3954\\n    at Array.map (<anonymous>)\\n    at S (http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3940)\\n    at ff.play (http://127.0.0.1:4400/assets/runtime-iPZG8GUN.js:2:327953)\\n    at async http://127.0.0.1:4400/assets/hybrid-B-5XPALa.js:1:16084\"}\n    at F (http://127.0.0.1:4400/assets/directorStages-DMmW8fiZ.js:1:3864)\n    at http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3954\n    at Array.map (<anonymous>)\n    at S (http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3940)\n    at ff.play (http://127.0.0.1:4400/assets/runtime-iPZG8GUN.js:2:327953)\n    at async http://127.0.0.1:4400/assets/hybrid-B-5XPALa.js:1:16084"
+      ]
+    },
+    "console": [
+      {
+        "level": "error",
+        "args": [
+          "ABI_DIAG",
+          "{\"abi\":0,\"import\":\"ws_read\",\"actual\":[127,124,124,124],\"expected\":null,\"stack\":\"Error\\n    at F (http://127.0.0.1:4400/assets/directorStages-DMmW8fiZ.js:1:3626)\\n    at http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3954\\n    at Array.map (<anonymous>)\\n    at S (http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3940)\\n    at ff.play (http://127.0.0.1:4400/assets/runtime-iPZG8GUN.js:2:327953)\\n    at async http://127.0.0.1:4400/assets/hybrid-B-5XPALa.js:1:16084\",\"module\":\"3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135\"}"
+        ]
+      },
+      {
+        "level": "error",
+        "args": [
+          "[grid] pine-hollow: admission failed; it stays closed until a retry",
+          "Error: Import signature outside ABI {\"abi\":0,\"import\":\"ws_read\",\"actual\":[127,124,124,124],\"expected\":null,\"stack\":\"Error\\n    at F (http://127.0.0.1:4400/assets/directorStages-DMmW8fiZ.js:1:3626)\\n    at http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3954\\n    at Array.map (<anonymous>)\\n    at S (http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3940)\\n    at ff.play (http://127.0.0.1:4400/assets/runtime-iPZG8GUN.js:2:327953)\\n    at async http://127.0.0.1:4400/assets/hybrid-B-5XPALa.js:1:16084\"}\n    at F (http://127.0.0.1:4400/assets/directorStages-DMmW8fiZ.js:1:3864)\n    at http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3954\n    at Array.map (<anonymous>)\n    at S (http://127.0.0.1:4400/assets/host-CAA3YQzR.js:1:3940)\n    at ff.play (http://127.0.0.1:4400/assets/runtime-iPZG8GUN.js:2:327953)\n    at async http://127.0.0.1:4400/assets/hybrid-B-5XPALa.js:1:16084"
+        ]
+      }
+    ]
+  },
+  "coldUninstrumentedGrid": {
+    "base": "http://localhost:4474/",
+    "result": {
+      "failure": [
+        "[grid] pine-hollow: admission failed; it stays closed until a retry",
+        "Error: Import signature outside ABI\n    at F (http://localhost:4474/assets/directorStages-DMmW8fiZ.js:1:3488)\n    at http://localhost:4474/assets/host-CAA3YQzR.js:1:3954\n    at Array.map (<anonymous>)\n    at S (http://localhost:4474/assets/host-CAA3YQzR.js:1:3940)\n    at ff.play (http://localhost:4474/assets/runtime-Zu6aPA-A.js:2:327953)\n    at async http://localhost:4474/assets/hybrid-CeXw9sMR.js:1:16084"
+      ]
+    },
+    "console": [
+      {
+        "level": "error",
+        "args": [
+          "[grid] pine-hollow: admission failed; it stays closed until a retry",
+          "Error: Import signature outside ABI\n    at F (http://localhost:4474/assets/directorStages-DMmW8fiZ.js:1:3488)\n    at http://localhost:4474/assets/host-CAA3YQzR.js:1:3954\n    at Array.map (<anonymous>)\n    at S (http://localhost:4474/assets/host-CAA3YQzR.js:1:3940)\n    at ff.play (http://localhost:4474/assets/runtime-Zu6aPA-A.js:2:327953)\n    at async http://localhost:4474/assets/hybrid-CeXw9sMR.js:1:16084"
+        ]
+      }
+    ]
+  },
+  "owner": "sp-x4; removes all v1 modules from legacy preparation list in elite landing; whitelist unchanged",
+  "coldStandaloneSafari": {
+    "sha": "99cba0b9a01146c58744fb9e3e1ad3feeec47bb6",
+    "runId": "68047-1792269479850",
+    "when": "2026-10-17T20:38:49.103Z",
+    "complete": true,
+    "pass": true,
+    "elapsedSeconds": 49.262,
+    "surface": "sim",
+    "device": "frame-floor-iphone-17-pro",
+    "rows": [
+      {
+        "pose": {
+          "name": "spawn",
+          "x": -2.055464561750986e-07,
+          "y": 0.012099999607016798,
+          "z": -234.99999979934572,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "p95Ms": 34,
+        "maxMs": 35,
+        "pass": true
+      },
+      {
+        "pose": {
+          "name": "cabin",
+          "x": -14,
+          "z": -62,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "p95Ms": 34,
+        "maxMs": 34,
+        "pass": true
+      },
+      {
+        "pose": {
+          "name": "gate",
+          "x": 0,
+          "z": -200,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        "p95Ms": 35,
+        "maxMs": 35,
+        "pass": true
+      }
+    ],
+    "errors": []
+  },
+  "proofs": [
+    {
+      "id": "20261017T153526-sp-x1-road7-cold-origin-browser-49543",
+      "label": "sp-x1-road7-cold-origin-browser",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792269326,
+      "endedAt": 1792269529,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T153526-sp-x1-road7-cold-origin-browser-49543.log",
+      "pane": "wT:p3",
+      "command": "python3 tmp/sp-x1-road7/cold-origin.py"
+    },
+    {
+      "id": "20261017T153947-sp-x1-road7-cold-grid-abi2-78023",
+      "label": "sp-x1-road7-cold-grid-abi2",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792269587,
+      "endedAt": 1792269625,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T153947-sp-x1-road7-cold-grid-abi2-78023.log",
+      "pane": "wT:p3",
+      "command": "env ROAD7_ABI_URL=http://localhost:4474/ ROAD7_ABI_OUT=.git/proofs/artifacts/20261017-sp-x1-sim-road7/cold-grid-abi.json scripts/browser-lane.sh --max 3 node --import ./scripts/bake-loader.mjs tmp/sp-x1-road7/grid-abi-diag.mjs"
+    },
+    {
+      "id": "20261017T153947-sp-x1-road7-warm-grid-abi3-78021",
+      "label": "sp-x1-road7-warm-grid-abi3",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792269587,
+      "endedAt": 1792269622,
+      "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261017T153947-sp-x1-road7-warm-grid-abi3-78021.log",
+      "pane": "wT:p3",
+      "command": "env ROAD7_ABI_URL=http://127.0.0.1:4400/ ROAD7_ABI_OUT=.git/proofs/artifacts/20261017-sp-x1-sim-road7/warm-grid-abi.json scripts/browser-lane.sh --max 3 node --import ./scripts/bake-loader.mjs tmp/sp-x1-road7/grid-abi-diag.mjs"
+    }
+  ]
+}

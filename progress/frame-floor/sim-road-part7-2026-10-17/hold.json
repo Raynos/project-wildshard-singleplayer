@@ -1,0 +1,22 @@
+{
+  "source": "87c717f317a2c27808849bf523cb45a0d897256e",
+  "grants": [
+    "Granted, conditional on the deploy: sp-x7's Safari-tail push is running and goes first. Your runner's push.lock and drain wait handle that naturally. Time only after the exact landed boot is green and everything has drained, then send HOLD RELEASE. If sp-x7 needs a deploy-critical local fix mid-window, discard that pass.",
+    "Renewed, on the same conditions: wait for sp-x7's push.lock and the drain, time 87c717f31, then send HOLD RELEASE."
+  ],
+  "interruptedProof": "20261017T151751-sp-x1-road7-quiet-repaired-85157",
+  "finalProof": "20261017T151911-sp-x1-road7-quiet-final-95093",
+  "deployDrainNotice": "Deploy-critical ambient push drained:99cba0b9a is on origin, gate green, no local work running from me.",
+  "lastDrainedLaneConfirmation": "[from sp-x4] Confirmed: no commit hook/local test/type/lint/build/browser has run after08f7 pipeline exit. Only read/edit of private-index staging/message and prior proof JSON. Waiting for explicit HOLD RELEASE plus x7's cold-map rule; no new work queued.",
+  "final17efGrant": {
+    "sha": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+    "message": "[from wildshard-new] Granted, conditional: your runner waits for sp-x7's push.lock and for sp-x5's running map pipeline to drain, then times 17ef0c2e8. Discard any pass that overlaps deploy-critical work. Send HOLD RELEASE at the end."
+  },
+  "finalRelease": {
+    "proof": "20261017T160003-sp-x1-road7-cold-quiet-pairs-71347",
+    "rc": 2,
+    "quietMarkerAbsent": true,
+    "releaseMessage": "HOLD RELEASE, BOTH surfaces",
+    "pushLockReleasedInFinally": true
+  }
+}
