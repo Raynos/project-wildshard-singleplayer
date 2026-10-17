@@ -1,0 +1,12 @@
+{
+  "phone": {
+    "size": 1024,
+    "pixelHash": "57bb90eb15dafb8379e0c2dda0aeea013723b78814ec3f6960b13854cf20b01c",
+    "rectHash": "fb311be8e56814f8c75a9065911d108a4cf9629d91b1fdc5bbf3011e05138678"
+  },
+  "desktop": {
+    "size": 2048,
+    "pixelHash": "3ece61de47c4dc9a8be8fbbc0c1ebe04fed8bf0f0153087fd5c19771d9038dbc",
+    "rectHash": "fb311be8e56814f8c75a9065911d108a4cf9629d91b1fdc5bbf3011e05138678"
+  }
+}

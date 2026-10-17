@@ -1,10 +1,44 @@
 import type { NeonTextLook } from "../../data/signs";
 import {
-  BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, type IUniform, ShaderMaterial,
+  BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, DataUtils, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType, Float16BufferAttribute, Float32BufferAttribute, Mesh, type IUniform, ShaderMaterial,
   type ShaderMaterialParameters, Uint32BufferAttribute, Vector3,
 } from 'three';
-import type { GlyphField } from './glyphField';
+import * as val from 'valibot';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { SignCalligraphy, SignLight } from './signAtlas';
+
+
+const GlyphRows = val.strictObject({
+  words: val.array(val.string()),
+  size: val.picklist([1024, 2048]), parts: val.picklist([1, 4]),
+  layout: val.strictObject({ cell: val.number(), fontPx: val.number(), spread: val.number(), skeletonSpread: val.number() }),
+  rects: val.record(val.string(), val.strictObject({ u0: val.number(), v0: val.number(), u1: val.number(), v1: val.number() })),
+});
+type GlyphRect = val.InferOutput<typeof GlyphRows>['rects'][string];
+interface GlyphField { readonly words: readonly string[]; readonly chars: string; readonly layout: val.InferOutput<typeof GlyphRows>['layout']; readonly texture: DataTexture; readonly rect: (ch: string) => GlyphRect }
+
+/** Read the admitted, losslessly packed RG8 atlas; font rasterization and SDF transforms run only in generators. */
+export async function loadGlyphField(tier: 'phone' | 'desktop', files?: { readonly file: (name: string) => Promise<Uint8Array> }): Promise<GlyphField> {
+  const product = files ?? await loadFirstPartyProduct('nine-dragon-stack');
+  const json = await product.file(`signs/glyphs-${tier}.json`);
+  const row = val.parse(GlyphRows, JSON.parse(new TextDecoder().decode(json)));
+  if (row.parts * 2_097_152 !== row.size * row.size * 2) throw new Error('Nine glyph atlas byte count differs');
+  const data = new Uint8Array(row.size * row.size * 2);
+  await Promise.all(Array.from({ length: row.parts }, async (_value, index) => {
+    const packed = await product.file(`signs/glyphs-${tier}-${index}.rg8`);
+    const bytes = new Uint8Array(await new Response(new Blob([Uint8Array.from(packed)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+    if (bytes.length !== 2_097_152) throw new Error('Nine glyph chunk byte count differs');
+    data.set(bytes, index * 2_097_152);
+  }));
+  const texture = new DataTexture(data, row.size, row.size, RGFormat, UnsignedByteType);
+  texture.wrapS = texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearMipmapLinearFilter; texture.magFilter = LinearFilter;
+  texture.generateMipmaps = true; texture.anisotropy = 4; texture.needsUpdate = true;
+  return { words: row.words, chars: Object.keys(row.rects).join(''), layout: row.layout, texture, rect: ch => {
+    const rect = row.rects[ch]; if (rect === undefined) throw new Error(`glyph atlas has no ${ch}`);
+    return rect;
+  } };
+}
 
 /**
  * Neon calligraphy signs (SHARD-PLATFORM M3, the sign system): an SDF brush fill with a darker glass rim and a short

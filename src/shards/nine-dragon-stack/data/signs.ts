@@ -214,3 +214,9 @@ export const SIGN_VARIANTS = [
   { id: 'paper', label: 'Paper strip (牛腩麵)', params: { style: 'paper', text: '牛腩麵', color: '#f3e7cf', ink: '#b8261a', vertical: true, size: 0.13, gain: 1.15 } },
   { id: 'banner', label: 'Banner (麵)', params: { style: 'banner', text: '麵', color: '#b8261a', ink: '#efe8d8', vertical: true, size: 0.72, blade: true, gain: 1.35 } },
 ] as const satisfies readonly SignVariantRow<SignStyle>[];
+
+/** Offline glyph raster sizes; the admitted metadata carries this same layout to the neon draw. */
+export const GLYPH_LAYOUT = {
+  phone: { cell: 64, fontPx: 46, spread: 9, skeletonSpread: 13 },
+  desktop: { cell: 128, fontPx: 92, spread: 18, skeletonSpread: 26 },
+} as const;

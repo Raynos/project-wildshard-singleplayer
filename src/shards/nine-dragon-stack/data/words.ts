@@ -1,4 +1,3 @@
-import { chars } from '../util';
 
 // Every shop sign in the Stack: real words, traditional and simplified (noodles, dentist, hotpot, tea, pharmacy, inn …).
 export const WORDS = [
@@ -7,9 +6,8 @@ export const WORDS = [
   '酸辣粉', '按摩', '大押', '燒鵝', '海味', '鐘錶', '刻印', '夜總會', '賓館', '抄手', '豆花', '洗衣', '五金', '跌打酒',
 ] as const;
 
-/** the characters the neon's glyph atlas draws: every word's, and the square's own signs' (the build's atlas and the
- *  plugin's prepared one read this one list, so they always match) */
-export const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
+/** Every character the offline glyph rasterizer needs, in the original first-use order. */
+export const FONT_CHARS = [...new Set(Array.from(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
 
 /** the words hung as blade signs down the facades */
 export const SIGN_WORDS = WORDS;

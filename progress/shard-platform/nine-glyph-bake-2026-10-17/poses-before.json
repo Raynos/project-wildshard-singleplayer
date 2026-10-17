@@ -1,0 +1,84 @@
+{
+  "build": "bae731d-mvc2af4u",
+  "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, time 10, movers and viewmodel hidden",
+  "tiers": {
+    "phone": {
+      "pieces": 23,
+      "colliderCount": 489,
+      "colliders": "7119ef581d8aca81a89f199e3ff282a23e6570ce462dec2874db4fe2812818d4",
+      "gpuBytes": 278220779,
+      "cpuBackingBytes": 152641986,
+      "programs": 109
+    },
+    "desktop": {
+      "pieces": 23,
+      "colliderCount": 489,
+      "colliders": "7119ef581d8aca81a89f199e3ff282a23e6570ce462dec2874db4fe2812818d4",
+      "gpuBytes": 519934959,
+      "cpuBackingBytes": 209333622,
+      "programs": 123
+    }
+  },
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "A",
+      "width": 804,
+      "height": 1362,
+      "calls": 121,
+      "triangles": 1241378,
+      "lit": 1095048,
+      "pixels": "961e8425c618f00305c019bf7a39a864c9a13bebd6f261b34ff0e5461486ed80"
+    },
+    {
+      "tier": "phone",
+      "pose": "B",
+      "width": 804,
+      "height": 1362,
+      "calls": 104,
+      "triangles": 1067353,
+      "lit": 1095048,
+      "pixels": "1f911c680531d37e9f44cbded13c911e67cc503f512412f57ef75780dc8852a2"
+    },
+    {
+      "tier": "phone",
+      "pose": "C",
+      "width": 804,
+      "height": 1362,
+      "calls": 100,
+      "triangles": 788439,
+      "lit": 1095048,
+      "pixels": "09cd665f9e5f7881e703402512cf81b6228ab131fb44bc9af1e1b15e4dd5e4c9"
+    },
+    {
+      "tier": "desktop",
+      "pose": "A",
+      "width": 603,
+      "height": 1021,
+      "calls": 122,
+      "triangles": 1234062,
+      "lit": 615663,
+      "pixels": "0c37ad715191e2b9bf09166ab666ca0caf0f8aec05b3b08f7625c545e5e7fb9d"
+    },
+    {
+      "tier": "desktop",
+      "pose": "B",
+      "width": 603,
+      "height": 1021,
+      "calls": 105,
+      "triangles": 1060037,
+      "lit": 615663,
+      "pixels": "4cb3f56c149e809f5f01861d1bc39479d0dbfe454f72d4fc998eddcc18190f5d"
+    },
+    {
+      "tier": "desktop",
+      "pose": "C",
+      "width": 603,
+      "height": 1021,
+      "calls": 101,
+      "triangles": 781123,
+      "lit": 615663,
+      "pixels": "d31b3e12da728cec1b6cf4cf3fd509124950044d501ebab1b10c37a5323be2f0"
+    }
+  ]
+}

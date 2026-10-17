@@ -25,8 +25,7 @@ import { wellBalustrade } from '../models/wellBalustrade';
 import { lampPostModel, lotusPostModel } from '../models/bridgePosts';
 import { type InKitPlaced, registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../runtime/looks/vertexSpill';
-import { GlyphField } from '../runtime/signs/glyphField';
-import { NeonText } from '../runtime/signs/neonText';
+import { NeonText, loadGlyphField } from '../runtime/signs/neonText';
 import { Lanterns } from '../look/lanterns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
 import { buildFacade, nameDraws } from './facade/batch';
@@ -45,12 +44,10 @@ import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../runtime/signs/signAtlas';
 import { KitSigns } from '../look/signs';
-import { KAI_STACK, NEON_LOOK, SIGN_COLOUR, SIGN_STYLES, type SignStyle } from '../data/signs';
+import { NEON_LOOK, SIGN_COLOUR, SIGN_STYLES, type SignStyle } from '../data/signs';
 import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial, neonMaterial } from '../look/style';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
-import { FONT_CHARS, WORDS } from './words';
-import { chars } from '../util';
-import { glyphLayout, signLayout, type NdTier } from '../tier';
+import { signLayout, type NdTier } from '../tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
@@ -145,15 +142,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
   const fontsStart = performance.now();
-  const fontsReady = waitForFonts(FONT_LOAD.specs, FONT_CHARS, FONT_LOAD.capMs).then(() => { phaseDone('fonts', fontsStart); return undefined; });
-  const [paint] = await Promise.all([paintReady, fontsReady]);
+  const fontsReady = loadGlyphField(tier).then(async glyphs => { await waitForFonts(FONT_LOAD.specs, glyphs.chars, FONT_LOAD.capMs); phaseDone('fonts', fontsStart); return glyphs; });
+  const [paint, glyphs] = await Promise.all([paintReady, fontsReady]);
   shared.u.uPaint.value = paint.tex;
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
   const atlas = new SignAtlas<SignStyle>(SIGN_STYLES, { ...signLayout(tier), ...SIGN_COLOUR[tier] }, 'Nine Dragon sign atlas (GPU only)');
   const signs = new SignBuilder(atlas);
-  const glyphs = new GlyphField(chars(FONT_CHARS), glyphLayout(tier), KAI_STACK);
   // the neon is fogged by the clean room's banded silk (FOG_GLSL), emissive at half strength
   // the signs' programs place them with modelMatrix (page space); the fog reads the world's own frame (data/look.ts uRootAt)
   const neonSigns = new NeonText({ uniforms: shared.u, glsl: { noise: NOISE_GLSL, fog: `${FOG_GLSL}\nuniform vec3 uRootAt;\n#define signFog(w) silkFog((w) - uRootAt, 1.0)\n`, emitFog: EMIT_FOG }, blending: ADD_KEEP_ALPHA, look: NEON_LOOK }, glyphs);
@@ -192,7 +188,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const slotRng = new Rng(4242);
   const bladesKit = ctx.kit('facade-signs');
   for (const s of ctx.fd.signs) {
-    const word = slotRng.pick(WORDS);
+    const word = slotRng.pick(glyphs.words);
     const color = `#${s.color.toString(16).padStart(6, '0')}`;
     const size = Math.min(s.size, s.blade ? 1.2 : 0.8);
     ctx.signs.place({ at: s.at, normal: s.normal, size, spec: { text: word, color, vertical: s.blade, style: s.blade || slotRng.chance(0.5) ? 'tube' : 'box' }, blade: s.blade }, s.blade ? null : bladesKit);

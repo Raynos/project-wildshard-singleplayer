@@ -1,7 +1,3 @@
-import { ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType } from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
-import { workSlice } from '@wildshard/engine/core/workSlice';
-
 /**
  * A glyph distance-field atlas for lit lettering (SHARD-PLATFORM M3, the sign system): every character a shard's signs
  * need is drawn once from canvas in the shard's font, then turned into two distance fields packed in one RG8 texture:
@@ -88,8 +84,7 @@ interface GlyphFieldBuilt { readonly size: number; readonly rects: Map<string, G
 /** Glyph lines (canvas rows / EDT lines) between two slice checks: each step stays far under a millisecond. */
 const STEP_LINES = 16;
 
-/** The atlas build as small steps (op-hitch23): the async factory checks the engine's work slice between them, so a grid
- *  cell that builds its signs on the road keeps drawing; the constructor runs the same steps straight through. */
+/** Retained original canvas/EDT steps, consumed synchronously by the offline bake for exact raster parity. */
 function* glyphFieldSteps(chars: readonly string[], layout: GlyphFieldLayout, font: string, weight: number): Generator<void, GlyphFieldBuilt> {
   const list = [...new Set(chars)], rects = new Map<string, GlyphRect>();
   const C = layout.cell;
@@ -189,56 +184,8 @@ function* edtSteps(grid: Float64Array, w: number, box: Box): Generator<void, voi
   for (let y = 0; y < Math.min(bh, MAX_ITEMS); y++) { edt1d(grid, (box.y0 + y) * w + box.x0, 1, bw, f, v, z); if (y % STEP_LINES === STEP_LINES - 1) yield; }
 }
 
-/** Atlases `GlyphField.prepare` computed ahead, by `fieldKey`, until a constructor takes one. */
-const PREPARED = new Map<string, GlyphFieldBuilt>();
-const fieldKey = (chars: readonly string[], layout: GlyphFieldLayout, font: string, weight: number): string =>
-  JSON.stringify([[...new Set(chars)].join(''), layout.cell, layout.fontPx, layout.spread, layout.skeletonSpread, font, weight]);
-
-export class GlyphField {
-  /** atlas px per cell, px of the font's em, and the distance-field reach in px (fill / skeleton) */
-  readonly layout: GlyphFieldLayout;
-  readonly texture: DataTexture;
-  readonly size: number;
-  private readonly rects: Map<string, GlyphRect>;
-
-  /** Compute an atlas ahead, sliced at the engine's work slice, for the next matching constructor to take (a world build
-   *  that may run in play, a grid cell admitted on the road, calls this before its synchronous build; op-hitch23). The
-   *  font must already be loaded. A prepared atlas no constructor takes is dropped with `owner`. */
-  static async prepare(chars: readonly string[], layout: GlyphFieldLayout, font: string, weight = 700, owner?: Pick<Scope, 'onDispose'>): Promise<void> {
-    const key = fieldKey(chars, layout, font, weight);
-    if (PREPARED.has(key)) return;
-    const steps = glyphFieldSteps(chars, layout, font, weight), slice = workSlice();
-    for (;;) {
-      const step = steps.next();
-      if (step.done === true) { PREPARED.set(key, step.value); owner?.onDispose(() => { PREPARED.delete(key); }); return; }
-      if (slice.due()) await slice.yield();
-    }
-  }
-
-  /** Build the atlas, or take the one `prepare` computed for the same arguments. */
-  constructor(chars: readonly string[], layout: GlyphFieldLayout, font: string, weight = 700) {
-    this.layout = layout;
-    const key = fieldKey(chars, layout, font, weight);
-    let result = PREPARED.get(key);
-    PREPARED.delete(key);
-    if (result === undefined) {
-      const steps = glyphFieldSteps(chars, layout, font, weight);
-      for (let step = steps.next(); ; step = steps.next()) if (step.done === true) { result = step.value; break; }
-    }
-    this.size = result.size;
-    this.rects = result.rects;
-    this.texture = new DataTexture(result.data, result.size, result.size, RGFormat, UnsignedByteType);
-    this.texture.wrapS = this.texture.wrapT = ClampToEdgeWrapping;
-    this.texture.minFilter = LinearMipmapLinearFilter;
-    this.texture.magFilter = LinearFilter;
-    this.texture.generateMipmaps = true;
-    this.texture.anisotropy = 4;
-    this.texture.needsUpdate = true;
-  }
-
-  rect(ch: string): GlyphRect {
-    const r = this.rects.get(ch);
-    if (r === undefined) throw new Error(`glyph atlas has no ${ch}`);
-    return r;
-  }
+/** Offline equivalent of the original synchronous GlyphField constructor, before texture allocation. */
+export function bakeGlyphField(chars: readonly string[], layout: GlyphFieldLayout, font: string, weight = 700): GlyphFieldBuilt {
+  const steps = glyphFieldSteps(chars, layout, font, weight);
+  for (let step = steps.next(); ; step = steps.next()) if (step.done === true) return step.value;
 }

@@ -23,7 +23,7 @@ import { SURF } from '../look/paint';
 import { dragonHook } from './props';
 import { hipRoof } from './hipRoof';
 import { STEEL_DK, STONE, lampPostStone, lotusPost } from './wellParts';
-import { WORDS } from '../world/words';
+import { WORDS } from '../data/words';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
 import { Rng } from '@wildshard/sdk/random';

@@ -17139,6 +17139,31 @@
       "buildOutputs": {
         "src/shards/nalati-grasslands/boot/cragRock.generated.json": "9518cb7a2e2a3b6a434e27000b814deedd1f14390df04b4bee4f1efb2ca2b787"
       }
+    },
+    {
+      "id": "nine-glyphs",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs",
+      "command": [
+        "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bake-output.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs",
+        "src/shards/nine-dragon-stack/generators/glyphPage.ts",
+        "src/shards/nine-dragon-stack/generators/glyphField.ts",
+        "src/shards/nine-dragon-stack/data/words.ts",
+        "src/shards/nine-dragon-stack/util.ts",
+        "src/shards/nine-dragon-stack/tier.ts",
+        "src/shards/nine-dragon-stack/data/signs.ts"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/glyphs.generated.json"
+      ],
+      "platform": "darwin",
+      "browser": true
     }
   ]
 }

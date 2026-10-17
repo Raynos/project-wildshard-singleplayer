@@ -12,7 +12,7 @@ import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, person } from './props';
 import { lanternString } from '../look/lanterns';
 import { hipRoof } from './hipRoof';
-import { WORDS } from '../world/words';
+import { WORDS } from '../data/words';
 import { buildStairStreet } from './stairstreet';
 import { SQ_DEPTH } from './stairPlan';
 import { buildStairUpper } from './stairstreet-upper';

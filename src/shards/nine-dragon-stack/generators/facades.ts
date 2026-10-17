@@ -7,7 +7,7 @@ import type { Ctx } from './ctx';
 import { E, K, type Look } from './kit';
 import { hipRoof } from './hipRoof';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
-import { SIGN_WORDS } from '../world/words';
+import { SIGN_WORDS } from '../data/words';
 import { NEON, WALL, chars } from '../util';
 
 const { Y0 } = NINE_LAYOUT_PLAN;

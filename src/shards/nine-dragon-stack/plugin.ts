@@ -27,13 +27,6 @@ import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
 import { entryCapsFor } from './world/entries';
-import { FONT_CHARS } from './world/words';
-import { chars } from './util';
-import { glyphLayout } from './tier';
-import { KAI_STACK } from './data/signs';
-import { FONT_LOAD } from './data/worldDressing';
-import { waitForFonts } from './runtime/signs/fontWait';
-import { GlyphField } from './runtime/signs/glyphField';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
@@ -48,11 +41,6 @@ type WorldBuilder = (ctx: ShardContext, caps: boolean, pause: () => Promise<void
 async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise<void>): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
-  // op-hitch23: the neon's glyph atlas is computed ahead in engine work slices (a grid cell builds this world on the road,
-  // in play: the atlas was one ~0.2 s stretch on the desktop); the build's constructor takes it. Same arguments as world/build.ts.
-  // (one prepared atlas per argument set: the build's constructor takes it, a repeat prepare finds it)
-  await waitForFonts(FONT_LOAD.specs, FONT_CHARS, FONT_LOAD.capMs);
-  await GlyphField.prepare(chars(FONT_CHARS), glyphLayout(render.tier), KAI_STACK);
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), compiled and lent first
   const source = ctx.product.shardfile;
   lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, render, source, Object.keys(source.look.materials)));

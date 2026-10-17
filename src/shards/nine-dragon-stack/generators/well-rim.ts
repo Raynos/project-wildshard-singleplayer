@@ -14,7 +14,7 @@ import type { KitX } from './kitx';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import { NEONS } from './towers';
-import { WORDS } from '../world/words';
+import { WORDS } from '../data/words';
 import { SURF } from '../look/paint';
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';
 import { type BandKits, SPLIT, type WellPlan, snapFloor } from './well-plan';
