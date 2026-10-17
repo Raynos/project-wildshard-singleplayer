@@ -19,7 +19,7 @@
 import * as THREE from 'three';
 import { fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
-import { GROUND_COVER } from '../data/coverLook';
+import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
 import { driftLog } from '../runtime/models/cargo';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
@@ -27,6 +27,8 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { StreamedCover } from '../runtime/looks/streamedCover';
+
+const { GROUND_COVER } = authoredCoverLook;
 
 export interface GroundCoverOpts {
   /** the baked cells (world/cover/cells/<tier>.bin) */

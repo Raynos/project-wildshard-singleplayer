@@ -1,8 +1,10 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import { DRIFTWOOD_STRIKE_ROWS } from '../data/strikes';
-import { CRAB_ACTIONS, SAILOR_ACTIONS } from '../data/speciesActions';
+import DRIFTWOOD_STRIKE_ROWS from '../data/strikes.json' with { type: 'json' };
+import authoredSpeciesActions from '../data/speciesActions.json' with { type: 'json' };
 import { MONKEY_VARIANTS } from './monkeyVariants';
 import { CRAB_BRAIN_PROFILE, SAILOR_BRAIN_PROFILE, MONKEY_BRAIN_PROFILE } from './brains';
+
+const { CRAB_ACTIONS, SAILOR_ACTIONS } = authoredSpeciesActions;
 
 /** One authored gameplay definition per enemy; renderer and native policies retain their own callbacks. */
 export const ENEMY_SPECIES_METADATA: Record<'crab' | 'monkey' | 'sailor' | 'captain', Omit<BrainedSpecies, 'brain' | 'body'>> = {

@@ -1,5 +1,4 @@
-/** Immutable authored cove placement plans; producer bytes and native picking bounds are validated at intake. */
-export const ISLAND_PLAN_FILES = {
+{
   "phone": {
     "url": "/assets/driftwood-isle/baked/island-plan-bbe7282cde6bf8a130140dd7c952b4b3c86159c59daf1b5f56f93fb04ddf8bee.json",
     "bytes": 666785,
@@ -10,4 +9,4 @@ export const ISLAND_PLAN_FILES = {
     "bytes": 874449,
     "used": 16675
   }
-} as const;
+}

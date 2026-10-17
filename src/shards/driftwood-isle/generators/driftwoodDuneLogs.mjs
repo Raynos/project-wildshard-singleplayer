@@ -4,7 +4,7 @@ import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { SEED, TRAILS, PLATEAU, HEADLAND } from './landscapeRows.ts';
-import { SHRINE_SITES } from '../data/shrineSites.ts';
+import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { islandCoveSpec } from './coveLayout.ts';
 import { driftLogBox } from './driftLogs.ts';

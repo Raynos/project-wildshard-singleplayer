@@ -1,10 +1,13 @@
 import {CHUNK_HALF,ENTRY_WIDTH} from '@wildshard/format/contentBounds';
 import {PIER,JETTIES} from '../world/sites';
-import {PIER_PENNANT_AT} from '../data/layout';
+import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { LOWERED_SEA } from '../world/sea';
 import { PIER_START } from './sea';
-import {PENNANT_WIND} from '../data/pierRows';
+import authoredPierRows from '../data/pierRows.json' with { type: 'json' };
 import type {PierSpec,PierParams} from '../assets/contracts/pier';
+
+const { PIER_PENNANT_AT } = authoredLayout;
+const { PENNANT_WIND } = authoredPierRows;
 
 
 

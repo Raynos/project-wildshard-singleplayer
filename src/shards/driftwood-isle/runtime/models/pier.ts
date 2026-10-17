@@ -6,9 +6,11 @@ import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {readColliderRows} from '@wildshard/engine/models/colliders';
 import {driftwoodRows} from '../boot/rows';
 import {pierParamsKey,type PierParams} from '../../assets/contracts/pier';
-import {PIER_DEFAULTS,PIER_VARIANTS} from '../../data/pierRows';
+import authoredPierRows from '../../data/pierRows.json' with { type: 'json' };
 import rows from '../../data/piers.generated.json' with {type:'json'};
 import {fixedGeometryReady,loadFixedGeometry,fixedDraw,fixedGeometryGroups} from '../boot/blobAssets';
+
+const { PIER_DEFAULTS, PIER_VARIANTS } = authoredPierRows;
 
 const pierDraws = (key: string): { deck: string; cloth: string | null } | undefined => Object.entries(fixedGeometryGroups().piers).find(([id]) => id === key)?.[1];
 const pair=(v:readonly number[]):[number,number]=>{const [a,b]=v;if(a===undefined||b===undefined||v.length!==2)throw new Error('Pier row requires a pair');return [a,b];};

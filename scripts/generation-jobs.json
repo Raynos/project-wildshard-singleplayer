@@ -17,7 +17,7 @@
         "src/shards/driftwood-isle/generators/interactables.ts",
         "scripts/bake-output.mjs",
         "src/shards/driftwood-isle/generators/sea.ts",
-        "src/shards/driftwood-isle/data/entryRows.ts",
+        "src/shards/driftwood-isle/data/entryRows.json",
         "src/sdk/bake/source-loader.mjs"
       ],
       "outputs": [
@@ -666,8 +666,8 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/skyDay.ts",
-        "src/shards/driftwood-isle/data/skyPalette.ts",
+        "src/shards/driftwood-isle/data/skyDay.json",
+        "src/shards/driftwood-isle/data/skyPalette.json",
         "src/shards/driftwood-isle/data/facetedDayRows.ts"
       ],
       "outputs": [
@@ -896,13 +896,13 @@
         "src/shards/driftwood-isle/generators/bake-boot-inventory.mjs",
         "src/shards/driftwood-isle/generators/bootInventory.ts",
         "src/shards/driftwood-isle/generators/bootRecipes.ts",
-        "src/shards/driftwood-isle/data/islandPlanFiles.ts",
+        "src/shards/driftwood-isle/data/islandPlanFiles.json",
         "src/shards/driftwood-isle/generators/reefFiles.ts",
         "src/shards/driftwood-isle/generators/groundFiles.ts",
         "src/shards/driftwood-isle/generators/oceanFiles.ts",
         "src/shards/driftwood-isle/generators/palmFiles.ts",
         "src/shards/driftwood-isle/generators/hibiscusFiles.ts",
-        "src/shards/driftwood-isle/data/islandCoverFiles.ts",
+        "src/shards/driftwood-isle/data/islandCoverFiles.json",
         "src/shards/driftwood-isle/ktx2.generated.ts",
         "src/engine/boot/filePolicy.ts",
         "src/engine/boot/tables.ts",
@@ -11186,7 +11186,7 @@
         "src/sdk/sceneDeclarations.ts",
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
-        "src/shards/driftwood-isle/data/entryRows.ts",
+        "src/shards/driftwood-isle/data/entryRows.json",
         "src/shards/driftwood-isle/generators/entryFloors.ts"
       ],
       "outputs": [
@@ -11308,7 +11308,7 @@
         "src/sdk/bake/terrain.ts",
         "src/sdk/immutable.ts",
         "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/entryRows.ts",
+        "src/shards/driftwood-isle/data/entryRows.json",
         "src/shards/driftwood-isle/generators/landscapeRows.ts",
         "src/shards/driftwood-isle/generators/entryDeck.ts",
         "src/shards/driftwood-isle/generators/groundField.ts",
@@ -15673,7 +15673,7 @@
         "src/format/materialGraph.ts",
         "src/shards/driftwood-isle/data/lookGraphs.json",
         "src/shards/driftwood-isle/generators/oceanLook.ts",
-        "src/shards/driftwood-isle/data/poolLook.ts",
+        "src/shards/driftwood-isle/data/poolLook.json",
         "src/shards/driftwood-isle/generators/reefLook.ts",
         "src/shards/driftwood-isle/generators/waterfallLook.ts",
         "src/shards/driftwood-isle/generators/lookMaterials.ts",

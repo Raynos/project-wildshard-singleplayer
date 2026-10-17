@@ -1,6 +1,6 @@
 import DRESSING from '../data/islandDressing.generated.json' with {type:'json'};
 import { clipIslandDressing } from './islandDressing';
-import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
+import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 /**
  * The Blender-built island (DRIFTWOOD-REMASTER X2, E52): on Driftwood it always replaces the procedural spawn cove —
  * terrain, palms, bushes, shore boulders, ground cover inside `area` (./blenderArea.ts) — with the one scripts/blender/
@@ -35,7 +35,7 @@ import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { ISLAND_PLAN_FILES as PLAN_FILES } from '../data/islandPlanFiles';
+import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };

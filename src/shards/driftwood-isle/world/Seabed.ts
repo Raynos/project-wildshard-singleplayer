@@ -19,7 +19,7 @@ import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { loadReefWorld } from '../runtime/boot/reefGeometry';
 import { loadFixedGeometry, fixedDraw } from '../runtime/boot/blobAssets';
 import { reefMaterial } from '../runtime/models/reef';
-import { SEABED } from '../data/seabedLook';
+import SEABED from '../data/seabedLook.json' with { type: 'json' };
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 
 /** The reef weld, its school and their once-a-frame step. */

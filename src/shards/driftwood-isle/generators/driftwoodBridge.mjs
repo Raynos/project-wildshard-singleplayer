@@ -1,4 +1,4 @@
-import { BRIDGE_SPANS } from '../data/bridgeRows.ts';
+import BRIDGE_SPANS from '../data/bridgeRows.json' with { type: 'json' };
 import { bridgeFacts, bridgePosts } from './ropeBridge.ts';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 

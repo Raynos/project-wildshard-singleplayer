@@ -1,5 +1,7 @@
 import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
-import { DRY_ENTRIES } from '../data/entryRows';
+import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+
+const { DRY_ENTRIES } = authoredEntryRows;
 
 /** Shared authoring and native sea facts; the world owns only its live water queries. */
 /** The authored waterline; G164 lowers the entire world by WORLD_DROP. */

@@ -2,7 +2,7 @@ import { MathUtils, Quaternion, Vector3 } from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { DynamicBodySlots, type Bodies, type BodyLaunchRow } from '@wildshard/engine/physics/bodies';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import { DRIFTWOOD_STRIKE_ROWS } from '../data/strikes';
+import DRIFTWOOD_STRIKE_ROWS from '../data/strikes.json' with { type: 'json' };
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 

@@ -4,13 +4,15 @@ import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
 import { BRIDGE } from '../world/sites';
-import { BOAT_MOOR } from '../data/layout';
+import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { LOWERED_SEA } from '../world/sea';
 import { WORLD_DROP } from './sea';
 import { driftwoodGroundField } from './groundRows';
 import { boatColliders } from './staticWorld';
 import { BOAT_LAYOUT } from './boatLayout';
 import { ropeBridgeSegments } from './ropeBridge';
+
+const { BOAT_MOOR } = authoredLayout;
 
 
 /** Movers run only in SF46's hybrid world, lowered as one by WORLD_DROP (G164): the boat rides the lowered sea at its

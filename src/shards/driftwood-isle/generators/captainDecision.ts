@@ -1,7 +1,8 @@
 import { CAPTAIN_FIELDS } from './captainFields';
 import physics from '../data/physics.generated.json' with {type:'json'};
 import { driftwoodGroundSampler } from './groundSampling';
-import { DRIFTWOOD_STRIKE_ROWS } from '../data/strikes';
+import DRIFTWOOD_STRIKE_ROWS from '../data/strikes.json' with { type: 'json' };
+
 /** The six authored states run on the existing 10 Hz decision owner; movement and lift stay fixed-step. */
 const zero = '0'.repeat(64);
 export const CAPTAIN_MOVES = [

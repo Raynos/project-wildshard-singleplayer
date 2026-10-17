@@ -3,7 +3,7 @@ import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGro
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
-import { DRIFTWOOD_TERRAIN } from '../data/terrainBindings';
+import DRIFTWOOD_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice (Rapier's own column-major heightfield, from authored rows: generators/physics.ts, G350-DW). */

@@ -1,4 +1,4 @@
-import { COVER_LOOKS } from '../data/coverLook';
+import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
 import { BOAT_LAYOUT } from './boatLayout';
 import captain from '../data/bossEncounter.json' with { type: 'json' };
 import { COUNTER_TOP } from './counterLayout';
@@ -14,20 +14,23 @@ import { KIT_LENDS } from './kitLook';
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
 import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
 import { OCEAN_LOOK } from './oceanLook';
-import { POOL_LOOK, SHRINE_POOL_LOOK } from '../data/poolLook';
+import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { TROPHY_LAYOUT } from './trophyLayout';
-import { SHRINE_SITES } from '../data/shrineSites';
+import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 import { REEF_LOOK } from './reefLook';
 import { REEF_SPECIMENS } from './reefSpecimenRows';
 import { TRAIL_SPECIMEN_ROWS } from './trailSpecimenRows';
 import { TRAIL_SPECIMENS } from './trailSpecimens';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from './skyLook';
-import { MIDDAY_SKY_ROWS } from '../data/skyPalette';
+import MIDDAY_SKY_ROWS from '../data/skyPalette.json' with { type: 'json' };
 import { CASTAWAY_SMOKE, SMOKE_LOOK } from './smokeLook';
 import { RAMP_FOG } from './toonLook';
 import { CASCADE_LOOKS } from './waterfallLook';
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
+
+const { COVER_LOOKS } = authoredCoverLook;
+const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
 
 /** Canonical authored view rows, emitted into the admitted native-view section. */
 export const NATIVE_VIEW = {

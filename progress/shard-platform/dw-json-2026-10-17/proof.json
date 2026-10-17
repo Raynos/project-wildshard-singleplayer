@@ -1,0 +1,77 @@
+{
+  "parent": "3ff4b444c7d0de4926ce4465fb4f04401758c219",
+  "sourceTree": "5af7332fb6d9bed342819bcaf7fb9942c7d1f398",
+  "ruler": "sourceProgressInventory in the build mirror",
+  "verifiedTree": "db04c7fbc706c35c5729464d9d7008b95c6a1eae",
+  "documentationRebase": {
+    "from": "4eb2fe429c415955aa10ad986a940003db433ad2",
+    "to": "3ff4b444c7d0de4926ce4465fb4f04401758c219",
+    "paths": [
+      "docs/plans/shard-platform/open-x-queue.md",
+      "progress/frame-floor/sim-road-part8-2026-10-17/README.md",
+      "progress/frame-floor/sim-road-part8-2026-10-17/after-pairs.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/overlap-audit.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/pine-upload-candidate.json"
+    ]
+  },
+  "netShardLines": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": -162,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  },
+  "platformRuntimeLinesAdded": 0,
+  "deletedModules": [
+    "data/coverLook.ts",
+    "data/layout.ts",
+    "data/seabedLook.ts",
+    "data/poolLook.ts",
+    "data/islandCoverFiles.ts",
+    "data/islandPlanFiles.ts",
+    "data/islandClipRows.ts",
+    "data/terrainBindings.ts",
+    "data/speciesActions.ts",
+    "data/strikes.ts",
+    "data/entryRows.ts",
+    "data/pierRows.ts",
+    "data/bridgeRows.ts",
+    "data/shrineSites.ts",
+    "data/entryLandings.ts",
+    "data/skyPalette.ts",
+    "data/skyDay.ts"
+  ],
+  "dataPath": "16 authored JSON rows; entryFloors.generated.json consumed directly, validated by generators/entryLandings.ts",
+  "checks": {
+    "generationProof": true,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "products": 10,
+    "testFiles": 7,
+    "tests": 45,
+    "shardHeadlessCases": 17
+  },
+  "productDifferences": [
+    "validation.json"
+  ],
+  "look": "Product geometry, collider, material and section bytes unchanged",
+  "generatorImportCheck": "entryLandings is imported only by generators/product.ts; no runtime/headless importers",
+  "inventories": {
+    "before": "tmp/easy-data/ruler-before.json",
+    "after": "tmp/easy-data/ruler-after.json"
+  },
+  "declarationProof": {
+    "runtimeVerifiedTree": "cd4db25d7ec2298add4e3fa55650e30d4953ad5f",
+    "tree": "5af7332fb6d9bed342819bcaf7fb9942c7d1f398",
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true
+  },
+  "maps": "G490 source landing; sp-x10 owns the subsequent shared clean-bake commit"
+}

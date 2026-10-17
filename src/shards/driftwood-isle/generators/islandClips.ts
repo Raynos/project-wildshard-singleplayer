@@ -1,4 +1,4 @@
-import { ISLAND_GRID } from '../data/islandClipRows';
+import ISLAND_GRID from '../data/islandClipRows.json' with { type: 'json' };
 
 /** Retained index runs of the native grid outside the authored baked island. */
 export function islandClipFacts(grid: { vertices: number; x0: number; x1: number; z0: number; z1: number } = ISLAND_GRID): { sourceVertices: number; sourceIndices: number; outputIndices: number; ranges: { start: number; count: number }[] } {

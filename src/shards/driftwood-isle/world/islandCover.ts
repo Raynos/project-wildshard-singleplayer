@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
-import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
+import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 

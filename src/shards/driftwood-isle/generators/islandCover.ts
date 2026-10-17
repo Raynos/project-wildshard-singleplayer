@@ -1,4 +1,4 @@
-import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
+import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 /** Build-time cover splat; the page only admits and installs its declared file. */
 import * as THREE from 'three';
 import * as v from 'valibot';

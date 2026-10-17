@@ -1,10 +1,12 @@
 import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import type { OceanDef } from '@wildshard/game/shard/manifest';
-import { PLATEAU, HEADLAND } from '../data/layout';
-import { BRIDGE_SPANS } from '../data/bridgeRows';
-import { SHRINE_SITES } from '../data/shrineSites';
+import authoredLayout from '../data/layout.json' with { type: 'json' };
+import BRIDGE_SPANS from '../data/bridgeRows.json' with { type: 'json' };
+import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { LOWERED_SEA } from './sea';
+
+const { PLATEAU, HEADLAND } = authoredLayout;
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
 
 export const OCEAN: OceanDef = {

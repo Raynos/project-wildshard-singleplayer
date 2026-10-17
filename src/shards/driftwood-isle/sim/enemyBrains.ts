@@ -5,7 +5,9 @@ import { createMemoryActionBrain, createNativeSpeciesContext, type SpeciesDecisi
 import type { SimValue } from '@wildshard/engine/sim';
 import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from '../species/monkeyPolicy';
-import { MONKEY_ACTIONS } from '../data/speciesActions';
+import authoredSpeciesActions from '../data/speciesActions.json' with { type: 'json' };
+
+const { MONKEY_ACTIONS } = authoredSpeciesActions;
 
 /** One live enemy's shipping policy, observing through ports allocated once at its spawn. */
 export interface EnemyBrain { decide: (dt: number) => void; move: (dt: number) => void; snapshot: () => SimValue; restore: (value: SimValue) => void }

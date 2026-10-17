@@ -2,7 +2,11 @@ import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/format/contentBounds';
-import { DRY_ENTRIES, LANDING_RUN, LANDING_HALF, type DryEntryEdge } from '../data/entryRows';
+import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+
+type DryEntryEdge = (typeof authoredEntryRows.DRY_ENTRIES)[number];
+
+const { DRY_ENTRIES, LANDING_RUN, LANDING_HALF } = authoredEntryRows;
 
 /** The primitive floor product; its notice and every box survive persisted JSON. */
 export interface DriftwoodEntryFloorProduct {

@@ -40,10 +40,13 @@ import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
-import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
+import entryLandingRows from '../data/entryFloors.generated.json' with { type: 'json' };
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeSliced, placeModelSite, type ModelSite, type Placed } from '@wildshard/engine/models/place';
+
+const ENTRY_LANDINGS = entryLandingRows.rows;
+type EntryLanding = (typeof entryLandingRows.rows)[number];
 
 type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
 

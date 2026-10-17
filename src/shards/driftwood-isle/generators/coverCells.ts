@@ -1,10 +1,12 @@
 import { Color } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { GROUND_COVER } from '../data/coverLook';
+import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
 import { facetColour } from './facetedGround';
 import { DENSITY, beach, type Site } from './coverSites';
 import { coverAvoid, type AuthorCoverGrid } from './coverGrid';
+
+const { GROUND_COVER } = authoredCoverLook;
 
 /**
  * Driftwood's streamed ground cover, its plants baked per cell at build (SHARD-PLATFORM W2 C2, G467): every 16 m cell's

@@ -1,10 +1,11 @@
-import { ISLAND_PLAN_FILES as PLAN_FILES } from '../data/islandPlanFiles';
+import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
 import { REEF_FILES } from './reefFiles';
 import { GROUND_FILES } from './groundFiles';
 import { OCEAN_FILES } from './oceanFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
-import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
+import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
+
 /** Ordered retained boot and late inventory selections. */
 export const DRIFTWOOD_BOOT_FILES = {
   "empty": {

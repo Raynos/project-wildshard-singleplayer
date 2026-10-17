@@ -1,8 +1,10 @@
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
-import { POOL_LOOK } from '../data/poolLook';
+import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
+
+const { POOL_LOOK } = authoredPoolLook;
 
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export const WORLD_SCENES: WorldScenesSection = {

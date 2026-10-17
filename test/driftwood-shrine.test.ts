@@ -4,7 +4,7 @@ import { ShrineBuilder } from '../src/shards/driftwood-isle/generators/shrine';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { bakedSite, shrineSiteKind } from '../src/shards/driftwood-isle/runtime/models/fixedSites';
 import { floorAtRects } from '../src/engine/physics/box';
-import { SHRINE_SITES } from '../src/shards/driftwood-isle/data/shrineSites';
+import SHRINE_SITES from '../src/shards/driftwood-isle/data/shrineSites.json' with { type: 'json' };
 
 beforeAll(admitDriftwoodFixtureRows);
 

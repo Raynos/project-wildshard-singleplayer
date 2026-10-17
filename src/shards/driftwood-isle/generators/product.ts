@@ -10,7 +10,7 @@ import AUDIO from '../data/audio.generated.json' with { type: 'json' };
 import { DRIFTWOOD_EDGE_HEIGHTS } from './edges';
 import DRIFTWOOD_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { DECLARED_SEA, WORLD_DROP } from './sea';
-import { ENTRY_LANDINGS } from '../data/entryLandings';
+import { ENTRY_LANDINGS } from './entryLandings';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import fixed from '../data/fixedTiles.generated.json' with { type: 'json' };
 import lookGraphs from '../data/lookMaterials.generated.json' with { type: 'json' };

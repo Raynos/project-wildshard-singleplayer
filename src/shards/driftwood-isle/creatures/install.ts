@@ -7,13 +7,15 @@ import { DRIFTWOOD_LOOKS } from '../species/install';
 import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
 import { readLootTables, registerLootTable } from '@wildshard/game/loot/tables';
 import { driftwoodWorld } from '../world/build';
-import { PRACTICE_CRAB } from '../data/layout';
+import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { driftwoodSpeciesRows } from './rows';
 import { Enemies } from './Enemies';
 import { CAPTAIN_LOOK } from '../species/captain';
 import { captainMesh } from '../species/captainMesh';
 import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLooks';
+
+const { PRACTICE_CRAB } = authoredLayout;
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export async function installDriftwoodCreatures(ctx: ShardContext, decisions: SpeciesDecisionAuthority): Promise<void> {

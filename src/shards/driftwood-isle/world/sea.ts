@@ -14,8 +14,10 @@ import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/c
 import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
-import type { DryEntryEdge } from '../data/entryRows';
+import type authoredEntryRows from '../data/entryRows.json';
 import sea from '../boot/sea.generated.json' with { type: 'json' };
+
+type DryEntryEdge = (typeof authoredEntryRows.DRY_ENTRIES)[number];
 
 const { SHORE_LEVEL, WORLD_DROP, DECLARED_SEA } = sea;
 

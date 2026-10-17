@@ -2,10 +2,12 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/plugin/brain';
-import { MONKEY_ACTIONS } from '../src/shards/driftwood-isle/data/speciesActions';
+import authoredSpeciesActions from '../src/shards/driftwood-isle/data/speciesActions.json' with { type: 'json' };
 import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyPolicy';
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';
+
+const { MONKEY_ACTIONS } = authoredSpeciesActions;
 
 const CAPTAIN_ACTIONS = { stateKey:'st',states:['hide','rise','fight','attack','sink','under'],cadence:'decision',
   actions:[{state:3,phase:0,effect:'swing',once:{key:'hit',value:1,test:'falsy'}}] } as const;

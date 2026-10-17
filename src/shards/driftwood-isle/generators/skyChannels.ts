@@ -3,7 +3,7 @@
 // fog, disc and planet), read from the preset the clock keys and the clock owner the graph day sky fills
 // (`@wildshard/sdk/looks/graphDaySky`). The light body's direction is the sun by day and the moon by night.
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import { DRIFTWOOD_SKY_DAY } from '../data/skyDay';
+import DRIFTWOOD_SKY_DAY from '../data/skyDay.json' with { type: 'json' };
 
 export const DRIFTWOOD_SKY_CHANNELS = 'driftwood.sky';
 const DOME = 'driftwood-sky-dome', CLOUDS = 'driftwood-sky-cumulus';

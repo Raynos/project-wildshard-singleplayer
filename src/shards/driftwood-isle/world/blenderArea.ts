@@ -1,4 +1,4 @@
-import { ISLAND_GRID } from '../data/islandClipRows';
+import ISLAND_GRID from '../data/islandClipRows.json' with { type: 'json' };
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { CELL, type BlenderArea } from '@wildshard/engine/world/blenderArea';
 

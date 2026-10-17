@@ -1,0 +1,10 @@
+{
+  "key": "driftwood-isle",
+  "seed": 24225,
+  "res": 256,
+  "size": 500,
+  "sampling": {
+    "layout": "column-major",
+    "boundary": "clamp"
+  }
+}

@@ -15,7 +15,7 @@
  * group's space as they are drawn. `ropeBridgeLayout(params)` is a placement's builder, shared with its build.
  */
 import * as THREE from 'three';
-import { BRIDGE_SPANS } from '../../data/bridgeRows';
+import BRIDGE_SPANS from '../../data/bridgeRows.json' with { type: 'json' };
 import { admitBridgeFacts, bridgeKey } from '../../boot/bridgeFacts';
 import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';

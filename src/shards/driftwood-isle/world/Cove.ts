@@ -39,9 +39,11 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { POOL_LOOK } from '../data/poolLook';
+import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { lentToon } from '@wildshard/sdk/looks/lentLooks';
 import { followToon } from '../runtime/look/toon';
+
+const { POOL_LOOK } = authoredPoolLook;
 
 type CoveBake = ReturnType<typeof driftwoodRows<'custom/fixedLayouts'>>['cove'];
 export type CoveSpec = CoveBake['spec'];

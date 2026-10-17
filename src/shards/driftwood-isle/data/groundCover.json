@@ -1,0 +1,203 @@
+{
+  "GROUND_COVER": {
+    "cell": 16,
+    "refill": 4,
+    "candidates": 520,
+    "cacheMin": 96,
+    "reachK": {
+      "phone": 1,
+      "desktop": 1.25
+    },
+    "capK": {
+      "phone": 1.8,
+      "desktop": 3
+    },
+    "growShare": 0.25,
+    "farRefill": 8,
+    "farSlack": 16,
+    "farBudgetMs": {
+      "phone": 1.5,
+      "desktop": 2
+    },
+    "farIn": 0.8,
+    "eyeSlack": 2,
+    "uploadBytes": 262144,
+    "nearLag": 1,
+    "sink": 0.02,
+    "slopeReach": {
+      "up": 1.7,
+      "lo": 0.01,
+      "hi": 0.08,
+      "fadeFrom": 5,
+      "fadeTo": 14
+    },
+    "look": "driftwood-cover",
+    "meshPrefix": "ground-cover-",
+    "kinds": [
+      {
+        "name": "tuft",
+        "geometry": "tuft",
+        "cap": 5200,
+        "reach": [
+          14,
+          34
+        ],
+        "scale": [
+          0.9,
+          1.5
+        ],
+        "far": {
+          "geometry": "tuftFar",
+          "reach": [
+            26,
+            60
+          ],
+          "cap": 16000,
+          "keep": 0.6
+        }
+      },
+      {
+        "name": "fern",
+        "geometry": "fern",
+        "cap": 1400,
+        "reach": [
+          14,
+          34
+        ],
+        "scale": [
+          0.7,
+          1.4
+        ],
+        "far": {
+          "geometry": "fernFar",
+          "reach": [
+            26,
+            60
+          ],
+          "cap": 4400,
+          "keep": 1
+        }
+      },
+      {
+        "name": "hibiscus",
+        "geometry": "hibiscus",
+        "cap": 900,
+        "reach": [
+          14,
+          34
+        ],
+        "scale": [
+          0.8,
+          1.3
+        ],
+        "far": {
+          "geometry": "hibiscusFar",
+          "reach": [
+            26,
+            64
+          ],
+          "cap": 3200,
+          "keep": 1
+        }
+      },
+      {
+        "name": "daisy",
+        "geometry": "daisy",
+        "cap": 800,
+        "reach": [
+          9,
+          22
+        ],
+        "scale": [
+          0.8,
+          1.4
+        ],
+        "far": {
+          "geometry": "daisyFar",
+          "reach": [
+            16,
+            40
+          ],
+          "cap": 1600,
+          "keep": 1
+        }
+      },
+      {
+        "name": "pebble",
+        "geometry": "pebble",
+        "cap": 400,
+        "reach": [
+          9,
+          22
+        ],
+        "scale": [
+          0.7,
+          1.5
+        ]
+      },
+      {
+        "name": "shells",
+        "geometry": "shells",
+        "cap": 1600,
+        "reach": [
+          10,
+          26
+        ],
+        "scale": [
+          1.3,
+          2.3
+        ]
+      },
+      {
+        "name": "starfish",
+        "geometry": "starfish",
+        "cap": 300,
+        "reach": [
+          8,
+          20
+        ],
+        "scale": [
+          1.1,
+          1.8
+        ]
+      },
+      {
+        "name": "bush",
+        "geometry": "bush",
+        "cap": 900,
+        "reach": [
+          16,
+          38
+        ],
+        "scale": [
+          0.8,
+          1.6
+        ],
+        "far": {
+          "geometry": "bushFar",
+          "reach": [
+            30,
+            76
+          ],
+          "cap": 4000,
+          "keep": 1
+        }
+      }
+    ]
+  },
+  "COVER_LOOKS": [
+    "driftwood-cover-tuft",
+    "driftwood-cover-tuft-far",
+    "driftwood-cover-fern",
+    "driftwood-cover-fern-far",
+    "driftwood-cover-hibiscus",
+    "driftwood-cover-hibiscus-far",
+    "driftwood-cover-daisy",
+    "driftwood-cover-daisy-far",
+    "driftwood-cover-pebble",
+    "driftwood-cover-shells",
+    "driftwood-cover-starfish",
+    "driftwood-cover-bush",
+    "driftwood-cover-bush-far"
+  ]
+}

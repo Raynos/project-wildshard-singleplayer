@@ -14,7 +14,7 @@ import { CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
 import { SAILOR_LOOK } from '../src/shards/driftwood-isle/species/sailor';
 import { MONKEY_LOOK } from '../src/shards/driftwood-isle/species/monkey';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
-import { DRIFTWOOD_STRIKE_ROWS } from '../src/shards/driftwood-isle/data/strikes';
+import DRIFTWOOD_STRIKE_ROWS from '../src/shards/driftwood-isle/data/strikes.json' with { type: 'json' };
 import { SKITTERER_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/skitterer';
 import { spawnRuntimeHome, type RuntimeHome } from '../src/game/plugin/headless';
 import { DUNE_RAY } from '../src/shards/sunscar-dunes/generators/rows/species/duneRay';

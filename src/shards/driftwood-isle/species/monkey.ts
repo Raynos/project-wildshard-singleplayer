@@ -8,7 +8,9 @@ import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from './monkeyPolicy';
 import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
-import { MONKEY_ACTIONS } from '../data/speciesActions';
+import authoredSpeciesActions from '../data/speciesActions.json' with { type: 'json' };
+
+const { MONKEY_ACTIONS } = authoredSpeciesActions;
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale

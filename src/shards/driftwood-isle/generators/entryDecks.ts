@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import generated from '../data/entryDecks.generated.json' with { type: 'json' };
-import { DRY_ENTRIES } from '../data/entryRows';
+import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+
+const { DRY_ENTRIES } = authoredEntryRows;
 
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.minValue(0.005), v.maxValue(500));

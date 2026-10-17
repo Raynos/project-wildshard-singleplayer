@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { ShrineBuilder } from './shrine.ts';
 import { driftwoodGroundSampler } from './groundSampling.ts';
-import { SHRINE_SITES } from '../data/shrineSites.ts';
+import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 
 /** Original ordered shrine builds and native layouts for the two admitted sites. */
 export function originalShrine() {

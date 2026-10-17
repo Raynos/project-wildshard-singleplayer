@@ -3,12 +3,14 @@ import {SEED} from './landscapeRows';
 import type {BufferGeometry} from 'three';
 import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierParamsKey,type PierParams} from '../assets/contracts/pier';
-import {PIER_DEFAULTS,PIER_VARIANTS} from '../data/pierRows';
+import authoredPierRows from '../data/pierRows.json' with { type: 'json' };
 import {LOWERED_SEA} from '../world/sea';
 import {driftwoodGroundSampler} from './groundSampling';
 import {deckGeometry,pierWorldLayout} from './pier';
 import {worldPierSites,resolvePierParams} from './pierSites';
 import {pierColliders} from './pierColliders';
+
+const { PIER_DEFAULTS, PIER_VARIANTS } = authoredPierRows;
 
 /** Four world piers and the existing three Explorer variants, from the original builders. */
 export function originalPiers():{geometry:Map<string,BufferGeometry>;rows:{id:string;world:ReturnType<typeof pierWorldLayout>|null;paramKey:string;params:PierParams;cloth:boolean;colliders:ReturnType<typeof colliderRows>}[]} {

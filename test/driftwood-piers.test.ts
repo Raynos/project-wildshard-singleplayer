@@ -5,10 +5,12 @@ import { worldPierSites, resolvePierParams } from '../src/shards/driftwood-isle/
 import { pierWorldLayout } from '../src/shards/driftwood-isle/generators/pier';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { LOWERED_SEA } from '../src/shards/driftwood-isle/world/sea';
-import { PIER_DEFAULTS, PIER_VARIANTS } from '../src/shards/driftwood-isle/data/pierRows';
+import authoredPierRows from '../src/shards/driftwood-isle/data/pierRows.json' with { type: 'json' };
 import { pierColliders as originalColliders } from '../src/shards/driftwood-isle/generators/pierColliders';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import rows from '../src/shards/driftwood-isle/data/piers.generated.json' with {type:'json'};
+
+const { PIER_DEFAULTS, PIER_VARIANTS } = authoredPierRows;
 
 it('admits authored piers and walkable ramps, refusing unbaked parameters', () => {
   admitDriftwoodFixtureRows();

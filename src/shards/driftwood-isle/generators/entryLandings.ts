@@ -1,6 +1,8 @@
 import * as v from 'valibot';
-import generated from './entryFloors.generated.json' with { type: 'json' };
-import { DRY_ENTRIES } from './entryRows';
+import generated from '../data/entryFloors.generated.json' with { type: 'json' };
+import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+
+const { DRY_ENTRIES } = authoredEntryRows;
 
 const finite = v.pipe(v.number(), v.finite());
 const extent = v.pipe(finite, v.minValue(0.005), v.maxValue(250));

@@ -1,6 +1,10 @@
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/format/contentBounds';
 import { driftwoodGroundSampler } from './groundSampling';
-import { DECK_SLAB, DRY_ENTRIES, LANDING_RUN, type DryEntryEdge } from '../data/entryRows';
+import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+
+type DryEntryEdge = (typeof authoredEntryRows.DRY_ENTRIES)[number];
+
+const { DECK_SLAB, DRY_ENTRIES, LANDING_RUN } = authoredEntryRows;
 
 
 /** Authored dry ocean footprint in native level coordinates. */

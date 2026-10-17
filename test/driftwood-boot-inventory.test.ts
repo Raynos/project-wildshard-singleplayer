@@ -9,7 +9,7 @@ import { bootFileList, bootLateReads, bootSourceFiles, resolveBootFiles, resolve
 import sources from '../src/shards/driftwood-isle/data/boot-sources.generated.json' with { type: 'json' };
 import files from '../src/shards/driftwood-isle/data/boot-files.generated.json' with { type: 'json' };
 import lateReads from '../src/shards/driftwood-isle/data/boot-lateReads.generated.json' with { type: 'json' };
-import { ISLAND_PLAN_FILES } from '../src/shards/driftwood-isle/data/islandPlanFiles';
+import ISLAND_PLAN_FILES from '../src/shards/driftwood-isle/data/islandPlanFiles.json' with { type: 'json' };
 
 test('offline boot rows preserve ordered sources and filtered late reads for all four choices', () => {
   expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory());

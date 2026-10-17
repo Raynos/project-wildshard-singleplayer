@@ -1,0 +1,11 @@
+{
+  "DRY_ENTRIES": [
+    "north",
+    "east",
+    "south",
+    "west"
+  ],
+  "LANDING_RUN": 1.5,
+  "LANDING_HALF": 0.1,
+  "DECK_SLAB": 0.55
+}

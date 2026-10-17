@@ -2,7 +2,9 @@
 // as JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/poolLook.ts, never these builders.
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
-import { POOL_LOOK, SHRINE_POOL_LOOK } from '../data/poolLook';
+import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
+
+const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
 
 /** #0a2540 and #2aa7b0 as linear RGB */
 const DEEP = [0.003035, 0.018500, 0.051269] as const, TEAL = [0.023153, 0.386429, 0.434154] as const;

@@ -1,13 +1,15 @@
 /** Fixed world facts compiled beside the existing geometry and foliage products. */
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { BOAT_MOOR } from '../data/layout';
+import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { SHORE_LEVEL, WORLD_DROP } from './landscapeRows';
 import { BOAT_LAYOUT } from './boatLayout';
 import { ENTRY_DECKS } from './entryDecks';
 import shore from '../data/shoreBoulders.generated.json' with { type: 'json' };
 import piers from '../data/piers.generated.json' with { type: 'json' };
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+
+const { BOAT_MOOR } = authoredLayout;
 
 /** Own-space hull walls and floor; also the existing native mover's input. */
 export function boatColliders(layout: typeof BOAT_LAYOUT = BOAT_LAYOUT): ColliderDesc[] {
