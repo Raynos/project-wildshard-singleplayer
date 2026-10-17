@@ -1,5 +1,5 @@
 import type { EffectFieldRow } from '@wildshard/sdk/looks/effectField';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 
 /**
  * Sky Reach's visible wind (style bible §7, loop 3; drawn on @wildshard/sdk/looks/effectField): the fan's GUST, a cone of

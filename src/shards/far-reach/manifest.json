@@ -242,24 +242,24 @@
   "bindings": {
     "accent": "pink",
     "budgets": {
-      "module": "./data/budgets",
-      "export": "BUDGETS"
+      "module": "./data/budgets.generated.json",
+      "export": "default"
     },
     "navigation": {
       "module": "./data/navigation.generated.json",
       "export": "default"
     },
     "runtimeCost": {
-      "module": "./data/budgets",
-      "export": "SKY_REACH_RUNTIME_COST"
+      "module": "./data/runtimeCost.generated.json",
+      "export": "default"
     },
     "mapPalette": {
       "module": "./data/mapPalette.generated.json",
       "export": "default"
     },
     "poses": {
-      "module": "./data/devPoses",
-      "export": "SKY_DEV_POSES"
+      "module": "./data/devPoses.generated.json",
+      "export": "default"
     },
     "audioCues": {
       "module": "./data/cues",

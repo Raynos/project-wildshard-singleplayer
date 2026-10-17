@@ -1,8 +1,10 @@
 import type { Group, Material } from 'three';
 import { createWorldScene, type WorldScenePorts } from '@wildshard/game/plugin/ui';
 import { SKY_LIBRARY, skyHd, skyMesh } from './meshes';
-import { SKY_BRIDGE_KIT, SKY_VANE } from '../data/routeScene.generated';
+import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
 import { WORLD } from './baked';
+
+const { SKY_BRIDGE_KIT, SKY_VANE } = routeScene;
 
 /** Shared prepared bridge parts and native look loans for world spans, their pivot and the Explorer (the rails, the hover
  *  glass and the kit's deck are declared in the scenes, generators/routeScene.ts). */

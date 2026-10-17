@@ -41,5 +41,5 @@ export function skyGroundSource(): Uint8Array {
   root.children = bindings.map(row => row.part);
   const recipe: WorldSceneRecipe = { scene: { version: 1, root: 'ground', nodes, materials: looks.map(id => ({ kind: 'port', id, source: id })), textures: [] }, imports };
   const data = { recipe, isles, looks, registry, bindings, cosmeticDraws: ISLES.length * ISLE_DRAWS };
-  return new TextEncoder().encode(`/** Authored ground hierarchy and registry rows; regenerated during the build. */\nexport const SKY_GROUND = ${JSON.stringify(data)} as const;\n/** Walkable hull points remain ordinary numeric rows, not tuple types. */\nexport const SKY_GROUND_COLLIDERS: readonly { readonly id: string; readonly colliders: readonly { readonly kind: 'hull'; readonly x: number; readonly y: number; readonly z: number; readonly points: readonly number[]; readonly surface: 'grass' }[] }[] = ${JSON.stringify(colliders)};\n`);
+  return new TextEncoder().encode(`${JSON.stringify({ SKY_GROUND: data, SKY_GROUND_COLLIDERS: colliders })}\n`);
 }

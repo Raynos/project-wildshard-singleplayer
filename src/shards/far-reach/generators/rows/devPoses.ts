@@ -1,4 +1,4 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 
 /** Original fixed developer capture poses; data only, with no runtime camera or state writes. */
 export const SKY_DEV_POSES = {

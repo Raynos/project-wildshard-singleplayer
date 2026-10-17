@@ -1,10 +1,12 @@
 import { expect, it } from 'vitest';
 import { Group, Mesh, BoxGeometry, MeshBasicMaterial, type Object3D } from 'three';
 import { createWorldScene } from '../src/game/plugin/ui';
-import { worldPieces } from '../src/game/shardfile/bakedKinds';
+import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
-import { SKY_GROUND, SKY_GROUND_COLLIDERS } from '../src/shards/far-reach/data/groundScene.generated';
+import groundScene from '../src/shards/far-reach/data/groundScene.generated.json' with { type: 'json' };
 import PLACEMENTS from '../src/shards/far-reach/data/physicsPlacements.generated.json' with { type: 'json' };
+
+const { SKY_GROUND, SKY_GROUND_COLLIDERS } = groundScene;
 
 const isMesh = (node: Object3D | undefined): node is Mesh => node instanceof Mesh;
 
@@ -18,7 +20,7 @@ it('registers the authored walkable ground while borrowing loaded island geometr
       root.add(new Mesh(geometry, material)); return { root, colliders: [] };
     } });
   const registered: Piece[] = [], root = new Group();
-  const pieces = worldPieces(piece => { registered.push(piece); }, root, SKY_GROUND.registry, undefined,
+  const pieces = worldPieces(piece => { registered.push(piece); }, root, SKY_GROUND.registry as readonly WorldPieceRow[], undefined,
     [...PLACEMENTS, ...SKY_GROUND_COLLIDERS]);
   await pieces.scene(made, SKY_GROUND.bindings);
   expect(registered.map(piece => piece.id)).toEqual(SKY_GROUND.registry.map(row => row.id));

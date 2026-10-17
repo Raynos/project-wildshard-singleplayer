@@ -9,8 +9,8 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture
 import { STRINGS } from '../data/strings';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
-import { effectField } from '@wildshard/sdk/looks/effectField';
-import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
+import { effectField, type EffectFieldRow } from '@wildshard/sdk/looks/effectField';
+import windRows from '../data/wind.generated.json' with { type: 'json' };
 import { FAN_HELD_OWNERS, type WarFanWeapon } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { FAN_ROW } from '../data/equipment';
@@ -18,12 +18,14 @@ import { SKY_LIBRARY, preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
 import { wakeRibbon } from './looks/wakeRibbon';
-import { RAY_WAKE } from '../data/rayWakeLook';
+import RAY_WAKE from '../data/rayWake.generated.json' with { type: 'json' };
 import { meadow } from '../world/meadow';
 import { bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, type ClientWorldPreparation } from '@wildshard/game/shardfile/runtimeProduct';
+
+const { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } = windRows;
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -116,7 +118,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // of streaks and petals leaving the fan (style bible §7); a vane inside the cone starts turning (step 3).
     const wind = (key: keyof typeof WIND_FIELDS): ReturnType<typeof effectField> => {
       const look = SKY_LIBRARY.look(WIND_LOOKS[key]); if (look === undefined) throw new Error(`Sky Reach: look.materials lacks ${WIND_LOOKS[key]}`);
-      const field = effectField(WIND_FIELDS[key], look); ctx.root.add(field.object); ctx.scope.own(field.geometry); ctx.scope.onDispose(() => { field.object.removeFromParent(); }); return field;
+      const field = effectField(WIND_FIELDS[key] as EffectFieldRow, look); ctx.root.add(field.object); ctx.scope.own(field.geometry); ctx.scope.onDispose(() => { field.object.removeFromParent(); }); return field;
     };
     const axis = [new Vector3(...UPDRAFT_AXIS.at), new Vector3(...UPDRAFT_AXIS.aim)] as const, fxRandom = ctx.app.rng.stream('cosmetic'), gust = [wind('gustStreaks'), wind('gustPetals')] as const;
     wind('updraftStreaks').place(...axis); wind('updraftLeaves').place(...axis);

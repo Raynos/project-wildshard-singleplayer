@@ -1,5 +1,5 @@
 import { BufferAttribute, Group, InstancedBufferGeometry, InstancedInterleavedBuffer, InterleavedBufferAttribute, LOD, type Material, Mesh, Object3D, Sphere, Vector3 } from 'three';
-import { MEADOW, meadowCard } from '../data/meadowLook';
+import MEADOW from '../data/meadow.generated.json' with { type: 'json' };
 
 /**
  * The near meadow (loop 4): the baked blades (generators/meadowBlades.ts, world/baked.ts `skyMeadowBlades`) as one level
@@ -11,7 +11,7 @@ export function meadow(bytes: Uint8Array | undefined, material: Material | undef
   const dispose = (): void => { group.removeFromParent(); for (const g of geometries) g.dispose(); };
   if (bytes === undefined || material === undefined || bytes.length < 4) return { group, dispose };
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), chunks = view.getUint32(0, true);
-  const cards = [1, 1 + MEADOW.layers].map((copies) => { const c = meadowCard(copies); return { card: new BufferAttribute(c.card, 4), layer: new BufferAttribute(c.layer, 1), index: new BufferAttribute(c.index, 1), position: new BufferAttribute(new Float32Array(c.layer.length * 3), 3) }; });
+  const cards = MEADOW.cards.map(c => ({ card: new BufferAttribute(new Float32Array(c.card), 4), layer: new BufferAttribute(new Float32Array(c.layer), 1), index: new BufferAttribute(new Uint16Array(c.index), 1), position: new BufferAttribute(new Float32Array(c.layer.length * 3), 3) }));
   let at = 4 + chunks * 20;
   for (let i = 0; i < chunks; i++) {
     const o = 4 + i * 20, count = view.getUint32(o + 12, true), drawn = blades >= MEADOW.blades ? count : view.getUint32(o + 16, true);

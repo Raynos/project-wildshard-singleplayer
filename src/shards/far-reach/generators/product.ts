@@ -3,7 +3,7 @@ import { STORM_NOISE } from './rows/stormNoise';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from './rows/swardAtlas';
 import skyMaps from '../data/skyMaps.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
-import { SKY_REACH_RUNTIME_COST } from '../data/budgets';
+import { SKY_REACH_RUNTIME_COST } from './rows/budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SKY_SPAWNS } from '../data/spawns';

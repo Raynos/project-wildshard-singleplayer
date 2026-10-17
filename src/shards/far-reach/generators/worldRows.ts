@@ -12,8 +12,11 @@ import isletRig from '../data/isletRig.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import { STRINGS } from '../data/strings';
-import { SKY_GROUND } from '../data/groundScene.generated';
-import { SKY_ROUTES } from '../data/routeScene.generated';
+import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
+import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
+
+const { SKY_GROUND } = groundScene;
+const { SKY_ROUTES } = routeScene;
 /** Authored static kind, pose, material and collider rows, in their original preload order. */
 export const WORLD_BAKES = { 'winch-house': winchHouse, roost, docks, crown, mill: { ...mill, kinds: mill.kinds.map(kind => kind.name.startsWith('cloth-') ? Object.assign(structuredClone(kind), { look: 'mill-canvas' }) : kind) }, 'book-stand': bookStand,
   knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
@@ -27,8 +30,8 @@ const FILE = 'src/shards/far-reach/world/build.ts';
  */
 export const SKY_PIECES = [
   { id: 'far.docks', name: STRINGS.skyDock, category: 'buildings', file: FILE, surface: 'wood', baked: 'docks', node: 'far.docks' },
-  ...SKY_GROUND.registry,
-  ...SKY_ROUTES.registry,
+  ...SKY_GROUND.registry as readonly WorldPieceRow<BakedPiece>[],
+  ...SKY_ROUTES.registry as readonly WorldPieceRow<BakedPiece>[],
   { id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE },
   { id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE },
   { id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE },
@@ -44,6 +47,10 @@ export const SKY_PIECES = [
 ] as const satisfies readonly WorldPieceRow<BakedPiece>[];
 
 /** Fixed placements and baked paint assignment are emitted before client boot. */
-export function skyWorldRows(): { readonly bakes: typeof WORLD_BAKES; readonly pieces: typeof SKY_PIECES } {
-  return { bakes: WORLD_BAKES, pieces: SKY_PIECES };
+export function skyWorldRows(): { readonly bakes: Readonly<Record<string, unknown>>; readonly pieces: typeof SKY_PIECES } {
+  const dressingLooks: Readonly<Record<string, string>> = { clump: 'dressing-clump', lip: 'dressing-clump', flower: 'dressing-flower', stone: 'dressing-stone' };
+  const bakes = Object.fromEntries(Object.entries(WORLD_BAKES).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => 'look' in kind ? kind
+    : 'shack' in kind ? { ...kind, look: `shack-${kind.shack}` }
+    : 'dressing' in kind ? { ...kind, look: dressingLooks[kind.dressing] ?? '' } : kind) }]));
+  return { bakes, pieces: SKY_PIECES };
 }

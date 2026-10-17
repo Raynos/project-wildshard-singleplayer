@@ -1,5 +1,6 @@
 import { BufferGeometry, type Color, Float32BufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-import type { ShackKind } from '../world/shack';
+
+export type ShackKind = 'plank' | 'shingle' | 'stone' | 'beam';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): the weathered-timber geometry kit for Sky Reach's small buildings, run by the

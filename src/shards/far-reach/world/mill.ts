@@ -2,7 +2,9 @@ import type { Group, Object3D, Material } from 'three';
 import { hdMaterial, skyHd, SKY_LIBRARY } from './meshes';
 import { WORLD } from './baked';
 import { bindWorldSceneParts, createWorldScene } from '@wildshard/game/plugin/ui';
-import { MILL_SCENE } from '../data/millScene.generated';
+import millScene from '../data/millScene.generated.json' with { type: 'json' };
+
+const { MILL_SCENE } = millScene;
 
 /** Authored painted tower, foot and moving sail hierarchy; native hub motion remains borrowed. */
 export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {

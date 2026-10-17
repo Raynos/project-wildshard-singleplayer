@@ -14412,7 +14412,7 @@
         "src/shards/far-reach/generators/rows/isleLook.ts",
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/meadowLook.ts",
+        "src/shards/far-reach/generators/rows/meadowLook.ts",
         "src/shards/far-reach/data/placements.json",
         "src/shards/far-reach/generators/rows/skyIsles.ts",
         "src/shards/far-reach/data/skyLook.ts",
@@ -14505,7 +14505,7 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/groundScene.ts",
         "skyGroundSource",
-        "src/shards/far-reach/data/groundScene.generated.ts",
+        "src/shards/far-reach/data/groundScene.generated.json",
         "--bytes"
       ],
       "inputRoots": [
@@ -14533,10 +14533,10 @@
         "src/shards/far-reach/data/skyMapSources.json"
       ],
       "outputs": [
-        "src/shards/far-reach/data/groundScene.generated.ts"
+        "src/shards/far-reach/data/groundScene.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/far-reach/data/groundScene.generated.ts"
+        "src/shards/far-reach/data/groundScene.generated.json"
       ],
       "platform": "portable"
     },
@@ -14550,7 +14550,7 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/routeScene.ts",
         "skyRouteSource",
-        "src/shards/far-reach/data/routeScene.generated.ts",
+        "src/shards/far-reach/data/routeScene.generated.json",
         "--bytes"
       ],
       "inputRoots": [
@@ -14572,10 +14572,10 @@
         "src/shards/far-reach/data/flags.json"
       ],
       "outputs": [
-        "src/shards/far-reach/data/routeScene.generated.ts"
+        "src/shards/far-reach/data/routeScene.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/far-reach/data/routeScene.generated.ts"
+        "src/shards/far-reach/data/routeScene.generated.json"
       ],
       "platform": "portable"
     },
@@ -14589,7 +14589,7 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/millScene.ts",
         "millSceneSource",
-        "src/shards/far-reach/data/millScene.generated.ts",
+        "src/shards/far-reach/data/millScene.generated.json",
         "--bytes"
       ],
       "inputRoots": [
@@ -14602,10 +14602,10 @@
         "src/shards/far-reach/data/millModel.json"
       ],
       "outputs": [
-        "src/shards/far-reach/data/millScene.generated.ts"
+        "src/shards/far-reach/data/millScene.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/far-reach/data/millScene.generated.ts"
+        "src/shards/far-reach/data/millScene.generated.json"
       ],
       "platform": "portable"
     },
@@ -14671,7 +14671,7 @@
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/data/geometries.json",
-        "src/shards/far-reach/data/groundScene.generated.ts",
+        "src/shards/far-reach/data/groundScene.generated.json",
         "src/shards/far-reach/data/isletRig.json",
         "src/shards/far-reach/generators/keeperStand.ts",
         "src/shards/far-reach/data/knolls.json",
@@ -14682,7 +14682,7 @@
         "src/shards/far-reach/data/placements.json",
         "src/shards/far-reach/generators/quests.ts",
         "src/shards/far-reach/data/roost.json",
-        "src/shards/far-reach/data/routeScene.generated.ts",
+        "src/shards/far-reach/data/routeScene.generated.json",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/winchHouse.json",
         "src/shards/far-reach/generators/worldRows.ts",
@@ -14726,7 +14726,7 @@
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/data/geometries.json",
-        "src/shards/far-reach/data/groundScene.generated.ts",
+        "src/shards/far-reach/data/groundScene.generated.json",
         "src/shards/far-reach/data/isletRig.json",
         "src/shards/far-reach/data/isletScenes.generated.json",
         "src/shards/far-reach/generators/keeperStand.ts",
@@ -14734,13 +14734,13 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/mill.json",
-        "src/shards/far-reach/data/millScene.generated.ts",
+        "src/shards/far-reach/data/millScene.generated.json",
         "src/shards/far-reach/data/physicsPlacements.generated.json",
         "src/shards/far-reach/data/placements.json",
         "src/shards/far-reach/generators/quests.ts",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/data/roost.json",
-        "src/shards/far-reach/data/routeScene.generated.ts",
+        "src/shards/far-reach/data/routeScene.generated.json",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/winchHouse.json",
         "src/shards/far-reach/generators/fixedWorld.ts",
@@ -15057,8 +15057,8 @@
         "src/sdk/version.ts",
         "src/shards/far-reach/generators/rows/audio.ts",
         "src/shards/far-reach/data/bossStages.json",
-        "src/shards/far-reach/data/budgetCeilings.ts",
-        "src/shards/far-reach/data/budgets.ts",
+        "src/shards/far-reach/data/budgetCeilings.json",
+        "src/shards/far-reach/generators/rows/budgets.ts",
         "src/shards/far-reach/data/cues.ts",
         "src/shards/far-reach/data/fanContacts.ts",
         "src/shards/far-reach/generators/rows/isleLook.ts",
@@ -15075,7 +15075,7 @@
         "src/shards/far-reach/generators/rows/ledger.ts",
         "src/shards/far-reach/generators/rows/liftPrompts.ts",
         "src/shards/far-reach/data/lookGraphs.json",
-        "src/shards/far-reach/data/meadowLook.ts",
+        "src/shards/far-reach/generators/rows/meadowLook.ts",
         "src/shards/far-reach/generators/rows/modes.ts",
         "src/shards/far-reach/data/moverBindings.ts",
         "src/shards/far-reach/generators/rows/moverViews.ts",
@@ -15090,7 +15090,7 @@
         "src/shards/far-reach/generators/questPrompts.ts",
         "src/shards/far-reach/generators/questStages.ts",
         "src/shards/far-reach/generators/quests.ts",
-        "src/shards/far-reach/data/rayWakeLook.ts",
+        "src/shards/far-reach/generators/rows/rayWakeLook.ts",
         "src/shards/far-reach/data/rocFight.ts",
         "src/shards/far-reach/generators/sections.ts",
         "src/shards/far-reach/generators/rows/skyIsles.ts",
@@ -15103,7 +15103,7 @@
         "src/shards/far-reach/generators/rows/stormNoise.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/rows/swardAtlas.ts",
-        "src/shards/far-reach/data/windLook.ts",
+        "src/shards/far-reach/generators/rows/windLook.ts",
         "src/shards/far-reach/generators/product.ts",
         "src/shards/far-reach/data/flags.json"
       ],
@@ -17556,6 +17556,52 @@
       ],
       "platform": "darwin",
       "browser": true
+    },
+    {
+      "id": "sky-view-data",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/viewData.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/viewData.ts",
+        "skyViewData",
+        "src/shards/far-reach",
+        "--files"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/shards/far-reach/generators/viewData.ts",
+        "src/shards/far-reach/generators/rows/budgets.ts",
+        "src/shards/far-reach/generators/rows/devPoses.ts",
+        "src/shards/far-reach/generators/rows/meadowLook.ts",
+        "src/shards/far-reach/generators/rows/windLook.ts",
+        "src/shards/far-reach/generators/rows/rayWakeLook.ts",
+        "src/shards/far-reach/data/budgetCeilings.json",
+        "src/shards/far-reach/data/layout.generated.json",
+        "src/sdk/looks/effectField.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/budgets.generated.json",
+        "src/shards/far-reach/data/runtimeCost.generated.json",
+        "src/shards/far-reach/data/devPoses.generated.json",
+        "src/shards/far-reach/data/meadow.generated.json",
+        "src/shards/far-reach/data/wind.generated.json",
+        "src/shards/far-reach/data/rayWake.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/budgets.generated.json",
+        "src/shards/far-reach/data/runtimeCost.generated.json",
+        "src/shards/far-reach/data/devPoses.generated.json",
+        "src/shards/far-reach/data/meadow.generated.json",
+        "src/shards/far-reach/data/wind.generated.json",
+        "src/shards/far-reach/data/rayWake.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

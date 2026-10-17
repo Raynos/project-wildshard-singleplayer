@@ -1,5 +1,5 @@
 import { SKY_LIBRARY } from '../../world/meshes';
-import type { WakeRibbonRow } from '../../data/rayWakeLook';
+import type RAY_WAKE from '../../data/rayWake.generated.json';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Material } from 'three';
 
 /**
@@ -14,7 +14,7 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Mesh, Me
 export interface WakeRibbon { readonly mesh: Mesh<BufferGeometry, Material>; update: (at: Vector3, alive: boolean, camera: Vector3, dt: number) => void }
 
 /** A wake ribbon (see the module note). */
-export function wakeRibbon(row: WakeRibbonRow): WakeRibbon {
+export function wakeRibbon(row: typeof RAY_WAKE): WakeRibbon {
   const n = row.samples, pos = new Float32Array(n * 2 * 3), fade = new Float32Array(n * 2), sideA = new Float32Array(n * 2), index: number[] = [];
   for (let i = 0; i < n - 1; i++) { const a = i * 2; index.push(a, a + 1, a + 3, a, a + 3, a + 2); }
   for (let i = 0; i < n; i++) { const f = 1 - i / (n - 1); fade[i * 2] = f; fade[i * 2 + 1] = f; sideA[i * 2] = 1; sideA[i * 2 + 1] = -1; }

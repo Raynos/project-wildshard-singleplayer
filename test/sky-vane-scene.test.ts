@@ -1,15 +1,17 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, Vector3 } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
-import { SKY_VANES } from '../src/shards/far-reach/data/routeScene.generated';
+import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
+
+const { SKY_VANES } = routeScene;
 
 it('keeps each vane rotor independently movable at its declared interaction anchor', () => {
   const geometry = new BoxGeometry(), made = createWorldScene(SKY_VANES.recipe, {
     geometry: () => geometry, model: () => null, baked: () => ({ root: new Group(), colliders: [] }),
   });
-  const parts = bindWorldSceneParts(made, SKY_VANES.kinds, SKY_VANES.ports);
+  const ports: Readonly<Record<string, unknown>> = SKY_VANES.ports;
   for (const row of SKY_VANES.rows) {
-    const rotor = parts[row.rotor], anchor = parts[row.at], before = new Vector3();
+    const { rotor, anchor } = bindWorldSceneParts(made, { rotor: 'group', anchor: 'vector' }, { rotor: ports[row.rotor], anchor: ports[row.at] }), before = new Vector3();
     rotor.getWorldPosition(before);
     expect(anchor.y).toBeGreaterThan(before.y);
     expect(anchor.x).toBe(before.x); expect(anchor.z).toBe(before.z);
@@ -25,9 +27,9 @@ it('keeps native rotor ports available without drawing missing model parts', () 
   const made = createWorldScene(SKY_VANES.recipe, {
     geometry: () => null, model: () => null, baked: () => ({ root: new Group(), colliders: [] }),
   });
-  const parts = bindWorldSceneParts(made, SKY_VANES.kinds, SKY_VANES.ports);
+  const ports: Readonly<Record<string, unknown>> = SKY_VANES.ports;
   let drawn = false; made.root.traverse(object => { if (object instanceof Mesh) drawn = true; });
   expect(drawn).toBe(false);
-  for (const row of SKY_VANES.rows) { parts[row.rotor].rotation.y = 1; expect(parts[row.rotor].parent).not.toBeNull(); }
+  for (const row of SKY_VANES.rows) { const { rotor } = bindWorldSceneParts(made, { rotor: 'group' }, { rotor: ports[row.rotor] }); rotor.rotation.y = 1; expect(rotor.parent).not.toBeNull(); }
   made.dispose();
 });

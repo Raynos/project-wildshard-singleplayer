@@ -1,7 +1,7 @@
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
-import { SKY_GROUND } from '../data/groundScene.generated';
-import { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES, SKY_VANES } from '../data/routeScene.generated';
+import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
+import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { createQuestPagePrompts, bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
@@ -15,6 +15,9 @@ import { WORLD } from './baked';
 import { routeScenePorts, vaneGeometry } from './shapes';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
+
+const { SKY_GROUND } = groundScene;
+const { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES, SKY_VANES } = routeScene;
 
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];
 const FILE = 'src/shards/far-reach/world/build.ts';
@@ -55,7 +58,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const groundGeometry = new Map<string, BufferGeometry | null>(SKY_GROUND.isles.map(row => [row.id, isles.get(row.node)?.geometry ?? null]));
   const ground = createWorldScene(SKY_GROUND.recipe, {
     geometry: name => groundGeometry.get(name) ?? null, model: SKY_LIBRARY.model, baked: WORLD.object,
-    materials: new Map(SKY_GROUND.looks.map(look => [look, isleMaterial(look)])),
+    materials: new Map(SKY_GROUND.looks.map(look => [look, isleMaterial(look as Parameters<typeof isleMaterial>[0])])),
   });
   for (let i = 0; i < SKY_GROUND.cosmeticDraws; i++) rnd();
   await pieces.scene(ground, SKY_GROUND.bindings, pause);
@@ -115,9 +118,12 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   await pause();
   const vaneScene = createWorldScene(SKY_VANES.recipe, { geometry: vaneGeometry(), model: SKY_LIBRARY.model, baked: WORLD.object });
-  const vaneParts = bindWorldSceneParts(vaneScene, SKY_VANES.kinds, SKY_VANES.ports);
+  const vanePorts: Readonly<Record<string, unknown>> = SKY_VANES.ports;
   await pieces.scene(vaneScene, SKY_VANES.bindings, pause);
-  const vanes = SKY_VANES.rows.map(row => ({ id: row.id, flag: row.flag, at: vaneParts[row.at], rotor: vaneParts[row.rotor] }));
+  const vanes = SKY_VANES.rows.map(row => {
+    const { at, rotor } = bindWorldSceneParts(vaneScene, { at: 'vector', rotor: 'group' }, { at: vanePorts[row.at], rotor: vanePorts[row.rotor] });
+    return { id: row.id, flag: row.flag, at, rotor };
+  });
 
   await fixedScene(staticRows.fixed.bindings.crown);
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn

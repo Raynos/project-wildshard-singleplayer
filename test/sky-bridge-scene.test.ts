@@ -1,11 +1,13 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, InstancedMesh, MeshStandardMaterial } from 'three';
 import { createClientScene } from '../src/game/plugin/ui';
-import { worldPieces } from '../src/game/shardfile/bakedKinds';
+import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
 import BRIDGES from '../src/shards/far-reach/data/bridgeRest.generated.json' with { type: 'json' };
 import COLLIDERS from '../src/shards/far-reach/data/bridgePhysics.generated.json' with { type: 'json' };
-import { SKY_ROUTE_SCENE, SKY_ROUTES } from '../src/shards/far-reach/data/routeScene.generated';
+import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
+
+const { SKY_ROUTE_SCENE, SKY_ROUTES } = routeScene;
 
 it('assembles an authored bridge with borrowed materials and optional painted posts', () => {
   const span = BRIDGES.spans.find(row => row.id === 'kit');
@@ -31,7 +33,7 @@ it('registers the playable spans and keeps hover routes board-only', async () =>
   const made = createClientScene(SKY_ROUTE_SCENE, { geometry: () => geometry,
     materials: new Map(['deck', 'posts', 'rails', 'glass', 'frame'].map(name => [name, material])) });
   const registered: Piece[] = [];
-  const pieces = worldPieces(piece => { registered.push(piece); }, new Group(), SKY_ROUTES.registry, undefined, COLLIDERS);
+  const pieces = worldPieces(piece => { registered.push(piece); }, new Group(), SKY_ROUTES.registry as readonly WorldPieceRow[], undefined, COLLIDERS);
   await pieces.scene(made, SKY_ROUTES.bindings);
   expect(registered.map(piece => piece.id)).toEqual(SKY_ROUTES.registry.map(row => row.id));
   expect(registered.every(piece => piece.surface === 'wood' && piece.colliders !== undefined && piece.colliders.length > 0)).toBe(true);

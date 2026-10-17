@@ -1,4 +1,4 @@
-import { BUDGET_CEILINGS } from './budgetCeilings';
+import BUDGET_CEILINGS from '../../data/budgetCeilings.json' with { type: 'json' };
 
 /** Exact authored phone/desktop budgets; runtime never computes a second tier formula. */
 export const BUDGETS = { ceilings: BUDGET_CEILINGS,
