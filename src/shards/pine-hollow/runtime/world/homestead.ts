@@ -108,8 +108,8 @@ async function loadMats(sky: Sky): Promise<Mats> {
   const m: Mats = {
     log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: endGrain }),
     chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: lentMappedLook(CABIN_MOSS_LOOKS.roof, scan('roof')), beam: scan('beam'), deck: scan('deck'),
-    door: lentMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
-    stone: lentMappedLook(CABIN_MOSS_LOOKS.stone, scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
+    door: lentMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../../generators/cabinLook.ts)
+    stone: lentMappedLook(CABIN_MOSS_LOOKS.stone, scan('stone')), // the roof and the stone mossed over their scans' maps (../../generators/cabinLook.ts)
     glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
     iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
     smoke: lentLook(HEARTH_LOOKS.smoke), flame: lentLook(HEARTH_LOOKS.flame), ember: lentLook(HEARTH_LOOKS.ember),
@@ -154,7 +154,7 @@ export interface CabinBuilding {
 
 /**
  * The homestead: the buildings built from the bake, and their life (@wildshard/sdk/props/buildingLife, the look
- * ../data/cabinLook.ts `CABIN_LIFE`: doors, fires and lamps on the clock, the phone's pooled lights, swings, the wheel,
+ * ../../generators/cabinLook.ts `CABIN_LIFE`: doors, fires and lamps on the clock, the phone's pooled lights, swings, the wheel,
  * floors and solids). The smoke's sun and night hold are Pine's (`update`).
  */
 export class Cabins extends BuildingLife implements BuildingOwner {

@@ -21,7 +21,7 @@ import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS, PINE_FEATS, PINE_BAG_ITEMS } from './questInventory';
-import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from '../data/cabinLook';
+import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from './cabinLook';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { NPC_FIGURE } from './peopleLook';

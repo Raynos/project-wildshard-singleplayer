@@ -3,7 +3,7 @@ import { BoxGeometry, Group, MeshBasicMaterial, MeshStandardMaterial, Vector3 } 
 import { BakedBuildingAssembly, type BakedBuildingRecord } from '../src/shards/pine-hollow/runtime/props/bakedBuilding';
 import { BuildingLife } from '../src/shards/pine-hollow/runtime/props/buildingLife';
 import { CABIN_BUILD } from '../src/shards/pine-hollow/runtime/props/cabinBuild';
-import { CABIN_LIFE } from '../src/shards/pine-hollow/data/cabinLook';
+import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
 
 test('building life keeps its door while the assembly owns static collision', () => {
   const material = new MeshStandardMaterial(), glow = new MeshBasicMaterial(), shapes: BoxGeometry[] = [];
