@@ -17164,6 +17164,45 @@
       ],
       "platform": "darwin",
       "browser": true
+    },
+    {
+      "id": "nalati-spruce",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-spruce.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "src/engine/app/identity.ts",
+        "src/game/identity.ts",
+        "src/engine/boot/tables.ts",
+        "src/game/shard/list.ts",
+        "src/engine/core/noise.ts",
+        "src/engine/core/rng.ts",
+        "src/engine/world/forest/treeSpec.ts",
+        "src/sdk/package.json",
+        "src/engine/package.json",
+        "src/sdk/kit/geometryPack.ts",
+        "src/shards/nalati-grasslands/generators/spruceGeometry.ts",
+        "src/shards/nalati-grasslands/generators/bake-spruce.mjs"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/spruce.bin",
+        "public/assets/nalati/baked/spruce.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/nalati/baked/spruce.bin",
+        "public/assets/nalati/baked/spruce.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

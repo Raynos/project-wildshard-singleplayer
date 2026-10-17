@@ -25,7 +25,7 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { RIVER } = await import('../../src/shards/nalati-grasslands/world/terrain.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
     const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { outcropsPlace, bakeCragRock }] = await Promise.all([
-      import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/world/Spruce.ts'),
+      import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
       import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
     const [layout, terrain, { inPoiClearing }] = await Promise.all([

@@ -95,9 +95,9 @@ export const NALATI_GRASSLANDS: ShardManifest = {
     groundTints: [[0.7, 0.85, 0.5], [0.9, 0.84, 0.66], [0.7, 0.7, 0.72], [0.95, 0.95, 0.95]],
     slabRock: 'rock_ground',
   },
-  // the spruce forest is cut (layout v2): a handful of lone Tian Shan spruces (src/shards/nalati-grasslands/world/Spruce.ts) at LONE_SPRUCE; the
+  // the spruce forest is cut (layout v2): a handful of lone Tian Shan spruces (src/shards/nalati-grasslands/world/spruceView.ts) at LONE_SPRUCE; the
   // tint multiplies the painted colours, so it stays near-white
-  trees: { factory: () => import('./world/Spruce').then((m) => m.spruceFactory), bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'spruces' },
+  trees: { factory: () => import('./world/spruceView').then((m) => m.spruceFactory), bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'spruces' },
   forest: {
     spacing: 4.2,
     densityFreq: 0.01,

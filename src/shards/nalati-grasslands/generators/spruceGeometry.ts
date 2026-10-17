@@ -1,10 +1,6 @@
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { TREE_SPECS } from '@wildshard/engine/world/forest/treeSpec';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { TreeFactory, type TreeVariant } from '@wildshard/engine/world/TreeFactory';
 /**
  * Spruce — a Tian Shan spruce (Picea schrenkiana) for Nalati's gullies, in the painterly style (style B).
  *
@@ -230,41 +226,14 @@ function buildTrunk(height: number, trunkR: number, seed: number): THREE.BufferG
   return b.build();
 }
 
-/** Triangle counts per LOD for one variant (perf reports). */
-export interface SpruceLodTris { hi: number; twigs: number; lo: number; far: number; trunk: number }
-
-export class SpruceFactory extends TreeFactory {
-  /** tris per LOD, per variant (the order of `variants`) */
-  lodTris: SpruceLodTris[] = [];
-
-  constructor(renderer: LookReplaceContext['renderer'], private readonly sky: Sky) { super(renderer); }
-
-  override build(): Promise<this> {
-    // the shared painterly material (one program, four uniform sets). Spruce is stiff: ~0.35 m of sway at the top of
-    // an 18 m tree (painterly's sway is metres per metre² of height), a warm rim on the sun side of the spires.
-    const sway = 0.0011;
-    this.needleMaterial = painterlyMaterial(this.sky, { rim: 0.2, bands: 0.85, sway });
-    this.twigMaterial = painterlyMaterial(this.sky, { rim: 0.1, bands: 0.85, sway });
-    this.farMaterial = painterlyMaterial(this.sky, { rim: 0.25, bands: 0.7, sway });
-    this.barkMaterial = painterlyMaterial(this.sky, { rim: 0.15, bands: 0.8, sway: sway * 0.4 });
-    // shadows: the plain depth pass (painterly's own shadow-depth does not sway either)
-    this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
-    this.twigDepth = this.needleDepth;
-
-    for (const s of SPRUCE_SPECS) {
-      const tiers = Math.round(s.height / 1.3);
-      const hi = new GeoBuilder(), tw = new GeoBuilder(), lo = new GeoBuilder(), far = new GeoBuilder();
-      buildCrown(hi, tw, s.height, s.trunk, s.seed, { tiers, tips: 12, full: true });
-      buildCrown(lo, null, s.height, s.trunk, s.seed, { tiers: Math.round(tiers * 0.7), tips: 8, full: false });
-      buildCrown(far, null, s.height, s.trunk, s.seed, { tiers: 4, tips: 6, full: false });
-      const trunk = buildTrunk(s.height, s.trunk, s.seed);
-      const v: TreeVariant = { trunk, cardsHi: hi.build(), cardsLo: lo.build(), twigs: tw.build(), far: far.build(), height: s.height, trunkRadius: s.trunk };
-      this.variants.push(v);
-      this.lodTris.push({ hi: hi.triangles, twigs: tw.triangles, lo: lo.triangles, far: far.triangles, trunk: (trunk.index?.count ?? 0) / 3 });
-    }
-    return Promise.resolve(this);
-  }
+/** Exact original four variants, with no page material or forest ownership. */
+export function spruceGeometry(): { height: number; trunkRadius: number; trunk: THREE.BufferGeometry; cardsHi: THREE.BufferGeometry; cardsLo: THREE.BufferGeometry; twigs: THREE.BufferGeometry; far: THREE.BufferGeometry }[] {
+  return SPRUCE_SPECS.map(s => {
+    const tiers = Math.round(s.height / 1.3);
+    const hi = new GeoBuilder(), tw = new GeoBuilder(), lo = new GeoBuilder(), far = new GeoBuilder();
+    buildCrown(hi, tw, s.height, s.trunk, s.seed, { tiers, tips: 12, full: true });
+    buildCrown(lo, null, s.height, s.trunk, s.seed, { tiers: Math.round(tiers * 0.7), tips: 8, full: false });
+    buildCrown(far, null, s.height, s.trunk, s.seed, { tiers: 4, tips: 6, full: false });
+    return { height: s.height, trunkRadius: s.trunk, trunk: buildTrunk(s.height, s.trunk, s.seed), cardsHi: hi.build(), cardsLo: lo.build(), twigs: tw.build(), far: far.build() };
+  });
 }
-
-/** Deferred authored tree factory, built by the engine cards step. */
-export function spruceFactory(renderer: LookReplaceContext['renderer'], sky: Sky): Promise<TreeFactory> { return new SpruceFactory(renderer, sky).build(); }
