@@ -199,3 +199,6 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 06:29 · wT:p1 · `sed -i '' '1s/.*/docs(shard-platform): Nine graph look boards/' tmp/ol2/board-msg.txt && SKIP_SWEEPGUARD=1 tmp/ol2/commit.sh tmp/ol2/board-msg.txt tmp/ol2/nosubs.json progress/shard-platform/ol2-graph`
 - 2026-10-17 06:29 · wT:p1 · `cd /Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/ol2-graph-look && python3 -c " from PIL import Image for f in ['lantern-parent-vs-graph.jpg','portal-glsl-vs-graph.jpg']:`
 - 2026-10-17 07:16 · wT:p1 · `export GIT_INDEX_FILE=$PWD/tmp/oe/index && rm -f "$GIT_INDEX_FILE" && git read-tree HEAD && blob=$(git hash-object -w tmp/oe/handler-head.ts) && git update-index --cacheinfo 100644,$blob,src/engine/re`
+- 2026-10-17 08:18 · wT:pK · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x8-painted/isolate.py`
+- 2026-10-17 08:21 · wT:pK · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x8-painted/isolate.py');s=p.read_text();s=s.replace("put(path,json.dumps(rows,indent=2)+'\\n')", "put(path,head(path).rstrip()[:-1].rstrip() + `
+- 2026-10-17 08:22 · wT:p3 · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x1-sim-road2/prepare-index.py');p.write_text('''import subprocess,json,os from pathlib import Path p=Path(__file__).parent/'candidate.json';d=j`
