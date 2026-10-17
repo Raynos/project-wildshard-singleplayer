@@ -1,3 +1,6 @@
+import { PINE_TERRAIN } from '../data/terrainBindings';
+import headlessEntries from '../data/entryWalk.json' with { type: 'json' };
+import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import { WILDLIFE_DRAW } from './wildlifeDraw';
 import directorData from '../data/director.json' with { type: 'json' };
 import directorModule from '../behaviour/director.json' with { type: 'json' };
@@ -57,6 +60,7 @@ const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map
 const clientJson=emitNamedBlobs([
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(NATIVE_VIEW))),
+  nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries } }))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows())))),

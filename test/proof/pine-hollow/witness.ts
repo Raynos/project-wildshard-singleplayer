@@ -14,7 +14,8 @@ import { parseNavmesh, type Navmesh } from '../../../src/engine/physics/navmesh'
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
+import { PINE_TERRAIN } from '../../../src/shards/pine-hollow/data/terrainBindings';
+import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/data/layout';
@@ -39,9 +40,9 @@ const LEVER_STEP = 'pine.lever', CROSSBOW_STEP = 'pine.crossbow';
  * lantern. Nothing writes health, flags or positions: every outcome is gameplay. The night (the stag's walk, the Antler
  * King and dawn) are walked on the same tape, with the remaining systems listed in OPEN.
  */
-export const ENTRY = 'runtime/headless.ts';
+export const ENTRY = 'boot/headlessModules.ts';
 const ROOT = new URL('../../../', import.meta.url);
-const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(new URL(path, ROOT)))] as const));
+const assets = new Map([PINE_TERRAIN.terrain, PINE_TERRAIN.navmesh].map(path => [path, new Uint8Array(readFileSync(new URL(path, ROOT)))] as const));
 const EYE = 1.68;
 
 /** One authoritative session: the host, the tick's lent commands and its committed effects. */
@@ -314,7 +315,7 @@ function defence(host: SimHost): HeadlessCommand[] | null {
 
 /** The tape over Pine's route, from its first leg or where a checkpoint left it. */
 export function pineTape(plan: HeadlessRuntimePlan, from?: TapeState): PineTape {
-  const bytes = requireValue(assets.get(PINE_NAVMESH_ASSET), 'navmesh'), nav = requireValue(parseNavmesh(bytes.slice().buffer), 'navmesh parse');
+  const bytes = requireValue(assets.get(PINE_TERRAIN.navmesh), 'navmesh'), nav = requireValue(parseNavmesh(bytes.slice().buffer), 'navmesh parse');
   nav.datum = () => 0;
   const heightAt = requireValue(plan.ports?.heightAt, 'height query');
   return new PineTape(route(pineSpots(), nav, heightAt), from);

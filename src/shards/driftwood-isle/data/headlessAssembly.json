@@ -1,0 +1,952 @@
+{
+  "version": 1,
+  "modules": {
+    "src/shards/driftwood-isle/sim/baked": [
+      "driftwoodBake",
+      "driftwoodSpecs",
+      "readEnemyPlacements",
+      "readKeeperRows"
+    ],
+    "src/shards/driftwood-isle/sim/keeper": [
+      "installIsland"
+    ],
+    "src/shards/driftwood-isle/sim/captainEncounter": [
+      "installCaptain"
+    ],
+    "src/shards/driftwood-isle/sim/kills": [
+      "installDriftwoodKills"
+    ],
+    "src/shards/driftwood-isle/species/monkeyPolicy": [
+      "createMonkeyAnimation"
+    ],
+    "src/shards/driftwood-isle/runtime/quest": [
+      "driftwoodSpots",
+      "installDriftwoodQuest"
+    ],
+    "src/shards/driftwood-isle/world/sea": [
+      "DRIFTWOOD_SEA",
+      "LOWERED_SEA"
+    ],
+    "src/shards/driftwood-isle/look/dayKeys": [
+      "DRIFTWOOD_DAY"
+    ],
+    "@wildshard/format/achievementCounters": [
+      "parseAchievementCounterData"
+    ],
+    "@wildshard/engine/physics/navmesh": [
+      "readNavmesh"
+    ],
+    "@wildshard/game/plugin/director": [
+      "DirectorScriptStageLane",
+      "readDirectorProduct"
+    ],
+    "@wildshard/engine/world/dayCycle": [
+      "DayCycle"
+    ],
+    "@wildshard/engine/world/waves": [
+      "waveHeight"
+    ],
+    "@wildshard/sdk/headlessRuntime": [
+      "bindHeadlessCommands",
+      "installNativeCollision"
+    ],
+    "@wildshard/game/shardfile/borrowedDecisions": [
+      "nativeDecisionAuthority"
+    ],
+    "@wildshard/game/plugin/nativeItems": [
+      "installNativeItems"
+    ],
+    "@wildshard/game/plugin/mover": [
+      "proveTerrainEntries"
+    ]
+  },
+  "prepare": [
+    {
+      "name": "countersJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "quests/achievements.json"
+        ]
+      }
+    },
+    {
+      "name": "counters",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/format/achievementCounters", "parseAchievementCounterData"]
+          },
+          {
+            "$ref": ["countersJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "species",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["product", "section"]
+          },
+          "actors/species-programs"
+        ]
+      }
+    },
+    {
+      "name": "program",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$ref": ["species", "program"]
+          },
+          "Driftwood requires its admitted species program"
+        ]
+      }
+    },
+    {
+      "name": "fauna",
+      "value": {
+        "$new": [
+          {
+            "$ref": ["assembly", "Map"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["species", "native", "map"]
+              },
+              {
+                "$fn": [
+                  {
+                    "$ref": ["args", 0, "kind"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "placementJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "sim/enemy-placement.json",
+          false
+        ]
+      }
+    },
+    {
+      "name": "placement",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/baked", "readEnemyPlacements"]
+          },
+          {
+            "$ref": ["placementJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "monkeyPoseJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "poses/monkey.json",
+          true
+        ]
+      }
+    },
+    {
+      "name": "monkeyPose",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/species/monkeyPolicy", "createMonkeyAnimation"]
+          },
+          {
+            "$ref": ["monkeyPoseJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "keeperJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "sim/keeper.json",
+          false
+        ]
+      }
+    },
+    {
+      "name": "keeper",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/baked", "readKeeperRows"]
+          },
+          {
+            "$ref": ["keeperJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "launch",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$ref": ["shard", "items", "launches", "coconut"]
+          },
+          "Driftwood requires its admitted coconut launch"
+        ]
+      }
+    },
+    {
+      "name": "navigation",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["assets", "get"]
+              },
+              {
+                "$ref": ["shard", "navigation", "file"]
+              }
+            ]
+          },
+          "Driftwood requires its admitted navigation asset"
+        ]
+      }
+    },
+    {
+      "name": "director",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/director", "readDirectorProduct"]
+          },
+          {
+            "$ref": ["product"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bake",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/baked", "driftwoodBake"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "specs",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/baked", "driftwoodSpecs"]
+          },
+          {
+            "$ref": ["bake"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "heightAt",
+      "value": {
+        "$ref": ["bake", "floorAt"]
+      }
+    },
+    {
+      "name": "nav",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/engine/physics/navmesh", "readNavmesh"]
+          },
+          {
+            "$ref": ["navigation"]
+          },
+          "Driftwood declared navigation does not parse",
+          {
+            "$fn": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "spots",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/runtime/quest", "driftwoodSpots"]
+          }
+        ]
+      }
+    }
+  ],
+  "install": [
+    {
+      "name": "clock",
+      "value": {
+        "$new": [
+          {
+            "$ref": ["@wildshard/engine/world/dayCycle", "DayCycle"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["assembly", "merge"]
+              },
+              {
+                "$ref": ["src/shards/driftwood-isle/look/dayKeys", "DRIFTWOOD_DAY"]
+              },
+              {
+                "start": 0.16666666666666669
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "cycle",
+      "value": {
+        "$set": [
+          {
+            "$ref": ["clock"]
+          },
+          "cycle",
+          2880
+        ]
+      }
+    },
+    {
+      "name": "day",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "useDayClock"]
+          },
+          {
+            "$ref": ["clock"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "water",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "useWater"]
+          },
+          {
+            "surfaceAt": {
+              "$ref": ["src/shards/driftwood-isle/world/sea", "DRIFTWOOD_SEA", "restAt"]
+            },
+            "bob": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["@wildshard/engine/world/waves", "waveHeight"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["args", 1]
+                  },
+                  {
+                    "$ref": ["host", "clock", "now"]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "world",
+      "value": {
+        "$if": [
+          {
+            "$not": {
+              "$ref": ["context", "restoring"]
+            }
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["@wildshard/sdk/headlessRuntime", "installNativeCollision"]
+              },
+              {
+                "$ref": ["host"]
+              },
+              {
+                "$ref": ["bake"]
+              },
+              {
+                "resolution": 256
+              }
+            ]
+          },
+          {
+            "$ref": ["absent"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "island",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/keeper", "installIsland"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "monkeyPose": {
+              "$ref": ["monkeyPose"]
+            },
+            "decisions": {
+              "$call": [
+                {
+                  "$ref": ["@wildshard/game/shardfile/borrowedDecisions", "nativeDecisionAuthority"]
+                },
+                {
+                  "$ref": ["shard"]
+                },
+                {
+                  "$ref": ["assets"]
+                },
+                {
+                  "$ref": ["host"]
+                }
+              ]
+            },
+            "placement": {
+              "$ref": ["placement"]
+            },
+            "keeper": {
+              "$ref": ["keeper"]
+            },
+            "fauna": {
+              "$ref": ["fauna"]
+            },
+            "launch": {
+              "$ref": ["launch"]
+            },
+            "population": {
+              "$ref": ["species"]
+            },
+            "bake": {
+              "$ref": ["bake"]
+            },
+            "specs": {
+              "$ref": ["specs"]
+            },
+            "seed": {
+              "$ref": ["shard", "identity", "seed"]
+            },
+            "waterLevel": {
+              "$ref": ["src/shards/driftwood-isle/world/sea", "LOWERED_SEA"]
+            },
+            "spawnY": {
+              "$ref": ["shard", "spawn", "y"]
+            },
+            "nav": {
+              "$ref": ["nav"]
+            }
+          },
+          {
+            "$ref": ["context", "snapshot"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "captain",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/captainEncounter", "installCaptain"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["bake"]
+          },
+          {
+            "$ref": ["island"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "reward",
+      "value": {
+        "started": false,
+        "completed": false
+      }
+    },
+    {
+      "name": "finale",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/director", "DirectorScriptStageLane", "bind"]
+          },
+          {
+            "$ref": ["director", "stages"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["director", "create"]
+              }
+            ]
+          },
+          {
+            "$ref": ["director", "bindings"]
+          },
+          {
+            "$new": [
+              {
+                "$ref": ["assembly", "Map"]
+              },
+              [
+                [
+                  "flags",
+                  {
+                    "$ref": ["host", "flags"]
+                  }
+                ],
+                [
+                  "player",
+                  {
+                    "$ref": ["host", "player", "position"]
+                  }
+                ],
+                [
+                  "rewardAt",
+                  {
+                    "$ref": ["spots", "reward"]
+                  }
+                ],
+                [
+                  "reward",
+                  {
+                    "$ref": ["reward"]
+                  }
+                ],
+                [
+                  "captain",
+                  {
+                    "restore": {
+                      "$fn": {
+                        "$call": [
+                          {
+                            "$ref": ["captain", "publish"]
+                          },
+                          "captain.restore"
+                        ]
+                      }
+                    },
+                    "wake": {
+                      "$fn": {
+                        "$call": [
+                          {
+                            "$ref": ["captain", "publish"]
+                          },
+                          "captain.wake"
+                        ]
+                      }
+                    },
+                    "dead": {
+                      "$fn": {
+                        "$ref": ["absent"]
+                      }
+                    }
+                  }
+                ]
+              ]
+            ]
+          },
+          {
+            "$ref": ["host", "scope"]
+          },
+          {
+            "$ref": ["context", "restoring"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "input",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/sdk/headlessRuntime", "bindHeadlessCommands"]
+          },
+          {
+            "$ref": ["context"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "combat",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$ref": ["context", "combat"]
+          },
+          "Driftwood requires its native combat frame"
+        ]
+      }
+    },
+    {
+      "name": "reactions",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "events", "answer"]
+          },
+          "item.reaction",
+          {
+            "$fn": {
+              "$sequence": [
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$ref": ["args", 0, "kind"]
+                        },
+                        "alarm"
+                      ]
+                    },
+                    {
+                      "$call": [
+                        {
+                          "$ref": ["island", "alarm"]
+                        }
+                      ]
+                    },
+                    {
+                      "$call": [
+                        {
+                          "$ref": ["island", "staggered"]
+                        },
+                        {
+                          "$ref": ["args", 0, "actor"]
+                        },
+                        {
+                          "$ref": ["args", 0, "strength"]
+                        },
+                        {
+                          "$ref": ["args", 0, "running"]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$ref": ["args", 0]
+                }
+              ]
+            }
+          },
+          {
+            "$ref": ["host", "scope"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "held",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/nativeItems", "installNativeItems"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["combat"]
+          },
+          {
+            "kind": "swept",
+            "items": {
+              "$ref": ["shard", "items", "rows"]
+            },
+            "policy": {
+              "$ref": ["constants", "swords"]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "kills",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/sim/kills", "installDriftwoodKills"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["counters", "feats"]
+          },
+          {
+            "$ref": ["island", "bodies"]
+          },
+          {
+            "$ref": ["input", "ledger", "fact"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "quest",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/driftwood-isle/runtime/quest", "installDriftwoodQuest"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "source": {
+              "$ref": ["shard"]
+            },
+            "table": {
+              "$ref": ["constants", "interact"]
+            },
+            "spots": {
+              "$ref": ["spots"]
+            },
+            "feats": {
+              "$ref": ["counters", "feats"]
+            },
+            "counters": {
+              "$ref": ["counters"]
+            },
+            "fact": {
+              "$ref": ["input", "ledger", "fact"]
+            },
+            "coins": {
+              "$ref": ["input", "ledger", "coins"]
+            },
+            "bodies": {
+              "$ref": ["island", "bodies"]
+            },
+            "commands": {
+              "$call": [
+                {
+                  "$ref": ["input", "scripts"]
+                }
+              ]
+            },
+            "floorAt": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["assembly", "max"]
+                  },
+                  {
+                    "$call": [
+                      {
+                        "$ref": ["heightAt"]
+                      },
+                      {
+                        "$ref": ["args", 0]
+                      },
+                      {
+                        "$ref": ["args", 1]
+                      }
+                    ]
+                  },
+                  {
+                    "$coalesce": [
+                      {
+                        "$call": [
+                          {
+                            "$ref": ["bake", "holdFloorAt"]
+                          },
+                          {
+                            "$ref": ["args", 0]
+                          },
+                          {
+                            "$ref": ["args", 1]
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": ["assembly", "negativeInfinity"]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "ironTaken": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["held", "equip"]
+                  },
+                  1
+                ]
+              }
+            },
+            "finale": {
+              "$ref": ["finale"]
+            },
+            "reward": {
+              "$ref": ["reward"]
+            },
+            "waterLevel": {
+              "$ref": ["src/shards/driftwood-isle/world/sea", "LOWERED_SEA"]
+            },
+            "restoring": {
+              "$ref": ["context", "restoring"]
+            },
+            "walk": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["input", "walk"]
+                  },
+                  {
+                    "$ref": ["level", "player", "speed"]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "settle",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["island", "settle"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "poses",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "onStep"]
+          },
+          "driftwood.poses",
+          {
+            "$ref": ["island", "publishPoses"]
+          },
+          {
+            "$ref": ["absent"]
+          },
+          "afterBodies"
+        ]
+      }
+    }
+  ],
+  "level": {
+    "ground": {
+      "size": 500,
+      "height": 0
+    },
+    "speed": 5,
+    "lift": 0.1
+  },
+  "ports": {
+    "ground": false,
+    "heightAt": {
+      "$ref": ["heightAt"]
+    }
+  },
+  "entries": {
+    "$fn": {
+      "$call": [
+        {
+          "$ref": ["@wildshard/game/plugin/mover", "proveTerrainEntries"]
+        },
+        {
+          "$ref": ["args", 0, "physics"]
+        },
+        {
+          "$ref": ["shard", "entryways"]
+        },
+        {
+          "$ref": ["heightAt"]
+        },
+        {
+          "$ref": ["constants", "entries"]
+        }
+      ]
+    }
+  },
+  "constants": {}
+}

@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { runWildshard } from './wildshard.mjs';
+import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
@@ -42,6 +43,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   };
   const built = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort();
   for (const slug of only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
+  for (const slug of only ?? built) checkHeadlessAssembly(root, slug);
   if ((reuse || only !== undefined) && strict) console.warn('wildshard build: --reuse / --shard ignored in CI; building every shard');
   const files = strict ? undefined : treeHashes(root);
   for (const entry of readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {

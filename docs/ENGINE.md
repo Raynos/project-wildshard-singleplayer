@@ -7780,6 +7780,40 @@ no repository policy module. Standalone v1 projects still declare an explicit
 Early asset target errors report target checks alone; execution sample
 requirements are checked only after the real simulation measurement.
 
+### Declared trusted headless assembly (W2 C9)
+
+`@wildshard/sdk/headlessAssembly.prepareHeadlessAssembly(preparation,
+modules)` reads `sim/headless-assembly.json` from the verified product and
+assembles the existing native installers. Pine and Driftwood use it. A
+shard's `boot/headlessModules.ts` supplies static imports only: the official
+product build resolves every listed module and checks its exported names
+against that catalogue without executing gameplay code. The SDK never
+turns a data string into a URL or imports a shard or a test fixture.
+The explicit `sdk/headlessRuntime` trusted-module loader accepts this
+export-only catalogue alongside its existing `prepareHeadlessRuntime`
+factory contract. It calls the assembly host inside the SDK; a shard
+does not pass installer callbacks across an ordinary platform API.
+
+The bounded JSON declaration contains `modules`, product `constants`,
+ordered named `prepare` and `install` rows, level settings, ports and an
+entry-proof callback. `$ref` borrows a field or its correctly bound method;
+`$call` and `$new` call supplied capabilities. `$fn` reads its own arguments
+and the current installation's live bindings, so a callback can borrow a
+roster installed later. Conditional, coalescing and sequential expressions
+preserve the original short-circuit and effect order. Prototype keys,
+unknown operations, excessive nesting and duplicate row names refuse.
+Each install gets a fresh binding environment; asynchronous installation
+refuses. Existing owners retain every step phase, clock, RNG stream,
+snapshot adapter and scope. Preparation may await product files; the
+separate fresh entry-proof primitive always disposes its native world.
+
+This is an explicit trusted-code boundary, like a selected legacy native
+entry. Authoring a module name grants no capability: the host only exposes
+the declared exports from the caller's already imported catalogue. The
+ordinary data-only `sim/runtime-plan` path does not select this host.
+`sim-in-runtime` follows the static catalogue as a native root, keeping
+the remaining shard-owned simulation code in its existing census.
+
 ### World-target landing attachments (KA6)
 
 `bindQuestPageInteractions(source, ports, worldTargets?)` creates the target

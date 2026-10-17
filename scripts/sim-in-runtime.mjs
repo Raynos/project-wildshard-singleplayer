@@ -14,7 +14,8 @@ const sorted=values=>[...values].sort((a,b)=>a.localeCompare(b));
 /** Conservative module-level value reach, not a statement-level sim classifier.
  * Roots are the actual runtime/headless.ts native entry convention used by the
  * worker/grid proof callers, plus any exported prepareHeadlessRuntime factory
- * (so moving/renaming the entry cannot hide its runtime dependencies).
+ * and static headlessModules catalogues (so declared assemblies and renamed
+ * entries cannot hide their existing runtime installer dependencies).
  * Traversal stays within the shard; platform packages are hosts, not shard code.
  * Type-only edges erase at build and provide no executable reach. Lazy imports,
  * require and literal globs count; unprovable computed edges refuse the census.
@@ -43,7 +44,7 @@ export function simRuntimeInventory(root=ROOT) {
   const entries=all.filter(path=>path===`${prefix}runtime/headless.ts`||ast(path).body.some(node=>{
    if(node.type!=='ExportNamedDeclaration'||node.exportKind==='type')return false;
    const decl=node.declaration;
-   return decl?.id?.name==='prepareHeadlessRuntime'||decl?.declarations?.some(row=>row.id?.name==='prepareHeadlessRuntime')===true
+   return decl?.id?.name==='prepareHeadlessRuntime'||decl?.declarations?.some(row=>['prepareHeadlessRuntime','headlessModules'].includes(row.id?.name))===true
     ||node.specifiers.some(row=>row.exported?.name==='prepareHeadlessRuntime'&&row.exportKind!=='type');
   }));
   const seen=new Set(),queue=[...entries];

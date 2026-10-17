@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only an exact product receipt skips generation.
 import { env, execPath } from 'node:process';
 import { beforeAll, expect, test } from 'vitest';
-import { PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET } from '../src/shards/pine-hollow/runtime/headless';
+import { PINE_TERRAIN } from '../src/shards/pine-hollow/data/terrainBindings';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import type { SimValue } from '@wildshard/engine/sim';
@@ -31,8 +31,8 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
     const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
     const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
       Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
-    if(slug==='pine-hollow')for(const file of [PINE_TERRAIN_ASSET,PINE_NAVMESH_ASSET])assets.set(file,Uint8Array.from(readFileSync(file)));
-    const preparation={product,shard:product.shardfile,assets,rapier},entry={module:new URL(kind==='captain'?'../src/shards/driftwood-isle/sim/headless.ts':'../src/shards/pine-hollow/runtime/headless.ts',import.meta.url).href},resident=await createTrustedHeadlessResident(preparation,entry);
+    if(slug==='pine-hollow')for(const file of [PINE_TERRAIN.terrain,PINE_TERRAIN.navmesh])assets.set(file,Uint8Array.from(readFileSync(file)));
+    const preparation={product,shard:product.shardfile,assets,rapier},entry={module:new URL(kind==='captain'?'../src/shards/driftwood-isle/boot/headlessModules.ts':'../src/shards/pine-hollow/boot/headlessModules.ts',import.meta.url).href},resident=await createTrustedHeadlessResident(preparation,entry);
     let resumed:Awaited<ReturnType<typeof createTrustedHeadlessResident>>|undefined;
     try {
       const host=resident.host,spawn=product.shardfile.runtime?.spawns?.bosses.find(row=>row.kind===kind);

@@ -48,3 +48,15 @@ it('does not let replacement files spend room from retired sim debt',()=>{
  expect(simRuntimeFailures(policy,inventory)).toEqual(['src/shards/demo/runtime/new.ts: new sim-in-runtime file; move server logic to sections/hosts or Wasm (G453)','src/shards/demo/runtime/old.ts: remove retired sim-in-runtime allowance (G453)']);
  expect(simRuntimeFailures({},inventory)).toContain('demo: missing sim-in-runtime baseline');
 });
+
+it('keeps declared assembly installer dependencies in the native census',()=>{
+ const root=mkdtempSync(join(tmpdir(),'sim-runtime-assembly-'));
+ const put=(path:string,source:string):void=>{const file=join(root,'src/shards/demo',path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('sim/headlessModules.ts',"import * as owners from '../runtime/owners'; export const headlessModules = { 'src/shards/demo/runtime/owners': owners };");
+  put('runtime/owners.ts',"import './quest'; export const install=() => undefined;");
+  put('runtime/quest.ts','export const quest=1;');
+  expect(simRuntimeInventory(root)['demo']).toEqual({entries:['src/shards/demo/sim/headlessModules.ts'],files:['src/shards/demo/runtime/owners.ts','src/shards/demo/runtime/quest.ts']});
+  expect(simRuntimeFailures({budgets:{'sim-in-runtime/demo':0}},simRuntimeInventory(root))).toContain('demo: sim-in-runtime files 2 exceeds 0');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

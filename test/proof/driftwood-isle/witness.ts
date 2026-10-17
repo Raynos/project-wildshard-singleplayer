@@ -23,7 +23,7 @@ import { playDriftwood } from './tape';
 
 const { actions: DRIFTWOOD_ACT, actor: DRIFTWOOD_INTERACT, step: QUEST_STEP } = policy;
 
-export const ENTRY = 'sim/headless.ts';
+export const ENTRY = 'boot/headlessModules.ts';
 const ROOT = new URL('../../../', import.meta.url), MODULE = new URL(`src/shards/driftwood-isle/${ENTRY}`, ROOT).href;
 const WORKER = new URL('worker.ts', import.meta.url).href;
 let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);

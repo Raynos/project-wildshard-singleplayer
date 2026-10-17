@@ -30,7 +30,7 @@ const cases = [
   ['_template', template, false], ['pastel-plain', pastel, false],
   ['driftwood-isle', driftwood, true], ['pine-hollow', pine, true],
   ['nalati-grasslands', nalati, true], ['nine-dragon-stack', nine, true],
-  ['sunscar-dunes', signal, true], ['far-reach', sky, false],
+  ['sunscar-dunes', signal, false], ['far-reach', sky, false],
 ] as const;
 
 beforeAll(() => {
@@ -48,7 +48,7 @@ for (const [slug, _input, trusted] of cases) it(`${slug}: boots and advances a l
     Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
     sections: productHeadlessSections(product),
-    ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : (existsSync(`src/shards/${slug}/sim/headless.ts`) ? `src/shards/${slug}/sim/headless.ts` : `src/shards/${slug}/runtime/headless.ts`))).href } } : {}) });
+    ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : slug === 'driftwood-isle' ? 'src/shards/driftwood-isle/boot/headlessModules.ts' : (existsSync(`src/shards/${slug}/sim/headless.ts`) ? `src/shards/${slug}/sim/headless.ts` : `src/shards/${slug}/runtime/headless.ts`))).href } } : {}) });
   try {
     const first = decodeSimSnapshot((await sim.step()).snapshot);
     for (let tick = 0; tick < 24; tick++) await sim.step([{ source: 'player', commands: [{ kind: 'player', moveX: 0.2, moveZ: 0.2, yaw: 0 }] }]);

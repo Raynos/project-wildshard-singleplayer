@@ -1,0 +1,1512 @@
+{
+  "version": 1,
+  "modules": {
+    "src/shards/pine-hollow/quest/rows": [
+      "parsePineQuestRows"
+    ],
+    "src/shards/pine-hollow/runtime/baked": [
+      "PINE_GROUND_RES",
+      "pineBake"
+    ],
+    "@wildshard/engine/physics/navmesh": [
+      "readNavmesh"
+    ],
+    "@wildshard/engine/world/BakedTerrain": [
+      "bakedSamplers",
+      "parseBakedTerrain"
+    ],
+    "@wildshard/format/weaponProfiles": [
+      "parseNativeFirearmProfile",
+      "parseWeaponProfile"
+    ],
+    "@wildshard/game/plugin/nativeItems": [
+      "installNativeItems",
+      "observeNativeCombatMotion",
+      "readItemInventory"
+    ],
+    "@wildshard/game/plugin/simulation": [
+      "bindNativeLoadout",
+      "weaponRow"
+    ],
+    "@wildshard/game/plugin/director": [
+      "readDirectorProduct"
+    ],
+    "src/shards/pine-hollow/runtime/nightDirector": [
+      "preparePineNightDirector"
+    ],
+    "src/shards/pine-hollow/runtime/quest": [
+      "PINE_INTERACT",
+      "installHollowQuest",
+      "pineSpots"
+    ],
+    "src/shards/pine-hollow/runtime/lodge": [
+      "PINE_LODGE",
+      "parseContractCatalogue"
+    ],
+    "@wildshard/format/achievementCounters": [
+      "parseAchievementCounterData"
+    ],
+    "@wildshard/game/loot/exchange": [
+      "parseExchange"
+    ],
+    "@wildshard/format/weatherProgram": [
+      "parseWeatherProgram"
+    ],
+    "@wildshard/sdk/headlessRuntime": [
+      "bindHeadlessCommands",
+      "installNativeCollision"
+    ],
+    "@wildshard/game/shardfile/borrowedDecisions": [
+      "nativeDecisionAuthority"
+    ],
+    "src/shards/pine-hollow/runtime/roster": [
+      "installPineRoster"
+    ],
+    "src/shards/pine-hollow/runtime/elites": [
+      "installPineElites"
+    ],
+    "src/shards/pine-hollow/runtime/king": [
+      "installPineKing"
+    ],
+    "@wildshard/engine/world/dayCycle": [
+      "DayCycle"
+    ],
+    "src/shards/pine-hollow/look/dayKeys": [
+      "PINE_DAY"
+    ],
+    "src/shards/pine-hollow/runtime/weapons/ammunition": [
+      "PineAmmunition"
+    ],
+    "src/shards/pine-hollow/runtime/nightPopulation": [
+      "installPineNight"
+    ],
+    "@wildshard/game/plugin/weather": [
+      "installWeatherContinuation"
+    ],
+    "src/shards/pine-hollow/runtime/rainShelter": [
+      "installPineRainShelter"
+    ],
+    "@wildshard/game/plugin/mover": [
+      "proveTerrainEntries"
+    ],
+    "@wildshard/engine/physics/terrain": [
+      "isStandaloneEdgeWall"
+    ]
+  },
+  "prepare": [
+    {
+      "name": "bowRow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/simulation", "weaponRow"]
+          },
+          {
+            "$ref": ["shard"]
+          },
+          "weapon.longbow"
+        ]
+      }
+    },
+    {
+      "name": "admitBow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/format/weaponProfiles", "parseWeaponProfile"]
+          },
+          {
+            "$ref": ["bowRow", "profile"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "crossbowRow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/simulation", "weaponRow"]
+          },
+          {
+            "$ref": ["shard"]
+          },
+          "weapon.crossbow"
+        ]
+      }
+    },
+    {
+      "name": "admitcrossbowRow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/format/weaponProfiles", "parseNativeFirearmProfile"]
+          },
+          {
+            "$ref": ["crossbowRow", "profile"]
+          },
+          "bolt"
+        ]
+      }
+    },
+    {
+      "name": "leverRow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/simulation", "weaponRow"]
+          },
+          {
+            "$ref": ["shard"]
+          },
+          "weapon.lever"
+        ]
+      }
+    },
+    {
+      "name": "admitleverRow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/format/weaponProfiles", "parseNativeFirearmProfile"]
+          },
+          {
+            "$ref": ["leverRow", "profile"]
+          },
+          "lever"
+        ]
+      }
+    },
+    {
+      "name": "countersJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "quests/achievements.json"
+        ]
+      }
+    },
+    {
+      "name": "counters",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/format/achievementCounters", "parseAchievementCounterData"]
+          },
+          {
+            "$ref": ["countersJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "tradesJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "quests/exchange.json"
+        ]
+      }
+    },
+    {
+      "name": "trades",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/loot/exchange", "parseExchange"]
+          },
+          {
+            "$ref": ["tradesJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "contractsJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "quests/contracts.json"
+        ]
+      }
+    },
+    {
+      "name": "contracts",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/lodge", "parseContractCatalogue"]
+          },
+          {
+            "$ref": ["contractsJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "contentJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "quests/native.json"
+        ]
+      }
+    },
+    {
+      "name": "content",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/quest/rows", "parsePineQuestRows"]
+          },
+          {
+            "$ref": ["contentJson"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "director",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/director", "readDirectorProduct"]
+          },
+          {
+            "$ref": ["product"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "nightDirector",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/nightDirector", "preparePineNightDirector"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bake",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/baked", "pineBake"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "grid",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["@wildshard/engine/world/BakedTerrain", "parseBakedTerrain"]
+              },
+              {
+                "$call": [
+                  {
+                    "$ref": ["assets", "get"]
+                  },
+                  {
+                    "$ref": ["constants", "terrain", "terrain"]
+                  }
+                ]
+              },
+              {
+                "$ref": ["constants", "terrain"]
+              }
+            ]
+          },
+          "Pine requires its baked terrain grid"
+        ]
+      }
+    },
+    {
+      "name": "nav",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/engine/physics/navmesh", "readNavmesh"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["assets", "get"]
+              },
+              {
+                "$ref": ["constants", "terrain", "navmesh"]
+              }
+            ]
+          },
+          "Pine requires its baked navmesh",
+          {
+            "$fn": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "samplers",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/engine/world/BakedTerrain", "bakedSamplers"]
+          },
+          {
+            "$ref": ["grid"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "heightAt",
+      "value": {
+        "$ref": ["samplers", "heightAt"]
+      }
+    },
+    {
+      "name": "weatherJson",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "json"]
+          },
+          {
+            "$ref": ["product"]
+          },
+          "world/weather.json",
+          false
+        ]
+      }
+    },
+    {
+      "name": "weather",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/format/weatherProgram", "parseWeatherProgram"]
+          },
+          {
+            "$ref": ["weatherJson"]
+          }
+        ]
+      }
+    }
+  ],
+  "install": [
+    {
+      "name": "input",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/sdk/headlessRuntime", "bindHeadlessCommands"]
+          },
+          {
+            "$ref": ["context"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "combat",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$ref": ["context", "combat"]
+          },
+          "Pine requires its native combat frame"
+        ]
+      }
+    },
+    {
+      "name": "decisions",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/shardfile/borrowedDecisions", "nativeDecisionAuthority"]
+          },
+          {
+            "$ref": ["shard"]
+          },
+          {
+            "$ref": ["assets"]
+          },
+          {
+            "$ref": ["host"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "population",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["product", "section"]
+          },
+          "actors/species-programs"
+        ]
+      }
+    },
+    {
+      "name": "day",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "useDayClock"]
+          },
+          {
+            "$new": [
+              {
+                "$ref": ["@wildshard/engine/world/dayCycle", "DayCycle"]
+              },
+              {
+                "$ref": ["src/shards/pine-hollow/look/dayKeys", "PINE_DAY"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "world",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/sdk/headlessRuntime", "installNativeCollision"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["bake"]
+          },
+          {
+            "resolution": {
+              "$ref": ["src/shards/pine-hollow/runtime/baked", "PINE_GROUND_RES"]
+            },
+            "provenance": {
+              "field": "pineWorldOwner",
+              "step": "pine.world-tags",
+              "fallback": "wood"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "elites",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/elites", "installPineElites"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "bodies": {
+              "$fn": {
+                "$if": [
+                  {
+                    "$ref": ["roster"]
+                  },
+                  {
+                    "$call": [
+                      {
+                        "$ref": ["roster", "bodies"]
+                      }
+                    ]
+                  },
+                  []
+                ]
+              }
+            },
+            "heightAt": {
+              "$ref": ["heightAt"]
+            },
+            "spawn": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "spawn"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["args", 1]
+                  },
+                  {
+                    "$ref": ["args", 2]
+                  },
+                  {
+                    "$ref": ["args", 3]
+                  },
+                  {
+                    "$ref": ["args", 4]
+                  }
+                ]
+              }
+            },
+            "retire": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "retire"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            },
+            "dusk": {
+              "$fn": {
+                "$ref": ["day", "dusk"]
+              }
+            },
+            "night": {
+              "$fn": {
+                "$ref": ["day", "night"]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "decisionProgram",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$ref": ["population", "program"]
+          },
+          "Pine requires its King decision programme"
+        ]
+      }
+    },
+    {
+      "name": "king",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/king", "installPineKing"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "decisionProgram": {
+              "$ref": ["decisionProgram"]
+            },
+            "decisions": {
+              "$ref": ["decisions"]
+            },
+            "heightAt": {
+              "$ref": ["heightAt"]
+            },
+            "parked": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "parked"]
+                  }
+                ]
+              }
+            },
+            "adoptParked": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "adoptParked"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["args", 1]
+                  },
+                  {
+                    "$ref": ["args", 2]
+                  },
+                  {
+                    "$ref": ["args", 3]
+                  }
+                ]
+              }
+            },
+            "spawn": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "spawn"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["args", 1]
+                  },
+                  {
+                    "$ref": ["args", 2]
+                  },
+                  {
+                    "$ref": ["args", 3]
+                  },
+                  {
+                    "$ref": ["args", 4]
+                  }
+                ]
+              }
+            },
+            "spawnLoose": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "spawnLoose"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["args", 1]
+                  },
+                  {
+                    "$ref": ["args", 2]
+                  },
+                  {
+                    "$ref": ["args", 3]
+                  },
+                  {
+                    "$ref": ["args", 4]
+                  }
+                ]
+              }
+            },
+            "retire": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "retire"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            },
+            "find": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "actor"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            },
+            "night": {
+              "$fn": {
+                "$ref": ["day", "night"]
+              }
+            },
+            "grantTrophy": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["quest", "pack", "add"]
+                  },
+                  "amber-resin",
+                  3
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "policy",
+      "value": {
+        "$ref": ["shard", "items", "loadout", "native"]
+      }
+    },
+    {
+      "name": "equipmentInput",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["assembly", "need"]
+          },
+          {
+            "$ref": ["policy", "input"]
+          },
+          "Missing native equipment input policy"
+        ]
+      }
+    },
+    {
+      "name": "loadout",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/simulation", "bindNativeLoadout"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["policy"]
+          },
+          {
+            "flags": {
+              "$ref": ["host", "flags"]
+            },
+            "frame": {
+              "$ref": ["combat"]
+            },
+            "locked": {
+              "$fn": {
+                "$or": [
+                  {
+                    "$call": [
+                      {
+                        "$ref": ["king", "locked"]
+                      }
+                    ]
+                  },
+                  {
+                    "$if": [
+                      {
+                        "$ref": ["quest"]
+                      },
+                      {
+                        "$call": [
+                          {
+                            "$ref": ["quest", "riding"]
+                          }
+                        ]
+                      },
+                      false
+                    ]
+                  },
+                  {
+                    "$if": [
+                      {
+                        "$ref": ["quest"]
+                      },
+                      {
+                        "$call": [
+                          {
+                            "$ref": ["quest", "talking"]
+                          }
+                        ]
+                      },
+                      false
+                    ]
+                  }
+                ]
+              }
+            },
+            "step": {
+              "id": {
+                "$ref": ["equipmentInput", "step"]
+              },
+              "phase": {
+                "$ref": ["equipmentInput", "phase"]
+              },
+              "pick": {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": ["assembly", "coalesce"]
+                    },
+                    {
+                      "$call": [
+                        {
+                          "$ref": ["combat", "scripts", "get"]
+                        },
+                        {
+                          "$ref": ["equipmentInput", "command"]
+                        }
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$if": [
+                            {
+                              "$ref": ["quest"]
+                            },
+                            {
+                              "$call": [
+                                {
+                                  "$ref": ["quest", "takeRifle"]
+                                }
+                              ]
+                            },
+                            false
+                          ]
+                        },
+                        1,
+                        null
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "motion",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/nativeItems", "observeNativeCombatMotion"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["combat"]
+          },
+          7.2
+        ]
+      }
+    },
+    {
+      "name": "crossbow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/nativeItems", "installNativeItems"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["combat"]
+          },
+          {
+            "kind": "bolt",
+            "policy": {
+              "$call": [
+                {
+                  "$ref": ["assembly", "need"]
+                },
+                {
+                  "$ref": ["crossbowRow", "ranged"]
+                },
+                "Missing native ranged policy"
+              ]
+            },
+            "profile": {
+              "$call": [
+                {
+                  "$ref": ["assembly", "need"]
+                },
+                {
+                  "$ref": ["crossbowRow", "profile"]
+                },
+                "Missing native ranged profile"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "lever",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/nativeItems", "installNativeItems"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["combat"]
+          },
+          {
+            "kind": "cycle",
+            "policy": {
+              "$call": [
+                {
+                  "$ref": ["assembly", "need"]
+                },
+                {
+                  "$ref": ["leverRow", "ranged"]
+                },
+                "Missing native ranged policy"
+              ]
+            },
+            "profile": {
+              "$call": [
+                {
+                  "$ref": ["assembly", "need"]
+                },
+                {
+                  "$ref": ["leverRow", "profile"]
+                },
+                "Missing native ranged profile"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "longbowRow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/simulation", "weaponRow"]
+          },
+          {
+            "$ref": ["shard"]
+          },
+          "weapon.longbow"
+        ]
+      }
+    },
+    {
+      "name": "longbow",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/nativeItems", "installNativeItems"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["combat"]
+          },
+          {
+            "kind": "bow",
+            "policy": {
+              "$call": [
+                {
+                  "$ref": ["assembly", "need"]
+                },
+                {
+                  "$ref": ["longbowRow", "ranged"]
+                },
+                "Missing native ranged policy"
+              ]
+            },
+            "profile": {
+              "$call": [
+                {
+                  "$ref": ["assembly", "need"]
+                },
+                {
+                  "$ref": ["longbowRow", "profile"]
+                },
+                "Missing native ranged profile"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ammunition",
+      "value": {
+        "$new": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/weapons/ammunition", "PineAmmunition"]
+          },
+          {
+            "crossbow": {
+              "$ref": ["crossbow"]
+            },
+            "lever": {
+              "$ref": ["lever"]
+            },
+            "longbow": {
+              "$ref": ["longbow"]
+            }
+          },
+          {
+            "$ref": ["combat"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ammunitionStep",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "onStep"]
+          },
+          "pine.ammunition",
+          {
+            "$fn": {
+              "$call": [
+                {
+                  "$ref": ["ammunition", "update"]
+                }
+              ]
+            }
+          },
+          {
+            "$ref": ["absent"]
+          },
+          "afterBodies"
+        ]
+      }
+    },
+    {
+      "name": "ammunitionDeath",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["host", "events", "on"]
+          },
+          "player.died",
+          {
+            "$fn": {
+              "$call": [
+                {
+                  "$ref": ["ammunition", "loadKind"]
+                },
+                "iron"
+              ]
+            }
+          },
+          {
+            "$ref": ["host", "scope"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "quest",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/quest", "installHollowQuest"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "content": {
+              "$ref": ["content"]
+            },
+            "counters": {
+              "$ref": ["counters"]
+            },
+            "inventory": {
+              "$call": [
+                {
+                  "$ref": ["@wildshard/game/plugin/nativeItems", "readItemInventory"]
+                },
+                {
+                  "$ref": ["shard", "items"]
+                }
+              ]
+            },
+            "trades": {
+              "$ref": ["trades"]
+            },
+            "contracts": {
+              "$ref": ["contracts"]
+            },
+            "director": {
+              "$ref": ["director"]
+            },
+            "quests": {
+              "$ref": ["shard", "quests"]
+            },
+            "spots": {
+              "$call": [
+                {
+                  "$ref": ["src/shards/pine-hollow/runtime/quest", "pineSpots"]
+                }
+              ]
+            },
+            "commands": {
+              "$call": [
+                {
+                  "$ref": ["input", "scripts"]
+                },
+                [
+                  {
+                    "$ref": ["src/shards/pine-hollow/runtime/quest", "PINE_INTERACT"]
+                  },
+                  {
+                    "$ref": ["src/shards/pine-hollow/runtime/lodge", "PINE_LODGE"]
+                  }
+                ]
+              ]
+            },
+            "fact": {
+              "$ref": ["input", "ledger", "fact"]
+            },
+            "coins": {
+              "$fn": {
+                "$ref": ["absent"]
+              }
+            },
+            "addBolts": {
+              "$ref": ["crossbow", "addBolts"]
+            },
+            "day": {
+              "$fn": {
+                "$ref": ["day"]
+              }
+            },
+            "night": {
+              "$fn": {
+                "$ref": ["day", "night"]
+              }
+            },
+            "takeKingReward": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["king", "takeReward"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            },
+            "ammunition": {
+              "$ref": ["ammunition"]
+            },
+            "canSelectAmmo": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["loadout", "live"]
+                  },
+                  0
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "thralls",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/nightPopulation", "installPineNight"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$call": [
+              {
+                "$ref": ["nightDirector"]
+              }
+            ]
+          },
+          {
+            "night": {
+              "$fn": {
+                "$ref": ["day", "night"]
+              }
+            },
+            "heightAt": {
+              "$ref": ["heightAt"]
+            },
+            "spawn": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "spawn"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["args", 1]
+                  },
+                  {
+                    "$ref": ["args", 2]
+                  },
+                  {
+                    "$ref": ["args", 3]
+                  },
+                  {
+                    "$ref": ["args", 4]
+                  }
+                ]
+              }
+            },
+            "retire": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "retire"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            },
+            "find": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["roster", "actor"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "air",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/game/plugin/weather", "installWeatherContinuation"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$ref": ["weather"]
+          },
+          {
+            "$ref": ["day"]
+          },
+          {
+            "$ref": ["absent"]
+          },
+          {
+            "$ref": ["combat"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "shelter",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/rainShelter", "installPineRainShelter"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "$fn": {
+              "$coalesce": [
+                {
+                  "$ref": ["roster", "hunt", "herds"]
+                },
+                []
+              ]
+            }
+          },
+          {
+            "$ref": ["bake", "shelterTrees"]
+          },
+          {
+            "$fn": {
+              "$ref": ["air", "weather", "rain"]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "roster",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["src/shards/pine-hollow/runtime/roster", "installPineRoster"]
+          },
+          {
+            "$ref": ["host"]
+          },
+          {
+            "population": {
+              "$ref": ["population"]
+            },
+            "bake": {
+              "$ref": ["bake"]
+            },
+            "grid": {
+              "$ref": ["grid"]
+            },
+            "nav": {
+              "$ref": ["nav"]
+            },
+            "spawnY": {
+              "$ref": ["shard", "spawn", "y"]
+            },
+            "saved": {
+              "$ref": ["context", "snapshot"]
+            },
+            "wanderGoal": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": ["shelter", "wanderGoal"]
+                  },
+                  {
+                    "$ref": ["args", 0]
+                  },
+                  {
+                    "$ref": ["air", "weather", "rain"]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "initializeElites",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["elites", "initialize"]
+          }
+        ]
+      }
+    }
+  ],
+  "level": {
+    "ground": {
+      "size": 500,
+      "height": 0
+    },
+    "speed": 5,
+    "lift": 0.1
+  },
+  "ports": {
+    "ground": false,
+    "heightAt": {
+      "$ref": ["heightAt"]
+    }
+  },
+  "entries": {
+    "$fn": {
+      "$call": [
+        {
+          "$ref": ["assembly", "fresh"]
+        },
+        {
+          "$ref": ["level"]
+        },
+        {
+          "$ref": ["ports"]
+        },
+        {
+          "$ref": ["rapier"]
+        },
+        {
+          "$fn": {
+            "$call": [
+              {
+                "$ref": ["@wildshard/sdk/headlessRuntime", "installNativeCollision"]
+              },
+              {
+                "$ref": ["args", 0]
+              },
+              {
+                "$ref": ["bake"]
+              },
+              {
+                "resolution": {
+                  "$ref": ["src/shards/pine-hollow/runtime/baked", "PINE_GROUND_RES"]
+                },
+                "provenance": {
+                  "field": "pineWorldOwner",
+                  "step": "pine.world-tags",
+                  "fallback": "wood"
+                },
+                "skip": {
+                  "$ref": ["@wildshard/engine/physics/terrain", "isStandaloneEdgeWall"]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "$fn": {
+            "$call": [
+              {
+                "$ref": ["@wildshard/game/plugin/mover", "proveTerrainEntries"]
+              },
+              {
+                "$ref": ["args", 0, "physics"]
+              },
+              {
+                "$ref": ["shard", "entryways"]
+              },
+              {
+                "$ref": ["heightAt"]
+              },
+              {
+                "$ref": ["constants", "entries"]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "constants": {}
+}

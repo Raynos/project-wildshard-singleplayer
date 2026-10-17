@@ -15,6 +15,7 @@ import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from './t
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
+import { prepareHeadlessAssembly, type HeadlessAssemblyModules } from './headlessAssembly';
 
 /** Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL. */
 export interface TrustedHeadlessRuntime { module: string }
@@ -100,6 +101,12 @@ export function trustedHeadlessModule(input: string): string {
 function hasFactory(value: unknown): value is { prepareHeadlessRuntime: PrepareHeadlessRuntime } {
   return typeof value === 'object' && value !== null && 'prepareHeadlessRuntime' in value && typeof value.prepareHeadlessRuntime === 'function';
 }
+function hasAssemblyModules(value: unknown): value is { headlessModules: HeadlessAssemblyModules } {
+  if (value === null || typeof value !== 'object' || !('headlessModules' in value)) return false;
+  const modules: unknown = value.headlessModules;
+  return modules !== null && typeof modules === 'object' && !Array.isArray(modules)
+    && Object.values(modules).every((module: unknown) => module !== null && typeof module === 'object' && !Array.isArray(module));
+}
 /**
  * One owned, renderer-free trusted world: the explicitly selected entry's plan installed into one native host. The worker's
  * tick adapter (`createTrustedHeadlessAdapter`) and the grid's server-side admission (a `GridSimulation` `load` port,
@@ -135,8 +142,9 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry
   const preparation: HeadlessRuntimePreparation = { ...provided, product };
   const plan = entry === undefined ? await prepareProductRuntimePlan(product, provided.assets) : await (async () => {
     const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
-    if (!hasFactory(loaded)) throw new Error('Trusted runtime must export prepareHeadlessRuntime');
-    return loaded.prepareHeadlessRuntime(preparation);
+    if (hasFactory(loaded)) return loaded.prepareHeadlessRuntime(preparation);
+    if (hasAssemblyModules(loaded)) return prepareHeadlessAssembly(preparation, loaded.headlessModules);
+    throw new Error('Trusted runtime must export prepareHeadlessRuntime or headlessModules');
   })();
   const identity = { id: preparation.shard.identity.slug, seed: preparation.shard.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');

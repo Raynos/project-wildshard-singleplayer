@@ -1,3 +1,6 @@
+import { ENTRY_WALK } from '../data/entryWalk';
+import headlessSwords from '../data/nativeSwords.json' with { type: 'json' };
+import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import fixedInventory from '../data/fixedGeometry.json' with { type: 'json' };
 import strings from '../data/strings.json' with { type: 'json' };
 import directorData from '../data/director.json' with { type: 'json' };
@@ -12,7 +15,7 @@ import { completionRows } from './completion';
 import { TRADER_PAGE } from './traderPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
-import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
 import { DRIFTWOOD_MODES } from './modes';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -44,6 +47,7 @@ const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
   nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(FixedGeometryGroupsSchema, fixedInventory.groups)))),
+  nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { entries: ENTRY_WALK, swords: headlessSwords, interact: DRIFTWOOD_INTERACT } }))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson(monkeyClips))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
