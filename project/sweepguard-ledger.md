@@ -154,3 +154,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 21:28 · wT:p4 · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x4/prepare.py`
 - 2026-10-16 21:29 · wT:p4 · `python3 - <<'PY' from pathlib import Path p=Path('src/shards/pine-hollow/runtime/species/rigs.ts');s=p.read_text();p.write_text(s.rstrip()+'\n') PY rg -n 'defineModel|file:|file\)' scripts/check-model`
 - 2026-10-16 21:29 · wT:p4 · `python3 - <<'PY' from pathlib import Path p=Path('src/sdk/looks/posedInstances.ts');s=p.read_text().replace("import { defineModel }", "import { defineBakedModels }") s=s.replace("      return live(def`
+- 2026-10-16 21:33 · wT:p4 · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x4/prepare.py && git diff --check HEAD -- src/sdk/looks/posedInstances.ts src/sdk/looks/ambientFlock.ts src/shards/pine-hollow/roster.ts src/shards/pine-hollow/runtime`
