@@ -1,5 +1,5 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
-import STRINGS from '../strings.json' with { type: 'json' };
+import STRINGS from '../../../data/strings.json' with { type: 'json' };
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 
 export const SKITTER = { wake: 13, sleep: 34, burst: 0.55, run: 5.6, ring: 2.2, retreat: 1.1, rebury: 5 } as const;

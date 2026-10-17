@@ -13,10 +13,10 @@ import { DRIFTWOOD_ENEMY_SPECIES } from '../src/shards/driftwood-isle/generators
 import { CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
 import { SAILOR_LOOK } from '../src/shards/driftwood-isle/species/sailor';
 import { MONKEY_LOOK } from '../src/shards/driftwood-isle/species/monkey';
-import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/data/brains';
+import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
 import { DRIFTWOOD_STRIKE_ROWS } from '../src/shards/driftwood-isle/data/strikes';
-import { SKITTERER_DATA, BITE_DATA } from '../src/shards/sunscar-dunes/data/species/skitterer';
-import { DUNE_RAY } from '../src/shards/sunscar-dunes/data/species/duneRay';
+import { SKITTERER_DATA, BITE_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/skitterer';
+import { DUNE_RAY } from '../src/shards/sunscar-dunes/generators/rows/species/duneRay';
 
 function body(row: SpeciesRow, look: SpeciesLook, scale = 1): { actor: Animal; dispose: () => void } {
   const variant = row.variants[0];

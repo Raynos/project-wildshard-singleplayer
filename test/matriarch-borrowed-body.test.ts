@@ -13,8 +13,8 @@ import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { prepareRuntimeWorld } from '../src/game/plugin/simulation';
 import { parseNativeRuntimePlan } from '../src/format/nativeRuntimePlan';
 import { speciesBrains } from '../src/sdk/speciesBrains';
-import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/data/brains';
-import { MATRIARCH_DATA } from '../src/shards/sunscar-dunes/data/species/matriarch';
+import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
+import { MATRIARCH_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/matriarch';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 
 const savedPolicy = v.object({ phase: v.number(), fighting: v.boolean(), decision: v.string() });

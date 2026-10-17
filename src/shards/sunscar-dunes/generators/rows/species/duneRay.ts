@@ -1,5 +1,5 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
-import STRINGS from '../strings.json' with { type: 'json' };
+import STRINGS from '../../../data/strings.json' with { type: 'json' };
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 
 export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, patrolR: 34, patrolAlt: 22, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;

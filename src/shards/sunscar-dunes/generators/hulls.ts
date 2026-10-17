@@ -1,6 +1,6 @@
 import { Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, type BufferGeometry } from 'three';
 import { skinnedGlb } from '@wildshard/sdk/bake/skinned';
-import { RAY_BODY, STRIDER_DIMS } from '../data/species/bodies';
+import { RAY_BODY, STRIDER_DIMS } from './rows/species/bodies';
 import { bindRigid, fitGeometry } from './facets';
 import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from './rows/hulls';
 

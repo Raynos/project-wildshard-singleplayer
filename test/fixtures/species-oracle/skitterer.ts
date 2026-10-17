@@ -2,7 +2,7 @@
 // behaviour/skitterer.as); test/shards/sunscar-dunes/skitterer-script.test.ts holds the script to it.
 import { strike as admitStrike } from '../../../src/sdk/species';
 import { strikeFromData } from '../../../src/engine/ai/strikeRows';
-import { BITE_DATA, SKITTER } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
+import { BITE_DATA, SKITTER } from '../../../src/shards/sunscar-dunes/generators/rows/species/skitterer';
 import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
 import type { Animal } from '../../../src/engine/entities/AnimalView';

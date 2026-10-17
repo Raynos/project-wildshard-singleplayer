@@ -32,10 +32,10 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
   protected rows(product: ShardProduct): HybridRuntimeRows {
-    const program = product.section('actors/species-programs').program;
+    const { page, program } = product.section('actors/species-programs');
     const stages = product.section('quests/directors').directors?.find(row => row.id === SIGNAL_RUNTIME_ROWS.fight.stages.id);
     if (program === undefined || stages === undefined) throw new Error('Missing admitted species program or boss stages');
-    return { ...SIGNAL_RUNTIME_ROWS, strings: product.section('ui/strings'), fight: { ...SIGNAL_RUNTIME_ROWS.fight, stages }, species: { ...SIGNAL_RUNTIME_ROWS.species, program }, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } }; }
+    return { ...SIGNAL_RUNTIME_ROWS, strings: product.section('ui/strings'), fight: { ...SIGNAL_RUNTIME_ROWS.fight, stages }, species: { ...SIGNAL_RUNTIME_ROWS.species, page, program }, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } }; }
   protected override async build(ctx: ShardContext): Promise<void> {
     const source = ctx.product.shardfile;
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.

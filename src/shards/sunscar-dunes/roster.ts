@@ -1,7 +1,7 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { live } from '@wildshard/engine/models/live';
 import { GEAR_MODELS } from './models/gear';
-import { SIGNAL_MODEL_SPECIMENS } from './data/rigLibrary';
+import SIGNAL_MODEL_SPECIMENS from './data/creatureModels.generated.json' with { type: 'json' };
 import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 

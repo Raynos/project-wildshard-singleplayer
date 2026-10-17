@@ -1,4 +1,7 @@
 // @vitest-environment happy-dom
+import signalModels from '../src/shards/sunscar-dunes/data/creatureModels.generated.json' with { type: 'json' };
+import { output as signalOutput } from '../src/shards/sunscar-dunes/generators/output';
+import { readSpeciesProgram, readSpeciesPrograms } from '../src/format/speciesPrograms';
 import skyRows from '../src/shards/far-reach/data/runtimeRows.generated.json' with { type: 'json' };
 import signalRows from '../src/shards/sunscar-dunes/data/runtimeRows.generated.json' with { type: 'json' };
 import { SKY_RUNTIME_ROWS } from '../src/shards/far-reach/generators/rows/runtimeRows';
@@ -64,3 +67,19 @@ test.each([['Sky Reach', skyRows, SKY_RUNTIME_ROWS], ['Signal Dunes', signalRows
   '%s emits the complete checked hybrid rows without changing values', (_name, emitted, authored) => {
     expect(emitted).toStrictEqual(authored);
   });
+
+// Explorer and page use the same generated body catalogue and exact clip rows.
+test('Signal creature models retain body order, framing and page rig contracts', () => {
+  const species = signalRows.species;
+  const bytes = signalOutput.platform.files.get('sections/actors/species-programs.json');
+  if (bytes === undefined) throw new Error('Missing emitted Signal species section');
+  const admitted = readSpeciesPrograms(JSON.parse(new TextDecoder().decode(bytes)));
+  expect(admitted.page).toStrictEqual(species.page);
+  expect(admitted.program).toStrictEqual(readSpeciesProgram(species.program));
+  expect(admitted.native).toEqual([]);
+  expect(signalModels.map(row => row.body)).toEqual(['ray', 'skitterer', 'strider', 'matriarch']);
+  expect(signalModels.map(row => 'scale' in row.specimen ? row.specimen.scale : 1)).toEqual([1, 1, 1, 3.6]);
+  expect(species.library.looks.map(row => row.body)).toEqual(signalModels.map(row => row.body));
+  expect(species.library.looks.map(row => row.look.species)).toEqual(species.page.map(row => row.id));
+  expect(species.library.looks.map(row => row.clips.length)).toEqual([3, 7, 12, 5]);
+});

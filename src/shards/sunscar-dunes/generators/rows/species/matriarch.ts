@@ -1,5 +1,5 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
-import STRINGS from '../strings.json' with { type: 'json' };
+import STRINGS from '../../../data/strings.json' with { type: 'json' };
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 
 export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9, skim: 4.2,

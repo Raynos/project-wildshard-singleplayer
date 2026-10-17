@@ -1,10 +1,10 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import type { StrikeData } from '@wildshard/sdk/species';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { DUNE_RAY, SWOOP_DATA } from './species/duneRay';
 import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from './species/strider';
 import { SKITTERER_DATA, BITE_DATA, SKITTER } from './species/skitterer';
-import skitterer from '../behaviour/skitterer.json' with { type: 'json' };
+import skitterer from '../../behaviour/skitterer.json' with { type: 'json' };
 import { MATRIARCH_DATA, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from './species/matriarch';
 
 /** Shipping strider challenge and exact charge/close utility, including native pose memory fields; six circling slots. */

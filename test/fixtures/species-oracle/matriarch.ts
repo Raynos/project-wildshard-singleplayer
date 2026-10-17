@@ -2,7 +2,7 @@
 // the phased-flyer brain, data/brains.ts MATRIARCH_BRAIN); test/shards/sunscar-dunes/matriarch-brain.test.ts holds the row to it.
 import { strike as admitStrike } from '../../../src/sdk/species';
 import { strikeFromData } from '../../../src/engine/ai/strikeRows';
-import { MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA, MATRIARCH } from '../../../src/shards/sunscar-dunes/data/species/matriarch';
+import { MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA, MATRIARCH } from '../../../src/shards/sunscar-dunes/generators/rows/species/matriarch';
 import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
 import type { Animal } from '../../../src/engine/entities/AnimalView';
