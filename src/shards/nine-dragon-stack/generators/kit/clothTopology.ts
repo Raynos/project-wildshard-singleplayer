@@ -1,3 +1,4 @@
+// Build-time writer for the fixed viewmodel buffers; never imported by play.
 // clothTopology — the fixed topology a strand cloth or a cloth sheet is drawn over (SHARD-PLATFORM M3, ex Nine Dragon's
 // vm/cloth.ts, E169): written into a class kit at the origin, so the cloth's step only rewrites positions and normals in
 // the same layout every frame. A tube is `rings` rings of `segs + 1` vertices (u round, v along, a faint slub in the

@@ -1,0 +1,1221 @@
+{
+  "revision": "21bcf8dac8ac515801a4631946294a0aaa9abcc3",
+  "raw": {
+    "knot": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 265,
+          "hash": "7078700091f051a5089033a17335ec23bef873a0e1e047315a7e4ab6361c82e9"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 265,
+          "hash": "9befd6140f8ab23a23870456b88380832476801364065c006f81af5d8c55ac7e"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "size": 2,
+          "normalized": false,
+          "count": 265,
+          "hash": "b9d3458840bc6b7c0f43eb94948816c5dd6117f7d166bb23d17f41dc7d1dbcf6"
+        },
+        "color": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 265,
+          "hash": "57989b5aa718c992d4934ed935e9110aa006d669547877fb686fffd73192bdf9"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 265,
+          "hash": "18ad14a75794a5d8b977183e86f0aa534e6f67c70c59cefdad227e48e68676b5"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 265,
+          "hash": "5046c04fd802cbb94d39da8944eab3c6ab5e13beace6964d6b13e5365a4906a4"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 265,
+          "hash": "9befd6140f8ab23a23870456b88380832476801364065c006f81af5d8c55ac7e"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "count": 1308,
+        "hash": "035848291423d72454c55cdf780a3bbf2c12d5d8506e0c87fcb38000b33cd4f2"
+      }
+    },
+    "tassel": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 1324,
+          "hash": "c2165d391b6eb44094d06c5cddc3f9322a92d3567daf809e34b528cceadbdb17"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 1324,
+          "hash": "fa6440f7ff9ff8c8578fad0b9f0e94351703924ffe30232295679937a88318ae"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "size": 2,
+          "normalized": false,
+          "count": 1324,
+          "hash": "595cf09ced340624cf7e4b1c1c3f58cbc72d89d7f4fab55a0fc15f54676b5e8b"
+        },
+        "color": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 1324,
+          "hash": "90d0ee48ab9839ab0b4f9076531e1857ae1089c027ff8fac8dddcac0881212cf"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 1324,
+          "hash": "1541be7fb53726abf9807219b2d50bb94f0b407932c0ddba9f0d2ba561a577fc"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 1324,
+          "hash": "6d0621c4b7cb83064294a5e5400f62b970ff83cec440c4e39dd8cf49f931b7bd"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 1324,
+          "hash": "fa6440f7ff9ff8c8578fad0b9f0e94351703924ffe30232295679937a88318ae"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "count": 5868,
+        "hash": "758627eb96a0460c764003b1c0a334306178a1151e1a0ebade72e19790c14c13"
+      }
+    },
+    "sheet": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 40,
+          "hash": "4b48f21a4b7a02bfbec19ef880a967a02334a3cdcef8ae83de2ef327ba8bc5dd"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 40,
+          "hash": "9a2d79665dd12e757449584ba6e44e45a9d495d53830ab0979e7dac582bd86db"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "size": 2,
+          "normalized": false,
+          "count": 40,
+          "hash": "5aad9cc20b484d17580520b6b87d13a43f0ce83a26f2105751ce77da1b8cf341"
+        },
+        "color": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 40,
+          "hash": "4cf4026416b72c1eb5d832112a5365a2bce87aae374c2f53c183c3d680d3cb31"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 40,
+          "hash": "4adcce3dff1978bb4833bde10035e03eccf0a8dbf208e9bf852b7e686ebf0362"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 40,
+          "hash": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 40,
+          "hash": "9a2d79665dd12e757449584ba6e44e45a9d495d53830ab0979e7dac582bd86db"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "count": 162,
+        "hash": "b3d456201fcf8a75f3199acde71081b1bf061ec3b078369651ca86332b90004e"
+      }
+    },
+    "cord": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "hash": "2d5565fb483d8ea4525a7a9229677d1038ad34b6e22c8d5152e1d7f7b9817597"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "hash": "9dcaf36b734e89e24825c784a075fc828984a25b2ceec2152cbdc29c54f93904"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "size": 2,
+          "normalized": false,
+          "count": 24,
+          "hash": "aca3a0059309268c549f243953d574a5cacac04520ba4ec0164ad4c5125395e1"
+        },
+        "color": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "hash": "083dc6713da710ed3429dad0061bc9b3839adc78e56a8533882c41219316eacf"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 24,
+          "hash": "a403c1878b8579fd68fac8dcac39a0d09f055d9f4e42d0c9d199de2b0d41e509"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "size": 4,
+          "normalized": false,
+          "count": 24,
+          "hash": "a1a4f5721c1c4610af7f71078f3a68c330536d679803b0e0507ee8dc10c5dfca"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "hash": "9dcaf36b734e89e24825c784a075fc828984a25b2ceec2152cbdc29c54f93904"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "count": 90,
+        "hash": "0fe192c7263f0f888abe598ca956b611253931058c381809b1306949ce36a38c"
+      }
+    }
+  },
+  "trace": [
+    {
+      "frame": 0,
+      "tassel": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "45d3afa910a1d84dc9a2e08008d2a6ea38cfdbbf038733b6005d970984f4738e"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "9e23b60480e7c1757c64043e13519f0dd45c49853c6354822f83ee69a06569ae"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 1324,
+            "hash": "595cf09ced340624cf7e4b1c1c3f58cbc72d89d7f4fab55a0fc15f54676b5e8b"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "90d0ee48ab9839ab0b4f9076531e1857ae1089c027ff8fac8dddcac0881212cf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "1541be7fb53726abf9807219b2d50bb94f0b407932c0ddba9f0d2ba561a577fc"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "6d0621c4b7cb83064294a5e5400f62b970ff83cec440c4e39dd8cf49f931b7bd"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "9e23b60480e7c1757c64043e13519f0dd45c49853c6354822f83ee69a06569ae"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "9e23b60480e7c1757c64043e13519f0dd45c49853c6354822f83ee69a06569ae"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 5868,
+          "hash": "758627eb96a0460c764003b1c0a334306178a1151e1a0ebade72e19790c14c13"
+        }
+      },
+      "sheet": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "41cbd311ba1366e12e225b2aac7efbc7be6684bf9efc3e8511630a04838f6fd8"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "b9a8389cf910b36a523ae1d04451e536230e505ac7169e8698be3d5914375d3f"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 40,
+            "hash": "5aad9cc20b484d17580520b6b87d13a43f0ce83a26f2105751ce77da1b8cf341"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "4cf4026416b72c1eb5d832112a5365a2bce87aae374c2f53c183c3d680d3cb31"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "4adcce3dff1978bb4833bde10035e03eccf0a8dbf208e9bf852b7e686ebf0362"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "b9a8389cf910b36a523ae1d04451e536230e505ac7169e8698be3d5914375d3f"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "b9a8389cf910b36a523ae1d04451e536230e505ac7169e8698be3d5914375d3f"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 162,
+          "hash": "b3d456201fcf8a75f3199acde71081b1bf061ec3b078369651ca86332b90004e"
+        }
+      },
+      "cord": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "26d4fcd390c86733d6bebe417dd422abf14d07e10b6a1fffa9519944d60ef522"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "5876e40c65b9da77f72afc6959535dff1f81c31985cb14d388dd9350c738f21a"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 24,
+            "hash": "aca3a0059309268c549f243953d574a5cacac04520ba4ec0164ad4c5125395e1"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "083dc6713da710ed3429dad0061bc9b3839adc78e56a8533882c41219316eacf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a403c1878b8579fd68fac8dcac39a0d09f055d9f4e42d0c9d199de2b0d41e509"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a1a4f5721c1c4610af7f71078f3a68c330536d679803b0e0507ee8dc10c5dfca"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "5876e40c65b9da77f72afc6959535dff1f81c31985cb14d388dd9350c738f21a"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "5876e40c65b9da77f72afc6959535dff1f81c31985cb14d388dd9350c738f21a"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 90,
+          "hash": "0fe192c7263f0f888abe598ca956b611253931058c381809b1306949ce36a38c"
+        }
+      },
+      "cap": [
+        0,
+        -0.02957836393981369,
+        0
+      ],
+      "direction": [
+        0,
+        -1,
+        0
+      ]
+    },
+    {
+      "frame": 29,
+      "tassel": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "c25de757af08c7a266235e8171a65999397763e55b5ee2b038aef9532d2f75f5"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "69f1c62a6fe09ba299d91703d7ca17aaa6348afe41538eb6b03883449a40fa13"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 1324,
+            "hash": "595cf09ced340624cf7e4b1c1c3f58cbc72d89d7f4fab55a0fc15f54676b5e8b"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "90d0ee48ab9839ab0b4f9076531e1857ae1089c027ff8fac8dddcac0881212cf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "1541be7fb53726abf9807219b2d50bb94f0b407932c0ddba9f0d2ba561a577fc"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "6d0621c4b7cb83064294a5e5400f62b970ff83cec440c4e39dd8cf49f931b7bd"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "69f1c62a6fe09ba299d91703d7ca17aaa6348afe41538eb6b03883449a40fa13"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "69f1c62a6fe09ba299d91703d7ca17aaa6348afe41538eb6b03883449a40fa13"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 5868,
+          "hash": "758627eb96a0460c764003b1c0a334306178a1151e1a0ebade72e19790c14c13"
+        }
+      },
+      "sheet": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "d3b3f43c2c6395520037e7da6e155777aff3d491d6eaedca11047ad1ef4b32d8"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "1fa181a44a457f4f2d54917e6ec84ed6f650fe741e257097dd1345c5cec219fa"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 40,
+            "hash": "5aad9cc20b484d17580520b6b87d13a43f0ce83a26f2105751ce77da1b8cf341"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "4cf4026416b72c1eb5d832112a5365a2bce87aae374c2f53c183c3d680d3cb31"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "4adcce3dff1978bb4833bde10035e03eccf0a8dbf208e9bf852b7e686ebf0362"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "1fa181a44a457f4f2d54917e6ec84ed6f650fe741e257097dd1345c5cec219fa"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "1fa181a44a457f4f2d54917e6ec84ed6f650fe741e257097dd1345c5cec219fa"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 162,
+          "hash": "b3d456201fcf8a75f3199acde71081b1bf061ec3b078369651ca86332b90004e"
+        }
+      },
+      "cord": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "d17946c1cf2e81030dd72308771a8a536cddd269700f0b56abf96fb14fac121e"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "3bf19c2f11b066e04ea1ccc12e5d42f2cb8aec12048a02f8c823602fedc5fcac"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 24,
+            "hash": "aca3a0059309268c549f243953d574a5cacac04520ba4ec0164ad4c5125395e1"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "083dc6713da710ed3429dad0061bc9b3839adc78e56a8533882c41219316eacf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a403c1878b8579fd68fac8dcac39a0d09f055d9f4e42d0c9d199de2b0d41e509"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a1a4f5721c1c4610af7f71078f3a68c330536d679803b0e0507ee8dc10c5dfca"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "3bf19c2f11b066e04ea1ccc12e5d42f2cb8aec12048a02f8c823602fedc5fcac"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "3bf19c2f11b066e04ea1ccc12e5d42f2cb8aec12048a02f8c823602fedc5fcac"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 90,
+          "hash": "0fe192c7263f0f888abe598ca956b611253931058c381809b1306949ce36a38c"
+        }
+      },
+      "cap": [
+        -0.016247428836955687,
+        -0.031090190533080504,
+        0.008358697812974094
+      ],
+      "direction": [
+        -0.5217459893320503,
+        -0.8427885900359635,
+        -0.1322441496668674
+      ]
+    },
+    {
+      "frame": 59,
+      "tassel": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "68baf11ba100a20238651486719816f285eebb2f442415686f53ecfc90218b82"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "3b779f77226e9972c9f54fdd33dae5b138d6b26b691f6543af71f16c1ff255bc"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 1324,
+            "hash": "595cf09ced340624cf7e4b1c1c3f58cbc72d89d7f4fab55a0fc15f54676b5e8b"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "90d0ee48ab9839ab0b4f9076531e1857ae1089c027ff8fac8dddcac0881212cf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "1541be7fb53726abf9807219b2d50bb94f0b407932c0ddba9f0d2ba561a577fc"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "6d0621c4b7cb83064294a5e5400f62b970ff83cec440c4e39dd8cf49f931b7bd"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "3b779f77226e9972c9f54fdd33dae5b138d6b26b691f6543af71f16c1ff255bc"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "3b779f77226e9972c9f54fdd33dae5b138d6b26b691f6543af71f16c1ff255bc"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 5868,
+          "hash": "758627eb96a0460c764003b1c0a334306178a1151e1a0ebade72e19790c14c13"
+        }
+      },
+      "sheet": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "a2eac4f6295410b1056ab8d25cf47aaffecc3fbece29ff031523844d5db35981"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "0bb118f0bc8f1f44c7595ed16b3a6b10193ad569edc71ac2863800987be0fc1b"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 40,
+            "hash": "5aad9cc20b484d17580520b6b87d13a43f0ce83a26f2105751ce77da1b8cf341"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "4cf4026416b72c1eb5d832112a5365a2bce87aae374c2f53c183c3d680d3cb31"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "4adcce3dff1978bb4833bde10035e03eccf0a8dbf208e9bf852b7e686ebf0362"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "0bb118f0bc8f1f44c7595ed16b3a6b10193ad569edc71ac2863800987be0fc1b"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "0bb118f0bc8f1f44c7595ed16b3a6b10193ad569edc71ac2863800987be0fc1b"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 162,
+          "hash": "b3d456201fcf8a75f3199acde71081b1bf061ec3b078369651ca86332b90004e"
+        }
+      },
+      "cord": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "ee55d051330812a70e2f080f8144747e85057621852ad0816823e6d47b5bcd68"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "0004fba3444e97004a898004b7a792e691c08046c30d8150930e06ba1fd4778c"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 24,
+            "hash": "aca3a0059309268c549f243953d574a5cacac04520ba4ec0164ad4c5125395e1"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "083dc6713da710ed3429dad0061bc9b3839adc78e56a8533882c41219316eacf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a403c1878b8579fd68fac8dcac39a0d09f055d9f4e42d0c9d199de2b0d41e509"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a1a4f5721c1c4610af7f71078f3a68c330536d679803b0e0507ee8dc10c5dfca"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "0004fba3444e97004a898004b7a792e691c08046c30d8150930e06ba1fd4778c"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "0004fba3444e97004a898004b7a792e691c08046c30d8150930e06ba1fd4778c"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 90,
+          "hash": "0fe192c7263f0f888abe598ca956b611253931058c381809b1306949ce36a38c"
+        }
+      },
+      "cap": [
+        0.01946616461935162,
+        -0.0364905061528204,
+        -0.009419280199750808
+      ],
+      "direction": [
+        -0.4092918685350803,
+        -0.8985421148977889,
+        -0.15843684579690231
+      ]
+    },
+    {
+      "frame": 89,
+      "tassel": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "a9c23be4ae80da2d7e9dfe47ec4809df6aaabfdbded1ef4d1e3c8d961bc7ea7c"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "edb3c404ef85e1dd74a2fc290d136f1861c9c7c315fc86c0caf67b9096f43d83"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 1324,
+            "hash": "595cf09ced340624cf7e4b1c1c3f58cbc72d89d7f4fab55a0fc15f54676b5e8b"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "90d0ee48ab9839ab0b4f9076531e1857ae1089c027ff8fac8dddcac0881212cf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "1541be7fb53726abf9807219b2d50bb94f0b407932c0ddba9f0d2ba561a577fc"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 1324,
+            "hash": "6d0621c4b7cb83064294a5e5400f62b970ff83cec440c4e39dd8cf49f931b7bd"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "edb3c404ef85e1dd74a2fc290d136f1861c9c7c315fc86c0caf67b9096f43d83"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 1324,
+            "hash": "edb3c404ef85e1dd74a2fc290d136f1861c9c7c315fc86c0caf67b9096f43d83"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 5868,
+          "hash": "758627eb96a0460c764003b1c0a334306178a1151e1a0ebade72e19790c14c13"
+        }
+      },
+      "sheet": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "1f907e2fe47ed900e0c2d4afb15a843f997c0e67309cb7827cd69784725131cb"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "23f6743ca8ca253004176bbcf7e9664d483b611349a4f551af7fcb9f4ff3cdb5"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 40,
+            "hash": "5aad9cc20b484d17580520b6b87d13a43f0ce83a26f2105751ce77da1b8cf341"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "4cf4026416b72c1eb5d832112a5365a2bce87aae374c2f53c183c3d680d3cb31"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "4adcce3dff1978bb4833bde10035e03eccf0a8dbf208e9bf852b7e686ebf0362"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 40,
+            "hash": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "23f6743ca8ca253004176bbcf7e9664d483b611349a4f551af7fcb9f4ff3cdb5"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 40,
+            "hash": "23f6743ca8ca253004176bbcf7e9664d483b611349a4f551af7fcb9f4ff3cdb5"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 162,
+          "hash": "b3d456201fcf8a75f3199acde71081b1bf061ec3b078369651ca86332b90004e"
+        }
+      },
+      "cord": {
+        "attributes": {
+          "position": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "6840691d035c94114a394452dcfd0b6eb3a25761d0d91f8ce3f7244c26d23606"
+          },
+          "normal": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "c7121e0f4016d364811a282f353459af268364c336e0c3015ad1b92a65431dff"
+          },
+          "uv": {
+            "type": "Float32Array",
+            "size": 2,
+            "normalized": false,
+            "count": 24,
+            "hash": "aca3a0059309268c549f243953d574a5cacac04520ba4ec0164ad4c5125395e1"
+          },
+          "color": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "083dc6713da710ed3429dad0061bc9b3839adc78e56a8533882c41219316eacf"
+          },
+          "aMat": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a403c1878b8579fd68fac8dcac39a0d09f055d9f4e42d0c9d199de2b0d41e509"
+          },
+          "aFace": {
+            "type": "Float32Array",
+            "size": 4,
+            "normalized": false,
+            "count": 24,
+            "hash": "a1a4f5721c1c4610af7f71078f3a68c330536d679803b0e0507ee8dc10c5dfca"
+          },
+          "aNs": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "c7121e0f4016d364811a282f353459af268364c336e0c3015ad1b92a65431dff"
+          },
+          "aHullN": {
+            "type": "Float32Array",
+            "size": 3,
+            "normalized": false,
+            "count": 24,
+            "hash": "c7121e0f4016d364811a282f353459af268364c336e0c3015ad1b92a65431dff"
+          }
+        },
+        "index": {
+          "type": "Uint32Array",
+          "count": 90,
+          "hash": "0fe192c7263f0f888abe598ca956b611253931058c381809b1306949ce36a38c"
+        }
+      },
+      "cap": [
+        -0.020985821233792126,
+        -0.036497937734696485,
+        -0.0013449568647295304
+      ],
+      "direction": [
+        -0.4992359183391979,
+        -0.8510306766679637,
+        -0.16281979366798613
+      ]
+    }
+  ],
+  "look": {
+    "classes": {
+      "brass": 1,
+      "brassDark": 2,
+      "steel": 3,
+      "lacquer": 4,
+      "leather": 5,
+      "glove": 6,
+      "cloth": 7,
+      "sleeve": 8,
+      "trim": 9,
+      "silk": 10,
+      "carbon": 11,
+      "glow": 12,
+      "gold": 13,
+      "paper": 14,
+      "bevel": 15,
+      "skin": 16
+    },
+    "uniforms": {
+      "uPal": {
+        "rgbs": [
+          8421504,
+          11043658,
+          7296039,
+          1250844,
+          1250328,
+          2433055,
+          3353899,
+          14272164,
+          2501434,
+          10692123,
+          12856863,
+          1579294,
+          14285823,
+          14067788,
+          16777215,
+          2501686,
+          13212284
+        ]
+      },
+      "uKey": {
+        "v3": [
+          -0.55,
+          0.8,
+          0.22
+        ],
+        "normalize": true
+      },
+      "uInk": {
+        "rgb": 1118740
+      },
+      "uLinePx": 1.6,
+      "uSutra": 0,
+      "uGold": {
+        "rgb": 13214282
+      },
+      "uEnvHi": {
+        "rgb": 9413828
+      },
+      "uEnvLo": {
+        "rgb": 11556942
+      },
+      "uBladeA": {
+        "v3": [
+          0,
+          0,
+          0
+        ]
+      },
+      "uBladeB": {
+        "v3": [
+          0,
+          0,
+          -1
+        ]
+      },
+      "uSpill": {
+        "v4": [
+          0.55,
+          0.95,
+          1,
+          0.9
+        ]
+      },
+      "uTune": {
+        "v4": [
+          0.8,
+          1,
+          0.85,
+          0.22
+        ]
+      },
+      "uExposure": 1,
+      "uDetail": 1.8,
+      "uRes": {
+        "v2": [
+          1,
+          1
+        ]
+      },
+      "uHullPx": 2.6,
+      "uTime": 0
+    },
+    "palette": {
+      "0": 8421504,
+      "1": 11043658,
+      "2": 7296039,
+      "3": 1250844,
+      "4": 1250328,
+      "5": 2433055,
+      "6": 3353899,
+      "7": 14272164,
+      "8": 2501434,
+      "9": 10692123,
+      "10": 12856863,
+      "11": 1579294,
+      "12": 14285823,
+      "13": 14067788,
+      "14": 16777215,
+      "15": 2501686,
+      "16": 13212284
+    },
+    "npal": 17,
+    "vmPalette": [
+      8421504,
+      11043658,
+      7296039,
+      1250844,
+      1250328,
+      2433055,
+      3353899,
+      14272164,
+      2501434,
+      10692123,
+      12856863,
+      1579294,
+      14285823,
+      14067788,
+      16777215,
+      2501686,
+      13212284
+    ],
+    "shaders": {
+      "VM_VS": "5ff40b9944703dc2f83c9171bc47317a63e81682d67278e9a80279a891ed484f",
+      "VM_FS": "cd2b36aaa87ef12e79e9153437063c140c68425f421cad481570b75ce8ea98d0",
+      "VM_HULL_VS": "d6a81e60b29e7389c3f6b833bc2f64ca4507ada710be3ecf41fe27c673f84c27",
+      "VM_HULL_FS": "e99381bb9a95c1f31a624e383a8b1aed1fef38d583b9b472f4bb043833d17d65"
+    }
+  }
+}

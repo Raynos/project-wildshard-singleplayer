@@ -2098,5 +2098,23 @@
       0.1875,
       0.75
     ]
+  },
+  "classes": {
+    "brass": 1,
+    "brassDark": 2,
+    "steel": 3,
+    "lacquer": 4,
+    "leather": 5,
+    "glove": 6,
+    "cloth": 7,
+    "sleeve": 8,
+    "trim": 9,
+    "silk": 10,
+    "carbon": 11,
+    "glow": 12,
+    "gold": 13,
+    "paper": 14,
+    "bevel": 15,
+    "skin": 16
   }
 }

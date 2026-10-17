@@ -1,6 +1,8 @@
 import { MeshStandardMaterial } from 'three';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
 import { buildHalo } from './jianHalo';
+import { buildViewmodelParts } from './viewmodelParts';
+import { TALISMAN, TASSEL } from '../data/cloth';
 import { buildSword } from './jianSupport';
 import { buildJianFallback } from './jianFallback';
 import { headlessConstants } from './headless';
@@ -12,7 +14,9 @@ const halo = buildHalo(), support = buildSword('wood'), fallback = buildJianFall
 const material = new MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: 0, envMapIntensity: 0.6 });
 material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
+const viewmodel = buildViewmodelParts();
 const emitted = emitNamedBlobs([
+  nameBlob('weapons/jian-cloth.json', 'json', json({ rows: { tassel: TASSEL, sheet: TALISMAN }, ...Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])) })),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),
   nameBlob('weapons/jian-row.json', 'json', json({ portraitFov: 78 })),

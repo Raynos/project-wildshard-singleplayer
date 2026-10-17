@@ -1,5 +1,5 @@
 // The viewmodel's look (lab P8 "viewmodel", E169): ONE toon program for every held / worn thing, shading by material
-// class (geo.ts CLS) from baked maps, plus an inverted-hull ink outline.
+// class (data/decals.json classes) from baked maps, plus an inverted-hull ink outline.
 //
 // - Maps come as data, per vertex (`color`: a procedural piece or a vertex-baked GLB such as the TRELLIS guard) or from
 //   a texture pair (a Blender GLB: `<name>-maps.webp` r AO · g curvature · b detail, `<name>-nrm.webp` object-space
@@ -18,11 +18,13 @@
 // - The hull (inkHullMaterial): back faces pushed out a constant pixel width along an averaged normal; living classes
 //   swell and thin along the stroke (a dry brush), built classes stay ruled. The glow gets none.
 import { BackSide, DataTexture, Matrix3, ShaderMaterial, type Texture, Vector4 } from 'three';
-import { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } from '../runtime/looks/vmLook';
+import { viewmodelLook } from '../runtime/looks/vmLook';
 import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import decalRows from '../data/decals.json' with { type: 'json' };
 import { decalScale, type NdTier } from '../tier';
+
+const { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } = viewmodelLook(decalRows.classes);
 
 
 /** the decal atlas: the blade etch strip (top 256 px of 2048) and the fu talisman cell */
@@ -36,7 +38,7 @@ export function decalAtlas(tier: NdTier): Decals {
 
 
 
-/** the viewmodel program's live uniforms: data/vmLook.ts VM_UNIFORMS, the silk and the decal atlas */
+/** the viewmodel program's live uniforms: runtime/looks/vmLook.ts, the silk and the decal atlas */
 export type VmUniforms = UniformsOf<typeof VM_UNIFORMS> & { uSilk: { value: Texture }; uDecal: { value: Texture }; uEtch: { value: Vector4 }; uFu: { value: Vector4 } };
 
 export function vmUniforms(silk: Texture, decals: Decals): VmUniforms {

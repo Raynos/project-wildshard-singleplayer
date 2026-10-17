@@ -3,14 +3,13 @@
 // materials; the comment at its head describes the look.
 import type { UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
+/** Build the unchanged program and palette from the authored material ids. */
+function makeViewmodelLook(CLS: Readonly<Record<'brass' | 'brassDark' | 'steel' | 'lacquer' | 'leather' | 'glove' | 'cloth' | 'sleeve' | 'trim' | 'silk' | 'carbon' | 'glow' | 'gold' | 'paper' | 'bevel' | 'skin', number>>) {
 /** the material classes (aMat.x); materials.ts paints by class, a GLB names them by its material names */
-export const CLS = {
-  brass: 1, brassDark: 2, steel: 3, lacquer: 4, leather: 5, glove: 6, cloth: 7, sleeve: 8, trim: 9, silk: 10, carbon: 11,
-  glow: 12, gold: 13, paper: 14, bevel: 15, skin: 16,
-} as const;
+
 
 /** the class palette (sRGB hex), index = CLS value; tuned against round-6 style A / target-1 */
-export const PALETTE: Readonly<Record<number, number>> = {
+const PALETTE: Readonly<Record<number, number>> = {
   0: 0x808080,
   [CLS.brass]: 0xa8834a,
   [CLS.brassDark]: 0x6f5427,
@@ -29,13 +28,13 @@ export const PALETTE: Readonly<Record<number, number>> = {
   [CLS.bevel]: 0x262c36,
   [CLS.skin]: 0xc99a7c,
 };
-export const NPAL = 17;
+const NPAL = 17;
 
 /** the palette as the program's colour array (index = class; a missing class is grey) */
-export const VM_PAL: readonly number[] = Array.from({ length: NPAL }, (_, i) => PALETTE[i] ?? 0x808080);
+const VM_PAL: readonly number[] = Array.from({ length: NPAL }, (_, i) => PALETTE[i] ?? 0x808080);
 
 /** the program's tuning (the textures, decal cells and live values are the shard's) */
-export const VM_UNIFORMS = {
+const VM_UNIFORMS = {
   uPal: { rgbs: VM_PAL },
   uKey: { v3: [-0.55, 0.8, 0.22], normalize: true },
   uInk: { rgb: 0x111214 },
@@ -56,7 +55,7 @@ export const VM_UNIFORMS = {
 } as const satisfies UniformRows;
 
 /** the viewmodel program's vertex source */
-export const VM_VS = /* glsl */ `
+const VM_VS = /* glsl */ `
 attribute vec4 aMat;
 attribute vec4 aFace;
 attribute vec3 aNs;
@@ -105,7 +104,7 @@ void main() {
 `;
 
 /** the viewmodel program's fragment source: shading by class */
-export const VM_FS = /* glsl */ `
+const VM_FS = /* glsl */ `
 uniform vec3 uPal[${NPAL}];
 uniform sampler2D uSilk;
 uniform sampler2D uDecal;
@@ -289,7 +288,7 @@ void main() {
 `;
 
 /** the ink hull's vertex source: back faces pushed out a pixel width (living classes brushed) */
-export const VM_HULL_VS = /* glsl */ `
+const VM_HULL_VS = /* glsl */ `
 attribute vec3 aHullN;
 attribute vec4 aMat;
 uniform vec2 uRes;
@@ -319,9 +318,14 @@ void main() {
 }
 `;
 /** the ink hull's fragment source */
-export const VM_HULL_FS = /* glsl */ `
+const VM_HULL_FS = /* glsl */ `
 uniform vec3 uInk;
 uniform float uSutra;
 uniform vec3 uGold;
 void main() { gl_FragColor = vec4(mix(uInk, uGold * 1.3, uSutra), 1.0); }
 `;
+
+return { PALETTE, NPAL, VM_PAL, VM_UNIFORMS, VM_VS, VM_FS, VM_HULL_VS, VM_HULL_FS };
+}
+
+export const viewmodelLook: typeof makeViewmodelLook = makeViewmodelLook;

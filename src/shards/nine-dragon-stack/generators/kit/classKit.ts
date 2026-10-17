@@ -1,3 +1,4 @@
+// Build-time writer for the fixed viewmodel buffers; never imported by play.
 // The class kit (SHARD-PLATFORM M3, the kit system): a small geometry builder for close-up pieces (a viewmodel, a held
 // item). Every piece writes the same attribute set, so procedural parts and converted GLBs share one program and merge
 // per rigid group:
