@@ -174,3 +174,6 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 23:20 · wT:p1 · `S=/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/o7c; SKIP_SWEEPGUARD=1 GIT_INDEX_FILE=$S/index git commit -q -F $S/msg.txt`
 - 2026-10-16 23:20 · wT:p1 · `S=/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/o7c; B=$(git rev-parse HEAD); P='["scripts/bake/nalatiWater.mjs","scripts/`
 - 2026-10-16 23:43 · wT:p6 · `cat > tmp/sp-x6/batch-message <<'EOF' refactor(nalati): bake native equipment rows  Delete the superseded melee geometry and rifle wrapper modules. Emit rifle tuning as generated JSON and admit its mo`
+- 2026-10-17 00:09 · wT:p6 · `python3 - <<'PY' from pathlib import Path import os,subprocess,json path='scripts/check-models.mjs' base=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip() source=subprocess.check_o`
+- 2026-10-17 00:09 · wT:p6 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE=tmp/sp-x6/repair.index git commit -F tmp/sp-x6/repair-message`
+- 2026-10-17 00:15 · wT:pK · `python3 - <<'PY' from pathlib import Path p=Path('src/format/questStory.ts');text=p.read_text().replace('\n\nconst bossRecord','\n\n\nconst bossRecord');p.write_text(text) p=Path('tmp/sky-signal-quest`
