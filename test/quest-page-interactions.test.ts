@@ -23,14 +23,15 @@ const TRADER_PAGE = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8
 
 test('Signal refuses unraised oil, runs the crank and restores saved page state',()=>{
   const flags=new Flags('page-beats-signal',false),well={label:'well'},logbook={label:'logbook'},jar={visible:true},toasts:string[]=[];
-  let summoned=false,caught=0;
+  let summoned=false,caught=0,hauled=0;
   const labels=new Map([['well',well],['logbook',logbook],...['0','1','2'].map(id=>[`brazier.${id}`,{label:'brazier'}] as const)]);
   const visible=new Map([['jar',jar],...['0','1','2'].flatMap(id=>[[`oil.${id}`,{visible:false}] as const,[`fire.${id}`,{visible:false}] as const])]);
-  const calls=new Map<string,()=>void>([['catch-fire',()=>{caught++;}],['summon',()=>{summoned=true;}],...['0','1','2'].map(id=>[`glow.${id}`,()=>undefined] as const)]);
+  const calls=new Map<string,()=>void>([['haul',()=>{hauled++;}],['catch-fire',()=>{caught++;}],['summon',()=>{summoned=true;}],...['0','1','2'].map(id=>[`glow.${id}`,()=>undefined] as const)]);
   const ports={flags,labels,visible,calls,owners:new Map([['world',{logbook:{onInteract:()=>undefined},fire:{brazier:{onInteract:()=>undefined}},well:{crankAt:new Vector3(),spot:{onInteract:()=>undefined}},braziers:['0','1','2'].map(()=>({spot:{onInteract:()=>undefined},parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
   const page=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
   expect(page.run('well')).toBe(false);expect(jar.visible).toBe(true);expect(toasts).not.toEqual([]);
   expect(page.run('crank')).toBe(true);expect(page.run('well')).toBe(true);expect(flags.has(FLAG.oil)).toBe(true);expect(jar.visible).toBe(false);
+  expect(hauled).toBe(1);expect(page.run('crank')).toBe(false);expect(hauled).toBe(1);
   expect(page.run('well')).toBe(false);expect(page.run('fire')).toBe(false);
   for(const id of ['0','1','2']){expect(page.run(`pour.${id}`)).toBe(true);expect(page.run(`light.${id}`)).toBe(true);}
   expect(page.run('fire')).toBe(true);expect(summoned).toBe(true);summoned=false;expect(page.run('fire')).toBe(false);expect(summoned).toBe(false);

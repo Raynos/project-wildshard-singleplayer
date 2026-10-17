@@ -11,7 +11,7 @@
     "data/restPools.generated.json",
     "../../../public/assets/sunscar-dunes/baked/rest-oil.glb",
     "../../../public/assets/sunscar-dunes/baked/rest-well.glb",
-    "data/bucketMotion.ts"
+    "generators/bucket.ts"
   ],
   "style": {
     "kind": "ground",

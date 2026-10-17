@@ -12,7 +12,6 @@ import { buildPlace, type TowerParts, type BrazierParts, type WellParts } from '
 import { WORLD, type BakedWorld } from './baked';
 import { fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
-import { FLAG } from '../data/flags';
 
 type ShardContext = Parameters<SignalDunesPlugin['world']>[0];
 
@@ -56,8 +55,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
   const programs = source.clientChannels;
   if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
-  const channels = keepChannels(bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) }));
-  channels.evaluate(programs[0]?.id ?? '', { time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
+  const channels = keepChannels(bindClientChannels(programs, { nativeOwners: ['sunscar.well.bucket'], targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) }));
   channels.bindPrompts({ named: new Map([['sunscar.well.take', () => { page('well'); }]]) });
   channels.evaluate(programs[1]?.id ?? '', { time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
   const wellSpot = channels.prompt(programs[1]?.id ?? '');
@@ -81,7 +79,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   const fireCaught = (caught: SignalFire): void => { caught.tower.fire.visible = true; caught.tower.light.intensity = TOWER_LIGHT; caught.brazier.label = STRINGS.lit; };
   const fire: SignalFire = { tower, get lit() { return rules.has('fire'); }, onLight: null, brazier: firePrompt };
   const presentation = bindQuestPageInteractions(source, { flags, rules,
-    owners: new Map<string,unknown>([['world',{logbook,well,braziers,fire}],['commands',{catchFire:()=>{fireCaught(fire);}}]]),
+    owners: new Map<string,unknown>([['world',{logbook,well,braziers,fire}],['motion',channels],['commands',{catchFire:()=>{fireCaught(fire);}}]]),
     ...(interactables===undefined?{}:{interactables}),toast: text => { toast(ctx, text); } }, ctx.product.section('world/targets'));
   page = presentation.run;
 
@@ -97,12 +95,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   const lightStates = braziers.map(b => ({ lit: b.lit }));
   for (const [i, b] of braziers.entries()) wayLights.addLamp(site(b.parts.bowlAt, 0.5), 0xff7a30, WAY_LIGHT, 10, lightStates[i], 'fire');
   wayLights.addLamp(site(caravan.lampAt, 0), 0xffd27a, LANTERN_LIGHT, 10);
-  ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
+  ctx.system({ id: 'sunscar.fire', phase: 'update', run: (_dt, t) => {
     for (const [i, state] of lightStates.entries()) state.lit = braziers[i]?.lit ?? false;
     tickFires(t);
-    channels.evaluate(programs[0]?.id ?? '', { time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
     const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me);
-      if (!fire.lit) return;
+    if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
     tower.light.intensity = TOWER_LIGHT * flick;
   } });

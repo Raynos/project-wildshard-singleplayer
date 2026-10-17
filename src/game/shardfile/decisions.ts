@@ -448,10 +448,25 @@ export class ShardDecisions {
     fields: [...this.fields].flatMap(([actor, values]) => [...values.keys()].map(field => [actor, field, this.fieldValue(actor, field)])), channels: [...this.channels], playerFlags: [...this.playerFlags], zones: [...this.zones], phases: [...this.phases],
     moves: [...this.motions].map(([actor, motion]) => ({ actor, move: motion.move, target: motion.target, binding: motion.binding, state: motion.runner.snapshot() })),
     strikes: this.savedStrikes() }); }
+  /** View-only channel programs may change without invalidating a retained body's logical save.
+   * Registry identities and every mechanical declaration remain exact. Guests with channel/signal
+   * capabilities, and owners with actual mover authority, retain the complete original contract. */
+  private matchesContract(saved: string): boolean {
+    if (saved === this.contract) return true;
+    if (this.sim.borrowedActors === undefined || this.movers !== undefined || this.rows.some(row =>
+      Object.keys(row.channels).length > 0 || Object.keys(row.signals).length > 0
+      || row.commands.some(command => command === 'channel' || command === 'signal')
+      || row.on.some(event => event === 'channel' || event === 'signal'))) return false;
+    const record = v.record(v.string(), v.unknown()), channels = v.optional(v.array(v.object({ id: v.string() })), []);
+    const { channels: previousChannels, movers: _previousMovers, ...previous } = v.parse(record, JSON.parse(saved));
+    const { channels: currentChannels, movers: _currentMovers, ...current } = v.parse(record, JSON.parse(this.contract));
+    const previousIds = v.parse(channels, previousChannels).map(row => row.id), currentIds = v.parse(channels, currentChannels).map(row => row.id);
+    return JSON.stringify(previousIds) === JSON.stringify(currentIds) && JSON.stringify(previous) === JSON.stringify(current);
+  }
   /** Validate the whole logical record before mutation; loading invokes no Wasm or gameplay edge. */
   restore(input: SimValue): void {
     if (typeof input !== 'string') throw new Error('Invalid decision continuation');
-    const saved = v.parse(continuation, JSON.parse(input)); if (saved.contract !== this.contract) throw new Error('Incompatible decision continuation');
+    const saved = v.parse(continuation, JSON.parse(input)); if (!this.matchesContract(saved.contract)) throw new Error('Incompatible decision continuation');
     const fields = new Map<number, Map<number, number>>();
     for (const [actor, field, value] of saved.fields) { this.position(actor); if (!this.fieldActors.has(actor)) throw new Error('Invalid public field owner'); this.validateField(field, value); const values = fields.get(actor) ?? new Map<number, number>(); if (values.has(field)) throw new Error('Duplicate decision field'); values.set(field, value); fields.set(actor, values); }
     const expectedFields = this.source.state.shared.filter(row => row.privacy === 'public' && row.type !== 'string').length;

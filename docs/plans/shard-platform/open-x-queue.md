@@ -43,11 +43,11 @@ them early. The ids carry a `K` so they don't collide with the shardfile rows ab
 | KA6 | Game wiring: encounter/quest/zone bindings, events in, commands to mechanics, replication; one strike-targets host in the sim (G457) | M | Codex | open |
 | KA7 | Movers become an engine mechanic (G457's NEXT row) | M | Codex | open |
 | KS1 | `roc.as` + Roc row + moves + scenario; delete `raptor` and `ROC_BRAIN` | S | Opus | open |
-| KS2 | Sky sim out of `runtime/` (gust strike targets, winch mover `at-end` + `restoreFrom`, platform updraft; `fanGust.as` → held-melee row) | M | Codex | open |
+| KS2 | Sky sim out of `runtime/` (gust strike targets, winch mover `at-end` + `restoreFrom`, platform updraft; `fanGust.as` → held-melee row) | M | sp-x8 | done: native plan `e54ca1cb1`, held gust `655bd42f1`, winch endpoints `5e4ae0ac3`, strike targets `dcc6c7d8b`; native updraft data retained |
 | KS3 | Gale wall → lane telegraph presenter row | S | Opus | open |
 | KS4 | `matriarch.as` + row + moves + scenario; delete `phased` | S | Opus | open |
 | KS5 | `skitterer.as` → v1 at 10 Hz on burrow / ring-run + scenario | S | Opus | open |
-| KS6 | Signal sim out of TS: drop the `world/build.ts` flag writes, lash cracks through strike targets, bucket `restoreFrom` | S | Codex | open |
+| KS6 | Signal sim out of TS: drop the `world/build.ts` flag writes, lash cracks through strike targets, bucket `restoreFrom` | S | sp-x8 | done: native replay and lash targets `08a97d93a`; this closing bucket commit deletes `data/bucketMotion.ts`, restores oil at its native mover endpoint and preserves old native saves |
 | KR1 | Ruler and report: AS column beside custom %, net lines, script metrics row | S | Codex | open |
 | KP1 | Milestone proof: both shards' sim from the built shardfile alone (`prove`), then the soak and frame floor | S | Opus | open |
 | KT2 | = T2 above (Template reference Wasm encounter), built on KA1–KA4 | M | sp-x8 | reference built: critical named ABI-v1 Wasm, `sim/scripts` + `actors/moves`, real DecisionHost scenario (under 2 s), logical fresh-host save continuation. KA3 replaces Template-only `generators/bossGlue.ts`; KA6 supplies page/SDK worker event wiring |

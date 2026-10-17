@@ -8438,6 +8438,10 @@ loop bodies still pass the same structural fuel/depth/finite guards. This
 keeps field-heavy decision guests within the existing per-call fuel cap.
 Native borrowed guests run in the existing after-body phase and resolve the
 current host physics after snapshot restore.
+Retained bodies that have no mover owner and no channel/signal capabilities
+can restore across changes to cosmetic channel programs and unowned mover rows.
+Channel identities and every mechanical contract field still match exactly.
+Guests with those capabilities retain the full channel/mover contract.
 
 
 ### Product quest story and journal rows (C5)

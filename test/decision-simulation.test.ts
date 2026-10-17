@@ -14,6 +14,8 @@ import { DecisionModule } from '../src/engine/script/decisionModule';
 import { borrowedDecisionAuthority } from '../src/game/shardfile/borrowedDecisions';
 import { ShardDecisions, type DecisionRuntime } from '../src/game/shardfile/decisions';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import * as v from 'valibot';
+import { ClientChannels } from '../src/sdk/clientChannels';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
 const io = scriptV1Layout(1, 0), state = 16384 + io.state * 8, out = 16384 + io.outbox * 8;
@@ -223,6 +225,7 @@ test('retained actors lend their actual body, public memory and strike owner wit
     const actor = sim.host.entities.get('actor.a'); if (actor === undefined) throw new Error('Missing retained actor');
     actor.mem['phase'] = 2;
     const source = structuredClone(f.source);
+    const cosmetic = new ClientChannels('cosmetic'); cosmetic.output('y', cosmetic.constant(0)); source.clientChannels = [cosmetic.build()];
     source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], bosses: [], actors: source.creatures.spawns.map(row => ({
       id: `retained.${row.id}`, kind: row.species, look: row.variant, at: [row.at[0], row.at[2]], yaw: row.yaw,
     })) } };
@@ -261,6 +264,15 @@ test('retained actors lend their actual body, public memory and strike owner wit
     try {
       actor.mem['phase'] = 0; decisions.restore(saved);
       expect(actor.mem['phase']).toBe(3); expect(decisions.snapshot()).toBe(saved); expect(invoke).not.toHaveBeenCalled();
+      const legacy = v.parse(v.record(v.string(), v.unknown()), JSON.parse(saved));
+      const declaration = v.parse(v.record(v.string(), v.unknown()), JSON.parse(v.parse(v.string(), legacy['contract'])));
+      const olderView = new ClientChannels('cosmetic'); olderView.output('y', olderView.constant(1));
+      declaration['channels'] = [olderView.build()]; declaration['movers'] = [];
+      legacy['contract'] = JSON.stringify(declaration);
+      decisions.restore(JSON.stringify(legacy)); expect(decisions.snapshot()).toBe(saved); expect(invoke).not.toHaveBeenCalled();
+      declaration['state'] = {}; legacy['contract'] = JSON.stringify(declaration);
+      expect(() => decisions.restore(JSON.stringify(legacy))).toThrow('Incompatible decision continuation');
+      expect(decisions.snapshot()).toBe(saved);
       const bad: unknown = JSON.parse(saved);
       if (typeof bad !== 'object' || bad === null) throw new Error('Missing continuation');
       Reflect.set(bad, 'fields', [[1, 89, 99], [2, 89, 0]]);

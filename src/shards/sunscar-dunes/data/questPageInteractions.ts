@@ -18,7 +18,8 @@ export const SIGNAL_QUEST_PAGE_INTERACTIONS={prompts:[
     {target:'oil.0',owner:'world',path:['braziers',0,'parts','oil','visible']},{target:'fire.0',owner:'world',path:['braziers',0,'parts','fire','visible']},
     {target:'oil.1',owner:'world',path:['braziers',1,'parts','oil','visible']},{target:'fire.1',owner:'world',path:['braziers',1,'parts','fire','visible']},
     {target:'oil.2',owner:'world',path:['braziers',2,'parts','oil','visible']},{target:'fire.2',owner:'world',path:['braziers',2,'parts','fire','visible']}],
-  calls:[{target:'catch-fire',owner:'commands',path:['catchFire']},{target:'summon',owner:'world',path:['fire','onLight'],optional:true},
+  calls:[{target:'haul',owner:'motion',path:['runtime','command'],args:['sunscar.well.bucket',1],optional:true},
+    {target:'catch-fire',owner:'commands',path:['catchFire']},{target:'summon',owner:'world',path:['fire','onLight'],optional:true},
     {target:'glow.0',owner:'world',path:['braziers',0,'parts','glow'],args:[true]},
     {target:'glow.1',owner:'world',path:['braziers',1,'parts','glow'],args:[true]},
     {target:'glow.2',owner:'world',path:['braziers',2,'parts','glow'],args:[true]}],
@@ -26,7 +27,7 @@ export const SIGNAL_QUEST_PAGE_INTERACTIONS={prompts:[
   {id:'logbook',interaction:'logbook',after:[{kind:'label',target:'logbook',text:STRINGS.logRead},{kind:'toast',text:STRINGS.logText}]},
   {id:'well',interaction:'well',denied:{unraised:STRINGS.wellHint},after:[
     {kind:'visible',target:'jar',value:false},{kind:'label',target:'well',text:STRINGS.oilTaken},{kind:'toast',text:STRINGS.oilGot}]},
-  {id:'crank',interaction:'crank',after:[{kind:'label',target:'well',text:STRINGS.takeOil}]},
+  {id:'crank',interaction:'crank',after:[{kind:'call',target:'haul'},{kind:'label',target:'well',text:STRINGS.takeOil}]},
   {id:'pour.0',interaction:'pour.0',denied:{missing:STRINGS.needOilHint},after:[{kind:'visible',target:'oil.0',value:true},{kind:'label',target:'brazier.0',text:STRINGS.crackToLight},{kind:'toast',text:STRINGS.crackToLight}]},
   {id:'light.0',interaction:'light.0',before:[{kind:'visible',target:'fire.0',value:true},{kind:'call',target:'glow.0'},{kind:'label',target:'brazier.0',text:STRINGS.waymarkLit}],after:[{kind:'toast',text:STRINGS.waymarkLit,progress:{flags:['lit.0','lit.1','lit.2'],complete:STRINGS.allLit}}]},
   {id:'pour.1',interaction:'pour.1',denied:{missing:STRINGS.needOilHint},after:[{kind:'visible',target:'oil.1',value:true},{kind:'label',target:'brazier.1',text:STRINGS.crackToLight},{kind:'toast',text:STRINGS.crackToLight}]},

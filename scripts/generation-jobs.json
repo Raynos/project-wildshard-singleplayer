@@ -11990,7 +11990,6 @@
         "src/sdk/version.ts",
         "src/shards/sunscar-dunes/data/audio.ts",
         "src/shards/sunscar-dunes/data/bossStages.json",
-        "src/shards/sunscar-dunes/data/bucketMotion.ts",
         "src/shards/sunscar-dunes/data/cues.ts",
         "src/shards/sunscar-dunes/data/duneField.ts",
         "src/shards/sunscar-dunes/data/dusk.ts",
@@ -12011,6 +12010,7 @@
         "src/shards/sunscar-dunes/data/questNpc.ts",
         "src/shards/sunscar-dunes/data/questPageInteractions.ts",
         "src/shards/sunscar-dunes/data/questPresentation.ts",
+        "src/shards/sunscar-dunes/data/restScenes.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
         "src/shards/sunscar-dunes/data/sand.json",
         "src/shards/sunscar-dunes/data/sand.ts",
@@ -12026,6 +12026,7 @@
         "src/shards/sunscar-dunes/data/strings.ts",
         "src/shards/sunscar-dunes/data/tiles.json",
         "src/shards/sunscar-dunes/data/whipContacts.ts",
+        "src/shards/sunscar-dunes/generators/bucket.ts",
         "src/shards/sunscar-dunes/generators/product.ts"
       ],
       "outputs": [
@@ -12175,7 +12176,6 @@
         "src/shards/sunscar-dunes/assets/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a",
         "src/shards/sunscar-dunes/data/audio.ts",
         "src/shards/sunscar-dunes/data/bossStages.json",
-        "src/shards/sunscar-dunes/data/bucketMotion.ts",
         "src/shards/sunscar-dunes/data/cues.ts",
         "src/shards/sunscar-dunes/data/duneField.ts",
         "src/shards/sunscar-dunes/data/dusk.ts",
@@ -12197,6 +12197,7 @@
         "src/shards/sunscar-dunes/data/questNpc.ts",
         "src/shards/sunscar-dunes/data/questPageInteractions.ts",
         "src/shards/sunscar-dunes/data/questPresentation.ts",
+        "src/shards/sunscar-dunes/data/restScenes.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
         "src/shards/sunscar-dunes/data/sand.json",
         "src/shards/sunscar-dunes/data/sand.ts",
@@ -12212,6 +12213,7 @@
         "src/shards/sunscar-dunes/data/strings.ts",
         "src/shards/sunscar-dunes/data/tiles.json",
         "src/shards/sunscar-dunes/data/whipContacts.ts",
+        "src/shards/sunscar-dunes/generators/bucket.ts",
         "src/shards/sunscar-dunes/generators/build-product.mjs",
         "src/shards/sunscar-dunes/generators/product.ts"
       ],
