@@ -4,6 +4,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BOAT_MOOR } from '../data/layout';
 import { SHORE_LEVEL, WORLD_DROP } from '../data/landscapeRows';
 import { BOAT_LAYOUT } from './boatLayout';
+import { ENTRY_DECKS } from './entryDecks';
 import shore from '../data/shoreBoulders.generated.json' with { type: 'json' };
 import piers from '../data/piers.generated.json' with { type: 'json' };
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
@@ -44,3 +45,6 @@ export const WORLD_GULL_PERCHES = [
   ...foliage.gullPerches,
 ];
 export const SHORE_BOULDERS = { placements: shore.placements, boxes: shore.boxes };
+
+/** Inclusive road-deck floors on the existing rectangular floor host. */
+export const ENTRY_FLOORS = ENTRY_DECKS.map(({ slab }) => ({ x: slab.x, z: slab.z, hw: slab.hw, hd: slab.hd, y: slab.yTop, rot: slab.rot }));

@@ -11,7 +11,7 @@ import { readDriftwoodBlob, loadFixedGeometry } from '../runtime/boot/blobAssets
 import type * as THREE from 'three';
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -36,7 +36,6 @@ import { GroundCover } from './GroundCover';
 import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
-import { onDeck } from './entryDeck';
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeSliced, placeModelSite, type ModelSite, type Placed } from '@wildshard/engine/models/place';
@@ -106,7 +105,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     colliders: lowered.landings.map(({ box }) => ({ ...box })), solidFloor: true,
     floor: (x, z) => (lowered.landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
   place(entryDeck, deckRows.map(({ placement }) => placement), { ctx: modelContext(sky), draw: 'merged', registry,
-    piece: { id: 'entry-decks', floor: (x, z) => (onDeck(decks, x, z) ? 0 : undefined), solidFloor: true } });
+    piece: { id: 'entry-decks', floor: (x, z) => floorAtRects(fixed.entryFloors, x, z, 'first'), solidFloor: true } });
   statics.push(...deckRows.map(({ slab }) => slab));
   statics.push(...pier.colliders);
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;

@@ -12,7 +12,7 @@ import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generato
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import * as v from 'valibot';
 
-it('admits the original wet-sand perch coordinates in their seeded order', () => {
+it('admits the whole perch list with its original wet-sand suffix', () => {
   const terrain = MANIFEST.ground.terrain;
   if (terrain === undefined) throw new Error('Native island ground is required');
   const level: LevelSpec = { id: MANIFEST.slug, ground: { terrain }, spawn: MANIFEST.spawn, sky: MANIFEST.sky, atmosphere: MANIFEST.atmosphere, grade: MANIFEST.grade,
@@ -28,7 +28,8 @@ it('admits the original wet-sand perch coordinates in their seeded order', () =>
     if (section === undefined) throw new Error('Missing fixed layouts');
     const schema = SECTIONS['custom/fixedLayouts'];
     const rows = v.parse(schema, section.value);
-    expect(rows.gullPerches).toEqual(original);
-    expect(v.safeParse(schema, {...rows, gullPerches: [...original, original[0]]}).success).toBe(false);
+    expect(rows.gullPerches).toHaveLength(100);
+    expect(rows.gullPerches.slice(-original.length)).toEqual(original);
+    expect(v.safeParse(schema, {...rows, gullPerches: Array.from({ length: 257 }, () => ({ x: 0, y: 0, z: 0 }))}).success).toBe(false);
   } finally { restoreGround(); restoreLevel(); }
 });

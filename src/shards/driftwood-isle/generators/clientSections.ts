@@ -1,4 +1,4 @@
-import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS } from './staticWorld';
+import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS, ENTRY_FLOORS } from './staticWorld';
 import { NATIVE_VIEW } from './nativeView';
 import { FIXED_DRAW_ROWS } from './modelFiles';
 import { ISLAND_KNOBS } from './tiers';
@@ -26,7 +26,7 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/cumulusPuffs', value:cumulusPuffs},
   {name:'custom/gullFlock', value:GULL_FLOCK},
   {name:'custom/oceanSurface', value:{surface:OCEAN_SURFACE, files:OCEAN_FILES}},
-  {name:'custom/fixedLayouts', value:{nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS, shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), ironSword, entryDecks:ENTRY_DECKS, foliage:{seed:foliage.seed,tiers:foliage.tiers}, npcScenes, chimeSlots, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:coveBake, shrine:shrineBake, trophySlots:trophySlotsBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
+  {name:'custom/fixedLayouts', value:{nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS, shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), ironSword, entryDecks:ENTRY_DECKS, entryFloors:ENTRY_FLOORS, foliage:{seed:foliage.seed,tiers:foliage.tiers}, npcScenes, chimeSlots, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:coveBake, shrine:shrineBake, trophySlots:trophySlotsBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
   {name:'custom/trailside', value:trailside},
   {name:'custom/questRows', value:{feats:DRIFTWOOD_FEATS, items:DRIFTWOOD_ITEMS}},
 ];

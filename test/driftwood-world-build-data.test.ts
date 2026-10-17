@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { floorAtRects } from '@wildshard/engine/physics/box';
 import * as v from 'valibot';
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
@@ -31,4 +32,16 @@ test('canonical section admission refuses wrong entry order, altered slab height
   expect(() => v.parse(SECTIONS['custom/fixedLayouts'], { ...data, entryDecks: [{ ...first, slab: { ...first.slab, yTop: 1 } }, second, third, fourth] })).toThrow();
   expect(() => v.parse(SECTIONS['custom/fixedLayouts'], { ...data, foliage: { ...data.foliage, tiers: { ...data.foliage.tiers,
     phone: { ...data.foliage.tiers.phone, palms: { ...data.foliage.tiers.phone.palms, specs: Array.from({ length: 1025 }, () => data.foliage.tiers.phone.palms.specs[0]) } } } } })).toThrow();
+});
+
+test('compiled deck floors preserve inclusive corners and adjacent floating-point edges', () => {
+  const data = rows(), epsilon = Number.EPSILON * 256;
+  for (const { rect } of decks.rows) {
+    const xs = [rect.minX - epsilon, rect.minX, (rect.minX + rect.maxX) / 2, rect.maxX, rect.maxX + epsilon];
+    const zs = [rect.minZ - epsilon, rect.minZ, (rect.minZ + rect.maxZ) / 2, rect.maxZ, rect.maxZ + epsilon];
+    for (const x of xs) for (const z of zs) {
+      const expected = decks.rows.some(({ rect: r }) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ) ? 0 : undefined;
+      expect(floorAtRects(data.entryFloors, x, z, 'first'), `${x},${z}`).toBe(expected);
+    }
+  }
 });

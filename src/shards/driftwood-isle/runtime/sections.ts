@@ -130,6 +130,7 @@ export const SECTIONS = {
     ])), v.maxLength(128)) })), v.length(7)),
     npcScenes: v.strictObject({ castaway: npcScene, trader: npcScene }),
     chimeSlots: runs,
+    entryFloors: floors,
     gullPerches: v.pipe(v.array(point), v.maxLength(256)),
     boat: v.strictObject({ spec: v.strictObject({ x: number, z: number, heading: v.literal(0), waterY: number }), placement: point,
       walls: boxes, floors, cleats: v.tuple([number, number]),
