@@ -133,3 +133,6 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 20:44 · wT:pE · `python3 - <<'PY' import os,signal,subprocess rows=[line.split(None,2) for line in subprocess.check_output(['ps','-axo','pid,ppid,args'],text=True).splitlines()[1:]] roots=[int(r[0]) for r in rows if r`
 - 2026-10-16 20:44 · wT:p5 · `tail -18 tmp/sp-x5-trader/final-check.log; cat tmp/sp-x5-trader/final-before.log; git log -4 --oneline; python3 tmp/sp-x5-trader/prepare.py GIT_INDEX_FILE="$PWD/tmp/sp-x5-trader/index" SKIP_SWEEPGUARD`
 - 2026-10-16 20:45 · wT:p5 · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x5-trader/prepare.py');s=p.read_text().replace("append=Path('docs/ENGINE.md').read_text().split('\\n'@wildshard/game/quest/trader.installQuestT`
+- 2026-10-16 20:49 · wT:pK · `cat > tmp/c3-close/prepare-close.py <<'PY' from pathlib import Path import subprocess,os,json root=Path.cwd(); idx=str(root/'tmp/c3-close/close.index'); env={**os.environ,'GIT_INDEX_FILE':idx,'SKIP_SW`
+- 2026-10-16 20:50 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py && python3 tmp/c9-native/validate.py`
+- 2026-10-16 20:50 · wT:pK · `python3 tmp/c3-close/prepare-close.py >tmp/c3-close/close-prepare.log && GIT_INDEX_FILE="$PWD/tmp/c3-close/close.index" SKIP_SWEEPGUARD=1 .githooks/pre-commit >tmp/c3-close/close-land.log 2>&1 && GIT_`
