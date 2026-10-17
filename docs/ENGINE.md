@@ -8492,6 +8492,16 @@ to the native keeper without importing page views. These hosts add no
 saved cursor, reward, timer, prompt or alternate NPC rig.
 
 
+`bindStoryChapters` binds one or more declared chapters over the original
+runtime flags and completion facts. Driftwood and Nalati use
+`presentChapterStory` for the same chip, MAP card, message and discovery
+laws; the policy admits optional single-quest notices or chapter reward
+captions. Nalati emits `quests/chapters.json`. Existing world figures,
+NPC dialogue, update order and saves stay with their owners. `QuestViews`
+retains the objective/captions and recreates only entered dialogue input;
+its timer cancels when the home cell exits. `installFeats` runs after the
+adventure's initial world poll, preserving synchronous flag-event order.
+
 ### Build-emitted numeric creature poses
 
 `game/plugin/channelPrograms.numericCreaturePose(input)` lends existing

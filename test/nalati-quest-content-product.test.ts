@@ -5,6 +5,7 @@ import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import source from '../src/shards/nalati-grasslands/shard.config';
+import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 
 // Canonical hashes captured from the original runtime declarations before compilation.
 const originals = {
@@ -28,6 +29,10 @@ test('Nalati compiles the unchanged chapters, camp dialogues, placements and dis
   const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing compiled Nalati quest content');
   expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual(content);
+  const chapterFile = loaded.output.namedFiles?.find(row => row.name === 'quests/chapters.json');
+  const chapterBytes = chapterFile === undefined ? undefined : loaded.assets.get(chapterFile.hash);
+  if (chapterBytes === undefined) throw new Error('Missing compiled chapter presentation');
+  expect(JSON.parse(new TextDecoder().decode(chapterBytes))).toEqual(chapters);
 }, 30_000);
 
 test('compiled Nalati chapters resume old flag saves at every step and retain elder dialogue', () => {

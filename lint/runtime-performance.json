@@ -554,18 +554,6 @@
       "count": 1,
       "row": "SF48"
     },
-    "src/shards/nalati-grasslands/runtime/enteredAdventure.ts:unbounded-loop:e78f760b4f4fdb17ba1b061c269f427996c55e20dafc66cb1a6b944eebd6fb93": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/enteredAdventure.ts:unbounded-loop:71b6e01b37c733c9fd34c51d5bf78f601601f87bd8fe3e42c1061914544edf21": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/enteredAdventure.ts:async:7b5fd8204d464b38bf13bdb0370a29544e9e6988d1454dee9061521337ae4a6a": {
-      "count": 1,
-      "row": "SF48"
-    },
     "src/shards/nalati-grasslands/runtime/enteredEnvironment.ts:unbounded-loop:6796e4bb9e912a48dd532227251ca07fc5d11c84a48e92da59aa64b0a9d3cde9": {
       "count": 1,
       "row": "SF48"

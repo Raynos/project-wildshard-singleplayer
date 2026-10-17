@@ -17,7 +17,27 @@ export function parseAdventureContent(input: unknown): AdventureContent { return
 
 const markerAt = v.strictObject({ ...at.entries, y: v.exactOptional(finite), dy: v.exactOptional(finite), yaw: v.exactOptional(finite) });
 const borrowed = v.strictObject({ owner: text, path: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)) });
+const chapterText = v.pipe(v.string(), v.maxLength(512));
+const ChapterPresentation = v.pipe(v.strictObject({
+  chapters: v.pipe(v.array(v.pipe(chapterText, v.minLength(1))), v.maxLength(64)),
+  talks: v.pipe(v.array(v.strictObject({ id: chapterText, label: chapterText,
+    radius: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(100)) })), v.maxLength(64)),
+  rewards: v.record(chapterText, v.strictObject({ event: chapterText, title: chapterText })),
+  flagEvents: v.pipe(v.array(v.strictObject({ flag: chapterText, event: chapterText })), v.maxLength(64)),
+  introTitle: chapterText, chapterTitle: chapterText, completedObjective: chapterText, completedHint: chapterText,
+  rewardKicker: chapterText, rewardSubtitle: chapterText, started: chapterText, objective: chapterText,
+  messages: v.exactOptional(v.strictObject({ firstStep: v.exactOptional(chapterText), started: chapterText, objective: chapterText, completed: chapterText })),
+  rewardMs: v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(60000)),
+}), v.check(rows => rows.chapters.length > 0 && new Set(rows.chapters).size === rows.chapters.length
+  && new Set(rows.talks.map(row => row.id)).size === rows.talks.length
+  && Object.keys(rows.rewards).every(id => rows.chapters.includes(id)), 'unique bound chapter and speaker ids'));
+/** Immutable chapter UI policy; authored templates accept {chapter}, {title}, {objective} and {reward}. */
+export type ChapterStoryPresentation = v.InferOutput<typeof ChapterPresentation>;
+/** Admit the presentation separately from the quest graph; it never supplies progression state. */
+export function parseChapterStoryPresentation(input: unknown): ChapterStoryPresentation { return v.parse(ChapterPresentation, input); }
+
 const Story = v.strictObject({
+  chapters: v.exactOptional(ChapterPresentation),
   bindings: v.strictObject({ sync: borrowed, toast: borrowed, floor: v.exactOptional(borrowed) }),
   quest: v.strictObject({ id: text, markers: v.record(text, markerAt) }),
   presentation: v.strictObject({ introTitle: text, worldPins: v.boolean(), mapMarkers: v.boolean(), minimapMarks: v.boolean(),
@@ -32,3 +52,4 @@ const Story = v.strictObject({
 export type QuestStory = v.InferOutput<typeof Story>;
 /** Strict story admission adds no cursor, save or callback policy. */
 export function parseQuestStory(input: unknown): QuestStory { return v.parse(Story, input); }
+

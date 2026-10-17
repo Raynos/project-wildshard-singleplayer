@@ -1,0 +1,63 @@
+{
+  "chapters": [
+    "tulpar",
+    "golden-king",
+    "father-wind"
+  ],
+  "talks": [
+    {
+      "id": "elder",
+      "label": "Talk to Baqyt Ata",
+      "radius": 3.2
+    },
+    {
+      "id": "herderGate",
+      "label": "Talk to Dauren",
+      "radius": 3.2
+    },
+    {
+      "id": "herderRail",
+      "label": "Talk to Erlan",
+      "radius": 3.2
+    },
+    {
+      "id": "child",
+      "label": "Talk to Ayan",
+      "radius": 3.2
+    },
+    {
+      "id": "cook",
+      "label": "Talk to Gulnar Apa",
+      "radius": 3.2
+    }
+  ],
+  "rewards": {
+    "tulpar": {
+      "event": "tulpar",
+      "title": "Formerly On Foot"
+    },
+    "golden-king": {
+      "event": "chapter-king",
+      "title": "Honorary Balbal"
+    },
+    "father-wind": {
+      "event": "chapter-wind",
+      "title": "Weather Complainer (Successful)"
+    }
+  },
+  "flagEvents": [
+    {
+      "flag": "won:kokpar",
+      "event": "kokpar"
+    }
+  ],
+  "introTitle": "Nalati Grasslands",
+  "chapterTitle": "Chapter {chapter} \u00b7 {title}",
+  "completedObjective": "{title} \u2014 complete",
+  "completedHint": "The steppe has more stories. Baqyt Ata will tell them.",
+  "rewardKicker": "Chapter {chapter} \u00b7 complete",
+  "rewardSubtitle": "Title earned \u00b7 {reward}",
+  "started": "New quest \u00b7 {title}",
+  "objective": "Objective \u00b7 {objective}",
+  "rewardMs": 6500
+}

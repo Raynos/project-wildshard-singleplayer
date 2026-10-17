@@ -8,16 +8,17 @@
  *   spine.quest.objective()  spine.markers()        // the map reads the live markers (A5)
  */
 import * as THREE from 'three';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { app } from '@wildshard/engine/app/runtime';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import { DRIFTWOOD_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
-import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
+import type { bindRuntimeQuest, RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import type { QuestStory } from '@wildshard/format/questStory';
 import { QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
-import { presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
+import { presentChapterStory, installStoryTalks, bindStoryChapters } from '@wildshard/game/quest/story';
 import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Castaway } from '../runtime/npc/Castaway';
 import { castawayRig } from '../runtime/npc/people';
@@ -45,13 +46,17 @@ export function ownEnteredTree(object: THREE.Object3D, scope: Parameters<typeof 
 
 export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ConstructorParameters<typeof QuestViews>[0], facts: RuntimeFacts, source: Parameters<typeof bindRuntimeQuest>[1], story: QuestStory): Spine {
   const { flags, kit, place } = adv;
-  const quest = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts, place: marker => story.quest.markers[marker.id] }).state;
+  const chapters = bindStoryChapters(ctx, source, [story.quest.id], { flags, facts, place: marker => story.quest.markers[marker.id] }, 'after-facts');
+  const quest = chapters.chapters[0];
+  if (quest === undefined) throw new Error('The story requires its declared chapter');
   // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
   // after the quest (E132): "Still to find" + the nearest sea glass / place / treasure left (Complete.ts); hidden once all are found
   const leftovers = (): LiveMarker[] | null => (quest.isComplete && adv.complete ? adv.complete.leftMarkers() : null);
-  const presentation = presentQuestStory(story, { scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
+  if (story.chapters === undefined) throw new Error('The story requires its chapter presentation');
+  const presentation = presentChapterStory(chapters, story.chapters, { scope: w.scope ?? app.levelScope ?? app.engineScope, flags,
+    figures: {}, npcs: {}, places: [], prompts: [], open: () => undefined,
     toast: (text) => { w.hud.toast(text); }, sting: () => { w.music.sting('chunk'); },
-    ...(w.fullMap === undefined ? {} : { fullMap: w.fullMap }) }, quest, {
+    ...(w.fullMap?.setQuest === undefined ? {} : { fullMap: { setQuest: w.fullMap.setQuest.bind(w.fullMap) } }),
     place,
     chip: () => { const l = leftovers(); return l === null ? quest.chip() : { label: l.length > 0 ? 'Still to find' : '', count: '' }; },
     markers: () => leftovers() ?? presentation.markers(),
@@ -90,7 +95,8 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   w.game.onUpdate((dt, t) => {
     const pp = w.player.position;
     talks.update(dt, t, pp);
-    presentation.update(dt, t);
+    presentation.update(dt, pp);
+    if (!practiceRoom.open) chip.update(t, w.player);
   }, 'shard.driftwood-isle.installSpine');
   return { quest, castaway, get dialogue() { return dialogue(); }, objective, markers };
 }

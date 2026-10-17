@@ -2,19 +2,128 @@ import { bindBorrowedMethod } from '../plugin/borrowed';
 import { questBenchPose } from './storyLaw';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
-import { parseQuestStory, type QuestStory } from '@wildshard/format/questStory';
+import { parseQuestStory, parseChapterStoryPresentation, type ChapterStoryPresentation, type QuestStory } from '@wildshard/format/questStory';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { DialogueBox } from '@wildshard/engine/quest/view/ui';
+import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
+import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places } from '@wildshard/engine/quest/view';
+import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { QuestState } from '@wildshard/engine/quest/core';
+import { QuestLine, questMessageHandlers, type QuestState, type NpcDef } from '@wildshard/engine/quest/core';
 import type { Progress } from '../Progress';
 import { progressSave } from '../saves';
 import { createAchievementCounters } from '../achievements';
-import { bindRuntimeLedger, bindRuntimeJsonRecord, type RuntimeFacts } from '../plugin/headless';
+import { bindRuntimeLedger, bindRuntimeJsonRecord, bindRuntimeQuest, type RuntimeFacts } from '../plugin/headless';
 import type { ShardContext } from '../plugin/context';
-import { type QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
+import { QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
+
+/** Bind an ordered chapter view over the original runtime quest states and fact owner.
+ * Single-chapter stories use the same binding; no extra state or listener is installed. */
+export function bindStoryChapters(ctx: Parameters<typeof bindRuntimeQuest>[0], source: Shardfile,
+  ids: readonly string[], ports: Parameters<typeof bindRuntimeQuest>[3], order: 'before-facts' | 'after-facts' = 'before-facts'): QuestLine {
+  if (ids.length === 0 || ids.length > 64 || new Set(ids).size !== ids.length || ids.some(id => !source.quests.quests.some(q => q.id === id))) throw new Error('Invalid story chapters');
+  const line = new QuestLine([], ports.flags);
+  for (const id of ids) {
+    const quest = bindRuntimeQuest(ctx, source, id, ports).state;
+    const step: NonNullable<QuestState['onStep']> = (next, previous) => { line.onStep?.(quest, next, previous); };
+    const complete = (): void => { line.onComplete?.(quest); };
+    if (order === 'after-facts') ctx.scope.onDispose(quest.observe({ step, complete }));
+    else { quest.onStep = step; quest.onComplete = complete; }
+    line.chapters.push(quest);
+  }
+  return line;
+}
+
+/** Existing world figures and update order remain caller-owned. */
+export interface ChapterStoryPorts {
+  readonly ctx?: ShardContext;
+  readonly scope: Scope;
+  readonly flags: Flags;
+  readonly figures: Readonly<Record<string, { readonly headWorld: Vector3; talking: boolean }>>;
+  readonly npcs: Readonly<Record<string, NpcDef>>;
+  readonly places: PlacePoint[];
+  readonly prompts: Interactable[];
+  readonly toast: (text: string) => void;
+  readonly sting: () => void;
+  readonly open: () => void;
+  readonly feat?: (event: string, count: number) => void;
+  readonly place?: QuestPresentationOptions['place'];
+  readonly chip?: QuestPresentationOptions['chip'];
+  readonly markers?: QuestPresentationOptions['markers'];
+  readonly fullMap?: { setQuest?: (source: () => MapQuest | null) => void; setPois?: (source: () => MapPoi[], options?: { declutter?: boolean }) => void };
+}
+/** Present a chapter line through the existing chip, talks, discovery and retained-view host.
+ * No update system, save owner, completion payout or quest state is created here. */
+export function presentChapterStory(line: QuestLine, input: ChapterStoryPresentation, ports: ChapterStoryPorts): {
+  chip: QuestChip; places: Places; markers: () => LiveMarker[]; dialogue: () => DialogueBox;
+  talk: (id: string) => void; update: (dt: number, player: Vector3) => void; installFeats: () => void;
+} {
+  const rows = parseChapterStoryPresentation(input), { flags, scope } = ports;
+  const captioned = new Set(Object.values(rows.rewards).map(row => row.event));
+  if (line.chapters.map(q => q.def.id).join('\0') !== rows.chapters.join('\0')) throw new Error('Chapter presentation differs from its bound line');
+  for (const row of rows.talks) if (ports.figures[row.id] === undefined || ports.npcs[row.id] === undefined) throw new Error(`Missing chapter speaker ${row.id}`);
+  ports.ctx?.answer('feat.toast', value => ({ ...value, allowed: value.allowed && (value.event === undefined || !captioned.has(value.event)) }));
+  const markers = (): LiveMarker[] => (line.active?.markers() ?? (rows.messages === undefined ? [] : line.chapters[0]?.markers()) ?? []).map(m => {
+    const at = ports.place?.(m.at) ?? m.at;
+    return { id: m.id, label: m.label, short: m.short ?? m.label, x: at.x, z: at.z };
+  });
+  const chip = new QuestChip({ markers: ports.markers ?? markers, chip: ports.chip ?? (() => {
+    const q = line.active;
+    return q === null ? { label: '', count: '' } : { label: q.def.intro?.chip ?? q.def.title, count: q.isStarted ? `${Math.min(q.def.steps.length, q.index + 1)}/${q.def.steps.length}` : '' };
+  }) });
+  const views = ports.ctx === undefined ? undefined : new QuestViews(ports.ctx);
+  views?.retainRoot(chip.line.root, () => { chip.line.hide(false); });
+  const dialogueView = rows.talks.length === 0 ? undefined : views?.view('dialogue', entered => new DialogueBox(entered)) ?? (() => {
+    const box = new DialogueBox(scope); return () => box;
+  })();
+  const dialogue = (): DialogueBox => { if (dialogueView === undefined) throw new Error('Story has no dialogue'); return dialogueView(); };
+  const talks = rows.talks.map(row => {
+    const npc = ports.npcs[row.id], speaker = ports.figures[row.id];
+    if (npc === undefined || speaker === undefined) throw new Error('Missing chapter speaker');
+    const talk = new NpcTalk({ get dialogue() { return dialogue(); }, flags, npc, at: speaker.headWorld,
+      speaker, radius: row.radius, label: row.label, onOpen: ports.open });
+    ports.prompts.push(talk.prompt); return { id: row.id, talk };
+  });
+  const text = (template: string, q: QuestState): string => template.replaceAll('{chapter}', String(line.number(q)))
+    .replaceAll('{title}', q.def.title).replaceAll('{objective}', q.objective()).replaceAll('{reward}', rows.rewards[q.def.id]?.title ?? '');
+  const messages = new Map(line.chapters.map(q => [q, rows.messages === undefined ? undefined : questMessageHandlers(q, rows.messages, ports)]));
+  line.onStep = (q, step, previous) => {
+    const notice = messages.get(q); if (notice !== undefined) { notice.step(step, previous); return; }
+    if (step === null) return; ports.toast(text(previous === null ? rows.started : rows.objective, q)); ports.sting();
+  };
+  scope.onDispose(() => { chip.line.scope.dispose(); chip.line.root.remove(); });
+  const captions = new Map<string, RewardCaption>();
+  line.onComplete = q => {
+    const notice = messages.get(q); if (notice !== undefined) { notice.complete(); return; }
+    ports.sting(); let caption = captions.get(q.def.id);
+    if (caption === undefined) {
+      caption = new RewardCaption(text(rows.rewardKicker, q), q.def.title, rows.rewards[q.def.id] === undefined ? '' : text(rows.rewardSubtitle, q));
+      captions.set(q.def.id, caption); const created = caption;
+      scope.onDispose(() => { created.root.remove(); }); views?.retainRoot(created.root, () => { created.show(false); });
+    }
+    const shown = caption; shown.show(true); chip.line.hide(true);
+    const hide = (): void => { shown.show(false); chip.line.hide(false); };
+    if (views === undefined) scope.timeout(rows.rewardMs, hide); else views.timeout(rows.rewardMs, hide);
+  };
+  ports.fullMap?.setQuest?.(() => {
+    const q = line.active;
+    if (q !== null) return { title: q.isStarted ? text(rows.chapterTitle, q) : rows.introTitle, objective: q.objective(), hint: q.hint() };
+    const last = line.chapters.at(-1);
+    return last === undefined ? null : { title: text(rows.chapterTitle, last), objective: text(rows.completedObjective, last), hint: rows.completedHint };
+  });
+  const places = placesWithDiscovery(ports.places, flags, ports.toast, markers);
+  if (ports.places.length > 0) ports.fullMap?.setPois?.(places.mapPois, { declutter: true });
+  const feats = (): void => {
+    for (const row of rows.flagEvents) if (flags.has(row.flag)) ports.feat?.(row.event, 1);
+    for (const q of line.chapters) { const reward = rows.rewards[q.def.id]; if (reward !== undefined && q.isComplete) ports.feat?.(reward.event, 1); }
+  };
+  // Installed explicitly after world polling by the adventure, preserving its original event order.
+  return { chip, places, markers, dialogue, talk: id => { talks.find(row => row.id === id)?.talk.talk(); },
+    update: (dt, player) => { dialogueView?.().update(dt); for (const row of talks) row.talk.update(player); },
+    installFeats: () => { feats(); scope.onDispose(flags.onChange((_flag, on) => { if (on) feats(); })); } };
+}
 
 const countsSchema = v.record(v.string(), v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0)));
 type StoryContext = Pick<ShardContext, 'app' | 'scope' | 'product'>;

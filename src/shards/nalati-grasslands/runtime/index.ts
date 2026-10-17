@@ -27,7 +27,7 @@ import { buildNalatiLoadoutSliced, type NalatiLoadout } from '../weapons/loadout
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { installNalatiWeaponHooks } from '../weapons/hooks';
-import { installNalatiAdventure, CAPTIONED_EVENTS } from '../adventure';
+import { installNalatiAdventure } from '../adventure';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
 import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
@@ -185,9 +185,8 @@ export class NalatiPlugin extends ShardPlugin {
       health?.checkpoint(scope, () => rt.boss.onPlayerDeath(), () => ctx.app.player === health);
       health?.checkpoint(scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
     });
-    ctx.answer('feat.toast', (value) => ({ ...value, allowed: value.allowed && (value.event === undefined || !CAPTIONED_EVENTS.has(value.event)) }));
     await part();
-    const quest = installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, progress, persistence, fullMap, ride, animals, nalati: rt, params });
+    const quest = await installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, persistence, fullMap, ride, animals, nalati: rt, params });
     await quest?.people.ready;
     if (ctx.scope.disposed) throw new Error('Nalati was unloaded during the camp people model load');
     if (quest !== null) { ctx.bag.fragment('finds', { id: 'nalati.finds', render: (panel) => { renderFinds(panel, nalatiFinds(quest.flags)); } }); shell.hooks.questFlags = () => quest.flags.all.slice().sort(); }
