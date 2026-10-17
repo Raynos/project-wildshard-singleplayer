@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "b4af68d7cb4b61bfb061a7691e62c11287edc20f",
- "committedAt": "2026-10-17T17:11:17.000Z",
- "measuredAt": "2026-10-17T17:23:31.195Z",
+ "revision": "b0c578fa1f819d4fddc2e921fffa133cc4c01502",
+ "committedAt": "2026-10-17T18:25:40.000Z",
+ "measuredAt": "2026-10-17T18:39:56.176Z",
  "basis": "source",
  "plan": {
-  "lower": 0.3801614752043386,
-  "upper": 0.713494808537672
+  "lower": 0.3839632396321468,
+  "upper": 0.7172965729654801
  },
  "m3": {
-  "cut": 50798,
+  "cut": 51306,
   "mustGo": 80173.3,
-  "fraction": 0.6336024586738976
+  "fraction": 0.6399387327202447
  },
  "m2": {
   "ready": 0,
@@ -26,9 +26,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 9355,
+   "custom": 9112,
    "legacy": 21305,
-   "pct": 43.9,
+   "pct": 42.8,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -44,9 +44,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 5815,
+   "custom": 5549,
    "legacy": 17167,
-   "pct": 33.9,
+   "pct": 32.3,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -98,7 +98,7 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 20077,
+   "custom": 20078,
    "legacy": 28370,
    "pct": 70.8,
    "grid": "fail",
@@ -145,7 +145,7 @@
    "pine-hollow",
    "driftwood-isle"
   ],
-  "pct": 78.1
+  "pct": 79.7
  },
  "waves": [
   {
@@ -737,6 +737,19 @@
     "far-reach": 7.788759404041894,
     "sunscar-dunes": 9.509946627850557,
     "nalati-grasslands": 70.76841734226295,
+    "nine-dragon-stack": 56.31661219269575
+   }
+  },
+  {
+   "revision": "b0c578fa1f819d4fddc2e921fffa133cc4c01502",
+   "at": "2026-10-17T18:25:40.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 42.769302980521005,
+    "driftwood-isle": 32.323644201083475,
+    "far-reach": 7.788759404041894,
+    "sunscar-dunes": 9.509946627850557,
+    "nalati-grasslands": 70.77194219245682,
     "nine-dragon-stack": 56.31661219269575
    }
   }
