@@ -21,11 +21,15 @@ export function installQuestKillSteps(host: SimHost, input: unknown, feats: read
   }), prefix: rows.prefix, floorTotals: false, validateTotals: true, write: 'each' },
   { read: () => counts, write: current => { counts = current; }, emit: fact });
   const saved = v.strictObject(Object.fromEntries(kills.map(feat => [feat.id, v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(feat.count))])));
-  const runner = new QuestStepRunner(rows.runner, { flags: host.flags,
-    calls: new Map([['counter', signal => { if (signal !== null) counter.kill(signal.target); }]]) });
+  const runner = new QuestStepRunner(rows.runner);
   host.events.on('actor.died', ({ actor }) => {
     const body = roster().find(candidate => candidate.actor?.combatActor() === actor);
-    if (body !== undefined) runner.signal({ kind: 'kill', target: body.kind });
+    if (body === undefined) return;
+    for (const effect of runner.signal({ kind: 'kill', target: body.kind }, { flags: host.flags.all })) {
+      if (effect.kind !== 'flag') throw new Error('Kill rows require flag effects');
+      if (effect.value === false) host.flags.clear(effect.flag); else host.flags.set(effect.flag);
+    }
+    counter.kill(body.kind);
   }, host.scope);
   host.onStep(rows.step, () => undefined, { snapshot: () => ({ ...counts }), restore: value => { counts = v.parse(saved, value); } });
   return { count: id => Object.hasOwn(counts, id) ? counts[id] ?? 0 : 0 };

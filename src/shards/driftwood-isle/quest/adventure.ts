@@ -145,7 +145,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       ['pickup', () => { w.music.sting('pickup'); }],
     ]) });
 
-  const steps = new QuestStepRunner(stepRows, { flags, actors: new Map([['actors', w.animals]]) });
+  const steps = new QuestStepRunner(stepRows);
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
@@ -164,7 +164,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   observeStoryFlags(story, scope, flags, storyOwners);
   bindStoryBench(story, kit, w.player, storyOwners);
   if (w.ironDrop) {
-    w.ironDrop.guard = steps.guard.bind(steps, 'iron-sword');
+    w.ironDrop.guard = () => steps.guard('iron-sword', { flags: flags.all,
+      ...(w.animals.animals === undefined ? {} : { actors: w.animals.animals.map(({ kind, alive }) => ({ kind, alive })) }) });
     w.ironDrop.onGuarded = (why) => { w.hud.toast(`${why} — beat him first`); sfx.interact('locked'); };
   }
   // ── A7: the zipline — a launch deck on the headland's cliff lip, on the line from the lookout platform to the sea cave,

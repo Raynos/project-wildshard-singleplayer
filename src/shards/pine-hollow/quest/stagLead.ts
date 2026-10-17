@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Puffs } from '../runtime/combat/fxKit';
-import { QuestLeadWalk as StagWalk } from '@wildshard/game/quest/lead';
+import { StagWalk } from './stagWalk';
 
 // the walk's road and lengths are the renderer-free walk's (stagWalk.ts), which the headless quest runs alone
 type StagBody = Pick<Animal, 'position' | 'yaw' | 'herd' | 'setDrawLod' | 'update' | 'sampleTerrain' | 'setMotion' | 'lookTarget' | 'lookWeight' | 'place' | 'mesh' | 'alive' | 'hidden'>;

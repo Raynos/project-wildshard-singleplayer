@@ -1,7 +1,5 @@
 import { expect, test } from 'vitest';
-import { Flags } from '../src/engine/world/interact/flags';
 import { QuestStepRunner } from '../src/game/quest/steps';
-import { QuestLeadWalk } from '../src/game/quest/lead';
 import { QuestHintFeed } from '../src/game/quest/hints';
 import type { Actor } from '../src/engine/combat/pipeline';
 import type { HintTrigger, HintControl } from '../src/engine/ui/FirstHints';
@@ -16,69 +14,66 @@ const fixture = {
     { id: 'hello', kind: 'talk', target: 'smith', when: { all: ['at-town'] }, effects: [{ kind: 'flag', flag: 'met' }] },
     { id: 'defeat', kind: 'kill', target: 'bandit', effects: [{ kind: 'flag', flag: 'safe' }] },
     { id: 'pick', kind: 'collect', target: 'ore', once: 'picked', effects: [{ kind: 'item', item: 'ore', count: 2 }] },
-    { id: 'give', kind: 'deliver', target: 'smith', once: 'paid', effects: [{ kind: 'call', owner: 'reward' }] },
+    { id: 'give', kind: 'deliver', target: 'smith', item: 'ore', count: 2, once: 'paid', effects: [{ kind: 'command', script: 'town.logic', type: 41, target: 1, value: 1 }] },
     { id: 'lead', kind: 'lead', target: 'mule', effects: [{ kind: 'flag', flag: 'led' }] },
     { id: 'follow', kind: 'follow', target: 'guide', effects: [{ kind: 'flag', flag: 'followed' }] },
     { id: 'rest', kind: 'wait', seconds: 2, when: { all: ['met'] }, once: 'rested', effects: [{ kind: 'notice', text: 'Ready' }] },
     { id: 'gate', kind: 'interact', target: 'gate', when: { all: ['rested'] }, effects: [{ kind: 'flag', flag: 'done' }] },
   ],
 };
-test('a made-up shard runs all step kinds through borrowed owners and resumes waits silently', () => {
-  const flags = new Flags('copper-town', false), order: string[] = []; let ore = 0;
-  const runner = new QuestStepRunner(fixture, { flags, position: () => ({ x: 2, z: 3 }), notice: text => { order.push(text); },
-    inventory: { add: (_id, n) => { ore += n; }, take: (_id, n) => { if (ore < n) return false; ore -= n; return true; } },
-    deliver: new Map([['smith', { item: 'ore', count: 2 }]]), calls: new Map([['reward', () => { order.push('reward'); }]]) });
-  runner.signal({ kind: 'talk', target: 'smith' }); expect(flags.has('met')).toBe(false);
-  runner.update(0); runner.signal({ kind: 'talk', target: 'smith' });
-  runner.signal({ kind: 'deliver', target: 'smith' }); expect(flags.has('paid')).toBe(false);
-  for (let n = 0; n < 2; n++) runner.signal({ kind: 'collect', target: 'ore' });
-  expect(ore).toBe(2);
-  for (let n = 0; n < 2; n++) runner.signal({ kind: 'deliver', target: 'smith' });
-  expect(ore).toBe(0); expect(order).toEqual(['reward']);
-  runner.signal({ kind: 'kill', target: 'bandit' }); runner.signal({ kind: 'lead', target: 'mule' }); runner.signal({ kind: 'follow', target: 'guide' });
-  runner.update(1); const saved = runner.snapshot(); runner.update(0.5); runner.restore(saved);
-  expect(order).toEqual(['reward']); runner.update(1); runner.update(10);
-  expect(order).toEqual(['reward', 'Ready']);
-  runner.signal({ kind: 'interact', target: 'gate' });
+test('a made-up shard evaluates all step kinds, Script ABI commands and silent waits from plain data', () => {
+  const flags = new Set<string>(), order: string[] = [], inventory: Record<string, number> = {};
+  const runner = new QuestStepRunner(fixture);
+  const frame = () => ({ flags: [...flags], position: { x: 2, z: 3 }, inventory });
+  const commit = (effects: ReturnType<QuestStepRunner['signal']>): void => {
+    for (const effect of effects) {
+      if (effect.kind === 'flag') { if (effect.value === false) flags.delete(effect.flag); else flags.add(effect.flag); }
+      else if (effect.kind === 'item') inventory[effect.item] = (inventory[effect.item] ?? 0) + effect.count;
+      else if (effect.kind === 'take') inventory[effect.item] = (inventory[effect.item] ?? 0) - effect.count;
+      else if (effect.kind === 'notice') order.push(effect.text);
+      else { expect(effect).toEqual({ kind: 'command', script: 'town.logic', type: 41, target: 1, value: 1 }); order.push('reward'); }
+    }
+  };
+  const signal = (kind: Parameters<QuestStepRunner['signal']>[0]['kind'], target: string) => { commit(runner.signal({ kind, target }, frame())); };
+  signal('talk', 'smith'); expect(flags.has('met')).toBe(false);
+  commit(runner.update(0, frame())); signal('talk', 'smith');
+  signal('deliver', 'smith'); expect(flags.has('paid')).toBe(false);
+  signal('collect', 'ore'); signal('collect', 'ore'); expect(inventory['ore']).toBe(2);
+  const delivery = runner.signal({ kind: 'deliver', target: 'smith' }, frame());
+  expect(inventory['ore']).toBe(2); expect(flags.has('paid')).toBe(false);
+  expect(delivery[0]).toEqual({ kind: 'take', item: 'ore', count: 2 }); commit(delivery);
+  signal('deliver', 'smith'); expect(inventory['ore']).toBe(0); expect(order).toEqual(['reward']);
+  signal('kill', 'bandit'); signal('lead', 'mule'); signal('follow', 'guide');
+  commit(runner.update(1, frame())); const saved = runner.snapshot(); runner.update(0.5, frame()); runner.restore(saved);
+  expect(order).toEqual(['reward']); commit(runner.update(1, frame())); commit(runner.update(10, frame()));
+  expect(order).toEqual(['reward', 'Ready']); signal('interact', 'gate');
   expect(['arrived', 'met', 'safe', 'paid', 'led', 'followed', 'rested', 'done'].every(flag => flags.has(flag))).toBe(true);
   const before = runner.snapshot(); expect(() => runner.restore({ rest: -1 })).toThrow(); expect(runner.snapshot()).toEqual(before);
-  expect(() => runner.update(Number.NaN)).toThrow();
+  expect(() => runner.update(Number.NaN, frame())).toThrow();
 });
 
-test('Pine payment order and Driftwood live guards retain their old save flags', () => {
-  const flags = new Flags('seams', false), grants: string[] = []; let shops = 0;
-  const runner = new QuestStepRunner(pine, { flags, inventory: { add: (id, n) => { grants.push(`${id}:${n}`); }, take: () => false },
-    calls: new Map([['trader', () => { shops++; }]]) });
-  flags.set('errand:thanked'); runner.signal({ kind: 'talk', target: 'miller' }); runner.signal({ kind: 'talk', target: 'miller' });
-  expect(flags.has('errand:paid')).toBe(true); expect(grants).toEqual(['lodge-ribbon:3', 'amber-resin:4']);
-  runner.signal({ kind: 'talk', target: 'trader' }); expect(shops).toBe(1);
-  runner.signal({ kind: 'follow', target: 'stag' }); expect(flags.has('followed:stag')).toBe(true);
-  const actors = [{ kind: 'sailor', alive: true }];
-  const guarded = new QuestStepRunner(driftwood, { flags, actors: () => actors });
-  flags.set('dead:sailor'); expect(guarded.guard('iron-sword')).toBe('The drowned sailor guards the rack');
-  const first = actors[0]; if (first === undefined) throw new Error('Missing actor'); first.alive = false;
-  expect(guarded.guard('iron-sword')).toBeNull(); first.alive = true; expect(guarded.guard('iron-sword')).not.toBeNull();
-  const fallback = new QuestStepRunner(driftwood, { flags, actors: () => undefined }); expect(fallback.guard('iron-sword')).toBeNull();
-  const roster = { animals: actors }, borrowed = new QuestStepRunner(driftwood, { flags, actors: new Map([['actors', roster]]) });
-  expect(borrowed.guard('iron-sword')).not.toBeNull(); roster.animals = []; expect(borrowed.guard('iron-sword')).toBeNull();
+test('Pine payment commands keep their order and live guard facts supersede old death flags', () => {
+  const runner = new QuestStepRunner(pine), flags = ['errand:thanked'];
+  expect(runner.signal({ kind: 'talk', target: 'miller' }, { flags, inventory: {} })).toEqual([
+    { kind: 'flag', flag: 'errand:paid' }, { kind: 'item', item: 'lodge-ribbon', count: 3 }, { kind: 'item', item: 'amber-resin', count: 4 },
+  ]);
+  expect(flags).toEqual(['errand:thanked']);
+  expect(runner.signal({ kind: 'talk', target: 'miller' }, { flags: [...flags, 'errand:paid'], inventory: {} })).toEqual([]);
+  expect(runner.signal({ kind: 'follow', target: 'stag' }, { flags: [] })).toEqual([{ kind: 'flag', flag: 'followed:stag' }]);
+  const guard = new QuestStepRunner(driftwood), actor = { kind: 'sailor', alive: true };
+  expect(guard.guard('iron-sword', { flags: ['dead:sailor'], actors: [actor] })).not.toBeNull();
+  actor.alive = false; expect(guard.guard('iron-sword', { flags: [], actors: [actor] })).toBeNull();
+  actor.alive = true; expect(guard.guard('iron-sword', { flags: [], actors: [actor] })).not.toBeNull();
+  expect(guard.guard('iron-sword', { flags: ['dead:sailor'] })).toBeNull();
+  expect(guard.guard('iron-sword', { flags: [] })).not.toBeNull();
 });
 
-test('missing seams and duplicate rows refuse before effects or inventory writes', () => {
-  const flags = new Flags('refused', false);
-  expect(() => new QuestStepRunner(fixture, { flags })).toThrow();
+test('legacy callback effects, duplicate rows, missing facts and malformed Script ABI command ids refuse', () => {
+  const runner = new QuestStepRunner(fixture);
+  expect(() => runner.signal({ kind: 'collect', target: 'ore' }, { flags: [] })).toThrow('inventory facts');
   expect(() => parseQuestStepRows({ version: 1, guards: [], steps: [fixture.steps[0], fixture.steps[0]] })).toThrow();
-  expect(() => new QuestStepRunner({ version: 1, guards: [], steps: [{ id: 'call', kind: 'talk', effects: [{ kind: 'call', owner: 'missing' }] }] }, { flags })).toThrow();
-  expect(flags.all).toEqual([]);
-});
-
-test('a made-up lead resumes the exact legacy envelope and completes its own path', () => {
-  const rows = { path: [[1, 2], [3, 4]], near: 1, first: 4, trot: 0.2, gone: 0.1, past: 2 };
-  const lead = new QuestLeadWalk(rows);
-  lead.load({ i: 1, mode: 'gone', t: 0.09 });
-  expect(JSON.stringify(lead.save())).toBe('{"i":1,"mode":"gone","t":0.09}');
-  expect(lead.step(0.02, true, { x: 3, z: 4 })).toEqual({ kind: 'appear', first: false });
-  lead.step(0.01, true, { x: 3, z: 4 }); expect(lead.step(0.21, true, { x: 3, z: 4 })).toEqual({ kind: 'vanish', done: true });
-  const before = lead.save(); expect(() => lead.load({ i: 3, mode: 'gone', t: 0 })).toThrow(); expect(lead.save()).toEqual(before);
+  for (const effect of [{ kind: 'call', owner: 'missing' }, { kind: 'command', script: 'town.logic', type: 0, target: 1, value: 0 }])
+    expect(() => new QuestStepRunner({ version: 1, guards: [], steps: [{ id: 'bad', kind: 'talk', effects: [effect] }] })).toThrow();
 });
 
 test('made-up onboarding rows keep priority, live actor scans and existing learned controls', () => {

@@ -7,13 +7,15 @@ const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOpti
 const effect = v.variant('kind', [
   v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) }),
   v.strictObject({ kind: v.literal('item'), item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),
-  v.strictObject({ kind: v.literal('call'), owner: name }),
+  v.strictObject({ kind: v.literal('command'), script: name, type: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)),
+    target: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)), value: finite }),
   v.strictObject({ kind: v.literal('notice'), text: v.pipe(v.string(), v.maxLength(2048)) }),
 ]);
 const base = { id: name, when: v.exactOptional(condition), once: v.exactOptional(name),
   effects: v.pipe(v.array(effect), v.minLength(1), v.maxLength(32)) };
-const signal = v.strictObject({ ...base, kind: v.picklist(['talk', 'kill', 'collect', 'deliver', 'lead', 'follow', 'interact']), target: v.exactOptional(name) });
+const signal = v.strictObject({ ...base, kind: v.picklist(['talk', 'kill', 'collect', 'lead', 'follow', 'interact']), target: v.exactOptional(name) });
 const step = v.union([signal,
+  v.strictObject({ ...base, kind: v.literal('deliver'), target: name, item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),
   v.strictObject({ ...base, kind: v.literal('go-to'), at: v.strictObject({ x: finite, z: finite }), radius: v.pipe(finite, v.minValue(0.001)) }),
   v.strictObject({ ...base, kind: v.literal('wait'), seconds: v.pipe(finite, v.minValue(0), v.maxValue(86400)) }),
 ]);
@@ -28,18 +30,6 @@ export function parseQuestStepRows(input: unknown): QuestStepRows {
     throw new Error('Quest step identities must be unique');
   return rows;
 }
-
-/** A lead's native decision law. Actors, gait, particles and collision remain on their existing hosts. */
-export const QuestLeadRowsSchema = v.strictObject({
-  path: v.pipe(v.array(v.tuple([finite, finite])), v.minLength(1), v.maxLength(128)),
-  near: v.pipe(finite, v.minValue(0)), first: v.pipe(finite, v.minValue(0)),
-  trot: v.pipe(finite, v.minValue(0)), gone: v.pipe(finite, v.minValue(0)), past: v.pipe(finite, v.minValue(0)),
-});
-/** Authored lead/follow waypoints and timing, independent of any species. */
-export type QuestLeadRows = v.InferOutput<typeof QuestLeadRowsSchema>;
-
-/** Validate authored waypoint tuples before native or page code reads them. */
-export function parseQuestLeadRows(input: unknown): QuestLeadRows { return v.parse(QuestLeadRowsSchema, input); }
 
 const killRows = v.strictObject({ step: name, prefix: v.pipe(v.string(), v.maxLength(96)), runner: QuestStepRowsSchema });
 /** Native death observers retain their declared adapter identity and fact prefix. */

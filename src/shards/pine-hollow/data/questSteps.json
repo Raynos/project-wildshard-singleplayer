@@ -2,9 +2,45 @@
   "version": 1,
   "guards": [],
   "steps": [
-    { "id": "miller-payment", "kind": "talk", "target": "miller", "when": { "all": ["errand:thanked"], "none": ["errand:paid"] },
-      "effects": [{ "kind": "flag", "flag": "errand:paid" }, { "kind": "item", "item": "lodge-ribbon", "count": 3 }, { "kind": "item", "item": "amber-resin", "count": 4 }] },
-    { "id": "trader", "kind": "talk", "target": "trader", "effects": [{ "kind": "call", "owner": "trader" }] },
-    { "id": "stag", "kind": "follow", "target": "stag", "effects": [{ "kind": "flag", "flag": "followed:stag" }] }
+    {
+      "id": "miller-payment",
+      "kind": "talk",
+      "target": "miller",
+      "when": {
+        "all": [
+          "errand:thanked"
+        ],
+        "none": [
+          "errand:paid"
+        ]
+      },
+      "effects": [
+        {
+          "kind": "flag",
+          "flag": "errand:paid"
+        },
+        {
+          "kind": "item",
+          "item": "lodge-ribbon",
+          "count": 3
+        },
+        {
+          "kind": "item",
+          "item": "amber-resin",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "id": "stag",
+      "kind": "follow",
+      "target": "stag",
+      "effects": [
+        {
+          "kind": "flag",
+          "flag": "followed:stag"
+        }
+      ]
+    }
   ]
 }

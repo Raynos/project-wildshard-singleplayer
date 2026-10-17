@@ -23,7 +23,7 @@ import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
-import { parseQuestLeadRows } from '../../../src/format/questSteps';
+import { parseQuestLeadRows } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../fixtures/weapon-oracle/nativeLoadout';

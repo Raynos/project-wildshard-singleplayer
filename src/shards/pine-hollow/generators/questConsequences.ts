@@ -4,9 +4,6 @@ import PINE_SKY from '../data/sky.json' with { type: 'json' };
 export const PINE_QUEST_CONSEQUENCES = {
   actions: [
     { id: 'miller.pay', after: [
-      { kind: 'call', target: 'miller.paid' },
-      { kind: 'call', target: 'miller.ribbons' },
-      { kind: 'call', target: 'miller.resin' },
       { kind: 'toast', text: 'Brandt pays · 3 lodge ribbons · 4 amber resin' },
       { kind: 'call', target: 'pickup' },
     ] },
@@ -20,19 +17,14 @@ export const PINE_QUEST_CONSEQUENCES = {
       { kind: 'toast', text: 'On the west road, something pale is standing very still' },
     ] },
     { id: 'stag.complete', after: [
-      { kind: 'call', target: 'stag.flag' },
       { kind: 'toast', text: 'The stag is gone. Ahead, the standing stones, and the fog between them' },
     ] },
   ],
   bindings: { calls: [
-    { target: 'miller.paid', owner: 'flags', path: ['set'], args: ['errand:paid'] },
-    { target: 'miller.ribbons', owner: 'inventory', path: ['add'], args: ['lodge-ribbon', 3] },
-    { target: 'miller.resin', owner: 'inventory', path: ['add'], args: ['amber-resin', 4] },
     { target: 'pickup', owner: 'music', path: ['sting'], args: ['pickup'] },
     { target: 'errand.flag', owner: 'flags', path: ['set'], args: ['errand:done'] },
     { target: 'wheel.sync', owner: 'native', path: ['syncWheel'] },
     { target: 'chunk', owner: 'music', path: ['sting'], args: ['chunk'] },
-    { target: 'stag.flag', owner: 'flags', path: ['set'], args: ['followed:stag'] },
   ] },
 } as const;
 

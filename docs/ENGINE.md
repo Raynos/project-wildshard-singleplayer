@@ -8750,58 +8750,49 @@ retains the objective/captions and recreates only entered dialogue input;
 its timer cancels when the home cell exits. `installFeats` runs after the
 adventure's initial world poll, preserving synchronous flag-event order.
 
-### Quest step runner (G474 / G477)
+### Quest step runner (G474 / G477 / G482)
 
-`game/quest/steps.QuestStepRunner` consumes strict
+`game/quest/steps.QuestStepRunner` is a bounded pure evaluator over strict
 `format/questSteps.QuestStepRows`: go-to, talk, kill, collect, deliver,
-lead, follow, wait and interact. Steps name existing flags, inventory
-items and declared owner calls. Dialogue signals arrive after reading;
-physical traversal and actor owners report their actual completion.
-The runner never creates an actor, interaction prompt, clock or save slot.
-Effects retain authored order. Deliveries call the inventory owner's
-atomic `take` before awarding anything. Optional `once` flags prevent
-repeated grants; flag conditions remain on the existing `QuestState`.
+lead, follow, wait and interact. Construction takes only rows. `signal`
+and `update` take plain `QuestStepFrame` values: flag names, inventory
+counts, position and live actor facts. They return ordered data effects;
+they accept no callbacks, reflected paths or mutable gameplay owners.
+The existing native owner commits effects synchronously in order at its
+original event phase. Evaluation itself never calls shard code, opens a
+panel, grants an item or installs another scheduler or save slot.
 
-The caller invokes `signal` in its original event phase and `update` from
-its existing clock. A wait's explicit `snapshot` / `restore` adapter is a
-map of elapsed seconds; shards with no waits keep their legacy envelopes
-unchanged. Admission checks every required seam before effects run.
-Legacy clock envelopes retain the original input-record key order when
-product JSON sorts that record. Bindings, stage order, actions and script
-bytes must still match; restore emits no actions and preserves save bytes.
-Live actor guards recheck the roster after reload and respawn; a historical
-death flag is only a fallback when the roster is unavailable.
-An `actors` capability map borrows its `actors` manager by reference,
-so replacement rosters are read without a shard callback.
+The former `call` effect is refused. A `command` names an admitted script
+and its numeric Script ABI event `type`, `target` and `value`. No TS
+callback fallback exists. Delivery rows contain their item and quantity;
+an accepted delivery returns its take before its grants. `once` flags
+prevent repeated effects. Later rows observe earlier effects in the same
+evaluated transaction. Native owners must commit a returned transaction
+before submitting another signal; uncommitted evaluation is inert.
 
-`game/quest/lead.QuestLeadWalk` consumes `QuestLeadRows`: waypoint tuples,
-appearance/reach distances, trot/fade durations and the pass-by margin.
-Its adapter retains the legacy `{i, mode, t}` envelope byte for byte.
-It decides appearance and completion; the native actor and renderer keep
-movement, collision, gait and effects. Pine's original lead rows ship in
-`data/questLead.json` with no TypeScript waypoint mirror.
+Only authored waits have a `snapshot` / `restore` map of elapsed seconds.
+False gates pause waits. Shards with no waits keep their legacy envelope
+unchanged. Guard reads receive a fresh roster snapshot; a historical
+death flag covers only an absent roster, never a live respawn.
+The Copper Town fixture exercises all nine kinds, numeric script commands,
+non-mutating evaluation, delivery order, idempotence and wait restore.
 
-`game/quest/chapter.installQuestChapter` composes existing declared
-chapters, named NPC dialogue and chapter presentation. Figures, world
-placement, remaining discoveries and update registration are borrowed
-ports. `ownQuestTree` preserves registered piece ownership on re-entry.
-The chapter capability maps name their entries `world` and `quest`;
-figures and drop calls are keyed by the identities in the authored rows.
-`game/quest/killSteps.installQuestKillSteps` observes the existing actor
-death stream and runs ordered kill rows, then the existing achievement
-counters. Its declared adapter key and flat count envelope retain legacy
-save bytes, saturated rewards and silent restore. It owns no actors.
-`game/quest/hints.installQuestHints` consumes ordered `QuestHintRows`
-for wind-up windows, nearby hostiles, learned controls, available aim,
-prompt words and distance walked. It feeds the existing `FirstHints`
-owner; that owner keeps the shared control appearance and learned-control
-save. Scans are bounded and retain the authored event/update ordering.
-`QuestHintFeed` exposes the same predicates to renderer-free fixtures.
-Its installer borrows `hints`, the animal manager, `player` and `ui`
-under the capability map's `quest` entry; it creates no shard closures.
-The made-up Copper Town rows in `test/quest-step-runner.test.ts` exercise
-all nine step kinds and an independent lead path. G474 explicitly admits
-these as platform features before a real second shard adopts every part.
+G482 returned the single-user `StagWalk` to Pine `quest/stagWalk.ts` and
+removed its public platform export. Driftwood's chapter adapter remains
+in its legacy migration location (`game/quest/chapter.ts`), with its
+pending-user exemption removed. Both charge their actual shard and are
+not credited as shared platform features. Pine's remaining page assembly,
+Driftwood adventure/finale and both native quest keepers retain their
+charge. Model, pool, door, traversal, map and reward-camera view assembly
+is native code that the chapter/panel hosts do not construct.
+
+`game/quest/killSteps.installQuestKillSteps` runs ordered kill flags before
+existing achievement counts and retains the legacy flat save envelope.
+`game/quest/hints.installQuestHints` feeds the existing FirstHints owner.
+Both still have legacy owner callbacks and therefore score 5/6, failing
+HOST-BAR test 6; their data-only service binding remains for the N4 audit.
+The step evaluator itself scores 6/6. No callback-shaped native-quest
+relocation was admitted in slice two.
 
 ### Build-emitted numeric creature poses
 

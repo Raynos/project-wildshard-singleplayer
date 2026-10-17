@@ -1,3 +1,5 @@
+import { commitQuestStep } from './stepEffects';
+import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parsePineQuestRows, parseTradeCatalogue, type TradeGood } from './rows';
 import type { Progress } from '@wildshard/game/Progress';
@@ -215,7 +217,6 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   syncWheel();
   const consequences = bindQuestPageInteractions(consequenceRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['native', { syncWheel }]]) });
-  const payMiller = consequences.action('miller.pay');
   // the mill's door (E322 F-M7): a cabin door like the others (Cabin.ts swings it, its kinematic piece follows the pivot),
   // barred until the race is clear — pressed before `errand:done` it only rattles. The cabin door's own piece lets go of the
   // player within 1.4 m of its hinge (main.ts: a swing never pins anyone), so while barred a second piece holds the shut
@@ -304,6 +305,13 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   const tradeOwner = installQuestTrader(traderStall, { player, shop: trade });
   if (tradeOwner === null) throw new Error('The declared trader shop is required');
+  const steps = new QuestStepRunner(native.steps);
+  const payMiller = (): void => {
+    const paid = flags.has('errand:paid');
+    commitQuestStep(steps.signal({ kind: 'talk', target: 'miller' }, { flags: flags.all,
+      inventory: Object.fromEntries(inventory.items.map(item => [item.id, item.count])) }), flags, inventory);
+    if (!paid && flags.has('errand:paid')) consequences.run('miller.pay');
+  };
 
   // ── panels: the board and the slate release the lock + the weapons like the journal ──
   ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
@@ -399,7 +407,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the stag ──
   const stag = new StagLead(game.scene, animals, native.lead);
   stag.onAppear = (first) => { if (first) consequences.run('stag.appear'); };
-  stag.onDone = consequences.action('stag.complete');
+  stag.onDone = () => { commitQuestStep(steps.signal({ kind: 'follow', target: 'stag' }, { flags: flags.all }), flags, inventory); consequences.run('stag.complete'); };
 
   // ── the map (C9's hook): the places with discovery, the live quest markers ──
   const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));

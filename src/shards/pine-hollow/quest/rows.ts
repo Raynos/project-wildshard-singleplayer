@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { QuestStepRowsSchema, QuestLeadRowsSchema } from '@wildshard/format/questSteps';
+import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
+import { QuestLeadRowsSchema } from './stagWalk';
 import { NpcDialogueRowSchema } from '@wildshard/format/npcs';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
