@@ -6,7 +6,10 @@ import { nalatiBootInventory } from '../src/shards/nalati-grasslands/generators/
 import { bootSources, lateReads } from '../src/shards/nalati-grasslands/generators/bootFiles';
 
 test('pre-admission Nalati rows retain ordered boot and late reads for every tier and texture mode', () => {
-  const { runtimeCost: _runtimeCost, strings: _strings, grassLayout: _grassLayout, manifest: _manifest, budgets: _budgets, horizon: _horizon, ...inventory } = metadata;
+  const inventory: Pick<typeof metadata, keyof ReturnType<typeof nalatiBootInventory>> = {
+    sources: metadata.sources, files: metadata.files, lateReads: metadata.lateReads,
+    steps: metadata.steps, assetFiles: metadata.assetFiles,
+  };
   expect(inventory).toEqual(nalatiBootInventory(publicBytes()));
   for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const) {
     const expected = bootSources(tier, tex);
