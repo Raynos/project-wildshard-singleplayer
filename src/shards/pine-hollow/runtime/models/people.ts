@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { announceModelReady, defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { codePart, loadCodeParts } from '../world/codeParts';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { standInPerson, npcFigureRows, prepareNpcFigureRows, type StandInPerson } from '../npc/standInPerson';
+import { standInPerson, npcFigureRows, loadNpcFigureRows, type StandInPerson } from '../npc/standInPerson';
 import metadata from '../../data/explorerMetadata.generated.json' with { type: 'json' };
 import { pineView, admitPineView } from '../world/context';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -67,7 +67,10 @@ const NOBODY = new THREE.Vector3(0, 0, 1e4);
  * A person's specimen: `makeNpcFigure` at the origin facing +z, exactly the figure the quest stands up — the generated,
  * rigged person (npcModels.ts) once the model has loaded, the stand-in above until then (the card then swaps, `ws:model-ready`).
  */
-async function preparePerson(): Promise<void> { await Promise.all([loadCodeParts(), prepareNpcFigureRows(), loadFirstPartyProduct('pine-hollow').then(admitPineView)]); }
+async function preparePerson(): Promise<void> {
+  const product = await loadFirstPartyProduct('pine-hollow');
+  await Promise.all([loadCodeParts(), loadNpcFigureRows(product), admitPineView(product)]);
+}
 function person(id: string, kind: NpcKind, name: string): ModelDef<object> {
   return defineModel<object>({ id, name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
     defaults: {}, rig: { clips: NPC_CLIPS }, prepare: preparePerson, build: (ctx) => {

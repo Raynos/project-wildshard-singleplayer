@@ -10,9 +10,12 @@ import * as codeParts from '../src/shards/pine-hollow/runtime/world/codeParts';
 
 const shardfile = emptyShardfile({ slug: 'pine-figure-test', name: 'Figure', author: 'Wildshard', revision: 1, seed: 1 });
 function product(value: unknown) {
+  const view = output.namedFiles.find(row => row.name === 'look/native-view.json');
+  const viewBytes = view === undefined ? undefined : output.assets.get(view.hash);
+  if (view === undefined || viewBytes === undefined) throw new Error('Missing named NPC view');
   return createShardProduct({ slug: shardfile.identity.slug, revision: 1, shardfile, sections: new Map(),
-    files: new Map([['people/figure.json', { hash: 'figure', url: 'figure.json' }]]),
-    read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(value))) });
+    files: new Map([['people/figure.json', { hash: 'figure', url: 'figure.json' }], ['look/native-view.json', { hash:view.hash, url:view.path }]]),
+    read: hash => Promise.resolve(hash === view.hash ? viewBytes : new TextEncoder().encode(JSON.stringify(value))) });
 }
 
 test('NPC figure admission keeps every authored number, refuses malformed rows atomically and prepares cold cards', async () => {

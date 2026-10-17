@@ -1,3 +1,10 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare the diagnostic metadata with the shipping terrain bytes.
+import { readFileSync } from 'node:fs';
+import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
+import { bakedSamplers } from '../src/format/bakedTerrainSampling';
+import poses from '../src/shards/pine-hollow/data/boot-poses.generated.json' with { type: 'json' };
+import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
+
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
@@ -43,4 +50,19 @@ test('pre-admission metadata preserves Explorer identities and ordered boot reci
       }
     }
   } finally { usePineGpuFiles(GPU_FILES); }
+});
+
+test('generated diagnostic eyes retain the authored probes and native terrain height', () => {
+  const grid = parseBakedTerrain(Uint8Array.from(readFileSync(new URL('../public/assets/baked/pine-hollow/terrain.bin', import.meta.url))), { seed:1337 });
+  if (grid === null) throw new Error('Missing Pine lattice');
+  const source = bakedSamplers(grid);
+  expect(Object.keys(poses)).toEqual(manifest.captureProbes.map(probe => probe.name));
+  for (const row of Object.values(poses)) {
+    const probe = manifest.captureProbes.find(candidate => candidate.name === row.probe.name);
+    if (probe === undefined) throw new Error('Diagnostic pose lost its probe');
+    expect(row.probe).toEqual(probe);
+    expect(row.eye).toEqual([probe.x, source.heightAt(probe.x, probe.z) + 1.68, probe.z]);
+    expect(row.yaw).toBe(-probe.yaw * 180 / Math.PI);
+    expect(row.pitch).toBe(probe.pitch * 180 / Math.PI);
+  }
 });

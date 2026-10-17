@@ -15736,15 +15736,21 @@
         "src/sdk/bake/source-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/shards/pine-hollow/manifest.json",
+        "src/shards/pine-hollow/data/terrainBindings.ts",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "src/format"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
-        "src/shards/pine-hollow/data/explorerMetadata.generated.json"
+        "src/shards/pine-hollow/data/explorerMetadata.generated.json",
+        "src/shards/pine-hollow/data/boot-poses.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
-        "src/shards/pine-hollow/data/explorerMetadata.generated.json"
+        "src/shards/pine-hollow/data/explorerMetadata.generated.json",
+        "src/shards/pine-hollow/data/boot-poses.generated.json"
       ],
       "platform": "portable"
     }

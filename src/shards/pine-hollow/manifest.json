@@ -755,9 +755,9 @@
       "export": "preparedRoster",
       "call": true
     },
-    "posesLoader": {
-      "module": "./runtime/boot/poses",
-      "export": "poses"
+    "poses": {
+      "module": "./data/boot-poses.generated.json",
+      "export": "default"
     },
     "boot": {
       "files": {
