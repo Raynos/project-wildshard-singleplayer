@@ -144,6 +144,11 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **Never pause lanes, ever** (Jake, 2026-10-16: *"FFS don't pause lanes ever bro"*, after a night of idle lanes held for
   a design and his picks): no hold waits on a question, a pick or a design. Lanes keep working on the recommended
   option and the work that is safe under every answer; Jake's pick steers them when it arrives.
+- **Never interrupt, kill or re-brief a lane mid-task** (Jake, 2026-10-17: *"interrupting or killing lanes that are inflight
+  instead of letting them finish is a strong anti pattern, and the builder should have also known better"*). A plan or lane
+  change applies only when the lane finishes its current task. The coordinator batches incoming changes to a natural
+  boundary and pushes back on churn, including from the plan agent; only a broken build, a red deploy or Jake's explicit
+  "stop" may interrupt.
 
 ## Variants: no URL switches, ever → [docs/process/DEBUG-TOGGLES.md](docs/process/DEBUG-TOGGLES.md)
 
