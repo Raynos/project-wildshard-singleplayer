@@ -331,7 +331,8 @@ export async function walkSlice(rapier: Rapier, name: string): Promise<object> {
 }
 /** Resume the real committed living Captain, capture it again, then compare its fight/reward and worker suffix.
  * The separate walk windows cover the prefix; replay spends its budget on the same mid-fight checkpoint only. */
-export async function replayProof(rapier: Rapier): Promise<object> {
+export async function replayProof(rapier: Rapier, workerTicks = 60): Promise<object> {
+  if (!Number.isInteger(workerTicks) || workerTicks < 1 || workerTicks > 1000) throw new RangeError('Invalid worker replay window');
   const m = manifest(), frames = tape(m), cp = m.checkpoints.find(row => row.name === 'captain');
   if (cp === undefined) throw new Error('No real Captain checkpoint');
   const original = await resume(rapier, cp); let restored: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
@@ -344,16 +345,17 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const product = await loadHeadlessProduct('out/driftwood-isle');
     worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
     const until = Math.min(m.ticks, cp.tick + 1000), a: Recorded['effects'] = [], b: Recorded['effects'] = [];
+    if (until - cp.tick < workerTicks) throw new Error('Captain tape is shorter than the requested worker replay');
     if (until - cp.tick > 10_000) throw new Error('Captain replay exceeded its 10k window');
     for (let i = cp.tick; i < until; i++) {
       const commands = frames[i]; if (commands === undefined) throw new Error('Missing Captain command');
       original.step(commands); restored.step(commands);
       a.push(...original.effects.map(effect => ({ tick: original.host.state.tick, effect })));
       b.push(...restored.effects.map(effect => ({ tick: original.host.state.tick, effect })));
-      if (i < cp.tick + 60) {
+      if (i < cp.tick + workerTicks) {
         const commit = await worker.step([{ source: 'witness.tape', commands }]);
         if (JSON.stringify(commit.effects) !== JSON.stringify(restored.effects)) throw new Error('SDK worker effects diverged');
-        if (i === cp.tick + 59) {
+        if (i === cp.tick + workerTicks - 1) {
           const workerHash = canonicalSimDigest(commit.snapshot), expectedSnapshot = snapshotSimHost(restored.host), expectedHash = canonicalSimDigest(expectedSnapshot);
           if (workerHash !== expectedHash) throw simMismatchError('SDK worker continuation diverged', expectedSnapshot, commit.snapshot, { expected: expectedHash, actual: workerHash });
         }
@@ -364,7 +366,7 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const reward = v.parse(v.object({ reward: v.object({ elapsed: v.literal(-2), player: v.object({ pitch: v.number(), carried: v.literal(true) }) }) }), original.host.adapters.get(QUEST_STEP)?.snapshot()).reward;
     const target = driftwoodSpots().reward;
     if (!original.host.flags.has('seen:complete') || Math.hypot(original.host.player.position.x - target.x, original.host.player.position.y - target.y, original.host.player.position.z - target.z) !== 0 || original.host.player.yaw !== target.yaw || reward.player.pitch !== target.pitch || original.host.dayClock === undefined || original.host.dayClock.phase < target.phase) throw new Error('Native reward carry/pose/clock handoff diverged');
-    return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks: 60, workerExact: true, victory: true, reward };
+    return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks, workerExact: true, victory: true, reward };
   } finally { await worker?.dispose(); restored?.dispose(); original.dispose(); }
 }
 

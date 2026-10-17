@@ -9,7 +9,8 @@
     "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion", "readItemInventory"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
-    "@wildshard/sdk/populationWaves": ["preparePopulationModule", "installNativePopulationWaves"],
+    "src/shards/pine-hollow/quest/waves": ["preparePopulationModule"],
+    "src/shards/pine-hollow/quest/nativeWaves": ["installNativePopulationWaves"],
     "src/shards/pine-hollow/runtime/quest": ["PINE_INTERACT", "installHollowQuest", "pineSpots"],
     "src/shards/pine-hollow/runtime/lodge": ["PINE_LODGE", "parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
@@ -264,7 +265,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/sdk/populationWaves", "preparePopulationModule"]
+            "$ref": ["src/shards/pine-hollow/quest/waves", "preparePopulationModule"]
           },
           { "$ref": ["nightRows", "declaration"] },
           { "$ref": ["nightRows", "module"] },
@@ -1213,7 +1214,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/sdk/populationWaves", "installNativePopulationWaves"]
+            "$ref": ["src/shards/pine-hollow/quest/nativeWaves", "installNativePopulationWaves"]
           },
           {
             "$ref": ["host"]

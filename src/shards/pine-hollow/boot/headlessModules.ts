@@ -10,7 +10,8 @@ import { parseNativeFirearmProfile as module4ParseNativeFirearmProfile, parseWea
 import { installNativeItems as module5InstallNativeItems, observeNativeCombatMotion as module5ObserveNativeCombatMotion, readItemInventory as module5ReadItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { bindNativeLoadout as module6BindNativeLoadout, weaponRow as module6WeaponRow } from '@wildshard/game/plugin/simulation';
 import { readDirectorProduct as module7ReadDirectorProduct } from '@wildshard/game/plugin/director';
-import { preparePopulationModule as module8PreparePopulationModule, installNativePopulationWaves as nativeInstallWaves } from '@wildshard/sdk/populationWaves';
+import { preparePopulationModule as module8PreparePopulationModule } from '../quest/waves';
+import { installNativePopulationWaves as nativeInstallWaves } from '../quest/nativeWaves';
 import { PINE_INTERACT as module9PINE_INTERACT, installHollowQuest as module9InstallHollowQuest, pineSpots as module9PineSpots } from '../runtime/quest';
 import { PINE_LODGE as module10PINE_LODGE, parseContractCatalogue as module10ParseContractCatalogue } from '../runtime/lodge';
 import { parseAchievementCounterData as module11ParseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -41,7 +42,8 @@ export const headlessModules = {
   '@wildshard/game/plugin/nativeItems': { installNativeItems: module5InstallNativeItems, observeNativeCombatMotion: module5ObserveNativeCombatMotion, readItemInventory: module5ReadItemInventory },
   '@wildshard/game/plugin/simulation': { bindNativeLoadout: module6BindNativeLoadout, weaponRow: module6WeaponRow },
   '@wildshard/game/plugin/director': { readDirectorProduct: module7ReadDirectorProduct },
-  '@wildshard/sdk/populationWaves': { preparePopulationModule: module8PreparePopulationModule, installNativePopulationWaves: nativeInstallWaves },
+  'src/shards/pine-hollow/quest/waves': { preparePopulationModule: module8PreparePopulationModule },
+  'src/shards/pine-hollow/quest/nativeWaves': { installNativePopulationWaves: nativeInstallWaves },
   'src/shards/pine-hollow/runtime/quest': { PINE_INTERACT: module9PINE_INTERACT, installHollowQuest: module9InstallHollowQuest, pineSpots: module9PineSpots },
   'src/shards/pine-hollow/runtime/lodge': { PINE_LODGE: module10PINE_LODGE, parseContractCatalogue: module10ParseContractCatalogue },
   '@wildshard/format/achievementCounters': { parseAchievementCounterData: module11ParseAchievementCounterData },

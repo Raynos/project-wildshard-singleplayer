@@ -13,7 +13,7 @@
  * The thrall models are the King's (antlerKing.ts builds one of each kind at boot), so nothing here compiles mid-play.
  */
 import * as THREE from 'three';
-import { PagePopulationWaves } from '@wildshard/sdk/populationPageWaves';
+import { PagePopulationWaves } from './pageWaves';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -24,7 +24,7 @@ export interface NightHost {
   errand: () => boolean; onErrandDone: () => void;
   shot: (name: string, at: THREE.Vector3) => void;
 }
-/** The shard's puff/sound presentation; population ownership and spawning are shared game mechanics. */
+/** The shard's puff/sound presentation; encounter iteration and placement are counted Pine wiring. */
 export class NightThralls {
   private readonly brain: InstanceType<typeof PagePopulationWaves>;
   private readonly puffs: Puffs;

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { PopulationWaveDirector, preparePopulationModule, type PopulationActor } from '../src/game/population/waves';
-import type { PopulationWaveSpec } from '../src/format/populationWaves';
+import { PopulationWaveDirector, preparePopulationModule, type PopulationActor } from '../src/shards/pine-hollow/quest/waves';
+import type { PopulationWaveSpec } from '../src/shards/pine-hollow/quest/waveRows';
 import nightDeclaration from '../src/shards/pine-hollow/data/nightDirector.json' with { type: 'json' };
 import nightModule from '../src/shards/pine-hollow/behaviour/night.generated.json' with { type: 'json' };
 import nightRows from '../src/shards/pine-hollow/data/nightPopulation.generated.json' with { type: 'json' };

@@ -50,7 +50,7 @@ else {
   /** @type {Record<string, unknown>} */
   const result = { slug: 'driftwood-isle', entry: witness.ENTRY, compatible: false, scope: witness.SCOPE, inputs: inputs(), open: witness.OPEN };
   if (mode === 'headless') result.headless = await witness.headlessProof(rapier);
-  else if (mode === 'replay') result.replay = await witness.replayProof(rapier);
+  else if (mode === 'replay' || mode === 'replay-strict') result.replay = await witness.replayProof(rapier, mode === 'replay-strict' ? 1000 : 60);
   else if (mode === 'zipline') result.zipline = await witness.ziplineProof(rapier);
   else if (mode === 'reef') result.reef = await witness.reefProof(rapier);
   else if (mode.startsWith('slice-')) result[mode] = await witness.walkSlice(rapier, mode.slice(6));

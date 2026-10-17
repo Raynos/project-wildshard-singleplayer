@@ -2,9 +2,9 @@ import * as v from 'valibot';
 import { Rng } from '@wildshard/engine/core/rng';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { DirectorLane } from '../plugin/director';
-import type { NativePopulationActor } from './roster';
-import { parsePopulationWaves } from '@wildshard/format/populationWaves';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
+import type { NativePopulationActor } from '@wildshard/game/population/roster';
+import { parsePopulationWaves } from './waveRows';
 import { PopulationWaveDirector } from './waves';
 
 const uint = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff));

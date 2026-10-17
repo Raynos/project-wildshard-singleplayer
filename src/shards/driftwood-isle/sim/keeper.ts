@@ -257,14 +257,14 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const spawnRandom = (): number => host.rng.stream('spawn').next();
   const allocated = { id: '', yaw: 0 };
   const allocateRespawn = (): typeof allocated => { allocated.id = entityIds.allocate(); allocated.yaw = spawnRandom() * Math.PI * 2; return allocated; };
-  const queue = new RespawnQueue(roster.ecology.rules, { authority: host.rng, name: 'spawn' }, roster.ecology.outOfSight), ecology = { now: 0, check: 0 };
+  const queue = new RespawnQueue(roster.ecology.rules, roster.ecology.outOfSight), ecology = { now: 0, check: 0 };
   const pendingIds = new Map<(typeof queue.pending)[number], string>();
   host.events.on('actor.died', ({ actor }) => {
     const body = bodies.find(b => b.actor?.combatActor() === actor), a = body?.actor;
     if (body === undefined || a === null || a === undefined) return;
     if (queue.pending.length >= ROSTER) throw new Error('Driftwood ecology queue exceeds its native bound');
     const h = hunt.herds[body.herd];
-    const entry = queue.add(body.kind, body.variant, body.herd, h?.cx ?? a.position.x, h?.cz ?? a.position.z, ecology.now);
+    const entry = queue.accepts(body.kind) ? queue.add(body.kind, body.variant, body.herd, h?.cx ?? a.position.x, h?.cz ?? a.position.z, ecology.now, host.rng.stream('spawn').next()) : null;
     if (entry !== null) pendingIds.set(entry, body.id);
   }, host.scope);
   const respawns = (dt: number): void => {

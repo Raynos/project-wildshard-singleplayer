@@ -34,10 +34,10 @@ test('versioned actor restore validates every identity and handle without changi
   actors.own(id, { group: 'shore', encounter: null, listed: true });
   actors.dormant({ id: asleep, kind: 'heron', variant: 'white' });
   actors.adoptAuxiliary({ id: 'trap', actor: id, service: 'traps', handle: 5 });
-  const saved = actors.snapshot(), next = new NativeActors<Body>('creature', 8), resolved: string[] = [];
-  const resolve = (actor: string): Body | null => { resolved.push(actor); return actor === id ? live : null; };
-  const commit = next.prepareRestore(saved, resolve);
-  expect(next.snapshot().actors).toEqual([]); expect(resolved).toEqual([id]); commit();
+  const saved = actors.snapshot(), next = new NativeActors<Body>('creature', 8);
+  next.materialize({ id, kind: 'mudcrab', variant: 'blue' }, live);
+  const before = next.snapshot(), commit = next.prepareRestore(saved);
+  expect(next.snapshot()).toEqual(before); commit();
   expect(next.snapshot()).toEqual(saved); expect(next.actor(id)).toBe(live); expect(next.actor(asleep)).toBeNull();
   for (const invalid of [
     { ...saved, version: 2 }, { ...saved, allocator: { next: -1, used: [] } },
@@ -45,9 +45,9 @@ test('versioned actor restore validates every identity and handle without changi
     { ...saved, auxiliary: [...saved.auxiliary, { id: 'other', actor: id, service: 'traps', handle: 5 }] },
     { ...saved, auxiliary: [{ id: 'trap', actor: asleep, service: 'traps', handle: 5 }] },
   ]) {
-    expect(() => next.prepareRestore(invalid, resolve)).toThrow(); expect(next.snapshot()).toEqual(saved);
+    expect(() => next.prepareRestore(invalid)).toThrow(); expect(next.snapshot()).toEqual(saved);
   }
-  expect(() => next.prepareRestore(saved, () => null)).toThrow(); expect(next.snapshot()).toEqual(saved);
+  expect(() => new NativeActors<Body>('creature', 8).prepareRestore(saved)).toThrow(); expect(next.snapshot()).toEqual(saved);
 });
 
 test('adopting an authored identity before allocation cannot issue it again', () => {

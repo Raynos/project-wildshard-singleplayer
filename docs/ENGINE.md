@@ -8930,22 +8930,24 @@ use the existing shared roster. Pose attachment is a native service; fight
 decisions remain in their own encounter owner. The existing v3 roster wire,
 entity ids, saved actor registration order and RNG continuation are retained.
 
-`game/population/waves.PopulationWaveDirector` runs the declared phase ABI:
+Pine's counted `quest/waves.PopulationWaveDirector` runs its phase ABI:
 clock, roam actors, sentries, periodic gate, sentry group completion/spawn,
 far-roamer retirement, then new roamers. The admitted director script owns
-all decisions. `format/populationWaves` declares the spatial/tuning rows;
+all decisions. Pine's `quest/waveRows` declares its spatial/tuning rows;
 content supplies kinds, sound ids, placement bounds and movement values.
 The host uses `sampleCreatureGroup` and the caller's stream in its original
 draw order. The v2 continuation stores actor identities, the script state,
 placement contract and scheduler clocks. Restore emits no spawn, control,
 voice, quest, retirement or RNG effects. `preparePopulationModule` uses the
 existing embedded director admission and supplies independent lanes.
-`installNativePopulationWaves` receives those rows and the existing native
+Pine's `quest/nativeWaves.installNativePopulationWaves` receives its rows and the existing native
 roster/clock ports from assembly data; its v1 embedded RNG/population wire
-remains unchanged. `PagePopulationWaves` receives an `AnimalManager` and
+remains unchanged. Pine's `quest/pageWaves.PagePopulationWaves` receives an `AnimalManager` and
 rows, then scalar night/errand observations. Its ordered effects contain
 copied world positions so a retirement cannot park a pending puff below
-the world. The shard lends no gameplay callbacks to the page host.
+the world. These four files are custom Pine TypeScript, charged in full.
+The full AssemblyScript spawn/retire command and legacy-save migration is an
+open SHARD-PLATFORM row. No platform wave director or wave SDK facade remains.
 
 `game/population/shelter.HerdShelter` consumes `format/herdShelter` rows:
 species, tree threshold, search radius, score weights, wet/dry gates, crown
@@ -8956,28 +8958,36 @@ Cover is sampled once at each tree's fixed position. The native
 bound from assembly data. `actors/night.json` and `actors/shelter.json`
 are the shared admitted product paths for native and page installations.
 `game/population/respawn.RespawnQueue` consumes `format/populationRespawn`
-delay/night rows, one scheduling draw per eligible death (even a fixed
-delay), and no draws when taking. Native taking is reverse death order with
-a 256-entry refusal and reusable results; page owners can retain their
-uncapped traversal. Identity allocation, variant rolls and native bodies
-remain with the roster at the due event.
-Named RNG authorities are looked up on the first scheduling draw, preserving
-the old save's absence of a stream before its first use.
+delay/night rows and a `RespawnTraversal` row: forward/reverse order, an
+optional queue limit, and fresh/reused results. The owner checks `accepts`
+before supplying one draw to `add` (even a fixed delay); `take` never draws.
+The API accepts no entropy callback or subclass hook. Native rows select
+reverse order, limit 256 and reusable results; Driftwood's page selects
+reverse order, no limit and fresh results. Its subclass is deleted.
+Named RNG authorities stay with the death owner and remain absent until the
+first declared scheduling draw. Identity allocation, variant rolls and native
+bodies remain with the roster at the due event.
 
-SDK defining facades are `populationRoster`, `populationWaves`,
-`populationPageWaves`, `populationShelter` and `populationRespawn`; they
+SDK defining facades are `sdk/populationRoster`, `sdk/populationShelter`
+and `sdk/populationRespawn`; they
 borrow the same game implementation and install nothing on import.
-`populationRoster` also admits author rows before emission. These are the approved **native actor
-interface + spawn director** feature (`actor-spawn`, G474/G475/G477) in
+`populationRoster` also admits author rows before emission. Native identity
+and respawn retain the approved **native actor interface + spawn director**
+feature (`actor-spawn`, G474/G475/G477) in
 `lint/platform-pending-users.json`. The fabricated salt-marsh fixture drives
 roster reservation/adoption, versioned continuation, ownership/auxiliary
 refusals, shelter and delayed returns without Pine or Driftwood rows.
 
-Their defining modules are `sdk/populationRoster`, `sdk/populationWaves`,
-`sdk/populationPageWaves`, `sdk/populationShelter` and `sdk/populationRespawn`.
-The native and page owner adapters live in `game/population/nativeWaves`
-and `game/population/pageWaves`, separate so native workers never import
-the page's scene or singleton services.
+`NativeActors.prepareRestore` resolves materialized ids from its already
+reinstalled identity table without a supplied resolver callback. Validation
+returns a silent commit and neither allocates nor draws.
+
+The roster's ground/wander/pose ports and the native shelter's herd/rain
+callbacks still fail HOST-BAR test 6. Their pending platform credit and their
+SDK facades' credit are removed; sole-user code charges back to Pine. They
+remain unchanged for exact collision-pose and old-save continuation. The
+open data-only ownership row requires concrete built-in service ids or AS
+references, never a registry or event that hides a per-shard TypeScript hook.
 
 ### Collections and display (G474/G475/G477)
 

@@ -6,8 +6,8 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import { variantDef } from '@wildshard/engine/entities/species/registry';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { parsePopulationWaves } from '@wildshard/format/populationWaves';
-import type { DirectorLane } from '../plugin/director';
+import { parsePopulationWaves } from './waveRows';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { PopulationWaveDirector } from './waves';
 
 /** Ordered presentation/quest effects. They are applied by the page after its population step, without lending callbacks. */

@@ -80,7 +80,8 @@ import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../runtime/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
-import { populationWaves, preparePopulationModule } from '@wildshard/sdk/populationWaves';
+import { preparePopulationModule } from './waves';
+import { parsePopulationWaves as populationWaves } from './waveRows';
 import { placeTokenShelf } from './tokenShelf';
 import { BeaverPool } from '../world/beaverPool';
 

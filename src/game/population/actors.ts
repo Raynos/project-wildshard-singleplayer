@@ -104,14 +104,16 @@ export class NativeActors<A> {
       id: row.id, kind: row.kind, variant: row.variant, state: row.state, group: row.group, encounter: row.encounter, listed: row.listed,
     })), auxiliary: [...this.auxiliary.values()].map(row => ({ id: row.id, actor: row.actor, service: row.service, handle: row.handle })) };
   }
-  /** Validate all identities/handles before a quiet atomic commit. Resolution never spawns or draws; call after reinstall. */
-  prepareRestore(value: unknown, resolve: (id: string) => A | null): () => void {
+  /** Validate all identities/handles before a quiet atomic commit. The already reinstalled identity table resolves bodies; no callback, spawn or draw. */
+  prepareRestore(value: unknown): () => void {
     const saved = v.parse(NativeActorEnvelopeSchema, value), entries = new Map<string, Entry<A>>(), auxiliary = new Map<string, NativeActorAuxiliary>();
     const allocator = new EntityIds('validation'); allocator.restore(saved.allocator);
     if (saved.actors.length > this.limit) throw new Error('Native actor save exceeds its bound');
     const actors = new Set<A>();
     for (const row of saved.actors) {
-      const actor = row.state === 'materialized' ? resolve(row.id) : null;
+      const actor = row.state === 'materialized' ? this.actor(row.id) : null;
+      const installed = this.entries.get(row.id)?.row;
+      if (actor !== null && (installed?.kind !== row.kind || installed.variant !== row.variant)) throw new Error('Incompatible reinstalled native actor recipe');
       if (entries.has(row.id) || (row.state === 'materialized' && actor === null) || (actor !== null && actors.has(actor))) throw new Error('Invalid native actor save identity');
       if (actor !== null) actors.add(actor);
       entries.set(row.id, { row, actor });

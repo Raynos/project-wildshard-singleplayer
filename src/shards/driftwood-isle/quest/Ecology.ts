@@ -1,6 +1,5 @@
 import ecology from '../data/ecology.json' with { type: 'json' };
 import { RespawnQueue } from '@wildshard/sdk/populationRespawn';
-import type { RespawnEntry } from '@wildshard/format/populationRespawn';
 /**
  * Ecology — the island's enemies come back (DRIFTWOOD-REMASTER A6): a crab, monkey, boar or bear you kill is
  * replaced a few minutes later by a fresh one of the same kind + variant at its herd's home (the tidepool, the grove,
@@ -17,23 +16,14 @@ import type { RespawnEntry } from '@wildshard/format/populationRespawn';
 import type { AdvAnimal, AdventureWorld } from './adventure';
 import { app } from '@wildshard/engine/app/runtime';
 
-/** The page keeps its uncapped traversal and fresh result while sharing the native queue's delay and gates. */
-export class PageRespawnQueue extends RespawnQueue {
-  override take(now: number, px: number, pz: number, night: number): RespawnEntry[] {
-    const out: RespawnEntry[] = [];
-    for (let i = this.pending.length - 1; i >= 0; i--) this.takeAt(i, now, px, pz, night, out);
-    return out;
-  }
-}
-
 export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand: (x: number, z: number) => boolean): InstanceType<typeof RespawnQueue> {
   const random = (): number => app.rng.stream('spawn').next();
-  const q = new PageRespawnQueue(ecology.rules, { authority: app.rng, name: 'spawn' }, ecology.outOfSight);
+  const q = new RespawnQueue(ecology.rules, ecology.outOfSight, { order: 'reverse', limit: null, result: 'fresh' });
   let now = 0, checkT = 0;
   const killed = (a: A): void => {
-    if (a.kind === 'captain') return;
+    if (a.kind === 'captain' || !q.accepts(a.kind)) return;
     const h = a.herd >= 0 ? w.animals.herds?.[a.herd] : undefined;
-    q.add(a.kind, a.variant, a.herd, h ? h.cx : a.position.x, h ? h.cz : a.position.z, now);
+    q.add(a.kind, a.variant, a.herd, h ? h.cx : a.position.x, h ? h.cz : a.position.z, now, random());
   };
   w.onDeath?.(killed, 20);
   w.game.onUpdate((dt) => {

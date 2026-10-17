@@ -5,7 +5,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import type { HuntGround, HuntBody } from '../src/engine/ai/hunt';
-import { Rng } from '../src/engine/core/rng';
+import { Rng, RngService } from '../src/engine/core/rng';
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';
 import { installPopulationRoster } from '../src/game/population/roster';
 import { HerdShelter } from '../src/game/population/shelter';
@@ -94,17 +94,19 @@ test('made-up marsh rows shelter a flock and return nocturnal bodies in reverse 
     { kinds: ['heron'], bigTree: 5, reach: 20, homeHold: 2, clear: 1, spotR: 2, homeR: 4, wet: .4, dry: .2, heightBias: 1, coverBias: 2 });
   shelter.update(1, 1); expect(shelter.wanderGoal(0, 1)).toEqual({ x: 2, z: 0, r: 2 });
   const saved = shelter.snapshot(); shelter.restore(saved); expect(shelter.snapshot()).toEqual(saved);
-  let draws = 0;
-  const queue = new RespawnQueue({ heron: { delay: { min: 2, max: 2 }, night: true } }, { next: () => { draws++; return .25; } }, 10);
-  const first = queue.add('heron', 'reed', 0, 20, 0, 0), second = queue.add('heron', 'white', 0, 25, 0, 0);
+  const queue = new RespawnQueue({ heron: { delay: { min: 2, max: 2 }, night: true } }, 10);
+  const first = queue.add('heron', 'reed', 0, 20, 0, 0, .25), second = queue.add('heron', 'white', 0, 25, 0, 0, .25);
   expect(queue.take(3, 0, 0, 0)).toEqual([]); expect(queue.take(3, 20, 0, 1)).toEqual([]);
-  expect(queue.take(3, 0, 0, 1)).toEqual([second, first]); expect(draws).toBe(2);
+  expect(queue.take(3, 0, 0, 1)).toEqual([second, first]);
 });
 
-test('named population streams remain absent until a scheduled death consumes their first draw', () => {
-  const names: string[] = [], authority = { stream: (name: string) => { names.push(name); return new Rng(31); } };
-  const queue = new RespawnQueue({ heron: { delay: { min: 2, max: 2 } } }, { authority, name: 'spawn' }, 10);
-  expect(names).toEqual([]); queue.take(3, 0, 0, 1); expect(names).toEqual([]);
-  expect(queue.add('unknown', undefined, 0, 20, 0, 0)).toBeNull(); expect(names).toEqual([]);
-  queue.add('heron', 'reed', 0, 20, 0, 0); expect(names).toEqual(['spawn']);
+test('population return facts leave named entropy with the owner and preserve absent streams until a declared death', () => {
+  const authority = new RngService(31);
+  const queue = new RespawnQueue({ heron: { delay: { min: 2, max: 2 } } }, 10);
+  expect(authority.snapshot().streams).toEqual([]);
+  queue.take(3, 0, 0, 1);
+  expect(queue.accepts('unknown')).toBe(false);
+  expect(authority.snapshot().streams).toEqual([]);
+  if (queue.accepts('heron')) queue.add('heron', 'reed', 0, 20, 0, 0, authority.stream('spawn').next());
+  expect(authority.snapshot().streams.map(row => row.name)).toEqual(['spawn']);
 });

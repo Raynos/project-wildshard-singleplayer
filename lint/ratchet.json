@@ -2025,6 +2025,9 @@
   },
   "wildshard/no-shard-host-callback": {
     "src/shards/driftwood-isle/plugin.ts": 3,
+    "src/shards/pine-hollow/quest/nativeWaves.ts": 3,
+    "src/shards/pine-hollow/quest/waves.ts": 1,
+    "src/shards/pine-hollow/quest/pageWaves.ts": 3,
     "src/shards/driftwood-isle/boot/ground.ts": 1,
     "src/shards/driftwood-isle/combat/captain.ts": 18,
     "src/shards/driftwood-isle/combat/strikes.ts": 7,
