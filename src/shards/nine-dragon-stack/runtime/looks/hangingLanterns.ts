@@ -11,7 +11,7 @@
 //   place(model, lanterns.placements(), { culler: lanterns, … });   every frame: updateHangingLanterns(camera)
 import {
   BufferGeometry, type Camera, Color, Float32BufferAttribute, Frustum, InstancedBufferAttribute, type InstancedMesh, LatheGeometry, Matrix4,
-  Quaternion, type ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
+  type Material, Quaternion, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { HandedBatch, InstancedCuller } from '@wildshard/engine/models/place';
@@ -105,10 +105,10 @@ export class HangingLanterns implements InstancedCuller {
   readonly emitters: Emitter[] = [];
   private readonly mats: Matrix4[] = [];
   private readonly seeds: number[] = [];
-  readonly material: ShaderMaterial;
+  readonly material: Material;
   private readonly row: HangingLanternRow;
 
-  constructor(material: ShaderMaterial, row: HangingLanternRow) {
+  constructor(material: Material, row: HangingLanternRow) {
     this.material = material;
     this.row = row;
   }

@@ -8,20 +8,25 @@
 // called by the render strategy before the draw). Before the first update every lantern is in the near draw (the dev page).
 // (E306 M4) the lantern is a model (models/paperLantern.ts: these three lathes are its level and LODs); `Lanterns` hangs
 // them (their placements, seeds and glow emitters) and culls them, handed the model's levels by `place`.
-// SHARD-PLATFORM M3: the LOD switches and the program's GLSL and row are data (data/lanterns.ts); the lathe, the string,
-// the hanging and the three-draw culling are the SDK's hanging lanterns (@wildshard/sdk/looks/hangingLanterns) on
-// data/lanterns.ts's LANTERN_ROW.
+// SHARD-PLATFORM M3: the LOD switches and the hanging are LANTERN_ROW (the lathe, the drop, the glow, the near and dot
+// switches, which E283 picked); the paper is the 'nine-lantern' look graph (data/lookGraphs.json: the candle,
+// the 16 ribs, the trim bands and the sway, fogged by the silk); the lathe, the string, the hanging and the three-draw
+// culling are the hanging lanterns (../runtime/looks/hangingLanterns).
 import type { BufferGeometry } from 'three';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { HangingLanterns, clearHangingLanterns, hangingLanternPositions, lanternLathe, lanternString as sdkLanternString, updateHangingLanterns } from '../runtime/looks/hangingLanterns';
-import { LANTERN_PROGRAMS, LANTERN_ROW, LOD_DOT as LANTERN_LOD_DOT, LOD_NEAR as LANTERN_LOD_NEAR } from '../runtime/looks/lanterns';
-import { LOOK_FRAGMENTS, type Shared } from './style';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
+import {
+  HangingLanterns, type HangingLanternRow, clearHangingLanterns, hangingLanternPositions, lanternLathe, lanternString as sdkLanternString, updateHangingLanterns,
+} from '../runtime/looks/hangingLanterns';
 
-const LANTERN_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, LANTERN_PROGRAMS);
-/** the near / far switch (m) (data/lanterns.ts) */
-export const LOD_NEAR: number = LANTERN_LOD_NEAR;
-/** past this a third draw, the 2 × 6 dot (data/lanterns.ts) */
-export const LOD_DOT: number = LANTERN_LOD_DOT;
+/** the near / far switch (m) */
+export const LOD_NEAR = 35;
+/** (E283, Jake's pick: the distance LODs) past this a third draw, the 2 × 6 dot (24 tris, half the far one's) */
+export const LOD_DOT = 80;
+/** a 0.27 m × 0.48 m body hung 0.3 m under its hook, its red glow, the switches and its 0.5 m bound round a centre 0.1 m under the pivot */
+const LANTERN_ROW: HangingLanternRow = {
+  radius: 0.27, halfHeight: 0.24, drop: 0.3, glow: { color: 0xff4a4a, w: 0.5, h: 0.5, power: 0.18, spill: 0.3 },
+  near: LOD_NEAR, dot: LOD_DOT, bound: 0.5, boundDrop: 0.1, names: { near: 'lanterns-near', far: 'lanterns-far', dot: 'lanterns-dot' },
+};
 
 /** the lantern's lathe: `rings` bands down the body, `segs` around; caps + tassel only on the near one */
 export function lanternGeometry(rings: number, segs: number, dressing: boolean): BufferGeometry { return lanternLathe(LANTERN_ROW, rings, segs, dressing); }
@@ -41,7 +46,7 @@ export const lanternAudioPositions: typeof hangingLanternPositions = hangingLant
 
 /** the paper lanterns: their placements, seeds and glow emitters, culled into the model's near / far / dot draws */
 export class Lanterns extends HangingLanterns {
-  constructor(shared: Shared) {
-    super(LANTERN_FAMILY.material('lantern', shared.u), LANTERN_ROW);
+  constructor() {
+    super(lentLook('nine-lantern'), LANTERN_ROW);
   }
 }

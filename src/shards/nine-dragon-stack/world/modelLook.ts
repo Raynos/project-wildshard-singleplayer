@@ -17,8 +17,8 @@ export interface NdLook {
   mat: ShaderMaterial | null;
   /** the facade kit's programs (facade/batch.ts): the pieces, and the small clutter that shrinks into the wall far off */
   facade: { readonly mat: ShaderMaterial; readonly small: ShaderMaterial } | null;
-  /** the paper lanterns' program (look/lanterns.ts) */
-  lantern: ShaderMaterial | null;
+  /** the paper lanterns' look (look/lanterns.ts: the 'nine-lantern' graph) */
+  lantern: Material | null;
   /** the 'nine-neon' look over the sign atlas (the drones' lights) and the atlas */
   neon: { readonly mat: Material; readonly atlas: SignAtlasView<SignStyle> } | null;
   /** meshoptimizer is ready (../runtime/cull/meshLod `lodReady`): the sculpts' distance LODs are simplified copies; else a sculpt's

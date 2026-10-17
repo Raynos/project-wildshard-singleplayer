@@ -198,7 +198,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   }
   const mat = jiehuaMaterial(shared);
   const matA = jiehuaMaterial(shared, { alphaCut: true });
-  const paper = new Lanterns(shared);
+  const paper = new Lanterns();
   nd.look.mat = mat;
   nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
