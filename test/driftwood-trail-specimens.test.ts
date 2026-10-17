@@ -8,6 +8,7 @@ import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/o
 import { fencePost, signpost, plankStep } from '../src/shards/driftwood-isle/runtime/models/trailside';
 import { fencePost as nativePost, signpost as nativeSign, plankStep as nativePlank } from '../src/shards/driftwood-isle/generators/trailsideModels';
 import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/generators/trailSpecimens';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 
 it('transfers sole geometry ownership and leaves no template behind', async () => {
   const original = new BoxGeometry(), intake = modelGeometry('/owned-model.glb');
@@ -19,6 +20,7 @@ it('transfers sole geometry ownership and leaves no template behind', async () =
   owned.dispose(); original.dispose();
 });
 it('loads all authored trail cards through their native material and refuses unbaked shapes', async () => {
+  admitDriftwoodFixtureRows();
   const ctx = modelContext(null), material = new MeshStandardMaterial();
   ctx.once('driftwood-isle/trail:material', () => material);
   const emitted = new Map<string, Uint8Array>();

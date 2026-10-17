@@ -24,8 +24,8 @@ export const boatLayout = (): ReturnType<typeof driftwoodRows<'custom/fixedLayou
  * swimmer out of the hull; from the pier deck you step over them) and the floor boards as a slab whose top is the
  * floor, widened to the walls' inner faces so the tub is closed. A kinematic body re-poses them every step.
  */
-export function boatColliders(): ColliderDesc[] {
-  const { length: LENGTH, beam: BEAM, floor: BOAT_FLOOR } = boatLayout();
+export function boatColliders(layout: ReturnType<typeof boatLayout> = boatLayout()): ColliderDesc[] {
+  const { length: LENGTH, beam: BEAM, floor: BOAT_FLOOR } = layout;
   const yTop = 0.8, yBottom = -1.2, wy = (yTop + yBottom) / 2, wh = (yTop - yBottom) / 2, t = 0.08;
   const wall = (x: number, z: number, hx: number, hz: number): ColliderDesc => ({ kind: 'box', x, y: wy, z, hx, hy: wh, hz });
   const floorTop = BOAT_FLOOR, fh = 0.1;

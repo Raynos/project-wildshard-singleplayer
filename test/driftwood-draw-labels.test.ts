@@ -4,6 +4,7 @@ import { PALM_FILES } from '../src/shards/driftwood-isle/generators/palmFiles';
 import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/generators/hibiscusFiles';
 import { REEF_FILES } from '../src/shards/driftwood-isle/generators/reefFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+import zipline from '../src/shards/driftwood-isle/data/zipline.generated.json' with { type: 'json' };
 
 test('all draw labels preserve the authored tier, variant and deduplicated blob identity', () => {
   const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
@@ -18,8 +19,9 @@ test('all draw labels preserve the authored tier, variant and deduplicated blob 
       for (const [key, child] of Object.entries(value)) check(`${label}:${key}`, child);
     } else throw new Error('Invalid authored source tree');
   };
-  for (const [family, files] of Object.entries({ ground: GROUND_FILES, palms: PALM_FILES, hibiscus: HIBISCUS_FILES, reef: REEF_FILES })) check(`draw:${family}`, files);
-  expect(seen.size).toBe(33);
+  const { world, trolley, specimen, parked } = zipline;
+  for (const [family, files] of Object.entries({ ground: GROUND_FILES, palms: PALM_FILES, hibiscus: HIBISCUS_FILES, reef: REEF_FILES, zipline: { world, trolley, specimen, parked } })) check(`draw:${family}`, files);
+  expect(seen.size).toBe(37);
   expect(new Set(Object.keys(DRIFTWOOD_ASSET_NAMES).filter(key => key.startsWith('draw:')))).toEqual(seen);
   expect(DRIFTWOOD_ASSET_NAMES['draw:reef:coral:brain']).toBe(DRIFTWOOD_ASSET_NAMES['draw:reef:coral:default']);
   expect(DRIFTWOOD_ASSET_NAMES['draw:reef:weed:tint-0']).toBe(DRIFTWOOD_ASSET_NAMES['draw:reef:weed:default']);
