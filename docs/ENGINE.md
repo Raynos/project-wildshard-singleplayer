@@ -9198,7 +9198,9 @@ Recipes are verified named JSON blobs containing `WorldSceneRecipe` rows.
 Every library, material, recipe port and publication is admitted before visual
 allocation. A cube variant selects standalone or cell data. Repeated steps have
 named instance poses. Bounds overrides retain authored shader-displacement
-spheres. Static box collider rows register through the resident owner.
+spheres. Static box and tread collider rows register through the resident owner.
+A registry row may declare its surface; tread rows retain their authored
+endpoints, width, count and optional surface, transformed by the repeated pose.
 
 Each step publishes `<step>.root` and optional typed named handles, with a repeat
 id between the step and handle. `SceneHandles` exposes checked object, group,
@@ -9223,22 +9225,31 @@ pending-user table. `residentWorldScope(context)` resolves a transitional
 world hook to its resident owner. Instance attributes remain bounded static data.
 
 
-
 `@wildshard/game/models/worldSceneCatalogue.defineWorldSceneCatalogue(rows)`
-defines resident fixed models from plain JSON metadata, exact parameter
-choices, library/material ids, draw flags, native collider rows and optional
-site origins, floor rectangles, boxes and anchors. `model(key)` returns the
-standard model contract; `site(key, choice, context, registry)` places its
-admitted site. The platform assembler lends prepared resources through
-`bindWorldSceneModelSources`; the construction owner retires the loan.
-Missing resources and undeclared parameter choices refuse before drawing.
-This is client-only presentation; it accepts no shard callbacks or builders.
+extends Z2 to cold-loadable fixed models. Its input is plain JSON: product id,
+model metadata, exact parameter choices, library/material slot ids, draw flags,
+collider rows, and optional site origins, floor rectangles, boxes and anchors.
+`model(key)` returns the model contract; `site(key, choice, modelContext,
+registry)` places the declared site through the existing model/physics owner.
+Unknown parameters refuse before construction. No geometry builder, callback,
+subclass or shard service is accepted.
 
-Host bar: **5/6**, passing tests 2–6. Test 1 uses G483's approved-platform
-exception: Driftwood fixed sites adopt next, then Pine cabin shells and
-homestead, with the pending Pine user rechecked at the end of W3. The
-independent fictional-port fixture covers draw flags, geometry ownership,
-colliders, translated floors/anchors, invalid choices and disposal.
+The section's optional `catalogue` names the admitted model JSON blob. Generated
+boot metadata registers Explorer models before the product arrives; a cold
+card compares it with that admitted blob before reading verified owned GLBs.
+Graph slots borrow existing lent materials, or compile on the card's renderer.
+`installWorldScenes` lends prepared native geometry/material resources under
+its owner through `sharedModelContext(sky)`. World placements use
+that same shared sky context; a fresh `modelContext` has a private memo.
+Disposal retires that loan; failed cold loads may retry. Living
+building behavior remains on its existing host.
+
+Host bar for the fixed catalogue: **5/6**, passing tests 2–6. Test 1 uses
+G483's approved-platform exception while Pine's cabin static shells and
+homestead (Pine under-20 batch 6) adopt it; the pending-user entries recheck
+at the end of W3. Driftwood supplies the first live rows. The fictional port
+fixture checks draw flags, independent geometry, exact collider ownership,
+translated floors/anchors, invalid choices, disposal and cold Explorer fill.
 
 ## Contract boards (G473, G474)
 

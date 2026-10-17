@@ -41,7 +41,7 @@ function fixture(cell = false): ShardContext {
   const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
   const files = new Map([['models/stone.glb', triangle()], ['scenes/open.json', encode(recipe)], ['scenes/cell.json', encode(cellRecipe)]]);
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 3 });
-  return { scope, app: { registry }, cube: cell ? { half: 250 } : null,
+  return { scope, app: { registry }, game: {}, cube: cell ? { half: 250 } : null,
     product: { shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
 }
@@ -82,6 +82,22 @@ test('admission rejects executable, duplicate, missing and crossed references be
   await expect(installWorldScenes(context, rows)).resolves.toBeDefined(); context.scope.dispose();
 });
 
+
+test('authored stairs retain their surface, native count and repeated world pose', async () => {
+  const context = fixture(), rows = section(), first = rows.steps[0];
+  if (first === undefined) throw new Error('Missing step');
+  const stairs = { kind: 'treads' as const, from: { x: 0, y: 0, z: 0 }, to: { x: 0, y: 2, z: 4 }, width: 2, count: 8, surface: 'wood' as const };
+  const handles = await installWorldScenes(context, parseWorldScenes({ ...rows, steps: [{ ...first,
+    repeat: [{ id: 'raised', position: [3, 1, 5] }],
+    registry: [{ id: 'stairs', name: 'Stairs', category: 'props', file: 'data/stairs.json', part: 'root', colliders: [stairs], surface: 'wood', solidFloor: true }], publish: {},
+  }] }));
+  expect(handles.group('harbour.raised.root').position.toArray()).toEqual([3, 1, 5]);
+  expect(context.app.registry.pieces[0]?.surface).toBe('wood');
+  expect(context.app.registry.pieces[0]?.colliders).toEqual([{ ...stairs, from: { x: 3, y: 1, z: 5 }, to: { x: 3, y: 3, z: 9 } }]);
+  expect(() => parseWorldScenes({ ...rows, steps: [{ ...first, registry: [{ ...first.registry[0], colliders: [{ ...stairs, count: 0 }] }] }] })).toThrow();
+  context.scope.dispose();
+});
+
 test('scene catalogue keeps fixed draws, authored floors and model collision ownership', async () => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { BufferGeometry, BufferAttribute, MeshBasicMaterial }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('three'),
@@ -114,3 +130,59 @@ test('scene catalogue keeps fixed draws, authored floors and model collision own
   geometry.dispose(); material.dispose(); registry.retire();
 });
 
+test('cold Explorer cards admit their product catalogue and fill from verified geometry', async () => {
+  const [{ defineWorldSceneCatalogue }, { modelContext }, { Rng }, { withOwner }, runtime] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'),
+  ]);
+  const context = fixture(), owner = new Scope('cold-catalogue'), ctx = modelContext(null), rows = section();
+  const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'cold', id: 'fixture-harbour/cold', name: 'Cold model', category: 'props', pipeline: 'code', file: 'models/cold.ts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'stone', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
+  const oldFile = context.product.file.bind(context.product);
+  const file = vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogueRows))) : oldFile(name));
+  Object.assign(context.product, { section: () => parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json' }) });
+  const product = vi.spyOn(runtime, 'loadFirstPartyProduct').mockResolvedValue(context.product);
+  try {
+    const catalogue = defineWorldSceneCatalogue(catalogueRows), built = withOwner(owner, () => catalogue.model('cold').build(ctx, {}, new Rng(1)));
+    if (!(built instanceof Group)) throw new Error('Missing loading specimen');
+    expect(built.children[0]).toBeInstanceOf(Mesh);
+    await vi.waitFor(() => { expect(built.children[0]).toBeInstanceOf(Group); });
+    expect(product).toHaveBeenCalledWith('fixture-harbour', expect.objectContaining({ name: 'scene-models/fixture-harbour' }));
+    expect(product.mock.calls[0]?.[1]?.belongsTo(owner)).toBe(true);
+    expect(file).toHaveBeenCalledWith('models/catalogue.json');
+    const filled = built.children[0]; if (!(filled instanceof Group)) throw new Error('Missing filled specimen');
+    expect(filled.children[0]).toBeInstanceOf(Mesh);
+  } finally { file.mockRestore(); product.mockRestore(); owner.dispose(); context.scope.dispose(); }
+});
+
+test('trail scene collider rows retain the native decoder output exactly', async () => {
+  const [{ readColliderRows }, { default: trail }] = await Promise.all([
+    import('../src/engine/models/colliders'), import('../src/shards/driftwood-isle/data/trailsideBake.json'),
+  ]);
+  const context = fixture(), rows = section(), first = rows.steps[0];
+  if (first === undefined) throw new Error('Missing first step');
+  await installWorldScenes(context, parseWorldScenes({ ...rows, steps: [{ ...first, registry: [{ id: 'trail', name: 'Trail', file: 'trail.json', category: 'props', part: 'root', colliders: trail.worldColliders }], publish: {} }] }));
+  const want = readColliderRows(trail.worldColliders, { kinds: ['box', 'treads'], surfaces: [] });
+  expect(context.app.registry.pieces[0]?.colliders).toEqual(want);
+  expect(JSON.stringify(context.app.registry.pieces[0]?.colliders)).toBe(JSON.stringify(want));
+  context.scope.dispose();
+});
+
+
+test('resident catalogue loans reach later world placements through the shared sky context', async () => {
+  const [{ defineWorldSceneCatalogue }, { sharedModelContext }, { Rng }, { SkyRig }] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'),
+  ]);
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
+  const context = fixture(), rows = section(); Object.assign(context.game, { runtime: { world: { sky } } });
+  const data = { product: 'fixture-harbour', models: [{ key: 'tower', id: 'fixture-harbour/tower', name: 'Tower', category: 'buildings', pipeline: 'code', file: 'models/tower.ts', defaults: {}, choices: [{ id: 'world', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'wall', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
+  const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || has(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(data))) : file(name));
+  try {
+    await installWorldScenes(context, parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json' }));
+    const catalogue = defineWorldSceneCatalogue(data), built = catalogue.model('tower').build(sharedModelContext(sky), {}, new Rng(1));
+    if (!(built instanceof Group)) throw new Error('Missing resident model');
+    expect(built.children[0]).toBeInstanceOf(Mesh); // No loading placeholder group.
+    expect(catalogue.material('paint', sharedModelContext(sky))).toBe(built.children[0] instanceof Mesh ? built.children[0].material : null);
+  } finally { vi.restoreAllMocks(); context.scope.dispose(); }
+});

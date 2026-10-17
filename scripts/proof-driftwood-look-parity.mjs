@@ -9,6 +9,8 @@
 // differ by a few hundred pixels: `--raw=<dir>` keeps each frame's RGBA so `--compare` can count the differing pixels.
 //   scripts/browser-lane.sh node scripts/proof-driftwood-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>]
 //   node scripts/proof-driftwood-look-parity.mjs --compare=<base.json>,<candidate.json>
+// Add --original-scenes with scripts/bake-loader.mjs to compare all five migrated sites against retained author geometry,
+// at every pose in the same frozen frame; independent boots still retain their natural creature differences.
 import { chromium, devices } from 'playwright';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -57,6 +59,22 @@ if (raw !== undefined) mkdirSync(raw, { recursive: true });
 const version = await (await fetch(new URL('/version.json', url))).json();
 const sleep = ms => new Promise(resolve => { setTimeout(resolve, ms); });
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const originalScenes = [];
+if (process.argv.includes('--original-scenes')) {
+  const [{ originalHut, originalLookout }, { originalShrine }, { originalWreck }, { originalTrailside }] = await Promise.all([
+    import('../src/shards/driftwood-isle/generators/driftwoodHut.mjs'), import('../src/shards/driftwood-isle/generators/driftwoodShrine.mjs'),
+    import('../src/shards/driftwood-isle/generators/driftwoodWreck.mjs'), import('../src/shards/driftwood-isle/generators/driftwoodTrailside.mjs'),
+  ]);
+  const hut = originalHut(), tower = originalLookout(), shrine = originalShrine(), wreck = originalWreck();
+  for (const { id, geometries } of [{ id: 'hut', geometries: [hut.kit, hut.flames] }, { id: 'lookout', geometries: [tower.geometry] },
+    { id: 'shrine', geometries: [shrine.world.geometry.kit, shrine.world.geometry.water, shrine.world.geometry.glyphs] },
+    { id: 'wreck', geometries: [wreck.world.geometry.rocks, wreck.world.geometry.kit, wreck.world.geometry.glow] }, { id: 'trailside', geometries: [originalTrailside().geometry] }]) {
+    originalScenes.push({ id, geometries: geometries.map(geometry => {
+      const row = { attributes: Object.fromEntries(Object.entries(geometry.attributes).map(([key, attribute]) => [key, { itemSize: attribute.itemSize, normalized: attribute.normalized, array: Array.from(attribute.array) }])), index: geometry.index === null ? null : Array.from(geometry.index.array) };
+      geometry.dispose(); return row;
+    }) });
+  }
+}
 const rows = [], tiers = {}, errors = [];
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {
@@ -88,6 +106,32 @@ try {
       return { colliderJson: JSON.stringify(list), pieces: list.length, colliderCount: list.reduce((n, r) => n + r.colliders.length, 0) };
     });
     tiers[tier].colliders = sha(tiers[tier].colliderJson); delete tiers[tier].colliderJson;
+    if (originalScenes.length > 0) await page.evaluate(sourceRows => {
+      const game = window.__wildshard.world.game, registry = game.app.registry, pairs = [];
+      for (const row of sourceRows) {
+        // drawnInto pieces keep an anchor in the registry; their actual draw remains in the scene.
+        const root = row.id === 'wreck' ? game.scene.getObjectByName('wreck-rocks')?.parent : registry.get(row.id)?.object, meshes = [];
+        if (root === undefined) throw new Error(`Missing native site: ${row.id}`);
+        root.traverse(mesh => { if (mesh.isMesh && mesh.layers.isEnabled(0) && mesh.name !== 'shrine-fireflies') meshes.push(mesh); });
+        if (meshes.length !== row.geometries.length) throw new Error(`Native site mesh count differs: ${row.id}`);
+        meshes.forEach((mesh, index) => {
+          const source = row.geometries[index], baked = mesh.geometry, original = baked.clone();
+          const position = baked.getAttribute('position'), authoredPosition = source.attributes.position;
+          if (position.array.length !== authoredPosition.array.length || position.array.some((value, i) => value !== authoredPosition.array[i])) throw new Error(`Native site positions differ: ${row.id}`);
+          if (Object.keys(baked.attributes).sort().join(',') !== Object.keys(source.attributes).sort().join(',') || JSON.stringify(baked.index === null ? null : Array.from(baked.index.array)) !== JSON.stringify(source.index)) throw new Error(`Native site channels/index differ: ${row.id}`);
+          for (const [key, attribute] of Object.entries(source.attributes)) {
+            const resident = baked.getAttribute(key);
+            if (resident.count * resident.itemSize !== attribute.array.length || resident.itemSize !== attribute.itemSize || resident.normalized !== attribute.normalized) throw new Error(`Native site attribute layout differs: ${row.id}/${key}`);
+            // Uploaded static draws release their CPU arrays; reconstruct the authored side independently.
+            const Attribute = resident.constructor, ArrayType = resident.array.constructor;
+            original.setAttribute(key, new Attribute(new ArrayType(attribute.array), attribute.itemSize, attribute.normalized));
+          }
+          original.computeBoundingBox(); original.computeBoundingSphere(); pairs.push({ mesh, baked, original });
+        });
+      }
+      window.__dlpOriginals = pairs;
+    }, originalScenes);
+
     for (const p of POSES) {
       const { yaw, pitch } = p;
       await page.evaluate(() => { const g = window.__wildshard.world.game; if ('__dlpGate' in window) g.frameGate = window.__dlpGate; });
@@ -121,17 +165,30 @@ try {
         const calls = r.info.render.calls, triangles = r.info.render.triangles;
         const pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
         gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        let originalChangedPixels = null;
+        if (window.__dlpOriginals !== undefined) {
+          for (const pair of window.__dlpOriginals) pair.mesh.geometry = pair.original;
+          r.info.reset(); r.clear(true, true, true); r.render(scene, cam);
+          const original = new Uint8Array(pixels.length);
+          gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, original);
+          originalChangedPixels = 0;
+          for (let i = 0; i < pixels.length; i += 4) if (pixels[i] !== original[i] || pixels[i + 1] !== original[i + 1] || pixels[i + 2] !== original[i + 2] || pixels[i + 3] !== original[i + 3]) originalChangedPixels++;
+          for (const pair of window.__dlpOriginals) pair.mesh.geometry = pair.baked;
+          if (originalChangedPixels !== 0 || r.info.render.calls !== calls || r.info.render.triangles !== triangles) throw new Error(`Original scene parity differs: ${originalChangedPixels} pixels, ${r.info.render.calls}/${calls} draws, ${r.info.render.triangles}/${triangles} triangles`);
+        }
+
         for (const o of hidden) o.visible = true;
         let lit = 0; for (let i = 0; i < pixels.length; i += 4) if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 0) lit++;
         const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
         let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
-        return { player: [Math.round(at.x * 10) / 10, Math.round(at.y * 10) / 10, Math.round(at.z * 10) / 10], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
+        return { player: [Math.round(at.x * 10) / 10, Math.round(at.y * 10) / 10, Math.round(at.z * 10) / 10], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, originalChangedPixels, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
       }, { yaw, pitch });
-      const row = { tier, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
+      const row = { tier, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels, ...(shot.originalChangedPixels === null ? {} : { originalChangedPixels: shot.originalChangedPixels }) };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }
+    if (originalScenes.length > 0) await page.evaluate(() => { for (const pair of window.__dlpOriginals) pair.original.dispose(); delete window.__dlpOriginals; });
     tiers[tier].gpuBytes = await page.evaluate(() => window.__sc_gl().reduce((n, row) => n + row.totalBytes, 0));
     tiers[tier].programs = await page.evaluate(() => window.__wildshard.world.game.renderer.info.programs?.length ?? -1);
     const sources = await page.evaluate(() => [...window.__dlpShaders].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));

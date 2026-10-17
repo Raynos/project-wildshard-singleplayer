@@ -10,20 +10,22 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw } from '../runtime/boot
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import type * as THREE from 'three';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
+import { barrel, crate, ropeCoil, driftLog } from '../runtime/models/cargo';
+import { shipwreck, sites, fencePost, signpost, plankStep } from '../models/catalogue';
+import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from '../world/sites';
+import { SHRINE, JETTIES, BRIDGE } from '../world/sites';
 import manifest from '../discovery.generated';
 import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
-import { shoreBoulder } from '../runtime/models/shoreBoulder';
-import { hut as hutModel, lookout as lookoutModel, bakedSite, shrine as shrineModel, shrineRow, shrineMaterials } from '../runtime/models/fixedSites';
-import { Wreck } from './Wreck';
+import { shoreBoulder, reefRock } from '../runtime/models/shoreBoulder';
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
@@ -32,7 +34,6 @@ import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/forma
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { placeIslandBushes } from './Bushes';
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
-import { buildTrailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';
 import { placeIslandPalms, type PalmSpec } from './Palms';
@@ -42,8 +43,8 @@ import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
 import entryLandingRows from '../data/entryFloors.generated.json' with { type: 'json' };
 import { entryDeck } from '../runtime/models/entryDeck';
-import { modelContext } from '@wildshard/engine/models/model';
-import { place, placeSliced, placeModelSite, type ModelSite, type Placed } from '@wildshard/engine/models/place';
+import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
+import { place, placeSliced, type ModelSite, type Placed } from '@wildshard/engine/models/place';
 
 const ENTRY_LANDINGS = entryLandingRows.rows;
 type EntryLanding = (typeof entryLandingRows.rows)[number];
@@ -53,8 +54,8 @@ type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
-  hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
-  gulls: AmbientFlockDraw | null; trailside: ReturnType<typeof buildTrailside> | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
+  hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; colliders: Collider[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
+  gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Awaited<ReturnType<typeof placeIslandPalms>> | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
@@ -131,19 +132,29 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
   const rocks = await stages.build('Shore boulders', async () => ({ placed: await placeSliced(shoreBoulder, structuredClone(fixed.shoreBoulders.placements), { ctx: modelContext(sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } }, slice.due), colliders: structuredClone(fixed.shoreBoulders.boxes) }), { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-  const hut = await stages.build('Hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'hut' } }); }, { values: value => value.colliders });
+  const hut = await stages.build('Hut', () => sites.site('hut', 'world', sharedModelContext(sky, game), registry), { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
-  const lookoutSite = { site: LOOKOUT, zipTo: { x: Cove.forIsland().cave.x, z: Cove.forIsland().cave.z } };
-  const lookout = await stages.build('Lookout', () => { const s = bakedSite('lookout', lookoutSite); return placeModelSite(lookoutModel, s.origin, s.layout, { ctx: modelContext(sky), registry, piece: { id: 'lookout' } }); }, { values: value => value.colliders });
-  // E315 M1: the shipwreck model (../runtime/models/fixedSites.ts) with the cove's cargo, drift logs and reef
+  const lookout = await stages.build('Lookout', () => sites.site('lookout', 'world', sharedModelContext(sky, game), registry), { values: value => value.colliders });
+  // E315 M1: the declared shipwreck model with the cove's cargo, drift logs and reef
   // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
-  const wreck = await stages.build('Wreck', () => new Wreck(sky, WRECK).place(registry), { objects: value => [value.group], values: value => value.colliders });
+  const wreck = await stages.build('Wreck', () => {
+    const group = scenes.group('wreck.root'), row = wreckBake, ctx = modelContext(sky), floorHeightAt = (x: number, z: number) => floorAtRects(row.floors, x, z, 'first');
+    const placed = [place(shipwreck, [{ x: row.spec.x, y: row.floorY, z: row.spec.z, yaw: row.spec.heading, params: { site: row.spec } }], { ctx, draw: 'merged', registry,
+      drawnInto: { object: group, boxes: Float32Array.from(row.shipBox), colliders: readColliderRows(row.descs, { kinds: ['box', 'capsule', 'treads'], surfaces: [] }) }, piece: { id: 'wreck', floor: floorHeightAt, solidFloor: true } })];
+    const { barrels, crates, coils, logs, rocks: reefRocks } = row.catalogue;
+    placed.push(place(barrel, barrels.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(barrels.boxes) }, piece: { id: 'wreck-barrels' } }));
+    placed.push(place(crate, crates.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(crates.boxes) }, piece: { id: 'wreck-crates' } }));
+    placed.push(place(ropeCoil, coils.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(coils.boxes) }, piece: { id: 'wreck-coils' } }));
+    placed.push(place(driftLog, logs.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(logs.boxes) }, piece: { id: 'wreck-drift-logs' } }));
+    placed.push(place(reefRock, reefRocks.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(reefRocks.boxes) }, piece: { id: 'wreck-reef-rocks' } }));
+    return { group, placed, colliders: structuredClone(row.colliders), anchors: structuredClone(row.anchors), holdBounds: { ...row.holdBounds }, floorHeightAt };
+  }, { objects: value => [value.group], values: value => value.colliders });
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   const shrine = await stages.build('Shrine', async () => {
-    const ctx = modelContext(sky), { origin, layout } = bakedSite('shrine', { site: SHRINE }), { baseY, terrace } = shrineRow(SHRINE);
-    const placed = placeModelSite(shrineModel, origin, layout, { ctx, registry, params: { site: SHRINE }, piece: { id: 'shrine' } });
+    const ctx = sharedModelContext(sky, game), { origin, baseY, terrace } = fixed.shrine.world;
+    const placed = sites.site('shrine', 'world', ctx, registry);
     const resources = new SceneResources(sky), graph = driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, lit = hasLentLook(graph);
-    resources.publish('shrine.glyphs', shrineMaterials(ctx).glyphs);
+    resources.publish('shrine.glyphs', sites.material('glyphs', ctx));
     placed.group.add(createBuildingCloud(resources, { geometry: resources.lend(fixedDraw('shrineFireflies').copy()), material: lit ? resources.lend(lentLook(graph)) : null,
       seeds: false, name: 'shrine-fireflies', at: [SHRINE.x - origin.x, baseY, SHRINE.z - origin.z], center: [0, terrace - baseY, 0], radius: 18, order: 4, visible: lit }));
     const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await driftwoodProduct().file('world/building-life.json'))));
@@ -162,10 +173,14 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stages.build('Gulls', () => createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
-  const trailside = buildTrailside(sky);
+  const trail = driftwoodRows('custom/trailside'), trailMesh = scenes.mesh('trail.mesh'), trailContext = modelContext(sky), trailPlaced: Placed[] = [];
+  if (trail.posts.pls.length > 0) trailPlaced.push(place(fencePost, trail.posts.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.posts.boxes) }, piece: { id: 'trail-fence-posts' } }));
+  if (trail.signs.pls.length > 0) trailPlaced.push(place(signpost, trail.signs.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.signs.boxes) }, piece: { id: 'trail-signposts' } }));
+  if (trail.planks.pls.length > 0) trailPlaced.push(place(plankStep, trail.planks.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.planks.boxes) }, piece: { id: 'trail-steps' } }));
+  const trailside = { mesh: trailMesh, colliders: structuredClone(trail.colliders), placed: trailPlaced };
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
-  statics.push(...trailside.colliders); trailside.place(registry);
+  statics.push(...trailside.colliders);
   await stages.next('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
   const bridge = await stages.build('Rope bridge', () => placeRopeBridge(sky, BRIDGE, registry), { values: value => value.colliders });

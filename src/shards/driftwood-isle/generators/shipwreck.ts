@@ -28,7 +28,7 @@
  *   swordRack  the weapon rack on the port wall, opposite the breach, facing into the hold; its pegs are 1.05 m up
  * `holdBounds` = { x, z, r, yMin, yMax } — a cylinder around the hold (the hold reverb zone).
  */
-import type { WreckSpec, WreckAnchor, HoldBounds } from '../assets/contracts/wreck';
+import type { WreckSpec, WreckAnchor, HoldBounds } from './wreckContract';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';

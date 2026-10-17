@@ -82,9 +82,8 @@ export const DONE = {
     'src/shards/driftwood-isle/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle/world/Trailside.ts': { why: "the baked trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1 } },
     'src/shards/driftwood-isle-legacy/world/Trailside.ts': { why: "the trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1, mergeGeometries: 1 } },
-    'src/shards/driftwood-isle/world/Wreck.ts': { why: "the wreck site's weld: the vessel and the cove's surroundings in one kit (the AO and the lanterns' light over all of it) and the reef rocks' smooth mesh — its models placed drawnInto them", counts: { mergeGeometries: 1 } },
+    'src/shards/driftwood-isle-legacy/world/Wreck.ts': { why: "the wreck site's weld: the vessel and the cove's surroundings in one kit (the AO and the lanterns' light over all of it) and the reef rocks' smooth mesh — its models placed drawnInto them", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/world/Cove.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their baked smooth mesh', counts: { 'registry add with object': 1 } },
     'src/shards/driftwood-isle-legacy/world/Cove.ts': { why: 'the frozen sea cave retains its original world geometry weld and reef-rock merge; the primary Cove now admits baked geometry', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
     'src/shards/driftwood-isle/world/GroundCover.ts': { why: 'a scatter field streamed round the viewer (E117 / E186): world (§1). Its dune logs are drift-log models drawnInto their mesh; its five plant kinds have no fixed copies for place() to count', counts: { InstancedMesh: 1 } },
@@ -143,6 +142,7 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
+    'src/game/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
     // 7def4ee68: same Sky chain / Signal rope instance draw, moved to its host.
     'src/game/plugin/ui.ts': { why: '7def4ee68: the existing private-scene instance owner moved from Sky islet chains and Signal well rope; the called model owns the geometry, never a new world thing', counts: { InstancedMesh: 1 } },
     // 3b5ac8c9a: same authored cord merge, moved into the offline curve bake.
@@ -232,7 +232,6 @@ const MODEL_RELOCATIONS = new Map([
   ['driftwood-isle', 'runtime/models/cove.ts', 'cove.ts'],
   ['driftwood-isle', 'runtime/models/creatures.ts', 'creatures.ts'],
   ['driftwood-isle', 'runtime/models/entryDeck.ts', 'entryDeck.ts'],
-  ['driftwood-isle', 'runtime/models/fixedSites.ts', 'fixedSites.ts'],
   ['driftwood-isle', 'runtime/models/hibiscusBush.ts', 'hibiscusBush.ts'],
   ['driftwood-isle', 'runtime/models/palm.ts', 'palm.ts'],
   ['driftwood-isle', 'runtime/models/people.ts', 'people.ts'],

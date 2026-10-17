@@ -1,0 +1,1712 @@
+{
+  "source": "5dcff5577b59b258e9f50d2154c5a19aa64666c4",
+  "parent": "ae5134b9306c5bfdc91695fabb6c4979f2173c82",
+  "hostScore": {
+    "fixedCatalogue": 5,
+    "worldScenes": 6,
+    "exception": "G483; Pine cabin shells and homestead, end of W3",
+    "evidence": {
+      "twoRealUsers": {
+        "score": 0,
+        "evidence": "lint/platform-pending-users.json:2018",
+        "exception": "G483 approved Z2; Pine cabin shells and homestead, end of W3"
+      },
+      "noShardNouns": {
+        "score": 1,
+        "evidence": "src/game/models/worldSceneCatalogue.ts:24"
+      },
+      "dataDriven": {
+        "score": 1,
+        "evidence": "src/format/worldSceneModels.ts:14"
+      },
+      "serverSafeOrClientOnly": {
+        "score": 1,
+        "evidence": "src/game/models/worldSceneCatalogue.ts:90"
+      },
+      "deletion": {
+        "score": 1,
+        "evidence": "test/world-scenes-platform.test.ts:101"
+      },
+      "dataOnly": {
+        "score": 1,
+        "evidence": "src/format/worldSceneModels.ts:18"
+      }
+    }
+  },
+  "sourceRuler": {
+    "basis": "source",
+    "before": 5355,
+    "after": 5202,
+    "netShard": {
+      "driftwood-isle": -153,
+      "pine-hollow": -10
+    },
+    "componentsBefore": {
+      "C1": 2202,
+      "C2": 612,
+      "C3": 0,
+      "C4": 762,
+      "C5": 772,
+      "C6": 260,
+      "C7": 0,
+      "C8": 17,
+      "C9": 730
+    },
+    "componentsAfter": {
+      "C1": 2080,
+      "C2": 597,
+      "C3": 0,
+      "C4": 762,
+      "C5": 772,
+      "C6": 260,
+      "C7": 0,
+      "C8": 17,
+      "C9": 714
+    },
+    "assemblyScript": {
+      "lines": 96,
+      "ceiling": 1716,
+      "added": 0
+    },
+    "platform": {
+      "base": "ae5134b9306c5bfdc91695fabb6c4979f2173c82",
+      "rev": "5dcff5577b59b258e9f50d2154c5a19aa64666c4",
+      "rows": [
+        {
+          "path": "src/format/worldScenes.ts",
+          "before": 39,
+          "after": 42,
+          "delta": 3
+        },
+        {
+          "path": "src/game/models/worldSceneCatalogue.ts",
+          "before": 70,
+          "after": 126,
+          "delta": 56
+        },
+        {
+          "path": "src/game/shardfile/worldScenes.ts",
+          "before": 207,
+          "after": 233,
+          "delta": 26
+        }
+      ],
+      "total": 85
+    },
+    "platformTotal": 85,
+    "pineBefore": 6707,
+    "pineAfter": 6697,
+    "measurementSource": "5dcff5577b59b258e9f50d2154c5a19aa64666c4",
+    "measurementParent": "0d020e8f9b75fe08fe3f4bb6f8be6b0a4152baf7"
+  },
+  "deleted": [
+    "src/shards/driftwood-isle/runtime/models/fixedSites.ts",
+    "src/shards/driftwood-isle/world/Wreck.ts",
+    "src/shards/driftwood-isle/world/Trailside.ts",
+    "src/shards/driftwood-isle/runtime/boot/trailsideGeometry.ts"
+  ],
+  "generatorMove": "src/shards/driftwood-isle/assets/contracts/wreck.ts -> generators/wreckContract.ts",
+  "checks": {
+    "source": "3e56a2c93c770b392eaa751a90ac53d03329d670",
+    "all10Products": true,
+    "strictCI": false,
+    "mapsDeferred": true,
+    "priorStrictProductWarnings": 0,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "focusedFiles": 6,
+    "focusedTests": 41,
+    "headlessCases": 17,
+    "modelContract": {
+      "added": 0,
+      "inherited": [
+        "src/game/loadout/claims.ts: defineModel outside src/engine/models/ and src/shards/<slug>/models/",
+        "src/shards/pine-hollow-legacy/runtime/weapons/LeverRifle.ts: pine-hollow is on the model contract (DONE) \u2014 8 \u00d7 mergeGeometries here; draw and register things through defineModel / place, or declare the file world in DONE with its reason",
+        "src/shards/pine-hollow-legacy/runtime/weapons/crossbow/Crossbow.ts: pine-hollow is on the model contract (DONE) \u2014 4 \u00d7 mergeGeometries here; draw and register things through defineModel / place, or declare the file world in DONE with its reason"
+      ]
+    },
+    "productAndTypesSource": "3e56a2c93c770b392eaa751a90ac53d03329d670",
+    "strictProductSource": "b971572e0299d5a98cc3b48d500d43709d431a7f",
+    "strictProductNote": "Prior DW/platform source passed cold BOTH maps and CI-mode products. A shared build-only author module feeds product and boot outputs; the renamed boot metadata retains byte-identical JSON. The final source passed all10 in normal mode because G490 defers map refresh. Landing leaves map refresh to the G490 map owner."
+  },
+  "status": "passed",
+  "sourceEquivalence": {
+    "checkedSource": "5dcff5577b59b258e9f50d2154c5a19aa64666c4",
+    "strictProductSource": "b971572e0299d5a98cc3b48d500d43709d431a7f",
+    "driftwoodRuntimeGeneratorsAndPlatformIdentical": false,
+    "parentRulerSource": "0d020e8f9b75fe08fe3f4bb6f8be6b0a4152baf7",
+    "parentSourceEquivalentTo": "0d020e8f9b75fe08fe3f4bb6f8be6b0a4152baf7",
+    "parentRulerOwner": "sp-x10",
+    "changesSinceStrictProducts": [
+      ".github/workflows/boot-smoke.yml",
+      ".gitignore",
+      "AGENTS.md",
+      "docs/ENGINE.md",
+      "docs/SHARDFILE.md",
+      "docs/WEATHER-KEYED-SKY.md",
+      "docs/plans/SHARD-PLATFORM.md",
+      "docs/plans/shard-platform/STATE.md",
+      "docs/plans/shard-platform/decisions.md",
+      "docs/plans/shard-platform/open-x-queue.md",
+      "docs/process/DEPLOY.md",
+      "lint/platform-pending-users.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/README.md",
+      "progress/frame-floor/sim-road-part8-2026-10-17/after-pairs.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/before-pairs.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/dw-native-control.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/dw-native-diagnostic.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/overlap-audit.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/pine-native-before.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/pine-upload-before.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/pine-upload-candidate.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/pixels.json",
+      "progress/frame-floor/sim-road-part8-2026-10-17/ruler.json",
+      "progress/shard-platform/dw-json-2026-10-17/proof.json",
+      "progress/shard-platform/keyed-sky-2026-10-17/checks.json",
+      "progress/shard-platform/keyed-sky-2026-10-17/grid-smoke.json",
+      "progress/shard-platform/keyed-sky-2026-10-17/lines.json",
+      "progress/shard-platform/keyed-sky-2026-10-17/look-proof.json",
+      "progress/shard-platform/pine-geography-2026-10-17/forest-drawer.json",
+      "progress/shard-platform/pine-geography-2026-10-17/frame-floor.json",
+      "progress/shard-platform/pine-geography-2026-10-17/look-parity.json",
+      "progress/shard-platform/pine-geography-2026-10-17/source-ruler.json",
+      "progress/shard-platform/ruler/ruler.json",
+      "project/disk-audit-2026-10-15.md",
+      "scripts/bake/keyed-sky.d.mts",
+      "scripts/bake/keyed-sky.mjs",
+      "scripts/gate-test-products.json",
+      "scripts/generation-jobs.json",
+      "scripts/parity/hover-touch.mjs",
+      "scripts/proof-driftwood-look-parity.mjs",
+      "scripts/shard-platform-hosts.mjs",
+      "scripts/shard-platform.mjs",
+      "src/engine/boot/bytes.ts",
+      "src/engine/boot/imageDecode.ts",
+      "src/engine/boot/imageDecode.worker.ts",
+      "src/engine/package.json",
+      "src/engine/script/decisionModule.ts",
+      "src/format/dayLook.ts",
+      "src/format/keyedSky.ts",
+      "src/format/package.json",
+      "src/format/platformDataSections.ts",
+      "src/format/sections.ts",
+      "src/game/looks/dayClock.ts",
+      "src/game/looks/dayLookPresets.ts",
+      "src/game/looks/daySky.ts",
+      "src/game/looks/graphDaySky.ts",
+      "src/game/looks/keyedSky.ts",
+      "src/game/looks/keyedSkyClock.ts",
+      "src/game/looks/overcast.ts",
+      "src/game/package.json",
+      "src/game/shard/portShares.json",
+      "src/game/shardfile/borrowedDecisions.ts",
+      "src/sdk/looks/dayClock.ts",
+      "src/sdk/looks/dayLookPresets.ts",
+      "src/sdk/looks/daySky.ts",
+      "src/sdk/looks/graphDaySky.ts",
+      "src/sdk/looks/overcast.ts",
+      "src/sdk/package.json",
+      "src/shards/driftwood-isle/blender/export.mjs",
+      "src/shards/driftwood-isle/boot/ground.ts",
+      "src/shards/driftwood-isle/combat/strikes.ts",
+      "src/shards/driftwood-isle/creatures/install.ts",
+      "src/shards/driftwood-isle/data/bridgeRows.d.json.ts",
+      "src/shards/driftwood-isle/data/bridgeRows.json",
+      "src/shards/driftwood-isle/data/bridgeRows.ts",
+      "src/shards/driftwood-isle/data/coverLook.ts",
+      "src/shards/driftwood-isle/data/entryFloors.generated.d.json.ts",
+      "src/shards/driftwood-isle/data/entryLandings.ts",
+      "src/shards/driftwood-isle/data/entryRows.d.json.ts",
+      "src/shards/driftwood-isle/data/entryRows.json",
+      "src/shards/driftwood-isle/data/entryRows.ts",
+      "src/shards/driftwood-isle/data/facetedDayRows.ts",
+      "src/shards/driftwood-isle/data/groundCover.d.json.ts",
+      "src/shards/driftwood-isle/data/groundCover.json",
+      "src/shards/driftwood-isle/data/islandClipRows.d.json.ts",
+      "src/shards/driftwood-isle/data/islandClipRows.json",
+      "src/shards/driftwood-isle/data/islandClipRows.ts",
+      "src/shards/driftwood-isle/data/islandCoverFiles.d.json.ts",
+      "src/shards/driftwood-isle/data/islandCoverFiles.json",
+      "src/shards/driftwood-isle/data/islandCoverFiles.ts",
+      "src/shards/driftwood-isle/data/islandPlanFiles.d.json.ts",
+      "src/shards/driftwood-isle/data/islandPlanFiles.json",
+      "src/shards/driftwood-isle/data/islandPlanFiles.ts",
+      "src/shards/driftwood-isle/data/layout.d.json.ts",
+      "src/shards/driftwood-isle/data/layout.json",
+      "src/shards/driftwood-isle/data/layout.ts",
+      "src/shards/driftwood-isle/data/pierRows.d.json.ts",
+      "src/shards/driftwood-isle/data/pierRows.json",
+      "src/shards/driftwood-isle/data/pierRows.ts",
+      "src/shards/driftwood-isle/data/poolLook.d.json.ts",
+      "src/shards/driftwood-isle/data/poolLook.json",
+      "src/shards/driftwood-isle/data/poolLook.ts",
+      "src/shards/driftwood-isle/data/seabedLook.d.json.ts",
+      "src/shards/driftwood-isle/data/seabedLook.json",
+      "src/shards/driftwood-isle/data/seabedLook.ts",
+      "src/shards/driftwood-isle/data/shrineSites.d.json.ts",
+      "src/shards/driftwood-isle/data/shrineSites.json",
+      "src/shards/driftwood-isle/data/shrineSites.ts",
+      "src/shards/driftwood-isle/data/skyDay.d.json.ts",
+      "src/shards/driftwood-isle/data/skyDay.json",
+      "src/shards/driftwood-isle/data/skyDay.ts",
+      "src/shards/driftwood-isle/data/skyPalette.d.json.ts",
+      "src/shards/driftwood-isle/data/skyPalette.json",
+      "src/shards/driftwood-isle/data/skyPalette.ts",
+      "src/shards/driftwood-isle/data/speciesActions.d.json.ts",
+      "src/shards/driftwood-isle/data/speciesActions.json",
+      "src/shards/driftwood-isle/data/speciesActions.ts",
+      "src/shards/driftwood-isle/data/strikes.d.json.ts",
+      "src/shards/driftwood-isle/data/strikes.json",
+      "src/shards/driftwood-isle/data/strikes.ts",
+      "src/shards/driftwood-isle/data/terrainBindings.d.json.ts",
+      "src/shards/driftwood-isle/data/terrainBindings.json",
+      "src/shards/driftwood-isle/data/terrainBindings.ts",
+      "src/shards/driftwood-isle/generators/bake-specimens.mjs",
+      "src/shards/driftwood-isle/generators/bootRecipes.ts",
+      "src/shards/driftwood-isle/generators/captainDecision.ts",
+      "src/shards/driftwood-isle/generators/coverCells.ts",
+      "src/shards/driftwood-isle/generators/coverGrid.ts",
+      "src/shards/driftwood-isle/generators/driftwoodBridge.mjs",
+      "src/shards/driftwood-isle/generators/driftwoodDuneLogs.mjs",
+      "src/shards/driftwood-isle/generators/driftwoodPiers.ts",
+      "src/shards/driftwood-isle/generators/driftwoodShrine.mjs",
+      "src/shards/driftwood-isle/generators/duneLogs.ts",
+      "src/shards/driftwood-isle/generators/enemySpecies.ts",
+      "src/shards/driftwood-isle/generators/entryDeck.ts",
+      "src/shards/driftwood-isle/generators/entryDecks.ts",
+      "src/shards/driftwood-isle/generators/entryFloors.ts",
+      "src/shards/driftwood-isle/generators/entryLandings.ts",
+      "src/shards/driftwood-isle/generators/islandClips.ts",
+      "src/shards/driftwood-isle/generators/islandCover.ts",
+      "src/shards/driftwood-isle/generators/mooringLines.ts",
+      "src/shards/driftwood-isle/generators/movers.ts",
+      "src/shards/driftwood-isle/generators/nativeView.ts",
+      "src/shards/driftwood-isle/generators/output.ts",
+      "src/shards/driftwood-isle/generators/pierSites.ts",
+      "src/shards/driftwood-isle/generators/poolGraphs.ts",
+      "src/shards/driftwood-isle/generators/product.ts",
+      "src/shards/driftwood-isle/generators/sea.ts",
+      "src/shards/driftwood-isle/generators/siteCatalogue.ts",
+      "src/shards/driftwood-isle/generators/skyChannels.ts",
+      "src/shards/driftwood-isle/generators/staticWorld.ts",
+      "src/shards/driftwood-isle/generators/worldScenes.ts",
+      "src/shards/driftwood-isle/look/dayKeys.ts",
+      "src/shards/driftwood-isle/look/map.json",
+      "src/shards/driftwood-isle/models/catalogue.ts",
+      "src/shards/driftwood-isle/runtime/looks/facetedDayBackdrop.ts",
+      "src/shards/driftwood-isle/runtime/models/pier.ts",
+      "src/shards/driftwood-isle/runtime/models/ropeBridge.ts",
+      "src/shards/driftwood-isle/sim/baked.ts",
+      "src/shards/driftwood-isle/sim/enemyBrains.ts",
+      "src/shards/driftwood-isle/species/monkey.ts",
+      "src/shards/driftwood-isle/world/BlenderIsland.ts",
+      "src/shards/driftwood-isle/world/Cove.ts",
+      "src/shards/driftwood-isle/world/GroundCover.ts",
+      "src/shards/driftwood-isle/world/Seabed.ts",
+      "src/shards/driftwood-isle/world/blenderArea.ts",
+      "src/shards/driftwood-isle/world/build.ts",
+      "src/shards/driftwood-isle/world/islandCover.ts",
+      "src/shards/driftwood-isle/world/sea.ts",
+      "src/shards/driftwood-isle/world/sites.ts",
+      "src/shards/pine-hollow/behaviour/layout.ts",
+      "src/shards/pine-hollow/data/keyedSkyRows.ts",
+      "src/shards/pine-hollow/data/sky.json",
+      "src/shards/pine-hollow/generators/bake-geography.mjs",
+      "src/shards/pine-hollow/generators/bake-keyed-sky.mjs",
+      "src/shards/pine-hollow/generators/beaverPool.ts",
+      "src/shards/pine-hollow/generators/crags.ts",
+      "src/shards/pine-hollow/generators/fauna.ts",
+      "src/shards/pine-hollow/generators/floorPlacements.ts",
+      "src/shards/pine-hollow/generators/forestGeography.ts",
+      "src/shards/pine-hollow/generators/geography.ts",
+      "src/shards/pine-hollow/generators/output.ts",
+      "src/shards/pine-hollow/generators/skyChannels.ts",
+      "src/shards/pine-hollow/generators/streams.ts",
+      "src/shards/pine-hollow/look/dayKeys.ts",
+      "src/shards/pine-hollow/look/map.json",
+      "src/shards/pine-hollow/look/render.ts",
+      "src/shards/pine-hollow/look/skyBackdrop.ts",
+      "src/shards/pine-hollow/manifest.json",
+      "src/shards/pine-hollow/runtime/looks/keyedSky.ts",
+      "src/shards/pine-hollow/runtime/looks/rainFx.ts",
+      "src/shards/pine-hollow/world/terrain.ts",
+      "test/day-air.test.ts",
+      "test/decision-host.test.ts",
+      "test/driftwood-boot-inventory.test.ts",
+      "test/driftwood-dressing.test.ts",
+      "test/driftwood-piers.test.ts",
+      "test/driftwood-shrine.test.ts",
+      "test/driftwood-wreck.test.ts",
+      "test/fixed-boot-layout-data.test.ts",
+      "test/fixtures/keyed-sky-half-oracle.json",
+      "test/image-cache-lifetime.test.ts",
+      "test/keyed-sky-platform.test.ts",
+      "test/memory-action-brain.test.ts",
+      "test/pine-output.test.ts",
+      "test/pine-product-reads.test.ts",
+      "test/pine-signal-authored-rows.test.ts",
+      "test/rain-fall.test.ts",
+      "test/species-native-binding.test.ts",
+      "test/species-programs.test.ts"
+    ],
+    "servedSource": "4f307fd6ff0125a2959047f8227f57f5399983ee",
+    "servedProductionSourcesIdentical": false,
+    "productAndRootTypesSource": "3e56a2c93c770b392eaa751a90ac53d03329d670",
+    "sourceTreeIdenticalToProductAndRootTypesSource": false,
+    "metadataPathOnlyChange": {
+      "from": "boot/specimens.generated.json",
+      "to": "boot/modelCatalogue.generated.json",
+      "beforeHash": "74c69721b40b6d3367126ad2d36b59704ff4ee1154b0db2368c33dec693e6187",
+      "sameGeneratedBytesRequired": true,
+      "sharedAuthorModule": "generators/siteCatalogue.ts",
+      "source": "3e56a2c93c770b392eaa751a90ac53d03329d670",
+      "sameGeneratedBytes": true
+    },
+    "parentRulerFile": "progress/shard-platform/maps-batch-2026-10-17/all10-source-ruler.json",
+    "parentRulerHash": "503b69d0a0a312bc40e8b155aecbaf3e056f1f2ea8f82289971aecd67e4e5b85",
+    "integrationRebase": {
+      "parent": "0604da36c64a41eb207671ec65a1ed4d8302fdda",
+      "change": "Preserve independently proven DW JSON value migration and entry-landing imports; both sets of map inputs retained."
+    },
+    "fullCheckSource": "3e56a2c93c770b392eaa751a90ac53d03329d670",
+    "adopterSourceIdenticalToFullCheckSource": true,
+    "independentSkyLanding": {
+      "source": "ae5134b9306c5bfdc91695fabb6c4979f2173c82",
+      "proof": "progress/shard-platform/keyed-sky-2026-10-17/checks.json",
+      "changesOwnSourceFiles": false
+    },
+    "canonicalMapParent": "0d020e8f9b75fe08fe3f4bb6f8be6b0a4152baf7"
+  },
+  "native": {
+    "source": "5dcff5577b59b258e9f50d2154c5a19aa64666c4",
+    "servedSource": "4f307fd6ff0125a2959047f8227f57f5399983ee",
+    "native": {
+      "build": "4f307fd-mvcxozau",
+      "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day midday (paused), time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef",
+          "gpuBytes": 188522121,
+          "programs": 184,
+          "shaderCount": 313,
+          "shaders": "f3c1352740d03b176009fa3fe37271ca84435971aed0f1bde2733c2d70578291"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0",
+          "gpuBytes": 380124418,
+          "programs": 196,
+          "shaderCount": 337,
+          "shaders": "e9fb958501568cb34108b52ca45b44be2c913eed5289f62e68a80ce9adda2f25"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "pose": "beach-sea",
+          "player": [
+            100,
+            2.6,
+            1
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 162,
+          "triangles": 977557,
+          "lit": 1095048,
+          "pixels": "e9c83fe9643e9195abfa8fa26e8f66c752076613476cda5e55d627c58a7ac0ec",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/phone-beach-sea.rgba"
+        },
+        {
+          "tier": "phone",
+          "pose": "wreck",
+          "player": [
+            130,
+            1.2,
+            10
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 156,
+          "triangles": 970977,
+          "lit": 1095048,
+          "pixels": "0aa323c0067e3d01d6f2cb101092a2f90d35776a7f2709ca38c80d823cc11a87",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/phone-wreck.rgba"
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "player": [
+            93.6,
+            33.4,
+            95.9
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 145,
+          "triangles": 930659,
+          "lit": 1095048,
+          "pixels": "a0d7367fd15f19771c52a6a4f1c8824be96858f4a4e058e5b5252946fd30ef99",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/phone-lookout.rgba"
+        },
+        {
+          "tier": "phone",
+          "pose": "cave",
+          "player": [
+            142,
+            0.4,
+            14
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 154,
+          "triangles": 962517,
+          "lit": 1095048,
+          "pixels": "1c481caa01ab995276818787e63c4bfd0ebc3071162b74a620111466b83b39b2",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/phone-cave.rgba"
+        },
+        {
+          "tier": "phone",
+          "pose": "vista",
+          "player": [
+            -46,
+            17.2,
+            -100
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 159,
+          "triangles": 1009293,
+          "lit": 1095048,
+          "pixels": "8cfea494ed6473600921d865da1de2fb0639ababd271a72778f5ef245089775e",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/phone-vista.rgba"
+        },
+        {
+          "tier": "phone",
+          "pose": "altar",
+          "player": [
+            -99,
+            7.1,
+            109
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 193,
+          "triangles": 1090665,
+          "lit": 1095048,
+          "pixels": "6d37482fc73448ba2406f47def229a19bae262b9db193a2e4eacfd0c45c7de0f",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/phone-altar.rgba"
+        },
+        {
+          "tier": "desktop",
+          "pose": "beach-sea",
+          "player": [
+            100,
+            2.6,
+            1
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 242,
+          "triangles": 1839563,
+          "lit": 615663,
+          "pixels": "93ef908a7415b1be35f48c051b618488ef3308eb892116f04a7d809e38d3d415",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/desktop-beach-sea.rgba"
+        },
+        {
+          "tier": "desktop",
+          "pose": "wreck",
+          "player": [
+            130,
+            1.2,
+            10
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 219,
+          "triangles": 1794504,
+          "lit": 615663,
+          "pixels": "422865e73c062ca2699dbc4caceebf76f28e9c9a9245afc4a7031088f8eb2b28",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/desktop-wreck.rgba"
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "player": [
+            93.6,
+            33.4,
+            95.9
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 238,
+          "triangles": 1803344,
+          "lit": 615663,
+          "pixels": "8b6a0c7da3c1040e089caa55f44d89b92edb3739c4b76d89bfb9539b2c1fe82d",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/desktop-lookout.rgba"
+        },
+        {
+          "tier": "desktop",
+          "pose": "cave",
+          "player": [
+            142,
+            0.4,
+            14
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 271,
+          "triangles": 1874876,
+          "lit": 615663,
+          "pixels": "c4a8e70d2420169b69f8232cdabfcffd121e7fdca4d3f83f829e57aac1e8d6b6",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/desktop-cave.rgba"
+        },
+        {
+          "tier": "desktop",
+          "pose": "vista",
+          "player": [
+            -46,
+            17.2,
+            -100
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 313,
+          "triangles": 2198792,
+          "lit": 614736,
+          "pixels": "2b42b85cb95fcf8baf81fc52823abfcc13fd4661d7f1b00adf0c4f4301acc7e3",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/desktop-vista.rgba"
+        },
+        {
+          "tier": "desktop",
+          "pose": "altar",
+          "player": [
+            -99,
+            7.1,
+            109
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 459,
+          "triangles": 2440425,
+          "lit": 615663,
+          "pixels": "bf75ad0030a90479eba4588b20c901c7feeff0a8bb2c66ab7fd907617d1c0f3c",
+          "originalChangedPixels": 0,
+          "raw": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x5-z2/after-raw/desktop-altar.rgba"
+        }
+      ]
+    },
+    "sites": {
+      "build": "4f307fd-mvcxozau",
+      "profile": "muted iPhone 16 Pro / DPR2 / Metal",
+      "method": "original authored geometry swapped on actual site meshes at frozen clock",
+      "rows": [
+        {
+          "site": "hut",
+          "side": -1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 226246,
+          "beforeCalls": 174,
+          "beforeTriangles": 1129998,
+          "calls": 174,
+          "triangles": 1129998,
+          "colliders": 21,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": false,
+              "receive": false,
+              "order": 0
+            }
+          ]
+        },
+        {
+          "site": "hut",
+          "side": 1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 226851,
+          "beforeCalls": 163,
+          "beforeTriangles": 1102350,
+          "calls": 163,
+          "triangles": 1102350,
+          "colliders": 21,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": false,
+              "receive": false,
+              "order": 0
+            }
+          ]
+        },
+        {
+          "site": "lookout",
+          "side": -1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 100069,
+          "beforeCalls": 171,
+          "beforeTriangles": 1091308,
+          "calls": 171,
+          "triangles": 1091308,
+          "colliders": 15,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            }
+          ]
+        },
+        {
+          "site": "lookout",
+          "side": 1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 132444,
+          "beforeCalls": 172,
+          "beforeTriangles": 1126474,
+          "calls": 172,
+          "triangles": 1126474,
+          "colliders": 15,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            }
+          ]
+        },
+        {
+          "site": "shrine",
+          "side": -1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 69648,
+          "beforeCalls": 200,
+          "beforeTriangles": 1196586,
+          "calls": 200,
+          "triangles": 1196586,
+          "colliders": 21,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": false,
+              "receive": true,
+              "order": 1
+            },
+            {
+              "cast": false,
+              "receive": false,
+              "order": 1
+            }
+          ]
+        },
+        {
+          "site": "shrine",
+          "side": 1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 68800,
+          "beforeCalls": 158,
+          "beforeTriangles": 1060954,
+          "calls": 158,
+          "triangles": 1060954,
+          "colliders": 21,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": false,
+              "receive": true,
+              "order": 1
+            },
+            {
+              "cast": false,
+              "receive": false,
+              "order": 1
+            }
+          ]
+        },
+        {
+          "site": "wreck",
+          "side": -1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 101760,
+          "beforeCalls": 163,
+          "beforeTriangles": 1087666,
+          "calls": 163,
+          "triangles": 1087666,
+          "colliders": 109,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": false,
+              "receive": false,
+              "order": 0
+            }
+          ]
+        },
+        {
+          "site": "wreck",
+          "side": 1,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 98876,
+          "beforeCalls": 186,
+          "beforeTriangles": 1167446,
+          "calls": 186,
+          "triangles": 1167446,
+          "colliders": 109,
+          "flags": [
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": true,
+              "receive": true,
+              "order": 0
+            },
+            {
+              "cast": false,
+              "receive": false,
+              "order": 0
+            }
+          ]
+        }
+      ]
+    },
+    "trail": {
+      "build": "4f307fd-mvcxozau",
+      "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+      "method": "original versus baked geometry on the actual trail; native material, shadows, placement and frozen clock; both signs, rope fences and trestle stairs",
+      "rows": [
+        {
+          "pose": "sign 5,-150",
+          "eye": [
+            8.5,
+            2.9082895874977117,
+            -145.5
+          ],
+          "aim": [
+            5,
+            1.308289587497712,
+            -150
+          ],
+          "width": 804,
+          "height": 1362,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 27317
+        },
+        {
+          "pose": "sign -14,-62",
+          "eye": [
+            -10.5,
+            20.48963944091797,
+            -57.5
+          ],
+          "aim": [
+            -14,
+            18.889639440917968,
+            -62
+          ],
+          "width": 804,
+          "height": 1362,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 18506
+        },
+        {
+          "pose": "plateau fence",
+          "eye": [
+            -32.5,
+            4.760091344642639,
+            -123.5
+          ],
+          "aim": [
+            -36,
+            3.0600913446426388,
+            -128
+          ],
+          "width": 804,
+          "height": 1362,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 41027
+        },
+        {
+          "pose": "shrine fence",
+          "eye": [
+            -79.7382421004777,
+            7.4590145699217505,
+            48.46376252784714
+          ],
+          "aim": [
+            -83.2382421004777,
+            5.75901456992175,
+            43.96376252784714
+          ],
+          "width": 804,
+          "height": 1362,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 26940
+        },
+        {
+          "pose": "lookout trestle",
+          "eye": [
+            17.48970317840576,
+            14.124190330505371,
+            -13.89259147644043
+          ],
+          "aim": [
+            13.989703178405762,
+            11.82419033050537,
+            -18.39259147644043
+          ],
+          "width": 804,
+          "height": 1362,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 234904
+        },
+        {
+          "pose": "shrine trestle",
+          "eye": [
+            -54.28125,
+            13.580862045288086,
+            -13.535221099853516
+          ],
+          "aim": [
+            -57.78125,
+            11.280862045288085,
+            -18.035221099853516
+          ],
+          "width": 804,
+          "height": 1362,
+          "changedPixels": 0,
+          "maxChannelDifference": 0,
+          "visiblePixels": 239424
+        }
+      ]
+    },
+    "physics": {
+      "legs": 8,
+      "stuck": 0,
+      "sourceBuild": "4f307fd-mvcxozau"
+    },
+    "floor": {
+      "schema": 2,
+      "sha": "4f307fd6ff0125a2959047f8227f57f5399983ee",
+      "runId": "67725-1792275456572",
+      "device": "frame-floor-iphone-17-pro",
+      "when": "2026-10-17T22:17:58.812Z",
+      "elapsedSeconds": 22.249,
+      "underTenMinutes": true,
+      "frames": 120,
+      "settleMs": 2000,
+      "shards": [
+        "driftwood-isle"
+      ],
+      "surface": "desktop",
+      "developer": "on",
+      "settings": {
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "deviceSaves": {},
+      "expectedSystems": [],
+      "gridScenario": "baseline",
+      "gridRoutes": [],
+      "build": "production",
+      "glObserver": "off",
+      "travelGlCensus": false,
+      "glTime": false,
+      "frameTimeline": false,
+      "gpuBisect": false,
+      "safariProfile": false,
+      "harnessRevision": "3ff4b444c7d0de4926ce4465fb4f04401758c219",
+      "complete": true,
+      "pass": true,
+      "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+      "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "limitations": [
+        "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+        "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+        "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+      ],
+      "results": [
+        {
+          "surface": "desktop",
+          "rows": [
+            {
+              "shard": "driftwood-isle",
+              "complete": true,
+              "pass": true,
+              "seconds": 21.089,
+              "floorMs": 16.7,
+              "evaluationOriginDriftMaxMs": 0,
+              "metadata": {
+                "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+                "viewport": [
+                  1440,
+                  900
+                ],
+                "devicePixelRatio": 2,
+                "renderScale": 2,
+                "canvas": [
+                  2880,
+                  1800
+                ],
+                "developer": true,
+                "settings": {
+                  "tier": "desktop",
+                  "fps": "auto"
+                },
+                "effectiveDebugSettings": null,
+                "settingsReset": "replace-settings-and-clear-debug-overrides",
+                "gfx": {
+                  "dpr": "2",
+                  "aa": "auto"
+                },
+                "deviceSaves": {
+                  "devMode": true,
+                  "life.lastUnload": null,
+                  "telemetry.install": "8bc50045-25df-41f7-be03-471d541a8efd",
+                  "telemetry.heartbeat": {
+                    "session": "ab750f00-0206-481f-ad46-53f6e824ecb8",
+                    "build": "4f307fd-mvcxozau",
+                    "level": "",
+                    "stage": "loading",
+                    "at": 1792275462771,
+                    "fps": 0,
+                    "clean": false,
+                    "error": false,
+                    "contextLost": false
+                  },
+                  "gridIntent.once": null,
+                  "life.trace": [
+                    "17:17:38 0ppf +0s boot \u00b7 nav navigate \u00b7 ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 \u00b7 win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                    "17:17:42 0ppf +4s world ready \u00b7 first-paint 84ms, first-contentful-paint 84ms \u00b7 win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+                  ],
+                  "life.traceAt": 1792275458106,
+                  "titleArrival.once": null,
+                  "boot.times": {
+                    "desktop:18": {
+                      "renderer": 23.200000017881393,
+                      "sky": 143.59999999403954,
+                      "terrain": 64.09999999403954,
+                      "cards": 0.7999999821186066,
+                      "forest": 4.700000017881393,
+                      "physics": 3.2999999821186066,
+                      "edge": 6.4000000059604645,
+                      "grass": 0,
+                      "cabins": 0,
+                      "props": 1407.800000011921,
+                      "animals": 63,
+                      "weapon": 10,
+                      "menu": 7.5,
+                      "shaders": 1826.6000000238419,
+                      "firstFrame": 405.09999999403954,
+                      "audio": 122.69999998807907
+                    }
+                  }
+                },
+                "clock": "live",
+                "console": [
+                  {
+                    "level": "warn",
+                    "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+                  },
+                  {
+                    "level": "info",
+                    "text": "[ktx2] probe: 12 formats ok (astc etc2 bptc s3tc)"
+                  },
+                  {
+                    "level": "info",
+                    "text": "[shadow] 9 casters in 290 pieces (466760 tris)"
+                  },
+                  {
+                    "level": "warn",
+                    "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+                  },
+                  {
+                    "level": "warn",
+                    "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+                  },
+                  {
+                    "level": "warn",
+                    "text": "THREE.TSL: Vertex attribute \"normal\" not found on geometry. Stack trace not available. Enable \"THREE.Node.captureStackTrace\" to capture stack traces."
+                  }
+                ],
+                "textures": {
+                  "mode": "img",
+                  "why": "auto: driftwood-isle's KTX2 set is not cached (yet)",
+                  "probe": {
+                    "ran": true,
+                    "note": "12 formats ok",
+                    "families": {
+                      "astc": true,
+                      "etc2": true,
+                      "bptc": true,
+                      "s3tc": true
+                    },
+                    "formats": [
+                      {
+                        "family": "astc",
+                        "format": "RGBA_ASTC_4x4",
+                        "ok": true
+                      },
+                      {
+                        "family": "astc",
+                        "format": "SRGB8_ALPHA8_ASTC_4x4",
+                        "ok": true
+                      },
+                      {
+                        "family": "etc2",
+                        "format": "RGB8_ETC2",
+                        "ok": true
+                      },
+                      {
+                        "family": "etc2",
+                        "format": "SRGB8_ETC2",
+                        "ok": true
+                      },
+                      {
+                        "family": "etc2",
+                        "format": "RGBA8_ETC2_EAC",
+                        "ok": true
+                      },
+                      {
+                        "family": "etc2",
+                        "format": "SRGB8_ALPHA8_ETC2_EAC",
+                        "ok": true
+                      },
+                      {
+                        "family": "bptc",
+                        "format": "RGBA_BPTC_UNORM",
+                        "ok": true
+                      },
+                      {
+                        "family": "bptc",
+                        "format": "SRGB_ALPHA_BPTC_UNORM",
+                        "ok": true
+                      },
+                      {
+                        "family": "s3tc",
+                        "format": "RGB_S3TC_DXT1",
+                        "ok": true
+                      },
+                      {
+                        "family": "s3tc",
+                        "format": "RGBA_S3TC_DXT5",
+                        "ok": true
+                      },
+                      {
+                        "family": "s3tc",
+                        "format": "SRGB_S3TC_DXT1",
+                        "ok": true
+                      },
+                      {
+                        "family": "s3tc",
+                        "format": "SRGB_ALPHA_S3TC_DXT5",
+                        "ok": true
+                      }
+                    ],
+                    "veto": null
+                  }
+                },
+                "systems": [
+                  "engine.input.weapon",
+                  "engine.input.contexts",
+                  "engine.input.collect",
+                  "engine.lockon.input",
+                  "engine.player.input",
+                  "physics.bodies.pre",
+                  "shard.driftwood.movers",
+                  "physics.movers",
+                  "physics.step",
+                  "physics.bodies.post",
+                  "player.step",
+                  "game.shardfile.residency",
+                  "shard.driftwood.bridge.capture",
+                  "player.update",
+                  "main.2",
+                  "game.shardfile.presentation",
+                  "shard.driftwood.cover",
+                  "shard.driftwood.blenderIsland",
+                  "shard.driftwood.ocean",
+                  "shard.driftwood.palms",
+                  "shard.driftwood.bridge.pose",
+                  "shard.driftwood.seabed",
+                  "shard.driftwood.cove",
+                  "shard.driftwood.shrine",
+                  "shard.driftwood.gulls",
+                  "world.impacts",
+                  "engine.player.for",
+                  "training-arena",
+                  "hud.perf",
+                  "engine.effects",
+                  "main.6",
+                  "shard.driftwood.dusk",
+                  "shard.driftwood.adventure",
+                  "shard.driftwood-isle.installSpine",
+                  "shard.driftwood-isle.installTrader",
+                  "shard.driftwood.adventure.2",
+                  "shard.driftwood-isle.installGullGuide",
+                  "shard.driftwood-isle.installComplete",
+                  "shard.driftwood-isle.installFinale",
+                  "shard.driftwood.director",
+                  "shard.driftwood-isle.installEcology",
+                  "shard.driftwood.adventure.3",
+                  "shard.driftwood.adventure.4",
+                  "game.loot",
+                  "body-shadow",
+                  "keepsakes",
+                  "hud.combat",
+                  "last place",
+                  "shard.driftwood.firstMinutes",
+                  "first hints",
+                  "main.world",
+                  "engine.creatures.update",
+                  "main.equipment",
+                  "engine.audio.listener",
+                  "shard.driftwood.shrineHum",
+                  "shard.driftwood.ambience",
+                  "main.frame",
+                  "engine.player.regen",
+                  "engine.player.hud",
+                  "engine.input.trace",
+                  "engine.input.edges",
+                  "engine.hud.pins"
+                ],
+                "spawn": {
+                  "name": "spawn",
+                  "x": -3.8667315568341465e-06,
+                  "y": 1.212499994089012,
+                  "z": -194.0000011601637,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+              },
+              "cameraSource": "manifest standing parity cameras",
+              "scan": [
+                {
+                  "pose": {
+                    "name": "pier",
+                    "x": 0,
+                    "z": -194,
+                    "yaw": 3.141592653589793,
+                    "pitch": 0
+                  },
+                  "p95Ms": 16.7,
+                  "workP95Ms": 11.6,
+                  "calls": 692,
+                  "triangles": 3323621
+                },
+                {
+                  "pose": {
+                    "name": "beach",
+                    "x": -10,
+                    "z": -150,
+                    "yaw": 4.3,
+                    "pitch": 0
+                  },
+                  "p95Ms": 16.7,
+                  "workP95Ms": 12.1,
+                  "calls": 865,
+                  "triangles": 3526966
+                },
+                {
+                  "pose": {
+                    "name": "wreck",
+                    "x": 105,
+                    "z": 0,
+                    "yaw": -1.5707963267948966,
+                    "pitch": 0
+                  },
+                  "p95Ms": 16.8,
+                  "workP95Ms": 10.7,
+                  "calls": 383,
+                  "triangles": 1780794
+                }
+              ],
+              "rows": [
+                {
+                  "pose": {
+                    "name": "spawn",
+                    "x": -3.8667315568341465e-06,
+                    "y": 1.212499994089012,
+                    "z": -194.0000011601637,
+                    "yaw": 3.141592653589793,
+                    "pitch": 0
+                  },
+                  "sampleRange": {
+                    "startMs": 7408,
+                    "endMs": 9407.9
+                  },
+                  "frames": 120,
+                  "skipped": 0,
+                  "medianFps": 59.88,
+                  "p50Ms": 16.7,
+                  "p95Ms": 16.8,
+                  "p99Ms": 16.8,
+                  "maxMs": 16.8,
+                  "callbackP95Ms": 18.5,
+                  "callbackP99Ms": 18.8,
+                  "callbackMaxMs": 18.8,
+                  "longFrames": {
+                    "over50Ms": 0,
+                    "over100Ms": 0,
+                    "at": []
+                  },
+                  "gameP95Ms": 17.8,
+                  "workP95Ms": 12.2,
+                  "calls": 692,
+                  "triangles": 3323621,
+                  "position": {
+                    "x": -7.991430931025834e-06,
+                    "y": 1.2155309094043332,
+                    "z": -194.0000210405489
+                  },
+                  "cpu": {
+                    "enabled": true,
+                    "frames": 120,
+                    "owners": [
+                      {
+                        "id": "driftwood-isle",
+                        "samples": 120,
+                        "p95Ms": 0.6000000238418579,
+                        "maxMs": 0.800000011920929,
+                        "calls": 4920
+                      }
+                    ]
+                  },
+                  "contextLost": false,
+                  "floorFps": 60,
+                  "medianFpsRounded": 60,
+                  "strictMs": 16.7,
+                  "limitMs": 17.5,
+                  "cpuLimitMs": 4.166666666666667,
+                  "cpuPass": true,
+                  "maxFrameLimitMs": 100,
+                  "maxFramePass": true,
+                  "pass": true,
+                  "strictP95Pass": false,
+                  "strictPass": false,
+                  "miss": null
+                },
+                {
+                  "pose": {
+                    "name": "wreck",
+                    "x": 105,
+                    "z": 0,
+                    "yaw": -1.5707963267948966,
+                    "pitch": 0
+                  },
+                  "sampleRange": {
+                    "startMs": 14724.4,
+                    "endMs": 16724.3
+                  },
+                  "frames": 120,
+                  "skipped": 0,
+                  "medianFps": 59.88,
+                  "p50Ms": 16.7,
+                  "p95Ms": 16.7,
+                  "p99Ms": 16.8,
+                  "maxMs": 16.8,
+                  "callbackP95Ms": 18.9,
+                  "callbackP99Ms": 19.5,
+                  "callbackMaxMs": 19.7,
+                  "longFrames": {
+                    "over50Ms": 0,
+                    "over100Ms": 0,
+                    "at": []
+                  },
+                  "gameP95Ms": 18.1,
+                  "workP95Ms": 10.6,
+                  "calls": 381,
+                  "triangles": 1777744,
+                  "position": {
+                    "x": 105.00308228970152,
+                    "y": 2.8155362319041206,
+                    "z": -0.008952617750765057
+                  },
+                  "cpu": {
+                    "enabled": true,
+                    "frames": 120,
+                    "owners": [
+                      {
+                        "id": "driftwood-isle",
+                        "samples": 120,
+                        "p95Ms": 0.6000000238418579,
+                        "maxMs": 0.7000000178813934,
+                        "calls": 4920
+                      }
+                    ]
+                  },
+                  "contextLost": false,
+                  "floorFps": 60,
+                  "medianFpsRounded": 60,
+                  "strictMs": 16.7,
+                  "limitMs": 17.5,
+                  "cpuLimitMs": 4.166666666666667,
+                  "cpuPass": true,
+                  "maxFrameLimitMs": 100,
+                  "maxFramePass": true,
+                  "pass": true,
+                  "strictP95Pass": true,
+                  "strictPass": true,
+                  "miss": null
+                },
+                {
+                  "pose": {
+                    "name": "beach",
+                    "x": -10,
+                    "z": -150,
+                    "yaw": 4.3,
+                    "pitch": 0
+                  },
+                  "sampleRange": {
+                    "startMs": 18840.9,
+                    "endMs": 20840.8
+                  },
+                  "frames": 120,
+                  "skipped": 0,
+                  "medianFps": 59.88,
+                  "p50Ms": 16.7,
+                  "p95Ms": 16.7,
+                  "p99Ms": 16.8,
+                  "maxMs": 16.8,
+                  "callbackP95Ms": 18.3,
+                  "callbackP99Ms": 19.3,
+                  "callbackMaxMs": 19.3,
+                  "longFrames": {
+                    "over50Ms": 0,
+                    "over100Ms": 0,
+                    "at": []
+                  },
+                  "gameP95Ms": 17.8,
+                  "workP95Ms": 12.1,
+                  "calls": 651,
+                  "triangles": 2823526,
+                  "position": {
+                    "x": -9.999320590210118,
+                    "y": 0.7070857389604495,
+                    "z": -150.00014885327144
+                  },
+                  "cpu": {
+                    "enabled": true,
+                    "frames": 120,
+                    "owners": [
+                      {
+                        "id": "driftwood-isle",
+                        "samples": 120,
+                        "p95Ms": 0.5999999940395355,
+                        "maxMs": 0.7999999821186066,
+                        "calls": 4920
+                      }
+                    ]
+                  },
+                  "contextLost": false,
+                  "floorFps": 60,
+                  "medianFpsRounded": 60,
+                  "strictMs": 16.7,
+                  "limitMs": 17.5,
+                  "cpuLimitMs": 4.166666666666667,
+                  "cpuPass": true,
+                  "maxFrameLimitMs": 100,
+                  "maxFramePass": true,
+                  "pass": true,
+                  "strictP95Pass": true,
+                  "strictPass": true,
+                  "miss": null
+                }
+              ],
+              "scenarios": [],
+              "lastRoute": null,
+              "errors": []
+            }
+          ],
+          "memoryJourney": []
+        }
+      ],
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      }
+    },
+    "betweenBoots": {
+      "beforeBuild": "6dfc334-mvcs27mg",
+      "tiers": {
+        "phone": {
+          "gpuBytes": [
+            188522121,
+            188522121
+          ],
+          "colliders": [
+            "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef",
+            "2086048a773fafbb71d26094ec75975a47f89524df805069a5ae39438d2e07ef"
+          ],
+          "pieces": [
+            34,
+            34
+          ],
+          "colliderCount": [
+            1929,
+            1929
+          ],
+          "programs": [
+            184,
+            184
+          ],
+          "shaders": [
+            "400f768f46de0d6a183c72e06f27e6642748c2fcd508724637f17cd53011e3a3",
+            "f3c1352740d03b176009fa3fe37271ca84435971aed0f1bde2733c2d70578291"
+          ]
+        },
+        "desktop": {
+          "gpuBytes": [
+            380124418,
+            380124418
+          ],
+          "colliders": [
+            "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0",
+            "18573dff599f3f32b18a3fc4fc3d14c362e2d93180fb298bf80c6cf6e16319d0"
+          ],
+          "pieces": [
+            34,
+            34
+          ],
+          "colliderCount": [
+            2082,
+            2082
+          ],
+          "programs": [
+            196,
+            196
+          ],
+          "shaders": [
+            "d3d801de46711e8f381b5908362c3abe729bfa8fa7b18517f608e5e92354d333",
+            "e9fb958501568cb34108b52ca45b44be2c913eed5289f62e68a80ce9adda2f25"
+          ]
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "pose": "beach-sea",
+          "calls": [
+            162,
+            162
+          ],
+          "triangles": [
+            977557,
+            977557
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "phone",
+          "pose": "wreck",
+          "calls": [
+            156,
+            156
+          ],
+          "triangles": [
+            970977,
+            970977
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "calls": [
+            145,
+            145
+          ],
+          "triangles": [
+            930659,
+            930659
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "phone",
+          "pose": "cave",
+          "calls": [
+            154,
+            154
+          ],
+          "triangles": [
+            962517,
+            962517
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "phone",
+          "pose": "vista",
+          "calls": [
+            159,
+            159
+          ],
+          "triangles": [
+            1009293,
+            1009293
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "phone",
+          "pose": "altar",
+          "calls": [
+            193,
+            193
+          ],
+          "triangles": [
+            1090665,
+            1090665
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "desktop",
+          "pose": "beach-sea",
+          "calls": [
+            242,
+            242
+          ],
+          "triangles": [
+            1839563,
+            1839563
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "desktop",
+          "pose": "wreck",
+          "calls": [
+            219,
+            219
+          ],
+          "triangles": [
+            1794504,
+            1794504
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "calls": [
+            238,
+            238
+          ],
+          "triangles": [
+            1803344,
+            1803344
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "desktop",
+          "pose": "cave",
+          "calls": [
+            271,
+            271
+          ],
+          "triangles": [
+            1874876,
+            1874876
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "desktop",
+          "pose": "vista",
+          "calls": [
+            313,
+            313
+          ],
+          "triangles": [
+            2198792,
+            2198792
+          ],
+          "samePixels": true
+        },
+        {
+          "tier": "desktop",
+          "pose": "altar",
+          "calls": [
+            459,
+            459
+          ],
+          "triangles": [
+            2440425,
+            2440425
+          ],
+          "samePixels": true
+        }
+      ]
+    }
+  },
+  "maps": {
+    "status": "handed to sp-x10 under G490",
+    "requires": [
+      "driftwood-isle",
+      "pine-hollow"
+    ]
+  }
+}

@@ -29,12 +29,10 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const terrainLayout = (await imp('src/shards/driftwood-isle/data/layout.json')).default;
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
-  const { buildTrailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
-  const { islandTrailsideSpec, trailsideSpecKey } = await imp('src/shards/driftwood-isle/generators/trailsideLayout.ts');
+  const { originalTrailside } = await imp('src/shards/driftwood-isle/generators/driftwoodTrailside.mjs');
+  const { islandTrailsideSpec } = await imp('src/shards/driftwood-isle/generators/trailsideLayout.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
-  const { hut, bakedSite } = await imp('src/shards/driftwood-isle/runtime/models/fixedSites.ts');
-  const { modelContext } = await imp('src/engine/models/model.ts');
-  const { placeModelSite } = await imp('src/engine/models/place.ts');
+  const { originalHut } = await imp('src/shards/driftwood-isle/generators/driftwoodHut.mjs');
   const { HUT } = island;
   if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
   const palms = FOLIAGE.tiers.desktop.palms.specs;
@@ -47,8 +45,8 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const sky = { setupMaterial() { /* no CSM in Node */ }, viewCamera: new THREE.PerspectiveCamera() };
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: wl + 1.2, landing: true }).build();
   addObject(pier.group);
-  tryBuild('hut', () => { const s = bakedSite('hut', { site: HUT }); return placeModelSite(hut, s.origin, s.layout, { ctx: modelContext(sky), registry: null }).group; });
-  tryBuild('trailside', () => buildTrailside(sky, trailsideSpecKey(trailside)).mesh);
+  tryBuild('hut', () => { const row = originalHut(), group = new THREE.Group(), material = new THREE.MeshBasicMaterial({ vertexColors: true }); group.position.copy(row.layout.origin); group.add(new THREE.Mesh(row.kit, material), new THREE.Mesh(row.flames, material)); return group; });
+  tryBuild('trailside', () => new THREE.Mesh(originalTrailside().geometry, new THREE.MeshBasicMaterial({ vertexColors: true })));
 
   return {
     scene: {

@@ -8,7 +8,7 @@ import { addBarrel, addCoil, addCrate } from './cargo';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from './rockProfiles';
 import { addDriftLog, DRIFT } from './driftLogs';
-import type { WreckSpec, WreckAnchor, HoldBounds } from '../assets/contracts/wreck';
+import type { WreckSpec, WreckAnchor, HoldBounds } from './wreckContract';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BoxSpec, FloorRect } from '@wildshard/engine/physics/box';
 import { wreckCatalogue } from './wreckCatalogue';

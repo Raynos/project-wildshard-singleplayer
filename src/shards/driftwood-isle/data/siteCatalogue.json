@@ -1,0 +1,242 @@
+{
+  "product": "driftwood-isle",
+  "models": [
+    {
+      "key": "hut",
+      "id": "driftwood-isle/hut",
+      "name": "Hut",
+      "file": "src/shards/driftwood-isle/models/catalogue.ts",
+      "category": "buildings",
+      "pipeline": "code",
+      "surface": "planks",
+      "defaults": {},
+      "choices": [
+        {
+          "id": "world",
+          "params": {},
+          "size": [
+            11,
+            7,
+            8
+          ],
+          "draws": [
+            {
+              "id": "kit",
+              "library": "cascade",
+              "model": "hutKit",
+              "material": "still",
+              "castShadow": true,
+              "receiveShadow": true,
+              "renderOrder": 0
+            },
+            {
+              "id": "flames",
+              "library": "cascade",
+              "model": "hutFlames",
+              "material": "glow",
+              "castShadow": false,
+              "receiveShadow": false,
+              "renderOrder": 0
+            }
+          ],
+          "colliders": []
+        }
+      ]
+    },
+    {
+      "key": "lookout",
+      "id": "driftwood-isle/lookout",
+      "name": "Lookout tower",
+      "file": "src/shards/driftwood-isle/models/catalogue.ts",
+      "category": "buildings",
+      "pipeline": "code",
+      "surface": "planks",
+      "defaults": {},
+      "choices": [
+        {
+          "id": "world",
+          "params": {},
+          "size": [
+            6,
+            11,
+            9
+          ],
+          "draws": [
+            {
+              "id": "kit",
+              "library": "cascade",
+              "model": "lookout",
+              "material": "kit",
+              "castShadow": true,
+              "receiveShadow": true,
+              "renderOrder": 0
+            }
+          ],
+          "colliders": []
+        }
+      ]
+    },
+    {
+      "key": "shipwreck",
+      "id": "driftwood-isle/shipwreck",
+      "name": "Shipwreck",
+      "file": "src/shards/driftwood-isle/models/catalogue.ts",
+      "category": "buildings",
+      "pipeline": "code",
+      "surface": "planks",
+      "defaults": {},
+      "choices": [
+        {
+          "id": "world",
+          "params": {},
+          "size": [
+            12,
+            15,
+            24
+          ],
+          "draws": [
+            {
+              "id": "kit",
+              "library": "cascade",
+              "model": "wreckKit",
+              "material": "kit",
+              "castShadow": true,
+              "receiveShadow": true,
+              "renderOrder": 0
+            },
+            {
+              "id": "glow",
+              "library": "cascade",
+              "model": "wreckGlow",
+              "material": "glow",
+              "castShadow": false,
+              "receiveShadow": false,
+              "renderOrder": 0
+            }
+          ],
+          "colliders": []
+        },
+        {
+          "id": "specimen",
+          "params": {},
+          "size": [
+            12,
+            15,
+            24
+          ],
+          "draws": [
+            {
+              "id": "kit",
+              "library": "cascade",
+              "model": "shipwreckKit",
+              "material": "kit",
+              "castShadow": true,
+              "receiveShadow": true,
+              "renderOrder": 0
+            },
+            {
+              "id": "glow",
+              "library": "cascade",
+              "model": "shipwreckGlow",
+              "material": "glow",
+              "castShadow": false,
+              "receiveShadow": false,
+              "renderOrder": 0
+            }
+          ],
+          "colliders": []
+        }
+      ]
+    },
+    {
+      "key": "shrine",
+      "id": "driftwood-isle/shrine",
+      "name": "Ring shrine",
+      "file": "src/shards/driftwood-isle/models/catalogue.ts",
+      "category": "buildings",
+      "pipeline": "code",
+      "surface": "stone",
+      "defaults": {},
+      "choices": [
+        {
+          "id": "world",
+          "params": {},
+          "size": [
+            20,
+            13,
+            30
+          ],
+          "draws": [
+            {
+              "id": "kit",
+              "library": "cascade",
+              "model": "shrineKit",
+              "material": "still",
+              "castShadow": true,
+              "receiveShadow": true,
+              "renderOrder": 0
+            },
+            {
+              "id": "water",
+              "library": "cascade",
+              "model": "shrineWater",
+              "material": "shrine-pool",
+              "castShadow": false,
+              "receiveShadow": true,
+              "renderOrder": 1
+            },
+            {
+              "id": "glyphs",
+              "library": "cascade",
+              "model": "shrineGlyphs",
+              "material": "glyphs",
+              "castShadow": false,
+              "receiveShadow": false,
+              "renderOrder": 1
+            }
+          ],
+          "colliders": []
+        },
+        {
+          "id": "specimen",
+          "params": {},
+          "size": [
+            20,
+            13,
+            30
+          ],
+          "draws": [
+            {
+              "id": "kit",
+              "library": "cascade",
+              "model": "shrineSpecimenKit",
+              "material": "still",
+              "castShadow": true,
+              "receiveShadow": true,
+              "renderOrder": 0
+            },
+            {
+              "id": "water",
+              "library": "cascade",
+              "model": "shrineSpecimenWater",
+              "material": "shrine-pool",
+              "castShadow": false,
+              "receiveShadow": true,
+              "renderOrder": 1
+            },
+            {
+              "id": "glyphs",
+              "library": "cascade",
+              "model": "shrineSpecimenGlyphs",
+              "material": "glyphs",
+              "castShadow": false,
+              "receiveShadow": false,
+              "renderOrder": 1
+            }
+          ],
+          "colliders": []
+        }
+      ]
+    }
+  ]
+}

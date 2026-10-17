@@ -33,9 +33,9 @@ const bake = v.parse(PackedSpecimenSchema, { ...packedRows, bin: '/assets/nalati
 describe('declared specimen catalogue', () => {
   it('registers all original camp, yurt, bridge and trail definitions without building specimens', () => {
     expect(Object.keys(camp)).toHaveLength(53);
-    expect(Object.keys(trail)).toHaveLength(3);
+    expect(Object.keys(trail)).toHaveLength(8);
     const ids = new Set(definedModels().map(model => model.id));
-    for (const model of [...Object.values(camp), ...Object.values(trail)]) expect(ids.has(model.id)).toBe(true);
+    for (const model of [...Object.values(camp), ...Object.values(trail).filter(entry => 'id' in entry)]) expect(ids.has(model.id)).toBe(true);
   });
 
   it('retains nested parameter defaults and authored variant merges', () => {

@@ -2,18 +2,20 @@ import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { beforeAll, expect, it } from 'vitest';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { ShipwreckBuilder } from '../src/shards/driftwood-isle/generators/shipwreck';
-import { wreckSiteKind } from '../src/shards/driftwood-isle/runtime/models/fixedSites';
+import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import specimens from '../src/shards/driftwood-isle/boot/modelCatalogue.generated.json' with { type: 'json' };
 import { floorAtRects } from '../src/engine/physics/box';
 import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
 import bake from '../src/shards/driftwood-isle/data/wreckBake.json' with { type: 'json' };
 
+const catalogue = specimens.siteCatalogue;
+
 beforeAll(admitDriftwoodFixtureRows);
 
-it('admits the authored world wreck and Explorer specimen, refusing an unbaked site', () => {
-  expect(wreckSiteKind(WRECK_SITES.world)).toBe('world');
-  expect(wreckSiteKind(WRECK_SITES.specimen)).toBe('specimen');
-  expect(() => wreckSiteKind({...WRECK_SITES.world,x:WRECK_SITES.world.x+1})).toThrow('authored geometry');
-  expect(() => wreckSiteKind({...WRECK_SITES.specimen,roll:0})).toThrow('authored geometry');
+it('declares both authored wreck copies without an executable ground sampler', () => {
+  const row = parseWorldSceneModels(catalogue).models.find(model => model.key === 'shipwreck');
+  expect(row?.choices.map(choice => choice.params)).toEqual([{ site: WRECK_SITES.world }, { site: WRECK_SITES.specimen }]);
+  expect(row?.defaults).toEqual({ site: WRECK_SITES.specimen });
 });
 
 it('keeps the native hold, ramp and deck queries over the authored floor rows', () => {

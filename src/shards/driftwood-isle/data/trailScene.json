@@ -1,0 +1,32 @@
+{
+  "scene": {
+    "version": 1,
+    "root": "root",
+    "nodes": [
+      {
+        "kind": "group",
+        "id": "root",
+        "children": [
+          "trail"
+        ]
+      },
+      {
+        "kind": "mesh",
+        "id": "trail",
+        "geometry": "trail",
+        "material": "kit",
+        "missing": "empty",
+        "castShadow": true,
+        "receiveShadow": true
+      }
+    ],
+    "materials": [
+      {
+        "kind": "port",
+        "id": "kit",
+        "source": "kit"
+      }
+    ]
+  },
+  "imports": []
+}
