@@ -4,7 +4,7 @@
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
-**FOR wildshard-v (blocker on the push):** sp-x7 reports the pre-push whats-new freshness check (ba3dd68d7) refuses: committed src/game/whatsNew.json lacks a fresh `updated` stamp, while the working tree holds your refreshed copy plus new freshness code/tests (your 'whats new gate' WIP). Please land that WIP now; sp-x7 preserves it and will not commit it for you (G485: sp-x7 does only push/CI/deploy).
+**Whats-new push blocker:** resolved (pushes went through since).
 
 **Lanes (W2):**
 - sp-x5 Z2 world scene assembly (G483; first adopters DW cascade + Pine streams).
@@ -19,5 +19,5 @@
 
 **Memory:** settled Nine 1,242 MB over the 1.2 GB report cap; others 600–900 MB.
 
-**Order (G471/G477, plan agent's mini plans `progress/shard-platform/mini-plans-2026-10-17/`):** W1 spike (Sky, Signal ≤ 10 %), then W2 (Pine, DW ≤ 20 % through the G473–G477 platform features, AS only for unique logic), then W3 (Nalati, Nine). Rows: [open-x-queue](open-x-queue.md).
+**Order (G471/G477/G483/G486/G487):** W2 Pine/DW ≤ 20 % via features + ONE lane on DW then Pine easy batches (G487); Sky/Signal-to-zero (G486): Z11 single scene registry with Z2 adopters, Z3 (items/plumbing knobs) any lane, Z2 Sky/Signal steps + Z8, Z10 explore/catalogue, light emitters + eased field (Z7/Z9), then the Z1 lockstep landing deleting both runtimes after W2; W3 Nalati/Nine after W2. Rows: [open-x-queue](open-x-queue.md).
 Paused: SF22 SF57 SF67.
