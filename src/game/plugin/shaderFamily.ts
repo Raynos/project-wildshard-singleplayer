@@ -1,7 +1,8 @@
 import type { Scope } from "@wildshard/engine/app/scope";
 import type { SkyBackdropContext } from "@wildshard/engine/render/look";
 import type { Shardfile } from "@wildshard/format/shardSchema";
-import { AddEquation, AdditiveBlending, BackSide, Color, CustomBlending, DoubleSide, FrontSide, NoBlending, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial, SrcAlphaFactor, Vector2, Vector3, Vector4, ZeroFactor, type IUniform, type Material, type ShaderMaterialParameters, type Texture, ShaderChunk } from "three";
+import type { runtimeLookMaterials } from "../shardfile/runtimeProduct";
+import { AddEquation, AdditiveBlending, BackSide, Color, CustomBlending, DoubleSide, FrontSide, NoBlending, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial, SrcAlphaFactor, Vector2, Vector3, Vector4, ZeroFactor, type IUniform, type ShaderMaterialParameters, ShaderChunk } from "three";
 
 /**
  * A shader look family as declared rows (SHARD-PLATFORM M3, look-family rows): a shard that draws its world with its own
@@ -286,13 +287,11 @@ export function spliceEdits(rows: readonly ShaderEditRow[], extra: Readonly<Reco
  * compiler and catalogue load lazily here). They compile on the page renderer the engine hands the backdrop
  * (`SkyBackdropContext.renderer`), read here and never by the shard, which passes its whole context. `setParam` writes a
  * compiled graph's uniform by catalogue id after checking its declared shape (no program change); `setTexture` lends a
- * `role: 'lent'` texture param a texture the look made (a decoded sky key); the materials leave with `scope`.
+ * `role: 'lent'` texture param a texture the look made (a decoded sky key); the materials leave with `scope`. The whole
+ * compile pass comes back, so a runtime can lend it (`@wildshard/sdk/looks/lentLooks`). Users: Pine Hollow's forest looks,
+ * Nalati's camp smoke and water.
  */
-export async function lookGraphMaterials(scope: Scope, backdrop: Pick<SkyBackdropContext, 'renderer'>, source: Shardfile, ids: readonly string[]): Promise<{
-  readonly materials: ReadonlyMap<string, Material>; readonly setParam: (id: string, name: string, value: number | number[]) => void;
-  readonly setTexture: (id: string, name: string, texture: Texture) => void;
-}> {
-  const { runtimeLookMaterials } = await import('../shardfile/runtimeProduct');
-  const looks = await runtimeLookMaterials({ scope, renderer: backdrop.renderer }, source, true, ids);
-  return { materials: looks.materials, setParam: looks.setParam, setTexture: looks.setTexture };
+export async function lookGraphMaterials(scope: Scope, backdrop: Pick<SkyBackdropContext, 'renderer'>, source: Shardfile, ids: readonly string[]): ReturnType<typeof runtimeLookMaterials> {
+  const { runtimeLookMaterials: compile } = await import('../shardfile/runtimeProduct');
+  return compile({ scope, renderer: backdrop.renderer }, source, true, ids);
 }

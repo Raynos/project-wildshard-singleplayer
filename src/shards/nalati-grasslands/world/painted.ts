@@ -33,7 +33,6 @@
 import * as THREE from 'three';
 import { PaintKit, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
 import { Flutter } from './Flutter';
-import { Smoke } from './Smoke';
 import { boxDescs, highest, type Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './glbPaint';
 import type { Rng } from '@wildshard/engine/core/rng';
@@ -43,7 +42,7 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { NalatiTexName } from '../look/nalatiTextures';
-import type { Ground, Platform } from './types';
+import { NO_PLUMES, type Ground, type Platform, type Plumes } from './types';
 
 /** what a painted model paints into: a place's kit (its one rng stream) */
 export interface Kit {
@@ -58,7 +57,7 @@ export interface PaintAt { readonly x: number; readonly y: number; readonly z: n
 export interface PaintCtx {
   readonly ground: Ground;
   readonly flutter: Flutter;
-  readonly smoke: Smoke;
+  readonly smoke: Plumes;
 }
 
 /** what one copy made, world space: its boxes (data for the weather / the dressing's keep-out; a `ghost` one is data
@@ -101,7 +100,7 @@ function specimenParts<P extends object>(paint: Paint<P>, spec: PaintSpec, build
   const params: P = first ? { ...p, ...first.p } : p;
   const ground: Ground = first ? (x, z) => heightAt(x, z) : () => at.y;
   const kit = new PaintKit(spec.seed);
-  paint(kit, at, params, { ground, flutter: new Flutter(), smoke: new Smoke() });
+  paint(kit, at, params, { ground, flutter: new Flutter(), smoke: NO_PLUMES });
   const o: FinishOpts = { ...spec.finish, ground };
   const parts: { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] = [];
   const move = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.translate(-at.x, -at.y, -at.z); g.computeBoundingSphere(); g.computeBoundingBox(); return g; };

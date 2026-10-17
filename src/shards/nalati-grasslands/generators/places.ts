@@ -15,10 +15,9 @@ import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedT
 import { PaintKit, v3 } from '../world/paint';
 import { NalatiSet, paintedSpecimen, type MemberData, type PaintCtx } from '../world/painted';
 import { Flutter } from '../world/Flutter';
-import { Smoke } from '../world/Smoke';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE } from '../world/layout';
 import type { Box } from '../world/solid';
-import type { Ground } from '../world/types';
+import type { Ground, Plumes } from '../world/types';
 import { specimenKey, type DeckRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campGenerated';
 import { EAGLE_PERCH_H } from '../models/campProps';
@@ -47,10 +46,7 @@ class RecordingFlutter extends Flutter {
   override flag(top: THREE.Vector3, h: number, len: number, color: Rgb, o: { droop?: number; taper?: number } = {}): void { this.log.push(['flag', point(top), h, len, colour(color), o]); }
   override strip(a: THREE.Vector3, len: number, w: number, color: Rgb): void { this.log.push(['strip', point(a), len, w, colour(color)]); }
 }
-class RecordingSmoke extends Smoke {
-  constructor(private readonly log: EffectRow[]) { super(); }
-  override emitter(p: THREE.Vector3, o: { puffs?: number; rise?: number; size?: [number, number]; life?: number; density?: number } = {}): void { this.log.push(['emitter', point(p), o]); }
-}
+const recordingPlumes = (log: EffectRow[]): Plumes => ({ emitter: (p, o = {}) => { log.push(['emitter', point(p), o]); } });
 
 // ── the places (the builders, verbatim but for drawing: each mesh's geometry is kept with its material's kind) ─────────
 
@@ -296,7 +292,7 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
   const blocks: Uint8Array[] = [];
   const rows = [nomadCamp, bridge, summerCamp].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
-    const ctx: PaintCtx = { ground, flutter: new RecordingFlutter(effects), smoke: new RecordingSmoke(effects) };
+    const ctx: PaintCtx = { ground, flutter: new RecordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();
     return {
       name: p.name, group: p.group, surface: p.surface, tris: p.tris,

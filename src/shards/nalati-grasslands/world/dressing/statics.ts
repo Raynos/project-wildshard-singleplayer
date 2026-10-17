@@ -21,7 +21,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { PaintKit, poiMaterial, texturedMaterial } from '../paint';
 import { NalatiSet } from '../painted';
 import { Flutter } from '../Flutter';
-import { Smoke } from '../Smoke';
+import { NO_PLUMES } from '../types';
 import { campClutterSpots, type DressPlan } from './place';
 import { fence, fenceRun } from '../../models/fence';
 import { fallenLog, logEnds, stump, ovoo, viewpointPole, skyGateway, campClutter } from '../../models/dressingProps';
@@ -59,7 +59,7 @@ function* staticsSteps(sky: Sky, plan: DressPlan, flutter: Flutter): Generator<v
   };
   const descs: ColliderDesc[] = [];
   const rng = new Rng(0x0d7e);
-  const set = new NalatiSet(null, { ground, flutter, smoke: new Smoke() });
+  const set = new NalatiSet(null, { ground, flutter, smoke: NO_PLUMES });
   const on = (x: number, z: number, yaw = 0) => ({ x, y: ground(x, z), z, yaw });
 
   // ── logs + driftwood (no AO bake: a lone log has nothing to occlude it; the contact shade does the foot) ──
@@ -167,7 +167,7 @@ export async function buildCampClutterSliced(sky: Sky, avoid: readonly Collider[
 function* campClutterSteps(sky: Sky, avoid: readonly Collider[]): Generator<void, CampClutter> {
   const rng = new Rng(0xc1a7);
   const kit = new PaintKit(0xc1a8);
-  const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
+  const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: NO_PLUMES });
   const spots = campClutterSpots(avoid);
   yield;
   for (const s of spots) { set.paint(campClutter, { x: s.x, y: ground(s.x, s.z), z: s.z, yaw: s.yaw }, { kind: s.kind, rng }); yield; }

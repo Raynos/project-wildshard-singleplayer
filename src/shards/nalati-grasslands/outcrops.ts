@@ -19,7 +19,7 @@
 import { PaintKit } from './world/paint';
 import { NalatiSet } from './world/painted';
 import { Flutter } from './world/Flutter';
-import { Smoke } from './world/Smoke';
+import { NO_PLUMES } from './world/types';
 import { inPoiClearing } from './world/clearings';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
@@ -59,7 +59,7 @@ export async function buildOutcropsSliced(sky: Sky, due: () => Promise<void> | n
 function* outcropSteps(sky: Sky, seed: number): Generator<void, Outcrops> {
   const kit = new PaintKit(seed);
   const rng = kit.rng;
-  const set = new NalatiSet(kit, { ground: heightAt, flutter: new Flutter(), smoke: new Smoke() });
+  const set = new NalatiSet(kit, { ground: heightAt, flutter: new Flutter(), smoke: NO_PLUMES });
   const cluster = new Noise2D(seed + 11);
   const colliders: Collider[] = [];
   const descs: ColliderDesc[] = [];

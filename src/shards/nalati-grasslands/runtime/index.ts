@@ -29,6 +29,8 @@ import source from '../shard.config';
 import { bindNalatiPersistence, type NalatiPersistence } from './persistence';
 import { bindNalatiItems } from './items';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
+import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
+import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
 function host(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;
@@ -47,6 +49,8 @@ export class NalatiPlugin extends ShardPlugin {
     const shell = host(ctx), world = shell.world, step = shell.step;
     if (world === null || step === null) throw new Error('Nalati world requires counted boot steps');
     const { game, sky, forest, registry } = world;
+    // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
+    lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials)));
     this.persistence = bindNalatiPersistence(ctx, source, world.chunk.slug);
     ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });

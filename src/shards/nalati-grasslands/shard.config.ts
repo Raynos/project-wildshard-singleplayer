@@ -13,6 +13,7 @@ import { NALATI_ITEMS } from './data/items';
 import { NALATI_RUNTIME_SPAWNS } from './data/spawns';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import queryTerrain from './data/terrain.generated.json' with { type: 'json' };
+import lookGraphs from './data/lookGraphs.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
@@ -33,6 +34,7 @@ export default parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files, critical: [...navigation.critical, ...queryTerrain.critical],
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident },
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: files.reduce((sum, file) => sum + file.compressed, 0) } },
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: [...NALATI_FAR_HERD_CHANNELS,...weatherChannels.clientChannels],
   modes: NALATI_MODES, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items: NALATI_ITEMS, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },

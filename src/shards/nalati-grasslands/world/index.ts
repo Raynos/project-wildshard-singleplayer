@@ -32,8 +32,10 @@ import type { Placed } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { instancedQuad } from '@wildshard/sdk/looks/cardField';
+import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
-import { Smoke } from './Smoke';
 import { nomadCampSteps } from './NomadCamp';
 import { preloadNalatiPlaces } from './placeBake';
 import { buildBridge } from './Bridge';
@@ -46,13 +48,25 @@ import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Box } from './solid';
-import type { Ground, PoiCtx, PoiPiece } from './types';
+import type { Ground, PlumeOptions, Plumes, PoiCtx, PoiPiece } from './types';
+
+/** the camp smoke's look (data/lookGraphs.json, compiled and lent by runtime/index.ts): each puff a camera-facing card
+ *  whose whole life (rise, swell, lean downwind, fade) the graph computes from its plume, seed and the look clock */
+const SMOKE_LOOK = 'nalati-camp-smoke';
+interface Plume { x: number; y: number; z: number; puffs: number; rise: number; s0: number; s1: number; life: number }
+const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
 export class NalatiPOIs {
   group = new THREE.Group();
   pieces: PoiPiece[] = [];
   flutter = new Flutter();
-  smoke = new Smoke();
+  private readonly plumes: Plume[] = [];
+  /** every chimney / cook-fire plume the places make, drawn as one instanced quad on the camp-smoke look */
+  readonly smoke: Plumes = { emitter: (p: THREE.Vector3, o: PlumeOptions = {}) => {
+    const [s0, s1] = o.size ?? [0.35, 2.8];
+    this.plumes.push({ x: p.x, y: p.y, z: p.z, puffs: o.puffs ?? 12, rise: o.rise ?? 8, s0, s1, life: o.life ?? 9 });
+  } };
+  private smokeMesh: THREE.Mesh | null = null;
   /** every POI's boxes, as data (the weather's yurts, the dressing's keep-out) — the physics has them via the registry */
   colliders: Box[] = [];
   /** build ms per piece */
@@ -142,7 +156,27 @@ export class NalatiPOIs {
     run('glacier', buildGlacier);
     yield;
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
-    if (this.smoke.count > 0) this.group.add(this.smoke.build(this.sky));
+    if (this.plumes.length > 0 && hasLentLook(SMOKE_LOOK)) { this.smokeMesh = this.buildSmoke(); this.group.add(this.smokeMesh); }
+  }
+
+  /** one card per puff: its plume, its seed (spread, spin, lobe, the phase of its life) and its plume's rise / size / life */
+  private buildSmoke(): THREE.Mesh {
+    const emitter: number[] = [], seed: number[] = [], cfg: number[] = [], box = new THREE.Box3();
+    let s = 12345;
+    const rnd = (): number => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    for (const e of this.plumes) {
+      box.expandByPoint(new THREE.Vector3(e.x, e.y, e.z)).expandByPoint(new THREE.Vector3(e.x, e.y + e.rise + e.s1, e.z));
+      for (let i = 0; i < e.puffs; i++) {
+        seed.push(rnd(), rnd(), rnd(), i / e.puffs + rnd() * 0.3 / e.puffs);
+        emitter.push(e.x, e.y, e.z); cfg.push(e.rise, e.s0, e.s1, e.life);
+      }
+    }
+    const attribute = (a: number[], size: number): THREE.InstancedBufferAttribute => new THREE.InstancedBufferAttribute(new Float32Array(a), size);
+    const geometry = instancedQuad(new THREE.PlaneGeometry(1, 1), { aEmitter: attribute(emitter, 3), aSeed: attribute(seed, 4), aCfg: attribute(cfg, 4) });
+    const sphere = box.getBoundingSphere(new THREE.Sphere()); sphere.radius += 12; geometry.boundingSphere = sphere;
+    const mesh = new THREE.Mesh(geometry, lentLook(SMOKE_LOOK));
+    mesh.name = 'nalati-smoke'; mesh.renderOrder = 3;
+    return mesh;
   }
 
   /** into the scene, and each POI into the world registry (drawn, collides, in Explore) — at once (the dev pages) */
@@ -170,7 +204,12 @@ export class NalatiPOIs {
 
   update(dt: number): void {
     this.flutter.update(dt);
-    this.smoke.update(dt);
+    if (this.smokeMesh !== null) {
+      const { uPWind, uPShade } = painterlyUniforms, wind = uPWind.value, shade = uPShade.value, sun = this.sky.sunColor;
+      setLentParam(SMOKE_LOOK, 'wind', [clamp(wind.x, -8, 8), clamp(wind.y, -8, 8), clamp(wind.z, -8, 8)]);
+      setLentParam(SMOKE_LOOK, 'shade', [shade.r, shade.g, shade.b]);
+      setLentParam(SMOKE_LOOK, 'sunColour', [sun.r, sun.g, sun.b]);
+    }
     for (const p of this.pieces) p.update?.(dt, this.viewer);
   }
 
@@ -179,7 +218,7 @@ export class NalatiPOIs {
     const out: Record<string, number> = {};
     for (const p of this.pieces) out[p.name] = p.tris;
     out['cloth'] = (this.flutter.mesh?.geometry.index?.count ?? 0) / 3;
-    out['smoke'] = (this.smoke.mesh?.geometry.index?.count ?? 0) / 3;
+    out['smoke'] = this.smokeMesh === null ? 0 : this.plumes.reduce((n, e) => n + 2 * e.puffs, 0);
     return out;
   }
 }
