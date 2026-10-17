@@ -1,3 +1,4 @@
+import BUILDING_LOOK from '../src/shards/pine-hollow/data/buildingLook.json' with { type: 'json' };
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { CabinRowsSchema } from '../src/shards/pine-hollow/runtime/world/homestead';
@@ -12,7 +13,7 @@ test('admitted cabin JSON retains every authored material and life value and rej
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing named cabin JSON');
   const rows = v.parse(CabinRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
-  expect(rows).toEqual({ CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE, CABIN_PBR,
+  expect(rows).toEqual({ BUILDING_LOOK, CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE, CABIN_PBR,
     CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT, HEARTH_LOOKS, TIMBER_DRAWS, TIMBER_GLASS });
   expect(() => v.parse(CabinRowsSchema, { ...rows, extra: true })).toThrow();
   expect(() => v.parse(CabinRowsSchema, { ...rows, CABIN_LIFE: { ...rows.CABIN_LIFE, fire: [0.7] } })).toThrow();
