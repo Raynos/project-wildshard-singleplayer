@@ -59,20 +59,21 @@ test('page binding refuses absent or ambiguously presented interactions before c
   expect(bucket.visible).toBe(false);expect(flags.all).toEqual([]);
 });
 
-function nativeLash(host:SimHost,effects:NativeRuntimeEffect[]) {
+function nativeLash(host:SimHost,effects:NativeRuntimeEffect[],dispatch=true) {
   const rules=new InteractionRules(host.flags,interactionRows());
-  const melee=installNativeMelee(host,{id:whip,contacts:WHIP_CONTACT_MOVES},SIGNAL_MELEE_HOST,{inputCommands:()=>[],worldActor:'quest'});
+  const melee=installNativeMelee(host,{id:whip,contacts:WHIP_CONTACT_MOVES},SIGNAL_MELEE_HOST,{inputCommands:()=>[],worldActor:'quest',
+    world:[{act:1,at:{x:0,y:1.68,z:-4},radius:.8,crack:'heavy'}]});
   installInteractionRows(host,rules,{actorId:'quest',stepId:'quest.targets',commands:()=>[],
     spots:{crank:{x:0,y:1.68,z:-4,radius:.8}},crack:{reach:{light:7,heavy:8},cracked:melee.cracked}});
-  bindNativeWorldTargets(host,melee,{rules,run:id=>rules.run(id)},rayTargets(),effect=>{effects.push(effect);});
+  if(dispatch)bindNativeWorldTargets(host,melee,{rules,run:id=>rules.run(id)},rayTargets(),effect=>{effects.push(effect);});
   return {melee,rules};
 }
 
-test('native attachment resumes a pending double contact on its original clock, without replay during installation',async()=>{
+test('native attachment resumes a legacy pending double contact on its original clock, without install replay',async()=>{
   const level={...SIM_LEVEL,entities:[]}, physics=await rapier, host=createSimHost(level,{rapier:physics}), effects:NativeRuntimeEffect[]=[];
   let resumed:SimHost|undefined;
   try {
-    const live=nativeLash(host,effects);expect(effects).toEqual([]);
+    const live=nativeLash(host,effects,false);expect(effects).toEqual([]);
     live.melee.family.swing(1);for(let i=0;i<12;i++)host.step();
     expect(live.rules.has('raised')).toBe(false);const saved=snapshotSimHost(host);
     for(let i=0;i<12;i++)host.step();expect(live.rules.has('raised')).toBe(true);

@@ -325,7 +325,8 @@ test('retained pose and eased depth read one admitted body and refuse a bad fram
   try{
     const actor=sim.host.entities.get('actor.a');if(actor===undefined)throw new Error('Missing retained pose body');
     const source=structuredClone(f.source);source.creatures.spawns=[];
-    source.runtime={entry:'runtime/index.ts',binds:['spawns'],spawns:{homes:[],actors:[],bosses:[{id:'actor.a',kind:'boar',look:'boar',at:[0,5],yaw:0}]}};
+    source.runtime={entry:'runtime/index.ts',binds:['spawns'],spawns:{homes:[],actors:[],bosses:[
+      {id:'actor.a',kind:'boar',look:'boar',at:[0,5],yaw:0},{id:'actor.b',kind:'boar',look:'boar',at:[0,7],yaw:0}]}};
     source.state.shared.push({id:90,name:'lift',type:'f64',privacy:'public',default:0,min:0,max:1});
     const script=f.scripts[0];if(script===undefined)throw new Error('Missing pose fixture guest');
     script.actors={a:'actor.a'};script.commands=[];script.fields={};script.flags={};script.moves={};script.strikes={};
@@ -336,6 +337,9 @@ test('retained pose and eased depth read one admitted body and refuse a bad fram
       contact:{kind:'environment',halfArc:Math.PI},actions:{stateKey:'phase',states:['hide','attack','idle','perch'],actions:[]},offset:{field:'lift',from:-2.8,to:0}});
     control.observe({calm:false,reach:()=>true,claim:()=>true,hurt:()=>undefined});
     actor.mem['phase']=1;actor.mem['lift']=.25;owner.step();
+    const unrelated=owner.entities.get('actor.b');if(unrelated===undefined)throw new Error('Missing other retained body');
+    unrelated.applyFinalDamage(1,unrelated.position,unrelated.position);
+    expect(()=>owner.step()).not.toThrow();
     expect(actor.state).toBe('attack');expect(actor.yOffset).toBeCloseTo(-2.8+2.8*.25*.25*(3-2*.25));
     expect(owner.entities.get(actor.entityId)).toBe(actor);const beforeState=actor.state,depth=actor.yOffset;
     actor.mem['phase']=2;actor.mem['lift']=2;

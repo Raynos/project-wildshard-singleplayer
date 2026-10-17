@@ -180,7 +180,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     })();
     const ledger = ledgerPorts(context.emit);
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot, borrowedDecisionAuthority(shard, assets, sections, {
-      scope: host.scope, events: host.events, flags: host.flags, physics: host.physics, player: host.player, groundHeightAt: host.groundHeightAt.bind(host),
+      scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, player: host.player, groundHeightAt: host.groundHeightAt.bind(host),
       live: actor => host.entities.get(actor.entityId) === actor, fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run)); },
     })) };
   } };

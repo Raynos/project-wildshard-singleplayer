@@ -59,7 +59,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     const places = this.places;
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
-      this.whip?.aimAt(places.crackables);
+      if (this.whip !== null) places.contacts.bindWorldTargets(this.whip);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       await this.bindPageFight(ctx);
     }

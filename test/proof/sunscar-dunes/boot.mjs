@@ -9,14 +9,15 @@ import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 import { installAppIdentity } from '../../../src/engine/app/identity.ts';
 import { WILDSHARD_IDENTITY } from '../../../src/game/identity.ts';
 import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime.ts';
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 installAppIdentity(WILDSHARD_IDENTITY);
 const root = new URL('../../../', import.meta.url);
 const rapier = await loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', root)));
 const assets = new Map(source.files.map((file) => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/sunscar-dunes/assets/${file.hash}`, root)))]));
-// The declared entry (`runtime.entry`'s headless sibling, the one the witness and the worker load), never a URL from the shardfile.
-const adapter = await createTrustedHeadlessAdapter({ shard: source, assets, rapier }, { module: new URL('src/shards/sunscar-dunes/runtime/headless.ts', root).href });
+// The same verified built runtime plan as the shipping worker, without a shard module URL.
+const adapter = await createTrustedHeadlessAdapter({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/sunscar-dunes') });
 try {
   adapter.step([]);
   const commit = adapter.commit(), snapshot = decodeSimSnapshot(commit.snapshot);

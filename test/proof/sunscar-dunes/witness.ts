@@ -10,10 +10,11 @@ import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
-import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
+import { productHeadlessSections } from '../../../src/sdk/headlessSections';
+import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
+import { prepareNativeRuntime, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
-import { prepareHeadlessRuntime } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
@@ -28,7 +29,7 @@ import * as v from 'valibot';
 import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 
 /**
- * Signal Dunes' whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`, composed
+ * Signal Dunes' whole-shard witness (E435 §C / SF72) on its admitted sim/runtime-plan section, composed
  * exactly as the platform's trusted adapter composes it (`createTrustedHeadlessAdapter`: the plan's level and ports, one
  * install, the tick's commands lent to the runtime, its effects buffered per tick), and cross-checked against the
  * shipping worker (`HeadlessSimulation` + `trustedRuntime`) from the mid-fight checkpoint. The player's tape is a set of
@@ -36,9 +37,8 @@ import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes
  * the prompts in reach, the creature in the lash's reach. It walks the signal quest from the spawn, lights the fire and
  * fights the Dune Matriarch to her fall. Nothing writes health, flags, positions or facts: every outcome is gameplay.
  */
-export const ENTRY = 'runtime/headless.ts';
+export const ENTRY = 'sim/runtime-plan';
 const ROOT = new URL('../../../', import.meta.url);
-const MODULE = new URL(`src/shards/sunscar-dunes/${ENTRY}`, ROOT).href;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/sunscar-dunes/assets/${file.hash}`, ROOT)))]));
 const EYE = 1.68;
 const identity = { instance: 'sunscar-witness', shard: source.identity.slug, revision: source.identity.revision };
@@ -61,7 +61,7 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function signalRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export async function signalPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/sunscar-dunes') }); }
+export async function signalPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareNativeRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/sunscar-dunes') }); }
 
 function context(session: Omit<Session, 'host'>, saved?: string): HeadlessRuntimeInstallation {
   return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: decodeSimSnapshot(saved) }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };
@@ -255,7 +255,11 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
     // the shipping worker, started from the same checkpoint, continues to the same state
-    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    const product = await loadHeadlessProduct('out/sunscar-dunes'), descriptor = outputDescriptor(product.shardfile);
+    if (descriptor === undefined) throw new Error('Missing admitted Signal native output');
+    const workerAssets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
+      Uint8Array.from(readFileSync(`out/sunscar-dunes/${file.path}`))]));
+    worker = await HeadlessSimulation.create(product.shardfile, workerAssets, checkpoint, { deadline: 'advisory', sections: productHeadlessSections(product) });
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
     if (commit === undefined || canonicalSimDigest(commit.snapshot) !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');

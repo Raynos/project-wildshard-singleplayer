@@ -62,7 +62,7 @@ test('the Matriarch guest borrows each encounter body and resumes its grounded c
     });
     restored.events.answer('damage.modify', request => request?.target === restored?.player.health ? null : request, restored.scope);
     expect(policy(restored)).toEqual(policy(host));
-    for (let i = 0; i < 30; i++) { host.step(); restored.step(); }
+    for (let i = 0; i < 360; i++) { host.step(); restored.step(); }
     expect(policy(restored)).toEqual(policy(host));
     expect(environment.encounter.boss.onPlayerDeath()).toBe(true);
     for (let i = 0; i < 600; i++) host.step();

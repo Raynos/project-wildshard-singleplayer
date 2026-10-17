@@ -179,7 +179,9 @@ export class ShardDecisions {
   private actor(handle: number) { const name = requireValue(this.actors.get(handle), 'unknown actor'); return name === this.sim.player.id ? undefined : requireValue(this.sim.entities.get(name), 'absent actor'); }
   private combatHandle(id: string): number | undefined {
     for (const [handle, name] of this.actors) if (this.sim.borrowedActors?.has(name) === true && this.sim.entities.get(name)?.combatActor().id === id) return handle;
-    return this.names.get(id);
+    // A retained-body binding shares the world's events but lends only its own body.
+    // A catalogue identity alone is not authority to sample another binding's actor.
+    return id === this.sim.player.id || this.sim.entities.has(id) ? this.names.get(id) : undefined;
   }
   private position(handle: number) { return handle === DECISION_PLAYER_HANDLE ? this.sim.player.position : requireValue(this.actor(handle), 'actor position').position; }
   private name(kind: keyof DecisionRegistries, id: number): string { return requireValue(inverse(this.registries[kind]).get(id), `undeclared ${kind}`); }

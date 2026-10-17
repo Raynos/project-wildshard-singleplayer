@@ -5,7 +5,6 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { createQuestPagePrompts, bindClientChannels, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 import type { SignalDunesPlugin } from '../plugin';
-import source from '../runtime/source';
 
 import { BRAZIERS } from '../data/layout';
 import { STRINGS } from '../data/strings';
@@ -17,15 +16,12 @@ import { FLAG } from '../data/flags';
 
 type ShardContext = Parameters<SignalDunesPlugin['world']>[0];
 
-/** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
-export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }
-
 /** The signal fire's view and read-only state; admitted interactions own ignition. */
 export interface SignalFire { tower: TowerParts; brazier: Interactable; readonly lit: boolean; onLight: (() => void) | null }
 export interface Brazier { parts: BrazierParts; spot: Interactable; readonly oiled: boolean; readonly lit: boolean; light: () => boolean }
 export interface SignalWorld {
   fire: SignalFire; braziers: Brazier[]; well: WellParts & { readonly raised: boolean; pull: () => boolean; spot: Interactable };
-  logbook: Interactable; crackables: Crackable[]; flags: Flags;
+  logbook: Interactable; contacts: ReturnType<typeof bindQuestPageInteractions>; flags: Flags;
   /** the braziers lit so far */
   readonly litCount: number;
 }
@@ -44,6 +40,7 @@ const WAY_LIGHT = 9;
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, keepChannels: (channels: ReturnType<typeof bindClientChannels>) => ReturnType<typeof bindClientChannels> = channels => channels): SignalWorld {
+  const source = ctx.product.shardfile;
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
   // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)
   const pieces = WORLD.placements(ctx.piece, ctx.root, baked);
@@ -85,10 +82,9 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   const fire: SignalFire = { tower, get lit() { return rules.has('fire'); }, onLight: null, brazier: firePrompt };
   const presentation = bindQuestPageInteractions(source, { flags, rules,
     owners: new Map<string,unknown>([['world',{logbook,well,braziers,fire}],['commands',{catchFire:()=>{fireCaught(fire);}}]]),
-    ...(interactables===undefined?{}:{interactables}),toast: text => { toast(ctx, text); } });
+    ...(interactables===undefined?{}:{interactables}),toast: text => { toast(ctx, text); } }, ctx.product.section('world/targets'));
   page = presentation.run;
 
-  const crackables = [...presentation.world.targets];
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ctx.scope.ownPrimitives(ctx.root);
   // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to
@@ -104,11 +100,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
     for (const [i, state] of lightStates.entries()) state.lit = braziers[i]?.lit ?? false;
     tickFires(t);
-    const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me);
     channels.evaluate(programs[0]?.id ?? '', { time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
+    const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me);
       if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
     tower.light.intensity = TOWER_LIGHT * flick;
   } });
-  return { fire, braziers, well, logbook, crackables, flags, get litCount() { return braziers.filter((b) => b.lit).length; } };
+  return { fire, braziers, well, logbook, contacts: presentation, flags, get litCount() { return braziers.filter((b) => b.lit).length; } };
 }
