@@ -151,7 +151,12 @@
     "./nativePhysics": "./nativePhysics.ts",
     "./worldPhysics": "./worldPhysics.ts",
     "./platformDataSections": "./platformDataSections.ts",
-    "./heldArms": "./heldArms.ts"
+    "./heldArms": "./heldArms.ts",
+    "./populationWaves": "./populationWaves.ts",
+    "./herdShelter": "./herdShelter.ts",
+    "./populationRespawn": "./populationRespawn.ts",
+    "./nativeActors": "./nativeActors.ts",
+    "./populationRoster": "./populationRoster.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

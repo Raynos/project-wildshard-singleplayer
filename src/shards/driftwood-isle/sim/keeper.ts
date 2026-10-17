@@ -15,7 +15,6 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav, type HuntSpecies } from '@wildshard/engine/ai/hunt';
-import { EntityIds } from '@wildshard/engine/entities/ids';
 import { Bodies, type BodyLaunchRow } from '@wildshard/engine/physics/bodies';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -23,7 +22,7 @@ import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { COCONUTS, CoconutVolley } from '../combat/strikes';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
-import { RespawnQueue } from '../runtime/ecology';
+import { RespawnQueue } from '@wildshard/sdk/populationRespawn';
 
 const poseSailor = numericCreaturePose(sailorClips);
 
@@ -198,6 +197,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const intake = createNativeCreatureRoster<IslandBody>(host, {
     specs: specs.values(), variants: new Map(roster.variants.map(row => [row.kind, row.rows])),
     rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', hunt, hunted: [...FAUNA], poses });
+  const entityIds = intake.identities;
+  for (let i = 0; i < BODY_COUNT; i++) entityIds.allocate();
   /** a body the roster made: a sailor on a deck keeps the hold's floor under his feet; an enemy takes its shipping policy */
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
   const join = (body: IslandBody, actor: HuntBody): void => {
@@ -236,8 +237,6 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   }
 
   /** the manager's own entity ids (EntityIds('creature')): the load-time roster took creature:0–33, each later spawn the next */
-  const entityIds = new EntityIds('creature');
-  for (let i = 0; i < BODY_COUNT; i++) entityIds.allocate();
   const allocateId = (): string => entityIds.allocate();
   /** Enemies.placePracticeCrab: a fresh small crab in the practice slot at the pier's foot, facing down the path, a herd of
    *  one, under the manager's next entity id. */
@@ -258,7 +257,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const spawnRandom = (): number => host.rng.stream('spawn').next();
   const allocated = { id: '', yaw: 0 };
   const allocateRespawn = (): typeof allocated => { allocated.id = entityIds.allocate(); allocated.yaw = spawnRandom() * Math.PI * 2; return allocated; };
-  const queue = new RespawnQueue(roster.ecology.rules, spawnRandom, roster.ecology.outOfSight), ecology = { now: 0, check: 0 };
+  const queue = new RespawnQueue(roster.ecology.rules, { authority: host.rng, name: 'spawn' }, roster.ecology.outOfSight), ecology = { now: 0, check: 0 };
   const pendingIds = new Map<(typeof queue.pending)[number], string>();
   host.events.on('actor.died', ({ actor }) => {
     const body = bodies.find(b => b.actor?.combatActor() === actor), a = body?.actor;
@@ -332,7 +331,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: common.clock, speed: common.noise.speed, prev: common.noise.seen ? common.noise.prev : null,
         memories: common.memories, sight: common.sight },
-      herds: common.herds, practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
+      herds: common.herds, practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.allocatorState(),
       bodies: bodies.map(b => ({ id: b.id, kind: b.kind, variant: b.variant, herd: b.herd, live: b.actor !== null, pose: b.actor === null ? null : poses.get(b.id)?.snapshot() ?? null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
       captain: captain === null ? null : { id: captain.id, pose: poses.get(captain.id)?.snapshot() ?? '', policy: v.parse(v.union([v.boolean(),v.string()]), captain.brain?.snapshot()) } }); },
     restore: value => {
@@ -345,7 +344,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       reattach = volley.restore(state.coconuts, i => bodies[i]?.actor ?? null);
       ecology.now = state.ecology.now; ecology.check = state.ecology.check; queue.pending.length = 0; pendingIds.clear();
       state.ecology.pending.forEach(({ id, ...entry }) => { queue.pending.push(entry); pendingIds.set(entry, id); });
-      practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restore(state.ids);
+      practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restoreAllocator(state.ids);
       hunt.tokens.clear(); holders.forEach(a => { hunt.tokens.take(a); });
       state.bodies.forEach(b => { if ((b.pose !== null) !== b.live) throw new Error('Missing Driftwood pose continuation'); if (b.pose !== null) poses.get(b.id)?.restore(b.pose); });
       if (state.captain !== null) poses.get(state.captain.id)?.restore(state.captain.pose);

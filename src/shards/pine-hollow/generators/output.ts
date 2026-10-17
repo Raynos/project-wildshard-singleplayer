@@ -1,3 +1,10 @@
+import nightPopulation from '../data/nightPopulation.generated.json' with { type: 'json' };
+import nightTuning from '../data/populationWaves.json' with { type: 'json' };
+import nightRule from '../data/populationNight.json' with { type: 'json' };
+import shelterLook from '../data/populationShelter.json' with { type: 'json' };
+import { POPULATION_ROSTER } from './population';
+import nightDeclaration from '../data/nightDirector.json' with { type: 'json' };
+import nightModule from '../behaviour/night.generated.json' with { type: 'json' };
 import persistence from '../data/persistence.json' with {type:'json'};
 import { PINE_TERRAIN } from '../data/terrainBindings';
 import headlessEntries from '../data/entryWalk.json' with { type: 'json' };
@@ -63,6 +70,9 @@ const clientJson=emitNamedBlobs([nameBlob('quests/persistence.json','json',new T
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(NATIVE_VIEW))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries } }))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
+  nameBlob('actors/night.json', 'json', new TextEncoder().encode(JSON.stringify({ ...nightPopulation, tuning: nightTuning, rule: nightRule, declaration: nightDeclaration, module: nightModule, seed: 357 }))),
+  nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', herdLimit: 512, look: shelterLook }))),
+  nameBlob('actors/roster.json', 'json', new TextEncoder().encode(encodeCanonicalJson(POPULATION_ROSTER))),
   nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows())))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),

@@ -10,11 +10,14 @@ import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { kingDormant, kingFight, kingFightState, kingPresence, restoreKingFight, type KingCoreEnv, type KingFight } from '../combat/kingFight';
 import { Lane } from '../combat/lane';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import type { PineHuntBody, PineParked } from './roster';
+import type { NativePopulationActor, DormantPopulationActor as PineParked } from '@wildshard/sdk/populationRoster';
 import { pineBake } from './baked';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
+
+/** Optional collision queries attached by the King's pose owner. */
+export type PineHuntBody = NativePopulationActor & { foreCapsule?: (a: Vector3, b: Vector3) => boolean; ribsWorld?: (out: Vector3) => Vector3; publishKingHead?: () => void };
 
 type BossBrain = ReturnType<typeof installBossRow>['boss'];
 type BossDefinition = Parameters<typeof installBossRow>[1]['definition'];

@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
-import { HerdShelter } from '../src/shards/pine-hollow/runtime/species/herdShelter';
-import { PINE_HERD_SHELTER as look } from '../src/shards/pine-hollow/data/weatherLook';
+import { HerdShelter } from '../src/game/population/shelter';
+import look from '../src/shards/pine-hollow/data/populationShelter.json' with { type: 'json' };
 
 test('page and native herds share wet goals and atomically resume a v1 shelter save', () => {
   const herds = [{ kind: 'deer', cx: 10, cz: 0, members: [] }, { kind: 'boar', cx: 200, cz: 0, members: [] }, { kind: 'bear', cx: 0, cz: 0, members: [] }];
   const trees = [{ x: 0, z: 0, r: 1, height: 25, cover: 1 }];
-  const shelter = new HerdShelter({ herds }, trees, (_x, _z, tree) => tree.cover, look);
+  const shelter = new HerdShelter({ herds }, trees, look);
   shelter.update(1, look.wet);
   expect(shelter.wanderGoal(0, 1)).toBeNull();
   shelter.update(1, 1);
@@ -16,7 +16,7 @@ test('page and native herds share wet goals and atomically resume a v1 shelter s
     { home: { x: 10, z: 0 }, spot: { x: 3.2, z: 0 }, hold: 80 },
     { home: { x: 200, z: 0 }, spot: null, hold: 80 }, null
   ] };
-  const resumed = new HerdShelter({ herds: herds.map(({ kind, cx, cz, members }) => ({ kind, cx, cz, members })) }, trees, () => 1, look);
+  const resumed = new HerdShelter({ herds: herds.map(({ kind, cx, cz, members }) => ({ kind, cx, cz, members })) }, trees, look);
   resumed.restore(legacy);
   expect(resumed.snapshot()).toEqual(legacy);
   expect(resumed.wanderGoal(0, 0)).toEqual({ x: 10, z: 0, r: look.homeR });

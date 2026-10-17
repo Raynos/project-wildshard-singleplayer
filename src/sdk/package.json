@@ -153,7 +153,12 @@
     "./decisionScriptBindings": "./decisionScriptBindings.ts",
     "./decisionSource": "./decisionSource.ts",
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
-    "./projectDecisions": "./projectDecisions.ts"
+    "./projectDecisions": "./projectDecisions.ts",
+    "./populationWaves": "./populationWaves.ts",
+    "./populationShelter": "./populationShelter.ts",
+    "./populationRespawn": "./populationRespawn.ts",
+    "./populationRoster": "./populationRoster.ts",
+    "./populationPageWaves": "./populationPageWaves.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

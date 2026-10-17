@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { RespawnQueue } from '../src/shards/driftwood-isle/runtime/ecology';
+import { RespawnQueue } from '../src/game/population/respawn';
 import { PageRespawnQueue } from '../src/shards/driftwood-isle/quest/Ecology';
 
 test('respawns retain rolled delays, night and distance gates, reverse order and entry identity', () => {
   const draws: number[] = [];
-  const queue = new RespawnQueue({ crab: { delay: { min: 2, max: 6 } }, sailor: { delay: { min: 1, max: 1 }, night: true } }, () => { draws.push(.5); return .5; }, 60);
+  const queue = new RespawnQueue({ crab: { delay: { min: 2, max: 6 } }, sailor: { delay: { min: 1, max: 1 }, night: true } }, { next: () => { draws.push(.5); return .5; } }, 60);
   expect(queue.add('captain', undefined, -1, 0, 0, 0)).toBeNull();
   expect(draws).toEqual([]);
   const crab = queue.add('crab', 'big', 3, 0, 0, 10), sailor = queue.add('sailor', undefined, -1, 0, 0, 10);
@@ -20,12 +20,12 @@ test('respawns retain rolled delays, night and distance gates, reverse order and
 });
 
 test('the native bound refuses atomically while the page retains fresh, uncapped results', () => {
-  const queue = new RespawnQueue({ crab: { delay: { min: 0, max: 0 } } }, () => .5, 60);
+  const queue = new RespawnQueue({ crab: { delay: { min: 0, max: 0 } } }, { next: () => .5 }, 60);
   for (let i = 0; i < 257; i++) queue.add('crab', undefined, i, 0, 0, 0);
   const pending = [...queue.pending];
   expect(() => queue.take(1, 100, 0, 1)).toThrow('exceeds its native bound');
   expect(queue.pending).toEqual(pending);
-  const page = new PageRespawnQueue({ crab: { delay: { min: 0, max: 0 } } }, () => .5, 60);
+  const page = new PageRespawnQueue({ crab: { delay: { min: 0, max: 0 } } }, { next: () => .5 }, 60);
   page.pending.push(...pending);
   const due = page.take(1, 100, 0, 1);
   expect(due).toEqual(pending.reverse());

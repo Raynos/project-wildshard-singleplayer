@@ -13,59 +13,36 @@
  * The thrall models are the King's (antlerKing.ts builds one of each kind at boot), so nothing here compiles mid-play.
  */
 import * as THREE from 'three';
-import { PineNightDirector } from '../runtime/nightDirector';
+import { PagePopulationWaves } from '@wildshard/sdk/populationPageWaves';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { variantDef } from '@wildshard/engine/entities/species/registry';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Puffs } from '../runtime/combat/fxKit';
-import { own, release, retire } from '../combat/ctx';
-import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
-
-const MOSS = new THREE.Color(0.5, 0.62, 0.42);
-/** a thrall of `kind`: the creature lane's variant, else the moss-tinted stand-in the King's fight uses */
-export function spawnThrall(animals: AnimalManager, kind: 'elk' | 'boar', x: number, z: number, yaw: number): Animal {
-  const real = variantDef(kind, 'thrall').id === 'thrall';
-  const a = animals.spawn(kind, x, z, yaw, real ? 'thrall' : kind === 'elk' ? 'bull' : 'black');
-  if (!real) {
-    a.label = 'Thrall';
-    const m = Array.isArray(a.mesh.material) ? a.mesh.material[0] : a.mesh.material;
-    if (m instanceof THREE.MeshStandardMaterial) m.color.multiply(MOSS);
-  }
-  return a;
-}
-
-const MAX = TIER === 'phone' ? 3 : 4;
 
 export interface NightHost {
-  animals: AnimalManager;
-  scene: THREE.Scene;
-  night: () => number;
-  /** the miller's errand is on (asked, not done) */
-  errand: () => boolean;
-  onErrandDone: () => void;
-  shot: (name: 'thrall_call' | 'thrall_groan' | 'thrall_move', at: THREE.Vector3) => void;
+  animals: AnimalManager; scene: THREE.Scene; night: () => number;
+  errand: () => boolean; onErrandDone: () => void;
+  shot: (name: string, at: THREE.Vector3) => void;
 }
-
+/** The shard's puff/sound presentation; population ownership and spawning are shared game mechanics. */
 export class NightThralls {
-  private readonly brain: PineNightDirector<Animal>;
+  private readonly brain: InstanceType<typeof PagePopulationWaves>;
   private readonly puffs: Puffs;
   private readonly point = new THREE.Vector3();
-  constructor(h: NightHost, lane: DirectorLane) {
-    const spawner = thrallSpawner(h.animals, (kind, x, z, yaw) => spawnThrall(h.animals, kind, x, z, yaw));
+  constructor(private readonly h: NightHost, lane: DirectorLane, rows: unknown) {
     this.puffs = new Puffs(h.scene, new THREE.Color(0.55, 0.7, 0.62), 3);
-    this.brain = new PineNightDirector<Animal>(lane, {
-      night: h.night, errand: h.errand, onErrandDone: h.onErrandDone, stream: { next: Math.random }, ground: { heightAt },
-      shot: (name, actor) => { h.shot(name, actor.position); },
-      spawn: (kind, x, z, yaw) => spawnThrallFrom(spawner, kind === 'elk' ? 'elk' : 'boar', x, z, yaw,
-        () => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw)), own, release,
-      retire: (actor) => { if (spawner === null) retire(h.animals, actor); else spawner.retire(actor); },
-      burst: (actor) => { this.puffs.burst(this.point.copy(actor.position).setY(actor.position.y + 1), 1.2, 3.4, 0.8, 0.8); },
-    }, MAX);
+    this.brain = new PagePopulationWaves(lane, h.animals, rows, TIER === 'phone' ? 3 : 4);
+  }
+  private present(): void {
+    for (const effect of this.brain.effects()) {
+      if (effect.kind === 'complete') this.h.onErrandDone();
+      else if (effect.kind === 'voice') this.h.shot(effect.name, effect.at);
+      else this.puffs.burst(this.point.copy(effect.at).setY(effect.at.y + 1), 1.2, 3.4, 0.8, 0.8);
+    }
   }
   get count(): number { return this.brain.count; }
-  force(p: THREE.Vector3): void { this.brain.force(p); }
-  update(dt: number, t: number, p: THREE.Vector3): void { this.puffs.update(dt, t); this.brain.advance(dt, p); }
+  force(point: THREE.Vector3): void { this.brain.force(point, this.h.errand()); this.present(); }
+  update(dt: number, t: number, point: THREE.Vector3): void {
+    this.puffs.update(dt, t); this.brain.advance(dt, point, this.h.night(), this.h.errand()); this.present();
+  }
 }

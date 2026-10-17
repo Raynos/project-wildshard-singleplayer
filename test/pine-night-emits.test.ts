@@ -1,15 +1,20 @@
 import { expect, test } from 'vitest';
-import { PineNightDirector, preparePineNightDirector, type NightActor, type NightSpec } from '../src/shards/pine-hollow/runtime/nightDirector';
+import { PopulationWaveDirector, preparePopulationModule, type PopulationActor } from '../src/game/population/waves';
+import type { PopulationWaveSpec } from '../src/format/populationWaves';
+import nightDeclaration from '../src/shards/pine-hollow/data/nightDirector.json' with { type: 'json' };
+import nightModule from '../src/shards/pine-hollow/behaviour/night.generated.json' with { type: 'json' };
+import nightRows from '../src/shards/pine-hollow/data/nightPopulation.generated.json' with { type: 'json' };
+import tuning from '../src/shards/pine-hollow/data/populationWaves.json' with { type: 'json' };
 
-interface Actor extends NightActor { readonly id: string }
-const spec: NightSpec = {
+interface Actor extends PopulationActor { readonly id: string }
+const spec: PopulationWaveSpec = {
   max: 3, region: { x: 0, z: 0, ax: 100, az: 100 }, exclude: { x: 200, z: 200, blend: 1 },
   face: { x: 5, z: 5 }, mill: { x: 0, z: 0 }, water: 0, roamKinds: ['thrall'],
   race: [{ kind: 'thrall', x: 10, z: 0 }],
 };
 
 test('night emits retain population effects, quiet save adoption and completion-only errand payout', async () => {
-  const create = await preparePineNightDirector(), actors: Actor[] = [], effects: string[] = [];
+  const create = await preparePopulationModule(nightDeclaration, nightModule, 357), actors: Actor[] = [], effects: string[] = [];
   let night = 1, errand = true, draws = 0;
   const ports = {
     night: () => night, errand: () => errand,
@@ -27,13 +32,13 @@ test('night emits retain population effects, quiet save adoption and completion-
     retire: (actor: Actor) => { effects.push(`retire:${actor.id}`); },
     burst: (actor: Actor) => { effects.push(`burst:${actor.id}`); },
   };
-  const brain = new PineNightDirector(create(), ports, spec), player = { x: 0, y: 10, z: 0 };
+  const brain = new PopulationWaveDirector(create(), ports, spec, nightRows.stages, tuning), player = { x: 0, y: 10, z: 0 };
   brain.force(player);
   expect(brain.count).toBe(4); expect(draws).toBe(6);
   brain.advance(0.25, player);
   expect(effects.slice(-3)).toEqual(['move:3:0', 'release:3', 'thrall_groan:3']);
   const saved = brain.snapshot(actor => actor.id), before = [...effects];
-  const adopted = new PineNightDirector(create(), ports, spec);
+  const adopted = new PopulationWaveDirector(create(), ports, spec, nightRows.stages, tuning);
   const restore = adopted.prepareRestore(saved, id => actors.find(actor => actor.id === id) ?? null);
   expect(effects).toEqual(before); restore();
   expect(effects).toEqual(before); expect(adopted.snapshot(actor => actor.id)).toEqual(saved);

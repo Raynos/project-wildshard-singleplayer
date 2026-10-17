@@ -47,9 +47,9 @@ import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weat
 import { wetFlight } from '@wildshard/engine/combat/ammo';
 import { loadRainBake, RainFx, type RainBake } from '../runtime/looks/rainFx';
 import rainRows from '../data/rain.json' with { type: 'json' };
-import { HerdShelter } from '../runtime/species/herdShelter';
+import { HerdShelter, populationShelter } from '@wildshard/sdk/populationShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
+import { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
@@ -82,10 +82,11 @@ export interface PineWeatherRig { weather: WeatherContinuation; fx: InstanceType
 
 export async function installWeather(ctx: ShardContext, host: PineWeatherHost): Promise<PineWeatherRig | null> {
   const rows=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.product.file('world/weather.json'))));
-  return installPineWeather(host, ctx, rows, retainsRuntimeServices(ctx) ? ctx : undefined);
+  const shelterRows = populationShelter(JSON.parse(new TextDecoder().decode(await ctx.product.file('actors/shelter.json'))));
+  return installPineWeather(host, ctx, rows, shelterRows.look, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, entered?: ShardContext): PineWeatherRig | null {
+function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, shelterLook: ReturnType<typeof populationShelter>['look'], entered?: ShardContext): PineWeatherRig | null {
   const pine = pineBackdrop(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -105,7 +106,7 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
   const baseH = fogUniforms.fogHeight.value, baseFall = fogUniforms.fogHeightFalloff.value;
   const baseMist = h.particles?.params.mistOpacity ?? 1;
-  const shelter = new HerdShelter(h.animals, h.trees, (x, z) => fx.coverAt(x, z), PINE_HERD_SHELTER);
+  const shelter = new HerdShelter(h.animals, h.trees.map(tree => ({ ...tree, cover: fx.coverAt(tree.x, tree.z) })), shelterLook);
   const wind = { x: 0, z: 0 };
 
   const veil = { x: { value: 0 }, y: { value: 0 } };

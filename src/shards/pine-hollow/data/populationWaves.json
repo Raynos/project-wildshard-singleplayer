@@ -1,0 +1,32 @@
+{
+  "actorLimit": 8,
+  "forceLimit": 4,
+  "fleeLimit": 3.5,
+  "escape": {
+    "speed": 8,
+    "turn": 3
+  },
+  "listenTurn": 1.5,
+  "raceRange": 75,
+  "regionScale": 1.6,
+  "placement": {
+    "attempts": 12,
+    "radius": 0.8,
+    "bound": 235,
+    "waterClear": 0.6,
+    "excludeClear": 8,
+    "near": [
+      18,
+      60
+    ],
+    "far": [
+      45,
+      150
+    ]
+  },
+  "voices": {
+    "call": "thrall_call",
+    "wake": "thrall_groan",
+    "flee": "thrall_move"
+  }
+}

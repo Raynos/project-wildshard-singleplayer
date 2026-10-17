@@ -1,3 +1,4 @@
+import { NativeActors } from '../population/actors';
 import * as v from 'valibot';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -289,6 +290,8 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   spec: (kind: string, variant: string) => AnimalSimSpec;
   read: ReturnType<typeof nativeCreatureRecipes>['read'];
   byId: Map<string, B>;
+  /** Identity lifecycle above the native body map, including dormant prewarm and permanent retirement. */
+  identities: NativeActors<HuntBody>;
   floor: (x: number, z: number, fromY: number) => number;
   materialize: (body: B, recipe: SimSpawn, structure: boolean) => HuntBody;
   arrive: (body: B) => HuntBody;
@@ -297,6 +300,8 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   remember: (body: B) => void;
   /** Retire an owned live identity and detach its herd membership. Never draws. */
   retire: (body: B) => void;
+  /** Detach a body while preserving its dormant recipe/identity for later materialization. Never draws. */
+  sleep: (body: B) => void;
   /** Retire a pending predecessor only when its owned actor is still present and dead; returns the retired body. */
   retireDead: (id: string | undefined) => B | null;
   /** Refill the same recipe slot: retire, allocate, replace its herd, draw, then arrive. */
@@ -309,6 +314,7 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   reinstall: (body: B, saved: NativeRosterSaved) => HuntBody;
 } {
   const recipes = nativeCreatureRecipes(rows.specs, rows.duplicates), byId = new Map<string, B>(), { hunt, poses } = rows;
+  const identities = new NativeActors<HuntBody>('creature', 16384);
   const hunted = rows.hunted === 'every' ? null : new Set(rows.hunted);
   const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), rows.heightfield);
   const floor = (x: number, z: number, fromY: number): number => sample(x, z, fromY).y;
@@ -321,12 +327,14 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
       recipe: { id, spec: spec(kind, variant), seed: authored?.seed ?? 0, scale: authored?.scale ?? 1, at: { x: at.x, y: 0, z: at.z }, yaw } };
   };
   const materialize = (item: B, recipe: SimSpawn, structure: boolean): HuntBody => {
-    poses?.binding.preflight(item);
+    poses?.binding.preflight(item); identities.preflight(item);
     const native = host.spawn(recipe), actor = poses === undefined ? bareBody(native) : poses.binding.attach(native, item);
     const level = rows.saved?.entities.find(entity => entity.id === recipe.id)?.state.flags.levelGround ?? structure;
     actor.levelGround = level;
     if (level) actor.groundHeight = (x, z, fromY) => floor(x, z, fromY);
     if (rows.attackTurnCap !== undefined) actor.attackTurnCap = rows.attackTurnCap;
+    identities.materialize(item, actor);
+    if (item.herd >= 0) identities.own(item.id, { group: `herd:${String(item.herd)}`, encounter: null, listed: true });
     item.actor = actor; byId.set(item.id, item); hunt.herds[item.herd]?.members.push(actor);
     return actor;
   };
@@ -344,13 +352,15 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     if (hunted === null || hunted.has(item.kind)) hunt.adopt(actor, item.recipe.at.x, item.recipe.at.z);
     else { rows.rng.next(); rows.rng.next(); rows.rng.next(); }
   };
-  const release = (item: B, detach: boolean): void => {
+  const release = (item: B, detach: boolean, permanent = true): void => {
     const actor = item.actor, members = hunt.herds[item.herd]?.members;
     if (actor === null || byId.get(item.id) !== item || (members !== undefined && members.length > 1024)) throw new Error('Foreign native roster retirement');
+    if (permanent) identities.retire(item.id); else identities.sleep(item.id);
     const at = detach ? members?.indexOf(actor) ?? -1 : -1; if (at >= 0) members?.splice(at, 1);
     byId.delete(item.id); hunt.forget(actor); host.retire(item.id); poses?.delete(item.id); item.actor = null;
   };
   const retire = (item: B): void => { release(item, true); };
+  const sleep = (item: B): void => { release(item, true, false); };
   const retireDead = (id: string | undefined): B | null => {
     const item = id === undefined ? undefined : byId.get(id);
     if (item?.actor === null || item?.actor === undefined || item.actor.alive) return null;
@@ -403,5 +413,5 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
     return materialize(item, item.recipe, level ?? found.structure);
   };
-  return { body, spec, read: recipes.read, byId, floor, materialize, arrive, draw, remember, retire, retireDead, refill, adopt, retarget, reinstall };
+  return { body, spec, read: recipes.read, byId, identities, floor, materialize, arrive, draw, remember, retire, sleep, retireDead, refill, adopt, retarget, reinstall };
 }

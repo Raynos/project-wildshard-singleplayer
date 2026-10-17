@@ -52,7 +52,6 @@
       "driftwood-isle/custom/trailside": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood trailside section exit"
     },
     "shardfile/sim-in-runtime": {
-      "src/shards/driftwood-isle/runtime/ecology.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/driftwood-isle/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/aqbarsKeeper.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nalati-grasslands/runtime/argymaqKeeper.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -83,12 +82,7 @@
       "src/shards/pine-hollow/runtime/kingCollisionBake.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/lodge.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/nightDirector.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/nightPopulation.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/rainShelter.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/roster.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/species/herdShelter.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/species/limbRig.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/weapons/ammunition.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
     }
@@ -116,13 +110,13 @@
     "custom-sections/sunscar-dunes/bytes": 0,
     "sim-in-runtime/_template": 0,
     "sim-in-runtime/blender-template": 0,
-    "sim-in-runtime/driftwood-isle": 2,
+    "sim-in-runtime/driftwood-isle": 1,
     "sim-in-runtime/far-reach": 0,
     "sim-in-runtime/ink-cel-valley": 0,
     "sim-in-runtime/nalati-grasslands": 19,
     "sim-in-runtime/nine-dragon-stack": 4,
     "sim-in-runtime/pastel-plain": 0,
-    "sim-in-runtime/pine-hollow": 14,
+    "sim-in-runtime/pine-hollow": 9,
     "sim-in-runtime/sunscar-dunes": 0
   },
   "debugRows": {

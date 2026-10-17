@@ -8759,3 +8759,91 @@ Panels keep their original hold lifetimes; native modal saves retain
 for the shared persisted-quest host: places, markers, model, reward persistence,
 held camera beat, transient startup repair and bounded capture steps. It adds no
 quest state or callbacks; both Sky Reach and Signal Dunes use the same reader.
+
+## Native actor identity and population (G474/G475/G477)
+
+`game/population/actors.NativeActors` owns game-native identities above
+`game/shardfile/homeKeeper.createNativeCreatureRoster`. The roster exposes
+`identities` and uses it for materialization and retirement. Allocation is
+RNG-free and monotonic. A dormant identity has a reserved recipe and no
+body; a materialized identity can be alive or a retained corpse; retirement
+permanently prevents that identity from being materialized again. Listing,
+group ownership and encounter ownership are independent of body state.
+`preflight` refuses duplicate materialization before `host.spawn` changes
+anything. `sleep` and `retire` require auxiliary handles to be released.
+The shared roster's `sleep(body)` detaches its physics body, herd membership,
+pose and live-body map while keeping the dormant recipe and identity.
+`arrive(body)` can then materialize it again without allocating an id or
+drawing RNG. A permanently retired body refuses before `host.spawn`.
+
+Auxiliary handles have a stable id, actor owner, service and native handle.
+The service scopes handle uniqueness; adopting a saved handle creates no
+physics body. `format/nativeActors.NativeActorEnvelopeSchema` defines the
+v1 envelope: allocator, actor lifecycle/ownership rows, auxiliary handles.
+`prepareRestore` resolves every materialized actor and validates all aliases
+before returning a silent commit. Dormant and retired actors never resolve
+to native bodies. Existing embedded allocator wires remain available via
+`allocatorState` and `restoreAllocator`, preserving old saves without adding
+an adapter or reordering native registrations. Pine and Driftwood retain
+their established embedded wires; new callers can persist the v1 envelope.
+
+`game/population/roster.installPopulationRoster` consumes
+`format/populationRoster` rows: stream seed, ordered fauna, reserved identity
+replacements, ordinary variants, dormant reserves and scripted homes.
+`actors/roster.json` is the admitted native product path. Boot order is herd
+placement and its spawn/memory draws, identity replacement, dormant reserve
+draws, then home spawns. A reserved recipe consumes its original six draws
+while parked and none when adopted. Every boot recipe is checked against
+the trusted bake. Body materialization, floors, herd adoption and retirement
+use the existing shared roster. Pose attachment is a native service; fight
+decisions remain in their own encounter owner. The existing v3 roster wire,
+entity ids, saved actor registration order and RNG continuation are retained.
+
+`game/population/waves.PopulationWaveDirector` runs the declared phase ABI:
+clock, roam actors, sentries, periodic gate, sentry group completion/spawn,
+far-roamer retirement, then new roamers. The admitted director script owns
+all decisions. `format/populationWaves` declares the spatial/tuning rows;
+content supplies kinds, sound ids, placement bounds and movement values.
+The host uses `sampleCreatureGroup` and the caller's stream in its original
+draw order. The v2 continuation stores actor identities, the script state,
+placement contract and scheduler clocks. Restore emits no spawn, control,
+voice, quest, retirement or RNG effects. `preparePopulationModule` uses the
+existing embedded director admission and supplies independent lanes.
+`installNativePopulationWaves` receives those rows and the existing native
+roster/clock ports from assembly data; its v1 embedded RNG/population wire
+remains unchanged. `PagePopulationWaves` receives an `AnimalManager` and
+rows, then scalar night/errand observations. Its ordered effects contain
+copied world positions so a retirement cannot park a pending puff below
+the world. The shard lends no gameplay callbacks to the page host.
+
+`game/population/shelter.HerdShelter` consumes `format/herdShelter` rows:
+species, tree threshold, search radius, score weights, wet/dry gates, crown
+clearance and home hold. It reads the caller's herds, tree inventory and
+cover samples, owns no weather or RNG, and preserves the v1 herd-order save.
+Cover is sampled once at each tree's fixed position. The native
+`installNativeHerdShelter` consumes the same look plus its step id and herd
+bound from assembly data. `actors/night.json` and `actors/shelter.json`
+are the shared admitted product paths for native and page installations.
+`game/population/respawn.RespawnQueue` consumes `format/populationRespawn`
+delay/night rows, one scheduling draw per eligible death (even a fixed
+delay), and no draws when taking. Native taking is reverse death order with
+a 256-entry refusal and reusable results; page owners can retain their
+uncapped traversal. Identity allocation, variant rolls and native bodies
+remain with the roster at the due event.
+Named RNG authorities are looked up on the first scheduling draw, preserving
+the old save's absence of a stream before its first use.
+
+SDK defining facades are `populationRoster`, `populationWaves`,
+`populationPageWaves`, `populationShelter` and `populationRespawn`; they
+borrow the same game implementation and install nothing on import.
+`populationRoster` also admits author rows before emission. These are the approved **native actor
+interface + spawn director** feature (`actor-spawn`, G474/G475/G477) in
+`lint/platform-pending-users.json`. The fabricated salt-marsh fixture drives
+roster reservation/adoption, versioned continuation, ownership/auxiliary
+refusals, shelter and delayed returns without Pine or Driftwood rows.
+
+Their defining modules are `sdk/populationRoster`, `sdk/populationWaves`,
+`sdk/populationPageWaves`, `sdk/populationShelter` and `sdk/populationRespawn`.
+The native and page owner adapters live in `game/population/nativeWaves`
+and `game/population/pageWaves`, separate so native workers never import
+the page's scene or singleton services.

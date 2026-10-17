@@ -9,7 +9,7 @@
     "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion", "readItemInventory"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
-    "src/shards/pine-hollow/runtime/nightDirector": ["preparePineNightDirector"],
+    "@wildshard/sdk/populationWaves": ["preparePopulationModule", "installNativePopulationWaves"],
     "src/shards/pine-hollow/runtime/quest": ["PINE_INTERACT", "installHollowQuest", "pineSpots"],
     "src/shards/pine-hollow/runtime/lodge": ["PINE_LODGE", "parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
@@ -17,14 +17,15 @@
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands", "installNativeCollision"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
-    "src/shards/pine-hollow/runtime/roster": ["installPineRoster"],
+    "@wildshard/sdk/populationRoster": ["installPopulationRoster"],
+    "src/shards/pine-hollow/runtime/herds": ["pineHuntGround"],
+    "src/shards/pine-hollow/runtime/kingPoseKeeper": ["installKingPoseKeeper"],
     "src/shards/pine-hollow/runtime/king": ["installPineKing"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
     "src/shards/pine-hollow/runtime/weapons/ammunition": ["PineAmmunition"],
-    "src/shards/pine-hollow/runtime/nightPopulation": ["installPineNight"],
     "@wildshard/game/plugin/weather": ["installWeatherContinuation"],
-    "src/shards/pine-hollow/runtime/rainShelter": ["installPineRainShelter"],
+    "@wildshard/sdk/populationShelter": ["installNativeHerdShelter"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
     "@wildshard/engine/physics/terrain": ["isStandaloneEdgeWall"],
     "@wildshard/game/shardfile/eliteEncounters": ["installEliteEncounters"],
@@ -236,13 +237,19 @@
         ]
       }
     },
+    { "name": "nightRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/night.json"] } },
+    { "name": "shelterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/shelter.json"] } },
+    { "name": "populationRoster", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/roster.json"] } },
     {
       "name": "nightDirector",
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/nightDirector", "preparePineNightDirector"]
-          }
+            "$ref": ["@wildshard/sdk/populationWaves", "preparePopulationModule"]
+          },
+          { "$ref": ["nightRows", "declaration"] },
+          { "$ref": ["nightRows", "module"] },
+          { "$ref": ["nightRows", "seed"] }
         ]
       }
     },
@@ -1231,7 +1238,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/nightPopulation", "installPineNight"]
+            "$ref": ["@wildshard/sdk/populationWaves", "installNativePopulationWaves"]
           },
           {
             "$ref": ["host"]
@@ -1300,7 +1307,8 @@
                 ]
               }
             }
-          }
+          },
+          { "$ref": ["nightRows"] }
         ]
       }
     },
@@ -1334,7 +1342,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/rainShelter", "installPineRainShelter"]
+            "$ref": ["@wildshard/sdk/populationShelter", "installNativeHerdShelter"]
           },
           {
             "$ref": ["host"]
@@ -1356,7 +1364,8 @@
             "$fn": {
               "$ref": ["air", "weather", "rain"]
             }
-          }
+          },
+          { "$ref": ["shelterRows"] }
         ]
       }
     },
@@ -1365,7 +1374,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/roster", "installPineRoster"]
+            "$ref": ["@wildshard/sdk/populationRoster", "installPopulationRoster"]
           },
           {
             "$ref": ["host"]
@@ -1377,9 +1386,8 @@
             "bake": {
               "$ref": ["bake"]
             },
-            "grid": {
-              "$ref": ["grid"]
-            },
+            "ground": { "$call": [{ "$ref": ["src/shards/pine-hollow/runtime/herds", "pineHuntGround"] }, { "$ref": ["grid"] }] },
+            "poses": { "$call": [{ "$ref": ["src/shards/pine-hollow/runtime/kingPoseKeeper", "installKingPoseKeeper"] }, { "$ref": ["host"] }] },
             "nav": {
               "$ref": ["nav"]
             },
@@ -1404,7 +1412,8 @@
                 ]
               }
             }
-          }
+          },
+          { "$ref": ["populationRoster"] }
         ]
       }
     },

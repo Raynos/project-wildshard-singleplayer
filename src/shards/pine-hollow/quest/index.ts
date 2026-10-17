@@ -79,7 +79,7 @@ import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../runtime/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
-import { preparePineNightDirector } from '../runtime/nightDirector';
+import { populationWaves, preparePopulationModule } from '@wildshard/sdk/populationWaves';
 import { placeTokenShelf } from './tokenShelf';
 import { BeaverPool } from '../world/beaverPool';
 
@@ -236,14 +236,15 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   if (millDoor) bindQuestPageInteractions(doorRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
   const night = (): number => sky.dayNight?.night ?? 0;
-  const createNight = await preparePineNightDirector();
+  const waveRows = populationWaves(JSON.parse(new TextDecoder().decode(await ctx.product.file('actors/night.json'))));
+  const createNight = await preparePopulationModule(waveRows.declaration, waveRows.module, waveRows.seed);
   if (ctx.scope.disposed) throw new Error('Pine left during night director admission');
   const thralls = new NightThralls({
     animals, scene: game.scene, night,
     errand: () => flags.has('errand:asked') && !flags.has('errand:done'),
     onErrandDone: consequences.action('errand.complete'),
     shot: (name, at) => { shot(name, at); },
-  }, createNight());
+  }, createNight(), waveRows);
 
   // ── the lodge's contract board ──
   const lodge = bindRuntimeState(ctx, source, 'pine.lodge', () => JSON.stringify(lodgeSave.read(h.chunkId)), h.chunkId);

@@ -31,7 +31,7 @@ import { parseAdventureContent, type AdventureContent } from '@wildshard/format/
 import { installDirectorFinale, type Finale } from '../runtime/finalePresentation';
 import { installCompletion, type Completion as Complete, type CompletionProgress as CompleteProgress } from '@wildshard/game/complete/declared';
 import { installEcology } from './Ecology';
-import type { RespawnQueue } from '../runtime/ecology';
+import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
 import { Zipline } from '../world/Zipline';
 import { ironSwordGuard, SWORD_GUARDED } from './guards';
 

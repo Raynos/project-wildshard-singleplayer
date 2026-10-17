@@ -1,0 +1,18 @@
+{
+  "step": "pine.night",
+  "variant": "thrall",
+  "state": "sidestep",
+  "asked": "errand:asked",
+  "done": "errand:done",
+  "table": "pine.spawn.thrall",
+  "label": "Thrall",
+  "fallback": {
+    "elk": "bull",
+    "boar": "black"
+  },
+  "tint": [
+    0.5,
+    0.62,
+    0.42
+  ]
+}

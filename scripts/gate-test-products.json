@@ -17,5 +17,7 @@
   "test/scripts/nine-sign-atlas.test.ts": [],
   "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"],
   "test/painted-look-rows.test.ts": [],
-  "test/held-arms-platform.test.ts": []
+  "test/held-arms-platform.test.ts": [],
+  "test/native-actor-interface.test.ts": [],
+  "test/population-platform.test.ts": []
 }

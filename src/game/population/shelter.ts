@@ -1,3 +1,6 @@
+import type { SimHost } from '@wildshard/engine/sim';
+import type { HuntBody, HuntHerd } from '@wildshard/engine/ai/hunt';
+import { parsePopulationShelter, type HerdShelterRows } from '@wildshard/format/herdShelter';
 import * as v from 'valibot';
 
 /**
@@ -9,32 +12,12 @@ import * as v from 'valibot';
  * cover is a better shelter).
  */
 
-/** The rule as data. */
-export interface HerdShelterLook {
-  /** the herd kinds that shelter (a bear sits it out) */
-  readonly kinds: readonly string[];
-  /** a tree this tall (m) is a shelter */
-  readonly bigTree: number;
-  /** a herd looks this far (m) for one */
-  readonly reach: number;
-  /** seconds the old home is held after the rain, so the herd walks back out */
-  readonly homeHold: number;
-  /** metres past the trunk's radius the herd stands (under the crown, clear of the trunk) */
-  readonly clear: number;
-  /** the wander radius under the tree, and back home */
-  readonly spotR: number;
-  readonly homeR: number;
-  /** rain over this shelters; under `dry` the hold counts down */
-  readonly wet: number;
-  readonly dry: number;
-}
-
 interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number } | null; hold: number }
 interface Herd {
   kind: string; cx: number; cz: number;
   readonly members: readonly { alive: boolean; position: { x: number; z: number } }[];
 }
-interface Tree { x: number; z: number; r: number; height: number }
+interface Tree { x: number; z: number; r: number; height: number; cover: number }
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, z: finite });
 const saved = v.strictObject({ version: v.literal(1), shelters: v.array(v.nullable(v.strictObject({
@@ -47,9 +30,9 @@ export class HerdShelter<T extends Tree> {
   private readonly big: readonly T[];
   private shelters = new Map<Herd, Shelter>();
 
-  /** `animals` the herds, `trees` the forest, `coverAt` the crown cover 0..1 at (x, z), `look` the rule's numbers. */
-  constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly coverAt: (x: number, z: number, tree: T) => number, private readonly look: HerdShelterLook) {
-    if (trees.length > 16384) throw new Error('Pine shelter tree bound exceeded');
+  /** `animals` lends the herds; each tree carries its fixed crown-cover sample; `look` supplies the rule's numbers. */
+  constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly look: HerdShelterRows) {
+    if (trees.length > 16384) throw new Error('Population shelter tree bound exceeded');
     this.kinds = new Set(look.kinds);
     this.big = trees.filter((t) => t.height >= look.bigTree);
   }
@@ -61,7 +44,7 @@ export class HerdShelter<T extends Tree> {
       if (t === undefined) break;
       const d = Math.hypot(t.x - hd.cx, t.z - hd.cz);
       if (d > this.look.reach) continue;
-      const s = d - 0.8 * t.height - 12 * this.coverAt(t.x, t.z, t);
+      const s = d - this.look.heightBias * t.height - this.look.coverBias * t.cover;
       if (s < score) { score = s; best = t; }
     }
     if (best === null) return null;
@@ -107,11 +90,11 @@ export class HerdShelter<T extends Tree> {
   /** Admit every legacy slot before replacing state, without moving a herd. */
   restore(value: unknown): void {
     const parsed = v.parse(saved, value), herds = this.animals.herds, next = new Map<Herd, Shelter>();
-    if (parsed.shelters.length !== herds.length) throw new Error('Incompatible Pine rain-herd continuation');
+    if (parsed.shelters.length !== herds.length) throw new Error('Incompatible population rain-herd continuation');
     parsed.shelters.forEach((shelter, index) => {
       if (shelter === null) return;
       const herd = herds[index];
-      if (herd === undefined || !this.kinds.has(herd.kind) || shelter.hold > this.look.homeHold) throw new Error('Incompatible Pine shelter continuation');
+      if (herd === undefined || !this.kinds.has(herd.kind) || shelter.hold > this.look.homeHold) throw new Error('Incompatible Population shelter continuation');
       next.set(herd, shelter);
     });
     this.shelters = next;
@@ -127,4 +110,22 @@ export class HerdShelter<T extends Tree> {
     }
     return { n: d.length, mean: Math.round(d.reduce((a, b) => a + b, 0) / Math.max(1, d.length) * 10) / 10, under6: d.filter((distance) => distance < 6).length, sheltering: [...this.shelters.values()].filter((s) => s.spot !== null).length };
   }
+}
+
+/** Native tree tuples are the page's exact crown-cover samples, kept in forest order. */
+export type NativeShelterTree = readonly [x: number, z: number, radius: number, height: number, cover: number];
+
+/** Install one shelter continuation on the supplied native weather and herd authorities. */
+export function installNativeHerdShelter(host: SimHost, herds: () => readonly HuntHerd<HuntBody>[], trees: readonly NativeShelterTree[], rain: () => number,
+  input: unknown): HerdShelter<{ x: number; z: number; r: number; height: number; cover: number }> {
+  const rows = parsePopulationShelter(input);
+  if (trees.length > 16384) throw new Error('Shelter tree bound exceeded');
+  const source = { get herds() {
+    const current = herds();
+    if (current.length > rows.herdLimit) throw new Error('Shelter herd bound exceeded');
+    return current;
+  } };
+  const shelter = new HerdShelter(source, trees.map(([x, z, r, height, cover]) => ({ x, z, r, height, cover })), rows.look);
+  host.onStep(rows.step, dt => { shelter.update(dt, rain()); }, { snapshot: () => shelter.snapshot(), restore: value => { shelter.restore(value); } });
+  return shelter;
 }

@@ -128,7 +128,14 @@
     "./plugin/borrowed": "./plugin/borrowed.ts",
     "./plugin/channels": "./plugin/channels.ts",
     "./shardfile/eliteEncounters": "./shardfile/eliteEncounters.ts",
-    "./systems/viewmodel/toonArms": "./systems/viewmodel/toonArms.ts"
+    "./systems/viewmodel/toonArms": "./systems/viewmodel/toonArms.ts",
+    "./population/waves": "./population/waves.ts",
+    "./population/shelter": "./population/shelter.ts",
+    "./population/respawn": "./population/respawn.ts",
+    "./population/actors": "./population/actors.ts",
+    "./population/roster": "./population/roster.ts",
+    "./population/pageWaves": "./population/pageWaves.ts",
+    "./population/nativeWaves": "./population/nativeWaves.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

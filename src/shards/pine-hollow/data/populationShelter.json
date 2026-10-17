@@ -1,0 +1,17 @@
+{
+  "kinds": [
+    "deer",
+    "elk",
+    "boar"
+  ],
+  "bigTree": 20,
+  "reach": 90,
+  "homeHold": 90,
+  "clear": 2.2,
+  "spotR": 3.5,
+  "homeR": 10,
+  "wet": 0.3,
+  "dry": 0.05,
+  "heightBias": 0.8,
+  "coverBias": 12
+}

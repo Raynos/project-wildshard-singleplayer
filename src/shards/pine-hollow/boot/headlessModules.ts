@@ -10,7 +10,7 @@ import { parseNativeFirearmProfile as module4ParseNativeFirearmProfile, parseWea
 import { installNativeItems as module5InstallNativeItems, observeNativeCombatMotion as module5ObserveNativeCombatMotion, readItemInventory as module5ReadItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { bindNativeLoadout as module6BindNativeLoadout, weaponRow as module6WeaponRow } from '@wildshard/game/plugin/simulation';
 import { readDirectorProduct as module7ReadDirectorProduct } from '@wildshard/game/plugin/director';
-import { preparePineNightDirector as module8PreparePineNightDirector } from '../runtime/nightDirector';
+import { preparePopulationModule as module8PreparePopulationModule, installNativePopulationWaves as nativeInstallWaves } from '@wildshard/sdk/populationWaves';
 import { PINE_INTERACT as module9PINE_INTERACT, installHollowQuest as module9InstallHollowQuest, pineSpots as module9PineSpots } from '../runtime/quest';
 import { PINE_LODGE as module10PINE_LODGE, parseContractCatalogue as module10ParseContractCatalogue } from '../runtime/lodge';
 import { parseAchievementCounterData as module11ParseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -18,14 +18,15 @@ import { parseExchange as module12ParseExchange } from '@wildshard/game/loot/exc
 import { parseWeatherProgram as module13ParseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { bindHeadlessCommands as module14BindHeadlessCommands, installNativeCollision as module14InstallNativeCollision } from '@wildshard/sdk/headlessRuntime';
 import { nativeDecisionAuthority as module15NativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
-import { installPineRoster as module16InstallPineRoster } from '../runtime/roster';
+import { installPopulationRoster as module16InstallPopulationRoster } from '@wildshard/sdk/populationRoster';
+import { pineHuntGround as populationGround } from '../runtime/herds';
+import { installKingPoseKeeper as populationPose } from '../runtime/kingPoseKeeper';
 import { installPineKing as module18InstallPineKing } from '../runtime/king';
 import { DayCycle as module19DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY as module20PINE_DAY } from '../look/dayKeys';
 import { PineAmmunition as module21PineAmmunition } from '../runtime/weapons/ammunition';
-import { installPineNight as module22InstallPineNight } from '../runtime/nightPopulation';
 import { installWeatherContinuation as module23InstallWeatherContinuation } from '@wildshard/game/plugin/weather';
-import { installPineRainShelter as module24InstallPineRainShelter } from '../runtime/rainShelter';
+import { installNativeHerdShelter as module24InstallNativeHerdShelter } from '@wildshard/sdk/populationShelter';
 import { proveTerrainEntries as module25ProveTerrainEntries } from '@wildshard/game/plugin/mover';
 import { isStandaloneEdgeWall as module26IsStandaloneEdgeWall } from '@wildshard/engine/physics/terrain';
 
@@ -40,7 +41,7 @@ export const headlessModules = {
   '@wildshard/game/plugin/nativeItems': { installNativeItems: module5InstallNativeItems, observeNativeCombatMotion: module5ObserveNativeCombatMotion, readItemInventory: module5ReadItemInventory },
   '@wildshard/game/plugin/simulation': { bindNativeLoadout: module6BindNativeLoadout, weaponRow: module6WeaponRow },
   '@wildshard/game/plugin/director': { readDirectorProduct: module7ReadDirectorProduct },
-  'src/shards/pine-hollow/runtime/nightDirector': { preparePineNightDirector: module8PreparePineNightDirector },
+  '@wildshard/sdk/populationWaves': { preparePopulationModule: module8PreparePopulationModule, installNativePopulationWaves: nativeInstallWaves },
   'src/shards/pine-hollow/runtime/quest': { PINE_INTERACT: module9PINE_INTERACT, installHollowQuest: module9InstallHollowQuest, pineSpots: module9PineSpots },
   'src/shards/pine-hollow/runtime/lodge': { PINE_LODGE: module10PINE_LODGE, parseContractCatalogue: module10ParseContractCatalogue },
   '@wildshard/format/achievementCounters': { parseAchievementCounterData: module11ParseAchievementCounterData },
@@ -48,14 +49,15 @@ export const headlessModules = {
   '@wildshard/format/weatherProgram': { parseWeatherProgram: module13ParseWeatherProgram },
   '@wildshard/sdk/headlessRuntime': { bindHeadlessCommands: module14BindHeadlessCommands, installNativeCollision: module14InstallNativeCollision },
   '@wildshard/game/shardfile/borrowedDecisions': { nativeDecisionAuthority: module15NativeDecisionAuthority },
-  'src/shards/pine-hollow/runtime/roster': { installPineRoster: module16InstallPineRoster },
+  '@wildshard/sdk/populationRoster': { installPopulationRoster: module16InstallPopulationRoster },
+  'src/shards/pine-hollow/runtime/herds': { pineHuntGround: populationGround },
+  'src/shards/pine-hollow/runtime/kingPoseKeeper': { installKingPoseKeeper: populationPose },
   'src/shards/pine-hollow/runtime/king': { installPineKing: module18InstallPineKing },
   '@wildshard/engine/world/dayCycle': { DayCycle: module19DayCycle },
   'src/shards/pine-hollow/look/dayKeys': { PINE_DAY: module20PINE_DAY },
   'src/shards/pine-hollow/runtime/weapons/ammunition': { PineAmmunition: module21PineAmmunition },
-  'src/shards/pine-hollow/runtime/nightPopulation': { installPineNight: module22InstallPineNight },
   '@wildshard/game/plugin/weather': { installWeatherContinuation: module23InstallWeatherContinuation },
-  'src/shards/pine-hollow/runtime/rainShelter': { installPineRainShelter: module24InstallPineRainShelter },
+  '@wildshard/sdk/populationShelter': { installNativeHerdShelter: module24InstallNativeHerdShelter },
   '@wildshard/game/plugin/mover': { proveTerrainEntries: module25ProveTerrainEntries },
   '@wildshard/engine/physics/terrain': { isStandaloneEdgeWall: module26IsStandaloneEdgeWall },
   '@wildshard/game/shardfile/eliteEncounters': { installEliteEncounters: eliteinstallEliteEncounters },
