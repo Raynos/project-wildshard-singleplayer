@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "b0c578fa1f819d4fddc2e921fffa133cc4c01502",
- "committedAt": "2026-10-17T18:25:40.000Z",
- "measuredAt": "2026-10-17T18:39:56.176Z",
+ "revision": "16f54aa07f9e033d68f44eb8bc08ef1f1da95e70",
+ "committedAt": "2026-10-17T19:34:15.000Z",
+ "measuredAt": "2026-10-17T19:42:56.803Z",
  "basis": "source",
  "plan": {
-  "lower": 0.3839632396321468,
-  "upper": 0.7172965729654801
+  "lower": 0.3895461456619598,
+  "upper": 0.7228794789952931
  },
  "m3": {
-  "cut": 51306,
+  "cut": 52052,
   "mustGo": 80173.3,
-  "fraction": 0.6399387327202447
+  "fraction": 0.6492435761032663
  },
  "m2": {
   "ready": 0,
@@ -26,9 +26,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 9112,
+   "custom": 8405,
    "legacy": 21305,
-   "pct": 42.8,
+   "pct": 39.5,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -44,9 +44,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 5549,
+   "custom": 5521,
    "legacy": 17167,
-   "pct": 32.3,
+   "pct": 32.2,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -98,9 +98,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 20078,
+   "custom": 20067,
    "legacy": 28370,
-   "pct": 70.8,
+   "pct": 70.7,
    "grid": "fail",
    "criteria": {
     "bakedTiles": "fail",
@@ -145,7 +145,7 @@
    "pine-hollow",
    "driftwood-isle"
   ],
-  "pct": 79.7
+  "pct": 81.7
  },
  "waves": [
   {
@@ -750,6 +750,19 @@
     "far-reach": 7.788759404041894,
     "sunscar-dunes": 9.509946627850557,
     "nalati-grasslands": 70.77194219245682,
+    "nine-dragon-stack": 56.31661219269575
+   }
+  },
+  {
+   "revision": "16f54aa07f9e033d68f44eb8bc08ef1f1da95e70",
+   "at": "2026-10-17T19:34:15.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 39.45083313776109,
+    "driftwood-isle": 32.16054057202773,
+    "far-reach": 7.788759404041894,
+    "sunscar-dunes": 9.509946627850557,
+    "nalati-grasslands": 70.7331688403243,
     "nine-dragon-stack": 56.31661219269575
    }
   }
