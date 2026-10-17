@@ -125,3 +125,11 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 20:36 · wT:p5 · `GIT_INDEX_FILE="$PWD/tmp/sp-x5-trader/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json,pathlib; p=pathlib.Path("tmp/sp-x5-trader");print(json.dumps({"base":p.joinpath("base").read_`
 - 2026-10-16 20:37 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py`
 - 2026-10-16 20:38 · wT:pK · `python3 - <<'PY' from pathlib import Path import subprocess,os paths=['src/engine/fx/SiteLights.ts','src/shards/pine-hollow/runtime/props/buildingLife.ts','src/shards/pine-hollow/runtime/world/landmar`
+- 2026-10-16 20:39 · wT:p5 · `sed -n '825,848p' scripts/shard-platform.mjs; git show --stat 95804fe8b | head -35; python3 tmp/sp-x5-trader/prepare.py GIT_INDEX_FILE="$PWD/tmp/sp-x5-trader/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT=`
+- 2026-10-16 20:39 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py && python3 tmp/c9-native/validate.py`
+- 2026-10-16 20:41 · wT:p6 · `mkdir -p tmp/c6-bow python3 - <<'PY' import os,subprocess from pathlib import Path root=Path.cwd(); scratch=root/'tmp/c6-bow'; index=scratch/'index' env={**os.environ,'GIT_INDEX_FILE':str(index)} def `
+- 2026-10-16 20:42 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py && python3 tmp/c9-native/validate.py`
+- 2026-10-16 20:44 · wT:pE · `python3 - <<'PY' from pathlib import Path p=Path('tmp/c9-native/candidate.py');s=p.read_text().replace('the dead island-cover baker and its unused cover-file header.','the dead island-cover baker and `
+- 2026-10-16 20:44 · wT:pE · `python3 - <<'PY' import os,signal,subprocess rows=[line.split(None,2) for line in subprocess.check_output(['ps','-axo','pid,ppid,args'],text=True).splitlines()[1:]] roots=[int(r[0]) for r in rows if r`
+- 2026-10-16 20:44 · wT:p5 · `tail -18 tmp/sp-x5-trader/final-check.log; cat tmp/sp-x5-trader/final-before.log; git log -4 --oneline; python3 tmp/sp-x5-trader/prepare.py GIT_INDEX_FILE="$PWD/tmp/sp-x5-trader/index" SKIP_SWEEPGUARD`
+- 2026-10-16 20:45 · wT:p5 · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x5-trader/prepare.py');s=p.read_text().replace("append=Path('docs/ENGINE.md').read_text().split('\\n'@wildshard/game/quest/trader.installQuestT`
