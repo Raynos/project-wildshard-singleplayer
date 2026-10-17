@@ -98,3 +98,19 @@ test('camera equipment borrows the parked world lighting without drawing its wor
     expect(world.visible).toBe(false); expect(light.layers.mask).toBe(1);
   } finally { f.dispose(); geometry.dispose(); material.dispose(); }
 });
+
+test('the warming view never clones camera equipment or prepares unused material copies', async () => {
+  const f = fixture(), clone = vi.spyOn(f.models, 'clone').mockImplementation(() => { throw new Error('Unexpected camera subtree clone'); });
+  const render = f.render.getMockImplementation();
+  if (render === undefined) throw new Error('Missing renderer fixture');
+  f.render.mockImplementation((scene, view) => {
+    expect(view).toBeInstanceOf(PerspectiveCamera);
+    expect(view.projectionMatrix.equals(f.camera.projectionMatrix)).toBe(true);
+    expect(view.children).toHaveLength(0); render(scene, view);
+  });
+  try {
+    expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
+      () => Promise.resolve(), { revealChildren: true })).toBe(2);
+    expect(clone).not.toHaveBeenCalled(); f.restored();
+  } finally { clone.mockRestore(); f.dispose(); }
+});

@@ -83,6 +83,7 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   const phaseLists = new WeakSet();
   const prepareWorldCalls = () => {
     const world = W.__wildshard?.world, game = world?.game, physics = game?.app?.physics;
+    measure(game?.camera, 'clone', 'Camera.clone');
     const input = game?.app?.input;
     for (const name of ['refresh', 'repaint', 'push', 'pop', 'register', 'touchLayout']) measure(input, name, `Input.${name}`);
     measure(game?.app, 'addSystem', 'App.addSystem');

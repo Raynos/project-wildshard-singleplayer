@@ -228,7 +228,11 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const slices = parkedDrawSlices(parkedDrawables(root, camera, reveal), options.budget ?? DEFAULT_BUDGET);
-  const view = camera.clone(), standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
+  // The scene holds the real camera equipment. Copy only the view: recursive
+  // camera copies clone that unused hierarchy and can prepare fresh materials.
+  const view = THREE.Object3D.prototype.clone.call(camera, false);
+  if (!(view instanceof THREE.Camera)) throw new Error('Parked view must retain its camera type');
+  const standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   let drawn = 0;
   try {
     for (const slice of slices) {
