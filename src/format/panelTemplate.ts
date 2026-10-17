@@ -21,7 +21,7 @@ const text = v.pipe(v.string(), v.maxLength(4096));
 const path = v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/u), v.maxLength(128),
   v.check(value => value.split('.').every(key => !['__proto__', 'constructor', 'prototype'].includes(key))));
 const attribute = v.pipe(text, v.regex(/^(?:aria-[a-z-]+|data-[a-z-]+|autocapitalize|enterkeyhint|role|title)$/u));
-const scalar = v.union([text, v.pipe(v.number(), v.finite()), v.boolean()]);
+const scalar = v.union([text, v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE)), v.boolean()]);
 const value: v.GenericSchema<unknown, PanelValue> = v.lazy(() => v.union([scalar,
   v.strictObject({ read: path }), v.strictObject({ concat: v.pipe(v.array(value), v.maxLength(32)) }),
   v.strictObject({ choose: conditionSchema(), yes: value, no: value }),

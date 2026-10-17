@@ -39,6 +39,7 @@ test('a transient count refresh replaces its hide clock and retires on scope dis
 });
 
 test('program admission refuses unsafe paths, deep trees and unbounded expansions', () => {
+  for (const text of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]) expect(() => parsePanelDefinition({ lifetime: 'persistent', frame: { text } })).toThrow();
   const definition = { lifetime: 'persistent', frame: { cls: { read: 'constructor.prototype' } } };
   expect(() => parsePanelDefinition(definition)).toThrow();
   expect(() => parsePanelDefinition({ lifetime: 'persistent', frame: { attrs: [['onclick', 'run()']] } })).toThrow();
