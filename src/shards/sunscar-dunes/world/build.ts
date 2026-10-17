@@ -98,9 +98,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   const wayLights = new SiteLights({ flicker: { depth: 1, waves: [[11, 0, 0.07], [23, 1, 0.05]] } });
   const site = (at: Vector3, lift: number): Object3D => { const o = new Object3D(); o.position.copy(at).setY(at.y + lift); ctx.root.add(o); return o; };
   ctx.root.add(wayLights.addLight(new PointLight(0xff7a30, 0, 10, 2)));
-  for (const b of braziers) wayLights.addLamp(site(b.parts.bowlAt, 0.5), 0xff7a30, WAY_LIGHT, 10, () => b.lit, 'fire');
+  const lightStates = braziers.map(b => ({ lit: b.lit }));
+  for (const [i, b] of braziers.entries()) wayLights.addLamp(site(b.parts.bowlAt, 0.5), 0xff7a30, WAY_LIGHT, 10, lightStates[i], 'fire');
   wayLights.addLamp(site(caravan.lampAt, 0), 0xffd27a, LANTERN_LIGHT, 10);
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
+    for (const [i, state] of lightStates.entries()) state.lit = braziers[i]?.lit ?? false;
     tickFires(t);
     const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me);
     channels.evaluate(programs[0]?.id ?? '', { time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });

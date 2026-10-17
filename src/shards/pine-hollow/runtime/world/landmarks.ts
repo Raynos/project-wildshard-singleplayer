@@ -79,7 +79,7 @@ export class PineLandmarks {
   readonly timberColliders: ColliderDesc[] = [];
   readonly propColliders: ColliderDesc[] = [];
   private floors: Floor[] = [];
-  private lit: Record<WaystoneId, boolean> = { pond: true, ridge: true, den: true };
+  private lit: Record<WaystoneId, { lit: boolean }> = { pond: { lit: true }, ridge: { lit: true }, den: { lit: true } };
   /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
   private canoe: { place: Place; placed: Awaited<ReturnType<ModelPlacementBatch['place']>> } | null = null;
   private glow: THREE.Points | null = null;
@@ -175,7 +175,7 @@ export class PineLandmarks {
     this.glow.renderOrder = 6;
     this.group.add(this.glow);
     this.anchors = anchors;
-    if (cabins) for (const id of ['pond', 'ridge', 'den'] as const) { const a = anchors[id]; cabins.addLampSite(a, 0xffb060, 9, 12, () => this.lit[id]); }
+    if (cabins) for (const id of ['pond', 'ridge', 'den'] as const) { const a = anchors[id]; cabins.addLampSite(a, 0xffb060, 9, 12, this.lit[id]); }
   }
 
   /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
@@ -187,7 +187,7 @@ export class PineLandmarks {
   }
 
   setLit(id: WaystoneId, on: boolean): void {
-    this.lit[id] = on;
+    this.lit[id].lit = on;
     const i = WAYSTONE_IDS.indexOf(id);
     const pos = this.glow?.geometry.getAttribute('position');
     if (pos && this.anchors) { const a = this.anchors[id]; pos.setY(i, on ? a.position.y : -1e4); pos.needsUpdate = true; }
@@ -204,7 +204,7 @@ export class PineLandmarks {
       // a banked ember by day, the full flame at night, a slow flicker; past 150 m (or none lit) it is not drawn at all
       this.glowMat.opacity = (0.1 + 0.9 * lamps) * (1 + 0.1 * Math.sin(t * 9.3) + 0.05 * Math.sin(t * 23.1));
       let near = Infinity;
-      for (let i = 0; i < WAYSTONES; i++) { const id = WAYSTONE_IDS[i]; if (id !== undefined && this.lit[id]) near = Math.min(near, this.anchors[id].position.distanceToSquared(this.tmp)); }
+      for (let i = 0; i < WAYSTONES; i++) { const id = WAYSTONE_IDS[i]; if (id !== undefined && this.lit[id].lit) near = Math.min(near, this.anchors[id].position.distanceToSquared(this.tmp)); }
       this.glow.visible = near < 150 * 150;
     }
   }

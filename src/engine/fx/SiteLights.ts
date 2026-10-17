@@ -11,7 +11,7 @@ import * as THREE from 'three';
  *
  *   const lights = new SiteLights({ flicker: { depth: 1, waves: [[11, 0, 0.07], [23, 1, 0.05]] } });
  *   lights.addLight(pooledLight);
- *   lights.addLamp(anchor, 0xff7a30, 9, 10, () => brazierLit);  // anchor: an Object3D in the scene, where the light sits
+ *   lights.addLamp(anchor, 0xff7a30, 9, 10, { lit: true });    // mutable state published by the page
  *   lights.step(t, eye);                                        // per frame: the clock, the eye (world), [each kind's gain]
  */
 
@@ -23,9 +23,11 @@ export interface SiteFlicker { light: THREE.PointLight; base: number; seed: numb
 export interface SiteLightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number; kind: SiteLightKind; rank: number }
 /** A room's floor rectangle in its site root's frame (the eye inside: the room anchors take the pool first). */
 export interface SiteRoom { x: number; z: number; hw: number; hd: number }
+/** Page-owned ignition state. Publish before stepping; no gameplay callback enters the light host. */
+export interface SiteLightState { readonly lit: boolean }
 /** A place the shared lights may visit: its root (the distance is measured to `root.position`), its anchors, whether
  *  it is lit (absent: always), and its rooms and door (x, z) in the root's frame. */
-export interface LightSite { root: THREE.Object3D; anchors: SiteLightAnchor[]; lit?: () => boolean; rooms?: readonly SiteRoom[]; door?: readonly [number, number] }
+export interface LightSite { root: THREE.Object3D; anchors: SiteLightAnchor[]; state?: SiteLightState; rooms?: readonly SiteRoom[]; door?: readonly [number, number] }
 /** One wave of a flicker: sin(t × rate + seed × seedScale) × amount. */
 export type SiteWave = readonly [rate: number, seedScale: number, amount: number];
 /** How the lights flicker (intensity × (1 + depth × Σ waves)) and, for sites with rooms, which anchor ranks light a
@@ -64,10 +66,10 @@ export class SiteLights {
   addFlicker(f: SiteFlicker): void { this.flickers.push(f); }
   /**
    * A lone lamp the shared lights may visit when it is the nearest lit site: `anchor` is where the light sits (its
-   * position also measures the distance), `lit()` false keeps the pool away. Its flicker seed comes from its x.
+   * position also measures the distance), `state.lit` false keeps the pool away. Its flicker seed comes from its x.
    */
-  addLamp(anchor: THREE.Object3D, color: number, intensity: number, distance: number, lit: () => boolean = () => true, kind: SiteLightKind = 'lamp'): void {
-    this.sites.push({ root: anchor, anchors: [{ anchor, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind, rank: 0 }], lit });
+  addLamp(anchor: THREE.Object3D, color: number, intensity: number, distance: number, state?: SiteLightState, kind: SiteLightKind = 'lamp'): void {
+    this.sites.push({ root: anchor, anchors: [{ anchor, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind, rank: 0 }], ...(state === undefined ? {} : { state }) });
   }
 
   /** Per frame: the clock `t`, the eye in world space and each kind's gain (e.g. the night's lamps; default 1). */
@@ -86,7 +88,7 @@ export class SiteLights {
     let nearest = -1, nearestD2 = Infinity;
     for (const [i, s] of this.sites.entries()) {
       const d2 = s.root.position.distanceToSquared(eye);
-      if (s.anchors.length > 0 && d2 < nearestD2 && (s.lit?.() ?? true)) { nearestD2 = d2; nearest = i; }
+      if (s.anchors.length > 0 && d2 < nearestD2 && (s.state?.lit ?? true)) { nearestD2 = d2; nearest = i; }
     }
     const site = this.sites[nearest];
     let indoors = false;

@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import { floorAtRects, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { SiteLights, type LightSite, type SiteFlicker, type SiteLightsLook, type SiteWave } from '@wildshard/engine/fx/SiteLights';
+import { SiteLights, type LightSite, type SiteLightState, type SiteFlicker, type SiteLightsLook, type SiteWave } from '@wildshard/engine/fx/SiteLights';
 
 /**
  * A settlement's buildings as a living place (SHARD-PLATFORM M3, the props system): whatever builds the buildings hands
@@ -133,5 +133,5 @@ export class BuildingLife {
   /** a shared point light the nearest site's anchors take */
   addSharedLight(light: THREE.PointLight): void { this.lights.addLight(light); }
   /** a lone lamp the shared lights may visit when it is the nearest lit site (a waystone lantern; no light of its own) */
-  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, lit?: () => boolean): void { this.lights.addLamp(anchor, color, intensity, distance, lit); }
+  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, state?: SiteLightState): void { this.lights.addLamp(anchor, color, intensity, distance, state); }
 }

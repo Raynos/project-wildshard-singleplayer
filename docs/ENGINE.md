@@ -1680,6 +1680,15 @@ build a `DamageRequest` → occlusion (`lineOfSight`, unless `throughWalls`) →
 | `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `getAimTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
 | `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `SiteLights`, `LightSite`, `SiteLightAnchor`, `SiteLightKind`, `SiteFlicker`, `SiteRoom`, `SiteWave`, `SiteLightsLook`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX (`SiteLights`: shared point lights that visit the nearest lit site's anchors and flicker by intensity) |
 
+**Site light state ports.** `engine/fx/SiteLights` borrows a
+`SiteLightState` (`{ lit: boolean }`) through `LightSite.state` or the
+fifth argument of `addLamp`. The page publishes ignition before `step`;
+an omitted state means always lit. The host reads values and never invokes
+shard code. Pine waystones retain one box per stone; Sunscar publishes
+brazier ignition into boxes before updating its shared pool. Room ranking,
+anchor transforms and flicker stay in the light host. `test/site-lights.test.ts`
+checks both shipped lamp rows, ignition changes and an empty pool slot.
+
 **Damage request motion fields (G21).** These optional fields are currently metadata, not movement commands.
 `CombatPipeline.hit` preserves them through modifiers and in `DamageDealt.req`, but neither the built-in Animal
 actor adapter nor `PlayerHealth.applyDamage` reads them. A custom actor or listener must define its own semantics
