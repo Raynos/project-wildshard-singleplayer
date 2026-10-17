@@ -1,5 +1,11 @@
 # Milestone performance — 2026-10-17
 
+**Latest: cold production/boot PASS; Pine re-entry cleared; floor FAIL.**
+Part two below covers Pine/Signal/Driftwood roads on both surfaces.
+Simulator completes the full grid; desktop remains incomplete at Sky.
+
+## Part one — original dispatch pin
+
 **Floor FAIL; grid incomplete; production boot not cleared.** Desktop
 standing passes all seven shards. Simulator Driftwood standing and
 Sky/Nalati travel exceed the frame-time bar. Pine asset admission blocks
@@ -185,3 +191,147 @@ browser/Simulator lanes; Simulator also takes an outer browser lane.
 These finite standing/travel windows cannot prove every gameplay moment.
 Raw traces are discarded after summarizing; this receipt retains the
 measured numbers. Managed command logs remain under `.git/proofs/`.
+
+## Part two — repaired-pin proof
+
+**Cold production and boot PASS; Pine re-entry cleared; floor FAIL.**
+Desktop's full journey is incomplete at Sky. The separate later-road
+cohort completes Nalati/Pine/Signal/Driftwood on both surfaces; it does
+not turn the failed full desktop journey into a complete one.
+
+Pinned source `bae731dcd5d159e1bfe80fca65db4f2bcd7b0a8e`, including
+Pine re-entry repair `efd7adc4d`, cold-generation repair `40bd99537`,
+and Nine fog-loop repair `bae731dcd`. Production build
+`bae731d-mvc2fl8w`; full-catalogue DEVSERVER build `bae731d-mvc2ggzk`.
+Later source changes are excluded. The sampling harness is unchanged
+from the pin. No game code, Debug settings, frame gates or visuals changed
+in this measurement lane.
+
+The cold production build removed **1,973 untracked declared generated
+outputs inside the locked `check` mirror**, retained committed source
+seeds, and used a fresh task-owned generation cache. Full generation
+passed in 119 s, all ten shard products rebuilt in 41 s, and production
+Vite passed in 6 s. No missing `npcScenes.generated.json` or other
+undeclared-input error occurred. The DEVSERVER build then verified/reused
+those products (generation 29 s, packing <1 s, Vite 6 s). Neither preview
+built during sampling.
+
+The coordinator broadcast a CPU hold first. A blocking authoritative
+push lock covered the drain and measurements; native process-exit events
+drained existing jobs, and the start guard found no live heavy leases or
+compiler/test/build jobs before creating `.git/quiet`. Primary quiet:
+07:20:52–07:33:43Z; supplementary quiet: 07:33:43–07:38:26Z. The explicit
+CPU hold continued across their handoff. One-minute loads at phase
+boundaries: 6.60 (boot), 4.88 (WebKit), 4.73 (desktop full), 3.17
+(Simulator full), 4.60 (desktop supplement), 2.86 (Simulator supplement),
+4.38 (sampling ended). Subsequent static checks are outside timing.
+Same host, 2× scale, live clocks, 120 frames, 2-second settling, muted
+browser/Simulator lanes and floor criteria as part one; no profiler or
+GL observer. Simulator is Mac-backed Safari, not physical-iPhone fps.
+
+### Production boot
+
+`node scripts/parity/boot-smoke.mjs --url=<production> --out=<scratch>`:
+**12/12 PASS**, zero faults/reports. This includes the Developer-off
+Nine policy case: hydrated initial drawing and a locked experimental
+card; its separate Developer-on case enters gameplay. Grid home/rings,
+ten live frames and the genuine road crossing into Signal also pass.
+
+The browser-lane WebKit render smoke **PASS** (29 s): template world,
+whip, sword and Driftwood minimap at spawn/corner; zero failures.
+
+### Full milestone journeys
+
+Desktop: 327.1 s, **3/8 route witnesses**, incomplete. Simulator:
+341.2 s, **8/8 route witnesses**, complete but floor FAIL. Grid standing
+views pass on both. Raw medians are 59.88 / 30.303 fps throughout the
+completed rows. Cells retain worst p95 / maximum frame, in ms, across
+travel, whole drive and interior; windows are not pooled.
+
+| Route | Desktop p95 / max ms | Simulator p95 / max ms |
+| --- | ---: | ---: |
+| Template outward | 16.8 / 116.7 **FAIL** | 34 / 126 PASS |
+| Template return | 16.8 / 100 PASS | 34 / 118 PASS |
+| Nine Dragon | 16.7 / 66.6 PASS | 37 / 111 **FAIL** |
+| Sky | entry timed out | 40 / 162 **FAIL** |
+| Nalati | not reached | 45 / 83 **FAIL** |
+| Pine | not reached | 74 / 104 **FAIL** |
+| Signal | not reached | 34 / 89 PASS |
+| Driftwood | not reached | 43 / 110 **FAIL** |
+
+Sky desktop stops at waypoint 0/2, target `(0, -320)`, feet
+`(-0.019, 0.438, -298.351)`, current/inside null. The destination remains
+pending, residents empty, admission issues empty, crossing settled with
+no issue; no fatal modal or JavaScript page error. Its memory model at
+timeout reports playing 1,197,131,126 B and loading 1,277,131,126 B.
+Near-cap admission scheduling is a lead, not an established cause; the
+same full journey enters Sky on Simulator. This timeout is not a new
+canonical physics stuck count.
+
+### Separate later-road approaches
+
+Fresh cohorts select only Nalati/Pine/Signal/Driftwood with the existing
+`--grid-routes` option. Both complete **4/4 route witnesses**: desktop
+115.1 s PASS; Simulator 167.3 s FAIL. This residency history differs from
+the full journey, so these rows remain separate.
+
+| Route | Desktop p95 / max ms | Simulator p95 / max ms |
+| --- | ---: | ---: |
+| Nalati | 16.7 / 50 PASS | 115 / 238 **FAIL** |
+| Pine | 16.8 / 50.1 PASS | 63 / 120 **FAIL** |
+| Signal | 16.8 / 16.8 PASS | 34 / 137 PASS |
+| Driftwood | 16.8 / 50 PASS | 42 / 102 **FAIL** |
+
+All completed rows across the four cohorts retain valid CPU ownership,
+zero skipped frames/context losses and zero page errors. The King-kit
+refusal does not recur. Signal passes on both surfaces; Pine admission
+works but its Simulator travel still misses. Nalati's filtered repeat
+also breaks the 200 ms frame ceiling: the 238 ms frame overlaps its
+`world` hook. That overlap identifies work to inspect, not a causal
+commit.
+
+### Pinned source checks
+
+After all sampling (07:38:26–07:39:55Z), the same pin passed root types,
+layer types, typed lint on the repaired paths, all ten products, and
+**20 focused tests** across `shard-headless`, `graph-declared-fog` and
+`pine-king-kit-reentry` (including all 17 headless cases). No full suite
+was run. The product builder emitted nonfatal SF66 stale-map warnings
+for Template, Blender-template, Driftwood, Ink, Nalati, Nine, Pastel and
+Pine; these are not a map-freshness clearance and were reported to the
+coordinator. This lane did not rebake or stamp their maps.
+
+The final BOTH-surface release was sent at 07:39:55Z after those checks;
+owned previews and browser/Simulator sessions were closed.
+
+### Remaining owners and bounds
+
+The CPU hold and clean-window results were reported to `wildshard-new`.
+Sky's desktop pending admission needs shared admission/memory triage
+with the Sky owner. No Sky source or floor-harness changes exist between
+part-one pin `4fa329e26` and this pin; shared fog-host port `908dcec0a`
+is an inspection candidate in that interval, not a proven first-bad
+commit. Its Opus fog owner is the first shared-host contact. No game
+patch or historical FPS bisection was made here.
+
+Simulator Pine and Driftwood misses predate this pin; Pine's earlier
+86/91 ms travel and Driftwood's 52/75 ms road failures remain in the
+16 October follow-up. Their Opus Pine W2a/cove owners retain the work.
+Sky's prior travel misses and Nalati's look-port candidates are recorded
+in part one; the Nalati owner also needs the new cold-approach 115/238
+result. Nine's 37 ms travel miss needs its Opus Nine owner; its full
+whole-drive/interior rows pass. Exact first-bad FPS commits remain
+unestablished. Part one's load-confounded ABBA controls remain excluded;
+these plain timings do not replace a causal control.
+
+Reproduce the primary runs with the part-one frame-floor command and
+this pin/DEVSERVER URL, separately for `--surface=desktop` and
+`--surface=sim`, `--shards=grid --grid-scenario=milestone`. The separate
+cohorts add
+`--grid-routes=nalati-grasslands-road-entry,pine-hollow-road-entry,sunscar-dunes-road-entry,driftwood-isle-road-entry`.
+Production uses `serve-build.sh --rev <pin> --full` after the cold mirror
+cleanup above; boot/policy and WebKit use that production URL. Raw
+results are summarized here and discarded; managed command logs remain
+under `.git/proofs/` (`perf-part2-final-builds`, `perf-part2-quiet-grid`,
+`perf-part2-remaining-roads`). No new physical-device, standalone or
+canonical physics-walk clearance is claimed beyond part one's evidence.
