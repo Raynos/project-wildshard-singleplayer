@@ -1,5 +1,5 @@
 import { APOTHEM, ISLES, type Isle } from "./layout";
-import { ISLE_DRAWS } from '../data/isleLook';
+import { ISLE_DRAWS } from './rows/isleLook';
 
 /**
  * Build-time only: an island top's drawn rim, shared by the island bake (generators/isles.ts) and the meadow's

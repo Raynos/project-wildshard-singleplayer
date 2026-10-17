@@ -2,7 +2,7 @@ import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeome
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { FAN } from '../data/fanGeometry';
+import { FAN } from './rows/fanGeometry';
 import { hdGeometry } from './modelIntake';
 import { HD_URLS } from './fileInventory';
 

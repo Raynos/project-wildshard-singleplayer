@@ -14,14 +14,14 @@
  */
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from 'three';
 import { HD_URLS } from './fileInventory';
-import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLE_MODELS, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
+import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLE_MODELS, type SkyIsle, type SkyIsleModel } from './rows/skyIsles';
 import { keelIsles, skyIslePose, skyIslesIn, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from './placements';
 import { skyIsleFrame } from './skyIsleFrames';
 import { ISLES, MILL, PINES, WINDMILL, type Isle } from "./layout";
 import { apothem } from "./layoutMath";
 import { builtIsleGeometry } from './isles';
 import { RISING_ISLETS } from './risingIslets';
-import { ISLET, type RisingIslet } from '../data/isletDesign';
+import { ISLET, type RisingIslet } from './rows/isletDesign';
 import { PALETTE } from './palette';
 
 type Rgb = [number, number, number];

@@ -4,7 +4,7 @@ import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
 import { RISING_ISLETS } from './risingIslets';
-import { ISLET, type EntryEdge, type RisingIslet } from '../data/isletDesign';
+import { ISLET, type EntryEdge, type RisingIslet } from './rows/isletDesign';
 import { PALETTE, flat } from './palette';
 
 /**

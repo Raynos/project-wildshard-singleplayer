@@ -1,4 +1,4 @@
-import skyMapSources from './skyMapSources.json' with { type: 'json' };
+import skyMapSources from '../../data/skyMapSources.json' with { type: 'json' };
 
 /**
  * The islands' paint is the `isle-paint` graphs of data/lookGraphs.json (E392; SHARDFILE W1 C2): whole (the gate isles,

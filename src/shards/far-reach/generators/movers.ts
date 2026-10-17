@@ -8,7 +8,7 @@ import FLAGS from '../data/flags.json' with { type: 'json' };
 import { deckCollider, saggedColliders, railColliders } from './bridgeColliders';
 import { isletId, gateId, RISING_ISLETS } from './risingIslets';
 import type { MoverBox } from '@wildshard/engine/physics/mover';
-import { ISLET, ISLET_ISLE } from '../data/isletDesign';
+import { ISLET, ISLET_ISLE } from './rows/isletDesign';
 
 // Three's configurable buffer types preserve authored f64 stops instead of rounding native gameplay to Float32.
 class PositionStops extends VectorKeyframeTrack {}

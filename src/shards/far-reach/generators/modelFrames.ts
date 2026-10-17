@@ -1,6 +1,6 @@
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { LECTERN } from '../data/bookStand';
-import { TREE_MODELS, TREES } from '../data/trees';
+import { LECTERN } from './rows/bookStand';
+import { TREE_MODELS, TREES } from './rows/trees';
 import type { SkyHdName } from './fileInventory';
 
 /** A finite model's static fitting rule, consumed only by the retained author generator. */

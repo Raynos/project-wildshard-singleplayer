@@ -4,7 +4,7 @@ import { Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, type BufferG
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { hdGeometry, fitModel } from './modelIntake';
-import { MILL_COURSES, MILL_TOWER, MODELLED } from '../data/millShape';
+import { MILL_COURSES, MILL_TOWER, MODELLED } from './rows/millShape';
 import { HD_URLS } from './fileInventory';
 
 /**

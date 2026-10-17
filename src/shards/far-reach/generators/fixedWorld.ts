@@ -6,11 +6,11 @@ import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wild
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
 import { MILL_SCENE } from '../data/millScene.generated';
-import { CROWN_SCENE } from '../data/crownScene.generated';
+import { CROWN_SCENE } from './rows/crownScene.generated';
 import { SKY_PIECES } from './worldRows';
 import { NOTES, WINCH, SUNREST, MILL } from "./layout";
 import { KEEPER_STAND } from './keeperStand';
-import { BOOK_STAND } from '../data/bookStand';
+import { BOOK_STAND } from './rows/bookStand';
 
 interface FixedWorldRows {
   readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly textureOnly: readonly string[];

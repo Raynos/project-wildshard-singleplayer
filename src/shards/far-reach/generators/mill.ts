@@ -2,7 +2,7 @@ import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { MILL_COURSES, MILL_TOWER } from '../data/millShape';
+import { MILL_COURSES, MILL_TOWER } from './rows/millShape';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/mill.glb` + `data/mill.json`;

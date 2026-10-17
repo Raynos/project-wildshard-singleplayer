@@ -1,7 +1,7 @@
 import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { ISLES, KNOLLS } from "./layout";
-import { ISLE_DRAWS } from '../data/isleLook';
-import { ISLE_KEEL_CUT } from '../data/skyIsles';
+import { ISLE_DRAWS } from './rows/isleLook';
+import { ISLE_KEEL_CUT } from './rows/skyIsles';
 import { STRINGS } from '../data/strings';
 import KNOLL_BAKE from '../data/knolls.json' with { type: 'json' };
 import { RISING_ISLETS } from './risingIslets';

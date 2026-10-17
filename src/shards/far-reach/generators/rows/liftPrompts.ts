@@ -1,8 +1,8 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import entries from './islets.generated.json' with { type: 'json' };
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import entries from '../../data/islets.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { ISLET, ISLET_EDGES } from './isletDesign';
-import { STRINGS } from './strings';
+import { STRINGS } from '../../data/strings';
 
 const away = -1e5, radius = ISLET.islet.r * LAYOUT.APOTHEM;
 const rows = entries.entries.flatMap(entry => {

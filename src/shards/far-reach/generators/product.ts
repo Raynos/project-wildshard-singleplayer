@@ -1,20 +1,20 @@
 import { SKY_SECTIONS } from './sections';
-import { STORM_NOISE } from '../data/stormNoise';
-import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../data/swardAtlas';
+import { STORM_NOISE } from './rows/stormNoise';
+import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from './rows/swardAtlas';
 import skyMaps from '../data/skyMaps.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import { SKY_REACH_RUNTIME_COST } from '../data/budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SKY_SPAWNS } from '../data/spawns';
-import { SKY_LIFT_PROMPTS } from '../data/liftPrompts';
+import { SKY_LIFT_PROMPTS } from './rows/liftPrompts';
 import { SKY_MOVER_VIEWS } from '../data/moverViews';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import isletRows from '../data/islets.generated.json' with { type: 'json' };
-import { RISING_ISLETS, ENTRYWAYS } from '../data/islets.generated';
+import { RISING_ISLETS, ENTRYWAYS } from './rows/islets.generated';
 import isleProps from '../data/props.json' with { type: 'json' };
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
-import { ISLE_MAPS } from '../data/isleLook';
+import { ISLE_MAPS } from './rows/isleLook';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0

@@ -2,7 +2,7 @@ import { BoxGeometry, Color, Float32BufferAttribute, InstancedMesh, Matrix4, Mes
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { LECTERN } from '../data/bookStand';
+import { LECTERN } from './rows/bookStand';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/book-stand.glb` +

@@ -2,7 +2,7 @@
 import { zstdDecompressSync } from 'node:zlib';
 import { expect, it } from 'vitest';
 import { bakeStormNoise } from '../src/shards/far-reach/generators/stormNoise';
-import { STORM_NOISE, STORM_NOISE_SAMPLER } from '../src/shards/far-reach/data/stormNoise';
+import { STORM_NOISE, STORM_NOISE_SAMPLER } from '../src/shards/far-reach/generators/rows/stormNoise';
 import SEA from '../src/shards/far-reach/data/seaTexture.json';
 import sky from '../src/shards/far-reach/shard.config';
 import { hashImmutableBytes } from '../src/sdk/immutable';

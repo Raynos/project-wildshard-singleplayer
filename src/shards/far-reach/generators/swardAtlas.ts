@@ -1,6 +1,6 @@
 import { writeImagePixels } from '@wildshard/sdk/bake/image';
 import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
-import { SWARD_ATLAS } from '../data/swardAtlas';
+import { SWARD_ATLAS } from './rows/swardAtlas';
 
 /**
  * Build-time only (SHARD-PLATFORM M3): the sward's tuft atlas texels (data/swardAtlas.ts), baked by the generation job
