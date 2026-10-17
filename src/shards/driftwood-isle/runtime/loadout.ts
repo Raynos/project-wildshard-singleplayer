@@ -4,7 +4,7 @@ import { fixedDraw } from './boot/modelGeometry';
 import { FP_ARMS_MATERIALS } from './const';
 import type { MeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { driftwoodRows } from './boot/rows';
-import { bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeItems, sameRuntimeProfile } from '@wildshard/game/shardfile/hybridRows';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -16,7 +16,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 
 /** The exact declared profiles already used to construct the native sword rows. */
 export function driftwoodSwordProfiles(ctx: Pick<ShardContext, 'product'>): readonly [MeleeCombatProfile, MeleeCombatProfile] {
-  const rows = ctx.product.section('combat/items').items.rows;
+  const rows = ctx.product.shardfile.items.rows;
   const wood = rows.find(row => row.id === 'weapon.driftwood-isle.wood'), iron = rows.find(row => row.id === 'weapon.driftwood-isle.iron');
   if (wood?.kind !== 'weapon' || wood.profile?.family !== 'melee' || iron?.kind !== 'weapon' || iron.profile?.family !== 'melee') throw new Error('Driftwood requires both admitted sword profiles');
   return [wood.profile, iron.profile];
@@ -33,8 +33,8 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
       ...(world.game.level.camera ? { portraitFov: world.game.level.camera.portraitFov } : {}) });
     await macrotask();
     const melee: ItemFamily = { kind: 'weapon', profiles: ['melee'], create: (row, spec, ports) => {
-      if (spec.id === 'weapon.driftwood-isle.wood' && JSON.stringify(ports.profile) === JSON.stringify(woodProfile)) return primary;
-      if (spec.id === 'weapon.driftwood-isle.iron' && JSON.stringify(ports.profile) === JSON.stringify(ironProfile)) {
+      if (spec.id === 'weapon.driftwood-isle.wood' && sameRuntimeProfile(ports.profile, woodProfile)) return primary;
+      if (spec.id === 'weapon.driftwood-isle.iron' && sameRuntimeProfile(ports.profile, ironProfile)) {
         return new Sword(world, targets, { row: iron, profile: iron, allowUnlocked: nolock, blade: 'iron', arms: ironArms });
       }
       throw new Error(`Native Driftwood sword was built from a different authored profile: ${row.id}`);

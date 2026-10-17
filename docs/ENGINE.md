@@ -8284,3 +8284,5 @@ its existing pause, viewmodel, audio and Keep/Next/Title actions. Shards supply
 data, never card-policy callbacks. `createQuestPlacements().anchors` is a
 readonly view of that placement owner's validated anchors, so late ride anchors
 remain authoritative for completion markers without a second placement cache.
+
+`sameRuntimeProfile(left, right)` in `game/plugin/headless` compares admitted native profiles by JSON value, preserving array order and rejecting changed values while ignoring object-key order.
