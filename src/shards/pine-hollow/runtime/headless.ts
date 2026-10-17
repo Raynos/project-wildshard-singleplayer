@@ -1,3 +1,4 @@
+import { parsePineQuestRows } from '../quest/rows';
 import { nativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { installNativeItems, readItemInventory, observeNativeCombatMotion, type NativeCombatFrame, type NativeBoltItem, type NativeBowItem, type NativeCycleItem } from '@wildshard/game/plugin/nativeItems';
@@ -80,6 +81,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const counters = parseAchievementCounterData(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/achievements.json'))));
   const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/contracts.json'))));
+  const content = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/native.json'))));
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
   const nav = readNavmesh(navBytes, `Pine headless needs its baked navmesh (${PINE_NAVMESH_ASSET})`, () => 0);
@@ -94,12 +96,13 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   }, install: (host, context) => {
     const input = bindHeadlessCommands(context), combat = context.combat;
     if (combat === undefined) throw new Error('Pine requires its native combat frame');
-    installPine(host, { decisions:nativeDecisionAuthority(shard,assets,host), weather, counters, trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+    installPine(host, { content, decisions:nativeDecisionAuthority(shard,assets,host), weather, counters, trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
       interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
 
 export interface PineInstall {
+  readonly content: PineQuestPorts['content'];
   readonly decisions:SpeciesDecisionAuthority;
   readonly counters: AchievementCounterData;
   readonly contracts: PineQuestPorts['contracts'];
@@ -190,7 +193,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
-  quest = installHollowQuest(host, { counters: parts.counters, inventory: readItemInventory(parts.items), trades: parts.trades, contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
+  quest = installHollowQuest(host, { content: parts.content, counters: parts.counters, inventory: readItemInventory(parts.items), trades: parts.trades, contracts: parts.contracts, director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(0) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster

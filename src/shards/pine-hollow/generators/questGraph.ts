@@ -2,7 +2,7 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { compileQuestTable, parseQuestGraph } from '@wildshard/sdk/questGraph';
 import { parseInteractionRows } from '@wildshard/sdk/interactions';
 
-import { PINE_GRAPH_DATA, PINE_TABLE_ACTIONS, PINE_LANTERN_ROWS } from '../data/interactions';
+import { PINE_GRAPH_DATA, PINE_TABLE_ACTIONS, PINE_LANTERN_ROWS } from './interactions';
 
 /** Admit the authored command protocol with the existing shared row parser. */
 export const PINE_GRAPH = parseQuestGraph(PINE_GRAPH_DATA);

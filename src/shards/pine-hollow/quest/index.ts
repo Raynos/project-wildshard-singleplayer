@@ -1,3 +1,4 @@
+import { parsePineQuestRows } from './rows';
 import type { Progress } from '@wildshard/game/Progress';
 import { parseContractCatalogue } from '../runtime/lodge';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -5,9 +6,6 @@ import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
-import { PINE_KIT_EVENTS } from '../data/questEvents';
-import { pineQuestRows } from './graph';
-import { RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -33,7 +31,6 @@ import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import type { Inventory, ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
-import { PINE_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { isPineThrall } from './featLaw';
@@ -67,8 +64,6 @@ import { ZIP_YAW } from '../runtime/world/timberSites';
 import { hamletRoofs } from '../runtime/world/cabinBake';
 import { LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES } from '../data/layout';
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
-import { pineTableFromPlacements } from './table';
-import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
 import { npcMaterial, makeNpcFigure, type NpcFigure } from '../runtime/models/people';
 import { preloadNpcModels } from '../runtime/quest/npcModels';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
@@ -83,9 +78,7 @@ import { pineModels } from '../runtime/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
 import { preparePineNightDirector } from '../runtime/nightDirector';
-import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
-import { pineQuestContent } from './content';
 import { BeaverPool } from '../world/beaverPool';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
@@ -128,6 +121,8 @@ async function loadQuest() {
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   const story = await readQuestStory(h.ctx);
+  const native = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/native.json'))));
+  const { resinCount: RESIN_COUNT, resinFlag: RESIN_FLAG, tokenFlag: TOKEN_FLAG, tokenNames: TOKEN_NAMES } = native.policy;
   const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
@@ -143,8 +138,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const flags = new Flags(h.chunkId);
   if (h.params.has('resetquest')) flags.reset();
   const beatParam = h.params.get('quest');
-  const beat: Beat | null = beatParam !== null && isBeat(beatParam) ? beatParam : null;
-  if (beat) { flags.reset(); for (const f of beatFlags(beat)) flags.set(f); }
+  const beat = beatParam === null ? undefined : native.beats[beatParam];
+  if (beat) { flags.reset(); for (const f of beat.flags) flags.set(f); }
   const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindStoryAchievements(ctx, story, progress, h.chunkId, facts);
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
@@ -162,8 +157,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   };
 
   // ── the table's sites ──
-  const table = pineTableFromPlacements(authoredSpots.rows);
-  const lanternRules = pineQuestRows(table);
+  const { table, interactions: lanternRules } = native;
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
@@ -185,7 +179,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     shelf.setShown(tokenCount() === TOKEN_NAMES.length);
     ctx.system({ id: 'quest.shelf', phase: 'update', after: ['quest.pool'], before: ['quest', 'hud.combat', 'main.frame'], run: () => { shelf.update(game.camera); } });
   }
-  kit.onEvent = kitSfx.bindEvents(PINE_KIT_EVENTS, { toast: text => { hud.toast(text); }, calls: new Map<string, (e: InteractEvent) => void>([
+  kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls: new Map<string, (e: InteractEvent) => void>([
     ['resin', () => { inventory.add('amber-resin'); chip().show('Amber resin', resinCount(), RESIN_COUNT); }],
     ['all-resin', () => { if (resinCount() === RESIN_COUNT) hud.toast(`Every drop of amber in the Hollow · ${RESIN_COUNT} / ${RESIN_COUNT}`); }],
     ['token', e => { const i = Number(e.def.id.split('-')[1] ?? '1') - 1;
@@ -311,7 +305,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   traderVoice.copy(trader.fig.talkPoint);
 
   // ── kills: the King, thralls, the contracts ──
-  const killed = bindQuestDeathEffects(PINE_PAGE_DEATH_EFFECTS, { flags, kill: featFacts.kill, event: featFacts.event,
+  const killed = bindQuestDeathEffects(native.pageDeaths, { flags, kill: featFacts.kill, event: featFacts.event,
     calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
       const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(contracts, a.kind, a.variant), thrall: isPineThrall(a) });
       if (moved.length === 0) return;
@@ -452,8 +446,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   } });
 
   // ── dev: `?quest=<beat>` puts you where the beat starts (and `__pineQuest.goto(beat)` does it without a reload) ──
-  const standAt = (bt: Beat): void => {
-    const b = BEATS[bt];
+  const standAt = (b: NonNullable<typeof beat>): void => {
     const at = b.at === 'ranger' ? { x: rangerAt.x + 3.5 * rcos, z: rangerAt.z - 3.5 * rsin } : b.at === 'deck' ? tower(-1.2, -2.9) : b.at === 'launch' && lm ? { x: lm.zip.launch.x, z: lm.zip.launch.z } : b.at === 'lodge' ? { x: bs.x - Math.sin(bs.yaw) * 3, z: bs.z - Math.cos(bs.yaw) * 3 } : { x: b.x, z: b.z };
     const look = b.at === 'ranger' ? rangerAt : b.at === 'launch' && lm ? { x: lm.zip.bottom.x, z: lm.zip.bottom.z } : b.at === 'lodge' ? bs : b.look;
     player.spawn(at.x, at.z, Math.atan2(-(look.x - at.x), -(look.z - at.z)));
@@ -463,14 +456,14 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   };
   if (beat) standAt(beat);
   const goto = (bt: string): void => {
-    if (!isBeat(bt)) return;
-    flags.reset(); for (const f of beatFlags(bt)) flags.set(f);
+    const b = native.beats[bt]; if (b === undefined) return;
+    flags.reset(); for (const f of b.flags) flags.set(f);
     syncLanterns(); syncWheel();
-    standAt(bt);
+    standAt(b);
     if (quest.current?.id === 'dawn') runDawn();
   };
   const debug = {
-    flags, quest, board, kit, stag, thralls, people, content: pineQuestContent(contracts, trades),
+    flags, quest, board, kit, stag, thralls, people, content: native.content,
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, cables, canoe, movers: motion, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,

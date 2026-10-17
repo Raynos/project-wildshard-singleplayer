@@ -1,4 +1,4 @@
-import { RANGER, MILLER, TRADER } from '../quest/wardensHollow';
+import { RANGER, MILLER, TRADER } from './nativeReadings';
 
 /** Existing speaker order and legacy native save envelopes; text and payouts keep their owners. */
 export const PINE_READINGS = {

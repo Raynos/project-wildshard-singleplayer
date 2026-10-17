@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { readProjectAssets } from '../src/sdk/project';
@@ -9,7 +8,7 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';
 import { QuestState } from '../src/engine/quest/core';
 import type { Interactable } from '../src/engine/world/interact/types';
-import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/data/interactions';
+import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 
 // Frozen canonical hash of the original authored table, before its build-only move.
 const original = '8b36d3892eeba813a07f25e09de36a2d4d884a78fb82f45acc5af81243e7bbda';

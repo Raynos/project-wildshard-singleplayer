@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { bindQuestDeathEffects } from '../src/game/plugin/quests';
 import { createAchievementCounters } from '../src/game/achievements';
-import { PINE_DEATH_EFFECTS, PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/data/questDeaths';
+import { PINE_DEATH_EFFECTS, PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
 import { DRIFTWOOD_PAGE_DEATH_EFFECTS, DRIFTWOOD_KILL_DEATH_EFFECTS } from '../src/shards/driftwood-isle/data/questDeaths';
 import { recordKill, isFilled, type Board } from '../src/shards/pine-hollow/quest/contracts';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';

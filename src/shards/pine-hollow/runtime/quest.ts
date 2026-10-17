@@ -1,5 +1,5 @@
+import type { PineQuestRows } from '../quest/rows';
 import { moversRiding } from '@wildshard/game/plugin/mover';
-import { PINE_DEATH_EFFECTS } from '../data/questDeaths';
 import { cableModes } from '@wildshard/engine/player/modes';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -8,10 +8,7 @@ import { bindInteractionTransitions, type InteractionState } from '@wildshard/en
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '@wildshard/game/plugin/quests';
-import { PINE_GRAPH, pineQuestRows } from '../quest/graph';
-import { PINE_READING_DELAY, PINE_LANTERN_IDS, RESIN_COUNT, TOKEN_NAMES } from '../data/interactions';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
-import { pineTableFromPlacements } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
@@ -20,7 +17,6 @@ import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
 import { NativeInventory, nativeInventorySchema, type NativeInventoryProfile } from '@wildshard/game/inventoryLaw';
-import { PINE_READINGS } from '../data/readings';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
 import { eliteOf } from '../quest/contracts';
 import { questBenchPose } from '@wildshard/game/quest/storyLaw';
@@ -74,6 +70,7 @@ const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>) => v
 export interface PineQuestDay { phase: number; readonly night: number }
 /** What the quest keeper is lent. */
 export interface PineQuestPorts {
+  readonly content: PineQuestRows;
   readonly counters: AchievementCounterData;
   readonly inventory: NativeInventoryProfile<string>;
   readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
@@ -147,9 +144,10 @@ interface Rule extends InteractionState { readonly spot: PineSpots['rows'][numbe
  * the sit-with-Hale wait as a walk (the night fast-forward runs on the host's clock).
  */
 export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQuest {
-  const { spots } = ports, flags = host.flags;
+  const { spots, content } = ports, flags = host.flags;
+  const { resinCount: RESIN_COUNT, tokenNames: TOKEN_NAMES, readingDelay: PINE_READING_DELAY, lanternIds: PINE_LANTERN_IDS } = content.policy;
   if (RESIN_COUNT !== 30) throw new Error('Pine resin continuation requires its thirty authored drops');
-  const table = pineTableFromPlacements(spots.rows), indexed = bindQuestTableSpots(table, spots.rows, flags);
+  const { table } = content, indexed = bindQuestTableSpots(table, spots.rows, flags);
   const pack = new NativeInventory(ports.inventory), Saved = questSaved(nativeInventorySchema(ports.inventory));
   const required = (id: string): Rule => {
     const row = indexed.get(id);
@@ -168,7 +166,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   /** a command's table row (the prompts' order: the two logs, the glass, the flint) */
   const rowOf = (value: number): Rule | null => value === PINE_ACT.logA ? logA : value === PINE_ACT.logB ? logB : value === PINE_ACT.glass ? glass : value === PINE_ACT.flint ? flint
     : value === PINE_ACT.bench ? benchRule : Number.isInteger(value) && value >= PINE_ACT.token1 && value <= PINE_ACT.token8 ? tokenRules[value - PINE_ACT.token1] ?? null : null;
-  const graph = installQuestGraph(host, { quests: ports.quests, interactions: pineQuestRows(table), npcs: [], graph: PINE_GRAPH },
+  const graph = installQuestGraph(host, { quests: ports.quests, interactions: content.interactions, npcs: [], graph: content.graph },
     { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
   const quests = graph.quests;
   const chapter = quests.quests[0];
@@ -186,7 +184,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     addAmmo: (kind, n) => { if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n); },
     ownSkin: skin => { tradeSkins.add(skin); } });
   const initialTrader = trader.snapshot();
-  const dialogue = createReadingRoster(PINE_READINGS, people, (npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), kind => {
+  const dialogue = createReadingRoster(content.readings, people, (npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), kind => {
     if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {
       flags.set('errand:paid'); pack.add('lodge-ribbon', 3); pack.add('amber-resin', 4);
     }
@@ -280,7 +278,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (!f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats();
   });
   host.scope.onDispose(offFlags);
-  const killed = bindQuestDeathEffects(PINE_DEATH_EFFECTS, { kill: feats.kill, event: feats.event,
+  const killed = bindQuestDeathEffects(content.deaths, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
       lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(ports.contracts, body.kind, body.variant), thrall: isPineThrall(body) });
     }]]) });

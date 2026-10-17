@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { autoFlag, createQuestPlacements, bindInteractPlacements, readInteractPlacements, type InteractTable } from '../src/engine/world/interact/types';
 import { bindInteractionState, Flags } from '../src/engine/world/interact/flags';
-import { pineTableFromPlacements } from '../src/shards/pine-hollow/quest/table';
+import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
 import pine from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables';

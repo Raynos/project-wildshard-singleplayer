@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { InteractSfx } from '../src/engine/audio/interactSfx';
 import type { InteractEvent } from '../src/engine/world/interact/Interactables';
-import { PINE_KIT_EVENTS } from '../src/shards/pine-hollow/data/questEvents';
+import { PINE_KIT_EVENTS } from '../src/shards/pine-hollow/generators/questEvents';
 import { DRIFTWOOD_KIT_EVENTS } from '../src/shards/driftwood-isle/data/questEvents';
 
 function event(type: InteractEvent['type'], look: 'resin' | 'token' | 'seaglass' | 'shard' = 'seaglass'): InteractEvent {

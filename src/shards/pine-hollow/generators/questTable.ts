@@ -16,7 +16,7 @@
  */
 import { bindInteractPlacements, readInteractPlacements, type InteractTable, type PickupDef } from '@wildshard/engine/world/interact/types';
 
-import { RESIN_FLAG, TOKEN_FLAG } from '../data/interactions';
+import { RESIN_FLAG, TOKEN_FLAG } from './interactions';
 
 /** a resin drop's placement (the runtime resolves it: the trunk's side facing the trail, ~1.1 m up) */
 export interface Spot { x: number; z: number; y?: number; dy?: number }
