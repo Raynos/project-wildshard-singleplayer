@@ -3,6 +3,8 @@ import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
 import { buildHalo } from './jianHalo';
 import { buildSword } from './jianSupport';
 import { buildJianFallback } from './jianFallback';
+import { headlessConstants } from './headless';
+import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 
 // JSON numbers erase -0; the numeric reviver restores its original float32 sign bit.
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) => typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
@@ -11,6 +13,8 @@ const material = new MeshStandardMaterial({ flatShading: true, vertexColors: tru
 material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const emitted = emitNamedBlobs([
+  nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
+  nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),
   nameBlob('weapons/jian-row.json', 'json', json({ portraitFov: 78 })),
   nameBlob('weapons/jian-fallback.json', 'json', json({ ...fallback,
     ...Object.fromEntries(['sword', 'arms', 'guard', 'gauntlet'].map((key, i) => {

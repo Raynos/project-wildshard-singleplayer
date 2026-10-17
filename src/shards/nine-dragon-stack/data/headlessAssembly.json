@@ -1,0 +1,1157 @@
+{
+  "version": 1,
+  "modules": {
+    "@wildshard/game/plugin/simulation": [
+      "addBakedPieces",
+      "proveEntryways"
+    ],
+    "@wildshard/engine/physics/surface": [
+      "tagOf"
+    ],
+    "@wildshard/format/portalLinkAssets": [
+      "portalLinkEntries"
+    ],
+    "src/shards/nine-dragon-stack/runtime/jian": [
+      "installNineJian",
+      "JIAN_ID"
+    ],
+    "src/shards/nine-dragon-stack/runtime/grapple": [
+      "installNineGrapple",
+      "GRAPPLE_LOCK",
+      "GRAPPLE_AIM"
+    ],
+    "src/shards/nine-dragon-stack/runtime/portals/hostRide": [
+      "installHostRide"
+    ],
+    "src/shards/nine-dragon-stack/runtime/portals/walkInRide": [
+      "walkInRide",
+      "playerRider",
+      "declaredPortals"
+    ],
+    "src/shards/nine-dragon-stack/world/feats": [
+      "rideFeats"
+    ]
+  },
+  "constants": {
+    "portalStep": "nine-dragon-stack.portals"
+  },
+  "prepare": [
+    {
+      "name": "payload",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "sim/headless-constants.json"
+        ]
+      }
+    },
+    {
+      "name": "jian",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "need"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "args",
+                        0,
+                        "find"
+                      ]
+                    },
+                    {
+                      "$fn": {
+                        "$eq": [
+                          {
+                            "$ref": [
+                              "args",
+                              0,
+                              "id"
+                            ]
+                          },
+                          {
+                            "$ref": [
+                              "src/shards/nine-dragon-stack/runtime/jian",
+                              "JIAN_ID"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "$ref": [
+                  "shard",
+                  "items",
+                  "rows"
+                ]
+              }
+            ]
+          },
+          "Nine Dragon declares its Jian row"
+        ]
+      }
+    },
+    {
+      "name": "weapon",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "need"
+            ]
+          },
+          {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$ref": [
+                      "jian",
+                      "kind"
+                    ]
+                  },
+                  "weapon"
+                ]
+              },
+              {
+                "$ref": [
+                  "jian"
+                ]
+              },
+              {
+                "$ref": [
+                  "absent"
+                ]
+              }
+            ]
+          },
+          "Nine Dragon declares its Jian row"
+        ]
+      }
+    },
+    {
+      "name": "grapple",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "need"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "args",
+                        0,
+                        "find"
+                      ]
+                    },
+                    {
+                      "$fn": {
+                        "$eq": [
+                          {
+                            "$ref": [
+                              "args",
+                              0,
+                              "id"
+                            ]
+                          },
+                          "grapple"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "$ref": [
+                  "shard",
+                  "modes",
+                  "grapple"
+                ]
+              }
+            ]
+          },
+          "Nine Dragon declares its grapple mode"
+        ]
+      }
+    },
+    {
+      "name": "portalEntries",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/format/portalLinkAssets",
+              "portalLinkEntries"
+            ]
+          },
+          {
+            "$ref": [
+              "shard",
+              "entryways"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fourEntries",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "need"
+            ]
+          },
+          {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$ref": [
+                      "portalEntries",
+                      "length"
+                    ]
+                  },
+                  4
+                ]
+              },
+              true,
+              {
+                "$ref": [
+                  "absent"
+                ]
+              }
+            ]
+          },
+          "Nine Dragon declares four portal-link entryways"
+        ]
+      }
+    },
+    {
+      "name": "stages",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "need"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "args",
+                        0,
+                        "find"
+                      ]
+                    },
+                    {
+                      "$fn": {
+                        "$eq": [
+                          {
+                            "$ref": [
+                              "args",
+                              0,
+                              "id"
+                            ]
+                          },
+                          "nine.portal-ride"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "$ref": [
+                  "shard",
+                  "directors"
+                ]
+              }
+            ]
+          },
+          "Missing Nine portal director declaration"
+        ]
+      }
+    },
+    {
+      "name": "proofWorld",
+      "value": {
+        "physics": null,
+        "fixedStep": {
+          "$fn": {
+            "$ref": [
+              "absent"
+            ]
+          }
+        },
+        "dispose": {
+          "$fn": {
+            "$ref": [
+              "absent"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "install": [
+    {
+      "name": "collision",
+      "value": {
+        "$if": [
+          {
+            "$ref": [
+              "context",
+              "restoring"
+            ]
+          },
+          {
+            "$ref": [
+              "absent"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "@wildshard/game/plugin/simulation",
+                  "addBakedPieces"
+                ]
+              },
+              {
+                "$ref": [
+                  "host",
+                  "physics"
+                ]
+              },
+              {
+                "$ref": [
+                  "payload",
+                  "pieces"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "guard",
+      "value": {
+        "$if": [
+          {
+            "$ref": [
+              "context",
+              "restoring"
+            ]
+          },
+          [],
+          {
+            "$call": [
+              {
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "args",
+                        0,
+                        "map"
+                      ]
+                    },
+                    {
+                      "$fn": {
+                        "$ref": [
+                          "args",
+                          0,
+                          "handle"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "$call": [
+                  {
+                    "$fn": {
+                      "$call": [
+                        {
+                          "$ref": [
+                            "args",
+                            0,
+                            "filter"
+                          ]
+                        },
+                        {
+                          "$fn": {
+                            "$call": [
+                              {
+                                "$fn": {
+                                  "$eq": [
+                                    {
+                                      "$ref": [
+                                        "args",
+                                        0,
+                                        "owner"
+                                      ]
+                                    },
+                                    "nds-grapple-guard"
+                                  ]
+                                }
+                              },
+                              {
+                                "$call": [
+                                  {
+                                    "$ref": [
+                                      "@wildshard/engine/physics/surface",
+                                      "tagOf"
+                                    ]
+                                  },
+                                  {
+                                    "$ref": [
+                                      "args",
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "host",
+                          "physics",
+                          "world",
+                          "colliders",
+                          "getAll"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "jianOwner",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nine-dragon-stack/runtime/jian",
+              "installNineJian"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "weapon"
+            ]
+          },
+          {
+            "$fn": {
+              "$call": [
+                {
+                  "$fn": {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "args",
+                          0,
+                          "some"
+                        ]
+                      },
+                      {
+                        "$fn": {
+                          "$if": [
+                            {
+                              "$eq": [
+                                {
+                                  "$ref": [
+                                    "args",
+                                    0,
+                                    "kind"
+                                  ]
+                                },
+                                "player"
+                              ]
+                            },
+                            {
+                              "$not": {
+                                "$eq": [
+                                  {
+                                    "$ref": [
+                                      "args",
+                                      0,
+                                      "attack"
+                                    ]
+                                  },
+                                  {
+                                    "$ref": [
+                                      "absent"
+                                    ]
+                                  }
+                                ]
+                              }
+                            },
+                            false
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "context",
+                        "commands"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "$fn": {
+              "$call": [
+                {
+                  "$fn": {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "args",
+                          0,
+                          "some"
+                        ]
+                      },
+                      {
+                        "$fn": {
+                          "$if": [
+                            {
+                              "$eq": [
+                                {
+                                  "$ref": [
+                                    "args",
+                                    0,
+                                    "kind"
+                                  ]
+                                },
+                                "player"
+                              ]
+                            },
+                            {
+                              "$not": {
+                                "$eq": [
+                                  {
+                                    "$ref": [
+                                      "args",
+                                      0,
+                                      "heavy"
+                                    ]
+                                  },
+                                  {
+                                    "$ref": [
+                                      "absent"
+                                    ]
+                                  }
+                                ]
+                              }
+                            },
+                            false
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "context",
+                        "commands"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "fact",
+      "value": {
+        "$fn": {
+          "$call": [
+            {
+              "$ref": [
+                "context",
+                "emit"
+              ]
+            },
+            {
+              "kind": "fact",
+              "name": {
+                "$ref": [
+                  "args",
+                  0
+                ]
+              },
+              "actorId": {
+                "$ref": [
+                  "args",
+                  1
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "portalOwner",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nine-dragon-stack/runtime/portals/hostRide",
+              "installHostRide"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "constants",
+              "portalStep"
+            ]
+          },
+          {
+            "$fn": {
+              "$call": [
+                {
+                  "$ref": [
+                    "src/shards/nine-dragon-stack/runtime/portals/walkInRide",
+                    "walkInRide"
+                  ]
+                },
+                {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "src/shards/nine-dragon-stack/runtime/portals/walkInRide",
+                        "playerRider"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    {
+                      "$fn": {
+                        "$ref": [
+                          "host",
+                          "physics"
+                        ]
+                      }
+                    },
+                    {
+                      "$ref": [
+                        "shard"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$fn": {
+                    "$ref": [
+                      "absent"
+                    ]
+                  }
+                },
+                {
+                  "entries": {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "src/shards/nine-dragon-stack/runtime/portals/walkInRide",
+                          "declaredPortals"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "shard"
+                        ]
+                      }
+                    ]
+                  },
+                  "trigger": {
+                    "$ref": [
+                      "payload",
+                      "trigger"
+                    ]
+                  },
+                  "fade": {
+                    "$ref": [
+                      "payload",
+                      "fade"
+                    ]
+                  },
+                  "stages": {
+                    "$ref": [
+                      "stages"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "$fn": {
+              "$call": [
+                {
+                  "$ref": [
+                    "src/shards/nine-dragon-stack/world/feats",
+                    "rideFeats"
+                  ]
+                },
+                {
+                  "$ref": [
+                    "args",
+                    0,
+                    "step"
+                  ]
+                },
+                {
+                  "$ref": [
+                    "args",
+                    0,
+                    "rides"
+                  ]
+                },
+                {
+                  "$ref": [
+                    "fact"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "grappleOwner",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "src/shards/nine-dragon-stack/runtime/grapple",
+              "installNineGrapple"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "grapple"
+            ]
+          },
+          {
+            "$ref": [
+              "payload",
+              "hooks"
+            ]
+          },
+          {
+            "$ref": [
+              "guard"
+            ]
+          },
+          {
+            "$fn": {
+              "$sequence": [
+                {
+                  "$set": [
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    "lock",
+                    {
+                      "$call": [
+                        {
+                          "$fn": {
+                            "$call": [
+                              {
+                                "$ref": [
+                                  "args",
+                                  0,
+                                  "some"
+                                ]
+                              },
+                              {
+                                "$fn": {
+                                  "$if": [
+                                    {
+                                      "$eq": [
+                                        {
+                                          "$ref": [
+                                            "args",
+                                            0,
+                                            "kind"
+                                          ]
+                                        },
+                                        "script"
+                                      ]
+                                    },
+                                    {
+                                      "$eq": [
+                                        {
+                                          "$ref": [
+                                            "args",
+                                            0,
+                                            "actorId"
+                                          ]
+                                        },
+                                        {
+                                          "$ref": [
+                                            "src/shards/nine-dragon-stack/runtime/grapple",
+                                            "GRAPPLE_LOCK"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    false
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "$call": [
+                            {
+                              "$ref": [
+                                "context",
+                                "commands"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$set": [
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    "jump",
+                    {
+                      "$call": [
+                        {
+                          "$fn": {
+                            "$call": [
+                              {
+                                "$ref": [
+                                  "args",
+                                  0,
+                                  "some"
+                                ]
+                              },
+                              {
+                                "$fn": {
+                                  "$if": [
+                                    {
+                                      "$eq": [
+                                        {
+                                          "$ref": [
+                                            "args",
+                                            0,
+                                            "kind"
+                                          ]
+                                        },
+                                        "player"
+                                      ]
+                                    },
+                                    {
+                                      "$eq": [
+                                        {
+                                          "$ref": [
+                                            "args",
+                                            0,
+                                            "jump"
+                                          ]
+                                        },
+                                        true
+                                      ]
+                                    },
+                                    false
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "$call": [
+                            {
+                              "$ref": [
+                                "context",
+                                "commands"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$set": [
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    "pitch",
+                    {
+                      "$call": [
+                        {
+                          "$fn": {
+                            "$call": [
+                              {
+                                "$ref": [
+                                  "args",
+                                  0,
+                                  "reduce"
+                                ]
+                              },
+                              {
+                                "$fn": {
+                                  "$if": [
+                                    {
+                                      "$if": [
+                                        {
+                                          "$eq": [
+                                            {
+                                              "$ref": [
+                                                "args",
+                                                1,
+                                                "kind"
+                                              ]
+                                            },
+                                            "script"
+                                          ]
+                                        },
+                                        {
+                                          "$eq": [
+                                            {
+                                              "$ref": [
+                                                "args",
+                                                1,
+                                                "actorId"
+                                              ]
+                                            },
+                                            {
+                                              "$ref": [
+                                                "src/shards/nine-dragon-stack/runtime/grapple",
+                                                "GRAPPLE_AIM"
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        false
+                                      ]
+                                    },
+                                    {
+                                      "$ref": [
+                                        "args",
+                                        1,
+                                        "value"
+                                      ]
+                                    },
+                                    {
+                                      "$ref": [
+                                        "args",
+                                        0
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "$ref": [
+                                  "absent"
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "$call": [
+                            {
+                              "$ref": [
+                                "context",
+                                "commands"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "$ref": [
+              "fact"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "level": {
+    "ground": {
+      "size": 500,
+      "height": 0
+    },
+    "speed": 5,
+    "lift": {
+      "$ref": [
+        "payload",
+        "spawnY"
+      ]
+    }
+  },
+  "ports": {
+    "ground": false,
+    "heightAt": {
+      "$fn": 0
+    }
+  },
+  "entries": {
+    "$fn": {
+      "$sequence": [
+        {
+          "$set": [
+            {
+              "$ref": [
+                "proofWorld"
+              ]
+            },
+            "physics",
+            {
+              "$ref": [
+                "args",
+                0,
+                "physics"
+              ]
+            }
+          ]
+        },
+        {
+          "$call": [
+            {
+              "$ref": [
+                "@wildshard/game/plugin/simulation",
+                "proveEntryways"
+              ]
+            },
+            {
+              "$ref": [
+                "shard"
+              ]
+            },
+            {
+              "$ref": [
+                "assets"
+              ]
+            },
+            {
+              "world": {
+                "$fn": {
+                  "$ref": [
+                    "proofWorld"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

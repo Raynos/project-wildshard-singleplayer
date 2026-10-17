@@ -47,7 +47,7 @@ const Saved = v.strictObject({
  * the aim, the tick's start and the cap's handles are exact continuation. A lifting crossing that settles reports the
  * Well's fact (world/feats.ts) to `fact`.
  */
-export function installNineGrapple(host: SimHost, mode: GrappleMode, hooks: readonly Vector3[], guardHandles: readonly number[], input: (into: GrappleInput) => void,
+export function installNineGrapple(host: SimHost, mode: GrappleMode, hooks: readonly { readonly x: number; readonly y: number; readonly z: number }[], guardHandles: readonly number[], input: (into: GrappleInput) => void,
   fact: NineFacts = () => { /* no ledger */ }): NineGrapple {
   const state = { pitch: 0, last: host.player.position.clone(), fall: { vy: host.playerFall.vy, grounded: host.playerFall.grounded }, guard: [...guardHandles] };
   const velocity = new Vector3();
@@ -75,7 +75,7 @@ export function installNineGrapple(host: SimHost, mode: GrappleMode, hooks: read
   const setGuard = (open: boolean): void => {
     state.guard.forEach(handle => { host.physics.world.getCollider(handle).setEnabled(!open); });
   };
-  const sim = new GrappleSim(ports, wellCourse(hooks, RIM_Z, setGuard, mode));
+  const sim = new GrappleSim(ports, wellCourse(hooks.map(p => new Vector3(p.x, p.y, p.z)), RIM_Z, setGuard, mode));
   const moved = new Vector3(), walked = { vy: 0, grounded: true }, tick: GrappleInput = { lock: false, jump: false, pitch: undefined };
   const none = (): null => null, unlocked = (): boolean => false;
   host.onStep(GRAPPLE_STEP, (dt) => {

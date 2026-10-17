@@ -15,17 +15,17 @@ import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
-import { PORTAL_STEP } from '../../../src/shards/nine-dragon-stack/runtime/portals';
+import headlessAssembly from '../../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 import { GRAPPLE_AIM, GRAPPLE_LOCK, GRAPPLE_STEP } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
 import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
 
 /**
- * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`,
+ * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `boot/headlessModules.ts`,
  * through the platform's own trusted adapter (`createTrustedHeadlessAdapter`: the plan's level and ports, one install, the
  * tick's commands lent to the runtime, a committed snapshot per tick). The tape is tick commands only, tapping the Jian
  * all the way: the player walks the square's declared route (portalPlan.ts `SQUARE_ROUTE`) from the spawn into the ring
  * out, rides to the north deck, steps out of the deck's ring and back in, and rides home to the square (two play-time
- * rides through the page's own ride, runtime/portals.ts); back at the arrival it charges and releases the Jian's heavy on
+ * rides through the page's own ride, the declared portal assembly); back at the arrival it charges and releases the Jian's heavy on
  * the HEAVY hold, then jumps the square's west balustrade onto the Well's south rim and aims, LOCKs and JUMPs the Fei Zhua
  * across the Well (runtime/grapple.ts over the page's own law, grapple/sim.ts): the lifting crossing, the safety cap open
  * while it flies. Headless: the whole tape, then the adapter's `finish` runs the
@@ -36,7 +36,7 @@ import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.g
  * crossing settles over the Well) go through the platform Ledger under their declared rules: each achievement granted
  * once, durably, and a session restored from the end re-emits nothing.
  */
-export const ENTRY = 'runtime/headless.ts';
+export const ENTRY = 'boot/headlessModules.ts';
 /** Outcomes are renderer-free. Nine declares no creature, so none is an unproven gameplay system. */
 export const SCOPE = {
   transitional: false,
@@ -151,7 +151,7 @@ const phases: string[] = [];
 let capOpen = 0;
 interface RideSaved { held: object | null; ride: { t: number; rides: readonly { from: string; to: string }[]; refused: readonly string[] } }
 function portals(snapshot: string): RideSaved {
-  const state = decodeSimSnapshot(snapshot).adapters.find(row => row.id === PORTAL_STEP)?.state;
+  const state = decodeSimSnapshot(snapshot).adapters.find(row => row.id === headlessAssembly.constants.portalStep)?.state;
   if (typeof state !== 'string') throw new Error('Missing portal ride continuation');
   return JSON.parse(state) as RideSaved;
 }

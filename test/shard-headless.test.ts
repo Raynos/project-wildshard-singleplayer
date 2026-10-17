@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Headless behaviour runs the real authored product bytes.
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native fixtures require the official format-2 outputs before workers start.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the official writer with the same Node binary as the test worker.
@@ -33,6 +33,13 @@ const cases = [
   ['sunscar-dunes', signal, false], ['far-reach', sky, false],
 ] as const;
 
+const trustedEntries: Partial<Record<string, string>> = {
+  'pine-hollow': 'test/fixtures/pine-headless.ts',
+  'nalati-grasslands': 'src/shards/nalati-grasslands/boot/headlessModules.ts',
+  'driftwood-isle': 'src/shards/driftwood-isle/boot/headlessModules.ts',
+  'nine-dragon-stack': 'src/shards/nine-dragon-stack/boot/headlessModules.ts',
+};
+
 beforeAll(() => {
   const built = env['WS_TEST_PRODUCTS_SHA'];
   if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
@@ -46,9 +53,11 @@ for (const [slug, _input, trusted] of cases) it(`${slug}: boots and advances a l
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
+  const entry = trustedEntries[slug];
+  if (trusted && entry === undefined) throw new Error('Missing declared trusted entry');
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
     sections: productHeadlessSections(product),
-    ...(trusted ? { trustedRuntime: { module: pathToFileURL(resolve(slug === 'pine-hollow' ? 'test/fixtures/pine-headless.ts' : slug === 'nalati-grasslands' ? 'src/shards/nalati-grasslands/boot/headlessModules.ts' : slug === 'driftwood-isle' ? 'src/shards/driftwood-isle/boot/headlessModules.ts' : (existsSync(`src/shards/${slug}/sim/headless.ts`) ? `src/shards/${slug}/sim/headless.ts` : `src/shards/${slug}/runtime/headless.ts`))).href } } : {}) });
+    ...(entry === undefined ? {} : { trustedRuntime: { module: pathToFileURL(resolve(entry)).href } }) });
   try {
     const first = decodeSimSnapshot((await sim.step()).snapshot);
     for (let tick = 0; tick < 24; tick++) await sim.step([{ source: 'player', commands: [{ kind: 'player', moveX: 0.2, moveZ: 0.2, yaw: 0 }] }]);

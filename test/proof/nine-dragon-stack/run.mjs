@@ -17,9 +17,12 @@ const { installAppIdentity } = await import('../../../src/engine/app/identity.ts
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts');
 const witness = await import('./witness.ts');
 // Admission loads this exact entry in every mode, so fresh/checkpoints/replay hash the same runtime closure.
-await import('../../../src/shards/nine-dragon-stack/runtime/headless.ts');
+await import('../../../src/shards/nine-dragon-stack/boot/headlessModules.ts');
+const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.ts');
+const product = await loadHeadlessProduct('out/nine-dragon-stack');
+const assemblyFiles = ['sim/headless-assembly.json', 'sim/headless-constants.json'].map(name => product.url(name));
 installAppIdentity(WILDSHARD_IDENTITY);
-function inputFiles() { return [...loaded, ...['test/proof/nine-dragon-stack/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
+function inputFiles() { return [...loaded, ...assemblyFiles, ...['src/shards/nine-dragon-stack/data/headlessAssembly.json', 'test/proof/nine-dragon-stack/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
 function inputs() {
   const files = [...new Set(inputFiles())].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const hash = createHash('sha256');

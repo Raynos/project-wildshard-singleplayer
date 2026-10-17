@@ -1,5 +1,5 @@
 import { installNineGeometry } from './runtime/geometry';
-import { standaloneEntry } from './runtime/standalone';
+import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
@@ -140,7 +140,7 @@ export class NdPlugin extends ShardPlugin {
 }
 
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
-export default standaloneEntry(NdPlugin);
+export default firstPartyStandaloneEntry(NdPlugin, 'Nine Dragon', () => import('./runtime/index'));
 
 /** Resolve only the declared first-party entry; standalone keeps the same native constructor. */
 export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {

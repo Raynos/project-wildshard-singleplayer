@@ -20,10 +20,17 @@ Map: rebuilt after the Nine map-style commit `f9a2e7493`, using the official `sc
 
 ## SF72 witness (parts 2–5): what `compatible: true` covers, and what it does not
 
-`run.mjs` runs the trusted renderer-free entry `runtime/headless.ts` through the platform's own trusted adapter
+`run.mjs` runs the trusted renderer-free entry `boot/headlessModules.ts` through the platform's own trusted adapter
 (`createTrustedHeadlessAdapter`). The result is **compatible** (`transitional: false` in `compatibility.json`): no
 renderer-bound system decides a gameplay outcome. Decorative crowd, light and view controllers remain trusted
 runtime presentation.
+
+The ordered calls now come from `data/headlessAssembly.json` and the checked
+static catalogue. `generators/headless.ts` admits the original collision bake,
+removes the standalone caps and expands treads with the engine's own law. The
+product owns those collider rows and hook coordinates; the installed Jian,
+portal ride and grapple keep their original clocks and snapshot adapters.
+The witness fingerprints both emitted assembly blobs as well as its modules.
 
 **Runs headless (proven):**
 - the native colliders of the grid cell (`data/physics.generated.json`, made from authored rows by `generators/physics.ts`, G350-ND):
@@ -35,7 +42,7 @@ runtime presentation.
 - the portal-link entry proof (`provePortalLinks`): 23 capsule lanes per deck and the format's checked transfer to the
   square and back (92 lanes, 8 transfers);
 - play-time portal rides (part 3) on the page's own ride, `world/portalRide.ts` (renderer-free since the fade veil moved
-  to `world/portalVeil.ts`), driven by `runtime/portals.ts` after the player's move: the tape walks the square's declared
+  to `world/portalVeil.ts`), driven by the declared portal assembly after the player's move: the tape walks the square's declared
   route from the spawn into the ring out (→ the north deck, `portal.square.north>portal.north`), steps 2.5 m out of the
   deck's ring and back in (→ the square, `portal.north>portal.square.arrival`). The hold is the page Player's `carried`
   (feet kept at the ring's touch through the fade), the transfer is `createPortalTraversal` on the host's own physics,
