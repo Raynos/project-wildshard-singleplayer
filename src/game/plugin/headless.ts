@@ -210,7 +210,7 @@ export interface RuntimeQuest {
  * Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted
  * through the bound ledger when the quest completes, and once on bind for a save that finished it before facts existed.
  */
-export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, id: string, ports: RuntimeQuestPorts): RuntimeQuest {
+export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope' | 'product'>, source: Shardfile, id: string, ports: RuntimeQuestPorts): RuntimeQuest {
   requireBound(source, 'quests');
   const declared = source.quests.quests.find((row) => row.id === id);
   if (declared === undefined) throw new Error(`Undeclared quest ${id}`);
@@ -229,7 +229,8 @@ export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope'>, sourc
     if (state.isComplete) witness();
     ctx.scope.onDispose(state.observe({ complete: witness }));
   }
-  return { state, declared, cables: installCableModes(ctx.scope, source.modes?.traverse ?? [], ports.flags), reward: { coins: declared.onComplete?.coins ?? 0, fact } };
+  const modes = runtimeBinds(source).has('modes') ? ctx.product.shardfile.modes : source.modes;
+  return { state, declared, cables: installCableModes(ctx.scope, modes?.traverse ?? [], ports.flags), reward: { coins: declared.onComplete?.coins ?? 0, fact } };
 }
 
 /** What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. */
