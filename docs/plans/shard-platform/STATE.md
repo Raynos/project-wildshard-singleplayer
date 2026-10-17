@@ -10,12 +10,10 @@
 - sp-x5 Nalati layout/clearings bake (f4d3b62e7 in checks); terrain.ts stays (live forest mask, paint, water, ambience)
 - sp-x6 Nalati paint.ts + signpost.ts bake
 - sp-x8 Nine signAtlas bake (source done, checks queued)
-- sp-x7 push carrier + grid memory receipt
-- Opus OL Nine look graphs, ON Nalati sky/storm graphs + flock
-- Opus OP3 baked shader source for node-graph builds
-- Opus OP5 road hitches
+- sp-x7 G470: DW quest/adventure/finale + Pine lodge to AS (ScriptProcedure on ABI-v0); the coordinator now carries the push
+- Opus (ladder G462 at 80 %: cap 2 after current tasks) OL2 Nine look graphs, ON Nalati graphs + flock, OP5 road hitches, OM Sim crash
 
-**Perf (standing goal 60 fps desktop / 30 fps Sim):**
+**Perf (standing goal 60 fps desktop / 30 fps Sim):** Sim drives crash: a WebKit GPU-process SIGSEGV in ANGLE compressedTexSubImage2D/3D (not memory), 14 reports since 04:53; OM is tracing the upload.
 - Desktop standalone 7/7 at 60 fps; milestone 8/8 routes, 0 errors.
 - Sim medians 30 fps, but road p95 still fails (Pine ~76, Nalati 52, Sky 42, DW 42 ms).
 - Fixes so far:
@@ -28,5 +26,5 @@
 - Settled Nine on desktop reads 1,214 MB from late L0 rings (+43 MB) over the 1.2 GB report cap; Sim Pine 1,169 MB.
 - Next: name the top late-ring costs.
 
-**For the next switch point:** single-shard laws in Pine/DW/Nalati are documented in the [floor ledger](../../../progress/shard-platform/honest-floor-2026-10-17/README.md). Recommendation: list them as shard-owned custom. The next real cut needs native actor/save, figure/skin and graph ABIs. Rows: [open-x-queue](open-x-queue.md).
+**G470 (Jake, 703cdedd2), now applied:** single-shard laws move to AssemblyScript + data inside the 10 % AS ceiling (Pine ~2,130, DW ~1,716); a component closes at data + AS + listed view code. Pine/DW go first. The order freeing lanes take: Pine quest AS, then the native actor + save ABI (Pine roster/nightDirector + DW keeper paired), then the C3/C7 weather, life and doors to AS. sp-x7 already leads DW quest + Pine lodge on a ScriptProcedure host (ABI-v0). [Floor ledger](../../../progress/shard-platform/honest-floor-2026-10-17/README.md), rows: [open-x-queue](open-x-queue.md).
 Paused: SF22 SF57 SF67.
