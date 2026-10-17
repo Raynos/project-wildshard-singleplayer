@@ -54,6 +54,7 @@
       "entries": [
         "adventure.ts",
         "bag.ts",
+        "bootMetadata.generated.json",
         "campPeople.ts",
         "campPeopleModels.ts",
         "campPeopleProfiles.ts",
