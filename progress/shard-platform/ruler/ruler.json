@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json",
- "revision": "b6dbde66c1a7668a35dcbeeac0e6ec7e32591584",
- "committedAt": "2026-10-17T14:12:50.000Z",
- "measuredAt": "2026-10-17T14:26:14.757Z",
+ "revision": "94fd1d5ab4fe8a16bb978549ed828d8c1c2bd3ba",
+ "committedAt": "2026-10-17T15:16:16.000Z",
+ "measuredAt": "2026-10-17T15:24:56.889Z",
  "basis": "source",
  "plan": {
-  "lower": 0.36766354883733116,
-  "upper": 0.7009968821706645
+  "lower": 0.37426425006828956,
+  "upper": 0.7075975834016229
  },
  "m3": {
-  "cut": 49128,
+  "cut": 50010,
   "mustGo": 80173.3,
-  "fraction": 0.6127725813955519
+  "fraction": 0.623773750113816
  },
  "m2": {
   "ready": 0,
@@ -26,9 +26,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 10367,
+   "custom": 9838,
    "legacy": 21305,
-   "pct": 48.7,
+   "pct": 46.2,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -44,9 +44,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 6488,
+   "custom": 6135,
    "legacy": 17167,
-   "pct": 37.8,
+   "pct": 35.7,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -145,7 +145,7 @@
    "pine-hollow",
    "driftwood-isle"
   ],
-  "pct": 73.1
+  "pct": 75.7
  },
  "waves": [
   {
@@ -695,6 +695,19 @@
    "shards": {
     "pine-hollow": 48.659938981459746,
     "driftwood-isle": 37.79344090406012,
+    "far-reach": 7.685499336185278,
+    "sunscar-dunes": 9.509946627850557,
+    "nalati-grasslands": 70.74021854071202,
+    "nine-dragon-stack": 56.31661219269575
+   }
+  },
+  {
+   "revision": "94fd1d5ab4fe8a16bb978549ed828d8c1c2bd3ba",
+   "at": "2026-10-17T15:16:16.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 46.17695376672143,
+    "driftwood-isle": 35.73717015203589,
     "far-reach": 7.685499336185278,
     "sunscar-dunes": 9.509946627850557,
     "nalati-grasslands": 70.74021854071202,
