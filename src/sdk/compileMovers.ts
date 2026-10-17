@@ -1,4 +1,4 @@
-import { compileScript } from './compileScript';
+import { compileScript } from './bake/compileScript';
 import { moverProgram } from './moverPrograms';
 import { hashImmutableBytes } from './immutable';
 import { MOVER_DRIVER_MODULES } from '@wildshard/format/moverMotion';

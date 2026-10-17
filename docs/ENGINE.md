@@ -4382,6 +4382,9 @@ host's current tick. Continuation field order and encoding are declared
 explicitly so existing JSON and object contracts survive a restore unchanged.
 Absent `item.native` preserves existing item and product bytes.
 
+The public `@wildshard/sdk/compileScript` module is implemented by the Node
+authoring host `sdk/bake/compileScript.ts`; gameplay never loads it.
+
 `@wildshard/sdk/compileScript.bakeScriptModule(sourceFileUrl, assetsDirUrl,
 { hash, bytes }, options?)` compiles an author-owned AS file with the same
 pinned portable compiler and metering as `compileScript`. It checks the
@@ -7952,6 +7955,21 @@ The explicit `sdk/headlessRuntime` trusted-module loader accepts this
 export-only catalogue alongside its existing `prepareHeadlessRuntime`
 factory contract. It calls the assembly host inside the SDK; a shard
 does not pass installer callbacks across an ordinary platform API.
+
+Native proof callers may instead use `generateHeadlessModuleMap(root, slug)`
+from `scripts/check-headless-assemblies.mjs`. It admits the same named exports
+without executing them and emits static imports in
+`tmp/headless-modules/<slug>/modules.mjs`, outside source and play products.
+Nine uses this generated map; no handwritten shard catalogue imports its
+proofs. `@wildshard/game/proof/entryways` defines `proveEntryways`,
+`proveSocketLift`, `proveShardfileEntries` and their proof port/result types.
+Only native proof callers import that module. Gameplay retains
+`commandSocketLift` in `game/plugin/simulation`; it never imports the proof
+module. Entry walks, gate lanes, transfers and fresh-world disposal are
+unchanged.
+
+The sim-in-runtime guard also follows the JSON module roots, retaining
+existing native runtime debt when no handwritten catalogue remains.
 
 The bounded JSON declaration contains `modules`, product `constants`,
 ordered named `prepare` and `install` rows, level settings, ports and an

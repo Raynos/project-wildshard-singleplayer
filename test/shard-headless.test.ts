@@ -17,6 +17,7 @@ import { HeadlessSimulation } from '../src/sdk/headless';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
+import { generateHeadlessModuleMap } from '../scripts/check-headless-assemblies.mjs';
 import template from '../src/shards/_template/shard.config';
 import pastel from '../src/shards/pastel-plain/shard.config';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
@@ -37,7 +38,6 @@ const trustedEntries: Partial<Record<string, string>> = {
   'pine-hollow': 'test/fixtures/pine-headless.ts',
   'nalati-grasslands': 'src/shards/nalati-grasslands/boot/headlessModules.ts',
   'driftwood-isle': 'src/shards/driftwood-isle/boot/headlessModules.ts',
-  'nine-dragon-stack': 'src/shards/nine-dragon-stack/boot/headlessModules.ts',
 };
 
 beforeAll(() => {
@@ -53,7 +53,7 @@ for (const [slug, _input, trusted] of cases) it(`${slug}: boots and advances a l
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
-  const entry = trustedEntries[slug];
+  const entry = slug === 'nine-dragon-stack' ? generateHeadlessModuleMap(resolve('.'), slug) : trustedEntries[slug];
   if (trusted && entry === undefined) throw new Error('Missing declared trusted entry');
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
     sections: productHeadlessSections(product),

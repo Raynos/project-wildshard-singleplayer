@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- All paths stay inside the owned fixture.
 import { resolve } from 'node:path';
 import { emptyShardfile } from '../src/sdk/author';
-import { compileScript } from '../src/sdk/compileScript';
+import { compileScript } from '@wildshard/sdk/compileScript';
 import { nameBlob, emitNamedBlobs, readNamedBlob } from '../src/sdk/blobs';
 import { buildProject } from '../src/sdk/project';
 import { mergeProjectBlobs, prepareProjectOutput } from '../src/sdk/projectOutput';

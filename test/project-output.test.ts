@@ -8,7 +8,7 @@ import { nameBlob } from '../src/sdk/blobs';
 import { mergeProjectBlobs, prepareProjectOutput, projectMirrors } from '../src/sdk/projectOutput';
 import { readProjectAssets, buildProject } from '../src/sdk/project';
 import { validateOutputProduct } from '../src/sdk/outputProduct';
-import { compileScript } from '../src/sdk/compileScript';
+import { compileScript } from '@wildshard/sdk/compileScript';
 
 const directories: string[] = [];
 function directory(): string {

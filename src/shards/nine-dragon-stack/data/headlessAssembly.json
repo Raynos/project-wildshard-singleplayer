@@ -2,7 +2,9 @@
   "version": 1,
   "modules": {
     "@wildshard/game/plugin/simulation": [
-      "addBakedPieces",
+      "addBakedPieces"
+    ],
+    "@wildshard/game/proof/entryways": [
       "proveEntryways"
     ],
     "@wildshard/engine/physics/surface": [
@@ -1126,7 +1128,7 @@
           "$call": [
             {
               "$ref": [
-                "@wildshard/game/plugin/simulation",
+                "@wildshard/game/proof/entryways",
                 "proveEntryways"
               ]
             },

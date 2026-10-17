@@ -60,3 +60,19 @@ it('keeps declared assembly installer dependencies in the native census',()=>{
   expect(simRuntimeFailures({budgets:{'sim-in-runtime/demo':0}},simRuntimeInventory(root))).toContain('demo: sim-in-runtime files 2 exceeds 0');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('keeps JSON native roots visible after the catalogue moves outside source',()=>{
+ const root=mkdtempSync(join(tmpdir(),'sim-runtime-generated-map-'));
+ const put=(path:string,source:string):void=>{const file=join(root,'src/shards/demo',path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/shards/demo/runtime/owners':['install'],'src/shards/demo/data/constants.json':['default'],'@wildshard/game/proof/entryways':['proveEntryways']}}));
+  put('runtime/owners.ts',"import './quest'; export const install=() => undefined;");
+  put('runtime/quest.ts','export const quest=1;');
+  put('data/constants.json','{}');
+  const inventory=simRuntimeInventory(root),files=inventory['demo']?.files??[];
+  expect(inventory['demo']).toEqual({entries:['src/shards/demo/runtime/owners.ts'],files:['src/shards/demo/runtime/owners.ts','src/shards/demo/runtime/quest.ts']});
+  expect(simRuntimeFailures({budgets:{'sim-in-runtime/demo':2},allow:{'shardfile/sim-in-runtime':Object.fromEntries(files.map(path=>[path,'G453 baseline']))}},inventory)).toEqual([]);
+  put('data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/shards/demo/runtime/missing':['install']}}));
+  expect(()=>simRuntimeInventory(root)).toThrow('unresolved declared assembly module');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

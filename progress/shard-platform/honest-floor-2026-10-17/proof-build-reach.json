@@ -1,0 +1,1077 @@
+{
+  "schema": "proof-build-reach/2",
+  "movedDefinitions": {
+    "proofDefinitionsByteIdentical": true,
+    "sha256": "0ca7db3d2d2e9fbcb6b64bc039b5d3dcc6defe0f8ac029894b4bd16d492b6b3d",
+    "bytes": 13667,
+    "formerModule": "src/game/plugin/simulation.ts",
+    "proofModule": "src/game/proof/entryways.ts",
+    "compilerBodyUnchanged": true,
+    "compilerOriginalSha256": "d802e1983bcaf8a5a4a3f3d3053fd2abbc4b3a8e65b28f8194d398fe9aab30df",
+    "compilerOnlyEdit": "Relative path to the unchanged AssemblyScript loader, after relocation into bake/."
+  },
+  "legacyBasis": "1258254a368566f52dac078512cf96095356a174",
+  "legacyLines": {
+    "driftwood-isle": 17167,
+    "pine-hollow": 21305,
+    "nalati-grasslands": 28370,
+    "far-reach": 6779,
+    "sunscar-dunes": 4122,
+    "nine-dragon-stack": 21111
+  },
+  "mustGoBefore": 80173.3,
+  "mustGoAfter": 80173.3,
+  "rulerCorrection": {
+    "beforeRevision": "230be1ccc",
+    "afterRevision": "a5df1f8c5",
+    "method": "Run both exact ruler versions in the parent mirror; the commit changes only the ruler and its test, so shard and section inputs are identical.",
+    "totalsBefore": {
+      "_template": 1003,
+      "blender-template": 106,
+      "driftwood-isle": 6661,
+      "far-reach": 1308,
+      "ink-cel-valley": 1108,
+      "nalati-grasslands": 20948,
+      "nine-dragon-stack": 12553,
+      "pastel-plain": 736,
+      "pine-hollow": 10584,
+      "sunscar-dunes": 1368
+    },
+    "totalsAfter": {
+      "_template": 1003,
+      "blender-template": 107,
+      "driftwood-isle": 6771,
+      "far-reach": 1308,
+      "ink-cel-valley": 771,
+      "nalati-grasslands": 20971,
+      "nine-dragon-stack": 12555,
+      "pastel-plain": 735,
+      "pine-hollow": 10642,
+      "sunscar-dunes": 1380
+    },
+    "delta": {
+      "_template": 0,
+      "blender-template": 1,
+      "driftwood-isle": 110,
+      "far-reach": 0,
+      "ink-cel-valley": -337,
+      "nalati-grasslands": 23,
+      "nine-dragon-stack": 2,
+      "pastel-plain": -1,
+      "pine-hollow": 58,
+      "sunscar-dunes": 12
+    },
+    "changes": [
+      {
+        "shard": "blender-template",
+        "path": "src/sdk/assets.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/entities/species/loft.ts",
+        "before": 4,
+        "after": 0,
+        "removed": 4
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/physics/box.ts",
+        "before": 2,
+        "after": 0,
+        "removed": 2
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/world/geometryKit.ts",
+        "before": 52,
+        "after": 0,
+        "removed": 52
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/game/plugin/geometry.ts",
+        "before": 68,
+        "after": 86,
+        "removed": -18
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/sdk/questGraph.ts",
+        "before": 0,
+        "after": 13,
+        "removed": -13
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/sdk/weapons/meleeProfile.ts",
+        "before": 0,
+        "after": 3,
+        "removed": -3
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/world/geometryBake.ts",
+        "before": 0,
+        "after": 120,
+        "removed": -120
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/game/plugin/quests.ts",
+        "before": 0,
+        "after": 13,
+        "removed": -13
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/game/quest/interactionRows.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "far-reach",
+        "path": "src/sdk/looks/modelLibrary.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "far-reach",
+        "path": "src/sdk/modes.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/behaviourSource.ts",
+        "before": 46,
+        "after": 0,
+        "removed": 46
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/configBoundary.ts",
+        "before": 5,
+        "after": 0,
+        "removed": 5
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/newProject.ts",
+        "before": 32,
+        "after": 0,
+        "removed": 32
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/outputRuntime.ts",
+        "before": 105,
+        "after": 0,
+        "removed": 105
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/performancePolicy.ts",
+        "before": 13,
+        "after": 0,
+        "removed": 13
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/projectManifest.ts",
+        "before": 71,
+        "after": 0,
+        "removed": 71
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/projectPolicy.ts",
+        "before": 12,
+        "after": 0,
+        "removed": 12
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/projectSections.ts",
+        "before": 25,
+        "after": 0,
+        "removed": 25
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/runtimePerformance.ts",
+        "before": 28,
+        "after": 0,
+        "removed": 28
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/entities/species/loft.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/player/nalatiArms.ts",
+        "before": 16,
+        "after": 0,
+        "removed": 16
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/world/forest/treeSpec.ts",
+        "before": 6,
+        "after": 0,
+        "removed": 6
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/world/geometryKit.ts",
+        "before": 101,
+        "after": 36,
+        "removed": 65
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/assets.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/buildBehaviour.ts",
+        "before": 4,
+        "after": 0,
+        "removed": 4
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/compileScript.ts",
+        "before": 97,
+        "after": 0,
+        "removed": 97
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/kit/bakedGeometry.ts",
+        "before": 3,
+        "after": 8,
+        "removed": -5
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/phasedBoss.ts",
+        "before": 2,
+        "after": 19,
+        "removed": -17
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/world/voxelAO.ts",
+        "before": 0,
+        "after": 180,
+        "removed": -180
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/game/weapons/starter.generated.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/game/weapons/starterBowProfile.ts",
+        "before": 0,
+        "after": 4,
+        "removed": -4
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/modes.ts",
+        "before": 0,
+        "after": 6,
+        "removed": -6
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/entries.ts",
+        "before": 9,
+        "after": 0,
+        "removed": 9
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/kit/bakedGeometry.ts",
+        "before": 3,
+        "after": 0,
+        "removed": 3
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/looks/canvasAtlas.ts",
+        "before": 1,
+        "after": 9,
+        "removed": -8
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/modes.ts",
+        "before": 0,
+        "after": 6,
+        "removed": -6
+      },
+      {
+        "shard": "pastel-plain",
+        "path": "src/sdk/materials.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/interactions.ts",
+        "before": 8,
+        "after": 0,
+        "removed": 8
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/kit/mergedPrimitives.ts",
+        "before": 12,
+        "after": 0,
+        "removed": 12
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/engine/world/yawFrame.ts",
+        "before": 4,
+        "after": 9,
+        "removed": -5
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/game/plugin/brain.ts",
+        "before": 55,
+        "after": 57,
+        "removed": -2
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/blobs.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/looks/canvasAtlas.ts",
+        "before": 2,
+        "after": 0,
+        "removed": 2
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/phasedBoss.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/questGraph.ts",
+        "before": 2,
+        "after": 0,
+        "removed": 2
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/weapons/firearmProfile.ts",
+        "before": 0,
+        "after": 8,
+        "removed": -8
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/engine/boot/filePolicy.ts",
+        "before": 0,
+        "after": 69,
+        "removed": -69
+      },
+      {
+        "shard": "sunscar-dunes",
+        "path": "src/sdk/species/clips.ts",
+        "before": 0,
+        "after": 12,
+        "removed": -12
+      }
+    ],
+    "forwardFix": "Restore the previous sharing law. Retain all compiler consumers and relocate its defining module into the existing SDK bake host, keeping the public API. No ruler allowance is added. Production module graph importers and P4 charges are independently checked as zero.",
+    "rollbackDeltaAtLanding": {
+      "_template": 0,
+      "blender-template": -1,
+      "driftwood-isle": -110,
+      "far-reach": 0,
+      "ink-cel-valley": 337,
+      "nalati-grasslands": -23,
+      "nine-dragon-stack": -2,
+      "pastel-plain": 1,
+      "pine-hollow": -58,
+      "sunscar-dunes": -12
+    },
+    "commit": "3e99f268b33bf0c5810be8dcef6ba87b88cdb98f"
+  },
+  "extraction": {
+    "before": "f0f186632133945fa1d2da5f48af86d212892ce1",
+    "testedTree": "d72f29924715c7642b538fc0c2c343fa94f63702",
+    "actualTotalsBefore": {
+      "_template": 1003,
+      "blender-template": 107,
+      "driftwood-isle": 6771,
+      "far-reach": 1309,
+      "ink-cel-valley": 771,
+      "nalati-grasslands": 20878,
+      "nine-dragon-stack": 12177,
+      "pastel-plain": 735,
+      "pine-hollow": 10642,
+      "sunscar-dunes": 1380
+    },
+    "restoredRuleTotalsBefore": {
+      "_template": 1003,
+      "blender-template": 106,
+      "driftwood-isle": 6661,
+      "far-reach": 1309,
+      "ink-cel-valley": 1108,
+      "nalati-grasslands": 20855,
+      "nine-dragon-stack": 12175,
+      "pastel-plain": 736,
+      "pine-hollow": 10584,
+      "sunscar-dunes": 1368
+    },
+    "totalsAfter": {
+      "_template": 1003,
+      "blender-template": 106,
+      "driftwood-isle": 6661,
+      "far-reach": 1309,
+      "ink-cel-valley": 1108,
+      "nalati-grasslands": 20758,
+      "nine-dragon-stack": 11956,
+      "pastel-plain": 736,
+      "pine-hollow": 10584,
+      "sunscar-dunes": 1368
+    },
+    "sourceDeletionDelta": {
+      "_template": 0,
+      "blender-template": 0,
+      "driftwood-isle": 0,
+      "far-reach": 0,
+      "ink-cel-valley": 0,
+      "nalati-grasslands": -97,
+      "nine-dragon-stack": -219,
+      "pastel-plain": 0,
+      "pine-hollow": 0,
+      "sunscar-dunes": 0
+    },
+    "sourceDeletionChanges": [
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/compileScript.ts",
+        "before": 97,
+        "after": 0,
+        "removed": 97
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/shards/nine-dragon-stack/boot/headlessModules.ts",
+        "before": 19,
+        "after": 0,
+        "removed": 19
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/game/plugin/simulation.ts",
+        "before": 143,
+        "after": 0,
+        "removed": 143
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/game/shardfile/portalLinkProof.ts",
+        "before": 57,
+        "after": 0,
+        "removed": 57
+      }
+    ],
+    "buildOnlyChargePaths": [
+      "src/sdk/compileScript.ts"
+    ],
+    "resolvedLedgerTags": [
+      "still convertible: proof module-map generation",
+      "still convertible: G467 build-reach attribution audit"
+    ],
+    "deleted": [
+      "src/shards/nine-dragon-stack/boot/headlessModules.ts",
+      "src/sdk/compileScript.ts"
+    ],
+    "primaryChecksTree": "26fb4ef9477dbabc54dfd5b1e11f112ec29b42d0",
+    "combinedDeltaFromMeasuredPreCorrectionParent": {
+      "_template": 0,
+      "blender-template": -1,
+      "driftwood-isle": -110,
+      "far-reach": 0,
+      "ink-cel-valley": 337,
+      "nalati-grasslands": -120,
+      "nine-dragon-stack": -221,
+      "pastel-plain": 1,
+      "pine-hollow": -58,
+      "sunscar-dunes": -12
+    },
+    "note": "Source-deletion deltas compare the same source inputs under the restored original rule. The prior ruler-only correction is a separate commit; the combined delta is not the proof commit delta."
+  },
+  "compilerGraph": {
+    "target": "src/sdk/bake/compileScript.ts",
+    "directBuildImporters": [
+      {
+        "from": "src/sdk/behaviourSource.ts",
+        "spec": "./bake/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      },
+      {
+        "from": "src/sdk/buildBehaviour.ts",
+        "spec": "./bake/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      },
+      {
+        "from": "src/sdk/buildDecisionScripts.ts",
+        "spec": "./bake/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      },
+      {
+        "from": "src/sdk/compileMovers.ts",
+        "spec": "./bake/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      },
+      {
+        "from": "src/shards/_template/generators/bake-template-behaviour.mjs",
+        "spec": "@wildshard/sdk/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      },
+      {
+        "from": "src/shards/nalati-grasslands/generators/qara.ts",
+        "spec": "@wildshard/sdk/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      },
+      {
+        "from": "src/shards/pastel-plain/generators/bake-pastel-behaviour.mjs",
+        "spec": "@wildshard/sdk/compileScript",
+        "to": "src/sdk/bake/compileScript.ts"
+      }
+    ],
+    "runtimeImporters": [],
+    "compilerInPlayGraph": false,
+    "guard": "Resolve package exports, enumerate all source static importers, and intersect them with the complete production bundle module graph (including zero-rendered modules)."
+  },
+  "p4OutputRuler": {
+    "before": {
+      "_template": {
+        "customLines": 0,
+        "compilerCharges": []
+      },
+      "blender-template": {
+        "customLines": 0,
+        "compilerCharges": []
+      },
+      "ink-cel-valley": {
+        "customLines": 0,
+        "compilerCharges": []
+      },
+      "pastel-plain": {
+        "customLines": 0,
+        "compilerCharges": []
+      }
+    },
+    "after": {
+      "_template": {
+        "customLines": 0,
+        "compilerCharges": []
+      },
+      "blender-template": {
+        "customLines": 0,
+        "compilerCharges": []
+      },
+      "ink-cel-valley": {
+        "customLines": 0,
+        "compilerCharges": []
+      },
+      "pastel-plain": {
+        "customLines": 0,
+        "compilerCharges": []
+      }
+    },
+    "unchanged": true,
+    "unclosedProductsWithoutP4Rows": [
+      "driftwood-isle",
+      "far-reach",
+      "nalati-grasslands",
+      "nine-dragon-stack",
+      "pine-hollow",
+      "sunscar-dunes"
+    ],
+    "note": "P4 reports only closed products; no percentage is fabricated for unclosed products. The complete all-product production module graph independently proves zero runtime compiler importers."
+  },
+  "play": {
+    "before": {
+      "simulation": [
+        {
+          "chunk": "assets/simulation-CcM8Z7ky.js",
+          "id": "src/game/plugin/simulation.ts",
+          "renderedLength": 29227,
+          "renderedExports": [
+            "commandSocketLift",
+            "bindShardfileSim",
+            "numericScriptEntityId",
+            "nativeVolumeContact",
+            "createNativeTargetQueries",
+            "createShardfileSim",
+            "startMeleeSecondary",
+            "bindQuestWorldReactions",
+            "declaredItemScriptBindings",
+            "HOST_PROBE",
+            "bindMeleeContacts"
+          ]
+        }
+      ],
+      "portalLinkProofModules": [
+        {
+          "chunk": "assets/simulation-CcM8Z7ky.js",
+          "id": "src/game/shardfile/portalLinkProof.ts",
+          "renderedLength": 0,
+          "renderedExports": []
+        }
+      ],
+      "proofOrCompilerModules": [],
+      "nineChunks": [
+        {
+          "file": "assets/FeiZhua-D_Ra1tK_.js",
+          "bytes": 25093
+        },
+        {
+          "file": "assets/GrapplePlayground-DdUI3uhM.js",
+          "bytes": 9781
+        },
+        {
+          "file": "assets/arms-Yv8OX7Dd.js",
+          "bytes": 1187
+        },
+        {
+          "file": "assets/casts-j0JJkaHo.js",
+          "bytes": 2664
+        },
+        {
+          "file": "assets/decals-EDVUSKaG.js",
+          "bytes": 8425
+        },
+        {
+          "file": "assets/fpArms-D4Orp5q1.js",
+          "bytes": 38998
+        },
+        {
+          "file": "assets/geometry-BUvgjXXy.js",
+          "bytes": 3667
+        },
+        {
+          "file": "assets/jian-BUE4wG5h.js",
+          "bytes": 7624
+        },
+        {
+          "file": "assets/ktx2.generated-YBfmbKSb.js",
+          "bytes": 2587
+        },
+        {
+          "file": "assets/lanterns-HnU2NHRQ.js",
+          "bytes": 83930
+        },
+        {
+          "file": "assets/layout-DRjnH32O.js",
+          "bytes": 800
+        },
+        {
+          "file": "assets/layout.generated-CQPDDiX_.js",
+          "bytes": 68
+        },
+        {
+          "file": "assets/layoutBake-BmtbW2En.js",
+          "bytes": 8555
+        },
+        {
+          "file": "assets/metadata.generated-TcmOpbLt.js",
+          "bytes": 11375
+        },
+        {
+          "file": "assets/mockupCameras-DgnIibJi.js",
+          "bytes": 1487
+        },
+        {
+          "file": "assets/navigation.generated-CHQRACEF.js",
+          "bytes": 844
+        },
+        {
+          "file": "assets/playground-grapple-ByRNiJox.js",
+          "bytes": 64
+        },
+        {
+          "file": "assets/plugin-BpRFHtVn.js",
+          "bytes": 136584
+        },
+        {
+          "file": "assets/render-Dq6Exwji.js",
+          "bytes": 37234
+        },
+        {
+          "file": "assets/roster-CdzPkQTB.js",
+          "bytes": 1099
+        },
+        {
+          "file": "assets/runtime-BRBOuhWA.js",
+          "bytes": 86
+        },
+        {
+          "file": "assets/shard.config-C19EiKCO.js",
+          "bytes": 242577
+        },
+        {
+          "file": "assets/shardList-ORO3mDff.js",
+          "bytes": 106465
+        },
+        {
+          "file": "assets/state-CRnk1l2N.js",
+          "bytes": 1528
+        },
+        {
+          "file": "assets/sunscar-dunes-D1OGeuYY.js",
+          "bytes": 4039
+        },
+        {
+          "file": "assets/tier-BSmcm1qT.js",
+          "bytes": 97
+        },
+        {
+          "file": "assets/weave-B1yfyC_5.js",
+          "bytes": 1329
+        },
+        {
+          "file": "assets/wellBounds-cZm8l1-D.js",
+          "bytes": 513
+        }
+      ]
+    },
+    "after": {
+      "simulation": [
+        {
+          "chunk": "assets/simulation-_ZYIjrXh.js",
+          "id": "src/game/plugin/simulation.ts",
+          "renderedLength": 29227,
+          "renderedExports": [
+            "commandSocketLift",
+            "bindShardfileSim",
+            "numericScriptEntityId",
+            "nativeVolumeContact",
+            "createNativeTargetQueries",
+            "createShardfileSim",
+            "startMeleeSecondary",
+            "bindQuestWorldReactions",
+            "declaredItemScriptBindings",
+            "HOST_PROBE",
+            "bindMeleeContacts"
+          ]
+        }
+      ],
+      "portalLinkProofModules": [],
+      "proofOrCompilerModules": [],
+      "nineChunks": [
+        {
+          "file": "assets/FeiZhua-CMPXN7jR.js",
+          "bytes": 25093
+        },
+        {
+          "file": "assets/GrapplePlayground-CH3BKgG8.js",
+          "bytes": 9781
+        },
+        {
+          "file": "assets/arms-BDCVdMDY.js",
+          "bytes": 1187
+        },
+        {
+          "file": "assets/casts-B2VzENE4.js",
+          "bytes": 2664
+        },
+        {
+          "file": "assets/decals-B1Dd861z.js",
+          "bytes": 8425
+        },
+        {
+          "file": "assets/fpArms-BlspeGb0.js",
+          "bytes": 38998
+        },
+        {
+          "file": "assets/geometry-x5fTcrhL.js",
+          "bytes": 3667
+        },
+        {
+          "file": "assets/jian-mNqdA3Jo.js",
+          "bytes": 7624
+        },
+        {
+          "file": "assets/ktx2.generated-YBfmbKSb.js",
+          "bytes": 2587
+        },
+        {
+          "file": "assets/lanterns-D4q2hwai.js",
+          "bytes": 83930
+        },
+        {
+          "file": "assets/layout-DRjnH32O.js",
+          "bytes": 800
+        },
+        {
+          "file": "assets/layout.generated-CQPDDiX_.js",
+          "bytes": 68
+        },
+        {
+          "file": "assets/layoutBake-DHWfGEk-.js",
+          "bytes": 8555
+        },
+        {
+          "file": "assets/metadata.generated-TcmOpbLt.js",
+          "bytes": 11375
+        },
+        {
+          "file": "assets/mockupCameras-DgnIibJi.js",
+          "bytes": 1487
+        },
+        {
+          "file": "assets/navigation.generated-CHQRACEF.js",
+          "bytes": 844
+        },
+        {
+          "file": "assets/playground-grapple-ByRNiJox.js",
+          "bytes": 64
+        },
+        {
+          "file": "assets/plugin-Bp49yo9n.js",
+          "bytes": 136584
+        },
+        {
+          "file": "assets/render-C1D2ixBC.js",
+          "bytes": 37234
+        },
+        {
+          "file": "assets/roster-Ce0aZm_9.js",
+          "bytes": 1099
+        },
+        {
+          "file": "assets/runtime-AiRwJQh0.js",
+          "bytes": 86
+        },
+        {
+          "file": "assets/shard.config-DsP956Jb.js",
+          "bytes": 242577
+        },
+        {
+          "file": "assets/shardList-Cp7At6hm.js",
+          "bytes": 106465
+        },
+        {
+          "file": "assets/state-CRnk1l2N.js",
+          "bytes": 1528
+        },
+        {
+          "file": "assets/sunscar-dunes-D1OGeuYY.js",
+          "bytes": 4039
+        },
+        {
+          "file": "assets/tier-BSmcm1qT.js",
+          "bytes": 97
+        },
+        {
+          "file": "assets/weave-B1yfyC_5.js",
+          "bytes": 1329
+        },
+        {
+          "file": "assets/wellBounds-cZm8l1-D.js",
+          "bytes": 513
+        }
+      ]
+    },
+    "note": "Before extraction the production bundler already discarded the proof bodies. This is source-graph isolation; no emitted-byte saving is claimed."
+  },
+  "native": {
+    "pinnedJsonSha256": {
+      "src/shards/nalati-grasslands/behaviour/qara.generated.json": "1f83e2bd97ccaf81fdb95c073a5d980d07ebe2b824be6b63e8b0037be3a39f47",
+      "src/shards/nalati-grasslands/behaviour/weapons.json": "d0786ea2e3543137082ee02d08859c583aec631e59552356ae976689bc3c1d17"
+    },
+    "headlessBefore": {
+      "status": "passed",
+      "ticksExecuted": 1084,
+      "swings": 22,
+      "contacts": 22,
+      "effects": 2,
+      "facts": [
+        "nine-dragon-stack.lantern-square",
+        "nine-dragon-stack.well"
+      ],
+      "rides": [
+        "portal.square.north>portal.north",
+        "portal.north>portal.square.arrival"
+      ],
+      "grapple": {
+        "phases": [
+          "idle",
+          "fire",
+          "bite",
+          "lift",
+          "zip",
+          "vault",
+          "settle",
+          "idle"
+        ],
+        "capOpenTicks": 151,
+        "landed": {
+          "x": -8.532971600736104,
+          "y": 119.08614685795567,
+          "z": -20.667154578675955
+        }
+      },
+      "entries": {
+        "lanes": 0,
+        "steps": 0,
+        "portalTransfers": 0
+      }
+    },
+    "headlessAfter": {
+      "status": "passed",
+      "ticksExecuted": 1084,
+      "swings": 22,
+      "contacts": 22,
+      "effects": 2,
+      "facts": [
+        "nine-dragon-stack.lantern-square",
+        "nine-dragon-stack.well"
+      ],
+      "rides": [
+        "portal.square.north>portal.north",
+        "portal.north>portal.square.arrival"
+      ],
+      "grapple": {
+        "phases": [
+          "idle",
+          "fire",
+          "bite",
+          "lift",
+          "zip",
+          "vault",
+          "settle",
+          "idle"
+        ],
+        "capOpenTicks": 151,
+        "landed": {
+          "x": -8.532971600736104,
+          "y": 119.08614685795567,
+          "z": -20.667154578675955
+        }
+      },
+      "entries": {
+        "lanes": 0,
+        "steps": 0,
+        "portalTransfers": 0
+      }
+    },
+    "replayUnchanged": true,
+    "ledgerUnchanged": true,
+    "compatibleBefore": true,
+    "compatibleAfter": true,
+    "qaraPinnedJsonByteIdentical": true,
+    "weaponHookPinnedProductsByteIdentical": true,
+    "entryCounterNote": "The existing whole-shard witness reports zero entry-admission lanes before and after this extraction. The same tape still witnesses both portal rides and identical grapple, replay and ledger outcomes; no new entry coverage is claimed."
+  },
+  "verification": {
+    "primaryChecksTree": "26fb4ef9477dbabc54dfd5b1e11f112ec29b42d0",
+    "rootTypes": "passed",
+    "layerTypes": "passed",
+    "typedLint": "passed",
+    "focusedTestFiles": 12,
+    "focusedTestsPassed": 66,
+    "shardHeadlessCasesPassed": 17,
+    "productsBuilt": 10,
+    "nativeModes": [
+      "headless",
+      "replay",
+      "ledger"
+    ],
+    "boot": {
+      "contextLost": false,
+      "error": null,
+      "level": "nine-dragon-stack",
+      "loading": false,
+      "renderCalls": 148,
+      "sceneObjects": 22,
+      "shard": "nine-dragon-stack",
+      "url": "http://127.0.0.1:4406/?chunk=nine-dragon-stack&mute=1&nolock=1&skipintro=1&touch=1&tier=phone",
+      "version": {
+        "build": "26fb4ef-mvcctg25",
+        "time": "2026-10-17T12:09:49.838Z"
+      },
+      "viewport": {
+        "dpr": 3,
+        "height": 874,
+        "width": 402
+      },
+      "worldReady": true,
+      "servedTree": "26fb4ef9477dbabc54dfd5b1e11f112ec29b42d0",
+      "device": "iPhone 16 Pro",
+      "muted": true,
+      "consoleErrors": []
+    },
+    "supplementalNodeCompatibilityPatch": {
+      "tree": "f6b8485bb0b1429ec1a864aeaab43b51c9abf903",
+      "path": "scripts/compile-script.mjs",
+      "change": "Resolve the moved compiler through its unchanged public SDK submodule. This is the sole difference from the primary checked tree, outside play and census inputs.",
+      "result": {
+        "compatibilityWrapper": "passed",
+        "byteParity": true,
+        "bytes": 196
+      },
+      "typedLint": "passed"
+    },
+    "supplementalNativeCensusGuardPatch": {
+      "tree": "d72f29924715c7642b538fc0c2c343fa94f63702",
+      "files": [
+        "scripts/sim-in-runtime.mjs",
+        "test/sim-in-runtime.test.ts",
+        "docs/ENGINE.md"
+      ],
+      "rootTypes": "passed",
+      "layerTypes": "passed",
+      "typedLint": "passed",
+      "focusedTestsPassed": 5,
+      "sourceGraph": "passed",
+      "nativeDebtBefore": 4,
+      "nativeDebtAfter": 4,
+      "nativeRuntimeFiles": [
+        "src/shards/nine-dragon-stack/runtime/grapple.ts",
+        "src/shards/nine-dragon-stack/runtime/jian.ts",
+        "src/shards/nine-dragon-stack/runtime/portals/hostRide.ts",
+        "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts"
+      ],
+      "ratchetChanged": false,
+      "reason": "JSON module roots remain in the native simulation census when build-time module maps replace handwritten catalogues."
+    }
+  }
+}

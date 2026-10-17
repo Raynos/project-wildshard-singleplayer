@@ -40,7 +40,7 @@ headless adapters and coverage are recorded in the per-shard reports, rather tha
 | Pine Hollow | `pine-hollow/runtime/index.ts` | `runtime/audio/score.ts` parameter property | Loads; 19 rules tested |
 | Driftwood | `driftwood-isle/runtime/hybrid.ts` | `game/shardfile/hybrid.ts` parameter property | Loads; 10 rules tested |
 | Nalati | `nalati-grasslands/runtime/index.ts` | `engine/app/runtime.ts` | Loads; 17 rules tested |
-| Nine Dragon | `nine-dragon-stack/boot/headlessModules.ts` | none: passes (headless, replay, ledger from gameplay, G285) | 2 rules, both from gameplay |
+| Nine Dragon | `tmp/headless-modules/nine-dragon-stack/modules.mjs` | none: passes (headless, replay, ledger from gameplay, G285) | 2 rules, both from gameplay |
 
 ## What the ledger checks establish
 

@@ -14,8 +14,9 @@ const sorted=values=>[...values].sort((a,b)=>a.localeCompare(b));
 /** Conservative module-level value reach, not a statement-level sim classifier.
  * Roots are the actual runtime/headless.ts native entry convention used by the
  * worker/grid proof callers, plus any exported prepareHeadlessRuntime factory
- * and static headlessModules catalogues (so declared assemblies and renamed
- * entries cannot hide their existing runtime installer dependencies).
+ * and static headlessModules catalogues. Declared assembly modules remain
+ * roots when a build generates the catalogue outside source, so renamed or
+ * generated entries cannot hide existing runtime installer dependencies.
  * Traversal stays within the shard; platform packages are hosts, not shard code.
  * Type-only edges erase at build and provide no executable reach. Lazy imports,
  * require and literal globs count; unprovable computed edges refuse the census.
@@ -47,6 +48,17 @@ export function simRuntimeInventory(root=ROOT) {
    return decl?.id?.name==='prepareHeadlessRuntime'||decl?.declarations?.some(row=>['prepareHeadlessRuntime','headlessModules'].includes(row.id?.name))===true
     ||node.specifiers.some(row=>row.exported?.name==='prepareHeadlessRuntime'&&row.exportKind!=='type');
   }));
+  const assembly=resolve(root,prefix,'data/headlessAssembly.json');
+  if(existsSync(assembly)){
+   const declaration=JSON.parse(readFileSync(assembly,'utf8'));
+   if(declaration.version!==1||declaration.modules===null||typeof declaration.modules!=='object'||Array.isArray(declaration.modules))throw new Error(`sim-in-runtime: invalid declared assembly ${assembly}`);
+   for(const specifier of Object.keys(declaration.modules)){
+    if(!specifier.startsWith(prefix)||/\.[^/]+$/u.test(specifier)&&!code.test(specifier))continue;
+    const target=[specifier,`${specifier}.ts`,`${specifier}.tsx`,`${specifier}.mjs`,`${specifier}.js`,`${specifier}/index.ts`].find(file=>all.includes(file));
+    if(target===undefined)throw new Error(`sim-in-runtime: unresolved declared assembly module ${specifier}`);
+    if(!entries.includes(target))entries.push(target);
+   }
+  }
   const seen=new Set(),queue=[...entries];
   while(queue.length>0){
    const path=queue.pop();if(seen.has(path))continue;seen.add(path);

@@ -111,7 +111,7 @@
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
     "./species/clips": "./species/clips.ts",
-    "./compileScript": "./compileScript.ts",
+    "./compileScript": "./bake/compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
     "./runtime/prompts": "./runtime/prompts.ts",
     "./buildBehaviour": "./buildBehaviour.ts",
@@ -603,7 +603,7 @@
         "default": "./dist/species/clips.js"
       },
       "./compileScript": {
-        "types": "./dist/types/sdk/compileScript.d.ts",
+        "types": "./dist/types/sdk/bake/compileScript.d.ts",
         "default": "./dist/compileScript.js"
       },
       "./sourceManifest": {

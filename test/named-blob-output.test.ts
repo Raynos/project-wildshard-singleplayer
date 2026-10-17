@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author producers use file URLs for their explicit output root.
 import { pathToFileURL } from 'node:url';
 import { namedBlobOutput } from '../scripts/named-blob-output.mjs';
-import { compileScript } from '../src/sdk/compileScript';
+import { compileScript } from '@wildshard/sdk/compileScript';
 import { scriptSource } from './script/fixture';
 import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { hashImmutableBytes } from '../src/sdk/immutable';

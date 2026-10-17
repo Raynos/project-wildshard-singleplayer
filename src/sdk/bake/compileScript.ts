@@ -1,6 +1,6 @@
 /** Portable AssemblyScript compiler and structural Binaryen metering, pinned by SDK dependencies. */
 import binaryen from 'binaryen';
-import { loadAssemblyScriptCompiler } from './assemblyscriptCompiler.mjs';
+import { loadAssemblyScriptCompiler } from '../assemblyscriptCompiler.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the authoring file bake reads and emits local modules.
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The authoring bake pins the exact emitted wire bytes.

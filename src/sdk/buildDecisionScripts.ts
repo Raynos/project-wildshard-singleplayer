@@ -5,7 +5,7 @@ import { posix, resolve, sep } from 'node:path';
 import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import type { DecisionRegistries } from '@wildshard/format/decisionBindings';
-import { compileScript } from './compileScript';
+import { compileScript } from './bake/compileScript';
 import { generateDecisionBindings } from './decisionScriptBindings';
 import { inspectDecisionSource, checkDecisionHandlers } from './decisionSource';
 import { nameBlob, type NamedBlob } from './blobs';

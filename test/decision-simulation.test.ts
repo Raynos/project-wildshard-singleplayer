@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { compileScript } from '../src/sdk/compileScript';
+import { compileScript } from '@wildshard/sdk/compileScript';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { parseActorMoves } from '../src/format/actorMoves';

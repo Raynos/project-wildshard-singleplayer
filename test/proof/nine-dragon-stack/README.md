@@ -20,17 +20,25 @@ Map: rebuilt after the Nine map-style commit `f9a2e7493`, using the official `sc
 
 ## SF72 witness (parts 2–5): what `compatible: true` covers, and what it does not
 
-`run.mjs` runs the trusted renderer-free entry `boot/headlessModules.ts` through the platform's own trusted adapter
+`run.mjs` runs the generated renderer-free map `tmp/headless-modules/nine-dragon-stack/modules.mjs` through the platform's own trusted adapter
 (`createTrustedHeadlessAdapter`). The result is **compatible** (`transitional: false` in `compatibility.json`): no
 renderer-bound system decides a gameplay outcome. Decorative crowd, light and view controllers remain trusted
 runtime presentation.
 
 The ordered calls now come from `data/headlessAssembly.json` and the checked
-static catalogue. `generators/headless.ts` admits the original collision bake,
+native module map. `generators/headless.ts` admits the original collision bake,
 removes the standalone caps and expands treads with the engine's own law. The
 product owns those collider rows and hook coordinates; the installed Jian,
 portal ride and grapple keep their original clocks and snapshot adapters.
 The witness fingerprints both emitted assembly blobs as well as its modules.
+
+The [proof extraction audit](../../../progress/shard-platform/honest-floor-2026-10-17/proof-build-reach.json)
+compares the same native tape before and after module-map generation. Both
+runs report zero entry-admission lanes, steps and transfers for the current
+admitted product; the historical 92-lane entry claim below is not current
+coverage. Both tape-driven portal rides, grapple, replay and ledger results
+are unchanged. The extracted proof definitions match the parent byte for
+byte; this refactor adds no entry coverage.
 
 **Runs headless (proven):**
 - the native colliders of the grid cell (`data/physics.generated.json`, made from authored rows by `generators/physics.ts`, G350-ND):

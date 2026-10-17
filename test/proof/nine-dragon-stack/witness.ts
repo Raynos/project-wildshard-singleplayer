@@ -3,6 +3,9 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed native checkpoints are compressed proof data.
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
+import { generateHeadlessModuleMap } from '../../../scripts/check-headless-assemblies.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native proof maps are generated beside the local product.
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -20,7 +23,7 @@ import { GRAPPLE_AIM, GRAPPLE_LOCK, GRAPPLE_STEP } from '../../../src/shards/nin
 import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
 
 /**
- * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `boot/headlessModules.ts`,
+ * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its generated native proof module map,
  * through the platform's own trusted adapter (`createTrustedHeadlessAdapter`: the plan's level and ports, one install, the
  * tick's commands lent to the runtime, a committed snapshot per tick). The tape is tick commands only, tapping the Jian
  * all the way: the player walks the square's declared route (portalPlan.ts `SQUARE_ROUTE`) from the spawn into the ring
@@ -36,7 +39,7 @@ import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.g
  * crossing settles over the Well) go through the platform Ledger under their declared rules: each achievement granted
  * once, durably, and a session restored from the end re-emits nothing.
  */
-export const ENTRY = 'boot/headlessModules.ts';
+export const ENTRY = 'tmp/headless-modules/nine-dragon-stack/modules.mjs';
 /** Outcomes are renderer-free. Nine declares no creature, so none is an unproven gameplay system. */
 export const SCOPE = {
   transitional: false,
@@ -58,7 +61,7 @@ export const SCOPE = {
 
 const ROOT = new URL('../../../', import.meta.url);
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/nine-dragon-stack/assets/${file.hash}`, ROOT)))]));
-const MODULE = new URL(`src/shards/nine-dragon-stack/${ENTRY}`, ROOT).href;
+const MODULE = pathToFileURL(generateHeadlessModuleMap(fileURLToPath(ROOT), 'nine-dragon-stack')).href;
 /** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
 const STEP = 5 / 60, NORTH = portalPlan.decks[0];
 if (NORTH === undefined) throw new Error('Nine Dragon declares its north deck portal');

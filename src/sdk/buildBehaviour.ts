@@ -5,7 +5,7 @@ import { dirname, resolve, sep } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native consumers retain their existing embedded Wasm representation.
 import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
-import { compileScript } from './compileScript';
+import { compileScript } from './bake/compileScript';
 import { generateDirectorAbi } from './directorAbi';
 import { hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';

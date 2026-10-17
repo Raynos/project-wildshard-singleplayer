@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
-import { compileScript } from './compileScript';
+import { compileScript } from './bake/compileScript';
 import { hashImmutableBytes } from './immutable';
 
 const path = v.pipe(v.string(), v.maxLength(512), v.check(value => value.split('/').every(part => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u.test(part)), 'project-relative source path'));
