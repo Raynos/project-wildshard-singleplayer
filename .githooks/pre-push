@@ -2,7 +2,9 @@
 # pre-push: first the storage policy (scripts/repo-size.mjs, docs/process/STORAGE.md) over every outgoing commit of
 # every pushed ref, plus the rolling-week budget; nothing skips it, SKIP_VERCEL_GATE included. Then a push to main is a
 # deploy, so build the pushed tip exactly as Vercel will (scripts/vercel-tree-gate.sh) and refuse the push when that
-# would go red upstream (E41). Only refs/heads/main is gated; deletes pass.
+# would go red upstream (E41). Only refs/heads/main is gated; deletes pass. Before the Vercel gate, a push to main also
+# needs fresh WHAT'S NEW lines (scripts/whats-new-fresh.mjs, E482): src/game/whatsNew.json's `updated` at the pushed tip
+# must be at most 24 h old (a git show and a date check; SKIP_VERCEL_GATE does not skip it).
 # Escape (rare, Vercel gate only): SKIP_VERCEL_GATE=1 scripts/push-main.sh
 set -uo pipefail
 zero=0000000000000000000000000000000000000000
@@ -11,6 +13,7 @@ printf '%s\n' "$records" | node "$(git rev-parse --show-toplevel)/scripts/repo-s
 while read -r _local_ref local_sha remote_ref _remote_sha; do
   [ "$remote_ref" = "refs/heads/main" ] || continue
   [ "$local_sha" = "$zero" ] && continue
+  node "$(git rev-parse --show-toplevel)/scripts/whats-new-fresh.mjs" "$local_sha" || exit 1
   if [ "${SKIP_VERCEL_GATE:-}" = 1 ]; then echo "pre-push: SKIP_VERCEL_GATE=1 — vercel gate skipped for $(git rev-parse --short "$local_sha")" >&2; continue; fi
   "$(git rev-parse --show-toplevel)/scripts/vercel-tree-gate.sh" "$local_sha" || exit 1
   gated=1

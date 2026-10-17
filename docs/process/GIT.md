@@ -131,6 +131,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   (boards 500 KB; save JPEG / WebP), no video / audio / archive / `.jsonl` / PDF / `.blend` outside `public/`, no
   generated paths, ≤ 10 MB of new binary per push and a 100 MB a week warning outside the runtime roots. Existing debt is
   grandfathered until it changes. `.gitattributes` marks binaries `-delta`.
+- **WHAT'S NEW is at most 24 h stale** (E482): pre-push runs `scripts/whats-new-fresh.mjs <sha>` on every push to
+  main and refuses when `src/game/whatsNew.json`'s `updated` is missing, unparseable, over 1 h ahead or over 24 h old;
+  rewrite its 3–5 lines with what changed in the playable build, set `date` / `updated` to now, commit and push again.
 - **The local gate aims at 120 seconds** (G359, G363; no hard deadline). `scripts/local-gate.py`
   builds the exact pushed commit in the build mirror's `gate` slot (Vercel's tree) and runs, in order:
   `pnpm gen`; `check-graph --source-only`; the changed roots' types in the scripts / api / admin /

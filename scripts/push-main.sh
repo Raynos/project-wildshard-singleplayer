@@ -94,6 +94,8 @@ for push_round in 1 2 3 4 5 6; do
     exit 0
   fi
   t0=$SECONDS
+  # E482: the pre-push hook refuses WHAT'S NEW lines over 24 h old; say so before spending minutes on the gate
+  node scripts/whats-new-fresh.mjs "$tip" || exit 1
   # SF74 W20 (speed audit #5): gate first, push after. The pre-push hook then finds the gate's stamp and returns at
   # once, so GitHub's SSH session never idles through a 6-minute gate (2026-10-09: "Connection to github.com closed by
   # remote host" after a 385 s gate, and the whole gate ran again).

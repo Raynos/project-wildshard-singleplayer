@@ -1,10 +1,11 @@
 {
-  "date": "8 OCT 2026",
+  "date": "17 OCT 2026",
+  "updated": "2026-10-17T12:05:00-05:00",
   "entries": [
-    "Infinite Wildshard: drive Driftwood → Pine Hollow → Nalati (Developer, memory warning)",
-    "Template cells: districts, set pieces and roads; every copy differs",
-    "Open plots: a showroom at every entry",
-    "Sky Reach (SHARD SELECT): ride the Rising Islet up from a sky dock",
-    "Nine Dragon (SHARD SELECT, Developer): deck portals to Lantern Square"
+    "Nine Dragon: portal and lantern colours look right again",
+    "Sky Reach and Signal Dunes now run mostly from their shard files: same look, same play",
+    "Road grid: the four nearest cells always show their near detail",
+    "Bosses (Storm Roc, Matriarch) no longer vanish at long range on the phone",
+    "Main menu: a real in-game aerial over Nalati as the hero shot"
   ]
 }
