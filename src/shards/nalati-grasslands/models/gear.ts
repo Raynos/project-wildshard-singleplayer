@@ -11,10 +11,13 @@ import { BOW, type BowStyle } from '@wildshard/game/weapons/starterBowProfile';
 import { RECURVE } from '../weapons/loadout';
 import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { rifleSpecimen } from '../runtime/weapons/magazineFirearm';
+import { heldFirearmDisplay } from '@wildshard/game/plugin/heldFirearm';
+import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { buildSabre } from '../runtime/weapons/mountedSword';
 import { buildJavelin, buildSpear, type JavelinSpearDraws } from '../runtime/weapons/javelinSpear';
-import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
 import { goldenBowModel } from '../runtime/weapons/GoldenBow';
 import { naizagaiModel } from '../runtime/weapons/Naizagai';
 
@@ -23,11 +26,12 @@ import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@
 
 const FILE = 'src/shards/nalati-grasslands/models/gear.ts';
 
-/** the specimen's own copy of a viewmodel material, back in the normal (opaque) queue */
-function opaque<M extends THREE.Material>(m: M): M {
-  m.transparent = false;
-  return m;
+let rifleModel: ReturnType<typeof parseHeldFirearmRows> | null = null;
+/** Admit the built Explorer model before any card can construct it. */
+export async function prepareRifleModel(product: Pick<ShardProduct, 'file'>): Promise<void> {
+  rifleModel = parseHeldFirearmRows(JSON.parse(new TextDecoder().decode(await product.file('weapons/rifle-model.json'))));
 }
+
 
 /** a card's parts: every draw casts and takes shadows on the turntable */
 const lit = (geometry: THREE.BufferGeometry, material: THREE.Material): ModelPart => ({ geometry, material, castShadow: true, receiveShadow: true });
@@ -77,14 +81,14 @@ export const sabre: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/sabre', name: 'Sabre', category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
   build: (ctx) => {
-    const rig = ctx.once('gear:sabre', () => buildSabre(opaque(meleeMaterial(ctx.sky)), opaque(steelMaterial(ctx.sky))));
+    const rig = ctx.once('gear:sabre', () => buildSabre(Object.assign(painterlyMaterial(ctx.sky, { vertexColors: true, rim: 0.55, bands: 0.7 }), { name: 'nalati-viewmodel' }), viewmodelMaterial(ctx.sky, 'nalati-steel', { metalness: 0.55, roughness: 0.38, envMapIntensity: 0.7 })));
     return [lit(rig.sword, rig.material), ...(rig.extras ?? []).map((x) => lit(x.geometry, x.material))];
   },
 });
 
 /** a spear's or a javelin's two draws on the spear's own materials (the painted wood and horsehair; the steel at 0.3) */
 function spearParts(ctx: ModelContext, key: string, build: () => JavelinSpearDraws): readonly ModelPart[] {
-  const mats = ctx.once('gear:spear-materials', () => ({ paint: opaque(meleeMaterial(ctx.sky)), steel: opaque(steelMaterial(ctx.sky, 0.3)) }));
+  const mats = ctx.once('gear:spear-materials', () => ({ paint: Object.assign(painterlyMaterial(ctx.sky, { vertexColors: true, rim: 0.55, bands: 0.7 }), { name: 'nalati-viewmodel' }), steel: viewmodelMaterial(ctx.sky, 'nalati-steel', { metalness: 0.55, roughness: 0.3, envMapIntensity: 0.7 }) }));
   const p = ctx.once(key, build);
   return [lit(p.paint, mats.paint), lit(p.metal, mats.steel)];
 }
@@ -130,9 +134,9 @@ export const ar15: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/ar-15', name: 'AR-15', category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
   build: (ctx) => {
-    const g = rifleSpecimen(ctx.sky);
-    g.name = 'AR-15';
-    return g;
+    if (rifleModel === null) throw new Error('Rifle model is not prepared');
+    const group = heldFirearmDisplay(ctx.sky, rifleModel, {});
+    group.name = 'AR-15'; return group;
   },
 });
 

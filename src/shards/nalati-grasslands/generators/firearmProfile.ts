@@ -1,4 +1,4 @@
-import items from './items.json' with { type: 'json' };
+import items from '../data/items.json' with { type: 'json' };
 import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as v from 'valibot';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';

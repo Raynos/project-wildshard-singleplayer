@@ -210,6 +210,28 @@ export const HeldPresentationSchema = v.strictObject({
   tracer: v.strictObject({ mode: v.picklist(['segment', 'trail']), points: real, width: real, color: vec3, order: real, lifetime: real, fade: real, markerScale: real }),
   hitMuzzle: vec3,
 });
+/** Complete held-firearm playback rows, shared by magazine and lever weapons. */
+export const HeldFirearmRowsSchema = v.object({ ...HeldModelRowsSchema.entries,
+  mount: v.picklist(['ownPass', 'shared']), gate: v.exactOptional(rowId), round: v.exactOptional(rowId),
+  brass: v.strictObject({ geometry: rowId, material: rowId }), rotationReads: v.exactOptional(v.record(rowId, rowId)),
+  playback: v.strictObject({ groups: v.record(rowId, v.array(v.unknown())),
+    inputs: v.array(v.strictObject({ group: rowId, rows: v.unknown() })),
+    outputs: v.array(v.strictObject({ group: rowId, rows: v.array(v.strictObject({ property: v.string(), target: v.string(), path: v.array(v.string()) })), target: v.picklist(['frame', 'sight', 'values', 'grip']) })),
+    schedule: v.strictObject({ frame: rowId, sight: rowId, pose: rowId, action: v.array(rowId), grip: v.array(rowId) }) }),
+  presentation: HeldPresentationSchema,
+});
+/** Camera and pool tuning for the existing held-firearm owner. */
+export const HeldFirearmViewSchema = v.looseObject({ kick: real, port: vec3,
+  sight: v.looseObject({ muzzleZ: real }), timing: v.looseObject({ autoReloadDelay: real, autoReloadClose: v.exactOptional(real) }),
+  hip: v.strictObject({ px: real, py: real, pz: real, rx: real, ry: real, rz: real, scale: real }),
+  flash: v.strictObject({ frames: real, lightTime: real, light: real, size: v.exactOptional(real) }),
+  brass: v.strictObject({ count: real, life: real }), tracer: v.strictObject({ count: real, time: real }),
+});
+/** Admit complete playback without changing the existing firearm controller. */
+export function parseHeldFirearmRows(input: unknown): v.InferOutput<typeof HeldFirearmRowsSchema> { return v.parse(HeldFirearmRowsSchema, input); }
+/** Admit camera/pool rows before the held owner allocates them. */
+export function parseHeldFirearmView(input: unknown): v.InferOutput<typeof HeldFirearmViewSchema> { return v.parse(HeldFirearmViewSchema, input); }
+
 /** Admit a held model's JSON rows before building anything. */
 export function parseHeldModelRows(input: unknown): v.InferOutput<typeof HeldModelRowsSchema> { return v.parse(HeldModelRowsSchema, input); }
 /** Admit a held firearm's presentation rows before building anything. */

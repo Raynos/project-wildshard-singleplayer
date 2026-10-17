@@ -6,7 +6,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel } from '@wildshard/game/plugin/heldFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { bakedHandGeometry, handsPresentation } from '../boot/handsGeometry';
-import { parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
+import { parseNativeFirearmProfile, parseHeldFirearmRows, parseHeldFirearmView } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary, type ModelLibrary } from '@wildshard/game/plugin/geometry';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { SECTIONS } from '../sections';
@@ -142,17 +142,17 @@ const bound = <T>(row: T | undefined): T => { if (row === undefined) throw new E
 export function leverRifle(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; held: LeverHeldRows; profile: unknown; model?: LeverModel }): HeldFirearm<FirearmProfile> {
   const { playback, inputs, lever } = opts.held, frame = inputs.frames.lever, rows = lever.bindings.slice(0, 5).map(bound), model = opts.model ?? requireLeverModel();
   const { hands, presentation } = model.rows, { profile, view } = leverSettings(opts.profile, model.rows.view);
-  return new HeldFirearm(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile, view,
+  return new HeldFirearm(world, targets, { row: opts.row, allowUnlocked: opts.allowUnlocked ?? false, profile, view: parseHeldFirearmView(view),
     model: leverModel(model),
     hands: { material: viewmodelRowMaterial(world.sky, 'hunter-hands', handsPresentation().hands), left: { ...bakedHandGeometry('lever-left'), ...hands.left }, right: { ...bakedHandGeometry('lever-right'), ...hands.right }, gate: hands.gate },
-    rows: { ...model.rows.model, mount: 'ownPass', gate: 'gate', round: 'round', brass: { geometry: 'round-case', material: 'brass' }, rotationReads: { hammerAngle: 'hammer' },
+    rows: parseHeldFirearmRows({ ...model.rows.model, mount: 'ownPass', gate: 'gate', round: 'round', brass: { geometry: 'round-case', material: 'brass' }, rotationReads: { hammerAngle: 'hammer' },
       playback: {
         groups: { frame: frame.program, pose: playback.lever, parts: playback.leverParts, sight: lever.sight, cycle: lever.cycle, handAt: lever.handAt, handAxis: lever.handAxis, handPalm: lever.handPalm },
         inputs: [{ group: 'frame', rows: frame.inputs }, { group: 'pose', rows: inputs.lever }, { group: 'parts', rows: lever.partInputs }, ...rows.map(row => ({ group: row.group, rows: row.inputs }))],
         outputs: [{ group: 'frame', rows: frame.outputs, target: 'frame' }, ...rows.map(row => ({ group: row.group, rows: row.outputs, target: row.target === 'sight' ? 'sight' as const : row.target === 'cycle' ? 'values' as const : 'grip' as const }))],
         schedule: { frame: 'frame', sight: 'sight', pose: 'pose', action: ['cycle', 'parts'], grip: ['handAt', 'handAxis', 'handPalm'] },
       },
-      presentation },
+      presentation }),
   });
 }
 /** A built Pine lever-action. */

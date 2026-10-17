@@ -1,0 +1,37 @@
+import { expect, test } from 'vitest';
+import * as v from 'valibot';
+import { FirearmWeaponProfileSchema, parseHeldFirearmRows, parseHeldFirearmView, parseHeldModelRows, parseHeldPresentation } from '../src/format/weaponProfiles';
+import rifle from '../src/shards/nalati-grasslands/data/rifle.generated.json' with { type: 'json' };
+import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
+import model from '../src/shards/nalati-grasslands/data/heldRifle.json' with { type: 'json' };
+import { AR15 } from './fixtures/weapon-oracle/nalatiRifleProfile';
+import { leverSettings } from '../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
+import leverDetails from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
+import pineItems from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+
+test('generated carbine keeps every native profile, model and playback value', () => {
+  const item = items.rows.find(row => row.id === 'weapon.rifle');
+  const profile = { ...v.parse(FirearmWeaponProfileSchema, item?.profile), ...rifle.feel };
+  expect(Object.fromEntries(Object.keys(AR15).map(key => [key, Reflect.get(profile, key)]))).toEqual(AR15);
+  const rows = parseHeldFirearmRows(rifle.rows);
+  expect(parseHeldModelRows(rows)).toEqual({ ...parseHeldModelRows(model), brass: { geometry: 'case', material: 'brass' } });
+  expect(rows.presentation).toEqual(parseHeldPresentation(model.presentation));
+  expect(rows.playback).toEqual(model.playback);
+  expect(rows.playback.schedule).toEqual({ frame: 'frame', sight: 'sight', pose: 'pose', action: ['parts'], grip: [] });
+});
+
+test('lever admission retains additional view and timing fields read by playback', () => {
+  const details = v.parse(SECTIONS['custom/leverDetails'], leverDetails);
+  const item = pineItems.rows.find(row => row.id === 'weapon.lever');
+  const { view } = leverSettings(item?.profile, details.rows.view);
+  expect(parseHeldFirearmView(view)).toEqual(view);
+  expect(parseHeldFirearmView(rifle.view)).toEqual(rifle.view);
+});
+
+test('malformed mounts, output owners and camera tuples refuse', () => {
+  expect(() => parseHeldFirearmRows({ ...rifle.rows, mount: 'missing' })).toThrow();
+  expect(() => parseHeldFirearmRows({ ...rifle.rows, playback: { ...rifle.rows.playback,
+    outputs: [{ group: 'frame', rows: [], target: 'missing' }] } })).toThrow();
+  expect(() => parseHeldFirearmView({ ...rifle.view, port: [0, 0] })).toThrow();
+});

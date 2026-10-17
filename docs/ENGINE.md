@@ -3706,7 +3706,11 @@ host records (`frame`, `sight`, `values`, `grip`) and a `schedule` (action group
 (`time`, `player`, `feel`, `holster`, `hip`, `view`, `profile`, `act`, `partValues`, `poseFrame`, `adsPose`, `grips`,
 `handFrame`, `gate`, `anchors.<id>`, `round`, `inspect`, `game`): a data contract, so a rename moves the JSON paths.
 `parseHeldModelRows` and `parseHeldPresentation` (`@wildshard/format/weaponProfiles`) admit a model's and its
-presentation's JSON rows (frame, flash, ejection, tracer, hit muzzle). Users: Pine's lever-action (GLB parts, the
+presentation's JSON rows (frame, flash, ejection, tracer, hit muzzle).
+`parseHeldFirearmRows` admits the complete model, mount and playback schedule;
+`parseHeldFirearmView` admits camera/pool tuning while preserving additional view
+fields read by authored playback. Pine's lever and Nalati's generated rifle use
+both before constructing the existing owner. Users: Pine's lever-action (GLB parts, the
 hunter's hands) and Nalati's
 AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`). A texture row may name any engine
 viewmodel set (`walnut`, `brushed-steel`, `leather`, `cord`, `bolt` beside the modern three); its `repeat` is optional.
@@ -6480,7 +6484,7 @@ page/native ranged query: a segment at radius zero or a ball sweep otherwise,
 passing up to four invisible edge strips in order and accumulating distance
 from the original start. The page wrapper alone allows missing physics.
 The string spring remains caller-owned. W3's real matching consumer is
-`src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`; its bloom,
+Nalati’s generated rifle rows on `HeldFirearm`; its bloom,
 muzzle flash, shot callbacks and active-only automatic reload stay ordered.
 
 `src/engine/models/sets.ts#placedWithin(placed, x, z, radius, mode)` returns an Explorer-only copy view.

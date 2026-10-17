@@ -3,6 +3,36 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nalati-rifle-rows",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-rifle.mjs"
+      ],
+      "inputRoots": [
+        "src/format",
+        "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
+        "src/shards/nalati-grasslands/generators/firearmProfile.ts",
+        "src/shards/nalati-grasslands/data/items.json",
+        "src/shards/nalati-grasslands/data/heldRifle.json",
+        "src/sdk",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/rifle.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/rifle.generated.json"
+      ]
+    },
+    {
       "id": "nalati-storm-titan",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
