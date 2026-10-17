@@ -23,7 +23,8 @@ import { installAdventureInteractables } from './interactLifetime';
 import { installPlaces } from './Places';
 import { installSpine, ownEnteredTree, type Spine } from './Spine';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench } from '@wildshard/game/quest/story';
-import { installTrader, type TraderStall } from './TraderStall';
+import { installQuestTrader, type QuestTrader } from '@wildshard/game/quest/trader';
+import { trader, tradeCounter, traderRigOf } from '../runtime/models/trader';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
@@ -94,7 +95,7 @@ export interface Adventure {
   /** the lookout → cove zipline (A7) */
   zipline: Zipline | null;
   /** the trader at Wendell's hut (E314): the loot hands her the shop screen (src/game/loot/runtime.ts) */
-  trader: TraderStall | null;
+  trader: QuestTrader | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
   /** register a computed anchor (`<poi>.<name>`) that placements and quest markers can name */
@@ -119,6 +120,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const story = await readQuestStory(ctx);
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
+  const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/stall.json')));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
@@ -142,7 +144,12 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
   adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration, story);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
-  adventure.trader = installTrader(adventure, w, traderRows);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
+  adventure.trader = installQuestTrader(traderStall, { player: w.player, placed: { scope, sky: w.sky,
+    ...(w.registry === undefined ? {} : { registry: w.registry }),
+    owners: new Map<string, unknown>([['placement', { place, floorAt }], ['game', w.game], ['hud', w.hud]]),
+    models: new Map([['trader', { model: trader, name: 'The trader' }], ['trade-counter', { model: tradeCounter, name: "The trader's counter", solidFloor: false }]]),
+    figures: new Map([['trader', traderRigOf]]), page: { rows: traderRows, flags, prompts: w.prompts },
+  } });
   const storyOwners = new Map<string, unknown>([['counters', grants], ['hud', w.hud], ['placement', { floorAt }]]);
   observeStoryFlags(story, scope, flags, storyOwners);
   bindStoryBench(story, kit, w.player, storyOwners);

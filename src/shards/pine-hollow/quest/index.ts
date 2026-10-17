@@ -1,3 +1,4 @@
+import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parsePineQuestRows } from './rows';
 import type { Progress } from '@wildshard/game/Progress';
 import { parseContractCatalogue } from '../runtime/lodge';
@@ -127,6 +128,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const story = await readQuestStory(h.ctx);
   const native = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/native.json'))));
   const { resinCount: RESIN_COUNT, resinFlag: RESIN_FLAG, tokenFlag: TOKEN_FLAG, tokenNames: TOKEN_NAMES } = native.policy;
+  const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/stall.json')));
   const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/trades.json'))));
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
@@ -296,6 +298,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     return panel;
   });
 
+  const tradeOwner = installQuestTrader(traderStall, { player, shop: trade });
+  if (tradeOwner === null) throw new Error('The declared trader shop is required');
+
   // ── panels: the board and the slate release the lock + the weapons like the journal ──
   ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
@@ -305,7 +310,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     kind: 'posed', create: (at, yaw) => makeNpcFigure(kind, sky, at, yaw), bark: fig => { sfx?.bark(kind, fig.talkPoint); },
   }]));
   const talks = installStoryTalks(ui, source, { flags, scene: game.scene, registry: h.registry,
-    prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([['pay-miller', payMiller], ['trade', () => { trade().open(); }]]) });
+    prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([['pay-miller', payMiller], ['trade', tradeOwner.open]]) });
   const { people, dialogue } = talks;
   const { at: rangerAt, cos: rcos, sin: rsin } = NPC_ROSTER.ranger;
   const trader = people.find(person => person.kind === 'trader');

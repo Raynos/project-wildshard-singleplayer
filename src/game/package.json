@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/trader": "./quest/trader.ts",
     "./quest/storyLaw": "./quest/storyLaw.ts",
     "./quest/story": "./quest/story.ts",
     "./shardfile/borrowedDecisions": "./shardfile/borrowedDecisions.ts",

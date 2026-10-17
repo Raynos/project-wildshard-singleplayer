@@ -7,7 +7,7 @@ import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Adventure } from '../quest/adventure';
-import { TRADER_NAME } from '../quest/TraderStall';
+import stallRows from '../data/traderStall.json' with { type: 'json' };
 import { buyGood, goodById, goodState, type Good } from './shop';
 
 /** The island's authored counter and bag rows, supplied to the common loot mechanism. */
@@ -26,16 +26,16 @@ export async function driftwoodLootPresentation(o: { economy: ReturnType<typeof 
     finds: () => finds({ flags: adv.flags, owned }),
     gear: (purse) => ({ sharpen: owned.sharpen, health: { max: o.health.attributes.maxHealth, hearts: owned.hearts },
       charms: { owned: owned.charms, next: economy.progression.states[economy.progression.flags.filter(flag => adv.flags.has(flag)).length]?.next ?? null },
-      cosmetics: [cosmetic('captain-hat', 'hat', 'The Drowned Captain'), cosmetic('cape', 'cape', `${TRADER_NAME}'s counter`)], coins: purse.coins }),
+      cosmetics: [cosmetic('captain-hat', 'hat', 'The Drowned Captain'), cosmetic('cape', 'cape', `${stallRows.name}'s counter`)], coins: purse.coins }),
     shop: (purse) => {
       const stall = adv.trader;
       if (stall === null) return null;
-      const panel = new ShopPanel<Good>({ trader: TRADER_NAME, place: 'Driftwood Isle', goods: GOODS,
+      const panel = new ShopPanel<Good>({ trader: stallRows.name, place: 'Driftwood Isle', goods: GOODS,
         state: (g) => goodState(g, owned, purse.coins), coins: () => purse.coins,
         needs: (g) => g.needs !== undefined ? goodById(GOODS, g.needs)?.name ?? g.needs : '' });
       panel.onBuy = (g) => {
         if (!buyGood(g, owned, purse)) return false;
-        sfx.interact('chime', stall.at, { gain: 0.8 }); stall.trader.offer();
+        sfx.interact('chime', stall.at, { gain: 0.8 }); stall.trader?.offer();
         o.toast(`Bought · ${g.name} — ${g.id === 'cape' ? 'wear it from GEAR' : g.does.toLowerCase()}`);
         return true;
       };

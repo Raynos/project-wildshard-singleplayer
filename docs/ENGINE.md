@@ -8398,3 +8398,11 @@ semantics, including the crab's squared smoothstep and thrall's sharp jerk.
 The numeric evaluator, scalar binders and detached frame types are defined
 in `game/plugin/channels`; browser UI imports that module. Native pose
 imports therefore load no DOM or CSS presentation code.
+
+`@wildshard/game/quest/trader.installQuestTrader` binds Driftwood and Pine
+trader opening to admitted `quests/stall.json` rows. Driftwood lends its original
+models, entry scope, NPC rig, placement/floor queries and page prompt rows; the
+host preserves counter ownership, facing, pitch restoration, distance closing and
+late shop readiness. Pine lends its existing lazy panel and keeps its talk gate
+and panel-hold lifetime. Catalogue, flags, payments and saves stay with their
+existing owners. `parseQuestTrader` validates rows before any placement.
