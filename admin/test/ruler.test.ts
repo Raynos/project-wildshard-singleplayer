@@ -2,9 +2,9 @@ import { expect, it } from 'vitest';
 import { SHARDS, nextRuler, readRuler, wavePercent } from '../../scripts/admin-data/ruler.mjs';
 
 /** A minimal `node scripts/shard-platform.mjs --json` output: every legacy shard at `custom` lines of 1,000 legacy. */
-function raw(custom: Record<string, number>, basis = 'source'): unknown {
+function raw(custom: Record<string, number>, basis = 'source', legacy = 1000): unknown {
   const rows = Object.fromEntries(SHARDS.map((s) => [s.slug, {
-    m3: { basis, customLines: custom[s.slug] ?? 900, legacyLines: 1000 },
+    m3: { basis, customLines: custom[s.slug] ?? legacy * 0.9, legacyLines: legacy },
     gridReady: { verdict: s.slug === 'nalati-grasslands' ? 'fail' : 'unknown', criteria: { memory: { verdict: 'unknown' }, edgeProfile: { verdict: 'pass' } } },
   }]));
   return { ...rows, _template: { m3: null }, _summary: { progress: {
@@ -68,4 +68,12 @@ it('reopens the obsolete midnight schedule without losing its measured history',
   expect(current.history).toEqual(previous.history);
   const repeated = nextRuler(raw({}), current, at);
   expect(repeated.events).toEqual(current.events);
+});
+
+
+it('keeps a wave open when its displayed percentage rounds down to the goal', () => {
+  const at = { revision: 'a'.repeat(40), committedAt: '2026-10-17T12:00:00Z', now: '2026-10-17T12:10:00Z' };
+  const ruler = nextRuler(raw({ 'far-reach': 1004, 'sunscar-dunes': 1000 }, 'source', 10000), null, at);
+  expect(ruler.shards.find(shard => shard.slug === 'far-reach')?.pct).toBe(10);
+  expect(ruler.wave.id).toBe('W1');
 });

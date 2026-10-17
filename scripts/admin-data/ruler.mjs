@@ -97,7 +97,7 @@ export function nextRuler(raw, prev, at) {
   const native = Object.keys(raw).filter((slug) => slug !== '_summary' && !SHARDS.some((s) => s.slug === slug)).sort();
   const m2total = num(progress.m2.total, 'm2.total'), ready = num(progress.m2.ready, 'm2.ready'), unknown = num(progress.m2.unknown, 'm2.unknown');
   /** @type {Partial<Record<string,number>>} */
-  const now = Object.fromEntries(shards.map((s) => [s.slug, s.pct]));
+  const now = Object.fromEntries(shards.map((s) => [s.slug, (s.custom / s.legacy) * 100]));
   const events = [...(prev?.events ?? [])];
   if (prev && prev.basis !== basis) events.push({ at: at.now, label: `P4 re-base: the ruler moves from the ${prev.basis} basis to ${basis}` });
   // Old reports may have closed W2 on the cancelled midnight deadline.
