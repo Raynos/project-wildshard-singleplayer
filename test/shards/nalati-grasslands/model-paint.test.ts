@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { MODEL_FILES, bakeModelPaint, cloneFrame } from '../../../src/shards/nalati-grasslands/generators/bake-model-paint.mjs';
+import { worldFiles } from '../../../src/shards/nalati-grasslands/generators/bootFiles';
 import { rawFromGltf, bakeVertexAO } from '../../../src/shards/nalati-grasslands/generators/modelPainting';
 
 const words = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): Uint8Array => {
@@ -18,6 +19,19 @@ const firstMesh = (scene: THREE.Object3D): THREE.Mesh => {
 };
 
 describe('Nalati fixed model paint', () => {
+  it('prefetches prepared world models while keeping original creature rigs', () => {
+    const prepared = '/assets/nalati/baked/painted-models/';
+    const rig = '/assets/nalati/models/wolf.rigged.glb', phoneRig = '/assets/nalati/models/wolf.phone.rigged.glb';
+    const inventory = { [`${prepared}boulder-1.glb`]: 1, [`${prepared}boulder-1.phone.glb`]: 1,
+      [`${prepared}horse-wild.far.glb`]: 1, '/assets/nalati/models/boulder-1.glb': 1, [rig]: 1, [phoneRig]: 1 };
+    for (const tier of ['phone', 'desktop'] as const) {
+      const files = worldFiles(tier, inventory);
+      expect(files).toContain(`${prepared}boulder-1.glb`);
+      expect(files).toContain(`${prepared}horse-wild.far.glb`);
+      expect(files).toContain(tier === 'phone' ? phoneRig : rig);
+      expect(files).not.toContain('/assets/nalati/models/boulder-1.glb');
+    }
+  });
   it.each(MODEL_FILES)('roundtrips exact channels, fitted paint and atlas: %s', async file => {
     const name = file.split('.')[0]; if (name === undefined) throw new Error('Missing model name');
     const input = readFileSync(`public/assets/nalati/models/${file}`), source = await readSourceModel(input);

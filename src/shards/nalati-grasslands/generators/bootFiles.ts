@@ -19,8 +19,8 @@ export function worldFiles(tier: Tier, inventory: Readonly<Record<string, number
   const painted = (name: string): string => `/assets/nalati/${name}${tier === 'phone' ? '.phone' : ''}.webp`;
   return [
     ...['meadow', 'path', 'gravel', 'rock', 'snow', 'felt'].map((name) => painted(`tex/${name}`)), painted('cards'), painted('panorama'),
-    ...models.map((name) => `/assets/nalati/models/${name}.glb`),
-    '/assets/nalati/models/horse-wild.far.glb', '/assets/nalati/models/kokpar-rider.far.glb',
+    ...models.map((name) => `/assets/nalati/baked/painted-models/${name}.glb`),
+    '/assets/nalati/baked/painted-models/horse-wild.far.glb', '/assets/nalati/baked/painted-models/kokpar-rider.far.glb',
     ...rigs.map((name) => `/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`),
     ...coatFiles(inventory),
     // the species bodies' offline bake (SHARD-PLATFORM M3, species/bodies.ts)
