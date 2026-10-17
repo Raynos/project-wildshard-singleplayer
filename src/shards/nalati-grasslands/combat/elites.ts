@@ -44,8 +44,7 @@ import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, ty
 
 
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
-import { PaintKit, M, v3 } from '../world/paint';
-import { pole, blob } from '@wildshard/engine/world/geometryKit';
+import { bakedActorGeometry } from '../world/placeBake';
 import { argymaqDefinition, eliteRuleHolds } from './eliteRoster';
 import { ARGYMAQ as ARGYMAQ_KIND, NALATI_ELITE_DEFS } from '../data/eliteEncounters';
 import { EAGLE_ROCK } from '../world/layout';
@@ -425,20 +424,9 @@ function ghostly(a: Animal): void {
 
 /** the captain in the saddle: a glaive, a spiked helm, a cloak, the horsetail standard (tug) on his back — ghost teal */
 function riderModel(sky: Sky): THREE.Group {
-  const kit = new PaintKit(0x9a7a);
-  const teal = new THREE.Color(0.55, 0.9, 0.95), dark = new THREE.Color(0.2, 0.42, 0.48);
-  kit.add(new THREE.CylinderGeometry(0.2, 0.26, 0.7, 12), teal, { matrix: M(0, 0.45, -0.02) });          // torso
-  kit.add(new THREE.CylinderGeometry(0.3, 0.42, 0.9, 12, 1, true), dark, { matrix: M(0, 0.25, -0.12) });  // the cloak
-  kit.add(new THREE.SphereGeometry(0.14, 12, 10), teal, { matrix: M(0, 0.95, 0) });                    // head
-  kit.add(new THREE.ConeGeometry(0.15, 0.35, 12), dark, { matrix: M(0, 1.14, 0) });                   // the spiked helm
-  for (const sx of [1, -1]) kit.add(pole(v3(sx * 0.22, 0.72, 0), v3(sx * 0.3, 0.35, 0.28), 0.06, 0.05, 6), teal);
-  kit.add(pole(v3(-0.3, 0.1, 0.6), v3(0.1, 1.6, -0.3), 0.025, 0.025, 6), dark);                       // the glaive
-  kit.add(new THREE.ConeGeometry(0.06, 0.5, 6), teal, { matrix: M(0.12, 1.75, -0.36, 0, 1, 1, 1, -0.25) });
-  kit.add(pole(v3(0.05, 0.3, -0.25), v3(0.05, 2.3, -0.4), 0.02, 0.02, 5), dark);                        // the standard's pole
-  for (let i = 0; i < 7; i++) kit.add(pole(v3(0.05, 2.25, -0.4), v3(0.05 + Math.sin(i) * 0.12, 1.55 - i * 0.03, -0.55 - (i % 3) * 0.08), 0.03, 0.005, 4), new THREE.Color(0.85, 0.95, 0.95));
   // the painterly material, glowing and translucent (a uniform-only variant: same program)
   const mat = painterlyMaterial(sky, { rim: 0.8, emissive: new THREE.Color(0.08, 0.42, 0.48), transparent: true, opacity: 0.75 });
-  const mesh = new THREE.Mesh(kit.finish(), mat);
+  const mesh = new THREE.Mesh(bakedActorGeometry('rider'), mat);
   mesh.position.y = -0.25;
   const g = new THREE.Group(); g.add(mesh); g.name = 'qara-batyr-rider';
   return g;
@@ -496,29 +484,8 @@ class Argymaq extends Base {
 // ─────────────────────────────── trophies (the orb's display model) ───────────────────────────────
 
 function trophyModel(id: string, sky: Sky): THREE.Object3D {
-  const kit = new PaintKit(0x7e0 + id.length);
-  const rng = kit.rng;
-  switch (id) {
-    case 'aqbars': case 'kokbori': {
-      // a folded pelt with its tail
-      const col = id === 'aqbars' ? new THREE.Color('#d8d4ca') : new THREE.Color('#9aa4b0');
-      kit.add(blob(0.32, rng, 2, 0.35, 0.2), (p) => (id === 'aqbars' && Math.sin(p.x * 30) * Math.sin(p.z * 30) > 0.55 ? new THREE.Color('#3a3a3c') : col), { matrix: M(0, 0, 0, 0, 1.3, 1, 0.9) });
-      kit.add(pole(v3(-0.3, 0.02, 0), v3(-0.75, 0.1, 0.25), 0.07, 0.05, 8), col);
-      break;
-    }
-    case 'qyran':
-      kit.add(pole(v3(0, -0.4, 0), v3(0, 0.45, 0), 0.012, 0.004, 5), new THREE.Color('#e7d9b0'));
-      kit.add(blob(0.25, rng, 2, 0.12, 0.1), (p) => (p.y > 0.1 ? new THREE.Color('#f0b44a') : new THREE.Color('#5a3a20')), { matrix: M(0, 0.05, 0, 0, 0.35, 1.7, 1) });
-      break;
-    case 'qara-batyr':
-      kit.add(pole(v3(0, -0.5, 0), v3(0, 0.5, 0), 0.02, 0.02, 6), new THREE.Color('#2a3a40'));
-      for (let i = 0; i < 9; i++) kit.add(pole(v3(0, 0.45, 0), v3(Math.sin(i) * 0.14, -0.05 - (i % 3) * 0.06, Math.cos(i) * 0.14), 0.035, 0.006, 4), new THREE.Color('#bfe8ea'));
-      break;
-    default:
-      for (let i = 0; i < 3; i++) kit.add(pole(v3((i - 1) * 0.05, 0.4, 0), v3((i - 1) * 0.08, -0.4, 0.05), 0.03, 0.02, 6), new THREE.Color('#141416'));
-  }
   const mat = painterlyMaterial(sky, { rim: 0.6 });
-  const g = new THREE.Group(); g.add(new THREE.Mesh(kit.finish(), mat));
+  const g = new THREE.Group(); g.add(new THREE.Mesh(bakedActorGeometry(`trophy:${id}`), mat));
   return g;
 }
 

@@ -146,6 +146,17 @@ export function useNalatiPlaces(raw: Uint8Array): void {
 /** Read the raw binary only when a place is first built (a Node test setup). */
 export function provideNalatiPlaces(read: () => Uint8Array): void { placesProvider = read; }
 
+/** A fixed actor shape from the already admitted places payload, without material or animation changes. */
+export function bakedActorGeometry(key: string): THREE.BufferGeometry {
+  if (places === null && placesProvider !== null) { const read = placesProvider; placesProvider = null; useNalatiPlaces(read()); }
+  const index = PLACES.rows.findIndex(row => row.name === `actor:${key}`), row = PLACES.rows[index];
+  const mesh = row?.meshes[0];
+  if (places === null || row === undefined || mesh === undefined) throw new Error(`[nalati-grasslands] no admitted actor shape '${key}'`);
+  let first = 0;
+  for (let i = 0; i < index; i++) first += PLACES.rows[i]?.meshes.length ?? 0;
+  return geometryAt(places.bytes, places.at[first] ?? 0, mesh.geometry);
+}
+
 /** Fetch, inflate and read the places bake once, and the dressing's shapes beside it (NalatiPOIs.buildSliced,
  *  NalatiDressing.build). A failed load is a console.error page fault. */
 export function preloadNalatiPlaces(): Promise<void> {

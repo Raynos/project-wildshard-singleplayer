@@ -1,3 +1,4 @@
+import { logPainter } from './campProps';
 /**
  * The Kunes bridge, painted (generators only; SHARD-PLATFORM M3, the places bake): the painter that used to run on the
  * page, moved verbatim from models/kunesBridge.ts (whose header describes it); its deck floor is data (world/placeBake.ts
@@ -8,7 +9,7 @@ import type { ModelDef } from '@wildshard/engine/models/model';
 import { kunesBridge, type KunesBridgeParams } from '../models/kunesBridge';
 import { deckFloor } from '../world/placeBake';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { M, v3, logPainter } from '../world/paint';
+import { M, v3 } from '../world/paint';
 import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import { slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';

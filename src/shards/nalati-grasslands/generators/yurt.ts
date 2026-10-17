@@ -10,7 +10,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { M, v3 } from '../world/paint';
 import { lathe, pole, revolve, revolveUV } from '@wildshard/engine/world/geometryKit';
 import { prism, type Box } from '../world/solid';
-import { PC } from '../world/props';
+import { PC } from './campProps';
 import { painted, type Kit, type Paint } from '../world/painted';
 
 export interface YurtSpec {

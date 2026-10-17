@@ -21,7 +21,6 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { loadNalatiTexture, type NalatiTexName } from '../look/nalatiTextures';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
-import { pole } from '@wildshard/engine/world/geometryKit';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -310,43 +309,4 @@ function bakeSmoothAOBounded(geo: THREE.BufferGeometry, o: AOOpts, bb: THREE.Box
     strength: o.strength ?? 0.6, downDark: 0,
   });
   aoTint(geo.getAttribute('color'), k, SHADE_TINT, 0.55);
-}
-
-const hash3 = (x: number, y: number, z: number): number => { const h = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return h - Math.floor(h); };
-/**
- * Weathered timber (E302, NALATI-FINISH B9: the fence rails read as untextured purple-grey boxes): the wood colour, the
- * faces that look up silvered by the weather. The grain itself is the texture of the kit's textured layer, laid along
- * each pole by `woodPole` — a per-face stroke here would split every quad into two triangles of different paint.
- * `gain` scales the result (a textured layer's 1 / tile mean, so the texture keeps the painted colour on average).
- */
-export function woodPainter(base: ColorLike, silver: ColorLike = '#b3a792', gain?: THREE.Color): Painter {
-  const b = toColor(base, new THREE.Color()), sv = toColor(silver, new THREE.Color()), g = gain ?? new THREE.Color(1, 1, 1), out = new THREE.Color();
-  return (_pos, n) => { const up = Math.max(0, n.y); return out.copy(b).lerp(sv, up * up * 0.55).multiply(g); };
-}
-
-/**
- * `pole()` with its uv laid for a painted tile as wood grain (the kit's textured layer): the tile squeezed round the
- * pole and stretched along it, so its detail runs as streaks down the timber; a per-pole offset so neighbours differ.
- * `tileAround` / `tileAlong` = metres of the timber one tile covers (defaults: 0.7 m round, 22 m along).
- */
-export function woodPole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1 = r0, sides = 7, segs = 1, tileAround = 0.7, tileAlong = 22): THREE.BufferGeometry {
-  const g = pole(a, b, r0, r1, sides, segs);
-  const uv = g.getAttribute('uv'), len = a.distanceTo(b), circ = Math.PI * (r0 + r1);
-  const ou = hash3(a.x, a.y, a.z), ov = hash3(b.z, b.x, b.y);
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * circ / tileAround + ou, uv.getY(i) * len / tileAlong + ov);
-  return g;
-}
-
-/** a painter for a log: bark along its length, pale end grain with a darker heart on its cut ends */
-export function logPainter(a: THREE.Vector3, b: THREE.Vector3, bark: ColorLike, end: ColorLike = '#c9a878'): Painter {
-  const ax = new THREE.Vector3().subVectors(b, a).normalize();
-  const bk = toColor(bark, new THREE.Color()), en = toColor(end, new THREE.Color()), heart = en.clone().multiplyScalar(0.7);
-  const tmp = new THREE.Vector3();
-  return (p, n) => {
-    if (Math.abs(n.dot(ax)) < 0.85) return bk;
-    const da = tmp.subVectors(p, a).dot(ax), dbb = tmp.subVectors(p, b).dot(ax);
-    const c = Math.abs(da) < Math.abs(dbb) ? a : b;
-    const r = tmp.subVectors(p, c).addScaledVector(ax, -tmp.dot(ax)).length();
-    return r < 0.05 ? heart : en;
-  };
 }

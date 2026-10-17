@@ -16,8 +16,8 @@
  *   k.update(dt, player.position, mount)       // every frame
  */
 import * as THREE from 'three';
-import { PaintKit, v3, poiMaterial } from './world/paint';
-import { pole, blob } from '@wildshard/engine/world/geometryKit';
+import { poiMaterial } from './world/paint';
+import { bakedActorGeometry } from './world/placeBake';
 import { KOKPAR } from './layout';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -54,13 +54,7 @@ export interface KokparRound {
 
 /** the goat: a painterly carcass lying on its side (body, legs, head, the horns) */
 function goatMesh(sky: Sky): THREE.Mesh {
-  const kit = new PaintKit(0x9047);
-  const hide = '#8a7457', dark = '#5b4a3a', horn = '#3a302a';
-  kit.add(blob(0.36, kit.rng, 2, 1, 0.12).scale(1.55, 0.62, 0.8), hide, { brush: 0.18 });
-  for (const [x, z] of [[0.36, 0.14], [0.3, -0.14], [-0.36, 0.14], [-0.32, -0.14]] as const) kit.add(pole(v3(x, 0, z), v3(x * 1.12, -0.12, z * 2.9), 0.045, 0.03, 6), dark);
-  kit.add(blob(0.13, kit.rng, 1, 0.9, 0.1).scale(1.5, 0.9, 0.9).translate(0.66, 0.02, 0.04), hide);
-  for (const s of [-1, 1]) kit.add(pole(v3(0.72, 0.11, s * 0.05), v3(0.6, 0.26, s * 0.1), 0.022, 0.008, 5), horn);
-  const m = new THREE.Mesh(kit.finish({ ao: false }), poiMaterial(sky));
+  const m = new THREE.Mesh(bakedActorGeometry('goat'), poiMaterial(sky));
   m.castShadow = true; m.receiveShadow = true;
   m.name = 'nalati-kokpar-goat';
   return m;

@@ -10,10 +10,10 @@
   "pins": [
     {
       "path": "public/assets/nalati/baked/places.bin",
-      "oid": "654f2d2ff2b549fcfcd6e3fca217bb139cda42c3",
-      "bytes": 7759545,
+      "oid": "e72ee8e55734c70fca72319663c0c6e5d4730c2e",
+      "bytes": 8713526,
       "kind": "runtime",
-      "purpose": "Nalati static places: camps, bridge, landmarks, roads, watchtower, kokpar, outcrops and dressing; exact painted meshes, colliders and gameplay anchors"
+      "purpose": "Nalati static places: camps, bridge, landmarks, roads, watchtower, kokpar, outcrops and dressing; exact painted meshes, colliders and gameplay anchors; fixed balbal, goat and elite actor shapes"
     },
     {
       "path": "public/assets/nalati/baked/specimens.bin",
