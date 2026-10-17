@@ -1794,6 +1794,24 @@ structural rigs without replacing modules. The fixture `test/held-arms-platform.
 drives another shard's invented
 rig/material rows through the host, including release, glow and swim behaviour.
 
+**Held equipment catalogue (G474 / G477).** `@wildshard/game/plugin/heldEquipment`
+reads the platform `held/equipment` section, defined by
+`@wildshard/format/heldEquipment`. It replaces the separate private held-playback,
+input, sights, action, firearm-detail, launcher-pool, hand-pool and tool envelopes.
+`HeldEquipment.prepare(product)` explicitly admits and prepares its immutable
+geometry libraries; `current(slug)` refuses access before preparation.
+`launcher`, `firearm` and `bow` construct the existing native weapon families;
+`launcherRows`, `launcherModel`, `preloadFirearm` and `firearmSpecimen` let the
+world pickup and Explorer use those same parts on their own materials.
+The section owns camera/hand/material/channel rows and extra feel values.
+`heldLauncherProfile` and `heldFirearmSettings` project action clocks, ammunition
+and ballistics from the item's native profile, preserving its single source.
+Baked hands are borrowed; firearm detail geometry is copied, and native atlases
+retain their existing refresh and cache/disposal policy. Coat maps load before
+sleeves are created. The fictional harbour fixture in
+`test/held-equipment-platform.test.ts` supplies different assets, materials,
+channels and tuning through this same host.
+
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
 `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`, `HitLine`,
 `makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `installRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,

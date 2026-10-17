@@ -1,3 +1,4 @@
+import heldTuning from '../data/heldTuning.json' with {type:'json'};
 import nightPopulation from '../data/nightPopulation.generated.json' with { type: 'json' };
 import nightTuning from '../data/populationWaves.json' with { type: 'json' };
 import nightRule from '../data/populationNight.json' with { type: 'json' };
@@ -93,13 +94,23 @@ nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJ
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=name==='custom/questInventory'?{feats:PINE_FEATS,items:PINE_BAG_ITEMS}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:PINE_OUTPUT.custom[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=name==='custom/questInventory'?{feats:PINE_FEATS,items:PINE_BAG_ITEMS}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 }));
 
+const held = PINE_OUTPUT.custom;
+const coatRow = (key:string) => { const row=held['custom/paintedTextures'].textures[key]; if(row===undefined)throw new Error(`Missing coat texture ${key}`);return row; };
+const heldEquipment = { ...heldTuning,
+ playback: held['custom/heldPlayback'], inputs: held['custom/heldInputs'], sights: held['custom/heldSights'], action: held['custom/leverPlayback'],
+ firearm: { ...held['custom/leverDetails'], asset: { url:'/assets/pine-hollow/weapons/lever-rifle.glb', parts:['steel','forend','stock','lever','hammer','bolt'] } },
+ launcher: held['custom/crossbowPool'], hands: held['custom/handsPool'],
+ tool: { ...held['custom/heldToolPlayback'], look:KNIFE_LOOK, url:'/assets/pine-hollow/weapons/skinning-knife.glb' },
+ coatTextures: { map:coatRow('coatMap'), normalMap:coatRow('coatNormal'), armMap:coatRow('coatArm') },
+};
+
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', PINE_SPECIES_PROGRAMS],['sim/scripts',KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['sim/scripts',KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

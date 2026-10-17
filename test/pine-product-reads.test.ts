@@ -1,3 +1,5 @@
+import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
@@ -24,7 +26,8 @@ test('Pine client reads resolve against the emitted output', async () => {
   expect(shots.length).toBe(new Set(shots).size);
   for (const geometry of value('custom/trophyMounts').rows.geometries) expect(geometry.own).toBeNull();
   const names = new Set(loaded.output.namedFiles?.map(row => row.name));
-  const wanted = [value('custom/leverDetails').pool.url, value('custom/crossbowPool').pool.url, value('custom/trophyMounts').url,
+  const held = v.parse(HeldEquipmentSchema, outputPlatformPayloads(loaded.output.platform,['held/equipment']).get('held/equipment'));
+  const wanted = [held.firearm.pool.url, held.launcher.pool.url, value('custom/trophyMounts').url,
     ...Object.values(value('custom/paintedTextures').textures).map(row => row.url),
     'world/ambience.json', ...['ironhide', 'ghostStag', 'blackpaw', 'imperialBull', 'night', 'director'].map(stem => `behaviour/${stem}.wasm`)];
   for (const name of wanted) expect(names.has(name), name).toBe(true);

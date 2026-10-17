@@ -1,4 +1,6 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
+import * as v from 'valibot';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish, on PH-F2's beat): a gloved right hand holding a
  * drop-point skinning knife at the lower right of the view, in the lever-action's style — a Blender model
@@ -27,8 +29,8 @@ import { SECTIONS } from '../sections';
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
 /** The page and cold Explorer read the same admitted recipe and playback. */
 export function knifeRows(product: ShardProduct): HeldToolRow {
-  const row = product.section('custom/heldToolPlayback', SECTIONS);
-  return { ...row.look, url: KNIFE_MODEL_URL, playback: row.pose };
+  const row = v.parse(HeldEquipmentSchema.entries.tool, product.section('held/equipment').tool);
+  return { ...row.look, url: row.url, playback: row.pose };
 }
 let prepared: HeldToolRow | null = null;
 /** The manifest's existing async roster door prepares rows before listing models. */

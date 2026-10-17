@@ -28,7 +28,7 @@ import kingKit from '../data/kingKit.generated.json' with {type:'json'};
 
 const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl,...birds.byUrl,...crags.byUrl,...streams.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
-const values:Readonly<Record<string,unknown>>={
+const values={
  'custom/ambientLife':PINE_LIFE,
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
  'custom/leverDetails':{...leverDetails,pool:{...leverDetails.pool,url:named(leverDetails.pool.url)}},

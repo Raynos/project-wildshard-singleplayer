@@ -1,20 +1,19 @@
+import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 /**
  * Pine Hollow's gear (E306 / E315 M5, `gear`): what the Hollow's player holds (src/main.ts) — the hunting crossbow it hands
  * out, the lever-action in the rifle slot (the Hollow's, not the AR-15: LeverRifle.ts), the Warden's longbow (the Antler
  * King's reward) and the skinning knife the skinning beat raises (./skinningKnife.ts). The viewmodels keep drawing the held
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
-import { crossbowModel, crossbowRows, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
-import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay, bindHeldBow } from '@wildshard/game/plugin/heldLauncher';
+import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay } from '@wildshard/game/plugin/heldLauncher';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { pineSkinRows, PINE_FINISH_VARIANTS, preparePineFinishes } from '../loadout/skins';
 import { loadCodeParts } from '../world/codeParts';
-import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { bakedHandRows, heldGeometry } from '../boot/crossbowGeometry';
 import { skinningKnife } from './skinningKnife';
 
+const heldCatalogue = (): HeldEquipment => HeldEquipment.current('pine-hollow');
 const FILE = 'src/shards/pine-hollow/models/gear.ts';
 
 /**
@@ -26,7 +25,7 @@ const FILE = 'src/shards/pine-hollow/models/gear.ts';
 export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
   id: 'pine-hollow/crossbow', name: 'Hunting crossbow', category: 'gear', pipeline: 'code', file: FILE,
   defaults: { skin: null }, variants: skinVariants('crossbow', PINE_FINISH_VARIANTS), prepare: async () => { await Promise.all([loadCodeParts(), preparePineFinishes()]); },
-  build: (ctx, p) => wearSkin(heldLauncherDisplay(ctx.sky, crossbowRows(), crossbowModel()), p, ctx.sky, pineSkinRows()),
+  build: (ctx, p) => wearSkin(heldLauncherDisplay(ctx.sky, heldCatalogue().launcherRows(), heldCatalogue().launcherModel()), p, ctx.sky, pineSkinRows()),
 });
 
 /**
@@ -39,7 +38,7 @@ export const leverAction: ModelDef<GearSkinParams> = defineModel<GearSkinParams>
   id: 'pine-hollow/lever-action', name: 'Lever-action rifle', category: 'gear', pipeline: ['blender', 'code'], file: FILE,
   defaults: { skin: null }, variants: skinVariants('rifle', PINE_FINISH_VARIANTS), prepare: preparePineFinishes,
   build: (ctx, p) => {
-    const made = ctx.once('gear:lever-action', async () => leverSpecimen(ctx.sky, await preloadLeverModel()));
+    const made = ctx.once('gear:lever-action', async () => heldCatalogue().firearmSpecimen(ctx.sky, await heldCatalogue().preloadFirearm()));
     return loadingSpecimen('pine-hollow/lever-action', [0.05, 0.16, 1.02], async () => wearSkin((await made).clone(), p, ctx.sky, pineSkinRows()));
   },
 });
@@ -51,7 +50,7 @@ export const leverAction: ModelDef<GearSkinParams> = defineModel<GearSkinParams>
 export const wardensLongbow: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/wardens-longbow', name: "Warden's longbow", category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
-  build: (ctx) => ctx.once('gear:wardens-longbow', () => { const bow = bindHeldBow(bakedHandRows().heldBow, heldGeometry()); return heldBowDisplay(ctx.sky, bow.rows, bow.model); }).clone(),
+  build: (ctx) => ctx.once('gear:wardens-longbow', () => { const bow = heldCatalogue().bow(); return heldBowDisplay(ctx.sky, bow.rows, bow.model); }).clone(),
 });
 
 /**
@@ -64,7 +63,7 @@ export const crossbowBolt: ModelDef<object> = defineModel<object>({
   defaults: {},
   specimenYaw: Math.PI / 2, // side on: the shaft runs across the card
   build: (ctx) => {
-    const { geometry, material } = ctx.once('gear:crossbow-bolt', () => heldLauncherBolt(ctx.sky, crossbowRows(), crossbowModel()));
+    const { geometry, material } = ctx.once('gear:crossbow-bolt', () => heldLauncherBolt(ctx.sky, heldCatalogue().launcherRows(), heldCatalogue().launcherModel()));
     return [{ geometry, material, castShadow: true, receiveShadow: true }];
   },
 });
@@ -79,7 +78,7 @@ export const longbowArrow: ModelDef<object> = defineModel<object>({
   defaults: {},
   specimenYaw: Math.PI / 2,
   build: (ctx) => [ctx.once('gear:longbow-arrow-part', () => {
-    const bow = bindHeldBow(bakedHandRows().heldBow, heldGeometry());
+    const bow = heldCatalogue().bow();
     return { ...heldBowArrow(ctx.sky, bow.rows, bow.model), castShadow: true, receiveShadow: true };
   })],
 });
@@ -88,9 +87,9 @@ export const longbowArrow: ModelDef<object> = defineModel<object>({
  *  reward); and the skinning beat's knife */
 export const GEAR: readonly RosterEntry[] = [
   live(crossbow, { copies: 1 }),
-  live(crossbowBolt, { copies: MAX_BOLTS, drawnAs: 'single' }),
+  live(crossbowBolt, { copies: 30, drawnAs: 'single' }),
   live(leverAction, { copies: 1 }),
   live(wardensLongbow, { copies: 1 }),
-  live(longbowArrow, { copies: () => bakedHandRows().heldBow.base.quiver, drawnAs: 'instanced' }),
+  live(longbowArrow, { copies: () => heldCatalogue().rows.hands.heldBow.base.quiver, drawnAs: 'instanced' }),
   live(skinningKnife, { copies: 1 }),
 ];

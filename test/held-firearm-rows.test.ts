@@ -1,3 +1,5 @@
+import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import tuning from '../src/shards/pine-hollow/data/heldTuning.json' with {type:'json'};
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { FirearmWeaponProfileSchema, parseHeldFirearmRows, parseHeldFirearmView, parseHeldModelRows, parseHeldPresentation } from '../src/format/weaponProfiles';
@@ -5,8 +7,7 @@ import rifle from '../src/shards/nalati-grasslands/data/rifle.generated.json' wi
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import model from '../src/shards/nalati-grasslands/data/heldRifle.json' with { type: 'json' };
 import { AR15 } from './fixtures/weapon-oracle/nalatiRifleProfile';
-import { leverSettings } from '../src/shards/pine-hollow/runtime/weapons/LeverRifle';
-import { SECTIONS } from '../src/shards/pine-hollow/runtime/sections';
+import { heldFirearmSettings } from '../src/game/plugin/heldEquipment';
 import leverDetails from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
 import pineItems from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 
@@ -22,9 +23,9 @@ test('generated carbine keeps every native profile, model and playback value', (
 });
 
 test('lever admission retains additional view and timing fields read by playback', () => {
-  const details = v.parse(SECTIONS['custom/leverDetails'], leverDetails);
+  const details = {rows:{view:v.parse(HeldEquipmentSchema.entries.firearm.entries.rows.entries.view,leverDetails.rows.view)}};
   const item = pineItems.rows.find(row => row.id === 'weapon.lever');
-  const { view } = leverSettings(item?.profile, details.rows.view);
+  const { view } = heldFirearmSettings(item?.profile, details.rows.view,tuning.firearmTuning);
   expect(parseHeldFirearmView(view)).toEqual(view);
   expect(parseHeldFirearmView(rifle.view)).toEqual(rifle.view);
 });

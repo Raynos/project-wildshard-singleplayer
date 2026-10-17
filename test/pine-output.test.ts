@@ -1,3 +1,4 @@
+import {HeldEquipmentSchema} from '../src/format/heldEquipment';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the official emitted author output, not a runtime filesystem path.
@@ -29,5 +30,5 @@ test('Pine emits every client section with checked schemas and named immutable a
   expect(file?.hash).toBe(original.module);
  }
  expect(()=>v.parse(ClaimedPickupSchema,{bad:{}})).toThrow();
- expect(()=>v.parse(SECTIONS['custom/crossbowPool'],{pool:{url:'missing',parts:[]},hierarchy:{}})).toThrow();
+ expect(()=>v.parse(HeldEquipmentSchema.entries.launcher,{pool:{url:'missing',parts:[]},hierarchy:{}})).toThrow();
 },30000);

@@ -157,7 +157,8 @@
     "./populationRespawn": "./populationRespawn.ts",
     "./nativeActors": "./nativeActors.ts",
     "./populationRoster": "./populationRoster.ts",
-    "./questSteps": "./questSteps.ts"
+    "./questSteps": "./questSteps.ts",
+    "./heldEquipment": "./heldEquipment.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

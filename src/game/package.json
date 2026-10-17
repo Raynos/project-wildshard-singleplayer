@@ -140,7 +140,8 @@
     "./quest/lead": "./quest/lead.ts",
     "./quest/chapter": "./quest/chapter.ts",
     "./quest/killSteps": "./quest/killSteps.ts",
-    "./quest/hints": "./quest/hints.ts"
+    "./quest/hints": "./quest/hints.ts",
+    "./plugin/heldEquipment": "./plugin/heldEquipment.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

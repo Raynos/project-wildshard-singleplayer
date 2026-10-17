@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import { installRangedFeel, prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
+import { installHeldRangedFeel } from '@wildshard/game/plugin/heldEquipment';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -24,14 +24,7 @@ export interface PinePresentation { update: (dt: number, t: number) => void }
 
 export function installPinePresentation(o: { game: Game; weapons: EquipmentService; animals: AnimalManager; context?: ShardContext; makeTell: (color: THREE.Color) => ChargeTell }): PinePresentation {
   const { game, weapons, animals } = o;
-  const events = weapons.events, rows = [weapons.get('crossbow').row, weapons.get('rifle').row, weapons.get('bow').row];
-  if (events) {
-    if (o.context === undefined) installRangedFeel(game, events, game.levelScope, (id) => rows.find((row) => row.id === id));
-    else {
-      const bindFeel = prepareRangedFeel(game);
-      installEnteredRuntimeService(o.context, (scope) => { bindFeel(events, scope, (id) => rows.find((row) => row.id === id)); });
-    }
-  }
+  installHeldRangedFeel(game, weapons, o.context);
   // ── the charge lanes of the wild bears and boars ──
   const tells = Array.from({ length: LANES }, () => o.makeTell(TELL));
   if (o.context !== undefined) installEnteredRuntimeService(o.context, (scope) => { scope.onDispose(() => { for (const tell of tells) tell.hide(); }); });

@@ -1,0 +1,34 @@
+{
+  "launcherTuning": {
+    "bury": 0.08,
+    "kick": 0.013962634015954637,
+    "adsBlend": 0.18,
+    "adsMotion": 0.3,
+    "maxStuck": 200
+  },
+  "firearmTuning": {
+    "kick": 0.02181661564992912,
+    "brass": {
+      "count": 4,
+      "life": 1.8
+    },
+    "tracer": {
+      "count": 2,
+      "life": 0.09,
+      "width": 3
+    },
+    "ads": {
+      "blend": 0.17,
+      "motion": 0.3,
+      "nearMargin": 0.03,
+      "sightY": 0.045,
+      "rearZ": -0.13,
+      "frontZ": -0.512,
+      "muzzleZ": -0.535
+    }
+  },
+  "handNames": {
+    "hands": "hunter-hands",
+    "coat": "hunter-coat"
+  }
+}

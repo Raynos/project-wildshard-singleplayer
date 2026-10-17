@@ -23,5 +23,6 @@
   "test/population-platform.test.ts": [],
   "test/quest-step-runner.test.ts": [],
   "test/quest-step-traces.test.ts": [],
-  "test/quest-step-native-parity.test.ts": ["pine-hollow", "driftwood-isle"]
+  "test/quest-step-native-parity.test.ts": ["pine-hollow", "driftwood-isle"],
+  "test/held-equipment-platform.test.ts": ["pine-hollow"]
 }

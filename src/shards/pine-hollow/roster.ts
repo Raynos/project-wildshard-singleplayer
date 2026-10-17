@@ -1,3 +1,4 @@
+import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 /**
  * Pine Hollow's live models (E306 / E315 M5, `ShardManifest.roster`): every creature the Hollow can spawn — its fauna's deer,
  * boars, elk and bears on the species rigs wearing the generated hulls, the Antler King (before he comes out at night too),
@@ -49,6 +50,6 @@ function roster(wildlife: readonly RosterEntry[]): readonly RosterEntry[] {
 /** Admit the knife recipe before the Explorer can synchronously build its card. */
 export async function preparedRoster(product?: ShardProduct): Promise<readonly RosterEntry[]> {
   const source = product ?? await loadFirstPartyProduct('pine-hollow');
-  await Promise.all([prepareKnifeRows(source), preparePineGrazers(source)]);
+  await Promise.all([prepareKnifeRows(source), preparePineGrazers(source), HeldEquipment.prepare(source)]);
   return roster((await PosedDraw.library(source, 'look/wildlife-draw.json')).models);
 }

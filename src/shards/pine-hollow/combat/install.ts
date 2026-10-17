@@ -29,7 +29,7 @@ import * as THREE from 'three';
 
 
 
-import { MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
+import { POUCH_MAX } from '../loadout/ammo';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { pineSkins, type SkinId } from '../runtime/loadout/skins';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
@@ -170,7 +170,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     ...(persistence === undefined ? {} : { persistence: persistence.bosses }),
     reward: { model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'), grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); }, trophy: () => { ctx.addItem('amber-resin', 3); } },
     lockInput: on => { player.carried = on; introLock = on; legs(); weapons.setEnabled(!on); },
-    respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
+    respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(POUCH_MAX - (h.crossbow.state.bolts ?? POUCH_MAX)); },
     skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
     toast: ctx.toast, feed: ctx.feed, pickupHum: on => { h.audio.pickupHum(on); },
     score: () => CatalogueScore.get(h.music, requireAudioProfile(source.audio.music, 'score.pine'),undefined,undefined,false), ambientScene: () => kingNight() ? 'night' : 'day', scorePhase: fight => fight.phase,

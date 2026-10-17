@@ -1,3 +1,4 @@
+import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths use the executing mirror, never the shared checkout.
 import {cwd} from 'node:process';
 import {expect,it} from 'vitest';
@@ -9,8 +10,6 @@ import {join} from 'node:path';
 import {writeSectionSchemaBridge} from '../scripts/bake-section-schemas.mjs';
 import {SECTIONS as runtime} from '../src/shards/pine-hollow/runtime/sections';
 import {SECTIONS as generated,WIRE_SCHEMAS} from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
-import {encodeCanonicalJson} from '../src/sdk/immutable';
-import {validateDefinedSection} from '../src/sdk/sections';
 
 function fixture():{root:string;source:string} {
   mkdirSync(join(cwd(),'tmp'),{recursive:true});
@@ -46,19 +45,14 @@ it('refuses runtime dependencies and unknown custom predicates instead of droppi
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-it('keeps Pine public semantic refusals in the generated producer validator',()=>{
+it('keeps held semantic refusals on the public platform schema',()=>{
   expect(Object.keys(generated)).toEqual(Object.keys(runtime));
   expect(Object.keys(WIRE_SCHEMAS)).toEqual(Object.keys(runtime));
+  expect(Object.hasOwn(runtime,'custom/heldPlayback')).toBe(false);
   const program={id:'schema-case',reads:[],nodes:[{op:'constant',value:1}],channels:[{property:'x',value:0}]};
   const value=(row:unknown)=>({crossbow:[row],lever:[],crossbowParts:[],leverParts:[]});
-  const key='custom/heldPlayback',schema=WIRE_SCHEMAS[key];if(schema===undefined)throw new Error('Missing generated disk schema');
-  const bytes=new TextEncoder().encode(encodeCanonicalJson(schema));
-  expect(v.parse(generated[key],value(program))).toEqual(v.parse(runtime[key],value(program)));
-  expect(validateDefinedSection(bytes,value(program))).toEqual(value(program));
-  // The structural disk document cannot express DAG ordering; both defining
-  // parsers must retain that refusal instead of accepting a flattened schema.
-  const cyclic={...program,nodes:[{op:'sin',a:0}]};
-  for(const registry of [runtime,generated])expect(()=>v.parse(registry[key],value(cyclic))).toThrow();
-  const invalid={...program,reads:[123]};
-  expect(()=>validateDefinedSection(bytes,value(invalid))).toThrow();
+  const schema=HeldEquipmentSchema.entries.playback;
+  expect(v.parse(schema,value(program))).toEqual(value(program));
+  expect(()=>v.parse(schema,value({...program,nodes:[{op:'sin',a:0}]}))).toThrow();
+  expect(()=>v.parse(schema,value({...program,reads:[123]}))).toThrow();
 });

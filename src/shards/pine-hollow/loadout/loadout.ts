@@ -21,9 +21,8 @@ import * as THREE from 'three';
 import { runtimeAudio, sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import type { Bow } from '@wildshard/game/weapons/Bow';
 import { PLAIN_BOLT, type HeldBolt as BoltMod } from '@wildshard/game/plugin/heldLauncher';
-import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
+import type { CatalogueLauncher as CrossbowWeapon, CatalogueFirearm as LeverRifleWeapon } from '@wildshard/game/plugin/heldEquipment';
 import { bindLongbowCharge } from './events';
-import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';
 import type { Inventory } from '@wildshard/game/Inventory';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
@@ -178,7 +177,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     markDirty();
   };
   const count = (kind: AmmoKind): number => kind === 'cartridge' ? rifle.state.reserve + rifle.state.ammo : kind === 'arrow' ? longbow.state.bolts : quiver.count(kind, live());
-  const CAP: Record<AmmoKind, number> = { iron: MAX_BOLTS, pitch: POUCH_MAX, broadhead: POUCH_MAX, arrow: longbow.magazine, cartridge: Infinity };
+  const CAP: Record<AmmoKind, number> = { iron: POUCH_MAX, pitch: POUCH_MAX, broadhead: POUCH_MAX, arrow: longbow.magazine, cartridge: Infinity };
   const room = (kind: AmmoKind, n: number): boolean => count(kind) + n <= CAP[kind];
 
   const bind = (scope: Scope): void => {
