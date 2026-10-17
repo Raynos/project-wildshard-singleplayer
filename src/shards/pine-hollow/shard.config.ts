@@ -7,7 +7,7 @@ import PINE_ITEMS from './data/items.generated.json' with { type: 'json' };
 import { PINE_LEDGER } from './generators/ledger';
 import { PINE_QUESTS } from './data/quests';
 import { PINE_RUNTIME_SPAWNS } from './generators/spawns';
-import { PINE_STATE } from './data/state';
+import { PINE_STATE } from './generators/state';
 import { PINE_EDGE_HEIGHTS } from './generators/edges';
 import { PINE_RUNTIME_COST } from './data/runtimeCost';
 import looks from './data/lookMaterials.generated.json' with { type: 'json' };
@@ -28,8 +28,8 @@ const row = (heights: readonly number[]): { heights: number[]; colours: [number,
 export default parseShardfile({
   ...base, ...timbers.shardfile, props: timbers.props,
   files: [...timbers.shardfile.files, ...journal.files], library: [...timbers.shardfile.library, ...journal.files.map(file => file.hash)],
-  budgets: { ...base.budgets, sim: { resident: criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
+  budgets: { ...base.budgets, sim: { resident: 2*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 2*65536 + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
   accent: 'moss', rows: { ...base.rows, compendiums: [journal.row] },
   // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },

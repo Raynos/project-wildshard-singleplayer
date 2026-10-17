@@ -11,6 +11,7 @@ import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { DecisionModule } from '../src/engine/script/decisionModule';
+import { borrowedDecisionAuthority } from '../src/game/shardfile/borrowedDecisions';
 import { ShardDecisions, type DecisionRuntime } from '../src/game/shardfile/decisions';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
@@ -56,6 +57,30 @@ test('two actors execute rows on the real fixed-step move, strike, field and fla
     expect(sim.host.entities.get('actor.a')?.position.z).toBeGreaterThan(5);
     expect(sim.decisions?.host.metrics()[0]?.refusals).toBe(0);
   } finally { sim.dispose(); }
+});
+
+test('a guest relocates its retained body once from admitted fields without replay on restore', async () => {
+  const wasm = await module(`${command(0, 1, 1, 1, 2)}return 1;`), f = fixture(wasm), R = await rapier;
+  f.source.state.shared.push(
+    { id: 90, name: 'relocate.x', type: 'f64', privacy: 'public', default: 12, min: -100, max: 100 },
+    { id: 91, name: 'relocate.z', type: 'f64', privacy: 'public', default: 16, min: -100, max: 100 });
+  f.sections.set('actors/moves', parseActorMoves([{ id: 'approach', kind: 'relocate', point: { kind: 'fields', x: 'relocate.x', z: 'relocate.z' }, facing: 'target' }]));
+  const sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: R });
+  let resumed: ShardfileSimulation | undefined;
+  try {
+    const body = sim.host.entities.get('actor.a'); if (body === undefined) throw new Error('Missing retained body');
+    const place = vi.spyOn(body, 'place');
+    for (let i = 0; i < 12; i++) sim.host.step();
+    expect(sim.host.entities.get('actor.a')).toBe(body);
+    expect([body.position.x, body.position.z]).toEqual([12, 16]);
+    expect(place).toHaveBeenCalledTimes(1); expect(sim.decisions?.host.metrics()[0]?.refusals).toBe(0);
+    const saved = snapshotSimHost(sim.host);
+    const restored = restoreSimHost(sim.host.level, { rapier: R }, saved, host => { resumed = bindShardfileSim(host, f.source, f.assets, { ...f.options, rapier: R, restoring: true }); });
+    const next = restored.entities.get('actor.a'); if (next === undefined) throw new Error('Missing restored body');
+    const replay = vi.spyOn(next, 'place');
+    for (let i = 0; i < 30; i++) { sim.host.step(); restored.step(); }
+    expect(replay).not.toHaveBeenCalled(); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+  } finally { sim.dispose(); resumed?.dispose(); }
 });
 
 test('a bad last command refuses motion and world fields together with proposed script state', async () => {
@@ -292,4 +317,28 @@ test('a refused asynchronous strike acknowledges completion instead of stranding
     expect(sim.decisions?.host.snapshot().bindings[0]?.pending).toContainEqual([11, 1, 1, 0, 0, 0]);
     expect(sim.host.strikes.get('actor.a')?.busy).toBe(false);
   } finally { sim.dispose(); }
+});
+
+
+test('retained pose and eased depth read one admitted body and refuse a bad frame atomically', async () => {
+  const f=fixture(await module('return 0;')),sim=createShardfileSim(f.source,f.assets,{rapier:await rapier});
+  try{
+    const actor=sim.host.entities.get('actor.a');if(actor===undefined)throw new Error('Missing retained pose body');
+    const source=structuredClone(f.source);source.creatures.spawns=[];
+    source.runtime={entry:'runtime/index.ts',binds:['spawns'],spawns:{homes:[],actors:[],bosses:[{id:'actor.a',kind:'boar',look:'boar',at:[0,5],yaw:0}]}};
+    source.state.shared.push({id:90,name:'lift',type:'f64',privacy:'public',default:0,min:0,max:1});
+    const script=f.scripts[0];if(script===undefined)throw new Error('Missing pose fixture guest');
+    script.actors={a:'actor.a'};script.commands=[];script.fields={};script.flags={};script.moves={};script.strikes={};
+    const owner=sim.host,authority=borrowedDecisionAuthority(source,f.assets,f.sections,{scope:owner.scope,events:owner.events,
+      flags:owner.flags,physics:owner.physics,player:owner.player,groundHeightAt:(x,z)=>owner.groundHeightAt(x,z),
+      live:body=>owner.entities.get(body.entityId)===body,fixed:(id,run,scope)=>{scope.onDispose(owner.onStep(id,run));}});
+    const control=authority.bind(actor,{script:'controller',actor:'actor.a',strikeEffects:[]},{kind:'animal',motion:'ground',attack:'keeper',stunned:'none',
+      contact:{kind:'environment',halfArc:Math.PI},actions:{stateKey:'phase',states:['hide','attack','idle','perch'],actions:[]},offset:{field:'lift',from:-2.8,to:0}});
+    control.observe({calm:false,reach:()=>true,claim:()=>true,hurt:()=>undefined});
+    actor.mem['phase']=1;actor.mem['lift']=.25;owner.step();
+    expect(actor.state).toBe('attack');expect(actor.yOffset).toBeCloseTo(-2.8+2.8*.25*.25*(3-2*.25));
+    expect(owner.entities.get(actor.entityId)).toBe(actor);const beforeState=actor.state,depth=actor.yOffset;
+    actor.mem['phase']=2;actor.mem['lift']=2;
+    expect(()=>owner.step()).toThrow('normalized body offset');expect(actor.state).toBe(beforeState);expect(actor.yOffset).toBe(depth);
+  }finally{sim.dispose();}
 });

@@ -128,3 +128,23 @@ test('unlisted modules, conflicting contracts, legacy host mixing and memory und
   shard.budgets.sim.resident = bytes.length + 2 * 65536 * 2 - 1;
   expect(() => validateShardfileAssets(shard, assets, hashImmutableBytes, undefined, undefined, scripts)).toThrow('memory budget');
 });
+
+
+test('runtime-owned encounters admit numeric fields only for their actual sim guest', () => {
+  const { shard, assets, scripts } = fixture(), script = scripts[0];
+  if (script === undefined) throw new Error('Missing guest');
+  shard.runtime = { entry: 'runtime/index.ts', binds: ['state', 'spawns'], spawns: { homes: [], actors: [],
+    bosses: [{ id: 'actor.retained', kind: 'animal', look: 'animal', at: [0, 0], yaw: 0 }] } };
+  shard.state.shared = [{ id: 1, name: 'pose', type: 'f64', privacy: 'public', default: 0, min: 0, max: 1 }];
+  const guest = { ...script, actors: { self: 'actor.retained' }, fields: { pose: 'pose' } };
+  const admit = () => validateShardfileAssets(shard, assets, hashImmutableBytes, undefined, undefined, [guest]);
+  expect(admit).not.toThrow();
+  shard.state.shared.push({ id: 2, name: 'unowned', type: 'f64', privacy: 'public', default: 0 });
+  expect(admit).toThrow('actual declared sim guest'); shard.state.shared.pop();
+  expect(() => validateShardfileAssets(shard, assets, hashImmutableBytes, undefined, undefined,
+    [{ ...guest, actors: { self: 'actor.other' } }])).toThrow('actual declared sim guest');
+  shard.state.shared = [{ id: 1, name: 'pose', type: 'string', privacy: 'public', default: '' }];
+  expect(admit).toThrow();
+  shard.state.shared = []; shard.state.player = [{ id: 1, name: 'pose', type: 'f64', privacy: 'public', default: 0 }];
+  expect(admit).toThrow();
+});

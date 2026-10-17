@@ -1,3 +1,5 @@
+import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
+import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { installEnteredKingBindings } from './kingLifetime';
 import { kingFight, type KingFight } from '../combat/kingFight';
 import { pineBackdrop } from '../look/skyBackdrop';
@@ -111,7 +113,7 @@ const ACTS = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_
  * and the declared body / thrall spawner of the page's creature manager. The King and a thrall of each kind are made at
  * boot (their models and programs compile with the rest) and parked.
  */
-export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => void) => void, body?: () => Animal): KingFight<Animal> {
+export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgramData, decisions:SpeciesDecisionAuthority, entered?: (install: () => () => void) => void, body?: () => Animal): KingFight<Animal> {
   const scene = ctx.game.scene, kit = makeKingKit(ctx.sky);
   const spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
   const tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
@@ -208,7 +210,7 @@ export function antlerKingFight(ctx: PineCtx, entered?: (install: () => () => vo
       },
       tell: tellRing,
     },
-  });
+  }, seed, program, decisions);
 
   /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame (I–II: the ribcage's amber on the
    *  stones; III: your lantern) */

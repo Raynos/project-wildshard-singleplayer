@@ -19,6 +19,10 @@ const ready = v.variant('kind', [
 ]);
 /** Data-only fixed-step motion. Decisions, strike selection, rewards and phase transitions are not moves. */
 export const ActorMoveSchema = v.variant('kind', [
+  v.strictObject({ id, kind: v.literal('relocate'), point: v.variant('kind', [
+    v.strictObject({ kind: v.literal('spot'), spot: id }),
+    v.strictObject({ kind: v.literal('fields'), x: id, z: id }),
+  ]), facing: v.exactOptional(v.union([v.literal('target'), angle])) }),
   v.strictObject({ id, kind: v.literal('orbit'), ...motion, center: v.tuple([at, at]), r: positive, y: at, lead: v.exactOptional(angle), angularSpeed: v.exactOptional(turn) }),
   v.pipe(v.strictObject({ id, kind: v.literal('stalk'), ...motion, standOff: radius, above: v.exactOptional(at), altitude: v.exactOptional(at),
     retreat: v.optional(v.boolean(), false), constantSpeed: v.optional(v.boolean(), false), ready, giveUp: v.exactOptional(seconds) }),
@@ -46,6 +50,10 @@ export function parseActorMoves(input: unknown): ActorMoves { return v.parse(Act
 export function actorMoveRules(rows: readonly ActorMove[], refs: { spots: ReadonlySet<string>; strikes: ReadonlySet<string>; fields: ReadonlySet<string> }): string[] {
   const failures = new Set<string>();
   for (const row of rows) {
+    if (row.kind === 'relocate') {
+      if (row.point.kind === 'spot' && !refs.spots.has(row.point.spot)) failures.add('move location resolves in world spots');
+      if (row.point.kind === 'fields' && (!refs.fields.has(row.point.x) || !refs.fields.has(row.point.z))) failures.add('move coordinates resolve in declared actor fields');
+    }
     if ((row.kind === 'takeoff' || row.kind === 'perch') && !refs.spots.has(row.perch)) failures.add('move perch resolves in world spots');
     if (row.kind === 'stalk' && row.ready.kind === 'range' && row.ready.strike !== undefined && !refs.strikes.has(row.ready.strike)) failures.add('move range resolves in actors/strikes');
     if (row.kind === 'dive' && row.strike !== undefined && !refs.strikes.has(row.strike)) failures.add('move strike resolves in actors/strikes');

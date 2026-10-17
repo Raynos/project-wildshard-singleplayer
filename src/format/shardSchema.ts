@@ -231,7 +231,7 @@ export function shardfileRules(s: Shardfile): string[] {
   }
   errors.push(...stateRules(s.state));
   if ((s.clientChannels?.length ?? 0) > 0 && s.runtime?.binds?.includes('clientChannels') !== true) errors.push('native visual channels require runtime.binds clientChannels');
-  if (s.runtime?.binds?.includes('state') === true && (s.state.player.length > 0 || s.state.shared.some((field) => field.privacy !== 'host'))) errors.push('runtime-bound state supports only host-owned shared fields');
+  if (s.runtime?.binds?.includes('state') === true && (s.state.player.length > 0 || s.state.shared.some((field) => field.privacy !== 'host' && !(field.privacy === 'public' && field.type !== 'string' && (s.runtime?.spawns?.bosses.length ?? 0) > 0)))) errors.push('runtime-bound state supports host fields and retained-actor numeric fields');
   errors.push(...materialGraphRules(s), ...materialCurveRules(s), ...textureSamplerRules(s.look), ...postStackRules(s));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
   const libraryPending = [...s.library];

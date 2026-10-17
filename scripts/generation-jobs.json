@@ -15360,12 +15360,12 @@
       ],
       "outputs": [
         "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/22ac5069bdc99e9c033b2bea47a170d44d288d5b91f79150af45f546dca991b3"
+        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/22ac5069bdc99e9c033b2bea47a170d44d288d5b91f79150af45f546dca991b3"
+        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
       ]
     },
     {

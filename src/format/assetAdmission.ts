@@ -169,6 +169,13 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     criticalResident += actual.decoded + actual.gpu; criticalWire += bytes.length;
   }
   if (criticalWire > s.budgets.sim.compressed || s.sim.scripts.some((r) => !critical.has(r)) || [...critical].some((r) => library.has(r))) throw new Error('critical bundle cap, declared wire budget, render-library dependency or script omitted');
+  if(s.runtime?.binds?.includes('state')===true){
+    const actors=new Set((s.runtime.spawns?.bosses??[]).map(row=>row.id));
+    for(const field of s.state.shared.filter(candidate=>candidate.privacy==='public')) {
+      if(!scripts.some(row=>row.side==='sim'&&Object.values(row.fields).includes(field.name)&&Object.values(row.actors).length>0
+        &&Object.values(row.actors).every(actor=>actors.has(actor))))throw new Error('Runtime actor field requires its actual declared sim guest');
+    }
+  }
   let scriptMemory = 0;
   for (const module of new Set(s.sim.scripts)) {
     let admission = admissions.get(module);

@@ -8287,3 +8287,51 @@ readonly view of that placement owner's validated anchors, so late ride anchors
 remain authoritative for completion markers without a second placement cache.
 
 `sameRuntimeProfile(left, right)` in `game/plugin/headless` compares admitted native profiles by JSON value, preserving array order and rejecting changed values while ignoring object-key order.
+
+### Retained decision bodies: placement and pose
+
+`ActorMoveRunner` admits `kind:'relocate'` in `actors/moves`. Its point is
+an admitted world spot or two admitted numeric actor fields (`x`, `z`).
+Optional `facing:'target'` uses the observed target; a numeric facing is
+an angle in radians. The existing body applies the placement through
+`AnimalSim.place` once. A completed or restored move never repeats it.
+Unknown fields/spots, nonfinite points and missing targets refuse before
+changing the move or body.
+
+`CreatureBodyRecipe.actions` can map a decision guest's admitted numeric
+`stateKey` onto canonical AnimalState names. This pose mapping has empty
+contact actions: the existing StrikeRunner remains the only contact
+clock. Optional `offset:{field,from,to}` reads a normalized actor field
+and smoothsteps between the two body offsets, preserving the original
+rise/sink easing. Pose marks are validated together before mutation.
+
+`borrowedDecisionAuthority` binds only the existing actor, physics,
+encounter observations and fixed tick. `nativeDecisionAuthority` lends
+an existing SimHost; `pageDecisionAuthority` prepares verified product
+modules and lends the actual page's bodies, combat and fixed system.
+The page preparation is deliberately flag-free; a flag-capable guest
+must use the quest-bound catalogue and its actual Flags owner.
+
+A retained encounter's numeric public fields are backed by that body's
+memory, not a second shared-state store. A runtime-bound state can retain
+host-owned fields beside numeric public actor fields only when a declared
+sim guest names them and owns the actual retained boss ids. Player state,
+public strings and undeclared guest fields refuse. Runtime JSON saves
+continue to admit host-owned fields only.
+
+The roaming arena owner now applies guest requests to its existing
+contacts, rings, lanes and summons. AS owns mode selection and timing;
+the arena retains collision, hazards, adds, UI, rewards and checkpoint
+ownership. Its continuation includes logical guest/move state. Older
+scalar encounters hydrate the admitted actor fields without invoking
+Wasm; Driftwood's old v8 boolean Captain contact record is still readable.
+King and Captain both use the same retained-body adapter, relocation and
+pose-state path. Cosmetic water/audio observers read the Captain's marks
+and never select his next action or write his simulation state.
+
+Generated ABI transport accessors are inlined before instrumentation. IO,
+capability and bounds checks are unchanged, and the resulting function and
+loop bodies still pass the same structural fuel/depth/finite guards. This
+keeps field-heavy decision guests within the existing per-call fuel cap.
+Native borrowed guests run in the existing after-body phase and resolve the
+current host physics after snapshot restore.

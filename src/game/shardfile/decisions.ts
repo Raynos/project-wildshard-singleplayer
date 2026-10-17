@@ -27,8 +27,9 @@ interface Strike { strike: number; target: number; binding: number; hit: boolean
  * A retained-body adapter lends the existing bodies, strike runners and fixed-step registrations; it must not
  * spawn or step another body, or advance another clock. This is an internal game port, never a shard callback API.
  */
-export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'flags' | 'physics' | 'groundHeightAt'
+export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'physics' | 'groundHeightAt'
   | 'registerStrikeCatalogue' | 'startDeclaredStrike'> {
+  readonly flags: Pick<SimHost['flags'], 'has' | 'set' | 'onChange'>;
   readonly player: Pick<SimHost['player'], 'id' | 'position' | 'yaw' | 'health' | 'motor'>;
   readonly state: Pick<SimHost['state'], 'tick'>;
   readonly slots: Pick<SimHost['slots'], 'ledgerDedupe'>;
@@ -354,8 +355,13 @@ export class ShardDecisions {
       const strike = this.moveStrike(handle, motion.binding, row);
       const perch = row.kind === 'takeoff' || row.kind === 'perch' ? requireValue(this.spots.get(row.perch), 'move perch') : undefined;
       const field = row.kind === 'burrow' || row.kind === 'surface' ? this.registries.fields?.get(row.field) : undefined;
+      const destination = row.kind !== 'relocate' ? undefined : row.point.kind === 'spot'
+        ? requireValue(this.spots.get(row.point.spot), 'move location')
+        : { x: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.point.x), 'move x field')),
+          z: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.point.z), 'move z field')) };
       const result = motion.runner.step({ body: actor, ...(perch === undefined ? {} : { perch }), ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
-        ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }) });
+        ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }), ...(destination === undefined ? {} : { destination }) });
+      if (result.placement !== undefined) { const placement = result.placement; actor.place(placement.x, placement.z, placement.yaw, placement.y); }
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
       const control = this.sim.borrowedControls?.get(requireValue(this.rows[motion.binding - 1], 'move binding').id);
       if (control?.leanField !== undefined) actor.mem[control.leanField] = result.bank ?? 0;

@@ -16,7 +16,3 @@ export const MONKEY_ACTIONS = {
     { state: 2, phase: 0.62, effect: 'throw', once: { key: 'hit', value: 1, test: 'falsy' }, when: { key: 'bite', test: 'falsy' } },
   ],
 } as const;
-export const CAPTAIN_ACTIONS = {
-  stateKey: 'st', states: ['hide', 'rise', 'fight', 'attack', 'sink', 'under'], cadence: 'decision',
-  actions: [{ state: 3, phase: 0, effect: 'swing', once: { key: 'hit', value: 1, test: 'falsy' } }],
-} as const;

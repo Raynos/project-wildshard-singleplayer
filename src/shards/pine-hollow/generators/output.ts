@@ -1,3 +1,4 @@
+import { KING_DECISION, KING_MOVES } from './kingDecision';
 import weatherProgram from '../data/weather.json' with { type: 'json' };
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { KNIFE_LOOK } from './knifeLook';
@@ -59,7 +60,7 @@ const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
 }));
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', PINE_SPECIES_PROGRAMS]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', PINE_SPECIES_PROGRAMS],['sim/scripts',KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
 /** The data/ values runtime/const.ts copies; the build proves the copied runtime still equals them. */
 export const mirrors = [...RUNTIME_MIRRORS];
 

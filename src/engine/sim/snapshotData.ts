@@ -4,6 +4,7 @@ import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferen
 import type { SimValue } from '../sim';
 import type { SimSnapshot, SimSnapshotBytes } from './snapshot';
 import { DAY_CLOCK_PHASES } from './dayClock';
+import { ANIMAL_STATES } from '../entities/AnimalSim';
 
 const finite = v.pipe(v.number(), v.finite());
 // Reserved only in the snapshot transport. Logical clocks/memory can use infinity; native poses and physics stay finite.
@@ -54,7 +55,7 @@ const animal = v.strictObject({
   flags: v.strictObject({ alive: v.boolean(), harnessHold: v.boolean(), aggressive: v.boolean(), driven: v.boolean(),
     levelGround: v.boolean(), scripted: v.boolean(), falling: v.boolean() }),
   kind: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), label: v.string(),
-  state: v.picklist(['idle', 'graze', 'wander', 'alert', 'flee', 'charge', 'stalk', 'dead', 'attack', 'perch', 'rise', 'hide', 'sidestep']),
+  state: v.picklist(ANIMAL_STATES),
   mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }),
   mem: v.record(v.string(), scalar), position: vector, lookTarget: vector, pushDir: vector, impulse: vector,
   lastHitT: nullableNumber, attackTurnCap: nullableNumber,

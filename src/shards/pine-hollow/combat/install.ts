@@ -1,3 +1,6 @@
+import { PINE_LEVEL_SEED } from './eliteStreams';
+import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
+import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import { installBossEncounter } from '@wildshard/game/Boss';
 import { Elites, GroundTell, type EliteRule } from '@wildshard/game/Elite';
 import type { Inventory } from '@wildshard/game/Inventory';
@@ -60,6 +63,7 @@ import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, install
  */
 
 export interface PineCombatHost {
+  readonly decisionProgram:SpeciesProgramData; readonly decisions:SpeciesDecisionAuthority;
   context?: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService;
   crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: { own: (id: string) => void }; wearSkin: (s: SkinDef) => void;
@@ -156,7 +160,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
   let forcedNight = false;
   const kingNight = (): boolean => forcedNight || ctx.night() > 0.5;
-  const king = installBossEncounter(ANTLER_KING_PRESENTATION, () => antlerKingFight(ctx, entered === undefined ? undefined : install => {
+  const king = installBossEncounter(ANTLER_KING_PRESENTATION, () => antlerKingFight(ctx,PINE_LEVEL_SEED,h.decisionProgram,h.decisions,entered === undefined ? undefined : install => {
     installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
   }, body === undefined ? undefined : () => {
     const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;

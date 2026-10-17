@@ -1,7 +1,6 @@
 import { poseCreatureStride, sampleCreatureSwing } from '@wildshard/game/plugin/animation';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, step } from '@wildshard/engine/entities/species/rigs';
-import type { CaptainMem } from './captainPolicy';
 
 type Side = 'L' | 'R';
 type CaptainBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, AnimalRigJoint>;
@@ -13,10 +12,10 @@ const STRIDE = { hip: .5, knee: .3, spread: .07 };
 const swing = { swX: 0, swZ: 0, elR: 0, body: 0, spine: 0, head: 0 };
 
 export function animateCaptain(c: AnimalRigContext): void {
-  const b = c.bones as CaptainBones, t = c.t, seed = c.seed, m = c.mem as CaptainMem;
-  // the rise / sink clock and his feet under the pool run on the body step (captainPolicy.ts body-step lift); the
+  const b = c.bones as CaptainBones, t = c.t, seed = c.seed, m = c.mem;
+  // the rise / sink clock and his feet under the pool run on the body step (admitted body-step offset); the
   // pose only reads them
-  const up = m.init ? smooth01(m.rise || 0) : 0;
+  const up = m['init'] ? smooth01(m['rise'] ?? 0) : 0;
   const rise = 1 - up;
   const dead = c.deathT >= 0 ? smooth01(c.deathT) : 0;
   const moving = clamp(c.speed / 0.9, 0, 1);
@@ -24,7 +23,7 @@ export function animateCaptain(c: AnimalRigContext): void {
   const atk = c.attack;
   const look = lookAngles(c, 1.6, 0.9, 0.5);
   const sway = Math.sin(t * 0.7 + seed * 4);
-  const rage = (m.phase || 0) >= 3 ? 1 : 0;
+  const rage = (m['phase'] ?? 0) >= 3 ? 1 : 0;
   const kneel = step(dead, 0, 0.5), topple = step(dead, 0.45, 1);
   b.body.position.y = c.dims.bodyY - 0.05 - 0.05 * Math.abs(Math.sin(ph)) * moving - 0.1 * c.brace - 0.42 * kneel - 0.25 * topple + 0.02 * sway * (1 - moving);
   sampleCreatureSwing(atk, SWING, swing);

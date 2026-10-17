@@ -90,8 +90,8 @@ function withoutDrawnProps(props: Shardfile['props']): Shardfile['props'] {
 export function withoutRuntimeRows(source: Shardfile): Shardfile {
   const binds = runtimeBinds(source);
   if (binds.size === 0) return source;
-  if (binds.has('state') && (source.state.player.length > 0 || source.state.shared.some((field) => field.privacy !== 'host'))) {
-    throw new Error('Runtime-bound state supports only host-owned shared fields');
+  if (binds.has('state') && (source.state.player.length > 0 || source.state.shared.some((field) => field.privacy !== 'host' && !(field.privacy === 'public' && field.type !== 'string' && (source.runtime?.spawns?.bosses.length ?? 0) > 0)))) {
+    throw new Error('Runtime-bound state supports host fields and retained-actor numeric fields');
   }
   const world = runtimeBoundWorldFiles(source), keep = (ref: string): boolean => !world.has(ref);
   const far = source.far === null || source.far.files.every(keep) ? source.far : source.far.files.some(keep) ? { ...source.far, files: source.far.files.filter(keep) } : null;
@@ -936,7 +936,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     else {
       const program = rows.species, brains = admitSpeciesProgram(program.program);
       this.populationBrains = brains;
-      const catalogue = brains.catalogue(program.page, { decisions: { bind: (actor, row) => {
+      const catalogue = brains.catalogue(program.page, { decisions: { bind: (actor, row, body) => {
         const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player;
         if (world === null || world === undefined || physics === null || health === null) throw new Error('Decision body requires its actual page world');
         this.decisionAuthority ??= borrowedDecisionAuthority(this.runtimeSource, this.decisionAssets, outputDescriptor(this.runtimeSource)?.sections ?? new Map(), {
@@ -944,10 +944,10 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
           player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, health, motor: world.player.motor },
           groundHeightAt: (x, z) => { const hit = floorBelow(physics, x, z, world.player.position.y + 500, 1000);
             if (hit === undefined) throw new Error('Decision ground query has no floor'); return hit; },
-          live: body => ctx.game.runtime?.play?.animals.animals.some(value => value === body) === true,
+          live: candidate => ctx.game.runtime?.play?.animals.animals.some(value => value === candidate) === true,
           fixed: (id, run, scope) => { ctx.app.addSystem({ id, phase: 'fixed.post', when: () => !scope.disposed && ctx.app.state === 'play', run }, scope); },
         });
-        return this.decisionAuthority.bind(actor, row);
+        return this.decisionAuthority.bind(actor, row, body);
       } }, ...(program.homes === undefined ? {} : { homes: program.homes }),
         ...(program.shove === true ? { held: { shove: (yaw, speed, lift) => { this.populationPush?.(yaw, speed, lift); } } } : {}) });
       this.populationCatalogue = catalogue; species = { rows: catalogue.rows, looks: program.looks ?? (program.library === undefined ? [] : rigLibrary(program.library).looks), witness: brains.witness };

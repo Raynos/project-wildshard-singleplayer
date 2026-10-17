@@ -1,3 +1,4 @@
+import { CAPTAIN_DECISION, CAPTAIN_MOVES, CAPTAIN_STRIKES, CAPTAIN_TARGETS } from './captainDecision';
 import { completionRows } from './completion';
 import { TRADER_PAGE } from './traderPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
@@ -38,7 +39,7 @@ const placements = emitNamedBlobs([
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 /** Strict output copies prove the same constants the source mirror fixture checks. */
 export const mirrors = [...RUNTIME_MIRRORS];
 

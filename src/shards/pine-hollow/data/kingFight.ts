@@ -5,7 +5,9 @@ import { KING_ATTACK_TIMING } from '../combat/kingTiming';
 
 /** The shipped Warden fight as phasedBoss data: each stance, contact, lane chain, lantern and phase. */
 export const ANTLER_KING_FIGHT = {
-  kind: 'roaming', origin: KINGS_CLEARING,
+  kind: 'roaming', decision: {mode:'king.mode',request:'king.request',rings:'king.rings',adds:'king.adds',lane:'king.lane',phase:'king.phase',fight:'king.fighting',
+    modeT:'king.mode-t',strikeCd:'king.strike-cd',burstCd:'king.burst-cd',summonCd:'king.summon-cd',chain:'king.chain',
+    modes:['dormant','intro','dead','stalk','sweep','stomp','waves','open','call','stalk3']}, origin: KINGS_CLEARING,
   phases: [
     {at: ANTLER_KING_PHASES[0].at,beginMode:'stalk',chaseSpeed:2.3,recoverySeconds:3.2,burstCooldown:9,summons:false,rings:1,darkness:false},
     {at: ANTLER_KING_PHASES[1].at,beginMode:'stalk',chaseSpeed:2.8,recoverySeconds:2.6,burstCooldown:7.5,summons:true,rings:2,darkness:false,enter:{mode:'stalk',drop:true,summonDelay:1.2}},

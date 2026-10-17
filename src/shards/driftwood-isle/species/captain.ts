@@ -1,11 +1,9 @@
 import { animateCaptain } from './captainPose';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
-import { bindCreatureBrain } from '@wildshard/game/plugin/brain';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { creatureBody } from './bodies';
 import { captainMesh, type CaptainMesh } from './captainMesh';
-import { createCaptainBrain } from './captainPolicy';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -36,7 +34,6 @@ function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
   return { ...creatureBody('captain', 'captain'), ...(map ? { map, selfLight: 0.5 } : {}), facetJitter: 0 };
 }
 
-export const captainCallbacks = bindCreatureBrain(createCaptainBrain).callbacks;
 
 /** the captain's look over a mesh (the page's by default; a test passes its own) */
 export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { return {

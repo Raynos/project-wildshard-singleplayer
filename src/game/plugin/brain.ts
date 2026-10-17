@@ -858,7 +858,7 @@ export interface HeldSpeciesControl {
 export type SpeciesDecisionObservation = Pick<SpeciesBodyObservation, 'calm' | 'reach' | 'claim' | 'hurt'> & Partial<Pick<SpeciesBodyObservation, 'shove'>>;
 export interface BorrowedSpeciesControl extends HeldSpeciesControl { observe: (ports: SpeciesDecisionObservation) => void }
 /** Internal game authority; authored rows carry only the admitted selection and numeric recipes. */
-export interface SpeciesDecisionAuthority { bind: (actor: AnimalSim, row: BorrowedDecision) => BorrowedSpeciesControl }
+export interface SpeciesDecisionAuthority { bind: (actor: AnimalSim, row: BorrowedDecision, body?: CreatureBodyRecipe) => BorrowedSpeciesControl }
 /** Preparing a held controller constructs it once without advancing perception, movement or a clock. */
 export interface SpeciesBinding extends Required<Pick<SpeciesRow, 'think' | 'act'>> { control?: (actor: Animal) => HeldSpeciesControl }
 
@@ -918,7 +918,7 @@ export function bindCreatureBrain(create: (actor: Animal, context: ThinkCtx) => 
 }
 /** Browser callbacks bound to one policy per animal (built at its first decision); `live` answers the witness. */
 function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes,
-  held?: Partial<SpeciesHeldPorts> & { register: (actor: AnimalSim, controller: HeldSpeciesControl) => void; occupied: (actor: AnimalSim) => boolean; kind: string }, decisions?: SpeciesDecisionAuthority): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
+  held?: Partial<SpeciesHeldPorts> & { register: (actor: AnimalSim, controller: HeldSpeciesControl) => void; occupied: (actor: AnimalSim) => boolean; kind: string }, decisions?: SpeciesDecisionAuthority, body?: CreatureBodyRecipe): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
   switch (brain.archetype) {
     case 'decision': {
       if (held === undefined || decisions === undefined) throw new Error('Decision species requires its existing body authority');
@@ -926,7 +926,7 @@ function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?
       const of = (actor: Animal): BorrowedSpeciesControl => {
         if (actor.kind !== held.kind) throw new Error('Decision species requires its declared live body');
         let value = live.get(actor);
-        if (value === undefined) { value = decisions.bind(actor, brain.data); held.register(actor, value); live.set(actor, value); }
+        if (value === undefined) { value = decisions.bind(actor, brain.data, body); held.register(actor, value); live.set(actor, value); }
         return value;
       };
       const observe = (actor: Animal, context: ThinkCtx): void => { of(actor).observe({ calm: context.calm, reach: () => context.reach(actor), claim: () => context.claim(actor), hurt: context.hurt, ...(held.shove === undefined ? {} : { shove: held.shove }) }); };
@@ -1077,16 +1077,18 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
   if (strikes.size !== strikeRows.length || new Set(species.map(row => row.kind)).size !== species.length) throw new Error('Duplicate species kind or strike id');
   const admitted = new Map(species.flatMap(row => row.brain === undefined ? [] : [[row.kind, admit(row.brain, row.kind, strikes, modules)] as const]));
   const bodies = new Map(species.flatMap(row => row.body === undefined ? [] : [[row.kind, v.parse(CreatureBodyRecipeSchema, row.body)] as const]));
-  for (const kind of bodies.keys()) {
+  for (const [kind, body] of bodies) {
     const brain = admitted.get(kind);
     if (brain === undefined || brain.archetype === 'perch-hunter'
       || ((brain.archetype === 'skirmisher' || brain.archetype === 'guardian') && bodies.get(kind)?.actions === undefined))
       throw new Error(`Species ${kind} has no admitted native body protocol`);
+    if (body.offset !== undefined && brain.archetype !== 'decision') throw new Error('Body offset requires its declared decision owner');
   }
   for (const [kind, body] of bodies) if (body.actions !== undefined) {
     const brain = admitted.get(kind), rows = body.actions;
-    if (brain?.archetype !== 'skirmisher' && brain?.archetype !== 'guardian') throw new Error('Unsupported memory-action policy');
-    if (new Set(rows.states).size !== rows.states.length || rows.actions.some(row => row.state >= rows.states.length)) throw new Error('Invalid memory-action state');
+    if (brain?.archetype !== 'skirmisher' && brain?.archetype !== 'guardian' && brain?.archetype !== 'decision') throw new Error('Unsupported memory-action policy');
+    if (brain.archetype === 'decision' && rows.actions.length > 0) throw new Error('Decision body states cannot own a second strike clock');
+    if ((brain.archetype !== 'decision' && new Set(rows.states).size !== rows.states.length) || rows.actions.some(row => row.state >= rows.states.length)) throw new Error('Invalid memory-action state');
     for (const row of rows.actions) {
       const strike = strikeOf(strikes, row.strike, kind);
       if (row.radiusScale !== undefined && strike.shape.kind !== 'point') throw new Error('Scaled contact requires a point strike');
@@ -1104,13 +1106,13 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
       const resolveHome = homes === undefined ? undefined : (actor: Animal): SpeciesBodyHome => bodyHomes.get(actor) ?? homes(actor);
       const actions = bodies.get(kind)?.actions;
-      const adapter: SpeciesNativeFactory | undefined = native ?? (actions === undefined ? undefined : (actor, decision) => {
+      const adapter: SpeciesNativeFactory | undefined = native ?? (actions === undefined || brain.archetype === 'decision' ? undefined : (actor, decision) => {
         if (decision.archetype !== 'skirmisher' && decision.archetype !== 'guardian') throw new Error('Memory actions require their grounded policy');
         return speciesActions(actor, brain, actions, strikes, decision.policy);
       });
       const bound = browserCallbacks(brain, adapter, resolveHome, { ...held, kind,
         occupied: actor => heldControls.has(actor),
-        register: (actor, controller) => { registerHeld(kind, actor, controller); } }, decisions);
+        register: (actor, controller) => { registerHeld(kind, actor, controller); } }, decisions, bodies.get(kind));
       witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
   };
   return {
@@ -1174,7 +1176,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       return bindSpeciesBody(actor, recipe, shared, ports => {
         if (brain.archetype === 'decision') {
           if (shared.decisions === undefined) throw new Error('Missing native decision authority');
-          const controller = shared.decisions.bind(actor, brain.data); registerHeld(kind, actor, controller);
+          const controller = shared.decisions.bind(actor, brain.data, recipe); registerHeld(kind, actor, controller);
           return { think: observation => { controller.observe(observation); }, act: observation => { controller.observe(observation); }, snapshot: controller.snapshot, restore: controller.restore };
         }
         if (brain.archetype === 'ram-grazer') {

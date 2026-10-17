@@ -1,3 +1,5 @@
+import { nativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
+import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { installNativeItems, readItemInventory, observeNativeCombatMotion, type NativeCombatFrame, type NativeBoltItem, type NativeBowItem, type NativeCycleItem } from '@wildshard/game/plugin/nativeItems';
 import type { ShardItems } from '@wildshard/format/items';
 import { PINE_TERRAIN } from '../data/terrainBindings';
@@ -92,12 +94,13 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   }, install: (host, context) => {
     const input = bindHeadlessCommands(context), combat = context.combat;
     if (combat === undefined) throw new Error('Pine requires its native combat frame');
-    installPine(host, { weather, counters, trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
+    installPine(host, { decisions:nativeDecisionAuthority(shard,assets,host), weather, counters, trades, contracts, population: product.section('actors/species-programs'), bake, grid, nav, heightAt, director, nightDirector, combat, items: shard.items, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: input.ledger.fact,
       interact: input.scripts([PINE_INTERACT, PINE_LODGE]) });
   } };
 };
 
 export interface PineInstall {
+  readonly decisions:SpeciesDecisionAuthority;
   readonly counters: AchievementCounterData;
   readonly contracts: PineQuestPorts['contracts'];
   readonly trades: PineQuestPorts['trades'];
@@ -151,7 +154,8 @@ export function installPine(host: SimHost, parts: PineInstall): {
   const elites = installPineElites(host, { bodies: () => roster?.bodies() ?? noBodies, heightAt, spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant),
     retire: a => { installedRoster().retire(a); }, dusk, night });
   // the King's steps next (the page ticks him after the elites, before its creature manager), before any live spawn
-  const king = installPineKing(host, { heightAt, parked: () => installedRoster().parked(), adoptParked: (id, x, z, yaw) => installedRoster().adoptParked(id, x, z, yaw),
+  const decisionProgram=parts.population.program;if(decisionProgram===undefined)throw new Error('Pine requires its King decision programme');
+  const king = installPineKing(host, { decisionProgram,decisions:parts.decisions,heightAt, parked: () => installedRoster().parked(), adoptParked: (id, x, z, yaw) => installedRoster().adoptParked(id, x, z, yaw),
     spawn: (kind, x, z, yaw, variant) => installedRoster().spawn(kind, x, z, yaw, variant), spawnLoose: (kind, x, z, yaw, variant) => installedRoster().spawnLoose(kind, x, z, yaw, variant),
     retire: a => { installedRoster().retire(a); }, find: id => installedRoster().actor(id), night,
     grantTrophy: () => { if (quest === null) throw new Error('Pine quest pack is not installed'); quest.pack.add('amber-resin', 3); } });

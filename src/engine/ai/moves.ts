@@ -13,8 +13,12 @@ export interface MoveObservation {
   /** Authoritative contact and admitted strike range, not an inferred distance hit. */
   readonly reach?: boolean; readonly range?: number;
   readonly field?: number;
+  /** Existing platform registry resolves the declared spot or numeric actor fields. */
+  readonly destination?: { readonly x: number; readonly z: number; readonly y?: number; readonly yaw?: number };
 }
 export interface MoveFrame {
+  /** One placement request for the existing body owner; restore never applies it. */
+  readonly placement?: { readonly x: number; readonly z: number; readonly y?: number; readonly yaw: number };
   readonly steering?: MoveSteering;
   readonly bank?: number;
   readonly field?: { readonly id: string; readonly value: number };
@@ -97,13 +101,22 @@ export class ActorMoveRunner {
     point(body.position); if (!Number.isFinite(body.yaw)) throw new Error('Nonfinite move heading');
     if (target !== undefined) point(target);
     if (perch !== undefined) { point(perch); if (!Number.isFinite(perch.yaw)) throw new Error('Nonfinite perch heading'); }
-    const needsTarget = row.kind === 'stalk' || row.kind === 'dive' || row.kind === 'takeoff' || row.kind === 'ring-run';
+    const needsTarget = row.kind === 'stalk' || row.kind === 'dive' || row.kind === 'takeoff' || row.kind === 'ring-run' || (row.kind === 'relocate' && row.facing === 'target');
     if (needsTarget && target === undefined) throw new Error('Move requires a resolved target');
     if ((row.kind === 'takeoff' || row.kind === 'perch') && perch === undefined) throw new Error('Move requires its resolved perch');
     if ((row.kind === 'burrow' || row.kind === 'surface') && (observation.field === undefined || !Number.isFinite(observation.field) || observation.field < 0 || observation.field > 1)) throw new Error('Move requires a normalized field');
     if (row.kind === 'stalk' && row.ready.kind === 'range' && (observation.range === undefined || !Number.isFinite(observation.range) || observation.range < 0)) throw new Error('Move requires the admitted strike range');
+    const destination = observation.destination;
+    if (row.kind === 'relocate' && (destination === undefined || ![destination.x, destination.z].every(value => Number.isFinite(value) && Math.abs(value) <= 10000)
+      || (destination.y !== undefined && (!Number.isFinite(destination.y) || Math.abs(destination.y) > 10000)) || (destination.yaw !== undefined && !Number.isFinite(destination.yaw)))) throw new Error('Move requires its finite admitted location');
     this.elapsed += 1 / 60;
     switch (row.kind) {
+      case 'relocate': {
+        if (destination === undefined) throw new Error('Missing admitted location');
+        const yaw = row.facing === 'target' && target !== undefined ? Math.atan2(target.x - destination.x, target.z - destination.z)
+          : typeof row.facing === 'number' ? row.facing : destination.yaw ?? body.yaw;
+        return { placement: { x: destination.x, z: destination.z, yaw, ...(destination.y === undefined ? {} : { y: destination.y }) }, ...this.finish(true) };
+      }
       case 'orbit': this.angle += (row.angularSpeed ?? row.speed / row.r) / 60; return { steering: orbitSteering(row, body, this.angle) };
       case 'stalk': {
         if (target === undefined) throw new Error('Missing move target');

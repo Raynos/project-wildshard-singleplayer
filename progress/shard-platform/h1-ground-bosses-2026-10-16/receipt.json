@@ -1,0 +1,85 @@
+{
+  "qualification": {
+    "source": "6ab25a86df53964a4116244814d8f0641cfdbace",
+    "parent": "3d26e45358c449c19f4d5a198d0c5332870407ea",
+    "products": 10,
+    "testFiles": 15,
+    "tests": 66,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "officialRestores": [
+      "template-boss-decision",
+      "driftwood-section-schemas",
+      "driftwood-island-dressing",
+      "pine-hollow-items",
+      "pine-section-schemas",
+      "pine-timber-world",
+      "signal-fire-book"
+    ]
+  },
+  "native": {
+    "sameBodies": true,
+    "phases": [
+      "Captain I/II/III",
+      "King I/II/III"
+    ],
+    "currentSaveReplayTicks": 30,
+    "oldSaves": [
+      "Pine v3 scalar fight without decision",
+      "Driftwood v8 boolean pending-contact record"
+    ],
+    "oldActiveFightRestored": true,
+    "guestFailures": 0
+  },
+  "phone": {
+    "profile": "iPhone 16 Pro, portrait, muted",
+    "pine": {
+      "oneBody": true,
+      "phases": [
+        {
+          "phase": 0,
+          "encounter": "fight",
+          "mode": "waves"
+        },
+        {
+          "phase": 1,
+          "encounter": "fight",
+          "mode": "stalk"
+        },
+        {
+          "phase": 2,
+          "encounter": "fight",
+          "mode": "stalk3"
+        }
+      ],
+      "pageErrors": 0,
+      "consoleErrors": 0
+    },
+    "driftwood": {
+      "source": "2ab37ab31903a373e7942f334a0d252558964d53",
+      "oneBody": true,
+      "phases": [
+        1,
+        2,
+        3
+      ],
+      "normalPlay": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "bootErrors": 0,
+      "timerResets": 4
+    }
+  },
+  "sourceMeasure": {
+    "matchedParent": "d97410d34",
+    "matchedCandidate": "3026fd12a",
+    "initialDeltas": {
+      "driftwood-isle": -90,
+      "pine-hollow": 11
+    },
+    "oldSaveCompatibilityLines": 7,
+    "netShardLines": -72
+  },
+  "visual": "Retained bodies, rigs, materials, arena and view owners; no look change intended."
+}

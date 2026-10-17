@@ -98,6 +98,8 @@ export class Enemies {
   practiceCrab: Animal | null = null;
   private practiceDead = 0;
   private playerPos = new THREE.Vector3();
+  // Read-only Captain presentation. The guest owns every transition and destination.
+  private captainView: {actor:Animal|null;state:number;bubbles:number} = {actor:null,state:0,bubbles:0};
 
   private disposed = false;
   private readonly creatures: ReturnType<typeof createCreatureSpawner<Animal>>;
@@ -232,6 +234,21 @@ export class Enemies {
     this.playerPos.copy(playerPos);
     if (this.disposed) return;
     this.tickPractice(dt, playerPos);
+    const captain=this.animals.animals.find(a=>a.kind==='captain'),view=this.captainView;
+    if(captain?.alive===true){
+      if(view.actor!==captain){view.actor=captain;view.state=0;view.bubbles=0;}
+      const state=captain.mem['st']??0;
+      if(state!==view.state){
+        if(state===1||state===3||state===4)this.animals.onSound?.('sailor_groan',captain.position);
+        if(state===1){this.splash(captain.position,view.state===5?2.2:2);if(view.state===5)this.animals.onSound?.('sailor_slash',captain.position);}
+        if(state===4)this.splash(captain.position,1.4);view.state=state;
+      }
+      if(state===5){view.bubbles+=dt;while(view.bubbles>=.1){view.bubbles-=.1;const rng=app.rng.stream('cosmetic');if(rng.next()<.85){
+        const x=captain.mem['burst-x']??captain.position.x,z=captain.mem['burst-z']??captain.position.z;
+        this.splash(_v.set(x+rng.range(-1,1),heightAt(x,z),z+rng.range(-1,1)),.3);
+      }}}else view.bubbles=0;
+    }
+
     // ── coconuts: their bodies fly, bounce, roll and float in the physics world; the volley reads them, this draws them ──
     const drew = this.volley.update(dt, app.bodies?.alpha ?? 1, playerPos, (k, at, rot) => {
       if (at === null) this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));

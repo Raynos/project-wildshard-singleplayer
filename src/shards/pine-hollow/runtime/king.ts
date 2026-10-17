@@ -1,3 +1,5 @@
+import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
+import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { canReach } from '@wildshard/engine/ai/reach';
@@ -28,6 +30,7 @@ const SCRIPTED = 'sidestep';
 
 /** What the King is lent by the roster (late-bound: the King's steps are installed before the roster's live spawns). */
 export interface PineKingPorts {
+  readonly decisionProgram:SpeciesProgramData; readonly decisions:SpeciesDecisionAuthority;
   readonly heightAt: (x: number, z: number) => number;
   /** the King's parked prewarm body (his id and recipe from the boot stream), made real when he first comes */
   readonly parked: () => readonly PineParked[];
@@ -106,7 +109,7 @@ function headlessKing(host: SimHost, ports: PineKingPorts): { fight: KingFight<P
       hazard: (_i, _f, _t, event) => { if (event === 'drop') fight.body?.publishKingHead?.(); },
       add: () => undefined, ring: () => undefined, tell: silentTell,
     },
-  }, host.level.seed);
+  }, host.level.seed, ports.decisionProgram, ports.decisions);
   return { fight, own };
 }
 
@@ -117,7 +120,7 @@ const Runner = v.strictObject({ version: finite, phase: v.picklist(['idle', 'win
   x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite });
 const LaneSaved = v.strictObject({ tellT: finite, runner: Runner });
 const Fight = v.strictObject({ first: v.boolean(), lightActive: v.boolean(), hidden: v.boolean(), king: v.nullable(v.string()), present: v.boolean(), sealed: v.boolean(), sealK: finite, darkK: finite, glow: finite,
-  invuln: v.boolean(), lockHp: finite, won: v.boolean(), phase: finite, mode: v.string(), modeT: finite, sweepCd: finite, stompCd: finite, callCd: finite, laneN: finite, open: finite,
+  decision:v.exactOptional(v.string()),invuln: v.boolean(), lockHp: finite, won: v.boolean(), phase: finite, mode: v.string(), modeT: finite, sweepCd: finite, stompCd: finite, callCd: finite, laneN: finite, open: finite,
   lane: LaneSaved, waves: v.array(v.strictObject({ r: finite, on: v.boolean(), hit: v.boolean(), delay: finite })),
   lanterns: v.array(v.strictObject({ x: finite, z: finite, y: finite, fallT: finite, acc: finite })),
   thralls: v.array(v.strictObject({ a: v.string(), lane: finite, mode: v.picklist(['approach', 'charge']) })), thrallLanes: v.array(LaneSaved), rngs: v.array(Stream) });
@@ -160,7 +163,7 @@ export function installPineKing(host: SimHost, ports: PineKingPorts): { boss: Bo
   const row = installBossRow(host, { step: KING_STEP, definition: kingDefinition(ports.grantTrophy), script: fight, body: () => fight.body, shielded: () => fight.shielded,
     fight: {
       // a parked King's `hidden` is the fight's (the body's own flag is no part of the host's entity record)
-      snapshot: () => ({ first: own.first, lightActive: own.light, hidden: fight.body?.hidden === true, ...kingFightState(fight, b => b.entityId) }),
+      snapshot: () => ({ first: own.first, lightActive: own.light, hidden: fight.body?.hidden === true, ...kingFightState(fight) }),
       restore: value => {
         const { first, lightActive, hidden, ...state } = v.parse(Fight, value);
         own.first = first;

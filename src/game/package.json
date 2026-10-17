@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/borrowedDecisions": "./shardfile/borrowedDecisions.ts",
     "./complete/declared": "./complete/declared.ts",
     "./plugin/weather": "./plugin/weather.ts",
     "./plugin/channelPrograms": "./plugin/channelPrograms.ts",

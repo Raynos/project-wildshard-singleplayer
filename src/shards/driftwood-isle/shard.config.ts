@@ -1,3 +1,4 @@
+import { CAPTAIN_FIELDS } from './generators/captainFields';
 import LOOT from './data/loot.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
@@ -38,12 +39,12 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
-  ...base, rows: { ...base.rows, loot: [LOOT] },
+  ...base,state:{...base.state,shared:CAPTAIN_FIELDS}, rows: { ...base.rows, loot: [LOOT] },
   sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files], critical: [...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: fixed.library,
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
-  budgets: { ...base.budgets, library: fixed.libraryCost, sim: { resident: simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 2*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
+  budgets: { ...base.budgets, library: fixed.libraryCost, sim: { resident: 2*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures, the baked cove's terrain and props;
@@ -52,7 +53,7 @@ export default parseShardfile({
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/index.ts)
   // W2c: every graph arrives as build-time JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
-  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
+  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
   clientChannels: skyChannels.clientChannels,
   quests: DRIFTWOOD_QUESTS, questHost: QUEST_HOST, questNpcs: QUEST_NPCS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },

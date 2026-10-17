@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { clipHitReached } from '../combat/clipTiming';
+import { borrowedDecisionControl } from './borrowedDecisions';
 import type { RoamingBossBody, RoamingBossRow, RoamingBossPorts, RoamingBossLane, RoamingBossHazard, RoamingBossState, RoamingBossFight } from "../plugin/bossPhase";
 
 const headingTo = (ax: number,az: number,bx: number,bz: number): number => Math.atan2(bx-ax,bz-az);
@@ -37,73 +37,36 @@ abstract class RoamingGoals<B extends RoamingBossBody,L,K extends string,A exten
   protected constructor(row: RoamingBossRow<K,A,Q>) { this.row = row; this.mode = row.names.idle; this.strikeCd = row.initial.strikeCd; this.burstCd = row.initial.burstCd; this.summonCd = row.initial.summonCd; }
   protected setMode(mode: string): void { this.mode = mode; this.modeT = 0; }
 
+  /** Apply admitted guest requests to the existing arena mechanics; no action selection or decision clock lives here. */
   protected fight(k: B, dt: number, t: number): void {
-    const p = this.ctx.player.position, row = this.row, ph = row.phases[this.phase] ?? row.phases[0];
-    if (ph === undefined) throw new Error('Phased boss has no phase');
-    const d = Math.hypot(p.x - k.position.x, p.z - k.position.z), yaw = headingTo(k.position.x, k.position.z, p.x, p.z);
-    this.strikeCd -= dt; this.burstCd -= dt; this.summonCd -= dt;
-    this.tellRing.setTime(t);
-    k.lookTarget.copy(p); k.lookWeight = 1;
-    const wantOpen = this.mode === row.opening.mode || (this.mode === row.opening.lanesMode && this.lane.state === 'skid') ? 1 : 0;
-    this.open = Math.max(0, Math.min(1, this.open + (wantOpen > this.open ? dt * row.opening.inRate : -dt * row.opening.outRate)));
-    this.tickWaves(k, dt, t);
-    switch (row.modes[this.mode]?.kind) {
-      case 'pursue': {
-        k.setMotion(yaw, d > row.strike.chaseNear ? (ph.chaseSpeed) : 0, row.strike.chaseTurn);
-        if (ph.summons && this.summonCd <= 0 && this.aliveAdds() < row.summon.limit) { this.setMode(row.names.summon); this.action(k, row.summon.action); k.startAttack(row.summon.clip.duration); this.ctx.shot(row.sounds.intro, k.position); break; }
-        if (d < row.strike.reach && this.strikeCd <= 0) { this.setMode(row.names.strike); this.action(k, row.strike.action); k.startAttack(row.strike.clip.duration); break; }
-        if (this.burstCd <= 0 && this.modeT > row.burst.after) { this.setMode(row.names.burst); this.action(k, row.burst.action); k.startAttack(row.burst.clip.duration); }
-        break;
-      }
-      case 'strike': {
-        k.setMotion(yaw, 0, row.strike.turn);
-        const kk = Math.min(1, this.modeT / row.strike.clip.duration);
-        this.tellRing.ring(k.position.x, k.position.z, row.strike.radius, row.strike.tell[0] + row.strike.tell[1] * kk * (row.strike.tell[2] + row.strike.tell[3] * Math.sin(t * row.strike.tell[4])));
-        if (clipHitReached(this.modeT, row.strike.clip)) {
-          this.tellRing.hide();
-          this.contact(k, row.strike.id, (damage) => { this.ctx.hurt(k, damage); this.ctx.trauma(row.strike.contactTrauma); });
-          this.ctx.trauma(row.strike.trauma);
-          this.strikeCd = row.strike.cooldown; this.setMode(row.names.pursue);
-        }
-        break;
-      }
-      case 'burst': {
-        k.setMotion(yaw, 0, row.burst.turn);
-        const kk = Math.min(1, this.modeT / row.burst.clip.duration);
-        this.tellRing.ring(k.position.x, k.position.z, row.burst.radius + kk, row.burst.tell[0] + row.burst.tell[1] * kk * (row.burst.tell[2] + row.burst.tell[3] * Math.sin(t * row.burst.tell[4])));
-        if (clipHitReached(this.modeT, row.burst.clip)) { this.tellRing.hide(); this.burstNow(k); this.setMode(row.names.wait); }
-        break;
-      }
-      case 'wait-rings': {
-        k.setMotion(yaw, 0, row.summon.turn);
-        if (this.waves.every((w) => !w.on)) { this.setMode(row.names.recover); this.ctx.shot(row.sounds.roar, k.position); }
-        break;
-      }
-      case 'recover': {
-        k.setMotion(yaw, 0, row.recoveryTurn);
-        if (this.modeT >= ph.recoverySeconds) { this.burstCd = ph.burstCooldown; this.setMode(ph.beginMode); }
-        break;
-      }
-      case 'summon': {
-        k.setMotion(yaw, 0, row.summon.turn);
-        if (clipHitReached(this.modeT, row.summon.clip)) { this.callAdds(row.summon.count); this.summonCd = row.summon.cooldown; this.setMode(row.names.pursue); }
-        break;
-      }
-      case 'lanes': {
-        if (this.lane.busy) {
-          this.lane.update(k, dt, t, p, (dmg) => { this.ctx.hurt(k, dmg); this.ctx.trauma(row.lanes.trauma); });
-          if (this.lane.state === 'run' && this.lane.t < dt * row.lanes.soundTicks) this.ctx.shot(row.sounds.burst, k.position);
-          if (this.lane.idle()) { this.chain++; this.modeT = this.chain % row.lanes.batch === 0 ? row.lanes.rest : row.lanes.chainRest; }
-          break;
-        }
-        k.setMotion(yaw, d > row.lanes.stop ? row.lanes.speed : 0, row.lanes.turn);
-        if (this.burstCd <= 0 && d < row.lanes.burstRange) { this.setMode(row.names.burst); this.action(k, row.burst.action); k.startAttack(row.burst.clip.duration); break; }
-        if (this.modeT > row.lanes.after) { this.action(k, row.lanes.action); this.lane.start(k, p.x, p.z, row.lanes.tell); this.roar(k); }
-        break;
-      }
-      case 'idle': case 'intro': case 'dead': case undefined: this.setMode(ph.beginMode);break;
-      default: throw new Error('Invalid phased boss mode policy');
+    const f = this.row.decision, p = this.ctx.player.position, m = k.mem;
+    const next = this.row.decision.modes[m[f.mode] ?? 0];
+    if (next === undefined) throw new Error('Invalid guest encounter mode');
+    if (next !== this.mode) {
+      this.setMode(next);
+      if(next===this.row.names.recover)this.ctx.shot(this.row.sounds.roar,k.position);
+      if (next === this.row.names.strike) { this.action(k,this.row.strike.action); k.startAttack(this.row.strike.clip.duration); }
+      if (next === this.row.names.burst) { this.action(k,this.row.burst.action); k.startAttack(this.row.burst.clip.duration); }
+      if (next === this.row.names.summon) { this.action(k,this.row.summon.action); k.startAttack(this.row.summon.clip.duration); this.ctx.shot(this.row.sounds.intro,k.position); }
     }
+    this.modeT=m[f.modeT]??0; this.strikeCd=m[f.strikeCd]??0; this.burstCd=m[f.burstCd]??0; this.summonCd=m[f.summonCd]??0; this.chain=m[f.chain]??0;
+    const request=m[f.request]??0;
+    if (!Number.isInteger(request)||request<0||request>4) throw new Error('Invalid guest arena request');
+    m[f.request]=0;
+    if(request===1){this.tellRing.hide();this.contact(k,this.row.strike.id,damage=>{this.ctx.hurt(k,damage);this.ctx.trauma(this.row.strike.contactTrauma);});this.ctx.trauma(this.row.strike.trauma);}
+    if(request===2){this.tellRing.hide();this.burstNow(k);}
+    if(request===3)this.callAdds(this.row.summon.count);
+    if(request===4&&!this.lane.busy){this.action(k,this.row.lanes.action);this.lane.start(k,p.x,p.z,this.row.lanes.tell);this.roar(k);}
+    this.tellRing.setTime(t);k.lookTarget.copy(p);k.lookWeight=1;
+    const wantOpen=this.mode===this.row.opening.mode||(this.mode===this.row.opening.lanesMode&&this.lane.state==='skid')?1:0;
+    this.open=clamp01(this.open+(wantOpen>this.open?dt*this.row.opening.inRate:-dt*this.row.opening.outRate));
+    this.tickWaves(k,dt,t);
+    if(this.lane.busy){this.lane.update(k,dt,t,p,damage=>{this.ctx.hurt(k,damage);this.ctx.trauma(this.row.lanes.trauma);});
+      if(this.lane.state==='run'&&this.lane.t<dt*this.row.lanes.soundTicks)this.ctx.shot(this.row.sounds.burst,k.position);}
+    const telling=this.mode===this.row.names.strike?this.row.strike:this.mode===this.row.names.burst?this.row.burst:undefined;
+    if(telling!==undefined){const u=Math.min(1,this.modeT/telling.clip.duration);this.tellRing.ring(k.position.x,k.position.z,telling.radius,
+      telling.tell[0]+telling.tell[1]*u*(telling.tell[2]+telling.tell[3]*Math.sin(t*telling.tell[4])));}
+    m[f.rings]=Number(this.waves.some(w=>w.on));m[f.adds]=this.aliveAdds();m[f.lane]=Number(this.lane.busy);
   }
 
 }
@@ -183,7 +146,7 @@ abstract class RoamingCore<B extends RoamingBossBody,L,R,K extends string,A exte
     if (!this.present) this.setPresent(true);
     let k = this.body;
     if (k === null || !k.alive) k = this.spawnBody();
-    k.place(this.row.origin.x, this.row.origin.z, 0);
+    const control = borrowedDecisionControl(k); control.fighting = false; control.restart(); control.phase = phase;
     k.hp = Math.max(1, Math.round(k.maxHp * (this.row.phases[phase]?.at ?? 1)));
     k.setMotion(0, 0, 1); k.lookWeight = 0; k.cancelAttack();
     this.clearAdds(); this.hideTells();
@@ -193,6 +156,7 @@ abstract class RoamingCore<B extends RoamingBossBody,L,R,K extends string,A exte
     this.darkK = 0;
     this.mode = this.row.names.idle;
     this.strikeCd = this.row.reset.strikeCd; this.burstCd = this.row.reset.burstCd; this.summonCd = this.row.reset.summonCd;
+    this.writeDecision();
   }
 
   intro(t: number, short: boolean): Vector3 {
@@ -211,13 +175,13 @@ abstract class RoamingCore<B extends RoamingBossBody,L,R,K extends string,A exte
 
   begin(phase: number): void {
     this.phase = phase; this.glow = this.row.begin.glow; this.glowTo(this.row.begin.glow);
-    this.setMode((this.row.phases[phase] ?? this.row.phases[0])?.beginMode ?? this.row.names.pursue);
+    this.writeDecision(); if(this.body!==null){const control=borrowedDecisionControl(this.body);control.phase=phase;control.fighting=true;}
     this.lightOn();
     if (phase >= this.row.hazards.fromPhase && this.addsState.length === 0) this.summonCd = this.row.begin.summonDelay;
   }
 
   enterPhase(phase: number): void {
-    this.phase = phase;
+    this.phase = phase; if(this.body!==null)borrowedDecisionControl(this.body).phase=phase;
     this.hideTells(); this.lane.cancel();
     const enter = this.row.phases[phase]?.enter;
     if (enter) {
@@ -240,7 +204,7 @@ abstract class RoamingCore<B extends RoamingBossBody,L,R,K extends string,A exte
   }
 
   update(dt: number, t: number, fighting: boolean): void {
-    const k = this.body;
+    const k = this.body; if(k!==null){const control=borrowedDecisionControl(k);control.fighting=fighting;control.phase=this.phase;}
     this.sealK = clamp01(this.sealK + (this.sealed ? dt / this.row.seal.inSeconds : -dt / this.row.seal.outSeconds));
     this.darkK = clamp01(this.darkK + ((this.row.phases[this.phase]?.darkness === true && !this.won && this.sealed) ? dt / this.row.seal.darkIn : -dt / this.row.seal.darkOut));
     this.room(dt, t);
@@ -249,7 +213,6 @@ abstract class RoamingCore<B extends RoamingBossBody,L,R,K extends string,A exte
     if (this.invuln && k.hp < this.lockHp) k.hp = this.lockHp;
     if (this.sealed) this.softWall();
     if (!fighting || !k.alive) { this.open = Math.max(0, this.open - dt * this.row.opening.inactiveRate); return; }
-    this.modeT += dt;
     this.fight(k, dt, t);
     this.tickAdds(dt, t);
     const kd = Math.hypot(k.position.x - this.row.origin.x, k.position.z - this.row.origin.z);
@@ -378,22 +341,37 @@ abstract class RoamingCore<B extends RoamingBossBody,L,R,K extends string,A exte
     if (d > this.row.arena.fog - this.row.arena.wallPad) { p.x = this.row.origin.x + dx / d * (this.row.arena.fog - this.row.arena.clampPad); p.z = this.row.origin.z + dz / d * (this.row.arena.fog - this.row.arena.clampPad); }
   }
 
+  private writeDecision():void {
+    const k=this.body;if(k===null)return;const f=this.row.decision;
+    for(const [name,value] of [[f.mode,f.modes.indexOf(this.mode)],[f.modeT,this.modeT],[f.strikeCd,this.strikeCd],[f.burstCd,this.burstCd],[f.summonCd,this.summonCd],[f.chain,this.chain],[f.phase,this.phase]] as const) k.mem[name]=value;
+  }
+
   // ── the continuation (the headless runtime's; bodies by entity id) ──
-  /** the fight's plain state; `id` names a body (the host's entity id) */
-  snapshot(id: (b: B) => string): RoamingBossState<L,R> {
-    return { body: this.body === null ? null : id(this.body), present: this.present, sealed: this.sealed, sealK: this.sealK, darkK: this.darkK, glow: this.glow,
+  /** Plain continuation names the actual retained bodies by their entity ids. */
+  snapshot(): RoamingBossState<L,R> {
+    const decision=this.body===null?undefined:borrowedDecisionControl(this.body).snapshot();
+    if(decision!==undefined&&typeof decision!=='string')throw new Error('Invalid borrowed decision continuation');
+    return { ...(decision===undefined?{}:{decision}), body: this.body === null ? null : this.body.entityId, present: this.present, sealed: this.sealed, sealK: this.sealK, darkK: this.darkK, glow: this.glow,
       invuln: this.invuln, lockHp: this.lockHp, won: this.won, phase: this.phase, mode: this.mode, modeT: this.modeT, strikeCd: this.strikeCd, burstCd: this.burstCd,
       summonCd: this.summonCd, chain: this.chain, open: this.open, lane: this.lane.snapshot(), rings: this.waves.map(w => ({ r: w.r, on: w.on, hit: w.hit, delay: w.delay })),
-      hazards: this.hazardsState.map(f => ({ ...f })), adds: this.addsState.map(th => ({ a: id(th.a), lane: this.addLanes.indexOf(th.lane), mode: th.mode })),
+      hazards: this.hazardsState.map(f => ({ ...f })), adds: this.addsState.map(th => ({ a: th.a.entityId, lane: this.addLanes.indexOf(th.lane), mode: th.mode })),
       addLanes: this.addLanes.map(l => l.snapshot()), rngs: [this.rng.call.snapshot(), this.rng.charge.snapshot()] };
   }
-  /** restore the fight's state; `find` resolves a saved body (the host reinstalled it) */
-  restore(s: RoamingBossState<L,R>, find: (id: string) => B | null): void {
-    const body = (id: string): B => { const b = find(id); if (b === null) throw new Error(`Incompatible roaming boss continuation (${id})`); return b; };
+  /** Restore from the host's reinstalled body map; no shard callback crosses this boundary. */
+  restore(s: RoamingBossState<L,R>, bodies: ReadonlyMap<string,B>): void {
+    const body = (id: string): B => { const b = bodies.get(id); if (b === undefined) throw new Error(`Incompatible roaming boss continuation (${id})`); return b; };
     if (s.rings.length !== this.waves.length || s.hazards.length !== this.hazardsState.length || s.addLanes.length !== this.addLanes.length || s.rngs.length !== 2) throw new Error('Incompatible roaming boss continuation');
     this.body = s.body === null ? null : body(s.body);
     Object.assign(this, { present: s.present, sealed: s.sealed, sealK: s.sealK, darkK: s.darkK, glow: s.glow, invuln: s.invuln, lockHp: s.lockHp, won: s.won,
       phase: s.phase, mode: s.mode, modeT: s.modeT, strikeCd: s.strikeCd, burstCd: s.burstCd, summonCd: s.summonCd, chain: s.chain, open: s.open });
+    if(this.body!==null){
+      const control=borrowedDecisionControl(this.body);
+      if(s.decision===undefined){
+        control.restart();
+        control.fighting=this.present && ![this.row.names.idle,this.row.names.intro,this.row.names.dead].includes(this.mode);
+        this.writeDecision();
+      }else control.restore(s.decision);
+    }
     this.lane.restore(s.lane);
     s.rings.forEach((w, i) => { const own = this.waves[i]; if (own !== undefined) Object.assign(own, w); });
     s.hazards.forEach((f, i) => { const own = this.hazardsState[i]; if (own !== undefined) Object.assign(own, f); });

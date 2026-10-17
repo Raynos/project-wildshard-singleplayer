@@ -712,7 +712,8 @@ function fixedPhasedBossFight<A extends PhasedBossBody>(row: PhasedBossRow, port
 
 /** Minimal world-space body for a roaming phased encounter, independent of a rendered model. */
 export interface RoamingBossBody {
-  readonly position: Vector3; readonly lookTarget: Vector3; lookWeight: number; yaw: number; hp: number;
+  readonly entityId: string;
+  readonly position: Vector3; readonly lookTarget: Vector3; readonly mem: Record<string, number>; lookWeight: number; yaw: number; hp: number;
   readonly maxHp: number; readonly alive: boolean; herd: number;
   place: (x: number, z: number, yaw: number) => void;
   setMotion: (yaw: number, speed: number, turn: number) => void;
@@ -742,6 +743,9 @@ export interface RoamingBossMode {
 }
 /** Roaming encounters use authored strike clocks, lane chains, falling hazards and roaming adds on the same phasedBoss entry. */
 export interface RoamingBossRow<K extends string, A extends string, Q extends string> {
+  /** Admitted guest fields; the arena owner applies requests without selecting actions. */
+  readonly decision: { readonly mode: string; readonly request: string; readonly rings: string; readonly adds: string; readonly lane: string;
+    readonly phase: string; readonly fight: string; readonly modeT: string; readonly strikeCd: string; readonly burstCd: string; readonly summonCd: string; readonly chain: string; readonly modes: readonly string[] };
   readonly kind: 'roaming'; readonly origin: { readonly x: number; readonly z: number };
   readonly phases: readonly RoamingBossPhase[]; readonly modes: Readonly<Record<string, RoamingBossMode>>;
   readonly names: { readonly idle: string; readonly intro: string; readonly dead: string; readonly pursue: string; readonly strike: string; readonly burst: string; readonly wait: string; readonly recover: string; readonly summon: string };
@@ -788,6 +792,7 @@ export interface RoamingBossPorts<B extends RoamingBossBody, L, R, K extends str
 export interface RoamingBossState<L,R> {
   body: string|null; present: boolean; sealed: boolean; sealK: number; darkK: number; glow: number; invuln: boolean; lockHp: number; won: boolean;
   phase: number; mode: string; modeT: number; strikeCd: number; burstCd: number; summonCd: number; chain: number; open: number;
+  decision?: string;
   lane: L; rings: RoamingBossRing[]; hazards: RoamingBossHazard[];
   adds: {a: string;lane: number;mode: 'approach'|'charge'}[]; addLanes: L[]; rngs: R[];
 }
@@ -799,8 +804,8 @@ export interface RoamingBossFight<B extends RoamingBossBody,L,R> extends BossScr
   readonly adds: readonly {a:B;lane:RoamingBossLane<B,L>;mode:'approach'|'charge'}[];
   spawn: () => B;
   setPresent: (on: boolean) => void;
-  snapshot: (id: (b: B) => string) => RoamingBossState<L,R>;
-  restore: (state: RoamingBossState<L,R>,find: (id: string) => B|null) => void;
+  snapshot: () => RoamingBossState<L,R>;
+  restore: (state: RoamingBossState<L,R>,bodies: ReadonlyMap<string,B>) => void;
   damageMul: (body: B,point: Vector3) => number;
 }
 

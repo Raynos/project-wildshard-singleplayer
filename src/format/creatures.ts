@@ -40,6 +40,8 @@ export type CreatureMemoryActions = Omit<MemoryActions, 'states' | 'actions'> & 
 /** Explicit native body authority; decisions never infer flight, contact origin or an attack grant. */
 export const CreatureBodyRecipeSchema = v.strictObject({
   actions: v.exactOptional(CreatureMemoryActionsSchema),
+  /** Presentation depth on the same body: smoothstep from/to using normalized admitted actor memory. */
+  offset: v.exactOptional(v.strictObject({ field: memoryKey, from: coord, to: coord })),
   kind: v.literal('animal'), motion: v.picklist(['ground', 'flight']),
   attack: v.picklist(['keeper', 'unlimited']), stunned: v.picklist(['none', 'look-hold']),
   contact: v.variant('kind', [

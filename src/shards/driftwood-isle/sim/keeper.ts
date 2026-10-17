@@ -1,6 +1,6 @@
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
-import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
+import { createNativeHunt, huntRosterContinuation, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import { createNativeCreaturePoses } from '@wildshard/game/plugin/animation';
 import { animateCrab } from '../species/crabPose';
@@ -47,6 +47,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
+  readonly decisions: SpeciesDecisionAuthority;
   readonly population: SpeciesPrograms;
   readonly launch: BodyLaunchRow;
   readonly placement: NativeEnemyPlacements;
@@ -80,7 +81,7 @@ const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.st
   coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, live: v.boolean(), pose: v.nullable(v.string()), policy: v.nullable(v.string()) })),
-  captain: v.nullable(v.strictObject({ id: v.string(), pose: v.string(), policy: v.boolean() })),
+  captain: v.nullable(v.strictObject({ id: v.string(), pose: v.string(), policy: v.union([v.boolean(),v.string()]) })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
 
 /**
@@ -197,7 +198,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
   const join = (body: IslandBody, actor: HuntBody): void => {
     if (body.kind === 'sailor' && actor.levelGround) actor.groundHeight = holdFloor;
-    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains);
+    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains, ports.decisions);
   };
   const { draw } = intake;
   const place = (body: IslandBody): void => { join(body, intake.arrive(body)); };
@@ -329,7 +330,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         memories: common.memories, sight: common.sight },
       herds: common.herds, practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
       bodies: bodies.map(b => ({ id: b.id, kind: b.kind, variant: b.variant, herd: b.herd, live: b.actor !== null, pose: b.actor === null ? null : poses.get(b.id)?.snapshot() ?? null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
-      captain: captain === null ? null : { id: captain.id, pose: poses.get(captain.id)?.snapshot() ?? '', policy: v.parse(v.boolean(), captain.brain?.snapshot()) } }); },
+      captain: captain === null ? null : { id: captain.id, pose: poses.get(captain.id)?.snapshot() ?? '', policy: v.parse(v.union([v.boolean(),v.string()]), captain.brain?.snapshot()) } }); },
     restore: value => {
       const state = v.parse(Saved, value);
       if (state.bodies.length !== bodies.length || state.herds.length !== hunt.herds.length

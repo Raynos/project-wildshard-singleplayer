@@ -4,8 +4,11 @@ import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/plugin/brain';
 import { MONKEY_ACTIONS } from '../src/shards/driftwood-isle/data/speciesActions';
 import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyPolicy';
-import { createCaptainBrain, type CaptainPorts } from '../src/shards/driftwood-isle/species/captainPolicy';
+import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';
+
+const CAPTAIN_ACTIONS = { stateKey:'st',states:['hide','rise','fight','attack','sink','under'],cadence:'decision',
+  actions:[{state:3,phase:0,effect:'swing',once:{key:'hit',value:1,test:'falsy'}}] } as const;
 
 function actor(): AnimalSim {
   return new AnimalSim({ kind: 'hunter', label: 'Hunter', variant: 'common', rarity: 'common', hp: 30, aggressive: true,
@@ -31,7 +34,7 @@ test('act-before-think stays quiet and a miss claims the actor field before its 
 test('monkey rows select one existing bite or coconut owner and retain restored attack memory', () => {
   const a = actor(), effects: string[] = [], target = new Vector3(0, 0, 1);
   const context: MonkeyStrikePorts<AnimalSim> = { player: target, reach: () => true,
-    hurt: damage => { if (damage > 0) effects.push('hurt'); }, sound: name => { effects.push(name); },
+    hurt: (damage:number) => { if (damage > 0) effects.push('hurt'); }, sound: (name:string) => { effects.push(name); },
     world: { throwCoconut: (from, to, thrower) => {
       expect(thrower).toBe(a); expect(from.y).toBeCloseTo(a.position.y + .95 * a.scale);
       expect(to.y).toBeCloseTo(target.y + .9); effects.push('throw');
@@ -59,11 +62,13 @@ function captain() {
   const a = actor(), effects: string[] = [];
   Object.assign(a.mem, { init: 1, st: 3, cd: 0, hitT: 0, hit: 0, combo: 0, rise: .2, rising: 1, sinking: 0, subT: 0,
     poolX: 0, poolZ: 0, arena: 22, awake: 1, phase: 1 });
-  const ports: CaptainPorts<AnimalSim> = { dt: .1, calm: false, player: new Vector3(0, 0, 1), rng: new Rng(357), world: {},
-    sound: name => { effects.push(name); }, heightAt: () => 0, claim: () => true, mayAttack: () => true,
-    reach: () => true, hurt: damage => { if (damage > 0) effects.push('hurt'); } };
+  const ports = { dt: .1, calm: false, player: new Vector3(0, 0, 1), rng: new Rng(357), world: {},
+    sound: (name:string) => { effects.push(name); }, heightAt: () => 0, claim: () => true, mayAttack: () => true,
+    reach: () => true, hurt: (damage:number) => { if (damage > 0) effects.push('hurt'); } };
   a.startAttack(1); a.step(.8);
-  return { a, ports, effects, brain: createCaptainBrain(a) };
+  return { a, ports, effects, brain:createMemoryActionBrain<AnimalSim,typeof ports>(a,CAPTAIN_ACTIONS,{decide:()=>undefined,
+    beforeAct:(body,c)=>{stepCreatureLift(body,c.dt,1.1,.9,-2.8);},threshold:body=>{const windup=body.hp/body.maxHp>.66?.7:body.hp/body.maxHp>.33?.62:.5;return windup/(windup+.35)+.04;},
+    effects:new Map([['swing',()=>{if(ports.player.distanceTo(a.position)<2.5){ports.hurt(24);ports.sound('sailor_slash');}}]])}) };
 }
 
 test('a decision-latched strike advances rise on every body step and resumes the old boolean continuation', () => {

@@ -1,3 +1,4 @@
+import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
@@ -71,7 +72,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     const arms = await runtimeLookMaterials(ctx, ctx.product.shardfile, true, Object.values(FP_ARMS_MATERIALS));
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded while compiling its arms');
     ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
-    this.installCreatures(ctx);
+    installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
     const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials, ctx.product.shardfile);
     ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows, ctx);
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
@@ -81,8 +82,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     ctx.rows.effect(economy.effects); ctx.rows.shop(economy.goods);
   }
 
-  /** SF27: the hybrid subclass selects admitted decisions; the ordinary entry keeps the shipping species rows. */
-  protected installCreatures(ctx: ShardContext): void { installDriftwoodCreatures(ctx); }
 
   override async play(ctx: ShardContext): Promise<void> {
     await installDriftwoodAudio(ctx);

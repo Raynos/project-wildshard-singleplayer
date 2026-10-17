@@ -343,6 +343,7 @@ const RoamingBossModeSchema = v.strictObject({
 });
 
 const RoamingBossRowSchema = v.strictObject({
+  decision: v.strictObject({ mode:key,request:key,rings:key,adds:key,lane:key,phase:key,fight:key,modeT:key,strikeCd:key,burstCd:key,summonCd:key,chain:key,modes:list(key) }),
   kind: v.literal('roaming'),
   origin: v.strictObject({
     x: finite,
@@ -600,7 +601,8 @@ function arenaRules(row: ArenaFight): boolean {
 }
 function roamingRules(row: RoamingFight): boolean {
   const mode = (name: string | undefined): boolean => name === undefined || Object.hasOwn(row.modes, name);
-  return thresholds(row.phases.map(phase => phase.at)) && Object.values(row.names).every(mode)
+  return row.decision.modes.length > 0 && new Set(row.decision.modes).size === row.decision.modes.length && row.decision.modes.every(mode)
+  && thresholds(row.phases.map(phase => phase.at)) && Object.values(row.names).every(mode)
   && mode(row.opening.mode) && mode(row.opening.lanesMode)
   && row.phases.every(phase => mode(phase.beginMode) && mode(phase.enter?.mode) && Number.isInteger(phase.rings)
     && phase.rings >= 0 && phase.rings <= 256)

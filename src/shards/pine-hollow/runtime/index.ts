@@ -1,3 +1,4 @@
+import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import { SECTIONS } from './sections';
 import { preloadHeldGeometry } from './boot/crossbowGeometry';
@@ -262,7 +263,9 @@ export class PineHollow extends ShardPlugin {
     }
     // SF57: after the play hook's first await the owner is the page's; the boss / elite bars and the Elites service end with
     // this runtime, not with the page (one set per visit used to stay for the page's life)
-    const fights = ctx.scope.run(() => installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
+    const decisions=await pageDecisionAuthority(ctx),decisionProgram=ctx.product.section('actors/species-programs').program;
+    if(decisionProgram===undefined)throw new Error('Pine requires its King decision programme');
+    const fights = ctx.scope.run(() => installPineCombat({ decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } }));
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
     const compendium = installPineCompendium({ context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });

@@ -1,3 +1,4 @@
+import { CAPTAIN_BRAIN, CAPTAIN_BODY } from './captainDecision';
 import { DRIFTWOOD_SPAWNS } from './spawnTables';
 import { DRIFTWOOD_NATIVE_HUNT } from './nativeHunt';
 import { readSpeciesProgram } from '@wildshard/format/speciesPrograms';
@@ -8,7 +9,7 @@ import { ISLAND_BOAR, ISLAND_BEAR } from './faunaSpecies';
 
 const rows = [ISLAND_BOAR, ISLAND_BEAR].map(row => bakeSpecies(row, row.id));
 /** Both owners read the identical gameplay rows; the separate fauna look retains its rig and coat. */
-const authored: readonly BrainedSpecies[] = [...DRIFTWOOD_ENEMY_SPECIES, ENEMY_SPECIES_METADATA.captain];
+const authored: readonly BrainedSpecies[] = [...DRIFTWOOD_ENEMY_SPECIES, { ...ENEMY_SPECIES_METADATA.captain, brain:CAPTAIN_BRAIN, body:CAPTAIN_BODY }];
 export const DRIFTWOOD_ENEMY_PROGRAM = readSpeciesProgram({ species: authored.map(row => Object.assign(bakeSpecies(row, row.id),
   row.brain === undefined ? {} : { brain: row.brain }, row.body === undefined ? {} : { body: row.body })), strikes: DRIFTWOOD_ENEMY_STRIKES });
 export const DRIFTWOOD_SPECIES_PROGRAMS = { spawns: DRIFTWOOD_SPAWNS, hunt: DRIFTWOOD_NATIVE_HUNT, page: rows, native: rows, program: DRIFTWOOD_ENEMY_PROGRAM };

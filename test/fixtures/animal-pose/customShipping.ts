@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
 import { lookAngles, smooth01, bump, step, clamp, squashBody } from '../../../src/engine/entities/species/rigs';
-import type { CaptainMem } from '../../../src/shards/driftwood-isle/species/captainPolicy';
+type CaptainMem=Record<string,number>&{init:number;rise:number;phase:number};
 import type { MonkeyMem } from '../../../src/shards/driftwood-isle/species/monkeyPolicy';
 type Side='L'|'R';type LegIdx=0|1|2;
 type CrabBones=Record<'body'|'head'|`claw${Side}_${'arm'|'hand'|'tip'}`|`leg${Side}${LegIdx}_${'hip'|'knee'}`,AnimalRigJoint>;

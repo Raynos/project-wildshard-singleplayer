@@ -62,29 +62,29 @@ export function generateDecisionBindings(input: unknown, registries: DecisionReg
   for (const [index,slot] of row.state.entries()) {
     const name=scriptV1Identifier(slot.name), value=`core.state(${index})`, type=slot.type;
     const check=options.development===false||type==='bool'?'':`assert(value>=${slot.min??(type==='i32'?-2147483648:-Number.MAX_VALUE)}&&value<=${slot.max??(type==='i32'?2147483647:Number.MAX_VALUE)});`;
-    lines.push(`  static get ${name}():${type}{return ${type==='bool'?`${value}==1`:`${type}(${value})`};}`,
-      `  static set ${name}(value:${type}){${check}core.setState(${index},${type==='bool'?'value?1.0:0.0':'f64(value)'});}`);
+    lines.push(`  @inline static get ${name}():${type}{return ${type==='bool'?`${value}==1`:`${type}(${value})`};}`,
+      `  @inline static set ${name}(value:${type}){${check}core.setState(${index},${type==='bool'?'value?1.0:0.0':'f64(value)'});}`);
   }
-  lines.push('}','export class Params {',...map.paramNames.map((name,index)=>`  static get ${scriptV1Identifier(name)}():f64{return core.parameter(${index});}`),'}',
-    'export class Clock {',...['tick','dt','binding','self'].map((name,index)=>`  static get ${name}():${name==='dt'?'f64':'i32'}{return ${name==='dt'?`core.header(${index})`:`i32(core.header(${index}))`};}`),'}',
-    'export class Event {',...['kind','subject','a','b','c','d'].map((name,index)=>`  static get ${name}():f64{return core.event(${index});}`),'}','export class Read {');
+  lines.push('}','export class Params {',...map.paramNames.map((name,index)=>`  @inline static get ${scriptV1Identifier(name)}():f64{return core.parameter(${index});}`),'}',
+    'export class Clock {',...['tick','dt','binding','self'].map((name,index)=>`  @inline static get ${name}():${name==='dt'?'f64':'i32'}{return ${name==='dt'?`core.header(${index})`:`i32(core.header(${index}))`};}`),'}',
+    'export class Event {',...['kind','subject','a','b','c','d'].map((name,index)=>`  @inline static get ${name}():f64{return core.event(${index});}`),'}','export class Read {');
   let hasList=false;
   for(const name of row.reads) {
     if(Object.hasOwn(SCRIPT_V1_READS,name)) {
       const key=name as keyof typeof SCRIPT_V1_READS, method=reads[key], type=method.result??'f64',call=`core.read(${SCRIPT_V1_READS[key]}${method.values?',':''}${method.values})`;
-      lines.push(`  static ${scriptV1Identifier(name)}(${method.args}):${type}{return ${type==='bool'?`${call}!=0`:type==='i32'?`i32(${call})`:call};}`);
+      lines.push(`  @inline static ${scriptV1Identifier(name)}(${method.args}):${type}{return ${type==='bool'?`${call}!=0`:type==='i32'?`i32(${call})`:call};}`);
     } else {
       const key=name as keyof typeof SCRIPT_V1_LISTS,method=lists[key];hasList=true;
-      lines.push(`  static ${name}(${method.args}):i32{return core.list(${SCRIPT_V1_LISTS[key]},${method.values});}`);
+      lines.push(`  @inline static ${name}(${method.args}):i32{return core.list(${SCRIPT_V1_LISTS[key]},${method.values});}`);
     }
   }
-  lines.push('}');if(hasList)lines.push('export class List {static at(index:i32):f64{return core.listAt(index);}}');
+  lines.push('}');if(hasList)lines.push('export class List {@inline static at(index:i32):f64{return core.listAt(index);}}');
   lines.push('export class Do {');
-  for(const name of row.commands){const method=commands[name];lines.push(`  static ${scriptV1Identifier(name)}(${method.args}):void{core.command(${SCRIPT_V1_COMMANDS[name]},${method.values});}`);}
-  if(row.commands.includes('encounter'))lines.push('  static encounterPhase(index:i32):void{Do.encounter(1,f64(index));}','  static encounterWin():void{Do.encounter(2);}','  static encounterFail():void{Do.encounter(3); }');
-  lines.push('}','export class __ws {',`  static init():void{core.init(${row.state.length},${map.paramNames.length});}`,
-    '  static io():i32{return core.io();}','  static begin():void{core.begin();}','  static end():i32{return core.finish();}',
-    '  static count():i32{return core.events();}','  static select(index:i32):void{core.selectEvent(index);}','  static value(field:i32):f64{return core.event(field);}','}');
+  for(const name of row.commands){const method=commands[name];lines.push(`  @inline static ${scriptV1Identifier(name)}(${method.args}):void{core.command(${SCRIPT_V1_COMMANDS[name]},${method.values});}`);}
+  if(row.commands.includes('encounter'))lines.push('  @inline static encounterPhase(index:i32):void{Do.encounter(1,f64(index));}','  @inline static encounterWin():void{Do.encounter(2);}','  @inline static encounterFail():void{Do.encounter(3); }');
+  lines.push('}','export class __ws {',`  @inline static init():void{core.init(${row.state.length},${map.paramNames.length});}`,
+    '  @inline static io():i32{return core.io();}','  @inline static begin():void{core.begin();}','  @inline static end():i32{return core.finish();}',
+    '  @inline static count():i32{return core.events();}','  @inline static select(index:i32):void{core.selectEvent(index);}','  @inline static value(field:i32):f64{return core.event(field);}','}');
   const path=decisionBindingsPath(row),handlers=row.on.map(name=>DECISION_HANDLERS[name]);
   const glue=[`import {${handlers.map(handler=>handler.name).join(',')}} from './${row.source.slice(0,-3)}';`,
     `import {__ws,Clock} from './${path.slice(0,-3)}';`,'export function ws_abi():i32{return 1;}',
