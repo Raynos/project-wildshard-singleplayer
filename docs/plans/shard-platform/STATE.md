@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W1 DONE (10-17 ~09:30Z).** Ruler at `780770d98` (~13:45Z): **M3 63.6 % (51,020 of 80,173 cut)**, plan 38.2–71.5 %. Sky 528, Signal 392; W2: Pine 9,345 (43.9 %; includes the +603 population charge-back; the waves-to-AS lane wins it back), DW 5,602 (32.6 %); W3: Nalati 20,078, Nine 11,889. Feature 4 complete (Pine −820, DW −374). DEPLOY: red since the morning; live still a399c36f3; sp-x7 on it (G485).
+**W1 DONE (10-17 ~09:30Z).** Ruler at `b0c578fa1` (~14:45Z, sp-x6's mirror run): **M3 64.0 % (51,306 of 80,173 cut)**, plan 38.4–71.7 %. Sky 528, Signal 392; W2: Pine 9,112 (42.8 %), DW 5,549 (32.3 %); W3: Nalati 20,078, Nine 11,889. Features done: quest runner 6/6, boss 6/6, held/loadout (feature 4) 6/6, collections 5/6, contracts 5/6 (G473 exception), Z2 6/6, skitterer v1 6/6. DEPLOY: CI fixes pushed (5fd0bfe96, 8066c946b, Pine map 581443e4b); awaiting a green run and live == main.
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
