@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { SHADOW_LAYER } from '../core/shadowLayer';
+import { geometryBoundsSteps } from './geometryBounds';
 
 /**
  * E153: island-wide merged casters draw into each shadow map in pieces.
@@ -45,6 +46,12 @@ function* chunkWork(scene: THREE.Scene, report: ShadowChunkReport): Generator<vo
   scene.traverse((o) => { if (eligible(o)) found.push(o); });
   for (const mesh of found) {
     if ((mesh.userData as ChunkUserData).shadowChunked === true) continue;
+    // Eligibility used to scan every unbounded caster inside scene.traverse,
+    // before the sliced worker reached its first pause point.
+    if (mesh.geometry.boundingSphere === null) yield* geometryBoundsSteps(mesh.geometry, 'sphere');
+    const radius = mesh.geometry.boundingSphere?.radius ?? 0;
+    mesh.updateWorldMatrix(true, false);
+    if (!(radius * mesh.matrixWorld.getMaxScaleOnAxis() >= MIN_RADIUS)) continue;
     const n = yield* split(mesh);
     if (n > 0) { report.meshes++; report.pieces += n; report.tris += triangles(mesh.geometry); }
     yield;
@@ -90,10 +97,7 @@ function eligible(o: THREE.Object3D): o is THREE.Mesh {
   if (Object.keys(g.morphAttributes).length > 0 || g.groups.length > 1) return false;
   if (g.drawRange.start !== 0 || Number.isFinite(g.drawRange.count)) return false;
   if (triangles(g) < MIN_TRIS) return false;
-  if (g.boundingSphere === null) g.computeBoundingSphere();
-  const r = g.boundingSphere?.radius ?? 0;
-  mesh.updateWorldMatrix(true, false);
-  return r * mesh.matrixWorld.getMaxScaleOnAxis() >= MIN_RADIUS;
+  return true;
 }
 
 /** the mesh's triangles into squares of its local xz; returns the pieces made (0: it stays whole). Yields every
@@ -105,7 +109,7 @@ function* split(mesh: THREE.Mesh): Generator<void, number> {
   const src = g.index;
   const nTri = triangles(g);
   const vert = (t: number, k: number): number => (src ? src.getX(3 * t + k) : 3 * t + k);
-  g.computeBoundingBox();
+  yield* geometryBoundsSteps(g, 'box');
   const box = g.boundingBox;
   if (box === null) return 0;
   const w = box.max.x - box.min.x, d = box.max.z - box.min.z;

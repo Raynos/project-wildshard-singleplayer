@@ -18,6 +18,7 @@
 import { Box3, Material, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshDistanceMaterial, ShaderMaterial, Vector3, Vector4, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 
 /**
  * `reach`: metres past the cell's edge a mesh may stand before it is clipped (the road band's half width is 27.5 m: a
@@ -66,7 +67,10 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
   // the world-sized test runs in the root's own frame (the cell's centre at its origin)
   const worldSized = (mesh: Mesh): boolean => {
     const geometry = mesh.geometry;
-    if (geometry.boundingBox === null) geometry.computeBoundingBox();
+    // A live sweep must finish before shader preparation observes its patches.
+    // Exhaust the exact packed scan here; large static meshes avoid three's
+    // per-vertex accessor/Vector3 overhead without deferring the clip decision.
+    if (geometry.boundingBox === null) for (const _step of geometryBoundsSteps(geometry, 'box')) { /* synchronous census */ }
     if (geometry.boundingBox === null) return false;
     box.copy(geometry.boundingBox).applyMatrix4(mesh.matrixWorld);
     const ox = origin.x, oz = origin.z; // placed by the sweep

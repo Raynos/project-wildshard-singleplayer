@@ -1,14 +1,17 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test } from 'vitest';
-import { BoxGeometry, BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, MeshStandardMaterial } from 'three';
+import { afterEach, expect, test, vi } from 'vitest';
+import { Box3, BoxGeometry, BufferAttribute, BufferGeometry, Group, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Scene, Sphere, Vector3 } from 'three';
 import { geometryBoundsSteps } from '../src/engine/world/geometryBounds';
 import { defineModel, modelContext } from '../src/engine/models/model';
 import { LIVE_SPLIT_EVERY, LIVE_SPLIT_OVER, place } from '../src/engine/models/place';
 import { pageScope } from '../src/engine/app/resources';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { noteFrameDrawn, setFramePacing } from '../src/engine/core/framePacing';
+import { chunkShadowCastersSliced } from '../src/engine/world/shadowChunks';
+import { cellClip } from '../src/game/grid/cellClip';
+import { Scope } from '../src/engine/app/scope';
 
-afterEach(() => { setFramePacing(false); });
+afterEach(() => { setFramePacing(false); vi.restoreAllMocks(); });
 
 function fixture(): { registry: WorldRegistry; run: () => Promise<{ pieces: number; colliders: number[]; yields: number }> } {
   const material = new MeshStandardMaterial(), registry = new WorldRegistry(), ctx = modelContext(null);
@@ -94,4 +97,58 @@ test('packed and fallback bounds preserve three arithmetic and yield publication
   const oracle = morph.clone(); oracle.computeBoundingBox(); oracle.computeBoundingSphere();
   Array.from(geometryBoundsSteps(morph));
   expect(morph.boundingBox).toEqual(oracle.boundingBox); expect(morph.boundingSphere).toEqual(oracle.boundingSphere);
+});
+
+function largeCaster(): BufferGeometry {
+  const positions = new Float32Array(65538 * 3);
+  for (let i = 0; i < positions.length / 9; i++) {
+    const x = i % 2 === 0 ? -128 : 128, z = i % 4 < 2 ? -128 : 128;
+    positions.set([x, 0, z, x + 1, 0, z, x, 1, z + 1], i * 9);
+  }
+  return new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3));
+}
+
+test('shadow preparation pauses inside eligibility bounds and preserves every triangle and piece bound', async () => {
+  const geometry = largeCaster(), oracle = geometry.clone(), material = new MeshStandardMaterial(), scene = new Scene(), mesh = new Mesh(geometry, material);
+  oracle.computeBoundingBox(); oracle.computeBoundingSphere(); mesh.castShadow = true; scene.add(mesh);
+  const sphere = vi.spyOn(geometry, 'computeBoundingSphere'), box = vi.spyOn(geometry, 'computeBoundingBox');
+  let boundsPauses = 0;
+  try {
+    const report = await chunkShadowCastersSliced(scene, () => {
+      if (geometry.boundingSphere === null) { boundsPauses++; expect(mesh.castShadow).toBe(true); expect(mesh.children).toHaveLength(0); }
+      return Promise.resolve();
+    });
+    expect(boundsPauses).toBe(4); expect(report).toEqual({ meshes: 1, pieces: 4, tris: 21846 });
+    expect(sphere).not.toHaveBeenCalled(); expect(box).not.toHaveBeenCalled();
+    expect(geometry.boundingBox).toEqual(oracle.boundingBox); expect(geometry.boundingSphere).toEqual(oracle.boundingSphere);
+    expect(mesh.castShadow).toBe(false);
+    const pieces = mesh.children[0]?.children ?? [], indices: number[] = [], point = new Vector3();
+    for (const piece of pieces) {
+      if (!(piece instanceof Mesh)) throw new Error('Shadow piece must be a mesh');
+      const backing: unknown = piece.geometry;
+      if (!(backing instanceof BufferGeometry)) throw new Error('Shadow piece must keep geometry');
+      expect(backing.getAttribute('position')).toBe(geometry.getAttribute('position')); expect(piece.material).toBe(material);
+      const index = backing.index; if (index === null) throw new Error('Shadow piece must keep its sorted index');
+      const { start, count } = backing.drawRange, exact = new Box3();
+      for (let i = start; i < start + count; i++) {
+        const vertex = index.getX(i); indices.push(vertex); exact.expandByPoint(point.fromBufferAttribute(geometry.getAttribute('position'), vertex));
+      }
+      expect(backing.boundingBox).toEqual(exact); expect(backing.boundingSphere).toEqual(exact.getBoundingSphere(new Sphere()));
+    }
+    expect(indices).toEqual(Array.from({ length: 4 }, (_quadrant, quadrant) => Array.from({ length: 21846 }, (_triangle, triangle) => triangle)
+      .flatMap(triangle => triangle % 4 === quadrant ? [triangle * 3, triangle * 3 + 1, triangle * 3 + 2] : [])).flat());
+  } finally {
+    geometry.dispose(); oracle.dispose(); material.dispose();
+    for (const piece of mesh.children[0]?.children ?? []) if (piece instanceof Mesh) { const backing: unknown = piece.geometry; if (backing instanceof BufferGeometry) backing.dispose(); }
+  }
+});
+
+test('a live cell clip publishes the exact box and same clip decision in its current sweep', () => {
+  const scope = new Scope('packed-cell-clip'), root = new Group(), geometry = largeCaster(), oracle = geometry.clone(), material = new MeshStandardMaterial();
+  oracle.computeBoundingBox(); root.add(new Mesh(geometry, material));
+  const scan = vi.spyOn(geometry, 'computeBoundingBox'), clip = cellClip(root, 50, scope);
+  try {
+    expect(clip.sweep()).toBe(1); expect(scan).not.toHaveBeenCalled(); expect(geometry.boundingBox).toEqual(oracle.boundingBox);
+    expect(clip.state()).toEqual({ meshes: 1, materials: 1, unclipped: 0 }); expect(clip.sweep()).toBe(0);
+  } finally { scope.dispose(); geometry.dispose(); oracle.dispose(); material.dispose(); }
 });
