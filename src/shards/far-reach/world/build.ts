@@ -79,6 +79,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const routes = createClientScene(SKY_ROUTE_SCENE, routePorts), hoverDeck = routes.standardMaterial('glass');
   if (hoverDeck === null) throw new Error('far-reach: the route scene lost its hover glass');
   await pieces.scene(routes, SKY_ROUTES.bindings, pause);
+  await pause();
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
   // road socket continues there, so no dock
@@ -86,7 +87,13 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   for (const id of staticRows.fixed.textureOnly) models.get(id)?.geometry.dispose();
   for (const row of ISLET_SCENES.pieces) { const object = fixed.parts.get(`islets.${row.id}`); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: pieces.colliders(row.colliders) }); }
   const posts = WORLD.piece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
-  await pieces.scene(fixed, staticRows.fixed.bindings.early);
+  // OP5: the fixed scene's groups register a piece per task (the crown's three baked pieces were one long road frame); the
+  // same calls in the same order, so the scene root lands where one call per group left it
+  const fixedScene = async (bindings: Parameters<typeof pieces.scene>[1]): Promise<void> => {
+    if (bindings.length === 0) { await pieces.scene(fixed, bindings); return; }
+    for (const [i, binding] of bindings.entries()) { if (i > 0) await pause(); await pieces.scene(fixed, [binding]); }
+  };
+  await fixedScene(staticRows.fixed.bindings.early);
   await pause();
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
@@ -96,11 +103,11 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   pieces.add(LAYOUT.FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(LAYOUT.FALLEN_BRIDGE.id), active: () => state.raised });
 
   await pause();
-  await pieces.scene(fixed, staticRows.fixed.bindings.mill);
+  await fixedScene(staticRows.fixed.bindings.mill);
   const millHub = fixed.group('mill.hub'); if (millHub === null) throw new Error('Missing declared mill hub');
 
   await pause();
-  await pieces.scene(fixed, staticRows.fixed.bindings.furniture);
+  await fixedScene(staticRows.fixed.bindings.furniture);
   const [handle,notes] = createQuestPagePrompts(source,new Map([['frames',{winchAt,notesAt}]]),['winch','notes']);
 
   await pause();
@@ -109,7 +116,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pieces.scene(vaneScene, SKY_VANES.bindings, pause);
   const vanes = SKY_VANES.rows.map(row => ({ id: row.id, flag: row.flag, at: vaneParts[row.at], rotor: vaneParts[row.rotor] }));
 
-  await pieces.scene(fixed, staticRows.fixed.bindings.crown);
+  await fixedScene(staticRows.fixed.bindings.crown);
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   await pause();
   const storm = crownStorm(rnd); storm.group.position.set(LAYOUT.CROWN.x, LAYOUT.CROWN.y + STORM.lift, LAYOUT.CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
