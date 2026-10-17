@@ -12,8 +12,8 @@ import type { SignCalligraphy, SignLight } from './signAtlas';
  *   boards: opaque: the board (planks, grime, a ruled ink edge, lit by its own tubes), the rounded-rect frame tube,
  *           four rivets; board sides;
  *   tubes:  additive: one quad per character sampling the glyph field's distance fields.
- * The look is a row (`NeonTextLook`); the shard supplies its shared uniforms (`uTime`, `uNear`, and the board edge's
- * gilding: `uSutra` 0..1 toward `uPaperDeep` with a `uGold` edge), its noise and fog GLSL and its additive blending.
+ * The look is a row (`NeonTextLook`); the shard supplies its shared uniforms (`uTime`, `uNear`), its noise and fog GLSL
+ * and its additive blending.
  * `emitters` feeds a shard's reflection cards and baked spill.
  */
 
@@ -146,9 +146,6 @@ ${g.fog}
 ${FLICKER}
 uniform vec4 uFrame;   // x: inset m, y: tube radius m, z: corner radius m, w: board lift (own-light tint)
 uniform vec3 uBoard;
-uniform float uSutra;
-uniform vec3 uPaperDeep;
-uniform vec3 uGold;
 uniform float uNear;
 varying float vViewZ;
 varying vec2 vUv;
@@ -192,8 +189,7 @@ void main() {
   } else {
     D = uBoard * 0.7 + vTint * uFrame.w * 0.3 * fl;
   }
-  D = mix(D, D * 0.4 + uPaperDeep * 0.6, uSutra);
-  D = mix(D, mix(uBoard * 0.25, uGold * 1.2, uSutra), inkEdge);
+  D = mix(D, uBoard * 0.25, inkEdge);
   vec4 fg = signFog(vWorld);
   // (a sign that cuts the fog keeps its dark board too, so its neon reads saturated against it, not pastel on mist)
   float cl = vP.w * 0.6;

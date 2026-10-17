@@ -23,7 +23,6 @@ void main() {
 
 export const FS_SCROLL = /* glsl */ `
 uniform float uTime;
-uniform float uSutra;
 uniform float uNear;
 uniform float uLinePx;
 uniform sampler2D uScroll;
@@ -93,7 +92,6 @@ void main() {
   c *= 1.0 - tiles;
   vec2 panel = abs(fract(m / 8.0 + 0.5) - 0.5) * 8.0;
   float seam = max(lineAt(panel.x, fm.x, uLinePx * 1.2), lineAt(panel.y, fm.y, uLinePx * 1.2)) * far;
-  c = mix(c, c * vec3(0.55, 0.62, 0.95) * 0.75, uSutra);
   c = mix(c, vec3(0.05, 0.06, 0.08), seam * 0.7);
   vec4 fg = silkFog(vWorld, uGrade.w);
   gl_FragColor = vec4(c * sqrt(max(fg.a, 1e-4)) + fg.rgb, uNear / max(vViewZ, uNear));

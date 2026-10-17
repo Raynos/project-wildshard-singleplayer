@@ -60,15 +60,12 @@ void main() {
 export const CANOPY_FS = /* glsl */ `
 uniform float uTime;
 uniform float uNear;
-uniform float uSutra;
 uniform float uDpr;
 uniform vec3 uLightDir;
 uniform vec3 uInk0;
 uniform vec3 uInk1;
 uniform float uInkMid;
 uniform vec2 uLineFade;
-uniform vec3 uGold;
-uniform vec3 uPaper;
 uniform vec3 uLeaf[5];
 uniform vec4 uWash;    // x: band contrast, y: inner darkening, z: per-cluster tone spread, w: painted value weight
 uniform vec4 uLeafInk; // x: outline px (at 3×), y: outline strength, z: midrib strength, w: sky rim light
@@ -159,9 +156,7 @@ void main() {
   // warm lantern / neon spill, baked per vertex like the kits
   col += col * vSpill * 1.6;
   vec3 inkC = mix(uInk0, uInk1, smoothstep(4.0, uInkMid, dist));
-  inkC = mix(inkC, uGold, uSutra);
   float fade = 1.0 - smoothstep(uLineFade.x, uLineFade.y, dist);
-  col = mix(col, uPaper * (0.5 + v * 0.7), uSutra * 0.8);
   vec4 fg = vFog;
   col = mix(col, inkC, ink * fade * pow(max(fg.a, 1e-4), 0.7));
 #ifdef CARD

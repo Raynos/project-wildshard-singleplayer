@@ -43,12 +43,10 @@ const FS_LANTERN = /* glsl */ `
 ${NOISE_GLSL}
 ${FOG_GLSL}
 uniform float uTime;
-uniform float uSutra;
 uniform vec3 uHot;
 uniform vec3 uRim;
 uniform vec3 uCapCol;
 uniform vec3 uTassel;
-uniform vec3 uGold;
 uniform float uGain;
 uniform float uNear;
 varying float vViewZ;
@@ -75,10 +73,9 @@ void main() {
     E += vec3(1.0, 0.62, 0.3) * pow(clamp(ndv, 0.0, 1.0), 7.0) * (1.0 - abs(vLocal.y) / 0.25) * uGain * 0.55 * fl;
     E *= 1.0 - 0.7 * ribs;
     E = mix(E, uRim * uGain * 0.25, band * 0.8);
-    E = mix(E, E * (1.0 - ribs * 0.5) + uGold * ribs * uGain * 0.4, uSutra);
     col = E * pow(max(fg.a, 1e-4), ${EMIT_FOG});
   } else if (vPart < 1.5) {
-    vec3 c = mix(uCapCol, uGold * 0.8, uSutra) * (0.35 + 0.65 * pow(clamp(1.0 - ndv, 0.0, 1.0), 2.0));
+    vec3 c = uCapCol * (0.35 + 0.65 * pow(clamp(1.0 - ndv, 0.0, 1.0), 2.0));
     col = c * fg.a + fg.rgb;
   } else {
     col = uTassel * (0.6 + 0.4 * ndv) * fg.a + fg.rgb;

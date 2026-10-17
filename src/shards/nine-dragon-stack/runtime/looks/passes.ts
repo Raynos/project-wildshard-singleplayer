@@ -303,12 +303,10 @@ uniform sampler2D tRefl;
 uniform float uReflK;
 uniform sampler2D uSilk;
 uniform vec2 uTexel;
-uniform float uSutra;
 uniform float uTime;
 uniform float uLineScale;
 uniform float uLines;
 uniform vec3 uInk;
-uniform vec3 uGold;
 uniform vec4 uBleed;   // x: tight light, y: wide light, z: stain (pigment glaze), w: stain response
 uniform vec4 uBleed2;  // x: weave soak, y: fibre warp (uv), z: edge darkening, w: exposure
 uniform vec4 uRain;    // x: strength, y: angle (rad), z: speed (px/s), w: px scale (DPR)
@@ -400,7 +398,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
       pv *= z / max(-pv.z, 1e-4);
       vec3 wp = (uCamWorld * vec4(pv, 1.0)).xyz;
       vec4 fg = silkFog(wp, z < 1.6 ? 0.0 : 1.0);
-      vec3 ink = mix(mix(uInk, uInk1, smoothstep(4.0, uInkMid, z)), uGold * 1.25, uSutra);
+      vec3 ink = mix(uInk, uInk1, smoothstep(4.0, uInkMid, z));
       vec3 lineC = ink * fg.a + fg.rgb;
       edge = e * pow(max(fg.a, 1e-4), uLineFog - 1.0);
       c = mix(c, lineC, edge);
@@ -428,7 +426,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   c += glowAdd(tight4.a, wide4.a * 0.25, wc > 1e-5 ? 1.0 / wc : 1e4) * soak;
   if (uRain.x > 0.0) {
     float rn = rainLayer(gl_FragCoord.xy, 1.0, uRain.z, 0.28, 0.0) + 0.6 * rainLayer(gl_FragCoord.xy + 37.0, 0.55, uRain.z * 0.7, 0.3, 11.0);
-    vec3 rc = mix(vec3(0.86, 0.9, 0.97), vec3(0.85, 0.7, 0.4), uSutra) * 0.55 + (tight + wide) * 1.6;
+    vec3 rc = vec3(0.86, 0.9, 0.97) * 0.55 + (tight + wide) * 1.6;
     // (render) a drop crossing a light's halo catches it: the haze march's in-scatter lights the drizzle
     if (uRainHaze > 0.0) rc += texture(tHaze, uv).rgb * uRainHaze;
     c = mix(c, rc, clamp(rn * uRain.x, 0.0, 1.0) * 0.55);
@@ -447,7 +445,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   c = max(mix(vec3(l), c, 1.0 + uTone.z * (1.0 - sat0)), 0.0);
   // the split: the targets' lit mids and lights are warm (mean r > g > b) over cool ink-blue shadows (the lift below)
   c *= mix(vec3(1.0), vec3(1.0 + uTone.w, 1.0, 1.0 - uTone.w), smoothstep(0.06, 0.4, l));
-  c = mix(c, c * vec3(0.9, 0.96, 1.1), (1.0 - smoothstep(0.02, 0.25, l)) * uGrade.z * (1.0 - uSutra));
+  c = mix(c, c * vec3(0.9, 0.96, 1.1), (1.0 - smoothstep(0.02, 0.25, l)) * uGrade.z);
   c *= 1.0 + (weave - 0.5) * 0.035;
   vec2 q = uv - 0.5;
   c *= 1.0 - dot(q, q) * uGrade.x;

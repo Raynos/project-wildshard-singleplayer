@@ -1,19 +1,9 @@
-// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, fog-sheet and steam programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
-//  - ruled ink on every built border, box-filtered at a fixed px width from the gradient length (`inkCov`, `mpp`), a
-//    heavier ground line on walkable lips; every repeated ruling fades to its AVERAGE tone when crowded (`ruled`);
-//  - one fade per job: 焦墨 until ~110 m, clear air for the first 16 m, lines gone 120–330 m, fog dissolves lines first
-//    (T^0.7);
-//  - a painted wash: two hard bands of top light, soffits a deeper ink, pooling, rain stains, mottle, a world-anchored
-//    fractal silk weave and granulation; the fog carries a screen-space silk;
-//  - alpha = near / viewZ, so the MSAA resolve gives the post silhouette an antialiased inverse depth.
-// Kept from the clean room: the wet flagstones shared with the streak cards (kind 3), nets, leaves, cloth, baked neon
-// spill, the colour script down the Well, gold lines on the deep strata, and the 泥金磁青 flip (`uSutra`).
-// Presets (`setLook`): blue hour (the default, Jake's round-6 pick), warm raw silk, and the gold-on-indigo sutra.
-// SHARD-PLATFORM M3: the programs, the shared uniforms and the presets are rows in data/look.ts on the SDK shader family
+// 界画霓虹 Jiehua Neon (runtime/looks/look.ts: the programs and the blue-hour look).
+// SHARD-PLATFORM M3: the programs and the shared uniforms are rows in runtime/looks/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
 import { Color, type ShaderMaterial, type Texture, type IUniform, Vector2, Vector3, Vector4 } from 'three';
-import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, setUniforms, uniformsFrom, type UniformRows, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
+import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
 import { FLAG, PAINT_GLSL } from '../runtime/looks/paint';
@@ -25,7 +15,7 @@ import { silkWeaveTexture } from '../runtime/looks/weave';
 import { fogBandWindow } from '../runtime/looks/fogBands';
 import {
   EMIT_FOG as LOOK_EMIT_FOG, FOG_GLSL as LOOK_FOG, NOISE_GLSL as LOOK_NOISE, PAPER_GLSL as LOOK_PAPER, PROGRAMS, SHARED_UNIFORMS,
-  STONES_GLSL as LOOK_STONES, BANDS, LOOKS, type LookName,
+  STONES_GLSL as LOOK_STONES,
 } from '../runtime/looks/look';
 
 /** the splices only the shard knows (the datum, the flagstones, paint, light) */
@@ -42,15 +32,6 @@ export const STONES_GLSL = LOOK_FAMILY.glsl(LOOK_STONES);
 export const EMIT_FOG: string = LOOK_EMIT_FOG;
 
 const c = (hex: number): Color => new Color(hex);
-
-/** a look's preset as uniform rows (`setUniforms`), from data/look.ts' bands and looks */
-export function lookPreset(name: LookName): UniformRows {
-  const p = LOOKS[name];
-  return {
-    uSutra: name === 'sutra' ? 1 : 0, uBandCols: { rgbs: BANDS.map((b) => b[name]) }, uFogBaseCol: { rgb: p.fog },
-    uSkyTop: { rgb: p.sky[0] }, uSkyHorizon: { rgb: p.sky[1] }, uWashTint: { v3: p.tint }, uShade: { rgb: p.shade },
-  };
-}
 
 export type Uniforms = Record<string, IUniform>;
 
@@ -77,16 +58,6 @@ function sharedUniforms(): UniformsOf<typeof SHARED_UNIFORMS> & {
 /** uniforms every world program shares (one object each, so a write reaches every material) */
 export class Shared {
   readonly u = sharedUniforms();
-  look: LookName = 'jiehua';
-
-  /** the look: blue hour (Jake's pick), warm raw silk (what codex paints), or the gold-on-indigo sutra */
-  setLook(name: LookName): void {
-    this.look = name;
-    setUniforms(this.u, lookPreset(name));
-  }
-
-  /** kept for the old API: 0 = blue hour, 1 = sutra */
-  setSutra(s: number): void { this.setLook(s > 0.5 ? 'sutra' : 'jiehua'); }
 
   /**
    * (E283) the silk fog's band window for the eye at uCam (call it after every uCam write): the bands run top to bottom,

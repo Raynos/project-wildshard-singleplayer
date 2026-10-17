@@ -1,4 +1,5 @@
-// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, fog-sheet and steam programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
+// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, fog-sheet and steam programs. The
+// architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
 //  - ruled ink on every built border, box-filtered at a fixed px width from the gradient length (`inkCov`, `mpp`), a
 //    heavier ground line on walkable lips; every repeated ruling fades to its AVERAGE tone when crowded (`ruled`);
 //  - one fade per job: 焦墨 until ~110 m, clear air for the first 16 m, lines gone 120–330 m, fog dissolves lines first
@@ -7,23 +8,20 @@
 //    fractal silk weave and granulation; the fog carries a screen-space silk;
 //  - alpha = near / viewZ, so the MSAA resolve gives the post silhouette an antialiased inverse depth.
 // Kept from the clean room: the wet flagstones shared with the streak cards (kind 3), nets, leaves, cloth, baked neon
-// spill, the colour script down the Well, gold lines on the deep strata, and the 泥金磁青 flip (`uSutra`).
-// Presets (`setLook`): blue hour (the default, Jake's round-6 pick), warm raw silk, and the gold-on-indigo sutra.
+// spill, the colour script down the Well and gold lines on the deep strata. One look: blue hour (Jake's round-6 pick).
 //
 // SHARD-PLATFORM M3 (look-family rows): this file is the look as data for the SDK shader family
-// (@wildshard/game/systems/looks/shaderFamily): the shared uniforms as rows, the looks' presets, every program's GLSL and its row.
+// (@wildshard/game/systems/looks/shaderFamily): the shared uniforms as rows, every program's GLSL and its row.
 // `@{name}` splices what the shard passes the family (look/style.ts): the datum height (y0), the flagstones' course
 // height (flagRh), the painted surfaces' GLSL (paint) and the baked light volume's (lightvol).
 import type { ShaderProgramRow, UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
-export type LookName = 'jiehua' | 'silk' | 'sutra';
-
-/** the fog bands down the Well (centre y, half-width m, density /m) and their silk per look: thin dense bands with
- *  clear air between read as counted bands (ink lab learning 6); deeper = bluer, to indigo */
-export interface Band { y: number; w: number; d: number; jiehua: number; silk: number; sutra: number; puff?: number }
+/** the fog bands down the Well (centre y, half-width m, density /m) and their silk: thin dense bands with clear air
+ *  between read as counted bands (ink lab learning 6); deeper = bluer, to indigo */
+export interface Band { y: number; w: number; d: number; col: number; puff?: number }
 export const BANDS: readonly Band[] = [
-  { y: 212, w: 6, d: 0.022, jiehua: 0xd6dbe2, silk: 0xd8cfbd, sutra: 0x2a3a62 },
-  { y: 152, w: 3, d: 0.008, jiehua: 0xc9ced6, silk: 0xcbc0ad, sutra: 0x24345a },
+  { y: 212, w: 6, d: 0.022, col: 0xd6dbe2 },
+  { y: 152, w: 3, d: 0.008, col: 0xc9ced6 },
   // (round 14, the layered Well: Jake's "looking down the Well is flat, there's nothing") the strata bands under the
   // square are THIN silk — a crossing leaves 60–90 % of the light, so each level reads a step paler, not a white slab
   // (F5, the Well's strata: Jake's "down the Well is the weakest … not layered and complex") the Well's bands are CLOUD
@@ -33,30 +31,22 @@ export const BANDS: readonly Band[] = [
   // to a white slab — a stratum 5 m under the eye is one puff across the whole frame
   // (render, E281: the coordinator's D eye-check — 50–80 m down the mist passed a quarter of the light, the deep levels
   // and the temple a pale floor) the strata at half their depth
-  { y: 103, w: 2.5, d: 0.015, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257, puff: 1 },
-  { y: 84, w: 3, d: 0.0175, jiehua: 0xbec6d3, silk: 0xbfb4a3, sutra: 0x213055, puff: 1 },
-  { y: 64, w: 3, d: 0.0175, jiehua: 0xb8c2d0, silk: 0xb7ad9d, sutra: 0x202f52, puff: 1 },
-  { y: 44, w: 4, d: 0.05, jiehua: 0xb3becc, silk: 0xaea698, sutra: 0x1e2d4f, puff: 1 },
-  { y: -30, w: 5, d: 0.045, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
-  { y: -110, w: 5, d: 0.06, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
-  { y: -190, w: 5, d: 0.1, jiehua: 0x2c3a5e, silk: 0x2c3a5e, sutra: 0x101b31 },
-  { y: -236, w: 5, d: 0.12, jiehua: 0x16223c, silk: 0x16223c, sutra: 0x0c1729 },
-  { y: -400, w: 1, d: 0, jiehua: 0x000000, silk: 0x000000, sutra: 0x000000 },
+  { y: 103, w: 2.5, d: 0.015, col: 0xc2cad6, puff: 1 },
+  { y: 84, w: 3, d: 0.0175, col: 0xbec6d3, puff: 1 },
+  { y: 64, w: 3, d: 0.0175, col: 0xb8c2d0, puff: 1 },
+  { y: 44, w: 4, d: 0.05, col: 0xb3becc, puff: 1 },
+  { y: -30, w: 5, d: 0.045, col: 0x9eabbe },
+  { y: -110, w: 5, d: 0.06, col: 0x5d6a86 },
+  { y: -190, w: 5, d: 0.1, col: 0x2c3a5e },
+  { y: -236, w: 5, d: 0.12, col: 0x16223c },
+  { y: -400, w: 1, d: 0, col: 0x000000 },
 ];
 export const BAND_COUNT = 11;
 
-export interface LookPreset { fog: number; sky: [number, number]; tint: [number, number, number]; shade: number }
-export const LOOKS: Readonly<Record<LookName, LookPreset>> = {
-  // (render, E281) blue hour, high key (the four mockups: a bright silver-blue silk, a pale sky, mid-grey wet stone under
-  // bright reflections — not night): the sky a soft cerulean, the air a pale silver silk, the shaded faces a cool
-  // ink-blue (Shared.u holds the same: the game never calls setLook)
-  jiehua: { fog: 0xb8c2d2, sky: [0x6f94c8, 0xb3c3d8], tint: [0.9, 0.93, 1.0], shade: 0x8f9ab4 },
-  silk: { fog: 0xc4b59a, sky: [0xa8977a, 0xd2c3a4], tint: [1.1, 1.0, 0.82], shade: 0xbcb2a0 },
-  sutra: { fog: 0x22325a, sky: [0x0a1224, 0x1d2b4a], tint: [1, 1, 1], shade: 0xadb2bf },
-};
-
 /** uniforms every world program shares, as rows (one live object each, so a write reaches every material); the silk
- *  weave, the metals, the sutra's paper and the paint's and light volume's textures are added by look/style.ts */
+ *  weave, the metals, the deep strata's paper and the paint's and light volume's textures are added by look/style.ts.
+ *  (render, E281) blue hour, high key (the four mockups: a bright silver-blue silk, a pale sky, mid-grey wet stone under
+ *  bright reflections — not night): the sky a soft cerulean, the air a pale silver silk, the shaded faces a cool ink-blue */
 export const SHARED_UNIFORMS = {
   uTime: 0,
   uCam: { v3: [0, 0, 0] },
@@ -70,7 +60,6 @@ export const SHARED_UNIFORMS = {
   /** device px per CSS px / 3: line widths are authored at 3× */
   uDpr: 1,
   uNear: 0.1,
-  uSutra: 0,
   // lines
   uLinePx: 2.1,
   uGroundPx: 4.2,
@@ -99,7 +88,7 @@ export const SHARED_UNIFORMS = {
   uFogStart: 16,
   uFogBaseCol: { rgb: 0xb8c2d2 },
   uBands: { v4s: BANDS.map((b) => [b.y, b.w, b.d, b.puff ?? 0] as const) },
-  uBandCols: { rgbs: BANDS.map((b) => b.jiehua) },
+  uBandCols: { rgbs: BANDS.map((b) => b.col) },
   // (E283) the bands a ray from the eye can reach (bandWindow(), from uCam): x the first going down, y the last going
   // up, z 1 = use it (0: every band tested, the old loop)
   uBandWin: { v3: [0, BAND_COUNT - 1, 0] },
@@ -421,7 +410,6 @@ void main() {
 export const FS_JIEHUA = /* glsl */ `
 uniform float uTime;
 uniform float uNear;
-uniform float uSutra;
 uniform float uLinePx;
 uniform float uGroundPx;
 uniform vec2 uLineFade;
@@ -878,16 +866,13 @@ void main() {
       emit += poolRim(vWorld, n, V) * (0.6 + 0.4 * max(gloss, wet)) * lacq * (1.0 - jl);
     }
   }
-  // the colour script: the deep strata sink into indigo paper (their windows gold) — the sutra's hinge
+  // the colour script: the deep strata sink into indigo paper (their windows gold)
   float lumC = lum(shaded);
   float deep = (1.0 - smoothstep(-150.0, 70.0, vWorld.y)) * 0.9;
   vec3 deepC = mix(uPaperDeep, uPaper, clamp(lumC * 1.6, 0.0, 1.0)) * mix(0.8, 1.2, lit);
   shaded = mix(shaded, mix(deepC, shaded * 0.5, accent * 0.6), deep * 0.85);
-  // 泥金磁青: indigo paper, accents keep a darkened hue, lit windows go gold
-  vec3 paper = mix(uPaperDeep, uPaper, clamp(lumC * 1.7, 0.0, 1.0));
-  vec3 sut = mix(paper, shaded * 0.5, accent);
-  col = mix(shaded, sut, uSutra);
-  emit = mix(emit, uSutraWin * dot(emit, vec3(0.33)), max(uSutra, deep * 0.7));
+  col = shaded;
+  emit = mix(emit, uSutraWin * dot(emit, vec3(0.33)), deep * 0.7);
   if (gloss > 0.5) {
     vec3 R = reflect(-V, n);
     float s = max(dot(R, normalize(uLightDir + vec3(-0.3, 0.2, 0.5))), 0.0);
@@ -895,18 +880,18 @@ void main() {
   }
 
   // ── ink: 焦墨 near → 淡墨 by uInkMid → dissolved by uLineFade.y; silver at the Rail Cut hinge, gold below it,
-  // gold on the hooks and in the sutra look ──
+  // gold on the hooks ──
   float yy = vWorld.y;
   vec3 inkC = mix(uInk0, uInk1, smoothstep(4.0, uInkMid, dist));
   inkC = mix(inkC, uSilver, 1.0 - smoothstep(-80.0, -40.0, yy));
   inkC = mix(inkC, uGold, 1.0 - smoothstep(-160.0, -120.0, yy));
   vec3 goldC = mix(uGold * 1.35, uGoldDim, smoothstep(8.0, 150.0, dist));
-  vec3 lineC = mix(inkC, goldC, max(uSutra, goldL));
+  vec3 lineC = mix(inkC, goldC, goldL);
   float fade = 1.0 - smoothstep(uLineFade.x, uLineFade.y, dist);
   float li = clamp(lines, 0.0, 1.0) * fade * pow(max(fgc.a, 1e-4), uLineFog - 1.0);
   col = mix(col, lineC, mix(li, fade, forceInk));
   emit += goldL * li * uGold * 0.8;
-  emit += li * uGold * 0.9 * (1.0 - smoothstep(-120.0, -20.0, yy)) * (1.0 - uSutra);
+  emit += li * uGold * 0.9 * (1.0 - smoothstep(-120.0, -20.0, yy));
 
   vec3 fogC = fgc.rgb * (jl < 1.0 ? mix(silkPaper(gl_FragCoord.xy), 1.0, jl) : 1.0);
   // (round 14) a light punches through the silk further than the wash it sits on (√T, as the facade windows do):
@@ -949,8 +934,6 @@ export const FS_NEON = /* glsl */ `
 uniform sampler2D uMono;
 uniform sampler2D uColour;
 uniform float uTime;
-uniform float uSutra;
-uniform vec3 uPaperDeep;
 uniform float uFogScale;
 uniform float uNeonGain;
 uniform float uNear;
@@ -992,7 +975,6 @@ void main() {
     D = mix(vColor, t.rgb, t.a);
     E = t.rgb * t.a * max(vNeon.x - 1.0, 0.0);
   }
-  D = mix(D, D * 0.3 + uPaperDeep * 0.55 * step(mode, 0.5), uSutra);
   vec4 fg = silkFog(vWorld, uFogScale);
   vec3 outc = D * fg.a + fg.rgb + E * pow(max(fg.a, 1e-4), vNeon.z);
   gl_FragColor = vec4(outc, uNear / max(vViewZ, uNear));
@@ -1016,7 +998,6 @@ void main() {
 `;
 
 export const FS_SKY = /* glsl */ `
-uniform float uSutra;
 uniform sampler2D uSilk;
 uniform vec3 uSkyTop;
 uniform vec3 uSkyHorizon;
@@ -1099,11 +1080,6 @@ void main() {
   vec3 d = normalize(vDir);
   float e = d.y;
   vec3 j = mix(uSkyHorizon, uSkyTop, smoothstep(0.05, 0.95, e));
-  vec3 s = mix(vec3(0.024, 0.04, 0.085), vec3(0.008, 0.012, 0.03), smoothstep(0.0, 0.9, e));
-  vec2 sc = vec2(atan(d.z, d.x) * 90.0, e * 90.0);
-  vec2 ci = floor(sc);
-  float st = step(0.975, h12(ci)) * (1.0 - smoothstep(0.05, 0.32, length(fract(sc) - 0.5))) * smoothstep(0.05, 0.3, e);
-  s += st * vec3(0.95, 0.72, 0.32) * 2.0;
   // (render, E281) silk clouds: long pale bands lit from below by the city, on a plane over the Stack (the engine's white
   // cumulus dome is hidden: render.ts). x: their share, y: their scale
   // (a steep plane projection with long bands drew rays toward the vanishing point low in the sky: soft drifts, faded low)
@@ -1111,8 +1087,7 @@ void main() {
   float cn = vnoise(cp * vec2(1.0, 1.7) + 7.0) * 0.62 + vnoise(cp * vec2(2.6, 4.1) + 1.7) * 0.38;
   float cov = smoothstep(0.52, 0.8, cn) * smoothstep(0.22, 0.55, e);
   j = mix(j, mix(uSkyHorizon * 1.2, vec3(0.86, 0.74, 0.66), 0.25), cov * uSkyCloud.x);
-  j = skyline(d, j);
-  vec3 col = mix(j, s, uSutra);
+  vec3 col = skyline(d, j);
   col *= 1.0 + (texture(uSilk, gl_FragCoord.xy / 380.0).r - 0.5) * 0.07;
   gl_FragColor = vec4(col, 0.0);
 }
@@ -1186,7 +1161,6 @@ void main() {
 `;
 
 export const FS_STEAM = /* glsl */ `
-uniform float uSutra;
 varying vec2 vC;
 varying float vA;
 varying vec3 vWorld;
@@ -1195,8 +1169,7 @@ void main() {
   float r = length(vC);
   float n = vnoise(vC * 2.5 + vWorld.xz * 0.7) * 0.5 + 0.5;
   float a = (1.0 - smoothstep(0.2, 1.0, r)) * n * vA * 0.42;
-  vec3 c = mix(vec3(0.95, 0.95, 0.93), vec3(0.45, 0.48, 0.62), uSutra);
-  gl_FragColor = vec4(c, a);
+  gl_FragColor = vec4(0.95, 0.95, 0.93, a);
 }
 `;
 
@@ -1207,9 +1180,9 @@ export const PROGRAMS = {
   // (render, E281) depth-tested at the far plane (xyww): drawn after the world's opaques (render.ts sets its order) it
   // shades only the pixels where the sky shows, not the whole screen under the city
   sky: {
-    vertex: VS_SKY, fragment: FS_SKY, shared: ['uCam', 'uRootAt', 'uSutra', 'uSilk', 'uSkyTop', 'uSkyHorizon', 'uSkyline', 'uFogBaseCol'],
+    vertex: VS_SKY, fragment: FS_SKY, shared: ['uCam', 'uRootAt', 'uSilk', 'uSkyTop', 'uSkyHorizon', 'uSkyline', 'uFogBaseCol'],
     uniforms: { uSkyCloud: { v2: [0.45, 1.4] } }, side: 'back', depthWrite: false, depthTest: true,
   },
   sheet: { vertex: VS_SHEET, fragment: FS_SHEET, transparent: true, depthWrite: false, side: 'double', blend: 'keepAlpha' },
-  steam: { vertex: VS_STEAM, fragment: FS_STEAM, shared: ['uTime', 'uSutra', 'uRootAt'], transparent: true, depthWrite: false, blend: 'keepAlpha' },
+  steam: { vertex: VS_STEAM, fragment: FS_STEAM, shared: ['uTime', 'uRootAt'], transparent: true, depthWrite: false, blend: 'keepAlpha' },
 } as const satisfies Readonly<Record<string, ShaderProgramRow>>;
