@@ -1,10 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the production GLB with retained source geometry.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The runtime URL must name its exact content-addressed bytes.
+import { createHash } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { gloveFist, riderArm } from '../src/engine/player/nalatiArms';
-import { buildSpear as authorSpear, buildJavelin as authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } from '../src/shards/nalati-grasslands/generators/spear';
+import { installPortableMath } from './fake/portableMath';
 import { merge } from '../src/shards/nalati-grasslands/generators/meleeGeo';
 import { buildSpear, buildJavelin, prepareSpear, spearGeometry, spearProfile } from '../src/shards/nalati-grasslands/runtime/weapons/javelinSpear';
 import { emptyShardfile } from '../src/sdk/author';
@@ -12,8 +14,13 @@ import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import rows from '../src/shards/nalati-grasslands/data/spear.generated.json' with { type: 'json' };
 
+installPortableMath();
+const { buildSpear: authorSpear, buildJavelin: authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } = await import('../src/shards/nalati-grasslands/generators/spear');
+
 test('baked spear retains all geometry channels, poses, coefficients and independent copies', async () => {
-  const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(readFileSync(`public${rows.pool.url}`)).buffer, '');
+  const bytes = readFileSync(`public${rows.pool.url}`);
+  expect(rows.pool.url).toBe(`/assets/nalati/baked/${createHash('sha256').update(bytes).digest('hex')}.glb`);
+  const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   try {
     await prepareSpear({ shardfile: { ...emptyShardfile({ slug: 'spear-test', name: 'Spear', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(rows))) });

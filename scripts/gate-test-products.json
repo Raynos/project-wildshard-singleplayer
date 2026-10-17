@@ -1,4 +1,6 @@
 {
+  "test/nalati-spear-pool.test.ts": [],
+  "test/nalati-generation-order.test.ts": [],
   "test/platform-json-code.test.ts": [],
   "test/boss-fight-platform.test.ts": [],
   "test/parked-viewmodels.test.ts": [],

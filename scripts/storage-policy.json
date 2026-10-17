@@ -28,6 +28,20 @@
       "bytes": 2087994,
       "kind": "runtime",
       "purpose": "Nalati fixed crag quadrants, exact tier geometry decoded through the existing lane-bake host"
+    },
+    {
+      "path": "public/assets/far-reach/baked/prepared-models.glb",
+      "oid": "2ac3c3bed25def4e7137f24264dee7bb7fe056dd",
+      "bytes": 10134100,
+      "kind": "runtime",
+      "purpose": "Sky Reach prepared world model pool, shipped and used by cold map builds"
+    },
+    {
+      "path": "public/assets/nalati/baked/8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac.glb",
+      "oid": "d8739fa59575d340468e68060f28c1e5f8b06dbd",
+      "bytes": 2512520,
+      "kind": "runtime",
+      "purpose": "Nalati portable spear and javelin geometry, shipped"
     }
   ]
 }

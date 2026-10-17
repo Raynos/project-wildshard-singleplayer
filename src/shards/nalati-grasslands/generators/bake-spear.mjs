@@ -5,8 +5,13 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
-import { buildSpear, buildJavelin, SPEAR_PROFILE, SPEAR_VIEW } from './spear.ts';
 import { merge } from './meleeGeo.ts';
+import { installPortableMath } from '@wildshard/commons/bake/portableMath';
+
+// Content-addressed geometry must use the same transcendental bits on arm64 and x64.
+// Install before the source module constructs its authored pose quaternions too.
+installPortableMath();
+const { buildSpear, buildJavelin, SPEAR_PROFILE, SPEAR_VIEW } = await import('./spear.ts');
 
 const spear = buildSpear(), javelin = buildJavelin(), { hands, leftHandY } = SPEAR_VIEW;
 const restInv = SPEAR_VIEW.poses.rest.q.clone().invert();

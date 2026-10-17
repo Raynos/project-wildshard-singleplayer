@@ -16501,111 +16501,6 @@
       }
     },
     {
-      "id": "nalati-dressing-plan",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/dressingPlan.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "scripts/bake/nalatiDressing.mjs",
-        "src/shards/nalati-grasslands/generators/dressingPlan.ts"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "scripts/bake/environment.mjs",
-        "scripts/bake/nativeWorld.mjs",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/nalati-grasslands",
-        "public/assets/nalati",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "scripts/bake/nalatiDressing.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-stone.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-willow.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-lupin.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-daisy.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-reed.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-logs.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-stumps.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-ovoos.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-poles.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-fences.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-gates.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-drifts.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-colliders.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-clutter.generated.json"
-      ],
-      "platform": "native",
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-stone.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-willow.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-lupin.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-daisy.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-reed.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-logs.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-stumps.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-ovoos.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-poles.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-fences.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-gates.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-drifts.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-colliders.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-clutter.generated.json"
-      ]
-    },
-    {
-      "id": "nalati-sabre-pool",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-sabre.mjs"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
-        "src/shards/nalati-grasslands/generators/sabre.ts",
-        "src/shards/nalati-grasslands/data/items.json",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/generators/meleeGeo.ts"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
-        "src/shards/nalati-grasslands/data/sabre.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
-        "src/shards/nalati-grasslands/data/sabre.generated.json"
-      ]
-    },
-    {
       "id": "nalati-model-paint",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-model-paint.mjs",
@@ -16731,6 +16626,111 @@
       "catalogueDependencies": []
     },
     {
+      "id": "nalati-dressing-plan",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/dressingPlan.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "scripts/bake/nalatiDressing.mjs",
+        "src/shards/nalati-grasslands/generators/dressingPlan.ts"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake/environment.mjs",
+        "scripts/bake/nativeWorld.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "public/assets/nalati",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "scripts/bake/nalatiDressing.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-stone.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-willow.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-lupin.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-daisy.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-reed.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-logs.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-stumps.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-ovoos.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-poles.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-fences.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-gates.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-drifts.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-colliders.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-clutter.generated.json"
+      ],
+      "platform": "native",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-stone.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-willow.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-lupin.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-daisy.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-reed.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-logs.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-stumps.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-ovoos.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-poles.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-fences.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-gates.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-drifts.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-colliders.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-clutter.generated.json"
+      ]
+    },
+    {
+      "id": "nalati-sabre-pool",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-sabre.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
+        "src/shards/nalati-grasslands/generators/sabre.ts",
+        "src/shards/nalati-grasslands/data/items.json",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/shards/nalati-grasslands/generators/meleeGeo.ts"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
+        "src/shards/nalati-grasslands/data/sabre.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
+        "src/shards/nalati-grasslands/data/sabre.generated.json"
+      ]
+    },
+    {
       "id": "nalati-water",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/waterStrips.ts",
@@ -16788,15 +16788,16 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/generators/meleeGeo.ts"
+        "src/shards/nalati-grasslands/generators/meleeGeo.ts",
+        "src/commons"
       ],
       "outputs": [
-        "public/assets/nalati/baked/af347349c8a7a68f4530e63118ece463692110a380b739e36b1674cb24559259.glb",
+        "public/assets/nalati/baked/8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac.glb",
         "src/shards/nalati-grasslands/data/spear.generated.json"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "public/assets/nalati/baked/af347349c8a7a68f4530e63118ece463692110a380b739e36b1674cb24559259.glb",
+        "public/assets/nalati/baked/8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac.glb",
         "src/shards/nalati-grasslands/data/spear.generated.json"
       ]
     },
