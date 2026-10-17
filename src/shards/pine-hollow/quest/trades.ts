@@ -40,13 +40,6 @@ export function tradeState(t: Trade, pack: Pack, owns: (skin: string) => boolean
 /** the Bag's PACK line under an item: what Mott gives for it ('Bolts · arrows'; resin, in nearly every swap: 'Most trades') */
 export function mottLine(catalogue: TradeCatalogue, item: string): string { return catalogue.lines[item] ?? 'Mott has no use for it'; }
 
-const ITEM_NAMES: Record<string, string> = {
-  'lodge-ribbon': 'lodge ribbon', 'amber-resin': 'amber resin', 'deer-hide': 'deer hide',
-  'boar-hide': 'boar hide', 'boar-tusk': 'boar tusk', 'bear-pelt': 'bear pelt', venison: 'venison',
-};
-/** an item's name for a count ("2 deer hides", "3 amber resin", "1 venison") */
-export const itemName = (id: string, n: number): string => { const w = ITEM_NAMES[id] ?? id; return n === 1 ? w : w.endsWith('s') || w.endsWith('venison') || w.endsWith('resin') ? w : `${w}s`; };
-
 /** the stall's state for a good: a finish already owned, no room for what it gives, short of what it takes, or tradeable */
 export function tradeShopState(t: Trade, pack: Pack, owns: (skin: string) => boolean, room: Room): ShopState {
   const st = tradeState(t, pack, owns, room);

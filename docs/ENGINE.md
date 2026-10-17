@@ -6491,9 +6491,15 @@ and listeners on close. `renderRows` retires old row listeners before replacing
 content. Close refs, bounded close-key lists and pointer isolation are policy;
 `bind(view, scope, close)` retains custom submit keys, focus/input guards and UI
 layer ownership with the caller. A closed/disposed owner cannot reopen.
-Pine's lodge board keeps its own rows, text, claim/reroll callbacks and payouts.
-The G441 W3 user is Nalati's horse-name prompt: retain its Enter/save, name
-cleaning, first-input grace, focus and modal order in the caller binding.
+`@wildshard/format/panelTemplate` admits bounded read-only templates and
+input policy; `@wildshard/sdk/panelTemplates` expands their markup without
+a DOM. `@wildshard/sdk/dataPanels` reads named `quests/panels.json` and
+installs `DataPanel` over the existing scoped panel and modal owners. Pine's
+lodge rows and transient count, and Nalati's horse-name form, are real users.
+Templates select scalar fields, finite repeats, comparisons, text and named
+actions; they cannot write gameplay state. Original claim/reroll payouts and
+horse-name cleaning stay with their callers. Open forms keep Enter/save,
+the first-input grace, synchronous focus, modal order and fresh scopes.
 
 `src/engine/models/colliders.ts#readColliderRows(rows, {kinds, surfaces, requireSurface?})` reads serialized
 box, capsule, ball, hull, trimesh and tread descriptors into fresh registry data. The caller explicitly

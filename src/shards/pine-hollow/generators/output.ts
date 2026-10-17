@@ -1,3 +1,4 @@
+import { PINE_PANELS } from './panels';
 import { THRALL_CLIPS } from './thrallClips';
 import thrallLook from '../data/thrallLook.json' with { type: 'json' };
 import { PINE_QUEST_RUNTIME } from './questRuntime';
@@ -46,6 +47,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS))),
   nameBlob('look/creature-clips.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ pose: THRALL_CLIPS, ...thrallLook }))),
   nameBlob('quests/native.json', 'json', new TextEncoder().encode(JSON.stringify(PINE_QUEST_RUNTIME))),
   nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram)))),

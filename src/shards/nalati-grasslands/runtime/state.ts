@@ -1,3 +1,4 @@
+import { readDataPanels } from '@wildshard/sdk/dataPanels';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import source from '../shard.config';
 import type { NalatiPersistence } from './persistence';
@@ -123,6 +124,8 @@ export interface Nalati {
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
+  const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
+  if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
   const { game, sky } = ctx;
   const slice = slicer(0, progress);
   let completed = 0;
@@ -352,7 +355,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = installStealth(plugin, { player, wildlife: () => wildlife, isMounted: () => extra.mounted, crouchHere: () => ride !== null && ride.taming.view.trust !== null });
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = wireRide({ namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       installRide(plugin, ride);
 

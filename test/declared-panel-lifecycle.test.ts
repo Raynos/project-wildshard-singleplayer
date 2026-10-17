@@ -1,22 +1,26 @@
 // @vitest-environment happy-dom
 import { CONTRACTS } from './fixtures/pine-contracts';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { DeclaredPanel } from '../src/sdk/panels';
-import { BoardPanel } from '../src/shards/pine-hollow/quest/ui';
+import { app } from '../src/engine/app/runtime';
+import { DataPanel } from '../src/sdk/dataPanels';
+import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
+import { parsePanelDefinition } from '../src/format/panelTemplate';
+import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
 import { claim, newBoard, reroll } from '../src/shards/pine-hollow/quest/contracts';
-import { nameBox } from '../src/shards/nalati-grasslands/ride/HorseNamePrompt';
 import { cleanHorseName } from '../src/shards/nalati-grasslands/ride/horseNames';
 
 test('the persistent lodge board retains its frame, payouts, keys and scoped row listeners', () => {
-  const scope = new Scope('board-lifecycle'), board = newBoard(CONTRACTS), events: string[] = [], panel = new BoardPanel(() => board, scope);
+  const scope = new Scope('board-lifecycle'), board = newBoard(CONTRACTS), events: string[] = [];
+  const panel = new DataPanel(PINE_PANELS.board, { scope, values: () => board, actions: new Map([
+    ['claim', value => { const i = Number(value); events.push(`claim:${i}`); expect(claim(CONTRACTS, board, i)).not.toBeNull(); }],
+    ['tear', value => { const i = Number(value); events.push(`tear:${i}`); reroll(CONTRACTS, board, i); }],
+  ]) });
   const first = board.slots[0];
   if (first === undefined) throw new Error('Missing first contract');
   first.have = first.need;
   panel.onOpen = () => { events.push(`open:${panel.isOpen}`); };
   panel.onClose = () => { events.push(`close:${panel.isOpen}`); };
-  panel.onClaim = i => { events.push(`claim:${i}`); expect(claim(CONTRACTS, board, i)).not.toBeNull(); };
-  panel.onReroll = i => { events.push(`tear:${i}`); reroll(CONTRACTS, board, i); };
   try {
     const root = panel.root;
     expect(root.isConnected).toBe(true); expect(panel.isOpen).toBe(false);
@@ -43,41 +47,34 @@ test('the persistent lodge board retains its frame, payouts, keys and scoped row
   } finally { scope.dispose(); }
 });
 
-test('the W3 horse-name content can borrow fresh scopes, submit keys, focus and layer ownership', () => {
-  const owner = new Scope('horse-panel-lifecycle'), saves: string[] = [], layers: string[] = [];
-  let current = 'Camp horse';
-  const panel = new DeclaredPanel(() => nameBox(current), owner, {
-    lifetime: 'open',
-    bind(view, scope, close) {
-      layers.push('push'); scope.onDispose(() => { layers.push('pop'); });
-      const done = (save: boolean): void => {
-        const name = cleanHorseName(view.value('input')); close();
-        if (save && name.length > 0) saves.push(name);
-      };
-      view.on('', 'keydown', e => {
-        e.stopPropagation();
-        if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); done(true); }
-        else if (e.code === 'Escape') done(false);
-      }, scope);
-      view.on('cancel', 'click', () => { done(false); }, scope);
-      view.on('save', 'click', () => { done(true); }, scope);
-    },
-  });
-  panel.onOpen = () => { panel.view.select('input'); };
+test('the horse-name data preserves submit, focus, grace, layer ownership and fresh open scopes', () => {
+  const owner = new Scope('horse-panel-lifecycle'), saves: string[] = [];
+  const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
+  const panel = new DataPanel(parsePanelDefinition(horsePanel), { scope: owner });
+  const save = new Map([['save', (value: unknown) => { const name = cleanHorseName(String(value)); if (name.length > 0) saves.push(name); }]]);
   try {
-    expect(() => panel.view).toThrow('no mounted view');
-    panel.open(); const first = panel.view;
-    expect(document.activeElement).toBe(first.node('input'));
+    panel.open({ current: 'Camp horse' }, save);
+    const first = panel.view;
+    expect(document.activeElement).toBe(first.node('input')); expect(app.ui.top).toBe('modal');
+    const early = new InputEvent('beforeinput', { cancelable: true }); first.node('input').dispatchEvent(early);
+    expect(early.defaultPrevented).toBe(true);
+    now.mockReturnValue(1200);
+    const later = new InputEvent('beforeinput', { cancelable: true }); first.node('input').dispatchEvent(later);
+    expect(later.defaultPrevented).toBe(false);
+    let released = false; owner.listen(document, 'keyup', () => { released = true; });
+    first.node('input').dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, code: 'KeyW' }));
+    expect(released).toBe(true);
+    let leaked = false;
+    owner.listen(document, 'keydown', () => { leaked = true; });
     first.node('input').dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Enter', cancelable: true }));
-    expect(saves).toEqual(['Camp Horse']); expect(first.root.isConnected).toBe(false);
-    expect(document.activeElement).not.toBe(first.node('input')); expect(layers).toEqual(['push', 'pop']);
+    expect(leaked).toBe(false); expect(saves).toEqual(['Camp Horse']); expect(first.root.isConnected).toBe(false);
+    expect(document.activeElement).not.toBe(first.node('input')); expect(app.ui.top).not.toBe('modal');
     first.node('save').click(); expect(saves).toHaveLength(1);
-    current = 'Second horse'; panel.open();
-    expect(panel.view).not.toBe(first); expect(panel.view.value('input')).toBe(current);
+    panel.open({ current: 'Second horse' }, save);
+    expect(panel.view).not.toBe(first); expect(panel.view.value('input')).toBe('Second horse');
     panel.view.node('cancel').click(); expect(saves).toHaveLength(1);
-    panel.open(); owner.dispose();
-    expect(panel.isOpen).toBe(false); expect(() => panel.view).toThrow('no mounted view');
-    expect(layers).toEqual(['push', 'pop', 'push', 'pop', 'push', 'pop']);
+    panel.open({ current: 'Third horse' }, save); owner.dispose();
+    expect(panel.isOpen).toBe(false); expect(() => panel.view).toThrow('no mounted view'); expect(app.ui.top).not.toBe('modal');
     panel.open(); expect(panel.isOpen).toBe(false);
   } finally { owner.dispose(); }
 });

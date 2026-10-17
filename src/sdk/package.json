@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./panelTemplates": "./panelTemplates.ts",
+    "./dataPanels": "./dataPanels.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",

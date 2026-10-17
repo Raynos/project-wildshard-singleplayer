@@ -18,7 +18,10 @@ import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';
 import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
 import { Reins } from './Reins';
 import { SheepRaid } from '../creatures/sheepRaid';
-import { HorseNamePrompt } from './HorseNamePrompt';
+import { DataPanel } from '@wildshard/sdk/dataPanels';
+import type { PanelDefinition } from '@wildshard/format/panelTemplate';
+import { cleanHorseName } from './horseNames';
+import './ride.css';
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
 const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];
@@ -52,7 +55,7 @@ const BOLT_PANIC = 35;
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
 function voice(name: string): AnimalSound { return name; }
 
-export interface RideCtx { persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
+export interface RideCtx { namePanel: PanelDefinition; persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 export interface RidePlay { toast: (text: string) => void }
 
 export interface Ride {
@@ -123,12 +126,15 @@ export function wireRide(ctx: RideCtx): Ride {
   const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: (t) => { play?.toast(t); } });
 
   // B1: NAME at the hitching rail — the horse standing nearest you by the rail, on foot
-  const namer = new HorseNamePrompt();
+  const namer = new DataPanel(ctx.namePanel);
   ctx.ctx?.scope.onDispose(() => { namer.close(); });
   let naming: Animal | null = null;
   const nameIt: Interactable = {
     position: new THREE.Vector3(HITCHING_RAIL.x, 0, HITCHING_RAIL.z), radius: 0, label: 'Name',
-    onInteract: () => { const a = naming; if (a !== null) namer.open(mount.nameOf(a) ?? a.label, (n) => { mount.rename(a, n); play?.toast(`Your horse is ${n}`); }); },
+    onInteract: () => { const a = naming; if (a !== null) namer.open({ current: mount.nameOf(a) ?? a.label }, new Map([['save', value => {
+      if (typeof value !== 'string') throw new Error('Name input requires text');
+      const n = cleanHorseName(value); if (n.length > 0) { mount.rename(a, n); play?.toast(`Your horse is ${n}`); }
+    }]])); },
   };
   const nameUpdate = (): void => {
     naming = null;

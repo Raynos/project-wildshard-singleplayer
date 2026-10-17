@@ -1,0 +1,28 @@
+{
+  "lifetime": "open",
+  "closeRef": "cancel",
+  "stopEvents": ["pointerdown", "touchstart", "mousedown"],
+  "stopTyping": true,
+  "focus": "input",
+  "inputGuard": { "ref": "input", "milliseconds": 150 },
+  "layer": { "order": -20 },
+  "keys": [{ "codes": ["Enter", "NumpadEnter"], "action": { "id": "save", "input": "input", "close": true } }],
+  "frame": {
+    "cls": "ws-glass ws-ride-namebox",
+    "children": [
+      { "cls": "ws-ride-namecap", "text": "Name your horse" },
+      {
+        "tag": "input", "cls": "ws-ride-nameinput", "ref": "input",
+        "input": { "type": "text", "maxLength": 16, "value": { "read": "current" }, "autocomplete": "off", "spellcheck": false },
+        "attrs": [["autocapitalize", "words"], ["enterkeyhint", "done"], ["aria-label", "Horse name"]]
+      },
+      {
+        "cls": "ws-ride-namebtns",
+        "children": [
+          { "tag": "button", "button": "button", "cls": "ws-ride-namebtn", "text": "Cancel", "ref": "cancel" },
+          { "tag": "button", "button": "button", "cls": "ws-ride-namebtn ok", "text": "Save", "ref": "save", "action": { "id": "save", "input": "input", "close": true } }
+        ]
+      }
+    ]
+  }
+}

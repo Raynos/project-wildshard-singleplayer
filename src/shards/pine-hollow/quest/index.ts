@@ -71,7 +71,8 @@ import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, typ
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
 import { tradeCost, tradeShopState, type Room } from './trades';
 import { parseTradeCatalogue, type TradeItem, type TradeGood } from '../runtime/trader';
-import { BoardPanel, CountChip } from './ui';
+import './pinehollow.css';
+import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
 import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
 import { pineModels } from '../runtime/world/context';
@@ -120,6 +121,9 @@ async function loadQuest() {
   return { QuestViews, bindQuestPageInteractions, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+  const panels = await readDataPanels(h.ctx.product);
+  const boardPanel = panels['board'], countPanel = panels['count'];
+  if (boardPanel === undefined || countPanel === undefined) throw new Error('Pine requires its named quest panels');
   const story = await readQuestStory(h.ctx);
   const native = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/native.json'))));
   const { resinCount: RESIN_COUNT, resinFlag: RESIN_FLAG, tokenFlag: TOKEN_FLAG, tokenNames: TOKEN_NAMES } = native.policy;
@@ -170,7 +174,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the counters, the toasts ──
   const ui = new QuestViews(ctx);
-  const chip = ui.view('count', (scope) => new CountChip(scope));
+  const chip = ui.view('count', (scope) => new DataPanel(countPanel, { scope }));
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
   // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)
   const rangerRoot = h.cabins?.roots[0];
@@ -180,10 +184,10 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     ctx.system({ id: 'quest.shelf', phase: 'update', after: ['quest.pool'], before: ['quest', 'hud.combat', 'main.frame'], run: () => { shelf.update(game.camera); } });
   }
   kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls: new Map<string, (e: InteractEvent) => void>([
-    ['resin', () => { inventory.add('amber-resin'); chip().show('Amber resin', resinCount(), RESIN_COUNT); }],
+    ['resin', () => { inventory.add('amber-resin'); chip().show({ label: 'Amber resin', n: resinCount(), of: RESIN_COUNT }); }],
     ['all-resin', () => { if (resinCount() === RESIN_COUNT) hud.toast(`Every drop of amber in the Hollow · ${RESIN_COUNT} / ${RESIN_COUNT}`); }],
     ['token', e => { const i = Number(e.def.id.split('-')[1] ?? '1') - 1;
-      chip().show('Carved tokens', tokenCount(), TOKEN_NAMES.length); hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`); }],
+      chip().show({ label: 'Carved tokens', n: tokenCount(), of: TOKEN_NAMES.length }); hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`); }],
     ['all-tokens', () => { if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); shelf?.setShown(true); } }],
     ['pickup', () => { h.music.sting('pickup'); }],
   ]) });
@@ -250,8 +254,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       ['ammo', { get add() { return h.crossbow.addAmmo?.bind(h.crossbow) ?? null; } }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
       ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(pineSkins()[id]); } }]))]]) });
   const boardUi = ui.view('board', (scope) => {
-    const panel = new BoardPanel(() => board, scope);
-    panel.onClaim = (i) => {
+    const onClaim = (value: unknown): void => {
+      if (typeof value !== 'number') throw new Error('Contract action requires its slot');
+      const i = value;
       const contract = board.slots[i], r = claim(contracts, board, i);
       if (!r || contract === undefined) return;
       transactions.run(`contract.${contract.kind}.${contract.target}`);
@@ -261,8 +266,11 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       featFacts.event('streak', board.streak);
       hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
     };
-    panel.onReroll = (i) => { reroll(contracts, board, i); saveBoard(board, store); kitSfx.interact('door'); };
-    return panel;
+    const onReroll = (value: unknown): void => {
+      if (typeof value !== 'number') throw new Error('Contract action requires its slot');
+      reroll(contracts, board, value); saveBoard(board, store); kitSfx.interact('door');
+    };
+    return new DataPanel(boardPanel, { scope, values: () => board, actions: new Map([['claim', onClaim], ['tear', onReroll]]) });
   });
   const bs = contractBoardSite();
   const boardPrompt: Interactable = {
