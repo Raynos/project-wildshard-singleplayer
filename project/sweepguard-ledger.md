@@ -140,3 +140,7 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 20:58 · wT:pE · `cat tmp/build-mirror/check2/tree/src/shards/driftwood-isle/look/map.baked.json; scripts/serve-build.sh stop 4400 && SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py`
 - 2026-10-16 21:01 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/take-map.py`
 - 2026-10-16 21:03 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/land.py > tmp/c9-native/land.log 2>&1`
+- 2026-10-16 21:06 · wT:pE · `mkdir -p tmp/c9-repair cat > tmp/c9-repair/candidate.py <<'PY' import json,os,subprocess from pathlib import Path scratch=Path('tmp/c9-repair');paths=json.loads((scratch/'paths.json').read_text());bas`
+- 2026-10-16 21:07 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/take-map.py`
+- 2026-10-16 21:09 · wT:p4 · `cat > tmp/sp-x4-grazers/message <<'EOF' refactor(pine): emit grazer bodies as data  Read deer and elk fields and skeletons from the built product's named blob. Keep the authored definitions in generat`
+- 2026-10-16 21:09 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/land.py > tmp/c9-repair/land.log 2>&1`
