@@ -34,7 +34,13 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 
-import { buildCragRockSliced } from '../cragRock';
+import cragRows from '../boot/cragRock.generated.json' with { type: 'json' };
+import { TIER } from '@wildshard/engine/core/tier';
+import { place } from '@wildshard/engine/models/place';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import { cragRock, cragMaterial, CRAG_GEOMETRY } from '../models/cragRock';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
+import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { NalatiPOIs, buildBakedOutcrops } from '../world/index';
 import { NalatiDressing } from '../world/dressing/index';
 import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
@@ -171,12 +177,25 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   groups['outcrops'] = outcrops.object;
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
-  const crags = await buildCragRockSliced(sky, slicer(30).due); // SF67: ~30 ms a task, the same pieces
-  game.scene.add(crags.group);
-  await macrotask(); // the quadrant meshes and the first hulls a task apart (SF67)
-  rockPlaced.push(...await crags.register(plugin.app.registry, rockCtx, macrotask));   // the crag rock model (fins, ribs, towers), drawnInto its quadrants
+  const crags = cragRows[TIER === 'phone' ? 'phone' : 'desktop'];
+  const cragBytes = await fetchLaneBake('/assets/nalati/baked/crags.bin');
+  const cragGeometry = new Map(crags.meshes.map(part => {
+    const welded = readBakedGeometry(cragBytes, part.offset, v.parse(CRAG_GEOMETRY, part.row));
+    if (!part.row.expand) return [part.key, welded] as const;
+    const geometry = welded.toNonIndexed(); welded.dispose(); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+    return [part.key, geometry] as const;
+  }));
+  const cragScene = createClientScene(crags.recipe, { geometry: key => cragGeometry.get(key), materials: new Map([['crag', cragMaterial(sky)]]) });
+  game.scene.add(cragScene.root);
+  await macrotask();
+  const cragPlaced = place(cragRock, crags.placements, { ctx: rockCtx, draw: 'merged', registry: plugin.app.registry,
+    drawnInto: { object: cragScene.root, boxes: Float32Array.from(crags.boxes),
+      colliders: crags.hulls.map(row => ({ kind: 'hull', x: row.x, y: row.y, z: row.z, points: Float32Array.from(row.points), surface: 'rock' })) },
+    piece: { solidFloor: true, split: { every: 150, yieldTask: macrotask } } });
+  await cragPlaced.registered;
+  rockPlaced.push(cragPlaced);
   await slice(++completed, total, 'Crag rocks');
-  groups['crags'] = crags.group;
+  groups['crags'] = cragScene.root;
 
   // ── grass + wind (grass agent, B1): the blade rings are Grass.ts → look/grass.ts (main.ts builds it); the Wind object goes here ──
 

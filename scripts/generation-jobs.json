@@ -17038,6 +17038,50 @@
         "src/shards/nine-dragon-stack/world/stairPlan.generated.json": "6415a9f19edfc20a6b834bb649d89d3dc79b09774a93cebacbb66b8ecd1cf2f3"
       },
       "seedOutputs": []
+    },
+    {
+      "id": "nalati-crags",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",
+        "--generation-shard=nalati-grasslands"
+      ],
+      "inputRoots": [
+        "test/fake/portableMath.ts",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "budgets",
+        "scripts/bake-output.mjs",
+        "scripts/authored-manifest.mjs",
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "src/format/minimap.ts"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/crags.bin",
+        "src/shards/nalati-grasslands/boot/cragRock.generated.json"
+      ],
+      "platform": "portable",
+      "seedOutputs": [],
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/cragRock.generated.json": "9518cb7a2e2a3b6a434e27000b814deedd1f14390df04b4bee4f1efb2ca2b787"
+      }
     }
   ]
 }

@@ -25,6 +25,7 @@ export function worldFiles(tier: Tier, inventory: Readonly<Record<string, number
     ...coatFiles(inventory),
     // the species bodies' offline bake (SHARD-PLATFORM M3, species/bodies.ts)
     assetFiles.bodies,
+    '/assets/nalati/baked/crags.bin',
   ].filter((url) => phone(url) in inventory || url in inventory);
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): ChunkFiles {

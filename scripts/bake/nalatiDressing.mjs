@@ -24,9 +24,9 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/world/terrain.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
-    const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { outcropsPlace }, { buildCragRock }] = await Promise.all([
+    const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { outcropsPlace, bakeCragRock }] = await Promise.all([
       import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/world/Spruce.ts'),
-      import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/generators/places.ts'), import('../../src/shards/nalati-grasslands/cragRock.ts'),
+      import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
     const [layout, terrain, { inPoiClearing }] = await Promise.all([
       import('../../src/shards/nalati-grasslands/layout.ts'), import('../../src/shards/nalati-grasslands/world/terrain.ts'),
@@ -43,8 +43,9 @@ async function bakeNalatiDressing(dressingRecipe) {
     const pois = await new NalatiPOIs(sky).buildSliced(() => Promise.resolve());
     const steps = outcropsPlace({ ground: heightAt, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } });
     let step = steps.next(); while (!step.done) step = steps.next();
-    const outcrops = step.value, crags = buildCragRock(sky);
+    const outcrops = step.value, crags = bakeCragRock((await import('@wildshard/engine/core/tier')).TIER_CONFIG.maxTexture <= 1024, heightAt);
     const avoid = [...pois.colliders, ...outcrops.colliders, ...crags.colliders];
+    for (const part of crags.meshes) part.geometry.dispose();
     const clutter = campClutterSpots(avoid);
     const writer = byteWriter(process.argv.includes('--check'), 'nalati-dressing-plan');
     for (const [key, rows] of Object.entries({ ...plan, clutter })) {

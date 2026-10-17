@@ -21,6 +21,13 @@
       "bytes": 2342425,
       "kind": "runtime",
       "purpose": "Nalati places bake Explorer specimens, fetched only when the Model Explorer builds one"
+    },
+    {
+      "path": "public/assets/nalati/baked/crags.bin",
+      "oid": "eb3a5c00953f2ab01853c2aae6bd028bc0cbeac9",
+      "bytes": 2087994,
+      "kind": "runtime",
+      "purpose": "Nalati fixed crag quadrants, exact tier geometry decoded through the existing lane-bake host"
     }
   ]
 }

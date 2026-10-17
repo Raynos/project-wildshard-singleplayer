@@ -1,3 +1,4 @@
+import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGeometry';
 import peopleFallbackFrames from '../data/peopleFrames.json' with { type: 'json' };
 import type { DressPlan } from './dressingPlan';
 import * as THREE from 'three';
@@ -20,15 +21,15 @@ import { yardGeometry, wearDisc, wearPath } from './yard';
 import { ribbonPolePainted, eaglePerchPainted, stovePainted, campBenchPainted, rugRackPainted, feltRugPainted, cartPainted, barrelPainted, hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted, choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted, graniteOutcropPainted, roundedBoulderPainted, fencePainted, fallenLogPainted, stumpPainted, ovooPainted, viewpointPolePainted, skyGatewayPainted, campClutterPainted, kokparGoalPainted, kokparPostPainted, stoneStepPainted, signpostPainted, fenceRun, logEnds, type RockTint } from './campProps';
 import { bakeDressing } from './dressingBake';
 import { writeGeometry, join } from './geometryWriter';
-import { WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from '../layout';
+import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from '../layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
 import { inPoiClearing } from '../world/clearings';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { Noise2D } from '@wildshard/engine/core/noise';
+import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
-import { riverMask, rimZAt, RIVER, outcropAt, edgeBermAt } from '../world/terrain';
+import { zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER, outcropAt, edgeBermAt } from '../world/terrain';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's places bake): the spring camp, the Kunes bridge and the summer camp, built
@@ -1567,6 +1568,7 @@ export function trophyGeometry(id: string): THREE.BufferGeometry {
   }
   return kit.finish();
 }
+
 /** Fixed camp fallback shapes use the places painter, before shipping. */
 export function buildPeopleFallback(selected: keyof typeof peopleFallbackFrames): { body: THREE.BufferGeometry; head: THREE.BufferGeometry; arm: THREE.BufferGeometry; height: number; neck: THREE.Vector3; shoulder: THREE.Vector3; radius: number } {
   type PersonId = keyof typeof peopleFallbackFrames;
@@ -1737,4 +1739,133 @@ const BUILD: Readonly<Record<PersonId, () => Parts>> = {
 
 
   return BUILD[selected]();
+}
+
+/** Exact fixed crag output; no runtime terrain traversal or geometry construction. */
+export interface CragRockBake {
+  meshes: { name: string; geometry: THREE.BufferGeometry }[];
+  colliders: Collider[]; descs: ColliderDesc[];
+  count: { fins: number; ribs: number; blocks: number }; triangles: number;
+  placements: { x: number; y: number; z: number; variant: CragKind }[];
+  boxes: number[];
+}
+
+// ── placement ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+const RING = 7; // the crest test's radius (m)
+
+export function bakeCragRock(phone: boolean, heightAt: Ground, seed = 0xc4a9): CragRockBake {
+  const rng = new Rng(seed), jitter = new Noise2D(seed + 3);
+  const colliders: Collider[] = [];
+  const descs: ColliderDesc[] = [];
+  const count = { fins: 0, ribs: 0, blocks: 0 };
+  // four quadrant buckets (east / west × north / south of z = −110), each one mesh
+  const parts: THREE.BufferGeometry[][] = [[], [], [], []];
+  const occ = new Map<number, { x: number; z: number; r: number }[]>();
+  const key = (x: number, z: number): number => (Math.floor(x / 12) + 64) * 1024 + Math.floor(z / 12) + 64;
+  const free = (x: number, z: number, r: number): boolean => {
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const o of occ.get(key(x + a * 12, z + b * 12)) ?? []) if (Math.hypot(o.x - x, o.z - z) < o.r + r) return false;
+    return true;
+  };
+  const claim = (x: number, z: number, r: number): void => { const k = key(x, z); const l = occ.get(k) ?? []; l.push({ x, z, r }); occ.set(k, l); };
+  // keep-outs: the cave, Argymaq's bench, the snow lotus, the watchtower's rock (their own agents dress them)
+  const keepOut: [number, number, number][] = [[LEOPARD_CAVE.x, LEOPARD_CAVE.z, 22], [ARGYMAQ_PASTURE.x, ARGYMAQ_PASTURE.z, 34], [WATCHTOWER.x, WATCHTOWER.z, 22], ...SNOW_LOTUS.map((l): [number, number, number] => [l.x, l.z, l.r + 6])];
+  const blocked = (x: number, z: number, r: number): boolean =>
+    Math.abs(x) > 246 || Math.abs(z) > 246 || trailDistance(x, z) < 9 + r || inPoiClearing(x, z, 4 + r) || glacierMask(x, z) > 0.02 || brookMask(x, z) > 0 ||
+    keepOut.some(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) < kr + r);
+  const col = (): THREE.Color => new THREE.Color().setScalar(rng.range(0.3, 0.4)).offsetHSL(0, 0, 0).add(new THREE.Color(0, 0.004, 0.02));
+
+  // the pieces placed (the crag rock model's copies): where each stands, its kind, its world box
+  const placements: { x: number; y: number; z: number; variant: CragKind }[] = [];
+  const boxes: number[] = [];
+  const box = new THREE.Box3();
+  const add = (kind: CragKind, g: THREE.BufferGeometry, x: number, y: number, z: number, yaw: number, pitch: number, roll: number): void => {
+    const c = col();
+    const n = g.getAttribute('position').count, cols = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ')), new THREE.Vector3(1, 1, 1)));
+    descs.push(supportHull(g, null, 'rock', true));
+    g.computeBoundingBox();
+    const b = g.boundingBox ?? box;
+    placements.push({ x, y, z, variant: kind });
+    boxes.push(b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z);
+    parts[(x < 0 ? 0 : 1) + (z < -110 ? 2 : 0)]?.push(g);
+  };
+  const lowest = (x: number, z: number, r: number): number => {
+    let lo = heightAt(x, z);
+    for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; lo = Math.min(lo, heightAt(x + Math.cos(t) * r, z + Math.sin(t) * r)); }
+    return lo;
+  };
+
+  const step = 4.5;
+  for (let gx = -246; gx <= 246; gx += step) {
+    for (let gz = -246; gz <= 60; gz += step) {
+      const x = gx + rng.range(-step * 0.45, step * 0.45), z = gz + rng.range(-step * 0.45, step * 0.45);
+      const roll = rng.next();
+      const zs = zoneAt(x, z)[2];
+      if (zs < 0.55) continue;
+      const h = heightAt(x, z);
+      if (h < 6) continue;
+      // the local shape: the mean of a ring round the point (a crest stands above it), the gradient
+      let sum = 0, bestPair = -Infinity, ridgeYaw = 0;
+      const around: number[] = [];
+      for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; const v = heightAt(x + Math.cos(t) * RING, z + Math.sin(t) * RING); around.push(v); sum += v; }
+      for (let k = 0; k < 4; k++) { const pair = (around[k] ?? 0) + (around[k + 4] ?? 0); if (pair > bestPair) { bestPair = pair; ridgeYaw = -(k / 8) * Math.PI * 2; } }
+      const crest = h - sum / 8;
+      const gxh = heightAt(x + 1.5, z) - heightAt(x - 1.5, z), gzh = heightAt(x, z + 1.5) - heightAt(x, z - 1.5);
+      const grad = Math.hypot(gxh, gzh) / 3; // rise per metre
+      const downYaw = Math.atan2(-gxh, -gzh); // three.js yaw whose local +z points downhill … (sin, cos) of the fall line
+      const dens = 0.55 + 0.45 * smoothstep(-0.3, 0.4, jitter.fbm(x * 0.02, z * 0.02, 2));
+
+      const band = smoothstep(-0.1, 0.35, jitter.fbm(x * 0.017 + 9, z * 0.017 - 5, 3)); // where the cliff bands run
+
+      if (crest > 1.6 && h > 46 && roll < 0.2 * dens * (phone ? 0.75 : 1)) {
+        // ── a fin on the crest: a broad castellated tower, long axis along the ridge ──
+        const hh = rng.range(3, 6) + smoothstep(50, 110, h) * rng.range(2, 6) + Math.min(4, crest * 0.5);
+        const w = rng.range(7, 14), d = rng.range(4, 7.5);
+        if (blocked(x, z, w * 0.5) || !free(x, z, w * 0.42)) continue;
+        claim(x, z, w * 0.42);
+        const base = lowest(x, z, w * 0.4) - 1.2;
+        add('fin', finGeometry(rng, w, d, hh + (h - base)), x, base, z, ridgeYaw + rng.range(-0.2, 0.2), rng.range(-0.05, 0.05), rng.range(-0.06, 0.06));
+        count.fins++;
+      } else if (grad > 0.8 && roll < (0.15 + 0.85 * band) * 0.65 * (phone ? 0.75 : 1)) {
+        // ── a rib against a steep face (≥ ~39°), long axis down the fall line, its top just proud of the slope above: side
+        //    by side where a cliff band runs they make one vertical wall with clefts between the buttresses ──
+        const len = rng.range(5, 10), thick = rng.range(3.5, 6.5);
+        if (blocked(x, z, thick * 0.6) || !free(x, z, thick * 0.42)) continue;
+        claim(x, z, thick * 0.42);
+        const ux = x - Math.sin(downYaw) * len * 0.45, uz = z - Math.cos(downYaw) * len * 0.45;
+        const topY = heightAt(ux, uz) + rng.range(0.3, 1.8) + band * 1.2;
+        const base = lowest(x, z, len * 0.5) - 1.5;
+        if (topY - base < 4) continue;
+        // its top slants down the fall line with the face (a rib, not a flat-topped block), the downhill end still a
+        // sheer drop
+        add('rib', ribGeometry(rng, thick, len, topY - base, grad), x, base, z, downYaw + rng.range(-0.12, 0.12), 0, 0);
+        count.ribs++;
+      } else if (grad > 0.5 && grad <= 0.8 && h > 32 && roll > 0.95 - 0.04 * dens) {
+        // ── a broken tower on a steep shoulder ──
+        const sz = rng.range(4, 8);
+        if (blocked(x, z, sz * 0.6) || !free(x, z, sz * 0.6)) continue;
+        claim(x, z, sz * 0.6);
+        const base = lowest(x, z, sz * 0.5) - 1;
+        const top = h + rng.range(2.5, 6);
+        add('tower', towerGeometry(rng, sz, top - base), x, base, z, rng.range(0, Math.PI * 2), 0, 0);
+        if (grad < 0.7) colliders.push({ x, z, hw: sz * 0.4, hd: sz * 0.3, rot: 0, yBottom: base, yTop: top });
+        count.blocks++;
+      }
+    }
+  }
+
+  const meshes: CragRockBake['meshes'] = [];
+  let triangles = 0;
+  for (const [i, list] of parts.entries()) {
+    if (list.length === 0) continue;
+    const geometry = mergeGeometries(list, false);
+    for (const g of list) g.dispose();
+    geometry.computeBoundingSphere(); geometry.computeBoundingBox();
+    triangles += geometry.getAttribute('position').count / 3;
+    meshes.push({ name: `nalati-crag-rock-${i}`, geometry });
+  }
+  return { meshes, colliders, descs, count, triangles: Math.round(triangles), placements, boxes };
 }
