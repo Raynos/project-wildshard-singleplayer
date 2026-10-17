@@ -212,7 +212,45 @@ credit. Shared engine/game source grows by 161 physical net lines.
 
 The [candidate diagnostic](pine-upload-candidate.json), still under shared
 load and excluded from floor credit, records the production image worker
-and no main-page bitmap requests on Pine entry. Fresh memories are paced
-across frames before controller installation. Pine travel p95 is 42 ms,
+and 65 main-page bitmap requests during Pine entry, down from 133.
+The shared fetchImage path uses the worker; other image consumers remain.
+All six v1 memories resolve to `decisionModule.ts:39` in source maps,
+39–47 ms apart; none is freshly allocated in the controller constructor.
+The separate v0 allocation remains at `script/host.ts:94`. Pine travel p95 is 42 ms,
 whole-drive p95 37 ms/max 117 ms; the largest play-tagged frame is 59 ms.
 This demonstrates adoption without claiming a quiet AFTER pass.
+
+Source fix: `9bf3084daef51be88db4c29a4c9b96f673e3622c`. The source
+receipt's initial candidate sentence incorrectly said there were no
+main-page bitmap requests; the complete retained count is **65**, versus
+133 before, and the corrected text above is authoritative. The worker
+adoption and remaining requests are both visible in the candidate JSON.
+
+## Landed normal-probe AFTER
+
+Source `9bf3084daef51be88db4c29a4c9b96f673e3622c`, served http://127.0.0.1:4482/.
+4/12 road rows pass both normal-probe AFTER runs (6/15 including deck/spawn).
+
+The coordinator CPU hold applies only to these AFTER runs. The runner
+uses BSD `fcntl.flock` on `.git/push.lock`, verifies empty heavy/browser/
+Simulator lanes before claiming its quiet marker, and checks that the push
+step log does not change across either run. It removes its marker and
+releases the lock before sending explicit HOLD RELEASE for both surfaces.
+
+| Row | p95 A/B (ms) | Max A/B (ms) | Both runs |
+| --- | ---: | ---: | --- |
+| spawn | 34/37 | 35/46 | FAIL |
+| grid-deck-east | 34/34 | 34/34 | PASS |
+| grid-crossroads | 34/34 | 34/34 | PASS |
+| grid-far-reach-road-entry-travel | 34/36 | 155/153 | FAIL |
+| grid-far-reach-road-entry-drive | 44/36 | 155/153 | FAIL |
+| grid-far-reach-road-entry | 34/34 | 35/34 | PASS |
+| grid-nalati-grasslands-road-entry-travel | 44/42 | 75/75 | FAIL |
+| grid-nalati-grasslands-road-entry-drive | 36/35 | 87/87 | FAIL |
+| grid-nalati-grasslands-road-entry | 34/34 | 39/37 | PASS |
+| grid-pine-hollow-road-entry-travel | 49/46 | 94/93 | FAIL |
+| grid-pine-hollow-road-entry-drive | 37/40 | 94/95 | FAIL |
+| grid-pine-hollow-road-entry | 34/34 | 35/36 | PASS |
+| grid-driftwood-isle-road-entry-travel | 39/38 | 56/57 | FAIL |
+| grid-driftwood-isle-road-entry-drive | 34/36 | 78/79 | FAIL |
+| grid-driftwood-isle-road-entry | 34/34 | 35/35 | PASS |

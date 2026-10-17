@@ -132,7 +132,7 @@
       "height": 640,
       "depth": null,
       "calls": 51,
-      "apiMs": 200.0,
+      "apiMs": 200,
       "bytes": 133693440
     },
     {
@@ -182,7 +182,7 @@
       "height": 512,
       "depth": 1,
       "calls": 19,
-      "apiMs": 25.0,
+      "apiMs": 25,
       "bytes": 19922944
     },
     {
@@ -392,7 +392,7 @@
       "height": 128,
       "depth": null,
       "calls": 6,
-      "apiMs": 5.0,
+      "apiMs": 5,
       "bytes": 393216
     },
     {
@@ -462,7 +462,7 @@
       "height": 512,
       "depth": null,
       "calls": 5,
-      "apiMs": 22.0,
+      "apiMs": 22,
       "bytes": 10485760
     },
     {
@@ -17764,7 +17764,7 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/host-CAA3YQzR.js:1:4404\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\nS@http://127.0.0.1:4481/assets/host-CAA3YQzR.js:1:4370"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/host.ts:94:42 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\nS@../../../../build-mirror/check3/tree/src/engine/script/host.ts:93:27 ()"
     },
     {
       "name": "Memory",
@@ -17774,7 +17774,7 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12986\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12952"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:39:39 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:38:27 ()"
     },
     {
       "name": "Memory",
@@ -17784,7 +17784,7 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12986\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12952"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:39:39 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:38:27 ()"
     },
     {
       "name": "Memory",
@@ -17794,7 +17794,7 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12986\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12952"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:39:39 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:38:27 ()"
     },
     {
       "name": "Memory",
@@ -17804,7 +17804,7 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12986\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12952"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:39:39 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:38:27 ()"
     },
     {
       "name": "Memory",
@@ -17814,7 +17814,7 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12986\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12952"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:39:39 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:38:27 ()"
     },
     {
       "name": "Memory",
@@ -17824,98 +17824,98 @@
         "initial": 1,
         "maximum": 1
       },
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12986\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\n@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:12952"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:39:39 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\n@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:38:27 ()"
     },
     {
       "name": "Module",
       "startMs": 50893,
       "ms": 0,
       "bytes": 12616,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13865\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:61 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Instance",
       "startMs": 50893,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13842\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:36 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Module",
       "startMs": 50896,
       "ms": 1,
       "bytes": 15066,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13865\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:61 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Instance",
       "startMs": 50897,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13842\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:36 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Module",
       "startMs": 50899,
       "ms": 0,
       "bytes": 9705,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13865\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:61 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Instance",
       "startMs": 50899,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13842\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:36 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Module",
       "startMs": 50902,
       "ms": 0,
       "bytes": 15092,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13865\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:61 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Instance",
       "startMs": 50902,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13842\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\n@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:232018\nmap@[native code]\nHl@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:231998\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251068\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:36 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\n@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:81 ()\nmap@[native code]\nHl@../../../../build-mirror/check3/tree/src/game/quest/elitePage.ts:61:34 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:160:21 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Module",
       "startMs": 50913.00000000001,
       "ms": 0,
       "bytes": 14410,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13865\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\nGi@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:98795\nbind@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:161564\nm@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:238531\nspawnBody@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:170257\nbu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:246984\nz@http://127.0.0.1:4481/assets/Elite-DgM1f2WJ.js:61:3129\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251172\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:61 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\nGi@../../../../build-mirror/check3/tree/src/game/shardfile/decisions.ts:159:20 ()\nbind@../../../../build-mirror/check3/tree/src/game/shardfile/borrowedDecisions.ts:176:26 ()\nm@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/kingFight.ts:48:59 ()\nspawnBody@../../../../build-mirror/check3/tree/src/game/shardfile/phasedBossRoaming.ts:125:19 ()\nbu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/antlerKing.ts:281:18 ()\nz@../../../../build-mirror/check3/tree/src/game/Boss.ts:226:36 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:166:15 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Instance",
       "startMs": 50913.00000000001,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13842\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\nGi@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:98795\nbind@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:161564\nm@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:238531\nspawnBody@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:170257\nbu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:246984\nz@http://127.0.0.1:4481/assets/Elite-DgM1f2WJ.js:61:3129\nTu@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:251172\nm@http://127.0.0.1:4481/assets/ownership-on5TqUtJ.js:1:664\ninstallPlay@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:311462"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:36 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\nGi@../../../../build-mirror/check3/tree/src/game/shardfile/decisions.ts:159:20 ()\nbind@../../../../build-mirror/check3/tree/src/game/shardfile/borrowedDecisions.ts:176:26 ()\nm@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/kingFight.ts:48:59 ()\nspawnBody@../../../../build-mirror/check3/tree/src/game/shardfile/phasedBossRoaming.ts:125:19 ()\nbu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/antlerKing.ts:281:18 ()\nz@../../../../build-mirror/check3/tree/src/game/Boss.ts:226:36 ()\nTu@../../../../build-mirror/check3/tree/src/shards/pine-hollow/combat/install.ts:166:15 ()\nm@../../../../build-mirror/check3/tree/src/engine/app/ownership.ts:54:15 ()\ninstallPlay@../../../../build-mirror/check3/tree/src/shards/pine-hollow/runtime/index.ts:243:29 ()"
     },
     {
       "name": "Module",
       "startMs": 51084,
       "ms": 0,
       "bytes": 10895,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13865\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\nOd@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:266268\nId@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:274921"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:61 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\nOd@../../../../build-mirror/check3/tree/src/shards/pine-hollow/quest/nightThralls.ts:34:29 ()\nId@../../../../build-mirror/check3/tree/src/shards/pine-hollow/quest/index.ts:243:22 ()"
     },
     {
       "name": "Instance",
       "startMs": 51084,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:13842\nHn@http://127.0.0.1:4481/assets/items-BJRtO5ja.js:1:20232\ne@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:204682\npage@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:205326\nOd@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:266268\nId@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:274921"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\nDn@../../../../build-mirror/check3/tree/src/engine/script/decisionModule.ts:86:36 ()\nHn@../../../../build-mirror/check3/tree/src/engine/script/decision.ts:178:21 ()\ne@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:104:20 ()\npage@../../../../build-mirror/check3/tree/src/game/population/spawnScript.ts:121:15 ()\nOd@../../../../build-mirror/check3/tree/src/shards/pine-hollow/quest/nightThralls.ts:34:29 ()\nId@../../../../build-mirror/check3/tree/src/shards/pine-hollow/quest/index.ts:243:22 ()"
     },
     {
       "name": "Module",
       "startMs": 51114.00000000001,
       "ms": 0,
       "bytes": 1688,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\ninstantiate@http://127.0.0.1:4481/assets/host-CAA3YQzR.js:1:6455\ninstall@http://127.0.0.1:4481/assets/host-CAA3YQzR.js:1:8394\nLt@http://127.0.0.1:4481/assets/director-BnY8tdiD.js:1:93357\n@http://127.0.0.1:4481/assets/director-BnY8tdiD.js:1:95970\nId@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:280293"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\ninstantiate@../../../../build-mirror/check3/tree/src/engine/script/host.ts:153:62 ()\ninstall@../../../../build-mirror/check3/tree/src/engine/script/host.ts:189:25 ()\nLt@../../../../build-mirror/check3/tree/src/game/plugin/director.ts:56:14 ()\n@../../../../build-mirror/check3/tree/src/game/plugin/director.ts:125:30 ()\nId@../../../../build-mirror/check3/tree/src/shards/pine-hollow/quest/index.ts:395:71 ()"
     },
     {
       "name": "Instance",
       "startMs": 51114.00000000001,
       "ms": 0,
-      "stack": "construct@diagnostic-harness:250:309\n@[native code]\ninstantiate@http://127.0.0.1:4481/assets/host-CAA3YQzR.js:1:6432\ninstall@http://127.0.0.1:4481/assets/host-CAA3YQzR.js:1:8394\nLt@http://127.0.0.1:4481/assets/director-BnY8tdiD.js:1:93357\n@http://127.0.0.1:4481/assets/director-BnY8tdiD.js:1:95970\nId@http://127.0.0.1:4481/assets/runtime-DHz-MgVt.js:2:280293"
+      "stack": "construct@diagnostic-harness:250:309\n@[native code]\ninstantiate@../../../../build-mirror/check3/tree/src/engine/script/host.ts:153:37 ()\ninstall@../../../../build-mirror/check3/tree/src/engine/script/host.ts:189:25 ()\nLt@../../../../build-mirror/check3/tree/src/game/plugin/director.ts:56:14 ()\n@../../../../build-mirror/check3/tree/src/game/plugin/director.ts:125:30 ()\nId@../../../../build-mirror/check3/tree/src/shards/pine-hollow/quest/index.ts:395:71 ()"
     }
   ],
   "mainBitmapCalls": [
