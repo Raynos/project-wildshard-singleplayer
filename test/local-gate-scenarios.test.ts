@@ -14,6 +14,7 @@ cases = [
  [], ['test/scripts-not-a-scenario.test.ts'],
  ['test/scripts/readme.md'], ['other/test/scripts/example.test.ts'],
  ['test/pine-npc-figure-product.test.ts', 'test/scripts/ground-encounters.test.ts'],
+ ['test/scripts/nine-sign-atlas.test.ts'],
 ]
 print(json.dumps([select(case, registry) for case in cases], separators=(',', ':')))
 try:
@@ -24,5 +25,9 @@ except ValueError:
 from pathlib import Path
 assert all(str(path) in registry for path in Path('test/scripts').glob('*.test.ts'))
 `], { encoding: 'utf8' });
-  expect(JSON.parse(result)).toEqual([['_template'], ['far-reach'], [], [], [], [], [], ['driftwood-isle', 'pine-hollow']]);
+  expect(JSON.parse(result)).toEqual([
+    ['_template'], ['far-reach'],
+    ['_template', 'driftwood-isle', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'pastel-plain', 'pine-hollow', 'sunscar-dunes'],
+    [], [], [], [], ['driftwood-isle', 'pine-hollow'], [],
+  ]);
 });
