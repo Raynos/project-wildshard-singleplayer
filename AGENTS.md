@@ -55,6 +55,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - Layers: `src/engine/` (`@wildshard/engine`) → `src/game/` (`@wildshard/game`) → `src/sdk/` (`@wildshard/sdk`) →
   (`src/commons/`, `@wildshard/commons`: build-time packs) → `src/shards/<slug>/`. Imports point down only; a shard never
   imports another shard. SF54 dissolved `@wildshard/kit`: shared content lives in the game, runtime facades in the SDK.
+- **Every platform host passes the host bar** ([docs/HOST-BAR.md](docs/HOST-BAR.md), G454/G481): six tests, data-only
+  APIs, shard-specific logic as AssemblyScript, never shard branches in the engine. Single-shot code never becomes a host.
 - **No barrels (E434).** The layers are pnpm workspace packages (E432) with no index file: each `package.json`'s
   `exports` lists its public modules, and an import names the module that defines the binding
   (`@wildshard/engine/physics/query`). `wildshard/no-reexport` refuses `export … from` of our own modules. A clean tree

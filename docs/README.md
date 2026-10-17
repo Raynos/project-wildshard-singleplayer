@@ -9,6 +9,7 @@ What each file and folder here is. The rules for agents are in [AGENTS.md](../AG
 - [SHARDFILE.md](SHARDFILE.md): Shardfile 0.x, the format a shard declares itself in
 - [SDK-DEV.md](SDK-DEV.md): build and preview an author project
 - [SCRIPT-ABI.md](SCRIPT-ABI.md): Script ABI v0, the Wasm interface shard scripts compile to
+- [HOST-BAR.md](HOST-BAR.md): the host bar, what goes in the engine, the game or the shard (six tests, verdicts)
 - [COMMONS.md](COMMONS.md): the build-time commons, content packs shared across shards
 - [PLATFORM-AI.md](PLATFORM-AI.md): declared creatures and encounters (brains and spawns as data)
 - [GRID-SIMULATION.md](GRID-SIMULATION.md): local simulation frames, the live grid and its neighbour shards
