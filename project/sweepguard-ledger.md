@@ -122,3 +122,6 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 20:09 · wT:p6 · `python3 - <<'PY' from pathlib import Path import subprocess,os,json E=dict(os.environ,GIT_INDEX_FILE=str(Path('tmp/c6-sim/index').resolve()));p='test/private-scene-instances.test.ts';paths=json.loads(`
 - 2026-10-16 20:09 · wT:p6 · `python3 - <<'PY' from pathlib import Path import subprocess,os E=dict(os.environ,GIT_INDEX_FILE=str(Path('tmp/c6-sim/index').resolve()));base=subprocess.check_output(['git','rev-parse','HEAD'],text=Tr`
 - 2026-10-16 20:11 · wT:p6 · `GIT_INDEX_FILE="$PWD/tmp/c6-sim/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json,pathlib; print(json.dumps(dict(base=pathlib.Path("tmp/c6-sim/base").read_text().strip(),paths=json.`
+- 2026-10-16 20:36 · wT:p5 · `GIT_INDEX_FILE="$PWD/tmp/sp-x5-trader/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json,pathlib; p=pathlib.Path("tmp/sp-x5-trader");print(json.dumps({"base":p.joinpath("base").read_`
+- 2026-10-16 20:37 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-native/candidate.py`
+- 2026-10-16 20:38 · wT:pK · `python3 - <<'PY' from pathlib import Path import subprocess,os paths=['src/engine/fx/SiteLights.ts','src/shards/pine-hollow/runtime/props/buildingLife.ts','src/shards/pine-hollow/runtime/world/landmar`
