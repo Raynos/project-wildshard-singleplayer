@@ -31,7 +31,14 @@
         "row": "SF48"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "quadruped-rig",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/ai/ambientFlight.ts",
@@ -74,7 +81,14 @@
         "row": "W3 Nalati single-active NPC reading roster (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "quest-step-runner",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/quests.ts",
@@ -85,7 +99,14 @@
         "row": "W3 Nalati single-active NPC reading roster (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "quest-step-runner",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/quests.ts",
@@ -96,7 +117,14 @@
         "row": "W3 Nalati single-active NPC reading roster (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "quest-step-runner",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/quests.ts",
@@ -107,7 +135,14 @@
         "row": "W3 Nalati single-active NPC reading roster (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "quest-step-runner",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/quests.ts",
@@ -118,7 +153,14 @@
         "row": "W3 Nalati single-active NPC reading roster (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "quest-step-runner",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/models/glbNodes.ts",
@@ -149,7 +191,14 @@
         "row": "W3 Nalati storm overcast rows (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "weather-keyed-sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/brain.ts",
@@ -160,7 +209,14 @@
         "row": "W3 Nalati native species context (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/looks/posedInstances.ts",
@@ -257,7 +313,14 @@
         "row": "W3 Nalati projectile presentation (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "bolt-flight",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/animation.ts",
@@ -323,7 +386,14 @@
         "row": "W3 Nalati typed native bake reader (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/headlessRuntime.ts",
@@ -334,7 +404,14 @@
         "row": "W3 Nalati typed native bake reader (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/headlessRuntime.ts",
@@ -345,7 +422,14 @@
         "row": "W3 Nalati typed native bake reader (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/headlessRuntime.ts",
@@ -356,7 +440,14 @@
         "row": "W3 Nalati typed native bake reader (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/combat/Firearm.ts",
@@ -443,7 +534,14 @@
         "row": "W3 Nalati finds inventory catalogue (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "collections",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
     },
     {
       "module": "src/game/plugin/animation.ts",
@@ -520,7 +618,14 @@
         "row": "W3 Nalati packed creature bodies (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/geometry.ts",
@@ -531,7 +636,14 @@
         "row": "W3 Nalati packed creature bodies (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/combat/view/ranged.ts",
@@ -553,7 +665,14 @@
         "row": "W3 Nalati worn effect grant rows (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "loadout",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/combat/effects/EffectService.ts",
@@ -564,7 +683,14 @@
         "row": "W3 Nalati worn effect grant rows (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "loadout",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/physics/box.ts",
@@ -608,7 +734,14 @@
         "row": "W3 Nalati day air writes (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "weather-keyed-sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/looks/daySky.ts",
@@ -619,7 +752,14 @@
         "row": "W3 Nalati day air writes (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "weather-keyed-sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/looks/daySky.ts",
@@ -630,7 +770,14 @@
         "row": "W3 Nalati day air writes (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "weather-keyed-sky",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/engine/render/viewmodelFeel.ts",
@@ -663,7 +810,14 @@
         "row": "W3 Nalati baked hunting-ground queries (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/sdk/looks/streamedInstances.ts",
@@ -673,7 +827,14 @@
         "row": "W3 Nalati cell-streamed dressing (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "streamed-cover",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
     },
     {
       "module": "src/game/plugin/director.ts",
@@ -705,7 +866,14 @@
         "row": "W3 Nine first-person arm rig (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "held-arms",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
     },
     {
       "module": "src/game/eliteSystem.ts",
@@ -770,7 +938,14 @@
         "row": "W3 Nalati creature herd materialization (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/brain.ts",
@@ -781,7 +956,14 @@
         "row": "W3 Nalati creature herd materialization (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/brain.ts",
@@ -792,7 +974,14 @@
         "row": "W3 Nalati creature herd materialization (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/animation.ts",
@@ -803,7 +992,14 @@
         "row": "W3 Nalati creature rise and sink (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/headless.ts",
@@ -869,7 +1065,14 @@
         "row": "W3 Nalati creature group sampling (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/brain.ts",
@@ -880,7 +1083,14 @@
         "row": "W3 Nalati creature group sampling (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/brain.ts",
@@ -891,7 +1101,14 @@
         "row": "W3 Nalati creature group sampling (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     },
     {
       "module": "src/game/plugin/brain.ts",
@@ -902,7 +1119,14 @@
         "row": "W3 Nalati creature site selection (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "actor-spawn",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     }
   ]
 }

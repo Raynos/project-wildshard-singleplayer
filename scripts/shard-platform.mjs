@@ -485,12 +485,29 @@ function cachedSourceInfo(source, path, directory, recipe) {
   return facts;
 }
 
+// G473-G477 approvals are explicit feature receipts, separate from G441's
+// temporary credit for the current/completed wave. A wave change cannot revoke
+// these platform approvals, and an ordinary pending row cannot claim one.
+/** @type {Record<string,string>} */
+const approvedFeatures = {
+  'weather-keyed-sky':'G474', 'quadruped-rig':'G474', 'actor-spawn':'G474',
+  'bolt-flight':'G474', 'quest-step-runner':'G474', 'loadout':'G474',
+  'streamed-cover':'G475', 'collections':'G475', 'held-arms':'G475',
+  'water-ripples':'G474', 'colour-ramp-fog':'G475',
+  'low-poly-binder':'G475', 'resident-world':'G475',
+};
+/** @param {import('./shard-platform.mjs').PendingPlatformUser} entry */
+function approvedFeature(entry) {
+  const approval=entry.approvedFeature;
+  return approval!==undefined && approvedFeatures[approval.name]===approval.decision.row;
+}
 // G419: planned users are an explicit, temporary allowance, never actual import-graph users.
 const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1'), entries:v.array(v.strictObject({
   module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk)\//u)), export:v.optional(v.string()),
   shard:v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack']),
   plan:v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()}),
   documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.literal('end of W3'),
+  approvedFeature:v.exactOptional(v.strictObject({name:v.string(),decision:v.strictObject({path:v.literal('docs/plans/shard-platform/decisions.md'),row:v.picklist(['G474','G475'])})})),
 })) });
 /** Read only documented general platform declarations with a real later-wave plan row.
  * @param {string} root @returns {import('./shard-platform.mjs').PendingPlatformUser[]} */
@@ -502,6 +519,12 @@ export function pendingPlatformUsers(root) {
   for(const entry of entries){
     const key=`${entry.module}#${entry.export??'*'}:${entry.shard}`;
     if(seen.has(key))throw new Error(`Duplicate pending platform user: ${key}`);seen.add(key);
+    if(entry.approvedFeature!==undefined){
+      if(!approvedFeature(entry))throw new Error(`Unapproved platform feature: ${key}`);
+      const decision=entry.approvedFeature.decision;
+      if(!readFileSync(resolve(root,decision.path),'utf8').split('\n').some(line=>line.split('|')[1]?.trim()===decision.row))
+        throw new Error(`Missing platform feature decision: ${key}`);
+    }
     const source=readFileSync(resolve(root,entry.module),'utf8');
     if(/src\/shards\/|@wildshard\/shards\/|sunscar-dunes|far-reach|driftwood-isle|pine-hollow|nalati-grasslands|nine-dragon-stack/u.test(source))
       throw new Error(`Pending feature names a shard: ${entry.module}`);
@@ -524,8 +547,9 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
   /** @type {import('./shard-platform.mjs').PendingPlatformCharge[]} */
   const pending=[];
   const charged=(row)=>{
-    const matches=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug))?allowances.filter(entry=>entry.shard!==slug&&entry.module===row.path
-      && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name))):[];
+    const eligibleWave=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug));
+    const matches=allowances.filter(entry=>(eligibleWave||approvedFeature(entry))&&entry.shard!==slug&&entry.module===row.path
+      && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name)));
     if(matches.length===0)return true;
     pending.push({...row,status:'pending second user',users:matches});return false;
   };

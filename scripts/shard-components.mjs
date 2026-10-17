@@ -5,8 +5,8 @@ import { parseSync } from 'vite';
 
 /** One milestone roster drives component collection and every report. */
 export const SHARD_WAVES = [
-  { id:'W1',status:'closed at 90/10',current:false,shards:[{slug:'far-reach',name:'Sky'},{slug:'sunscar-dunes',name:'Signal'}] },
-  { id:'W2',status:'current',current:true,shards:[{slug:'pine-hollow',name:'Pine'},{slug:'driftwood-isle',name:'Driftwood'}] },
+  { id:'W1',status:'current',current:true,shards:[{slug:'far-reach',name:'Sky'},{slug:'sunscar-dunes',name:'Signal'}] },
+  { id:'W2',status:'next',current:false,shards:[{slug:'pine-hollow',name:'Pine'},{slug:'driftwood-isle',name:'Driftwood'}] },
 ];
 const waveRow = id => { const row=SHARD_WAVES.find(wave=>wave.id===id);if(row===undefined)throw new Error(`Unknown shard wave ${id}`);return row; };
 export const W1_SHARDS = waveRow('W1').shards.map(row=>row.slug);
