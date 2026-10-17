@@ -137,6 +137,12 @@ function phoneCardGain(streaks: readonly Object3D[]): void {
 
 export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
+  // the painted sky (world/build.ts, the 'nine-sky' look) is a sphere round the eye: it stands on uCam (the root's frame)
+  let skyMesh: Object3D | null = null;
+  const onEye = (root: Object3D, shared: Shared): void => {
+    if (skyMesh?.parent !== root) skyMesh = root.getObjectByName('sky') ?? null;
+    skyMesh?.position.copy(shared.u.uCam.value);
+  };
   const glow = glowUniforms();
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
@@ -215,6 +221,7 @@ export function shardRender(): LookStrategy {
         const view = rt.camera;
         world.shared.u.uCam.value.setFromMatrixPosition(view.matrixWorld);
         world.shared.bandWindow();
+        onEye(world.root, world.shared);
         world.shared.u.uNear.value = view.near;
         updateLanterns(view);
         return;
@@ -224,6 +231,7 @@ export function shardRender(): LookStrategy {
       // late hooks pose the camera, so it lags a frame — and a posed capture camera would fog from the player's eye)
       world.shared.u.uCam.value.setFromMatrixPosition(handle.camera.matrixWorld);
       world.shared.bandWindow();
+      onEye(world.root, world.shared);
       world.shared.u.uNear.value = handle.camera.near;
       // the paper lanterns in view, bucketed near / far for this camera (look/lanterns.ts LOD)
       updateLanterns(handle.camera);

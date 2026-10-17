@@ -173,22 +173,6 @@ vec3 gradeLut(vec3 srgb) {
 }
 `;
 
-/**
- * The blue-hour ramp, tuned on the round-8 loop-2 clean room (whose LOOKS.jiehua sky read #707c93 against the targets'
- * #7d93af, ΔE 8.4 → 1.1 with this ramp): a lighter, bluer zenith and horizon, a denser, darker blue fog, and the Well's
- * +101 / +36 m bands darkened so the shaft reads deep. HEAD 3c39b36f retuned LOOKS.jiehua itself (sky ΔE 1.6 with its
- * height fog), so the lab leaves this OFF there (`sky: 0`); keep it for a look that has not been retuned.
- */
-export interface SkyRamp { fog: number; fogDensity: number; skyTop: number; skyHorizon: number; bands: readonly number[] }
-export const BLUE_HOUR: SkyRamp = {
-  fog: 0x7585a0,
-  fogDensity: 0.009,
-  skyTop: 0x7890ae,
-  skyHorizon: 0x98acc0,
-  /** the four top fog bands (+212, +152, +101, +36 m): the +101 band sits under the square and was a pale #c4c7cc */
-  bands: [0xb8c4d4, 0xa3afc1, 0x56617a, 0x4a5670],
-};
-
 // ── the light pools (look/light/pools.ts): colours are hex ──
 /** per source kind: strength k, radius r (m, scaled by the source's size where noted), reach in r, colour pull */
 export const POOL = {

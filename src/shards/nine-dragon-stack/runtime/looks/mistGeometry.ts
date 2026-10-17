@@ -3,8 +3,8 @@
 // fog shader), and soft billboard puffs over points (each a few camera-facing quads around its centre, a seed per quad
 // for a steam shader that lifts and fades them).
 //
-//   new Mesh(mistSheetsGeometry(SHEETS, RECTS, [{ dy: 0, alpha: 1 }, { dy: -5, alpha: 0.7 }]), sheetMaterial)
-//   new Mesh(steamPuffsGeometry(pots, 6, 0.37), steamMaterial)
+//   new Mesh(mistSheetsGeometry(SHEETS, RECTS, [{ dy: 0, alpha: 1 }, { dy: -5, alpha: 0.7 }]), lentLook('nine-mist-sheet'))
+//   new Mesh(steamPuffsGeometry(pots, 6, 0.37), lentLook('nine-steam'))
 import { BufferGeometry, Float32BufferAttribute, Uint32BufferAttribute, type Vector3 } from 'three';
 
 /** A mist sheet: its height, its fog band and its alpha. */

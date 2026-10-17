@@ -46,7 +46,8 @@ import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../runtime/signs/signAtlas';
 import { KitSigns } from '../look/signs';
 import { KAI_STACK, NEON_LOOK, SIGN_COLOUR, SIGN_STYLES, type SignStyle } from '../data/signs';
-import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
+import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial, neonMaterial } from '../look/style';
+import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { FONT_CHARS, WORDS } from './words';
 import { chars } from '../util';
 import { glyphLayout, signLayout, type NdTier } from '../tier';
@@ -327,7 +328,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await slice();
 
   // the painted sky, the LED sky screens (lab P7's 千里江山图 scroll), the Well's silk sheets, the stall's steam
-  const sky = new Mesh(new SphereGeometry(900, 32, 16), skyMaterial(shared));
+  // (the 'nine-sky' look, data/lookGraphs.json) a sphere the frame keeps on the eye (look/render.ts), inside the far plane
+  const sky = new Mesh(new SphereGeometry(2000, 32, 16), lentLook('nine-sky'));
+  setLentTexture('nine-sky', 'silk', shared.u.uSilk.value);
   sky.renderOrder = -10;
   sky.frustumCulled = false;
   root.add(named(sky, 'sky'));
@@ -338,9 +341,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
   // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
   root.add(named(screen, 'screens'));
-  const sheets = new Mesh(mistSheetsGeometry(wellSheets, WELL_RECTS, SHEET_LAYERS), sheetMaterial(shared));
+  const sheets = new Mesh(mistSheetsGeometry(wellSheets, WELL_RECTS, SHEET_LAYERS), lentLook('nine-mist-sheet'));
   sheets.renderOrder = 2;
-  const steam = new Mesh(steamPuffsGeometry(ctx.steam, STEAM_PUFFS.perPoint, STEAM_PUFFS.stride), steamMaterial(shared));
+  const steam = new Mesh(steamPuffsGeometry(ctx.steam, STEAM_PUFFS.perPoint, STEAM_PUFFS.stride), lentLook('nine-steam'));
   steam.frustumCulled = false;
   steam.renderOrder = 3;
   root.add(named(sheets, 'sheets'), named(steam, 'steam'));

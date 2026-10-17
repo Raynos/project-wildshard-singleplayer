@@ -90,11 +90,3 @@ export function neonMaterial(shared: Shared, tex: { mono: Texture; colour: Textu
   return LOOK_FAMILY.material('neon', shared.u, { uniforms: u });
 }
 
-// ── the silk sky (only the Crown's strip of it shows) ──
-export function skyMaterial(shared: Shared): ShaderMaterial { return LOOK_FAMILY.material('sky', shared.u); }
-
-// ── silk fog sheets: soft cloud layers across the Well at each stratum gap (留白) ──
-export function sheetMaterial(shared: Shared): ShaderMaterial { return LOOK_FAMILY.material('sheet', shared.u); }
-
-// ── steam from the noodle pots: soft rising puffs ──
-export function steamMaterial(shared: Shared): ShaderMaterial { return LOOK_FAMILY.material('steam', shared.u); }

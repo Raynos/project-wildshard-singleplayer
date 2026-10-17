@@ -30,6 +30,8 @@ import { KAI_STACK } from './data/signs';
 import { FONT_LOAD } from './data/worldDressing';
 import { waitForFonts } from './runtime/signs/fontWait';
 import { GlyphField } from './runtime/signs/glyphField';
+import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
+import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
 
 /** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
@@ -47,6 +49,9 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
   // (one prepared atlas per argument set: the build's constructor takes it, a repeat prepare finds it)
   await waitForFonts(FONT_LOAD.specs, FONT_CHARS, FONT_LOAD.capMs);
   await GlyphField.prepare(chars(FONT_CHARS), glyphLayout(render.tier), KAI_STACK);
+  // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), compiled and lent first
+  const source = ctx.product.shardfile;
+  lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, render, source, Object.keys(source.look.materials)));
   // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);

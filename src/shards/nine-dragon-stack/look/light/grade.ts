@@ -6,10 +6,9 @@
 //    display sRGB out (scripts/fit-lut.py's format, fetched by the engine's one loader, `fetchLut`).
 //  - GLSL (data/light.ts `GRADE_GLSL`): `vec3 gradeLut(vec3 srgb)`, the composite's LAST colour step (after toSRGB, before grain):
 //    one trilinear texture3D fetch.
-import type { Color, Data3DTexture } from 'three';
+import type { Data3DTexture } from 'three';
 import { LUT_TEXEL_SPLICES, identityLutTexture, loadLutTexture } from '../../runtime/looks/lutTexture';
-import type { SkyRamp } from '../../runtime/looks/light';
-// SHARD-PLATFORM M3: the GLSL and the blue-hour ramp are data (data/light.ts: GRADE_GLSL, BLUE_HOUR).
+// SHARD-PLATFORM M3: the GLSL is data (data/light.ts: GRADE_GLSL).
 
 export function gradeUniforms(): { uLut: { value: Data3DTexture }; uLutAmt: { value: number } } {
   return { uLut: { value: identityLutTexture() }, uLutAmt: { value: 0 } };
@@ -20,13 +19,3 @@ export const loadLut: typeof loadLutTexture = loadLutTexture;
 
 /** the LUT's texel-centre mapping, spliced into data/light.ts' GRADE_GLSL (`@{lutScale}`, `@{lutBias}`) */
 export const LUT_SPLICES: Readonly<Record<string, string>> = LUT_TEXEL_SPLICES;
-
-export interface SkyTargets { uFogBase: { value: number }; uFogBaseCol: { value: Color }; uSkyTop: { value: Color }; uSkyHorizon: { value: Color }; uBandCols: { value: Color[] } }
-
-export function applyRamp(u: SkyTargets, r: SkyRamp): void {
-  u.uFogBaseCol.value.setHex(r.fog);
-  u.uFogBase.value = r.fogDensity;
-  u.uSkyTop.value.setHex(r.skyTop);
-  u.uSkyHorizon.value.setHex(r.skyHorizon);
-  r.bands.forEach((hex, i) => { u.uBandCols.value[i]?.setHex(hex); });
-}
