@@ -1,4 +1,4 @@
-import { defineSpecimenCatalogue } from '@wildshard/sdk/kit/specimenCatalogue';
+import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import data from '../boot/specimens.generated.json' with { type: 'json' };
 import type { CatalogueParams } from '../boot/specimenParams.generated';
 

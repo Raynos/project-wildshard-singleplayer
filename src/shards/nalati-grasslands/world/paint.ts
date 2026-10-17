@@ -1,4 +1,4 @@
-import { specimenMaterial } from '@wildshard/sdk/kit/specimenCatalogue';
+import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
 import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';

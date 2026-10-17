@@ -1,4 +1,4 @@
-import { specimenMaterial } from '@wildshard/sdk/kit/specimenCatalogue';
+import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
 import trailData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';

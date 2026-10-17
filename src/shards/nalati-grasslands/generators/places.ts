@@ -14,7 +14,7 @@ import type { FieldstoneParams, FieldstoneLook, Board, CragLedgeParams, LeopardC
 import { Flutter } from '../world/Flutter';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from '../world/layout';
 import { prism, slab, supportHull, type Box } from '../world/solid';
-import { specimenKey } from '@wildshard/sdk/kit/specimenCatalogue';
+import { specimenKey } from '@wildshard/game/models/specimenCatalogue';
 import { torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { EAGLE_PERCH_H, ribbonPolePainted, eaglePerchPainted, stovePainted, campBenchPainted, rugRackPainted, feltRugPainted, cartPainted, barrelPainted, hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted, choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted, graniteOutcropPainted, roundedBoulderPainted, fencePainted, fallenLogPainted, stumpPainted, ovooPainted, viewpointPolePainted, skyGatewayPainted, campClutterPainted, kokparGoalPainted, kokparPostPainted, stoneStepPainted, signpostPainted, fenceRun, logEnds, type RockTint } from './campProps';
 import { eagleRock, windCairn, cragLedge, leopardCave, kurganEntrance, kurganKerb, fieldstoneBaked, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle, watchtower, saddledHorse, kokparRider } from './catalogue';

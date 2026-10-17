@@ -1,4 +1,4 @@
-import { defineSpecimenCatalogue } from '@wildshard/sdk/kit/specimenCatalogue';
+import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import rows from '../data/campCatalogue.json' with { type: 'json' };
 import materials from '../data/campMaterials.json' with { type: 'json' };
 import packed from '../data/placeSpecimens.json' with { type: 'json' };

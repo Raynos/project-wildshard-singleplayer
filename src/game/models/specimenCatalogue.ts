@@ -1,6 +1,6 @@
+import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { isJsonData } from '@wildshard/format/json';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
@@ -13,40 +13,6 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { painterlyMaterial, painterlyKnobs } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { bakedGeometryBytes, readBakedGeometry, fetchLaneBake, type BakedGeometryRow } from '../plugin/geometry';
-
-const finite = v.pipe(v.number(), v.finite());
-const whole = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(268435456));
-const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
-const assetPath = v.pipe(text, v.regex(/^\/assets\/[a-zA-Z0-9/_.-]+$/u), v.check(path => !path.split('/').includes('..'), 'asset path stays within assets'));
-const paramsSchema = v.record(v.string(), v.unknown());
-const surfaceSchema = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']);
-const texture = v.strictObject({ url: assetPath, phoneUrl: assetPath, name: text });
-const materialSchema = v.strictObject({ id: text, family: v.picklist(['lowpoly', 'painterly']), variant: v.optional(text),
-  rim: v.optional(finite), bands: v.optional(finite), sway: v.optional(finite), floor: v.optional(finite),
-  color: v.optional(v.union([v.string(), finite, v.tuple([finite, finite, finite])])), texture: v.optional(texture) });
-const slot = v.pipe(whole, v.maxValue(128));
-const assetSchema = v.strictObject({ url: assetPath, phoneUrl: v.optional(assetPath), material: materialSchema,
-  geometrySlot: v.optional(slot), materialSlot: v.optional(slot), retainedAttribute: v.optional(text),
-  instance: v.optional(v.strictObject({ name: text, lod: v.picklist(['near', 'far']) })) });
-const pipeline = v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']);
-const model = v.strictObject({ id: text, name: text, file: text, category: v.picklist(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']),
-  pipeline: v.union([pipeline, v.pipe(v.array(pipeline), v.maxLength(16))]), surface: v.optional(surfaceSchema), defaults: paramsSchema,
-  variants: v.optional(v.pipe(v.array(v.strictObject({ id: text, label: text, params: paramsSchema })), v.maxLength(256))),
-  seed: v.optional(finite), specimenYaw: v.optional(finite) });
-const box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: finite, hy: finite, hz: finite,
-  yaw: v.optional(finite), surface: v.optional(surfaceSchema) });
-/** Complete JSON wire schema. It deliberately has no executable fields or extension callbacks. */
-export const SpecimenCatalogueSchema = v.pipe(v.array(v.strictObject({ key: text, model,
-  colliders: v.optional(v.pipe(v.array(box), v.maxLength(1024))),
-  source: v.variant('kind', [v.strictObject({ kind: v.literal('packed') }), v.strictObject({ kind: v.literal('asset'), asset: assetSchema }),
-    v.strictObject({ kind: v.literal('owned'), material: materialSchema, variants: v.pipe(v.array(v.strictObject({ params: paramsSchema, url: assetPath, size: v.tuple([finite, finite, finite]) })), v.maxLength(256)) })]),
-})), v.maxLength(1024));
-const geometrySchema = v.strictObject({ attrs: v.pipe(v.array(v.tuple([text, v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), whole, v.boolean()])), v.maxLength(32)),
-  count: whole, index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean(), expand: v.boolean() });
-/** Packed bake metadata may also retain the generator's notice, part name and slot. */
-export const PackedSpecimenSchema = v.object({ bin: assetPath, bytes: whole,
-  rows: v.pipe(v.array(v.object({ key: text, parts: v.pipe(v.array(v.object({ material: text, geometry: geometrySchema })), v.maxLength(64)) })), v.maxLength(4096)) });
-const jsonData = (input: unknown): void => { if (!isJsonData(input)) throw new Error('Specimen declarations require plain JSON data'); };
 
 /** Data-only material binding. Cache identities are shared with live world users. */
 export interface SpecimenMaterialRow {
@@ -79,7 +45,7 @@ export function loadSpecimenTexture(row: NonNullable<SpecimenMaterialRow['textur
 /** Bind the same declared surface for a world draw and its catalogue specimen. */
 export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Texture | null): THREE.Material {
   jsonData(input);
-  const row = v.parse(materialSchema, input);
+  const row = v.parse(SpecimenMaterialSchema, input);
   if (row.family === 'lowpoly') return lowPolyLookMaterial(sky, row.variant ?? 'default');
   let bySky = materials.get(sky);
   if (bySky === undefined) { bySky = new Map(); materials.set(sky, bySky); }
@@ -237,7 +203,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
   jsonData(input);
   jsonData(materialRowsInput);
   const packed = packedInput === undefined ? undefined : createPackedSpecimens(packedInput);
-  const materialRows = v.parse(v.record(v.string(), materialSchema), materialRowsInput);
+  const materialRows = v.parse(v.record(v.string(), SpecimenMaterialSchema), materialRowsInput);
   const rows = v.parse(SpecimenCatalogueSchema, input);
   if (rows.length > 1024 || new Set(rows.map(row => row.key)).size !== rows.length || new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Specimen catalogue must be bounded and unique');
   const definitions = new Map<string, ModelDef<object>>();

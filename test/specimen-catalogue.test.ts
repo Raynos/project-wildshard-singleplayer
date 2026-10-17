@@ -10,7 +10,8 @@ import { modelContext, paramsOf, definedModels } from '../src/engine/models/mode
 import { SkyRig } from '../src/engine/world/skyRig';
 import { painterlyKnobs } from '../src/engine/world/painterly';
 import { unshuffleLanes, readBakedGeometry, bakedGeometryBytes } from '../src/game/plugin/geometry';
-import { createPackedSpecimens, defineSpecimenCatalogue, specimenMaterial, PackedSpecimenSchema } from '../src/sdk/kit/specimenCatalogue';
+import { createPackedSpecimens, defineSpecimenCatalogue, specimenMaterial } from '../src/game/models/specimenCatalogue';
+import { PackedSpecimenSchema } from '../src/sdk/kit/specimenSchemas';
 import packedRows from '../src/shards/nalati-grasslands/data/placeSpecimens.json' with { type: 'json' };
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
 import * as camp from '../src/shards/nalati-grasslands/models/catalogue';

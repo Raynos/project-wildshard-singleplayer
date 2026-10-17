@@ -1,4 +1,4 @@
-import { loadSpecimenTexture } from '@wildshard/sdk/kit/specimenCatalogue';
+import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
 import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';

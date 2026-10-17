@@ -1,4 +1,4 @@
-import { awaitSpecimenAssets, loadBoundSpecimen, type SpecimenAssetRow } from '@wildshard/sdk/kit/specimenCatalogue';
+import { awaitSpecimenAssets, loadBoundSpecimen, type SpecimenAssetRow } from '@wildshard/game/models/specimenCatalogue';
 import * as THREE from 'three';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

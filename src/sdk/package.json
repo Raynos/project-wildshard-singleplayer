@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    "./kit/specimenCatalogue": "./kit/specimenCatalogue.ts",
+    "./kit/specimenSchemas": "./kit/specimenSchemas.ts",
     "./headlessAssembly": "./headlessAssembly.ts",
     "./panelTemplates": "./panelTemplates.ts",
     "./dataPanels": "./dataPanels.ts",
@@ -190,9 +190,9 @@
   },
   "publishConfig": {
     "exports": {
-      "./kit/specimenCatalogue": {
-        "types": "./dist/types/sdk/kit/specimenCatalogue.d.ts",
-        "default": "./dist/kit/specimenCatalogue.js"
+      "./kit/specimenSchemas": {
+        "types": "./dist/types/sdk/kit/specimenSchemas.d.ts",
+        "default": "./dist/kit/specimenSchemas.js"
       },
       "./bake/species": {
         "types": "./dist/types/sdk/bake/species.d.ts",

@@ -4672,7 +4672,7 @@ part order, optional geometry fallback, clone and shadow policy, lazy LOD
 bands, optional specimen material and Float32 convex hulls. It never loads,
 fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
-`@wildshard/sdk/kit/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
+`@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
 packed?, materials?)` returns a typed `.model(key)` binder and registers parameterized models from data alone. Each
 `SpecimenModelRow` declares its model metadata, defaults, partial variants,
 optional own-space collider rows and one specimen source. `owned` selects a
@@ -4688,8 +4688,10 @@ does not fetch or build a specimen, and there are no shard callbacks.
 The authored catalogues produce generated boot JSON and parameter declarations,
 so pre-admission Explorer registration does not import authoring modules.
 Driftwood uses owned GLBs; Nalati uses packed parts and prepared assets.
-The exported `SpecimenCatalogueSchema` and `PackedSpecimenSchema` validate
-the wire shapes; constructors also refuse non-JSON values, accessors,
+The renderer-free `@wildshard/sdk/kit/specimenSchemas` module exports
+`SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
+`SpecimenMaterialSchema` for Node/schema discovery. The render binder
+imports these pure declarations; constructors also refuse non-JSON values, accessors,
 cycles, callbacks, unbounded catalogues and paths outside `/assets/`.
 
 `createPackedSpecimens(bake)` lazily inflates the declared lane-shuffled

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./specimenCatalogue": "./specimenCatalogue.ts",
     "./exchange": "./exchange.ts",
     "./panelTemplate": "./panelTemplate.ts",
     "./questStory": "./questStory.ts",
