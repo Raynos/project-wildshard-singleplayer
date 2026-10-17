@@ -19,6 +19,8 @@ const ready = v.variant('kind', [
 ]);
 /** Data-only fixed-step motion. Decisions, strike selection, rewards and phase transitions are not moves. */
 export const ActorMoveSchema = v.variant('kind', [
+  v.strictObject({ id, kind: v.literal('steer'), ...motion,
+    fields: v.strictObject({ yaw: id, speed: id, turn: id }) }),
   v.strictObject({ id, kind: v.literal('relocate'), point: v.variant('kind', [
     v.strictObject({ kind: v.literal('spot'), spot: id }),
     v.strictObject({ kind: v.literal('fields'), x: id, z: id }),
@@ -51,6 +53,7 @@ export function parseActorMoves(input: unknown): ActorMoves { return v.parse(Act
 export function actorMoveRules(rows: readonly ActorMove[], refs: { spots: ReadonlySet<string>; strikes: ReadonlySet<string>; fields: ReadonlySet<string> }): string[] {
   const failures = new Set<string>();
   for (const row of rows) {
+    if (row.kind === 'steer' && Object.values(row.fields).some(field => !refs.fields.has(field))) failures.add('move steering resolves in declared actor fields');
     if (row.kind === 'relocate') {
       if (row.point.kind === 'spot' && !refs.spots.has(row.point.spot)) failures.add('move location resolves in world spots');
       if (row.point.kind === 'fields' && (!refs.fields.has(row.point.x) || !refs.fields.has(row.point.z))) failures.add('move coordinates resolve in declared actor fields');

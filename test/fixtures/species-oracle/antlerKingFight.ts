@@ -4,7 +4,7 @@ import type { BossBrain, BossScript } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import { KING_PHASE_AT, burnTick, headingTo, wallPush } from '../pine/combatMath';
-import { PINE_LEVEL_SEED } from '../../../src/shards/pine-hollow/combat/eliteStreams';
+import { PINE_LEVEL_SEED } from './pineEliteStreams';
 import { PINE_STRIKES, pineContact } from './pineStrikes';
 import type { Lane, LaneBody, LaneState } from '../../../src/shards/pine-hollow/combat/lane';
 import { AntlerKingGoals, type KingGoalEnv } from './antlerKingGoals';

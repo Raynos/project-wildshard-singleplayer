@@ -42,7 +42,8 @@ import { placeDrawnModels } from './world/drawnModels';
 import { placePineHollowSets } from '../world/places';
 import { installHeldLoadout } from '@wildshard/game/loadout/held';
 import { installPineCombat } from '../combat/install';
-import { pinePickupStream } from '../combat/eliteStreams';
+import { eliteStream } from '@wildshard/game/quest/eliteStreams';
+import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { installPineQuest } from '../quest/index';
 import { installAmbientLife } from './life/ambientLife';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
@@ -61,10 +62,9 @@ import type { SkinId } from '@wildshard/engine/player/Skins';
 import { parseTradeCatalogue } from '../quest/rows';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
-/** The client Wasm modules the play hook prepares before install: the four elites' brains, the night and the watch
- *  directors (named blobs of the product, hash-checked by the reader). */
-const PREPARED_MODULES = ['behaviour/ironhide.wasm', 'behaviour/ghostStag.wasm', 'behaviour/blackpaw.wasm', 'behaviour/imperialBull.wasm',
-  'behaviour/night.wasm', 'behaviour/director.wasm'] as const;
+/** Legacy v0 modules prepared by the play hook. Owned v1 guests are
+ * admitted by their population and encounter hosts. */
+const PREPARED_MODULES = ['behaviour/director.wasm'] as const;
 
 function runtime(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;
@@ -176,6 +176,8 @@ export class PineHollow extends ShardPlugin {
   }
 
   private async installPlay(ctx: ShardContext): Promise<void> {
+    const eliteRows = await readEliteFeature(ctx.product, 'actors/elites.json');
+    const pickupStream = (id: string): (() => number) => { const stream = eliteStream(eliteRows, ctx.product.shardfile.identity.seed, 'pickup', id); return () => stream.next(); };
     const [{ WeaponPickup }, { applySkin, clearSkin }] = await Promise.all([import('@wildshard/engine/player/WeaponPickup'), import('@wildshard/engine/player/Skins')]);
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
@@ -199,7 +201,7 @@ export class PineHollow extends ShardPlugin {
     const pickupRows = ctx.product.section('combat/items').items.pickups;
     if (pickupRows === undefined) throw new Error('Pine requires its admitted skin pickups');
     const skinDrops = new ClaimedPickupRoster<SkinId>(pickupRows, {
-      scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
+      scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pickupStream('skin-drops'),
       model: id => { const skin = HeldFinishes.current(ctx.manifest.slug).get(id), item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow.displayModel(); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
       take: id => { const skin = HeldFinishes.current(ctx.manifest.slug).get(id), label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
@@ -216,7 +218,7 @@ export class PineHollow extends ShardPlugin {
     const rifleDrop = (() => {
       const position = pineRifleFloor(cabins === null ? null : { floorHeightAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') });
       if (position === null) return null;
-      const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3, random: pinePickupStream('cabin-rifle') });
+      const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3, random: pickupStream('cabin-rifle') });
       rt.interactables.push(drop.interactable);
       drop.onNear = (inside) => audio.pickupHum(inside);
       drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast('Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube'); };
@@ -238,7 +240,7 @@ export class PineHollow extends ShardPlugin {
     const decisions=await pageDecisionAuthority(ctx),decisionProgram=ctx.product.section('actors/species-programs').program;
     if(decisionProgram===undefined)throw new Error('Pine requires its King decision programme');
     const persistenceRows = await readAdventurePersistence(ctx);
-    const fights = ctx.scope.run(() => installPineCombat({ pouchCapacity: ctx.product.section('held/loadout').pouch.capacity, persistenceRows, decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
+    const fights = ctx.scope.run(() => installPineCombat({ eliteRows, pouchCapacity: ctx.product.section('held/loadout').pouch.capacity, persistenceRows, decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } }));
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
     const trophyPack = ctx.product.section('custom/trophyMounts', SECTIONS);

@@ -7,7 +7,9 @@
   "test/client-plan-boundary.test.ts": [],
   "test/client-plan-platform.test.ts": [],
   "test/view-field-host.test.ts": [],
-  "test/pine-night-emits.test.ts": ["pine-hollow"],
+  "test/pine-night-emits.test.ts": [
+    "pine-hollow"
+  ],
   "test/creature-group-sampling.test.ts": [],
   "test/contracts-platform.test.ts": [],
   "test/world-scenes-platform.test.ts": [],
@@ -105,5 +107,6 @@
   ],
   "test/nine-cloth-bake.test.ts": [],
   "test/living-buildings-platform.test.ts": [],
-  "test/declared-audio-gameplay.test.ts": []
+  "test/declared-audio-gameplay.test.ts": [],
+  "test/elites-platform.test.ts": []
 }

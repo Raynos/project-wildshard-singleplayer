@@ -115,3 +115,17 @@ it('a continuing dive requests its admitted strike once in range, including afte
     expect(frame.strike).toBeUndefined(); expect(frame.done).toBeUndefined(); expect(frame.steering?.speed).toBe(19);
   }
 });
+
+it('field steering admits finite bounded controls and keeps the fixed-step continuation', () => {
+  const actor = body(), row = parseActorMoves([{ id: 'marsh.steer', kind: 'steer', ground: true, speed: 4, turn: 2,
+    fields: { yaw: 'heading', speed: 'pace', turn: 'turn' } }])[0];
+  if (row === undefined) throw new Error('Missing motion');
+  expect(actorMoveRules([row], { spots: new Set(), strikes: new Set(), fields: new Set(['heading', 'pace', 'turn']) })).toEqual([]);
+  expect(actorMoveRules([row], { spots: new Set(), strikes: new Set(), fields: new Set() })).toHaveLength(1);
+  const runner = new ActorMoveRunner(row, actor), controls = { yaw: 0.6, speed: 3, turn: 1.5 };
+  expect(runner.step({ body: actor, controls })).toEqual({ steering: { ...controls, altitude: 18, ground: true } });
+  const saved = runner.snapshot(), restored = new ActorMoveRunner(row, actor); restored.restore(saved);
+  expect(restored.step({ body: actor, controls })).toEqual(runner.step({ body: actor, controls }));
+  for (const invalid of [{ ...controls, speed: 5 }, { ...controls, speed: -1 }, { ...controls, turn: 3 }, { ...controls, yaw: Number.NaN }])
+    expect(() => new ActorMoveRunner(row, actor).step({ body: actor, controls: invalid })).toThrow();
+});

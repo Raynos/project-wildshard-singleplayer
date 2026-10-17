@@ -27,9 +27,7 @@
     "@wildshard/sdk/populationShelter": ["installNativeHerdShelter"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
     "@wildshard/engine/physics/terrain": ["isStandaloneEdgeWall"],
-    "@wildshard/game/shardfile/eliteEncounters": ["installEliteEncounters"],
-    "src/shards/pine-hollow/combat/eliteScripts": ["pineEliteScripts"],
-    "src/shards/pine-hollow/combat/lane": ["Lane"]
+    "@wildshard/game/quest/eliteFeature": ["installNativeEliteFeature", "readEliteFeature"]
   },
   "prepare": [
     {
@@ -369,6 +367,25 @@
           }
         ]
       }
+    },
+    {
+      "name": "eliteRows",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/quest/eliteFeature",
+              "readEliteFeature"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "actors/elites.json"
+        ]
+      }
     }
   ],
   "install": [
@@ -470,141 +487,6 @@
               "field": "pineWorldOwner",
               "step": "pine.world-tags",
               "fallback": "wood"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "elites",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["@wildshard/game/shardfile/eliteEncounters", "installEliteEncounters"]
-          },
-          {
-            "$ref": ["host"]
-          },
-          {
-            "step": "pine.elites",
-            "version": 4,
-            "wire": {
-              "scripts": "scripts",
-              "stun": "stun",
-              "upgrades": [
-                {
-                  "version": 1,
-                  "removeScriptFields": [],
-                  "bindInstalledAnimals": true,
-                  "clearStun": true,
-                  "fieldDefaults": {
-                    "imperial-bull": {
-                      "rival0": null,
-                      "rival1": null,
-                      "rivalCharge0": false,
-                      "rivalCharge1": false
-                    }
-                  }
-                },
-                {
-                  "version": 2,
-                  "removeScriptFields": []
-                },
-                {
-                  "version": 3,
-                  "removeScriptFields": ["prelude"]
-                }
-              ]
-            },
-            "conditions": {
-              "mode": "weights",
-              "dusk": {
-                "$fn": {
-                  "$ref": ["day", "dusk"]
-                }
-              },
-              "night": {
-                "$fn": {
-                  "$ref": ["day", "night"]
-                }
-              }
-            },
-            "scripted": {
-              "create": {
-                "$ref": ["src/shards/pine-hollow/combat/eliteScripts", "pineEliteScripts"]
-              },
-              "ports": {
-                "bodies": {
-                  "$fn": {
-                    "$if": [
-                      {
-                        "$ref": ["roster"]
-                      },
-                      {
-                        "$call": [
-                          {
-                            "$ref": ["roster", "bodies"]
-                          }
-                        ]
-                      },
-                      []
-                    ]
-                  }
-                },
-                "heightAt": {
-                  "$ref": ["heightAt"]
-                },
-                "spawn": {
-                  "$fn": {
-                    "$call": [
-                      {
-                        "$ref": ["roster", "spawn"]
-                      },
-                      {
-                        "$ref": ["args", 0]
-                      },
-                      {
-                        "$ref": ["args", 1]
-                      },
-                      {
-                        "$ref": ["args", 2]
-                      },
-                      {
-                        "$ref": ["args", 3]
-                      },
-                      {
-                        "$ref": ["args", 4]
-                      }
-                    ]
-                  }
-                },
-                "retire": {
-                  "$fn": {
-                    "$call": [
-                      {
-                        "$ref": ["roster", "retire"]
-                      },
-                      {
-                        "$ref": ["args", 0]
-                      }
-                    ]
-                  }
-                },
-                "dusk": {
-                  "$fn": {
-                    "$ref": ["day", "dusk"]
-                  }
-                },
-                "night": {
-                  "$fn": {
-                    "$ref": ["day", "night"]
-                  }
-                },
-                "scriptedState": "sidestep",
-                "lane": {
-                  "$ref": ["src/shards/pine-hollow/combat/lane", "Lane"]
-                }
-              }
             }
           }
         ]
@@ -1277,6 +1159,34 @@
             }
           },
           { "$ref": ["populationRoster"] }
+        ]
+      }
+    },
+    {
+      "name": "elites",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/quest/eliteFeature",
+              "installNativeEliteFeature"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "day"
+            ]
+          },
+          {
+            "$ref": [
+              "eliteRows"
+            ]
+          }
         ]
       }
     },

@@ -1,4 +1,8 @@
 import * as v from 'valibot';
+import { actorDecisionRows } from '@wildshard/format/decisionScripts';
+import { ScriptStrikes, type ScriptStrikeHit } from './scriptStrikes';
+import { canReach } from '@wildshard/engine/ai/reach';
+import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { DecisionHost, type DecisionContext, type DecisionScript, type DecisionWorld, type DecisionSnapshot } from '@wildshard/engine/script/decision';
@@ -13,19 +17,24 @@ import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { populationRoster } from './roster';
 import { ANIMAL_STATES, type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 
+type ControlledBody = AnimalSim & { hidden?: boolean };
+const claimedBodies = new WeakMap<AnimalSim, SpawnScript>();
 interface Point { readonly x: number; readonly y: number; readonly z: number }
 /** Internal body authority. Only built-in native/page adapters construct it; shard-facing installers take rows. */
 interface SpawnBodyOwner {
-  spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => AnimalSim;
+  spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => ControlledBody;
   retire: (actor: AnimalSim) => void;
-  actor: (id: string) => AnimalSim | null;
+  actor: (id: string) => ControlledBody | null;
   height: (x: number, z: number) => number;
   available: () => number;
+  boot: () => readonly ControlledBody[];
+  reach: (body: AnimalSim, target: Point) => boolean;
+  show?: (body: AnimalSim, visible: boolean) => void;
 }
-interface Effect { readonly kind: 'cue' | 'retire'; readonly id: number; readonly at: Point }
+type Effect = { readonly kind: 'cue' | 'retire'; readonly id: number; readonly actor: number; readonly at: Point }
+  | { readonly kind: 'hit'; readonly actor: number; readonly hit: ScriptStrikeHit };
 interface Motion { readonly id: number; readonly target: number; readonly runner: ActorMoveRunner }
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
@@ -33,6 +42,7 @@ const pair = v.tuple([natural, finite]);
 const Saved = v.strictObject({ version: v.literal(2), contract: v.string(), decision: v.custom<DecisionSnapshot>(input => typeof input === 'object' && input !== null),
   actors: v.array(v.tuple([natural, v.string()])), fields: v.array(v.tuple([natural, natural, finite])),
   channels: v.array(pair), force: v.pipe(natural, v.maxValue(8)), elapsed: v.pipe(finite, v.minValue(0), v.maxValue(1 / 60)),
+  strikes: v.exactOptional(v.unknown()),
   moves: v.array(v.strictObject({ actor: natural, id: natural, target: natural, state: v.unknown() })),
 });
 function value<T>(input: T | undefined, reason: string): T { if (input === undefined) throw new Error(`Spawn script: ${reason}`); return input; }
@@ -42,13 +52,18 @@ function value<T>(input: T | undefined, reason: string): T { if (input === undef
 export class SpawnScript {
   readonly host: DecisionHost;
   private readonly rows: SpawnScriptRows;
-  private readonly handles = new Map<number, AnimalSim>();
+  private readonly handles = new Map<number, ControlledBody>();
+  private readonly adoptedBodies = new WeakSet<AnimalSim>();
   private readonly fields = new Map<string, number>();
   private readonly channels = new Map<number, number>();
   private readonly motions = new Map<number, Motion>();
   private readonly contract: string;
+  private readonly combat: ScriptStrikes;
+  private readonly bindings = new Map<number, number>();
+  private readonly observations = new Map<string, number>();
   private point: Point = { x: 0, y: 0, z: 0 };
   private night = 0;
+  private playerYaw = 0;
   private maximum = 0;
   private forced = 0;
   private elapsed = 0;
@@ -59,26 +74,36 @@ export class SpawnScript {
   private readonly controlState: AnimalSim['state'];
   /** The decision host's final refusal, exposed without a callback into content. */
   get failure(): string | null { return this.disabledReason; }
-  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner) {
+  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly validatorFor?: SpawnScript) {
     const rows = parseSpawnScript(input); this.rows = rows;
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
-    const registries = spawnScriptRegistries(rows), map = decisionBindingMap(rows.script, registries);
+    const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
     const bytes = Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
     admitScriptContract(bytes, { abi: 1, pages: rows.script.pages });
     this.contract = JSON.stringify({ ...rows, bytes: undefined });
-    const script: DecisionScript = { ...rows.script, ids: map.ids,
-      state: rows.script.state.map(slot => { if (slot.scope === 'local') throw new Error('Local spawn state'); return { ...slot, scope: slot.scope }; }),
-      reads: rows.script.reads.filter((name): name is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, name)),
-      lists: rows.script.reads.filter((name): name is ScriptV1ListName => Object.hasOwn(SCRIPT_V1_LISTS, name)),
-    };
+    const scripts: DecisionScript[] = [];
+    for (const row of actorDecisionRows(rows.script)) {
+      const state: DecisionScript['state'][number][] = [];
+      for (const slot of row.state) {
+        if (slot.scope === 'local') throw new Error('Local spawn state');
+        state.push({ ...slot, scope: slot.scope });
+      }
+      scripts.push({ ...row, ids: decisionBindingMap(row, registries).ids, state,
+        reads: row.reads.filter((name): name is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, name)),
+        lists: row.reads.filter((name): name is ScriptV1ListName => Object.hasOwn(SCRIPT_V1_LISTS, name)),
+      });
+    }
+    const bindings = scripts.map((script, index) => {
+      const actors = Object.values(script.ids.actors ?? {}), self = 'spawnGroup' in rows.script.binding ? actors[0] ?? 0 : 0;
+      this.bindings.set(self, index + 1); return { id: index + 1, script: script.id, self, actors, instance: 0 };
+    });
     const world: DecisionWorld = { read: (op, a, b) => this.read(op, a, b), list: (op, a, b, out) => {
       if (op === 6) { if (b < 0 || b > 10000) throw new Error('Radial query bounds'); out[0] = Math.sin(a) * b; out[1] = Math.cos(a) * b; return 2; }
       if (op !== 3) throw new Error('Unsupported population list'); out[0] = bodies.height(a, b); return 1;
     }, prepare: (commands, context) => this.prepare(commands, context), failed: (_mode, _context, reason) => { this.disabledReason = reason; } };
-    this.host = new DecisionHost({ scripts: [script], bindings: [{ id: 1, script: script.id, self: 0,
-      actors: Object.values(map.ids.actors ?? {}), instance: 0 }], modules: new Map([[script.module, bytes]]), seed: [rows.seed >>> 0, 0],
+    this.host = new DecisionHost({ scripts, bindings, modules: new Map([[rows.script.module, bytes]]), seed: [rows.seed >>> 0, 0],
       world, limits: { fuelPerCall: 2000000, fuelPerTick: 8000000 } });
-    this.host.enqueue(1, [1, 0, 0, 0, 0, 0]);
+    if ('shard' in rows.script.binding) for (const binding of bindings) this.host.enqueue(binding.id, [1, 0, 0, 0, 0, 0]);
   }
   /** Native binding takes existing platform authorities and rows, never per-shard ports. */
   static native(host: SimHost, input: unknown): SpawnScript {
@@ -88,18 +113,20 @@ export class SpawnScript {
       const body = roster.actor(actor.entityId); if (body !== actor) throw new Error('Foreign native script actor');
       roster.retire(body);
     }, actor: roster.actor,
-      height: (x, z) => host.groundHeightAt(x, z), available: roster.available });
+      height: (x, z) => host.groundHeightAt(x, z), available: roster.available, boot: () => roster.bodies().filter(row => row.scripted).map(row => row.actor),
+      reach: (body, target) => canReach(body, target, host.physics) });
   }
   /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
-  static page(animals: AnimalManager, input: unknown): SpawnScript {
-    const made = new Map<string, Animal>();
-    return new SpawnScript(input, { spawn: (kind, x, z, yaw, variant) => {
-      const actor = animals.spawn(kind, x, z, yaw, variant); made.set(actor.entityId, actor); return actor;
-    }, retire: actor => { const real = made.get(actor.entityId); if (real === undefined) throw new Error('Foreign page spawn retirement');
-      animals.retire(real); made.delete(actor.entityId); }, actor: id => made.get(id) ?? null, height: terrainHeight,
-      available: () => 16384 - animals.animals.length });
+  static page(animals: AnimalManager, input: unknown, physics?: Physics | null): SpawnScript {
+    return new SpawnScript(input, { spawn: (kind, x, z, yaw, variant) => animals.spawn(kind, x, z, yaw, variant),
+      retire: actor => { const real = animals.animals.find(row => row === actor); if (real === undefined) throw new Error('Foreign page spawn retirement'); animals.retire(real); },
+      actor: id => animals.animals.find(row => row.entityId === id) ?? null, height: terrainHeight,
+      available: () => 16384 - animals.animals.length, boot: () => animals.animals.filter(row => row.scripted),
+      reach: (body, target) => physics !== undefined && physics !== null && canReach(body, target, physics),
+      show: (body, visible) => { const real = animals.animals.find(row => row === body); if (real !== undefined) real.mesh.visible = visible; },
+    });
   }
-  private actor(handle: number): AnimalSim | undefined { return this.handles.get(handle); }
+  private actor(handle: number): ControlledBody | undefined { return this.handles.get(handle); }
   private position(handle: number): Point { return handle === DECISION_PLAYER_HANDLE ? this.point : this.actor(handle)?.position ?? { x: 0, y: 0, z: 0 }; }
   private field(actor: number, id: number): number {
     const row = value(this.rows.fields[id - 1], 'field'), body = this.actor(actor);
@@ -108,33 +135,55 @@ export class SpawnScript {
     if (row.source === 'force') return this.forced;
     if (row.source === 'scripted') return Number(body?.scripted ?? false);
     if (row.source === 'lookWeight') return body?.lookWeight ?? 0;
+    if (row.source === 'hidden') return Number(body?.hidden ?? false);
+    if (row.source === 'seed') return body?.seed ?? 0;
+    if (row.source === 'lastHit') return Number.isFinite(body?.lastHitT) ? body?.lastHitT ?? 0 : row.fallback ?? 0;
+    if (row.source === 'strikeTime') return this.combat.time(actor);
+    if (row.source === 'observed') return this.observations.get(row.id) ?? 0;
+    if (row.source === 'channel') return this.channel(this.rows.channels.indexOf(row.channel ?? '') + 1);
     return this.fields.get(`${actor}:${id}`) ?? 0;
   }
   private read(op: number, a: number, b: number): number {
     if (op === 9) return DECISION_PLAYER_HANDLE;
     if (op === 10) return Number(this.flags.has(value(this.rows.flags[a - 1], 'flag')));
     if (op === 7) return this.field(a, b);
+    if (op === 16) return ['idle', 'windup', 'active', 'recover', 'cooldown'].indexOf(this.combat.state(a));
+    if (op === 18) {
+      const spawn = this.rows.spawns[a - 1], site = this.rows.sites.find(row => row.id === spawn?.site);
+      if (site !== undefined) return Number(this.body(site.slot)?.alive ?? false);
+      const binding = this.rows.script.binding;
+      if (!('spawnGroup' in binding) || a !== (this.rows.spawns.length + 1)) throw new Error('Missing declared spawn group');
+      return [...this.handles.values()].filter(body => body.alive).length;
+    }
     if (op === 15) return Number(this.motions.has(a));
     const body = this.actor(a), point = this.position(a);
     if (op === 1) return point.x; if (op === 2) return point.y; if (op === 3) return point.z;
-    if (op === 4) return body?.yaw ?? 0;
+    if (op === 4) return a === DECISION_PLAYER_HANDLE ? this.playerYaw : body?.yaw ?? 0;
     if (op === 5) return body === undefined ? 0 : body.hp / body.maxHp;
     if (op === 6) return Number(body?.alive ?? false);
     if (op === 8) { const other = this.position(b); return Math.hypot(point.x - other.x, point.z - other.z); }
     throw new Error('Unsupported population read');
   }
+  private fieldBounds(id: string, n: number): void {
+    for (const move of this.rows.moves) {
+      if (move.kind !== 'steer') continue;
+      if (id === move.fields.speed && (n < 0 || n > move.speed)) throw new Error('Script steering speed bounds');
+      if (id === move.fields.turn && (n < 0 || n > move.turn)) throw new Error('Script steering turn bounds');
+    }
+  }
   /** Validate the complete batch and resolve its row/species/site identities before any draw, body or flag changes. */
-  private prepare(commands: readonly ScriptV1Command[], _context: DecisionContext): { commit: () => void } {
+  private prepare(commands: readonly ScriptV1Command[], context: DecisionContext): { commit: () => void } {
     const fields = new Map(this.fields), pending = new Set<number>(), retiring = new Set<number>(), operations: (() => void)[] = [];
     let capacity = this.bodies.available();
     const slot = (name: string): number => value(this.rows.slots.find(row => row.id === name), 'slot').handle;
     for (const [op, actor, a, b, c] of commands) {
       if (op === 4) {
-        const row = value(this.rows.fields[a - 1], 'field');
-        if (['night', 'limit'].includes(row.source) || Math.abs(b) > 10000 || c !== 0) throw new Error('Population field authority');
-        if (row.source === 'scripted' && b !== 0 && b !== 1) throw new Error('Population control bounds');
+        const row = value(this.rows.fields[a - 1], 'field'); this.fieldBounds(row.id, b);
+        if (['night', 'limit', 'observed', 'channel', 'seed', 'lastHit', 'strikeTime'].includes(row.source) || Math.abs(b) > 10000 || c !== 0) throw new Error('Population field authority');
+        if ((row.source === 'scripted' || row.source === 'hidden') && b !== 0 && b !== 1) throw new Error('Population control bounds');
+        if (row.source === 'lookWeight' && (b < 0 || b > 1)) throw new Error('Look weight bounds');
         if (row.source === 'force' && (b < 0 || b > 8 || !Number.isInteger(b))) throw new Error('Population force bound');
-        if ((row.source === 'scripted' || row.source === 'lookWeight') && !pending.has(actor) && this.actor(actor) === undefined) throw new Error('Missing controlled body');
+        if (['scripted', 'lookWeight', 'hidden'].includes(row.source) && !pending.has(actor) && this.actor(actor) === undefined) throw new Error('Missing controlled body');
         fields.set(`${actor}:${a}`, b);
         operations.push(() => {
           const body = this.actor(actor);
@@ -145,13 +194,18 @@ export class SpawnScript {
             const state = this.controlState;
             if (body.scripted) { body.herd = -1; body.state = state; }
             else if (body.alive && body.state === state) body.state = 'alert';
+            if (!body.scripted && this.rows.slots.find(item => item.handle === actor)?.release === 'detach') this.detach(actor);
           } else if (row.source === 'lookWeight') { if (body !== undefined) body.lookWeight = b; }
+          else if (row.source === 'hidden') { if (body !== undefined) { body.hidden = b === 1; this.bodies.show?.(body, b === 0); } }
+          else if (row.source === 'lookHeight') this.fields.set(`${actor}:${a}`, b);
           else this.fields.set(`${actor}:${a}`, b);
+          if ('spawnGroup' in this.rows.script.binding && ['hidden', 'lookWeight', 'scripted'].includes(row.source)) this.fields.set(`${actor}:${a}`, b);
         });
       } else if (op === 5) {
         const row = value(this.rows.spawns[a - 1], 'spawn row'), species = value(this.rows.species.find(item => item.id === row.species), 'species');
         const site = value(this.rows.sites.find(item => item.id === row.site), 'site'), handle = slot(site.slot);
         if (b !== 0 || c !== 0 || pending.has(handle) || (this.actor(handle)?.alive === true && !retiring.has(handle)) || capacity < 1) throw new Error('Occupied or invalid spawn slot');
+        if ('spawnGroup' in this.rows.script.binding && handle !== context.binding.self) throw new Error('Spawn group slot ownership');
         capacity--;
         const coordinate = (source: 'x' | 'z'): number => {
           const id = this.rows.fields.findIndex(field => field.source === source) + 1;
@@ -163,27 +217,43 @@ export class SpawnScript {
         operations.push(() => {
           const face = site.face === 'player' ? this.point : { x: site.face[0], z: site.face[1] };
           const body = this.bodies.spawn(species.kind, x, z, Math.atan2(face.x - x, face.z - z), species.variant);
-          this.handles.set(handle, body); this.motions.delete(handle);
-          if (this.rows.script.on.includes('spawned')) this.host.enqueue(1, [17, handle, a, 0, 0, 0]);
+          this.handles.set(handle, body); if ('spawnGroup' in this.rows.script.binding) claimedBodies.set(body, this); this.motions.delete(handle);
+          if ('spawnGroup' in this.rows.script.binding) { body.scripted = true; body.herd = -1; body.state = this.controlState; }
+          if (this.rows.script.on.includes('spawned')) this.enqueue(handle, [17, handle, a, 0, 0, 0]);
         });
       } else if (op === 6) {
         const body = value(this.actor(actor), 'retirement body');
         if (retiring.has(actor)) throw new Error('Duplicate population retirement');
         retiring.add(actor); capacity++;
-        operations.push(() => { this.effects.push({ kind: 'retire', id: actor, at: { x: body.position.x, y: body.position.y, z: body.position.z } });
-          this.bodies.retire(body); this.handles.delete(actor); this.motions.delete(actor); });
+        operations.push(() => { this.effects.push({ kind: 'retire', id: actor, actor, at: { x: body.position.x, y: body.position.y, z: body.position.z } });
+          this.bodies.retire(body); this.detach(actor); });
       } else if (op === 1) {
         const row = value(this.rows.moves[a - 1], 'move');
-        if (row.kind !== 'stalk') throw new Error('Population movement requires a stalk row');
+        if (!['stalk', 'steer', 'relocate'].includes(row.kind)) throw new Error('Unsupported owned movement');
         if (!pending.has(actor) && this.actor(actor) === undefined) throw new Error('Missing moving actor');
         if (b !== DECISION_PLAYER_HANDLE && b !== 0) throw new Error('Population move target');
-        operations.push(() => { this.motions.set(actor, { id: a, target: b, runner: new ActorMoveRunner(row, value(this.actor(actor), 'move body')) }); });
+        operations.push(() => {
+          const body = value(this.actor(actor), 'move body'), runner = new ActorMoveRunner(row, body);
+          if (row.kind !== 'relocate') { this.motions.set(actor, { id: a, target: b, runner }); return; }
+          const site = this.rows.sites.find(item => this.rows.slots.find(owned => owned.id === item.slot)?.handle === actor), face = site?.face;
+          const target = b !== 0 ? this.position(b) : face === undefined || face === 'player' ? this.point : { x: face[0], y: body.position.y, z: face[1] };
+          const destination = row.point.kind === 'fields' ? { x: this.namedField(actor, row.point.x), z: this.namedField(actor, row.point.z) } : undefined;
+          const frame = runner.step({ body, target, ...(destination === undefined ? {} : { destination }) });
+          if (frame.placement !== undefined) { const at = frame.placement; body.place(at.x, at.z, at.yaw, at.y); }
+          this.motions.delete(actor);
+          if (frame.done !== undefined && this.rows.script.on.includes('move.done')) this.enqueue(actor, [10, actor, a, Number(frame.done), 0, 0]);
+        });
+      } else if (op === 2) {
+        value(this.rows.strikes?.[a - 1], 'strike');
+        if (b !== DECISION_PLAYER_HANDLE || c !== 0 || this.actor(actor) === undefined) throw new Error('Invalid scripted strike target');
+        operations.push(() => { this.motions.delete(actor);
+          for (const cue of this.combat.start(actor, a, value(this.actor(actor), 'strike actor'), this.point)) this.emitCue(actor, cue); });
       } else if (op === 3) {
-        operations.push(() => { this.motions.delete(actor); const body = this.actor(actor); body?.setMotion(body.yaw, 0); });
+        operations.push(() => { this.combat.cancel(actor, this.actor(actor)); this.motions.delete(actor); const body = this.actor(actor); body?.setMotion(body.yaw, 0); });
       } else if (op === 7) {
         const name = value(this.rows.flags[a - 1], 'flag'); operations.push(() => { if (b === 1) this.flags.add(name); else this.flags.delete(name); });
       } else if (op === 12) {
-        value(this.rows.cues[a - 1], 'cue'); operations.push(() => { this.effects.push({ kind: 'cue', id: a, at: { ...this.position(actor) } }); });
+        value(this.rows.cues[a - 1], 'cue'); operations.push(() => { this.effects.push({ kind: 'cue', id: a, actor, at: { ...this.position(actor) } }); });
       } else if (op === 13) {
         value(this.rows.channels[a - 1], 'channel'); operations.push(() => { this.channels.set(a, b); });
       } else throw new Error('Unsupported population command');
@@ -195,7 +265,7 @@ export class SpawnScript {
     if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid population elapsed time');
     this.point = point; this.night = night; this.maximum = maximum;
     this.flags.clear(); for (const flag of flags) this.flags.add(flag);
-    this.effects = []; this.elapsed += dt;
+    this.elapsed += dt;
     while (this.elapsed + Number.EPSILON >= 1 / 60) {
       this.elapsed = Math.max(0, this.elapsed - 1 / 60); this.host.step(++this.tick);
       for (const [handle, motion] of this.motions) {
@@ -203,11 +273,138 @@ export class SpawnScript {
         const site = this.rows.sites.find(row => this.rows.slots.find(slot => slot.id === row.slot)?.handle === handle);
         const face = site?.face;
         const target = motion.target !== 0 ? this.position(motion.target) : face === undefined || face === 'player' ? this.point : { x: face[0], y: body.position.y, z: face[1] };
-        const frame = motion.runner.step({ body, target });
+        const move = value(this.rows.moves[motion.id - 1], 'owned motion');
+        const controls = move.kind === 'steer' ? { yaw: this.namedField(handle, move.fields.yaw), speed: this.namedField(handle, move.fields.speed), turn: this.namedField(handle, move.fields.turn) } : undefined;
+        const destination = move.kind === 'relocate' && move.point.kind === 'fields' ? { x: this.namedField(handle, move.point.x), z: this.namedField(handle, move.point.z) } : undefined;
+        const frame = motion.runner.step({ body, target, ...(controls === undefined ? {} : { controls }), ...(destination === undefined ? {} : { destination }) });
+        if (frame.placement !== undefined) { const at = frame.placement; body.place(at.x, at.z, at.yaw, at.y); }
         if (frame.steering !== undefined) { const steer = frame.steering; body.setMotion(steer.yaw, steer.speed, steer.turn); }
-        if (frame.done !== undefined) { this.motions.delete(handle); if (this.rows.script.on.includes('move.done')) this.host.enqueue(1, [10, handle, motion.id, Number(frame.done), 0, 0]); }
+        if (frame.done !== undefined) { this.motions.delete(handle); if (this.rows.script.on.includes('move.done')) this.enqueue(handle, [10, handle, motion.id, Number(frame.done), 0, 0]); }
+      }
+      for (const [handle, body] of this.handles) {
+        if ('spawnGroup' in this.rows.script.binding) { body.lookTarget.set(this.point.x, this.point.y + this.sourceField(handle, 'lookHeight'), this.point.z); }
+        const frame = this.combat.advance(handle, 1 / 60, body, this.point, this.bodies.reach(body, this.point));
+        if (frame.hit !== null) this.effects.push({ kind: 'hit', actor: handle, hit: frame.hit });
+        for (const cue of frame.cues) this.emitCue(handle, cue);
       }
     }
+  }
+  private compatible(handle: number, body: AnimalSim): boolean {
+    const slot = this.rows.slots.find(row => row.handle === handle);
+    return slot !== undefined && this.rows.spawns.some(spawn => {
+      const site = this.rows.sites.find(row => row.id === spawn.site), species = this.rows.species.find(row => row.id === spawn.species);
+      return site?.slot === slot.id && species?.kind === body.kind && species.variant === body.variant;
+    });
+  }
+  private namedField(handle: number, name: string): number { return this.field(handle, this.rows.fields.findIndex(row => row.id === name) + 1); }
+  private sourceField(handle: number, source: SpawnScriptRows['fields'][number]['source']): number {
+    const id = this.rows.fields.findIndex(row => row.source === source); return id === -1 ? 0 : this.field(handle, id + 1);
+  }
+  private enqueue(actor: number, event: Parameters<DecisionHost['enqueue']>[1]): void {
+    this.host.enqueue(value(this.bindings.get('spawnGroup' in this.rows.script.binding ? actor : 0), 'binding actor'), event);
+  }
+  private emitCue(actor: number, name: string): void {
+    const id = this.rows.cues.indexOf(name) + 1; if (id < 1) throw new Error('Missing owned cue');
+    this.effects.push({ kind: 'cue', actor, id, at: { ...this.position(actor) } });
+  }
+  private detach(handle: number): void {
+    const body = this.actor(handle); if (body !== undefined && claimedBodies.get(body) === this) claimedBodies.delete(body);
+    this.combat.cancel(handle, body); this.motions.delete(handle); this.handles.delete(handle);
+  }
+  /** Resolve an actual body only inside this owner's declared slot catalogue. */
+  body(slot: string | number): AnimalSim | null {
+    const handle = typeof slot === 'number' ? slot : value(this.rows.slots.find(row => row.id === slot), 'slot').handle;
+    return this.actor(handle) ?? null;
+  }
+  cue(id: number): string { return value(this.rows.cues[id - 1], 'cue identity'); }
+  strikePresentation(): ReturnType<ScriptStrikes['presentation']> { return this.combat.presentation(); }
+  state(slot: string): Readonly<Record<string, number | boolean>> {
+    const handle = value(this.rows.slots.find(row => row.id === slot), 'state slot').handle;
+    const binding = value(this.bindings.get('spawnGroup' in this.rows.script.binding ? handle : 0), 'state binding');
+    return value(this.host.snapshot().bindings.find(row => row.id === binding), 'binding state').slots;
+  }
+  /** Explicit adoption takes an id, never a body supplied by content or a reflected object path. */
+  adopt(slot: string, id: string): void {
+    const handle = value(this.rows.slots.find(row => row.id === slot), 'adopted slot').handle, body = this.bodies.actor(id);
+    if (body === null || !this.compatible(handle, body) || (claimedBodies.has(body) && claimedBodies.get(body) !== this)) throw new Error('Incompatible adopted script actor');
+    this.handles.set(handle, body); claimedBodies.set(body, this); this.adoptedBodies.add(body);
+    body.scripted = true; body.herd = -1; body.state = this.controlState;
+  }
+  /** Encounter lifecycle activation uses the same recipe/site/real roster authority as guest spawning. */
+  activate(recipe: string, yaw: number): AnimalSim {
+    if (!Number.isFinite(yaw)) throw new Error('Invalid activation yaw');
+    const spawn = value(this.rows.spawns.find(row => row.id === recipe), 'activation recipe'), site = value(this.rows.sites.find(row => row.id === spawn.site), 'activation site');
+    const slot = value(this.rows.slots.find(row => row.id === site.slot), 'activation slot'), species = value(this.rows.species.find(row => row.id === spawn.species), 'activation species');
+    if (site.point === undefined || this.actor(slot.handle)?.alive === true) throw new Error('Invalid lifecycle site or occupied slot');
+    this.interrupt(); this.detach(slot.handle); this.fields.clear(); this.channels.clear();
+    const initial = this.host.snapshot(), bindings: DecisionSnapshot['bindings'][number][] = [];
+    for (const binding of initial.bindings) bindings.push({ ...binding, slots: Object.fromEntries(this.rows.script.state.map(row => [row.name, row.default])),
+      timers: {}, pending: [], lastCall: initial.tick, failures: 0, disabled: false });
+    this.host.restore({ ...initial, bindings, staged: [] });
+    const boot = this.bodies.boot().find(body => this.compatible(slot.handle, body) && !claimedBodies.has(body) && !this.adoptedBodies.has(body));
+    const body = boot ?? this.bodies.spawn(species.kind, site.point[0], site.point[1], yaw, species.variant);
+    this.adopt(slot.id, body.entityId); this.enqueue(slot.handle, [1, 0, 0, 0, 0, 0]); return body;
+  }
+  retire(slot: string): void {
+    const handle = value(this.rows.slots.find(row => row.id === slot), 'retired slot').handle, body = this.actor(handle);
+    if (body !== undefined) this.bodies.retire(body); this.detach(handle); this.interrupt();
+  }
+  interrupt(): void {
+    const initial = this.host.snapshot(), bindings: DecisionSnapshot['bindings'][number][] = [];
+    for (const binding of initial.bindings) bindings.push({ ...binding, pending: [] });
+    this.host.restore({ ...initial, bindings, staged: [] });
+    for (const [handle, body] of this.handles) {
+      this.combat.cancel(handle, body); this.motions.delete(handle); body.setMotion(body.yaw, 0);
+      const hidden = this.rows.fields.findIndex(row => row.source === 'hidden') + 1;
+      if (hidden > 0) { body.hidden = false; this.bodies.show?.(body, true); this.fields.set(`${handle}:${hidden}`, 0); }
+      if (this.rows.slots.find(row => row.handle === handle)?.release === 'detach') {
+        body.scripted = false; if (body.alive && body.state === this.controlState) body.state = 'alert'; this.detach(handle);
+      }
+    }
+  }
+  signal(slot: string, n: number): void {
+    if (!Number.isFinite(n)) throw new Error('Invalid script signal');
+    const handle = value(this.rows.slots.find(row => row.id === slot), 'signal slot').handle;
+    this.enqueue(handle, [13, 0, n, 0, 0, 0]);
+  }
+  /** Platform observations are finite named values. Only fields declared as observed can receive them. */
+  observe(input: Readonly<Record<string, number>>): void {
+    for (const [id, n] of Object.entries(input)) {
+      if (!Number.isFinite(n) || !this.rows.fields.some(row => row.id === id && row.source === 'observed')) throw new Error('Invalid script observation');
+      this.observations.set(id, n);
+    }
+  }
+  frame(point: Point, night: number, observations: Readonly<Record<string, number>>, yaw = 0): void {
+    this.point = point; this.night = night; this.playerYaw = yaw;
+    this.observe(Object.fromEntries(Object.entries({ ...observations, night }).filter(([id]) => this.rows.fields.some(row => row.id === id && row.source === 'observed'))));
+  }
+  advanceFrame(dt: number): void { this.advance(dt, this.point, this.night, this.rows.maximum, this.rows.flags.filter(flag => this.flags.has(flag))); }
+  /** Validate on an isolated owner with the same real body authority; no body write or guest invocation occurs. */
+  prepareRestore(input: SimValue): () => void {
+    const candidate = new SpawnScript(this.rows, this.bodies, this); candidate.restore(input);
+    return () => { this.restore(input); };
+  }
+  /** Historical controller state enters through finite named values and actual roster ids, never reflected ports. */
+  prepareLegacy(input: unknown): () => void {
+    const legacy = v.parse(v.strictObject({ actors: v.array(v.strictObject({ slot: v.string(), id: v.string(),
+      state: v.record(v.string(), v.union([finite, v.boolean()])), rng: v.exactOptional(natural) })),
+      fields: v.array(v.strictObject({ slot: v.string(), field: v.string(), value: finite })), strikes: v.array(v.unknown()) }), input);
+    const decision = this.host.snapshot(), actors: [number, string][] = [];
+    const state = new Map<number, typeof legacy.actors[number]>();
+    for (const row of legacy.actors) {
+      const handle = value(this.rows.slots.find(slot => slot.id === row.slot), 'historical actor slot').handle;
+      if (state.has(handle)) throw new Error('Duplicate historical actor'); state.set(handle, row); actors.push([handle, row.id]);
+    }
+    const bindings = decision.bindings.map(binding => {
+      const handle = [...this.bindings].find(([, id]) => id === binding.id)?.[0] ?? 0, row = state.get(handle);
+      if (row === undefined) return { ...binding, pending: [] };
+      if (Object.keys(row.state).some(key => !Object.hasOwn(binding.slots, key))) throw new Error('Unknown historical state');
+      return { ...binding, slots: { ...binding.slots, ...row.state }, rng: row.rng ?? binding.rng, pending: [] };
+    });
+    const fields = legacy.fields.map(row => [value(this.rows.slots.find(slot => slot.id === row.slot), 'historical field actor').handle,
+      this.rows.fields.findIndex(field => field.id === row.field) + 1, row.value]);
+    return this.prepareRestore(JSON.stringify({ version: 2, contract: this.contract, decision: { ...decision, bindings, staged: [] },
+      actors, fields, channels: [], strikes: legacy.strikes, force: 0, elapsed: 0, moves: [] }));
   }
   /** Debug force is a bounded input; normal decision cadence and spawn quotas still apply. */
   force(): void { this.forced = Math.min(8, this.maximum || this.rows.maximum); }
@@ -216,6 +413,7 @@ export class SpawnScript {
   drainEffects(): readonly Effect[] { const effects = this.effects; this.effects = []; return effects; }
   snapshot(): string { return JSON.stringify({ version: 2, contract: this.contract, decision: this.host.snapshot(),
     actors: [...this.handles].map(([handle, body]) => [handle, body.entityId]),
+    ...(this.rows.strikes === undefined ? {} : { strikes: this.combat.snapshot() }),
     fields: [...this.fields].map(([key, n]) => { const parts = key.split(':'); return [Number(parts[0]), Number(parts[1]), n]; }), channels: [...this.channels], force: this.forced, elapsed: this.elapsed,
     moves: [...this.motions].map(([actor, motion]) => ({ actor, id: motion.id, target: motion.target, state: motion.runner.snapshot() })) }); }
   /** Restore body references only after the real roster has reinstalled them. No draws, spawns, guest calls or effects. */
@@ -225,26 +423,30 @@ export class SpawnScript {
     if (saved.contract !== this.contract) throw new Error('Incompatible population script continuation');
     const fields = new Map<string, number>(), channels = new Map<number, number>();
     for (const [actor, id, n] of saved.fields) {
-      const field = value(this.rows.fields[id - 1], 'restored field'), key = `${actor}:${id}`;
-      if (!this.rows.slots.some(row => row.handle === actor) || !['x', 'z'].includes(field.source) || fields.has(key) || Math.abs(n) > 10000) throw new Error('Invalid population site continuation');
+      const field = value(this.rows.fields[id - 1], 'restored field'), key = `${actor}:${id}`; this.fieldBounds(field.id, n);
+      if (!this.rows.slots.some(row => row.handle === actor) || !['x', 'z', ...('spawnGroup' in this.rows.script.binding ? ['value', 'lookHeight', 'lookWeight', 'hidden', 'scripted'] : [])].includes(field.source) || fields.has(key) || Math.abs(n) > 10000) throw new Error('Invalid population site continuation');
+      if (['scripted', 'hidden'].includes(field.source) && n !== 0 && n !== 1) throw new Error('Invalid restored visibility');
+      if (field.source === 'lookWeight' && (n < 0 || n > 1)) throw new Error('Invalid restored look weight');
       fields.set(key, n);
     }
     for (const [id, n] of saved.channels) {
       if (!Number.isInteger(id) || this.rows.channels[id - 1] === undefined || channels.has(id)) throw new Error('Invalid population channel continuation');
       channels.set(id, n);
     }
-    const actors = new Map<number, AnimalSim>();
+    const actors = new Map<number, ControlledBody>();
     for (const [handle, id] of saved.actors) {
       const body = this.bodies.actor(id);
       if (body === null || actors.has(handle) || !this.rows.slots.some(row => row.handle === handle) || [...actors.values()].includes(body)) throw new Error('Invalid population actor continuation');
+      if (!this.compatible(handle, body) || (claimedBodies.get(body) !== undefined && claimedBodies.get(body) !== (this.validatorFor ?? this))) throw new Error('Foreign scripted actor continuation');
       actors.set(handle, body);
     }
     const motions = new Map<number, Motion>();
     for (const motion of saved.moves) {
       const body = value(actors.get(motion.actor), 'restored moving actor'), row = value(this.rows.moves[motion.id - 1], 'restored move');
-      if (motions.has(motion.actor) || (motion.target !== 0 && motion.target !== DECISION_PLAYER_HANDLE) || row.kind !== 'stalk') throw new Error('Invalid population move continuation');
+      if (motions.has(motion.actor) || (motion.target !== 0 && motion.target !== DECISION_PLAYER_HANDLE) || !['stalk', 'steer', 'relocate'].includes(row.kind)) throw new Error('Invalid population move continuation');
       const runner = new ActorMoveRunner(row, body); runner.restore(motion.state); motions.set(motion.actor, { ...motion, runner });
     }
+    const commitStrikes = this.combat.prepareRestore(saved.strikes ?? [], new Set(actors.keys()));
     const before = new Map(this.handles), previousFields = new Map(this.fields);
     this.handles.clear(); for (const [id, body] of actors) this.handles.set(id, body);
     this.fields.clear(); for (const [key, n] of fields) this.fields.set(key, n);
@@ -252,7 +454,14 @@ export class SpawnScript {
       this.handles.clear(); for (const [id, body] of before) this.handles.set(id, body);
       this.fields.clear(); for (const [key, n] of previousFields) this.fields.set(key, n); throw error;
     }
-    this.tick = this.host.snapshot().tick;
+    commitStrikes(); this.tick = this.host.snapshot().tick;
+    if (this.validatorFor === undefined) {
+      for (const [handle, body] of before) if (!actors.has(handle) && claimedBodies.get(body) === this) claimedBodies.delete(body);
+      if ('spawnGroup' in this.rows.script.binding) for (const body of actors.values()) { claimedBodies.set(body, this); this.adoptedBodies.add(body); }
+      for (const [key, n] of fields) { const [actor, id] = key.split(':').map(Number), row = this.rows.fields[(id ?? 0) - 1], body = actors.get(actor ?? 0);
+        if (row?.source === 'hidden' && body !== undefined) { body.hidden = n === 1; this.bodies.show?.(body, n === 0); }
+      }
+    }
     this.channels.clear(); for (const [id, n] of channels) this.channels.set(id, n);
     this.motions.clear(); for (const [id, motion] of motions) this.motions.set(id, motion); this.forced = saved.force; this.elapsed = saved.elapsed; this.effects = [];
   }

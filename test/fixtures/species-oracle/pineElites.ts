@@ -10,7 +10,7 @@ import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/generators/eliteRoster';
-import { pineEliteStreams, type PineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
+import { pineEliteStreams, type PineEliteStreams } from './pineEliteStreams';
 
 /** What a goal reads of the world, renderer-free (the page's PineCtx satisfies it over its Animal). */
 interface GoalEnv<B extends LaneBody> {

@@ -1,6 +1,4 @@
-import { installEliteEncounters as eliteinstallEliteEncounters } from '@wildshard/game/shardfile/eliteEncounters';
-import { pineEliteScripts as elitepineEliteScripts } from '../combat/eliteScripts';
-import { Lane as eliteLane } from '../combat/lane';
+import { installNativeEliteFeature, readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import type { HeadlessAssemblyModules } from '@wildshard/sdk/headlessAssembly';
 import { parsePineQuestRows as module0ParsePineQuestRows } from '../quest/rows';
 import { PINE_GROUND_RES as module1PINE_GROUND_RES, pineBake as module1PineBake } from '../runtime/baked';
@@ -58,7 +56,5 @@ export const headlessModules = {
   '@wildshard/sdk/populationShelter': { installNativeHerdShelter: module24InstallNativeHerdShelter },
   '@wildshard/game/plugin/mover': { proveTerrainEntries: module25ProveTerrainEntries },
   '@wildshard/engine/physics/terrain': { isStandaloneEdgeWall: module26IsStandaloneEdgeWall },
-  '@wildshard/game/shardfile/eliteEncounters': { installEliteEncounters: eliteinstallEliteEncounters },
-  'src/shards/pine-hollow/combat/eliteScripts': { pineEliteScripts: elitepineEliteScripts },
-  'src/shards/pine-hollow/combat/lane': { Lane: eliteLane },
+  '@wildshard/game/quest/eliteFeature': { installNativeEliteFeature, readEliteFeature },
 } satisfies HeadlessAssemblyModules;

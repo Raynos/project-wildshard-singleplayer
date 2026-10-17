@@ -15,6 +15,8 @@ export interface MoveObservation {
   readonly field?: number;
   /** Existing platform registry resolves the declared spot or numeric actor fields. */
   readonly destination?: { readonly x: number; readonly z: number; readonly y?: number; readonly yaw?: number };
+  /** Numeric public fields resolved by the platform; rows bound maximum speed and turn. */
+  readonly controls?: { readonly yaw: number; readonly speed: number; readonly turn: number };
 }
 export interface MoveFrame {
   /** One placement request for the existing body owner; restore never applies it. */
@@ -111,6 +113,12 @@ export class ActorMoveRunner {
       || (destination.y !== undefined && (!Number.isFinite(destination.y) || Math.abs(destination.y) > 10000)) || (destination.yaw !== undefined && !Number.isFinite(destination.yaw)))) throw new Error('Move requires its finite admitted location');
     this.elapsed += 1 / 60;
     switch (row.kind) {
+      case 'steer': {
+        const controls = observation.controls;
+        if (controls === undefined || ![controls.yaw, controls.speed, controls.turn].every(Number.isFinite)
+          || controls.speed < 0 || controls.speed > row.speed || controls.turn < 0 || controls.turn > row.turn) throw new Error('Move steering exceeds admitted bounds');
+        return { steering: { ...controls, altitude: body.position.y, ground: row.ground } };
+      }
       case 'relocate': {
         if (destination === undefined) throw new Error('Missing admitted location');
         const yaw = row.facing === 'target' && target !== undefined ? Math.atan2(target.x - destination.x, target.z - destination.z)

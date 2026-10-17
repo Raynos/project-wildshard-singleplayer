@@ -1,66 +1,98 @@
-import { expect, it } from 'vitest';
-import { Vector3 } from 'three';
-import { pineEliteScripts, type PineEliteWorld } from '../src/shards/pine-hollow/combat/eliteScripts';
-import { pineEliteScripts as legacyScripts } from './fixtures/species-oracle/pineElites';
-import { Lane } from '../src/shards/pine-hollow/combat/lane';
+import * as v from 'valibot';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real v1 guests and native body authority.
+import { readFileSync } from 'node:fs';
+import { expect, test } from 'vitest';
+import { createSimHost } from '../src/engine/sim';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { readSpeciesPrograms } from '../src/format/speciesPrograms';
+import { parseEliteFeature } from '../src/format/eliteFeature';
+import { installPopulationRoster } from '../src/game/population/roster';
+import { installNativeEliteFeature } from '../src/game/quest/eliteFeature';
+import { eliteStream } from '../src/game/quest/eliteStreams';
+import { DayCycle } from '../src/engine/world/dayCycle';
+import { PINE_DAY, PINE_PHASES } from '../src/shards/pine-hollow/look/dayKeys';
+import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
+import data from '../src/shards/pine-hollow/behaviour/elites.generated.json' with { type: 'json' };
+import { SIM_LEVEL } from './fixtures/sim-level/level';
+import type { HuntGround } from '../src/engine/ai/hunt';
+import { Rng } from '../src/engine/core/rng';
 
-class Body {
-  readonly position = new Vector3();
-  readonly lookTarget = new Vector3();
-  alive = true; hidden = false; hp = 100; maxHp = 100; lookWeight = 0;
-  yaw = 0; speed = 0; seed = 0.37; lastHitT = -Infinity; state = 'sidestep'; scale = 1;
-  constructor(readonly kind: string, readonly entityId: string) {}
-  place(x: number, z: number, yaw: number, y = 0): void { this.position.set(x, y, z); this.yaw = yaw; }
-  setMotion(yaw: number, speed: number, _turn: number): void { this.yaw = yaw; this.speed = speed; }
-  attack = -1;
-  startAttack(seconds: number): void { this.attack = seconds; }
-  cancelAttack(): void { this.attack = -1; }
+const ground: HuntGround = { heightAt: () => 0, normalY: () => 1, trailDistance: () => 0, cabinMask: () => 0,
+  inChunk: () => true, streamAt: () => null, waterLevel: () => -3, pond: () => null, sea: () => false,
+  wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => false, chunkHalf: 250 };
+async function fixture() {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const host = createSimHost({ ...SIM_LEVEL, id: 'pine-hollow', seed: 1337, ground: { size: 500, height: 0 }, entities: [] }, { rapier });
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing recipe');
+  const species = new Map(data.fights.flatMap(fight => fight.program.species).map(row => [`${row.kind}.${row.variant}`, row]));
+  const parked = [...species.values()].map((row, i) => ({ seed: sample.seed, scale: sample.scale, id: `recipe.${i}`, kind: row.kind, variant: row.variant,
+    spec: { ...sample.spec, kind: row.kind, variant: row.variant }}));
+  installPopulationRoster(host, { population: readSpeciesPrograms(PINE_SPECIES_PROGRAMS), ground, nav: null, spawnY: 20,
+    bake: { actors: [], parked, herds: [] } }, { version: 1, step: 'pine.roster', seed: 1368, bodyCount: 0, limit: 512,
+    scripted: 'sidestep', encounter: 'test', poseKinds: [], spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [] });
+  const day = new DayCycle(PINE_DAY); await day.set(PINE_PHASES.night);
+  const feature = installNativeEliteFeature(host, day, data); feature.initialize();
+  return { host, feature };
 }
-function world(): { env: PineEliteWorld<Body>; bodies: Body[]; events: unknown[] } {
-  const bodies: Body[] = [], events: unknown[] = [];
-  const env: PineEliteWorld<Body> = {
-    player: { position: new Vector3(), yaw: 0.2 }, reach: () => true, god: false,
-    trauma: k => { events.push(['trauma', k]); }, stun: seconds => { events.push(['stun', seconds]); },
-    dusk: () => 1, night: () => 1,
-    hurt: (a, amount, walls) => { events.push(['hurt', a.entityId, amount, walls]); },
-    voice: (name, a) => { events.push(['voice', name, a.entityId]); },
-    spawn: (kind, x, z, yaw, _variant) => {
-      const a = new Body(kind, `creature:${String(bodies.length)}`); a.place(x, z, yaw); bodies.push(a); return a;
-    },
-    find: id => bodies.find(a => a.entityId === id) ?? null,
-    own: () => undefined, release: () => undefined, retire: a => { a.alive = false; }, adopt: () => undefined,
-    lane: row => new Lane<Body>(row),
-    ring: () => ({ setTime: () => undefined, ring: () => undefined, hide: () => undefined }),
-    heightAt: () => 0, inChunk: (x, z, margin) => Math.abs(x) < 250 - margin && Math.abs(z) < 250 - margin,
-    show: () => undefined,
-    fx: { fade: () => { events.push('fade'); }, reappear: () => { events.push('reappear'); }, burstOut: () => { events.push('burst'); }, roar: (_a, radius) => { events.push(['roar', radius]); } },
-    signature: id => { events.push(['signature', id]); }, feed: text => { events.push(['feed', text]); },
-  };
-  return { env, bodies, events };
-}
-for (const seed of [1337, 9876]) it(`elite JSON preserves fights and old fields at seed ${String(seed)}`, () => {
-  const before = world(), after = world(), old = legacyScripts(before.env, seed), current = pineEliteScripts(after.env, seed);
-  for (const owner of [...old, ...current]) owner.spawn();
-  const dt = 1 / 30;
-  for (let tick = 0; tick < 1050; tick++) {
-    for (const [i, script] of current.entries()) {
-      const previous = old[i]; if (previous === undefined) throw new Error('Missing oracle');
-      const p = previous.animal?.position; if (p === undefined) throw new Error('Missing body');
-      before.env.player.position.set(p.x + Math.sin(tick / 80) * 15, 0, p.z + 8);
-      after.env.player.position.copy(before.env.player.position);
-      if (tick === 360) { previous.enterPhase2(); script.enterPhase2(); }
-      if (tick === 600) { script.restoreFields(previous.brainState, previous.fields()); }
-      previous.tick(dt, tick * dt, true, false); script.tick(dt, tick * dt, true, false);
-      expect(script.fields()).toEqual(previous.fields());
-      expect(script.brainState).toBe(previous.brainState);
-      expect(script.lanes().map(lane => lane.snapshot())).toEqual(previous.lanes().map(lane => lane.snapshot()));
-      expect(script.rngs().map(rng => rng.snapshot())).toEqual(previous.rngs().map(rng => rng.snapshot()));
+
+test('Pine elite identities and streams are rows; all four v1 guests run without refusals', async () => {
+  const { host, feature } = await fixture();
+  try {
+    expect(feature.scripts.map(script => [script.def.id, script.animal?.kind, script.animal?.variant])).toEqual([
+      ['ironhide', 'boar', 'ironhide'], ['ghost-stag', 'deer', 'ghost'], ['blackpaw', 'bear', 'black-old'], ['imperial-bull', 'elk', 'imperial']]);
+    const rows = parseEliteFeature(data);
+    for (const script of feature.scripts) {
+      const stream = eliteStream(rows, 1337, 'spawn', script.def.id); stream.next();
+      expect(script.spawnStream.snapshot()).toEqual(stream.snapshot());
+      expect(script.row.program.seed).toBe(new Rng(1337).fork(`pine.elite.${script.def.id}`).snapshot().initial);
+      const body = script.animal; if (body === null) throw new Error('Missing lair body');
+      host.player.position.copy(body.position); host.player.position.z += 8;
+      feature.core.devSpawn(script.def.id);
+      for (let tick = 0; tick < 140; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+      expect(script.program.failure).toBeNull(); expect(script.program.host.metrics().every(row => row.refusals === 0)).toBe(true);
     }
-    for (const w of [before, after]) for (const a of w.bodies) {
-      a.position.x += Math.sin(a.yaw) * a.speed * dt; a.position.z += Math.cos(a.yaw) * a.speed * dt;
-    }
-    expect(after.bodies).toEqual(before.bodies);
-    expect(after.events).toEqual(before.events);
-    before.events.length = 0; after.events.length = 0;
-  }
-});
+  } finally { host.dispose(); }
+}, 60_000);
+
+test('a running Imperial call keeps rival identities and restores quietly and atomically', async () => {
+  const { host, feature } = await fixture();
+  try {
+    const script = feature.scripts.find(row => row.def.id === 'imperial-bull'); if (script?.animal === null || script === undefined) throw new Error('Missing bull');
+    host.player.position.copy(script.animal.position); host.player.position.z += 20;
+    feature.core.devSpawn(script.def.id);
+    for (let tick = 0; tick < 160; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(script.program.failure).toBeNull();
+    const ids = ['rival0', 'rival1'].map(slot => script.program.body(slot)?.entityId);
+    expect(ids.every(id => id !== undefined)).toBe(true); expect(new Set(ids).size).toBe(2);
+    const before = script.program.snapshot(), calls = script.program.host.metrics().map(row => row.calls);
+    const commit = script.program.prepareRestore(before); expect(script.program.snapshot()).toBe(before); commit();
+    expect(script.program.snapshot()).toBe(before); expect(script.program.host.metrics().map(row => row.calls)).toEqual(calls);
+    const bad = v.parse(v.record(v.string(), v.unknown()), JSON.parse(before));
+    const actors = v.parse(v.array(v.tuple([v.number(), v.string()])), bad['actors']);
+    const first = actors[0], second = actors[1]; if (first === undefined || second === undefined) throw new Error('Missing actors');
+    second[1] = first[1]; bad['actors'] = actors;
+    expect(() => script.program.prepareRestore(JSON.stringify(bad))).toThrow(); expect(script.program.snapshot()).toBe(before);
+    expect(['rival0', 'rival1'].map(slot => script.program.body(slot)?.entityId)).toEqual(ids);
+    const previousMain = script.animal;
+    previousMain.alive = false; feature.core.devSpawn(script.def.id);
+    expect(script.animal.entityId).not.toBe(previousMain.entityId);
+    expect(['rival0', 'rival1'].map(slot => script.program.body(slot))).toEqual([null, null]);
+    for (let tick = 0; tick < 180; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    expect(script.program.failure).toBeNull();
+    expect(['rival0', 'rival1'].map(slot => script.program.body(slot)?.entityId).every(id => id !== undefined && !ids.includes(id))).toBe(true);
+  } finally { host.dispose(); }
+}, 60_000);
+
+test('ending a concealed encounter restores visibility before saving', async () => {
+  const { host, feature } = await fixture();
+  try {
+    const ghost = feature.scripts.find(row => row.def.id === 'ghost-stag');
+    if (ghost?.animal === null || ghost === undefined) throw new Error('Missing stag');
+    feature.core.devSpawn(ghost.def.id); host.player.position.copy(ghost.animal.position); host.player.position.z += 8;
+    ghost.force('fade');
+    for (let tick = 0; tick < 8; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    const body = ghost.animal; if (!('hidden' in body)) throw new Error('Missing visibility owner');
+    expect(body.hidden).toBe(true); ghost.trophy(); expect(body.hidden).toBe(false);
+    const saved = ghost.program.snapshot(); ghost.program.prepareRestore(saved)(); expect(body.hidden).toBe(false);
+  } finally { host.dispose(); }
+}, 60_000);

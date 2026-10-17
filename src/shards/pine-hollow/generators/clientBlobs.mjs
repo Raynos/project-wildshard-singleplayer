@@ -1,7 +1,6 @@
 // Retain original producer payloads; expose only the client's required immutable inputs.
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {createHash} from 'node:crypto';
 import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 
 const project=new URL('../',import.meta.url),root=new URL('../../../../',import.meta.url);
@@ -16,10 +15,5 @@ const details=json('data/leverDetails.json');
 add('models/held/lever-details.glb','glb',details.pool.url);
 const hands=json('data/handsPool.generated.json');
 add('models/held/hands.glb','glb',hands.pool.url);
-for(const stem of ['ironhide','ghostStag','blackpaw','imperialBull']){
- const row=json(`behaviour/${stem}.json`),bytes=Buffer.from(row.bytes,'base64');
- if(createHash('sha256').update(bytes).digest('hex')!==row.module)throw new Error(`Client script hash changed: ${stem}`);
- blobs.add(`behaviour/${stem.replace('.generated','')}.wasm`,'wasm',bytes,undefined,{abi:0});
-}
 blobs.finish(new URL('data/clientBlobs.generated.json',project));
 console.info(`Pine client inputs: immutable sources under ${fileURLToPath(project)}`);

@@ -1985,3 +1985,9 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/pine-hollow/assets/stream-scenes/quad.glb
 /src/shards/driftwood-isle/assets/world-scenes/pools.glb
 /src/shards/driftwood-isle/assets/world-scenes/rings.glb
+
+# Pine elite v1 modules are registered build outputs.
+/src/shards/pine-hollow/assets/07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd
+/src/shards/pine-hollow/assets/53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724
+/src/shards/pine-hollow/assets/ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168
+/src/shards/pine-hollow/assets/f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234

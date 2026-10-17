@@ -1,4 +1,5 @@
-import { PINE_LEVEL_SEED } from './eliteStreams';
+import { installEliteFeaturePage } from '@wildshard/game/quest/elitePage';
+import type { EliteFeatureRows } from '@wildshard/format/eliteFeature';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import { installBossEncounter } from '@wildshard/game/Boss';
@@ -35,15 +36,14 @@ import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/d
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
-import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { antlerKingFight, KING_KIND } from '../runtime/antlerKing';
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
-import { pineView } from '../runtime/world/context';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { PINE_PHASES } from '../look/dayKeys';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { kingTick } from './kingFight';
+import { pineView } from '../runtime/world/context';
 
 import { registerPineLap } from '../runtime/dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -63,6 +63,7 @@ import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, install
  */
 
 export interface PineCombatHost {
+  readonly eliteRows: EliteFeatureRows;
   readonly pouchCapacity: number;
   persistenceRows: unknown;
   readonly decisionProgram:SpeciesProgramData; readonly decisions:SpeciesDecisionAuthority;
@@ -141,7 +142,6 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const feel = installPinePresentation({ game, weapons, animals, ...(entered === undefined ? {} : { context: entered }), makeTell: (color) => new GroundTell(game.scene, 'lane', color) });
 
   // ── the elites ──
-  swapRolledElites(animals);
   const condition = (rule: EliteRule): boolean => rule === 'always' || (rule === 'dusk' ? ctx.dusk() > 0.5 : rule === 'night' ? ctx.night() > 0.5 : false);
   const eliteHost: ConstructorParameters<typeof Elites>[0] = {
     scene: game.scene, camera: game.camera, renderer: game.renderer, player, condition,
@@ -157,13 +157,13 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const persistence = h.context === undefined ? undefined : bindAdventurePersistence(h.context, h.context.product.shardfile, h.persistenceRows, 'pine-hollow');
   const body = h.context === undefined ? undefined : bindRuntimeBoss(h.context, source, 'pine.antler-king', undefined, { identity: 'runtime' });
   const eliteUi = new EliteBar(), elites = new Elites(eliteHost, eliteUi, 'pine-hollow', persistence?.elites);
-  const pineElites = makePineElites(ctx, elites);
+  const pineElites = installEliteFeaturePage(game, animals, player, sky, elites, parked, h.eliteRows, source.identity.seed, h.hud, god);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
   const encounterRows = pineView().BOSS_ENCOUNTER;
   let forcedNight = false;
   const kingNight = (): boolean => forcedNight || ctx.night() > 0.5;
-  const king = installBossEncounter(bossEncounterPresentation(pineView().BOSS_PRESENTATION, encounterRows), () => antlerKingFight(ctx,PINE_LEVEL_SEED,h.decisionProgram,h.decisions,entered === undefined ? undefined : install => {
+  const king = installBossEncounter(bossEncounterPresentation(pineView().BOSS_PRESENTATION, encounterRows), () => antlerKingFight(ctx,source.identity.seed,h.decisionProgram,h.decisions,entered === undefined ? undefined : install => {
     installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
   }, body === undefined ? undefined : () => {
     const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;
@@ -236,7 +236,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     elites,
     weatherHold: () => king.fight.sealK,
     onPlayerDeath: () => { const target = app.player; if (target !== null) app.effects?.remove(target, 'effect.stun'); introLock = false; legs(); return king.onPlayerDeath(); },
-    isElite: isPineElite,
+    isElite: pineElites.isElite,
     useSfx: (s) => { sfx = s; },
     eliteEngaged: () => elites.focus?.state === 'engaged',
   };

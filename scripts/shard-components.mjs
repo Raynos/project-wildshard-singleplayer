@@ -31,7 +31,6 @@ const roles = [
 ];
 // W2 reviewed ownership: native animal keepers are creature managers, not quest NPCs.
 const creatureOwners=new Set([
-  'src/shards/pine-hollow/combat/eliteScripts.ts',
   'src/shards/driftwood-isle/sim/keeper.ts',
   'src/shards/pine-hollow/runtime/herds.ts',
   'src/shards/pine-hollow/runtime/antlerKing.ts',
@@ -120,8 +119,6 @@ const reviewedW2Owners = new Map([
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
   ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose', 'swingValues', 'swingWindow', 'swingEase'].map(name => [`src/game/plugin/animation.ts#${name}`, 'C4']),
   ['src/shards/pine-hollow/combat/ctx.ts', 'C4'],
-  ['src/shards/pine-hollow/combat/eliteStreams.ts', 'C4'],
-  ['src/shards/pine-hollow/combat/elites.ts', 'C4'],
   ['src/shards/pine-hollow/combat/lane.ts', 'C4'],
   ['src/shards/pine-hollow/combat/spawns.ts', 'C4'],
   // Journal, onboarding, discovery and quest presentation.

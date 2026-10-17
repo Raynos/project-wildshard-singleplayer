@@ -9411,3 +9411,36 @@ quadruped proves different skeleton names, proportions, clips and memory keys;
 Nalati creature/horse adoption is tracked against G477 for the end of W3.
 The host takes rows and existing platform actors, with no shard callback,
 subclass or reflected owner path.
+
+## Elite decision features (G473, G484)
+
+`format/eliteFeature` admits named encounter definitions, variants, independent
+stream prefixes, ordinary replacements, mode labels and legacy save mappings.
+Each fight owns an `actors/spawn-scripts` catalogue entry with an ABI v1
+`spawnGroup` binding. Pine's four fight laws live in its AssemblyScript guests;
+the platform contains no content actions or shard callbacks.
+
+`game/quest/eliteFeature.readEliteFeature(product, name)` resolves the named
+JSON and exact admitted module bytes. `installNativeEliteFeature(host, day,
+rows)` binds the real population roster, EliteCore, native combat and clock.
+`game/quest/elitePage.installEliteFeaturePage` is client-only presentation using
+the same owner, actual AnimalManager, prepared drop models and declared cues.
+Both preserve named variants and resolve main/rival identities through the
+concrete body authority. Restores validate every binding and strike before
+commit; a quiet re-save preserves the validated historical wire.
+
+The internal `game/quest/eliteDecisions` adapter maps row-named observations
+and saved fields to the owned guest. `game/quest/eliteStreams` derives each
+independent random stream from the declared seed, prefix and encounter id.
+
+Spawn-owned v1 programs can declare bounded strikes and actor fields, execute
+`steer` moves from named heading/speed/turn fields, and relocate using declared
+coordinate fields. `game/population/scriptStrikes` uses the existing fixed-step
+StrikeRunner for cover, geometry, one-hit contact and continuation. Cue edges,
+root duration, trauma and tell style are data. An elite guest cannot supply a
+TypeScript body adapter, arbitrary callback or reflected owner path.
+
+Host bar: **5/6**, failing only two real shipped users under G473's approved
+feature exception. Pine is the first user; the reed-marsh fixture exercises a
+different species, three-slot family and AS law. Nalati adoption is tracked in
+`lint/platform-pending-users.json` against G484, rechecked at the end of W3.

@@ -374,8 +374,13 @@ export class ShardDecisions {
         ? requireValue(this.spots.get(row.point.spot), 'move location')
         : { x: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.point.x), 'move x field')),
           z: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.point.z), 'move z field')) };
+      const controls = row.kind !== 'steer' ? undefined : {
+        yaw: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.fields.yaw), 'move yaw field')),
+        speed: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.fields.speed), 'move speed field')),
+        turn: this.fieldValue(handle, requireValue(this.registries.fields?.get(row.fields.turn), 'move turn field')),
+      };
       const result = motion.runner.step({ body: actor, ...(perch === undefined ? {} : { perch }), ...(target === undefined ? {} : { target, reach: canReach(actor, target, this.sim.physics) }), ...(strike === undefined ? {} : { range: strike.range }),
-        ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }), ...(destination === undefined ? {} : { destination }) });
+        ...(field === undefined ? {} : { field: this.fieldValue(handle, field) }), ...(destination === undefined ? {} : { destination }), ...(controls === undefined ? {} : { controls }) });
       if (result.placement !== undefined) { const placement = result.placement; actor.place(placement.x, placement.z, placement.yaw, placement.y); }
       if (result.steering !== undefined) { const steer = result.steering; if (steer.ground) actor.setMotion(steer.yaw, steer.speed, steer.turn); else actor.fly(steer.yaw, steer.speed, steer.altitude, steer.turn); }
       const control = this.sim.borrowedControls?.get(requireValue(this.rows[motion.binding - 1], 'move binding').id);

@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./eliteFeature": "./eliteFeature.ts",
+    "./spawnCombat": "./spawnCombat.ts",
     "./clientPlan": "./clientPlan.ts",
     "./spawnScripts": "./spawnScripts.ts",
     "./contracts": "./contracts.ts",

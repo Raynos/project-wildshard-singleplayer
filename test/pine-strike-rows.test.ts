@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { StrikeContext, StrikeSpec } from '../src/engine/ai/strikes';
-import eliteRows from '../src/shards/pine-hollow/data/eliteRuntime.generated.json' with { type: 'json' };
+import { PINE_LANES as lanes, PINE_STRIKES as contacts } from '../src/shards/pine-hollow/generators/strikes';
 import { strikeFromData } from '../src/engine/ai/strikeRows';
 import { strike } from '../src/sdk/species';
 
-const PINE_LANES = Object.fromEntries(Object.entries(eliteRows.strikes.lanes).map(([key, row]) => [key, strikeFromData(strike(row))]));
-const PINE_STRIKES = Object.fromEntries(Object.entries(eliteRows.strikes.contacts).map(([key, row]) => [key, strikeFromData(strike(row))]));
+const PINE_LANES = Object.fromEntries(Object.entries(lanes).map(([key, row]) => [key, strikeFromData(strike(row))]));
+const PINE_STRIKES = Object.fromEntries(Object.entries(contacts).map(([key, row]) => [key, strikeFromData(strike(row))]));
 
 // The retired TS builders (combat/strikes.ts before sp-o267), kept here as the law the data rows must reproduce.
 const lane = (id: string, windup: number, width: number, speed: number, overshoot: number, damage: number, recover: number, range: number): StrikeSpec => ({

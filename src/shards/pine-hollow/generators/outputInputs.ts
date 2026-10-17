@@ -1,3 +1,4 @@
+import elites from '../behaviour/elites.generated.json' with {type:'json'};
 import { PINE_HELD_BOW } from './longbow';
 import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
 import {parseAmbientLife} from '@wildshard/format/ambientLife';
@@ -60,6 +61,7 @@ function withGeometryCosts(row:(typeof client.blobs)[number]){
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT={
  blobs:[...journal.blobs,...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...crags.blobs,...streams.blobs,
+ ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}})),
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}},
  {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
  custom:values,

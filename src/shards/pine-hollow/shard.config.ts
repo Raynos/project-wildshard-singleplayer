@@ -1,3 +1,4 @@
+import identity from './data/identity.json' with { type: 'json' };
 import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
 import skyChannels from './data/skyChannels.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -19,7 +20,7 @@ import journal from './data/journal.generated.json' with { type: 'json' };
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
 // floor, flat at y = 0 through each canyon gap) stand on Pine's real boundary rows (./data/edges.ts, the committed bake's).
 // The grid's terrain.bin reader paints no palette for Pine, so the colours stay its neutral grey.
-const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1337 });
+const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
 const libraryFiles = [...timbers.shardfile.files.filter(file => timbers.shardfile.library.includes(file.hash)), ...journal.files];
 const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
@@ -28,8 +29,9 @@ const row = (heights: readonly number[]): { heights: number[]; colours: [number,
 export default parseShardfile({
   ...base, ...timbers.shardfile, props: timbers.props,
   files: [...timbers.shardfile.files, ...journal.files], library: [...timbers.shardfile.library, ...journal.files.map(file => file.hash)],
-  budgets: { ...base.budgets, sim: { resident: 4*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 4*65536 + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
+  // Six admitted one-page v1 images reserve live and rewind copies.
+  budgets: { ...base.budgets, sim: { resident: 12*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 12*65536 + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
   accent: 'moss', rows: { ...base.rows, compendiums: [journal.row] },
   // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },

@@ -13,7 +13,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 
 /**
- * What Pine Hollow's fights share (src/shards/pine-hollow/: the elites, the Antler King, the combat feel): the world, the player,
+ * What Pine Hollow's King and combat feel share: the world, the player,
  * the herds, and the few ways a fight touches the rest of the game — hurting you, stunning you, the sounds, the pack.
  * index.ts builds it from main.ts's host once.
  */
@@ -55,9 +55,6 @@ export function own(a: Animal): void {
   // the manager's `damaged` pushes a hit animal into flee / charge; a scripted one keeps the state its fight gave it
   a.scripted = true;
 }
-/** hand `a` back to the manager's AI (a rival bull after the fight) */
-export function release(a: Animal): void { a.scripted = false; if (a.alive && a.state === SCRIPTED) a.state = 'alert'; }
-
 /** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist, AI) */
 export function retire(animals: AnimalManager, a: Animal): void {
   animals.retire(a);

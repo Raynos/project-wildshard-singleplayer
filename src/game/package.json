@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/eliteFeature": "./quest/eliteFeature.ts",
+    "./quest/elitePage": "./quest/elitePage.ts",
+    "./quest/eliteStreams": "./quest/eliteStreams.ts",
     "./ambient/flock": "./ambient/flock.ts",
     "./grid/pageMode": "./grid/pageMode.ts",
     "./shard/declaredEntry": "./shard/declaredEntry.ts",

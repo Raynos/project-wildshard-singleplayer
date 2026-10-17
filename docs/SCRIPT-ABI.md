@@ -105,7 +105,7 @@ generated bindings (`Event.subject` remains available for implicit subjects).
 | 14 | `strike.target` / `onStrikeTarget(target, by, strike)` | Not wired: handler/id reserved; decision owner has no strike-target event producer | [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42) [game/shardfile/decisions.ts:380](../src/game/shardfile/decisions.ts#L380) |
 | 15 | `player.join` / `onPlayerJoin(player)` | Works as binding activation notification for the local player; not a network membership event | [game/shardfile/decisions.ts:348](../src/game/shardfile/decisions.ts#L348) |
 | 16 | `player.leave` / `onPlayerLeave(player)` | Works as binding deactivation notification | [game/shardfile/decisions.ts:348](../src/game/shardfile/decisions.ts#L348) |
-| 17 | `spawned` / `onSpawned(spawn)` | Not wired: generated handler, no spawn-command owner or producer | [sdk/decisionScriptBindings.ts:44](../src/sdk/decisionScriptBindings.ts#L44) [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) |
+| 17 | `spawned` / `onSpawned(spawn)` | Spawn-owned programs deliver it to the declared actor binding after a committed spawn | [game/population/spawnScript.ts:225](../src/game/population/spawnScript.ts#L225) |
 | 18 | `stop` / `onStop()` | Works: binding deactivates | [game/shardfile/decisions.ts:349](../src/game/shardfile/decisions.ts#L349) |
 | 30 | `field` / `onField(actor, field, value)` | Not wired: no v1 view lane; refused by sim host | [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [engine/script/decision.ts:157](../src/engine/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
 | 31 | `cue` / `onCue(cue, actor)` | Not wired: same view-lane restriction | [engine/script/decision.ts:157](../src/engine/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
@@ -164,6 +164,7 @@ values until the next list call. Ground/navigation xz inputs must stay within
 | 3 | `groundHeight(x, z)` | One y value (or none at zero capacity) | [game/shardfile/decisions.ts:220](../src/game/shardfile/decisions.ts#L220) |
 | 4 | `nearestWalkable(x, z)` | xyz triple or empty | [game/shardfile/decisions.ts:224](../src/game/shardfile/decisions.ts#L224) |
 | 5 | `path(actor, target)` | At most 32 xyz triples / 96 slots; agent body radius, search bound 128 | [game/shardfile/decisions.ts:228](../src/game/shardfile/decisions.ts#L228) |
+| 6 | `radial(yaw, radius)` | xz offset `[sin(yaw) * radius, cos(yaw) * radius]`; radius 0–10,000 | [game/population/spawnScript.ts:108](../src/game/population/spawnScript.ts#L108) |
 
 There is **no v1 raycast/overlap query**. Those belong to v0's separate
 `env.query` protocol (`raycast=1`, `overlap=2`, `nearest=3`, `path=4`).
@@ -184,8 +185,8 @@ this does not promise validation of every unused slot.
 | 2 | `strike`: `[actor, strike, target, 0]` | Works: own actor, declared strike, nonzero target; actual strike owner may decline and emit done/false | [game/shardfile/decisions.ts:300](../src/game/shardfile/decisions.ts#L300) |
 | 3 | `stop`: `[actor, 0, 0, 0]` | Works: stops own move; cancels a windup, does not forcibly cancel later strike phases | [game/shardfile/decisions.ts:280](../src/game/shardfile/decisions.ts#L280) [game/shardfile/decisions.ts:329](../src/game/shardfile/decisions.ts#L329) |
 | 4 | `field`: `[actor, field, value, 0]` | Works: own actor, declared public numeric shared field, type/bounds checked | [game/shardfile/decisions.ts:281](../src/game/shardfile/decisions.ts#L281) [game/shardfile/decisions.ts:244](../src/game/shardfile/decisions.ts#L244) |
-| 5 | `spawn`: `[0, spawn, 0, 0]` | Refused at installation; **spawn director** feature commit must own it | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200) |
-| 6 | `despawn`: `[actor, 0, 0, 0]` | Refused at installation; **spawn director** feature commit must own it | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200) |
+| 5 | `spawn`: `[0, spawn, 0, 0]` | Spawn owner resolves declared recipe/species/site and available capacity; a group binding creates only its own slot | [game/population/spawnScript.ts:207](../src/game/population/spawnScript.ts#L207) |
+| 6 | `despawn`: `[actor, 0, 0, 0]` | Spawn owner retires its bound body through the real roster/manager | [game/population/spawnScript.ts:229](../src/game/population/spawnScript.ts#L229) |
 | 7 | `flag`: `[playerOr0, flag, bool, 0]` | Works: 0 means world; otherwise only observed local player | [game/shardfile/decisions.ts:305](../src/game/shardfile/decisions.ts#L305) |
 | 8 | `timer`: `[0, timer, seconds, 0]` | Works: own declared timer, ≥ 0 seconds; 0 cancels, deadline must fit safe tick range | [engine/script/decision.ts:292](../src/engine/script/decision.ts#L292) [engine/script/decision.ts:369](../src/engine/script/decision.ts#L369) |
 | 9 | `signal`: `[0, signal, value, 0]` | Works: declared signal; game catalogue currently supplies mover-end IDs | [game/shardfile/decisions.ts:309](../src/game/shardfile/decisions.ts#L309) [format/decisionBindings.ts:67](../src/format/decisionBindings.ts#L67) |
@@ -235,7 +236,7 @@ work with any kind. [format/decisionScripts.ts:23](../src/format/decisionScripts
 | Zone | Local player is inside the declared region | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
 | Shard | Always while installed | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
 | Borrowed body | Existing body's controller says fighting; original owner supplies body, combat, fixed-step and save ports | [game/shardfile/decisions.ts:339](../src/game/shardfile/decisions.ts#L339) [game/shardfile/borrowedDecisions.ts:105](../src/game/shardfile/borrowedDecisions.ts#L105) [game/shardfile/borrowedDecisions.ts:149](../src/game/shardfile/borrowedDecisions.ts#L149) |
-| Spawn group | G484(a) port is separate work; absent from this reviewed committed schema | [format/decisionScripts.ts:23](../src/format/decisionScripts.ts#L23) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200) |
+| Spawn group | One logical binding per declared actor, with actor-scoped slots and an owned self handle | [format/decisionScripts.ts:23](../src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](../src/format/decisionScripts.ts#L98) |
 
 An actor/body cannot have two decision controllers. Native actors must have
 `brain: null`; borrowed actors must resolve to existing runtime spawn declarations.
@@ -260,7 +261,7 @@ of binding identity, seed stream and save compatibility.
 | Rows/modules | Schema ≤ 64 rows, ≤ 8 distinct modules; host ≤ 8 module instances | [format/decisionScripts.ts:82](../src/format/decisionScripts.ts#L82) [engine/script/decision.ts:174](../src/engine/script/decision.ts#L174) |
 | Inbox | ≤ 16 events delivered per call; remainder carried; **pending queue grows, no total queue cap here** | [engine/script/decision.ts:80](../src/engine/script/decision.ts#L80) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269) |
 | Commands | ≤ 32 per call, ≤ 128 per decision tick; quota excess refuses the call | [engine/script/decision.ts:280](../src/engine/script/decision.ts#L280) |
-| Spawns/timers | ≤ 4 spawn commands / ≤ 8 timer commands per call; spawn mechanic still refused; ≤ 64 declared timer names | [engine/script/decision.ts:298](../src/engine/script/decision.ts#L298) [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/decisionScripts.ts:33](../src/format/decisionScripts.ts#L33) |
+| Spawns/timers | ≤ 4 spawn commands / ≤ 8 timer commands per call; spawn-owned recipe and capacity checks; ≤ 64 declared timer names | [engine/script/decision.ts:298](../src/engine/script/decision.ts#L298) [game/population/spawnScript.ts:207](../src/game/population/spawnScript.ts#L207) [format/decisionScripts.ts:33](../src/format/decisionScripts.ts#L33) |
 | Fuel | Default 400,000/call, 2,000,000/decision tick; configured ceilings 2,000,000 and 8,000,000 | [engine/script/decision.ts:131](../src/engine/script/decision.ts#L131) |
 | Query cost | 256 fuel per scalar/list; no separate v1 query-count quota | [engine/script/decisionModule.ts:33](../src/engine/script/decisionModule.ts#L33) [engine/script/decision.ts:318](../src/engine/script/decision.ts#L318) [engine/script/decision.ts:344](../src/engine/script/decision.ts#L344) |
 | Depth/structure | Depth 64; ≤ 256 KiB module, 512 functions/types, 128 globals, 1,024 locals/function | [format/scriptAbi.ts:2](../src/format/scriptAbi.ts#L2) [format/scriptAdmission.ts:61](../src/format/scriptAdmission.ts#L61) [format/scriptAdmission.ts:72](../src/format/scriptAdmission.ts#L72) [format/scriptAdmission.ts:88](../src/format/scriptAdmission.ts#L88) [format/scriptAdmission.ts:95](../src/format/scriptAdmission.ts#L95) |
@@ -345,7 +346,8 @@ These are findings, not additional API promises or code changes:
   [progress/shard-platform/wasm-api-design-2026-10-17/README.md:82](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L82) [game/plugin/simulation.ts:575](../src/game/plugin/simulation.ts#L575) [game/shardfile/decisions.ts:431](../src/game/shardfile/decisions.ts#L431) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
 - **Membership:** `player.join/leave` are delivered on binding lifetime changes,
   despite the design's “id only” status. They do not prove multiplayer joins.
-  `spawned` and `strike.target` still lack producers in the decision owner.
+  Spawn-owned programs produce `spawned`; `strike.target` still lacks a
+  producer in the decision owner.
   [progress/shard-platform/wasm-api-design-2026-10-17/README.md:88](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L88) [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) [game/shardfile/decisions.ts:380](../src/game/shardfile/decisions.ts#L380) [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42)
 - **Group API:** G484(a)'s spawn-group binding and skitterer port landed in
   `9c6361f6b` / `74c87e851`. A `{ spawnGroup: id }` binding expands into one
@@ -353,8 +355,9 @@ These are findings, not additional API promises or code changes:
   self handle. `spawnGroupAlive` counts live members of creature groups or
   declared script groups; actor spawn ids retain their 0/1 behavior.
   [format/decisionScripts.ts:23](../src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](../src/format/decisionScripts.ts#L98) [format/decisionBindings.ts:50](../src/format/decisionBindings.ts#L50) [game/shardfile/decisions.ts:200](../src/game/shardfile/decisions.ts#L200)
-- **Refused operations:** spawn/despawn, impulse and weather remain install-time
-  refusals until their owning feature commits. No mover command exists. View
+- **Refused operations:** generic decision rows still refuse spawn/despawn;
+  owned population/elite programs bind them to concrete native/page bodies.
+  Impulse and weather remain install-time refusals. No mover command exists. View
   ids 100–104 lack adapters; `view.field` 105 has an isolated client host
   through its explicit engine API. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
 - **Saves:** migration chains are checked by format admission, but decision
@@ -365,6 +368,24 @@ These are findings, not additional API promises or code changes:
   events. `hold` does not freeze an already-running move; `skip` does not
   advance story state. These are the actual implementations, not guarantees
   of queue boundedness or story recovery. [engine/script/decision.ts:80](../src/engine/script/decision.ts#L80) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269) [game/shardfile/decisions.ts:149](../src/game/shardfile/decisions.ts#L149)
+
+### Owned elite programs (G473, G484)
+
+Named encounters use the same concrete native/page `SpawnScript` owner as
+population directors. A `spawnGroup` catalogue assigns one actor-scoped v1
+binding to each declared slot. Guest spawn commands may create only their own
+slot through its recipe, species and site rows. Group liveness counts the
+currently bound living bodies; detached rivals leave the group.
+
+Declared strike rows bind the existing fixed-step StrikeRunner. A guest starts
+an attack with `strike`; `strikeState` observes its phase, and `stop` cancels
+contact and movement. Finite observed fields expose encounter phase, engagement,
+leash and day weights. Data field steering remains bounded by the admitted
+move's speed and turn limits. Native/page authorities retain all identity,
+physics, damage and retirement operations; no shard TypeScript port is accepted.
+See [spawn owner](../src/game/population/spawnScript.ts),
+[strike owner](../src/game/population/scriptStrikes.ts), and
+[elite admission](../src/format/eliteFeature.ts).
 
 ### Owned elite programs (G473, G484)
 

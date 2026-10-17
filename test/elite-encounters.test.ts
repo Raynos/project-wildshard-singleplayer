@@ -54,19 +54,9 @@ for (const [slug, prepare, step] of [['pine-hollow', pinePlan, 'pine.elites'], [
         expect(() => { restore({ ...saved, kokbori: { ...pack, pack: 999 } }); }).toThrow();
       } else {
         const scripts = v.parse(v.array(object), saved['scripts']);
-        // v3's prelude cursor is retired metadata; v2 retains the same actor/field wire.
-        for (const version of [2, 3]) {
-          restore({ ...saved, version, scripts: scripts.map(s => version === 3 ? { ...s, prelude: '{}' } : { ...s }) });
-          expect(adapter.snapshot()).toEqual(state);
-        }
-        const { stun: _root, ...oldEnvelope } = saved;
-        restore({ ...oldEnvelope, version: 1, scripts: scripts.map(s => {
-          const { animal: _animal, ...oldScript } = s, fields = v.parse(object, s['fields']);
-          return { ...oldScript, fields: Object.fromEntries(Object.entries(fields).filter(([key]) => !key.startsWith('rival'))) };
-        }) });
-        expect(adapter.snapshot()).toEqual(state);
         const first = scripts[0]; if (first === undefined) throw new Error('Missing elite script');
-        expect(() => { restore({ ...saved, scripts: [{ ...first, fields: {} }, ...scripts.slice(1)] }); }).toThrow();
+        expect(() => { restore({ ...saved, scripts: [{ ...first, program: '{}' }, ...scripts.slice(1)] }); }).toThrow();
+        expect(() => { restore({ ...saved, scripts: [{ ...first, phase2: true }, ...scripts.slice(1)] }); }).toThrow();
       }
       expect(canonicalSimDigest(snapshotSimHost(host))).toBe(before);
       const checkpoint = snapshotSimHost(host);

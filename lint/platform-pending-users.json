@@ -2030,6 +2030,91 @@
           "row": "G483"
         }
       }
+    },
+    {
+      "module": "src/game/quest/eliteFeature.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
+    },
+    {
+      "module": "src/game/quest/eliteDecisions.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
+    },
+    {
+      "module": "src/game/quest/elitePage.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
+    },
+    {
+      "module": "src/game/quest/eliteStreams.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
+    },
+    {
+      "module": "src/game/population/scriptStrikes.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G484"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "contracts + elites",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G473"
+        }
+      }
     }
   ]
 }

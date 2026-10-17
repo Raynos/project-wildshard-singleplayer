@@ -10495,40 +10495,32 @@
       "inputRoots": [
         "package.json",
         "pnpm-lock.yaml",
-        "src/format/admissionLimits.ts",
-        "src/format/director.ts",
-        "src/format/directorStages.ts",
-        "src/format/directorWhen.ts",
-        "src/format/package.json",
-        "src/format/state.ts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/buildBehaviour.ts",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/directorAbi.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/sourceReader.ts",
-        "src/shards/pine-hollow/behaviour/blackpaw.as",
-        "src/shards/pine-hollow/behaviour/elitePrelude.as",
-        "src/shards/pine-hollow/behaviour/ghostStag.as",
-        "src/shards/pine-hollow/behaviour/imperialBull.as",
-        "src/shards/pine-hollow/behaviour/ironhide.as",
-        "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs"
+        "src/format",
+        "src/sdk",
+        "src/shards/pine-hollow/behaviour/elites",
+        "src/shards/pine-hollow/generators/eliteFeatureRows.ts",
+        "src/shards/pine-hollow/generators/eliteRoster.ts",
+        "src/shards/pine-hollow/generators/strikes.ts",
+        "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs",
+        "src/shards/pine-hollow/data/eliteHomes.ts",
+        "src/shards/pine-hollow/data/layout.generated.json",
+        "src/shards/pine-hollow/data/identity.json"
       ],
       "outputs": [
-        "src/shards/pine-hollow/behaviour/ironhide.json",
-        "src/shards/pine-hollow/behaviour/ghostStag.json",
-        "src/shards/pine-hollow/behaviour/blackpaw.json",
-        "src/shards/pine-hollow/behaviour/imperialBull.json"
+        "src/shards/pine-hollow/behaviour/elites.generated.json",
+        "src/shards/pine-hollow/assets/07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd",
+        "src/shards/pine-hollow/assets/53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724",
+        "src/shards/pine-hollow/assets/ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168",
+        "src/shards/pine-hollow/assets/f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234"
       ],
       "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/behaviour/ironhide.json",
-        "src/shards/pine-hollow/behaviour/ghostStag.json",
-        "src/shards/pine-hollow/behaviour/blackpaw.json",
-        "src/shards/pine-hollow/behaviour/imperialBull.json"
-      ]
+      "buildOutputs": {
+        "src/shards/pine-hollow/behaviour/elites.generated.json": "7db82a5d5ebd1e5027301e2ec5eae06178986cfbdbbe2755b06ebeed48d03931",
+        "src/shards/pine-hollow/assets/07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd": "07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd",
+        "src/shards/pine-hollow/assets/53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724": "53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724",
+        "src/shards/pine-hollow/assets/ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168": "ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168",
+        "src/shards/pine-hollow/assets/f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234": "f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234"
+      }
     },
     {
       "id": "nalati-weapon-hooks",
@@ -15839,10 +15831,6 @@
         "src/shards/pine-hollow/data/paintedTextures.generated.json",
         "src/shards/pine-hollow/data/trophyMounts.json",
         "src/shards/pine-hollow/data/leverDetails.json",
-        "src/shards/pine-hollow/behaviour/ironhide.json",
-        "src/shards/pine-hollow/behaviour/ghostStag.json",
-        "src/shards/pine-hollow/behaviour/blackpaw.json",
-        "src/shards/pine-hollow/behaviour/imperialBull.json",
         "public/assets/pine-hollow/painted/coatArm-b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d.png",
         "public/assets/pine-hollow/painted/chalk-63cc5fc846ddcdd7930d069a1caafe6074d09f8cf4e305cc5e4c27e77b2c64bf.webp",
         "public/assets/pine-hollow/painted/endGrain-e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1.webp",
@@ -15861,8 +15849,6 @@
         "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb"
       ],
       "outputs": [
-        "src/shards/pine-hollow/assets/0091f973a1b908e5c2edc993ce8eb20dbff93ffe4072b087b20277c6dafeed8c",
-        "src/shards/pine-hollow/assets/114f3919809a532d7238fe0d1c97f8f1d0863ab812989c4bf978542dd81f6142",
         "src/shards/pine-hollow/assets/11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a",
         "src/shards/pine-hollow/assets/177ea9a3f7ff1a1e08adf2802e48fa1878470901156acb391307852da37c705a",
         "src/shards/pine-hollow/assets/1d5eb8ccedc86fc60706b9deb33936cce030823bee27a582cbdcd81dd369c403",
@@ -15873,19 +15859,15 @@
         "src/shards/pine-hollow/assets/59b757158f450a07f47fa261ea770ae5aef9f8150e90843434ed59248cb41b5c",
         "src/shards/pine-hollow/assets/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52",
         "src/shards/pine-hollow/assets/63cc5fc846ddcdd7930d069a1caafe6074d09f8cf4e305cc5e4c27e77b2c64bf",
-        "src/shards/pine-hollow/assets/7f9bb07bdc290ded141e654f561af91bde6bda3c0142fb8f84d1b04fd27fac65",
         "src/shards/pine-hollow/assets/91945e857c8806d68723477781748bb8c82bba48ef4e36cc8b519bfe0fb62d2f",
         "src/shards/pine-hollow/assets/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020",
         "src/shards/pine-hollow/assets/b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d",
         "src/shards/pine-hollow/assets/cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59",
         "src/shards/pine-hollow/assets/e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1",
-        "src/shards/pine-hollow/assets/fd0fa3a338ad78dd2f6e3f314449b80791eb251dd868924440f44ff8da82ccf5",
         "src/shards/pine-hollow/data/clientBlobs.generated.json"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/pine-hollow/assets/0091f973a1b908e5c2edc993ce8eb20dbff93ffe4072b087b20277c6dafeed8c",
-        "src/shards/pine-hollow/assets/114f3919809a532d7238fe0d1c97f8f1d0863ab812989c4bf978542dd81f6142",
         "src/shards/pine-hollow/assets/11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a",
         "src/shards/pine-hollow/assets/177ea9a3f7ff1a1e08adf2802e48fa1878470901156acb391307852da37c705a",
         "src/shards/pine-hollow/assets/1d5eb8ccedc86fc60706b9deb33936cce030823bee27a582cbdcd81dd369c403",
@@ -15896,13 +15878,11 @@
         "src/shards/pine-hollow/assets/59b757158f450a07f47fa261ea770ae5aef9f8150e90843434ed59248cb41b5c",
         "src/shards/pine-hollow/assets/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52",
         "src/shards/pine-hollow/assets/63cc5fc846ddcdd7930d069a1caafe6074d09f8cf4e305cc5e4c27e77b2c64bf",
-        "src/shards/pine-hollow/assets/7f9bb07bdc290ded141e654f561af91bde6bda3c0142fb8f84d1b04fd27fac65",
         "src/shards/pine-hollow/assets/91945e857c8806d68723477781748bb8c82bba48ef4e36cc8b519bfe0fb62d2f",
         "src/shards/pine-hollow/assets/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020",
         "src/shards/pine-hollow/assets/b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d",
         "src/shards/pine-hollow/assets/cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59",
         "src/shards/pine-hollow/assets/e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1",
-        "src/shards/pine-hollow/assets/fd0fa3a338ad78dd2f6e3f314449b80791eb251dd868924440f44ff8da82ccf5",
         "src/shards/pine-hollow/data/clientBlobs.generated.json"
       ]
     },
@@ -16293,18 +16273,12 @@
       ],
       "inputRoots": [
         "src/shards/pine-hollow/generators/bake-elite-rows.mjs",
-        "src/shards/pine-hollow/generators/eliteBrainRows.ts",
-        "src/shards/pine-hollow/generators/eliteHostRows.ts",
         "src/shards/pine-hollow/generators/nightSpec.ts",
         "src/shards/pine-hollow/generators/kingFight.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
         "src/shards/pine-hollow/data/eliteHomes.ts",
         "src/shards/pine-hollow/data/bossEncounter.json",
         "src/shards/pine-hollow/data/kingTiming.json",
-        "src/shards/pine-hollow/behaviour/ironhide.json",
-        "src/shards/pine-hollow/behaviour/ghostStag.json",
-        "src/shards/pine-hollow/behaviour/blackpaw.json",
-        "src/shards/pine-hollow/behaviour/imperialBull.json",
         "src/sdk/species.ts",
         "src/sdk/bake/source-loader.mjs",
         "src/format",
@@ -16318,12 +16292,10 @@
         "src/shards/pine-hollow/generators/strikes.ts"
       ],
       "outputs": [
-        "src/shards/pine-hollow/data/eliteRuntime.generated.json",
         "src/shards/pine-hollow/data/nightPopulation.generated.json",
         "src/shards/pine-hollow/data/kingFight.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/pine-hollow/data/eliteRuntime.generated.json",
         "src/shards/pine-hollow/data/nightPopulation.generated.json",
         "src/shards/pine-hollow/data/kingFight.generated.json"
       ],
