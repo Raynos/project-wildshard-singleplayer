@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { clamp, lookAngles, step } from '@wildshard/engine/entities/species/rigs';
-import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playBakedClip, readBakedClips, scaleLimbPose, zeroLimbPose, type BakedPoseClip, type LimbPose, type LimbPoseRest, type LimbRest, type LimbRigSpec } from '../runtime/species/limbRig';
-import { KING_GAITS as GAITS, KING_RIG as RIG } from '../data/kingRig';
-import baked from '../data/kingClips.generated.json' with { type: 'json' };
+import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playBakedClip, readBakedClips, scaleLimbPose, zeroLimbPose, type BakedPoseClip, type LimbPose, type LimbPoseRest, type LimbRest, type LimbRigSpec } from './limbRigBefore';
+import { KING_GAITS as GAITS, KING_RIG as RIG } from '../../../src/shards/pine-hollow/data/kingRig';
+import baked from '../../../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
 
 /**
  * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like

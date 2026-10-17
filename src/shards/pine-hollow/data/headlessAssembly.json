@@ -19,7 +19,6 @@
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
     "@wildshard/sdk/populationRoster": ["installPopulationRoster"],
     "src/shards/pine-hollow/runtime/herds": ["pineHuntGround"],
-    "src/shards/pine-hollow/runtime/kingPoseKeeper": ["installKingPoseKeeper"],
     "@wildshard/game/boss/native": ["installGroundBoss"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
@@ -1252,7 +1251,6 @@
               "$ref": ["bake"]
             },
             "ground": { "$call": [{ "$ref": ["src/shards/pine-hollow/runtime/herds", "pineHuntGround"] }, { "$ref": ["grid"] }] },
-            "poses": { "$call": [{ "$ref": ["src/shards/pine-hollow/runtime/kingPoseKeeper", "installKingPoseKeeper"] }, { "$ref": ["host"] }] },
             "nav": {
               "$ref": ["nav"]
             },

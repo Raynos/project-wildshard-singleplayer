@@ -4,7 +4,7 @@ import rows from '../data/kingCollisionRows.json' with { type: 'json' };
  * The Antler King's clips, baked (SHARD-PLATFORM C4, sp-o232): his nine clips as rows (E322 F-M1 body plan; the rows
  * runtime/species/kingClips.ts once evaluated every frame), sampled here over each clip's input (and, for the two that also
  * read the clock, over one period of it) into data/kingClips.generated.json. The page and the native host only look the
- * samples up (runtime/species/limbRig.ts `playBakedClip`) and solve the result onto the bones; nothing evaluates a row at
+ * samples up (@wildshard/game/animation/limbRig `playBakedClip`) and solve the result onto the bones; nothing evaluates a row at
  * runtime.
  *
  * THE CLIPS, all over the same pose record (the limb rig's channels: the spine's scalars, and per limb FL FR BL BR the hoof's

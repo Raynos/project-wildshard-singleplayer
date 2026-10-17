@@ -6,8 +6,8 @@ const triple = v.tuple([finite, finite, finite]);
 const matrix = v.pipe(v.array(finite), v.length(16));
 const joint = (parent: -1 | 0 | 1 | 2) => v.strictObject({ parent: v.literal(parent), position: triple });
 
-/** Generated from authored rows (generators/kingCollision.ts). Unknown fields or invalid framing are never defaulted. */
-export const KingCollisionBake = v.strictObject({
+/** Generated from authored collision rows. Unknown fields or invalid framing are never defaulted. */
+export const LimbCollisionBake = v.strictObject({
   version: v.literal(1), hz: v.literal(60),
   joints: v.tuple([joint(-1), joint(0), joint(1), joint(2)]),
   rest: v.strictObject({ at: v.record(v.string(), point), rootPos: point,
@@ -15,21 +15,21 @@ export const KingCollisionBake = v.strictObject({
   volumes: v.strictObject({ head: triple,
     body: v.strictObject({ at: triple, pitch: finite, halfLength: v.pipe(finite, v.minValue(0.001)) }),
     fore: v.strictObject({ at: triple, halfLength: v.pipe(finite, v.minValue(0.001)) }), ribs: triple }),
-  clips: v.array(v.strictObject({ name: v.picklist(['sweep', 'strike', 'roar']), duration: v.pipe(finite, v.minValue(0.001)),
+  clips: v.array(v.strictObject({ name: v.string(), duration: v.pipe(finite, v.minValue(0.001)),
     frames: v.array(v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minValue(0)), phase: v.pipe(finite, v.minValue(0), v.maxValue(1)),
       transforms: v.tuple([matrix, matrix, matrix, matrix]) })) })),
 });
 
 /** Read a generated collision bake; the runtime never creates a skeleton from this metadata. */
-export function readKingCollisionBake(input: unknown): v.InferOutput<typeof KingCollisionBake> {
-  const bake = v.parse(KingCollisionBake, input);
-  if (bake.clips.length !== 3 || new Set(bake.clips.map(clip => clip.name)).size !== 3) throw new Error('Incomplete King collision bake');
-  for (let i = 0; i < 3; i++) {
-    const clip = bake.clips[i]; if (clip === undefined) throw new Error('Missing King collision clip');
+export function readLimbCollisionBake(input: unknown): v.InferOutput<typeof LimbCollisionBake> {
+  const bake = v.parse(LimbCollisionBake, input);
+  if (bake.clips.length > 64 || new Set(bake.clips.map(clip => clip.name)).size !== bake.clips.length) throw new Error('Incomplete limb collision bake');
+  for (let i = 0; i < bake.clips.length; i++) {
+    const clip = bake.clips[i]; if (clip === undefined) throw new Error('Missing limb collision clip');
     const end = Math.ceil(clip.duration * bake.hz);
     if (clip.frames.length !== end + 1 || clip.frames.some((frame, tick) =>
       frame.tick !== tick || frame.phase !== Math.min(tick / bake.hz / clip.duration, 1))) {
-      throw new Error('Invalid King collision sample clock');
+      throw new Error('Invalid limb collision sample clock');
     }
   }
   return bake;

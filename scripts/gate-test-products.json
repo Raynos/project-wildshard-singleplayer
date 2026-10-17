@@ -1,4 +1,5 @@
 {
+  "test/quadruped-rig-platform.test.ts": [],
   "test/ambient-flock-host.test.ts": [],
   "test/animal-model-preparation.test.ts": [],
   "test/ktx2-widen-etc2.test.ts": [],

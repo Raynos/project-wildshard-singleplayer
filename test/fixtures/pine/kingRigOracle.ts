@@ -7,9 +7,9 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { Bone, Group } from 'three';
-import { applyKingPose, clipPose, kingRest, newPose, type KingRest } from '../../../src/shards/pine-hollow/combat/kingRig';
+import { applyKingPose, clipPose, kingRest, newPose, type KingRest } from './kingRigBefore';
 import KING_ATTACK_TIMING from '../../../src/shards/pine-hollow/data/kingTiming.json' with { type: 'json' };
-import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
+import { readLimbCollisionBake as readKingCollisionBake } from '../../../src/format/limbCollision';
 import physics from '../../../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 import { withPortableMath } from '../../fake/portableMath';
 
@@ -23,8 +23,8 @@ const kingSpec = v.object({ dims: v.object({ headAt: triple, bodyAt: triple,
   bodyPitch: finite, bodyHalfLen: finite, fore: v.object({ bone: v.literal('chest'), at: triple, halfLen: finite }) }) });
 
 /** Real rig joints only; no vertex attributes or runtime renderer are loaded. */
-export function readKingRig(root: string): { bones: Record<string, Bone>; group: Group; rest: KingRest } {
-  const bytes = readFileSync(resolve(root, KING_RIG));
+export function readKingRig(root: string, tier: 'phone' | 'desktop' = 'phone'): { bones: Record<string, Bone>; group: Group; rest: KingRest } {
+  const bytes = readFileSync(resolve(root, tier === 'phone' ? KING_RIG : KING_RIG.replace('.phone.', '.')));
   if (bytes.length < 20 || bytes.readUInt32LE(0) !== 0x46546c67 || bytes.readUInt32LE(4) !== 2
     || bytes.readUInt32LE(8) !== bytes.length || bytes.readUInt32LE(16) !== 0x4e4f534a) throw new Error('Invalid King GLB');
   const length = bytes.readUInt32LE(12);

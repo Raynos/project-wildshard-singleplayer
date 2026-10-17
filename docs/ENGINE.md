@@ -9360,3 +9360,37 @@ save, physics, replication or authoritative world port enters this host.
 view commands. The data client does not automatically execute view rows, and
 other v1 view commands still lack adapters. Signal dusk remains G484's row-first
 case; this API is its optional fallback.
+
+### Quadruped rig and foot IK (G474/G477)
+
+`game/animation/limbRig` poses borrowed GLB bones from scalar spine channels
+and four foot targets. The client-only solver measures the rest bend planes
+once, applies spine FK, then two-bone IK with toe pitch. `format/limbRig`
+admits bone names, proportions, strides, bounded baked clip samples and blend
+rows. `game/animation/limbBlend.LimbAnimator` evaluates locomotion, held action,
+recoil and attention in that order on the existing animal clock. Clip ids,
+action ids, memory keys, thresholds, response rates and look weights are data.
+It neither loads a rig nor creates a simulation timer.
+
+`game/animation/limbView.limbAnimation` binds those rows to a rendered species.
+`game/animation/limbQueryView.bindLimbQueryView` stages its already-evaluated scalar pose into
+`game/animation/limbQueryPose.LimbQueryPose`, preserving separate body, chest and head
+publication clocks. It restores borrowed methods when the view retires.
+`format/limbCollision` validates the same collision bake for client and native;
+`game/animation/limbCollision.LimbCollision` resolves its four-joint chain without scene nodes.
+
+Native population rows optionally declare `limbPose` (`format/limbPopulation`):
+step id, capacity, near distance, head name, collision metadata, blend and clip
+bank. The population roster installs `game/animation/limbPopulation` directly,
+replacing executable shard pose attachments. The service retains pre-body hit
+publication, pre-movement near selection, after-body posing and final render
+publication. Version 2 continuations preserve exact cached hits and pose bits;
+the version 1 migration remains supported. Native code is renderer-free; GLB
+skinning and view bindings are explicitly client-only.
+
+Host bar: **5/6**, failing only two shipped users under G474's approved
+quadruped rig + foot IK exception. Pine supplies rows today. A made-up marsh
+quadruped proves different skeleton names, proportions, clips and memory keys;
+Nalati creature/horse adoption is tracked against G477 for the end of W3.
+The host takes rows and existing platform actors, with no shard callback,
+subclass or reflected owner path.

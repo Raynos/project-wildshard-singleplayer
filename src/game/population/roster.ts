@@ -1,3 +1,4 @@
+import { installNativeLimbPoses } from '../animation/limbPopulation';
 import * as v from 'valibot';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { Vector3 } from 'three';
@@ -23,8 +24,6 @@ export interface PopulationRosterPorts {
   readonly nav: HuntNav | null;
   readonly spawnY: number;
   readonly saved?: NativeRosterSaved | undefined;
-  /** Pose services are native actor attachments, not encounter decisions. The roster selects their kind from rows. */
-  readonly poses?: { attach: (actor: NativePopulationActor) => void; retire: (id: string) => void };
 }
 
 const installed = new WeakMap<SimHost, Map<string, ReturnType<typeof installPopulationRoster>>>();
@@ -60,6 +59,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   available: () => number;
 } {
   const rows = parseNativePopulationRows(input);
+  const poses = rows.limbPose === undefined ? undefined : installNativeLimbPoses(host, rows.limbPose);
   const BODY_COUNT = rows.bodyCount, LIVE_MAX = rows.limit, ROSTER_STEP = rows.step;
   const SCRIPTED = v.parse(v.picklist(ANIMAL_STATES), rows.scripted);
   const Saved = savedSchema(BODY_COUNT, LIVE_MAX);
@@ -106,7 +106,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
     ({ id, kind, variant, herd: -1, range: [scale, scale], actor: null, recipe: { id, spec, seed, scale, at, yaw } });
   /** a body the shared roster made, out of any herd; the reserved encounter's pose joins his; a listed body joins the manager's list */
   const join = (a: NativePopulationActor, kind: string, listed: boolean): NativePopulationActor => {
-    if (rows.poseKinds.includes(kind)) ports.poses?.attach(a);
+    if (rows.poseKinds.includes(kind)) poses?.attach(a);
     a.herd = -1;
     intake.identities.own(a.entityId, { group: null, encounter: listed ? null : rows.encounter, listed });
     if (!listed) return a;
@@ -124,7 +124,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   /** AnimalManager.retire: out of the list, the reserved encounter's pose, the brain and the host */
   const retire = (a: HuntBody): void => {
     const i = list.findIndex(b => b.actor === a); if (i !== -1) { list.splice(i, 1); seen.splice(i, 1); }
-    ports.poses?.retire(a.entityId);
+    poses?.retire(a.entityId);
     const body = intake.byId.get(a.entityId);
     if (body === undefined) { hunt.forget(a); host.retire(a.entityId); } else intake.retire(body);
   };

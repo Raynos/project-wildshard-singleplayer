@@ -1,3 +1,5 @@
+import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
+import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
 import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
@@ -30,6 +32,8 @@ export const SECTIONS = {
 
 /** World-only view rows: the reader checks the named product before any builder uses them. */
 export const NativeViewSchema = v.strictObject({
+  QUADRUPED: v.strictObject({ spec: LimbRigSchema, blend: LimbBlendSchema, clips: BakedClipTable, collision: LimbCollisionBake,
+    bones: v.array(v.strictObject({ name:text, parent:v.nullable(text), pos:triple })) }),
   BOSS_RIBS: triple, BOSS_ENCOUNTER: RoamingEncounterSchema, BOSS_PRESENTATION: BossEncounterPresentationSchema,
   KINGS_CLEARING: v.strictObject({ x:number, z:number, r:number, blend:number, clear:number }),
   BEAR_CAVE: v.strictObject({ x:number, z:number, rot:number }), KING_ARENA_FOG:number,

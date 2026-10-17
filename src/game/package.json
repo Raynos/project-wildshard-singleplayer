@@ -166,7 +166,14 @@
     "./shardfile/sceneResources": "./shardfile/sceneResources.ts",
     "./shardfile/livingBuildings": "./shardfile/livingBuildings.ts",
     "./shardfile/buildingAssembly": "./shardfile/buildingAssembly.ts",
-    "./shardfile/buildingCloud": "./shardfile/buildingCloud.ts"
+    "./shardfile/buildingCloud": "./shardfile/buildingCloud.ts",
+    "./animation/limbRig": "./animation/limbRig.ts",
+    "./animation/limbBlend": "./animation/limbBlend.ts",
+    "./animation/limbView": "./animation/limbView.ts",
+    "./animation/limbCollision": "./animation/limbCollision.ts",
+    "./animation/limbQueryPose": "./animation/limbQueryPose.ts",
+    "./animation/limbQueryView": "./animation/limbQueryView.ts",
+    "./animation/limbPopulation": "./animation/limbPopulation.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

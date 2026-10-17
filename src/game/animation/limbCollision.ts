@@ -1,10 +1,10 @@
 import type { Matrix4, Vector3 } from 'three';
 import { CollisionPose, type CollisionJoint } from '@wildshard/game/plugin/animation';
-import type { KingPose } from '../combat/kingRig';
+import type { LimbPose } from './limbRig';
 
 /** The four authored collision joints, parent-first; measured from the actual GLB by the trusted bake. */
-export type KingCollisionJoints = readonly [CollisionJoint, CollisionJoint, CollisionJoint, CollisionJoint];
-export interface KingCollisionVolumes {
+export type LimbCollisionJoints = readonly [CollisionJoint, CollisionJoint, CollisionJoint, CollisionJoint];
+export interface LimbCollisionVolumes {
   readonly head: readonly [number, number, number];
   readonly body: { readonly at: readonly [number, number, number]; readonly pitch: number; readonly halfLength: number };
   readonly fore: { readonly at: readonly [number, number, number]; readonly halfLength: number };
@@ -12,18 +12,18 @@ export interface KingCollisionVolumes {
 }
 const ZERO = [0, 0, 0] as const;
 
-/** The page and native King resolve the same scalar pose through this collision-only chain. No rig is created. */
-export class KingCollision {
+/** The page and native limb resolve the same scalar pose through this collision-only chain. No rig is created. */
+export class LimbCollision {
   private readonly chain: CollisionPose;
-  private readonly volumes: KingCollisionVolumes;
+  private readonly volumes: LimbCollisionVolumes;
   private readonly offset: [number, number, number] = [0, 0, 0];
   private readonly angles: [number, number, number] = [0, 0, 0];
-  constructor(joints: KingCollisionJoints, volumes: KingCollisionVolumes) {
+  constructor(joints: LimbCollisionJoints, volumes: LimbCollisionVolumes) {
     this.volumes = volumes;
     this.chain = new CollisionPose(joints);
   }
 
-  pose(p: KingPose, world: Matrix4): void {
+  pose(p: LimbPose, world: Matrix4): void {
     this.offset[1] = p.rootY; this.offset[2] = p.rootZ;
     this.rotate(0, this.offset, p.rootPitch, p.rootYaw, p.rootRoll);
     this.rotate(1, ZERO, p.chestPitch, p.chestYaw, p.chestRoll);

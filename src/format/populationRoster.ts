@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { LimbPopulationSchema } from './limbPopulation';
 
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
@@ -9,6 +10,7 @@ const identity = v.strictObject({ kind: key, variant: key });
  * All rows are data. Fight decisions and pose implementation remain owned by their existing services. */
 export const NativePopulationRowsSchema = v.strictObject({
   version: v.literal(1), step: key, seed: finite, bodyCount: count, limit: v.pipe(count, v.minValue(1)),
+  limbPose: v.exactOptional(LimbPopulationSchema),
   scripted: key, encounter: key, poseKinds: v.array(key), spawn: point,
   fauna: v.array(v.strictObject({ kind: key, count,
     variants: v.exactOptional(v.array(key)),

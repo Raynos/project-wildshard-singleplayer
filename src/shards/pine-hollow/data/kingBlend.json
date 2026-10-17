@@ -1,0 +1,64 @@
+{
+  "clips": {
+    "idle": "idle",
+    "walk": "walk",
+    "run": "charge",
+    "death": "die",
+    "hit": "hit"
+  },
+  "memory": {
+    "walk": "walkW",
+    "run": "runW",
+    "phase": "ph",
+    "action": "act",
+    "held": "held"
+  },
+  "walk": [
+    0.05,
+    0.5
+  ],
+  "run": [
+    1.6,
+    3.4
+  ],
+  "response": [
+    6,
+    5
+  ],
+  "hold": [
+    0.15,
+    0.75
+  ],
+  "defaultAttack": "strike",
+  "attacks": [
+    {
+      "action": 1,
+      "clip": "sweep",
+      "weight": 1,
+      "suppressLook": true
+    },
+    {
+      "action": 3,
+      "clip": "roar",
+      "weight": 1,
+      "suppressLook": false
+    },
+    {
+      "action": 4,
+      "clip": "brace",
+      "weight": 0.7,
+      "suppressLook": false
+    }
+  ],
+  "brace": 0.7,
+  "look": {
+    "yaw": 1,
+    "up": 0.4,
+    "down": -0.5,
+    "fallbackHeight": 2.5,
+    "runFade": 0.6,
+    "neckYaw": 0.45,
+    "headYaw": 0.4,
+    "headPitch": 0.6
+  }
+}

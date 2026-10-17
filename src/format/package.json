@@ -168,7 +168,10 @@
     "./heldGear": "./heldGear.ts",
     "./geometryPack": "./geometryPack.ts",
     "./worldScenes": "./worldScenes.ts",
-    "./buildings": "./buildings.ts"
+    "./buildings": "./buildings.ts",
+    "./limbRig": "./limbRig.ts",
+    "./limbCollision": "./limbCollision.ts",
+    "./limbPopulation": "./limbPopulation.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

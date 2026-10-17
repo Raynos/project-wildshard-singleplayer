@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // e350-king-measure.mjs — E350 F-X2: measure the Antler King's own hull (antler-king-rig[.phone].rigged.glb) in the poses
-// the fight uses, through the SAME clip functions the game animates him with (src/shards/pine-hollow/combat/kingRig.ts clipPose →
+// the fight uses, through the SAME clip functions the game animates him with (src/game/animation/limbBlend.ts clipPose →
 // applyKingPose, skinned on the CPU as scripts/king-rig-gate.mjs does). World metres = model units × KING_SCALE (2.6).
 //
 //   node --import ./scripts/bake-loader.mjs scripts/e350-king-measure.mjs [--tier=desktop|phone] [--json=<out.json>]
@@ -17,7 +17,17 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { realpathSync, writeFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { kingRest, clipPose, applyKingPose, newPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
+import { limbRest, applyLimbPose, newLimbPose as newPose } from '../src/game/animation/limbRig.ts';
+import { LimbAnimator } from '../src/game/animation/limbBlend.ts';
+import { parseLimbBlend } from '../src/format/limbRig.ts';
+import { KING_RIG } from '../src/shards/pine-hollow/data/kingRig.ts';
+import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };
+import clips from '../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
+
+const animator = new LimbAnimator(parseLimbBlend(blend), clips, KING_RIG.spine.head);
+const kingRest = bones => limbRest(KING_RIG, bones);
+const applyKingPose = (rest, pose) => applyLimbPose(KING_RIG, rest, pose);
+const clipPose = (pose, name, x, t = 0) => animator.sample(pose, name, x, t);
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);

@@ -3,7 +3,7 @@
 // .claude/skills/mockup-to-model ▸ 4 and src/shards/driftwood-isle/blender/fp-arms/gate.mjs run them). Loads a rigged GLB
 // (public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb), builds the skeleton the way the game does
 // (the joints at their GLB positions, `updateMatrixWorld(true)` then `new THREE.Skeleton` computing the inverses), poses
-// every clip of src/shards/pine-hollow/combat/kingRig.ts at sampled times through the SAME functions the game's animate
+// every clip of src/game/animation/limbBlend.ts at sampled times through the SAME functions the game's animate
 // calls (clipPose → applyKingPose), skins the mesh on the CPU (three's applyBoneTransform) and measures. An unmeasured
 // check is never a pass: each check reports its numbers, and an absent input is `unevaluated`.
 //
@@ -37,8 +37,18 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import * as THREE from 'three';
-import { KING_LIMBS, KING_CLIP_NAMES, KING_GAITS, kingRest, clipPose, applyKingPose, newPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
-import { KING_BONES } from '../src/shards/pine-hollow/data/kingRig.ts';
+import { limbRest, applyLimbPose, newLimbPose as newPose } from '../src/game/animation/limbRig.ts';
+import { LimbAnimator } from '../src/game/animation/limbBlend.ts';
+import { parseLimbBlend } from '../src/format/limbRig.ts';
+import { KING_RIG, KING_GAITS, KING_BONES } from '../src/shards/pine-hollow/data/kingRig.ts';
+import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };
+import clips from '../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
+
+const animator = new LimbAnimator(parseLimbBlend(blend), clips, KING_RIG.spine.head);
+const KING_LIMBS = KING_RIG.limbs, KING_CLIP_NAMES = Object.keys(clips.clips);
+const kingRest = bones => limbRest(KING_RIG, bones);
+const applyKingPose = (rest, pose) => applyLimbPose(KING_RIG, rest, pose);
+const clipPose = (pose, name, x, t = 0) => animator.sample(pose, name, x, t);
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);

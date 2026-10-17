@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Vector3, type Matrix4 } from 'three';
-import { newPose, type KingPose } from '../combat/kingRig';
-import { KingCollision, type KingCollisionJoints, type KingCollisionVolumes } from './kingCollision';
+import { newLimbPose, type LimbPose } from './limbRig';
+import { LimbCollision, type LimbCollisionJoints, type LimbCollisionVolumes } from './limbCollision';
 
 const finite = v.pipe(v.number(), v.finite());
 const triple = v.tuple([finite, finite, finite]);
@@ -10,19 +10,19 @@ const scalarPose = v.strictObject({ rootY: finite, rootZ: finite, rootPitch: fin
   headPitch: finite, headYaw: finite, headRoll: finite });
 const savedPose = v.strictObject({ version: v.literal(1), staged: scalarPose,
   published: v.strictObject({ head: triple, ribs: triple, rear: triple, front: triple, left: triple, right: triple }) });
-export type KingQueryPoseSaved = v.InferOutput<typeof savedPose>;
+export type LimbQueryPoseSaved = v.InferOutput<typeof savedPose>;
 type Publication = 'body' | 'ribs' | 'head';
 const scalarKeys = ['rootY', 'rootZ', 'rootPitch', 'rootRoll', 'rootYaw', 'chestPitch', 'chestYaw', 'chestRoll',
   'neckPitch', 'neckYaw', 'headPitch', 'headYaw', 'headRoll'] as const;
 const tripleOf = (p: Vector3): [number, number, number] => [p.x, p.y, p.z];
 
-/** The King's consumer-specific matrix publication clocks. Posing never changes a cached query.
+/** The limb's consumer-specific matrix publication clocks. Posing never changes a cached query.
  * Body/head/fore queries read the last published worlds. A ribcage getWorldPosition publishes only
  * its root/chest parent chain; a head getter or render propagation publishes the entire chain.
  * This retains that observable ordering without constructing any live bones in the native host. */
-export class KingQueryPose {
-  private readonly staged = newPose();
-  private readonly collision: KingCollision;
+export class LimbQueryPose {
+  private readonly staged = newLimbPose();
+  private readonly collision: LimbCollision;
   private readonly headPoint = new Vector3();
   private readonly ribsPoint = new Vector3();
   private readonly rear = new Vector3();
@@ -30,22 +30,22 @@ export class KingQueryPose {
   private readonly left = new Vector3();
   private readonly right = new Vector3();
 
-  constructor(joints: KingCollisionJoints, volumes: KingCollisionVolumes) {
-    this.collision = new KingCollision(joints, volumes);
+  constructor(joints: LimbCollisionJoints, volumes: LimbCollisionVolumes) {
+    this.collision = new LimbCollision(joints, volumes);
   }
 
   /** Copy only the four collision joints' scalar offsets. Caller scratch poses may be reused immediately. */
-  stage(pose: KingPose): void {
-    if (scalarKeys.some(key => !Number.isFinite(pose[key]))) throw new RangeError('Invalid King query pose');
+  stage(pose: LimbPose): void {
+    if (scalarKeys.some(key => !Number.isFinite(pose[key]))) throw new RangeError('Invalid limb query pose');
     for (let i = 0; i < 13; i++) {
       const key = scalarKeys[i];
-      if (key === undefined) throw new Error('Missing King pose scalar');
+      if (key === undefined) throw new Error('Missing limb pose scalar');
       this.staged[key] = pose[key];
     }
   }
 
   /** Copy the already published hitbox clock, without forcing bone propagation or allocating a snapshot. */
-  copyFrom(source: KingQueryPose): void {
+  copyFrom(source: LimbQueryPose): void {
     Object.assign(this.staged, source.staged);
     this.headPoint.copy(source.headPoint); this.ribsPoint.copy(source.ribsPoint);
     this.rear.copy(source.rear); this.front.copy(source.front);
@@ -54,7 +54,7 @@ export class KingQueryPose {
 
   /** Match updateWorldMatrix(true, false) on this joint; descendants retain their previously published worlds. */
   publish(frame: Matrix4, through: Publication): void {
-    if (!frame.elements.every(Number.isFinite)) throw new RangeError('Invalid King query frame');
+    if (!frame.elements.every(Number.isFinite)) throw new RangeError('Invalid limb query frame');
     this.collision.pose(this.staged, frame);
     this.collision.body(this.rear, this.front);
     if (through !== 'body') {
@@ -70,7 +70,7 @@ export class KingQueryPose {
   fore(left: Vector3, right: Vector3): void { left.copy(this.left); right.copy(this.right); }
 
   /** Retain exact cached outputs, not a recomputed pose: a checkpoint can sit between two publications. */
-  snapshot(): KingQueryPoseSaved {
+  snapshot(): LimbQueryPoseSaved {
     const staged = v.parse(scalarPose, Object.fromEntries(scalarKeys.map(key => [key, this.staged[key]])));
     return { version: 1, staged, published: { head: tripleOf(this.headPoint), ribs: tripleOf(this.ribsPoint),
       rear: tripleOf(this.rear), front: tripleOf(this.front), left: tripleOf(this.left), right: tripleOf(this.right) } };

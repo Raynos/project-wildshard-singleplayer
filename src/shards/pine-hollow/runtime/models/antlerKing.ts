@@ -8,11 +8,10 @@ import { createModelLibrary, type ModelLibrary } from '@wildshard/sdk/looks/mode
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { InferOutput } from 'valibot';
 import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../../data/antlerKingLook';
-import { animateKing, observeKingPose } from '../../combat/kingRig';
-import { KING_BONES } from '../../data/kingRig';
-import { bindKingQueryView } from '../kingQueryView';
-import { readKingCollisionBake } from '../kingCollisionBake';
-import kingCollision from '../../data/kingCollision.generated.json' with { type: 'json' };
+import { limbAnimation } from '@wildshard/game/animation/limbView';
+import { bindLimbQueryView } from '@wildshard/game/animation/limbQueryView';
+import { readLimbCollisionBake } from '@wildshard/format/limbCollision';
+import { pineView } from '../world/context';
 import { SECTIONS } from '../sections';
 
 /**
@@ -29,7 +28,7 @@ import { SECTIONS } from '../sections';
  *
  * PH-M3 (the swap, done) and E322 F-M1 (Jake picked B): the King is his own upright hull on his own rig —
  * `public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb` (art/pine-hollow/round-25-e322-king-rig/,
- * src/shards/pine-hollow/combat/kingRig.ts; the Bark Warden hull on the elk's bones went with the Debug row) — and `dressAntlerKing`
+ * src/game/animation/limbBlend.ts; the Bark Warden hull on the elk's bones went with the Debug row) — and `dressAntlerKing`
  * hangs the lanterns off its own rack and drops the skull plate (the hull has its skull face); the ribcage rides his chest
  * bone. The lantern, the ribcage and the core are baked (generators/kingKit.ts: one rest-geometry pool, and the lantern spots
  * read off his hull's rack); he is drawn only on his hull, and a hull or kit that is not loaded refuses.
@@ -143,7 +142,7 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   if (!head || !chest) throw new Error('antler-king: the rig has no head / chest bone');
   const own: THREE.Object3D[] = [];
   const lanterns: THREE.Group[] = [];
-  const collision = bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive));
+  const collision = bindLimbQueryView(a, readLimbCollisionBake(pineView().QUADRUPED.collision));
   const spots = kingKit().lanterns;
   for (let i = 0; i < Math.min(spots.length, MAX_LANTERNS); i++) {
     const p = spots[i];
@@ -194,19 +193,19 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
 function buildOwnRig(): AnimalSpecies {
   const R = KING_OWN_RIG;
   return {
-    bones: KING_BONES.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), furParts: [], hardParts: [], eyeParts: [],
+    bones: pineView().QUADRUPED.bones.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), furParts: [], hardParts: [], eyeParts: [],
     dims: { ...R.dims, feet: R.dims.feet.map((f): [number, number] => [f[0], f[1]]) },
   };
 }
 
 /**
  * The King's species on his own rig (E322 F-M1): `base` (the fight's elk-derived King: his coat, sounds,
- * AI hook and damage rule) as a custom rig — KING_BONES and kingRig.ts's poses instead of the elk's bones and gaits. The
+ * AI hook and damage rule) as a custom rig — KING_BONES and the limb host's poses instead of the elk's bones and gaits. The
  * hull (`antler-king-rig[.phone].rigged.glb`) is his mesh through species/hulls.ts like every Pine Hollow hull.
  */
 export function kingOwnSpecies(base: SpeciesDef): SpeciesDef {
   // (the elk's postPose / gait knobs are the quadruped path's: a custom rig never runs them)
-  return { ...base, rigContract: { skeleton: 'antler-king.v1', clips: [], sockets: ['body', 'head'] }, rig: 'custom', animate: animateKing, build: () => buildOwnRig() };
+  return { ...base, rigContract: { skeleton: 'antler-king.v1', clips: [], sockets: ['body', 'head'] }, rig: 'custom', animate: limbAnimation(pineView().QUADRUPED.spec, pineView().QUADRUPED.blend, pineView().QUADRUPED.clips), build: () => buildOwnRig() };
 }
 
 // ─────────────── the model (E306 / E315 M5) ───────────────
@@ -217,7 +216,7 @@ const KING_KIT = 'pine-hollow/antler-king:kit';
 
 /**
  * The Antler King, Pine Hollow's boss: his own hull (Hunyuan3D-2, `public/assets/pine-hollow/creatures/antler-king-rig
- * [.phone].rigged.glb`) on his own rig (kingRig.ts), drawn ×2.6 by the fight, dressed with his baked kit (`dressAntlerKing`:
+ * [.phone].rigged.glb`) on the shared limb rig, drawn ×2.6 by the fight, dressed with his baked kit (`dressAntlerKing`:
  * the antler lanterns, the amber ribcage). The fight (src/shards/pine-hollow/combat/antlerKing.ts) spawns,
  * dresses and drives the one copy at night in the King's clearing; nothing here draws him in the world.
  *

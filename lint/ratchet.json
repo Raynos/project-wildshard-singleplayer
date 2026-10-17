@@ -70,10 +70,7 @@
       "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/herds.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/kingCollisionBake.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/kingPoseKeeper.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/pine-hollow/runtime/species/limbRig.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
+      "src/shards/pine-hollow/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
     }
   },
   "budgets": {
@@ -105,7 +102,7 @@
     "sim-in-runtime/nalati-grasslands": 19,
     "sim-in-runtime/nine-dragon-stack": 4,
     "sim-in-runtime/pastel-plain": 0,
-    "sim-in-runtime/pine-hollow": 6,
+    "sim-in-runtime/pine-hollow": 3,
     "sim-in-runtime/sunscar-dunes": 0
   },
   "debugRows": {

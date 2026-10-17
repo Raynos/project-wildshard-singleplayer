@@ -26,8 +26,9 @@ import { tmpdir } from 'node:os';
 import { resolve as resolvePath, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { KING_LIMBS } from '../src/shards/pine-hollow/combat/kingRig.ts';
-import { KING_BONES } from '../src/shards/pine-hollow/data/kingRig.ts';
+import { KING_RIG, KING_BONES } from '../src/shards/pine-hollow/data/kingRig.ts';
+
+const KING_LIMBS = KING_RIG.limbs;
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
