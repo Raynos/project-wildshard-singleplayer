@@ -4,7 +4,7 @@ import { productResidentBytes } from '../shardfile/productCost';
 
 /** A caller holds the product while any admitted source or immutable transport bytes are still in use. */
 export interface ProductLease<T> { readonly value: T; release: () => void }
-interface Entry<T> { promise: Promise<T>; claim: ResidencyLease | undefined; users: number; settled: boolean; failed: boolean }
+interface Entry<T> { promise: Promise<T>; claim: ResidencyLease | undefined; bytes: number; users: number; settled: boolean; failed: boolean }
 
 /** Page-owned product cache. In-flight/active users are pinned; unused products participate in ordinary allocator eviction. */
 export class ProductLeases<T> {
@@ -13,7 +13,7 @@ export class ProductLeases<T> {
   constructor(private readonly allocator: ResidencyAllocator, private readonly owner: string) {}
   private disposed(): boolean { return this.closed; }
   /** Reserve the source/wire claim before the loader reads immutable assets; concurrent copies share one admission. */
-  async acquire(key: string, load: (reserve: (source: Shardfile) => void) => Promise<T>): Promise<ProductLease<T>> {
+  async acquire(key: string, load: (reserve: (source: Shardfile) => void, releaseBytes: (bytes: number) => void) => Promise<T>): Promise<ProductLease<T>> {
     if (this.disposed()) throw new Error('Product cache disposed');
     let entry = this.entries.get(key);
     if (entry === undefined) {
@@ -21,14 +21,19 @@ export class ProductLeases<T> {
         try {
           const value = await load(source => {
             if (this.closed || fresh.claim !== undefined) throw new Error('Product admission disposed or reserved twice');
+            fresh.bytes = productResidentBytes(source);
             const claim = this.allocator.reserve({ id: `product:${this.owner}:${key}`, category: 'product', owner: this.owner,
-              bytes: productResidentBytes(source), distance: 0, needed: true, evictSync: () => { this.entries.delete(key); fresh.claim = undefined; } });
+              bytes: fresh.bytes, distance: 0, needed: true, evictSync: () => { this.entries.delete(key); fresh.claim = undefined; } });
             if (claim === null) throw new Error('Product residency admission deferred'); fresh.claim = claim;
+          }, bytes => {
+            if (this.closed) return; // A decoder completing after page disposal has no live claim to reduce.
+            if (fresh.claim === undefined) throw new Error('Transport release needs a product claim');
+            fresh.claim.shrink(fresh.bytes - bytes); fresh.bytes -= bytes;
           });
           if (fresh.claim === undefined) throw new Error('Product loader omitted pre-asset residency admission');
           fresh.settled = true; return value;
         } catch (error) { fresh.failed = true; this.drop(key, fresh); throw error; }
-      }), claim: undefined, users: 0, settled: false, failed: false };
+      }), claim: undefined, bytes: 0, users: 0, settled: false, failed: false };
       entry = fresh; this.entries.set(key, fresh);
     }
     const held = entry; held.users++; held.claim?.update({ needed: true });

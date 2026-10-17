@@ -1,6 +1,7 @@
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
+import { outputDescriptor } from './outputDescriptor';
 
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */
 export function jsonResidentBytes(input: unknown): number {
@@ -25,4 +26,29 @@ export function productResidentBytes(source: Shardfile): number {
   const wire = source.files.reduce((sum, file) => sum + file.compressed, 0)
     + source.requires.commons.reduce((sum, hash) => sum + (source.requires.commonsWire[hash] ?? 0), 0);
   return wire + jsonResidentBytes(source) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
+}
+
+/** Files read only through the asynchronous runtime product API. Inventory membership is not a use:
+ * retain every host-declared reference and its dependency closure for synchronous neighbour/simulation readers. */
+export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
+  const files = new Map(source.files.map(file => [file.hash, file])), keep = new Set<string>();
+  const descriptor = outputDescriptor(source), paths = new Map(descriptor?.index.files.map(file => [file.path, file.hash]));
+  const pending: unknown[] = [{ ...source, files: [], critical: [], library: [] },
+    ...[...descriptor?.sections ?? []].flatMap(([name, value]) => name.startsWith('custom/') ? [] : [value])];
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (typeof value === 'string') { const ref = paths.get(value) ?? value; if (files.has(ref)) keep.add(ref); }
+    else if (Array.isArray(value)) { const items: readonly unknown[] = value; pending.push(...items); }
+    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) pending.push(key, child);
+  }
+  const dependencies = [...keep];
+  while (dependencies.length > 0) {
+    const ref = dependencies.pop();
+    if (ref === undefined) continue;
+    for (const dependency of files.get(ref)?.dependencies ?? []) {
+      if (keep.has(dependency)) continue;
+      keep.add(dependency); dependencies.push(dependency);
+    }
+  }
+  return source.files.filter(file => !keep.has(file.hash)).map(file => file.hash);
 }

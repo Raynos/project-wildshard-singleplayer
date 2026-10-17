@@ -13,6 +13,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
+import { runtimeOnlyProductFiles } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -56,13 +57,13 @@ export interface ProductOptions {
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct {
   source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string;
-  /** After reader handoff and decoding, forget only runtime-bound wire copies with verified durable rereads. */
+  /** Forget runtime-only/bound wire copies with verified durable rereads; synchronous host files remain. */
   releaseTransport?: (refs: Iterable<string>) => Promise<readonly string[]>;
 }
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
 function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): (refs: Iterable<string>) => Promise<readonly string[]> {
-  const bound = runtimeBoundWorldFiles(source), files = new Map(source.files.map(file => [file.hash, file]));
+  const bound = new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source)]), files = new Map(source.files.map(file => [file.hash, file]));
   const base = new URL('.', options.base).href, cache = options.cache, hash = options.hash;
   return async refs => {
     const requested = [...new Set(refs)];
@@ -72,10 +73,16 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     // Quota failures keep the admitted copy. A reread remains byte/hash checked and its residency owner pins the disk file.
     for (const ref of requested) {
       if (!bound.has(ref)) continue;
+      const file = files.get(ref);
+      if (file === undefined) continue;
+      if (cache.verifiedPresent !== undefined) {
+        if (await cache.verifiedPresent(ref, file.compressed)) released.push(ref);
+        continue;
+      }
       const verified = await cache.verifiedAsset?.(ref);
-      const bytes = verified ?? await cache.asset(base, ref), file = files.get(ref);
+      const bytes = verified ?? await cache.asset(base, ref);
       if (bytes === null) continue;
-      if (file === undefined || bytes.length !== file.compressed || ((verified === null || verified === undefined) && await hash(bytes) !== ref)) throw new Error('Released transport cache hash or size mismatch');
+      if (bytes.length !== file.compressed || ((verified === null || verified === undefined) && await hash(bytes) !== ref)) throw new Error('Released transport cache hash or size mismatch');
       released.push(ref);
     }
     for (const ref of released) assets.delete(ref);

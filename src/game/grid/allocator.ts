@@ -43,6 +43,8 @@ export interface ResidencyEviction { commit: () => void; abort: () => void }
 /** A holder's handle on a claim. The last release frees the bytes. */
 export interface ResidencyLease {
   readonly id: string;
+  /** Reduce an owned allocation after its buffers are released; growth requires ordinary admission. */
+  shrink: (bytes: number) => void;
   /** refresh the eviction inputs; the first holder's eviction callbacks stay */
   update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }) => void;
   /** protect the claim from eviction while a dependant (a fine child, an in-flight request) uses it; returns the unhold */
@@ -268,6 +270,13 @@ export class ResidencyAllocator {
     const live = (): boolean => !released && this.entries_.get(entry.id) === entry;
     return Object.freeze({
       id: entry.id,
+      shrink: (bytes: number): void => {
+        if (!live()) return;
+        if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > entry.bytes || entry.coveredBy !== undefined || this.coverage.has(entry.id) || entry.baseCredit !== 0)
+          throw new RangeError('Invalid residency shrink');
+        this.track(entry, -1); entry.bytes = bytes; this.track(entry, 1);
+        if (this.memory.hasResidentWarnings) this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
+      },
       update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }): void => {
         if (!live()) return;
         if (patch.distance !== undefined) { if (!Number.isFinite(patch.distance) || patch.distance < 0) throw new RangeError('Invalid residency distance'); entry.distance = patch.distance; }

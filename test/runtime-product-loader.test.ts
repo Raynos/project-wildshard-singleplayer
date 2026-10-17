@@ -5,19 +5,24 @@ import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputIndex';
 import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
-import { readProductDescriptor, type ProductOptions } from '../src/game/shardfile/product';
+import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
+import { ClientAssets } from '../src/game/shardfile/clientAssets';
+import { productResidentBytes, runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
+import { ProductLeases } from '../src/game/grid/productLeases';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { Scope } from '../src/engine/app/scope';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
 const own = (): Scope => { const scope = new Scope('loader-test'); scopes.push(scope); return scope; };
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
-function fixture() {
+function fixture(platformRef = false) {
   const source = emptyShardfile({ slug: 'runtime-loader', name: 'Loader', author: 'Test', revision: 1, seed: 1 });
   const blob = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(blob);
   source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
   source.library.push(ref); source.budgets.library = { compressed: 3, resident: 3 };
   const values = new Map(outputSectionPayloads(source)); values.set('custom/facts', { count: 3 });
+  if (platformRef) values.set('ui/strings', { file: `blobs/bin/${ref}.bin` });
   const wires = new Map<string, Uint8Array>(); let descriptors = 0;
   const sections = [...values].map(([name, value]) => {
     const wire = bytes(value), path = `sections/${name}.json`; wires.set(path, wire);
@@ -96,4 +101,80 @@ test('regional facade uses admitted bytes and the verified reader after transpor
   expect(shardProductFromAdmission(admitted, own(), f.options)).toBe(product);
   expect(await product.file('models/token.bin')).toBe(f.blob);
   assets.clear(); expect(await product.file('models/token.bin')).toEqual(f.blob); expect(f.descriptors()).toBe(1);
+});
+
+test('neighbour transport release shrinks the shared claim before readers copy its bytes', async () => {
+  const f = fixture(); trust(f.receipt);
+  const disk = new Map<string, Uint8Array>(), pins = new Set<string>();
+  const cache: ProductCache = {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: (_base, ref) => Promise.resolve(disk.get(ref) ?? null),
+    putAsset: (_base, ref, wire) => { disk.set(ref, wire); return Promise.resolve(true); },
+    verifiedPresent: (ref, size) => Promise.resolve(disk.get(ref)?.length === size),
+    pin: refs => { for (const ref of refs) pins.add(ref); return () => { pins.clear(); }; },
+  };
+  const options = { ...f.options, cache }, allocator = new ResidencyAllocator();
+  const load = async (reserve: (source: schema.Shardfile) => void, releaseBytes: (size: number) => void) => {
+    const admitted = await admitProduct(f.index, { ...options, reserve });
+    const before = allocator.cost().input.products;
+    const refs = runtimeOnlyProductFiles(admitted.source), unpin = cache.pin?.(refs);
+    const released = await admitted.releaseTransport?.(refs) ?? [];
+    releaseBytes(released.includes(f.ref) ? f.blob.length : 0);
+    return { admitted, before, unpin };
+  };
+  const products = new ProductLeases<Awaited<ReturnType<typeof load>>>(allocator, 'grid');
+  const [first, second] = await Promise.all([products.acquire('runtime-loader', load), products.acquire('runtime-loader', load)]);
+  expect(first.value).toBe(second.value);
+  expect(first.value.before).toBe(productResidentBytes(first.value.admitted.source));
+  expect(allocator.cost().input.products).toBe((first.value.before ?? 0) - f.blob.length);
+  expect(first.value.admitted.assets.has(f.ref)).toBe(false);
+  const reader = new ClientAssets(first.value.admitted.source, first.value.admitted.assets, { ...options, offline: true });
+  expect(reader.retained.size).toBe(0); expect(pins.has(f.ref)).toBe(true);
+  const product = shardProductFromAdmission(first.value.admitted, own(), { ...options, offline: true });
+  expect(await product.file('models/token.bin')).toEqual(f.blob);
+  expect(await reader.read(f.ref)).toEqual(f.blob); expect(reader.retained.size).toBe(0);
+  disk.set(f.ref, new Uint8Array([3, 2, 1]));
+  await expect(reader.read(f.ref)).rejects.toThrow('hash or size');
+  first.release(); expect(allocator.entries()).toHaveLength(1);
+  second.release(); products.dispose(); first.value.unpin?.();
+  expect(allocator.entries()).toHaveLength(0); expect(pins.size).toBe(0);
+});
+
+test('declared neighbour inputs and their transitive dependencies survive runtime trimming', () => {
+  const f = fixture(), child = 'f'.repeat(64), leaf = 'e'.repeat(64);
+  f.source.sim.scripts.push(f.ref);
+  const root = f.source.files[0]; if (root === undefined) throw new Error('Missing fixture file');
+  root.dependencies.push(child);
+  f.source.files.push({ ...root, hash: child, dependencies: [leaf] }, { ...root, hash: leaf, dependencies: [] });
+  expect(runtimeOnlyProductFiles(f.source)).toEqual([]);
+  f.source.sim.scripts.length = 0;
+  f.source.look.samplers = { [f.ref]: { wrap: 'repeat' } };
+  expect(runtimeOnlyProductFiles(f.source)).toEqual([]);
+  f.source.look.samplers = {};
+  expect(new Set(runtimeOnlyProductFiles(f.source))).toEqual(new Set([f.ref, child, leaf]));
+});
+
+test('independent platform sections keep their file-path inputs for synchronous hosts', async () => {
+  const f = fixture(true), source = await readProductDescriptor(f.options);
+  expect(runtimeOnlyProductFiles(source)).toEqual([]);
+});
+
+test('failed durable writes retain runtime bytes instead of shrinking admission', async () => {
+  const f = fixture(); trust(f.receipt);
+  const options: ProductOptions = { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(false),
+    verifiedPresent: () => Promise.resolve(false),
+  } };
+  const admitted = await admitProduct(f.index, options);
+  expect(await admitted.releaseTransport?.([f.ref])).toEqual([]);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+});
+
+test('shrinking residency cannot grow, underflow or revive a released claim', () => {
+  const allocator = new ResidencyAllocator(), claim = allocator.reserve({ id: 'product:test', owner: 'test', category: 'product', bytes: 10, distance: 0, needed: true });
+  if (claim === null) throw new Error('Missing test claim');
+  expect(() => claim.shrink(11)).toThrow('shrink'); expect(() => claim.shrink(-1)).toThrow('shrink');
+  claim.shrink(4); expect(allocator.cost().input.products).toBe(4);
+  claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
 });

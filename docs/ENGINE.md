@@ -4170,11 +4170,21 @@ remains a separate G318 change, requiring the complete product fixtures.
 ### Runtime-owned admission transports (G384)
 
 First-party `AdmittedProduct.releaseTransport(refs)` owns its admission
-Map; it releases only `runtimeBoundWorldFiles` after a decoder handoff,
-and only when exact-size, hash-checked durable bytes remain available.
+Map; it releases `runtimeBoundWorldFiles` after a decoder handoff, or
+`runtimeOnlyProductFiles` before neighbour readers copy it, and only when
+exact-size, hash-checked durable bytes remain available.
 Quota failures retain the admitted copy. Undeclared refs refuse before
-any deletion; unbound and shared references remain. Caller-provided Maps
+any deletion; host-referenced unbound/shared files remain. Caller-provided Maps
 without this callback are never mutated.
+
+`runtimeOnlyProductFiles(source)` excludes inventory-only references
+(`files`, `critical`, `library`) and retains every host-declared hash and
+its dependency closure. Grid admission pins the remaining runtime-only
+files in the browser cache and releases their page buffers before any
+neighbour reader copies the admission. Entry rereads through the verified
+asynchronous product API. `ProductLeases` reduces its shared product claim
+by the actual released wire bytes; `ResidencyLease.shrink(bytes)` only
+reduces a live, uncovered allocation, preserving its identity and holders.
 
 `provideRuntimeProduct(admitted, scope, options?)` copies the admission
 into its resident reader and pins runtime-owned disk refs until disposal.
