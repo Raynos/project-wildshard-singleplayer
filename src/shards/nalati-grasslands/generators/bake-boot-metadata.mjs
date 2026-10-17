@@ -1,7 +1,9 @@
+import { NALATI_MANIFEST_ROWS } from './manifestRows.ts';
+import { NALATI_BUDGET_INPUTS } from './budgets.ts';
+import { NALATI_HORIZON_V2 } from './horizon.ts';
 import strings from '../data/strings.json' with { type: 'json' };
 import { NALATI_GRASS_LAYOUT } from './grassFieldLayout.ts';
 import runtimeCost from '../data/runtimeCost.json' with { type: 'json' };
-import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 // Boot metadata exists before product admission; author recipes never enter the client bundle.
 import { readdirSync, statSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -33,5 +35,5 @@ for (const job of catalogue.jobs) for (const path of [...Object.keys(job.buildOu
 // The page's generated PUBLIC_BYTES table has this exact lexical ordering.
 const ordered = Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path]]));
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
-writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ ...nalatiBootInventory(ordered), runtimeCost, ceilings, strings, grassLayout: NALATI_GRASS_LAYOUT }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ ...nalatiBootInventory(ordered), runtimeCost, strings, grassLayout: NALATI_GRASS_LAYOUT, manifest: NALATI_MANIFEST_ROWS, budgets: NALATI_BUDGET_INPUTS, horizon: NALATI_HORIZON_V2 }));
 writer.finish();

@@ -792,12 +792,15 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
+        "./scripts/sim-node-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs"
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
         "src/shards/nalati-grasslands/generators/bootInventory.ts",
+        "src/shards/nalati-grasslands/generators/manifestRows.ts",
+        "src/shards/nalati-grasslands/generators/budgets.ts",
+        "src/shards/nalati-grasslands/generators/horizon.ts",
         "src/shards/nalati-grasslands/generators/bootFiles.ts",
         "src/shards/nalati-grasslands/generators/bootSteps.ts",
         "src/shards/nalati-grasslands/ktx2.generated.ts",
@@ -805,7 +808,8 @@
         "src/engine/boot/bakedApi.ts",
         "src/engine/boot/tables.ts",
         "src/engine/boot/ktx2.generated.ts",
-        "scripts/bake-loader.mjs",
+        "scripts/sim-node-loader.mjs",
+        "lint/sim-schema-leaves.json",
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",

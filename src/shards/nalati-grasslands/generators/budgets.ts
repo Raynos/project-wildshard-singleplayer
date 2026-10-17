@@ -1,11 +1,11 @@
-import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
+import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 
 /** 07 §6.5 G: default allocations from budget-design §6.1–6.3, load inputs from §6.6.
  * Counts rederive at all three harness poses when the lead publishes a stable M5 calibration.
  * Desktop retains F2 ceilings until X7 establishes the desktop GPU mapping. */
 export const NALATI_BUDGET_INPUTS: LevelSpec['budgets'] = {
-  ceilings: bootMetadata.ceilings,
+  ceilings,
   phone: {
     fps: 30, variability: 1.3, cpuMs: 9.6, gcMs: 0.6,
     systems: { physics: 0.8, ai: 0.8, animation: 1, player: 0.4, world: 0.5, hud: 0.3, audio: 0.2 },

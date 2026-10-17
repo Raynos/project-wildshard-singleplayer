@@ -7,7 +7,7 @@
  *   compose ('replace')   `lookV2Passes(c)`                                     (grade.ts)
  *   terrainPainter        the painted ground                                    (terrainPainter.ts)
  *   grass                 `new GrassV2(…)`                                      (grass.ts)
- *   Horizon               the def's `horizon` is NALATI_HORIZON_V2               (horizon.ts)
+ *   Horizon               the def's `horizon` comes from bootMetadata.horizon       (generators/horizon.ts)
  *   wireNalati            `await wireLookV2({ game, sky, weather, updates })`
  *
  * wireLookV2: the panorama sky dome (sky.ts) in place of the sky's painted clouds / planet / sun disc (the rig's star

@@ -51,6 +51,7 @@
       ]
     },
     "nalati-grasslands": {
+      "missing": ["budgets.ts"],
       "entries": [
         "adventure.ts",
         "bag.ts",
