@@ -5,7 +5,7 @@
  */
 import type * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
+import { mergeVerticesByPos } from './smoothGeometry';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
 

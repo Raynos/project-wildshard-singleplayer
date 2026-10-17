@@ -4,18 +4,21 @@ import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGe
 import peopleFallbackFrames from '../data/peopleFrames.json' with { type: 'json' };
 import type { DressPlan } from './dressingPlan';
 import * as THREE from 'three';
-import { paramsOf, type ModelDef } from '@wildshard/engine/models/model';
+import { paramsOf, type ModelDef, type ModelBuild, type ModelContext, type Placement } from '@wildshard/engine/models/model';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
-import { PaintKit, M, v3 } from '../world/paint';
-import { pole, lathe, blob, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
+import { PaintKit, M, v3 } from './paint';
+import { pole, lathe, blob, mergeVerticesByPos } from './smoothGeometry';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { graniteBlock } from './granite';
-import { NalatiSet, painted, paintedSpecimen, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type MemberData, type Paint, type PaintCtx, type GeneratedSpec, generatedBounds } from '../world/painted';
+import { painted, paintedSpecimen, isPainted, rememberPainted, type Paint, type PaintCtx, type Made, type Kit, type PaintAt } from './painted';
+import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, generatedBounds, instanceTris, type MemberData, type InstanceData, type GeneratedSpec } from '../world/painted';
 import type { FieldstoneParams, FieldstoneLook, Board, CragLedgeParams, LeopardCaveParams, KurganEntranceParams, KurganKerbParams, FirewoodParams, ChurnParams } from '../data/campParams';
 import { Flutter } from '../world/Flutter';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from './poiLayout';
-import { prism, slab, supportHull, type Box } from '../world/solid';
+import { boxDescs, prism, slab, supportHull, type Box } from '../world/solid';
+import { placementMatrix, type ModelPlacement, type NalatiModelName } from '../world/modelView';
+import type { Draw } from '@wildshard/engine/models/place';
 import { specimenKey } from '@wildshard/game/models/specimenCatalogue';
 import { torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { EAGLE_PERCH_H, ribbonPolePainted, eaglePerchPainted, stovePainted, campBenchPainted, rugRackPainted, feltRugPainted, cartPainted, barrelPainted, hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted, choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted, graniteOutcropPainted, roundedBoulderPainted, fencePainted, fallenLogPainted, stumpPainted, ovooPainted, viewpointPolePainted, skyGatewayPainted, campClutterPainted, kokparGoalPainted, kokparPostPainted, stoneStepPainted, signpostPainted, fenceRun, logEnds, type RockTint } from './campProps';
@@ -28,11 +31,11 @@ import { writeGeometry, join } from './geometryWriter';
 import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
+import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt } from '../world/terrain';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
-import { inPoiClearing, zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER, outcropAt, edgeBermAt } from '../world/terrain';
 
 
 /**
@@ -49,6 +52,125 @@ import { inPoiClearing, zoneAt, glacierMask, brookMask, riverMask, rimZAt, RIVER
 /** Placement-only bake marker. Specimen builds belong to the declared host. */
 function generated<P extends object>(spec: GeneratedSpec<P>): (() => never) & { readonly gen: GeneratedSpec<P> } {
   return Object.assign((): never => { throw new Error('Placement bake markers cannot build live specimens'); }, { gen: spec });
+}
+
+type Build<P> = (ctx: ModelContext, p: P, rng: Rng) => ModelBuild;
+interface GeneratedBuild<P> { (ctx: ModelContext, p: P, rng: Rng): ModelBuild; readonly gen: GeneratedSpec<P> }
+const isGenerated = <P>(b: Build<P>): b is GeneratedBuild<P> => 'gen' in b;
+const _box = new THREE.Box3(), _part = new THREE.Box3(), _pt = new THREE.Vector3();
+
+export class NalatiSet {
+  /** the kit the painters paint into: the place's own, each part's world box tracked for its copy */
+  readonly kit: Kit;
+  private readonly members = new Map<string, MemberData>();
+  /** the generated models' instances, per model, in the order they were first put */
+  private readonly instances = new Map<NalatiModelName, InstanceData>();
+  private tracking = false;
+  /** every box every copy made, in order (the POI's `colliders` data) */
+  readonly boxes: Box[] = [];
+
+  /** the kit the painters paint into now (`into` moves it: a dressing prop is a kit of its own, finished on its own) */
+  private current: PaintKit | null;
+
+  /** `paintKit`: the place's kit (null: a place of generated models only, or one whose props each bring a kit: `into`) */
+  constructor(paintKit: PaintKit | null, readonly c: PaintCtx) {
+    this.current = paintKit;
+    let none: PaintKit | null = null;
+    const self = (): PaintKit | null => this.current;
+    this.kit = {
+      get rng() { return (self() ?? (none ??= new PaintKit(0))).rng; },
+      add: (g, col, o) => {
+        const k = self();
+        if (!k) throw new Error('NalatiSet: this place has no kit to paint into');
+        if (this.tracking) {
+          const pos = g.getAttribute('position');
+          _part.makeEmpty();
+          for (let i = 0; i < pos.count; i++) _part.expandByPoint(_pt.set(pos.getX(i), pos.getY(i), pos.getZ(i)));
+          if (o?.matrix) _part.applyMatrix4(o.matrix);
+          _box.union(_part);
+        }
+        k.add(g, col, o);
+      },
+    };
+  }
+
+  /** paint into `kit` from now on (its rng is the painters' stream): each dressing prop is a kit of its own */
+  into(kit: PaintKit): this { this.current = kit; return this; }
+
+  private member<P extends object>(def: ModelDef<P>, draw: Draw, inKit: boolean): MemberData {
+    let m = this.members.get(def.id);
+    if (!m) {
+      const mm: MemberData = {
+        draw, inKit, placements: [], boxes: [], solid: [], descs: [], floors: [],
+      };
+      this.members.set(def.id, mm);
+      m = mm;
+    }
+    return m;
+  }
+
+  private record(m: MemberData, pl: Omit<Placement<object>, 'params'>, box: THREE.Box3, made: Made): void {
+    m.placements.push(pl);
+    m.boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
+    const boxes = made.boxes ?? [];
+    this.boxes.push(...boxes);
+    m.solid.push(...boxDescs(boxes));
+    m.descs.push(...(made.descs ?? []));
+    if (made.floor) m.floors.push(made.floor);
+  }
+
+  /** paint one copy of a painted model into the place's kit, now; returns what it made */
+  paint<P extends object>(def: ModelDef<P>, at: PaintAt, p: NoInfer<P>): Made {
+    const b = def.build;
+    if (!isPainted(b)) throw new Error(`NalatiSet.paint: ${def.id} is not a painted model`);
+    _box.makeEmpty();
+    this.tracking = true;
+    let made: Made;
+    try { made = b.paint(this.kit, at, p, this.c); } finally { this.tracking = false; }
+    rememberPainted(b, at, p);
+    this.record(this.member(def, 'merged', true), { x: at.x, y: at.y, z: at.z, yaw: at.yaw }, _box, made);
+    return made;
+  }
+
+  /** one copy of a generated model, instanced with the place's others of it when its GLB lands; returns what it collides with */
+  instance<P extends object>(def: ModelDef<P>, at: ModelPlacement, p: NoInfer<P>): Made {
+    const b = def.build;
+    if (!isGenerated(b)) throw new Error(`NalatiSet.instance: ${def.id} is not a generated model`);
+    const pose = b.gen.pose?.(at, p) ?? at;
+    let list = this.instances.get(b.gen.name);
+    if (!list) { list = { look: b.gen.look ?? {}, castShadow: b.gen.castShadow ?? true, placements: [] }; this.instances.set(b.gen.name, list); }
+    list.placements.push(pose);
+    const made = b.gen.collide?.(at, p) ?? {};
+    this.record(this.member(def, 'instanced', false), this.generatedCopy(b.gen.name, pose), _box, made);
+    return made;
+  }
+
+  /**
+   * Copies of a generated model the place draws and moves itself (the kokpar's galloping riders, the grazing herds):
+   * counted and boxed where they start; nothing collides.
+   */
+  moving<P extends object>(def: ModelDef<P>, at: readonly ModelPlacement[]): void {
+    const b = def.build;
+    if (!isGenerated(b)) throw new Error(`NalatiSet.moving: ${def.id} is not a generated model`);
+    const m = this.member(def, 'instanced', false);
+    for (const pose of at) this.record(m, this.generatedCopy(b.gen.name, pose), _box, {});
+  }
+
+  /** a generated copy's placement, and its world box into `_box` (the file's measured size, before it has loaded) */
+  private generatedCopy(name: NalatiModelName, pose: ModelPlacement): Omit<Placement<object>, 'params'> {
+    const matrix = placementMatrix(pose);
+    generatedBounds(name, _box).applyMatrix4(matrix);
+    return { x: pose.x, y: pose.y, z: pose.z, matrix };
+  }
+
+  /** the generated models' triangles (the POI's perf report) */
+  tris(): number { return instanceTris(this.instances); }
+
+  /** the set as data, in order: each model's copies (by model id) and the generated instances (the places bake) */
+  rows(): { readonly members: readonly (readonly [string, MemberData])[]; readonly instances: readonly (readonly [NalatiModelName, InstanceData])[] } {
+    return { members: [...this.members.entries()], instances: [...this.instances.entries()] };
+  }
+
 }
 
 const FLIP = Math.PI;

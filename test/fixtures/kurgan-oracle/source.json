@@ -7,7 +7,7 @@
   "rewrites": [
     [
       "'./paint'",
-      "'../../../src/shards/nalati-grasslands/world/paint'"
+      "'../../../src/shards/nalati-grasslands/generators/paint'"
     ],
     [
       "'../models/balbal'",
@@ -16,6 +16,10 @@
     [
       "export class KurganDungeon {",
       "export class ShippingKurganDungeon {"
+    ],
+    [
+      "'@wildshard/engine/world/geometryKit'",
+      "'../../../src/shards/nalati-grasslands/generators/smoothGeometry'"
     ]
   ]
 }

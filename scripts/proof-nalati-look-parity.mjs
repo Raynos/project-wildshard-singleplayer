@@ -40,6 +40,7 @@ if (compare !== undefined) {
     }
   }
   for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders', 'dungeonColliders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  for (const tier of Object.keys(a.tiers)) if (JSON.stringify(a.tiers[tier].paintMeshes) !== JSON.stringify(b.tiers[tier]?.paintMeshes)) diffs.push(`${tier}: fixed paint geometry, material slots or atlas bytes differ`);
   console.log(diffs.length === 0 ? `nalati-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
@@ -50,7 +51,10 @@ const version = await (await fetch(new URL('/version.json', url))).json();
 const sleep = ms => new Promise(resolve => { setTimeout(resolve, ms); });
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const rows = [], tiers = {}, errors = [];
-const poses = process.argv.includes('--dungeon') ? [...POSES, { id: 'dungeon', x: -40, z: -81.8, yaw: 0, pitch: -0.08 }] : POSES;
+const poses = [...POSES,
+  ...(process.argv.includes('--dungeon') ? [{ id: 'dungeon', x: -40, z: -81.8, yaw: 0, pitch: -0.08 }] : []),
+  ...(process.argv.includes('--signpost') ? [{ id: 'signpost', x: -5.2, z: 220, yaw: 0, pitch: 0.12 }] : []),
+];
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {
   for (const tier of ['phone', 'desktop']) {
@@ -157,6 +161,42 @@ try {
     const sources = await page.evaluate(() => [...window.__nlpShaders].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));
     tiers[tier].shaderCount = sources.length;
     tiers[tier].shaders = sha(sources.join('\u0000'));
+    // Run after the resident samples: this read-only byte witness temporarily copies arrays for hashing.
+    if (process.argv.includes('--paint-inventory')) tiers[tier].paintMeshes = await page.evaluate(async () => {
+      const game = window.__wildshard.world.game, scene = game.rootScene ?? game.scene, selected = [];
+      scene.traverse(object => {
+        if (object.isMesh && (object.name === 'nalati-signs' || object.parent?.name === 'nalati-shepherd')) selected.push(object);
+      });
+      if (selected.filter(object => object.name === 'nalati-signs').length !== 1 || selected.filter(object => object.parent?.name === 'nalati-shepherd').length !== 2) throw new Error('Fixed paint inventory needs the roads and both shepherd meshes');
+      const hash = async array => {
+        if (!ArrayBuffer.isView(array) || array.byteLength === 0) throw new Error('Fixed paint bytes are unavailable; this check is unmeasured');
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(array.buffer, array.byteOffset, array.byteLength)));
+        return Array.from(digest, value => value.toString(16).padStart(2, '0')).join('');
+      };
+      const paintRows = [];
+      for (const mesh of selected) {
+        const geometry = mesh.geometry, attributes = [];
+        for (const [name, attribute] of Object.entries(geometry.attributes)) attributes.push({ name, type: attribute.array.constructor.name,
+          size: attribute.itemSize, normalized: attribute.normalized, count: attribute.count, hash: await hash(attribute.array) });
+        const materials = [];
+        for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+          const map = material.map, image = map?.image;
+          const pixels = image === undefined ? null : ArrayBuffer.isView(image.data) ? image.data
+            : image.getContext?.('2d')?.getImageData(0, 0, image.width, image.height).data;
+          if (map !== null && map !== undefined && pixels === undefined) throw new Error('Sign atlas pixels are unavailable; this check is unmeasured');
+          materials.push({ type: material.type, color: material.color?.toArray(), vertexColors: material.vertexColors,
+            side: material.side, transparent: material.transparent, opacity: material.opacity,
+            map: map === null || map === undefined ? null : { width: image.width, height: image.height, pixels: await hash(pixels),
+              colorSpace: map.colorSpace, anisotropy: map.anisotropy, flipY: map.flipY, mipmaps: map.generateMipmaps,
+              min: map.minFilter, mag: map.magFilter, wrap: [map.wrapS, map.wrapT], format: map.format, type: map.type },
+          });
+        }
+        paintRows.push({ key: mesh.name === 'nalati-signs' ? 'roads' : `shepherd:${mesh.parent.children.indexOf(mesh)}`, attributes,
+          index: geometry.index === null ? null : { type: geometry.index.array.constructor.name, count: geometry.index.count, hash: await hash(geometry.index.array) },
+          groups: geometry.groups, materials, castShadow: mesh.castShadow, receiveShadow: mesh.receiveShadow });
+      }
+      return paintRows.sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
+    });
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);

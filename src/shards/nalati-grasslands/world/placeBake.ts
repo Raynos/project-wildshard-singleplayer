@@ -1,3 +1,8 @@
+import poiPaint from '../boot/poiPaint.json' with { type: 'json' };
+import signAtlases from '../boot/signAtlases.json' with { type: 'json' };
+import { unzlibSync } from 'fflate';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
@@ -9,8 +14,7 @@ import placesJson from '../data/places.json' with { type: 'json' };
 import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
 import type { NalatiTexName } from '../look/nalatiTextures';
 import { unshuffleBodyLanes } from '../species/bodies';
-import type { ModelPlacement, NalatiModelName } from './modelView';
-import { poiMaterial, texturedMaterial } from './paint';
+import { poiMaterial, texturedMaterial, type ModelPlacement, type NalatiModelName } from './modelView';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type CragLedgeFloor, type LeopardCaveFloor, type KurganEntranceFloor, flushInstances, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
 import type { Box } from './solid';
 import type { Platform, PoiCtx, PoiPiece, PlaceAnchors } from './types';
@@ -133,6 +137,9 @@ async function fetchLanes(url: string): Promise<Uint8Array> {
   return unshuffleBodyLanes(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()));
 }
 
+const PAINT = bakeOf<{ readonly key: string; readonly geometry: PlaceGeometryRow; readonly data: string }>(poiPaint, 'poiPaint.json');
+const decodePaint = (data: string): Uint8Array => unzlibSync(Uint8Array.from(atob(data), c => c.codePointAt(0) ?? 0));
+
 let places: { bytes: Uint8Array; at: number[] } | null = null;
 let placesLoading: Promise<void> | null = null;
 let placesProvider: (() => Uint8Array) | null = null;
@@ -147,6 +154,10 @@ export function provideNalatiPlaces(read: () => Uint8Array): void { placesProvid
 
 /** A fixed actor shape from the already admitted places payload, without material or animation changes. */
 export function bakedActorGeometry(key: string): THREE.BufferGeometry {
+  const painted = PAINT.rows.findIndex(row => row.key === key), shape = PAINT.rows[painted];
+  if (shape !== undefined) {
+    return geometryAt(decodePaint(shape.data), 0, shape.geometry);
+  }
   if (places === null && placesProvider !== null) { const read = placesProvider; placesProvider = null; useNalatiPlaces(read()); }
   const index = PLACES.rows.findIndex(row => row.name === `actor:${key}`), row = PLACES.rows[index];
   const mesh = row?.meshes[0];
@@ -154,6 +165,20 @@ export function bakedActorGeometry(key: string): THREE.BufferGeometry {
   let first = 0;
   for (let i = 0; i < index; i++) first += PLACES.rows[i]?.meshes.length ?? 0;
   return geometryAt(places.bytes, places.at[first] ?? 0, mesh.geometry);
+}
+
+/** Adopt the exact baked quad attributes and atlas; geometry and lettering never run on the page. */
+export function bakedSignLettering(sky: SkyRig, key: 'roads' | 'specimen'): THREE.Mesh {
+  const row = signAtlases[key], atlas = new THREE.DataTexture(decodePaint(row.data), row.width, row.height);
+  atlas.colorSpace = THREE.SRGBColorSpace; atlas.anisotropy = 4;
+  atlas.flipY = true; atlas.generateMipmaps = true;
+  atlas.minFilter = THREE.LinearMipmapLinearFilter; atlas.magFilter = THREE.LinearFilter;
+  atlas.needsUpdate = true;
+  const material = painterlyMaterial(sky, { rim: 0.2 });
+  material.map = atlas;
+  const mesh = new THREE.Mesh(bakedActorGeometry(`sign-labels:${key}`), material);
+  mesh.name = 'nalati-signs'; mesh.receiveShadow = true;
+  return mesh;
 }
 
 /** Fetch, inflate and read the places bake once, and the dressing's shapes beside it (NalatiPOIs.buildSliced,

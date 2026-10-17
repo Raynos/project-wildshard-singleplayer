@@ -1,4 +1,6 @@
-import { awaitSpecimenAssets, loadBoundSpecimen, type SpecimenAssetRow } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import type { NalatiTexName } from '../look/nalatiTextures';
+import { specimenMaterial, awaitSpecimenAssets, loadBoundSpecimen, type SpecimenAssetRow } from '@wildshard/game/models/specimenCatalogue';
 import * as THREE from 'three';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -197,4 +199,21 @@ export const MODEL_TRIS: Readonly<Record<NalatiModelName, number>> = {
 };
 /** triangles of the far LODs */
 export const FAR_TRIS: Readonly<Record<FarModelName, number>> = { 'horse-wild': 790, 'horse-saddled': 798, 'kokpar-rider': 1066 };
+
+
+/** the one painterly material every Nalati POI mesh shares */
+export function poiMaterial(sky: Sky): THREE.MeshLambertMaterial {
+  return texturedMaterial(sky, 'poi');
+}
+
+/**
+ * The painterly material with a painted map (one per texture name, shared). It starts on a 1×1 white placeholder (the
+ * same USE_MAP program, so no recompile) and swaps in the painted tile when it has loaded.
+ */
+export function texturedMaterial(sky: Sky, name: NalatiTexName | 'poi'): THREE.MeshLambertMaterial {
+  const row = specimenData.materials[name];
+  const material = specimenMaterial(sky, row);
+  if (!(material instanceof THREE.MeshLambertMaterial)) throw new Error('Painted surface needs a Lambert material');
+  return material;
+}
 

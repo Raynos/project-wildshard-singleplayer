@@ -1,13 +1,12 @@
-import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
-import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { NalatiTexName } from '../look/nalatiTextures';
+import type materials from '../data/campMaterials.json';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
+
+export type NalatiTexName = Exclude<keyof typeof materials, 'poi'>;
 
 
 /**
@@ -21,14 +20,13 @@ import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
  *   kit.add(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), C.wood, { matrix: m });          // plain colour
  *   kit.add(lathe, (p) => (p.y > 1.2 ? C.red : C.felt), { matrix: m });                  // per-face pattern (local space)
  *   kit.add(rockGeo, C.granite, { top: { color: C.lichen, threshold: 0.6 } });            // lichen / snow on top faces
- *   const mesh = kit.mesh(sky, { ground: heightAt });                                     // merge + contact shade
+ *   const geometry = kit.finish({ ground: heightAt });                                   // merge + contact shade
  *
  * Helpers: `pole(a, b, r0, r1)` (a smooth round log between two points), `M(x, y, z, yaw, sx, sy, sz)` (a placement
- * matrix), `blob(r, rng)` (a smooth displaced sphere for rocks / stone heaps), `poiMaterial(sky)` (the shared
- * material, cached per sky).
+ * matrix) and `v3(x, y, z)`. Smooth shapes live in generators/smoothGeometry.ts;
+ * material binding stays in the runtime's prepared-model reader.
  */
 
-const campMaterialRows = specimenData.materials;
 
 export type ColorLike = THREE.Color | string | number;
 /** per-face colour from the face centroid + normal, both in the part's LOCAL space (before `matrix`) */
@@ -47,9 +45,9 @@ export interface PaintOpts {
   top?: { color: ColorLike; threshold?: number; amount?: number; minY?: number } | undefined;
   /** keep the part faceted (flat normals) — cut timber, planks */
   flat?: boolean;
-  /** keep the part's `uv` and put it on the kit's TEXTURED layer (finishTextured / texturedMesh: a painted map) */
+  /** keep the part's `uv` and put it on the kit's TEXTURED layer (finishTextured: a painted map) */
   uv?: boolean;
-  /** which textured layer (default 'felt'): a kit can carry several, each finished by `texturedMesh(sky, name)` */
+  /** which textured layer (default 'felt'): a kit can carry several, each finished by `finishTextured(o, name)` */
   tex?: NalatiTexName;
 }
 
@@ -177,15 +175,6 @@ export class PaintKit {
     return geo;
   }
 
-  /** finishTextured() on a painterly material carrying the painted `name` texture (lazy-loaded) */
-  texturedMesh(sky: Sky, name: NalatiTexName, o: FinishOpts = {}): THREE.Mesh | null {
-    const geo = this.finishTextured(o, name);
-    if (!geo) return null;
-    const m = new THREE.Mesh(geo, texturedMaterial(sky, name));
-    m.castShadow = true; m.receiveShadow = true;
-    return m;
-  }
-
   private static shade(parts: THREE.BufferGeometry[], o: FinishOpts): THREE.BufferGeometry {
     const steps = PaintKit.shadeSteps(parts, o);
     for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
@@ -216,37 +205,6 @@ export class PaintKit {
     return geo;
   }
 
-  /** `mesh` as steps (SF67: a big kit's merge and shading were one ~110 ms task at 4x CPU); the same mesh */
-  *meshSteps(sky: Sky, o: FinishOpts = {}): Generator<void, THREE.Mesh> {
-    const geo = yield* PaintKit.shadeSteps(this.parts, o);
-    this.parts = [];
-    const m = new THREE.Mesh(geo, poiMaterial(sky));
-    m.castShadow = true; m.receiveShadow = true;
-    return m;
-  }
-
-  /** finish() + a shadow-casting mesh on the shared POI material */
-  mesh(sky: Sky, o: FinishOpts = {}): THREE.Mesh {
-    const m = new THREE.Mesh(this.finish(o), poiMaterial(sky));
-    m.castShadow = true; m.receiveShadow = true;
-    return m;
-  }
-}
-
-/** the one painterly material every Nalati POI mesh shares */
-export function poiMaterial(sky: Sky): THREE.MeshLambertMaterial {
-  return texturedMaterial(sky, 'poi');
-}
-
-/**
- * The painterly material with a painted map (one per texture name, shared). It starts on a 1×1 white placeholder (the
- * same USE_MAP program, so no recompile) and swaps in the painted tile when it has loaded.
- */
-export function texturedMaterial(sky: Sky, name: NalatiTexName | 'poi'): THREE.MeshLambertMaterial {
-  const row = campMaterialRows[name];
-  const material = specimenMaterial(sky, row);
-  if (!(material instanceof THREE.MeshLambertMaterial)) throw new Error('Painted surface needs a Lambert material');
-  return material;
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,64 @@
+{
+  "parent": "3e99f268b33bf0c5810be8dcef6ba87b88cdb98f",
+  "candidate": "77dcf151f4eb2cbeab774be03378233d96138cc3",
+  "method": "scripts/shard-platform.mjs sourceProgressInventory; all ten products; paired build-mirror check3 runs",
+  "counts": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "delta": 0
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "delta": 0
+    },
+    "driftwood-isle": {
+      "before": 6486,
+      "after": 6488,
+      "delta": 2
+    },
+    "far-reach": {
+      "before": 1061,
+      "after": 1061,
+      "delta": 0
+    },
+    "ink-cel-valley": {
+      "before": 1105,
+      "after": 1105,
+      "delta": 0
+    },
+    "nalati-grasslands": {
+      "before": 20657,
+      "after": 20166,
+      "delta": -491
+    },
+    "nine-dragon-stack": {
+      "before": 12176,
+      "after": 12176,
+      "delta": 0
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "delta": 0
+    },
+    "pine-hollow": {
+      "before": 10367,
+      "after": 10367,
+      "delta": 0
+    },
+    "sunscar-dunes": {
+      "before": 1365,
+      "after": 1365,
+      "delta": 0
+    }
+  },
+  "netShardLines": -489,
+  "attributionChange": {
+    "driftwood-isle": [
+      "src/engine/world/geometryKit.ts#UP +1",
+      "src/engine/world/geometryKit.ts#_q +1"
+    ]
+  }
+}

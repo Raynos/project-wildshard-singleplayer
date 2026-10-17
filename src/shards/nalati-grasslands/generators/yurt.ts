@@ -3,11 +3,11 @@ import type { ModelDef } from '@wildshard/engine/models/model';
 import { yurt } from './catalogue';
 import type { YurtParams } from '../data/campParams';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { M, v3 } from '../world/paint';
-import { lathe, pole, revolve, revolveUV } from '@wildshard/engine/world/geometryKit';
+import { M, v3 } from './paint';
+import { lathe, pole, revolve, revolveUV } from './smoothGeometry';
 import { prism, type Box } from '../world/solid';
 import { PC } from './campProps';
-import { painted, type Kit, type Paint } from '../world/painted';
+import { painted, type Kit, type Paint } from './painted';
 
 
 /**

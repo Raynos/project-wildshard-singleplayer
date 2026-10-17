@@ -17503,6 +17503,59 @@
         "nine-layout",
         "nine-casts"
       ]
+    },
+    {
+      "id": "nalati-poi-paint",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bake-output.mjs",
+        "scripts/bake-loader.mjs",
+        "scripts/generation-level.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/poiPaint.json"
+      ],
+      "platform": "darwin"
+    },
+    {
+      "id": "nalati-sign-atlases",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bake-output.mjs",
+        "scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
+        "src/shards/nalati-grasslands/generators/signLettering.ts",
+        "src/shards/nalati-grasslands/data/campCatalogue.json",
+        "src/shards/nalati-grasslands/data/places.json"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/signAtlases.json"
+      ],
+      "platform": "darwin",
+      "browser": true
     }
   ]
 }

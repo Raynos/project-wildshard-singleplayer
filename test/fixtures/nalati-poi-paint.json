@@ -1,0 +1,237 @@
+{
+  "parent": "7419a09cfe1c71bc5c996e8125c134f2f19c3d6d",
+  "rows": [
+    {
+      "key": "shepherd-body",
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 7848,
+          "bytes": 94176,
+          "hash": "5af445e3d481247d335f72956a9e495006ed9a0cac90fd751b202190893572f3"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 7848,
+          "bytes": 94176,
+          "hash": "adee267c5281dd65b63ba477b2a30e20e373c6349a1a5213d7048d5819e4eb11"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 7848,
+          "bytes": 94176,
+          "hash": "5b6e5e1158131366139183745f7034b569b1a1f9569bf081bdabb2da61b273ba"
+        }
+      ],
+      "index": null,
+      "groups": [],
+      "box": [
+        [
+          -0.33483463525772095,
+          -0.5820000171661377,
+          -0.42500001192092896
+        ],
+        [
+          0.33483463525772095,
+          0.9975000023841858,
+          0.42500001192092896
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0.20774999260902405,
+          0
+        ],
+        0.8937260285250487
+      ]
+    },
+    {
+      "key": "shepherd-arm",
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 780,
+          "bytes": 9360,
+          "hash": "b04dc56ddd77c897fb3035043bca961eb961a82d10496fd22c04ba9d928e519d"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 780,
+          "bytes": 9360,
+          "hash": "15f07fd652f712716e6b03cc8e32b1211d3b673e3f6d28adf364b4fcf1843fd1"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 780,
+          "bytes": 9360,
+          "hash": "901542fca824d5e9ffea073de3a324c9928a3872a0dd4a49d0a0080bdb38cc2c"
+        }
+      ],
+      "index": null,
+      "groups": [],
+      "box": [
+        [
+          -0.08349930495023727,
+          -0.7608528137207031,
+          -0.05378600209951401
+        ],
+        [
+          0.057320188730955124,
+          0.039815887808799744,
+          0.683452844619751
+        ]
+      ],
+      "sphere": [
+        [
+          -0.013089558109641075,
+          -0.3605184629559517,
+          0.3148334212601185
+        ],
+        0.546924194202441
+      ]
+    },
+    {
+      "key": "sign-labels:roads",
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 128,
+          "bytes": 1536,
+          "hash": "f89ec92c2fa508c35b5fd4309cd5dd3f11757a4d3182aabd6e19f8396c34fe96"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 128,
+          "bytes": 1536,
+          "hash": "07b4a248c48dae45d003921d92fc08b52c21552231bf1286f3b900bdf3ae5e3d"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "normalized": false,
+          "count": 128,
+          "bytes": 1024,
+          "hash": "cfb63c53da3b4529a4aed7eb86b7bf051e389d3f877c8b1af1406d9b68eb4e24"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 128,
+          "bytes": 1536,
+          "hash": "702cc37cfd91cac6b67c8bd7cc3c9da19f7a52986a8435bc2d1269721a65ce78"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 192,
+        "hash": "650136fbb4a7c2c4d94ee26e973839a610fbeee25d181686aa5414c097e13f86"
+      },
+      "groups": [],
+      "box": null,
+      "sphere": [
+        [
+          -21.487281799316406,
+          12.332842588424683,
+          114.77094841003418
+        ],
+        176.66978649379715
+      ]
+    },
+    {
+      "key": "sign-labels:specimen",
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "bytes": 288,
+          "hash": "cff325525aec63c685e2d7793de83887605f7cb4d6cde9b47b4652156e8b5522"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "bytes": 288,
+          "hash": "dc8b84d6275efe13bf2db876333dc5e0f409c4186e41036d07606ce9ebf94508"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "normalized": false,
+          "count": 24,
+          "bytes": 192,
+          "hash": "d69d6314724741b678e1173fa1b53aabcd1f0f73e2f6ff5c03b2cc3137ce972b"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "normalized": false,
+          "count": 24,
+          "bytes": 288,
+          "hash": "a5447f937e6ed3c5e956695372c0a303e3f6e6b923a0016cbab8e5c1e8ba216c"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 36,
+        "hash": "d96e5c7225d609f81192ea0e5bff355ebe4c191600822a4247bbc7cf68889896"
+      },
+      "groups": [],
+      "box": null,
+      "sphere": [
+        [
+          0.7282500099390745,
+          2.3200000524520874,
+          0
+        ],
+        1.7293794108196934
+      ]
+    }
+  ],
+  "atlases": {
+    "roads": {
+      "width": 512,
+      "height": 1024,
+      "rgbaHash": "b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e"
+    },
+    "specimen": {
+      "width": 512,
+      "height": 192,
+      "rgbaHash": "0c435ae6a300984e3a6e4625434ffada340d45d519363d5bf353b31ff20aacb8"
+    }
+  }
+}

@@ -1,133 +1,14 @@
-import type { Board } from '../boot/specimenParams.generated';
 import * as THREE from 'three';
-import { PaintKit, v3, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
-import { Flutter } from './Flutter';
+import type { Flutter } from './Flutter';
 import { boxDescs, highest, type Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { ModelBuild, ModelContext, ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
+import type { ModelBuild, ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { NalatiTexName } from '../look/nalatiTextures';
-import { NO_PLUMES, type Ground, type Platform, type Plumes } from './types';
+import type { Ground, Platform, Plumes } from './types';
 
-
-/**
- * Nalati's models on the model contract (E306 / E315 M3; the contract is src/engine/models/model.ts): how a Nalati model is
- * built, drawn and placed.
- *
- * A Nalati place — a camp, the kurgan field, the watchtower's hill — is ONE painted mesh: every model standing in it is
- * added to one PaintKit (./paint.ts), coloured per vertex in WORLD space (the brush strokes run across neighbouring
- * parts, a lichen top follows the world's up), and the whole place is AO-baked and contact-shaded against the terrain
- * together — a place costs one draw per material however many models stand in it. Its generated models (the TRELLIS /
- * Hunyuan3D-2 GLBs) are one InstancedMesh per model per place, added when the file has loaded. That is the look and
- * the budget the shard was tuned with, so the models keep it:
- *
- *   export const stone = defineModel<P>({ id: 'nalati-grasslands/…', …, build: painted(paintStone, { seed }) });
- *     `paintStone(kit, at, p, c)` paints ONE copy into a kit at a world placement `at`, drawing from the kit's rng in
- *     the order the old builder did (so the move is bit-identical), and returns what it made in world space (`Made`:
- *     its legacy boxes, its colliders, its floor). The Explorer's specimen paints one copy on a kit of its own and
- *     moves it to the origin; a model `fitted` to the ground under it (the bridge finds its ends from the terrain) is
- *     painted at its first real placement for that.
- *   export const tower = defineModel<P>({ …, build: generated({ id, name: 'watchtower', look, pose, collide }) });
- *     a GLB model: the specimen is the loaded file; `pose` turns a copy's placement into the instance's, `collide`
- *     is what it collides with, world space; `lod`, `castShadow` as the place drew it.
- *
- * and a place puts its models through a `NalatiSet`, in the old builder's order:
- *   const set = new NalatiSet(kit, c);
- *   set.paint(stone, { x, y, z, yaw }, params);     // painted into the kit now; the copy recorded
- *   set.instance(tower, { x, y, z, rot }, params);  // instanced when its GLB lands (the place's group)
- *   set.moving(rider, starts);                      // copies the place draws and moves itself: counted, boxed
- *   const mesh = kit.mesh(sky, { ground });  set.flush(group, sky);
- *   set.register({ ctx, object: mesh, group, registry })   // one `place` per model (drawnInto), in order
- * `placeSet` then names the place (src/engine/models/sets.ts; NalatiPOIs' `SETS`). A place's models' colliders come out in the
- * old builder's order (a model's boxes, then its real-geometry colliders; models in the order first put), so the
- * physics world and the navmesh bake see exactly what they did.
- */
-
-/** what a painted model paints into: a place's kit (its one rng stream) */
-export interface Kit {
-  readonly rng: Rng;
-  add: (g: THREE.BufferGeometry, col: ColorLike | Painter, o?: PaintOpts) => void;
-}
-
-/** where one copy stands, world space; `yaw` about +y (for a building: the way its door faces, 0 = −z) */
-export interface PaintAt { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
-
-/** what a painter is handed besides the kit: the ground under it, and the place's shared cloth and smoke (effects) */
-export interface PaintCtx {
-  readonly ground: Ground;
-  readonly flutter: Flutter;
-  readonly smoke: Plumes;
-}
-
-/** what one copy made, world space: its boxes (data for the weather / the dressing's keep-out; a `ghost` one is data
- *  only), its colliders as real geometry, its walkable top (placement only) */
-export interface Made {
-  readonly boxes?: readonly Box[];
-  readonly descs?: readonly ColliderDesc[];
-  readonly floor?: Platform;
-}
-
-/** paints one copy of a model into `kit` at `at` */
-export type Paint<P, O extends Made = Made> = (kit: Kit, at: PaintAt, p: P, c: PaintCtx) => O;
-
-export interface PaintSpec {
-  /** the specimen's kit seed (its rng stream: the shape of a per-copy random model) */
-  readonly seed: number;
-  /** the finish its place gives it (aoH …; the ground is the place's) */
-  readonly finish?: Omit<FinishOpts, 'ground'>;
-  /** fitted to the ground under it: the specimen is painted at its first real placement, on the real terrain */
-  readonly fitted?: boolean;
-  /** the kit's textured layers it paints into (the timber grain, the felt) */
-  readonly layers?: readonly NalatiTexName[];
-}
-
-type Build<P> = (ctx: ModelContext, p: P, rng: Rng) => ModelBuild;
-interface PaintedBuild<P> { (ctx: ModelContext, p: P, rng: Rng): ModelBuild; readonly paint: Paint<P>; readonly spec: PaintSpec }
-interface GeneratedBuild<P> { (ctx: ModelContext, p: P, rng: Rng): ModelBuild; readonly gen: GeneratedSpec<P> }
-const isPainted = <P>(b: Build<P>): b is PaintedBuild<P> => 'paint' in b;
-const isGenerated = <P>(b: Build<P>): b is GeneratedBuild<P> => 'gen' in b;
-
-/** the first copy each fitted model painted (its specimen is painted there) */
-const firsts = new WeakMap<object, { at: PaintAt; p: object }>();
-const ORIGIN: PaintAt = { x: 0, y: 0, z: 0, yaw: 0 };
-
-/** a painted specimen's geometry: one copy on a kit of its own, moved to the origin, each with its textured layer (null:
- *  the POI material) — `painted`'s build without its materials (the places bake's specimens, generators/places.ts) */
-function specimenParts<P extends object>(paint: Paint<P>, spec: PaintSpec, build: object, p: P): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
-  const first = spec.fitted === true ? firsts.get(build) : undefined;
-  const at = first?.at ?? ORIGIN;
-  const params: P = first ? { ...p, ...first.p } : p;
-  const ground: Ground = first ? (x, z) => heightAt(x, z) : () => at.y;
-  const kit = new PaintKit(spec.seed);
-  paint(kit, at, params, { ground, flutter: new Flutter(), smoke: NO_PLUMES });
-  const o: FinishOpts = { ...spec.finish, ground };
-  const parts: { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] = [];
-  const move = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.translate(-at.x, -at.y, -at.z); g.computeBoundingSphere(); g.computeBoundingBox(); return g; };
-  if (!kit.empty) parts.push({ geometry: move(kit.finish(o)), layer: null });
-  for (const name of spec.layers ?? []) {
-    const g = kit.finishTextured(o, name);
-    if (g) parts.push({ geometry: move(g), layer: name });
-  }
-  return parts;
-}
-
-/** a painted model's `build`: its specimen, one copy on a kit of its own, moved to the origin */
-export function painted<P extends object>(paint: Paint<P>, spec: PaintSpec): PaintedBuild<P> {
-  const build = (ctx: ModelContext, p: P): ModelPart[] => specimenParts(paint, spec, build, p)
-    .map(({ geometry, layer }) => ({ geometry, material: layer === null ? poiMaterial(ctx.sky) : texturedMaterial(ctx.sky, layer), castShadow: true, receiveShadow: true }));
-  return Object.assign(build, { paint, spec });
-}
-
-/** a painted model's specimen geometry for `p` (its build's parts without materials); refuses any other model */
-export function paintedSpecimen<P extends object>(def: ModelDef<P>, p: P): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
-  const b = def.build;
-  if (!isPainted(b)) throw new Error(`paintedSpecimen: ${def.id} is not a painted model`);
-  return specimenParts(b.paint, b.spec, b, p);
-}
 
 export interface GeneratedSpec<P> {
   /** the model's id: the Explorer's card re-frames when the file lands */
@@ -144,7 +25,12 @@ export interface GeneratedSpec<P> {
   readonly collide?: (at: ModelPlacement, p: P) => Made;
 }
 
-const _box = new THREE.Box3(), _part = new THREE.Box3(), _pt = new THREE.Vector3();
+interface Made { readonly boxes?: readonly Box[]; readonly descs?: readonly ColliderDesc[]; readonly floor?: Platform }
+interface PaintCtx { readonly ground: Ground; readonly flutter: Flutter; readonly smoke: Plumes }
+type Build<P> = (ctx: ModelContext, p: P, rng: Rng) => ModelBuild;
+interface GeneratedBuild<P> { (ctx: ModelContext, p: P, rng: Rng): ModelBuild; readonly gen: GeneratedSpec<P> }
+const isGenerated = <P>(b: Build<P>): b is GeneratedBuild<P> => 'gen' in b;
+const _box = new THREE.Box3();
 
 /** one model's copies in a set as data: where they stand, their boxes, what they made (the places bake writes these rows,
  *  generators/places.ts; the page places them back, ./placeBake.ts) */
@@ -207,46 +93,17 @@ export interface SetRegister {
 }
 
 /**
- * A Nalati place's models, painted into its kit and instanced into its group in the old builder's order, then placed
- * (`register`): one `place` per model, `drawnInto` the place's mesh.
+ * Native placement of prepared instances and moving copies, in the original order.
+ * Static kit composition and specimen painting live in generators/places.ts.
  */
 export class NalatiSet {
-  /** the kit the painters paint into: the place's own, each part's world box tracked for its copy */
-  readonly kit: Kit;
   private readonly members = new Map<string, Member>();
   /** the generated models' instances, per model, in the order they were first put */
   private readonly instances = new Map<NalatiModelName, InstanceData>();
-  private tracking = false;
   /** every box every copy made, in order (the POI's `colliders` data) */
   readonly boxes: Box[] = [];
 
-  /** the kit the painters paint into now (`into` moves it: a dressing prop is a kit of its own, finished on its own) */
-  private current: PaintKit | null;
-
-  /** `paintKit`: the place's kit (null: a place of generated models only, or one whose props each bring a kit: `into`) */
-  constructor(paintKit: PaintKit | null, readonly c: PaintCtx) {
-    this.current = paintKit;
-    let none: PaintKit | null = null;
-    const self = (): PaintKit | null => this.current;
-    this.kit = {
-      get rng() { return (self() ?? (none ??= new PaintKit(0))).rng; },
-      add: (g, col, o) => {
-        const k = self();
-        if (!k) throw new Error('NalatiSet: this place has no kit to paint into');
-        if (this.tracking) {
-          const pos = g.getAttribute('position');
-          _part.makeEmpty();
-          for (let i = 0; i < pos.count; i++) _part.expandByPoint(_pt.set(pos.getX(i), pos.getY(i), pos.getZ(i)));
-          if (o?.matrix) _part.applyMatrix4(o.matrix);
-          _box.union(_part);
-        }
-        k.add(g, col, o);
-      },
-    };
-  }
-
-  /** paint into `kit` from now on (its rng is the painters' stream): each dressing prop is a kit of its own */
-  into(kit: PaintKit): this { this.current = kit; return this; }
+  constructor(_paintKit: null, readonly c: PaintCtx) {}
 
   private member<P extends object>(def: ModelDef<P>, draw: Draw, inKit: boolean): Member {
     let m = this.members.get(def.id);
@@ -269,19 +126,6 @@ export class NalatiSet {
     m.solid.push(...boxDescs(boxes));
     m.descs.push(...(made.descs ?? []));
     if (made.floor) m.floors.push(made.floor);
-  }
-
-  /** paint one copy of a painted model into the place's kit, now; returns what it made */
-  paint<P extends object>(def: ModelDef<P>, at: PaintAt, p: NoInfer<P>): Made {
-    const b = def.build;
-    if (!isPainted(b)) throw new Error(`NalatiSet.paint: ${def.id} is not a painted model`);
-    _box.makeEmpty();
-    this.tracking = true;
-    let made: Made;
-    try { made = b.paint(this.kit, at, p, this.c); } finally { this.tracking = false; }
-    if (b.spec.fitted === true && !firsts.has(b)) firsts.set(b, { at, p });
-    this.record(this.member(def, 'merged', true), { x: at.x, y: at.y, z: at.z, yaw: at.yaw }, _box, made);
-    return made;
   }
 
   /** one copy of a generated model, instanced with the place's others of it when its GLB lands; returns what it collides with */
@@ -370,20 +214,6 @@ export function kurganEntranceFloor(row: KurganEntranceFloor): Platform & { read
       return undefined;
     },
   ]), { row });
-}
-
-/** one board's plank: its centre, its yaw (local +x = the pointing way), its width */
-export interface BoardSpot { readonly p: THREE.Vector3; readonly yaw: number; readonly w: number }
-
-/** where a signpost at (x, gy, z) hangs its boards, top down */
-export function boardSpots(x: number, z: number, gy: number, boards: readonly Board[]): BoardSpot[] {
-  const H = 1.9 + boards.length * 0.36;
-  return boards.map((b, i) => {
-    const y = gy + H - 0.3 - i * 0.36, w = 1.45;
-    const yaw = b.dir - Math.PI / 2;                                       // M's local +x → world (sin dir, cos dir)
-    const cx = x + Math.sin(b.dir) * (w / 2 + 0.05), cz = z + Math.cos(b.dir) * (w / 2 + 0.05);
-    return { p: v3(cx, y, cz), yaw, w };
-  });
 }
 
 /** Native model bounds used by both authored collision recipes and live placement boxes. */

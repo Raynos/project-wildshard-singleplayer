@@ -46,8 +46,8 @@ import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engin
  *   dungeon.showHeap(on)             the heap of gold plaques the King crumbles into
  */
 import * as THREE from 'three';
-import { PaintKit, M, v3 } from '../../../src/shards/nalati-grasslands/world/paint';
-import { pole, blob, lathe } from '@wildshard/engine/world/geometryKit';
+import { PaintKit, M, v3 } from '../../../src/shards/nalati-grasslands/generators/paint';
+import { pole, blob, lathe } from '../../../src/shards/nalati-grasslands/generators/smoothGeometry';
 import { balbalGeometry } from '../../../src/shards/nalati-grasslands/models/balbal';
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */

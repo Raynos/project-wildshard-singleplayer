@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { poiMaterial } from '../world/paint';
+import { poiMaterial } from '../world/modelView';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 
 const { GLACIER } = layoutRows;

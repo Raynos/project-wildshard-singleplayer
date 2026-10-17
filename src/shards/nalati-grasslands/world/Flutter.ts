@@ -13,7 +13,7 @@
  *   flutter.setWind(dirX, dirZ, strength01)   // else it follows the shared painterly wind (setPainterlyLook({ wind }))
  */
 import * as THREE from 'three';
-import { poiMaterial } from './paint';
+import { poiMaterial } from './modelView';
 import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 

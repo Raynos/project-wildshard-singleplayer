@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { defineModel } from '@wildshard/engine/models/model';
+import { bakedSignLettering } from '../world/placeBake';
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import data from '../boot/specimens.generated.json' with { type: 'json' };
 import type { CatalogueParams } from '../boot/specimenParams.generated';
@@ -42,7 +45,18 @@ export const roundedBoulder = catalogue.model('roundedBoulder');
 export const kokparGoal = catalogue.model('kokparGoal');
 export const kokparPost = catalogue.model('kokparPost');
 export const stoneStep = catalogue.model('stoneStep');
-export const signpostBaked = catalogue.model('signpostBaked');
+const physicalSignpost = catalogue.model('signpostBaked');
+export const signpostBaked = defineModel({ ...physicalSignpost, build: (ctx, p, rng) => {
+  const boards = physicalSignpost.defaults.boards;
+  if (p.boards.length !== boards.length || p.boards.some((board, i) => {
+    const prepared = boards[i];
+    return prepared === undefined || board.text !== prepared.text || board.dir !== prepared.dir;
+  })) throw new Error('No prepared Nalati sign lettering for these boards');
+  const built = physicalSignpost.build(ctx, p, rng);
+  if (!(built instanceof THREE.Object3D)) throw new Error('Baked signpost needs its group');
+  built.add(bakedSignLettering(ctx.sky, 'specimen'));
+  return built;
+} });
 export const kazan = catalogue.model('kazan');
 export const chest = catalogue.model('chest');
 export const firewood = catalogue.model('firewood');

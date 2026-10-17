@@ -16,9 +16,8 @@ import * as THREE from 'three';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { poiMaterial } from '../world/paint';
 import { bakedActorGeometry } from '../world/placeBake';
-import { loadNalatiModel, MODEL_SIZE } from '../world/modelView';
+import { poiMaterial, loadNalatiModel, MODEL_SIZE } from '../world/modelView';
 
 export type BalbalCarving = 'bare' | 'capped';
 

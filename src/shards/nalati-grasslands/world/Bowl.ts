@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
-import { poiMaterial } from './paint';
-import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
+import { poiMaterial, loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { inPoiClearing } from './terrain';
 import { NalatiSet } from './painted';

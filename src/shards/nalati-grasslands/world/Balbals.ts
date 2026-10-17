@@ -12,14 +12,13 @@
  * variant, so the shard's balbals are two draw calls) when the POI registers; each statue collides as its own piece.
  */
 import * as THREE from 'three';
-import { M, poiMaterial } from './paint';
 import type { Placement } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
-import { MODEL_TRIS } from './modelView';
+import { poiMaterial, placementMatrix, MODEL_TRIS } from './modelView';
 import { balbal, wearGenerated, type BalbalCarving, type BalbalParams } from '../models/balbal';
 
 export interface Statue { x: number; y: number; z: number; yaw: number; scale: number; tilt: number; variant: number; slot: number; collider: Collider }
@@ -49,7 +48,7 @@ export class Balbals {
     const s = this.statues[i], mesh = this.meshes[s?.variant ?? -1];
     if (!s || !mesh || this.awake[i] === awake) return;
     this.awake[i] = awake;
-    mesh.setMatrixAt(s.slot, awake ? new THREE.Matrix4().makeScale(0, 0, 0) : M(s.x, s.y, s.z, s.yaw, s.scale, s.scale, s.scale, 0, s.tilt));
+    mesh.setMatrixAt(s.slot, awake ? new THREE.Matrix4().makeScale(0, 0, 0) : placementMatrix({ x: s.x, y: s.y, z: s.z, rot: s.yaw, scale: s.scale, roll: s.tilt }));
     mesh.instanceMatrix.needsUpdate = true;
     // an awake statue's collider no longer blocks (the warrior carries its own)
     s.collider.yTop = awake ? -1e9 : s.y + 2.2 * s.scale;
@@ -74,7 +73,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
     const y = ground(s.x, s.z) - 0.18 * scale;
     // data only here: `Balbals.register` makes each statue its own piece (a woken one stops colliding)
     const collider: Box = { x: s.x, z: s.z, hw: 0.42 * scale, hd: 0.33 * scale, rot: -s.yaw, yBottom: y - 1, yTop: y + 2.2 * scale, ghost: true };
-    placements.push({ x: s.x, y, z: s.z, matrix: M(s.x, y, s.z, s.yaw, scale, scale, scale, 0, s.tilt ?? 0), variant: CARVING[variant] ?? 'bare' });
+    placements.push({ x: s.x, y, z: s.z, matrix: placementMatrix({ x: s.x, y, z: s.z, rot: s.yaw, scale, roll: s.tilt ?? 0 }), variant: CARVING[variant] ?? 'bare' });
     b.statues.push({ x: s.x, y, z: s.z, yaw: s.yaw, scale, tilt: s.tilt ?? 0, variant, slot, collider });
     colliders.push(collider);
   });

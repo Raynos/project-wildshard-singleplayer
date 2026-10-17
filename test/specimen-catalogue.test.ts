@@ -18,7 +18,7 @@ import * as camp from '../src/shards/nalati-grasslands/models/catalogue';
 import * as trail from '../src/shards/driftwood-isle/models/catalogue';
 import campData from '../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
-import { poiMaterial, texturedMaterial } from '../src/shards/nalati-grasslands/world/paint';
+import { poiMaterial, texturedMaterial } from '../src/shards/nalati-grasslands/world/modelView';
 
 function testSky(): SkyRig {
   const sky: unknown = Object.create(SkyRig.prototype);

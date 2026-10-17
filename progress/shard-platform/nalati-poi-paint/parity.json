@@ -1,0 +1,1440 @@
+{
+  "parentRevision": "1f49c4b41ae9f1084d2c71c71ad090b64a4dfde9",
+  "candidateRevision": "c970aa9372cbad1ed6291ac0e811c2bf75f2f2da",
+  "parent": {
+    "build": "1f49c4b-mvcc2zf5",
+    "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, clock pinned and paused, time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 81,
+        "colliderCount": 2682,
+        "colliders": "ab8288c38557aa0d01740772c14cd3412a68701bd43df2a81acb0672eab1b6d4",
+        "residentBootBytes": 1781235712,
+        "residentFinalBytes": 1797734400,
+        "gpuBytes": 229192952,
+        "programs": 147,
+        "shaderCount": 228,
+        "shaders": "1bf808799630dbb2183cf647f252307e8d4c66c981bf96d569309faa47a72eb3",
+        "paintMeshes": [
+          {
+            "key": "roads",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "f89ec92c2fa508c35b5fd4309cd5dd3f11757a4d3182aabd6e19f8396c34fe96"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "07b4a248c48dae45d003921d92fc08b52c21552231bf1286f3b900bdf3ae5e3d"
+              },
+              {
+                "name": "uv",
+                "type": "Float32Array",
+                "size": 2,
+                "normalized": false,
+                "count": 128,
+                "hash": "cfb63c53da3b4529a4aed7eb86b7bf051e389d3f877c8b1af1406d9b68eb4e24"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "702cc37cfd91cac6b67c8bd7cc3c9da19f7a52986a8435bc2d1269721a65ce78"
+              }
+            ],
+            "index": {
+              "type": "Uint16Array",
+              "count": 192,
+              "hash": "650136fbb4a7c2c4d94ee26e973839a610fbeee25d181686aa5414c097e13f86"
+            },
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": {
+                  "width": 512,
+                  "height": 1024,
+                  "pixels": "b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e",
+                  "colorSpace": "srgb",
+                  "anisotropy": 4,
+                  "flipY": true,
+                  "mipmaps": true,
+                  "min": 1008,
+                  "mag": 1006,
+                  "wrap": [
+                    1001,
+                    1001
+                  ],
+                  "format": 1023,
+                  "type": 1009
+                }
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:0",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5af445e3d481247d335f72956a9e495006ed9a0cac90fd751b202190893572f3"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "adee267c5281dd65b63ba477b2a30e20e373c6349a1a5213d7048d5819e4eb11"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5b6e5e1158131366139183745f7034b569b1a1f9569bf081bdabb2da61b273ba"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:1",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "b04dc56ddd77c897fb3035043bca961eb961a82d10496fd22c04ba9d928e519d"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "15f07fd652f712716e6b03cc8e32b1211d3b673e3f6d28adf364b4fcf1843fd1"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "901542fca824d5e9ffea073de3a324c9928a3872a0dd4a49d0a0080bdb38cc2c"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          }
+        ]
+      },
+      "desktop": {
+        "pieces": 82,
+        "colliderCount": 2770,
+        "colliders": "e04c7266bf148ffe6617b9f2756b9cd068bacf892ad8d053e02f31b8e1455814",
+        "residentBootBytes": 2224177152,
+        "residentFinalBytes": 2174713856,
+        "gpuBytes": 553133406,
+        "programs": 163,
+        "shaderCount": 250,
+        "shaders": "153a1c0b146d4e87e9f709194008659c6e6f7b855f44364347acf26e4a889d92",
+        "paintMeshes": [
+          {
+            "key": "roads",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "f89ec92c2fa508c35b5fd4309cd5dd3f11757a4d3182aabd6e19f8396c34fe96"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "07b4a248c48dae45d003921d92fc08b52c21552231bf1286f3b900bdf3ae5e3d"
+              },
+              {
+                "name": "uv",
+                "type": "Float32Array",
+                "size": 2,
+                "normalized": false,
+                "count": 128,
+                "hash": "cfb63c53da3b4529a4aed7eb86b7bf051e389d3f877c8b1af1406d9b68eb4e24"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "702cc37cfd91cac6b67c8bd7cc3c9da19f7a52986a8435bc2d1269721a65ce78"
+              }
+            ],
+            "index": {
+              "type": "Uint16Array",
+              "count": 192,
+              "hash": "650136fbb4a7c2c4d94ee26e973839a610fbeee25d181686aa5414c097e13f86"
+            },
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": {
+                  "width": 512,
+                  "height": 1024,
+                  "pixels": "b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e",
+                  "colorSpace": "srgb",
+                  "anisotropy": 4,
+                  "flipY": true,
+                  "mipmaps": true,
+                  "min": 1008,
+                  "mag": 1006,
+                  "wrap": [
+                    1001,
+                    1001
+                  ],
+                  "format": 1023,
+                  "type": 1009
+                }
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:0",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5af445e3d481247d335f72956a9e495006ed9a0cac90fd751b202190893572f3"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "adee267c5281dd65b63ba477b2a30e20e373c6349a1a5213d7048d5819e4eb11"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5b6e5e1158131366139183745f7034b569b1a1f9569bf081bdabb2da61b273ba"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": true,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:1",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "b04dc56ddd77c897fb3035043bca961eb961a82d10496fd22c04ba9d928e519d"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "15f07fd652f712716e6b03cc8e32b1211d3b673e3f6d28adf364b4fcf1843fd1"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "901542fca824d5e9ffea073de3a324c9928a3872a0dd4a49d0a0080bdb38cc2c"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": true,
+            "receiveShadow": true
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "camp",
+        "player": [
+          102,
+          35.1,
+          92
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 75,
+        "triangles": 1175918,
+        "lit": 1095048,
+        "pixels": "c51476ee59f6813baf8413f1a95d6c8f34589ed952e4bb86a5ff9b892d525047"
+      },
+      {
+        "tier": "phone",
+        "pose": "plateau",
+        "player": [
+          82,
+          53.2,
+          -78
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 997985,
+        "lit": 1095048,
+        "pixels": "58fb454e2ac1ac4deef2b162c6da5f04ba5c1bc063d95b6bd8f5c380be730b0f"
+      },
+      {
+        "tier": "phone",
+        "pose": "horses",
+        "player": [
+          150,
+          49.5,
+          -62
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 59,
+        "triangles": 974413,
+        "lit": 1095048,
+        "pixels": "1b9b298adbe3a9c029b3aa8e26d18f6ff9d00056bc2e389ca429b5722f3873e4"
+      },
+      {
+        "tier": "phone",
+        "pose": "gully",
+        "player": [
+          64,
+          -4.6,
+          203
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 76,
+        "triangles": 1115876,
+        "lit": 1095048,
+        "pixels": "e2c9b5969b36288aff2f65dad2432d990af529410dbb1c6affb7a4a6339b95f3"
+      },
+      {
+        "tier": "phone",
+        "pose": "rail",
+        "player": [
+          73.5,
+          -4.7,
+          206
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 1034726,
+        "lit": 1095048,
+        "pixels": "479c230492415e791c9ed90899978230f6f282beba86b5d3ac15e95093300b2e"
+      },
+      {
+        "tier": "phone",
+        "pose": "kurgan",
+        "player": [
+          -128,
+          71.2,
+          -62
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 57,
+        "triangles": 918258,
+        "lit": 1095048,
+        "pixels": "9e7d444783d07d3005ee033a89dc64a2be09d2718c9471517a788c5db62e12fd"
+      },
+      {
+        "tier": "phone",
+        "pose": "signpost",
+        "player": [
+          -5.2,
+          0,
+          220
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 85,
+        "triangles": 1235525,
+        "lit": 1095048,
+        "pixels": "59e936f3f6dad2921dae7152f982559665bb734c7618969224afcc65ac7143e2"
+      },
+      {
+        "tier": "desktop",
+        "pose": "camp",
+        "player": [
+          102,
+          35.1,
+          92
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 196,
+        "triangles": 3469047,
+        "lit": 615663,
+        "pixels": "8e11209c9c18f339105f125e18f5ec86807cd053e15069601b213365f718bab1"
+      },
+      {
+        "tier": "desktop",
+        "pose": "plateau",
+        "player": [
+          82,
+          53.2,
+          -78
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 100,
+        "triangles": 2794452,
+        "lit": 615663,
+        "pixels": "b51578376b2577259df504dde61ab75b4fe0c052bccebfe230f1502f7276a9e7"
+      },
+      {
+        "tier": "desktop",
+        "pose": "horses",
+        "player": [
+          150,
+          49.5,
+          -62
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 100,
+        "triangles": 2705325,
+        "lit": 615663,
+        "pixels": "c223d4b31320bc3a8cb4500d730590025bc4f797143218b24795102d0d6e37f4"
+      },
+      {
+        "tier": "desktop",
+        "pose": "gully",
+        "player": [
+          64,
+          -4.6,
+          203
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 317,
+        "triangles": 3562565,
+        "lit": 615663,
+        "pixels": "629f41158a596b044533fd9c9cafb7eb6fb04810aa74523a7719ba930cc2722c"
+      },
+      {
+        "tier": "desktop",
+        "pose": "rail",
+        "player": [
+          73.5,
+          -4.7,
+          206
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 166,
+        "triangles": 3011080,
+        "lit": 615663,
+        "pixels": "87d5f895ea4b298a84a724b838d6c10ab0de22bc0bf9f4a96c12d70a0feae9ae"
+      },
+      {
+        "tier": "desktop",
+        "pose": "kurgan",
+        "player": [
+          -128,
+          71.2,
+          -62
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 123,
+        "triangles": 2627372,
+        "lit": 615663,
+        "pixels": "3bda40ca6bb4e2f8ab1aa358931287a3f43e32e2fb9d1c0a37ce68eed9472f45"
+      },
+      {
+        "tier": "desktop",
+        "pose": "signpost",
+        "player": [
+          -5.2,
+          0,
+          220
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 368,
+        "triangles": 3802548,
+        "lit": 615663,
+        "pixels": "7cfa09d8707b223f3da9a5fa1d644c242e593b553cef028810f5ec6e87b7939a"
+      }
+    ]
+  },
+  "candidate": {
+    "build": "c970aa9-mvcbzt2a",
+    "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, clock pinned and paused, time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 81,
+        "colliderCount": 2682,
+        "colliders": "ab8288c38557aa0d01740772c14cd3412a68701bd43df2a81acb0672eab1b6d4",
+        "residentBootBytes": 1809924096,
+        "residentFinalBytes": 1803436032,
+        "gpuBytes": 229192952,
+        "programs": 147,
+        "shaderCount": 228,
+        "shaders": "1bf808799630dbb2183cf647f252307e8d4c66c981bf96d569309faa47a72eb3",
+        "paintMeshes": [
+          {
+            "key": "roads",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "f89ec92c2fa508c35b5fd4309cd5dd3f11757a4d3182aabd6e19f8396c34fe96"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "07b4a248c48dae45d003921d92fc08b52c21552231bf1286f3b900bdf3ae5e3d"
+              },
+              {
+                "name": "uv",
+                "type": "Float32Array",
+                "size": 2,
+                "normalized": false,
+                "count": 128,
+                "hash": "cfb63c53da3b4529a4aed7eb86b7bf051e389d3f877c8b1af1406d9b68eb4e24"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "702cc37cfd91cac6b67c8bd7cc3c9da19f7a52986a8435bc2d1269721a65ce78"
+              }
+            ],
+            "index": {
+              "type": "Uint16Array",
+              "count": 192,
+              "hash": "650136fbb4a7c2c4d94ee26e973839a610fbeee25d181686aa5414c097e13f86"
+            },
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": {
+                  "width": 512,
+                  "height": 1024,
+                  "pixels": "b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e",
+                  "colorSpace": "srgb",
+                  "anisotropy": 4,
+                  "flipY": true,
+                  "mipmaps": true,
+                  "min": 1008,
+                  "mag": 1006,
+                  "wrap": [
+                    1001,
+                    1001
+                  ],
+                  "format": 1023,
+                  "type": 1009
+                }
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:0",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5af445e3d481247d335f72956a9e495006ed9a0cac90fd751b202190893572f3"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "adee267c5281dd65b63ba477b2a30e20e373c6349a1a5213d7048d5819e4eb11"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5b6e5e1158131366139183745f7034b569b1a1f9569bf081bdabb2da61b273ba"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:1",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "b04dc56ddd77c897fb3035043bca961eb961a82d10496fd22c04ba9d928e519d"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "15f07fd652f712716e6b03cc8e32b1211d3b673e3f6d28adf364b4fcf1843fd1"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "901542fca824d5e9ffea073de3a324c9928a3872a0dd4a49d0a0080bdb38cc2c"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          }
+        ]
+      },
+      "desktop": {
+        "pieces": 82,
+        "colliderCount": 2770,
+        "colliders": "e04c7266bf148ffe6617b9f2756b9cd068bacf892ad8d053e02f31b8e1455814",
+        "residentBootBytes": 2352709632,
+        "residentFinalBytes": 2184282112,
+        "gpuBytes": 553133406,
+        "programs": 163,
+        "shaderCount": 250,
+        "shaders": "153a1c0b146d4e87e9f709194008659c6e6f7b855f44364347acf26e4a889d92",
+        "paintMeshes": [
+          {
+            "key": "roads",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "f89ec92c2fa508c35b5fd4309cd5dd3f11757a4d3182aabd6e19f8396c34fe96"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "07b4a248c48dae45d003921d92fc08b52c21552231bf1286f3b900bdf3ae5e3d"
+              },
+              {
+                "name": "uv",
+                "type": "Float32Array",
+                "size": 2,
+                "normalized": false,
+                "count": 128,
+                "hash": "cfb63c53da3b4529a4aed7eb86b7bf051e389d3f877c8b1af1406d9b68eb4e24"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 128,
+                "hash": "702cc37cfd91cac6b67c8bd7cc3c9da19f7a52986a8435bc2d1269721a65ce78"
+              }
+            ],
+            "index": {
+              "type": "Uint16Array",
+              "count": 192,
+              "hash": "650136fbb4a7c2c4d94ee26e973839a610fbeee25d181686aa5414c097e13f86"
+            },
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": {
+                  "width": 512,
+                  "height": 1024,
+                  "pixels": "b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e",
+                  "colorSpace": "srgb",
+                  "anisotropy": 4,
+                  "flipY": true,
+                  "mipmaps": true,
+                  "min": 1008,
+                  "mag": 1006,
+                  "wrap": [
+                    1001,
+                    1001
+                  ],
+                  "format": 1023,
+                  "type": 1009
+                }
+              }
+            ],
+            "castShadow": false,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:0",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5af445e3d481247d335f72956a9e495006ed9a0cac90fd751b202190893572f3"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "adee267c5281dd65b63ba477b2a30e20e373c6349a1a5213d7048d5819e4eb11"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 7848,
+                "hash": "5b6e5e1158131366139183745f7034b569b1a1f9569bf081bdabb2da61b273ba"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": true,
+            "receiveShadow": true
+          },
+          {
+            "key": "shepherd:1",
+            "attributes": [
+              {
+                "name": "position",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "b04dc56ddd77c897fb3035043bca961eb961a82d10496fd22c04ba9d928e519d"
+              },
+              {
+                "name": "normal",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "15f07fd652f712716e6b03cc8e32b1211d3b673e3f6d28adf364b4fcf1843fd1"
+              },
+              {
+                "name": "color",
+                "type": "Float32Array",
+                "size": 3,
+                "normalized": false,
+                "count": 780,
+                "hash": "901542fca824d5e9ffea073de3a324c9928a3872a0dd4a49d0a0080bdb38cc2c"
+              }
+            ],
+            "index": null,
+            "groups": [],
+            "materials": [
+              {
+                "type": "MeshLambertMaterial",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "vertexColors": true,
+                "side": 0,
+                "transparent": false,
+                "opacity": 1,
+                "map": null
+              }
+            ],
+            "castShadow": true,
+            "receiveShadow": true
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "camp",
+        "player": [
+          102,
+          35.1,
+          92
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 75,
+        "triangles": 1175918,
+        "lit": 1095048,
+        "pixels": "c51476ee59f6813baf8413f1a95d6c8f34589ed952e4bb86a5ff9b892d525047"
+      },
+      {
+        "tier": "phone",
+        "pose": "plateau",
+        "player": [
+          82,
+          53.2,
+          -78
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 997985,
+        "lit": 1095048,
+        "pixels": "58fb454e2ac1ac4deef2b162c6da5f04ba5c1bc063d95b6bd8f5c380be730b0f"
+      },
+      {
+        "tier": "phone",
+        "pose": "horses",
+        "player": [
+          150,
+          49.5,
+          -62
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 59,
+        "triangles": 974413,
+        "lit": 1095048,
+        "pixels": "1b9b298adbe3a9c029b3aa8e26d18f6ff9d00056bc2e389ca429b5722f3873e4"
+      },
+      {
+        "tier": "phone",
+        "pose": "gully",
+        "player": [
+          64,
+          -4.6,
+          203
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 76,
+        "triangles": 1115876,
+        "lit": 1095048,
+        "pixels": "e2c9b5969b36288aff2f65dad2432d990af529410dbb1c6affb7a4a6339b95f3"
+      },
+      {
+        "tier": "phone",
+        "pose": "rail",
+        "player": [
+          73.5,
+          -4.7,
+          206
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 1034726,
+        "lit": 1095048,
+        "pixels": "479c230492415e791c9ed90899978230f6f282beba86b5d3ac15e95093300b2e"
+      },
+      {
+        "tier": "phone",
+        "pose": "kurgan",
+        "player": [
+          -128,
+          71.2,
+          -62
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 57,
+        "triangles": 918258,
+        "lit": 1095048,
+        "pixels": "9e7d444783d07d3005ee033a89dc64a2be09d2718c9471517a788c5db62e12fd"
+      },
+      {
+        "tier": "phone",
+        "pose": "signpost",
+        "player": [
+          -5.2,
+          0,
+          220
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 85,
+        "triangles": 1235525,
+        "lit": 1095048,
+        "pixels": "59e936f3f6dad2921dae7152f982559665bb734c7618969224afcc65ac7143e2"
+      },
+      {
+        "tier": "desktop",
+        "pose": "camp",
+        "player": [
+          102,
+          35.1,
+          92
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 196,
+        "triangles": 3469047,
+        "lit": 615663,
+        "pixels": "8e11209c9c18f339105f125e18f5ec86807cd053e15069601b213365f718bab1"
+      },
+      {
+        "tier": "desktop",
+        "pose": "plateau",
+        "player": [
+          82,
+          53.2,
+          -78
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 100,
+        "triangles": 2794452,
+        "lit": 615663,
+        "pixels": "b51578376b2577259df504dde61ab75b4fe0c052bccebfe230f1502f7276a9e7"
+      },
+      {
+        "tier": "desktop",
+        "pose": "horses",
+        "player": [
+          150,
+          49.5,
+          -62
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 100,
+        "triangles": 2705325,
+        "lit": 615663,
+        "pixels": "c223d4b31320bc3a8cb4500d730590025bc4f797143218b24795102d0d6e37f4"
+      },
+      {
+        "tier": "desktop",
+        "pose": "gully",
+        "player": [
+          64,
+          -4.6,
+          203
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 317,
+        "triangles": 3562565,
+        "lit": 615663,
+        "pixels": "629f41158a596b044533fd9c9cafb7eb6fb04810aa74523a7719ba930cc2722c"
+      },
+      {
+        "tier": "desktop",
+        "pose": "rail",
+        "player": [
+          73.5,
+          -4.7,
+          206
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 166,
+        "triangles": 3011080,
+        "lit": 615663,
+        "pixels": "87d5f895ea4b298a84a724b838d6c10ab0de22bc0bf9f4a96c12d70a0feae9ae"
+      },
+      {
+        "tier": "desktop",
+        "pose": "kurgan",
+        "player": [
+          -128,
+          71.2,
+          -62
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 123,
+        "triangles": 2627372,
+        "lit": 615663,
+        "pixels": "3bda40ca6bb4e2f8ab1aa358931287a3f43e32e2fb9d1c0a37ce68eed9472f45"
+      },
+      {
+        "tier": "desktop",
+        "pose": "signpost",
+        "player": [
+          -5.2,
+          0,
+          220
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 368,
+        "triangles": 3802548,
+        "lit": 615663,
+        "pixels": "7cfa09d8707b223f3da9a5fa1d644c242e593b553cef028810f5ec6e87b7939a"
+      }
+    ]
+  },
+  "checks": {
+    "phone": {
+      "gpuBytes": true,
+      "colliders": true,
+      "pieces": true,
+      "colliderCount": true,
+      "programs": true,
+      "shaders": true,
+      "paintMeshes": true
+    },
+    "desktop": {
+      "gpuBytes": true,
+      "colliders": true,
+      "pieces": true,
+      "colliderCount": true,
+      "programs": true,
+      "shaders": true,
+      "paintMeshes": true
+    }
+  },
+  "frames": [
+    {
+      "tier": "phone",
+      "pose": "camp",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "phone",
+      "pose": "plateau",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "phone",
+      "pose": "horses",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "phone",
+      "pose": "gully",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "phone",
+      "pose": "rail",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "phone",
+      "pose": "kurgan",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "phone",
+      "pose": "signpost",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "camp",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "plateau",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "horses",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "gully",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "rail",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "kurgan",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "signpost",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true,
+        "pixels": true
+      },
+      "rawEqual": true
+    }
+  ],
+  "sourceCounts": {
+    "_template": {
+      "before": 1003,
+      "after": 1003
+    },
+    "blender-template": {
+      "before": 107,
+      "after": 107
+    },
+    "driftwood-isle": {
+      "before": 6771,
+      "after": 6771
+    },
+    "far-reach": {
+      "before": 1309,
+      "after": 1309
+    },
+    "ink-cel-valley": {
+      "before": 771,
+      "after": 771
+    },
+    "nalati-grasslands": {
+      "before": 20725,
+      "after": 20119
+    },
+    "nine-dragon-stack": {
+      "before": 12245,
+      "after": 12245
+    },
+    "pastel-plain": {
+      "before": 735,
+      "after": 735
+    },
+    "pine-hollow": {
+      "before": 10642,
+      "after": 10642
+    },
+    "sunscar-dunes": {
+      "before": 1380,
+      "after": 1380
+    }
+  }
+}

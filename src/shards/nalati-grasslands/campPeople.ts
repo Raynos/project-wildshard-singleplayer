@@ -1,6 +1,6 @@
 /**
  * The nomad camp's people (NALATI-MERGE Q2; N16 wave 5: "procedural painterly figures now, generated + rigged models
- * later" — row D2). Five figures on the shared painterly POI material (src/shards/nalati-grasslands/world/paint.ts PaintKit → poiMaterial,
+ * later" — row D2). Five figures on the shared painterly POI material (src/shards/nalati-grasslands/world/modelView.ts poiMaterial,
  * soft cel bands, the cool painted shade, the warm rim), each baked from smooth lathes, capsules and spheres with
  * per-vertex paint:
  *
@@ -33,7 +33,7 @@ import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry, ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { v3, poiMaterial } from './world/paint';
+import { poiMaterial } from './world/modelView';
 import content from './data/questContent.json' with { type: 'json' };
 import frameRows from './boot/peopleFrames.generated.json' with { type: 'json' };
 import { loadPeopleRig, peopleModelUrl, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from './campPeopleModels';
@@ -133,7 +133,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     parts.body.dispose(); parts.head.dispose(); parts.arm.dispose();
     const x = id === 'child' ? spot.x + CHILD_RING : spot.x, z = spot.z;
     fig[id] = {
-      id, parts, profile, feet: v3(x, floorAt(x, z), z), headWorld: new THREE.Vector3(), talking: false, yaw: spot.yaw,
+      id, parts, profile, feet: new THREE.Vector3(x, floorAt(x, z), z), headWorld: new THREE.Vector3(), talking: false, yaw: spot.yaw,
       ids: { body: batch.addInstance(g.body), head: batch.addInstance(g.head), arm: batch.addInstance(g.arm) },
       idleYaw: spot.yaw, headYaw: 0, headPitch: 0, armX: 0, armZ: 0, glanceT: profile.glanceAfter, glance: 0, phase: profile.phase, ring: 0, anchor: null,
     };

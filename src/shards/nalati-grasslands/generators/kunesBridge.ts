@@ -5,10 +5,10 @@ import { kunesBridge } from './catalogue';
 import type { KunesBridgeParams } from '../data/campParams';
 import { deckFloor } from '../world/placeBake';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { M, v3 } from '../world/paint';
-import { pole, blob } from '@wildshard/engine/world/geometryKit';
+import { M, v3 } from './paint';
+import { pole, blob } from './smoothGeometry';
 import { slab, type Box } from '../world/solid';
-import { painted, type Paint } from '../world/painted';
+import { painted, type Paint } from './painted';
 
 
 /**

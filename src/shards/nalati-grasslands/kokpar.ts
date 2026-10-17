@@ -16,7 +16,7 @@
  *   k.update(dt, player.position, mount)       // every frame
  */
 import * as THREE from 'three';
-import { poiMaterial } from './world/paint';
+import { poiMaterial } from './world/modelView';
 import { bakedActorGeometry } from './world/placeBake';
 import layoutRows from './boot/layout.generated.json' with { type: 'json' };
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
