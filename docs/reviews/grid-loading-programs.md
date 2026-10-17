@@ -1,6 +1,6 @@
 # Grid programs during loading
 
-Status: unread
+Status: read (Jake, 2026-10-17 ~11:45 Cancun: *"Grid programs during loading, fine, I read that"*)
 Plan: SHARD-PLATFORM · E435 · G451
 
 The reload Debug row **Grid programs during loading** defaults **Off**.
