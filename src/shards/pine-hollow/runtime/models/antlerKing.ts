@@ -60,19 +60,29 @@ const MAX_LANTERNS = 8, MAX_OWN = 9;
  *  borrows, and where his three lanterns hang off his hull's rack (head-bone local, model units, baked off the hull) */
 interface AdmittedKingKit { readonly library: ModelLibrary<never, never>; readonly lanterns: InferOutput<(typeof SECTIONS)['custom/kingKit']>['lanterns'] }
 let admittedKit: AdmittedKingKit | null = null;
-let kitLoading: Promise<void> | null = null;
-async function admitKingKit(admitted: ShardProduct | undefined): Promise<void> {
+let kitAdmission: Promise<AdmittedKingKit> | null = null;
+async function admitKingKit(admitted: ShardProduct | undefined): Promise<AdmittedKingKit> {
   const product = admitted ?? await (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct('pine-hollow');
   const rows = product.section('custom/kingKit', SECTIONS);
   if (rows.lanterns.length > MAX_LANTERNS) throw new Error('antler-king: more lantern spots than the rack takes');
   const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {},
     geometryPools: [{ url: product.url(rows.pool.url), parts: rows.pool.parts }] }, '[pine-hollow king kit]');
-  await library.preload();
-  admittedKit = { library, lanterns: rows.lanterns };
+  return { library, lanterns: rows.lanterns };
 }
-/** load the King's baked kit once (the shard's kit step, before the fight or a card builds him); a caller without the
- *  product (a cold Model Explorer card) loads the first-party product the world shares */
-export const preloadKingKit = (product?: ShardProduct): Promise<void> => (kitLoading ??= admitKingKit(product));
+/** load the King's baked kit (the shard's kit step, before the fight or a card builds him); a caller without the
+ *  product (a cold Model Explorer card) loads the first-party product the world shares. The kit is admitted once, but
+ *  every call preloads its library again: a world exit disposes the borrowed parts, the library forgets them, and a
+ *  re-entry by the grid road must fetch them anew (the library's own memo makes a warm call free). */
+export async function preloadKingKit(product?: ShardProduct): Promise<void> {
+  const admission = kitAdmission ??= admitKingKit(product);
+  let kit: AdmittedKingKit;
+  try { kit = await admission; } catch (error: unknown) {
+    if (kitAdmission === admission) kitAdmission = null; // a failed admission retries on the next entry
+    throw error;
+  }
+  await kit.library.preload();
+  admittedKit = kit;
+}
 function kingKit(): AdmittedKingKit {
   if (admittedKit === null) throw new Error('[pine-hollow king kit] is not loaded');
   return admittedKit;
