@@ -13,4 +13,5 @@
 **Visual:** A short Opus host review runs at each component's close.
 
 **G467:** generators are not custom code.
+**Floor ledger:** [six-shard inventory and proposed tags](../../../progress/shard-platform/honest-floor-2026-10-17/README.md), pinned at `908dcec0a`; no exemptions granted.
 Paused: SF22 SF57 SF67.
