@@ -4,7 +4,7 @@
 // two landings, the paifang on the second landing with the last flight rising on through it.
 //
 // The PLAN (the flights, landings, the paifang's place: shared with C2) and the physics (`stairColliders()`,
-// `stairFloor(x)`) are the runtime's, ../world/stairPlan.ts. This file (C1, layout-only: baked, ../world/layoutBake.ts)
+// `stairFloor(x)`) live in ./stairPlan.ts. This file (C1, layout-only: baked, ../world/layoutBake.ts)
 // owns everything below SQ_BACK (x < 34.6): the first flight's steps; under the square's two corner towers (which
 // stand only SQ_DEPTH deep, towers.ts) the tea room and the hotpot shop at the foot, the timber skin of the tea house's
 // upper floors and a lit shop row on the towers' end faces; behind the corner towers (SQ_CORNER…SQ_BACK) raised terraces
@@ -27,7 +27,7 @@ import { SURF } from '../look/paint';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
-import { FACE_N, FACE_S, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, SQ_CORNER, STAIR_GATE, stairFloor } from '../world/stairPlan';
+import { FACE_N, FACE_S, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, SQ_CORNER, STAIR_GATE, stairFloor } from './stairPlan';
 
 const { PLAZA, STAIR, Y0 } = NINE_LAYOUT_PLAN;
 

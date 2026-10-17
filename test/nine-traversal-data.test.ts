@@ -4,7 +4,7 @@ import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' wit
 import plan from '../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
 import before from './fixtures/nine-traversal.json' with { type: 'json' };
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
-import { PORTAL_FADE, PORTAL_TRIGGER } from '../src/shards/nine-dragon-stack/data/portals';
+import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import { walkInRide, type PortalRider } from '../src/shards/nine-dragon-stack/runtime/portals/walkInRide';
 
 // Recorded from executable authoring rows at a242b48db before removing their modules.
@@ -27,18 +27,18 @@ function riderAt(x: number, y: number, z: number) {
       return { from, to: to.id, yaw: to.yaw };
     },
   };
-  const ride = () => walkInRide(rider, () => { /* no veil in the simulation */ }, { entries, trigger: PORTAL_TRIGGER, fade: PORTAL_FADE });
+  const ride = () => walkInRide(rider, () => { /* no veil in the simulation */ }, { entries, trigger: portals.trigger, fade: portals.fade });
   return { position, holds, transfers, ride };
 }
 
 test.each(plan.decks)('$edge ring keeps its trigger bounds and mid-fade continuation', deck => {
   const at = riderAt(deck.x, deck.y, deck.z), ride = at.ride();
   // Across the portal plane: just outside, then on the exact accepted boundary.
-  at.position.x = deck.x - deck.nz * (PORTAL_TRIGGER.half + 0.001);
-  at.position.z = deck.z + deck.nx * (PORTAL_TRIGGER.half + 0.001);
+  at.position.x = deck.x - deck.nz * (portals.trigger.half + 0.001);
+  at.position.z = deck.z + deck.nx * (portals.trigger.half + 0.001);
   ride.step(1 / 60); expect(ride.busy()).toBe(false);
-  at.position.x = deck.x - deck.nz * PORTAL_TRIGGER.half;
-  at.position.z = deck.z + deck.nx * PORTAL_TRIGGER.half;
+  at.position.x = deck.x - deck.nz * portals.trigger.half;
+  at.position.z = deck.z + deck.nx * portals.trigger.half;
   ride.step(1 / 60); expect(at.holds).toEqual([true]);
   const saved = ride.snapshot(), resumed = at.ride();
   const heldBeforeRestore = [...at.holds]; resumed.restore(saved);

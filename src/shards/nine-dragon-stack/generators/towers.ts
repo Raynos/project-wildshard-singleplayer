@@ -14,7 +14,7 @@ import { lanternString } from '../look/lanterns';
 import { hipRoof } from './hipRoof';
 import { WORDS } from '../world/words';
 import { buildStairStreet } from './stairstreet';
-import { SQ_DEPTH } from '../world/stairPlan';
+import { SQ_DEPTH } from './stairPlan';
 import { buildStairUpper } from './stairstreet-upper';
 import { NEON, chars } from '../util';
 import { Rng } from '@wildshard/sdk/random';

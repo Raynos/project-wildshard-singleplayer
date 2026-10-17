@@ -2,7 +2,7 @@ import { Group } from 'three';
 import { Portal } from '@wildshard/sdk/entries';
 import { readScene } from '@wildshard/sdk/scene';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { RING, DECK_RING_SHORT, SQUARE_ARRIVAL_AT, SQUARE_RING, SQUARE_ROUTE_TURNS } from '../data/portals';
+import portals from '../data/portals.json' with { type: 'json' };
 
 // The fixed 15 m socket is the format's entry contract; the ring stands one authored metre short of its end.
 const SOCKET_LENGTH = 15;
@@ -17,13 +17,13 @@ const yawAlong = (dx: number, dz: number): number => Math.atan2(-dx, -dz) + 0;
 export function portalEntryScene(): Group {
   const scene = new Group(); scene.name = 'nine.portal-links';
   const y = NINE_FLOOR_PLAN.datum, floor = NINE_FLOOR_PLAN.ids.square;
-  const destination = { id: SQUARE_ARRIVAL_AT.id, at: at(SQUARE_ARRIVAL_AT.x, y + SQUARE_ARRIVAL_AT.dy, SQUARE_ARRIVAL_AT.z), floor, yaw: SQUARE_ARRIVAL_AT.yawDeg * (Math.PI / 180) };
-  const exitAt = at(SQUARE_RING.x, y + SQUARE_RING.dy, SQUARE_RING.z);
-  const route = [at(SQUARE_ARRIVAL_AT.x, y, SQUARE_ARRIVAL_AT.z), ...SQUARE_ROUTE_TURNS.map(([x, z]) => at(x, y, z)), at(SQUARE_RING.x, y, SQUARE_RING.z + 3), exitAt];
+  const destination = { id: portals.squareArrival.id, at: at(portals.squareArrival.x, y + portals.squareArrival.dy, portals.squareArrival.z), floor, yaw: portals.squareArrival.yawDeg * (Math.PI / 180) };
+  const exitAt = at(portals.squareRing.x, y + portals.squareRing.dy, portals.squareRing.z);
+  const route = [at(portals.squareArrival.x, y, portals.squareArrival.z), ...portals.routeTurns.map(([x, z]) => { if (x === undefined || z === undefined) throw new Error('Missing portal route coordinate'); return at(x, y, z); }), at(portals.squareRing.x, y, portals.squareRing.z + 3), exitAt];
   for (const { edge, ix, iz } of EDGES) {
-    const inset = SOCKET_LENGTH - DECK_RING_SHORT, half = NINE_FLOOR_PLAN.cellHalf;
+    const inset = SOCKET_LENGTH - portals.deckRingShort, half = NINE_FLOOR_PLAN.cellHalf;
     const road = { id: `portal.${edge}`, at: at(-ix * half + ix * inset, 0, -iz * half + iz * inset), floor: `${NINE_FLOOR_PLAN.ids.deckPrefix}${edge}`, yaw: yawAlong(-ix, -iz) };
-    const exit = { id: `${SQUARE_RING.id}.${edge}`, at: exitAt, floor, yaw: yawAlong(SQUARE_RING.nx, SQUARE_RING.nz) };
+    const exit = { id: `${portals.squareRing.id}.${edge}`, at: exitAt, floor, yaw: yawAlong(portals.squareRing.nx, portals.squareRing.nz) };
     scene.add(new Portal(edge, { road, destination, exit, links: [{ from: road.id, to: destination.id }, { from: exit.id, to: road.id }], route }));
   }
   return scene;
@@ -38,7 +38,7 @@ export function portalPlanRows(): {
   square: { id: string; x: number; y: number; z: number; nx: number; nz: number };
   route: [number, number, number][];
   floors: { square: string; deckPrefix: string };
-  ring: typeof RING;
+  ring: typeof portals.ring;
 } {
   const entries = portalEntryRows();
   const decks = EDGES.map(({ edge, ix, iz }) => {
@@ -50,5 +50,5 @@ export function portalPlanRows(): {
   const first = entries[0]?.portal;
   if (first === undefined) throw new Error('Missing authored square portal');
   const [x, y, z] = first.exit.at;
-  return { decks, square: { id: SQUARE_RING.id, x, y, z, nx: SQUARE_RING.nx, nz: SQUARE_RING.nz }, route: first.route, floors: NINE_FLOOR_PLAN.ids, ring: RING };
+  return { decks, square: { id: portals.squareRing.id, x, y, z, nx: portals.squareRing.nx, nz: portals.squareRing.nz }, route: first.route, floors: NINE_FLOOR_PLAN.ids, ring: portals.ring };
 }

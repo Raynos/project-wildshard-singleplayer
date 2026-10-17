@@ -7,10 +7,8 @@ import type { PortalTraversalPorts } from '@wildshard/game/shardfile/portalTrave
 import { type PortalPlayer as Player, type PortalRide as Ride, type PortalRideState as RideState, type PortalRider as Rider, playerRider as sdkPlayerRider, declaredPortals, walkInRide } from '../runtime/portals/walkInRide';
 import type { RideSlot } from '../runtime/portals/rideVeil';
 import source from '../shard.config';
-import { PORTAL_FADE as FADE, PORTAL_TRIGGER } from '../data/portals';
+import portals from '../data/portals.json' with { type: 'json' };
 
-/** s: the fade to dark, the hold in the dark (the move happens as it starts), the fade back (data/portals.ts) */
-export const PORTAL_FADE: typeof FADE = FADE;
 /** what the ride needs of the player */
 export type PortalRider = Rider;
 /** the portals while they run (captures and tests read them through the plugin's `portals`) */
@@ -27,7 +25,7 @@ export type PortalSlot = RideSlot;
 export function portalRide(rider: PortalRider, veil: (k: number) => void): PortalRide {
   const stages = source.directors?.find(row => row.id === 'nine.portal-ride');
   if (stages === undefined) throw new Error('Missing Nine portal director declaration');
-  return walkInRide(rider, veil, { entries: declaredPortals(source), trigger: PORTAL_TRIGGER, fade: PORTAL_FADE, stages });
+  return walkInRide(rider, veil, { entries: declaredPortals(source), trigger: portals.trigger, fade: portals.fade, stages });
 }
 
 /** the player's side of the ride, transferring between shard.config.ts's four declared portal links */

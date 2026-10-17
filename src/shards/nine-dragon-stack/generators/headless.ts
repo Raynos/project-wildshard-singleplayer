@@ -4,7 +4,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { treadBoxes } from '@wildshard/engine/physics/pieces';
 import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
 import capRows from '../data/deckCaps.generated.json' with { type: 'json' };
-import { PORTAL_FADE, PORTAL_TRIGGER } from '../data/portals';
+import portals from '../data/portals.json' with { type: 'json' };
 import source from '../shard.config';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
@@ -24,10 +24,10 @@ const NINE_PIECES = v.parse(v.array(Piece), baked.pieces);
 const NINE_HOOKS = v.parse(v.array(Vec), baked.hooks);
 /** The engine's own HUD / Weapon Explorer arena (engine/practice), registered under every Developer page: not Nine's world. */
 const PRACTICE = 'src/engine/practice/';
-/** The fragment's floors piece (world/install.ts), which carries the standalone deck caps. */
+/** The fragment's floors piece (plugin.ts world stage), which carries the standalone deck caps. */
 const FLOORS = 'nds-floors';
 /**
- * The cell as the grid builds it: a standalone page closes each deck's open end with its balustrade cap (world/install.ts
+ * The cell as the grid builds it: a standalone page closes each deck's open end with its balustrade cap (plugin.ts world stage
  * `data/deckCaps.generated.json`), the grid leaves the decks open to the road. The headless cell is the grid's,
  * so exactly those boxes leave the baked floors piece; each must be found, or the bake no longer matches the recipe.
  */
@@ -46,7 +46,7 @@ function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
  * float32 payload. No runtime adapter filters or rewrites this payload. */
 export const headlessConstants: Record<string, unknown> = {
   spawnY: source.spawn.y + 0.1, hooks: NINE_HOOKS,
-  fade: PORTAL_FADE, trigger: PORTAL_TRIGGER,
+  fade: portals.fade, trigger: portals.trigger,
   pieces: NINE_PIECES.filter(piece => piece.active && !piece.file.startsWith(PRACTICE)).map(piece => ({
     id: piece.id, name: piece.name, category: 'buildings', file: piece.file, active: true,
     surface: piece.surface ?? 'wood', owner: piece.colliderOwner ?? piece.id,

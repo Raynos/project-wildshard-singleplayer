@@ -4,7 +4,6 @@
 // page keeps — the crossings' colliders and the fog sheets' heights.
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { floorBoxes } from './boxRows';
 import { WELL, Y0 } from '../layout';
 
 /** the canyon's run north under the Cable Deck (its ceiling is the deck's sky screen at +155 m) */
@@ -28,16 +27,6 @@ export const WELL_RECTS = [
 
 /** the gondola's cable runs along x at this z, y (build.ts slides the cabin between x0 + 5 and x1 − 5) */
 export const CABLE = { z: -12, y: Y0 - 16, x0: WELL.x0, x1: WELL.x1 } as const;
-
-/**
- * The rim's collision (for the port lead's colliders.ts): the south ledge's floor at the datum, its balustrade and an
- * invisible parapet to +3.2 m (nobody vaults into the shaft), the wall at its west end and the building face behind
- * it. The ledge meets the square's balustrade line at x = 0: the square's own parapet there has to open over
- * z RIM.z0…RIM.z1 for the ledge to be reachable. Nothing below the rim is walkable in the fragment.
- */
-export function wellColliders(): ColliderDesc[] {
-  return floorBoxes('well');
-}
 
 /** the rim ledge's floor under (x, z), or undefined */
 export function wellFloor(x: number, z: number): number | undefined {

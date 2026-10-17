@@ -28,7 +28,7 @@ function piece(id: string, name: string, file: string, colliders: NinePhysicsPla
  * The remaining mesh-derived model/crossing placements stay outside this component job.
  * Caps are the standalone bake's original closed road ends; the grid keeps its live open-cap law.
  */
-export function ninePhysicsPlacements(): NinePhysicsPlacement[] {
+export function ninePhysicsPlacements(withCaps = true): NinePhysicsPlacement[] {
   const boxes = floorBoxRows(), caps = deckCapRows();
   const { stair, datum } = NINE_FLOOR_PLAN;
   const rise = stair.rise / 60, landing = 4, run = (stair.x1 - stair.x0 - 2 * landing) / 60;
@@ -42,7 +42,7 @@ export function ninePhysicsPlacements(): NinePhysicsPlacement[] {
   const file = 'src/shards/nine-dragon-stack/world/colliders.ts';
   const floors = piece('nds-floors', 'Lantern Square', 'src/shards/nine-dragon-stack/world/build.ts', [
     ...nativeBoxes(boxes.street), ...flights, ...nativeBoxes(boxes.stairLandings), ...nativeBoxes(boxes.stairTop), ...nativeBoxes(boxes.well),
-    ...nativeBoxes(caps.north), ...nativeBoxes(caps.south), ...nativeBoxes(caps.east), ...nativeBoxes(caps.west),
+    ...(withCaps ? [...nativeBoxes(caps.north), ...nativeBoxes(caps.south), ...nativeBoxes(caps.east), ...nativeBoxes(caps.west)] : []),
   ]);
   const portals = portalFloorRows().map(row => {
     const result = piece(`nds-${row.id}`, row.id === NINE_FLOOR_PLAN.ids.square ? 'Lantern Square slab' : `Landing deck (${row.id})`,
@@ -56,4 +56,11 @@ export function ninePhysicsPlacements(): NinePhysicsPlacement[] {
     ...piece('nds-grapple-guard', 'The Well safety cap', file, nativeBoxes(boxes.guard)),
     follows: { matrix: guard.matrixWorld.toArray(), rotation: true },
   }];
+}
+
+/** Page registration uses these same authored rows; only standalone closes the road ends. */
+export function nineWorldInstallRows(): { standalone: NinePhysicsPlacement[]; cell: NinePhysicsPlacement[]; crossings: Pick<NinePhysicsPlacement, 'id' | 'name' | 'category' | 'file' | 'surface'> } {
+  const standalone = ninePhysicsPlacements();
+  return { standalone, cell: ninePhysicsPlacements(false),
+    crossings: { id: 'nds-crossings', name: "The Well's crossings", category: 'buildings', file: 'src/shards/nine-dragon-stack/world/wellBounds.ts', surface: 'stone' } };
 }

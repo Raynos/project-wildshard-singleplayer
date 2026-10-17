@@ -1,10 +1,10 @@
 // G224 (E435): the portals' fade veil in the HUD, on the SDK's ride veil (@wildshard/sdk/portals/rideVeil). The ride
 // itself is renderer-free in world/portalRide.ts and runs the same in the headless host (runtime/portals.ts); this is only
-// the page's view of its fade (data/portals.ts PORTAL_VEIL).
+// the page's view of its fade (data/portals.json veil).
 import { installRideVeil } from '../runtime/portals/rideVeil';
 import { portalRide, type PortalRide, type PortalRider, type PortalSlot } from './portalRide';
 import { rideFeats, type NineFacts } from './feats';
-import { PORTAL_VEIL } from '../data/portals';
+import portals from '../data/portals.json' with { type: 'json' };
 
 /**
  * install the portals' ride for this session: the fade veil in the HUD (owned by the level's scope, so it goes with the
@@ -12,5 +12,5 @@ import { PORTAL_VEIL } from '../data/portals';
  * that lands in Lantern Square reports the square's fact (world/feats.ts) to `fact`
  */
 export function installPortals(slot: PortalSlot, rider: PortalRider, fact: NineFacts = () => { /* no ledger */ }): PortalRide {
-  return installRideVeil(slot, rider, PORTAL_VEIL, 'NdPortalVeil', portalRide, (ride) => rideFeats(ride.step, ride.rides, fact));
+  return installRideVeil(slot, rider, portals.veil, 'NdPortalVeil', portalRide, (ride) => rideFeats(ride.step, ride.rides, fact));
 }

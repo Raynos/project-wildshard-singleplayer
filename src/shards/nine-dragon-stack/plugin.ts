@@ -6,7 +6,7 @@ import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment, bindRuntimeItems } from '@wildshard/game/plugin/headless';
-import { BufferGeometryLoader, MaterialLoader, type PerspectiveCamera } from 'three';
+import { BufferGeometryLoader, MaterialLoader, Group, type PerspectiveCamera } from 'three';
 import * as v from 'valibot';
 import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import { FEI_ZHUA_ROW } from './grapple/row';
@@ -15,7 +15,11 @@ import { GRAPPLE_PLAYGROUND } from './playground/registration';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
-import { installWorld } from './world/install';
+import worldInstall from './world/install.generated.json' with { type: 'json' };
+import { fragmentFloor } from './world/colliders';
+import { entryDeckFloor } from './world/floorRows';
+import { crossingColliders } from './world/wellBounds';
+import { NdRuntime, ownNdRuntime } from './runtime/state';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { bindNineFacts } from './runtime/facts';
@@ -139,7 +143,22 @@ export class NdPlugin extends ShardPlugin {
     const { world, camera } = await this.build(ctx, entryCapsFor(ctx.cube), () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     this.ndWorld = world;
-    const rt = installWorld(ctx, world, camera);
+    const rt = new NdRuntime(world, camera);
+    ownNdRuntime(scope, rt);
+    const point = v.strictObject({ x: v.number(), y: v.number(), z: v.number() });
+    const collider = v.variant('kind', [
+      v.strictObject({ kind: v.literal('box'), x: v.number(), y: v.number(), z: v.number(), hx: v.number(), hy: v.number(), hz: v.number(), surface: v.literal('stone') }),
+      v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: v.number(), count: v.number(), surface: v.literal('stone') }),
+    ]);
+    const rows = v.parse(v.array(v.object({ id: v.string(), name: v.string(), category: v.literal('buildings'), file: v.string(),
+      surface: v.literal('stone'), colliderOwner: v.exactOptional(v.string()), colliders: v.array(collider) })), world.entryCaps === true ? worldInstall.standalone : worldInstall.cell);
+    const pieces: Parameters<ShardContext['piece']>[0][] = [];
+    for (const row of rows) pieces.push({ ...row,
+      ...(row.id === 'nds-floors' ? { object: world.root, floor: (x: number, z: number) => fragmentFloor(x, z) ?? entryDeckFloor(x, z), solidFloor: true } : {}),
+    });
+    for (const piece of pieces) ctx.piece(piece.id === 'nds-grapple-guard' ? { ...piece, follows: new Group(), active: () => !rt.guardOpen } : piece);
+    ctx.piece({ ...worldInstall.crossings, category: 'buildings', surface: 'stone', colliders: [...crossingColliders()] });
+    ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }

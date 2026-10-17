@@ -24,7 +24,7 @@ import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
 import { hipRoof } from './hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from './stairPlan';
 import { SURF } from '../look/paint';
 import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';

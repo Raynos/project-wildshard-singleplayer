@@ -2,9 +2,9 @@
 // stairstreet-upper.ts build its look at layout time, baked: ./layoutBake.ts): three flights of 20 steps, two 4 m landings,
 // the top landing, the paifang's place, the tower faces either side; `stairColliders()` (rise 0.35 ≤ 0.35, tread
 // 0.667 ≥ 0.36, PHYSICS.md) and `stairFloor(x)`, which ./colliders.ts takes, and the constants build.ts's stair streaks read.
-import { floorBoxes } from './boxRows';
-import { PLAZA, STAIR, Y0 } from '../layout';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+
+const { square: PLAZA, stair: STAIR, datum: Y0 } = NINE_FLOOR_PLAN;
 
 // ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
 
@@ -51,13 +51,5 @@ export function stairFloor(x: number): number {
   return TOP_Y;
 }
 
-/** the stair's physics: three `treads` flights and the two landing slabs (the paifang's four post bases with their drum
- *  stones collide as the paifang model's own, placed with its copy on landing 2: models/paifang.ts, E346) */
-export function stairColliders(): ColliderDesc[] {
-  const zc = (STAIR.z0 + STAIR.z1) / 2, w = STAIR.z1 - STAIR.z0;
-  const out: ColliderDesc[] = FLIGHTS.map((f) => ({
-    kind: 'treads', from: { x: f.x0, y: f.y0, z: zc }, to: { x: f.x1, y: f.y0 + f.steps * RISE, z: zc }, width: w, count: f.steps, surface: 'stone',
-  }));
-  out.push(...floorBoxes('stairLandings'));
-  return out;
-}
+/** Static inputs for the live stair streaks and original floor query. */
+export function stairPlanData(): { FACE_N: number; FACE_S: number; FAR_X: number; FLIGHTS: readonly Flight[]; LANDINGS: typeof LANDINGS; RISE: number; RUN: number; TOP_Y: number } { return { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y }; }

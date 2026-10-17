@@ -32,7 +32,7 @@ import { buildStreaks, stairStreaks } from '../look/streaks';
 import { buildFacade, nameDraws } from './facade/batch';
 import { facadeUniforms } from '../look/facadeMaterial';
 import { STAIR, WELL, Y0 } from '../layout';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } from './stairPlan';
+import stairPlan from './stairPlan.generated.json' with { type: 'json' };
 import { loadPaint } from '../look/paint';
 import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
 import { installLight } from '../look/light/install';
@@ -293,6 +293,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   root.add(named(buildStreaks(shared, onSquare, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)), 'streaks'));
   await slice();
   // the stair-street's: its treads and landings under the emitters over it (the render agent's)
+  const { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } = stairPlan;
   const onStair = emitters.filter((e) => e.at.x > STAIR.x0 - 4 && e.at.x < FAR_X && e.at.z > FACE_N - 6 && e.at.z < FACE_S + 6 && e.at.y > Y0 + 0.3 && e.at.y < TOP_Y + 40);
   for (const m of stairStreaks(shared, onStair, { flights: FLIGHTS, landings: LANDINGS, rise: RISE, run: RUN, z0: STAIR.z0, z1: STAIR.z1 })) root.add(named(m, 'streaks-stair'));
 
