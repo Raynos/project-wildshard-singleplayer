@@ -42,7 +42,7 @@ import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/pa
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
-import { createClientChannels } from '@wildshard/game/plugin/ui';
+import { createClientChannels } from '@wildshard/game/plugin/channels';
 import { NALATI_FAR_HERD_CHANNELS } from '../data/clientMotion';
 
 /** the GLSL below is trusted custom code (runtime/looks/bowlGlsl.ts); `@{name}` splices the fragments this module passes */

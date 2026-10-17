@@ -1,7 +1,8 @@
+import { bindBorrowedMethod } from '../src/game/plugin/borrowed';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
-import { bindBorrowedMethod, HybridRuntimePlugin, type HybridRuntimeRows, type QuestCaptureRows } from '../src/game/plugin/headless';
+import { HybridRuntimePlugin, type HybridRuntimeRows, type QuestCaptureRows } from '../src/game/plugin/headless';
 
 class Capture extends HybridRuntimePlugin {
   protected rows(): HybridRuntimeRows { throw new Error('Capture-only fixture has no world rows'); }

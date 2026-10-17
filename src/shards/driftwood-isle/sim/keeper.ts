@@ -3,7 +3,8 @@ import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { createNativeHunt, huntRosterContinuation, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import { createNativeCreaturePoses } from '@wildshard/game/plugin/animation';
-import { animateCrab } from '../species/crabPose';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
 import { animateMonkey } from '../species/monkeyPose';
 import { animateSailor } from '../species/sailorPose';
 import { animateCaptain } from '../species/captainPose';
@@ -42,7 +43,7 @@ const ANIM_LOD = 140;
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
 const FAUNA = new Set(['boar', 'bear']);
 /** What a renderer-free body adds for the hunting brain: never hidden (no view), no ground tilt to sample. */
-const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey], ['sailor', animateSailor], ['captain', animateCaptain]]);
+const POSE_CALLBACKS = new Map([['crab', numericCreaturePose(crabClips)], ['monkey', animateMonkey], ['sailor', animateSailor], ['captain', animateCaptain]]);
 
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }

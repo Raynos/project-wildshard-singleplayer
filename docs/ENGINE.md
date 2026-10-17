@@ -8371,3 +8371,7 @@ and works on the same renderer-free joints as the native pose owner.
 Driftwood's crab and Pine's living thralls consume build-emitted JSON rows.
 The existing numeric DAG's `pow` operation preserves native `Math.pow`
 semantics, including the crab's squared smoothstep and thrall's sharp jerk.
+
+The numeric evaluator, scalar binders and detached frame types are defined
+in `game/plugin/channels`; browser UI imports that module. Native pose
+imports therefore load no DOM or CSS presentation code.

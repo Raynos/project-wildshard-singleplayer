@@ -71,11 +71,14 @@ provideNalatiDressing(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFi
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');
-registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
+const { THRALL_CLIPS } = await import('../src/shards/pine-hollow/generators/thrallClips');
+const { default: thrallLook } = await import('../src/shards/pine-hollow/data/thrallLook.json');
+const { numericCreaturePose } = await import('../src/game/plugin/channelPrograms');
+registerSpecies(speciesWithLook(PINE_BOAR, { ...PINE_BOAR_LOOK, postPose: numericCreaturePose(THRALL_CLIPS) }));
 // and its elk thrall (E405: Pine's, derived from the kit's elk)
 const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { pineElkLook } = await import('../src/shards/pine-hollow/species/looks');
-registerSpecies(speciesWithLook(pineElk(), pineElkLook()));
+registerSpecies(speciesWithLook(pineElk(), pineElkLook({ pose: THRALL_CLIPS, ...thrallLook })));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
 const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');

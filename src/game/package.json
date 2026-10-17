@@ -120,7 +120,9 @@
     "./shardfile/socketLift": "./shardfile/socketLift.ts",
     "./shardfile/portalLink": "./shardfile/portalLink.ts",
     "./shardfile/dataCreaturePorts": "./shardfile/dataCreaturePorts.ts",
-    "./bag/findsCatalogue": "./bag/findsCatalogue.ts"
+    "./bag/findsCatalogue": "./bag/findsCatalogue.ts",
+    "./plugin/borrowed": "./plugin/borrowed.ts",
+    "./plugin/channels": "./plugin/channels.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

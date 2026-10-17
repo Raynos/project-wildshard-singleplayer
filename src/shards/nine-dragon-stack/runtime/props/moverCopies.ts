@@ -3,7 +3,7 @@
 import type { Object3D } from 'three';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
-import { createClientChannels } from '@wildshard/game/plugin/ui';
+import { createClientChannels } from '@wildshard/game/plugin/channels';
 import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 
 /** One private decorative copy, with no authoritative body or write port exposed. */

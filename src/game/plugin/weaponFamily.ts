@@ -1,6 +1,7 @@
-import { readBorrowedOwner, type BorrowedOwnerPath } from './headless';
+import { createClientChannels, bindClientChannelInputs } from './channels';
+import { readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { bindMeleeContacts } from './simulation';
-import { createClientChannels, bindClientChannelInputs, createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
+import { createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { type Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget, WorldContactDispatcher } from "@wildshard/engine/combat/contactWeapon";

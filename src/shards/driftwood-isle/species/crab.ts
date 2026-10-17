@@ -1,4 +1,5 @@
-import { animateCrab } from './crabPose';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
@@ -44,6 +45,6 @@ export const CRAB_LOOK: SpeciesLook = {
   rig: 'custom',
   // the lofted shell, claws and legs, baked offline (generators/creatureBodies.ts, the big crab's claws a quarter larger)
   build: (v) => creatureBody('crab', v.id),
-  animate: animateCrab,
+  animate: numericCreaturePose(crabClips),
   damageMul: crabDamageMul,
 };

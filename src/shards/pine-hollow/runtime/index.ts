@@ -158,7 +158,7 @@ export class PineHollow extends ShardPlugin {
     installRuntimeAudioEntry(ctx,'kit',{audio});
     registerKing();
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
-    ctx.rows.speciesLook(pineLooks());
+    ctx.rows.speciesLook(pineLooks(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/creature-clips.json')))));
     ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
     const inventory = ctx.product.section('custom/questInventory', SECTIONS);
     ctx.rows.item(inventory.items);

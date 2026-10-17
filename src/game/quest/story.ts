@@ -1,3 +1,4 @@
+import { bindBorrowedMethod } from '../plugin/borrowed';
 import { questBenchPose } from './storyLaw';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
@@ -11,7 +12,7 @@ import type { QuestState } from '@wildshard/engine/quest/core';
 import type { Progress } from '../Progress';
 import { progressSave } from '../saves';
 import { createAchievementCounters } from '../achievements';
-import { bindRuntimeLedger, bindRuntimeJsonRecord, bindBorrowedMethod, type RuntimeFacts } from '../plugin/headless';
+import { bindRuntimeLedger, bindRuntimeJsonRecord, type RuntimeFacts } from '../plugin/headless';
 import type { ShardContext } from '../plugin/context';
 import { type QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
 

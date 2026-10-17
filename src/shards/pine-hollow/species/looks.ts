@@ -6,14 +6,19 @@ import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
 import { preloadPineCreatures, skinPineHull } from '../runtime/species/hulls';
 import { hullBody } from './bodies';
-import { ELK_THRALL_TINT, THRALL_TRAITS, thrallPose } from './thrall';
+import * as lookSchema from 'valibot';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+
+const thrallLookSchema = lookSchema.strictObject({ pose: lookSchema.unknown(),
+  traits: lookSchema.record(lookSchema.string(), lookSchema.number()),
+  tint: lookSchema.record(lookSchema.string(), lookSchema.tuple([lookSchema.number(), lookSchema.number(), lookSchema.number()])),
+});
 
 export const PINE_BOAR_LOOK: SpeciesLook = {
   ...BOAR_LOOK, id: 'pine.look.boar', species: 'pine.creature.boar',
-  postPose: thrallPose,
   variants: { ...BOAR_LOOK.variants, thrall: {
     tint: { base: [0.20, 0.19, 0.13], grizzle: [0.34, 0.36, 0.22], dark: [0.09, 0.09, 0.06], black: [0.04, 0.04, 0.03], cheek: [0.26, 0.26, 0.18] },
-    traits: { tuskScale: 1.4, ...THRALL_TRAITS },
+    traits: { tuskScale: 1.4, thrall: 1 },
   } },
   preload: preloadPineCreatures,
   skin: (v, bones) => skinPineHull('boar', v.id, bones),
@@ -39,11 +44,16 @@ const legacyLook = (kind: string, def: SpeciesDef = speciesDef(kind), hullOnly =
   },
 });
 /** Pine's elk look: the kit elk's, plus the thrall's dead olive coat, glass eyes and moss (its traits) and its stiff gait */
-export function pineElkLook(): SpeciesLook {
+export function pineElkLook(input: unknown): SpeciesLook {
+  const thrall = lookSchema.parse(thrallLookSchema, input);
   const look = legacyLook('elk', { ...ELK, build: hullBody('elk') }, true);
-  return { ...look, postPose: thrallPose, variants: { ...look.variants, thrall: { tint: ELK_THRALL_TINT, traits: { antlers: 1, ...THRALL_TRAITS } } } };
+  return { ...look, postPose: numericCreaturePose(thrall.pose), variants: { ...look.variants, thrall: { tint: thrall.tint, traits: { antlers: 1, ...thrall.traits } } } };
 }
-export function pineLooks(): SpeciesLook[] { return [PINE_BOAR_LOOK, PINE_BEAR_LOOK, legacyLook('deer', { ...DEER, build: hullBody('deer') }, true), pineElkLook(), legacyLook('antler-king', undefined, true)]; }
+export function pineLooks(input: unknown): SpeciesLook[] {
+  const thrall = lookSchema.parse(thrallLookSchema, input), postPose = numericCreaturePose(thrall.pose);
+  return [{ ...PINE_BOAR_LOOK, postPose }, PINE_BEAR_LOOK, legacyLook('deer', { ...DEER, build: hullBody('deer') }, true),
+    pineElkLook(thrall), legacyLook('antler-king', undefined, true)];
+}
 
 /** King registers its bespoke body at prewarm; only the hull strategy must be declared at kit. */
 export const KING_HULL_LOOK: Pick<SpeciesLook, 'preload' | 'skin'> = {

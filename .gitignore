@@ -1931,3 +1931,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Retained Driftwood quest story and registration compiler.
 /src/shards/driftwood-isle/data/questRows.generated.json
 /src/shards/driftwood-isle/data/npcScenes.generated.json
+
+# Build-only creature numeric pose rows.
+/src/shards/driftwood-isle/data/crabClips.generated.json
