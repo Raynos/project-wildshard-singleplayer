@@ -40,7 +40,11 @@ async function run(browser, base, mode, out) {
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
     if (mode === 'template') url.searchParams.set('chunk', '_template');
     await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+    const titleDeadline = Date.now() + 150000;
     await page.locator('.ws-main-select').waitFor({ state: 'visible', timeout: 150000 });
+    // The title DOM appears before cold shaders finish. Its loading overlay
+    // still owns input; wait within the same title budget before a real tap.
+    await page.locator('.ws-load').waitFor({ state: 'hidden', timeout: Math.max(1, titleDeadline - Date.now()) });
     if (mode === 'template') {
       await page.locator('.ws-main-select').tap();
       // SF65's data-only template has a disabled LEGACY button and an explicit SHARDFILE entry.

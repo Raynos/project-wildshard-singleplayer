@@ -23,7 +23,9 @@ jobs:
     # newest waited 10.5 min for a macOS runner). Job-level, so the skipped runs (release / failed CI) never take the slot.
     # A dispatch proves its own SHA in its own group.
     # Build/setup plus both serial HOVER engines exceeded the 12-minute job deadline on 2026-10-12.
-    # Each browser now has its own leg and unchanged drive. Every leg is required for the exact-SHA verdict.
+    # Each browser has its own leg and unchanged drive. Cold source generation/build now takes 7-9 minutes
+    # (2026-10-17); reserve the outer job for that build and every existing bounded browser case.
+    # Every leg is required for the exact-SHA verdict; gameplay deadlines remain unchanged.
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +34,7 @@ jobs:
       group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
     runs-on: macos-15
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:

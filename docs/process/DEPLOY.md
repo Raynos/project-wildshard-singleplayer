@@ -65,7 +65,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   90-second budget; a prepared cell or a ready home cannot substitute for Signal entry.
   Four macOS legs keep public and Developer cases separate (`boot-public`, `boot-developer`, `hover-chromium` and
   `hover-webkit`: each browser's complete touch HOVER mounts). Build/setup plus both
-  serial HOVER drives exceeded the 12-minute deadline on 2026-10-12; separate legs keep that deadline and every case.
+  serial HOVER drives exceeded the 12-minute deadline on 2026-10-12. Each leg now has a 20-minute outer deadline:
+  cold source generation and the complete build took 7–9 minutes on 2026-10-17, leaving too little of 12 minutes
+  for the required browser cases. Every case and its gameplay deadline remain unchanged. HOVER waits for the
+  loading overlay to close within its existing 150-second title budget before tapping the real entry button.
   The `verdict` job requires all four legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
   release waits within the same run while a newer CI-green candidate's exact-SHA smoke is pending. A newly completed
