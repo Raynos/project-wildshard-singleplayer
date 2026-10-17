@@ -1,5 +1,5 @@
 import { KEEPER_ROW } from './keeperLook';
-import { DECK } from '../data/layout';
+import { DECK } from "./layout";
 import { STRINGS } from '../data/strings';
 
 /** The keeper's original anchor and always-registered, always-unmet motion, including an unloaded model. */

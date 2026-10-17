@@ -1,4 +1,4 @@
-import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../data/layout';
+import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from "./layout";
 import { SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { STRINGS } from '../data/strings';
 import { COMPLETE_FLAG } from '../data/signalQuest';

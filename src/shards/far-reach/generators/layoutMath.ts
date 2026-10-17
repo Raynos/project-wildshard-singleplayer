@@ -1,4 +1,4 @@
-import { KNOLLS, ROOST, ROPE_SAG, APOTHEM, type Isle, type Knoll, type SPIRES, type Span } from './data/layout';
+import { KNOLLS, ROOST, ROPE_SAG, APOTHEM, type Isle, type Knoll, type SPIRES, type Span } from './layout';
 
 /**
  * The maths over Sky Reach's coordinates (`data/layout.ts` holds the coordinates themselves, as pure data: a data module

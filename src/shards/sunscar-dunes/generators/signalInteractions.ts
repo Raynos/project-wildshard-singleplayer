@@ -1,4 +1,4 @@
-import { BRAZIERS } from '../data/layout';
+import { BRAZIERS } from "./layout";
 import { FLAG, SCOUT_FLAG } from '../data/flags';
 
 /** The script command actor that carries Signal's interactions (`{ kind: 'script', actorId, value: SIGNAL_ACT.* }`). */

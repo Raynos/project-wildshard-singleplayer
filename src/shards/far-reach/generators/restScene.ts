@@ -3,7 +3,7 @@ import { LECTERN } from '../data/bookStand';
 import { REST_URLS } from '../data/restFiles';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry, SphereGeometry } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
-import { SPANS, UPDRAFT } from '../data/layout';
+import { SPANS, UPDRAFT } from "./layout";
 import { STORM } from '../data/storm';
 
 /** Original winch parts in their local frame; wood and rope remain named client material owners. */

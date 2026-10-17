@@ -1,7 +1,7 @@
 import { BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3 } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { NEST, ROOST, SPIRES } from '../data/layout';
-import { spireAt } from '../layout';
+import { NEST, ROOST, SPIRES } from "./layout";
+import { spireAt } from "./layoutMath";
 import { foldKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
 

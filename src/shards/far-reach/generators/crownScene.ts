@@ -1,6 +1,6 @@
 import { parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import STONES from '../data/crownInstances.generated.json' with { type: 'json' };
-import { CROWN, DAIS } from '../data/layout';
+import { CROWN, DAIS } from "./layout";
 
 /** Prepared carved stones and dais retain their authored world frames and painted material ports. */
 export function crownSceneSource(): Uint8Array {

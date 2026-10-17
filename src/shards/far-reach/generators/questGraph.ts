@@ -1,5 +1,5 @@
 import { SKY_ACT, SKY_INTERACT } from './questPrompts';
-import { VANES } from '../data/layout';
+import { VANES } from "./layout";
 import FLAGS from '../data/flags.json' with { type: 'json' };
 
 /** The native quest keeps its original fixed step; external driving adds no adapter or saved cursor. */

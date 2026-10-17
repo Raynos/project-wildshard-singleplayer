@@ -1,6 +1,6 @@
 import { Euler, Quaternion, Vector3 } from 'three';
 import type { BoxColliderData } from '@wildshard/sdk/physics';
-import { SPANS, FALLEN_BRIDGE, UPDRAFT, ROPE_SAG, type Span } from '../data/layout';
+import { SPANS, FALLEN_BRIDGE, UPDRAFT, ROPE_SAG, type Span } from "./layout";
 import { STRINGS } from '../data/strings';
 import { risingIsletRows } from './risingIslets';
 

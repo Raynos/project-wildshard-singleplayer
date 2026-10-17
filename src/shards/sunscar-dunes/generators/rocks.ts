@@ -1,6 +1,6 @@
 import { Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
 import { Rng } from '@wildshard/sdk/random';
-import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../data/layout';
+import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from "./layout";
 import { signalDunesField } from './tiles';
 import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';

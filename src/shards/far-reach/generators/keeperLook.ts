@@ -1,6 +1,6 @@
 import { KEEPER_FIGURE } from '../data/keeperFigure';
 import FLAGS from '../data/flags.json' with { type: 'json' };
-import { SPAWN } from '../data/layout';
+import { SPAWN } from "./layout";
 import { KEEPER_AT } from './quests';
 import { KEEPER_NPC } from './keeperDialogue';
 

@@ -2,8 +2,8 @@ import { Euler, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { facetedGeometry, fitModel } from './modelIntake';
-import { FALLEN_BRIDGE, SPANS, type Span } from '../data/layout';
-import { ropeSag } from '../layout';
+import { FALLEN_BRIDGE, SPANS, type Span } from "./layout";
+import { ropeSag } from "./layoutMath";
 import { RISING_ISLETS } from './risingIslets';
 import { SKY_AO_FLOOR } from '../data/modelFrames';
 import { MODEL_URLS } from '../data/files';

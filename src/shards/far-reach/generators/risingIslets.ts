@@ -1,5 +1,5 @@
 import { Entry, type EntryData } from '@wildshard/sdk/entries';
-import { APOTHEM, GROVE, ROOST, RUIN, SUNREST, type Isle, type Span } from '../data/layout';
+import { APOTHEM, GROVE, ROOST, RUIN, SUNREST, type Isle, type Span } from "./layout";
 import { ISLET, SOCKET_DEPTH, type EntryEdge, type P3, type LandingBox, type GateBox, type IsleStrip, type RisingIslet } from '../data/isletDesign';
 
 const CHUNK_HALF = new Entry('north').position.z;

@@ -486,8 +486,8 @@
       "export": "SIGNAL_DUNES_RUNTIME_COST"
     },
     "mapPalette": {
-      "module": "./data/minimap",
-      "export": "SIGNAL_DUNES_MAP"
+      "module": "./data/mapPalette.generated.json",
+      "export": "default"
     },
     "poses": {
       "module": "./data/devPoses",

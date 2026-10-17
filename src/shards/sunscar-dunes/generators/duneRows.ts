@@ -1,4 +1,4 @@
-import { BASIN, CREST_LINES, CRESTS, LANDFORMS, PADS, SPAWN } from './layout';
+import * as LAYOUT from './layout';
 
 type V2 = readonly [number, number];
 
@@ -55,14 +55,14 @@ export interface DuneFieldRow {
  *   faces the dune sea keeps its own relief; spots: the pads ease out over 4.6 × their radius (at least 46 m).
  */
 export const DUNE_FIELD: DuneFieldRow = {
-  wind: { x: -0.643, z: 0.766 }, wave: 150, lee: 0.3, ampMax: 24, spawnPhase: 0.69, spawn: { x: SPAWN.x, z: SPAWN.z },
+  wind: { x: -0.643, z: 0.766 }, wave: 150, lee: 0.3, ampMax: 24, spawnPhase: 0.69, spawn: { x: LAYOUT.SPAWN.x, z: LAYOUT.SPAWN.z },
   warp: { bow: 0.0225, bowAmp: 14, noise: 0.0035, noiseAmp: 18 },
   amp: { base: 19, noise: 6.4, v: [0.006, 7], u: [0.002, -3] },
   damp: { edge: [125, 55, 0.6], basin: [60, 0.45] },
   floor: 2, relief: { amp: 3.5, scale: 0.0024, x: -11, z: 5 },
-  basin: { x: BASIN.x, z: BASIN.z, r: BASIN.r, floor: BASIN.floor }, basinFloor: 0.8, bowlEase: 30,
-  crestLines: CREST_LINES, landforms: LANDFORMS,
-  spots: [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: p.lift ?? 0, ease: p.ease ?? Math.max(p.r * 4.6, 46) }))],
+  basin: { x: LAYOUT.BASIN.x, z: LAYOUT.BASIN.z, r: LAYOUT.BASIN.r, floor: LAYOUT.BASIN.floor }, basinFloor: 0.8, bowlEase: 30,
+  crestLines: LAYOUT.CREST_LINES, landforms: LAYOUT.LANDFORMS,
+  spots: [...LAYOUT.CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...LAYOUT.PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: p.lift ?? 0, ease: p.ease ?? Math.max(p.r * 4.6, 46) }))],
 };
 
 /** Exact retained hollow/crest tint; author and client share its ring radius. */

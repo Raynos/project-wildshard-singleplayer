@@ -1,7 +1,7 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { CROWN } from '../data/layout';
+import { CROWN } from "./layout";
 import { CARVED } from '../data/modelFrames';
-import { CROWN_STONES } from '../data/crownLayout';
+import { CROWN_STONES } from "./crownLayout";
 
 /** The alternating stone models, in their original float32 instance-buffer order. */
 export function crownInstances(): number[][] {

@@ -1,5 +1,5 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { BASIN, BRAZIERS, CARAVAN, TOWER, WELL } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { STRINGS } from './strings';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from './flags';
 
@@ -15,7 +15,7 @@ export const MATRIARCH_PAID_FLAG = 'sunscar.matriarch.paid';
 /** The ledger facts Signal Dunes emits (SF14): the platform grants their achievements once per (shard, achievement). */
 export const FACT = { signal: 'sunscar.signal', matriarch: 'sunscar.matriarch' } as const;
 
-const waymarks = BRAZIERS.map((_, i) => `${FLAG.brazierPrefix}${String(i)}`);
+const waymarks = LAYOUT.BRAZIERS.map((_, i) => `${FLAG.brazierPrefix}${String(i)}`);
 /** Any step after Sefa's: a save from before her (loop 2), or a player who walked past her, counts her step done. */
 export const LATER_FLAGS = [FLAG.logbook, FLAG.oil, ...waymarks, FLAG.lit, MATRIARCH_FLAG] as const;
 
@@ -30,15 +30,15 @@ export const SIGNAL_QUESTS = parseQuestData({
     { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...LATER_FLAGS] },
       markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, z: SCOUT_AT.z } }] },
     { id: 'logbook', objective: STRINGS.stepLog, chip: STRINGS.chipLog, hint: STRINGS.hintLog, done: { all: [FLAG.logbook] },
-      markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: { poi: 'world', x: CARAVAN.x, z: CARAVAN.z } }] },
+      markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: { poi: 'world', x: LAYOUT.CARAVAN.x, z: LAYOUT.CARAVAN.z } }] },
     { id: 'oil', objective: STRINGS.stepOil, chip: STRINGS.chipOil, hint: STRINGS.hintOil, done: { all: [FLAG.oil] },
-      markers: [{ id: 'well', label: STRINGS.well, short: STRINGS.shortWell, at: { poi: 'world', x: WELL.x, z: WELL.z } }] },
+      markers: [{ id: 'well', label: STRINGS.well, short: STRINGS.shortWell, at: { poi: 'world', x: LAYOUT.WELL.x, z: LAYOUT.WELL.z } }] },
     { id: 'waymarks', objective: STRINGS.stepWaymarks, chip: STRINGS.chipWaymarks, hint: STRINGS.hintWaymarks, done: { all: waymarks }, count: waymarks,
-      markers: BRAZIERS.map((b, i) => ({ id: `waymark.${String(i)}`, label: STRINGS.waymark, short: STRINGS.shortWaymark, at: { poi: 'world' as const, x: b.x, z: b.z }, hideWhen: { all: [`${FLAG.brazierPrefix}${String(i)}`] } })) },
+      markers: LAYOUT.BRAZIERS.map((b, i) => ({ id: `waymark.${String(i)}`, label: STRINGS.waymark, short: STRINGS.shortWaymark, at: { poi: 'world' as const, x: b.x, z: b.z }, hideWhen: { all: [`${FLAG.brazierPrefix}${String(i)}`] } })) },
     { id: 'fire', objective: STRINGS.step, chip: STRINGS.chipFire, hint: STRINGS.hintFire, done: { all: [FLAG.lit] },
-      markers: [{ id: 'tower', label: STRINGS.tower, short: STRINGS.shortTower, at: { poi: 'world', x: TOWER.x, z: TOWER.z } }] },
+      markers: [{ id: 'tower', label: STRINGS.tower, short: STRINGS.shortTower, at: { poi: 'world', x: LAYOUT.TOWER.x, z: LAYOUT.TOWER.z } }] },
     { id: 'matriarch', objective: STRINGS.stepBoss, chip: STRINGS.chipBoss, hint: STRINGS.hintBoss, done: { all: [MATRIARCH_FLAG] },
-      markers: [{ id: 'basin', label: STRINGS.placeBasin, short: STRINGS.shortBasin, at: { poi: 'world', x: BASIN.x, y: 2, z: BASIN.z } }] },
+      markers: [{ id: 'basin', label: STRINGS.placeBasin, short: STRINGS.shortBasin, at: { poi: 'world', x: LAYOUT.BASIN.x, y: 2, z: LAYOUT.BASIN.z } }] },
   ] }],
   triggers: [], dialogue: [],
 });

@@ -1,14 +1,14 @@
 import questPrompts from './questPrompts.generated.json' with { type: 'json' };
 import { SKY_NATIVE_POPULATION } from './population';
 import { ROC_OWNER } from './rocFight';
-import { DECK, SPAWN } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { SKY_ANALYTIC_FLOOR } from './spawns';
 import { SKY_MOVER_BINDING, SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_COMPOSITION, SKY_NATIVE_MOVER_OWNERS } from './moverBindings';
 import { FAN_ID } from './items';
 
 /** Native collision, spawn and motion facts; the shared host installs their original owners. */
 export const SKY_NATIVE_WORLD = { runtime: { weapon: { id: FAN_ID, stowOnBoard: true }, quest: { spots: { interact: questPrompts.SKY_SPOTS, crack: [] } }, columns: true }, population: { rows: SKY_NATIVE_POPULATION, sources: 'actors', seed: 'identity', owner: ROC_OWNER }, terrain: 'none', floor: 'solids', ground: { size: 500, height: SKY_ANALYTIC_FLOOR },
-  player: { at: [SPAWN.x, DECK, SPAWN.z], yaw: SPAWN.yaw, speed: 5 }, motion: {
+  player: { at: [LAYOUT.SPAWN.x, LAYOUT.DECK, LAYOUT.SPAWN.z], yaw: LAYOUT.SPAWN.yaw, speed: 5 }, motion: {
     ...SKY_CLIENT_MOTION, skipPrefix: SKY_MOVER_BINDING.staticPrefix, nativeOwners: SKY_NATIVE_MOVER_OWNERS, viewSystemId: 'far.mover-views', socketLiftPrompts: true,
     composition: SKY_NATIVE_MOVER_COMPOSITION.content, rules: SKY_NATIVE_MOVER_COMPOSITION.rules,
   } } as const;

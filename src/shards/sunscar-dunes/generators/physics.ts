@@ -1,5 +1,5 @@
 import type { BoxColliderData } from '@wildshard/sdk/physics';
-import { RIDGES, SEED } from '../data/layout';
+import { RIDGES, SEED } from "./layout";
 import { SIGNAL_SPAWNS } from '../data/spawns';
 import { STRINGS } from '../data/strings';
 import { SCOUT_ROW } from './questPresentation';

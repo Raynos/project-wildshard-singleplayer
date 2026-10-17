@@ -1,4 +1,4 @@
-import { DUNE_FIELD } from './duneField';
+import DUNES from './duneRows.generated.json' with { type: 'json' };
 import { MATRIARCH_ARENA } from './matriarchEncounter';
 import { STRINGS } from './strings';
 
@@ -11,5 +11,5 @@ import { STRINGS } from './strings';
  * `parseMarkedBossPresentation` (@wildshard/format/bossProfiles) where it is bound; the platform's boss view presents it.
  */
 export const MATRIARCH_PRESENTATION = { ...MATRIARCH_ARENA,
-  storm: { dist: 0.03, color: 0x8a5238, shells: [[46, 0.85, 'storm-far'], [22, 0.4, 'storm-near']] as const, wind: DUNE_FIELD.wind },
+  storm: { dist: 0.03, color: 0x8a5238, shells: [[46, 0.85, 'storm-far'], [22, 0.4, 'storm-near']] as const, wind: DUNES.DUNE_FIELD.wind },
   toasts: { summoned: STRINGS.summoned, reward: STRINGS.bossReward, rewardAgain: STRINGS.bossRewardAgain } };

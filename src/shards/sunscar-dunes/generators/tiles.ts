@@ -3,7 +3,7 @@ import type { BakedTerrain, TerrainBakeSource } from '@wildshard/sdk/bake/terrai
 import { bake } from '@wildshard/sdk/bake';
 import { signalHeightAt, signalTrailDistance } from './landscape';
 import { signalManifestGround } from './manifestGround';
-import { SAND_TINT } from '../data/duneField';
+import { SAND_TINT } from "./duneRows";
 
 /** The manifest's own dune field (entry roads and graded trails included): the ground every Signal bake reads. */
 export const signalDunesField = (): { heightAt: (x: number, z: number) => number; trailDistance: (x: number, z: number) => number } => ({ heightAt: signalHeightAt(), trailDistance: signalTrailDistance });

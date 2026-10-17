@@ -1,4 +1,4 @@
-import { BASIN, PACKS, RAY_HOME, STRIDERS } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 
 /** Seconds after a creature falls before its home spawns it again. */
 export const RESPAWN = { duneRay: 25, sandSkitterer: 50, duneStrider: 70 } as const;
@@ -6,7 +6,7 @@ export const RESPAWN = { duneRay: 25, sandSkitterer: 50, duneStrider: 70 } as co
 /** One authored Signal home row, including its stable actor identity and native respawn recipe. */
 export interface Home { id: string; kind: keyof typeof RESPAWN; look: string; at: [number, number]; yaw: number; respawn: number }
 const home = (index: number, kind: keyof typeof RESPAWN, x: number, z: number, yaw: number): Home => ({ id: `sunscar.home:${String(index)}`, kind, look: 'dusk', at: [x, z], yaw, respawn: RESPAWN[kind] });
-const skitterers = PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i) => {
+const skitterers = LAYOUT.PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i) => {
   const a = (i / p.n) * Math.PI * 2 + p.x * 0.1;
   return { x: p.x + Math.sin(a) * 3.5, z: p.z + Math.cos(a) * 3.5, yaw: a };
 }));
@@ -18,8 +18,8 @@ const skitterers = PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i) => {
  * runtime's (species/, data/brains.ts, combat/matriarch.ts).
  */
 export const SIGNAL_SPAWNS = {
-  homes: [home(0, 'duneRay', RAY_HOME.x, RAY_HOME.z, 0),
+  homes: [home(0, 'duneRay', LAYOUT.RAY_HOME.x, LAYOUT.RAY_HOME.z, 0),
     ...skitterers.map((s, i) => home(1 + i, 'sandSkitterer', s.x, s.z, s.yaw)),
-    ...STRIDERS.map((s, i) => home(1 + skitterers.length + i, 'duneStrider', s.x, s.z, 0))],
-  bosses: [{ id: 'sunscar.matriarch', kind: 'duneMatriarch', look: 'matriarch', at: [BASIN.x, BASIN.z] as [number, number], yaw: 0 }],
+    ...LAYOUT.STRIDERS.map((s, i) => home(1 + skitterers.length + i, 'duneStrider', s.x, s.z, 0))],
+  bosses: [{ id: 'sunscar.matriarch', kind: 'duneMatriarch', look: 'matriarch', at: [LAYOUT.BASIN.x, LAYOUT.BASIN.z] as [number, number], yaw: 0 }],
 };

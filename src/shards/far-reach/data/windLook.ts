@@ -1,5 +1,5 @@
 import type { EffectFieldRow } from '@wildshard/sdk/looks/effectField';
-import { UPDRAFT } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 
 /**
  * Sky Reach's visible wind (style bible §7, loop 3; drawn on @wildshard/sdk/looks/effectField): the fan's GUST, a cone of
@@ -8,7 +8,7 @@ import { UPDRAFT } from './layout';
  */
 
 /** The updraft column's axis (the ramp's line 2.2 m up): its foot and its aim (foot to top), where its fields stand. */
-export const UPDRAFT_AXIS = { at: [UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0], aim: [UPDRAFT.x1 - UPDRAFT.x0, UPDRAFT.y1 - UPDRAFT.y, UPDRAFT.z1 - UPDRAFT.z0] } as const;
+export const UPDRAFT_AXIS = { at: [LAYOUT.UPDRAFT.x0, LAYOUT.UPDRAFT.y + 2.2, LAYOUT.UPDRAFT.z0], aim: [LAYOUT.UPDRAFT.x1 - LAYOUT.UPDRAFT.x0, LAYOUT.UPDRAFT.y1 - LAYOUT.UPDRAFT.y, LAYOUT.UPDRAFT.z1 - LAYOUT.UPDRAFT.z0] } as const;
 
 /**
  * The wind's seeded effect fields: the GUST's streaks and petals are bursts (hidden between them; a little longer than

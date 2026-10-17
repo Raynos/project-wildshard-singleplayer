@@ -4,7 +4,7 @@ import tower from '../data/tower.json' with { type: 'json' };
 import braziers from '../data/braziers.json' with { type: 'json' };
 import ground from '../data/manifestGround.generated.json' with { type: 'json' };
 import { SCOUT_AT } from '../data/flags';
-import { BRAZIERS, TOWER, WELL } from '../data/layout';
+import { BRAZIERS, TOWER, WELL } from "./layout";
 
 const [logX, logY, logZ] = caravan.anchors.logbook;
 if (caravan.anchors.logbook.length !== 3 || logX === undefined || logY === undefined || logZ === undefined

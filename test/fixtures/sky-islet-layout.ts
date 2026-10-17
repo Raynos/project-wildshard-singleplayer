@@ -1,7 +1,7 @@
 // Frozen native Rising Islet layout before its retained Node authoring port.
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/config';
-import { GROVE, ROOST, RUIN, SUNREST, type Isle, type Span } from '../../src/shards/far-reach/data/layout';
-import { apothem, rimAlong } from '../../src/shards/far-reach/layout';
+import { GROVE, ROOST, RUIN, SUNREST, type Isle, type Span } from "../../src/shards/far-reach/generators/layout";
+import { apothem, rimAlong } from "../../src/shards/far-reach/generators/layoutMath";
 
 /**
  * SHARD-PLATFORM SF49-g (G183, Jake 2026-10-07: "4, the Rising Islet"): Sky Reach's four legal entryways. At each edge

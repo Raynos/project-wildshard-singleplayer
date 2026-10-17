@@ -1,6 +1,6 @@
 import { RAM_DATA, DIVE_DATA, BURST_DATA } from './strikes';
 import type { BrainedSpecies, speciesBrains } from '@wildshard/sdk/speciesBrains';
-import { RAY_HOMES, DECK, KEEPER, WINDMILL, APOTHEM } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA, STORM_ROC_DATA } from './species';
 
 /** Shipping rim-aware goat policy; the native spawn binds the island home and floor. */
@@ -39,9 +39,9 @@ export const SKY_BODY_ROWS = {
 /** Canonical gameplay profiles; each native body binds its actual island home and existing authority. */
 const SKY_GOAT_PROFILE: BrainedSpecies = { ...SKY_GOAT_DATA, body: SKY_BODY_ROWS.ground, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } };
 const DRIFT_RAY_PROFILE: BrainedSpecies = { ...DRIFT_RAY_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
-    home: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 } } } };
+    home: LAYOUT.RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: LAYOUT.DECK + 14 } } } };
 const GALE_WISP_PROFILE: BrainedSpecies = { ...GALE_WISP_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
-    home: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 } } } };
+    home: { x: LAYOUT.KEEPER.x, z: LAYOUT.KEEPER.z, r: 7, y: LAYOUT.KEEPER.y + 3 } } } };
 
 /** Every native body declares its policy; the held encounter accesses the Roc through its catalogue. */
 const STORM_ROC_PROFILE: BrainedSpecies = { ...STORM_ROC_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'decision', data: { script: 'far.roc.decision', actor: 'far.roc', perch: 'far.roc.perch', leanField: 'rocLean', bankField: 'rocBank',
@@ -52,7 +52,7 @@ export const SKY_PAGE_ROWS = [DRIFT_RAY_PROFILE, SKY_GOAT_PROFILE, GALE_WISP_PRO
 export const SKY_CREATURE_STRIKES = [RAM_DATA, DIVE_DATA, BURST_DATA, ...ROC_STRIKES];
 /** Original page fallbacks; the owning catalogue lends each materialized body's actual home. */
 export const SKY_PAGE_HOMES = {
-  skyGoat: { x: WINDMILL.x, z: WINDMILL.z, r: WINDMILL.r * APOTHEM, y: WINDMILL.y },
-  driftRay: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 },
-  galeWisp: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 },
+  skyGoat: { x: LAYOUT.WINDMILL.x, z: LAYOUT.WINDMILL.z, r: LAYOUT.WINDMILL.r * LAYOUT.APOTHEM, y: LAYOUT.WINDMILL.y },
+  driftRay: LAYOUT.RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: LAYOUT.DECK + 14 },
+  galeWisp: { x: LAYOUT.KEEPER.x, z: LAYOUT.KEEPER.z, r: 7, y: LAYOUT.KEEPER.y + 3 },
 };

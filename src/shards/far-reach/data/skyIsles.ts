@@ -1,4 +1,4 @@
-import type { Isle } from './layout';
+import type { Isle } from './layoutTypes';
 
 /** Author-derived unit frame for a textured decorative island. */
 export interface SkyIsleFrame { model: string; tx: number; deck: number; tz: number; k: number; bulge: number; rim: number[] }

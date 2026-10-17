@@ -8,7 +8,7 @@ import type { SkyReachPlugin } from '../runtime/index';
 import source from '../runtime/source';
 import { SKY_LIBRARY, skyHd } from './meshes';
 import { AdditiveBlending, MeshBasicMaterial, Group, type BufferGeometry, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { STRINGS } from '../data/strings';
 import { islandMesh, isleMaterial, type IsleMeshes } from './isle';
 import { WORLD } from './baked';
@@ -93,7 +93,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const state = { raised: false, raising: false };
   const frames = createWorldScene(SKY_ROUTE_FRAMES.recipe, routePorts);
   const { fallen, winchAt, notesAt } = bindWorldSceneParts(frames, { fallen: 'group', winchAt: 'vector', notesAt: 'vector' }, SKY_ROUTE_FRAMES.bindings);
-  pieces.add(FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(FALLEN_BRIDGE.id), active: () => state.raised });
+  pieces.add(LAYOUT.FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(LAYOUT.FALLEN_BRIDGE.id), active: () => state.raised });
 
   await pause();
   await pieces.scene(fixed, staticRows.fixed.bindings.mill);
@@ -112,7 +112,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pieces.scene(fixed, staticRows.fixed.bindings.crown);
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   await pause();
-  const storm = crownStorm(rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
+  const storm = crownStorm(rnd); storm.group.position.set(LAYOUT.CROWN.x, LAYOUT.CROWN.y + STORM.lift, LAYOUT.CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   await pause();
   const scene = createClientScene(ISLET_SCENES.scene, { geometry: SKY_LIBRARY.geometry, objects: new Map(ISLET_SCENES.scene.nodes.flatMap(row => row.kind === 'object' && row.source !== undefined ? [[row.source, islandMesh(row.source)] as const] : [])) });

@@ -2,7 +2,7 @@ import { REST_URLS } from '../data/restFiles';
 import { CylinderGeometry, PlaneGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from '../data/places';
-import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
+import { BRAZIERS, CARAVAN, TOWER, WELL } from "./layout";
 import { signalDunesTiles, signalDunesField } from './tiles';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, KEEPER_LAMP, SIGNAL_FIRE, type FireSize, type FirePool } from '../data/fire';

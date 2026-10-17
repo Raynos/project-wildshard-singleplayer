@@ -1,11 +1,11 @@
-import { CROWN, DAIS, ROC } from './layout';
-import { CROWN_STONES } from './crownLayout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
+import CROWN_LAYOUT from './crownLayout.generated.json' with { type: 'json' };
 import { STORM } from './storm';
 
-const tallest = CROWN_STONES.reduce((best, stone) => stone.h > best.h ? stone : best);
+const tallest = CROWN_LAYOUT.CROWN_STONES.reduce((best, stone) => stone.h > best.h ? stone : best);
 const spin = Math.sign(STORM.layers[0].spin);
-const perch = { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z,
-  yaw: Math.atan2(-spin * (tallest.z - (CROWN.z - STORM.ahead)), spin * (tallest.x - CROWN.x)) };
+const perch = { x: tallest.x, y: LAYOUT.CROWN.y + tallest.h + 0.6, z: tallest.z,
+  yaw: Math.atan2(-spin * (tallest.z - (LAYOUT.CROWN.z - STORM.ahead)), spin * (tallest.x - LAYOUT.CROWN.x)) };
 
 /** Same physical perch, cruise heights and three closing laws as the held Roc. */
 export const ROC_WORLD_TARGETS = { targets: [], spots: [
@@ -13,15 +13,15 @@ export const ROC_WORLD_TARGETS = { targets: [], spots: [
 ] } as const;
 export const ROC_MOVES = [
   { id: 'far.roc.perch', kind: 'perch', perch: 'far.roc.perch', speed: 10, turn: 2 },
-  { id: 'far.roc.takeoff', kind: 'takeoff', perch: 'far.roc.perch', altitude: ROC.y, seconds: 4, speed: 1.6, turn: 0.15, bank: 0.35 },
-  { id: 'far.roc.orbit.high', kind: 'orbit', center: [ROC.x, ROC.z], r: ROC.r, y: ROC.y, speed: 10, turn: 2 },
-  { id: 'far.roc.orbit.wall', kind: 'orbit', center: [ROC.x, ROC.z], r: ROC.r, y: CROWN.y + 7, speed: 10, turn: 2 },
-  { id: 'far.roc.orbit.low', kind: 'orbit', center: [DAIS.x, DAIS.z], r: DAIS.r * 0.4, y: CROWN.y + DAIS.h + 0.05, speed: 2.4, angularSpeed: 10 / ROC.r, turn: 2 },
+  { id: 'far.roc.takeoff', kind: 'takeoff', perch: 'far.roc.perch', altitude: LAYOUT.ROC.y, seconds: 4, speed: 1.6, turn: 0.15, bank: 0.35 },
+  { id: 'far.roc.orbit.high', kind: 'orbit', center: [LAYOUT.ROC.x, LAYOUT.ROC.z], r: LAYOUT.ROC.r, y: LAYOUT.ROC.y, speed: 10, turn: 2 },
+  { id: 'far.roc.orbit.wall', kind: 'orbit', center: [LAYOUT.ROC.x, LAYOUT.ROC.z], r: LAYOUT.ROC.r, y: LAYOUT.CROWN.y + 7, speed: 10, turn: 2 },
+  { id: 'far.roc.orbit.low', kind: 'orbit', center: [LAYOUT.DAIS.x, LAYOUT.DAIS.z], r: LAYOUT.DAIS.r * 0.4, y: LAYOUT.CROWN.y + LAYOUT.DAIS.h + 0.05, speed: 2.4, angularSpeed: 10 / LAYOUT.ROC.r, turn: 2 },
   { id: 'far.roc.stalk.high', kind: 'stalk', above: 10, standOff: 2.5, speed: 12, turn: 3, ready: { kind: 'over', radius: 4, height: 2 } },
-  { id: 'far.roc.stalk.wall', kind: 'stalk', altitude: CROWN.y + 7, standOff: 14, retreat: true, speed: 12, turn: 3, ready: { kind: 'band', tolerance: 3 } },
-  { id: 'far.roc.stalk.low', kind: 'stalk', altitude: CROWN.y + DAIS.h + 0.05, standOff: 3, constantSpeed: true, speed: 2.4, turn: 3,
+  { id: 'far.roc.stalk.wall', kind: 'stalk', altitude: LAYOUT.CROWN.y + 7, standOff: 14, retreat: true, speed: 12, turn: 3, ready: { kind: 'band', tolerance: 3 } },
+  { id: 'far.roc.stalk.low', kind: 'stalk', altitude: LAYOUT.CROWN.y + LAYOUT.DAIS.h + 0.05, standOff: 3, constantSpeed: true, speed: 2.4, turn: 3,
     ready: { kind: 'range', strike: 'far.roc.sweep' } },
-  { id: 'far.roc.dive', kind: 'dive', speed: 20, turn: 4, slope: 0, skim: CROWN.y, altitude: ROC.y, aimHeight: 1.2, targetAltitude: true, contactCompletes: false, maxSeconds: 8 },
+  { id: 'far.roc.dive', kind: 'dive', speed: 20, turn: 4, slope: 0, skim: LAYOUT.CROWN.y, altitude: LAYOUT.ROC.y, aimHeight: 1.2, targetAltitude: true, contactCompletes: false, maxSeconds: 8 },
 ] as const;
 
 /** Decision law on the existing held/spawned body and encounter owner. */

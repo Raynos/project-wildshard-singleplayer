@@ -254,8 +254,8 @@
       "export": "SKY_REACH_RUNTIME_COST"
     },
     "mapPalette": {
-      "module": "./data/layout",
-      "export": "SKY_REACH_MAP"
+      "module": "./data/mapPalette.generated.json",
+      "export": "default"
     },
     "poses": {
       "module": "./data/devPoses",

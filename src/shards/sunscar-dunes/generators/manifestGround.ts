@@ -1,8 +1,8 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { signalHeightAt } from './landscape';
-import { SEED, SPAWN, TOWER } from '../data/layout';
+import { SEED, SPAWN, TOWER } from "./layout";
 import { SCOUT_AT } from '../data/flags';
-import { SAND_TINT } from '../data/duneField';
+import { SAND_TINT } from "./duneRows";
 
 /** Cold author queries that preserve the original manifest poses and sand tint.
  * Ring means remain f64: storing f32 or sampling the collision lattice would

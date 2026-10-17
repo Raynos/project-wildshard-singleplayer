@@ -1,8 +1,8 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { Rng } from '@wildshard/sdk/random';
 import { rock } from './rocks';
-import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../data/layout';
-import { DUNE_FIELD } from '../data/duneField';
+import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from "./layout";
+import { DUNE_FIELD } from "./duneRows";
 import { signalDunesField } from './tiles';
 import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';

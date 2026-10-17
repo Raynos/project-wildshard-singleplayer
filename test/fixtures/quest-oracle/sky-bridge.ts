@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/format/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
+import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from "../../../src/shards/far-reach/generators/layout";
 import { KEEPER_AT } from '../../../src/shards/far-reach/generators/quests';
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with { type: 'json' };
 

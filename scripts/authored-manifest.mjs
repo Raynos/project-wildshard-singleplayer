@@ -52,7 +52,13 @@ export function authoredManifestSource(root, slug) {
     ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${slug}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
     : value(b.budgets);
   const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];
-  for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'tierPolicy', 'pondClip']) if (b[key]) rows.push(`${key}: ${value(b[key])}`);
+  for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'tierPolicy', 'pondClip']) if (b[key]) {
+    // Fixed palette JSON becomes a contextually checked literal, preserving tuple
+    // arity without importing an executable coordinate recipe into discovery.
+    const palette = key === 'mapPalette' && modulePath(b[key].module).endsWith('.json');
+    if (palette && b[key].export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
+    rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${slug}`, b[key].module), 'utf8'))) : value(b[key])}`);
+  }
   if (b.spawns) {
     const path = modulePath(b.spawns.module);
     const spawns = path.startsWith('./generators/')

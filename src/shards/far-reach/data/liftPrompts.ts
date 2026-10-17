@@ -1,10 +1,10 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import entries from './islets.generated.json' with { type: 'json' };
-import { APOTHEM } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { ISLET, ISLET_EDGES } from './isletDesign';
 import { STRINGS } from './strings';
 
-const away = -1e5, radius = ISLET.islet.r * APOTHEM;
+const away = -1e5, radius = ISLET.islet.r * LAYOUT.APOTHEM;
 const rows = entries.entries.flatMap(entry => {
   const edge = ISLET_EDGES.find(value => value === entry.edge);
   if (edge === undefined) throw new Error('Unknown authored lift edge');

@@ -11,7 +11,7 @@ import { readStrikeState } from '../../../src/engine/ai/strikeState';
 import * as v from 'valibot';
 import type { SimValue } from '../../../src/engine/sim';
 import { Vector3 } from 'three';
-import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
+import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 
 export const MAW: StrikeSpec = strikeFromData(admitStrike(MAW_DATA));
 export const TAIL_SWEEP: StrikeSpec = strikeFromData(admitStrike(TAIL_SWEEP_DATA));

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import type { BoxColliderData } from '@wildshard/sdk/physics';
-import { SEED, TOWER } from '../data/layout';
+import { SEED, TOWER } from "./layout";
 import { STRINGS } from '../data/strings';
 import { signalHeightAt } from './landscape';
 import type { SignalPhysicsPlacement } from './physicsPlacements';

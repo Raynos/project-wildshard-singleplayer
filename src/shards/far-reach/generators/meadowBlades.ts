@@ -1,5 +1,5 @@
 import { zlibSync } from 'fflate';
-import { ISLES, KNOLLS } from '../data/layout';
+import { ISLES, KNOLLS } from "./layout";
 import PLACEMENTS from '../data/placements.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { MEADOW, MEADOW_BLADES, SWARD } from '../data/meadowLook';

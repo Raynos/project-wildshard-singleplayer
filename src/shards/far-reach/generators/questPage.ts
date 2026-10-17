@@ -1,4 +1,4 @@
-import { CROWN, HIGH, STEP, VANES } from '../data/layout';
+import { CROWN, HIGH, STEP, VANES } from "./layout";
 import { STRINGS } from '../data/strings';
 import { SKY_PLACES } from './places';
 import { SKY_PERSISTENCE } from './persistence';

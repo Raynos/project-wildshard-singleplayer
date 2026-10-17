@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import type { BoxColliderData } from '@wildshard/sdk/physics';
-import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
+import { BRAZIERS, CARAVAN, WELL } from "./layout";
 import { CRATES, HORSE, WELL_RIG } from '../data/places';
 import { STRINGS } from '../data/strings';
 import { signalHeightAt } from './landscape';

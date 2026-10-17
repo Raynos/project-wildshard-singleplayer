@@ -1,4 +1,4 @@
-import { DECK, NOTES, WINCH } from '../data/layout';
+import { DECK, NOTES, WINCH } from "./layout";
 import { KEEPER_AT } from './quests';
 import { SKY_FLOCK_GROUPS } from '../data/spawns';
 

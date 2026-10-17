@@ -1,4 +1,4 @@
-import { APOTHEM, ISLES, type Isle } from '../data/layout';
+import { APOTHEM, ISLES, type Isle } from "./layout";
 import { ISLE_DRAWS } from '../data/isleLook';
 
 /**

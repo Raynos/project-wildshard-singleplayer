@@ -10,7 +10,7 @@ import knolls from '../data/knolls.json' with { type: 'json' };
 import geometries from '../data/geometries.json' with { type: 'json' };
 import isletRig from '../data/isletRig.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
-import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from '../data/layout';
+import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import { STRINGS } from '../data/strings';
 import { SKY_GROUND } from '../data/groundScene.generated';
 import { SKY_ROUTES } from '../data/routeScene.generated';

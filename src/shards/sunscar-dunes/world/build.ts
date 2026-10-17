@@ -6,7 +6,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { createQuestPagePrompts, bindClientChannels, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 import type { SignalDunesPlugin } from '../plugin';
 
-import { BRAZIERS } from '../data/layout';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { STRINGS } from '../data/strings';
 import { buildPlace, type TowerParts, type BrazierParts, type WellParts } from './places';
 import { WORLD, type BakedWorld } from './baked';
@@ -63,7 +63,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
     pull: () => page('crank') };
 
   // The braziers: pour oil by hand, light with a crack.
-  const braziers: Brazier[] = BRAZIERS.map((_, i) => {
+  const braziers: Brazier[] = LAYOUT.BRAZIERS.map((_, i) => {
     const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildPlace('brazier',baked, i, pieces.colliders(`sunscar.brazier.${String(i)}`)));
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
     const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, get lit() { return rules.has(lit); },

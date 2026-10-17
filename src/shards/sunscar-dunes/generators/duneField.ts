@@ -1,4 +1,4 @@
-import type { DuneFieldRow } from '../data/duneField';
+import type { DuneFieldRow } from "./duneRows";
 // Defining cold authoring dune law; no analytic dune compiler ships in the client.
 /** Author noise needs only the immutable seeded height channel, not a runtime service. */
 interface TerrainNoise { n: { get: (x: number, z: number) => number } }

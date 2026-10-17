@@ -1,6 +1,6 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import type { StrikeData } from '@wildshard/sdk/species';
-import { RAY_HOME } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { DUNE_RAY, SWOOP_DATA } from './species/duneRay';
 import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from './species/strider';
 import { SKITTERER_DATA, BITE_DATA, SKITTER } from './species/skitterer';
@@ -14,7 +14,7 @@ export const STRIDER_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype: 
   circleRate: 0.05, farPreferenceRadius: 5, farWeight: 2, nearWeight: 0.2, closeWeight: 1, windupField: 'paw', recoveryField: 'winded' } };
 /** Shipping home patrol round the tower and near-player swoop. */
 export const RAY_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype: 'diver', data: { id: 'sunscar.brain.ray', kind: 'diver', pattern: 'patrol', strike: 'sunscar.ray.swoop',
-  home: { x: RAY_HOME.x, z: RAY_HOME.z },
+  home: { x: LAYOUT.RAY_HOME.x, z: LAYOUT.RAY_HOME.z },
   glideAltitude: 14, glideSpeed: 9, circleRadius: 20, patrolRadius: 34, patrolAltitude: 22,
   noticeRadius: 55, diveFrom: 38, diveSpeed: 15, climbAltitude: 17, climbSeconds: 2.6, diveMaxSeconds: 4.5,
   restSeconds: 3, targetHeight: 1.2, diveSlope: 0.35, climbSpeedBonus: 3, orbitLead: 0.55, heldField: 'held' } };

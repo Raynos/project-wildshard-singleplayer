@@ -3,8 +3,8 @@ import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
-import { WINDMILL } from '../../../src/shards/far-reach/data/layout';
-import { apothem } from '../../../src/shards/far-reach/layout';
+import { WINDMILL } from "../../../src/shards/far-reach/generators/layout";
+import { apothem } from "../../../src/shards/far-reach/generators/layoutMath";
 import { homeOf, yawTo } from '../far-reach/heldAuthority';
 
 /** The ram: a short lane straight ahead, telegraphed by a head-down windup. */

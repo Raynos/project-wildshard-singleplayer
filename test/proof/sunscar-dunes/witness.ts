@@ -22,7 +22,7 @@ import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/gam
 import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
-import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
+import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import baked from '../../../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/sdk/runtime/prompts';
 import * as v from 'valibot';

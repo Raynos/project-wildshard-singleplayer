@@ -1,6 +1,6 @@
 // Frozen pre-bake dune law: only an independent parity oracle, never a client import.
 import type { TerrainNoise } from '@wildshard/engine/level/data';
-import type { DuneFieldRow } from '../../src/shards/sunscar-dunes/data/duneField';
+import type { DuneFieldRow } from "../../src/shards/sunscar-dunes/generators/duneRows";
 
 /**
  * A crescent dune field (SHARD-PLATFORM M3; ex a dune shard's landscape): a terrain height function from rows. Barchan-like
@@ -99,5 +99,5 @@ export function duneField(row: DuneFieldRow): (x: number, z: number, noise: Terr
   };
 }
 
-import { DUNE_FIELD } from '../../src/shards/sunscar-dunes/data/duneField';
+import { DUNE_FIELD } from "../../src/shards/sunscar-dunes/generators/duneRows";
 export const duneHeight = duneField(DUNE_FIELD);

@@ -1,8 +1,8 @@
 import { BufferGeometry, Color, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { ISLES, KNOLLS, type Knoll } from '../data/layout';
-import { knollHeight } from '../layout';
+import { ISLES, KNOLLS, type Knoll } from "./layout";
+import { knollHeight } from "./layoutMath";
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/knolls.glb` + `data/knolls.json`;

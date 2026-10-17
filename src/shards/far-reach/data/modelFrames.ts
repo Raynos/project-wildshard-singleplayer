@@ -1,4 +1,4 @@
-import { DAIS } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { LECTERN } from './bookStand';
 import { TREE_MODELS, TREES } from './trees';
 import type { SkyHdName } from './files';
@@ -12,7 +12,7 @@ export const MODEL_FITS: Readonly<Partial<Record<SkyHdName, StaticModelFit>>> = 
   'post-hd': { size: 1.9, by: 'height', floor: 0, centre: 'base' },
   'crown-stone': { size: 1, by: 'height', floor: 0, centre: 'base' },
   'crown-stone-b': { size: 1, by: 'height', floor: 0, centre: 'base' },
-  'crown-dais': { size: DAIS.r * 2, by: 'span', floor: 0, centre: 'base' },
+  'crown-dais': { size: LAYOUT.DAIS.r * 2, by: 'span', floor: 0, centre: 'base' },
   'lectern-hd': { size: LECTERN.height, by: 'height', floor: 0, centre: 'base' },
   'lantern-hd': { size: LECTERN.lantern, by: 'height', floor: 0, centre: 'base' },
 } as const;

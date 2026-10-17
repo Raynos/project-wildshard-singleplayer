@@ -1,6 +1,6 @@
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { FAN_GUST, FAN_ID } from '../data/items';
-import { VANES } from '../data/layout';
+import { VANES } from "./layout";
 import { SKY_ACTIONS } from './questGraph';
 import { STRINGS } from '../data/strings';
 

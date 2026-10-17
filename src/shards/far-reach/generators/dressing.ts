@@ -3,8 +3,8 @@ import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { buildGeometries } from './geometries';
 import { bakeSkyPiece, SkyPiece } from './piece';
 import { meadowHoles, meadowPaths } from './placements';
-import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';
-import { apothem, knollHeight } from '../layout';
+import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from "./layout";
+import { apothem, knollHeight } from "./layoutMath";
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): a world piece of instanced kinds (`scene.ts`, `bake-sky-world.mjs` →

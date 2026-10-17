@@ -1,4 +1,4 @@
-import { BASIN } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import { STRINGS } from './strings';
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from './signalQuest';
@@ -16,4 +16,4 @@ export const MATRIARCH_DEFINITION = { id: MATRIARCH_ID, name: STRINGS.matriarch,
 export const MATRIARCH_RECORD = { defeated: MATRIARCH_DEFEATED_FLAG, paid: MATRIARCH_PAID_FLAG } as const;
 
 /** The native arena floor and death return at the south rim, shared by both fight owners. */
-export const MATRIARCH_ARENA = { floor: 0.8, respawn: { x: BASIN.x, z: BASIN.z + BASIN.r + 4, yaw: 0 } };
+export const MATRIARCH_ARENA = { floor: 0.8, respawn: { x: LAYOUT.BASIN.x, z: LAYOUT.BASIN.z + LAYOUT.BASIN.r + 4, yaw: 0 } };

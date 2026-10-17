@@ -1,4 +1,4 @@
-import { SPAWN } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 
 /** The quest's flags (persisted per shard by `Flags`); plain data, so shard.config.ts can declare the quest (SHARD-PLATFORM M3). */
 export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazierPrefix: 'sunscar.brazier.', lit: 'sunscar.lit' } as const;
@@ -11,4 +11,4 @@ export const SCOUT_FLAG = 'sunscar.scout';
  * at 5 m the tracker dropped her distance, so the first frame had no cue behind the player): 8 m, right and behind, where
  * the tracker reads "SEFA 8 M" as it did in round 14, still out of both spawn frames and inside her wave range.
  */
-export const SCOUT_AT = { x: SPAWN.x + 7, z: SPAWN.z + 4 } as const;
+export const SCOUT_AT = { x: LAYOUT.SPAWN.x + 7, z: LAYOUT.SPAWN.z + 4 } as const;

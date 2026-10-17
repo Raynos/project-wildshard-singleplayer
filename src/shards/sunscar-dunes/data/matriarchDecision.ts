@@ -1,11 +1,11 @@
-import { BASIN } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { MATRIARCH as M, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from './species/matriarch';
 
 /** Motion borrows the same flight motor and above-ground altitudes as the original body. */
 export const MATRIARCH_MOVES = [
   { id: 'sunscar.matriarch.rise', kind: 'rise', from: M.groundAlt, to: M.alt, rate: (M.alt - M.groundAlt) / 3.2, speed: 3, turn: 0.6, yawLead: 0.4 },
   ...[M.alt, M.stormAlt].flatMap((y, phase) => [
-    { id: `sunscar.matriarch.orbit.${phase}`, kind: 'orbit', center: [BASIN.x, BASIN.z], r: M.circleR, y, lead: 0.5, speed: M.speed, turn: 1.1 },
+    { id: `sunscar.matriarch.orbit.${phase}`, kind: 'orbit', center: [LAYOUT.BASIN.x, LAYOUT.BASIN.z], r: M.circleR, y, lead: 0.5, speed: M.speed, turn: 1.1 },
     { id: `sunscar.matriarch.dive.${phase}`, kind: 'dive', speed: M.diveSpeed, turn: 2.4, slope: 0.4, skim: M.skim, altitude: y, aimHeight: 1.2, strike: MAW_DATA.id, contactCompletes: false, maxSeconds: 5.5 },
     { id: `sunscar.matriarch.climb.${phase}`, kind: 'climb', speed: M.speed, speedBonus: 3, turn: 1, seconds: M.climbFor, altitude: y },
   ]),

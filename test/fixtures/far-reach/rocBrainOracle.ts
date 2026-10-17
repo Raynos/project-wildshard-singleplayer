@@ -5,7 +5,7 @@ import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { Vector3 } from 'three';
-import { CROWN, DAIS, ROC } from '../../../src/shards/far-reach/data/layout';
+import { CROWN, DAIS, ROC } from "../../../src/shards/far-reach/generators/layout";
 import { STORM } from '../../../src/shards/far-reach/data/storm';
 import { pushPlayer, yawTo } from './heldAuthority';
 

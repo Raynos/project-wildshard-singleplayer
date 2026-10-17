@@ -2,7 +2,7 @@ import { AnimationClip, Euler, Group, Quaternion, QuaternionKeyframeTrack, Vecto
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
 import { Mover } from '@wildshard/sdk/movers';
-import { SPANS, FALLEN_BRIDGE, APOTHEM } from '../data/layout';
+import { SPANS, FALLEN_BRIDGE, APOTHEM } from "./layout";
 import { FALLEN_ANGLE } from '../data/moverBindings';
 import FLAGS from '../data/flags.json' with { type: 'json' };
 import { deckCollider, saggedColliders, railColliders } from './bridgeColliders';

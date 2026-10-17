@@ -15,7 +15,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `status`, `order` | `experimental`, 50 |
 | `style`, `kitLook` | `dusk`, `pbr` |
 | `uses` | `quests`, `coins`, `loot`, `hover` |
-| `ground` | Required baked heightfield over cold-authored transverse dunes (`generators/landscape.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`data/layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
+| `ground` | Required baked heightfield over cold-authored transverse dunes (`generators/landscape.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`generators/layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
 | `horizon`, `boundary` | two low dune rings in shadowed sand; no cloud sea; the drawn edge hidden (containment stays) |
 | `loadout` | the bullwhip (held) and the kit hoverboard |
 | `species` | `duneRay` (flying), `sandSkitterer` (burrowing packs), `duneStrider` (charger), `duneMatriarch` (the boss, flying): each its own brain |
@@ -31,7 +31,7 @@ alone (E357 Z3, round 4). No engine edits.
 | File | What |
 |---|---|
 | `plugin.ts` | the three hooks; `buildEquipment` builds the whip; `play` installs the creatures, the quest and the Matriarch |
-| `data/layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
+| `generators/layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
 | `generators/places.ts`, `world/places.ts` | the half-buried caravan (logbook), the dry well (windlass crank, bucket, oil jar), the waymark braziers: the code-built parts (barrel, logbook, lantern iron, tent, cookfire stones, the well's marker pole) and every place's colliders an offline bake (`baked/caravan.glb` + `data/caravan.json`, `baked/well.glb` + `data/well.json`, `data/braziers.json`; SF72); the generated models, the lantern glass, the fires and the bucket live in `world/places.ts` |
 | `generators/rocks.ts`, `generators/dressing.ts`, `world/baked.ts` | the yardangs and the dressing (carcasses, dead trees, scree) as offline bakes (`baked/rocks.glb`, `baked/dressing.glb` + their `data/*.json`; SF72); `world/baked.ts` draws every baked piece |
 | `world/meshes.ts`, `boot/files.ts` | C6: the generated models load once in the `world` hook (and before the roster); each builder uses its GLB when it loaded and its code model otherwise. The well's generated bucket and crank are cut away (the code ones animate); the strider's facets bind rigidly to its seven bones (legs per quadrant). Recipe: `art/sunscar-dunes/round-7-models/props.json` |
@@ -46,6 +46,12 @@ alone (E357 Z3, round 4). No engine edits.
 | `quest/install.ts` | "The signal", four steps: the caravan's logbook → oil from the dry well → the three waymarks → the signal fire (it summons the Matriarch); five coins once |
 | `look/render.ts`, `data/sky.ts` | the `extend` look: the clean engine chain, the platform dusk dome (`@wildshard/sdk/looks/duskDome`) with stars, violet fog, a low warm key light, sand painted by hollow / crest with a ripple patch |
 | `audio/cues.ts` | the whip's cues on kit voices until its own crack is generated |
+
+`generators/fixedLayouts.ts` compiles the fixed coordinates and map palette to
+`data/layout.generated.json` and `data/mapPalette.generated.json`. The page reads
+those rows through its existing scene and discovery owners; coordinate recipes
+remain build-only. `generators/duneRows.ts` also compiles the derived dune pads and tint
+to `data/duneRows.generated.json`; `generators/minimap.ts` authors the palette.
 
 ## Budgets
 

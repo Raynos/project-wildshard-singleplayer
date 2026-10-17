@@ -1,4 +1,5 @@
-import { SAND_TINT } from './duneField';
+import * as v from 'valibot';
+import DUNES from './duneRows.generated.json' with { type: 'json' };
 import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
@@ -66,6 +67,7 @@ export const DUSK_CLOCK = { units: 'hour', start: 19,
 export const SIGNAL_DUSK_LOOK: DuskLookRow = {
   fog: FOG, key: { dir: KEY_DIR, color: KEY_LIGHT.color, deep: DEEP_KEY, intensity: KEY_LIGHT.intensity }, clock: DUSK_CLOCK,
   curves: DUSK_CURVES,
-  tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL },
+  // Validate the JSON RGB arity before passing the tint to the existing look.
+  tint: v.parse(v.object({ sand: v.tuple([v.number(), v.number(), v.number()]), hollow: v.tuple([v.number(), v.number(), v.number()]), crest: v.tuple([v.number(), v.number(), v.number()]), ring: v.number(), span: v.number(), hollowGain: v.number(), crestGain: v.number(), skirtHollow: v.number() }), DUNES.SAND_TINT), skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL },
   sky: { ...SKY_LOOK, strips: [{ key: 'early', url: PAINTED_URLS.early }, { key: 'late', url: PAINTED_URLS.late }], tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
 };

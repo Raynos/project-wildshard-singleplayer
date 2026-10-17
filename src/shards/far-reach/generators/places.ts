@@ -1,4 +1,4 @@
-import { CROWN, GROVE, KEEPER, ROOST, RUIN, STEP, SUNREST, WINDMILL } from '../data/layout';
+import { CROWN, GROVE, KEEPER, ROOST, RUIN, STEP, SUNREST, WINDMILL } from "./layout";
 import { STRINGS } from '../data/strings';
 
 /**

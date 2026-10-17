@@ -1,4 +1,4 @@
-import { GROUND_HALF } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 
 /**
  * The sand's baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`): their sizes and reach, and the key
@@ -32,7 +32,7 @@ export interface SkirtGridRow { readonly reach: number; readonly cell: number; r
  * along the wind (`data/duneField.ts` wind); the baked skirt mesh (generators/skirt.ts) and the baked dune-shadow map
  * (generators/sand.ts) both stand on it.
  */
-export const SKIRT_SWELL = { edge: GROUND_HALF, inside: -0.5, ease: 60, wind: [-0.643, 0.766], along: 64, across: 90, base: 2.5, swell: 3, wobble: 0.4, drop: 0.05 } as const;
+export const SKIRT_SWELL = { edge: LAYOUT.GROUND_HALF, inside: -0.5, ease: 60, wind: [-0.643, 0.766], along: 64, across: 90, base: 2.5, swell: 3, wobble: 0.4, drop: 0.05 } as const;
 /** The skirt grid: 8 m a quad out to 520 m (G99: a grid cell's ends at its cube), 2 m under the ground inside its edge. */
 export const SKIRT_GRID = { reach: 520, cell: 8, sink: 2 } as const;
 /** A grid cell's cube half width (G99, the platform's 250 m CHUNK_HALF): the baked skirt's second cut ends there. */

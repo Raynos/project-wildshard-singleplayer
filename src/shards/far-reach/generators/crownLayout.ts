@@ -1,4 +1,4 @@
-import { DAIS } from '../data/layout';
+import { DAIS } from './layout';
 
 /**
  * The storm crown's arena (loop 4; mockup D, `art/far-reach/round-11-review/mockup-D-crown-arena.jpg`): a ring of seven

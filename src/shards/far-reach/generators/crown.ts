@@ -2,8 +2,8 @@ import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMes
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { CROWN, DAIS } from '../data/layout';
-import { CROWN_RING, CROWN_STONES, type Stone } from '../data/crownLayout';
+import { CROWN, DAIS } from "./layout";
+import { CROWN_RING, CROWN_STONES, type Stone } from "./crownLayout";
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/crown.glb` + `data/crown.json`;

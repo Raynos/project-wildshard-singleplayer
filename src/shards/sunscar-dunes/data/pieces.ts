@@ -1,4 +1,4 @@
-import { BRAZIERS } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { STRINGS } from './strings';
 
 const PLACES = 'src/shards/sunscar-dunes/generators/places.ts';
@@ -12,5 +12,5 @@ export const SIGNAL_PIECES = [
   { id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: PLACES, surface: 'stone' },
   { id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: 'src/shards/sunscar-dunes/generators/rocks.ts', surface: 'rock', baked: 'rocks' },
   { id: 'sunscar.dressing', name: STRINGS.dressing, category: 'nature', file: 'src/shards/sunscar-dunes/generators/dressing.ts', surface: 'sand', baked: 'dressing' },
-  ...BRAZIERS.map((_, i) => ({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: PLACES, surface: 'stone' } as const)),
+  ...LAYOUT.BRAZIERS.map((_, i) => ({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: PLACES, surface: 'stone' } as const)),
 ] as const;

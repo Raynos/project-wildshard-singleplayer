@@ -1,8 +1,8 @@
 import { BufferGeometry, Color, Float32BufferAttribute } from 'three';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { ISLES, type Isle } from '../data/layout';
+import { ISLES, type Isle } from "./layout";
 import { ISLET } from '../data/isletDesign';
-import { apothem } from '../layout';
+import { apothem } from "./layoutMath";
 import { RISING_ISLETS } from './risingIslets';
 import { COSMETIC_SEED, ISLE_RIM, fbm, isleRim, isleStream, lastOf, ringNoise, seeded } from './isleRim';
 

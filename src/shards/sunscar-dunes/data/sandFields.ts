@@ -1,5 +1,5 @@
-import { DUNE_FIELD } from './duneField';
-import { GROUND_HALF } from './layout';
+import DUNES from './duneRows.generated.json' with { type: 'json' };
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { SHADOW_HALF } from './sand';
 import { SKY_SUN } from './sky';
 import sandMeans from './sand.json' with { type: 'json' };
@@ -9,11 +9,11 @@ const [sunX, sunY, sunZ] = SKY_SUN, toSun = 1 / Math.sqrt(sunX * sunX + sunY * s
 /** Immutable sand numbers, shared by author products and the runtime map binder. */
 export const SAND_FIELDS = { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: {
     // the ripples run with the dunes' wind; the faces turned from the set sun (data/sky.ts SKY_SUN) fall dark late
-    wind: [DUNE_FIELD.wind.x, DUNE_FIELD.wind.z], away: { from: [sunX * toSun, sunZ * toSun], amount: 0 },
+    wind: [DUNES.DUNE_FIELD.wind.x, DUNES.DUNE_FIELD.wind.z], away: { from: [sunX * toSun, sunZ * toSun], amount: 0 },
     // the grain tile's own means (data/sand.json): every faded grain term is zero-mean
     grain: { mean: sandMeans.meanR, glintMean: sandMeans.meanGlint, strength: 1 },
     // round 2 / E399: a baked 0.75 m trail mask, trodden smoother (half its ripples) and a faint brighter bed
-    trail: { rect: [-GROUND_HALF, -GROUND_HALF, GROUND_HALF, GROUND_HALF], ripples: 0.5, tint: [1.1, 1.05, 0.98], amount: 0.6 },
+    trail: { rect: [-LAYOUT.GROUND_HALF, -LAYOUT.GROUND_HALF, LAYOUT.GROUND_HALF, LAYOUT.GROUND_HALF], ripples: 0.5, tint: [1.1, 1.05, 0.98], amount: 0.6 },
     // E407 row 3: long dune shadows across the troughs, the key kept at 0.28 in cast shade
     keyShadow: { rect: [-SHADOW_HALF, -SHADOW_HALF, SHADOW_HALF, SHADOW_HALF], edge: [0.25, 0.75], floor: 0.28 },
     // round 8 / 23 / 24: each burning fire lights the sand orange round it, the caravan's lantern (a fraction of a fire) amber

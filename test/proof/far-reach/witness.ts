@@ -16,7 +16,7 @@ import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { prepareNativeRuntime, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
-import { CROWN, DECK, FALLEN_BRIDGE, KEEPER, ROOST, RUIN, STEP, UPDRAFT, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
+import { CROWN, DECK, FALLEN_BRIDGE, KEEPER, ROOST, RUIN, STEP, UPDRAFT, VANES, WINCH } from "../../../src/shards/far-reach/generators/layout";
 import { KEEPER_AT } from '../../../src/shards/far-reach/generators/quests';
 import { FAN_SWING } from '../../../src/shards/far-reach/data/items';
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with { type: 'json' };

@@ -1,7 +1,7 @@
 import { parseBossOwnerRow, type BossOwnerRow } from '@wildshard/format/bossProfiles';
 import stages from './bossStages.json' with { type: 'json' };
 import FLAGS from './flags.json' with { type: 'json' };
-import { CROWN, DAIS, FALLEN_BRIDGE } from './layout';
+import LAYOUT from './layout.generated.json' with { type: 'json' };
 import { STRINGS } from './strings';
 
 /** The Storm Roc's encounter id (its boss row, its ledger fact's actor, its saved body). */
@@ -21,8 +21,8 @@ export const ROC_DEFINITION = { id: ROC_ID, name: STRINGS.roc, title: STRINGS.ro
  * its top); the intro looks at, and the victory pays out over, the dais; a player who dies in the fight comes back at the
  * fallen bridge's crown landing, 2 m back, facing in.
  */
-export const ROC_BOSS_PROFILE = { kind: 'boss', pattern: 'held', fight: { arena: { x: CROWN.x, z: CROWN.z, r: CROWN.r * 0.9, floor: CROWN.y - 2 }, hpShares: PHASES,
-  rewardPoint: { x: DAIS.x, y: CROWN.y + DAIS.h, z: DAIS.z }, respawn: { x: FALLEN_BRIDGE.x1, y: CROWN.y + 0.2, z: FALLEN_BRIDGE.z1 - 2, yaw: 0 } } } as const;
+export const ROC_BOSS_PROFILE = { kind: 'boss', pattern: 'held', fight: { arena: { x: LAYOUT.CROWN.x, z: LAYOUT.CROWN.z, r: LAYOUT.CROWN.r * 0.9, floor: LAYOUT.CROWN.y - 2 }, hpShares: PHASES,
+  rewardPoint: { x: LAYOUT.DAIS.x, y: LAYOUT.CROWN.y + LAYOUT.DAIS.h, z: LAYOUT.DAIS.z }, respawn: { x: LAYOUT.FALLEN_BRIDGE.x1, y: LAYOUT.CROWN.y + 0.2, z: LAYOUT.FALLEN_BRIDGE.z1 - 2, yaw: 0 } } } as const;
 
 /** Historical row name; its source is the same authored held-pattern boss profile. */
 export const ROC_FIGHT = ROC_BOSS_PROFILE.fight;
