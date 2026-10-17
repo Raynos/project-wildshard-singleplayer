@@ -34,13 +34,13 @@ import type { WorldRegistry, ColliderDesc } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PaintKit, v3, poiMaterial } from './world/paint';
 import { pole, lathe } from '@wildshard/engine/world/geometryKit';
-import { CAMP_PEOPLE } from './data/questStory';
+import content from './data/questContent.json' with { type: 'json' };
 import { loadPeopleRig } from './campPeopleModels';
 import type { NpcFigureFrame as PersonFrame, NpcFigureRig as PeopleRig } from './models/npc/figureRig';
 import { stepNpcFigure, npcFigurePose } from './models/npc/figureMotion';
 import { campPersonProfile, type CampPersonProfile } from './campPeopleProfiles';
 
-export type PersonId = keyof typeof CAMP_PEOPLE;
+export type PersonId = keyof typeof content.people;
 
 /** one figure's live state */
 export interface Person {
@@ -267,7 +267,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
 
   const fig = {} as Record<PersonId, Live>;
   for (const id of ids) {
-    const parts = built[id], spot = CAMP_PEOPLE[id], profile = campPersonProfile(id, parts, parts.radius, ids.indexOf(id));
+    const parts = built[id], spot = content.people[id], profile = campPersonProfile(id, parts, parts.radius, ids.indexOf(id));
     const g = { body: batch.addGeometry(parts.body), head: batch.addGeometry(parts.head), arm: batch.addGeometry(parts.arm) };
     parts.body.dispose(); parts.head.dispose(); parts.arm.dispose();
     const x = id === 'child' ? spot.x + CHILD_RING : spot.x, z = spot.z;

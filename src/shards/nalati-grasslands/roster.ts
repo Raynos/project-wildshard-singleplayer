@@ -7,7 +7,7 @@
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
 import { NALATI_WILDLIFE } from './data/fauna';
-import { CAMP_PEOPLE } from './data/questStory';
+import content from './data/questContent.json' with { type: 'json' };
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';
 import { campPeople, shepherd } from './models/people';
 import { GEAR } from './models/gear';
@@ -36,7 +36,7 @@ export const ROSTER: readonly RosterEntry[] = [
   // circling the valley — one instanced draw each
   live(butterfly, { copies: BUTTERFLIES, drawnAs: 'instanced' }), live(raptor, { copies: RAPTORS, drawnAs: 'instanced' }),
   // people: the camp's five (one skinned mesh) and the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts)
-  live(campPeople, { copies: Object.keys(CAMP_PEOPLE).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
+  live(campPeople, { copies: Object.keys(content.people).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
   // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once
   // won, the AR-15), the reins in the saddle (src/shards/nalati-grasslands/ride/ride.ts) and the gloved hands in the river (E348)
   ...GEAR,

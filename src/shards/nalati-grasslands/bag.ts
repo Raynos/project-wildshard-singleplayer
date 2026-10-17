@@ -14,7 +14,7 @@ import { NALATI_FEATS } from './data/feats';
 import type { FindsView } from '@wildshard/game/bag/bag';
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { SkinRow } from '@wildshard/engine/ui/Menu';
-import { NALATI_PLACES } from './data/questStory';
+import content from './data/questContent.json' with { type: 'json' };
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
 import { NALATI_ELITE_DEFS as ELITE_DEFS } from './data/eliteEncounters';
 
@@ -66,7 +66,7 @@ export function nalatiFinds(flags: { has: (flag: string) => boolean }): FindsVie
     const { prize, title } = elitePrize(id);
     return { label: ELITE_DEFS[id]?.name ?? id, icon, found: flags.has(`felled:${id}`), prize: title !== null ? [prize, title] : [prize] };
   });
-  const places = NALATI_PLACES.map((p) => ({ label: p.label, icon: 'pin' as const, found: flags.has(`seen:${p.id}`) }));
+  const places = content.places.map((p) => ({ label: p.label, icon: 'pin' as const, found: flags.has(`seen:${p.id}`) }));
   return {
     counters: [
       { label: 'Elites', n: elites.filter((e) => e.found).length, of: elites.length },

@@ -1,6 +1,6 @@
 /**
  * Nalati's named places as Sets (E306 / E315 M12, Jake 2026-09-30: "every named place is a Set"). The shard names its
- * places in its discovery list (`NALATI_PLACES`, src/shards/nalati-grasslands/quest.ts: the full map's 17 labels); each is ONE set
+ * places in its discovery list (`content.places`, src/shards/nalati-grasslands/quest.ts: the full map's 17 labels); each is ONE set
  * here, `place: 'nalati-grasslands/<id>'`, listing the models placed in that place. A place built as one POI (the
  * spring camp, the kurgan field, the Kokpar field …) holds that POI's placed models whole, and only its place does;
  * every place also holds the copies of the shard's other models — the escarpment's rocks, the crag rock, the dressing's
@@ -15,10 +15,10 @@ import * as THREE from 'three';
 import type { Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import { NALATI_PLACES } from '../data/questStory';
+import content from '../data/questContent.json' with { type: 'json' };
 
 interface PlaceRow {
-  /** the named place (`nalati-grasslands/<NALATI_PLACES id>`) */
+  /** the named place (`nalati-grasslands/<content.places id>`) */
   readonly place: string;
   /** the set's id (a POI's set keeps the id it had) and name */
   readonly id: string;
@@ -91,8 +91,8 @@ export async function registerNalatiPlaces(o: {
   const loose = [...o.pois].filter(([name]) => !claimed.has(name)).flatMap(([, placed]) => placed);
   let n = 0;
   for (const row of PLACE_SETS) {
-    const where = NALATI_PLACES.find((p) => `nalati-grasslands/${p.id}` === row.place);
-    if (!where) throw new Error(`registerNalatiPlaces: ${row.place} is not in NALATI_PLACES`);
+    const where = content.places.find((p) => `nalati-grasslands/${p.id}` === row.place);
+    if (!where) throw new Error(`registerNalatiPlaces: ${row.place} is not in content.places`);
     const whole = (row.pois ?? []).flatMap((name) => o.pois.get(name) ?? []);
     const members = [...whole];
     for (const p of [...loose, ...o.others]) {

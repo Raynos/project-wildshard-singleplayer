@@ -1,0 +1,1028 @@
+{
+  "quests": {
+    "flags": [
+      "talked:elder",
+      "tamed:horse",
+      "tamed:argymaq",
+      "won:kokpar",
+      "told:tulpar",
+      "talked:elder:2",
+      "clue:1",
+      "clue:2",
+      "clue:3",
+      "entered:kurgan",
+      "dead:golden-king",
+      "told:king",
+      "talked:elder:3",
+      "feather:1",
+      "feather:2",
+      "feather:3",
+      "felled:kokbori",
+      "felled:qyran",
+      "felled:aqbars",
+      "felled:qara-batyr",
+      "felled:argymaq",
+      "lit:cairn",
+      "dead:jel-ata",
+      "told:wind",
+      "quest:tulpar",
+      "quest:golden-king",
+      "quest:father-wind"
+    ],
+    "quests": [
+      {
+        "id": "tulpar",
+        "title": "Tulpar",
+        "completeFlag": "quest:tulpar",
+        "startWhen": {
+          "all": [
+            "talked:elder"
+          ]
+        },
+        "intro": {
+          "objective": "Visit the nomad camp by the Kunes",
+          "chip": "Tulpar",
+          "hint": "Baqyt Ata sits by the big yurt",
+          "markers": [
+            {
+              "id": "elder",
+              "label": "BAQYT ATA",
+              "short": "BAQYT ATA",
+              "at": {
+                "poi": "world",
+                "x": 86.6,
+                "z": 220.9
+              }
+            }
+          ]
+        },
+        "steps": [
+          {
+            "id": "tame",
+            "objective": "Break a wild stallion on the horse plains",
+            "hint": "Crouch, come slow, hold out your hand · or Argymaq, on the Crags' high pasture, if you are feeling immortal",
+            "done": {
+              "all": [
+                "tamed:horse"
+              ]
+            },
+            "markers": [
+              {
+                "id": "plains",
+                "label": "HORSE PLAINS",
+                "short": "HORSE PLAINS",
+                "at": {
+                  "poi": "world",
+                  "x": 65,
+                  "z": 36
+                }
+              },
+              {
+                "id": "argymaq",
+                "label": "ARGYMAQ'S PASTURE",
+                "short": "ARGYMAQ",
+                "at": {
+                  "poi": "world",
+                  "x": -160,
+                  "z": -72
+                }
+              }
+            ]
+          },
+          {
+            "id": "kokpar",
+            "objective": "Win a round of kokpar",
+            "hint": "Ride in, snatch the goat from the middle, drop it in a tai-qazan · keep galloping or the riders take it back",
+            "done": {
+              "all": [
+                "won:kokpar"
+              ]
+            },
+            "markers": [
+              {
+                "id": "kokpar",
+                "label": "KOKPAR FIELD",
+                "short": "KOKPAR FIELD",
+                "at": {
+                  "poi": "world",
+                  "x": -61,
+                  "z": 36
+                }
+              }
+            ]
+          },
+          {
+            "id": "home",
+            "objective": "Ride home to Baqyt Ata",
+            "hint": "The camp by the Kunes",
+            "done": {
+              "all": [
+                "told:tulpar"
+              ]
+            },
+            "markers": [
+              {
+                "id": "elder",
+                "label": "BAQYT ATA",
+                "short": "BAQYT ATA",
+                "at": {
+                  "poi": "world",
+                  "x": 86.6,
+                  "z": 220.9
+                }
+              }
+            ]
+          }
+        ],
+        "onComplete": {
+          "fact": "nalati.quest.tulpar"
+        }
+      },
+      {
+        "id": "golden-king",
+        "title": "The Golden King",
+        "completeFlag": "quest:golden-king",
+        "startWhen": {
+          "all": [
+            "quest:tulpar",
+            "talked:elder:2"
+          ]
+        },
+        "intro": {
+          "objective": "Ask Baqyt Ata about the kurgans",
+          "chip": "Golden King",
+          "hint": "He has been looking west all week",
+          "markers": [
+            {
+              "id": "elder",
+              "label": "BAQYT ATA",
+              "short": "BAQYT ATA",
+              "at": {
+                "poi": "world",
+                "x": 86.6,
+                "z": 220.9
+              }
+            }
+          ]
+        },
+        "steps": [
+          {
+            "id": "clues",
+            "objective": "Topple the balbal warriors at dusk · {n} / {of}",
+            "hint": "The stones of the kurgan field wake when the sun goes down · each one carries a piece of the story",
+            "done": {
+              "any": [
+                "clue:3",
+                "dead:golden-king"
+              ]
+            },
+            "count": [
+              "clue:1",
+              "clue:2",
+              "clue:3"
+            ],
+            "markers": [
+              {
+                "id": "field",
+                "label": "KURGAN FIELD",
+                "short": "KURGANS",
+                "at": {
+                  "poi": "world",
+                  "x": -106,
+                  "z": 83
+                }
+              }
+            ]
+          },
+          {
+            "id": "door",
+            "objective": "Find the way into the great kurgan",
+            "hint": "Its door faces west, toward the sky road",
+            "done": {
+              "any": [
+                "entered:kurgan",
+                "dead:golden-king"
+              ]
+            },
+            "markers": [
+              {
+                "id": "door",
+                "label": "GREAT KURGAN",
+                "short": "THE KURGAN",
+                "at": {
+                  "poi": "world",
+                  "x": -170.5,
+                  "z": 75
+                }
+              }
+            ]
+          },
+          {
+            "id": "king",
+            "objective": "Defeat the Golden King",
+            "hint": "Jump his sunburst · knock his plaques loose, then his chest takes arrows",
+            "done": {
+              "all": [
+                "dead:golden-king"
+              ]
+            },
+            "markers": [
+              {
+                "id": "king",
+                "label": "THE GOLDEN KING",
+                "short": "THE KURGAN",
+                "at": {
+                  "poi": "world",
+                  "x": -170.5,
+                  "z": 75
+                }
+              }
+            ]
+          },
+          {
+            "id": "home",
+            "objective": "Bring a gold plaque home to Baqyt Ata",
+            "hint": "The camp by the Kunes",
+            "done": {
+              "all": [
+                "told:king"
+              ]
+            },
+            "markers": [
+              {
+                "id": "elder",
+                "label": "BAQYT ATA",
+                "short": "BAQYT ATA",
+                "at": {
+                  "poi": "world",
+                  "x": 86.6,
+                  "z": 220.9
+                }
+              }
+            ]
+          }
+        ],
+        "onComplete": {
+          "fact": "nalati.quest.golden-king"
+        }
+      },
+      {
+        "id": "father-wind",
+        "title": "Father of the Wind",
+        "completeFlag": "quest:father-wind",
+        "startWhen": {
+          "all": [
+            "quest:golden-king",
+            "talked:elder:3"
+          ]
+        },
+        "intro": {
+          "objective": "Baqyt Ata is watching the sky",
+          "chip": "Father Wind",
+          "hint": "The camp by the Kunes",
+          "markers": [
+            {
+              "id": "elder",
+              "label": "BAQYT ATA",
+              "short": "BAQYT ATA",
+              "at": {
+                "poi": "world",
+                "x": 86.6,
+                "z": 220.9
+              }
+            }
+          ]
+        },
+        "steps": [
+          {
+            "id": "feathers",
+            "objective": "Win three storm feathers from the great beasts · {n} / {of}",
+            "hint": "Kokbori from dusk, Qyran in a storm, Aqbars, Qara Batyr after 5 of his night riders fall — or break Argymaq · any three",
+            "done": {
+              "any": [
+                "feather:3",
+                "dead:jel-ata"
+              ]
+            },
+            "count": [
+              "feather:1",
+              "feather:2",
+              "feather:3"
+            ],
+            "markers": [
+              {
+                "id": "kokbori",
+                "label": "KOKBORI'S DEN",
+                "short": "KOKBORI",
+                "at": {
+                  "poi": "world",
+                  "x": -172,
+                  "z": 118
+                },
+                "hideWhen": {
+                  "all": [
+                    "felled:kokbori"
+                  ]
+                }
+              },
+              {
+                "id": "qyran",
+                "label": "QYRAN · EAGLE ROCK",
+                "short": "QYRAN",
+                "at": {
+                  "poi": "world",
+                  "x": 180,
+                  "z": 85
+                },
+                "hideWhen": {
+                  "all": [
+                    "felled:qyran"
+                  ]
+                }
+              },
+              {
+                "id": "aqbars",
+                "label": "AQBARS · LEOPARD CAVE",
+                "short": "AQBARS",
+                "at": {
+                  "poi": "world",
+                  "x": 138,
+                  "z": -68
+                },
+                "hideWhen": {
+                  "all": [
+                    "felled:aqbars"
+                  ]
+                }
+              },
+              {
+                "id": "qara-batyr",
+                "label": "QARA BATYR'S CAIRN",
+                "short": "QARA BATYR",
+                "at": {
+                  "poi": "world",
+                  "x": 82,
+                  "z": -50
+                },
+                "hideWhen": {
+                  "all": [
+                    "felled:qara-batyr"
+                  ]
+                }
+              },
+              {
+                "id": "argymaq",
+                "label": "ARGYMAQ'S PASTURE",
+                "short": "ARGYMAQ",
+                "at": {
+                  "poi": "world",
+                  "x": -160,
+                  "z": -72
+                },
+                "hideWhen": {
+                  "all": [
+                    "felled:argymaq"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "cairn",
+            "objective": "Tie the feathers to the Wind Cairn in a storm",
+            "hint": "Ride to the cairn on the south rim when the sky turns · tie the strip",
+            "done": {
+              "any": [
+                "lit:cairn",
+                "dead:jel-ata"
+              ]
+            },
+            "markers": [
+              {
+                "id": "cairn",
+                "label": "WIND CAIRN",
+                "short": "THE CAIRN",
+                "at": {
+                  "poi": "world",
+                  "x": -30,
+                  "z": -45
+                }
+              }
+            ]
+          },
+          {
+            "id": "titan",
+            "objective": "Defeat Jel Ata, Father of the Wind",
+            "hint": "Stay in the saddle · his heart shows when the lightning does",
+            "done": {
+              "all": [
+                "dead:jel-ata"
+              ]
+            },
+            "markers": [
+              {
+                "id": "titan",
+                "label": "JEL ATA",
+                "short": "THE CAIRN",
+                "at": {
+                  "poi": "world",
+                  "x": -30,
+                  "z": -45
+                }
+              }
+            ]
+          },
+          {
+            "id": "home",
+            "objective": "Ride home to Baqyt Ata",
+            "hint": "The camp by the Kunes",
+            "done": {
+              "all": [
+                "told:wind"
+              ]
+            },
+            "markers": [
+              {
+                "id": "elder",
+                "label": "BAQYT ATA",
+                "short": "BAQYT ATA",
+                "at": {
+                  "poi": "world",
+                  "x": 86.6,
+                  "z": 220.9
+                }
+              }
+            ]
+          }
+        ],
+        "onComplete": {
+          "fact": "nalati.quest.father-wind"
+        }
+      }
+    ],
+    "triggers": [],
+    "dialogue": []
+  },
+  "people": {
+    "elder": {
+      "x": 86.6,
+      "z": 220.9,
+      "yaw": 3.391592653589793
+    },
+    "herderGate": {
+      "x": 105.2,
+      "z": 219,
+      "yaw": 1.8707963267948966
+    },
+    "herderRail": {
+      "x": 73,
+      "z": 214.4,
+      "yaw": -1.5707963267948966
+    },
+    "child": {
+      "x": 89.5,
+      "z": 211.5,
+      "yaw": 0
+    },
+    "cook": {
+      "x": 91.7,
+      "z": 207.5,
+      "yaw": 2.5132741228718345
+    }
+  },
+  "npcs": {
+    "elder": {
+      "id": "elder",
+      "name": "Baqyt Ata, the camp elder",
+      "dialogue": [
+        {
+          "when": {
+            "all": [
+              "quest:father-wind"
+            ]
+          },
+          "lines": [
+            "Listen. Hear that? Nothing. No thunder over the bowl for three days. The herders are complaining about the quiet.",
+            "Stay as long as you like, balam. There is always a place by this stove for the one who calmed the Father of the Wind."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:golden-king",
+              "dead:jel-ata"
+            ],
+            "none": [
+              "told:wind"
+            ]
+          },
+          "lines": [
+            "You rode INTO the storm? On purpose? My grandmother would have tied you to the yurt pole for a week.",
+            "Jel Ata is quiet. The rain will come gentle now, the way the grass likes it. The whole steppe owes you, and the steppe is bad at paying debts — so I will: sit, eat, and we sing tonight."
+          ],
+          "sets": [
+            "talked:elder:3",
+            "told:wind"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:golden-king",
+              "talked:elder:3"
+            ]
+          },
+          "lines": [
+            "The storm feathers: Kokbori in her den from dusk, Qyran over Eagle Rock when a storm comes, the pale leopard in his cave, Qara Batyr at night by his cairn — cut down five of his ghost riders and he rides out himself — or Argymaq, if he still lets you near. Any three.",
+            "Then wait for the sky to turn, ride to the Wind Cairn on the south rim and tie them on. Jel Ata will come. He always comes when someone is rude to his cairn."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:golden-king"
+            ]
+          },
+          "lines": [
+            "Gold in the kurgan, and a king who will not stay dead. And now the sky. Look south — see how the clouds lean over the rim?",
+            "That is Jel Ata, Father of the Wind. He has been angry since before my grandfather's grandfather, and nobody remembers why. Possibly nobody asked.",
+            "The old way: three storm feathers from the great beasts of the steppe, tied to the Wind Cairn in a storm. Then you ask him. Politely. With a sabre."
+          ],
+          "sets": [
+            "talked:elder:3"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:tulpar",
+              "dead:golden-king"
+            ],
+            "none": [
+              "told:king"
+            ]
+          },
+          "lines": [
+            "Is that — show me. Gold. Real gold, from the great kurgan. And you are still breathing! Oybai, the king must be getting old.",
+            "We will not keep it. The dead keep their gold; we keep the story. I will hang it on the ribbon pole for one night, so the camp can see, then it goes back to the steppe."
+          ],
+          "sets": [
+            "talked:elder:2",
+            "told:king"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:tulpar",
+              "talked:elder:2"
+            ]
+          },
+          "lines": [
+            "The balbals only wake at dusk. Topple them — gently, they are older than all of us — and read what is carved on their backs.",
+            "Then find the great kurgan's door. It faces the setting sun. They always do, the show-offs."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:tulpar"
+            ]
+          },
+          "lines": [
+            "Now you sit a horse like a Kazakh and not like a sack of flour on a camel. Good.",
+            "So. The kurgans on the bowl's west side. When the sun goes down the stone warriors on the mounds get up and walk. Every year the young men ride out to prove they are not afraid, and every year they ride back faster.",
+            "In the great kurgan sleeps the Golden King. The balbals are his guard, and his story is carved on their backs. Topple three at dusk and read it — then you will know how to find his door.",
+            "And if you meet him — bring me back a plaque. Not for the gold. For the proof. Nobody believes me about the king."
+          ],
+          "sets": [
+            "talked:elder:2"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "tamed:horse",
+              "won:kokpar"
+            ]
+          },
+          "lines": [
+            "Ha! The whole valley heard it — the guest snatched the goat from under the kokpar boys' noses!",
+            "We say: a man without a horse is a man without wings. Today you grew wings. And you did not even fall off them. Much.",
+            "The riders have a name for you now. I will not tell you what they called you BEFORE the round.",
+            "Tulpar was a winged horse, in the old songs. Ride yours well, and the steppe will open to you."
+          ],
+          "sets": [
+            "talked:elder",
+            "told:tulpar"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "tamed:argymaq"
+            ],
+            "none": [
+              "won:kokpar"
+            ]
+          },
+          "lines": [
+            "ARGYMAQ? You sat on Argymaq? Nobody has sat on that horse since my grandfather's grandfather — and he only sat on him once, briefly, and then on the ground for a long time.",
+            "Oybai, what a horse! Now go and show the kokpar boys. The field is in the golden bowl, past the horse plains. Let them eat his dust."
+          ],
+          "sets": [
+            "talked:elder"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "tamed:horse"
+            ],
+            "none": [
+              "won:kokpar"
+            ]
+          },
+          "lines": [
+            "That is your horse at the rail? Good chest. Proud eyes. He will throw you twice a week and love you the rest of it.",
+            "Now the kokpar. The boys play every day on the field in the golden bowl, west of the horse plains. Take the goat from the middle, put it in a tai-qazan. Do not stop moving — they will take it straight back."
+          ],
+          "sets": [
+            "talked:elder"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "won:kokpar"
+            ],
+            "none": [
+              "tamed:horse"
+            ]
+          },
+          "lines": [
+            "You won the kokpar on a BORROWED horse? The boys will never live it down. Neither will the horse.",
+            "But a guest with no horse of his own is still a guest on foot. Go to the horse plains. Break a stallion who is yours."
+          ],
+          "sets": [
+            "talked:elder"
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "talked:elder"
+            ]
+          },
+          "lines": [
+            "The herd grazes on the horse plains, up in the golden bowl — take the sky road south from the bridge.",
+            "Come to the stallion slow, crouched, with an open hand. Shoot anywhere near him and you are walking home, and so is your dignity.",
+            "Or — if you want to be a song instead of a rider — Argymaq runs on the Crags' high pasture. Nobody has broken him. Nobody. Just so you know."
+          ]
+        },
+        {
+          "lines": [
+            "Salem, traveller! Sit, sit — in a Kazakh yurt the kettle is always on, even when the yurt is on fire.",
+            "I am Baqyt. Seventy-three winters on this steppe, and every one of them windy.",
+            "You came on foot? On FOOT? Across the Kunes? Aynalayin, the steppe is not for feet. Feet are for standing in stirrups.",
+            "Go up to the horse plains and win yourself a stallion. Then show the kokpar boys you can ride him. Then come back, and we will talk like two people with horses."
+          ],
+          "sets": [
+            "talked:elder"
+          ]
+        }
+      ]
+    },
+    "herderGate": {
+      "id": "herder-gate",
+      "name": "Dauren, herder",
+      "dialogue": [
+        {
+          "when": {
+            "all": [
+              "won:kokpar"
+            ]
+          },
+          "lines": [
+            "You carried the goat all the way into the tai-qazan? My brother says you cheated. My brother also says the moon is a cheese, so."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "tamed:argymaq"
+            ]
+          },
+          "lines": [
+            "Is that — no. Is that ARGYMAQ at our rail? I am going to go and lie down in the yurt for a while."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "tamed:horse"
+            ]
+          },
+          "lines": [
+            "Nice horse. When he bites you — and he will — do not bite back. It only encourages them."
+          ]
+        },
+        {
+          "lines": [
+            "The stallion on the plains? He bit my cousin. Twice. Same afternoon. My cousin went back for the second one, which tells you about my cousin."
+          ]
+        }
+      ]
+    },
+    "herderRail": {
+      "id": "herder-rail",
+      "name": "Erlan, herder",
+      "dialogue": [
+        {
+          "when": {
+            "all": [
+              "dead:jel-ata"
+            ]
+          },
+          "lines": [
+            "No storm for three days. My mother says it is you. My father says it is the season. They have not spoken since breakfast."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "dead:golden-king"
+            ]
+          },
+          "lines": [
+            "You went INTO the great kurgan. On purpose. And came out. I am telling everyone I taught you to ride."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "won:kokpar"
+            ]
+          },
+          "lines": [
+            "Next year you ride for our camp. That is not a question. We have already told the other camps."
+          ]
+        },
+        {
+          "lines": [
+            "Kokpar? It is like polo, except the ball is a goat, and the rules are also a goat.",
+            "The camp horses at the rail are for anyone. Be nice to the grey. She remembers."
+          ]
+        }
+      ]
+    },
+    "child": {
+      "id": "child",
+      "name": "Ayan",
+      "dialogue": [
+        {
+          "when": {
+            "all": [
+              "tamed:horse"
+            ]
+          },
+          "lines": [
+            "Can I ride him? Just to the river? Just to the tree? Just to you? I am standing right here, it is not far."
+          ]
+        },
+        {
+          "lines": [
+            "Is it true you came from the sky? Grandpa Baqyt says everybody comes from the sky. I think he means the rain."
+          ]
+        }
+      ]
+    },
+    "cook": {
+      "id": "cook",
+      "name": "Gulnar Apa",
+      "dialogue": [
+        {
+          "when": {
+            "all": [
+              "quest:father-wind"
+            ]
+          },
+          "lines": [
+            "Sit! You are the one who shouted at the sky and the sky listened. The sky never listens to me. Eat."
+          ]
+        },
+        {
+          "when": {
+            "all": [
+              "quest:tulpar"
+            ]
+          },
+          "lines": [
+            "Baqyt has not smiled like that since the spring the wolves went north. Take another baursaq. Take two. Your horse can have one."
+          ]
+        },
+        {
+          "lines": [
+            "Eat first, then talk. The baursaq is hot. No — you cannot say no, it is not a question, it is a baursaq."
+          ]
+        }
+      ]
+    }
+  },
+  "carvings": [
+    [
+      "A rider with a sun for a face, and nine horses buried standing around him.",
+      "Under it, scratched later by a less patient hand: \"DO NOT DIG HERE. WE MEAN IT.\""
+    ],
+    [
+      "The sun-faced rider again, now on a throne of gold plates, a bow across his knees.",
+      "Around him, many small men with shovels. None of them look happy about it."
+    ],
+    [
+      "A door in a hill, facing the setting sun. Above it the sun-faced rider, sleeping — one eye open.",
+      "The carving says the king wakes for anyone who knocks. It does not say he is pleased to."
+    ]
+  ],
+  "clueFlags": [
+    "clue:1",
+    "clue:2",
+    "clue:3"
+  ],
+  "featherFlags": [
+    "feather:1",
+    "feather:2",
+    "feather:3"
+  ],
+  "featherElites": [
+    {
+      "id": "kokbori",
+      "label": "KOKBORI'S DEN",
+      "short": "KOKBORI",
+      "at": {
+        "x": -172,
+        "z": 118
+      }
+    },
+    {
+      "id": "qyran",
+      "label": "QYRAN · EAGLE ROCK",
+      "short": "QYRAN",
+      "at": {
+        "x": 180,
+        "z": 85,
+        "top": 65
+      }
+    },
+    {
+      "id": "aqbars",
+      "label": "AQBARS · LEOPARD CAVE",
+      "short": "AQBARS",
+      "at": {
+        "x": 138,
+        "z": -68,
+        "y": 54,
+        "rot": 2.670353755551324
+      }
+    },
+    {
+      "id": "qara-batyr",
+      "label": "QARA BATYR'S CAIRN",
+      "short": "QARA BATYR",
+      "at": {
+        "x": 82,
+        "z": -50
+      }
+    },
+    {
+      "id": "argymaq",
+      "label": "ARGYMAQ'S PASTURE",
+      "short": "ARGYMAQ",
+      "at": {
+        "x": -160,
+        "z": -72,
+        "y": 52
+      }
+    }
+  ],
+  "places": [
+    {
+      "id": "nomad-camp",
+      "label": "NOMAD CAMP",
+      "x": 88,
+      "z": 212,
+      "r": 32
+    },
+    {
+      "id": "sheep-pasture",
+      "label": "SHEEP PASTURE",
+      "x": -120,
+      "z": 212,
+      "r": 32
+    },
+    {
+      "id": "bridge",
+      "label": "BRIDGE",
+      "x": 0,
+      "z": 172,
+      "r": 32
+    },
+    {
+      "id": "kunes-river",
+      "label": "KUNES RIVER",
+      "x": 150,
+      "z": 170.69679046771836,
+      "r": 45
+    },
+    {
+      "id": "sky-road",
+      "label": "SKY ROAD",
+      "x": 46,
+      "z": 128,
+      "r": 36
+    },
+    {
+      "id": "eagle-rock",
+      "label": "EAGLE ROCK",
+      "x": 180,
+      "z": 85,
+      "r": 32
+    },
+    {
+      "id": "horse-plains",
+      "label": "HORSE PLAINS",
+      "x": 65,
+      "z": 36,
+      "r": 60
+    },
+    {
+      "id": "kokpar-field",
+      "label": "KOKPAR FIELD",
+      "x": -61,
+      "z": 36,
+      "r": 38
+    },
+    {
+      "id": "kurgan-field",
+      "label": "KURGAN FIELD",
+      "x": -106,
+      "z": 83,
+      "r": 40
+    },
+    {
+      "id": "great-kurgan",
+      "label": "GREAT KURGAN",
+      "x": -191,
+      "z": 75,
+      "r": 32
+    },
+    {
+      "id": "summer-camp",
+      "label": "SUMMER CAMP",
+      "x": -91,
+      "z": -26,
+      "r": 32
+    },
+    {
+      "id": "watchtower",
+      "label": "WATCHTOWER",
+      "x": -208,
+      "z": -38,
+      "r": 32
+    },
+    {
+      "id": "wind-cairn",
+      "label": "WIND CAIRN",
+      "x": -30,
+      "z": -45,
+      "r": 32
+    },
+    {
+      "id": "glacier",
+      "label": "GLACIER",
+      "x": -82,
+      "z": -81,
+      "r": 50
+    },
+    {
+      "id": "snow-leopard-cave",
+      "label": "SNOW LEOPARD CAVE",
+      "x": 138,
+      "z": -68,
+      "r": 32
+    },
+    {
+      "id": "the-crags",
+      "label": "THE CRAGS",
+      "x": -180,
+      "z": -115,
+      "r": 55
+    },
+    {
+      "id": "snow-lotus",
+      "label": "SNOW LOTUS",
+      "x": 143,
+      "z": -136,
+      "r": 36
+    }
+  ]
+}

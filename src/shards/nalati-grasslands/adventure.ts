@@ -47,7 +47,8 @@ import { installEnteredAdventure } from './runtime/enteredAdventure';
  * on load; `window.__nalatiQuest` = { flags, line, people, kokpar, places, talk(id), carving() }.
  */
 import type * as THREE from 'three';
-import { CAMP_NPCS, CARVINGS, CLUE_FLAGS, FEATHER_ELITES, FEATHER_FLAGS, NALATI_PLACES, NALATI_QUESTS } from './data/questStory';
+import { parseQuestData } from '@wildshard/sdk/quests';
+import content from './data/questContent.json' with { type: 'json' };
 import { buildCampPeople, type CampPeople, type PersonId } from './campPeople';
 import { buildKokparRound, KOKPAR_GOALS, type KokparMount, type KokparRound } from './kokpar';
 
@@ -134,7 +135,7 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
   if (!w.registry) w.game.scene.add(people.group);
 
   // ── the quest line, the chip, the dialogue ──
-  const line = w.ctx === undefined || w.persistence === undefined ? new QuestLine(NALATI_QUESTS, flags) : bindNalatiQuests(w.ctx, flags, w.persistence.facts);
+  const line = w.ctx === undefined || w.persistence === undefined ? new QuestLine(parseQuestData(content.quests).quests, flags) : bindNalatiQuests(w.ctx, flags, w.persistence.facts);
   const markers = (): LiveMarker[] => (line.active?.markers() ?? []).map((m) => ({ id: m.id, label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
   const chip = new QuestChip({
     chip: () => {
@@ -152,8 +153,8 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
     if (dialogue === undefined) throw new Error('Nalati dialogue is not installed');
     return dialogue;
   };
-  const talks = (Object.keys(CAMP_NPCS) as PersonId[]).map((id) => {
-    const talk = new NpcTalk({ get dialogue() { return currentDialogue(); }, flags, npc: CAMP_NPCS[id], at: people.fig[id].headWorld, radius: TALK_R, label: LABELS[id], speaker: people.fig[id], onOpen: () => { w.audio.weaponSwap(); } });
+  const talks = (Object.keys(content.npcs) as PersonId[]).map((id) => {
+    const talk = new NpcTalk({ get dialogue() { return currentDialogue(); }, flags, npc: content.npcs[id], at: people.fig[id].headWorld, radius: TALK_R, label: LABELS[id], speaker: people.fig[id], onOpen: () => { w.audio.weaponSwap(); } });
     w.prompts.push(talk.prompt);
     return { id, talk };
   });
@@ -187,7 +188,7 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
   });
 
   // ── places with saved discovery (replaces the fog read: names stay found across reloads) ──
-  const places = placesWithDiscovery(NALATI_PLACES, flags, (t) => { w.hud.toast(t); }, markers);
+  const places = placesWithDiscovery(content.places, flags, (t) => { w.hud.toast(t); }, markers);
   w.fullMap?.setPois(places.mapPois, { declutter: true });   // F11: the elder's marker label stays off NOMAD CAMP's
 
   // ── a round of kokpar (TULPAR step 2; open any time) ──
@@ -215,9 +216,9 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
     // the storm feathers: one per named elite felled (the saved elite store, re-read every 2 s)
     if (t - eliteT > 2) {
       eliteT = t;
-      for (const id of elitesFelled(w.persistence === undefined ? undefined : () => w.persistence?.elites.read(w.chunk.slug) ?? {})) if (FEATHER_ELITES.some((e) => e.id === id)) flags.set(`felled:${id}`);
-      const n = FEATHER_ELITES.filter((e) => flags.has(`felled:${e.id}`)).length;
-      FEATHER_FLAGS.forEach((f, i) => { if (i < n && !flags.has(f)) { flags.set(f); if (line.active?.def.id === 'father-wind') w.hud.toast(`Storm feather · ${i + 1} / ${FEATHER_FLAGS.length}`); } });
+      for (const id of elitesFelled(w.persistence === undefined ? undefined : () => w.persistence?.elites.read(w.chunk.slug) ?? {})) if (content.featherElites.some((e) => e.id === id)) flags.set(`felled:${id}`);
+      const n = content.featherElites.filter((e) => flags.has(`felled:${e.id}`)).length;
+      content.featherFlags.forEach((f, i) => { if (i < n && !flags.has(f)) { flags.set(f); if (line.active?.def.id === 'father-wind') w.hud.toast(`Storm feather · ${i + 1} / ${content.featherFlags.length}`); } });
     }
   };
   poll();
@@ -227,12 +228,12 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
   const carving = (): void => {
     const q = line.active;
     if (q?.def.id !== 'golden-king' || q.current?.id !== 'clues') return;
-    const i = CLUE_FLAGS.findIndex((f) => !flags.has(f));
-    const flag = CLUE_FLAGS[i], lines = CARVINGS[i];
+    const i = content.clueFlags.findIndex((f) => !flags.has(f));
+    const flag = content.clueFlags[i], lines = content.carvings[i];
     if (flag === undefined || lines === undefined) return;
-    w.hud.toast(`A carving on its back · clue ${i + 1} / ${CLUE_FLAGS.length}`);
+    w.hud.toast(`A carving on its back · clue ${i + 1} / ${content.clueFlags.length}`);
     const dialogue = currentDialogue();
-    if (!dialogue.isOpen) dialogue.open(`A toppled balbal · ${i + 1} / ${CLUE_FLAGS.length}`, lines, () => undefined);
+    if (!dialogue.isOpen) dialogue.open(`A toppled balbal · ${i + 1} / ${content.clueFlags.length}`, lines, () => undefined);
     flags.set(flag);
   };
   let chained = false;

@@ -6,7 +6,7 @@ import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discov
 import { SHARD_FLAGS } from '../src/shards/driftwood-isle/data/interactables';
 import { FINDS_ELITES, elitePrize, nalatiFinds } from '../src/shards/nalati-grasslands/bag';
 import { NALATI_ELITE_DEFS } from '../src/shards/nalati-grasslands/data/eliteEncounters';
-import { NALATI_PLACES } from '../src/shards/nalati-grasslands/data/questStory';
+import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 
 const islandCatalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
 const driftwoodFinds = (flags: { has: (id: string) => boolean }, owned: { has: (id: OwnedId) => boolean }) => islandCatalogue({ flags, owned });
@@ -37,18 +37,18 @@ test('Driftwood reads live flags and owned trophies while preserving milestones 
 test('the named Nalati W3 flag and prize catalogue fits its current Bag owner', () => {
   const catalogue = createFindsCatalogue({ counters: [
     { label: 'Elites', flags: FINDS_ELITES.map(row => `felled:${row.id}`) },
-    { label: 'Places', flags: NALATI_PLACES.map(row => `seen:${row.id}`) },
+    { label: 'Places', flags: content.places.map(row => `seen:${row.id}`) },
   ], sections: [
     { title: 'Elites', wide: true, items: FINDS_ELITES.map(({ id, icon }) => {
       const { prize, title } = elitePrize(id);
       return { label: NALATI_ELITE_DEFS[id]?.name ?? id, icon, flag: `felled:${id}`, prize: title === null ? [prize] : [prize, title] };
     }) },
-    { title: 'Places', dense: true, items: NALATI_PLACES.map(row => ({ label: row.label, icon: 'pin' as const, flag: `seen:${row.id}` })) },
+    { title: 'Places', dense: true, items: content.places.map(row => ({ label: row.label, icon: 'pin' as const, flag: `seen:${row.id}` })) },
   ] });
   const set = new Set<string>(), flags = { has: (flag: string) => set.has(flag) };
   expect(catalogue({ flags })).toEqual(nalatiFinds(flags));
   for (const row of FINDS_ELITES) set.add(`felled:${row.id}`);
-  for (const row of NALATI_PLACES) set.add(`seen:${row.id}`);
+  for (const row of content.places) set.add(`seen:${row.id}`);
   expect(catalogue({ flags })).toEqual(nalatiFinds(flags));
 });
 

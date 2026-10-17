@@ -1,17 +1,17 @@
 import type { NpcFigureMotionProfile } from './models/npc/figureMotion';
-import { CAMP_PEOPLE } from './data/questStory';
+import content from './data/questContent.json' with { type: 'json' };
 import { peopleModelUrl } from './campPeopleModels';
 import type { NpcFigureFrame as PersonFrame } from './models/npc/figureRig';
 
 export interface CampPersonProfile {
-  id: keyof typeof CAMP_PEOPLE; model: string; frame: PersonFrame; motion: NpcFigureMotionProfile;
+  id: keyof typeof content.people; model: string; frame: PersonFrame; motion: NpcFigureMotionProfile;
   phase: number; glanceAfter: number; collider: { height: number; radius: number };
 }
 /** Authored idle secondary motion; the shared NPC rig owns focus and talking. */
-export const CAMP_MOTION: Record<keyof typeof CAMP_PEOPLE, NpcFigureMotionProfile> = {
+export const CAMP_MOTION: Record<keyof typeof content.people, NpcFigureMotionProfile> = {
   elder: {}, herderGate: {}, herderRail: {},
   child: {
-    orbit: { x: CAMP_PEOPLE.child.x, z: CAMP_PEOPLE.child.z, radius: 2.3, speed: 0.55, stopDistance: 5, lift: 0.1, frequency: 6.5 },
+    orbit: { x: content.people.child.x, z: content.people.child.z, radius: 2.3, speed: 0.55, stopDistance: 5, lift: 0.1, frequency: 6.5 },
     idleHead: { distance: 5, yaw: 0, pitch: -0.1 },
     idleArm: { distance: 5, x: { offset: 0, amplitude: 0.6, frequency: 6.5, clock: 'phase' } },
   },
@@ -23,7 +23,7 @@ export const CAMP_MOTION: Record<keyof typeof CAMP_PEOPLE, NpcFigureMotionProfil
 };
 
 /** Per-person content rows share the rig's focus and talking clips. */
-export function campPersonProfile(id: keyof typeof CAMP_PEOPLE, frame: PersonFrame, radius: number, index: number): CampPersonProfile {
+export function campPersonProfile(id: keyof typeof content.people, frame: PersonFrame, radius: number, index: number): CampPersonProfile {
   return { id, model: peopleModelUrl(id), frame, motion: CAMP_MOTION[id], phase: index * 1.7, glanceAfter: 2 + index,
     collider: { height: frame.height, radius } };
 }

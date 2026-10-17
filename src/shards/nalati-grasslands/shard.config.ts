@@ -6,7 +6,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import audio from './data/audio.generated.json' with {type:'json'};
 import { NALATI_EDGES } from './data/edges';
 import { NALATI_RUNTIME_COST } from './data/runtimeCost';
-import { NALATI_QUEST_DATA } from './data/quests';
+import questContent from './data/questContent.json' with { type: 'json' };
 import { NALATI_LEDGER } from './data/ledger';
 import { NALATI_STATE } from './data/state';
 import { NALATI_ITEMS } from './data/items';
@@ -35,5 +35,5 @@ export default parseShardfile({ ...base,
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: files.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: [...NALATI_FAR_HERD_CHANNELS,...weatherChannels.clientChannels],
-  modes: NALATI_MODES, quests: NALATI_QUEST_DATA, ledger: NALATI_LEDGER, state: NALATI_STATE, items: NALATI_ITEMS, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
+  modes: NALATI_MODES, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items: NALATI_ITEMS, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });
