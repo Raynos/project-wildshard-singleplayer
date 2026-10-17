@@ -115,7 +115,10 @@ export function setModelShade(_on: true, root?: THREE.Object3D): void {
     const original = modelMats.get(o.material);
     if (original === undefined || original === o.geometry) return;
     const paint = clonePaint.get(original);
-    if (paint !== undefined) o.geometry.setAttribute('color', paint.clone());
+    const color = o.geometry.getAttribute('color');
+    if (paint !== undefined && color instanceof THREE.BufferAttribute && color.array instanceof Float32Array) {
+      color.array.set(paint.array); color.needsUpdate = true;
+    }
   });
 }
 
