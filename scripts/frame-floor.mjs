@@ -663,7 +663,23 @@ async function worker() {
   const base = flag('base', ''), deadline = Number(flag('deadline', '0')), rows = [];
   let browser, context, page, proxy, inspector;
   let lastRoute = null;
-  const observe = progress => { lastRoute = progress; };
+  // Retain the existing once-a-second route ledger's memory envelope, including loading between standing witnesses.
+  // This records already-read model costs; it adds no browser sampling or timing instrumentation.
+  const memoryJourney = new Map();
+  const observe = progress => {
+    if (progress.sampledAt !== lastRoute?.sampledAt && progress.memory?.cost && progress.stop?.leg) {
+      const { cost } = progress.memory, key = `${progress.documentOrigin}:${progress.stop.leg}`;
+      const row = memoryJourney.get(key) ?? { leg: progress.stop.leg, samples: 0, playingPeakMB: 0, loadingPeakMB: 0,
+        productsMinBytes: cost.input.products, productsMaxBytes: 0 };
+      row.samples++;
+      row.playingPeakMB = Math.max(row.playingPeakMB, cost.playing / 1e6);
+      row.loadingPeakMB = Math.max(row.loadingPeakMB, cost.loading / 1e6);
+      row.productsMinBytes = Math.min(row.productsMinBytes, cost.input.products);
+      row.productsMaxBytes = Math.max(row.productsMaxBytes, cost.input.products);
+      memoryJourney.set(key, row);
+    }
+    lastRoute = progress;
+  };
   try {
     let driver;
     if (surface === 'desktop') {
@@ -742,7 +758,7 @@ async function worker() {
   } finally {
     inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close();
   }
-  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows }));
+  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()] }));
 }
 function run(command, argv, options = {}) {
   return new Promise((resolve, reject) => {
