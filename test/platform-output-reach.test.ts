@@ -78,3 +78,23 @@ it('keeps a data-selected native plan as a real user after its wrapper is remove
   expect(()=>sourceProgressLines(root)).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('G467 excludes generator-only reach but follows runtime imports into generators',()=>{
+ const root=mkdtempSync(join(tmpdir(),'platform-generator-reach-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',exports:{'./compiler':'./compiler.ts','./motion':'./motion.ts'}}));
+  put('src/sdk/compiler.ts','export function compile() { return 1; }');
+  put('src/sdk/motion.ts','export function move() { return 2; }');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {move} from '@wildshard/sdk/motion'; export const live=move();"});
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const live=1;'});
+  put('src/shards/driftwood-isle/generators/author.ts',"import {compile} from '@wildshard/sdk/compiler'; import {move} from '@wildshard/sdk/motion'; export const baked=[compile(),move()];");
+  const rows=sourceProgressLines(root);
+  expect(rows['driftwood-isle']?.customLines).toBe(1);
+  // A build-only user cannot share Pine's runtime host.
+  expect(rows['pine-hollow']?.customLines).toBe(2);
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {baked} from '../generators/author'; export const live=baked;"});
+  // Crossing back into authoring code is real runtime reach, still charged.
+  expect(sourceProgressLines(root)['driftwood-isle']?.customLines).toBe(2);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
