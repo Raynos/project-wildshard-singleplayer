@@ -181,7 +181,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const [entries, boards, fixed] = await Promise.all([loadCast(entryCaps ? 'entries-capped' : 'entries-open'), loadCast('facade-signs'), loadFixedRows()]);
   ctx.kits.set('entries', Kit.fromBake(entries));
   for (const row of entryCaps ? fixed.lanterns : []) ctx.lanterns.push(new Matrix4().fromArray(row));
-  const portals = buildPortals(ctx);
+  const portals = buildPortals(ctx, shared);
   root.add(portals.root);
   progress(0.3, 'signs');
   await opts.pause();
