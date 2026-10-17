@@ -1,31 +1,54 @@
 import { currentPageMode } from '@wildshard/game/grid/pageMode';
 import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterReflect } from './water';
-import { smoothstep, lerp } from '@wildshard/engine/core/noise';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { PINE_TERRAIN } from '../data/terrainBindings';
-import { PINE_TREE_IDS } from './treeSet';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { ridgeFootZ, nearestOnPolyline, creekWaterAt } from '../behaviour/layout';
+import geography from '../data/geography.generated.json' with { type: 'json' };
 
 type Vec2 = [number, number];
+// Preserve the authored shared road aliases.
+LAYOUT.SPURS['den'] = LAYOUT.DEN_TRAIL; LAYOUT.SPURS['lookout'] = LAYOUT.LOOKOUT_TRAIL; LAYOUT.GRADED.paths[0] = LAYOUT.LOOKOUT_TRAIL;
 
-type SpeciesWeights = Partial<Record<string, number>>;
-
-/** 0 → 1 inside the old-growth's soft ellipse */
-export function oldGrowthMask(x: number, z: number): number {
-  const e = Math.hypot((x - LAYOUT.OLD_GROWTH.x) / LAYOUT.OLD_GROWTH.ax, (z - LAYOUT.OLD_GROWTH.z) / LAYOUT.OLD_GROWTH.az);
-  return smoothstep(1.0, 0.72, e);
+/** Exact jittered candidate samples, without interpolation at clearing edges. */
+const forest = new Map(geography.forest.map(row => [`${String(row.x)},${String(row.z)}`, row]));
+function forestAt(x: number, z: number) {
+  const row = forest.get(`${String(x)},${String(z)}`);
+  if (row === undefined) throw new Error('Pine forest candidate differs from its geography bake');
+  return row;
 }
-
-/** the ridge's rise at (x, z): 0 at its foot → 1 at the crest and on to the north edge, cut by the pass, faded toward the Den */
-function ridgeWeight(x: number, z: number): number {
-  const u = (z - ridgeFootZ(x)) / LAYOUT.RIDGE.climb;
-  if (u <= 0) return 0;
-  const west = smoothstep(LAYOUT.RIDGE.westFade[1], LAYOUT.RIDGE.westFade[0], x);
-  const pass = smoothstep(LAYOUT.RIDGE.passHalf, LAYOUT.RIDGE.passOpen, Math.abs(x));
-  return smoothstep(0, 1, u) * west * pass;
+/** Projection retains the native operation order over baked segment spans. */
+function creekAt(x: number, z: number): { d: number; s: number } {
+  let d = Infinity, s = 0;
+  for (const row of geography.creek.lines) {
+    const t = row.l2 > 0 ? Math.min(1, Math.max(0, ((x-row.x)*row.vx+(z-row.z)*row.vz)/row.l2)) : 0;
+    const distance = Math.hypot(x-row.x-row.vx*t,z-row.z-row.vz*t);
+    if (distance < d) { d = distance; s = row.arc+t*row.length; }
+  }
+  return { d, s };
+}
+function creekBedAt(s: number): number {
+  const row = geography.creek.bed.find(segment => s <= segment.until) ?? geography.creek.run;
+  return row.from+(row.to-row.from)*((s-row.start-row.offset)/row.span);
+}
+/** The live pool level remains independent of the baked bed. */
+export function creekSurfaceAt(s: number): number {
+  const c = geography.creek;
+  if (s < c.riffle) return LAYOUT.POND.level;
+  if (s < c.dam-c.lead) return Math.max(LAYOUT.beaverPoolLevel.y,creekBedAt(s)+0.05);
+  if (s <= c.dam) return creekBedAt(s)+c.crest;
+  const r = c.run, run = r.from+(r.to-r.from)*((s-r.start-r.offset)/r.span)+c.depth;
+  return Math.max(creekBedAt(s)+c.crest,run);
+}
+/** Exact complementary pond-cell test, including the strict distance edge. */
+export function inBeaverPool(x: number, z: number): boolean {
+  const n = creekAt(x,z), c = geography.creek;
+  return n.d < 12 && n.s >= c.riffle && n.s <= c.dam-c.lead;
+}
+function creekWaterAt(x: number, z: number): number | null {
+  const n = creekAt(x,z);
+  return n.d <= geography.creek.halfWidth ? creekSurfaceAt(n.s) : null;
 }
 
 /** trails: the four mandated entry roads (S / N / W / E), then a spur to every zone */
@@ -35,62 +58,6 @@ const TRAILS: Vec2[][] = [LAYOUT.S_ROAD, LAYOUT.N_ROAD, LAYOUT.W_ROAD, LAYOUT.E_
 export const TERRAIN = createBakedTerrainField(PINE_TERRAIN, buildTerrainMetadata(PINE_TERRAIN.seed, {
   trails: TRAILS, cabinSites: LAYOUT.CABIN_SITES, pond: { x: LAYOUT.POND.x, z: LAYOUT.POND.z, r: LAYOUT.POND.r }, streamAt: creekWaterAt,
 }, () => LAYOUT.POND.level));
-
-/** metres from (x, z) to the zipline's ground track */
-function ziplineDistance(x: number, z: number): number {
-  return nearestOnPolyline([[LAYOUT.ZIPLINE.from.x, LAYOUT.ZIPLINE.from.z], [LAYOUT.ZIPLINE.to.x, LAYOUT.ZIPLINE.to.z]], x, z).d;
-}
-
-/** E143: the keep multiplier on the whole forest (the look loop's was 1, with the Hollow grove's × 2.4 on top) */
-const FOREST_KEEP = 0.7;
-
-/**
- * Forest keep multiplier (ChunkForest.density): the old-growth nearly solid, the ridge's crags sparse; bare (0: no tree,
- * no undergrowth) on the hamlet's pad, the King's arena, the lookout's pad and the Den's floor; the creek, the zipline's
- * cut, the waterfall's foot and the footbridge keep their ferns but lose their trees.
- */
-export function forestDensity(x: number, z: number): number {
-  if (Math.hypot(x - LAYOUT.HAMLET.x, z - LAYOUT.HAMLET.z) < LAYOUT.HAMLET.r + 6) return 0;
-  if (Math.hypot(x - LAYOUT.KINGS_CLEARING.x, z - LAYOUT.KINGS_CLEARING.z) < LAYOUT.KINGS_CLEARING.clear) return 0;
-  if (Math.hypot(x - LAYOUT.LOOKOUT.x, z - LAYOUT.LOOKOUT.z) < LAYOUT.LOOKOUT.r + 5) return 0;
-  if (Math.hypot(x - LAYOUT.DEN.x, z - LAYOUT.DEN.z) < 14 || Math.hypot(x - LAYOUT.BEAR_CAVE.x, z - LAYOUT.BEAR_CAVE.z) < 9) return 0;
-  if (nearestOnPolyline(LAYOUT.CREEK, x, z).d < 7 || ziplineDistance(x, z) < LAYOUT.ZIPLINE.corridor) return 0.02;
-  if (Math.hypot(x - LAYOUT.WATERFALL.foot.x, z - LAYOUT.WATERFALL.foot.z) < 10 || Math.hypot(x - LAYOUT.CREEK_BRIDGE.x, z - LAYOUT.CREEK_BRIDGE.z) < 10) return 0.02;
-  // E143 (Jake: "way too many trees … green, green, green foliage" — a hunting shard needs sight lines): the whole shard at
-  // FOREST_KEEP of the look loop's forest and the old-growth × 1.6, not × 4 (which saturated its 8.5 m grid into a wall),
-  // and no Hollow grove (PH-L1 round 2's × 2.4 and its second grid): paths, clearings and animals at 40–80 m read again
-  return FOREST_KEEP * (1 + oldGrowthMask(x, z) * 0.6) * (1 - smoothstep(0.3, 0.9, ridgeWeight(x, z)) * 0.6);
-}
-
-/** a + (b − a)·t over species weights */
-function mixW(a: SpeciesWeights, b: SpeciesWeights, t: number): SpeciesWeights {
-  if (t <= 0) return a;
-  const out: SpeciesWeights = {};
-  for (const k of PINE_TREE_IDS) out[k] = lerp(a[k] ?? 0, b[k] ?? 0, t);
-  return out;
-}
-
-/**
- * PH-B4, the species by zone (ChunkForest.species): the Hollow is Scots pine with a few birches; the old-growth (west)
- * firs round old cedar giants, snags and moss; the King's clearing ringed by giants; the Ridge sparse pines and silver
- * snags; the pond and the creek birches and saplings. Relative weights; the giants thin themselves (placement.ts keeps
- * other trunks off their buttresses).
- */
-const HOLLOW_MIX: SpeciesWeights = { pine: 0.8, birch: 0.08, fir: 0.05, snag: 0.03, sapling: 0.04 };
-const OLD_GROWTH_MIX: SpeciesWeights = { giant: 0.3, fir: 0.5, pine: 0.05, snag: 0.11, sapling: 0.04 };
-const KINGS_RING_MIX: SpeciesWeights = { giant: 0.78, fir: 0.12, snag: 0.1 };
-const RIDGE_MIX: SpeciesWeights = { pine: 0.62, snag: 0.28, fir: 0.06, sapling: 0.04 };
-const WET_MIX: SpeciesWeights = { birch: 0.5, sapling: 0.18, pine: 0.2, fir: 0.12 };
-export function speciesMix(x: number, z: number): SpeciesWeights {
-  const kc = Math.hypot(x - LAYOUT.KINGS_CLEARING.x, z - LAYOUT.KINGS_CLEARING.z);
-  const ring = smoothstep(LAYOUT.KINGS_CLEARING.clear - 2, LAYOUT.KINGS_CLEARING.clear + 6, kc) * smoothstep(LAYOUT.KINGS_CLEARING.clear + 42, LAYOUT.KINGS_CLEARING.clear + 18, kc);
-  const wet = Math.max(smoothstep(40, 6, Math.hypot(x - LAYOUT.POND.x, z - LAYOUT.POND.z) - LAYOUT.POND.r), smoothstep(26, 8, nearestOnPolyline(LAYOUT.CREEK, x, z).d));
-  let w = mixW(HOLLOW_MIX, RIDGE_MIX, smoothstep(0.15, 0.6, ridgeWeight(x, z)));
-  w = mixW(w, WET_MIX, wet);
-  w = mixW(w, OLD_GROWTH_MIX, oldGrowthMask(x, z));
-  return mixW(w, KINGS_RING_MIX, ring);
-}
-
 
 /** the creek: water wherever `creekWaterAt` answers, at the surface it answers */
 function creekBody(): WaterBody {
@@ -108,7 +75,7 @@ export const PINE_WATER: readonly WaterBody[] = [basinBody('pond', TERRAIN, wate
 export const GROUND = { terrain: TERRAIN, water: PINE_WATER };
 
 /** Native forest query ports; authored tuning and species stay in JSON. */
-export const FOREST_QUERIES = { density: forestDensity, scale: (x: number, z: number): number => 1 + oldGrowthMask(x, z) * 0.25, species: speciesMix };
+export const FOREST_QUERIES = { density: (x: number, z: number): number => forestAt(x,z).density, scale: (x: number, z: number): number => forestAt(x,z).scale, species: (x: number, z: number): Partial<Record<string, number>> => forestAt(x,z).species };
 
 /**
  * G187 (Jake, 2026-10-07, `art/pine-hollow/round-36-content-cut/` board-view-distance B): on the phone, with the Pine

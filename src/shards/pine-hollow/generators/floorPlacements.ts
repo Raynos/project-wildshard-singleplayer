@@ -2,7 +2,7 @@ import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { PineSeedStream as Rng } from './seedStream';
 import { Noise2D, smoothstep, lerp } from './floorNoise';
 import { pineCragQueries } from './cragGround';
-import { ridgeFootZ, nearestOnPolyline } from '../behaviour/layout';
+import { ridgeFootZ, nearestOnPolyline } from './geography';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 interface Tree { readonly x: number; readonly z: number; readonly r: number }

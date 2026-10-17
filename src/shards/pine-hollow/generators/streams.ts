@@ -8,7 +8,7 @@
  * the stale gate.
  */
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { creekSpan, creekSurfaceAt } from '../behaviour/layout';
+import { creekSpan, creekSurfaceAt } from './geography';
 import * as THREE from 'three';
 import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';

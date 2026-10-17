@@ -1,0 +1,198 @@
+{
+  "kind": "pine-geography-parity/1",
+  "beforeRevision": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+  "candidateTree": "aa585e06133ce42d7a2b32ccd07d470e1d8b4f09",
+  "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+  "worldPoses": 12,
+  "creaturePoses": 8,
+  "verdict": "exact pixels, draws, triangles, contacts, GPU bytes and program counts",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "pixels": "4c451a5f2a10f82b36f70b327ce4263c2df72071da912d69ab7ffb55eaf73a95",
+      "calls": 76,
+      "triangles": 973091,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "ranger-cabin",
+      "pixels": "6f1aeeb8888eb6aac9c6252f435be6a1749b6d42b6c8edf73aeecf3a4ac6d42e",
+      "calls": 64,
+      "triangles": 881559,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "pixels": "45c3ed47c388a44af9d7e1cd75e777c284807ffd141267116040cb8a40f34f32",
+      "calls": 49,
+      "triangles": 818246,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "mill",
+      "pixels": "f645f5c1afb2fa4f7420a6961bd5d91d8137259f9b4199ffbfde9959a4b0246e",
+      "calls": 47,
+      "triangles": 781095,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "pixels": "fe85116128b9f7f78e238e5679406b131774fb72dd4f5b8f1f056bb7e2a2ce82",
+      "calls": 42,
+      "triangles": 775432,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "north",
+      "pixels": "f5d936099b752ec108b9b845c0f7317778170c0d319d4691ab9f9bed884f47ed",
+      "calls": 104,
+      "triangles": 1110074,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:bear",
+      "pixels": "96d643b460b2d8f107972b120bfb0260415287280e1a17f10e3e481250b95f92",
+      "calls": 1,
+      "triangles": 4498,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:boar",
+      "pixels": "3fc36813fa24a6b4af8444b27480baf95231eb0756186d1a0f7a714cb755206a",
+      "calls": 1,
+      "triangles": 2927,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:deer",
+      "pixels": "d9679fe178e168ed4f54f9209f49260cf230593fb3d7c9a7791bd8969a9eaa3e",
+      "calls": 1,
+      "triangles": 4000,
+      "equal": true
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:elk",
+      "pixels": "26fcd6ecb9d7b59b3f235a2b1aab3b9cff6c03f7ad940aaed706be343d1110a8",
+      "calls": 1,
+      "triangles": 4500,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "pixels": "f8a792fe5b9f7b91ddb5b31cfcbf56efc24d1cd5762b141429a5c971316c7c5e",
+      "calls": 186,
+      "triangles": 6403194,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "ranger-cabin",
+      "pixels": "ff580780f2fd37da7a6e31173bbf7c91725e84124640d74a74e9adc8d4ec8c4a",
+      "calls": 121,
+      "triangles": 5972761,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "pond",
+      "pixels": "877a0876257c0e8cbc8b4afc52ca80fa21224c619a8448e7417c63334c074333",
+      "calls": 89,
+      "triangles": 5751423,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "mill",
+      "pixels": "946f09e7d64f803e21828579fa865e08a2de8168f739dbaab97182c194abef25",
+      "calls": 132,
+      "triangles": 5878685,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "pixels": "fdaa6930433addc300a0275f30bdfe08601204445e64e1b2a3f7f0b4b3a8c3b7",
+      "calls": 126,
+      "triangles": 5832496,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "north",
+      "pixels": "c96bf4e16bff915b4e95371084cd9d412dae229029bcd2a8b2e8152d9c226b81",
+      "calls": 203,
+      "triangles": 7474413,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:bear",
+      "pixels": "9f0dd209aa0b882aa739919ab485ad5c0aebefe6b79c82db86978d67461082e6",
+      "calls": 1,
+      "triangles": 6988,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:boar",
+      "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+      "calls": 0,
+      "triangles": 0,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:deer",
+      "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+      "calls": 0,
+      "triangles": 0,
+      "equal": true
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:elk",
+      "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+      "calls": 0,
+      "triangles": 0,
+      "equal": true
+    }
+  ],
+  "tiers": {
+    "phone": {
+      "pieces": 50,
+      "colliderCount": 2034,
+      "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+      "gpuBytes": 275403548,
+      "programs": 166
+    },
+    "desktop": {
+      "pieces": 50,
+      "colliderCount": 2034,
+      "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+      "gpuBytes": 606884508,
+      "programs": 182
+    }
+  },
+  "shaderSources": {
+    "verdict": "hashes differ; shader byte parity is not asserted",
+    "before": {
+      "phone": "a19ac4597357b1d4cdb0127de7512448ffee5fdb1823cb936f707e4d3799b65d",
+      "desktop": "c533271bfe3da6b473cabcd7bf8f497be131bfa8acf33f8a72dc18aebfc3ebed"
+    },
+    "after": {
+      "phone": "305241c24518618fddbec9b7d602612bc17e9b8f72a5190705f9c0d0edfae198",
+      "desktop": "2adb08a431dd175d572cd3c14d7c18c1d027347be6e1ccea6afc5a67af728c69"
+    }
+  }
+}

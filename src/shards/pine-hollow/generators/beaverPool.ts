@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import type { CragGround } from './cragGround';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { creekBedAt, creekSpan, inBeaverPool } from '../behaviour/layout';
+import { creekBedAt, creekSpan, inBeaverPool } from './geography';
 import type { PoolRows } from './poolRows';
 
 type XZ = [number, number];

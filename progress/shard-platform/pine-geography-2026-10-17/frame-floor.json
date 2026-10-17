@@ -1,0 +1,147 @@
+{
+  "kind": "pine-geography-live-floor/1",
+  "before": "17ef0c2e8e56bbbe86b1e72fa4d6f253afbb6a9d",
+  "after": "aa585e06133ce42d7a2b32ccd07d470e1d8b4f09",
+  "frames": 120,
+  "device": "frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "verdict": "No p95 or work-p95 regression at matching spawn/cabin poses; Simulator candidate passes all three sampled poses. Desktop cabin remains a pre-existing cadence miss.",
+  "limitations": [
+    "The harness chooses its two heaviest scanned standing poses: the third pose differs (before pond, after gate).",
+    "Live NPC/animal motion and shared-machine scheduling are not pixel-parity measurements."
+  ],
+  "samples": [
+    {
+      "build": "before",
+      "surface": "desktop",
+      "pose": "spawn",
+      "medianFps": 59.88,
+      "p95Ms": 33.3,
+      "maxMs": 33.4,
+      "workP95Ms": 11.5,
+      "pass": false,
+      "contextLost": false
+    },
+    {
+      "build": "before",
+      "surface": "desktop",
+      "pose": "cabin",
+      "medianFps": 59.88,
+      "p95Ms": 33.4,
+      "maxMs": 33.4,
+      "workP95Ms": 12.4,
+      "pass": false,
+      "contextLost": false
+    },
+    {
+      "build": "before",
+      "surface": "desktop",
+      "pose": "pond",
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 33.4,
+      "workP95Ms": 11.1,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "before",
+      "surface": "sim",
+      "pose": "spawn",
+      "medianFps": 30.303,
+      "p95Ms": 35,
+      "maxMs": 35,
+      "workP95Ms": 10,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "before",
+      "surface": "sim",
+      "pose": "pond",
+      "medianFps": 30.303,
+      "p95Ms": 35,
+      "maxMs": 35,
+      "workP95Ms": 9,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "before",
+      "surface": "sim",
+      "pose": "cabin",
+      "medianFps": 30.303,
+      "p95Ms": 38,
+      "maxMs": 55,
+      "workP95Ms": 11,
+      "pass": false,
+      "contextLost": false
+    },
+    {
+      "build": "after",
+      "surface": "desktop",
+      "pose": "spawn",
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "workP95Ms": 10.9,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "after",
+      "surface": "desktop",
+      "pose": "cabin",
+      "medianFps": 59.88,
+      "p95Ms": 33.4,
+      "maxMs": 33.5,
+      "workP95Ms": 12.4,
+      "pass": false,
+      "contextLost": false
+    },
+    {
+      "build": "after",
+      "surface": "desktop",
+      "pose": "gate",
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "workP95Ms": 10.8,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "after",
+      "surface": "sim",
+      "pose": "spawn",
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 35,
+      "workP95Ms": 9,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "after",
+      "surface": "sim",
+      "pose": "cabin",
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 35,
+      "workP95Ms": 9,
+      "pass": true,
+      "contextLost": false
+    },
+    {
+      "build": "after",
+      "surface": "sim",
+      "pose": "gate",
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 36,
+      "workP95Ms": 8,
+      "pass": true,
+      "contextLost": false
+    }
+  ]
+}

@@ -783,7 +783,7 @@
       "export": "pineFactory"
     },
     "pondClip": {
-      "module": "./behaviour/layout",
+      "module": "./world/terrain",
       "export": "inBeaverPool"
     },
     "ktx2": {

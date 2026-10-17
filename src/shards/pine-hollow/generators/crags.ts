@@ -16,7 +16,7 @@
  */
 import type * as THREE from 'three';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { ridgeFootZ, nearestOnPolyline } from '../behaviour/layout';
+import { ridgeFootZ, nearestOnPolyline } from './geography';
 import { PineSeedStream as Rng } from './seedStream';
 import type { CragGround } from './cragGround';
 import { CRAG_HERO, CRAG_IDS, SKIN_STEPS, SKIN_TILE, caveLocal, skinBytes, type CragTier as Tier, type CragId, type CragPlace, type CragSize, type CragSizes } from './cragRows';

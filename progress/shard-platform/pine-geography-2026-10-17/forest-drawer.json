@@ -1,0 +1,110 @@
+{
+  "kind": "native-forest-drawer-preflight/1",
+  "verdict": "retain current model drawer",
+  "build": "c90d36c7c2e301e8ff0824d1d7a35a0f93cfe45d",
+  "method": "Muted Chromium Metal, iPhone 16 Pro portrait, phone tier, 4x CPU throttle; same served build. Native experiment calls Forest.drawItself and hides the previous model children. Three poses, 60 frames each. Diagnostic only; not a frame-floor proof.",
+  "before": {
+    "tag": "sp-x10-before",
+    "url": "http://127.0.0.1:4402",
+    "query": "",
+    "cpu": 4,
+    "frames": 60,
+    "when": "2026-10-17T20:58:26.538Z",
+    "rows": [
+      {
+        "pose": "gate",
+        "intervalP50": 33.5,
+        "intervalP95": 48.2,
+        "intervalMin": 31.7,
+        "locked": 95,
+        "short": 0,
+        "workP50": 27.4,
+        "workP95": 31,
+        "workMax": 31.1,
+        "calls": 113,
+        "trisM": 1.12,
+        "fps": 30
+      },
+      {
+        "pose": "cabin",
+        "intervalP50": 34.7,
+        "intervalP95": 37.9,
+        "intervalMin": 30.6,
+        "locked": 88.3,
+        "short": 0,
+        "workP50": 32.7,
+        "workP95": 35.9,
+        "workMax": 36.7,
+        "calls": 155,
+        "trisM": 1.44,
+        "fps": 30
+      },
+      {
+        "pose": "pond",
+        "intervalP50": 33.5,
+        "intervalP95": 49.4,
+        "intervalMin": 30.9,
+        "locked": 91.7,
+        "short": 0,
+        "workP50": 27.8,
+        "workP95": 31.2,
+        "workMax": 31.8,
+        "calls": 92,
+        "trisM": 0.95,
+        "fps": 28
+      }
+    ]
+  },
+  "native": {
+    "tag": "sp-x10-native",
+    "url": "http://127.0.0.1:4402",
+    "query": "",
+    "cpu": 4,
+    "frames": 60,
+    "when": "2026-10-17T20:58:59.715Z",
+    "rows": [
+      {
+        "pose": "gate",
+        "intervalP50": 37.7,
+        "intervalP95": 45.1,
+        "intervalMin": 32,
+        "locked": 46.7,
+        "short": 0,
+        "workP50": 35.2,
+        "workP95": 42.4,
+        "workMax": 63,
+        "calls": 104,
+        "trisM": 0.98,
+        "fps": 28
+      },
+      {
+        "pose": "cabin",
+        "intervalP50": 34.4,
+        "intervalP95": 37.3,
+        "intervalMin": 30.6,
+        "locked": 96.7,
+        "short": 0,
+        "workP50": 32.3,
+        "workP95": 34.9,
+        "workMax": 35.4,
+        "calls": 156,
+        "trisM": 1.44,
+        "fps": 29
+      },
+      {
+        "pose": "pond",
+        "intervalP50": 33.4,
+        "intervalP95": 35,
+        "intervalMin": 31.6,
+        "locked": 98.3,
+        "short": 0,
+        "workP50": 25.7,
+        "workP95": 28.9,
+        "workMax": 32.6,
+        "calls": 91,
+        "trisM": 0.94,
+        "fps": 30
+      }
+    ]
+  }
+}

@@ -134,6 +134,38 @@
       "platform": "portable"
     },
     {
+      "id": "pine-geography",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-geography.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-geography.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-geography.mjs",
+        "src/shards/pine-hollow/generators/geography.ts",
+        "src/shards/pine-hollow/generators/forestGeography.ts",
+        "src/shards/pine-hollow/generators/floorNoise.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/manifest.json",
+        "src/shards/pine-hollow/data/layout.generated.json",
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/geography.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/geography.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "pine-layout"
+      ]
+    },
+    {
       "id": "trail-specimen-catalogue",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-specimens.mjs",
@@ -4950,7 +4982,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
         "src/shards/pine-hollow/data",
         "src/shards/pine-hollow/generators/bake-pine-beaver-pool.d.mts",
@@ -5054,7 +5086,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
         "src/shards/pine-hollow/data",
         "src/shards/pine-hollow/generators/bake-pine-beaver-pool.d.mts",
@@ -5343,7 +5375,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
         "src/shards/pine-hollow/data",
         "src/shards/pine-hollow/data/layout.generated.json",
@@ -5443,7 +5475,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
         "src/shards/pine-hollow/data",
         "src/shards/pine-hollow/generators/bake-pine-beaver-pool.d.mts",
@@ -5512,7 +5544,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
         "src/shards/pine-hollow/data",
         "src/shards/pine-hollow/data/layout.generated.json",
@@ -5634,7 +5666,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
         "src/shards/pine-hollow/data",
         "src/shards/pine-hollow/data/layout.generated.json",
@@ -5834,7 +5866,7 @@
         "src/commons",
         "src/format",
         "src/sdk",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
         "src/shards/pine-hollow/generators/bake-pine-streams.mjs",
         "src/shards/pine-hollow/generators/streamCodec.ts",
@@ -15682,7 +15714,7 @@
         "src/shards/pine-hollow/generators/seedStream.ts",
         "src/shards/pine-hollow/generators/cragGround.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
-        "src/shards/pine-hollow/behaviour/layout.ts"
+        "src/shards/pine-hollow/generators/geography.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/fauna.generated.ts"
@@ -15716,7 +15748,7 @@
         "src/shards/pine-hollow/generators/seedStream.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
         "src/shards/pine-hollow/data/physicsRows.json",
-        "src/shards/pine-hollow/behaviour/layout.ts",
+        "src/shards/pine-hollow/generators/geography.ts",
         "public/assets/baked/pine-hollow/terrain.bin",
         "src/shards/pine-hollow/generators/floorRows.mjs"
       ],

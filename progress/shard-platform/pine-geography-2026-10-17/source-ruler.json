@@ -1,0 +1,130 @@
+{
+  "basis": "sourceProgressInventory from scripts/shard-platform.mjs in build mirror, full all-10 verified products",
+  "beforeRevision": "cb834b67c78b6bab8580db2f099b5c7fe1215dea",
+  "candidateTree": "8c20b292e27665fbe9b6ef87646eca5d28bd9b29",
+  "shards": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "cut": 0
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "cut": 0
+    },
+    "driftwood-isle": {
+      "before": 5517,
+      "after": 5517,
+      "cut": 0
+    },
+    "far-reach": {
+      "before": 528,
+      "after": 528,
+      "cut": 0
+    },
+    "ink-cel-valley": {
+      "before": 1105,
+      "after": 1105,
+      "cut": 0
+    },
+    "nalati-grasslands": {
+      "before": 20339,
+      "after": 20339,
+      "cut": 0
+    },
+    "nine-dragon-stack": {
+      "before": 11889,
+      "after": 11889,
+      "cut": 0
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "cut": 0
+    },
+    "pine-hollow": {
+      "before": 7098,
+      "after": 7035,
+      "cut": 63
+    },
+    "sunscar-dunes": {
+      "before": 392,
+      "after": 392,
+      "cut": 0
+    }
+  },
+  "platformNetLines": 0,
+  "before": {
+    "lines": {
+      "basis": "source",
+      "customLines": 7098,
+      "legacyLines": 21305,
+      "assemblyScriptLines": 433,
+      "assemblyScriptBudget": {
+        "ceiling": 2130,
+        "share": 0.020323867636705,
+        "passed": true,
+        "enforcement": "report-only"
+      }
+    },
+    "components": {
+      "C1": 2426,
+      "C2": 895,
+      "C3": 345,
+      "C4": 805,
+      "C5": 1288,
+      "C6": 400,
+      "C7": 7,
+      "C8": 33,
+      "C9": 899
+    },
+    "sources": [
+      {
+        "path": "src/shards/pine-hollow/behaviour/layout.ts",
+        "kind": "runtime-ts",
+        "lines": 52,
+        "ownerPath": "src/shards/pine-hollow/behaviour/layout.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/world/terrain.ts",
+        "kind": "runtime-ts",
+        "lines": 83,
+        "ownerPath": "src/shards/pine-hollow/world/terrain.ts"
+      }
+    ]
+  },
+  "after": {
+    "lines": {
+      "basis": "source",
+      "customLines": 7035,
+      "legacyLines": 21305,
+      "assemblyScriptLines": 433,
+      "assemblyScriptBudget": {
+        "ceiling": 2130,
+        "share": 0.020323867636705,
+        "passed": true,
+        "enforcement": "report-only"
+      }
+    },
+    "components": {
+      "C1": 2372,
+      "C2": 895,
+      "C3": 345,
+      "C4": 796,
+      "C5": 1288,
+      "C6": 400,
+      "C7": 7,
+      "C8": 33,
+      "C9": 899
+    },
+    "sources": [
+      {
+        "path": "src/shards/pine-hollow/world/terrain.ts",
+        "kind": "runtime-ts",
+        "lines": 72,
+        "ownerPath": "src/shards/pine-hollow/world/terrain.ts"
+      }
+    ]
+  }
+}
