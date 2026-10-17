@@ -1,3 +1,4 @@
+import { fieldstone } from '../models/fieldstone';
 /**
  * Nalati POIs (B5) — builds every point of interest on the Nalati Grasslands and wires them into the player.
  *
@@ -36,23 +37,24 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { instancedQuad } from '@wildshard/sdk/looks/cardField';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
+import { cragLedge, leopardCave, kurganEntrance, kurganKerb } from '../models/campProps';
 import { nomadCampSteps } from './NomadCamp';
-import { preloadNalatiPlaces } from './placeBake';
+import { preloadNalatiPlaces, bakedPlaceSteps, bakedPlaceAnchors, placer } from './placeBake';
 import { buildBridge } from './Bridge';
 import { buildRoadFurniture } from './RoadFurniture';
 import { summerCampSteps } from './SummerCamp';
-import { kurganFieldSteps, type KurganEntrance } from './KurganField';
 import { buildBalbals, type Balbals } from './Balbals';
 import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
-import { buildCrags, type Ledge } from './Crags';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Box } from './solid';
-import type { Ground, PlumeOptions, Plumes, PoiCtx, PoiPiece } from './types';
+import type { Ground, PlumeOptions, Plumes, PoiCtx, PoiPiece, KurganEntrance, Ledge } from './types';
 
 /** the camp smoke's look (data/lookGraphs.json, compiled and lent by runtime/index.ts): each puff a camera-facing card
  *  whose whole life (rise, swell, lean downwind, fade) the graph computes from its plume, seed and the look clock */
 const SMOKE_LOOK = 'nalati-camp-smoke';
+const KURGAN_PLACERS = new Map([placer(kurganKerb), placer(fieldstone), placer(kurganEntrance)]);
+const CRAG_PLACERS = new Map([placer(cragLedge), placer(leopardCave)]);
 interface Plume { x: number; y: number; z: number; puffs: number; rise: number; s0: number; s1: number; life: number }
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
@@ -133,7 +135,7 @@ export class NalatiPOIs {
     { const summer = yield* timed(summerCampSteps(ctx)); add('summerCamp', summer.value, summer.ms); }
     yield;
     let crownSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
-    { const k = yield* timed(kurganFieldSteps(ctx)); this.kurganEntrance = k.value.entrance; crownSpots = k.value.balbalSpots; add('kurgans', k.value.piece, k.ms); }
+    { const k = yield* timed(bakedPlaceSteps('kurgans', ctx, KURGAN_PLACERS)), anchors = bakedPlaceAnchors('kurgans'); this.kurganEntrance = anchors.entrance ?? null; crownSpots = anchors.balbalSpots ?? []; add('kurgans', k.value, k.ms); }
     yield;
     // the balbals stand only on the kurgan crowns (layout v2: the balbal circle is cut)
     run('balbals', (c) => { const b = buildBalbals(c, crownSpots); this.balbals = b.balbals; return b.piece; });
@@ -142,7 +144,7 @@ export class NalatiPOIs {
     yield;
     run('cairn', (c) => { const k = buildCairn(c); this.cairnTieSpot = k.tieSpot; return k.piece; });
     yield;
-    run('crags', (c) => { const k = buildCrags(c); this.cragLedges = k.ledges; this.cragCave = k.cave; return k.piece; });
+    { const k = yield* timed(bakedPlaceSteps('crags', ctx, CRAG_PLACERS)), anchors = bakedPlaceAnchors('crags'); this.cragLedges = anchors.ledges ?? []; this.cragCave = anchors.cave ?? null; add('crags', k.value, k.ms); }
     yield;
     // layout v2 (N9): the watchtower, the kokpar field + its riders, the herds in the hundreds, snow lotus
     run('watchtower', buildWatchtower);

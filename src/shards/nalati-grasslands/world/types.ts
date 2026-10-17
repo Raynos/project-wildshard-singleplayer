@@ -53,3 +53,13 @@ export interface PoiPiece {
    */
   register?: (o: { readonly registry: WorldRegistry; readonly ctx: ModelContext }) => readonly Placed[];
 }
+
+/** Numeric gameplay anchors emitted beside static landmark geometry. */
+export interface Ledge { x: number; y: number; z: number; r: number }
+export interface KurganEntrance { x: number; y: number; z: number; facing: number }
+export interface PlaceAnchors {
+  readonly entrance?: KurganEntrance;
+  readonly balbalSpots?: { x: number; z: number; yaw: number; scale: number }[];
+  readonly ledges?: Ledge[];
+  readonly cave?: KurganEntrance;
+}

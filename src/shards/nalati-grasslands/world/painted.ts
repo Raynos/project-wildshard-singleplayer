@@ -1,3 +1,4 @@
+import { blob } from '@wildshard/engine/world/geometryKit';
 /**
  * Nalati's models on the model contract (E306 / E315 M3; the contract is src/engine/models/model.ts): how a Nalati model is
  * built, drawn and placed.
@@ -31,7 +32,7 @@
  * physics world and the navmesh bake see exactly what they did.
  */
 import * as THREE from 'three';
-import { PaintKit, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
+import { PaintKit, M, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
 import { Flutter } from './Flutter';
 import { boxDescs, highest, type Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
@@ -352,3 +353,67 @@ export class NalatiSet {
     return [...this.members.values()].map((m) => m.place(o, m.inKit ? o.object : o.group ?? o.object));
   }
 }
+
+/** Exact numeric floor profile recorded by the static painter. */
+export interface CragLedgeFloor { readonly kind: 'ledge'; readonly x: number; readonly z: number; readonly cs: number; readonly sn: number; readonly hw: number; readonly hd: number; readonly top: number }
+export function cragLedgeFloor(row: CragLedgeFloor): Platform & { readonly row: CragLedgeFloor } {
+  const { x, z, cs, sn, hw, hd, top } = row;
+  const floor: Platform = (qx, qz) => { const dx = qx - x, dz = qz - z, lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; return Math.abs(lx) <= hw && Math.abs(lz) <= hd ? top : undefined; };
+  return Object.assign(floor, { row });
+}
+
+/** Exact porch/cave floor profile, in the original painter's local frame. */
+export interface LeopardCaveFloor { readonly kind: 'cave'; readonly x: number; readonly z: number; readonly cs: number; readonly sn: number; readonly mouthW: number; readonly depth: number; readonly porchY: number }
+export function leopardCaveFloor(row: LeopardCaveFloor): Platform & { readonly row: LeopardCaveFloor } {
+  const { x, z, cs, sn, mouthW, depth, porchY } = row;
+  const floor: Platform = (qx, qz) => { const dx = qx - x, dz = qz - z, lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; return Math.abs(lx) <= 3.0 && lz <= 2.1 && lz >= -1.95 ? porchY : Math.abs(lx) <= mouthW / 2 && lz > 2.1 && lz < 2.1 + depth ? porchY : undefined; };
+  return Object.assign(floor, { row });
+}
+
+/** The authored hood and passage/step profile; collider rows remain independent. */
+export interface KurganEntranceFloor { readonly kind: 'entrance'; readonly x: number; readonly z: number; readonly fx: number; readonly fz: number; readonly cw: number; readonly len: number; readonly lintelY: number; readonly dep: number; readonly floorY: number; readonly nSteps: number; readonly rise: number }
+export function kurganEntranceFloor(row: KurganEntranceFloor): Platform & { readonly row: KurganEntranceFloor } {
+  const { x: px, z: pz, fx, fz, cw, len, lintelY, dep, floorY, nSteps, rise } = row;
+  return Object.assign(highest([
+    (x, z) => {
+      const dx = x - px, dz = z - pz, lz = -(dx * fx + dz * fz), lx = dx * fz - dz * fx;
+      if (lz < 0.4 || lz > len - 0.2 || Math.abs(lx) > cw / 2 + 1.1) return undefined;
+      const t = lz / len;
+      return lintelY + 1.05 - t * 1.2 + Math.sin(Math.PI * t) * 0.25 - (1 - Math.cos((lx / ((cw + 3.6) / 2)) * 1.35)) * 1.6;
+    },
+    (x, z) => {
+      const dx = x - px, dz = z - pz, lz = -(dx * fx + dz * fz), lx = dx * fz - dz * fx;
+      if (Math.abs(lx) > cw / 2) return undefined;
+      if (lz >= -0.15 && lz <= dep) return floorY;
+      if (lz < -0.15 && lz > -0.2 - (nSteps + 0.5) * 0.5) { const i = Math.ceil((-0.2 - lz) / 0.5 - 0.5); return floorY - (rise * Math.max(1, i)) / (nSteps + 1); }
+      return undefined;
+    },
+  ]), { row });
+}
+
+export type FieldstoneLook = 'kurgan' | 'rubble';
+
+export interface FieldstoneParams {
+  /** radius, metres */
+  readonly s: number;
+  /** height over width */
+  readonly squash: number;
+  /** how lumpy */
+  readonly rough: number;
+  /** how far its centre sits over the ground, × its radius (negative: sunk) */
+  readonly lift: number;
+  /** its stone and lichen */
+  readonly look: FieldstoneLook;
+}
+
+const FIELDSTONE_LOOK: Readonly<Record<FieldstoneLook, { stone: THREE.Color; lichen: THREE.Color; threshold: number; brush: number }>> = {
+  kurgan: { stone: new THREE.Color('#77736c'), lichen: new THREE.Color('#b9a45a'), threshold: 0.5, brush: 0.07 },
+  rubble: { stone: new THREE.Color('#948b7c'), lichen: new THREE.Color('#b3a35a'), threshold: 0.6, brush: 0.12 },
+};
+
+/** `at`: the point on the ground it lies on (it takes its own turn) */
+export const paintFieldstone: Paint<FieldstoneParams> = (kit, at, p) => {
+  const rng = kit.rng, look = FIELDSTONE_LOOK[p.look];
+  kit.add(blob(p.s, rng, 1, p.squash, p.rough), look.stone, { matrix: M(at.x, at.y + p.s * p.lift, at.z, rng.range(0, 6)), top: { color: look.lichen, threshold: look.threshold, amount: 0.4 }, brush: look.brush });
+  return {};
+};

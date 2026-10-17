@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import type { Bow } from '@wildshard/game/weapons/Bow';
 import { bossFight, type PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import type { KurganEntrance } from '../world/KurganField';
+import type { KurganEntrance } from '../world/types';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import { KurganDungeon } from '../world/KurganDungeon';

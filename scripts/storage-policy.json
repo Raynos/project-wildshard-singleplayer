@@ -10,15 +10,15 @@
   "pins": [
     {
       "path": "public/assets/nalati/baked/places.bin",
-      "oid": "627bb94b029a1b9092140d11e631ef58ee6b6e8b",
-      "bytes": 3059964,
+      "oid": "3402323712175bd9b8152d1d87ee9d9a2107b9b8",
+      "bytes": 3628528,
       "kind": "runtime",
-      "purpose": "Nalati places bake (camps, bridge, Eagle Rock, Wind Cairn): the page draws these painted meshes instead of running their painters"
+      "purpose": "Nalati places bake (camps, bridge, Eagle Rock, Wind Cairn, kurgans, crags): static painted meshes, colliders and gameplay anchors"
     },
     {
       "path": "public/assets/nalati/baked/specimens.bin",
-      "oid": "0a9e69c656099ee491da8f23dd2f57b4fd903c41",
-      "bytes": 2018222,
+      "oid": "1600de2fb9f299523980f17af6b4e8f7c5c29bed",
+      "bytes": 2141647,
       "kind": "runtime",
       "purpose": "Nalati places bake Explorer specimens, fetched only when the Model Explorer builds one"
     }

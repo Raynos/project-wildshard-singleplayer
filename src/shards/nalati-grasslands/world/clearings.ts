@@ -1,3 +1,4 @@
+import { GREAT_KURGAN_DOOR } from './layout';
 /**
  * Where nothing should grow or be scattered: the POI footprints (B5), as plain circles, derived from the layout data
  * (`src/shards/nalati-grasslands/layout.ts`, layout v2) — which has no imports, so the chunk def and the placers (spruce mask, grass,
@@ -6,7 +7,7 @@
  *   mask: (x, z) => (inSpruceClearing(x, z) ? 0 : spruce(x, z))
  */
 import {
-  CAMP, PASTURE, BRIDGE_XZ, SUMMER_YURTS, EAGLE_ROCK, CAIRN, KURGANS, GREAT_KURGAN_DOOR, LEOPARD_CAVE, WATCHTOWER, KOKPAR,
+  CAMP, PASTURE, BRIDGE_XZ, SUMMER_YURTS, EAGLE_ROCK, CAIRN, KURGANS, LEOPARD_CAVE, WATCHTOWER, KOKPAR,
 } from '../layout';
 
 export interface Clearing { x: number; z: number; r: number }

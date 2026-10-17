@@ -32,7 +32,7 @@ import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import type { PackController, HerdController } from '../runtime/groupRegistry';
 
-import type { Ledge } from '../world/Crags';
+import type { Ledge } from '../world/types';
 
 import { wildEnv } from '../creatures/env';
 

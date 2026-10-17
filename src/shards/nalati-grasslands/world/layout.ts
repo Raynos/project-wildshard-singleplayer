@@ -10,7 +10,8 @@
 import { CAMP as CHUNK_CAMP, EAGLE_ROCK as CHUNK_EAGLE_ROCK, KURGANS as CHUNK_KURGANS, CRAGS as CHUNK_CRAGS, WEST_CRAGS as CHUNK_WEST_CRAGS, SNOW_LINE, SUMMER_YURTS, CAIRN, LEOPARD_CAVE, WATCHTOWER as CHUNK_WATCHTOWER } from '../layout';
 import { BRIDGE as CHUNK_BRIDGE } from './terrain';
 
-/** the kokpar field (an oval of trodden earth); the great kurgan's doorway faces west (+x), toward the bowl */
+/** The great kurgan doorway faces west into the bowl. */
+export const GREAT_KURGAN_DOOR = -Math.PI / 2;
 
 export interface PoiSpot { x: number; z: number; rot: number }
 

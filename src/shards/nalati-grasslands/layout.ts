@@ -54,8 +54,6 @@ export const KURGANS: { x: number; z: number; r: number; h: number; great?: bool
   { x: -92, z: 70, r: 8, h: 2.4 }, { x: -120, z: 94, r: 7, h: 2 }, { x: -98, z: 102, r: 9, h: 2.8 },
   { x: -132, z: 72, r: 6, h: 1.8 }, { x: -80, z: 90, r: 6.5, h: 2 }, { x: -114, z: 60, r: 7.5, h: 2.2 },
 ];
-/** the great kurgan's doorway faces west (+x), toward the bowl and the sky road's gateway */
-export const GREAT_KURGAN_DOOR = -Math.PI / 2;
 export const SUMMER_YURTS = { x: -91, z: -26 };
 /** the ruined watchtower on its rock on the east rim, above the snow ring */
 export const WATCHTOWER = { x: -208, z: -38, y: 44 }; // (−214, −9) in the spec sat on the E road's levelled mouth

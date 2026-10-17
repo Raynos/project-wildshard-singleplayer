@@ -62,8 +62,8 @@ function sources(dir = join(ROOT, 'src')) {
  *    (M3, Nalati: every place; the camps and the roads joined in the second pass, with NalatiPOIs itself; E315).
  */
 export const ON_CONTRACT = [
-  'src/shards/nalati-grasslands/world/painted.ts', 'src/shards/nalati-grasslands/world/KurganField.ts', 'src/shards/nalati-grasslands/world/Balbals.ts', 'src/shards/nalati-grasslands/world/Bridge.ts',
-  'src/shards/nalati-grasslands/world/EagleRock.ts', 'src/shards/nalati-grasslands/world/Cairn.ts', 'src/shards/nalati-grasslands/world/Crags.ts', 'src/shards/nalati-grasslands/world/Stair.ts',
+  'src/shards/nalati-grasslands/world/painted.ts', 'src/shards/nalati-grasslands/world/Balbals.ts', 'src/shards/nalati-grasslands/world/Bridge.ts',
+  'src/shards/nalati-grasslands/world/EagleRock.ts', 'src/shards/nalati-grasslands/world/Cairn.ts', 'src/shards/nalati-grasslands/world/Stair.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts', 'src/shards/nalati-grasslands/world/NomadCamp.ts', 'src/shards/nalati-grasslands/world/SummerCamp.ts', 'src/shards/nalati-grasslands/world/RoadFurniture.ts',
   'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts', 'src/shards/nalati-grasslands/world/dressing/statics.ts', 'src/shards/nalati-grasslands/outcrops.ts',
   'src/shards/nalati-grasslands/cragRock.ts',
@@ -95,7 +95,7 @@ export const DONE = {
     'src/shards/nalati-grasslands/creatures/marmots.ts': { why: 'the marmot colony drawn instanced by its live system (creatures, M5)', counts: { InstancedMesh: 1, mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/world/WeatherFX.ts': { why: 'rain and snow: an effect', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/playground/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
-    'src/shards/nalati-grasslands/weapons/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
+    'src/shards/nalati-grasslands-legacy/weapons/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/runtime/weapons/Spear.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/paint.ts': { why: "PaintKit: a Nalati place's ONE painted mesh — every model standing in it painted in, AO-baked against the terrain together (src/shards/nalati-grasslands/world/painted.ts)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/world/modelView.ts': { why: "the generated (GLB) models' instancing: one InstancedMesh per model per place (NalatiSet.flush)", counts: { InstancedMesh: 1 } },

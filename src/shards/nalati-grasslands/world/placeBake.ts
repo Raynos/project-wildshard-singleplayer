@@ -23,9 +23,9 @@ import type { NalatiTexName } from '../look/nalatiTextures';
 import { unshuffleBodyLanes } from '../species/bodies';
 import type { ModelPlacement, NalatiModelName } from './modelView';
 import { poiMaterial, texturedMaterial } from './paint';
-import { flushInstances, modelReady, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
+import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type CragLedgeFloor, type LeopardCaveFloor, type KurganEntranceFloor, flushInstances, modelReady, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
 import type { Box } from './solid';
-import type { Platform, PoiCtx, PoiPiece } from './types';
+import type { Platform, PoiCtx, PoiPiece, PlaceAnchors } from './types';
 import { yardMaterial } from './Yard';
 
 /** a baked geometry: its row, and whether the binary holds it welded (expanded to the page's non-indexed arrays) */
@@ -40,16 +40,18 @@ export interface DeckRow { readonly x: number; readonly halfWidth: number; reado
 export interface TorFloorRow { readonly cx: number; readonly cz: number; readonly a0: number; readonly da: number; readonly w: number; readonly slabs: readonly (readonly [number, number])[]; readonly rTop: number; readonly top: number }
 /** a cloth or smoke call as the builders made it: [kind, point, ...arguments] */
 export type EffectRow = readonly [string, readonly number[], ...unknown[]];
+/** Numeric floor profiles, evaluated by the same model functions as their offline painters. */
+export type PlaceFloorRow = DeckRow | TorFloorRow | CragLedgeFloor | LeopardCaveFloor | KurganEntranceFloor;
 interface DescRow { readonly kind: string; readonly points?: readonly number[]; readonly [k: string]: unknown }
 interface PlacementRow { readonly x: number; readonly y: number; readonly z: number; readonly yaw?: number; readonly matrix?: readonly number[] }
 /** one model's copies in a place, as data */
 export interface MemberRow {
   readonly draw: string; readonly inKit: boolean; readonly placements: readonly PlacementRow[]; readonly boxes: readonly number[];
-  readonly solid: readonly DescRow[]; readonly descs: readonly DescRow[]; readonly floors: readonly (DeckRow | TorFloorRow)[];
+  readonly solid: readonly DescRow[]; readonly descs: readonly DescRow[]; readonly floors: readonly PlaceFloorRow[];
 }
 /** one place: its object (a group by name, or null: its one mesh is the object), meshes, boxes, cloth / smoke, models */
 export interface PlaceRow {
-  readonly name: string; readonly group: string | null; readonly surface: string; readonly tris: number;
+  readonly name: string; readonly group: string | null; readonly surface: string; readonly tris: number; readonly anchors?: PlaceAnchors;
   readonly meshes: readonly PlaceMeshRow[]; readonly colliders: readonly Box[]; readonly effects: readonly EffectRow[];
   readonly members: readonly (readonly [string, MemberRow])[];
   readonly instances: readonly (readonly [string, { readonly look: object; readonly castShadow: boolean; readonly placements: readonly ModelPlacement[] }])[];
@@ -206,8 +208,15 @@ const placement = (p: PlacementRow): Omit<Placement<object>, 'params'> => {
 };
 const member = (m: MemberRow): MemberData => ({
   draw: m.draw === 'instanced' ? 'instanced' : 'merged', inKit: m.inKit, placements: m.placements.map(placement), boxes: [...m.boxes],
-  solid: m.solid.map(desc), descs: m.descs.map(desc), floors: m.floors.map((f) => ('slabs' in f ? torFloor(f) : deckFloor(f))),
+  solid: m.solid.map(desc), descs: m.descs.map(desc), floors: m.floors.map((f) => ('kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f))),
 });
+
+/** Gameplay anchors from the same terrain pass that paints a landmark. */
+export function bakedPlaceAnchors(name: string): PlaceAnchors {
+  const anchors = PLACES.rows.find((row) => row.name === name)?.anchors;
+  if (anchors === undefined) throw new Error(`[nalati-grasslands] no baked anchors '${name}'`);
+  return anchors;
+}
 
 /** a material of a baked mesh */
 function materialOf(ctx: PoiCtx, kind: string): THREE.Material {

@@ -16,14 +16,15 @@ import { PaintKit, M, v3 } from '../world/paint';
 import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { graniteBlock } from '../world/granite';
-import { NalatiSet, painted, paintedSpecimen, type MemberData, type Paint, type PaintCtx } from '../world/painted';
+import { NalatiSet, painted, paintedSpecimen, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, paintFieldstone, type FieldstoneParams, type MemberData, type Paint, type PaintCtx } from '../world/painted';
 import { Flutter } from '../world/Flutter';
-import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN } from '../world/layout';
+import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from '../world/layout';
 import { prism, slab, supportHull, type Box } from '../world/solid';
-import type { Ground, Plumes } from '../world/types';
-import { specimenKey, torFloor, type DeckRow, type TorFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
+import type { Ground, Plumes, PlaceAnchors, Ledge, KurganEntrance } from '../world/types';
+import { specimenKey, torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campGenerated';
-import { EAGLE_PERCH_H, eagleRock, windCairn } from '../models/campProps';
+import { EAGLE_PERCH_H, eagleRock, windCairn, cragLedge, leopardCave, kurganEntrance, kurganKerb, fieldstoneBaked,
+  type CragLedgeParams, type LeopardCaveParams, type KurganEntranceParams, type KurganKerbParams } from '../models/campProps';
 import { yurtPainted } from './yurt';
 import { kunesBridgePainted } from './kunesBridge';
 import { yardGeometry, wearDisc, wearPath } from './yard';
@@ -54,7 +55,7 @@ const recordingPlumes = (log: EffectRow[]): Plumes => ({ emitter: (p, o = {}) =>
 // ── the places (the builders, verbatim but for drawing: each mesh's geometry is kept with its material's kind) ─────────
 
 interface BuiltMesh { readonly name: string; readonly material: string; readonly slot: number; readonly geometry: THREE.BufferGeometry }
-interface BuiltPlace { readonly name: string; readonly group: string | null; readonly surface: string; readonly tris: number; readonly meshes: BuiltMesh[]; readonly set: NalatiSet; readonly effects: EffectRow[] }
+export interface BuiltPlace { readonly name: string; readonly group: string | null; readonly surface: string; readonly tris: number; readonly meshes: BuiltMesh[]; readonly set: NalatiSet; readonly effects: EffectRow[]; readonly anchors?: PlaceAnchors }
 
 /** the yurts: angle round the yard (deg, 0 = +x/west, 90 = +z/north), distance, radius, flue, palette */
 const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?: boolean; base: 'lattice' | 'reed' | 'felt' }[] = [
@@ -489,14 +490,330 @@ function cairnPlace(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
   return { name: 'cairn', group: null, surface: 'stone', tris: trisOf(geometry), meshes: [{ name: 'nalati-cairn', material: 'poi', slot: 0, geometry }], set, effects };
 }
 
+// Static landmarks: authored builders run only in this offline recipe.
+const DROMOS_DEPTH = 2.2;
+const fieldstonePainted: ModelDef<FieldstoneParams> = { ...fieldstoneBaked, build: painted(paintFieldstone, { seed: 0x4b62 }) };
+
+const CRAG_LEDGE_C = { graniteDark: new THREE.Color('#6e675f'), snow: new THREE.Color('#f1f4f8') };
+const CRAG_LEDGE_TH = 1.6;
+
+const paintCragLedge: Paint<CragLedgeParams> = (kit, at, p) => {
+  const rng = kit.rng, top = at.y, yaw = at.yaw;
+  kit.add(graniteBlock(p.w, CRAG_LEDGE_TH, p.d, rng.int(1, 9999), 0.12), CRAG_LEDGE_C.graniteDark, { top: { color: CRAG_LEDGE_C.snow, threshold: 0.45, amount: 0.95, minY: p.snowLine }, brush: 0.1, matrix: M(at.x, top - CRAG_LEDGE_TH / 2 + 0.05, at.z, yaw) });
+  const cs = Math.cos(yaw), sn = Math.sin(yaw), hw = p.w / 2 - 0.25, hd = p.d / 2 - 0.25;
+  return {
+    boxes: [{ x: at.x, z: at.z, hw: p.w / 2 - 0.3, hd: p.d / 2 - 0.3, rot: -yaw, yBottom: top - 6, yTop: top }],
+    // (the box's top is the ledge: a real floor since P1 — this is placement only)
+    floor: cragLedgeFloor({ kind: 'ledge', x: at.x, z: at.z, cs, sn, hw, hd, top }),
+  };
+};
+
+const cragLedgePainted: ModelDef<CragLedgeParams> = { ...cragLedge, build: painted(paintCragLedge, { seed: 0xc4a6, finish: { aoH: 1.2 } }) };
+
+const LEOPARD_CAVE_C = {
+  granite: new THREE.Color('#9a8f80'),
+  graniteCool: new THREE.Color('#8c8883'),
+  graniteDark: new THREE.Color('#6e675f'),
+  snow: new THREE.Color('#f1f4f8'),
+  dark: new THREE.Color('#0e0b0a'),
+  bone: new THREE.Color('#e3d9c2'),
+};
+
+/** the mouth's clear width and height, the dark recess's depth (m) */
+const LEOPARD_CAVE_SHAPE = { mouthW: 3.2, mouthH: 2.5, depth: 3.0 } as const;
+
+const paintLeopardCave: Paint<LeopardCaveParams> = (kit, at, p, c) => {
+  const rng = kit.rng, ground = c.ground;
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
+  const snowTop = (minY: number) => ({ top: { color: LEOPARD_CAVE_C.snow, threshold: 0.45, amount: 0.95, minY }, brush: 0.1 });
+  const cfx = -Math.sin(at.yaw), cfz = -Math.cos(at.yaw);
+  const yawIn = Math.atan2(-cfx, -cfz);
+  const O = { x: at.x, z: at.z };                                                          // the mouth (lz = 0)
+  const L = (lx: number, ly: number, lz: number) => v3(O.x - cfx * lz - cfz * lx, ly, O.z - cfz * lz + cfx * lx);
+  const { mouthW, mouthH, depth } = LEOPARD_CAVE_SHAPE;
+  const floorY = at.y, porchY = floorY;
+  // the recess: an inside-out dark box (its faces point inward, so from outside you look straight into the dark)
+  {
+    const g = new THREE.BoxGeometry(mouthW + 0.4, mouthH + 0.3, depth, 2, 2, 2);
+    const idx = g.index;
+    if (idx) { const arr = idx.array; for (let i = 0; i < arr.length; i += 3) { const t = arr[i + 1] ?? 0; arr[i + 1] = arr[i + 2] ?? 0; arr[i + 2] = t; } }
+    g.computeVertexNormals();
+    const cc = L(0, 0, depth / 2 + 0.15);
+    kit.add(g, (q) => LEOPARD_CAVE_C.dark.clone().lerp(LEOPARD_CAVE_C.graniteDark, Math.max(0, 0.22 - (q.z + depth / 2) * 0.12)), { matrix: M(cc.x, floorY + (mouthH + 0.3) / 2, cc.z, yawIn), brush: 0.02, flat: true });
+    const bw = L(0, 0, depth + 0.3);
+    colliders.push({ x: bw.x, z: bw.z, hw: mouthW / 2 + 0.4, hd: 0.4, rot: -yawIn, yBottom: floorY - 3, yTop: floorY + mouthH + 3 });
+  }
+  // the hood: jambs either side (down to the hill), a lintel, a great capping block and boulders heaped on it
+  for (const sx of [-1, 1]) {
+    const j = L(sx * (mouthW / 2 + 1.35), 0, depth / 2);
+    const gj = ground(j.x, j.z), hJ = floorY + mouthH + 1.2 - gj + 2;
+    kit.add(graniteBlock(2.9, hJ, depth + 2.2, 0xca0 + sx, 0.2), LEOPARD_CAVE_C.granite, { ...snowTop(p.snowLine), matrix: M(j.x, gj - 2 + hJ / 2, j.z, yawIn + sx * 0.08) });
+    colliders.push({ x: j.x, z: j.z, hw: 1.35, hd: (depth + 2) / 2, rot: -(yawIn + sx * 0.08), yBottom: gj - 3, yTop: floorY + mouthH + 1.2 });
+  }
+  { const li = L(0, 0, 0.3); kit.add(graniteBlock(mouthW + 4.6, 1.6, 2.2, 0xcab, 0.2), LEOPARD_CAVE_C.graniteCool, { ...snowTop(p.snowLine - 6), matrix: M(li.x, floorY + mouthH + 0.75, li.z, yawIn, 1, 1, 1, 0.06) }); }
+  { const cap = L(0.3, 0, depth / 2 + 0.6); kit.add(graniteBlock(mouthW + 6, 3.2, depth + 3.5, 0xcac, 0.28), LEOPARD_CAVE_C.granite, { ...snowTop(p.snowLine - 8), matrix: M(cap.x, floorY + mouthH + 2.1, cap.z, yawIn + 0.1, 1, 1, 1, -0.12) }); }
+  for (let i = 0; i < 4; i++) {
+    const q = L(rng.range(-3.5, 3.5), 0, rng.range(1.5, 4.5)), s = rng.range(1.2, 2.2);
+    kit.add(blob(s, rng, 2, 0.8, 0.3), LEOPARD_CAVE_C.granite, { ...snowTop(p.snowLine - 8), matrix: M(q.x, floorY + mouthH + 3.2 + s * 0.2, q.z, rng.range(0, 6)) });
+  }
+  // the porch ledge in front of the mouth: a thick slab down to the slope (the leopard's lookout)
+  const porch = L(0, 0, -2.1);
+  {
+    const gp = ground(porch.x, porch.z), th = Math.max(1.4, porchY - gp + 1.2);
+    kit.add(graniteBlock(6.6, th, 4.4, 0xcafe, 0.1), LEOPARD_CAVE_C.graniteDark, { ...snowTop(p.snowLine), matrix: M(porch.x, porchY - th / 2 + 0.02, porch.z, yawIn) });
+    colliders.push({ x: porch.x, z: porch.z, hw: 3.0, hd: 1.9, rot: -yawIn, yBottom: gp - 3, yTop: porchY });
+    // the cave's own floor, from the porch's back edge in to the back wall (P1: it was a floor function only)
+    const cf = L(0, 0, depth / 2 - 0.1);
+    descs.push(slab(cf.x, cf.z, porchY, 1.2, mouthW / 2 + 0.3, depth / 2 + 0.25, yawIn, 'rock'));
+  }
+  const cs = Math.cos(yawIn), sn = Math.sin(yawIn);
+  const floor = leopardCaveFloor({ kind: 'cave', x: porch.x, z: porch.z, cs, sn, mouthW, depth, porchY });
+  // old bones on the porch: a few long bones, a ribcage arc, a skull
+  for (let i = 0; i < 6; i++) {
+    const q = L(rng.range(-2, 2), 0, rng.range(-3.4, -1.2)), a = rng.range(0, Math.PI);
+    kit.add(pole(v3(q.x - Math.cos(a) * 0.3, porchY + 0.05, q.z - Math.sin(a) * 0.3), v3(q.x + Math.cos(a) * 0.3, porchY + 0.05, q.z + Math.sin(a) * 0.3), 0.03, 0.025, 5), LEOPARD_CAVE_C.bone);
+  }
+  { const q = L(0.8, 0, -1.8); for (let k = 0; k < 5; k++) kit.add(new THREE.TorusGeometry(0.28 - k * 0.02, 0.02, 4, 10, Math.PI).rotateY(Math.PI / 2 + 0.2).translate(k * 0.1, 0, 0), LEOPARD_CAVE_C.bone, { matrix: M(q.x, porchY, q.z, yawIn) }); }
+  { const q = L(-1.1, 0, -2.6); kit.add(new THREE.SphereGeometry(0.12, 10, 8).scale(0.9, 0.8, 1.3), LEOPARD_CAVE_C.bone, { matrix: M(q.x, porchY + 0.1, q.z, 0.7) }); }
+  return { boxes: colliders, descs, floor };
+};
+
+const leopardCavePainted: ModelDef<LeopardCaveParams> = { ...leopardCave, build: painted(paintLeopardCave, { seed: 0xc4a6, fitted: true, finish: { aoH: 1.2 } }) };
+
+const KURGAN_ENTRANCE_C = {
+  kerb: new THREE.Color('#948f86'),
+  lichen: new THREE.Color('#b9a45a'),
+  larch: new THREE.Color('#7a5a3c'),
+  larchOld: new THREE.Color('#6d6152'),
+  turf: new THREE.Color('#9ab552'),
+  turfDark: new THREE.Color('#7f9a42'),
+  dark: new THREE.Color('#0d0a08'),
+};
+
+const paintKurganEntrance: Paint<KurganEntranceParams> = (kit, at, p, c) => {
+  const rng = kit.rng, ground = c.ground;
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
+  const len = 7.5;
+  const D = at.yaw, fx = -Math.sin(D), fz = -Math.cos(D);                        // the unit vector the door faces
+  const front = { x: at.x, z: at.z }, floorY = at.y, footY = p.footY;
+  const openH = 2.35, lintelY = floorY + openH, cw = 2.5;                                    // clear width of the doorway
+  // local frame: origin at the portal front on the axis, +z pointing INTO the mound, +x across
+  const yawIn = Math.atan2(-fx, -fz);                                                      // local +z → world (−fx, −fz)
+  const L = (lx: number, ly: number, lz: number) => v3(front.x - fx * lz - fz * lx, ly, front.z - fz * lz + fx * lx);
+  const Lm = (lx: number, ly: number, lz: number, sx = 1, sy = 1, sz = 1, pitch = 0) => { const q = L(lx, ly, lz); return M(q.x, q.y, q.z, yawIn, sx, sy, sz, pitch); };
+  // posts + double lintel (larch, weathered grey at the top)
+  for (const sx of [-1, 1]) {
+    kit.add(pole(L(sx * (cw / 2 + 0.22), footY - 0.6, 0.1), L(sx * (cw / 2 + 0.2), lintelY + 0.55, 0.12), 0.25, 0.21, 9), KURGAN_ENTRANCE_C.larch, { foot: 0.7 });
+    kit.add(pole(L(sx * (cw / 2 + 0.25), footY - 0.6, 0.9), L(sx * (cw / 2 + 0.22), lintelY + 0.3, 0.9), 0.2, 0.18, 8), KURGAN_ENTRANCE_C.larchOld);
+    const jp = L(sx * (cw / 2 + 0.22), 0, 0.5);
+    colliders.push({ x: jp.x, z: jp.z, hw: 0.3, hd: 0.8, rot: -yawIn, yBottom: footY - 1, yTop: lintelY + 0.6 });
+  }
+  kit.add(pole(L(-cw / 2 - 0.9, lintelY + 0.22, 0.05), L(cw / 2 + 0.9, lintelY + 0.24, 0.05), 0.27, 0.25, 9), KURGAN_ENTRANCE_C.larchOld);
+  kit.add(pole(L(-cw / 2 - 1.1, lintelY + 0.7, 0.35), L(cw / 2 + 1.1, lintelY + 0.68, 0.35), 0.25, 0.24, 9), KURGAN_ENTRANCE_C.larch);
+  // flaring wing walls: stacked logs from the posts out and down to the foot, stones banked against them
+  for (const sx of [-1, 1]) {
+    for (let r = 0; r < 7; r++) {
+      const y = footY - 0.1 + r * 0.42, lenOut = 3.4 - r * 0.42;
+      if (lenOut < 0.5 || y > lintelY + 0.4) break;
+      const a = L(sx * (cw / 2 + 0.5), y, 0.3), b = L(sx * (cw / 2 + 0.5 + lenOut * 0.72), y + rng.range(-0.05, 0.05), -lenOut * 0.7);
+      kit.add(pole(a, b, 0.2, 0.18, 7), r % 2 === 0 ? KURGAN_ENTRANCE_C.larch : KURGAN_ENTRANCE_C.larchOld, { jitter: 0.08 });
+    }
+    for (let i = 0; i < 6; i++) {
+      const q = L(sx * (cw / 2 + rng.range(1.4, 3.4)), 0, rng.range(-2.4, -0.2));
+      kit.add(blob(rng.range(0.3, 0.6), rng, 1, 0.7), KURGAN_ENTRANCE_C.kerb, { matrix: M(q.x, ground(q.x, q.z) + 0.05, q.z, rng.range(0, 6)), top: { color: KURGAN_ENTRANCE_C.lichen, threshold: 0.5, amount: 0.4 } });
+    }
+    const wc = L(sx * (cw / 2 + 1.7), 0, -1.0);
+    colliders.push({ x: wc.x, z: wc.z, hw: 0.35, hd: 1.6, rot: -(yawIn + sx * 0.7), yBottom: footY - 1, yTop: footY + 1.6 });
+  }
+  // the passage: dark log walls, a log ceiling, the black back — fading to nothing
+  const dep = DROMOS_DEPTH;
+  const darkBy = (lz: number, base: THREE.Color) => base.clone().lerp(KURGAN_ENTRANCE_C.dark, Math.min(1, 0.35 + lz / dep * 0.8));
+  for (const sx of [-1, 1]) for (let r = 0; r < 6; r++) {
+    const y = floorY + 0.2 + r * 0.4;
+    kit.add(pole(L(sx * (cw / 2 + 0.05), y, 0.4), L(sx * (cw / 2 + 0.05), y, dep + 0.1), 0.19, 0.19, 6), darkBy(dep * 0.6, KURGAN_ENTRANCE_C.larch));
+  }
+  for (let i = 0; i < 6; i++) kit.add(pole(L(-cw / 2 - 0.3, lintelY + 0.05, 0.5 + i * 0.36), L(cw / 2 + 0.3, lintelY + 0.05, 0.5 + i * 0.36), 0.17, 0.17, 6), darkBy(0.5 + i * 0.36, KURGAN_ENTRANCE_C.larchOld));
+  kit.add(new THREE.BoxGeometry(cw + 0.6, openH + 0.4, 0.3), KURGAN_ENTRANCE_C.dark, { matrix: Lm(0, floorY + openH / 2, dep + 0.1), brush: 0.02, flat: true });
+  kit.add(new THREE.BoxGeometry(cw, 0.08, dep), KURGAN_ENTRANCE_C.dark.clone().lerp(KURGAN_ENTRANCE_C.larch, 0.25), { matrix: Lm(0, floorY - 0.04, dep / 2 + 0.2), flat: true });
+  // raised timber threshold + steps down to the grass
+  kit.add(new THREE.BoxGeometry(cw + 0.5, 0.26, 0.55), KURGAN_ENTRANCE_C.larchOld, { matrix: Lm(0, floorY - 0.13, 0.15), flat: true });
+  const rise = floorY - footY, nSteps = Math.max(0, Math.ceil(rise / 0.34) - 1);
+  for (let i = 1; i <= nSteps; i++) {
+    const y = floorY - (rise * i) / (nSteps + 1);
+    kit.add(new THREE.BoxGeometry(cw - 0.2, 0.2, 0.55), KURGAN_ENTRANCE_C.larch, { matrix: Lm(0, y - 0.1, -0.2 - i * 0.5), flat: true });
+  }
+  // turf hood over the passage, carrying the mound's line out to the lintel
+  {
+    const segZ = 10, g = new THREE.BoxGeometry(cw + 3.6, 1, len, 10, 1, segZ);
+    const pos = g.getAttribute('position');
+    for (let i = 0; i < pos.count; i++) {
+      const lz = pos.getZ(i) + len / 2, t = lz / len;                            // 0 at the lintel → 1 deep in the mound
+      const up = pos.getY(i) > 0;
+      const q = L(0, 0, lz), gy = ground(q.x, q.z);
+      const topY = lintelY + 1.05 - t * 1.2 + Math.sin(Math.PI * t) * 0.25;           // sinks under the mound behind
+      const across = pos.getX(i) / ((cw + 3.6) / 2);
+      // the underside arches over the passage (so the hood's front face never closes the doorway)
+      const drop = up ? topY - (1 - Math.cos(across * 1.35)) * 1.6 : Math.abs(pos.getX(i)) < cw / 2 + 0.6 ? lintelY + 0.3 : gy - 0.6;
+      pos.setXYZ(i, pos.getX(i) * (up ? 0.85 : 1.1), drop, lz - 0.2);
+    }
+    g.computeVertexNormals();
+    kit.add(g, (_p, n) => (n.y > 0.35 ? KURGAN_ENTRANCE_C.turf : KURGAN_ENTRANCE_C.turfDark), { matrix: Lm(0, 0, 0), brush: 0.12 });
+    // the hood's top is walkable (so you can climb the mound over the entrance), in 4 slices
+    for (let s = 0; s < 4; s++) {
+      const lz0 = s * (len / 4), lzc = lz0 + len / 8, pc = L(0, 0, lzc);
+      const tc = lzc / len, yTop = lintelY + 1.05 - tc * 1.2 + Math.sin(Math.PI * tc) * 0.25 - 0.25;
+      const top = Math.max(yTop, ground(pc.x, pc.z));
+      // over the passage it only blocks above the lintel; either side of it, all the way down
+      colliders.push({ x: pc.x, z: pc.z, hw: cw / 2 + 1.2, hd: len / 8, rot: -yawIn, yBottom: lintelY - 0.1, yTop: top, surface: 'earth' });
+      for (const sx of [-1, 1]) { const q = L(sx * (cw / 2 + 0.75), 0, lzc); colliders.push({ x: q.x, z: q.z, hw: 0.55, hd: len / 8, rot: -yawIn, yBottom: footY - 1, yTop: top, surface: 'earth' }); }
+    }
+
+  }
+  // the passage floor + threshold + steps are walkable; the back wall stops you
+
+  { const bw = L(0, 0, dep + 0.1); colliders.push({ x: bw.x, z: bw.z, hw: cw / 2 + 0.3, hd: 0.3, rot: -yawIn, yBottom: floorY - 2, yTop: lintelY + 2 }); }
+  // P1: the passage floor + the threshold as a timber slab, the steps down to the grass as treads (rise ≤ 0.34 m)
+  { const pf = L(0, 0, (dep - 0.15) / 2); descs.push(slab(pf.x, pf.z, floorY, 0.6, cw / 2, (dep + 0.15) / 2, yawIn, 'wood')); }
+  if (nSteps > 0) {
+    // from the grass at the lowest drawn step's foot (the flank falls on past the foot line), rise ≤ 0.33 each
+    const run = nSteps * 0.5 + 0.3, a = L(0, 0, -0.15 - run), b = L(0, 0, -0.15);
+    const y0 = Math.min(footY, ground(a.x, a.z)) - 0.02, count = Math.max(nSteps + 1, Math.ceil((floorY - y0) / 0.33));
+    descs.push({ kind: 'treads', from: { x: a.x, y: y0, z: a.z }, to: { x: b.x, y: floorY, z: b.z }, width: cw - 0.2, count, surface: 'wood' });
+  }
+  return { boxes: colliders, descs, floor: kurganEntranceFloor({ kind: 'entrance', x: front.x, z: front.z, fx, fz, cw, len, lintelY, dep, floorY, nSteps, rise }) };
+};
+
+const kurganEntrancePainted: ModelDef<KurganEntranceParams> = { ...kurganEntrance, build: painted(paintKurganEntrance, { seed: 0x4b62, fitted: true }) };
+
+const KURGAN_KERB_C = { kerb: new THREE.Color('#948f86'), kerbDark: new THREE.Color('#77736c'), lichen: new THREE.Color('#b9a45a') };
+
+/** `at`: the stone's foot on the ground, `yaw` the ring's angle there */
+const paintKurganKerb: Paint<KurganKerbParams> = (kit, at, p) => {
+  const rng = kit.rng;
+  const g = blob(p.s, rng, 1, p.fallen ? 0.45 : rng.range(0.9, 1.35), 0.2);
+  kit.add(g, rng.next() < 0.4 ? KURGAN_KERB_C.kerbDark : KURGAN_KERB_C.kerb, { matrix: M(at.x, at.y + p.s * (p.fallen ? 0.2 : 0.45), at.z, at.yaw + rng.range(-0.3, 0.3), 1, 1, 1, p.fallen ? 1.2 : rng.range(-0.1, 0.1)), top: { color: KURGAN_KERB_C.lichen, threshold: 0.5, amount: 0.5 }, brush: 0.1 });
+  return {};
+};
+
+const kurganKerbPainted: ModelDef<KurganKerbParams> = { ...kurganKerb, build: painted(paintKurganKerb, { seed: 0x4b62 }) };
+
+function kurgansPlace(ctx: PaintCtx): BuiltPlace {
+  const { ground } = ctx;
+  const kit = new PaintKit(0x4b62);
+  const rng = kit.rng;
+  const set = new NalatiSet(kit, ctx);
+  const great = GREAT_KURGAN;
+  const D = GREAT_KURGAN_DOOR, fx = -Math.sin(D), fz = -Math.cos(D);           // the unit vector the door faces
+
+  // ── kerb rings ──
+  for (const k of KURGANS) {
+    const rings = k.great === true ? [k.r + 0.2, k.r + 1.9] : [k.r + 0.1];
+    for (const [ri, rr] of rings.entries()) {
+      const n = Math.round((Math.PI * 2 * rr) / (ri === 0 ? 1.25 : 1.9));
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rng.range(-0.02, 0.02);
+        const sx = Math.cos(a), sz = Math.sin(a);
+        // the great kurgan's kerb opens for the entrance
+        if (k.great === true && sx * fx + sz * fz > Math.cos(0.16)) continue;
+        if (rng.next() < 0.12) continue;                                          // robbed out
+        const x = k.x + sx * (rr + rng.range(-0.15, 0.15)), z = k.z + sz * (rr + rng.range(-0.15, 0.15));
+        const fallen = rng.next() < 0.08;
+        const s = rng.range(0.34, 0.55) * (ri === 0 ? 1 : 0.85);
+        set.paint(kurganKerbPainted, { x, y: ground(x, z), z, yaw: a }, { s, fallen });
+      }
+    }
+    // loose stones in the grass round it
+    for (let i = 0; i < Math.round(k.r * 0.5); i++) {
+      const a = rng.range(0, Math.PI * 2), d = k.r + rng.range(1, 7);
+      const x = k.x + Math.cos(a) * d, z = k.z + Math.sin(a) * d, s = rng.range(0.15, 0.4);
+      set.paint(fieldstonePainted, { x, y: ground(x, z), z, yaw: 0 }, { s, squash: 0.55, rough: 0.22, lift: 0.1, look: 'kurgan' });
+    }
+  }
+
+  // ── the great kurgan's entrance ──
+  // walk the door axis in from the foot; the portal front stands where the flank has risen ~0.35 m
+  const at = (d: number) => ({ x: great.x + fx * d, z: great.z + fz * d });
+  const foot = at(great.r + 1.2), footY = ground(foot.x, foot.z);
+  let dFront = great.r;
+  for (let d = great.r; d > great.r * 0.5; d -= 0.1) { const p = at(d); if (ground(p.x, p.z) - footY >= 0.35) { dFront = d; break; } }
+  const front = at(dFront), back = at(dFront - DROMOS_DEPTH);
+  const floorY = Math.max(ground(back.x, back.z), ground(front.x, front.z)) + 0.1;
+  set.paint(kurganEntrancePainted, { x: front.x, y: floorY, z: front.z, yaw: D }, { footY });
+
+  // ── crown balbals: a pair on every small mound, side by side on its crown, facing east (the rising sun, as they did) —
+  // since layout v2 cut the balbal circle these are all the shard's balbals (B11 wakes them) ──
+  const balbalSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
+  KURGAN_BALBALS.map((i) => KURGANS[i]).filter((k) => k !== undefined).forEach((k, i) => {
+    for (const side of [-1, 1]) {
+      const yaw = Math.PI / 2 + ((i % 3) - 1) * 0.2 + side * 0.08;
+      // side by side across the facing direction (east = −x), 0.75 m either side of the crown
+      balbalSpots.push({ x: k.x + 0.3, z: k.z + side * 0.75, yaw, scale: 1.0 + ((i + (side > 0 ? 1 : 0)) % 3) * 0.06 });
+    }
+  });
+
+  const geometry = kit.finish({ ground });
+  const entrance: KurganEntrance = { x: front.x, y: floorY, z: front.z, facing: D };
+  return { name: 'kurgans', group: null, surface: 'wood', tris: geometry.getAttribute('position').count / 3,
+    meshes: [{ name: 'nalati-kurgans', material: 'poi', slot: 0, geometry }], set, effects: [],
+    anchors: { entrance, balbalSpots } };
+}
+
+function cragsPlace(ctx: PaintCtx): BuiltPlace {
+  const { ground } = ctx;
+  const kit = new PaintKit(0xc4a6);
+  const rng = kit.rng;
+  const set = new NalatiSet(kit, ctx);
+  const slopeAt = (x: number, z: number) => { const e = 1.5; return Math.hypot(ground(x + e, z) - ground(x - e, z), ground(x, z + e) - ground(x, z - e)) / (2 * e); };
+  const downhill = (x: number, z: number) => { const e = 1.5; const gx = ground(x + e, z) - ground(x - e, z), gz = ground(x, z + e) - ground(x, z - e); const l = Math.hypot(gx, gz) || 1; return { x: -gx / l, z: -gz / l }; };
+  const cave = CRAG_CAVE, cfx = -Math.sin(cave.rot), cfz = -Math.cos(cave.rot);
+
+  const placed: { x: number; z: number; r: number }[] = [];
+  const free = (x: number, z: number, r: number) => placed.every((p) => Math.hypot(p.x - x, p.z - z) > p.r + r) && Math.hypot(x - cave.x, z - cave.z) > 14 && x > -249 && z > -249;
+  // (the outcrops that stood on the steep faces are src/shards/nalati-grasslands/cragRock.ts's now: fins on the crests, ribs against the
+  //  faces, sunk into the rock — no block sits on a slope)
+
+  // ── ledges: flat slabs jutting from moderate slopes on the west massif's valley-facing flanks (round Aqbars' cave) ──
+  const ledges: Ledge[] = [];
+  for (let tries = 0; tries < 500 && ledges.length < 6; tries++) {
+    const a = rng.range(Math.PI * 0.45, Math.PI * 1.2), d = rng.range(28, 80);            // the N / NE / E flanks (+z / −x)
+    const x = WEST_CRAGS.x + Math.cos(a) * d, z = WEST_CRAGS.z + Math.sin(a) * d;
+    const gy = ground(x, z), sl = slopeAt(x, z);
+    if (gy < 40 || gy > 70 || sl < 0.3 || sl > 1.2 || !free(x, z, 3.2)) continue;
+    const dh = downhill(x, z), yaw = Math.atan2(dh.x, dh.z);
+    const ux = x - dh.x * 1.6, uz = z - dh.z * 1.6;                                      // the uphill edge sits flush
+    const top = Math.max(ground(ux, uz), gy + 0.9);
+    const w = rng.range(4.2, 5.8), d2 = rng.range(3.0, 4.0);
+    const px = x + dh.x * 0.6, pz = z + dh.z * 0.6;
+    set.paint(cragLedgePainted, { x: px, y: top, z: pz, yaw }, { w, d: d2, snowLine: CRAGS.snowLine });
+    placed.push({ x: px, z: pz, r: 3.2 });
+    ledges.push({ x: px, y: top, z: pz, r: Math.min(w, d2) / 2 - 0.3 });
+  }
+
+  // ── the ledge cave: at its mouth, 3 m out from where it meets the hill, its floor over the highest ground under it ──
+  const O = { x: cave.x + cfx * 3.0, z: cave.z + cfz * 3.0 };                            // the mouth (lz = 0)
+  const L = (lx: number, ly: number, lz: number) => v3(O.x - cfx * lz - cfz * lx, ly, O.z - cfz * lz + cfx * lx);
+  let floorY = -Infinity;
+  for (const lz of [0, 1, 2, 3]) for (const lx of [-1.6, 0, 1.6]) { const q = L(lx, 0, lz); floorY = Math.max(floorY, ground(q.x, q.z)); }
+  floorY += 0.12;
+  set.paint(leopardCavePainted, { x: O.x, y: floorY, z: O.z, yaw: cave.rot }, { snowLine: CRAGS.snowLine });
+  const porch = L(0, 0, -2.1);
+
+  const geometry = kit.finish({ ground, aoH: 1.2 });
+  return { name: 'crags', group: null, surface: 'rock', tris: geometry.getAttribute('position').count / 3,
+    meshes: [{ name: 'nalati-crags', material: 'poi', slot: 0, geometry }], set, effects: [],
+    anchors: { ledges, cave: { x: porch.x, y: floorY, z: porch.z, facing: cave.rot } } };
+}
+
 // ── the bake's binary: each geometry's attributes as their own bytes, welded ──────────────────────────────────────────
 
 const descRow = (d: MemberData['solid'][number]): MemberRow['solid'][number] => (d.kind === 'hull' ? { ...d, points: Array.from(d.points) } : { ...d });
-const deckOf = (f: MemberData['floors'][number]): DeckRow | TorFloorRow => {
-  if (!('row' in f)) throw new Error('[nalati places] a floor the bake cannot keep (only deckFloor / torFloor floors are data)');
+const deckOf = (f: MemberData['floors'][number]): PlaceFloorRow => {
+  if (!('row' in f)) throw new Error('[nalati places] a floor the bake cannot keep (only recorded floor profiles are data)');
   const row: unknown = f.row;
   if (typeof row !== 'object' || row === null) throw new Error('[nalati places] a floor without its row');
-  return row as DeckRow | TorFloorRow;
+  return row as PlaceFloorRow;
 };
 const memberRow = (m: MemberData): MemberRow => ({
   draw: m.draw, inKit: m.inKit, boxes: [...m.boxes], solid: m.solid.map(descRow), descs: m.descs.map(descRow), floors: m.floors.map(deckOf),
@@ -513,7 +830,7 @@ function specimenJobs(): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
   return [job(yurtPainted), job(kunesBridgePainted), job(ribbonPolePainted), job(eaglePerchPainted), job(stovePainted), job(campBenchPainted),
     job(rugRackPainted), job(feltRugPainted), job(cartPainted), job(barrelPainted), job(hitchingRailPainted), job(waterTroughPainted),
     job(saddleRackPainted), job(corralPainted), job(hayPilePainted), job(feedTroughPainted), job(rugLinePainted), job(choppingBlockPainted),
-    job(milkCansPainted), job(tetherLinePainted), job(kurtBoardPainted), job(ribbonPostPainted), job(eagleRockPainted), job(windCairnPainted)];
+    job(milkCansPainted), job(tetherLinePainted), job(kurtBoardPainted), job(ribbonPostPainted), job(eagleRockPainted), job(windCairnPainted), job(cragLedgePainted), job(leopardCavePainted), job(kurganEntrancePainted), job(kurganKerbPainted)];
 }
 
 /** a bake: its rows and raw binary (not yet lane-shuffled or compressed) */
@@ -530,12 +847,12 @@ const nativeSpecimenScope: SpecimenScope = (build) => build();
 export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   setTerrainHeight(ground);
   const blocks: Uint8Array[] = [];
-  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace].map((build): PlaceRow => {
+  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
     const ctx: PaintCtx = { ground, flutter: new RecordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();
     return {
-      name: p.name, group: p.group, surface: p.surface, tris: p.tris,
+      name: p.name, group: p.group, surface: p.surface, tris: p.tris, anchors: p.anchors ?? {},
       meshes: p.meshes.map((m) => ({ name: m.name, material: m.material, slot: m.slot, geometry: writeGeometry(m.geometry, blocks, `${p.name}.${m.name}`) })),
       colliders: [...p.set.boxes], effects,
       members: members.map(([id, m]) => [id, memberRow(m)] as const),

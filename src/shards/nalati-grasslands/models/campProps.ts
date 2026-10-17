@@ -13,6 +13,7 @@
  * (../world/placeBake.ts). Here are the models' defs: the camps place them, the Explorer shows their baked specimens.
  */
 import { defineModel } from '@wildshard/engine/models/model';
+import type { FieldstoneParams } from '../world/painted';
 import { bakedPainted } from '../world/placeBake';
 
 export interface HitchingRailParams { readonly length: number; readonly height: number }
@@ -125,4 +126,66 @@ export const eagleRock = defineModel<object>(bakedPainted<object>({
 }));
 export const windCairn = defineModel<object>(bakedPainted<object>({
   id: 'nalati-grasslands/wind-cairn', name: 'Wind Cairn', category: 'props', pipeline: 'code', file: PLACES_FILE, surface: 'stone', defaults: {},
+}));
+
+// Static world models share this catalog and the existing places bake.
+export interface CragLedgeParams {
+  /** the slab's width across the slope and its depth out of it (m) */
+  readonly w: number;
+  readonly d: number;
+  /** snow settles on its top above this height */
+  readonly snowLine: number;
+}
+
+export const cragLedge = defineModel<CragLedgeParams>(bakedPainted<CragLedgeParams>({
+  id: 'nalati-grasslands/crag-ledge', name: 'Crag ledge', category: 'nature', pipeline: 'code',
+  file: PLACES_FILE, surface: 'rock',
+  defaults: { w: 5, d: 3.5, snowLine: 60 },
+}));
+
+export interface LeopardCaveParams {
+  /** snow settles on its tops above this height */
+  readonly snowLine: number;
+}
+
+export const leopardCave = defineModel<LeopardCaveParams>(bakedPainted<LeopardCaveParams>({
+  id: 'nalati-grasslands/leopard-cave', name: "Leopard's cave", category: 'nature', pipeline: 'code',
+  file: PLACES_FILE, surface: 'rock',
+  defaults: { snowLine: 60 },
+}));
+
+export interface KurganEntranceParams {
+  /** the ground at the mound's foot on the door axis (where the steps come down to) */
+  readonly footY: number;
+}
+
+export const kurganEntrance = defineModel<KurganEntranceParams>(bakedPainted<KurganEntranceParams>({
+  id: 'nalati-grasslands/kurgan-entrance', name: 'Kurgan entrance', category: 'buildings', pipeline: 'code',
+  file: PLACES_FILE, surface: 'wood',
+  defaults: { footY: -0.9 },
+}));
+
+export interface KurganKerbParams {
+  /** radius, metres */
+  readonly s: number;
+  /** lying flat on its side (robbed and toppled) */
+  readonly fallen: boolean;
+}
+
+export const kurganKerb = defineModel<KurganKerbParams>(bakedPainted<KurganKerbParams>({
+  id: 'nalati-grasslands/kurgan-kerb', name: 'Kurgan kerb stone', category: 'props', pipeline: 'code',
+  file: PLACES_FILE, surface: 'stone',
+  defaults: { s: 0.45, fallen: false },
+  variants: [{ id: 'standing', label: 'Standing', params: {} }, { id: 'fallen', label: 'Fallen', params: { fallen: true } }],
+}));
+
+
+export const fieldstoneBaked = defineModel<FieldstoneParams>(bakedPainted<FieldstoneParams>({
+  id: 'nalati-grasslands/fieldstone', name: 'Fieldstone', category: 'nature', pipeline: 'code',
+  file: 'src/shards/nalati-grasslands/models/campProps.ts', surface: 'stone',
+  defaults: { s: 0.3, squash: 0.55, rough: 0.22, lift: 0.1, look: 'kurgan' },
+  variants: [
+    { id: 'kurgan', label: 'Kurgan field', params: {} },
+    { id: 'rubble', label: 'Tower rubble', params: { s: 0.6, squash: 0.7, rough: 0.25, lift: -0.2, look: 'rubble' } },
+  ],
 }));
