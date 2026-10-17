@@ -67,6 +67,7 @@ import { TextureUpdates } from './textureUpdates';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
+import { serialOf, stagedNodeBuild } from './stagedNodeBuilds';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -171,6 +172,8 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
   return fog instanceof THREE.Fog || fog instanceof THREE.FogExp2 ? fog : null;
 }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
+function isGeometry(value: unknown): value is THREE.BufferGeometry { return value instanceof THREE.BufferGeometry; }
+function objectOf(value: unknown): object | null { return typeof value === 'object' && value !== null ? value : null; }
 
 /** what the stock handler keeps for one (material, program) pair: the uniforms, groups and update nodes of the program's build */
 interface ProgramEntry {
@@ -190,6 +193,7 @@ interface StockInternals {
   onBeforeRenderCallback: THREE.Material['onBeforeRender'];
   onDisposeMaterialCallback: (this: THREE.Material) => void;
   updateGeometryAttributes: (builder: unknown, geometry: THREE.BufferGeometry) => void;
+  updateShaderParameters: (builder: unknown, parameters: THREE.WebGLProgramParametersWithUniforms) => void;
 }
 const internals = (h: WebGLNodesHandler): StockInternals => h as WebGLNodesHandler & StockInternals;
 
@@ -219,6 +223,37 @@ function isMaterialProperties(value: unknown): value is MaterialProperties { ret
  * material's program map (`programs`, key → program) at `slot`, the map's size when the build ran
  */
 interface PendingBuild { readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
+
+/** OP3: one node build run ahead of the renderer's request (`stageCompile`), paired with it in `build` */
+interface StagedBuild {
+  readonly material: NodeMaterial;
+  readonly object: THREE.Object3D;
+  readonly builder: object;
+  readonly steps: Generator<void, void, void>;
+  /** `stagedSignature` when the build began; the request must match it */
+  readonly signature: string;
+  done: boolean;
+}
+/** the lights `WebGLRenderer.compile(root, camera, target)` gathers, in the order its render state hands them over */
+function compileLightsOf(root: THREE.Object3D, camera: THREE.Camera, target: THREE.Object3D): THREE.Light[] {
+  const lights: THREE.Light[] = [];
+  const visit = (object: THREE.Object3D): void => { if (object instanceof THREE.Light && object.layers.test(camera.layers)) lights.push(object); };
+  target.traverseVisible(visit);
+  if (root !== target) root.traverseVisible(visit);
+  // WebGLLights.setup: shadow casters first, then textured spots (a stable sort)
+  const mapped = (light: THREE.Light): number => { const map: unknown = Reflect.get(light, 'map'); return map !== null && map !== undefined ? 1 : 0; };
+  return lights.sort((a, b) => (b.castShadow ? 2 : 0) - (a.castShadow ? 2 : 0) + mapped(b) - mapped(a));
+}
+function shadowOf(light: THREE.Light): THREE.LightShadow | null {
+  const shadow: unknown = Reflect.get(light, 'shadow');
+  return shadow instanceof THREE.LightShadow ? shadow : null;
+}
+function drawableMaterials(object: THREE.Object3D): THREE.Material[] {
+  if (!(object instanceof THREE.Mesh || object instanceof THREE.Points || object instanceof THREE.Line || object instanceof THREE.Sprite)) return [];
+  const material: unknown = object.material;
+  const list: readonly unknown[] = Array.isArray(material) ? material : [material];
+  return list.filter((m): m is THREE.Material => m instanceof THREE.Material);
+}
 
 /** Node buffer names contain process-global node IDs. Equal cloned graphs share a
  * program, so both its GLSL blocks and each build's runtime groups need names
@@ -327,6 +362,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private keyContextStamp = 0;
   /** advances at every `updateLights`: the key context's validity */
   private lightsStamp = 0;
+  /** OP3: the node builder class three's stock build makes (captured from its first build; module-private in three) */
+  private builderClass: unknown = null;
+  /** OP3: the lights of the current render call (`updateLights`), part of a staged build's signature */
+  private renderLights: readonly THREE.Light[] = [];
+  /** OP3: node builds staged ahead of the renderer's request (`stageCompile`), by material */
+  private readonly staged = new Map<THREE.Material, StagedBuild>();
+  /** OP3 meters: staged steps run, their summed and longest ms, staged builds the renderer used, and those it did not */
+  readonly staging = { steps: 0, ms: 0, maxStepMs: 0, used: 0, dropped: 0 };
 
   constructor() {
     super();
@@ -605,14 +648,22 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
     // the fade's ghosts light nothing (intensity 0) and lend their maps to their cascades: no light node of their own
     this.lightsStamp++;
-    super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
+    const drawn = lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights;
+    this.renderLights = drawn;
+    super.updateLights(drawn);
   }
 
   /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
-    if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
+    const staged = this.takeStaged(material, object);
+    if (staged !== null) this.finishStaged(material, object, parameters, staged);
+    else if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
     else super.build(material, object, parameters);
+    if (this.builderClass === null) {
+      const made: unknown = Reflect.get(material, '_latestBuilder');
+      if (typeof made === 'object' && made !== null) this.builderClass = made.constructor;
+    }
     parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object, parameters.extensionMultiDraw);
     // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
     // size property replaces only that epilogue; content still supplies no shader code.
@@ -645,6 +696,143 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms: { vertex: [], fragment: [] }, updateNodes });
     }
     this.pendingBuilds.set(material, pending);
+  }
+
+  /**
+   * OP3 (E435): run the node builds that `renderer.compile(root, camera, target)` will ask for ahead of it, one step of
+   * one build per call of the returned function, which answers whether steps remain (`stagedNodeBuilds.ts`). `enter`
+   * applies the compile's render state (target, tone mapping, fog, environment, compile lights) and returns its restore;
+   * each step runs inside it and inside a render call of this handler with the lights the compile will gather. The
+   * compile's `build` then uses a finished build whose signature still matches (`takeStaged`); any other request builds
+   * synchronously as before. A material that already holds a program for its key, a two-sided transparent material
+   * (two side variants) and any build while a shadow caster has no map yet are left to the compile.
+   */
+  stageCompile(root: THREE.Object3D, camera: THREE.Camera, target: THREE.Object3D, enter: () => () => void): () => boolean {
+    this.dropStaged();
+    const builderClass = this.builderClass;
+    if (typeof builderClass !== 'function') return () => false;
+    let pending: { object: THREE.Object3D; material: NodeMaterial }[] | null = null;
+    let current: StagedBuild | null = null;
+    const advance = (): boolean => {
+      const self = internals(this);
+      this.updateLights(compileLightsOf(root, camera, target));
+      const lights = this.renderLights;
+      if (pending === null) {
+        pending = [];
+        const seen = new Set<THREE.Material>();
+        root.traverse((object) => {
+          for (const material of drawableMaterials(object)) {
+            if (!(material instanceof NodeMaterial) || seen.has(material)) continue;
+            seen.add(material);
+            if (material.transparent && material.side === THREE.DoubleSide && !material.forceSinglePass) continue;
+            pending?.push({ object, material });
+          }
+        });
+      }
+      if (lights.some((light) => light.castShadow && shadowOf(light)?.map === null)) { pending.length = 0; return false; }
+      while (current === null) {
+        const next = pending.shift();
+        if (next === undefined) return false;
+        const { object, material } = next;
+        this.setObject(object, material);
+        const frame = this.frame;
+        frame.material = material; frame.object = object;
+        const key = material.customProgramCacheKey();
+        const properties: unknown = this.classicRenderer().properties.get(material);
+        const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
+        if (programs instanceof Map && [...programs.keys()].some((k) => typeof k === 'string' && k.endsWith(`,${key}`))) continue;
+        const top = self.renderStack.at(-1);
+        if (top === undefined) return false;
+        // three's stock build, up to `builder.build()`
+        const made: unknown = Reflect.construct(builderClass, [object, Reflect.get(this, 'renderer')]);
+        if (typeof made !== 'object' || made === null) throw new Error('Staged node build: no builder');
+        Reflect.set(made, 'scene', top.sceneContext.scene);
+        Reflect.set(made, 'camera', top.camera);
+        Reflect.set(made, 'material', material);
+        Reflect.set(made, 'fogNode', top.sceneContext.fogNode);
+        Reflect.set(made, 'environmentNode', top.sceneContext.environmentNode);
+        Reflect.set(made, 'lightsNode', Reflect.get(top.sceneContext, 'lightsNode'));
+        const builderContext: unknown = Reflect.get(made, 'context');
+        if (typeof builderContext !== 'object' || builderContext === null) throw new Error('Staged node build: no builder context');
+        Reflect.set(builderContext, 'getOutput', self.getOutputCallback);
+        const built: StagedBuild = { material, object, builder: made, steps: stagedNodeBuild(made), signature: this.stagedSignature(material, object), done: false };
+        this.staged.set(material, built);
+        current = built;
+      }
+      const building = current;
+      const frame = this.frame;
+      frame.material = building.material; frame.object = building.object;
+      const outcome = { finished: false };
+      buildWithInstanceAttributes(building.material, () => { outcome.finished = building.steps.next().done === true; });
+      if (outcome.finished) { building.done = true; current = null; }
+      return current !== null || pending.length > 0;
+    };
+    return () => {
+      const t0 = diagnosticNow();
+      const leave = enter();
+      try {
+        this.renderStart(root, camera, target);
+        try { return advance(); }
+        finally { this.renderEnd(); }
+      } catch (error) {
+        // a step that fails leaves its material to the compile's own (synchronous) build
+        if (current !== null) { this.staged.delete(current.material); current = null; }
+        pending = [];
+        console.warn('[nodes] staged build failed; the compile builds it', error);
+        return false;
+      } finally {
+        leave();
+        const ms = diagnosticNow() - t0;
+        this.staging.steps++; this.staging.ms += ms; this.staging.maxStepMs = Math.max(this.staging.maxStepMs, ms);
+      }
+    };
+  }
+
+  /** forget staged builds the renderer never asked for (a new stage, or the warm-up's end) */
+  dropStaged(): void {
+    this.staging.dropped += this.staged.size;
+    this.staged.clear();
+  }
+
+  /**
+   * What a node build of `material` for `object` reads beyond its nodes, inside the current render call: the program key
+   * (material, scene, renderer, object and engine parts), the material version, the object, the bound target, the output
+   * transform, the camera, the scene context's fog / environment / lights nodes and each light's shadow map.
+   */
+  private stagedSignature(material: THREE.Material, object: THREE.Object3D): string {
+    const top = internals(this).renderStack.at(-1), renderer = this.classicRenderer(), frame = this.frame;
+    frame.material = material; frame.object = object;
+    const target = renderer.getRenderTarget();
+    const lights = this.renderLights.map((light) => `${String(light.id)}:${light.castShadow ? String(serialOf(shadowOf(light)?.map?.depthTexture)) : '-'}`).join(',');
+    return [material.customProgramCacheKey(), material.version, object.id, serialOf(target), target === null ? 'screen' : String(target.depthBuffer),
+      renderer.toneMapping, renderer.outputColorSpace, top?.camera.id ?? -1, serialOf(top?.sceneContext.fogNode), serialOf(top?.sceneContext.environmentNode),
+      serialOf(top === undefined ? null : objectOf(Reflect.get(top.sceneContext, 'lightsNode'))), lights].join('|');
+  }
+
+  /** the finished staged build of `material` for `object`, when the renderer's request still matches it */
+  private takeStaged(material: THREE.Material, object: THREE.Object3D): object | null {
+    const staged = this.staged.get(material);
+    if (staged === undefined) return null;
+    this.staged.delete(material);
+    if (!staged.done || staged.object !== object || staged.signature !== this.stagedSignature(material, object)) { this.staging.dropped++; return null; }
+    this.staging.used++;
+    return staged.builder;
+  }
+
+  /** three's stock build after `builder.build()`, for a staged builder */
+  private finishStaged(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms, builder: object): void {
+    const self = internals(this), frame = this.frame;
+    frame.material = material; frame.object = object;
+    self.updateShaderParameters(builder, parameters);
+    const geometry: unknown = Reflect.get(object, 'geometry');
+    if (!isGeometry(geometry)) throw new Error('Staged node build: object without geometry');
+    self.updateGeometryAttributes(builder, geometry);
+    frame.material = material; frame.object = object;
+    Reflect.set(material, '_latestBuilder', builder);
+    // three's stock build registers this same listener; disposeMaterial removes it
+    // oxlint-disable-next-line wildshard/no-global-listener-patch -- replicates WebGLNodesHandler.build for a staged builder
+    material.addEventListener('dispose', self.onDisposeMaterialCallback);
+    self.updateNodes(Reflect.get(builder, 'updateNodes'));
   }
 
   /**

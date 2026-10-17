@@ -123,6 +123,7 @@ export const OPTION_VALUES = {
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   fixedShadowSamples: ['off', 'on'],                   // G437: fixed depth-texture flip uniforms; reload, default off.
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
+  nodeStaging: ['off', 'on'],                          // OP3: a live warm-up stages each node build over painted frames (src/engine/render/nodes/stagedNodeBuilds.ts); default off until a device reading — live
   buildPacing: ['on', 'off', 'uploads'],               // SF63: quiet frame floors back paced builds by default; Developer can switch them off. uploads also budgets WebKit's isolated warm-up image uploads (src/engine/render/precompile.ts UploadBudget).
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
@@ -138,7 +139,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY, nodeStaging: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -203,7 +204,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'), fps: option('fps'),
-    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'),
+    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'), nodeStaging: option('nodeStaging'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

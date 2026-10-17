@@ -82,6 +82,12 @@ export interface CompileJob {
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
 /** Scalar preparation stage observation. Elapsed time includes painted waits; units count completed jobs/resources. */
+/**
+ * OP3: runs the node builds a job's compile will ask for ahead of it (EngineNodesHandler.stageCompile), one step per call
+ * of the function it returns (true while steps remain); `enter` applies the job's render state and returns its restore.
+ */
+export type NodeBuildStager = (root: THREE.Object3D, camera: THREE.Camera, target: THREE.Object3D, enter: () => () => void) => () => boolean;
+
 export type PrecompileStage = (phase: 'compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
 
 const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
@@ -691,6 +697,7 @@ export async function runPrecompile(
   uploadBudget?: UploadBudget,
   onStage?: PrecompileStage,
   sliceMs: number = PRECOMPILE_SLICE_MS,
+  stager?: NodeBuildStager,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -701,17 +708,34 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, sliceMs); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, sliceMs, stager); }
   finally {
     observer.dispose();
     for (const lights of new Set(jobs.flatMap(job => job.lights === undefined ? [] : [job.lights]))) lights.dispose();
   }
 }
 
+/** a job's render state as its compile below applies it (target, tone mapping, fog, environment, compile lights); returns the restore */
+function enterJobState(renderer: Renderer, job: CompileJob): () => void {
+  const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
+  const fog = job.target?.fog ?? null;
+  const environment = job.target?.environment ?? null;
+  if (job.fogOff && job.target) job.target.fog = null;
+  if (job.environment !== undefined && job.target) job.target.environment = job.environment;
+  if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
+  renderer.setRenderTarget(job.rt);
+  job.lights?.prepare();
+  return () => {
+    renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
+    if (job.fogOff && job.target) job.target.fog = fog;
+    if (job.environment !== undefined && job.target) job.target.environment = environment;
+  };
+}
+
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
   current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>,
-  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number): Promise<PrecompileReport> {
+  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number, stager: NodeBuildStager | undefined): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -744,6 +768,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const programsByKind = new Map<string, number>();
   for (const [i, job] of jobs.entries()) {
     checkCurrent();
+    // OP3: the job's node builds, a step at a time over painted slices, before its compile uses them. A job that
+    // configures a shared material just before its compile (`prepare`) builds in the compile as before.
+    if (stager !== undefined && job.prepare === undefined) {
+      const step = stager(job.root, job.camera ?? camera, job.target ?? job.root, () => enterJobState(renderer, job));
+      for (;;) {
+        if (performance.now() - tFrame > sliceMs) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+        if (!step()) break;
+      }
+      if (performance.now() - tFrame > sliceMs) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    }
     const programsBefore = programCount(renderer);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
@@ -895,7 +929,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void>;
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
     /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage;
-    /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number } = {}): Promise<number> {
+    /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number;
+    /** OP3: stage each job's node builds over painted slices before its compile (Debug ▸ Performance ▸ Staged node builds). */ stager?: NodeBuildStager } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     if (options.futureLighting !== undefined) {
@@ -953,7 +988,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const owner = options.owner ?? resourceScope();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs, options.stager);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   
