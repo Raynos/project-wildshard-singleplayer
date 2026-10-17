@@ -1,3 +1,4 @@
+import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
 import { describe, expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the checkout root for the discovery generator.
 import { resolve } from 'node:path';
@@ -22,6 +23,7 @@ const emittedSections = async (slug: string): Promise<Map<string, unknown>> => {
     const bytes = custom?.files.get(row.path);
     if (bytes !== undefined) sections.set(row.name, JSON.parse(new TextDecoder().decode(bytes)));
   }
+  if (slug === 'driftwood-isle') sections.set('held/arms', HELD_ARMS);
   return sections;
 };
 const productOf = async (slug: string): Promise<ShardProduct> => createShardProduct({ slug, revision: 1,

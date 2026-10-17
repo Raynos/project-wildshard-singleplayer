@@ -14,8 +14,10 @@ test('the named floor preserves all 22,250 shipping placements and refuses malfo
   // before moving its decoder: hash every value, tint, normal and array order.
   const facts = Object.fromEntries(Object.entries(rows.layout).map(([kind, items]) => [kind, items.map(({ x, y, z, nx, ny, nz, rot, scale, r, g, b }) => ({ x, y, z, nx, ny, nz, rot, scale, r, g, b }))]));
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(facts)))).toBe('7c0b23e88b4c31727bed35d146ded1db0c13a6b049657365a0616c44b9704dfb');
-  // Recorded by executing d7dcfb102's actual page composer on every shipping row.
-  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(Object.values(rows.layout).map(items => items.map(it => it.matrix)))))).toBe('e6eb84f2db000c48448801d21b7c94ba847bf5c05e935870a44639ddddc0fd2c');
+  // The original page composer d7dcfb102 uploads Float32 instance matrices.
+  // Compare every uploaded value; native libm's extra float64 bits vary by CPU.
+  const matrices = Object.values(rows.layout).map(items => items.map(it => it.matrix.map(Math.fround)));
+  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(matrices)))).toBe('1c16bc39f9384dbc3e7b6358245c42499f77f375eee04a038434f3da71cdd008');
   expect(rows.counts).toEqual([6000, 3750, 5000, 3000, 3000, 1500]);
   expect(() => v.parse(FloorRowsSchema, { ...rows, counts: [1, 1, 1, 1, 1, 1] })).toThrow();
   expect(() => v.parse(FloorRowsSchema, { ...rows, extra: true })).toThrow();

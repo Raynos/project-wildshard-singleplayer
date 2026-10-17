@@ -9,6 +9,7 @@ import * as authored from '../src/shards/nalati-grasslands/generators/stormTitan
 import baseline from './fixtures/nalati-storm-titan.json' with { type: 'json' };
 
 const hash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const numericHash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value, (_key, item: unknown) => typeof item === 'number' ? Math.round(item * 1e9) / 1e9 : item)).digest('hex');
 function fingerprint(g: BufferGeometry): string {
   const attributes = Object.fromEntries(Object.entries(g.attributes).map(([key, a]) => [key, {
     type: a.array.constructor.name, itemSize: a.itemSize, normalized: a.normalized, array: [...a.array],
@@ -23,14 +24,16 @@ it('retains every encounter, phase, reward and attack number', () => {
 });
 
 it('rebuilds the same numeric JSON without serialization UUIDs', () => {
-  expect(hash(titanGeometry())).toBe(hash(geometry));
+  expect(numericHash(titanGeometry())).toBe(numericHash(geometry));
 });
 
 for (const tier of ['phone', 'desktop'] as const) it(`${tier}: preserves the original puff and mesh buffers`, () => {
   // Captured from 53d372727's unmodified constructors, before the bake replaced them.
   const rows = geometry[tier], expected = baseline[tier], loader = new BufferGeometryLoader();
   expect(rows.puffs).toHaveLength(expected.puffCount);
-  expect(hash(rows.puffs)).toBe(expected.puffs);
+  // Preserve the original authored positions/phases to 1e-9; native libm
+  // differs in lower float64 bits across the Mac and Linux CI.
+  expect(numericHash(rows.puffs)).toBe(expected.puffsNanometres);
   const flames = loader.parse(rows.flames), eyes = loader.parse(geometry.eyes);
   try {
     expect(fingerprint(flames)).toBe(expected.flames);

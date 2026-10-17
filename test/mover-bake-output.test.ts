@@ -10,6 +10,8 @@ import rows from '../src/shards/driftwood-isle/data/movers.generated.json' with 
 
 // The complete pre-change generated TS payload, after JSON parsing and stringification.
 const original = '7b0c66a9d2223a8f101a331ccc9a76f90b4de0e3a675f32c6f1740419180834e';
+// Retain exact fields/integers and compare libm-derived transforms to 1e-12.
+const numeric = (value: unknown): unknown => JSON.parse(JSON.stringify(value, (_key, item: unknown) => typeof item === 'number' && !Number.isInteger(item) ? Math.round(item * 1e12) / 1e12 : item));
 function originalPayload(data: readonly { execution: string }[]): string {
   return JSON.stringify(data.map(({ execution, ...row }) => { expect(execution).toBe('native'); return row; }));
 }
@@ -18,12 +20,12 @@ test('keeps every original mover value while explicitly selecting native executi
   const [boat, bridge] = rows;
   if (boat === undefined || bridge === undefined) throw new Error('Missing mover output');
   const captured = captureDriftwoodMovers(boat.module, bridge.module);
-  expect(rows).toEqual(captured);
-  expect(parseMovers(rows)).toEqual(parseMovers(captured));
+  expect(numeric(rows)).toEqual(numeric(captured));
+  expect(numeric(parseMovers(rows))).toEqual(numeric(parseMovers(captured)));
   const [skyBridge, lift] = [...new Set(skyRows.map(row => row.module))];
   if (skyBridge === undefined || lift === undefined) throw new Error('Missing Sky drivers');
   expect(hashImmutableBytes(new TextEncoder().encode(originalPayload(skyRows)))).toBe('78c3a25ceb451fed7f740b310b795b19f232bf5776a4734f4fef5a34b33d6f9f');
-  expect(JSON.stringify(skyRows)).toBe(JSON.stringify(captureSkyMovers(skyBridge, lift)));
+  expect(numeric(skyRows)).toEqual(numeric(captureSkyMovers(skyBridge, lift)));
 });
 
 test('keeps TypeScript as the default and refuses unsupported mover output formats', () => {

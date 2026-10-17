@@ -253,4 +253,9 @@ jobs:
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
       - run: pnpm gen && node scripts/build-shardfiles.mjs
+      # The preceding producer built these exact products; hooks must not rebuild
+      # all ten concurrently inside every test file (CI always forces a rebuild).
       - run: python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/8
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          WS_TEST_PRODUCTS_SHA: ${{ github.sha }}

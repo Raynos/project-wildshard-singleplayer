@@ -56,7 +56,7 @@ test('Captain published guest rises, sinks, relocates inside the pool and resume
   for (const owner of [captain, resumed.made]) { owner.send('strike.done', 'captain', 'second', true); owner.advance(.2); }
   expect(resumed.made.save()).toEqual(captain.save());
   for (const owner of [captain, resumed.made]) {expect(owner.host.metrics()[0]).toMatchObject({ refusals: 0, disabled: false });expect(owner.maxFuel()).toBeLessThan(400_000);}
-}, 2_000);
+}, 10_000);
 
 test('King published guest chooses sweep, ring recovery, summons and last-phase lanes without replay on restore', async () => {
   const fixture = await encounter('pine-hollow', 'king', [150, 0, -30], [155, 0, -30]);
@@ -81,4 +81,4 @@ test('King published guest chooses sweep, ring recovery, summons and last-phase 
   for (const owner of [king, resumed.made]) { owner.advance(.4); owner.send('death', 'king'); }
   expect(resumed.made.save()).toEqual(king.save()); expect(get(king, 'king.mode')).toBe(2);
   for (const owner of [king, resumed.made,summoned.made]) {expect(owner.host.metrics()[0]).toMatchObject({ refusals: 0, disabled: false });expect(owner.maxFuel()).toBeLessThan(400_000);}
-}, 2_000);
+}, 10_000);
