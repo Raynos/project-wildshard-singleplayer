@@ -172,6 +172,10 @@ test('bound props stream tiles and whole geometry while retaining neighbour pane
   expect(neighbourProductFiles(f.source)).toEqual([f.ref]);
   f.source.sim.scripts.push(f.ref); expect(neighbourProductFiles(f.source)).toEqual([]);
   f.source.sim.scripts.length = 0; f.source.runtime = null;
+  expect(neighbourProductFiles(f.source)).toEqual([]); // unbound whole-library references remain synchronous
+  f.source.props.wholeLibrary = [];
+  expect(neighbourProductFiles(f.source)).toEqual([f.ref]);
+  f.source.props.models.push({ id: 'synchronous-library', file: f.ref });
   expect(neighbourProductFiles(f.source)).toEqual([]);
 });
 

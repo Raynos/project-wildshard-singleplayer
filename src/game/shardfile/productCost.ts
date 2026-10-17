@@ -54,15 +54,16 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
   return source.files.filter(file => !keep.has(file.hash)).map(file => file.hash);
 }
 
-/** Neighbours stream bound props tiles through ClientAssets.read; whole geometry belongs to the entered runtime.
+/** Neighbours stream terrain, props tiles and placeholders through ClientAssets.read; bound whole geometry belongs to the entered runtime.
  * Keep every synchronous panel, material, physics and simulation reference, including dependencies shared with a tile. */
 export function neighbourProductFiles(source: Shardfile): readonly string[] {
-  if (source.runtime === null) return [];
   const props = source.props;
-  if (props === null || !source.runtime.binds?.includes('props')) return runtimeOnlyProductFiles(source);
-  const streamed = new Set([...props.tiles.flatMap(tile => [tile.file, ...tile.additionalFiles ?? []]),
-    ...props.models.map(model => model.file), ...props.wholeLibrary ?? [], ...(props.far === null ? [] : [props.far])]);
-  const { wholeLibrary: _wholeLibrary, ...drawn } = props;
-  return runtimeOnlyProductFiles({ ...source, props: { ...drawn, tiles: [], models: [], far: null },
-    tiles: source.tiles.map(tile => ({ ...tile, files: tile.files.filter(ref => !streamed.has(ref)) })) });
+  const boundProps = source.runtime?.binds?.includes('props') === true;
+  const { near: _near, ...drawn } = source;
+  return runtimeOnlyProductFiles({ ...drawn, tiles: [], far: null,
+    terrain: source.terrain === null ? null : { ...source.terrain, tiles: [] },
+    props: props === null ? null : { ...props, tiles: [], far: null,
+      ...(boundProps ? { models: [], wholeLibrary: [] } : {}),
+      // The model key selects a colour map; material compilation only consumes its colour bytes.
+      textures: props.textures.map(({ colour }) => ({ model: '', colour })) } });
 }

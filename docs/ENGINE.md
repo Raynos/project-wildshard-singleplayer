@@ -4190,12 +4190,13 @@ asynchronous product API. `ProductLeases` reduces its shared product claim
 by the actual released wire bytes; `ResidencyLease.shrink(bytes)` only
 reduces a live, uncovered allocation, preserving its identity and holders.
 
-`neighbourProductFiles(source)` also releases props-bound render tiles,
-models and whole-library wire files. Neighbour ring tiles already read
+`neighbourProductFiles(source)` also releases terrain/props render tiles
+and near/far placeholder wires, plus props-bound models and whole-library
+wire files. Neighbour ring tiles and placeholders already read
 these through `ClientAssets.read`; entered whole geometry uses the same
 verified reader. Panels, texture bindings, collider inputs, shared host
-references and their dependencies stay resident. Pure data products keep
-their complete library. Independent platform sections retain their own
+references and their dependencies stay resident. Unbound library models
+stay resident for synchronous installers. Independent platform sections retain their own
 blob-path inputs, including native decision Wasm.
 
 `provideRuntimeProduct(admitted, scope, options?)` copies the admission
