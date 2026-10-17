@@ -113,7 +113,11 @@ export function publishProduct(from, to) {
     }
     if(existsSync(to))renameSync(to,previous);
     try{renameSync(temporary,to);}catch(error){if(existsSync(previous))renameSync(previous,to);throw error;}
-  }finally{rmSync(temporary,{recursive:true,force:true});rmSync(previous,{recursive:true,force:true});}
+  } finally {
+    // Bound retries for transient ENOTEMPTY/EBUSY during publication cleanup.
+    rmSync(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    rmSync(previous, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 }
 
 /** A complete cache entry for this key, or undefined. @param {string} cacheRoot @param {string} slug @param {string} key */
