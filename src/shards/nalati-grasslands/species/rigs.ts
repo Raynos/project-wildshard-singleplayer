@@ -1,5 +1,5 @@
 import { TIER } from '@wildshard/engine/core/tier';
-import { NALATI_COAT_DIR } from './coatDir';
+import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 /**
  * The Nalati creatures' rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES): their names and the one URL each tier
  * loads. Split from glbCreatures.ts (which pulls in three's GLTFLoader) so the boot manifest can declare the files —
@@ -21,5 +21,5 @@ export function creatureRigUrl(name: CreatureRigName): string {
  * KTX2 stand-in in Nalati's KTX2 table. In glTF orientation (unflipped), as the hull's own atlas.
  */
 export function nalatiCoatUrl(name: CreatureRigName, kind: string, variant: string): string {
-  return `${NALATI_COAT_DIR}${name}.${kind}.${variant}.coat.webp`;
+  return `${metadata.assetFiles.coats}${name}.${kind}.${variant}.coat.webp`;
 }

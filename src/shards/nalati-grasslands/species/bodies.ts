@@ -1,7 +1,8 @@
+import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { BufferAttribute, BufferGeometry } from 'three';
 import type { AnimalDims, AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import rowsJson from '../data/bodies.json' with { type: 'json' };
-import { BODY_ATTRS, NALATI_BODIES_URL, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from './bodyKey';
+import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from './bodyKey';
 
 /**
  * Nalati's species bodies, baked offline (SHARD-PLATFORM M3): the horse-family and canid lofts are built at bake time by
@@ -68,8 +69,8 @@ export function provideNalatiBodies(read: () => Uint8Array): void { provider = r
 export function preloadNalatiBodies(): Promise<void> {
   loading ??= (async (): Promise<void> => {
     try {
-      const response = await fetch(NALATI_BODIES_URL);
-      if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${NALATI_BODIES_URL}`);
+      const response = await fetch(metadata.assetFiles.bodies);
+      if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${metadata.assetFiles.bodies}`);
       const lanes = new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
       useNalatiBodies(unshuffleBodyLanes(lanes));
     } catch (error: unknown) { console.error('[nalati-grasslands] the baked species bodies did not load:', error); }

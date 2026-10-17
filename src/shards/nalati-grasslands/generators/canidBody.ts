@@ -3,7 +3,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { loft, skinPlain, S, boneIndex, mix, srgb, paletteColors, paintNoise, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
-import { tuft, hash01, type V3, type Skin } from '../species/shape';
+import { tuft, hash01, type V3, type Skin } from './shape';
 import { WOLF } from '../species/wolf';
 
 /**

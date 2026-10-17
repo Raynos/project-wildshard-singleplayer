@@ -12,8 +12,7 @@ import { inSpruceClearing } from './world/clearings';
 import { edgeSpruceMask } from './edge';
 import { NALATI_HORIZON_V2 } from './look/horizon';
 import { NALATI_MINIMAP } from './look/minimap';
-import { bootFiles, bootSources, lateReads } from './boot/files';
-import { BOOT_STEPS } from './boot/steps';
+import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
 import thumbnail from './thumbs/nalati-grasslands.jpg';
 import heroPortrait from './thumbs/nalati-grasslands-portrait.jpg';
 import heroLandscape from './thumbs/nalati-grasslands-landscape.jpg';
@@ -42,7 +41,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   budgets: NALATI_BUDGET_INPUTS,
   runtimeCost: NALATI_RUNTIME_COST,
   audio: { bed: 'steppe', ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./runtime/audio/files').then((m) => m.createNalatiAudio()) },
-  boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE), exploreHorse, ...COMPARE.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
+  boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE), exploreHorse, ...COMPARE.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootMetadata.files, sources: bootMetadata.sources, steps: bootMetadata.steps, bytes: { trees: 'spruce bark' }, lateReads: bootMetadata.lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true },

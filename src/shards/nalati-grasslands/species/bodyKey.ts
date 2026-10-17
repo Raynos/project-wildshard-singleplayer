@@ -1,8 +1,5 @@
 import type { AnimalDims, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 
-/** The bake the page fetches (`species/bodies.ts`); here, renderer-free, so the boot manifest can declare it. */
-export const NALATI_BODIES_URL = '/assets/nalati/baked/bodies.bin';
-
 /**
  * The loft families Nalati bakes (`generators/bodies.ts`): the horse (and the riders' and elites' horses), the canid, and the
  * named elites' and statues' own rigs (the snow leopard, the eagle, the Golden King, the balbals).

@@ -525,6 +525,48 @@
       "platform": "portable"
     },
     {
+      "id": "nalati-boot-metadata",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
+        "src/shards/nalati-grasslands/generators/bootInventory.ts",
+        "src/shards/nalati-grasslands/generators/bootFiles.ts",
+        "src/shards/nalati-grasslands/generators/bootSteps.ts",
+        "src/shards/nalati-grasslands/ktx2.generated.ts",
+        "src/engine/boot/filePolicy.ts",
+        "src/engine/boot/bakedApi.ts",
+        "src/engine/boot/tables.ts",
+        "src/engine/boot/ktx2.generated.ts",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/nalati",
+        "public/assets/baked/nalati-grasslands",
+        "public/assets/baked/common",
+        "public/assets/gpu/nalati",
+        "src/engine/app/identity.ts",
+        "src/engine/package.json",
+        "src/game/shard/list.ts",
+        "src/game/identity.ts"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/bootMetadata.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/bootMetadata.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "pine-hollow-items",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-items.mjs",
@@ -9952,7 +9994,7 @@
         "src/sdk/package.json",
         "src/sdk/sourceReader.ts",
         "src/shards/nalati-grasslands/behaviour/weapons.as",
-        "src/shards/nalati-grasslands/data/sabreHook.ts",
+        "src/shards/nalati-grasslands/generators/sabreHook.ts",
         "src/shards/nalati-grasslands/data/sabreProfile.ts",
         "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs",
         "src/shards/nalati-grasslands/generators/weaponHooks.ts"

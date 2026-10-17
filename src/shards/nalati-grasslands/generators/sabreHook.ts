@@ -1,5 +1,5 @@
 import type { WeaponHooksData } from '@wildshard/format/weaponHooks';
-import { SABRE_WEAPON_PROFILE } from './sabreProfile';
+import { SABRE_WEAPON_PROFILE } from '../data/sabreProfile';
 
 const mounted = SABRE_WEAPON_PROFILE.mounted;
 /** Author declaration for the native sabre pass hook. The retained AS source supplies its generated module hash. */
