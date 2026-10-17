@@ -6,7 +6,7 @@ import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' 
 import { KING_PHASE_AT, burnTick, headingTo, wallPush } from '../pine/combatMath';
 import { PINE_LEVEL_SEED } from './pineEliteStreams';
 import { PINE_STRIKES, pineContact } from './pineStrikes';
-import type { Lane, LaneBody, LaneState } from '../../../src/shards/pine-hollow/combat/lane';
+import type { Lane, LaneBody, LaneState } from '@wildshard/game/boss/lane';
 import { AntlerKingGoals, type KingGoalEnv } from './antlerKingGoals';
 
 const C = LAYOUT.KINGS_CLEARING;

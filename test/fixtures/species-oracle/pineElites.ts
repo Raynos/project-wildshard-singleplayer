@@ -3,7 +3,7 @@
 // replays both over many ticks at several seeds and holds every position, mode, field, lane, strike and hit equal.
 import type { Vector3 } from 'three';
 import type { BrainPoint } from '@wildshard/engine/ai/strikes';
-import type { Lane, LaneBody } from '../../../src/shards/pine-hollow/combat/lane';
+import type { Lane, LaneBody } from '@wildshard/game/boss/lane';
 import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '../pine/combatMath';
 import { PINE_STRIKES, pineContact, PINE_LANES } from './pineStrikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';

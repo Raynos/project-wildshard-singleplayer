@@ -3175,9 +3175,15 @@ effect rows to the existing `BossBar` and `Events`, without renderer hooks.
 its actual `SimHost`; materialization stays with the existing AS director and
 roster command. It binds death flags, attempts and the exact save envelope.
 
-Private implementation modules `game/boss/lane`, `game/boss/roaming` and
-`game/boss/continuation` keep the native strike clock, seeded streams and ordered
-wire aliases. They are not shard extension APIs. The older callback-driven
+`@wildshard/game/boss/lane` exposes the existing `Lane`, `LaneBody` and
+`LaneState` to counted client adapters. `Lane` takes a strike spec and reach
+callback, and its body-clock `update` takes a damage callback; this compatibility
+API remains callback scaffolding (HOST-BAR 5/6), without new platform credit.
+`snapshot`/`restore` retain the strike clock and authored tell duration; a client
+adapter owns its decal and preserves the pre-transition drawing frame.
+
+Private `game/boss/roaming` and `game/boss/continuation` keep the seeded streams
+and ordered wire aliases. They are not shard extension APIs. The older callback-driven
 `game/shardfile/phasedBossRoaming` and `game/plugin/bossPhase` remain migration
 scaffolding and receive no new approved-feature credit in this slice. The
 counted client rig/effect and lane bindings remain with their shard.

@@ -3,8 +3,8 @@ import { GroundTell } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { SkinId } from '@wildshard/engine/player/Skins';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
-import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { Lane } from './lane';
+import type { StrikeSpec, BrainPoint } from '@wildshard/engine/ai/strikes';
+import { Lane, type LaneState, type LaneBody } from '@wildshard/game/boss/lane';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -68,21 +68,26 @@ export function voice(animals: AnimalManager, name: string, at: THREE.Vector3): 
  * thralls', the King's Last Light): the renderer-free lane (lane.ts: the tell, the run, the one hit, the skid) plus its
  * painted ground decal, which keeps the frame's pre-transition drawing.
  */
-export class LaneCharge extends Lane<Animal> {
+export class LaneCharge<B extends LaneBody = Animal> extends Lane<B> {
   readonly tellDecal: GroundTell;
-  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: StrikeSpec, reach: PineCtx['reach'] = () => true) {
+  private tellDuration = 1;
+  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: StrikeSpec, reach: (actor: B, target: BrainPoint) => boolean = () => true) {
     super(row, reach);
     this.tellDecal = new GroundTell(scene, 'lane', color);
   }
+  override start(a: B, px: number, pz: number, tell: number, speedMul = 1): void {
+    this.tellDuration = tell; super.start(a, px, pz, tell, speedMul);
+  }
+  override restore(saved: LaneState): void { super.restore(saved); this.tellDuration = saved.tellT; }
   override cancel(): void { super.cancel(); this.tellDecal.hide(); }
   /** The simulation has one body clock; the decal retains the old pre-transition drawing frame. */
-  override update(a: Animal, dt: number, t: number, player: THREE.Vector3, hurt: (dmg: number) => void): void {
+  override update(a: B, dt: number, t: number, player: THREE.Vector3, hurt: (dmg: number) => void): void {
     const state = this.state; if (state === 'none') return;
     const elapsed = this.t + dt;
     super.update(a, dt, t, player, hurt);
     this.tellDecal.setTime(t);
     if (state === 'tell') {
-      const k = Math.min(1, elapsed / this.tellT);
+      const k = Math.min(1, elapsed / this.tellDuration);
       this.tellDecal.lane(this.x0, this.z0, this.x1, this.z1, this.width, 0.35 + 0.55 * k * (0.75 + 0.25 * Math.sin(t * 22)));
     } else if (state === 'run') {
       this.tellDecal.lane(this.x0, this.z0, this.x1, this.z1, this.width, Math.max(0, 0.6 - elapsed * 1.2));

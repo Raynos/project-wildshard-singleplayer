@@ -14,6 +14,7 @@
     "./quest/contracts": "./quest/contracts.ts",
     "./quest/contractBoard": "./quest/contractBoard.ts",
     "./boss/native": "./boss/native.ts",
+    "./boss/lane": "./boss/lane.ts",
     "./boss/wake": "./boss/wake.ts",
     "./boss/nativeWake": "./boss/nativeWake.ts",
     "./boss/presentation": "./boss/presentation.ts",

@@ -8,7 +8,7 @@ import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
 import { pineView } from '../runtime/world/context';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
-import type { LaneState } from './lane';
+import type { LaneState } from '@wildshard/game/boss/lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '@wildshard/game/plugin/bossPhase';
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import * as v from 'valibot';
