@@ -763,6 +763,8 @@ changing decoded bytes; lane-shuffled readers also reconstruct bounded word
 blocks before yielding. `unshuffleLanes(lanes, output?, wordStart?, wordEnd?)`
 can fill a validated word range in a distinct complete output buffer; omitted
 arguments restore all words. This changes scheduling, not geometry or compression.
+The fetch is page-lived, preserving an in-flight cached read when its original
+construction owner retires.
 
 `geometryBoundsSteps(geometry, "box" | "sphere" | "both")` in `@wildshard/engine/world/geometryBounds`
 scans ordinary CPU positions in 8,192-vertex steps using three.js arithmetic. Sliced model builders

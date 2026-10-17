@@ -1,4 +1,5 @@
-import { workSlice } from './workSlice';
+import { pageScope } from '../app/resources';
+import { WORK_SLICE_MS, workSlice } from './workSlice';
 
 /** Fetch zlib-compressed bytes without feeding a whole network chunk to the native
  * decoder in one continuation. The existing work slice gives live frames their
@@ -6,7 +7,7 @@ import { workSlice } from './workSlice';
 export async function fetchDeflatedBytes(url: string): Promise<Uint8Array> {
   const response = await fetch(url);
   if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
-  const reader = response.body.getReader(), slice = workSlice();
+  const reader = response.body.getReader(), slice = workSlice(WORK_SLICE_MS, pageScope);
   let chunk: Uint8Array<ArrayBuffer> | undefined, offset = 0;
   const input = new ReadableStream<BufferSource>({
     async pull(controller) {

@@ -3,6 +3,7 @@ import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial } from 'thr
 import { zlibSync } from 'fflate';
 import { Scope } from '../src/engine/app/scope';
 import { pageScope } from '../src/engine/app/resources';
+import { enterOwner } from '../src/engine/app/ownership';
 import { fetchDeflatedBytes } from '../src/engine/core/deflate';
 import { fetchLaneBake, readWholeGeometry, unshuffleLanes } from '../src/game/plugin/geometry';
 import { provideRuntimeProduct } from '../src/game/shardfile/runtimeProduct';
@@ -124,4 +125,13 @@ test('refuses HTTP and invalid deflate responses rather than publishing partial 
   await expect(fetchDeflatedBytes('https://test.example/missing')).rejects.toThrow('404');
   vi.stubGlobal('fetch', () => Promise.resolve(new Response(new Uint8Array([1, 2, 3]))));
   await expect(fetchDeflatedBytes('https://test.example/invalid')).rejects.toThrow();
+});
+
+test('a page-lived bake read survives a retired ambient construction owner', async () => {
+  const bytes = new Uint8Array(65_536), retired = new Scope('retired-bake-reader'); owners.push(retired);
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(zlibSync(bytes))));
+  let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
+  enterOwner(retired); retired.dispose();
+  try { expect(await fetchDeflatedBytes('https://test.example/page-bake')).toEqual(bytes); }
+  finally { enterOwner(null); }
 });

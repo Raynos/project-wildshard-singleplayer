@@ -10,6 +10,7 @@ import type { Placed } from '@wildshard/engine/models/place';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readBakedGeometry, type BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
+import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import placesJson from '../data/places.json' with { type: 'json' };
 import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
 import type { NalatiTexName } from '../look/nalatiTextures';
@@ -132,9 +133,7 @@ function offsets<R>(bake: Bake<R>, raw: Uint8Array, geos: (r: R) => readonly { r
 }
 
 async function fetchLanes(url: string): Promise<Uint8Array> {
-  const response = await fetch(url);
-  if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
-  return unshuffleBodyLanes(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()));
+  return unshuffleBodyLanes(await fetchDeflated(url));
 }
 
 const PAINT = bakeOf<{ readonly key: string; readonly geometry: PlaceGeometryRow; readonly data: string }>(poiPaint, 'poiPaint.json');
