@@ -512,8 +512,9 @@ async function measureShard(driver, shard, deadline) {
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));
         await sleep(settleMs);
         const standing = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
-        witness.standingMemory = await driver.evaluate(`(() => { const grid = window.__wildshard.shard.grid, state = grid.state(); return {
-          playingMB: state.playingMB, accountedBytes: state.accountedBytes, cost: grid.residency().cost,
+        witness.standingMemory = await driver.evaluate(`(() => { const grid = window.__wildshard.shard.grid, state = grid.state(), residency = grid.residency(); return {
+          playingMB: state.playingMB, accountedBytes: state.accountedBytes, cost: residency.cost,
+          l0: residency.claims.filter(claim => claim.category === 'l0').map(({ id, owner, accountedBytes }) => ({ id, owner, accountedBytes })),
           current: state.live.live.current, ringsRefused: state.rings.refused, issues: state.live.live.issues }; })()`);
         rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
