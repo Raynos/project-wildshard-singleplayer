@@ -1,0 +1,301 @@
+startMs,endMs,intervalMs,hooks,updateMs,renderMs,exactCalls,taskUpperBounds
+88051,88085,34,between hooks,1,2,Renderer.initTexture 6ms @88058,raf sync=5 total=5 @88051 site=0; timeout sync=0 total=7 @88058 site=1
+88151,88185,34,between hooks,2,1,,raf sync=4 total=4 @88168 site=0
+88218,88267,49,between hooks,2,1,,
+88351,88385,34,between hooks,1,1,,raf sync=0 total=6 @88354 site=4
+88385,88419,34,between hooks,1,1,Renderer.initTexture 4ms @88391,timeout sync=4 total=4 @88391 site=5
+88483,88518,35,between hooks,2,1,,message sync=0 total=6 @88488 site=6
+88551,88585,34,between hooks,2,1,,message sync=0 total=5 @88557 site=3
+88651,88685,34,between hooks,1,2,,message sync=0 total=6 @88657 site=3
+88751,88785,34,between hooks,2,1,,raf sync=0 total=4 @88754 site=4
+88818,88859,41,between hooks,2,1,,raf sync=0 total=4 @88821 site=4; raf sync=0 total=7 @88835 site=7; timeout sync=0 total=5 @88854 site=8
+88951,88985,34,between hooks,1,1,,raf sync=7 total=7 @88951 site=0
+89051,89085,34,between hooks,2,1,,raf sync=4 total=4 @89051 site=0; raf sync=1 total=5 @89055 site=9
+89151,89185,34,pine-hollow:beforeWorld; pine-hollow:constructor,2,1,,message sync=0 total=9 @89157 site=3
+89185,89269,84,pine-hollow:world,3,1,,
+89301,89410,109,pine-hollow:world,4,1,,raf sync=0 total=40 @89304 site=14; message sync=0 total=66 @89344 site=3
+89462,89501,39,pine-hollow:world,1,2,,
+89501,89535,34,pine-hollow:world,1,2,,raf sync=4 total=4 @89501 site=0; message sync=0 total=7 @89507 site=2
+89601,89635,34,pine-hollow:world,1,2,,message sync=0 total=6 @89607 site=3
+89701,89735,34,pine-hollow:world,1,2,,
+89801,89835,34,pine-hollow:world,1,1,,
+89835,89870,35,pine-hollow:world,1,1,,message sync=0 total=4 @89839 site=2
+89901,89935,34,pine-hollow:world,1,1,,
+90001,90035,34,pine-hollow:world,1,1,,
+90101,90135,34,pine-hollow:world,2,1,,raf sync=4 total=4 @90102 site=0
+90201,90235,34,pine-hollow:world,1,2,Renderer.initTexture 5ms @90208,raf sync=4 total=4 @90202 site=0; timeout sync=0 total=5 @90208 site=1
+90301,90335,34,pine-hollow:world,1,2,,raf sync=4 total=4 @90302 site=0
+90401,90435,34,pine-hollow:world,1,2,,raf sync=4 total=4 @90401 site=0
+90532,90568,36,pine-hollow:world,3,2,,
+90601,90635,34,pine-hollow:world,2,1,,
+90701,90735,34,pine-hollow:world,2,1,,raf sync=9 total=9 @90701 site=0
+90735,90795,60,pine-hollow:world,2,2,JSON.parse 18ms @90741,raf sync=0 total=57 @90738 site=7
+90819,90863,44,pine-hollow:world,1,2,,raf sync=0 total=6 @90835 site=7; message sync=0 total=9 @90847 site=19
+91051,91085,34,pine-hollow:world,1,2,,
+91151,91185,34,pine-hollow:world,2,1,,
+91251,91285,34,pine-hollow:world,3,1,,
+91351,91385,34,pine-hollow:world,2,1,,raf sync=0 total=4 @91354 site=4
+91451,91485,34,pine-hollow:world,1,2,,
+91551,91585,34,pine-hollow:world,2,2,,
+91651,91685,34,pine-hollow:world,1,2,,raf sync=4 total=4 @91651 site=0
+91751,91785,34,pine-hollow:world,1,1,,
+91851,91885,34,pine-hollow:world,2,1,,
+91951,91985,34,pine-hollow:world,1,2,,
+92051,92085,34,pine-hollow:world,1,2,,
+92118,92153,35,pine-hollow:world,1,2,,raf sync=4 total=4 @92118 site=0; raf sync=0 total=4 @92122 site=4; timeout sync=0 total=18 @92135 site=10
+92251,92285,34,pine-hollow:world,3,2,UnitParts.add 6ms @92258,message sync=0 total=7 @92258 site=3
+92285,92320,35,pine-hollow:world,3,2,,raf sync=5 total=5 @92285 site=0; message sync=0 total=24 @92296 site=22
+92320,92366,46,pine-hollow:world,2,2,,raf sync=5 total=5 @92320 site=0; raf sync=0 total=7 @92325 site=23; raf sync=0 total=17 @92346 site=24
+92451,92485,34,pine-hollow:world,1,2,,raf sync=0 total=4 @92455 site=4
+92551,92585,34,pine-hollow:world,3,1,,raf sync=4 total=4 @92551 site=0
+92651,92685,34,pine-hollow:world,1,2,,
+92751,92785,34,pine-hollow:world,2,1,,raf sync=0 total=4 @92755 site=4
+92851,92885,34,pine-hollow:world,2,1,,
+92951,92985,34,pine-hollow:world,2,2,,raf sync=3 total=4 @92952 site=0
+93051,93085,34,pine-hollow:world,2,1,,
+93151,93185,34,pine-hollow:world,2,1,,
+93251,93285,34,pine-hollow:world,4,1,,raf sync=0 total=4 @93255 site=4
+93351,93385,34,pine-hollow:world,2,1,,raf sync=0 total=5 @93355 site=4
+93451,93485,34,pine-hollow:world,2,2,,message sync=0 total=6 @93458 site=3
+93551,93585,34,pine-hollow:world,4,2,,message sync=0 total=6 @93558 site=3
+93651,93685,34,pine-hollow:world,2,2,,message sync=0 total=4 @93660 site=3
+93751,93785,34,pine-hollow:world,2,1,,raf sync=4 total=4 @93751 site=0
+93818,93852,34,pine-hollow:world,1,2,,raf sync=4 total=4 @93818 site=0
+93951,93985,34,pine-hollow:world,2,1,,raf sync=0 total=4 @93955 site=4
+94051,94085,34,pine-hollow:world,2,1,,message sync=0 total=6 @94057 site=12
+94085,94121,36,pine-hollow:world,2,1,,message sync=0 total=30 @94092 site=22
+94151,94185,34,pine-hollow:world,2,1,,raf sync=4 total=4 @94152 site=0; message sync=0 total=9 @94157 site=3
+94218,94253,35,pine-hollow:afterWorld; pine-hollow:kit; pine-hollow:world,2,2,,raf sync=4 total=4 @94218 site=0; message sync=0 total=6 @94224 site=3
+94351,94397,46,pine-hollow:kit,2,2,Renderer.render 4ms @94357; Composer.render 5ms @94357,raf sync=10 total=10 @94352 site=0
+94451,94485,34,pine-hollow:kit,2,1,,timeout sync=0 total=5 @94458 site=10
+94518,94553,35,pine-hollow:afterKit,1,2,,raf sync=4 total=4 @94518 site=0; raf sync=0 total=6 @94522 site=7
+94651,94685,34,pine-hollow:afterKit,2,1,,raf sync=4 total=4 @94651 site=0
+94751,94785,34,pine-hollow:afterKit,2,2,,
+94851,94885,34,pine-hollow:afterKit,2,2,,
+94951,94985,34,pine-hollow:afterKit,2,2,,raf sync=4 total=4 @94952 site=0
+95051,95085,34,pine-hollow:afterKit,2,1,,timeout sync=1 total=10 @95057 site=10
+95151,95185,34,pine-hollow:afterKit,1,2,,raf sync=4 total=4 @95151 site=0
+95251,95285,34,pine-hollow:afterKit,2,1,Renderer.initTexture 4ms @95259,raf sync=4 total=4 @95252 site=0; timeout sync=0 total=4 @95259 site=1
+95351,95385,34,pine-hollow:afterKit,2,1,,
+95451,95485,34,pine-hollow:afterKit,2,2,Composer.render 4ms @95453,raf sync=5 total=5 @95452 site=0; message sync=0 total=7 @95460 site=28
+95551,95600,49,pine-hollow:play,3,3,,raf sync=5 total=5 @95551 site=0; message sync=0 total=41 @95559 site=2
+95600,95649,49,pine-hollow:play,3,2,,raf sync=6 total=6 @95600 site=0; message sync=0 total=41 @95608 site=6
+95649,95699,50,pine-hollow:play,1,3,,raf sync=5 total=5 @95649 site=0; raf sync=1 total=5 @95654 site=29; message sync=0 total=40 @95659 site=6
+95699,95751,52,pine-hollow:play,3,2,,raf sync=5 total=5 @95699 site=0; message sync=0 total=41 @95710 site=6
+95751,95801,50,pine-hollow:play,3,2,,raf sync=5 total=5 @95751 site=0; message sync=0 total=42 @95759 site=6
+95801,95849,48,pine-hollow:play,2,3,,raf sync=5 total=5 @95801 site=0; message sync=0 total=40 @95809 site=6
+95873,95918,45,pine-hollow:play,3,2,,raf sync=4 total=4 @95873 site=0; message sync=0 total=5 @95882 site=28
+95918,96004,86,pine-hollow:play,2,3,,raf sync=5 total=5 @95918 site=0
+96022,96073,51,pine-hollow:play,2,2,,raf sync=4 total=4 @96022 site=0
+96101,96135,34,pine-hollow:play,2,2,,raf sync=5 total=5 @96101 site=0; timeout sync=0 total=4 @96118 site=10
+96201,96235,34,pine-hollow:play,3,3,,
+96235,96276,41,pine-hollow:play,2,3,,raf sync=6 total=6 @96235 site=0
+96401,96435,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @96402 site=0; message sync=0 total=7 @96407 site=3
+96435,96484,49,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @96435 site=0; raf sync=0 total=4 @96439 site=18; message sync=0 total=42 @96443 site=3
+96484,96518,34,pine-hollow:afterPlay,3,2,,message sync=0 total=42 @96443 site=3; raf sync=4 total=4 @96485 site=0
+96551,96585,34,pine-hollow:afterPlay,3,2,,raf sync=5 total=5 @96551 site=0; timeout sync=0 total=4 @96558 site=1
+96651,96685,34,pine-hollow:afterPlay,1,3,,raf sync=4 total=4 @96652 site=0
+96751,96785,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @96751 site=0
+96851,96885,34,pine-hollow:afterPlay,3,3,,raf sync=5 total=5 @96852 site=0
+96951,96985,34,pine-hollow:afterPlay,3,3,Renderer.initTexture 4ms @96959,raf sync=4 total=4 @96952 site=0; timeout sync=0 total=4 @96959 site=1
+97051,97085,34,pine-hollow:afterPlay,3,4,Renderer.initTexture 4ms @97058,raf sync=5 total=5 @97052 site=0; timeout sync=0 total=4 @97058 site=1
+97151,97185,34,pine-hollow:afterPlay,4,3,,raf sync=5 total=5 @97151 site=0
+97251,97285,34,pine-hollow:afterPlay,1,3,Renderer.initTexture 4ms @97257,raf sync=5 total=5 @97251 site=0; timeout sync=0 total=4 @97257 site=1
+97351,97385,34,pine-hollow:afterPlay,2,3,,raf sync=6 total=7 @97352 site=0
+97447,97485,38,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @97447 site=0
+97551,97585,34,pine-hollow:afterPlay,3,3,,raf sync=4 total=4 @97552 site=0
+97585,97620,35,pine-hollow:afterPlay,1,3,,raf sync=6 total=6 @97585 site=0
+97651,97685,34,pine-hollow:afterPlay,3,13,,raf sync=5 total=5 @97651 site=0
+97707,97751,44,pine-hollow:afterPlay,2,2,,
+97751,97785,34,pine-hollow:afterPlay,2,3,,raf sync=5 total=5 @97751 site=0
+97851,97885,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @97852 site=0
+98201,98235,34,pine-hollow:afterPlay,2,2,Renderer.compile 21ms @98208,raf sync=4 total=4 @98202 site=0; timeout sync=0 total=21 @98208 site=1
+98267,98301,34,pine-hollow:afterPlay,1,3,Renderer.compile 20ms @98273,raf sync=5 total=5 @98267 site=0; timeout sync=0 total=21 @98273 site=33
+98301,98335,34,pine-hollow:afterPlay,2,2,Renderer.compile 21ms @98307,raf sync=5 total=5 @98301 site=0; timeout sync=0 total=22 @98307 site=31
+98400,98435,35,pine-hollow:afterPlay,2,2,,raf sync=4 total=5 @98400 site=0
+98501,98535,34,pine-hollow:afterPlay,1,3,Renderer.compile 19ms @98508,raf sync=5 total=5 @98501 site=0; timeout sync=0 total=20 @98508 site=1
+98601,98635,34,pine-hollow:afterPlay,2,2,Renderer.compile 4ms @98618,raf sync=14 total=14 @98602 site=0; timeout sync=0 total=5 @98618 site=1
+98701,98735,34,pine-hollow:afterPlay,3,2,,raf sync=6 total=8 @98701 site=0
+98768,98813,45,pine-hollow:afterPlay,2,3,Renderer.initTexture 5ms @98775; Renderer.compile 23ms @98781,raf sync=5 total=5 @98768 site=0; timeout sync=0 total=5 @98775 site=1; timeout sync=0 total=33 @98780 site=1
+98901,98935,34,pine-hollow:afterPlay,1,3,,raf sync=4 total=4 @98902 site=0; timeout sync=0 total=4 @98907 site=1
+99001,99035,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @99001 site=0
+99101,99135,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @99101 site=0
+99201,99235,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @99201 site=0
+99301,99335,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @99301 site=0
+99401,99435,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @99401 site=0
+99501,99535,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @99502 site=0
+99601,99635,34,pine-hollow:afterPlay,1,3,,raf sync=4 total=4 @99602 site=0
+99668,99703,35,pine-hollow:afterPlay,4,2,Renderer.compile 25ms @99677,raf sync=5 total=5 @99668 site=0; raf sync=0 total=4 @99673 site=32; timeout sync=0 total=26 @99677 site=1
+99799,99835,36,pine-hollow:afterPlay,2,2,Renderer.compile 18ms @99805,raf sync=4 total=4 @99799 site=0; timeout sync=0 total=19 @99805 site=33
+99868,99912,44,pine-hollow:afterPlay,2,2,Physics.step 8ms @99870; System.physics.step 8ms @99870; Game.runPhase:fixed.step 8ms @99870; Game.runFixed 11ms @99869; Renderer.compile 24ms @99886,raf sync=15 total=15 @99868 site=0; timeout sync=0 total=28 @99884 site=1
+100001,100035,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @100001 site=0
+100101,100135,34,pine-hollow:afterPlay,2,3,,raf sync=5 total=6 @100101 site=0; timeout sync=0 total=4 @100108 site=1
+100201,100235,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @100202 site=0
+100301,100335,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @100301 site=0
+100401,100435,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @100402 site=0; raf sync=0 total=4 @100406 site=32
+100468,100502,34,pine-hollow:afterPlay,2,3,,raf sync=4 total=4 @100468 site=0
+100601,100635,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @100601 site=0
+100701,100735,34,pine-hollow:afterPlay,1,3,,raf sync=6 total=6 @100701 site=0
+100801,100835,34,pine-hollow:afterPlay,1,3,,raf sync=4 total=4 @100801 site=0
+100901,100935,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @100902 site=0
+101001,101035,34,pine-hollow:afterPlay,2,3,,raf sync=4 total=4 @101001 site=0
+101101,101135,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @101101 site=0
+101201,101235,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @101201 site=0
+101301,101335,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @101302 site=0; raf sync=0 total=10 @101307 site=4
+101368,101402,34,pine-hollow:afterPlay,2,2,,
+101402,101436,34,pine-hollow:afterPlay,3,3,,raf sync=4 total=4 @101402 site=0
+101436,101470,34,pine-hollow:afterPlay,2,2,,raf sync=6 total=6 @101436 site=0
+101567,101601,34,pine-hollow:afterPlay,1,3,,raf sync=6 total=6 @101567 site=0; raf sync=0 total=15 @101573 site=37
+101601,101635,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @101601 site=0
+101701,101735,34,pine-hollow:afterPlay,1,2,,raf sync=6 total=6 @101701 site=0
+101801,101835,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @101801 site=0
+101901,101935,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @101902 site=0
+102001,102035,34,pine-hollow:afterPlay,1,3,,raf sync=4 total=4 @102001 site=0
+102101,102135,34,pine-hollow:afterPlay,2,2,,raf sync=6 total=6 @102101 site=0; raf sync=0 total=4 @102107 site=4
+102201,102235,34,pine-hollow:afterPlay,2,3,,
+102235,102269,34,pine-hollow:afterPlay,2,3,,raf sync=5 total=5 @102235 site=0
+102301,102335,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @102302 site=0
+102401,102435,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=5 @102401 site=0
+102501,102535,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @102501 site=0
+102601,102635,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @102601 site=0
+102701,102735,34,pine-hollow:afterPlay,2,3,,raf sync=5 total=5 @102702 site=0
+102801,102835,34,pine-hollow:afterPlay,1,3,,raf sync=4 total=4 @102801 site=0; raf sync=0 total=4 @102805 site=4
+102901,102935,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @102901 site=0; raf sync=0 total=4 @102906 site=4
+103001,103035,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @103001 site=0
+103101,103135,34,pine-hollow:afterPlay,2,2,,raf sync=5 total=5 @103102 site=0
+103201,103235,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @103202 site=0
+103301,103335,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @103302 site=0
+103401,103435,34,pine-hollow:afterPlay,2,3,,raf sync=5 total=5 @103401 site=0
+103501,103535,34,pine-hollow:afterPlay,3,2,,raf sync=6 total=8 @103501 site=0
+103535,103579,44,pine-hollow:afterPlay,4,2,,raf sync=5 total=5 @103535 site=0; raf sync=0 total=11 @103540 site=38; timeout sync=0 total=9 @103554 site=39; raf sync=0 total=15 @103563 site=40
+103701,103735,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @103701 site=0
+103801,103835,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @103801 site=0
+103901,103935,34,pine-hollow:afterPlay,1,3,,raf sync=0 total=4 @103905 site=18
+104001,104035,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @104001 site=0
+104101,104135,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @104101 site=0
+104201,104235,34,pine-hollow:afterPlay,2,2,,raf sync=0 total=4 @104206 site=18
+104301,104335,34,pine-hollow:afterPlay,4,2,Scene.updateMatrixWorld 9ms @104313; Renderer.render 11ms @104312,message sync=0 total=11 @104312 site=27
+104401,104435,34,pine-hollow:afterPlay,3,3,,raf sync=6 total=6 @104401 site=0; raf sync=0 total=6 @104407 site=18; timeout sync=7 total=10 @104413 site=1
+104501,104535,34,pine-hollow:afterPlay,3,2,,raf sync=6 total=6 @104501 site=0
+104601,104635,34,pine-hollow:afterPlay,2,2,,raf sync=4 total=4 @104602 site=0
+104701,104735,34,pine-hollow:afterPlay,1,3,,raf sync=3 total=4 @104702 site=0
+104801,104835,34,pine-hollow:afterPlay,1,3,Renderer.render 5ms @104808; Renderer.render 5ms @104813,raf sync=4 total=4 @104802 site=0; message sync=0 total=6 @104807 site=3; message sync=0 total=5 @104813 site=26
+104901,104935,34,pine-hollow:afterPlay,1,3,,raf sync=5 total=5 @104901 site=0
+105001,105035,34,between hooks,5,3,,raf sync=6 total=7 @105001 site=0; timeout sync=0 total=4 @105011 site=1
+105035,105069,34,between hooks,5,3,,raf sync=8 total=8 @105035 site=0
+105101,105135,34,between hooks,2,2,,raf sync=5 total=5 @105101 site=0
+105201,105235,34,between hooks,2,3,,raf sync=4 total=4 @105202 site=0
+105301,105335,34,between hooks,2,2,,raf sync=4 total=4 @105302 site=0
+105401,105435,34,between hooks,3,1,,raf sync=4 total=4 @105402 site=0
+105501,105535,34,between hooks,4,2,,raf sync=4 total=4 @105501 site=0
+105601,105635,34,between hooks,2,2,,raf sync=4 total=4 @105602 site=0
+105701,105735,34,between hooks,2,2,,raf sync=5 total=5 @105702 site=0
+105801,105835,34,between hooks,3,2,,raf sync=4 total=4 @105802 site=0
+105901,105935,34,between hooks,2,2,,raf sync=4 total=4 @105902 site=0
+105968,106002,34,between hooks,28,10,,raf sync=6 total=6 @105968 site=0
+106002,106102,100,pine-hollow:activate,8,6,System.game.grid.session 11ms @106003; Game.runPhase:fixed.post 12ms @106002; Game.runFixed 14ms @106002; Game.runPhase:update 13ms @106016; Renderer.render 10ms @106030; Composer.render 10ms @106030,raf sync=38 total=38 @106002 site=0; raf sync=0 total=28 @106040 site=24
+106102,106136,34,between hooks,6,5,Renderer.render 4ms @106111; Composer.render 6ms @106110,raf sync=14 total=14 @106102 site=0; raf sync=0 total=8 @106116 site=34
+106156,106201,45,between hooks,6,5,Renderer.render 5ms @106162; Composer.render 5ms @106162,raf sync=11 total=11 @106156 site=0; raf sync=0 total=4 @106167 site=7
+106251,106285,34,between hooks,6,5,Renderer.render 5ms @106257; Composer.render 5ms @106257,raf sync=10 total=10 @106252 site=0; raf sync=0 total=5 @106262 site=7
+106351,106385,34,between hooks,5,6,Renderer.render 5ms @106357; Composer.render 5ms @106357,raf sync=10 total=10 @106352 site=0
+106451,106485,34,between hooks,5,5,Composer.render 5ms @106457,raf sync=11 total=11 @106451 site=0; raf sync=0 total=4 @106462 site=7
+106551,106585,34,between hooks,6,6,Renderer.render 5ms @106560; Composer.render 5ms @106560,raf sync=14 total=14 @106551 site=0; raf sync=0 total=5 @106565 site=7
+106651,106685,34,between hooks,6,5,Renderer.render 4ms @106657; Composer.render 5ms @106657,raf sync=10 total=10 @106652 site=0; raf sync=0 total=5 @106662 site=7
+106751,106785,34,between hooks,5,6,Renderer.render 5ms @106756; Composer.render 5ms @106756,raf sync=9 total=9 @106752 site=0; raf sync=0 total=5 @106761 site=7; raf sync=0 total=12 @106772 site=7
+106851,106888,37,between hooks,5,6,Renderer.render 4ms @106857; Composer.render 4ms @106857,raf sync=10 total=11 @106851 site=0
+106951,106985,34,between hooks,6,6,Renderer.render 5ms @106957; Composer.render 5ms @106957,raf sync=11 total=11 @106951 site=0; raf sync=0 total=6 @106962 site=7
+107051,107085,34,between hooks,6,5,Renderer.render 5ms @107057; Composer.render 5ms @107057,raf sync=11 total=11 @107051 site=0; raf sync=0 total=5 @107062 site=7
+107118,107153,35,between hooks,5,5,Renderer.render 5ms @107123; Composer.render 5ms @107123,raf sync=10 total=10 @107118 site=0; raf sync=0 total=6 @107128 site=7
+107251,107285,34,between hooks,5,5,Renderer.render 5ms @107257; Composer.render 5ms @107257,raf sync=10 total=10 @107252 site=0; raf sync=0 total=5 @107262 site=7
+107351,107385,34,between hooks,5,5,Renderer.render 5ms @107357; Composer.render 5ms @107357,raf sync=10 total=10 @107352 site=0; raf sync=0 total=5 @107362 site=7
+107451,107485,34,between hooks,6,4,Composer.render 5ms @107457,raf sync=10 total=10 @107452 site=0; raf sync=0 total=7 @107462 site=7
+107551,107585,34,between hooks,6,6,Renderer.render 5ms @107557; Composer.render 5ms @107557,raf sync=11 total=11 @107551 site=0; raf sync=0 total=5 @107562 site=7
+107651,107685,34,between hooks,5,6,Renderer.render 5ms @107656; Composer.render 5ms @107656,raf sync=9 total=9 @107652 site=0; raf sync=0 total=5 @107661 site=34
+107751,107785,34,between hooks,5,5,Renderer.render 5ms @107757; Composer.render 5ms @107757,raf sync=10 total=10 @107752 site=0; raf sync=0 total=5 @107762 site=7
+107851,107885,34,between hooks,5,5,Renderer.render 5ms @107857; Composer.render 5ms @107857,raf sync=10 total=10 @107852 site=0; raf sync=0 total=8 @107862 site=7
+107951,107985,34,between hooks,5,5,Renderer.render 4ms @107956; Composer.render 5ms @107956,raf sync=9 total=9 @107952 site=0
+107985,108020,35,between hooks,5,5,Renderer.render 5ms @107990; Composer.render 5ms @107990,raf sync=10 total=10 @107985 site=0; raf sync=0 total=5 @107995 site=7
+108051,108085,34,between hooks,4,5,Renderer.render 4ms @108056; Composer.render 4ms @108056,raf sync=9 total=9 @108051 site=0; raf sync=0 total=5 @108060 site=34
+108151,108185,34,between hooks,4,6,Renderer.render 4ms @108157; Composer.render 5ms @108156,raf sync=9 total=9 @108152 site=0; raf sync=0 total=6 @108161 site=34
+108251,108285,34,between hooks,5,5,Renderer.render 5ms @108256; Composer.render 5ms @108256,raf sync=10 total=10 @108251 site=0; raf sync=0 total=5 @108261 site=7
+108351,108385,34,between hooks,4,6,Renderer.render 6ms @108356; Composer.render 6ms @108356,raf sync=10 total=10 @108352 site=0; raf sync=0 total=7 @108362 site=7
+108451,108486,35,between hooks,5,6,Renderer.render 5ms @108456; Composer.render 5ms @108456,raf sync=9 total=9 @108452 site=0; raf sync=0 total=5 @108461 site=7
+108551,108585,34,between hooks,5,6,Renderer.render 5ms @108558; Composer.render 5ms @108558,raf sync=11 total=11 @108552 site=0; raf sync=0 total=6 @108563 site=7
+108651,108685,34,between hooks,5,5,Renderer.render 5ms @108656; Composer.render 5ms @108656,raf sync=9 total=9 @108652 site=0; raf sync=0 total=6 @108661 site=34
+108718,108753,35,between hooks,4,5,Renderer.render 5ms @108723; Composer.render 5ms @108723,raf sync=10 total=10 @108718 site=0; raf sync=0 total=5 @108728 site=34
+108851,108885,34,between hooks,3,6,Composer.render 5ms @108856,raf sync=10 total=10 @108851 site=0; raf sync=0 total=6 @108861 site=34
+108951,108985,34,between hooks,6,6,Renderer.render 5ms @108956; Composer.render 5ms @108956,raf sync=9 total=9 @108952 site=0; raf sync=0 total=4 @108961 site=34
+109051,109085,34,between hooks,5,5,Renderer.render 5ms @109055; Composer.render 5ms @109055,raf sync=8 total=8 @109052 site=0; raf sync=0 total=5 @109060 site=7
+109118,109153,35,between hooks,4,5,Renderer.render 5ms @109123; Composer.render 5ms @109123,raf sync=10 total=10 @109118 site=0; raf sync=0 total=6 @109128 site=7
+109251,109285,34,between hooks,4,5,Renderer.render 4ms @109256; Composer.render 5ms @109256,raf sync=9 total=9 @109252 site=0
+109351,109385,34,between hooks,5,5,Renderer.render 4ms @109357; Composer.render 5ms @109357,raf sync=10 total=10 @109352 site=0; raf sync=0 total=5 @109362 site=7
+109451,109485,34,between hooks,5,4,Renderer.render 4ms @109456; Composer.render 5ms @109456,raf sync=9 total=9 @109452 site=0; raf sync=0 total=5 @109461 site=7
+109551,109586,35,between hooks,6,4,Renderer.render 4ms @109557; Composer.render 5ms @109556,raf sync=10 total=10 @109551 site=0; raf sync=0 total=6 @109561 site=7
+109651,109685,34,between hooks,4,5,Renderer.render 6ms @109656; Composer.render 7ms @109656,raf sync=11 total=11 @109652 site=0
+109751,109785,34,between hooks,4,5,Renderer.render 4ms @109756; Composer.render 5ms @109756,raf sync=9 total=9 @109752 site=0; raf sync=0 total=8 @109761 site=34
+109818,109853,35,between hooks,4,6,Renderer.render 5ms @109822; Composer.render 5ms @109822,raf sync=9 total=9 @109818 site=0; raf sync=0 total=7 @109827 site=34
+109951,109985,34,between hooks,5,5,Renderer.render 5ms @109956; Composer.render 5ms @109956,raf sync=10 total=10 @109951 site=0; raf sync=0 total=7 @109961 site=7
+110018,110053,35,between hooks,5,5,Renderer.render 5ms @110023; Composer.render 5ms @110023,raf sync=10 total=10 @110018 site=0; raf sync=0 total=4 @110029 site=24
+110151,110185,34,between hooks,4,5,Renderer.render 4ms @110157; Composer.render 4ms @110157,raf sync=10 total=10 @110151 site=0; raf sync=0 total=5 @110162 site=34
+110251,110285,34,between hooks,5,4,Renderer.render 5ms @110256; Composer.render 5ms @110256,raf sync=9 total=9 @110252 site=0; raf sync=0 total=7 @110261 site=34
+110351,110385,34,between hooks,4,6,Renderer.render 5ms @110355; Composer.render 5ms @110355,raf sync=9 total=9 @110351 site=0; raf sync=0 total=6 @110360 site=34
+110451,110485,34,between hooks,3,6,Renderer.render 4ms @110456; Composer.render 4ms @110456,raf sync=8 total=8 @110452 site=0; raf sync=0 total=5 @110461 site=34
+110551,110586,35,between hooks,7,5,Renderer.render 5ms @110557; Composer.render 5ms @110557,raf sync=10 total=10 @110552 site=0; raf sync=0 total=5 @110562 site=7
+110651,110685,34,between hooks,4,4,Renderer.render 4ms @110656; Composer.render 4ms @110656,raf sync=8 total=8 @110652 site=0; raf sync=0 total=5 @110661 site=34
+110751,110785,34,between hooks,4,5,Renderer.render 4ms @110756; Composer.render 4ms @110756,raf sync=9 total=9 @110751 site=0; raf sync=0 total=4 @110761 site=34
+110851,110885,34,between hooks,4,4,Renderer.render 5ms @110855; Composer.render 5ms @110855,raf sync=9 total=9 @110851 site=0; raf sync=0 total=5 @110860 site=34
+110951,110985,34,between hooks,5,5,Renderer.render 4ms @110956; Composer.render 5ms @110956,raf sync=10 total=10 @110951 site=0; raf sync=0 total=5 @110961 site=34
+111018,111053,35,between hooks,4,5,Renderer.render 5ms @111022; Composer.render 5ms @111022,raf sync=9 total=9 @111018 site=0; raf sync=0 total=5 @111027 site=34
+111151,111185,34,between hooks,4,6,Renderer.render 4ms @111156; Composer.render 5ms @111156,raf sync=10 total=10 @111151 site=0; raf sync=0 total=6 @111161 site=34
+111251,111285,34,between hooks,4,5,Renderer.render 5ms @111256; Composer.render 6ms @111256,raf sync=10 total=10 @111252 site=0; raf sync=0 total=4 @111262 site=34
+111351,111385,34,between hooks,4,6,,raf sync=8 total=8 @111352 site=0; raf sync=0 total=5 @111360 site=7; raf sync=6 total=6 @111372 site=0
+111451,111485,34,between hooks,5,4,Renderer.render 4ms @111456; Composer.render 5ms @111456,raf sync=9 total=9 @111452 site=0; raf sync=0 total=6 @111461 site=7
+111551,111585,34,between hooks,5,5,Renderer.render 4ms @111557; Composer.render 4ms @111557,raf sync=10 total=10 @111551 site=0; raf sync=0 total=6 @111561 site=7
+111651,111685,34,between hooks,4,5,Renderer.render 4ms @111656; Composer.render 5ms @111656,raf sync=10 total=10 @111651 site=0; raf sync=0 total=4 @111661 site=34
+111751,111785,34,between hooks,4,5,Renderer.render 4ms @111756; Composer.render 5ms @111756,raf sync=9 total=9 @111752 site=0; raf sync=0 total=5 @111761 site=34
+111851,111885,34,between hooks,4,5,,raf sync=8 total=9 @111852 site=0; raf sync=0 total=6 @111861 site=7
+111951,111985,34,between hooks,5,5,Renderer.render 4ms @111956; Composer.render 4ms @111956,raf sync=8 total=8 @111952 site=0; raf sync=0 total=5 @111960 site=7
+112051,112085,34,between hooks,4,5,Renderer.render 5ms @112055; Composer.render 5ms @112055,raf sync=9 total=9 @112051 site=0; raf sync=0 total=6 @112060 site=34
+112151,112185,34,between hooks,4,4,Renderer.render 4ms @112156; Composer.render 4ms @112156,raf sync=9 total=9 @112151 site=0; raf sync=0 total=8 @112160 site=34
+112251,112285,34,between hooks,5,5,Renderer.render 4ms @112256; Composer.render 5ms @112255,raf sync=9 total=9 @112251 site=0; raf sync=0 total=8 @112260 site=34
+112351,112385,34,between hooks,4,5,,raf sync=9 total=10 @112351 site=0; raf sync=0 total=8 @112361 site=7
+112451,112485,34,between hooks,3,5,Renderer.render 4ms @112456; Composer.render 4ms @112456,raf sync=9 total=9 @112451 site=0; raf sync=0 total=7 @112460 site=7
+112551,112585,34,between hooks,5,5,Renderer.render 4ms @112558; Composer.render 5ms @112558,raf sync=11 total=11 @112552 site=0
+112651,112685,34,between hooks,5,4,Renderer.render 5ms @112656; Composer.render 5ms @112656,raf sync=9 total=9 @112652 site=0; raf sync=0 total=5 @112661 site=34
+112751,112785,34,between hooks,4,5,Renderer.render 5ms @112755; Composer.render 5ms @112755,raf sync=8 total=8 @112752 site=0; raf sync=0 total=4 @112760 site=7
+112851,112885,34,between hooks,4,4,Composer.render 5ms @112855,raf sync=9 total=9 @112851 site=0; raf sync=0 total=5 @112860 site=7
+112951,112985,34,between hooks,5,5,Renderer.render 5ms @112956; Composer.render 5ms @112956,raf sync=10 total=10 @112951 site=0; raf sync=0 total=6 @112961 site=7
+113051,113085,34,between hooks,5,5,Renderer.render 4ms @113056; Composer.render 5ms @113056,raf sync=9 total=9 @113052 site=0
+113085,113120,35,between hooks,4,5,Renderer.render 5ms @113090; Composer.render 5ms @113090,raf sync=10 total=10 @113085 site=0; raf sync=0 total=4 @113095 site=7
+113251,113285,34,between hooks,4,5,Renderer.render 5ms @113255; Composer.render 5ms @113255,raf sync=8 total=8 @113252 site=0; raf sync=0 total=8 @113260 site=7
+113351,113385,34,between hooks,4,5,Renderer.render 5ms @113356; Composer.render 5ms @113356,raf sync=9 total=9 @113352 site=0; raf sync=0 total=8 @113361 site=7
+113451,113485,34,between hooks,4,5,Renderer.render 4ms @113456; Composer.render 5ms @113456,raf sync=9 total=9 @113452 site=0; raf sync=0 total=6 @113461 site=7
+113551,113585,34,between hooks,5,6,Renderer.render 5ms @113556; Composer.render 5ms @113556,raf sync=9 total=9 @113552 site=0; raf sync=0 total=6 @113561 site=7
+113651,113685,34,between hooks,4,4,Renderer.render 4ms @113656; Composer.render 5ms @113656,raf sync=9 total=9 @113652 site=0; raf sync=0 total=4 @113661 site=7
+113751,113785,34,between hooks,4,5,Renderer.render 5ms @113756; Composer.render 5ms @113756,raf sync=9 total=9 @113752 site=0; raf sync=0 total=5 @113761 site=7
+113851,113885,34,between hooks,5,4,,raf sync=8 total=9 @113852 site=0; raf sync=0 total=6 @113861 site=7
+113951,113985,34,between hooks,5,5,Renderer.render 5ms @113955; Composer.render 5ms @113955,raf sync=8 total=8 @113952 site=0; raf sync=0 total=5 @113960 site=7
+114051,114085,34,between hooks,4,5,Renderer.render 5ms @114055; Composer.render 5ms @114055,raf sync=9 total=9 @114051 site=0; raf sync=0 total=6 @114060 site=34
+114151,114185,34,between hooks,3,5,Renderer.render 4ms @114156; Composer.render 4ms @114156,raf sync=9 total=9 @114151 site=0; raf sync=0 total=7 @114160 site=34
+114251,114307,56,between hooks,7,4,Game.runPhase:update 4ms @114255; Renderer.render 38ms @114259; Composer.render 38ms @114259,raf sync=45 total=45 @114252 site=0; raf sync=0 total=5 @114297 site=34
+114331,114368,37,between hooks,4,4,Renderer.render 4ms @114336; Composer.render 4ms @114336,raf sync=9 total=9 @114331 site=0; raf sync=0 total=7 @114340 site=34
+114368,114406,38,between hooks,3,5,Renderer.render 4ms @114372; Composer.render 4ms @114372,raf sync=8 total=8 @114368 site=0; raf sync=0 total=5 @114377 site=34
+114501,114535,34,between hooks,5,5,Renderer.render 5ms @114505; Composer.render 5ms @114505,raf sync=8 total=8 @114502 site=0; raf sync=0 total=9 @114510 site=7
+114601,114635,34,between hooks,3,5,Renderer.render 5ms @114605; Composer.render 5ms @114605,raf sync=9 total=9 @114601 site=0; raf sync=0 total=6 @114610 site=34
+114701,114735,34,between hooks,3,5,Renderer.render 4ms @114706; Composer.render 4ms @114706,raf sync=8 total=8 @114702 site=0; raf sync=0 total=8 @114710 site=34
+114801,114835,34,between hooks,4,4,Renderer.render 4ms @114805; Composer.render 5ms @114805,raf sync=9 total=9 @114801 site=0; raf sync=0 total=7 @114810 site=34
+114901,114935,34,between hooks,3,5,Renderer.render 5ms @114905; Composer.render 5ms @114905,raf sync=9 total=9 @114901 site=0; raf sync=0 total=8 @114910 site=34
+115001,115035,34,between hooks,3,5,Renderer.render 5ms @115005; Composer.render 5ms @115005,raf sync=9 total=9 @115001 site=0; raf sync=0 total=6 @115010 site=34
+115101,115135,34,between hooks,3,5,Composer.render 5ms @115106,raf sync=10 total=10 @115101 site=0; raf sync=0 total=8 @115111 site=34
+115201,115235,34,between hooks,4,4,Renderer.render 5ms @115205; Composer.render 5ms @115205,raf sync=8 total=8 @115202 site=0; raf sync=0 total=7 @115210 site=34
+115301,115335,34,between hooks,3,5,Renderer.render 4ms @115305; Composer.render 4ms @115305,raf sync=7 total=7 @115302 site=0; raf sync=0 total=6 @115309 site=34; timeout sync=6 total=6 @115315 site=5
+115401,115435,34,between hooks,3,5,Renderer.render 4ms @115405; Composer.render 4ms @115405,raf sync=8 total=8 @115401 site=0; raf sync=0 total=5 @115409 site=34
+115501,115535,34,between hooks,4,5,Renderer.render 4ms @115506; Composer.render 4ms @115506,raf sync=8 total=8 @115502 site=0; raf sync=0 total=8 @115510 site=34
+115601,115635,34,between hooks,4,4,Renderer.render 5ms @115607; Composer.render 5ms @115607,raf sync=11 total=11 @115601 site=0; raf sync=0 total=5 @115612 site=34
+115701,115735,34,between hooks,3,5,Renderer.render 4ms @115705; Composer.render 4ms @115705,raf sync=7 total=7 @115702 site=0; raf sync=0 total=8 @115709 site=34
+115801,115835,34,between hooks,3,5,Renderer.render 5ms @115805; Composer.render 5ms @115805,raf sync=8 total=8 @115802 site=0; raf sync=0 total=7 @115810 site=34
+115901,115935,34,between hooks,3,5,Renderer.render 4ms @115906; Composer.render 4ms @115906,raf sync=9 total=9 @115901 site=0; raf sync=0 total=7 @115910 site=34; timeout sync=6 total=6 @115917 site=5
+116001,116035,34,between hooks,3,4,Renderer.render 5ms @116005; Composer.render 5ms @116005,raf sync=9 total=9 @116001 site=0; raf sync=0 total=6 @116010 site=34
+116101,116135,34,between hooks,3,4,Renderer.render 5ms @116105; Composer.render 5ms @116105,raf sync=8 total=8 @116102 site=0; raf sync=0 total=5 @116110 site=34
+116201,116235,34,between hooks,3,6,Renderer.render 4ms @116205; Composer.render 4ms @116205,raf sync=8 total=8 @116201 site=0; raf sync=0 total=5 @116209 site=34
+116301,116335,34,between hooks,3,4,Renderer.render 4ms @116306; Composer.render 4ms @116306,raf sync=8 total=8 @116302 site=0; raf sync=0 total=5 @116310 site=34

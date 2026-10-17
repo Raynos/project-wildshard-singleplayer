@@ -1,0 +1,104 @@
+startMs,endMs,intervalMs,hooks,updateMs,renderMs,exactCalls,taskUpperBounds
+43401,43435,34,between hooks,2,1,,
+43501,43535,34,between hooks,2,1,,raf sync=5 total=5 @43502 site=0
+43568,43629,61,between hooks,2,1,,raf sync=5 total=5 @43568 site=0; timeout sync=0 total=12 @43585 site=1
+43651,43685,34,between hooks,2,1,Renderer.initTexture 4ms @43656,raf sync=4 total=4 @43651 site=0; timeout sync=4 total=4 @43656 site=4
+43751,43804,53,far-reach:world,2,1,Renderer.compile 4ms @43757,timeout sync=0 total=5 @43757 site=8; message sync=0 total=4 @43762 site=9; raf sync=0 total=8 @43768 site=10
+43924,43968,44,far-reach:world,3,1,Game.runPhase:fixed.step 5ms @43926; Game.runFixed 6ms @43926; Renderer.compile 5ms @43936,raf sync=9 total=10 @43924 site=0; timeout sync=0 total=5 @43936 site=12
+44001,44038,37,far-reach:world,2,2,Renderer.compile 4ms @44008,raf sync=4 total=4 @44001 site=0; timeout sync=0 total=4 @44008 site=8
+44101,44135,34,far-reach:world,2,1,,raf sync=4 total=4 @44101 site=0
+44135,44169,34,far-reach:world,3,1,,
+44201,44235,34,far-reach:world,2,1,,
+44301,44335,34,far-reach:world,2,1,,raf sync=4 total=4 @44301 site=0; raf sync=0 total=4 @44305 site=16
+44401,44435,34,far-reach:world,2,1,,
+44501,44535,34,far-reach:world,2,1,,raf sync=0 total=4 @44505 site=16
+44601,44635,34,far-reach:world,2,1,,raf sync=6 total=6 @44601 site=0
+44701,44735,34,far-reach:world,2,2,,
+44801,44836,35,far-reach:world,1,1,,raf sync=0 total=4 @44805 site=16
+44901,44935,34,far-reach:world,2,1,,
+45001,45035,34,far-reach:world,1,2,,raf sync=0 total=4 @45004 site=16
+45101,45135,34,far-reach:world,2,1,,raf sync=0 total=4 @45104 site=16
+45168,45204,36,far-reach:world,1,2,,raf sync=4 total=4 @45168 site=0; raf sync=1 total=5 @45172 site=16
+45301,45447,146,far-reach:world,4,2,Renderer.render 137ms @45304; Composer.render 137ms @45304,raf sync=140 total=140 @45301 site=0; raf sync=0 total=6 @45441 site=19
+45501,45535,34,far-reach:world,1,2,Game.runFixed 4ms @45502,raf sync=7 total=7 @45501 site=0
+45601,45635,34,far-reach:world,2,2,,raf sync=4 total=4 @45601 site=0; message sync=0 total=4 @45609 site=20
+45701,45735,34,far-reach:world,2,1,,raf sync=5 total=5 @45701 site=0; message sync=0 total=6 @45709 site=20
+45801,45835,34,far-reach:world,2,2,,raf sync=4 total=4 @45801 site=0
+45901,45935,34,far-reach:world,2,1,,raf sync=0 total=4 @45905 site=22
+46001,46035,34,far-reach:world,2,2,,raf sync=0 total=4 @46005 site=22
+46101,46135,34,far-reach:world,2,2,,raf sync=5 total=5 @46101 site=0
+46201,46235,34,far-reach:world,3,1,,raf sync=5 total=5 @46202 site=0; raf sync=0 total=4 @46207 site=22
+46301,46335,34,far-reach:world,3,3,,raf sync=7 total=7 @46301 site=0; raf sync=0 total=5 @46308 site=22; message sync=0 total=14 @46313 site=9
+46335,46370,35,far-reach:afterWorld; far-reach:kit,2,2,Renderer.initTexture 4ms @46344,raf sync=6 total=6 @46335 site=0; timeout sync=0 total=4 @46344 site=8; message sync=0 total=5 @46348 site=23
+46401,46435,34,far-reach:play,2,2,,raf sync=5 total=5 @46401 site=0
+46501,46535,34,far-reach:play,6,2,,raf sync=6 total=7 @46502 site=0; raf sync=0 total=4 @46509 site=22
+46568,46602,34,far-reach:play,2,2,,raf sync=13 total=13 @46568 site=0
+46701,46735,34,far-reach:play,2,2,,raf sync=4 total=4 @46701 site=0
+46735,46781,46,far-reach:play,4,3,,raf sync=4 total=4 @46735 site=0; message sync=0 total=38 @46743 site=21
+46801,46844,43,far-reach:afterPlay,2,2,Renderer.compile 13ms @46829,raf sync=4 total=4 @46801 site=0; raf sync=0 total=11 @46805 site=24
+46901,46935,34,far-reach:afterPlay,2,3,,timeout sync=1 total=6 @46908 site=8
+47001,47035,34,far-reach:afterPlay,2,2,,raf sync=5 total=5 @47001 site=0; timeout sync=0 total=4 @47009 site=8
+47101,47135,34,far-reach:afterPlay,2,2,Renderer.compile 8ms @47109,timeout sync=0 total=9 @47109 site=8
+47201,47235,34,far-reach:afterPlay,2,2,,
+47301,47335,34,far-reach:afterPlay,2,2,,raf sync=5 total=5 @47301 site=0; timeout sync=0 total=4 @47308 site=8
+47401,47435,34,far-reach:afterPlay,9,3,Renderer.compile 5ms @47409,raf sync=5 total=5 @47401 site=0; timeout sync=0 total=5 @47409 site=8
+47501,47535,34,far-reach:afterPlay,2,2,Game.runFixed 4ms @47502; Renderer.compile 8ms @47512,raf sync=7 total=7 @47502 site=0; timeout sync=0 total=9 @47512 site=8
+47568,47605,37,far-reach:afterPlay,2,2,Renderer.compile 8ms @47581,raf sync=6 total=6 @47568 site=0; raf sync=0 total=4 @47574 site=26; timeout sync=0 total=24 @47581 site=8
+47701,47735,34,far-reach:afterPlay,2,2,Renderer.compile 6ms @47716; Renderer.compile 6ms @47722,raf sync=4 total=4 @47702 site=0; raf sync=0 total=5 @47707 site=11; timeout sync=0 total=4 @47712 site=8; timeout sync=0 total=13 @47716 site=8
+47801,47835,34,far-reach:afterPlay,6,2,Renderer.compile 7ms @47810,raf sync=7 total=8 @47801 site=0; timeout sync=0 total=9 @47810 site=8
+47896,47935,39,far-reach:afterPlay,2,2,Renderer.compile 6ms @47902; Renderer.compile 5ms @47908,raf sync=4 total=4 @47896 site=0; timeout sync=0 total=12 @47902 site=12
+48001,48035,34,far-reach:afterPlay,4,2,Renderer.compile 7ms @48010,raf sync=6 total=7 @48002 site=0; timeout sync=0 total=8 @48010 site=8
+48090,48136,46,far-reach:afterPlay,3,2,,raf sync=6 total=7 @48090 site=0
+48196,48235,39,far-reach:afterPlay,2,2,,raf sync=4 total=4 @48197 site=0
+48301,48335,34,far-reach:afterPlay,2,2,,raf sync=4 total=4 @48302 site=0
+48401,48435,34,far-reach:afterPlay,2,2,Renderer.compile 6ms @48410,raf sync=4 total=4 @48402 site=0; timeout sync=0 total=7 @48409 site=8
+48501,48535,34,far-reach:afterPlay,2,2,,raf sync=4 total=4 @48502 site=0
+48566,48601,35,far-reach:afterPlay,1,2,,raf sync=6 total=6 @48566 site=0
+48601,48635,34,far-reach:afterPlay,2,2,Renderer.compile 6ms @48608,raf sync=4 total=4 @48601 site=0; timeout sync=0 total=7 @48607 site=15
+48701,48735,34,far-reach:afterPlay,2,2,Renderer.compile 7ms @48709,raf sync=5 total=5 @48701 site=0; timeout sync=0 total=7 @48709 site=8
+48801,48835,34,far-reach:afterPlay,2,2,,raf sync=4 total=4 @48801 site=0
+48868,48902,34,far-reach:afterPlay,2,1,,raf sync=5 total=5 @48868 site=0
+49051,49085,34,far-reach:afterPlay,2,3,Renderer.compile 4ms @49060,raf sync=6 total=6 @49051 site=0; timeout sync=0 total=4 @49060 site=8
+49151,49185,34,far-reach:afterPlay,2,2,Composer.render 4ms @49154,raf sync=7 total=7 @49151 site=0
+49251,49285,34,far-reach:afterPlay,2,2,,raf sync=4 total=4 @49252 site=0
+49351,49385,34,far-reach:afterPlay,2,2,Renderer.initTexture 4ms @49360; Renderer.initTexture 6ms @49365,timeout sync=0 total=13 @49359 site=8
+49451,49485,34,far-reach:afterPlay,3,2,,raf sync=4 total=4 @49452 site=0; message sync=0 total=4 @49461 site=21
+49551,49585,34,far-reach:afterPlay,2,2,,raf sync=4 total=5 @49552 site=0
+49651,49685,34,far-reach:afterPlay,2,2,,raf sync=5 total=5 @49651 site=0
+49751,49785,34,far-reach:afterPlay,2,2,,raf sync=5 total=5 @49751 site=0
+49851,49885,34,far-reach:afterPlay,2,2,,raf sync=4 total=5 @49851 site=0; raf sync=0 total=4 @49856 site=22
+49951,49985,34,far-reach:afterPlay,2,2,,raf sync=4 total=4 @49951 site=0; raf sync=0 total=4 @49955 site=22; message sync=0 total=5 @49961 site=5
+50051,50085,34,far-reach:afterPlay,2,2,,raf sync=4 total=4 @50052 site=0
+50151,50185,34,between hooks,4,2,Game.runFixed 4ms @50152; Renderer.initTexture 9ms @50163,raf sync=8 total=8 @50151 site=0; timeout sync=0 total=10 @50162 site=8
+50185,50219,34,between hooks,2,2,,raf sync=6 total=7 @50185 site=0
+50251,50285,34,between hooks,2,2,Game.runFixed 4ms @50252,raf sync=9 total=9 @50251 site=0
+50351,50385,34,between hooks,2,2,,raf sync=7 total=7 @50352 site=0
+50451,50485,34,between hooks,3,2,,raf sync=5 total=5 @50451 site=0
+50551,50585,34,between hooks,5,20,,raf sync=5 total=5 @50552 site=0; raf sync=6 total=6 @50568 site=0
+50616,50651,35,between hooks,2,2,,raf sync=5 total=5 @50616 site=0
+50651,50685,34,between hooks,2,2,,raf sync=4 total=4 @50652 site=0
+50718,50752,34,between hooks,2,2,,raf sync=4 total=4 @50718 site=0; raf sync=0 total=5 @50722 site=19
+50851,50885,34,between hooks,2,1,,raf sync=4 total=4 @50851 site=0
+50918,50953,35,between hooks,2,2,,raf sync=4 total=4 @50918 site=0
+50953,50987,34,between hooks,2,2,,raf sync=4 total=4 @50953 site=0; raf sync=0 total=4 @50957 site=19
+51051,51085,34,between hooks,2,2,,raf sync=5 total=5 @51051 site=0
+51151,51227,76,far-reach:activate,5,6,System.game.grid.session 4ms @51152; Game.runPhase:fixed.post 4ms @51152; Game.runFixed 5ms @51152; Game.runPhase:update 6ms @51157; Renderer.render 23ms @51164; Composer.render 23ms @51164,raf sync=36 total=36 @51151 site=0; raf sync=0 total=12 @51188 site=25
+51227,51268,41,between hooks,3,5,Renderer.render 5ms @51233; Composer.render 5ms @51233,raf sync=11 total=11 @51228 site=0; raf sync=0 total=19 @51239 site=26
+51291,51335,44,between hooks,4,5,Renderer.render 4ms @51295; Composer.render 5ms @51294,raf sync=8 total=8 @51291 site=0; raf sync=0 total=9 @51299 site=26
+51357,51401,44,between hooks,3,5,Renderer.render 5ms @51360; Composer.render 5ms @51360,raf sync=8 total=8 @51357 site=0; raf sync=0 total=9 @51365 site=26
+51425,51468,43,between hooks,5,5,Composer.render 5ms @51428,raf sync=8 total=8 @51425 site=0; raf sync=0 total=10 @51433 site=26
+51494,51535,41,between hooks,3,6,Renderer.render 5ms @51498; Composer.render 5ms @51498,raf sync=9 total=9 @51494 site=0; raf sync=0 total=11 @51503 site=26
+51559,51601,42,between hooks,3,5,Renderer.render 4ms @51563; Composer.render 5ms @51563,raf sync=9 total=9 @51559 site=0; raf sync=0 total=10 @51568 site=26
+51626,51668,42,between hooks,4,6,Renderer.render 5ms @51629; Composer.render 5ms @51629,raf sync=8 total=8 @51626 site=0; raf sync=0 total=11 @51634 site=26; timeout sync=7 total=7 @51652 site=4
+51691,51735,44,between hooks,4,5,Renderer.render 4ms @51695; Composer.render 4ms @51695,raf sync=8 total=8 @51691 site=0; raf sync=0 total=13 @51699 site=26
+51756,51801,45,between hooks,3,6,Renderer.render 5ms @51759; Composer.render 5ms @51759,raf sync=8 total=8 @51756 site=0; raf sync=0 total=11 @51765 site=26
+51824,51868,44,between hooks,4,5,Renderer.render 5ms @51827; Composer.render 5ms @51827,raf sync=8 total=8 @51824 site=0; raf sync=0 total=10 @51832 site=26
+51889,51935,46,between hooks,4,5,Renderer.render 5ms @51893; Composer.render 5ms @51893,raf sync=8 total=8 @51890 site=0; raf sync=0 total=9 @51898 site=26
+51958,52001,43,between hooks,3,5,Renderer.render 4ms @51961; Composer.render 4ms @51961,raf sync=7 total=7 @51958 site=0; raf sync=0 total=10 @51965 site=26
+52023,52068,45,between hooks,4,5,Renderer.render 5ms @52026; Composer.render 5ms @52026,raf sync=8 total=8 @52023 site=0; raf sync=0 total=10 @52031 site=26
+52090,52135,45,between hooks,4,6,Renderer.render 5ms @52093; Composer.render 5ms @52093,raf sync=8 total=8 @52090 site=0; raf sync=0 total=11 @52098 site=26
+52158,52201,43,between hooks,3,6,Renderer.render 5ms @52161; Composer.render 5ms @52161,raf sync=8 total=8 @52158 site=0; raf sync=0 total=12 @52166 site=26
+52224,52268,44,between hooks,3,6,Renderer.render 5ms @52227; Composer.render 5ms @52227,raf sync=8 total=8 @52224 site=0; raf sync=0 total=10 @52232 site=26
+52290,52335,45,between hooks,4,5,Renderer.render 4ms @52293; Composer.render 5ms @52293,raf sync=8 total=8 @52290 site=0; raf sync=0 total=10 @52298 site=26; timeout sync=5 total=5 @52308 site=4
+52360,52401,41,between hooks,3,5,Renderer.render 4ms @52363; Composer.render 4ms @52363,raf sync=7 total=7 @52360 site=0; raf sync=0 total=11 @52368 site=26
+52424,52468,44,between hooks,5,5,Renderer.render 4ms @52427; Composer.render 4ms @52427,raf sync=7 total=8 @52424 site=0; raf sync=0 total=10 @52432 site=26

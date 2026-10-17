@@ -1,0 +1,239 @@
+startMs,endMs,intervalMs,hooks,updateMs,renderMs,exactCalls,taskUpperBounds
+59301,59335,34,between hooks,1,1,,
+59401,59435,34,between hooks,1,1,,
+59435,59483,48,between hooks,3,1,,
+59501,59535,34,between hooks,1,1,,message sync=0 total=6 @59507 site=0
+59601,59635,34,between hooks,1,1,,message sync=0 total=6 @59606 site=3
+59701,59735,34,between hooks,1,1,,message sync=0 total=5 @59707 site=3
+59801,59835,34,between hooks,1,2,,message sync=0 total=5 @59807 site=3
+59901,59935,34,between hooks,1,1,,message sync=0 total=5 @59907 site=3
+60001,60035,34,between hooks,1,1,,message sync=0 total=5 @60007 site=3
+60101,60135,34,between hooks,1,1,,message sync=0 total=6 @60106 site=3
+60201,60235,34,between hooks,1,1,,raf sync=1 total=4 @60205 site=4; message sync=0 total=4 @60209 site=3
+60301,60335,34,between hooks,2,1,,raf sync=4 total=4 @60301 site=5; message sync=0 total=6 @60307 site=3
+60401,60435,34,between hooks,1,1,,raf sync=7 total=7 @60401 site=5
+60501,60535,34,between hooks,1,2,,raf sync=5 total=5 @60501 site=5; raf sync=0 total=4 @60507 site=6
+60601,60635,34,between hooks,1,2,,message sync=0 total=13 @60608 site=3
+60635,60670,35,between hooks,1,1,,message sync=0 total=14 @60639 site=3
+60701,60735,34,between hooks,2,1,,message sync=0 total=15 @60706 site=3
+60801,60835,34,between hooks,1,1,,message sync=0 total=10 @60806 site=3
+60932,60968,36,between hooks,2,1,,
+60968,61012,44,between hooks,2,1,,message sync=0 total=40 @60973 site=3
+61101,61135,34,nalati-grasslands:world,1,1,,message sync=0 total=10 @61107 site=9
+61201,61240,39,nalati-grasslands:world,2,2,,raf sync=5 total=5 @61201 site=5; message sync=0 total=31 @61209 site=3
+61301,61335,34,nalati-grasslands:world,4,1,,message sync=0 total=4 @61307 site=3; message sync=0 total=9 @61312 site=9
+61335,61373,38,nalati-grasslands:world,3,1,,raf sync=5 total=6 @61335 site=5; message sync=0 total=4 @61342 site=3; message sync=0 total=6 @61346 site=9
+61373,61474,101,nalati-grasslands:world,4,1,BufferGeometry.computeBoundingSphere 6ms @61451; BufferGeometry.computeBoundingBox 4ms @61457; BufferGeometry.toNonIndexed 12ms @61461,message sync=0 total=6 @61379 site=3
+61504,61546,42,nalati-grasslands:world,2,1,System.game.grid.session 7ms @61505; Game.runPhase:fixed.post 7ms @61505; System.game.grid.live.pre 17ms @61512; Game.runPhase:fixed.pre 17ms @61512; Game.runFixed 26ms @61504,raf sync=28 total=28 @61504 site=5; raf sync=0 total=4 @61532 site=11; timeout sync=0 total=4 @61536 site=12; message sync=0 total=6 @61540 site=8
+61601,61639,38,nalati-grasslands:world,2,1,,message sync=0 total=6 @61609 site=3
+61701,61735,34,nalati-grasslands:world,1,1,,message sync=0 total=6 @61706 site=3
+61801,61835,34,nalati-grasslands:world,1,1,,message sync=0 total=5 @61807 site=3
+61835,61883,48,nalati-grasslands:world,3,1,,
+61901,61935,34,nalati-grasslands:world,2,1,BufferGeometry.computeBoundingSphere 5ms @61913; BufferGeometry.toNonIndexed 4ms @61920,raf sync=4 total=5 @61902 site=5; message sync=0 total=4 @61909 site=13; message sync=0 total=11 @61913 site=14
+61968,62016,48,nalati-grasslands:world,6,2,,raf sync=5 total=6 @61968 site=5; message sync=0 total=11 @61989 site=13
+62101,62135,34,nalati-grasslands:world,2,1,,message sync=0 total=4 @62109 site=7
+62201,62235,34,nalati-grasslands:world,7,1,,raf sync=4 total=5 @62202 site=5; message sync=0 total=6 @62211 site=16
+62268,62303,35,nalati-grasslands:world,2,1,,raf sync=4 total=4 @62268 site=5
+62401,62449,48,nalati-grasslands:world,2,1,,
+62501,62535,34,nalati-grasslands:world,1,1,,
+62535,62570,35,nalati-grasslands:world,4,1,,message sync=0 total=6 @62541 site=9; message sync=0 total=6 @62547 site=16
+62601,62635,34,nalati-grasslands:world,2,1,,message sync=0 total=6 @62608 site=3; raf sync=5 total=5 @62618 site=5
+62635,62676,41,nalati-grasslands:world,3,1,,message sync=0 total=5 @62641 site=3; message sync=0 total=8 @62646 site=3
+62701,62735,34,nalati-grasslands:world,2,1,,raf sync=4 total=4 @62701 site=5; message sync=0 total=6 @62707 site=3; message sync=0 total=9 @62713 site=13
+62801,62835,34,nalati-grasslands:world,1,2,,message sync=0 total=7 @62807 site=3; message sync=0 total=5 @62814 site=3
+62835,62879,44,nalati-grasslands:world,2,1,,message sync=0 total=31 @62841 site=3; message sync=0 total=7 @62872 site=3
+62901,62945,44,nalati-grasslands:world,2,1,,message sync=0 total=31 @62907 site=3; message sync=0 total=7 @62938 site=3
+63001,63043,42,nalati-grasslands:world,2,1,,
+63068,63110,42,nalati-grasslands:world,2,1,,raf sync=4 total=4 @63068 site=5; message sync=0 total=4 @63075 site=9
+63135,63172,37,nalati-grasslands:world,2,1,,message sync=0 total=32 @63140 site=3
+63172,63218,46,nalati-grasslands:world,4,1,,message sync=0 total=6 @63178 site=8
+63218,63255,37,nalati-grasslands:world,1,1,,raf sync=5 total=5 @63218 site=5; message sync=0 total=30 @63226 site=3
+63276,63318,42,nalati-grasslands:world,2,1,,raf sync=0 total=4 @63278 site=19; message sync=0 total=5 @63285 site=7
+63351,63385,34,nalati-grasslands:world,1,2,,raf sync=0 total=5 @63354 site=4
+63385,63457,72,nalati-grasslands:world,5,1,,
+63544,63585,41,nalati-grasslands:world,3,1,,
+63614,63657,43,nalati-grasslands:world,2,2,,message sync=0 total=22 @63593 site=9; message sync=0 total=34 @63623 site=14
+63718,63772,54,nalati-grasslands:afterKit; nalati-grasslands:afterWorld; nalati-grasslands:kit,3,1,,message sync=0 total=5 @63725 site=21
+63772,63810,38,nalati-grasslands:afterKit,2,1,,raf sync=4 total=4 @63772 site=5; raf sync=0 total=34 @63776 site=18
+63901,63935,34,nalati-grasslands:afterKit,2,1,,
+64001,64044,43,nalati-grasslands:play,2,1,,message sync=0 total=37 @64007 site=3
+64098,64132,34,nalati-grasslands:play,2,1,,raf sync=4 total=4 @64098 site=5; raf sync=0 total=9 @64102 site=18
+64162,64201,39,nalati-grasslands:afterPlay,4,1,,
+64201,64235,34,nalati-grasslands:afterPlay,2,2,,raf sync=5 total=5 @64202 site=5
+64268,64302,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @64268 site=5
+64401,64435,34,nalati-grasslands:afterPlay,2,2,,raf sync=0 total=4 @64405 site=24
+64501,64535,34,nalati-grasslands:afterPlay,2,1,,
+64601,64635,34,nalati-grasslands:afterPlay,2,1,,
+64701,64735,34,nalati-grasslands:afterPlay,2,1,,
+64801,64835,34,nalati-grasslands:afterPlay,2,1,,
+64901,64935,34,nalati-grasslands:afterPlay,2,1,,
+65001,65035,34,nalati-grasslands:afterPlay,2,1,,
+65101,65135,34,nalati-grasslands:afterPlay,3,2,,raf sync=4 total=4 @65101 site=5
+65233,65268,35,nalati-grasslands:afterPlay,2,2,,
+65301,65335,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @65301 site=5
+65401,65435,34,nalati-grasslands:afterPlay,2,1,,
+65501,65535,34,nalati-grasslands:afterPlay,2,1,,
+65601,65635,34,nalati-grasslands:afterPlay,1,2,,
+65701,65735,34,nalati-grasslands:afterPlay,2,1,Renderer.compile 9ms @65708,timeout sync=0 total=10 @65708 site=15
+65801,65835,34,nalati-grasslands:afterPlay,2,1,,
+65901,65935,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @65901 site=5
+66001,66035,34,nalati-grasslands:afterPlay,2,1,,
+66101,66135,34,nalati-grasslands:afterPlay,3,2,Renderer.compile 4ms @66108,raf sync=4 total=4 @66101 site=5; timeout sync=0 total=6 @66107 site=15
+66201,66235,34,nalati-grasslands:afterPlay,1,2,,
+66301,66335,34,nalati-grasslands:afterPlay,3,2,Renderer.compile 4ms @66310,raf sync=5 total=6 @66302 site=5; timeout sync=0 total=5 @66310 site=15
+66397,66435,38,nalati-grasslands:afterPlay,2,1,,
+66501,66535,34,nalati-grasslands:afterPlay,2,1,,
+66601,66635,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @66602 site=5
+66701,66735,34,nalati-grasslands:afterPlay,2,2,,timeout sync=5 total=5 @66707 site=15
+66801,66835,34,nalati-grasslands:afterPlay,2,1,,
+66901,66935,34,nalati-grasslands:afterPlay,2,1,,
+67001,67035,34,nalati-grasslands:afterPlay,2,1,,
+67101,67135,34,nalati-grasslands:afterPlay,2,2,,raf sync=4 total=4 @67101 site=5
+67201,67235,34,nalati-grasslands:afterPlay,2,1,,
+67301,67335,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=5 @67301 site=5
+67401,67435,34,nalati-grasslands:afterPlay,2,2,,
+67501,67535,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @67501 site=5
+67601,67635,34,nalati-grasslands:afterPlay,2,1,,
+67701,67735,34,nalati-grasslands:afterPlay,2,1,,
+67801,67835,34,nalati-grasslands:afterPlay,2,1,,
+67901,67935,34,nalati-grasslands:afterPlay,2,1,,
+68001,68035,34,nalati-grasslands:afterPlay,2,1,,
+68101,68135,34,nalati-grasslands:afterPlay,2,1,,
+68201,68235,34,nalati-grasslands:afterPlay,2,1,,
+68301,68335,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @68301 site=5
+68401,68435,34,nalati-grasslands:afterPlay,2,1,,
+68501,68535,34,nalati-grasslands:afterPlay,2,1,,
+68601,68635,34,nalati-grasslands:afterPlay,1,2,,
+68701,68735,34,nalati-grasslands:afterPlay,2,1,,
+68801,68835,34,nalati-grasslands:afterPlay,1,2,,
+68835,68870,35,nalati-grasslands:afterPlay,2,1,,timeout sync=0 total=12 @68841 site=15
+68897,68935,38,nalati-grasslands:afterPlay,2,2,,raf sync=0 total=9 @68900 site=26; timeout sync=0 total=8 @68909 site=27
+68935,68973,38,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @68935 site=5; raf sync=0 total=26 @68939 site=28; timeout sync=0 total=8 @68965 site=25
+68973,69008,35,nalati-grasslands:afterPlay,2,1,,raf sync=0 total=26 @68976 site=26; timeout sync=0 total=6 @69002 site=27
+69030,69068,38,nalati-grasslands:afterPlay,2,2,,raf sync=0 total=9 @69033 site=6
+69101,69135,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @69101 site=5
+69201,69235,34,nalati-grasslands:afterPlay,2,1,,
+69301,69335,34,nalati-grasslands:afterPlay,2,1,,timeout sync=0 total=6 @69318 site=20
+69401,69435,34,nalati-grasslands:afterPlay,1,2,,raf sync=0 total=7 @69405 site=30
+69501,69535,34,nalati-grasslands:afterPlay,2,1,,
+69601,69635,34,nalati-grasslands:afterPlay,1,2,,raf sync=4 total=4 @69601 site=5
+69701,69735,34,nalati-grasslands:afterPlay,2,1,,
+69801,69835,34,nalati-grasslands:afterPlay,1,2,,
+69835,69869,34,nalati-grasslands:afterPlay,3,1,Renderer.render 30ms @69839,message sync=0 total=30 @69839 site=3
+69901,69935,34,nalati-grasslands:afterPlay,2,1,,raf sync=4 total=4 @69901 site=5
+70001,70035,34,between hooks,5,2,,raf sync=5 total=6 @70001 site=5
+70068,70104,36,between hooks,2,2,Game.runFixed 8ms @70068; Renderer.initTexture 6ms @70080,raf sync=10 total=10 @70068 site=5; timeout sync=6 total=6 @70080 site=1
+70136,70172,36,between hooks,5,1,Renderer.initTexture 4ms @70142,timeout sync=4 total=21 @70142 site=2; timeout sync=0 total=9 @70163 site=27
+70201,70235,34,between hooks,2,2,,raf sync=4 total=4 @70202 site=5
+70301,70335,34,between hooks,2,1,Renderer.initTexture 4ms @70307,timeout sync=4 total=4 @70307 site=1
+70430,70468,38,between hooks,3,1,,
+70501,70538,37,between hooks,2,2,,
+70601,70635,34,between hooks,2,1,,
+70701,70735,34,between hooks,2,1,,
+70801,70835,34,between hooks,2,1,,
+70901,70935,34,between hooks,2,1,,
+71001,71035,34,between hooks,28,5,,raf sync=4 total=4 @71002 site=5
+71035,71109,74,nalati-grasslands:activate,10,3,System.game.grid.session 4ms @71036; Game.runPhase:fixed.post 5ms @71035; Game.runFixed 6ms @71035; System.shard.nalati.look 4ms @71054; Game.runPhase:update 22ms @71041; Renderer.render 5ms @71063; Composer.render 5ms @71063,raf sync=33 total=33 @71035 site=5; raf sync=0 total=11 @71068 site=34
+71133,71168,35,between hooks,7,3,Game.runPhase:update 5ms @71134; Composer.render 4ms @71139,raf sync=10 total=10 @71133 site=5
+71201,71235,34,between hooks,5,3,Game.runPhase:update 4ms @71203,raf sync=10 total=10 @71201 site=5
+71301,71335,34,between hooks,5,3,,raf sync=9 total=9 @71302 site=5
+71401,71435,34,between hooks,5,3,,raf sync=9 total=9 @71402 site=5; raf sync=0 total=4 @71411 site=18
+71501,71535,34,between hooks,5,3,,raf sync=9 total=9 @71501 site=5; raf sync=0 total=4 @71510 site=18
+71601,71635,34,between hooks,4,3,Game.runPhase:update 4ms @71603,raf sync=9 total=9 @71601 site=5; timeout sync=4 total=4 @71613 site=1
+71701,71735,34,between hooks,5,3,,raf sync=9 total=9 @71701 site=5
+71801,71835,34,between hooks,5,3,,raf sync=9 total=9 @71801 site=5
+71901,71935,34,between hooks,5,3,Composer.render 4ms @71906,raf sync=9 total=9 @71901 site=5; raf sync=0 total=4 @71910 site=18
+72001,72035,34,between hooks,5,3,Renderer.render 4ms @72008; Composer.render 4ms @72008,raf sync=10 total=10 @72002 site=5; raf sync=0 total=5 @72012 site=18
+72101,72135,34,between hooks,5,3,Game.runPhase:update 4ms @72103,raf sync=9 total=9 @72101 site=5; raf sync=1 total=4 @72110 site=18
+72201,72235,34,between hooks,5,4,,raf sync=9 total=9 @72201 site=5
+72301,72335,34,between hooks,5,3,,raf sync=9 total=9 @72301 site=5; raf sync=0 total=4 @72310 site=18
+72401,72435,34,between hooks,5,3,Game.runPhase:update 4ms @72403; Renderer.render 4ms @72407; Composer.render 4ms @72407,raf sync=10 total=10 @72401 site=5; raf sync=0 total=4 @72411 site=18
+72468,72503,35,between hooks,6,3,,raf sync=9 total=9 @72468 site=5; raf sync=1 total=4 @72477 site=18
+72601,72635,34,between hooks,5,3,Game.runPhase:update 4ms @72603,raf sync=8 total=8 @72602 site=5; raf sync=0 total=5 @72610 site=34
+72701,72735,34,between hooks,5,3,,raf sync=8 total=8 @72702 site=5
+72801,72835,34,between hooks,4,3,,raf sync=8 total=8 @72802 site=5; raf sync=0 total=4 @72810 site=18
+72901,72935,34,between hooks,4,3,,raf sync=8 total=8 @72902 site=5; raf sync=0 total=4 @72910 site=18
+73001,73035,34,between hooks,5,3,,raf sync=9 total=9 @73001 site=5; raf sync=5 total=5 @73019 site=5
+73068,73103,35,between hooks,5,3,Composer.render 4ms @73072,raf sync=8 total=8 @73068 site=5
+73201,73235,34,between hooks,4,3,,raf sync=9 total=9 @73201 site=5
+73301,73335,34,between hooks,4,3,,raf sync=8 total=8 @73301 site=5; raf sync=0 total=4 @73309 site=18
+73401,73435,34,between hooks,4,3,,raf sync=9 total=9 @73401 site=5
+73501,73535,34,between hooks,4,4,,raf sync=8 total=8 @73501 site=5
+73601,73635,34,between hooks,4,3,Composer.render 4ms @73606,raf sync=9 total=9 @73601 site=5; timeout sync=4 total=4 @73612 site=1
+73701,73735,34,between hooks,4,3,,raf sync=8 total=8 @73702 site=5
+73801,73835,34,between hooks,5,3,Composer.render 4ms @73806,raf sync=8 total=8 @73802 site=5
+73901,73935,34,between hooks,4,3,Composer.render 4ms @73906,raf sync=8 total=8 @73902 site=5
+74001,74036,35,between hooks,4,3,,raf sync=10 total=10 @74001 site=5
+74036,74070,34,between hooks,4,4,,raf sync=7 total=7 @74036 site=5; raf sync=0 total=4 @74044 site=34
+74201,74235,34,between hooks,5,3,Composer.render 4ms @74206,raf sync=9 total=9 @74201 site=5; raf sync=0 total=5 @74210 site=18
+74301,74335,34,between hooks,4,4,Composer.render 4ms @74306,raf sync=9 total=9 @74301 site=5; raf sync=0 total=4 @74310 site=18
+74401,74436,35,between hooks,4,3,Composer.render 4ms @74406,raf sync=8 total=8 @74402 site=5; raf sync=0 total=4 @74410 site=18
+74501,74535,34,between hooks,4,4,,raf sync=8 total=8 @74501 site=5; raf sync=0 total=4 @74509 site=18
+74568,74603,35,between hooks,5,4,Game.runFixed 4ms @74568,raf sync=10 total=10 @74568 site=5
+74701,74735,34,between hooks,4,4,,raf sync=7 total=7 @74702 site=5; raf sync=0 total=4 @74709 site=18
+74801,74835,34,between hooks,4,3,Renderer.render 4ms @74806; Composer.render 4ms @74806,raf sync=8 total=8 @74802 site=5
+74901,74935,34,between hooks,4,3,,raf sync=7 total=7 @74902 site=5; raf sync=0 total=4 @74909 site=18
+75001,75035,34,between hooks,4,3,,raf sync=8 total=8 @75002 site=5; raf sync=0 total=5 @75010 site=18
+75068,75103,35,between hooks,5,3,,raf sync=8 total=8 @75068 site=5; raf sync=0 total=5 @75076 site=18
+75201,75235,34,between hooks,4,3,,raf sync=8 total=8 @75201 site=5; raf sync=0 total=4 @75209 site=18
+75301,75335,34,between hooks,4,3,,raf sync=8 total=8 @75301 site=5
+75401,75435,34,between hooks,4,3,,raf sync=7 total=8 @75402 site=5
+75501,75535,34,between hooks,4,4,,raf sync=8 total=8 @75501 site=5; raf sync=0 total=4 @75509 site=18
+75601,75635,34,between hooks,5,3,,raf sync=7 total=7 @75602 site=5; timeout sync=8 total=8 @75612 site=1
+75701,75735,34,between hooks,4,4,Composer.render 4ms @75706,raf sync=8 total=8 @75702 site=5
+75801,75835,34,between hooks,4,4,,raf sync=7 total=7 @75802 site=5; raf sync=0 total=4 @75809 site=18
+75901,75935,34,between hooks,4,3,,raf sync=8 total=8 @75901 site=5
+76001,76035,34,between hooks,4,3,,raf sync=9 total=9 @76001 site=5; raf sync=0 total=4 @76010 site=18
+76101,76135,34,between hooks,4,4,,raf sync=8 total=8 @76101 site=5; raf sync=0 total=4 @76109 site=18
+76201,76235,34,between hooks,4,4,,raf sync=8 total=8 @76201 site=5; raf sync=1 total=4 @76209 site=18
+76301,76335,34,between hooks,4,3,,raf sync=7 total=7 @76302 site=5; raf sync=0 total=4 @76309 site=18
+76401,76435,34,between hooks,4,3,,raf sync=7 total=7 @76402 site=5
+76501,76535,34,between hooks,4,4,,raf sync=8 total=8 @76501 site=5; raf sync=5 total=5 @76518 site=5
+76601,76635,34,between hooks,4,3,,raf sync=8 total=8 @76601 site=5; raf sync=0 total=4 @76609 site=34
+76701,76735,34,between hooks,4,3,,raf sync=7 total=7 @76702 site=5; raf sync=0 total=4 @76709 site=18
+76801,76835,34,between hooks,4,3,Composer.render 4ms @76806,raf sync=8 total=8 @76802 site=5
+76901,76935,34,between hooks,4,4,Renderer.render 4ms @76906; Composer.render 4ms @76906,raf sync=8 total=8 @76902 site=5
+77001,77036,35,between hooks,5,3,,raf sync=8 total=8 @77002 site=5; raf sync=0 total=4 @77010 site=18
+77101,77135,34,between hooks,4,4,,raf sync=7 total=7 @77102 site=5; raf sync=0 total=4 @77109 site=18
+77201,77235,34,between hooks,4,3,,raf sync=8 total=8 @77201 site=5; raf sync=0 total=4 @77209 site=18
+77301,77335,34,between hooks,4,3,,raf sync=8 total=8 @77301 site=5; raf sync=0 total=4 @77309 site=18
+77401,77435,34,between hooks,5,3,,raf sync=7 total=8 @77402 site=5; raf sync=5 total=5 @77418 site=5
+77501,77535,34,between hooks,4,4,,raf sync=7 total=7 @77502 site=5; raf sync=0 total=4 @77509 site=18
+77601,77635,34,between hooks,4,3,,raf sync=7 total=7 @77602 site=5; raf sync=0 total=4 @77609 site=34
+77701,77735,34,between hooks,4,3,,raf sync=8 total=8 @77701 site=5
+77801,77835,34,between hooks,4,3,,raf sync=8 total=8 @77801 site=5; raf sync=0 total=4 @77809 site=18
+77901,77935,34,between hooks,4,3,,raf sync=8 total=8 @77901 site=5
+78001,78036,35,between hooks,4,4,,raf sync=9 total=9 @78001 site=5; raf sync=0 total=5 @78010 site=18
+78068,78103,35,between hooks,5,3,,raf sync=8 total=8 @78068 site=5
+78201,78235,34,between hooks,4,4,,raf sync=8 total=8 @78202 site=5
+78301,78335,34,between hooks,4,4,Renderer.render 4ms @78306; Composer.render 4ms @78306,raf sync=8 total=8 @78302 site=5; raf sync=0 total=4 @78310 site=18
+78401,78435,34,between hooks,4,3,Renderer.render 4ms @78406; Composer.render 4ms @78406,raf sync=8 total=8 @78402 site=5; raf sync=0 total=4 @78410 site=18
+78501,78535,34,between hooks,4,4,Composer.render 4ms @78506,raf sync=8 total=8 @78502 site=5
+78601,78635,34,between hooks,4,3,,raf sync=7 total=7 @78602 site=5; raf sync=0 total=4 @78609 site=34
+78701,78735,34,between hooks,4,3,,raf sync=7 total=7 @78702 site=5; raf sync=0 total=4 @78709 site=18
+78801,78835,34,between hooks,4,3,Renderer.render 4ms @78806; Composer.render 4ms @78806,raf sync=8 total=8 @78802 site=5; raf sync=0 total=4 @78810 site=18
+78901,78935,34,between hooks,4,3,,raf sync=8 total=8 @78901 site=5
+79001,79035,34,between hooks,5,3,Game.runFixed 4ms @79002; Composer.render 4ms @79009,raf sync=11 total=11 @79002 site=5; raf sync=0 total=4 @79013 site=18
+79101,79135,34,between hooks,4,3,,raf sync=7 total=7 @79102 site=5
+79201,79235,34,between hooks,4,3,,raf sync=7 total=7 @79202 site=5; raf sync=0 total=4 @79209 site=18
+79301,79335,34,between hooks,4,3,,raf sync=8 total=8 @79301 site=5; raf sync=0 total=4 @79309 site=18
+79401,79435,34,between hooks,4,2,,raf sync=7 total=7 @79402 site=5
+79501,79535,34,between hooks,4,2,,raf sync=7 total=7 @79502 site=5; raf sync=0 total=4 @79509 site=18
+79601,79635,34,between hooks,4,3,,raf sync=7 total=7 @79602 site=5
+79701,79735,34,between hooks,4,3,,raf sync=7 total=7 @79702 site=5; raf sync=0 total=4 @79709 site=18
+79801,79835,34,between hooks,4,3,,raf sync=7 total=7 @79802 site=5
+79901,79935,34,between hooks,4,4,,raf sync=7 total=7 @79902 site=5; raf sync=0 total=5 @79909 site=18; raf sync=5 total=5 @79918 site=5
+80001,80035,34,between hooks,4,2,,raf sync=9 total=9 @80001 site=5; raf sync=0 total=4 @80010 site=18
+80101,80135,34,between hooks,3,3,,raf sync=7 total=7 @80102 site=5
+80201,80235,34,between hooks,4,2,,raf sync=8 total=8 @80201 site=5; raf sync=0 total=4 @80209 site=18
+80301,80335,34,between hooks,4,3,,raf sync=7 total=7 @80302 site=5; raf sync=0 total=4 @80309 site=18
+80401,80435,34,between hooks,4,3,,raf sync=7 total=8 @80402 site=5
+80501,80535,34,between hooks,4,3,,raf sync=7 total=7 @80502 site=5; raf sync=0 total=4 @80509 site=18
+80568,80603,35,between hooks,4,4,Game.runFixed 4ms @80568; Renderer.render 4ms @80574; Composer.render 4ms @80574,raf sync=10 total=10 @80568 site=5
+80701,80735,34,between hooks,4,3,,raf sync=6 total=7 @80702 site=5
+80801,80835,34,between hooks,3,3,,raf sync=6 total=6 @80802 site=5; raf sync=1 total=4 @80808 site=18
+80901,80935,34,between hooks,4,2,,raf sync=7 total=7 @80901 site=5; raf sync=0 total=4 @80908 site=18
+81001,81035,34,between hooks,4,3,,raf sync=8 total=8 @81002 site=5
+81101,81135,34,between hooks,3,3,,raf sync=8 total=8 @81101 site=5
+81201,81235,34,between hooks,3,4,,raf sync=7 total=7 @81202 site=5
+81301,81335,34,between hooks,3,3,,raf sync=7 total=7 @81302 site=5; raf sync=0 total=4 @81309 site=18

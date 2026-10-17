@@ -1,0 +1,231 @@
+startMs,endMs,intervalMs,hooks,updateMs,renderMs,exactCalls,taskUpperBounds
+123301,123335,34,between hooks,2,1,,
+123401,123435,34,between hooks,2,1,,timeout sync=0 total=6 @123419 site=4
+123435,123475,40,between hooks,4,1,,raf sync=3 total=4 @123435 site=0
+123501,123535,34,between hooks,2,1,Renderer.initTexture 4ms @123507,timeout sync=4 total=4 @123507 site=6; message sync=0 total=10 @123511 site=7
+123601,123635,34,driftwood-isle:beforeWorld; driftwood-isle:constructor; driftwood-isle:world,2,1,,message sync=0 total=4 @123607 site=8; message sync=0 total=9 @123613 site=10
+123701,123735,34,driftwood-isle:world,1,2,,
+123801,123835,34,driftwood-isle:world,1,2,,
+123901,123935,34,driftwood-isle:world,1,2,,
+124001,124036,35,driftwood-isle:world,3,3,,
+124036,124077,41,driftwood-isle:world,2,2,,raf sync=6 total=6 @124036 site=0; message sync=0 total=31 @124046 site=7
+124101,124135,34,driftwood-isle:world,2,1,,timeout sync=0 total=4 @124119 site=14
+124168,124203,35,driftwood-isle:world,3,1,,raf sync=3 total=4 @124168 site=0; timeout sync=0 total=11 @124174 site=2
+124301,124335,34,driftwood-isle:world,2,1,,
+124401,124435,34,driftwood-isle:world,1,2,,
+124501,124535,34,driftwood-isle:world,2,1,,raf sync=0 total=5 @124506 site=15
+124601,124635,34,driftwood-isle:world,1,1,,
+124701,124735,34,driftwood-isle:world,1,2,,
+124801,124835,34,driftwood-isle:world,1,2,,
+124901,124935,34,driftwood-isle:world,3,1,,
+125001,125035,34,driftwood-isle:world,2,1,,raf sync=0 total=4 @125004 site=15
+125101,125135,34,driftwood-isle:world,1,2,,
+125201,125235,34,driftwood-isle:world,1,2,,raf sync=4 total=5 @125202 site=0; raf sync=0 total=6 @125207 site=15
+125301,125335,34,driftwood-isle:world,3,1,Renderer.initTexture 4ms @125309,raf sync=5 total=5 @125302 site=0; timeout sync=0 total=4 @125309 site=2
+125401,125435,34,driftwood-isle:world,1,2,,
+125501,125535,34,driftwood-isle:world,2,1,,
+125535,125575,40,driftwood-isle:world,2,1,,message sync=0 total=16 @125540 site=8
+125601,125635,34,driftwood-isle:world,2,1,,message sync=0 total=6 @125608 site=8
+125701,125735,34,driftwood-isle:world,1,2,,message sync=0 total=6 @125708 site=8
+125801,125835,34,driftwood-isle:world,1,2,,message sync=0 total=7 @125807 site=8
+125901,125935,34,driftwood-isle:world,3,1,,raf sync=0 total=4 @125904 site=15; message sync=0 total=5 @125908 site=8
+126001,126035,34,driftwood-isle:world,2,2,,raf sync=5 total=6 @126001 site=0; raf sync=0 total=4 @126007 site=15; message sync=0 total=4 @126011 site=8
+126101,126135,34,driftwood-isle:world,2,1,,raf sync=4 total=4 @126101 site=0; message sync=0 total=7 @126107 site=8
+126201,126235,34,driftwood-isle:world,2,1,,message sync=0 total=6 @126207 site=8
+126301,126335,34,driftwood-isle:world,4,1,,raf sync=5 total=6 @126301 site=0; message sync=0 total=5 @126309 site=8
+126335,126378,43,driftwood-isle:world,3,2,BufferGeometry.computeBoundingBox 5ms @126365; BufferGeometry.computeBoundingSphere 8ms @126370,raf sync=5 total=6 @126335 site=0; message sync=0 total=4 @126343 site=8
+126398,126435,37,driftwood-isle:world,1,2,,raf sync=0 total=12 @126401 site=16
+126501,126535,34,driftwood-isle:world,2,1,,
+126601,126652,51,driftwood-isle:world,2,2,BufferGeometry.computeBoundingBox 6ms @126634; BufferGeometry.computeBoundingSphere 12ms @126640,raf sync=3 total=4 @126601 site=0; message sync=0 total=6 @126606 site=7; raf sync=6 total=6 @126618 site=0
+126684,126718,34,driftwood-isle:world,2,1,,raf sync=4 total=4 @126684 site=0; message sync=0 total=9 @126691 site=17
+126801,126835,34,driftwood-isle:world,1,2,,message sync=0 total=6 @126808 site=8
+126901,126935,34,driftwood-isle:world,3,1,,raf sync=4 total=4 @126901 site=0; message sync=0 total=6 @126908 site=8
+127001,127035,34,driftwood-isle:world,1,2,,raf sync=3 total=4 @127001 site=0; message sync=0 total=6 @127007 site=8
+127101,127135,34,driftwood-isle:world,3,2,,message sync=0 total=5 @127108 site=8
+127201,127248,47,driftwood-isle:afterKit,3,2,,raf sync=6 total=7 @127201 site=0; message sync=0 total=39 @127210 site=8
+127278,127313,35,driftwood-isle:afterKit,1,2,,raf sync=10 total=10 @127278 site=0; raf sync=0 total=4 @127288 site=16; message sync=0 total=18 @127295 site=13
+127339,127385,46,driftwood-isle:afterKit,2,2,,raf sync=4 total=4 @127339 site=0; message sync=1 total=20 @127344 site=13
+127385,127496,111,driftwood-isle:afterKit,3,4,,raf sync=4 total=4 @127385 site=0; message sync=0 total=5 @127391 site=8; message sync=0 total=100 @127396 site=19
+127496,127559,63,driftwood-isle:play,2,2,,raf sync=7 total=7 @127496 site=0; timeout sync=0 total=47 @127510 site=20
+127587,127625,38,driftwood-isle:play,4,2,,
+127625,127667,42,driftwood-isle:afterPlay,3,2,Renderer.compile 18ms @127645,raf sync=6 total=7 @127625 site=0; message sync=0 total=34 @127633 site=8
+127723,127768,45,driftwood-isle:afterPlay,3,2,,raf sync=6 total=6 @127723 site=0
+127801,127835,34,driftwood-isle:afterPlay,3,3,Renderer.initTexture 4ms @127808,raf sync=4 total=4 @127802 site=0; timeout sync=0 total=4 @127808 site=2
+127901,127935,34,driftwood-isle:afterPlay,2,2,Renderer.initTexture 4ms @127907,raf sync=4 total=4 @127902 site=0; timeout sync=0 total=4 @127907 site=2
+128001,128035,34,driftwood-isle:afterPlay,3,2,,raf sync=7 total=8 @128001 site=0
+128119,128153,34,driftwood-isle:afterPlay,1,2,Renderer.compile 26ms @128125,timeout sync=0 total=27 @128125 site=23
+128251,128285,34,driftwood-isle:afterPlay,2,2,,raf sync=5 total=5 @128251 site=0
+128351,128386,35,driftwood-isle:afterPlay,2,2,Renderer.compile 15ms @128359,raf sync=5 total=5 @128351 site=0; timeout sync=0 total=16 @128359 site=2
+128451,128485,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @128458,raf sync=5 total=5 @128451 site=0; timeout sync=0 total=19 @128458 site=2
+128518,128555,37,driftwood-isle:afterPlay,2,3,Game.runFixed 4ms @128525; Renderer.compile 19ms @128534,raf sync=14 total=15 @128518 site=0; timeout sync=0 total=21 @128534 site=2
+128585,128636,51,driftwood-isle:afterPlay,2,2,Renderer.compile 17ms @128617,timeout sync=0 total=22 @128595 site=23; timeout sync=0 total=19 @128617 site=23
+128690,128735,45,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @128696,raf sync=4 total=4 @128690 site=0; timeout sync=0 total=20 @128696 site=23
+128789,128827,38,driftwood-isle:afterPlay,2,2,Renderer.compile 21ms @128796,raf sync=5 total=5 @128789 site=0; timeout sync=0 total=22 @128796 site=23; raf sync=7 total=7 @128818 site=0
+128854,128888,34,driftwood-isle:afterPlay,2,2,Renderer.initTexture 4ms @128861; Renderer.compile 18ms @128865,timeout sync=0 total=4 @128861 site=23; timeout sync=0 total=23 @128865 site=23
+128950,128985,35,driftwood-isle:afterPlay,3,2,Renderer.compile 17ms @128960,raf sync=6 total=6 @128950 site=0; timeout sync=0 total=19 @128959 site=23
+129081,129116,35,driftwood-isle:afterPlay,2,3,Renderer.compile 17ms @129091,raf sync=3 total=4 @129081 site=0; timeout sync=0 total=17 @129091 site=23; raf sync=7 total=7 @129108 site=0
+129116,129151,35,driftwood-isle:afterPlay,1,3,Renderer.compile 17ms @129122,raf sync=5 total=5 @129116 site=0; timeout sync=0 total=19 @129122 site=2
+129151,129185,34,driftwood-isle:afterPlay,2,2,Renderer.compile 17ms @129158,raf sync=5 total=5 @129151 site=0; timeout sync=0 total=18 @129158 site=24
+129251,129285,34,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @129259,timeout sync=0 total=20 @129259 site=2
+129351,129385,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @129358,raf sync=4 total=4 @129352 site=0; timeout sync=0 total=18 @129358 site=2; raf sync=7 total=7 @129376 site=0
+129451,129487,36,driftwood-isle:afterPlay,2,3,Renderer.compile 21ms @129458,timeout sync=0 total=21 @129458 site=2
+129551,129585,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @129559,raf sync=5 total=5 @129551 site=0; timeout sync=0 total=19 @129558 site=2
+129651,129685,34,driftwood-isle:afterPlay,1,3,Renderer.compile 17ms @129659,raf sync=5 total=5 @129651 site=0; timeout sync=0 total=18 @129659 site=2
+129718,129753,35,driftwood-isle:afterPlay,1,3,Renderer.compile 17ms @129726,raf sync=4 total=4 @129718 site=0; timeout sync=0 total=18 @129726 site=2
+129851,129885,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @129859,raf sync=5 total=5 @129851 site=0; timeout sync=0 total=19 @129858 site=2
+129951,129985,34,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @129960,raf sync=6 total=6 @129951 site=0; timeout sync=0 total=20 @129959 site=2
+130018,130053,35,driftwood-isle:afterPlay,2,2,Renderer.compile 17ms @130026,raf sync=6 total=6 @130018 site=0; timeout sync=0 total=17 @130026 site=2
+130151,130185,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @130158,timeout sync=0 total=18 @130158 site=2
+130215,130251,36,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @130215 site=0; raf sync=0 total=4 @130219 site=28
+130251,130285,34,driftwood-isle:afterPlay,2,2,,
+130351,130385,34,driftwood-isle:afterPlay,2,2,Renderer.compile 17ms @130358,raf sync=5 total=5 @130351 site=0; timeout sync=0 total=18 @130358 site=2
+130451,130485,34,driftwood-isle:afterPlay,2,3,,raf sync=5 total=5 @130451 site=0
+130551,130585,34,driftwood-isle:afterPlay,2,3,Renderer.compile 17ms @130559,raf sync=4 total=4 @130552 site=0; timeout sync=0 total=19 @130559 site=2
+130651,130685,34,driftwood-isle:afterPlay,2,2,,
+130751,130785,34,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @130759,raf sync=5 total=5 @130751 site=0; timeout sync=0 total=21 @130758 site=2
+130851,130885,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @130852 site=0
+130951,130985,34,driftwood-isle:afterPlay,2,3,,raf sync=5 total=5 @130952 site=0
+131051,131085,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @131052 site=0
+131151,131185,34,driftwood-isle:afterPlay,2,3,Renderer.compile 10ms @131159,timeout sync=0 total=11 @131159 site=2
+131251,131286,35,driftwood-isle:afterPlay,2,3,,raf sync=4 total=4 @131252 site=0
+131286,131320,34,driftwood-isle:afterPlay,2,2,,raf sync=5 total=5 @131286 site=0
+131386,131420,34,driftwood-isle:afterPlay,1,2,,raf sync=5 total=5 @131386 site=0
+131451,131485,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @131451 site=0; raf sync=0 total=4 @131455 site=27
+131551,131585,34,driftwood-isle:afterPlay,2,2,,
+131651,131685,34,driftwood-isle:afterPlay,2,2,Renderer.compile 8ms @131659,timeout sync=0 total=8 @131659 site=2
+131751,131785,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @131752 site=0
+131851,131885,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @131852 site=0
+131951,131985,34,driftwood-isle:afterPlay,2,2,,raf sync=5 total=5 @131952 site=0; timeout sync=0 total=9 @131959 site=2
+132018,132052,34,driftwood-isle:afterPlay,2,2,,raf sync=5 total=5 @132018 site=0; timeout sync=0 total=7 @132026 site=2; raf sync=0 total=7 @132035 site=28
+132151,132185,34,driftwood-isle:afterPlay,1,3,,
+132251,132285,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @132252 site=0
+132351,132385,34,driftwood-isle:afterPlay,2,2,,raf sync=5 total=5 @132351 site=0; message sync=0 total=5 @132357 site=8
+132451,132485,34,driftwood-isle:afterPlay,2,2,,raf sync=4 total=4 @132452 site=0
+132551,132585,34,between hooks,4,2,,raf sync=4 total=4 @132552 site=0
+132615,132651,36,between hooks,4,2,,raf sync=5 total=5 @132615 site=0; raf sync=0 total=4 @132620 site=29
+132651,132685,34,between hooks,2,3,,raf sync=6 total=6 @132652 site=0; timeout sync=0 total=10 @132670 site=22
+132751,132785,34,between hooks,3,2,,raf sync=4 total=4 @132752 site=0
+132851,132885,34,between hooks,2,2,,raf sync=4 total=4 @132852 site=0
+132951,132985,34,between hooks,2,3,,raf sync=5 total=5 @132952 site=0; raf sync=7 total=7 @132968 site=0
+133051,133085,34,between hooks,2,2,,raf sync=4 total=4 @133052 site=0
+133151,133185,34,between hooks,2,2,,
+133251,133285,34,between hooks,2,2,,raf sync=5 total=5 @133251 site=0
+133351,133385,34,between hooks,2,2,,raf sync=5 total=5 @133351 site=0; raf sync=0 total=4 @133356 site=30
+133451,133485,34,between hooks,2,3,,raf sync=4 total=4 @133452 site=0
+133551,133646,95,driftwood-isle:activate,7,6,System.game.grid.session 4ms @133552; Game.runPhase:fixed.post 4ms @133552; Game.runFixed 5ms @133552; System.shard.driftwood.adventure 5ms @133563; Game.runPhase:update 12ms @133557; Renderer.render 17ms @133570; Composer.render 17ms @133570,raf sync=36 total=36 @133551 site=0; raf sync=0 total=28 @133587 site=3
+133701,133735,34,between hooks,7,5,Renderer.render 5ms @133707; Composer.render 5ms @133707,raf sync=11 total=11 @133701 site=0; raf sync=0 total=6 @133712 site=28
+133801,133835,34,between hooks,6,5,Renderer.render 5ms @133808; Composer.render 5ms @133808,raf sync=11 total=11 @133802 site=0; raf sync=0 total=6 @133813 site=28
+133901,133935,34,between hooks,4,6,Renderer.render 4ms @133907; Composer.render 5ms @133906,raf sync=9 total=9 @133902 site=0; raf sync=0 total=7 @133911 site=28
+134001,134035,34,between hooks,6,5,Renderer.render 4ms @134006; Composer.render 5ms @134006,raf sync=9 total=9 @134002 site=0; raf sync=0 total=6 @134011 site=28
+134101,134135,34,between hooks,4,6,Renderer.render 5ms @134106; Composer.render 5ms @134106,raf sync=9 total=9 @134102 site=0; raf sync=1 total=6 @134111 site=28
+134201,134235,34,between hooks,4,6,Renderer.render 5ms @134206; Composer.render 6ms @134206,raf sync=10 total=10 @134202 site=0; raf sync=0 total=6 @134212 site=28
+134235,134270,35,between hooks,4,6,Renderer.render 5ms @134240; Composer.render 5ms @134240,raf sync=10 total=10 @134235 site=0; raf sync=0 total=6 @134245 site=28
+134301,134335,34,between hooks,4,6,Renderer.render 5ms @134307; Composer.render 5ms @134307,raf sync=11 total=11 @134301 site=0; raf sync=0 total=5 @134312 site=28
+134368,134403,35,between hooks,5,5,Renderer.render 4ms @134373; Composer.render 5ms @134373,raf sync=10 total=10 @134368 site=0; raf sync=0 total=5 @134378 site=28
+134501,134535,34,between hooks,11,16,Renderer.render 4ms @134507; Composer.render 4ms @134507,raf sync=9 total=9 @134502 site=0; raf sync=0 total=7 @134512 site=28
+134535,134591,56,between hooks,6,6,Game.runFixed 5ms @134536; Renderer.render 10ms @134547; Composer.render 15ms @134547,raf sync=27 total=27 @134535 site=0; raf sync=0 total=28 @134562 site=28
+134615,134651,36,between hooks,4,6,Renderer.render 5ms @134619; Composer.render 5ms @134619,raf sync=10 total=10 @134615 site=0; raf sync=0 total=8 @134625 site=28
+134651,134685,34,between hooks,4,6,Renderer.render 5ms @134657; Composer.render 5ms @134657,raf sync=10 total=10 @134652 site=0; raf sync=0 total=7 @134662 site=28
+134751,134785,34,between hooks,4,5,Renderer.render 5ms @134756; Composer.render 5ms @134756,raf sync=9 total=9 @134752 site=0; raf sync=0 total=7 @134761 site=28
+134851,134886,35,between hooks,4,6,Renderer.render 5ms @134856; Composer.render 5ms @134856,raf sync=9 total=9 @134852 site=0; raf sync=0 total=7 @134861 site=28
+134951,134985,34,between hooks,4,5,Renderer.render 5ms @134957; Composer.render 5ms @134957,raf sync=10 total=10 @134952 site=0; raf sync=0 total=7 @134962 site=28
+135051,135085,34,between hooks,4,6,Renderer.render 5ms @135056; Composer.render 5ms @135056,raf sync=10 total=10 @135051 site=0; raf sync=0 total=6 @135062 site=28
+135151,135185,34,between hooks,3,6,Renderer.render 4ms @135156; Composer.render 5ms @135156,raf sync=9 total=9 @135152 site=0; raf sync=0 total=6 @135161 site=28
+135251,135285,34,between hooks,4,6,Renderer.render 4ms @135256; Composer.render 5ms @135256,raf sync=10 total=10 @135251 site=0; raf sync=0 total=5 @135261 site=28
+135351,135385,34,between hooks,4,5,Renderer.render 5ms @135356; Composer.render 5ms @135356,raf sync=10 total=10 @135351 site=0; raf sync=0 total=7 @135361 site=28
+135451,135485,34,between hooks,5,6,Renderer.render 4ms @135456; Composer.render 5ms @135456,raf sync=9 total=9 @135452 site=0; raf sync=0 total=6 @135461 site=28
+135551,135585,34,between hooks,3,6,Renderer.render 4ms @135556; Composer.render 5ms @135556,raf sync=9 total=9 @135552 site=0; raf sync=0 total=6 @135561 site=28
+135651,135685,34,between hooks,4,5,Renderer.render 5ms @135656; Composer.render 5ms @135656,raf sync=9 total=9 @135652 site=0; raf sync=0 total=7 @135661 site=28
+135751,135785,34,between hooks,5,6,Renderer.render 5ms @135756; Composer.render 5ms @135756,raf sync=9 total=9 @135752 site=0; raf sync=0 total=6 @135761 site=28
+135851,135886,35,between hooks,4,5,Renderer.render 4ms @135856; Composer.render 5ms @135856,raf sync=9 total=9 @135852 site=0; raf sync=0 total=5 @135861 site=28
+135951,135985,34,between hooks,3,5,Renderer.render 5ms @135957; Composer.render 5ms @135957,raf sync=10 total=10 @135952 site=0; raf sync=0 total=5 @135962 site=28
+136051,136085,34,between hooks,4,6,Renderer.render 4ms @136056; Composer.render 5ms @136056,raf sync=9 total=9 @136052 site=0; raf sync=0 total=5 @136061 site=28; timeout sync=6 total=6 @136066 site=1
+136118,136153,35,between hooks,4,6,Renderer.render 5ms @136123; Composer.render 5ms @136123,raf sync=10 total=10 @136118 site=0; raf sync=0 total=5 @136128 site=28
+136251,136285,34,between hooks,4,5,Renderer.render 5ms @136255; Composer.render 5ms @136255,raf sync=8 total=8 @136252 site=0; raf sync=0 total=6 @136260 site=28
+136351,136385,34,between hooks,3,6,Renderer.render 5ms @136356; Composer.render 5ms @136356,raf sync=9 total=9 @136352 site=0; raf sync=0 total=6 @136361 site=28
+136385,136420,35,between hooks,9,5,Renderer.render 5ms @136389; Composer.render 5ms @136389,raf sync=9 total=9 @136385 site=0; raf sync=0 total=5 @136394 site=28
+136451,136485,34,between hooks,4,6,Renderer.render 5ms @136456; Composer.render 5ms @136456,raf sync=9 total=9 @136452 site=0; raf sync=0 total=6 @136461 site=28
+136551,136585,34,between hooks,3,5,Renderer.render 5ms @136556; Composer.render 6ms @136556,raf sync=10 total=10 @136552 site=0; raf sync=0 total=6 @136562 site=28
+136651,136685,34,between hooks,3,6,Renderer.render 5ms @136662; Composer.render 5ms @136662,raf sync=15 total=15 @136652 site=0; raf sync=0 total=6 @136668 site=28
+136751,136785,34,between hooks,4,5,Renderer.render 5ms @136756; Composer.render 5ms @136756,raf sync=9 total=9 @136752 site=0; raf sync=0 total=7 @136761 site=28
+136851,136885,34,between hooks,4,5,Renderer.render 4ms @136856; Composer.render 4ms @136856,raf sync=8 total=8 @136852 site=0; raf sync=0 total=6 @136861 site=28
+136951,136985,34,between hooks,3,6,Renderer.render 5ms @136957; Composer.render 5ms @136957,raf sync=10 total=10 @136952 site=0; raf sync=0 total=7 @136962 site=28
+137051,137085,34,between hooks,4,5,Renderer.render 4ms @137056; Composer.render 5ms @137056,raf sync=9 total=9 @137052 site=0; raf sync=0 total=6 @137061 site=28
+137118,137152,34,between hooks,4,5,Renderer.render 4ms @137123; Composer.render 5ms @137123,raf sync=10 total=10 @137118 site=0; raf sync=0 total=6 @137128 site=28
+137251,137285,34,between hooks,4,5,Renderer.render 5ms @137255; Composer.render 5ms @137255,raf sync=8 total=8 @137252 site=0; raf sync=0 total=6 @137260 site=28
+137351,137385,34,between hooks,5,6,Renderer.render 5ms @137356; Composer.render 5ms @137356,raf sync=9 total=9 @137352 site=0; raf sync=0 total=6 @137361 site=28; timeout sync=6 total=6 @137367 site=1
+137451,137485,34,between hooks,4,5,Renderer.render 5ms @137456; Composer.render 5ms @137456,raf sync=9 total=9 @137452 site=0; raf sync=0 total=7 @137461 site=28
+137515,137551,36,between hooks,4,6,Renderer.render 4ms @137519; Composer.render 4ms @137519,raf sync=9 total=9 @137515 site=0; raf sync=0 total=8 @137524 site=28
+137551,137585,34,between hooks,3,6,Composer.render 5ms @137557,raf sync=11 total=11 @137551 site=0; raf sync=0 total=5 @137562 site=28
+137651,137685,34,between hooks,4,6,Renderer.render 5ms @137656; Composer.render 5ms @137656,raf sync=10 total=10 @137651 site=0; raf sync=0 total=6 @137661 site=28
+137718,137752,34,between hooks,4,5,Renderer.render 5ms @137722; Composer.render 5ms @137722,raf sync=9 total=9 @137718 site=0; raf sync=0 total=6 @137727 site=28
+137851,137885,34,between hooks,4,6,Renderer.render 5ms @137855; Composer.render 6ms @137855,raf sync=9 total=9 @137852 site=0; raf sync=0 total=6 @137861 site=28
+137951,137985,34,between hooks,3,6,Renderer.render 5ms @137957; Composer.render 5ms @137957,raf sync=10 total=10 @137952 site=0; raf sync=0 total=6 @137962 site=28
+138051,138085,34,between hooks,4,5,Renderer.render 4ms @138056; Composer.render 4ms @138056,raf sync=8 total=8 @138052 site=0; raf sync=0 total=6 @138061 site=28
+138151,138185,34,between hooks,4,5,Renderer.render 5ms @138156; Composer.render 5ms @138156,raf sync=9 total=9 @138152 site=0; raf sync=0 total=6 @138161 site=28
+138251,138285,34,between hooks,4,5,Renderer.render 5ms @138255; Composer.render 5ms @138255,raf sync=8 total=8 @138252 site=0; raf sync=0 total=6 @138260 site=28; timeout sync=6 total=6 @138266 site=1
+138351,138385,34,between hooks,3,5,Renderer.render 5ms @138356; Composer.render 5ms @138356,raf sync=9 total=9 @138352 site=0; raf sync=0 total=5 @138361 site=28
+138451,138485,34,between hooks,4,5,Renderer.render 4ms @138456; Composer.render 4ms @138456,raf sync=8 total=8 @138452 site=0; raf sync=0 total=5 @138461 site=28
+138551,138585,34,between hooks,3,6,Renderer.render 5ms @138556; Composer.render 5ms @138556,raf sync=9 total=9 @138552 site=0; raf sync=0 total=5 @138561 site=28
+138651,138685,34,between hooks,4,6,Renderer.render 5ms @138656; Composer.render 5ms @138656,raf sync=9 total=9 @138652 site=0; raf sync=0 total=4 @138661 site=30
+138751,138785,34,between hooks,3,5,Renderer.render 5ms @138756; Composer.render 5ms @138756,raf sync=9 total=9 @138752 site=0; raf sync=0 total=5 @138761 site=30
+138851,138885,34,between hooks,4,5,Renderer.render 4ms @138856; Composer.render 4ms @138856,raf sync=8 total=8 @138852 site=0; raf sync=0 total=6 @138860 site=30
+138951,138985,34,between hooks,3,5,Renderer.render 5ms @138957; Composer.render 5ms @138957,raf sync=10 total=10 @138952 site=0; raf sync=0 total=6 @138962 site=30
+139051,139085,34,between hooks,3,5,,raf sync=15 total=15 @139052 site=0; raf sync=0 total=7 @139067 site=28
+139151,139185,34,between hooks,3,6,Renderer.render 4ms @139156; Composer.render 5ms @139156,raf sync=9 total=9 @139152 site=0; raf sync=0 total=7 @139161 site=28
+139251,139285,34,between hooks,5,5,Renderer.render 5ms @139256; Composer.render 5ms @139256,raf sync=9 total=9 @139252 site=0; raf sync=0 total=5 @139261 site=28
+139351,139385,34,between hooks,3,6,Renderer.render 4ms @139357; Composer.render 5ms @139357,raf sync=10 total=10 @139352 site=0; raf sync=0 total=5 @139362 site=28
+139451,139485,34,between hooks,4,5,Renderer.render 5ms @139455; Composer.render 5ms @139455,raf sync=8 total=8 @139452 site=0; raf sync=0 total=6 @139460 site=28
+139551,139585,34,between hooks,3,5,Renderer.render 4ms @139556; Composer.render 5ms @139556,raf sync=9 total=9 @139552 site=0; raf sync=0 total=5 @139561 site=28
+139585,139620,35,between hooks,4,5,Renderer.render 4ms @139589; Composer.render 4ms @139589,raf sync=8 total=8 @139585 site=0; raf sync=0 total=6 @139593 site=28
+139651,139685,34,between hooks,4,5,Renderer.render 5ms @139655; Composer.render 5ms @139655,raf sync=8 total=8 @139652 site=0; raf sync=0 total=5 @139660 site=28
+139685,139720,35,between hooks,4,6,Renderer.render 5ms @139689; Composer.render 5ms @139689,raf sync=9 total=9 @139685 site=0; raf sync=0 total=5 @139694 site=28; timeout sync=6 total=6 @139699 site=1
+139751,139785,34,between hooks,3,5,Renderer.render 5ms @139756; Composer.render 5ms @139756,raf sync=9 total=10 @139752 site=0; raf sync=0 total=5 @139762 site=28
+139851,139885,34,between hooks,4,6,Renderer.render 5ms @139855; Composer.render 5ms @139855,raf sync=8 total=8 @139852 site=0; raf sync=0 total=7 @139860 site=28
+139951,139985,34,between hooks,3,6,Renderer.render 4ms @139957; Composer.render 5ms @139957,raf sync=10 total=10 @139952 site=0; raf sync=0 total=7 @139962 site=28
+140051,140085,34,between hooks,4,5,Renderer.render 4ms @140056; Composer.render 5ms @140056,raf sync=9 total=9 @140052 site=0; raf sync=0 total=8 @140061 site=28
+140151,140185,34,between hooks,3,10,Renderer.render 4ms @140156; Composer.render 5ms @140156,raf sync=10 total=10 @140151 site=0; raf sync=0 total=6 @140161 site=28
+140251,140285,34,between hooks,3,6,Renderer.render 4ms @140255; Composer.render 5ms @140255,raf sync=8 total=8 @140252 site=0; raf sync=0 total=6 @140260 site=28
+140351,140385,34,between hooks,3,5,Renderer.render 4ms @140356; Composer.render 4ms @140356,raf sync=9 total=9 @140351 site=0; raf sync=1 total=7 @140360 site=28
+140451,140485,34,between hooks,4,5,Renderer.render 4ms @140455; Composer.render 5ms @140455,raf sync=8 total=8 @140452 site=0; raf sync=0 total=5 @140460 site=28
+140551,140585,34,between hooks,3,5,Renderer.render 4ms @140556; Composer.render 4ms @140556,raf sync=8 total=8 @140552 site=0; raf sync=0 total=5 @140560 site=28
+140651,140686,35,between hooks,3,5,Renderer.render 5ms @140655; Composer.render 5ms @140655,raf sync=9 total=9 @140651 site=0; raf sync=0 total=6 @140660 site=28
+140751,140785,34,between hooks,4,5,Renderer.render 4ms @140756; Composer.render 5ms @140756,raf sync=9 total=9 @140752 site=0; raf sync=0 total=8 @140761 site=28
+140785,140820,35,between hooks,4,5,Renderer.render 5ms @140789; Composer.render 5ms @140789,raf sync=9 total=9 @140785 site=0; raf sync=0 total=5 @140794 site=28
+140851,140885,34,between hooks,3,6,Renderer.render 5ms @140855; Composer.render 5ms @140855,raf sync=8 total=8 @140852 site=0; raf sync=0 total=5 @140861 site=28
+140951,140985,34,between hooks,3,5,Renderer.render 4ms @140957; Composer.render 5ms @140957,raf sync=10 total=10 @140952 site=0; raf sync=0 total=7 @140962 site=28
+141051,141085,34,between hooks,3,5,Renderer.render 4ms @141055; Composer.render 5ms @141055,raf sync=8 total=8 @141052 site=0; raf sync=0 total=7 @141060 site=28
+141151,141185,34,between hooks,5,5,Renderer.render 4ms @141157; Composer.render 4ms @141157,raf sync=9 total=10 @141152 site=0; raf sync=0 total=6 @141162 site=28
+141218,141252,34,between hooks,3,5,Renderer.render 4ms @141223; Composer.render 5ms @141223,raf sync=10 total=10 @141218 site=0; raf sync=0 total=6 @141228 site=28
+141351,141385,34,between hooks,3,5,Renderer.render 5ms @141355; Composer.render 5ms @141355,raf sync=8 total=8 @141352 site=0; raf sync=0 total=6 @141360 site=28
+141451,141485,34,between hooks,3,6,Renderer.render 5ms @141455; Composer.render 5ms @141455,raf sync=8 total=8 @141452 site=0; raf sync=0 total=6 @141460 site=28
+141551,141585,34,between hooks,3,5,Renderer.render 5ms @141556; Composer.render 5ms @141556,raf sync=9 total=9 @141552 site=0; raf sync=0 total=6 @141561 site=28
+141651,141685,34,between hooks,3,5,Renderer.render 4ms @141655; Composer.render 5ms @141655,raf sync=8 total=8 @141652 site=0; raf sync=0 total=5 @141660 site=28
+141685,141720,35,between hooks,3,5,Renderer.render 5ms @141688; Composer.render 5ms @141688,raf sync=8 total=8 @141685 site=0; raf sync=0 total=6 @141693 site=28
+141751,141786,35,between hooks,3,5,Renderer.render 5ms @141755; Composer.render 5ms @141755,raf sync=8 total=8 @141752 site=0; raf sync=0 total=6 @141760 site=28
+141851,141885,34,between hooks,3,5,Renderer.render 4ms @141855; Composer.render 4ms @141855,raf sync=7 total=7 @141852 site=0; raf sync=1 total=7 @141859 site=28
+141951,141985,34,between hooks,2,6,Renderer.render 4ms @141957; Composer.render 4ms @141957,raf sync=10 total=10 @141951 site=0; raf sync=0 total=6 @141961 site=28
+142051,142086,35,between hooks,4,4,Renderer.render 4ms @142055; Composer.render 4ms @142055,raf sync=7 total=7 @142052 site=0; raf sync=0 total=7 @142059 site=28
+142151,142185,34,between hooks,3,5,Renderer.render 5ms @142155; Composer.render 5ms @142155,raf sync=8 total=8 @142152 site=0; raf sync=0 total=7 @142160 site=28
+142251,142285,34,between hooks,3,5,Renderer.render 4ms @142255; Composer.render 4ms @142255,raf sync=7 total=7 @142252 site=0; raf sync=0 total=5 @142260 site=28
+142351,142385,34,between hooks,3,5,Renderer.render 5ms @142356; Composer.render 6ms @142355,raf sync=10 total=10 @142351 site=0; raf sync=0 total=6 @142361 site=28
+142451,142485,34,between hooks,3,5,Renderer.render 4ms @142455; Composer.render 4ms @142455,raf sync=8 total=8 @142451 site=0; raf sync=0 total=6 @142459 site=28
+142551,142585,34,between hooks,3,5,Renderer.render 5ms @142555; Composer.render 5ms @142555,raf sync=8 total=8 @142552 site=0; raf sync=0 total=6 @142560 site=28
+142651,142685,34,between hooks,3,5,Renderer.render 4ms @142655; Composer.render 4ms @142655,raf sync=8 total=9 @142651 site=0; raf sync=0 total=4 @142660 site=28
+142751,142785,34,between hooks,2,5,Renderer.render 5ms @142755; Composer.render 5ms @142755,raf sync=9 total=9 @142751 site=0; raf sync=0 total=7 @142760 site=28
+142818,142853,35,between hooks,3,5,Renderer.render 4ms @142822; Composer.render 5ms @142822,raf sync=9 total=9 @142818 site=0; raf sync=0 total=5 @142827 site=28
+142951,142985,34,between hooks,3,5,Renderer.render 5ms @142956; Composer.render 5ms @142956,raf sync=10 total=10 @142951 site=0; raf sync=0 total=6 @142961 site=28
+143051,143085,34,between hooks,3,5,Renderer.render 4ms @143055; Composer.render 4ms @143055,raf sync=8 total=8 @143051 site=0; raf sync=0 total=7 @143059 site=28
+143151,143185,34,between hooks,3,5,Renderer.render 4ms @143155; Composer.render 4ms @143155,raf sync=7 total=7 @143152 site=0; raf sync=0 total=6 @143160 site=28; timeout sync=7 total=7 @143166 site=1
+143251,143285,34,between hooks,3,5,Renderer.render 4ms @143255; Composer.render 4ms @143255,raf sync=7 total=7 @143252 site=0; raf sync=0 total=7 @143259 site=28
+143351,143385,34,between hooks,3,5,Renderer.render 4ms @143355; Composer.render 5ms @143355,raf sync=8 total=8 @143352 site=0; raf sync=0 total=6 @143360 site=28
+143451,143485,34,between hooks,3,5,Renderer.render 4ms @143455; Composer.render 4ms @143455,raf sync=7 total=7 @143452 site=0; raf sync=0 total=7 @143459 site=28
+143551,143585,34,between hooks,2,6,Renderer.render 5ms @143555; Composer.render 5ms @143555,raf sync=8 total=8 @143552 site=0; raf sync=0 total=7 @143560 site=28
+143651,143685,34,between hooks,3,5,Renderer.render 5ms @143655; Composer.render 5ms @143655,raf sync=8 total=8 @143652 site=0; raf sync=0 total=6 @143660 site=28
+143751,143785,34,between hooks,2,6,Renderer.render 4ms @143755; Composer.render 5ms @143755,raf sync=9 total=9 @143751 site=0; raf sync=0 total=5 @143760 site=28
+143851,143885,34,between hooks,3,5,Renderer.render 4ms @143855; Composer.render 5ms @143854,raf sync=7 total=7 @143852 site=0; raf sync=0 total=6 @143859 site=28
+143951,143985,34,between hooks,2,5,Renderer.render 5ms @143956; Composer.render 5ms @143956,raf sync=9 total=9 @143952 site=0; raf sync=0 total=6 @143961 site=28
+144051,144086,35,between hooks,3,5,Renderer.render 4ms @144055; Composer.render 4ms @144055,raf sync=7 total=7 @144052 site=0; raf sync=0 total=6 @144060 site=28
+144151,144185,34,between hooks,2,5,Renderer.render 4ms @144155; Composer.render 5ms @144155,raf sync=9 total=9 @144151 site=0; raf sync=0 total=6 @144160 site=28
+144251,144285,34,between hooks,3,5,Renderer.render 5ms @144254; Composer.render 5ms @144254,raf sync=8 total=8 @144251 site=0; raf sync=0 total=6 @144259 site=28
+144351,144385,34,between hooks,3,5,Renderer.render 4ms @144355; Composer.render 4ms @144355,raf sync=8 total=9 @144351 site=0; raf sync=0 total=5 @144360 site=28
