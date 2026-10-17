@@ -852,6 +852,16 @@ export class Game {
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
+    // Camera models live outside the parked world. Compilation linked them, but
+    // their staged group and equipment roots still hide their first buffer draws.
+    const stagedModels = this.viewmodel.staged(owner);
+    if (stagedModels !== undefined) {
+      enter('parked-viewmodels');
+      const start = diagnosticNow();
+      const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, stagedModels, current,
+        drawnPause, { environment: futureEnvironment, revealChildren: true });
+      onStage('parked-viewmodels', diagnosticNow() - start, drawn);
+    }
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
     if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {

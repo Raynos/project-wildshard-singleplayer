@@ -55,6 +55,8 @@ export class ViewmodelRoot extends Group {
     owner.onDispose(() => { this.preparations.delete(owner); group.removeFromParent(); });
     return group;
   }
+  /** This owner's parked camera models, including their authored hidden weapon roots. */
+  staged(owner: Scope): Group | undefined { return this.preparations.get(owner); }
   private transparent(material: Material): Material {
     // Kit families already configure these exact materials for the transparent queue; retain their identity.
     if (material.transparent) return material;

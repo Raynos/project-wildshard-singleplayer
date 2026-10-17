@@ -1,4 +1,5 @@
 {
+  "test/parked-viewmodels.test.ts": [],
   "test/whole-geometry-pacing.test.ts": [],
   "test/hybrid-product-rows.test.ts": ["far-reach", "sunscar-dunes"],
   "test/elite-encounters.test.ts": ["pine-hollow", "nalati-grasslands"],

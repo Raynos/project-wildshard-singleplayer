@@ -44,10 +44,10 @@ const isDrawable = (object: THREE.Object3D): object is Drawable => {
 };
 
 /** The drawables an entry frame would draw under `root` (the root itself is the parked, hidden node). */
-function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera): Drawable[] {
+function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: ReadonlySet<THREE.Object3D>): Drawable[] {
   const out: Drawable[] = [];
   const visit = (object: THREE.Object3D): void => {
-    if (object !== root && !object.visible) return;
+    if (object !== root && !object.visible && !reveal.has(object)) return;
     // the view's drawables, and the shadow-only casters (SHADOW_LAYER) the shadow pass draws
     if (isDrawable(object) && (object.layers.test(camera.layers) || object.castShadow && object.layers.isEnabled(SHADOW_LAYER))) out.push(object);
     for (const child of object.children) visit(child);
@@ -220,14 +220,17 @@ const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, buffer
  */
 export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THREE.Camera,
   target: THREE.WebGLRenderTarget | null, root: THREE.Object3D, current: () => boolean, pause: () => Promise<void>,
-  options: { environment?: THREE.Texture | null; budget?: ParkedDrawBudget } = {}): Promise<number> {
-  const slices = parkedDrawSlices(parkedDrawables(root, camera), options.budget ?? DEFAULT_BUDGET);
+  options: { environment?: THREE.Texture | null; budget?: ParkedDrawBudget;
+    /** Parked camera weapons hide their direct roots as well as their staging group. Descendant visibility stays authored. */
+    revealChildren?: boolean } = {}): Promise<number> {
+  const reveal = new Set(options.revealChildren === true ? root.children : []);
+  const slices = parkedDrawSlices(parkedDrawables(root, camera, reveal), options.budget ?? DEFAULT_BUDGET);
   const view = camera.clone(), standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   let drawn = 0;
   try {
     for (const slice of slices) {
       if (!current()) throw new Error('Parked draw owner left');
-      try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns); }
+      try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
       drawn += slice.length;
       await pause();
@@ -238,7 +241,7 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
 
 function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THREE.Camera, view: THREE.Camera,
   target: THREE.WebGLRenderTarget | null, root: THREE.Object3D, slice: readonly THREE.Object3D[],
-  environment: THREE.Texture | null | undefined, standIns: ShadowStandIns): void {
+  environment: THREE.Texture | null | undefined, standIns: ShadowStandIns, reveal: ReadonlySet<THREE.Object3D>): void {
   view.copy(camera, false);
   view.layers.set(WARM_LAYER);
   const inSlice = new Set(slice);
@@ -251,6 +254,7 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
   });
   const objects = slice.map(object => ({ object, mask: object.layers.mask, culled: object.frustumCulled, colour: object.layers.test(camera.layers) }));
   const rootVisible = root.visible, priorEnvironment = scene.environment;
+  const revealed = [...reveal].map(object => ({ object, visible: object.visible }));
   const priorTarget = renderer.getRenderTarget(), priorFace = renderer.getActiveCubeFace(), priorMip = renderer.getActiveMipmapLevel();
   const shadowAuto = renderer.shadowMap.autoUpdate, shadowNeeds = renderer.shadowMap.needsUpdate;
   const scissor = target?.scissor.clone(), scissorTest = target?.scissorTest ?? false;
@@ -258,6 +262,7 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
   let shadows: ShadowSwap[] = [];
   try {
     root.visible = true;
+    for (const { object } of revealed) object.visible = true;
     if (environment !== undefined) scene.environment = environment;
     for (const { light } of lights) light.layers.enable(WARM_LAYER);
     for (const { object, colour } of objects) { if (colour) object.layers.enable(WARM_LAYER); object.frustumCulled = false; }
@@ -272,6 +277,7 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
     renderer.render(scene, view);
   } finally {
     root.visible = rootVisible; scene.environment = priorEnvironment;
+    for (const { object, visible } of revealed) object.visible = visible;
     for (const { light, mask } of lights) light.layers.mask = mask;
     for (const { object, mask, culled } of objects) { object.layers.mask = mask; object.frustumCulled = culled; }
     for (const { object, mask } of benched) object.layers.mask = mask;

@@ -49,9 +49,9 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     if (names === undefined) { names = new Set(); measured.set(target, names); }
     names.add(name);
     Reflect.set(target, name, function measuredCall(...args) {
-      before?.(...args);
+      if (before !== undefined) Reflect.apply(before, this, args);
       const start = now();
-      const grouped = ['Game.runPhase', 'Composer.render', 'Renderer.render'].includes(label);
+      const grouped = ['Game.runPhase', 'Composer.render', 'Renderer.render', 'RuntimeHooks.activate'].includes(label);
       const children = grouped ? new Map() : null;
       if (children !== null) activeGroups.push(children);
       try { return Reflect.apply(fn, this, args); }
@@ -59,10 +59,10 @@ export function installTaskClock(minMs = 4, cap = 20000) {
         const ms = now() - start;
         const operation = ['Game.runPhase', 'BuildStages.build'].includes(label) && typeof args[0] === 'string' ? `${label}:${args[0]}`
           : label === 'Nodes.build' ? `${label}:${args[0]?.name ?? ''}` : label;
-        if (ms >= minMs && calls.length < cap) calls.push([round(start), round(ms), operation, new Error('frame-floor native call').stack ?? '']);
+        if ((ms >= minMs || label === 'RuntimeHooks.activate' || label === 'RuntimeSlots.activate') && calls.length < cap) calls.push([round(start), round(ms), operation, new Error('frame-floor native call').stack ?? '']);
         if (children !== null) {
           activeGroups.pop();
-          if (ms >= minMs && groups.length < cap) groups.push([round(start), round(ms), operation,
+          if ((ms >= minMs || label === 'RuntimeHooks.activate') && groups.length < cap) groups.push([round(start), round(ms), operation,
             [...children].map(([operationName, value]) => [operationName, value[0], round(value[1]), round(value[2])])]);
         }
         for (const group of activeGroups) {
@@ -83,6 +83,10 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   const phaseLists = new WeakSet();
   const prepareWorldCalls = () => {
     const world = W.__wildshard?.world, game = world?.game, physics = game?.app?.physics;
+    const input = game?.app?.input;
+    for (const name of ['refresh', 'repaint', 'push', 'pop', 'register', 'touchLayout']) measure(input, name, `Input.${name}`);
+    measure(game?.app, 'addSystem', 'App.addSystem');
+    for (const name of ['on', 'answer', 'emit']) measure(game?.app?.events, name, `Events.${name}`);
     measure(game, 'runPhase', 'Game.runPhase', phase => {
       const systems = game.app.systemsByPhase()[phase];
       if (!systems || phaseLists.has(systems)) return;
@@ -110,7 +114,7 @@ export function installTaskClock(minMs = 4, cap = 20000) {
       measure(target, name, `BufferGeometry.${name}`);
     }
     for (const resource of performance.getEntriesByType('resource')) {
-      if (!/\/assets\/(?:place|weld|plan|engineNodesHandler)-[^/]+\.js$/u.test(resource.name) || moduleCalls.has(resource.name)) continue;
+      if (!/\/assets\/(?:place|weld|plan|audio|hybrid|engineNodesHandler)-[^/]+\.js$/u.test(resource.name) || moduleCalls.has(resource.name)) continue;
       moduleCalls.add(resource.name);
       void import(resource.name).then(exports => {
         const nodes = exports.EngineNodesHandler?.prototype;
@@ -118,7 +122,14 @@ export function installTaskClock(minMs = 4, cap = 20000) {
         for (const value of Object.values(exports)) {
           if (typeof value !== 'function' || !value.prototype) continue;
           const prototype = value.prototype;
-          if (typeof prototype.finish === 'function' && typeof prototype.join === 'function') {
+          if (typeof prototype.activate === 'function' && typeof prototype.deactivate === 'function' && typeof prototype.install === 'function') {
+            for (const name of ['activate', 'deactivate', 'install']) measure(prototype, name, `RuntimeHooks.${name}`);
+          } else if (typeof prototype.installAhead === 'function' && typeof prototype.timings === 'function') {
+            measure(prototype, 'install', 'Hybrid.install', function prepareRuntimeSlots() {
+              // Instance slots are closure-backed, so observe them before entry.
+              for (const active of this.retained.values()) measure(active.retained?.slots, 'activate', 'RuntimeSlots.activate');
+            });
+          } else if (typeof prototype.finish === 'function' && typeof prototype.join === 'function') {
             measure(prototype, 'finish', 'Weld.finish'); measure(prototype, 'join', 'Weld.join');
           } else if (typeof prototype.draw === 'function' && typeof prototype.add === 'function') {
             measure(prototype, 'draw', 'UnitParts.draw'); measure(prototype, 'add', 'UnitParts.add');
@@ -137,7 +148,7 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   // Observe only relevant module completions, so its first compile/draw is traced.
   if (typeof PerformanceObserver === 'function') {
     const observer = new PerformanceObserver(list => {
-      if (list.getEntries().some(resource => /\/assets\/(?:place|weld|plan|engineNodesHandler)-[^/]+\.js$/u.test(resource.name))) prepareWorldCalls();
+      if (list.getEntries().some(resource => /\/assets\/(?:place|weld|plan|audio|hybrid|engineNodesHandler)-[^/]+\.js$/u.test(resource.name))) prepareWorldCalls();
     });
     observer.observe({ entryTypes: ['resource'] });
   }
