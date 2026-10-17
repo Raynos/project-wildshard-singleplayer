@@ -26,7 +26,8 @@ export interface DriftwoodContactPorts<A extends AnimalSim> {
 }
 /** The manager supplies facing, cover and the common player damage pipeline through these ports. */
 export function driftwoodContact<A extends AnimalSim>(actor: A, ctx: DriftwoodContactPorts<A>, spec: StrikeSpec): boolean {
-  return contact.contact(spec, { actor, target: ctx.player, canReach: () => ctx.reach(actor), hit: (row) => { ctx.hurt(row.damage); } });
+  if (!contact.contains(spec, { actor: { position: actor.position, scale: actor.scale, yaw: actor.yaw }, target: ctx.player }) || (!spec.tags.includes('cover.exempt') && !ctx.reach(actor))) return false;
+  ctx.hurt(spec.damage); return true;
 }
 
 export const COCONUTS = 16, COCONUT_R = 0.13;

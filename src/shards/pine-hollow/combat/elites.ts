@@ -6,11 +6,10 @@ import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { GroundTell, type Elites, type EliteScript } from '@wildshard/game/Elite';
-import { swapRolledElites as swapRolled } from './eliteRoster';
 import type { SkinId } from '../runtime/loadout/skins';
 import { Puffs } from '../runtime/combat/fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
-import { pineEliteScripts, type PineEliteScript, type PineEliteWorld } from './eliteScripts';
+import { swapRolledElites as swapRolled, pineEliteScripts, type PineEliteScript, type PineEliteWorld } from './eliteScripts';
 
 
 /**
@@ -21,7 +20,7 @@ import { pineEliteScripts, type PineEliteScript, type PineEliteWorld } from './e
  * IDENTITY: an elite is its species' legendary / rare variant placed at a lair — kind + variant, never a mesh — so it
  * wears whatever hull the creature lane gives that variant (PH-M1's generated coats), and the journal (compendium
  * shards/pine-hollow.ts `match`), the trophy wall and the achievements see the kill exactly as before. A herd that
- * rolled one of these variants at boot gets an ordinary one of its kind instead (`swapRolledElites`, eliteRoster.ts): there
+ * rolled one of these variants at boot gets an ordinary one of its kind instead (`swapRolledElites`, eliteScripts.ts): there
  * is one Old Ironhide, and he lives at his lair.
  *
  * ONE IMPLEMENTATION (SF72): the scripts are eliteScripts.ts's, renderer-free over any body and world, and the system's rules
@@ -58,7 +57,7 @@ import { pineEliteScripts, type PineEliteScript, type PineEliteWorld } from './e
 
 const TELL_RED = new THREE.Color(2.4, 0.75, 0.3);
 
-/** the boot swap (eliteRoster.ts) through the page's creature manager */
+/** the boot swap (eliteScripts.ts) through the page's creature manager */
 export function swapRolledElites(animals: AnimalManager): number {
   return swapRolled({ bodies: animals.animals, herds: animals.herds, retire: (a) => { retire(animals, a); }, spawn: (kind, x, z, yaw, variants) => animals.spawn(kind, x, z, yaw, variants) });
 }

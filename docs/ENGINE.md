@@ -2704,6 +2704,8 @@ admitted snapshot after every call, so a hook is pure and carries no continuatio
 
 `@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
 
+`StrikeRunner.contains(spec, { actor, target, origin?, ringRadius?, airborne?, direction? })` is the native overlap query for owners that apply cover and damage themselves. The actor supplies only position, scale and yaw. It runs the same shape, scale and eligibility checks as `contact`, without invoking callbacks or changing runner clocks, deadlines or hit state. Pine and Driftwood use it before their existing cover check and damage call.
+
 **Species brains (SF27).** `@wildshard/game/plugin/brain` (SDK `@wildshard/sdk/speciesBrains`) puts a
 platform brain on a species row: `brain: { archetype, data }`, today `challenge-grazer` (with `phaseSlots`: the actor
 seed's slot in `[0, phaseSlots)` is its circling phase, `seedSlot`) or `patrol-diver`, its data the archetype's strict

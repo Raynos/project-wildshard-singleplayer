@@ -3,7 +3,6 @@ import { Vector3 } from 'three';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
 import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence, type EliteCoreRule } from '@wildshard/game/eliteSystem';
-import { PINE_ELITE_ANIMALS } from '../combat/eliteRoster';
 import { pineEliteScripts, type PineEliteScript, type PineEliteWorld } from '../combat/eliteScripts';
 import { Lane } from '../combat/lane';
 import type { PineBody, PineHuntBody } from './roster';
@@ -106,7 +105,7 @@ export function installPineElites(host: SimHost, ports: PineElitesPorts): {
   const condition = (rule: EliteCoreRule): boolean => rule === 'always' || (rule === 'dusk' ? dusk() > 0.5 : rule === 'night' ? night() > 0.5 : false);
   const rules = new EliteCore<PineEliteScript<PineHuntBody>>({ player, condition }, {}, SLUG, memoryElitePersistence());
   core = rules;
-  scripts.forEach(s => { if (PINE_ELITE_ANIMALS[s.def.id] === undefined) throw new Error(`Pine elite ${s.def.id} has no animal`); rules.add(s); });
+  scripts.forEach(s => { rules.add(s); });
 
   const held = new Vector3();
   const rootFeet = (dt: number): void => {

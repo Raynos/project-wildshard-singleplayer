@@ -5,9 +5,12 @@ import { BEAR_CAVE } from '../data/layout';
 import { moduleBytes, stepEliteScript, EliteScriptLane, type EliteScriptPorts } from '@wildshard/game/plugin/brain';
 import eliteRows from '../data/eliteRuntime.generated.json' with { type: 'json' };
 import { parseEliteScript } from '@wildshard/format/eliteScripts';
-import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from './eliteRoster';
+import * as schema from 'valibot';
+import type { EliteDef } from '@wildshard/game/Elite';
 import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
-import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
+import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { strike } from '@wildshard/sdk/species';
 import type { Lane, LaneBody } from './lane';
 
 /**
@@ -28,7 +31,7 @@ export interface PineEliteBody extends LaneBody, EliteActor {
 }
 
 /** One of the authored lane charges (strikes.ts PINE_LANES). */
-export type PineLaneRow = (typeof PINE_LANES)[keyof typeof PINE_LANES];
+export type PineLaneRow = StrikeSpec;
 
 /** A ring telegraph (the page's GroundTell ring; a renderer-free host draws nothing). */
 export interface PineRingTell { setTime: (t: number) => void; ring: (x: number, z: number, radius: number, alpha: number) => void; hide: () => void }
@@ -69,6 +72,8 @@ export interface PineEliteWorld<B extends PineEliteBody> {
 export const BLACKPAW_MOUTH = { x: BEAR_CAVE.x - Math.sin(BEAR_CAVE.rot) * 1.5, z: BEAR_CAVE.z - Math.cos(BEAR_CAVE.rot) * 1.5 };
 const MOUTH = BLACKPAW_MOUTH;
 const NEVER=-1e6;
+const contact = new StrikeRunner();
+const contacts = Object.values(eliteRows.strikes.contacts).map(row => strikeFromData(strike(row)));
 interface Rival<B extends PineEliteBody>{a:B;lane:Lane<B>;mode:'approach'|'charge'}
 
 /** A script's own state beyond its brain's, as plain values (a renderer-free continuation). */
@@ -81,9 +86,9 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   override p2 = false;
   voice(name: string, a: B): void { this.env.voice(name, a); }
   next(): number { return this.streams.fight.next(); }
-  protected readonly who: (typeof PINE_ELITE_ANIMALS)[string];
+  protected readonly who: (typeof eliteRows.roster.animals)[keyof typeof eliteRows.roster.animals];
   readonly streams: PineEliteStreams;
-  override readonly def: (typeof PINE_ELITE_DEFS)[string];
+  override readonly def: EliteDef;
   readonly env: PineEliteWorld<B>;
   /** the elite's admitted fight script (its slots are the fight's state) */
   readonly script: EliteScriptLane;
@@ -95,7 +100,8 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     const rule=Object.entries(eliteRows.hosts).find(([key])=>key===id)?.[1], input=Object.entries(eliteRows.fights).find(([key])=>key===id)?.[1];
     const row=input===undefined?undefined:parseEliteScript(input);
     if(rule===undefined||row===undefined)throw new Error(`Missing elite host row '${id}'`);
-    const def = PINE_ELITE_DEFS[id];
+    const declared = Object.entries(eliteRows.roster.defs).find(([key]) => key === id)?.[1];
+    const def = declared === undefined ? undefined : { ...declared, rule: schema.parse(schema.picklist(['always', 'dusk', 'night', 'storm']), declared.rule) };
     if (def === undefined) throw new Error(`no elite '${id}'`);
     // the level seed's own streams (eliteStreams.ts), never Math.random or the page's salted ones: the same elite every boot
     const streams = pineEliteStreams(def.id, seed);
@@ -104,13 +110,13 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     const bytes = Object.entries(eliteRows.modules).find(([key])=>key===row.module)?.[1];
     if (bytes === undefined) throw new Error(`pine elite '${id}' has no module`);
     this.script = new EliteScriptLane(row,moduleBytes(bytes),()=>streams.fight.next());
-    const who = PINE_ELITE_ANIMALS[def.id];
+    const who = Object.entries(eliteRows.roster.animals).find(([key]) => key === def.id)?.[1];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
     this.who = who;this.rule=rule;
     if(row.actions.some(name=>!rule.actions.some(action=>action===name)))throw new Error('Unbound elite native action');
     if(rule.leashParameter!==null&&row.parameters[rule.leashParameter]!==def.leashR)throw new Error('Elite script leash differs from its lair');
     if(rule.slots.some(slot=>!this.script.data.slots.some(field=>field.field===slot.field)))throw new Error('Undeclared elite saved slot');
-    this.ring=rule.ring?env.ring():null;this.nativeLanes=rule.lanes.map(key=>env.lane(Object.entries(PINE_LANES).find(([name])=>name===key)?.[1] ?? (()=>{throw new Error(`Missing elite lane ${key}`);})()));
+    this.ring=rule.ring?env.ring():null;this.nativeLanes=rule.lanes.map(key=>env.lane(strikeFromData(strike(Object.entries(eliteRows.strikes.lanes).find(([name])=>name===key)?.[1]))));
   }
   override spawn(): void {
     const L = this.def.lair;
@@ -188,9 +194,9 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
       lane: (i) => this.lanes()[i] ?? null, stepLane: (i, trauma) => { lane(i).update(a, dt, t, p, (dmg) => { this.hurt(a, dmg); this.env.trauma(trauma); }); },
       startLane: (i, tell, speedMul) => { lane(i).start(a, p.x, p.z, tell, speedMul); },
       contact: (row) => {
-        const spec = Object.values(PINE_STRIKES).find(s => s.id === row.strike);
+        const spec = contacts.find(s => s.id === row.strike);
         if (spec === undefined) throw new Error(`pine elite '${this.def.id}' names no strike ${row.strike}`);
-        pineContact(a, p, spec, (damage) => { if (row.stun > 0) this.env.stun(row.stun); this.hurt(a, damage, row.throughWalls); this.env.trauma(row.trauma); }, () => this.env.reach(a, p));
+        if (contact.contains(spec, { actor: { position: a.position, scale: a.scale, yaw: a.yaw }, target: p }) && (spec.tags.includes('cover.exempt') || this.env.reach(a, p))) { if (row.stun > 0) this.env.stun(row.stun); this.hurt(a, spec.damage, row.throughWalls); this.env.trauma(row.trauma); }
       },
       trauma: (k) => { this.env.trauma(k); },
       ring:(radius,alpha)=>{this.ring?.ring(a.position.x,a.position.z,radius,alpha);},ringHide:()=>{this.ring?.hide();},
@@ -271,4 +277,35 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
 /** The four native encounter owners in their original order. */
 export function pineEliteScripts<B extends PineEliteBody>(env:PineEliteWorld<B>,seed?:number):[PineEliteScript<B>,PineEliteScript<B>,PineEliteScript<B>,PineEliteScript<B>] {
   return [new PineEliteScript('ironhide',env,seed),new PineEliteScript('ghost-stag',env,seed),new PineEliteScript('blackpaw',env,seed),new PineEliteScript('imperial-bull',env,seed)];
+}
+
+/** A herd body as the boot swap reads it: the browser's Animal and a renderer-free host's body both satisfy it. */
+export interface SwapBody { readonly kind: string; readonly variant: string; herd: number; readonly position: { readonly x: number; readonly z: number }; readonly yaw: number }
+/** The creature manager the swap works through: its bodies and herds, its retire and its spawn (the shared stream's draws). */
+export interface SwapPorts<A extends SwapBody> {
+  readonly bodies: readonly A[];
+  readonly herds: readonly { readonly members: A[] }[];
+  retire: (a: A) => void;
+  spawn: (kind: string, x: number, z: number, yaw: number, variants: string[]) => A;
+}
+
+/** one of the elites' identities (kind + variant) */
+function isEliteVariant(kind: string, variant: string): boolean {
+  return Object.values(eliteRows.roster.animals).some((e) => e.kind === kind && e.variant === variant);
+}
+
+/** every herd animal that rolled an elite's variant is replaced by an ordinary one of its kind, in its herd, where it stood */
+export function swapRolledElites<A extends SwapBody>(ports: SwapPorts<A>): number {
+  let n = 0;
+  const rolled = ports.bodies.filter((a) => isEliteVariant(a.kind, a.variant));
+  for (const a of rolled) {
+    const herd = a.herd, x = a.position.x, z = a.position.z, yaw = a.yaw;
+    ports.retire(a);
+    const b = ports.spawn(a.kind, x, z, yaw, Object.entries(eliteRows.roster.ordinary).find(([kind]) => kind === a.kind)?.[1] ?? []);
+    b.herd = herd;
+    const h = herd >= 0 ? ports.herds[herd] : undefined;
+    if (h) { const i = h.members.indexOf(a); if (i !== -1) h.members[i] = b; else h.members.push(b); }
+    n++;
+  }
+  return n;
 }

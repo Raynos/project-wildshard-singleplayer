@@ -1,3 +1,4 @@
+import { PINE_LANES, PINE_STRIKES } from './strikes';
 import { KING_BRAIN, KING_BODY } from './kingDecision';
 import { PINE_SPAWNS } from './spawnTables';
 import { PINE_NATIVE_HUNT } from './nativeHunt';
@@ -13,7 +14,7 @@ if (king?.kind !== 'antler-king') throw new Error('Pine bake has no Antler King 
 const kingSpecies = readSpecies({ ...bakeSpecies({ ...ELK, kind: king.kind, aggressive: true }, `pine.creature.${king.kind}`),
   variants: [{ id: king.variant, label: king.spec.label, weight: 1, rarity: king.spec.rarity, scale: [king.scale, king.scale] }] });
 /** Compile the page's registration order and the native manager's original kind/variant table. */
-export const PINE_SPECIES_PROGRAMS = { program:{species:[{...kingSpecies,brain:KING_BRAIN,body:KING_BODY}],strikes:[]}, spawns: PINE_SPAWNS, hunt: PINE_NATIVE_HUNT,
+export const PINE_SPECIES_PROGRAMS = { program:{species:[{...kingSpecies,brain:KING_BRAIN,body:KING_BODY}],strikes:[...Object.values(PINE_LANES),...Object.values(PINE_STRIKES)]}, spawns: PINE_SPAWNS, hunt: PINE_NATIVE_HUNT,
   page: [...PINE_SPECIES, pineDeer(), pineElk()].map(row => bakeSpecies(row, row.id)),
   native: [...[DEER, { ...ELK, spawnOnly: [PINE_ELK_THRALL] }, PINE_BOAR, PINE_BEAR]
     .map(row => bakeSpecies(row, `pine.creature.${row.kind}`)), kingSpecies],

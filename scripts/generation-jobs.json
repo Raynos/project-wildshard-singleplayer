@@ -15697,7 +15697,9 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
-        "src/shards/pine-hollow/data/nightStages.json"
+        "src/shards/pine-hollow/data/nightStages.json",
+        "src/shards/pine-hollow/generators/eliteRoster.ts",
+        "src/shards/pine-hollow/generators/strikes.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/eliteRuntime.generated.json",

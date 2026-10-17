@@ -3,7 +3,7 @@ import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { installEnteredKingBindings } from './kingLifetime';
 import { kingFight, type KingFight } from '../combat/kingFight';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { PINE_LANES } from '../combat/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
@@ -116,8 +116,11 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
   const spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
   const tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
   const waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
-  const lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, ctx.reach);
-  const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, ctx.reach));
+  const profiles = new Map(program.strikes.map(row => [row.id, strikeFromData(row)]));
+  const kingLane = profiles.get('strike.antler-king.last-light'), thrallLane = profiles.get('strike.antler-king.thrall');
+  if (kingLane === undefined || thrallLane === undefined) throw new Error('Missing admitted King lanes');
+  const lane = new LaneCharge(scene, AMBER_TELL, kingLane, ctx.reach);
+  const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, thrallLane, ctx.reach));
   // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
   const { KINGS_CLEARING: C, KING_ARENA_FOG: R, KING_FX_LOOKS } = pineView();
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), lentLook(KING_FX_LOOKS.fog));

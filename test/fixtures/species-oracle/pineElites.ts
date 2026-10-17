@@ -5,11 +5,11 @@ import type { Vector3 } from 'three';
 import type { BrainPoint } from '@wildshard/engine/ai/strikes';
 import type { Lane, LaneBody } from '../../../src/shards/pine-hollow/combat/lane';
 import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '../pine/combatMath';
-import { PINE_STRIKES, pineContact, PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
+import { PINE_STRIKES, pineContact, PINE_LANES } from './pineStrikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { BEAR_CAVE } from '../../../src/shards/pine-hollow/data/layout';
-import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
+import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/generators/eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 
 /** What a goal reads of the world, renderer-free (the page's PineCtx satisfies it over its Animal). */

@@ -47,33 +47,3 @@ export const PINE_ELITE_ANIMALS: Record<string, { kind: string; variant: string;
 /** an ordinary variant of the same kind, for a herd animal that rolled an elite's variant at boot */
 export const ORDINARY: Record<string, string[]> = { boar: ['boar', 'sow', 'black'], deer: ['hind', 'stag'], bear: ['black', 'black-blaze'], elk: ['cow', 'bull'] };
 
-/** A herd body as the boot swap reads it: the browser's Animal and a renderer-free host's body both satisfy it. */
-export interface SwapBody { readonly kind: string; readonly variant: string; herd: number; readonly position: { readonly x: number; readonly z: number }; readonly yaw: number }
-/** The creature manager the swap works through: its bodies and herds, its retire and its spawn (the shared stream's draws). */
-export interface SwapPorts<A extends SwapBody> {
-  readonly bodies: readonly A[];
-  readonly herds: readonly { readonly members: A[] }[];
-  retire: (a: A) => void;
-  spawn: (kind: string, x: number, z: number, yaw: number, variants: string[]) => A;
-}
-
-/** one of the elites' identities (kind + variant) */
-export function isEliteVariant(kind: string, variant: string): boolean {
-  return Object.values(PINE_ELITE_ANIMALS).some((e) => e.kind === kind && e.variant === variant);
-}
-
-/** every herd animal that rolled an elite's variant is replaced by an ordinary one of its kind, in its herd, where it stood */
-export function swapRolledElites<A extends SwapBody>(ports: SwapPorts<A>): number {
-  let n = 0;
-  const rolled = ports.bodies.filter((a) => isEliteVariant(a.kind, a.variant));
-  for (const a of rolled) {
-    const herd = a.herd, x = a.position.x, z = a.position.z, yaw = a.yaw;
-    ports.retire(a);
-    const b = ports.spawn(a.kind, x, z, yaw, ORDINARY[a.kind] ?? []);
-    b.herd = herd;
-    const h = herd >= 0 ? ports.herds[herd] : undefined;
-    if (h) { const i = h.members.indexOf(a); if (i !== -1) h.members[i] = b; else h.members.push(b); }
-    n++;
-  }
-  return n;
-}

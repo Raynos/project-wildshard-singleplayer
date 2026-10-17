@@ -9,7 +9,7 @@ import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 import { KINGS_CLEARING } from '../data/layout';
 import { kingDormant, kingFight, kingFightState, kingPresence, restoreKingFight, type KingCoreEnv, type KingFight } from '../combat/kingFight';
 import { Lane } from '../combat/lane';
-import { PINE_LANES } from '../combat/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import type { PineHuntBody, PineParked } from './roster';
 import { pineBake } from './baked';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
@@ -68,8 +68,11 @@ function headlessKing(host: SimHost, ports: PineKingPorts): { fight: KingFight<P
     },
     trauma: () => undefined, shot: () => undefined,
   };
-  const lane = new Lane<PineHuntBody>(PINE_LANES.king, reach), waves = [0, 1].map(() => ({ r: 0, on: false, hit: false, delay: 0 }));
-  const thrallLanes = [0, 1, 2].map(() => new Lane<PineHuntBody>(PINE_LANES.thrall, reach));
+  const profiles = new Map(ports.decisionProgram.strikes.map(row => [row.id, strikeFromData(row)]));
+  const kingLane = profiles.get('strike.antler-king.last-light'), thrallLane = profiles.get('strike.antler-king.thrall');
+  if (kingLane === undefined || thrallLane === undefined) throw new Error('Missing admitted King lanes');
+  const lane = new Lane<PineHuntBody>(kingLane, reach), waves = [0, 1].map(() => ({ r: 0, on: false, hit: false, delay: 0 }));
+  const thrallLanes = [0, 1, 2].map(() => new Lane<PineHuntBody>(thrallLane, reach));
   const fight: KingFight<PineHuntBody> = kingFight(env, {
     groundAt: (x, z) => ports.heightAt(x, z),
     body: {

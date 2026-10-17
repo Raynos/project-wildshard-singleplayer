@@ -4,12 +4,15 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { BossBrain } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
 import { KINGS_CLEARING } from '../data/layout';
-import { PINE_STRIKES, pineContact } from './strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import type { LaneState } from './lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '@wildshard/game/plugin/bossPhase';
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import * as v from 'valibot';
 import kingProfile from '../data/kingFight.generated.json' with { type: 'json' };
+
+const contact = new StrikeRunner();
 
 /** A body the King's fight drives: his own, or a thrall's (the page's Animal, the headless host's body). */
 export interface KingBody extends AnimalSim { hp: number; readonly maxHp: number; herd: number; place: (x: number, z: number, yaw: number) => void }
@@ -41,12 +44,14 @@ export function kingFight<B extends KingBody>(env: KingCoreEnv<B>, host: KingHos
   const declared=row.brain.data,recipe=row.body;
   const bound=new WeakSet<B>();
   const bind=(actor:B):B=>{if(!bound.has(actor)){decisions.bind(actor,declared,recipe);bound.add(actor);}return actor;};
+  const contacts = new Map(program.strikes.map(strikeData => [strikeData.id, strikeFromData(strikeData)]));
   const body={...host.body,make:():B=>bind(host.body.make())};
   const fight = bossFight(profile, { ...host, body, player: env.player, random: kingStreams(seed),
     contact: (a, strike, hit, options) => {
-      const spec = strike === 'sweep' ? PINE_STRIKES.sweep : strike === 'roots' ? PINE_STRIKES.roots : strike === 'lantern' ? PINE_STRIKES.lantern : undefined;
+      const spec = contacts.get(`strike.antler-king.${strike}`);
       if (spec === undefined) throw new Error(`Unknown Antler King strike ${strike}`);
-      return pineContact(a, env.player.position, spec, hit, () => env.reach(a, env.player.position), options);
+      if (!contact.contains(spec, { actor: { position: a.position, scale: a.scale, yaw: a.yaw }, target: env.player.position, ...options }) || (!spec.tags.includes('cover.exempt') && !env.reach(a, env.player.position))) return false;
+      hit(spec.damage); return true;
     },
     hurt: (a, damage, through) => { env.hurt(a, damage, through); }, trauma: amount => { env.trauma(amount); }, shot: (sound, at) => { env.shot(sound, at); } });
   const restore=fight.restore.bind(fight);fight.restore=(saved,bodies)=>{const actor=saved.body===null?undefined:bodies.get(saved.body);if(actor!==undefined)bind(actor);restore(saved,bodies);};

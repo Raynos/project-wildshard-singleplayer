@@ -8,7 +8,8 @@ import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin
 import { createNativeCreatureRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost } from '@wildshard/engine/sim';
-import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites } from '../combat/eliteRoster';
+import eliteRows from '../data/eliteRuntime.generated.json' with { type: 'json' };
+import { swapRolledElites } from '../combat/eliteScripts';
 import { pineEliteStreams } from '../combat/eliteStreams';
 import { SPAWN } from '../data/layout';
 import { PINE_FAUNA } from '../data/fauna.generated';
@@ -61,7 +62,7 @@ const Saved = v.strictObject({ version: v.literal(3), rng: Stream, clock: finite
  * Pine Hollow's creature manager in a renderer-free host (SF72), as the shipping AnimalManager builds and thinks it. The boot
  * roster comes from the one creature stream `Rng(1337 + 31)` in the page's exact order, every id, kind, variant, seed and scale
  * checked against the trusted bake: the herds (`HuntBrain.placeHerds` over the baked ground and the shard's fauna plan), the
- * boot swap of a rolled elite variant (combat/eliteRoster.ts), the Antler King's prewarm (his body and two thralls: their
+ * boot swap of a rolled elite variant (data/eliteRows.roster.generated.json), the Antler King's prewarm (his body and two thralls: their
  * draws and ids only, parked out of the manager's list with no body, as the page parks them hidden and bodiless), then the
  * four lair elites at their lairs (each spawn yaw from the level seed's `pine.elite.spawn.<id>`, taken under a fight's
  * control: out of its herd, scripted). Every body stands on the manager's creature floor (the first WORLD hit under its
@@ -132,7 +133,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     if (row === undefined) {
       // only a herd body that rolled an elite's identity is missing from the load-time list (the boot swap retired it): its
       // recipe is that identity's, which the elite at its lair carries
-      if (!isEliteVariant(kind, r.variant.id)) throw new Error(`Pine roster diverges from the page at ${id}`);
+      if (!Object.values(eliteRows.roster.animals).some(identity => identity.kind === kind && identity.variant === r.variant.id)) throw new Error(`Pine roster diverges from the page at ${id}`);
       return { id, spec: intake.spec(kind, r.variant.id), seed: r.seed, scale: r.scale, variant: r.variant.id };
     }
     // the bake is the page's own roll: a divergent draw anywhere refuses the roster rather than simulating another world
@@ -173,9 +174,9 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     for (let i = 0; i < 3; i++) rng.next(); // its memory's three draws (HuntBrain.adopt: timer, fleeUntil, callT)
     parked.push({ id: r.id, kind, variant: r.variant, spec: r.spec, seed: r.seed, scale: r.scale });
   });
-  Object.keys(PINE_ELITE_DEFS).forEach(id => {
-    const def = PINE_ELITE_DEFS[id], who = PINE_ELITE_ANIMALS[id];
-    if (def === undefined || who === undefined) throw new Error(`Pine elite ${id} has no animal`);
+  Object.entries(eliteRows.roster.defs).forEach(([id, def]) => {
+    const who = Object.entries(eliteRows.roster.animals).find(([key]) => key === id)?.[1];
+    if (who === undefined) throw new Error(`Pine elite ${id} has no animal`);
     const yaw = pineEliteStreams(id, host.level.seed).spawn.next() * Math.PI * 2;
     const a = spawn(who.kind, def.lair.x, def.lair.z, yaw, who.variant);
     a.herd = -1; a.state = SCRIPTED; a.scripted = true;

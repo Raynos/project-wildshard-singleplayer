@@ -148,7 +148,8 @@ export class StrikeRunner {
     if (this.elapsed >= spec.cooldown) this.cancel();
   }
   private phase(state: StrikePhase): void { this.hfsm.transition(state); this.elapsed = 0; }
-  private contains(spec: StrikeSpec, ctx: StrikeContext): boolean {
+  /** Pure overlap query for callers that own cover and damage. No callbacks run and no runner state changes. */
+  contains(spec: StrikeSpec, ctx: Omit<StrikeContext, 'actor' | 'canReach' | 'hit'> & { actor: Pick<StrikeActor, 'position' | 'scale' | 'yaw'> }): boolean {
     const { actor: a, target: p } = ctx;
     const origin = ctx.origin ?? a.position;
     const scale = spec.units === 'world' ? 1 : spec.units === 'actor' ? a.scale : Math.max(1, a.scale);
@@ -157,7 +158,7 @@ export class StrikeRunner {
     const d = distance(origin, p);
     return this.containsShape(spec.shape, spec, ctx, d, scale, origin) || (spec.alternatives?.some((shape) => this.containsShape(shape, spec, ctx, d, scale, origin)) ?? false);
   }
-  private containsShape(shape: StrikeShape, spec: StrikeSpec, ctx: StrikeContext, d: number, scale: number, origin: BrainPoint): boolean {
+  private containsShape(shape: StrikeShape, spec: StrikeSpec, ctx: Omit<StrikeContext, 'actor' | 'canReach' | 'hit'> & { actor: Pick<StrikeActor, 'position' | 'scale' | 'yaw'> }, d: number, scale: number, origin: BrainPoint): boolean {
     const { actor: a, target: p } = ctx;
     if (shape.kind === 'cone3d' || shape.kind === 'ray3d') {
       const dir = ctx.direction;
