@@ -59,9 +59,10 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
 export function neighbourProductFiles(source: Shardfile): readonly string[] {
   const props = source.props;
   const boundProps = source.runtime?.binds?.includes('props') === true;
+  const boundTerrain = source.runtime?.binds?.includes('terrain') === true;
   const { near: _near, ...drawn } = source;
   return runtimeOnlyProductFiles({ ...drawn, tiles: [], far: null,
-    terrain: source.terrain === null ? null : { ...source.terrain, tiles: [] },
+    terrain: source.terrain === null || boundTerrain ? null : { ...source.terrain, tiles: [] },
     props: props === null ? null : { ...props, tiles: [], far: null,
       ...(boundProps ? { models: [], wholeLibrary: [] } : {}),
       // The model key selects a colour map; material compilation only consumes its colour bytes.

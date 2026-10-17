@@ -194,6 +194,17 @@ test('failed durable writes retain runtime bytes instead of shrinking admission'
   expect(admitted.assets.get(f.ref)).toEqual(f.blob);
 });
 
+test('bound terrain queries reread on entry while unbound simulation inputs remain', () => {
+  const f = fixture();
+  f.source.runtime = { entry: 'runtime/index.ts', binds: ['terrain'] };
+  f.source.terrain = { version: 1, form: 'query', family: 'toon', collider: f.ref, tiles: [],
+    sampling: { law: 'bilinear', file: f.ref, normalEpsilon: 0.25, datum: 0 } };
+  expect(neighbourProductFiles(f.source)).toEqual([f.ref]);
+  f.source.sim.scripts.push(f.ref); expect(neighbourProductFiles(f.source)).toEqual([]);
+  f.source.sim.scripts.length = 0; f.source.runtime.binds = [];
+  expect(neighbourProductFiles(f.source)).toEqual([]);
+});
+
 test('online grid wires reread and verify network bytes after cache quota failure', async () => {
   const f = fixture(); trust(f.receipt);
   const options: ProductOptions = { ...f.options, cache: {

@@ -4194,7 +4194,9 @@ reduces a live, uncovered allocation, preserving its identity and holders.
 and near/far placeholder wires, plus props-bound models and whole-library
 wire files. Neighbour ring tiles and placeholders already read
 these through `ClientAssets.read`; entered whole geometry uses the same
-verified reader. Panels, texture bindings, collider inputs, shared host
+verified reader. Terrain-bound runtime query/collider wires also reread on
+entry; neighbours draw their tiles without these queries.
+Panels, texture bindings, unbound collider inputs, shared host
 references and their dependencies stay resident. Unbound library models
 stay resident for synchronous installers. Independent platform sections retain their own
 blob-path inputs, including native decision Wasm.
