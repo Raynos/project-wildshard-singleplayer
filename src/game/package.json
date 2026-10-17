@@ -127,7 +127,8 @@
     "./bag/findsCatalogue": "./bag/findsCatalogue.ts",
     "./plugin/borrowed": "./plugin/borrowed.ts",
     "./plugin/channels": "./plugin/channels.ts",
-    "./shardfile/eliteEncounters": "./shardfile/eliteEncounters.ts"
+    "./shardfile/eliteEncounters": "./shardfile/eliteEncounters.ts",
+    "./systems/viewmodel/toonArms": "./systems/viewmodel/toonArms.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

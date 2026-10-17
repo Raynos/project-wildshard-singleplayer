@@ -1772,6 +1772,24 @@ The practice predicate isolates the room when true, even when it has no targets.
 The starter set (`@wildshard/game/plugin/ui`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
 (`STARTER_EFFECTS`, `installStarterEffects`). Register rows with `ctx.rows.effect(STARTER_EFFECTS)` in `kit`.
 
+**Held arms (G474 / G475 / G477).** `@wildshard/game/systems/viewmodel/toonArms`
+defines `ToonArms`, the game host for sword arms, sockets, material binding and swimming.
+`new ToonArms(row)` admits `@wildshard/format/heldArms`'s `ToonArmsLookSchema` before
+loading anything: rig URL/skeleton/joint names, sockets, offset/frame, blade base,
+shadow lookup distance, swim plane and graph material identities. The rig uses
+`RigArms`'s semantic `arms`, `sword_wood`, `sword_iron` meshes and arm/swim clips.
+`lend({ materials, setParam }, { source: dayLight, target: toon.uniforms })` borrows the compiled look catalogue and
+returns its release; nested loans release independently, newest live loan wins.
+`load()` returns the manifest's wooden/iron sword arms and swimming hands;
+`specimen(sky, kind)` creates an independent Explorer skeleton with shared geometry.
+The host preserves blade quantization/glow, per-vertex metalness, shadow following
+and the camera-space swim plane. A shard supplies only rows and its existing look
+loan. No rig or material catalogue is installed by importing the module.
+The optional constructor rig-loader port defaults to `RigArms`; fixtures supply
+structural rigs without replacing modules. The fixture `test/held-arms-platform.test.ts`
+drives another shard's invented
+rig/material rows through the host, including release, glow and swim behaviour.
+
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
 `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`, `HitLine`,
 `makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `installRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,

@@ -11,20 +11,20 @@
 // island (the graph toon look, data/fpArmsLook.ts FP_ARMS_GRAPHS). ~9.5 k triangles of arms + ~0.8 k of sword, two draws +
 // the engine's trail.
 //
-// SHARD-PLATFORM M3: the arms are the toon arms (runtime/viewmodel/toonArms.ts); the look is data (data/fpArmsLook.ts).
+// SHARD-PLATFORM M3: the arms are the toon arms (game/systems/viewmodel/toonArms.ts); the look is data (data/fpArmsLook.ts).
 import type { Object3D, Group, Material } from 'three';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { fixedDraw } from './boot/blobAssets';
 import { driftwoodRows } from './boot/rows';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ToonArms, type ToonArmsLooks } from './viewmodel/toonArms';
+import { ToonArms, type ToonArmsLooks, type ToonArmsLight } from '@wildshard/game/systems/viewmodel/toonArms';
 
 let rig: ToonArms | null = null;
 const arms = (): ToonArms => { rig ??= new ToonArms(driftwoodRows('custom/fixedLayouts').nativeView.FP_ARMS_LOOK); return rig; };
 
 /** lend the compiled arm graphs (FP_ARMS_MATERIALS) and their toon look's follow, before any arms are dressed; returns
  *  the release */
-export function lendCastawayArms(looks: ToonArmsLooks, follow: () => void): () => void { return arms().lend(looks, follow); }
+export function lendCastawayArms(looks: ToonArmsLooks, light: ToonArmsLight): () => void { return arms().lend(looks, light); }
 
 /** the rigs, loaded as ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands */
 export function castawayArms(): ReturnType<InstanceType<typeof ToonArms>['load']> { return arms().load(); }

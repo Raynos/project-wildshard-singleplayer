@@ -16,5 +16,6 @@
   "test/scripts/nine-casts.test.ts": ["nine-dragon-stack"],
   "test/scripts/nine-sign-atlas.test.ts": [],
   "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"],
-  "test/painted-look-rows.test.ts": []
+  "test/painted-look-rows.test.ts": [],
+  "test/held-arms-platform.test.ts": []
 }

@@ -19,7 +19,7 @@ import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
 import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
-import { followToon } from './look/toon';
+import { toonState } from './look/toon';
 
 type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 
@@ -71,7 +71,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     // swimming hands are dressed (and any Model Explorer card)
     const arms = await runtimeLookMaterials(ctx, ctx.product.shardfile, true, Object.values(driftwoodRows('custom/fixedLayouts').nativeView.FP_ARMS_MATERIALS));
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded while compiling its arms');
-    ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
+    ctx.scope.onDispose((await import('./fpArms')).lendCastawayArms(arms, { source: toonState().dayLight, target: arms.toon.uniforms }));
     await installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
     const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials, ctx.product.shardfile);
     ctx.rows.weapon(rows);

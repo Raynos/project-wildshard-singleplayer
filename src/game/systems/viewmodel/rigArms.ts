@@ -209,7 +209,7 @@ const CLIP: Readonly<Record<Move['name'] | 'charge', string>> = {
  */
 export interface VmFrame { size: number; pitch: number; yaw: number; roll: number }
 /** a sword viewmodel built on rigged arms (its offset, framing and sky setup) */
-export function swordArmsOf(rig: RigArms, opts: { offset?: Vector3; frame?: Partial<VmFrame>; setup?: (sky: Sky) => void }): SwordArms {
+export function swordArmsOf(rig: Pick<RigArms, 'root' | 'play' | 'update' | 'blade'>, opts: { offset?: Vector3; frame?: Partial<VmFrame>; setup?: (sky: Sky) => void }): SwordArms {
   const off = opts.offset ?? new Vector3();
   const frame: VmFrame = { size: 1, pitch: 0, yaw: 0, roll: 0, ...opts.frame };
   rig.root.userData['vmFrame'] = frame;

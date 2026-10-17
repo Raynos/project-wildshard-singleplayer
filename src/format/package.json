@@ -150,7 +150,8 @@
     "./uiStrings": "./uiStrings.ts",
     "./nativePhysics": "./nativePhysics.ts",
     "./worldPhysics": "./worldPhysics.ts",
-    "./platformDataSections": "./platformDataSections.ts"
+    "./platformDataSections": "./platformDataSections.ts",
+    "./heldArms": "./heldArms.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
