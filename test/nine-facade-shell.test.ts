@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare packed bytes natively without per-element assertion diagnostics.
+import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { BufferAttribute } from 'three';
 import { nineLayoutSource } from '../src/shards/nine-dragon-stack/generators/layout';
@@ -15,7 +17,7 @@ test('restores the offline facade shell with exact packed channels and bounds', 
   restoreLayout(bake, ctx);
   const restored = ctx.fd.shell;
   if (restored === null) throw new Error('Nine restored no facade shell');
-  expect(restored).not.toBe(original);
+  expect(restored === original).toBe(false);
   expect(Object.keys(restored.attributes)).toEqual(Object.keys(original.attributes));
   for (const [name, expected] of Object.entries(original.attributes)) {
     const actual = restored.getAttribute(name);
@@ -23,10 +25,20 @@ test('restores the offline facade shell with exact packed channels and bounds', 
     expect(actual.constructor).toBe(expected.constructor);
     expect(actual.itemSize).toBe(expected.itemSize);
     expect(actual.normalized).toBe(expected.normalized);
-    expect(new Uint8Array(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength))
-      .toEqual(new Uint8Array(expected.array.buffer, expected.array.byteOffset, expected.array.byteLength));
+    expect(Buffer.compare(
+      new Uint8Array(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength),
+      new Uint8Array(expected.array.buffer, expected.array.byteOffset, expected.array.byteLength),
+    )).toBe(0);
   }
-  expect(restored.index?.array).toEqual(original.index?.array);
+  expect(restored.index === null).toBe(original.index === null);
+  if (restored.index !== null && original.index !== null) {
+    const actual = restored.index.array, expected = original.index.array;
+    expect(actual.constructor).toBe(expected.constructor);
+    expect(Buffer.compare(
+      new Uint8Array(actual.buffer, actual.byteOffset, actual.byteLength),
+      new Uint8Array(expected.buffer, expected.byteOffset, expected.byteLength),
+    )).toBe(0);
+  }
   expect(restored.boundingBox).toEqual(original.boundingBox);
   expect(restored.boundingSphere).toEqual(original.boundingSphere);
   expect(ctx.fd.pieces.length).toBe(source.rows.pieces.length);
