@@ -56,7 +56,9 @@ def main():
     try:
         tree = Path.cwd().resolve()
         # Four workers for the short related-test phase (the full suite ran on two); only Vitest reads it.
-        env = dict(os.environ, WS_VITEST_MAX_WORKERS='4')
+        # Production refusals (including stale map stamps) must fail here just
+        # as they do in Actions; local capture previews retain warning mode.
+        env = dict(os.environ, CI='true', WS_VITEST_MAX_WORKERS='4')
         env.pop('WS_GATE_REPO', None)
         for key in subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], cwd=root, text=True).splitlines():
             env.pop(key, None)
