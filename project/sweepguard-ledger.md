@@ -180,3 +180,6 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 00:42 · wT:pK · `GIT_INDEX_FILE=/Users/raynos/projects/games/wildshard-singleplayer/tmp/sky-signal-layout/index SKIP_SWEEPGUARD=1 .githooks/pre-commit > tmp/sky-signal-layout/precommit.log 2>&1`
 - 2026-10-17 00:44 · wT:p6 · `test ! -e .git/quiet && SKIP_SWEEPGUARD=1 python3 tmp/nine-items-x6/land.py`
 - 2026-10-17 00:53 · wT:p5 · `cat > tmp/nalati-camp-bake/land.py <<'PY' from pathlib import Path import subprocess, os, json home=Path('tmp/nalati-camp-bake'); base=(home/'base').read_text();tree=(home/'tree').read_text() env={**o`
+- 2026-10-17 00:57 · wT:p3 · `GIT_INDEX_FILE="$PWD/tmp/sp-x1-nalati/index" SKIP_SWEEPGUARD=1 .githooks/pre-commit > tmp/sp-x1-nalati/precommit.log 2>&1`
+- 2026-10-17 00:57 · wT:p3 · `python3 - <<'PY' from pathlib import Path import json,subprocess,os,signal p=Path('scripts/generation-jobs.json');j=json.loads(p.read_text());ours=next(x for x in j['jobs'] if x['id']=='nalati-crags')`
+- 2026-10-17 01:23 · wT:p3 · `test ! -e .git/quiet GIT_INDEX_FILE="$PWD/tmp/sp-x1-nalati/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json,pathlib;p=pathlib.Path("tmp/sp-x1-nalati");print(json.dumps({"base":(p/"`
