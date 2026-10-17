@@ -32,6 +32,7 @@ import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
 import { coverRuntimeAssets } from './assetResidency';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
+import { pacedResolve } from '@wildshard/engine/core/workSlice';
 
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -220,7 +221,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           for (const key of Reflect.ownKeys(runtime.hooks)) Reflect.deleteProperty(runtime.hooks, key);
           for (const key of Reflect.ownKeys(runtime.objects)) Reflect.deleteProperty(runtime.objects, key);
           Reflect.deleteProperty(runtime, 'buildEquipment'); Reflect.deleteProperty(runtime, 'menu');
-          runtime.step = (_key, work) => Promise.resolve().then(() => work(request.page.context.progress));
+          // a named build step starts after the frame when the frame's build budget is already spent (pacedResolve)
+          runtime.step = (_key, work) => pacedResolve(undefined).then(() => work(request.page.context.progress));
           const installation = createLevelInstallation(app, owner, app.levelAdapters, () => request.page.context.progress);
           view.root.add(installation.context.root);
           const base = shardContext(installation.context, request.manifest, { ...request.page.context.game,

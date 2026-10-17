@@ -1,3 +1,4 @@
+import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl } from './outputDescriptor';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -16,7 +17,9 @@ export class ClientAssets {
   async read(ref: string): Promise<Uint8Array> {
     const file = this.source.files.find((row) => row.hash === ref);
     if (file === undefined && !this.source.requires.commons.some((hash) => ref === `commons:${hash}`)) throw new Error('Undeclared resident asset');
-    const present = this.wire.get(ref); if (present !== undefined) return present;
+    // a cached read resolves at once, unless the frame's build budget is spent (pacedResolve): a hook's chain of
+    // cached reads must not run in one task on the road
+    const present = this.wire.get(ref); if (present !== undefined) return pacedResolve(present);
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
     const cap = file?.compressed ?? this.source.requires.commonsWire[hash] ?? 0;
     let bytes = await this.options.cache?.asset(base, hash), downloaded = false;

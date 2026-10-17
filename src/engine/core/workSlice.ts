@@ -10,10 +10,10 @@
  *   const slice = workSlice();
  *   for (const item of items) { work(item); if (slice.due()) await slice.yield(); }
  */
-import { resourceScope } from '../app/resources';
+import { pageScope, resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { diagnosticNow } from './clock';
-import { frameBudgetSpent, paceYield, presenting } from './framePacing';
+import { frameBudgetSpent, nextDrawnFrame, paceYield, presenting } from './framePacing';
 
 /** The longest synchronous stretch a sliced builder runs before it lets a frame through (ms). */
 export const WORK_SLICE_MS = 8;
@@ -80,4 +80,17 @@ export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): Work
     check: () => (slice.due() ? slice.yield() : undefined),
   };
   return slice;
+}
+
+/**
+ * A value an async API already holds (a cached asset read), handed back as its promise (OP, grid entry hitches): on
+ * its microtask, unless a presenting page's shared build budget is spent (`frameBudgetSpent`), then after the next drawn
+ * frame. A runtime hook that awaits cached reads one after another otherwise ran its whole chain in one task: every
+ * await of an already-present asset resumed in a microtask, so no frame was drawn between them. Not presenting (loading
+ * screens, Node, pacing off) it is exactly `Promise.resolve`. The wait is the page's (never a retired owner's) and is
+ * capped by `nextDrawnFrame`, so it cannot strand its caller.
+ */
+export function pacedResolve<T>(value: T): Promise<T> {
+  if (!frameBudgetSpent(WORK_SLICE_MS)) return Promise.resolve(value);
+  return nextDrawnFrame(pageScope).then(() => value);
 }

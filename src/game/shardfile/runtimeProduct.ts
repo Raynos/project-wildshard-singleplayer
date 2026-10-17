@@ -3,6 +3,7 @@ import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
+import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { shardProductData } from './productData';
 import { absentShardProduct, type ShardProduct } from './shardProduct';
@@ -180,7 +181,7 @@ export function shardProductFromAdmission(admitted: AdmittedProduct, scope: Scop
     const reader = new ClientAssets(admitted.source, new Map(), opts);
     product = shardProductData(admitted.source, opts.base, ref => {
       const present = admitted.assets.get(ref);
-      return present === undefined ? reader.read(ref) : Promise.resolve(present);
+      return present === undefined ? reader.read(ref) : pacedResolve(present);
     }, outputDescriptor(admitted.source)?.receipt === undefined);
     admittedProducts.set(admitted.source.files, product);
   }
