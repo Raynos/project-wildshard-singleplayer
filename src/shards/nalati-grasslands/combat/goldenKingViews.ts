@@ -2,8 +2,10 @@ import type { BossViewBinding } from '@wildshard/sdk/phasedBoss';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import * as THREE from 'three';
 import type { KurganDungeon } from '../world/KurganDungeon';
-import { DUNGEON, COFFIN } from '../data/kurganLayout';
-import { KING_TUNING } from '../data/goldenKingFight';
+import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
+import kingData from '../data/goldenKing.generated.json' with { type: 'json' };
+
+const { DUNGEON, COFFIN } = layout;
 
 /** The chamber the Golden King's views draw on: its lid, shafts, niches, rings, pours, beam, dome, painted arc and heap. */
 export type KingChamber = Pick<KurganDungeon, 'setLid' | 'setShaft' | 'setNicheStatue' | 'showHeap' | 'sandAt' | 'rings' | 'streams' | 'beam' | 'dome' | 'arc'>;
@@ -12,7 +14,7 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _h = new THREE.Vector3
 const n = (value: number | undefined): number => value ?? 0;
 
 /**
- * The Golden King fight's view bindings (SF27): every view the platform fight (data/goldenKingArena.ts) names, drawn on
+ * The Golden King fight's view bindings (SF27): every view the platform fight (data/goldenKing.generated.json) names, drawn on
  * the kurgan chamber's meshes in its local frame, and the King's gold glow on his body's materials. View only: nothing
  * here moves the fight.
  */
@@ -41,7 +43,7 @@ export function goldenKingViews(d: KingChamber, king: () => Animal | null): Boss
       arc.mesh.visible = true;
       arc.mesh.position.set(n(x) - DUNGEON.x, n(floorY) - DUNGEON.y + 0.04, n(z) - DUNGEON.z);
       arc.mesh.rotation.y = n(yaw) - Math.PI / 2;
-      arc.mesh.scale.setScalar(KING_TUNING.reach * 1.15);
+      arc.mesh.scale.setScalar(kingData.tuning.reach * 1.15);
     },
     'strike.arc.off': () => { d.arc.mesh.visible = false; },
     'hazard.ring': (i, cx, cz, r) => {
@@ -50,7 +52,7 @@ export function goldenKingViews(d: KingChamber, king: () => Animal | null): Boss
       vis.mesh.visible = true;
       vis.mesh.position.set(n(cx) - DUNGEON.x, 0.06, n(cz) - DUNGEON.z);
       vis.mesh.scale.setScalar(n(r));
-      vis.mat.uniforms.uAlpha.value = 1.4 * (1 - THREE.MathUtils.smoothstep(n(r), KING_TUNING.ringMax * 0.7, KING_TUNING.ringMax));
+      vis.mat.uniforms.uAlpha.value = 1.4 * (1 - THREE.MathUtils.smoothstep(n(r), kingData.tuning.ringMax * 0.7, kingData.tuning.ringMax));
     },
     'hazard.ring.off': (i) => { const vis = d.rings[n(i)]; if (vis) vis.mesh.visible = false; },
     'hazard.ring.tell': (x, floorS, z, charge) => {
@@ -76,7 +78,7 @@ export function goldenKingViews(d: KingChamber, king: () => Animal | null): Boss
       vis.mat.uniforms.uAlpha.value = n(k);
     },
     'hazard.sweep': (cx, cz, angle, dir, k) => {
-      const b = d.beam, R = KING_TUNING.beamRadius, a = n(angle);
+      const b = d.beam, R = kingData.tuning.beamRadius, a = n(angle);
       const top = _w.set(COFFIN.x + 0.3, 6.2, COFFIN.z + 0.1);
       _v.set(n(cx), 0, n(cz));
       const len = _v.distanceTo(top);

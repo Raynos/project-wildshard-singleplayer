@@ -7,7 +7,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { Player } from '@wildshard/engine/player/Player';
-import { BossBar } from '@wildshard/engine/ui/BossBar';
+import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -21,13 +21,14 @@ import type { KurganEntrance } from '../world/KurganField';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import { KurganDungeon } from '../world/KurganDungeon';
-import { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../data/kurganLayout';
+import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
+import { installBossEncounter, type Boss, type BossPersistence } from '@wildshard/game/Boss';
 import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
-import { KING_ENCOUNTER, KING_REWARD } from '../data/goldenKingFight';
-import { GOLDEN_KING_BOSS_PROFILE } from '../data/goldenKingArena';
+import kingData from '../data/goldenKing.generated.json' with { type: 'json' };
 import { goldenKingViews } from './goldenKingViews';
+
+const { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } = layout;
 
 
 /**
@@ -35,7 +36,7 @@ import { goldenKingViews } from './goldenKingViews';
  * step"; mockups art/nalati-grasslands/round-2/5-bosses/). Two pieces:
  *
  *   goldenKingFight — the admitted arena boss profile (`@wildshard/game/plugin/bossPhase`, SF82) on his row
- *     (data/goldenKingArena.ts) with the chamber's views (combat/goldenKingViews.ts): the King's brain (`bindGoldenKing`,
+ *     (data/goldenKing.generated.json) with the chamber's views (combat/goldenKingViews.ts): the King's brain (`bindGoldenKing`,
  *     the species forwards its 10 Hz tick here), his damage rule, the three phases and what each does to the room:
  *       I   "The King's Court" (100 → 60 %): he duels you on the open floor — the akinakes combo (14 / 14 / 22; the blade
  *           glints before each cut, the third's wide arc is painted on the floor) and the SUNBURST (sword up, gold spirals
@@ -91,7 +92,7 @@ export interface GoldenKingFight {
 
 /** The Golden King's fight in the kurgan chamber: his row on the platform phased boss fight, the chamber as its arena and views. */
 export function goldenKingFight(dungeon: KurganDungeon, host: FightHost): GoldenKingFight {
-  const profile = parseBossProfile(GOLDEN_KING_BOSS_PROFILE);
+  const profile = parseBossProfile(kingData.profile);
   if (profile.pattern !== 'arena') throw new Error('The Golden King requires its declared arena pattern');
   /** out of the fight for good: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   const retire = (a: Animal): void => {
@@ -197,9 +198,6 @@ export interface KurganPlay {
 
 export interface KurganCtx { game: Game; sky: Sky; player: Player; entrance: KurganEntrance | null; registry: WorldRegistry }
 
-/** Authored arena and reward adapter; the encounter clock is BossBrain. */
-export class GoldenKing extends Boss {}
-
 export class KurganBoss {
   readonly dungeon = new KurganDungeon();
   readonly spareLight = new THREE.PointLight(0xffc860, 0, 1, 2);
@@ -249,36 +247,32 @@ export class KurganBoss {
     // build the adds' model now, not mid-fight (a prewarm: a broken add rig must not take the whole boot down)
     try { play.animals.factory.model(KURGAN_BALBAL, 'warrior'); } catch (e) { console.warn('[kurgan] the balbal adds did not build', e); }
     this.golden = new GoldenBowPower({ scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
-    this.ui = new BossBar();
-    this.fight = goldenKingFight(this.dungeon, {
-      player, animals: play.animals,
-      ...(play.spawnKing === undefined ? {} : { spawnKing: play.spawnKing }),
-      hurt: (dmg, throughWalls) => { const k = this.fight?.king() ?? null; if (k) encounterHit(k, dmg, 'boss.golden-king', player.position, throughWalls); },
-      feed: play.feed,
-    });
-    const def: BossDef = {
-      ...KING_ENCOUNTER,
+    const encounter = installBossEncounter({ definition: kingData.encounter, reward: kingData.reward }, () => {
+      this.fight = goldenKingFight(this.dungeon, {
+        player, animals: play.animals,
+        ...(play.spawnKing === undefined ? {} : { spawnKing: play.spawnKing }),
+        hurt: (dmg, throughWalls) => { const k = this.fight?.king() ?? null; if (k) encounterHit(k, dmg, 'boss.golden-king', player.position, throughWalls); },
+        feed: play.feed,
+      });
+      return this.fight.script;
+    }, {
+      game, player, spareLight: this.spareLight, scope: game.levelScope, chunkId: 'nalati-grasslands', interactables: play.interactables,
       reward: {
-        ...KING_REWARD,
         model: () => goldenBowModel(sky),
         grant: () => { if (play.bow && this.golden) { play.upgradeBow(this.golden); } },
       },
-    };
-    this.boss = new GoldenKing(def, this.fight.script, {
-      scene: game.scene, player, camera: game.camera, renderer: game.renderer, spareLight: this.spareLight,
       lockInput: (on) => { this.locked = on; play.setWeaponsEnabled(!on); this.applyMove(); },
       respawn: (pos, yaw) => { player.position.copy(pos); player.velocity.set(0, 0, 0); player.yaw = yaw; player.pitch = 0; play.refill(); },
-      addInteractable: (it) => { play.interactables.push(it); },
-      removeInteractable: (it) => { const i = play.interactables.indexOf(it); if (i !== -1) play.interactables.splice(i, 1); },
       skipHeld: () => this.skipKeys || this.skipTouch || app.input.held('jump') || app.input.held('use'),
       toast: play.toast, feed: play.feed,
+      ...(play.persistence === undefined ? {} : { persistence: play.persistence }),
       ...(play.music ? { music: play.music } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
-    }, this.ui, 'nalati-grasslands', play.persistence);
-    app.encounters.boss('golden-king', this.boss, game.levelScope);
+    });
+    this.ui = encounter.ui; this.boss = encounter.boss;
     // the King starts outside every list until you walk in; the reward, once won, is yours at every boot
-    this.fight.script.reset(0);
-    this.fight.setPresent(false);
+    encounter.fight.reset(0);
+    this.fight?.setPresent(false);
     if (this.boss.rewardTaken && play.bow) { play.upgradeBow(this.golden); }
     listenPage(game.levelScope, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = true; });
     listenPage(game.levelScope, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = false; });

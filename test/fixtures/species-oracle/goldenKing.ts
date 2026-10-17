@@ -11,9 +11,9 @@ import * as THREE from 'three';
 import { GOLDEN_KING, bindGoldenKing } from '../../../src/shards/nalati-grasslands/species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../../../src/shards/nalati-grasslands/species/balbal';
 import type { KurganDungeon } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';
-import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/data/kurganLayout';
+import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/generators/kurganLayout';
 import type { BossScript } from '../../../src/engine/ai/BossBrain';
-import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/data/goldenKingFight';
+import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/generators/goldenKingFight';
 
 type Mode = 'coffin' | 'rising' | 'fight' | 'toCoffin' | 'shield' | 'stun' | 'kneel' | 'dead';
 interface Ring { r: number; delay: number; active: boolean; hit: boolean; cx: number; cz: number }

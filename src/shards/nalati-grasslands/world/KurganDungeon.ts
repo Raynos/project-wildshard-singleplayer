@@ -1,4 +1,4 @@
-import { DUNGEON, CH, DROMOS_END, COFFIN, PEDESTAL, NICHES, STREAMS } from '../data/kurganLayout';
+import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -51,6 +51,8 @@ import * as THREE from 'three';
 import { PaintKit, M, v3 } from './paint';
 import { pole, blob, lathe } from '@wildshard/engine/world/geometryKit';
 import { balbalGeometry } from '../models/balbal';
+
+const { DUNGEON, CH, DROMOS_END, COFFIN, PEDESTAL, NICHES, STREAMS } = layout;
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */
 /** chamber half size (m): 20 × 20 */
