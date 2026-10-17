@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W1 DONE (10-17 ~09:30Z).** Ruler at `636e6932d` (~10:00Z): **M3 61.5 % (49,274 of 80,173 cut)**, plan 36.9–70.2 %. Sky 521 (7.7 %), Signal 392 (9.5 %); W2: Pine 10,376 (target ≤ 20 %), DW 6,333; W3 later: Nalati 20,069, Nine 11,889. Sim floor (p95 ≤ 35 ms): Sky, spawn and interiors pass; Pine travel 36, Nalati travel 46, DW 43/42 miss. Ladder G479: Opus eyes-only, 0 running.
+**W1 DONE (10-17 ~09:30Z).** Ruler at `512db7583` (~11:20Z): **M3 62.4 % (50,010 of 80,173 cut)**, plan 37.4–70.8 %. Sky 521 (7.7 %), Signal 392 (9.5 %); W2: Pine 9,838 (46.2 % of 21,305; target ≤ 4,261), DW 6,135 (35.7 % of 17,167; target ≤ 3,433); W3 later: Nalati 20,069, Nine 11,889. G482 HOST-BAR now gates every feature landing (≥ 5/6; scores progress/shard-platform/host-bar-scores-2026-10-17/). Ladder G479: Opus eyes-only, 0 running.
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
