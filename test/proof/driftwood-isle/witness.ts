@@ -1,3 +1,7 @@
+import { productHeadlessSections } from '../../../src/sdk/headlessSections';
+import type { ShardProduct } from '../../../src/game/shardfile/shardProduct';
+import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual shard, tape and committed native checkpoints.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exact input/effect freshness, not a gameplay hash substitute.
@@ -51,8 +55,15 @@ export const OPEN = [
 ];
 export const SCOPE = 'Real Sealed Ring, reef and spawn-to-zipline journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility';
 export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
-  return createTrustedHeadlessResident({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
+function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
+  const descriptor = outputDescriptor(product.shardfile);
+  if (descriptor === undefined) throw new Error('Missing admitted native output');
+  return new Map([...assets, ...descriptor.index.files.filter(file => file.kind === 'wasm' || product.shardfile.files.some(required => required.hash === file.hash)).map(file => [file.hash,
+    Uint8Array.from(readFileSync(new URL(`out/driftwood-isle/${file.path}`, ROOT)))] as const)]);
+}
+async function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
+  const product = await loadHeadlessProduct('out/driftwood-isle');
+  return createTrustedHeadlessResident({ shard: product.shardfile, assets: nativeAssets(product), rapier, product }, { module: MODULE }, snapshot);
 }
 function manifest(): Recorded { return v.parse(Manifest, readWitnessManifest(MANIFEST)); }
 function tape(m: Recorded): HeadlessCommand[][] {
@@ -206,7 +217,8 @@ export async function reefProof(rapier: Rapier): Promise<object> {
     if (!session.host.playerSwim.diving) throw new Error('Real held DIVE never entered a dive');
     const restoreTick = session.host.state.tick, checkpoint = save(session);
     fork = await boot(rapier, checkpoint);
-    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } });
+    const product = await loadHeadlessProduct('out/driftwood-isle');
+    worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
     const initial = worker.checkpoint;
     if (digest(fork) !== digest(session) || initial === undefined || canonicalSimDigest(initial.snapshot) !== digest(session)) throw new Error('Mid-dive restore was not exact');
     const wetStep = async (commands: HeadlessCommand[]): Promise<void> => {
@@ -281,7 +293,8 @@ export async function ziplineProof(rapier: Rapier): Promise<object> {
     if (checkpoint === undefined || fork === undefined || frames.length !== 60 || !session.host.flags.has('used:zipline') || digest(fork) !== digest(session)) throw new Error('Zipline continuation did not land exactly');
     const earned = Object.values(profile(local).state().achievements).find(row => row.id === 'zipline');
     if (earned?.count !== 1) throw new Error('Real landing did not persist its single zipline fact');
-    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } });
+    const product = await loadHeadlessProduct('out/driftwood-isle');
+    worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
     if (worker.checkpoint === undefined || canonicalSimDigest(worker.checkpoint.snapshot) !== canonicalSimDigest(checkpoint)) throw new Error('SDK mid-ride restore diverged');
     for (const frame of frames) {
       const commit = await worker.step([{ source: 'witness.zipline', commands: frame.commands }]);
@@ -328,7 +341,8 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     if (captain === undefined || !captain.alive || captain.hp >= 200 || typeof encounter !== 'string') throw new Error('Checkpoint is not the living mid-fight Captain');
     const hp = captain.hp, checkpoint = save(original); restored = await boot(rapier, checkpoint);
     if (digest(original) !== digest(restored)) throw new Error('Mid-fight restore not exact');
-    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } });
+    const product = await loadHeadlessProduct('out/driftwood-isle');
+    worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
     const until = Math.min(m.ticks, cp.tick + 1000), a: Recorded['effects'] = [], b: Recorded['effects'] = [];
     if (until - cp.tick > 10_000) throw new Error('Captain replay exceeded its 10k window');
     for (let i = cp.tick; i < until; i++) {

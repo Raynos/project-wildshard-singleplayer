@@ -1177,6 +1177,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
         if (brain.archetype === 'decision') {
           if (shared.decisions === undefined) throw new Error('Missing native decision authority');
           const controller = shared.decisions.bind(actor, brain.data, recipe); registerHeld(kind, actor, controller);
+          controller.observe(ports);
           return { think: observation => { controller.observe(observation); }, act: observation => { controller.observe(observation); }, snapshot: controller.snapshot, restore: controller.restore };
         }
         if (brain.archetype === 'ram-grazer') {

@@ -1,3 +1,5 @@
+import { installCableModes } from '../../../src/engine/player/modes';
+import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
 import { createNativeCombatFrame, readItemInventory, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads Pine's native bakes and the native physics module.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -52,7 +54,17 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function pineRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export async function pinePlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/pine-hollow') }); }
+export async function pinePlan(rapier: Rapier): Promise<HeadlessRuntimePlan> {
+  const product = await loadHeadlessProduct('out/pine-hollow'), descriptor = outputDescriptor(product.shardfile);
+  if (descriptor === undefined) throw new Error('Missing admitted native output');
+  const nativeAssets = new Map([...assets, ...descriptor.index.files.filter(file => file.kind === 'wasm' || product.shardfile.files.some(required => required.hash === file.hash)).map(file => [file.hash,
+    Uint8Array.from(readFileSync(new URL(`out/pine-hollow/${file.path}`, ROOT)))] as const)]);
+  const plan = await prepareHeadlessRuntime({ shard: product.shardfile, assets: nativeAssets, rapier, product });
+  return { ...plan, install: (host, installation) => {
+    installCableModes(host.scope, product.shardfile.modes?.traverse ?? [], host.flags).bindNative(host);
+    plan.install(host, installation);
+  } };
+}
 
 function context(session: Omit<Session, 'host'>, saved?: SimSnapshot): HeadlessRuntimeInstallation {
   return { combat: session.combat, restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };

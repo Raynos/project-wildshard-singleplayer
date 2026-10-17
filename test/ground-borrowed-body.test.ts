@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only an exact product receipt skips generation.
 import { env, execPath } from 'node:process';
 import { beforeAll, expect, test } from 'vitest';
+import { Vector3 } from 'three';
 import { PINE_TERRAIN } from '../src/shards/pine-hollow/data/terrainBindings';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
@@ -51,12 +52,17 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
         expect(host.entities.get(body.entityId)).toBe(body);
         expect(v.parse(logical,JSON.parse(policy().decision)).decision.bindings[0]?.failures,policy().decision).toBe(0);
       }
+      body.stagger(new Vector3(1, 0, 0), 1);
+      expect(body.stunned).toBe(true);
       const saved=snapshotSimHost(host),before=control.snapshot();
       resumed=await createTrustedHeadlessResident(preparation,entry,saved);
       resumed.host.events.answer('damage.modify',request=>request?.target===resumed?.host.player.health?null:request,resumed.host.scope);
       const restored=resumed.host.entities.get(body.entityId);if(restored===undefined)throw new Error('Missing restored body');
       expect(borrowedDecisionControl(restored).snapshot()).toBe(before);
-      for(let i=0;i<30;i++){resident.step([]);resumed.step([]);}
+      for(let i=0;i<90;i++){
+        resident.step([]);resumed.step([]);
+        expect(borrowedDecisionControl(restored).snapshot()).toBe(control.snapshot());
+      }
       const decode=(wire:unknown)=>{const decoded=v.parse(savedControl,JSON.parse(v.parse(v.string(),wire)));const decision:unknown=JSON.parse(decoded.decision);return {...decoded,decision};};
       expect(decode(borrowedDecisionControl(restored).snapshot())).toEqual(decode(control.snapshot()));
       const legacy=structuredClone(saved),entryState=legacy.entities.find(row=>row.id===body.entityId);
