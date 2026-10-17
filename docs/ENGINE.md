@@ -6421,8 +6421,10 @@ owner's saved scalar clock after the caller writes the current locals.
 optional complete `root` and ordered named `bones` local transforms
 (`p`, `r`, `order`, `s`). Complete transforms retain frozen far-LOD joints;
 every identity validates before mutation. `restore` recognizes that old
-unversioned envelope. Pine's Antler King and Nalati's taming horses use
-the same converter.
+unversioned envelope. `snapshot('local')` keeps that transform envelope
+byte-for-byte for callers that fully publish their locals before saving;
+the default native wire retains separate current and published contacts.
+Pine's Antler King and Nalati's taming horses use the same converter.
 
 `game/plugin/animation.createNativeCreaturePoses` lends a bounded pose
 roster over admitted kind/variant recipe rows. Its `binding` supplies the

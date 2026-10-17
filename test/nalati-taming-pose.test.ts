@@ -41,6 +41,7 @@ test('taming pose retains the old head, overlays and far-LOD joints through lega
     old.advance(1 / 60, tick / 60, near); pose.advance(1 / 60, tick / 60, near);
     if (near) poseNalatiHorse(pose.context, wind); pose.publish();
     heads(tick); expect(after.mem).toEqual(before.mem);
+    expect(pose.snapshot('local')).toBe(old.snapshot());
     if (tick === 95) { pose.restore(old.snapshot()); heads(); }
     if (tick === 125) { const wire = pose.snapshot(); pose.restore(wire); heads(tick); }
   }

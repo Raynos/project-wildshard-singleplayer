@@ -627,8 +627,15 @@ export class NativeCreaturePose {
   foreCapsule(rear: Vector3, front: Vector3): boolean {
     const f = this.actor.dims.fore; if (f === undefined) return false; this.fk.capsule(this.fore, f.at, 'x', 0, f.halfLen, rear, front); return true;
   }
-  /** Includes blend history, current locals and the distinct cached publication; the host snapshots the actor itself. */
-  snapshot(): string {
+  /** Native format retains distinct contact publication. Local format preserves an older fully published
+   * quadruped envelope byte-for-byte; only callers that publish every local before saving may select it. */
+  snapshot(format: 'native' | 'local' = 'native'): string {
+    if (format === 'local') {
+      const transform = (joint: AnimalRigJoint) => ({ p: joint.position.toArray(),
+        r: [joint.rotation.x, joint.rotation.y, joint.rotation.z], order: joint.rotation.order, s: joint.scale.toArray() });
+      return JSON.stringify({ pose: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0, root: transform(this.root),
+        bones: this.joints.map((joint, index) => [this.recipe.joints[index]?.name, transform(joint)]) });
+    }
     return JSON.stringify({ version: 1, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
       local: NativeCreaturePose.encoded([...this.joints.flatMap(NativeCreaturePose.values), ...NativeCreaturePose.values(this.root)]), published: NativeCreaturePose.encoded(Array.from(this.published)), frame: NativeCreaturePose.encoded(Array.from(this.publishedFrame)), leg: NativeCreaturePose.encoded(Array.from(this.legAbd)), wasAlive: this.wasAlive });
   }

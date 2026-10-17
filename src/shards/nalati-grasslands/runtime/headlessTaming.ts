@@ -133,7 +133,7 @@ export function installNalatiTaming(host: SimHost, ports: {
       row.pose.advance(bodyDt, host.clock.now, near); if (near) ports.animate(row.pose.context); row.pose.publish();
     }
   }, {
-    snapshot: (): SimValue => ({ version: 1, law: law.snapshot(), bond, pitch, shake, roll, poses: [...poses].map(([id, pose]) => [id, pose.snapshot()]) }),
+    snapshot: (): SimValue => ({ version: 1, law: law.snapshot(), bond, pitch, shake, roll, poses: [...poses].map(([id, pose]) => [id, pose.snapshot('local')]) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       if (saved.poses.length !== poses.size || new Set(saved.poses.map(([id]) => id)).size !== poses.size) throw new Error('Invalid Nalati taming pose identities');
