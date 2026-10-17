@@ -17,7 +17,7 @@ import sandMaps from '../data/sandMaps.json' with { type: 'json' };
 import { SAND_FIELDS } from '../data/sandFields';
 import { SAND_DUSK } from '../data/dusk';
 import { STORM_FIELD, STORM_GRAPHS } from '../data/stormLook';
-import { FIRE_GRAPHS } from '../data/fireLook';
+import { FIRE_GRAPHS } from './fireLook';
 import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.

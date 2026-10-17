@@ -23,7 +23,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { DataUtils } from 'three';
-import { PINE_SKY } from '../runtime/looks/sky';
+import PINE_SKY from '../data/sky.json' with { type: 'json' };
 
 const PINE_SKY_KEYS = PINE_SKY.keys;
 

@@ -1,5 +1,5 @@
-import { FIRE_STYLE } from './fire';
-import fireBook from './fireBook.generated.json' with { type: 'json' };
+import { FIRE_STYLE } from '../data/fire';
+import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
 
 /**
  * Signal Dunes' fire as SF59 material graphs (SHARD-PLATFORM G382 / G377: the hand-written fire shaders' look, kept: a

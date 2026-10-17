@@ -1,4 +1,4 @@
-import { PINE_SKY } from '../data/sky';
+import PINE_SKY from '../data/sky.json' with { type: 'json' };
 
 /** Ordered page consequences; native NPC, encounter and clock owners decide when these run. */
 export const PINE_QUEST_CONSEQUENCES = {

@@ -40,7 +40,7 @@ export const FIRE_STYLE = {
 /** One fire's scale (metres): the flame's height, the glow's radius, the smoke column's height, the ember count. */
 export interface FireSize { readonly flame: number; readonly glow: number; readonly smoke: number; readonly embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ readonly wisp?: boolean }
 
-/** The admitted look ids of the seven fire programs (data/fireLook.ts), each a `look.materials` graph. */
+/** The admitted look ids of the seven fire programs (generators/fireLook.ts), each a `look.materials` graph. */
 export const FIRE_GRAPH_IDS = { flame: 'fire-flame', smoke: 'fire-smoke', wisp: 'fire-wisp', glow: 'fire-glow', lampGlow: 'fire-lamp-glow', embers: 'fire-embers', pool: 'fire-pool' } as const;
 /** The fire's card programs (the camera-facing quads on the SDK's card host). */
 export type FireCard = 'flame' | 'smoke' | 'wisp' | 'glow' | 'lampGlow';

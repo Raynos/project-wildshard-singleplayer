@@ -1,6 +1,7 @@
 import type { DayClockStyle } from '@wildshard/sdk/looks/dayClock';
 import type { DayLookPreset, DayLookSchema } from '@wildshard/sdk/looks/dayLookPresets';
 import type { OvercastRow } from '@wildshard/sdk/looks/overcast';
+import * as v from 'valibot';
 
 /**
  * A keyed sky's row types and its preset schema (SHARD-PLATFORM M3, look-family rows; the shared day clock is its clock,
@@ -58,6 +59,32 @@ export const SKY_PRESET = {
   glow: 'colour', disc: 'colour', halo: 'colour', haloO: 'number', cloudSun: 'colour', cloudLit: 'colour', cloudA: 'number',
   far: 'colour', lamps: 'number', sat: 'number',
 } as const satisfies DayLookSchema & Record<keyof SkyPresetRow, unknown>;
+
+const n = v.number(), pair = v.tuple([n, n]), rgb = v.tuple([n, n, n]), colour = v.union([n, rgb]);
+const numberKey = v.picklist(['bg', 'env', 'lightI', 'hemiI', 'fogDist', 'fogHeight', 'vol', 'rays', 'haloO', 'cloudA', 'lamps', 'sat']);
+const colourKey = v.picklist(['light', 'hemiSky', 'hemiGround', 'fogSun', 'volColor', 'glow', 'disc', 'halo', 'cloudSun', 'cloudLit', 'far']);
+const preset = v.strictObject({ key: v.string(), bg: n, env: n, light: colour, lightI: n, hemiSky: colour, hemiGround: colour, hemiI: n,
+  fogSun: colour, fogDist: n, fogHeight: n, vol: n, volColor: colour, rays: n, glow: colour, disc: colour, halo: colour, haloO: n,
+  cloudSun: colour, cloudLit: colour, cloudA: n, far: colour, lamps: n, sat: n });
+
+/** Decode authored JSON at the clock boundary, including tuple arity and weather field kinds. */
+export const KEYED_SKY = v.strictObject({
+  dayFraction: n, cycleMinutes: n, start: n,
+  schedule: v.array(v.strictObject({ phase: v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']), from: n, to: n, minutes: n })),
+  keys: v.record(v.string(), v.strictObject({ id: v.string(), sunU: n, sunEl: n, paint: n })),
+  moonKey: v.string(), keyFiles: v.strictObject({ color: v.string(), gain: v.string() }), presets: v.record(v.string(), preset),
+  frames: v.array(v.tuple([n, v.string()])), phases: v.record(v.string(), n),
+  fixed: v.strictObject({ midday: n, golden: n, sunset: n, night: n }), namedPhases: v.strictObject({ dawn: n, noon: n, dusk: n, night: n }),
+  sun: v.strictObject({ rise: n, sweep: n, noon: n, nightRise: n, nightSweep: n, nadir: n }), moon: v.strictObject({ rise: n, sweep: n, base: n, arc: n }),
+  night: v.strictObject({ rise: pair, fall: pair }), fade: v.strictObject({ sunY: pair, moonIn: pair, moonOut: pair }), nightShadow: n,
+  dusk: pair, dawn: v.strictObject({ at: n, width: pair }), dome: v.strictObject({ name: v.string(), radius: n, segments: pair }),
+  overcast: v.array(v.variant('op', [
+    v.strictObject({ op: v.literal('scale'), key: v.union([numberKey, colourKey]), by: n, curve: v.exactOptional(pair) }),
+    v.strictObject({ op: v.literal('add'), key: numberKey, by: n }), v.strictObject({ op: v.literal('atLeast'), key: numberKey, by: n }),
+    v.strictObject({ op: v.literal('grey'), key: colourKey, by: n, tint: rgb }),
+    v.strictObject({ op: v.literal('toward'), key: colourKey, by: n, colour: rgb, lit: v.exactOptional(n) }),
+  ])),
+});
 
 /** A keyed sky's live preset: the row's colours as three.js colours. */
 export type SkyPreset = DayLookPreset<typeof SKY_PRESET>;

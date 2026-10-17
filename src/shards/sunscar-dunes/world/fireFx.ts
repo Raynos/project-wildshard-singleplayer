@@ -7,7 +7,7 @@ import type source from '../runtime/source';
 
 /**
  * Fire, embers and smoke as declared rows (SHARD-PLATFORM SF72, effect rows): each fire's parts are rows (`data/fire.ts`
- * fireRows / lampRows) and its look SF59 material graphs (`data/fireLook.ts`, G382), compiled by `prepareFireFx` before the
+ * fireRows / lampRows) and its look SF59 material graphs (`generators/fireLook.ts`, G382), compiled by `prepareFireFx` before the
  * world builds; `addFire` places them on a few quads and points, animated on the GPU from the fires' clock: no CPU
  * particles, no lights, ~4 draws a fire. The billboards (flame tongues, glow, smoke, a lamp's halo) stand on the SDK's card
  * host (`@wildshard/sdk/looks/cardField` cardGroup, G395), each graph turning its own quad to the camera; the embers are a
