@@ -1,0 +1,114 @@
+startMs,endMs,intervalMs,hooks,updateMs,renderMs,exactCalls
+41620,41654,34,between hooks,2,1,Renderer.initTexture 6ms @41626
+41720,41754,34,between hooks,5,1,
+41820,41886,66,between hooks,3,2,Renderer.initTexture 4ms @41825
+41970,42004,34,far-reach:constructor,1,1,Renderer.compile 5ms @41976
+42037,42093,56,far-reach:world,2,1,Renderer.compile 5ms @42042
+42093,42144,51,far-reach:world,2,1,Renderer.compile 12ms @42130
+42170,42204,34,far-reach:world,2,1,
+42270,42304,34,far-reach:world,2,1,Renderer.compile 4ms @42278
+42304,42338,34,far-reach:world,2,2,Renderer.compile 4ms @42310
+42370,42404,34,far-reach:world,2,1,
+42470,42504,34,far-reach:world,2,1,
+42570,42604,34,far-reach:world,2,1,
+42670,42704,34,far-reach:world,2,1,
+42770,42804,34,far-reach:world,2,1,
+42870,42904,34,far-reach:world,2,1,
+42970,43004,34,far-reach:world,2,1,
+43070,43104,34,far-reach:world,2,1,
+43170,43204,34,far-reach:world,2,1,
+43270,43304,34,far-reach:world,2,1,
+43337,43371,34,far-reach:world,1,1,
+43470,43505,35,far-reach:world,2,1,
+43570,43753,183,far-reach:world,3,2,Renderer.render 170ms @43574; Composer.render 172ms @43573
+43870,43904,34,far-reach:world,6,2,
+43970,44004,34,far-reach:world,2,2,
+44070,44104,34,far-reach:world,2,2,
+44170,44204,34,far-reach:world,2,2,
+44237,44271,34,far-reach:world,1,2,
+44337,44371,34,far-reach:world,2,2,
+44470,44504,34,far-reach:world,3,1,
+44537,44571,34,far-reach:world,3,2,
+44637,44671,34,far-reach:world,2,2,
+44737,44773,36,far-reach:play,3,2,
+44837,44871,34,far-reach:play,3,2,
+44937,44972,35,far-reach:play,2,2,
+45070,45104,34,far-reach:play,2,2,BufferGeometry.computeVertexNormals 4ms @45084
+45170,45204,34,far-reach:play,2,3,
+45237,45286,49,far-reach:play,4,3,
+45305,45348,43,far-reach:afterPlay,3,2,Renderer.compile 14ms @45334
+45370,45405,35,far-reach:afterPlay,2,2,
+45437,45471,34,far-reach:afterPlay,2,2,
+45570,45605,35,far-reach:afterPlay,1,2,Renderer.compile 9ms @45578
+45670,45704,34,far-reach:afterPlay,3,2,Renderer.compile 7ms @45678
+45770,45804,34,far-reach:afterPlay,5,2,Game.runFixed 4ms @45777; Renderer.compile 8ms @45787
+45837,45873,36,far-reach:afterPlay,2,2,Renderer.compile 6ms @45850
+45937,45971,34,far-reach:afterPlay,4,2,
+46037,46071,34,far-reach:afterPlay,1,3,Renderer.compile 8ms @46045
+46170,46204,34,far-reach:afterPlay,2,2,Renderer.compile 8ms @46177
+46237,46271,34,far-reach:afterPlay,1,3,Renderer.compile 6ms @46245; Renderer.compile 6ms @46251
+46337,46371,34,far-reach:afterPlay,2,2,Renderer.compile 6ms @46345; Renderer.compile 5ms @46351
+46437,46471,34,far-reach:afterPlay,2,2,Renderer.compile 6ms @46444; Renderer.compile 5ms @46450
+46537,46571,34,far-reach:afterPlay,1,3,Renderer.compile 7ms @46545
+46637,46671,34,far-reach:afterPlay,1,3,
+46770,46804,34,far-reach:afterPlay,3,2,Renderer.compile 8ms @46782
+46870,46904,34,far-reach:afterPlay,2,2,Renderer.compile 7ms @46876
+46970,47004,34,far-reach:afterPlay,2,2,
+47070,47104,34,far-reach:afterPlay,2,2,
+47170,47204,34,far-reach:afterPlay,2,2,Renderer.compile 7ms @47178
+47270,47304,34,far-reach:afterPlay,2,2,Renderer.compile 7ms @47278
+47370,47404,34,far-reach:afterPlay,2,2,
+47470,47504,34,far-reach:afterPlay,2,2,Renderer.compile 10ms @47479
+47570,47604,34,far-reach:afterPlay,2,3,Renderer.render 4ms @47573; Composer.render 4ms @47573; Renderer.compile 4ms @47579
+47670,47704,34,far-reach:afterPlay,5,4,Renderer.render 4ms @47674; Composer.render 4ms @47674
+47737,47773,36,far-reach:afterPlay,2,2,
+47870,47904,34,far-reach:afterPlay,2,3,
+47970,48004,34,far-reach:afterPlay,2,2,
+48070,48104,34,far-reach:afterPlay,2,2,
+48137,48177,40,far-reach:afterPlay,2,3,
+48237,48271,34,far-reach:afterPlay,2,2,Renderer.render 4ms @48248
+48271,48377,106,far-reach:afterPlay,3,2,
+48437,48471,34,far-reach:afterPlay,4,2,
+48537,48571,34,far-reach:afterPlay,2,2,
+48637,48671,34,far-reach:afterPlay,5,2,
+48737,48771,34,far-reach:afterPlay,2,2,
+48837,48871,34,far-reach:afterPlay,2,2,
+48970,49004,34,far-reach:afterPlay,2,2,
+49037,49071,34,far-reach:afterPlay,2,2,
+49170,49204,34,between hooks,2,2,System.game.grid.session 4ms @49173; Game.runPhase:fixed.post 4ms @49173; Game.runFixed 6ms @49171
+49204,49238,34,between hooks,2,2,Renderer.initTexture 8ms @49210
+49268,49304,36,between hooks,2,2,System.game.grid.session 4ms @49269; Game.runPhase:fixed.post 4ms @49269; Game.runFixed 4ms @49269
+49337,49371,34,between hooks,5,2,
+49470,49504,34,between hooks,2,2,
+49570,49606,36,between hooks,17,3,
+49670,49704,34,between hooks,3,3,
+49770,49804,34,between hooks,2,2,
+49837,49871,34,between hooks,2,2,
+49970,50004,34,between hooks,2,2,
+50070,50104,34,between hooks,3,2,
+50137,50213,76,far-reach:activate,6,6,System.game.grid.session 4ms @50138; Game.runPhase:fixed.post 4ms @50138; Game.runFixed 7ms @50137; Game.runPhase:update 6ms @50144; Renderer.render 25ms @50151; Composer.render 25ms @50151
+50213,50251,38,between hooks,3,5,Renderer.render 5ms @50219; Composer.render 6ms @50219
+50275,50320,45,between hooks,4,5,Renderer.render 4ms @50279; Composer.render 6ms @50278
+50344,50387,43,between hooks,4,6,Renderer.render 5ms @50347; Composer.render 5ms @50347
+50413,50454,41,between hooks,3,6,Renderer.render 5ms @50417; Composer.render 5ms @50417
+50477,50520,43,between hooks,3,6,Renderer.render 5ms @50480; Composer.render 6ms @50480
+50543,50587,44,between hooks,4,6,Renderer.render 5ms @50546; Composer.render 5ms @50546
+50612,50654,42,between hooks,5,5,Renderer.render 5ms @50615; Composer.render 5ms @50615
+50679,50721,42,between hooks,4,6,Renderer.render 5ms @50682; Composer.render 5ms @50682
+50744,50787,43,between hooks,4,5,Renderer.render 5ms @50747; Composer.render 5ms @50747
+50808,50854,46,between hooks,4,4,Renderer.render 5ms @50811; Composer.render 5ms @50811
+50876,50921,45,between hooks,3,6,Renderer.render 4ms @50879; Composer.render 4ms @50879
+50944,50987,43,between hooks,4,5,Renderer.render 4ms @50947; Composer.render 5ms @50947
+51010,51054,44,between hooks,3,6,Renderer.render 4ms @51013; Composer.render 4ms @51013
+51077,51120,43,between hooks,4,6,Renderer.render 5ms @51079; Composer.render 5ms @51079
+51146,51188,42,between hooks,3,5,Renderer.render 4ms @51150; Composer.render 5ms @51150
+51211,51254,43,between hooks,4,6,Renderer.render 4ms @51214; Composer.render 5ms @51214
+51278,51320,42,between hooks,4,6,Renderer.render 4ms @51282; Composer.render 6ms @51281
+51345,51387,42,between hooks,4,5,Renderer.render 6ms @51348; Composer.render 6ms @51348
+51410,51454,44,between hooks,4,5,Composer.render 5ms @51413
+51477,51520,43,between hooks,3,5,Composer.render 5ms @51480
+51542,51587,45,between hooks,4,5,Renderer.render 4ms @51545; Composer.render 4ms @51545
+51609,51654,45,between hooks,5,5,Renderer.render 5ms @51612; Composer.render 5ms @51612
+51677,51721,44,between hooks,4,5,Renderer.render 5ms @51680; Composer.render 5ms @51680
+51746,51787,41,between hooks,3,6,Renderer.render 5ms @51749; Composer.render 6ms @51749
+51810,51854,44,between hooks,3,6,Renderer.render 5ms @51813; Composer.render 5ms @51813

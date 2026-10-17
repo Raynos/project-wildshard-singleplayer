@@ -1,0 +1,220 @@
+startMs,endMs,intervalMs,hooks,updateMs,renderMs,exactCalls
+58787,58821,34,between hooks,2,1,Renderer.initTexture 7ms @58795
+58887,58921,34,between hooks,1,1,
+58987,59023,36,between hooks,1,2,
+59120,59154,34,between hooks,2,1,Renderer.initTexture 4ms @59125
+59154,59189,35,driftwood-isle:beforeWorld; driftwood-isle:constructor; driftwood-isle:world,2,1,
+59320,59354,34,driftwood-isle:world,2,1,
+59420,59454,34,driftwood-isle:world,2,1,
+59520,59554,34,driftwood-isle:world,3,2,
+59620,59654,34,driftwood-isle:world,2,1,
+59720,59754,34,driftwood-isle:world,2,1,
+59820,59855,35,driftwood-isle:world,1,1,
+59920,59954,34,driftwood-isle:world,2,1,
+60050,60087,37,driftwood-isle:world,2,1,
+60120,60154,34,driftwood-isle:world,2,1,
+60220,60254,34,driftwood-isle:world,2,1,
+60320,60354,34,driftwood-isle:world,2,1,
+60420,60454,34,driftwood-isle:world,2,1,
+60520,60554,34,driftwood-isle:world,4,1,
+60620,60654,34,driftwood-isle:world,2,1,
+60720,60754,34,driftwood-isle:world,2,3,
+60820,60854,34,driftwood-isle:world,2,1,
+60920,60954,34,driftwood-isle:world,4,1,
+61020,61054,34,driftwood-isle:world,2,1,
+61087,61123,36,driftwood-isle:world,2,1,
+61220,61254,34,driftwood-isle:world,2,1,
+61287,61321,34,driftwood-isle:world,1,1,
+61420,61454,34,driftwood-isle:world,2,1,Renderer.initTexture 4ms @61427
+61487,61521,34,driftwood-isle:world,1,2,
+61587,61621,34,driftwood-isle:world,1,2,
+61720,61754,34,driftwood-isle:world,2,1,
+61820,61854,34,driftwood-isle:world,2,2,BuildStages.build:Shrine 6ms @61832
+61920,61957,37,driftwood-isle:world,2,2,BufferGeometry.computeBoundingBox 5ms @61943; BufferGeometry.computeBoundingSphere 9ms @61948
+61987,62029,42,driftwood-isle:world,2,2,Renderer.render 16ms @61992; Composer.render 16ms @61992; BufferGeometry.computeBoundingSphere 5ms @62023
+62120,62154,34,driftwood-isle:world,4,1,BufferGeometry.computeBoundingSphere 5ms @62144
+62187,62233,46,driftwood-isle:world,2,2,BufferGeometry.computeBoundingBox 6ms @62213; BufferGeometry.computeBoundingSphere 14ms @62219
+62233,62267,34,driftwood-isle:world,2,2,
+62288,62326,38,driftwood-isle:world,1,2,
+62420,62454,34,driftwood-isle:world,2,2,
+62520,62554,34,driftwood-isle:world,4,2,
+62620,62654,34,driftwood-isle:world,2,2,
+62720,62754,34,driftwood-isle:afterWorld; driftwood-isle:kit; driftwood-isle:world,2,1,
+62754,62799,45,driftwood-isle:afterKit,4,1,
+62920,63029,109,driftwood-isle:afterKit,3,3,Renderer.initTexture 4ms @62926
+63029,63082,53,driftwood-isle:afterKit; driftwood-isle:play,4,3,
+63137,63185,48,driftwood-isle:afterPlay,3,3,Renderer.compile 21ms @63161
+63214,63249,35,driftwood-isle:afterPlay,2,3,Renderer.initTexture 4ms @63221; Renderer.compile 19ms @63225
+63337,63371,34,driftwood-isle:afterPlay,3,3,
+63470,63504,34,driftwood-isle:afterPlay,2,3,
+63570,63604,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @63579
+63604,63639,35,driftwood-isle:afterPlay,3,2,Renderer.compile 27ms @63611
+63670,63704,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @63677
+63704,63739,35,driftwood-isle:afterPlay,2,3,Renderer.compile 19ms @63711
+63801,63837,36,driftwood-isle:afterPlay,2,3,Renderer.compile 19ms @63808
+63928,63971,43,driftwood-isle:afterPlay,2,2,Renderer.compile 20ms @63935
+63971,64008,37,driftwood-isle:afterPlay,3,3,Renderer.compile 21ms @63978
+64168,64223,55,driftwood-isle:afterPlay,2,3,Renderer.initTexture 4ms @64175; Renderer.compile 20ms @64202
+64223,64260,37,driftwood-isle:afterPlay,3,3,Renderer.compile 21ms @64230
+64352,64387,35,driftwood-isle:afterPlay,2,3,Renderer.compile 21ms @64365
+64475,64520,45,driftwood-isle:afterPlay,2,3,
+64570,64604,34,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @64579
+64604,64639,35,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @64612
+64670,64704,34,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @64678
+64770,64804,34,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @64777
+64837,64873,36,driftwood-isle:afterPlay,2,3,Renderer.compile 18ms @64844
+65032,65071,39,driftwood-isle:afterPlay,3,3,Renderer.compile 19ms @65041
+65129,65171,42,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @65137
+65197,65237,40,driftwood-isle:afterPlay,2,3,Renderer.compile 19ms @65204
+65264,65301,37,driftwood-isle:afterPlay,3,3,Renderer.compile 21ms @65279
+65331,65371,40,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @65337
+65401,65437,36,driftwood-isle:afterPlay,2,3,Renderer.compile 19ms @65408
+65467,65504,37,driftwood-isle:afterPlay,2,3,Renderer.compile 18ms @65473
+65504,65538,34,driftwood-isle:afterPlay,2,3,Renderer.compile 20ms @65511
+65568,65604,36,driftwood-isle:afterPlay,2,2,Renderer.compile 19ms @65576
+65604,65641,37,driftwood-isle:afterPlay,2,2,Renderer.compile 18ms @65612
+65641,65687,46,driftwood-isle:afterPlay,3,2,Renderer.compile 19ms @65648
+65713,65754,41,driftwood-isle:afterPlay,2,3,
+65815,65854,39,driftwood-isle:afterPlay,2,2,
+65937,65971,34,driftwood-isle:afterPlay,1,3,
+66037,66071,34,driftwood-isle:afterPlay,1,3,Renderer.compile 20ms @66045
+66170,66204,34,driftwood-isle:afterPlay,3,3,
+66204,66241,37,driftwood-isle:afterPlay,3,3,Renderer.compile 20ms @66212
+66370,66404,34,driftwood-isle:afterPlay,2,2,
+66470,66504,34,driftwood-isle:afterPlay,3,3,
+66537,66571,34,driftwood-isle:afterPlay,3,3,
+66604,66640,36,driftwood-isle:afterPlay,2,3,Renderer.initTexture 4ms @66612
+66670,66704,34,driftwood-isle:afterPlay,2,3,
+66770,66804,34,driftwood-isle:afterPlay,2,2,
+66870,66904,34,driftwood-isle:afterPlay,2,2,
+66970,67004,34,driftwood-isle:afterPlay,3,3,
+67037,67071,34,driftwood-isle:afterPlay,2,2,
+67071,67105,34,driftwood-isle:afterPlay,2,2,Renderer.initTexture 4ms @67078
+67170,67204,34,driftwood-isle:afterPlay,3,3,Renderer.compile 10ms @67179
+67237,67271,34,driftwood-isle:afterPlay,2,2,
+67370,67404,34,driftwood-isle:afterPlay,2,2,
+67437,67471,34,driftwood-isle:afterPlay,2,2,
+67537,67571,34,driftwood-isle:afterPlay,3,2,
+67670,67704,34,driftwood-isle:afterPlay,2,2,
+67770,67804,34,driftwood-isle:afterPlay,3,2,
+67870,67904,34,driftwood-isle:afterPlay,2,3,Renderer.initTexture 4ms @67879
+67937,67971,34,driftwood-isle:afterPlay,2,2,
+68070,68104,34,driftwood-isle:afterPlay,3,3,
+68137,68171,34,driftwood-isle:afterPlay,2,2,
+68237,68271,34,between hooks,4,2,
+68304,68340,36,between hooks,5,2,
+68470,68504,34,between hooks,2,2,
+68570,68604,34,between hooks,2,3,
+68670,68704,34,between hooks,2,3,
+68770,68808,38,between hooks,3,3,Renderer.render 6ms @68777; Composer.render 7ms @68777
+68870,68904,34,between hooks,2,2,
+68937,68971,34,between hooks,2,2,
+69070,69104,34,between hooks,2,2,
+69137,69171,34,between hooks,2,2,
+69237,69331,94,driftwood-isle:activate,7,7,System.game.grid.session 4ms @69238; Game.runPhase:fixed.post 4ms @69238; Game.runFixed 6ms @69237; System.grid.runtime.driftwood-isle.callback.shard.driftwood.cover 4ms @69243; System.shard.driftwood.adventure 4ms @69248; Game.runPhase:update 11ms @69243; Renderer.render 16ms @69255; Composer.render 16ms @69255
+69385,69421,36,between hooks,5,6,Game.runPhase:update 4ms @69386; Renderer.render 5ms @69391; Composer.render 5ms @69391
+69487,69521,34,between hooks,5,7,Renderer.render 6ms @69494; Composer.render 6ms @69494
+69620,69654,34,between hooks,3,6,Renderer.render 5ms @69625; Composer.render 5ms @69625
+69720,69754,34,between hooks,10,6,Composer.render 5ms @69725
+69787,69821,34,between hooks,4,6,Renderer.render 5ms @69791; Composer.render 6ms @69791
+69920,69954,34,between hooks,4,7,Renderer.render 5ms @69925; Composer.render 5ms @69925
+69987,70021,34,between hooks,4,5,Renderer.render 5ms @69992; Composer.render 6ms @69992
+70120,70154,34,between hooks,4,6,Renderer.render 5ms @70125; Composer.render 6ms @70125
+70220,70254,34,between hooks,4,6,Renderer.render 5ms @70227; Composer.render 6ms @70227
+70287,70321,34,between hooks,3,6,Renderer.render 5ms @70292; Composer.render 5ms @70292
+70354,70389,35,between hooks,4,5,Renderer.render 5ms @70358; Composer.render 5ms @70358
+70520,70554,34,between hooks,4,6,Renderer.render 5ms @70525; Composer.render 5ms @70525
+70620,70654,34,between hooks,4,6,Renderer.render 6ms @70625; Composer.render 6ms @70625
+70720,70754,34,between hooks,4,6,Renderer.render 5ms @70725; Composer.render 5ms @70725
+70787,70821,34,between hooks,4,6,Renderer.render 6ms @70791; Composer.render 6ms @70791
+70887,70921,34,between hooks,4,6,Renderer.render 5ms @70892; Composer.render 5ms @70892
+70987,71021,34,between hooks,4,6,Renderer.render 6ms @70991; Composer.render 6ms @70991
+71120,71154,34,between hooks,6,6,Renderer.render 5ms @71125; Composer.render 5ms @71125
+71220,71254,34,between hooks,4,6,Renderer.render 5ms @71228; Composer.render 6ms @71227
+71287,71321,34,between hooks,4,6,Renderer.render 5ms @71292; Composer.render 6ms @71292
+71387,71421,34,between hooks,4,6,Renderer.render 5ms @71392; Composer.render 5ms @71392
+71520,71554,34,between hooks,4,5,Renderer.render 5ms @71525; Composer.render 5ms @71525
+71587,71621,34,between hooks,4,6,Renderer.render 6ms @71598; Composer.render 6ms @71598
+71720,71754,34,between hooks,4,6,Renderer.render 5ms @71725; Composer.render 5ms @71725
+71787,71821,34,between hooks,4,6,Renderer.render 5ms @71791; Composer.render 6ms @71791
+71887,71921,34,between hooks,3,6,Renderer.render 5ms @71892; Composer.render 5ms @71892
+71954,71988,34,between hooks,3,6,Renderer.render 5ms @71958; Composer.render 6ms @71958
+72020,72054,34,between hooks,3,6,Renderer.render 5ms @72025; Composer.render 6ms @72025
+72117,72154,37,between hooks,4,6,Renderer.render 6ms @72121; Composer.render 6ms @72121
+72220,72254,34,between hooks,4,6,Renderer.render 5ms @72226; Composer.render 5ms @72226
+72320,72354,34,between hooks,4,6,Renderer.render 5ms @72325; Composer.render 5ms @72325
+72387,72421,34,between hooks,4,6,Renderer.render 5ms @72392; Composer.render 5ms @72392
+72520,72554,34,between hooks,4,6,Renderer.render 5ms @72525; Composer.render 5ms @72525
+72554,72589,35,between hooks,5,6,Renderer.render 5ms @72559; Composer.render 5ms @72559
+72720,72754,34,between hooks,5,5,Renderer.render 5ms @72725; Composer.render 6ms @72725
+72787,72821,34,between hooks,4,6,Renderer.render 5ms @72792; Composer.render 6ms @72792
+72920,72954,34,between hooks,5,6,Renderer.render 5ms @72925; Composer.render 5ms @72925
+72984,73021,37,between hooks,4,6,Renderer.render 5ms @72987; Composer.render 6ms @72987
+73120,73154,34,between hooks,5,6,Renderer.render 5ms @73125; Composer.render 6ms @73125
+73187,73221,34,between hooks,6,6,Renderer.render 6ms @73191; Composer.render 6ms @73191
+73287,73321,34,between hooks,3,6,Renderer.render 5ms @73293; Composer.render 5ms @73293
+73387,73421,34,between hooks,4,6,Renderer.render 5ms @73392; Composer.render 6ms @73392
+73487,73521,34,between hooks,3,6,Renderer.render 4ms @73492; Composer.render 4ms @73492
+73587,73621,34,between hooks,4,5,Renderer.render 5ms @73593; Composer.render 5ms @73593
+73720,73754,34,between hooks,4,6,Renderer.render 5ms @73725; Composer.render 5ms @73725
+73787,73821,34,between hooks,4,5,Renderer.render 5ms @73791; Composer.render 5ms @73791
+73920,73954,34,between hooks,4,5,Renderer.render 5ms @73924; Composer.render 5ms @73924
+74020,74054,34,between hooks,3,6,Renderer.render 4ms @74025; Composer.render 5ms @74025
+74120,74154,34,between hooks,4,5,Renderer.render 5ms @74124; Composer.render 5ms @74124
+74220,74254,34,between hooks,3,6,Renderer.render 4ms @74227; Composer.render 4ms @74227
+74320,74354,34,between hooks,4,5,Renderer.render 5ms @74324; Composer.render 6ms @74324
+74420,74454,34,between hooks,4,5,Renderer.render 4ms @74431; Composer.render 5ms @74430
+74520,74554,34,between hooks,4,5,Renderer.render 5ms @74524; Composer.render 5ms @74524
+74620,74654,34,between hooks,3,6,Renderer.render 5ms @74625; Composer.render 5ms @74625
+74720,74754,34,between hooks,4,5,
+74820,74854,34,between hooks,3,5,Renderer.render 5ms @74825; Composer.render 5ms @74825
+74920,74954,34,between hooks,5,5,Renderer.render 5ms @74924; Composer.render 5ms @74924
+74987,75021,34,between hooks,4,5,Renderer.render 5ms @74993; Composer.render 5ms @74993
+75120,75154,34,between hooks,4,5,Renderer.render 5ms @75124; Composer.render 5ms @75124
+75220,75254,34,between hooks,3,5,Renderer.render 5ms @75226; Composer.render 5ms @75226
+75320,75354,34,between hooks,4,5,Renderer.render 4ms @75325; Composer.render 5ms @75325
+75420,75454,34,between hooks,3,6,Renderer.render 4ms @75425; Composer.render 5ms @75425
+75520,75554,34,between hooks,4,5,Renderer.render 4ms @75525; Composer.render 5ms @75524
+75620,75654,34,between hooks,3,5,Renderer.render 4ms @75625; Composer.render 4ms @75625
+75687,75721,34,between hooks,3,5,Renderer.render 4ms @75692; Composer.render 5ms @75692
+75820,75854,34,between hooks,3,5,Renderer.render 4ms @75825; Composer.render 5ms @75825
+75920,75954,34,between hooks,4,5,Renderer.render 5ms @75924; Composer.render 5ms @75924
+76020,76054,34,between hooks,3,6,Renderer.render 5ms @76025; Composer.render 5ms @76025
+76087,76121,34,between hooks,3,5,Renderer.render 5ms @76093; Composer.render 5ms @76093
+76187,76221,34,between hooks,4,5,Renderer.render 5ms @76191; Composer.render 5ms @76191
+76320,76354,34,between hooks,4,5,Renderer.render 4ms @76324; Composer.render 5ms @76324
+76387,76421,34,between hooks,3,5,Renderer.render 5ms @76391; Composer.render 5ms @76391
+76487,76521,34,between hooks,3,5,Renderer.render 4ms @76492; Composer.render 4ms @76492
+76620,76654,34,between hooks,3,6,Renderer.render 4ms @76625; Composer.render 4ms @76625
+76687,76721,34,between hooks,3,5,Renderer.render 5ms @76691; Composer.render 5ms @76691
+76820,76854,34,between hooks,5,5,Renderer.render 5ms @76826; Composer.render 5ms @76826
+76887,76921,34,between hooks,3,5,Renderer.render 4ms @76892; Composer.render 5ms @76892
+76987,77021,34,between hooks,3,5,Renderer.render 5ms @76991; Composer.render 5ms @76991
+77120,77154,34,between hooks,4,5,Renderer.render 5ms @77124; Composer.render 5ms @77124
+77187,77221,34,between hooks,4,6,Renderer.render 5ms @77191; Composer.render 5ms @77191
+77287,77322,35,between hooks,3,5,Renderer.render 4ms @77292; Composer.render 4ms @77292
+77387,77421,34,between hooks,3,6,Renderer.render 5ms @77391; Composer.render 5ms @77391
+77487,77521,34,between hooks,2,6,Renderer.render 5ms @77491; Composer.render 6ms @77491
+77620,77654,34,between hooks,3,6,Renderer.render 5ms @77624; Composer.render 5ms @77624
+77687,77721,34,between hooks,3,5,Renderer.render 5ms @77691; Composer.render 5ms @77691
+77820,77854,34,between hooks,3,5,Renderer.render 4ms @77825; Composer.render 4ms @77825
+77887,77921,34,between hooks,3,5,Renderer.render 5ms @77891; Composer.render 5ms @77891
+77987,78022,35,between hooks,4,5,Renderer.render 5ms @77991; Composer.render 5ms @77991
+78120,78154,34,between hooks,4,5,Renderer.render 4ms @78124; Composer.render 4ms @78124
+78187,78221,34,between hooks,4,6,Renderer.render 4ms @78191; Composer.render 5ms @78191
+78320,78354,34,between hooks,3,6,Renderer.render 5ms @78324; Composer.render 5ms @78324
+78420,78454,34,between hooks,3,5,Renderer.render 5ms @78424; Composer.render 5ms @78424
+78520,78554,34,between hooks,3,5,Renderer.render 5ms @78524; Composer.render 5ms @78524
+78620,78654,34,between hooks,3,5,Renderer.render 5ms @78624; Composer.render 5ms @78624
+78720,78754,34,between hooks,3,6,Renderer.render 4ms @78724; Composer.render 5ms @78724
+78820,78854,34,between hooks,2,6,Renderer.render 5ms @78824; Composer.render 5ms @78824
+78920,78954,34,between hooks,3,6,Renderer.render 4ms @78924; Composer.render 4ms @78924
+78987,79021,34,between hooks,3,5,Renderer.render 5ms @78991; Composer.render 5ms @78991
+79087,79121,34,between hooks,2,5,Renderer.render 5ms @79092; Composer.render 5ms @79092
+79187,79221,34,between hooks,4,5,Renderer.render 4ms @79191; Composer.render 4ms @79191
+79287,79321,34,between hooks,2,5,Renderer.render 4ms @79292; Composer.render 5ms @79291
+79387,79421,34,between hooks,3,5,Renderer.render 4ms @79391; Composer.render 5ms @79391
+79487,79521,34,between hooks,3,6,Renderer.render 4ms @79491; Composer.render 5ms @79491
+79587,79621,34,between hooks,3,5,Renderer.render 5ms @79592; Composer.render 5ms @79592
+79720,79754,34,between hooks,3,5,Renderer.render 4ms @79724; Composer.render 5ms @79724
+79820,79854,34,between hooks,2,6,Renderer.render 5ms @79824; Composer.render 5ms @79824
