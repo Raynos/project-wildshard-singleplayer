@@ -1,4 +1,4 @@
-import type { PineItem } from '../data/questInventory';
+import type { PineItem } from './questInventory';
 
 /** Authored swaps; native affordability, quiver capacity and shop presentation stay runtime-owned. */
 export type TradeItem = PineItem;

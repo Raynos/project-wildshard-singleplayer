@@ -4,8 +4,8 @@ import { createAchievementCounters } from '../src/game/achievements';
 import { PINE_DEATH_EFFECTS, PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/data/questDeaths';
 import { DRIFTWOOD_PAGE_DEATH_EFFECTS, DRIFTWOOD_KILL_DEATH_EFFECTS } from '../src/shards/driftwood-isle/data/questDeaths';
 import { recordKill, isFilled, type Board } from '../src/shards/pine-hollow/quest/contracts';
-import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/data/questInventory';
-import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/data/questInventory';
+import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
+import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 
 test('death rows retain achievement, contract notice and key/flag order without creating save state', () => {
   const order: string[] = [], flags = { set: (flag: string): void => { order.push(flag); } };

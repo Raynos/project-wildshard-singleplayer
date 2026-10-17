@@ -1,4 +1,4 @@
-import { DRIFTWOOD_ITEMS } from '../data/questInventory';
+import { DRIFTWOOD_ITEMS } from './questInventory';
 
 /** Native continuation policy: positive safe stacks and complete first-pickup order. */
 export const DRIFTWOOD_NATIVE_PACK = { kinds: DRIFTWOOD_ITEMS.map(item => item.id), slots: 12,

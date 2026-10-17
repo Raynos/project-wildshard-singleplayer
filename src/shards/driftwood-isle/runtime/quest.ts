@@ -11,7 +11,7 @@ import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
 import { installDeclaredQuestHost } from '@wildshard/game/plugin/simulation';
 import { createAchievementCounters } from '@wildshard/game/achievements';
-import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
+import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { NativeInventory } from '@wildshard/game/inventoryLaw';
 import { readItemInventory } from '@wildshard/game/plugin/nativeItems';
@@ -43,6 +43,7 @@ export function driftwoodSpots(): DriftwoodSpots {
 export interface QuestBody { readonly kind: string; readonly actor: { readonly alive: boolean; readonly position: { readonly x: number; readonly z: number }; readonly combatActor: () => unknown } | null }
 /** What the quest keeper is lent. */
 export interface DriftwoodQuestPorts {
+  readonly counters: AchievementCounterData;
   readonly source: Shardfile;
   readonly table: InteractTable;
   readonly spots: DriftwoodSpots;
@@ -138,8 +139,8 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const feats=ports.feats.filter(f=>f.kind===undefined);
   if(feats.length>policy.limits.rows||feats.some(f=>f.count>policy.limits.rows))throw new RangeError('Driftwood feats exceed their finite bound');
   let counts=Object.fromEntries(feats.map(feat=>[feat.id,0]));
-  const flagRows=feats.map(feat=>DRIFTWOOD_FEAT_COUNTERS.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
-  const counter=createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats,flags:flagRows,write:'each'},
+  const flagRows=feats.map(feat=>ports.counters.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
+  const counter=createAchievementCounters({...ports.counters,feats,flags:flagRows,write:'each'},
     {read:()=>({...counts}),write:current=>{counts=current;},emit:ports.fact});
   /** the row's prompt point: the hold key's follows where the sailor fell (Interactables.moveTo, 1 m over the key) */
   const promptOf = (r: (typeof rules)[number]): { x: number; y: number; z: number } | undefined => {

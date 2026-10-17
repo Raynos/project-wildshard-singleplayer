@@ -21,7 +21,7 @@ const count = v.pipe(v.number(), v.integer(), v.minValue(0));
  * entity `<id>:<n>` (data/ledger.ts grants the achievement at its threshold). The counts start at 0 in a fresh run (the
  * page starts from the profile's ledger) and are exact continuation.
  */
-export function installDriftwoodKills(host: SimHost, feats: readonly AchievementDef[], roster: () => readonly KilledBody[], fact: (name: string, entity: string) => void): { readonly count: (id: string) => number } {
+export function installDriftwoodKills(host: SimHost, feats: readonly Pick<AchievementDef, 'id' | 'kind' | 'count'>[], roster: () => readonly KilledBody[], fact: (name: string, entity: string) => void): { readonly count: (id: string) => number } {
   const kills = feats.filter(feat => feat.kind !== undefined);
   let counts: Record<string, number> = Object.fromEntries(kills.map(feat => [feat.id, 0]));
   const counter = createAchievementCounters({ feats: kills.map(feat => { if (feat.kind === undefined) throw new Error("Missing kill feat kind"); return { id: feat.id, count: feat.count, kind: feat.kind }; }),

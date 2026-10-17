@@ -10,7 +10,7 @@ import { installCaptain } from './captainEncounter';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from '../runtime/director';
 import NATIVE_SWORDS from '../data/nativeSwords.json' with { type: 'json' };
 import { installDriftwoodKills } from './kills';
-import { DRIFTWOOD_FEATS } from '../data/questInventory';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { DRIFTWOOD_INTERACT } from '../data/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from '../runtime/quest';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
@@ -36,6 +36,7 @@ export const DRIFTWOOD_DAY_START = 0.2 * (20 / 24), DRIFTWOOD_CYCLE_S = 48 * 60;
  * The declared entry walk: every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, product }) => {
+  const counters = parseAchievementCounterData(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/achievements.json'))));
   const species = product.section('actors/species-programs'), program = species.program;
   if (program === undefined) throw new Error('Driftwood requires its admitted species program');
   const fauna = new Map(species.native.map(row => [row.kind, row]));
@@ -70,9 +71,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     }, host.scope);
     const held = installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: NATIVE_SWORDS });
     // the kill hooks: the sailor's flag and the kill feats' ledger facts
-    installDriftwoodKills(host, DRIFTWOOD_FEATS, island.bodies, fact);
+    installDriftwoodKills(host, counters.feats, island.bodies, fact);
     // the quest and its interactables at the page's points: `script` commands on `driftwood.interact` (runtime/quest.ts)
-    installDriftwoodQuest(host, { source: shard, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
+    installDriftwoodQuest(host, { source: shard, table: DRIFTWOOD_INTERACT, spots, feats: counters.feats, counters, fact, coins, bodies: island.bodies,
       commands: input.scripts(),
       floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); },
       finale, reward, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => input.walk(level.player.speed) });

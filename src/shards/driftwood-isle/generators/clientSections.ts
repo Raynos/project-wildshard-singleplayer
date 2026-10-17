@@ -13,7 +13,7 @@ import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
 import trailside from '../data/trailsideBake.json' with { type: 'json' };
 import piers from '../data/piers.generated.json' with { type: 'json' };
-import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../data/questInventory';
+import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
 import { GULL_FLOCK } from './gullsLook';
 import { OCEAN_SURFACE } from '../data/oceanLook';
 import { OCEAN_FILES } from '../data/oceanFiles';

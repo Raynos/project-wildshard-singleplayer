@@ -1,4 +1,6 @@
 import { COMPLETE_CONTENT } from './completion';
+import { TRADER_PAGE } from './traderPage';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
 import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
 import { DRIFTWOOD_MODES } from './modes';
@@ -10,6 +12,8 @@ import * as v from 'valibot';
 import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
+import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
 import { keeperRows } from './keeperRows';
 import { emitDefinedSections } from '@wildshard/sdk/sections';
@@ -28,7 +32,10 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 const placed = enemyPlacements();
-const placements = emitNamedBlobs([nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ complete: COMPLETE_CONTENT, places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
+const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
+const placements = emitNamedBlobs([
+  nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),
+  nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ complete: COMPLETE_CONTENT, places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
 export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS]])), namedFiles: placements.files, assets: placements.assets, custom };

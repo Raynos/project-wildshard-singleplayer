@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./achievementCounters": "./achievementCounters.ts",
     "./spawnTables": "./spawnTables.ts",
     "./speciesBrain": "./speciesBrain.ts",
     "./speciesPrograms": "./speciesPrograms.ts",

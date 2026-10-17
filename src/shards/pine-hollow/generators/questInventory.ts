@@ -1,5 +1,5 @@
-import { LANTERN_FLAGS, QUEST_DONE } from './wardensHollow';
-import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from './interactions';
+import { LANTERN_FLAGS, QUEST_DONE } from '../data/wardensHollow';
+import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from '../data/interactions';
 
 /** Authored feat metadata; the declared ledger owns deduplicated gameplay grants. */
 export const PINE_FEATS = [

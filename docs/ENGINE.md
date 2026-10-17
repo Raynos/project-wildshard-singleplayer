@@ -8212,3 +8212,17 @@ The existing live lock remains caller-owned. An optional numeric input row names
 the aim command, clamp/default/sentinel and the ordered publication step. Binding
 it borrows the mutable combat frame, clears/refills its existing live-slot set
 after selection and before item updates, and adds no continuation adapter.
+
+### Product achievement counter catalogues (C5)
+
+`@wildshard/format/achievementCounters` defines the strict bounded
+`AchievementCounterDataSchema` and `parseAchievementCounterData`. Pine and
+Driftwood emit named `quests/achievements.json` from their build-only author
+catalogues. Page and native owners admit those exact bytes before lending
+ordered matching/flag rows, prefixes and write policy to the existing
+`createAchievementCounters`; persistence, stable identities, grants and
+presentation remain with their prior owners. Native Driftwood retains its
+explicit per-increment write override. The public counter data carries no
+storage callback or presentation-only feat metadata. Their ledger author
+assembly likewise stays build-only. Driftwood emits its trader prompt/action
+rows as `quests/trader.json`; the existing strict page binder consumes it.

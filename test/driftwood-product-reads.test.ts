@@ -7,7 +7,7 @@ import { LootEconomySchema } from '../src/format/lootEconomy';
 import source from '../src/shards/driftwood-isle/shard.config';
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import { CHIME_PIECES } from '../src/shards/driftwood-isle/runtime/models/seaGlassChime';
-import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/data/questInventory';
+import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from '../src/shards/driftwood-isle/generators/economy';
 
 // The Driftwood client's product reads (sp-o277, W2b): every custom section runtime/ asks the built output for is

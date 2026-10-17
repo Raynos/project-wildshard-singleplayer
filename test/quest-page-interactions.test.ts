@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { Scope } from '../src/engine/app/scope';
 import type { Interactable } from '../src/engine/world/interact/types';
-import { parseInteractionRows } from '../src/format/questInteractions';
+import { parseQuestPageInteractions, parseInteractionRows } from '../src/format/questInteractions';
 import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/generators/questPageInteractions';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/data/interactions';
-import { TRADER_PAGE } from '../src/shards/driftwood-isle/data/traderPage';
+import { output as traderOutput } from '../src/shards/driftwood-isle/generators/output';
 import { InteractionRules } from '../src/game/quest/interactionRows';
 import { Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
@@ -15,6 +15,11 @@ import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost
 import { QUEST_HOST as sky } from '../src/shards/far-reach/data/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
 import { FLAGS } from '../src/shards/far-reach/quests/flags';
+
+const traderFile = traderOutput.namedFiles.find(row => row.name === 'quests/trader.json');
+const traderBytes = traderFile === undefined ? undefined : traderOutput.assets.get(traderFile.hash);
+if (traderBytes === undefined) throw new Error('Missing published trader rows');
+const TRADER_PAGE = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(traderBytes)));
 
 test('Signal refuses unraised oil, runs the crank and restores saved page state',()=>{
   const flags=new Flags('page-beats-signal',false),well={label:'well'},logbook={label:'logbook'},jar={visible:true},toasts:string[]=[];

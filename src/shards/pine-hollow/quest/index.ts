@@ -147,7 +147,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const beatParam = h.params.get('quest');
   const beat: Beat | null = beatParam !== null && isBeat(beatParam) ? beatParam : null;
   if (beat) { flags.reset(); for (const f of beatFlags(beat)) flags.set(f); }
-  const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = bindPineFacts(ctx, progress, h.chunkId, facts);
+  const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindPineFacts(ctx, progress, h.chunkId, facts);
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, 'wardens-hollow', { flags, facts });
 
   let sfx: PineHollowSfx | null = null;

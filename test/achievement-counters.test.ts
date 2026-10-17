@@ -1,14 +1,24 @@
 import { expect,test } from 'vitest';
+import { parseAchievementCounterData } from '../src/format/achievementCounters';
+import { output as pineOutput } from '../src/shards/pine-hollow/generators/output';
+import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generators/output';
 import { createAchievementCounters } from '../src/game/achievements';
-import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/data/questInventory';
-import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/data/questInventory';
+import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
+import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
+
+function counterData(output: { readonly namedFiles: readonly { name?: string; hash: string }[]; readonly assets: ReadonlyMap<string, Uint8Array> }) {
+  const file = output.namedFiles.find(row => row.name === 'quests/achievements.json'), bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing admitted achievement policy');
+  return parseAchievementCounterData(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+}
+const pineData = counterData(pineOutput), driftwoodData = counterData(driftwoodOutput);
 
 test('old progress advances with original matching, identities, saturation and write order',()=>{
   let drift:Record<string,number>={crab10:4};const emitted:string[]=[];
-  const counter=createAchievementCounters(DRIFTWOOD_FEAT_COUNTERS,{read:()=>({...drift}),write:state=>{drift=state;},emit:(fact,id)=>{expect(drift['crab10']).toBeLessThan(6);emitted.push(`${fact}/${id}`);}});
+  const counter=createAchievementCounters(driftwoodData,{read:()=>({...drift}),write:state=>{drift=state;},emit:(fact,id)=>{expect(drift['crab10']).toBeLessThan(6);emitted.push(`${fact}/${id}`);}});
   counter.kill('crab');counter.count('crab10',6.8);expect(drift['crab10']).toBe(6);expect(emitted).toContain('driftwood.crab10/crab10:5');expect(emitted).toContain('driftwood.crab10/crab10:6');
   const pine:Record<string,number>={deer5:2,ghost:0};const witnessed:string[]=[];
-  const policy=createAchievementCounters(PINE_FEAT_COUNTERS,{read:()=>({...pine}),write:state=>{Object.assign(pine,state);},emit:(fact,id)=>{witnessed.push(`${fact}/${id}`);}});
+  const policy=createAchievementCounters(pineData,{read:()=>({...pine}),write:state=>{Object.assign(pine,state);},emit:(fact,id)=>{witnessed.push(`${fact}/${id}`);}});
   policy.replay();expect(witnessed).toContain('pine.feat.deer5/deer5:2');const saved=pine['ghost'];
   policy.kill('deer','ordinary');expect(pine['ghost']).toBe(saved);expect(pine['deer5']).toBeGreaterThan(2);
   policy.kill('deer','ghost');expect(pine['ghost']).toBeGreaterThan(saved??0);policy.event('resin',1000);expect(pine['resin']).toBeLessThanOrEqual(30);
@@ -16,7 +26,7 @@ test('old progress advances with original matching, identities, saturation and w
 });
 test('unknown explicit feat and malformed row bounds refuse without writes',()=>{
   let written=false;const ports={read:()=>({}),write:()=>{written=true;},emit:()=>undefined};
-  const counter=createAchievementCounters(DRIFTWOOD_FEAT_COUNTERS,ports);expect(()=>counter.count('missing',1)).toThrow();expect(()=>counter.count('crab10',Number.NaN)).toThrow();expect(written).toBe(false);
+  const counter=createAchievementCounters(driftwoodData,ports);expect(()=>counter.count('missing',1)).toThrow();expect(()=>counter.count('crab10',Number.NaN)).toThrow();expect(written).toBe(false);
   expect(()=>createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats:[{id:'bad',count:Infinity}]},ports)).toThrow();
 });
 
@@ -36,4 +46,15 @@ test('flag rows preserve old counters, callback order and malformed-row refusal'
   let written=false;
   expect(()=>createAchievementCounters({...PINE_FEAT_COUNTERS,flags:[{id:'bad',method:'event',value:{prefix:''}}]},
     {read:()=>({}),write:()=>{written=true;},emit:()=>undefined})).toThrow();expect(written).toBe(false);
+});
+
+test('published policy data preserves ordered flags, matching rows and the two write policies', () => {
+  for (const [actual, authored] of [[pineData, PINE_FEAT_COUNTERS], [driftwoodData, DRIFTWOOD_FEAT_COUNTERS]] as const) {
+    expect(actual.flags).toEqual(authored.flags);
+    expect(actual.feats).toEqual(authored.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))));
+    expect([actual.prefix, actual.floorTotals, actual.validateTotals, actual.write]).toEqual([authored.prefix, authored.floorTotals, authored.validateTotals, authored.write]);
+    expect(() => parseAchievementCounterData({ ...actual, unknown: true })).toThrow();
+    expect(() => parseAchievementCounterData({ ...actual, write: 'later' })).toThrow();
+    expect(() => parseAchievementCounterData({ ...actual, flags: [{ id: 'bad', method: 'event', value: { flag: 'one', prefix: 'both' } }] })).toThrow();
+  }
 });

@@ -1,4 +1,5 @@
 import { cableModes } from '@wildshard/engine/player/modes';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -118,6 +119,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
+  const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
 
@@ -137,10 +139,10 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     ]) });
 
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
-  const grants = bindDriftwoodFacts(ctx, declaration, w.progress?.rows ?? [], w.progress, w.chunk.slug);
+  const grants = await bindDriftwoodFacts(ctx, declaration, w.progress?.rows ?? [], w.progress, w.chunk.slug);
   adventure.spine = installSpine(adventure, w, ctx, grants.facts, declaration);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
-  adventure.trader = installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
+  adventure.trader = installTrader(adventure, w, traderRows);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
   installFeats(adventure, w, () => { grants.syncFlags(flags); });
   if (w.ironDrop) {
     const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)

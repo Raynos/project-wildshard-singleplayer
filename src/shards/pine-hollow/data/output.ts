@@ -2,7 +2,6 @@ import {parseAmbientLife} from '@wildshard/format/ambientLife';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
 import journal from './journalBlobs.generated.json' with {type:'json'};
 import pickups from './skinPickups.json' with {type:'json'};
-import {PINE_FEATS,PINE_BAG_ITEMS} from './questInventory';
 import {PINE_LIFE} from './ambientLife';
 import playback from './heldPlayback.json' with {type:'json'};
 import inputs from './heldInputs.json' with {type:'json'};
@@ -30,7 +29,6 @@ const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...ki
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
 const values:Readonly<Record<string,unknown>>={
  'custom/skinPickups':pickups,
- 'custom/questInventory':{feats:PINE_FEATS,items:PINE_BAG_ITEMS},
  'custom/ambientLife':PINE_LIFE,
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
  'custom/leverDetails':{...leverDetails,pool:{...leverDetails.pool,url:named(leverDetails.pool.url)}},

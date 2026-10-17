@@ -420,7 +420,7 @@
         "src/shards/pine-hollow/generators/items.ts",
         "src/shards/pine-hollow/generators/nativeLoadout.ts",
         "src/shards/pine-hollow/generators/nativeInventory.ts",
-        "src/shards/pine-hollow/data/questInventory.ts",
+        "src/shards/pine-hollow/generators/questInventory.ts",
         "src/shards/pine-hollow/generators/equipment.ts",
         "src/shards/pine-hollow/generators/leverProfile.ts",
         "src/shards/pine-hollow/generators/crossbowProfile.ts",
@@ -453,7 +453,7 @@
         "src/shards/driftwood-isle/generators/bake-items.mjs",
         "src/shards/driftwood-isle/generators/items.ts",
         "src/shards/driftwood-isle/generators/nativeInventory.ts",
-        "src/shards/driftwood-isle/data/questInventory.ts",
+        "src/shards/driftwood-isle/generators/questInventory.ts",
         "src/shards/driftwood-isle/data/interactables.ts",
         "src/shards/driftwood-isle/data/questStory.ts",
         "src/shards/driftwood-isle/generators/meleeProfile.ts"

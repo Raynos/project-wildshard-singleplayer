@@ -1,5 +1,5 @@
-import { SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
-import { QUEST_DONE } from './questStory';
+import { SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
+import { QUEST_DONE } from '../data/questStory';
 
 /** Existing achievement metadata; the declared ledger remains its authoritative gameplay projection. */
 export const DRIFTWOOD_FEATS = [

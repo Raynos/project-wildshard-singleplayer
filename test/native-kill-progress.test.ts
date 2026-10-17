@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installDriftwoodKills, KILLS_STEP, SAILOR_DEAD_FLAG } from '../src/shards/driftwood-isle/sim/kills';
-import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/data/questInventory';
+import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
 
 test('native kill counters resume old progress, keep flag/emission order and refuse malformed saves', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

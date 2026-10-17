@@ -14,6 +14,7 @@ import { pineTableFromPlacements } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
+import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
@@ -71,6 +72,7 @@ const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>) => v
 export interface PineQuestDay { phase: number; readonly night: number }
 /** What the quest keeper is lent. */
 export interface PineQuestPorts {
+  readonly counters: AchievementCounterData;
   readonly inventory: NativeInventoryProfile<string>;
   readonly contracts: ConstructorParameters<typeof PineLodge>[0]['contracts'];
   readonly trades: ConstructorParameters<typeof PineTrader>[0]['catalogue'];
@@ -236,7 +238,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const state = { rifle: false };
 
   let counts: Record<string, number> = {};
-  const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
+  const feats = createPineFacts(ports.counters, { read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
   const lodge = new PineLodge({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius,
     addItem: (id, n) => { pack.add(id, n); }, addBolts: ports.addBolts, ownSkin: () => { hollowAsh = true; },
     streak: total => { feats.event('streak', total); } });

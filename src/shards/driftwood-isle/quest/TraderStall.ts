@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import { bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
-import { TRADER_PAGE } from '../data/traderPage';
+import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { trader, tradeCounter, traderOf, traderRigOf } from '../runtime/models/trader';
 import type { Trader } from '../runtime/npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
@@ -42,7 +42,7 @@ const TRADE_AHEAD = 1.9, TRADE_R = 2.8;
 /** the view's tilt while the shop is open (rad, down): her head at ~30 % of a portrait screen, over the sheet */
 const SHOP_PITCH = -0.32;
 
-export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): TraderStall | null {
+export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, rows: QuestPageInteractionsData): TraderStall | null {
   const feet = adv.place({ poi: 'hut', x: FEET.x, z: FEET.z, yaw: FEET.yaw });
   const fx = Math.sin(feet.yaw), fz = Math.cos(feet.yaw);
   const cx = feet.x + fx * COUNTER_AHEAD, cz = feet.z + fz * COUNTER_AHEAD;
@@ -69,7 +69,7 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   const at = new THREE.Vector3(ax, adv.floorAt(ax, az) + 1.35, az);
   const stall: TraderStall = { trader: t, at, shop: null };
   let pitchBefore = 0, wasOpen = false;
-  bindQuestPageInteractions(TRADER_PAGE, { flags: adv.flags, promptIds: ['trade'], interactables: w.prompts,
+  bindQuestPageInteractions(rows, { flags: adv.flags, promptIds: ['trade'], interactables: w.prompts,
     toast: text => { w.hud.toast(text); }, owners: new Map<string, unknown>([
       ['shop', { at, get ready() { return stall.shop !== null; }, get open() { return stall.shop?.isOpen === true; } }],
       ['commands', { trade: () => {

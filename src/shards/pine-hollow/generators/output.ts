@@ -17,6 +17,8 @@ import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
+import { PINE_FEAT_COUNTERS, PINE_FEATS, PINE_BAG_ITEMS } from './questInventory';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from '../data/cabinLook';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
@@ -35,7 +37,9 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
   return row.kind === 'glb' ? { ...row, options: { ...row.options, meshopt: true } } : row;
 }
 
+const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),
   nameBlob('quests/trades.json', 'json', new TextEncoder().encode(encodeCanonicalJson(tradeCatalogue()))),
   nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue()))),
   nameBlob('movers/canoe.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_CANOE))),
@@ -47,7 +51,7 @@ nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJ
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:PINE_OUTPUT.custom[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=name==='custom/questInventory'?{feats:PINE_FEATS,items:PINE_BAG_ITEMS}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:PINE_OUTPUT.custom[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 }));

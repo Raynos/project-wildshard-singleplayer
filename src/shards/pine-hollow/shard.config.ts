@@ -4,7 +4,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import AUDIO from './data/audio.generated.json' with { type: 'json' };
 import PINE_ITEMS from './data/items.generated.json' with { type: 'json' };
-import { PINE_LEDGER } from './data/ledger';
+import { PINE_LEDGER } from './generators/ledger';
 import { PINE_QUESTS } from './data/quests';
 import { PINE_RUNTIME_SPAWNS } from './data/spawns';
 import { PINE_STATE } from './data/state';
